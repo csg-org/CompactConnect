@@ -264,7 +264,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             # if their latest privilege expiration date matches the license expiration date they will not
             # receive any benefit from purchasing the same privilege, since the expiration date will not change
             and privilege['dateOfExpiration'] == matching_license_record['dateOfExpiration']
-            and privilege['persistedStatus'] == ActiveInactiveStatus.ACTIVE
+            and privilege['administratorSetStatus'] == ActiveInactiveStatus.ACTIVE
         ):
             raise CCInvalidRequestException(
                 f"Selected privilege jurisdiction '{privilege['jurisdiction'].lower()}'"

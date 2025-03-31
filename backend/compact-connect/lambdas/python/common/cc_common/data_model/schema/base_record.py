@@ -116,7 +116,7 @@ class CalculatedStatusRecordSchema(BaseRecordSchema):
         in_data['licenseStatus'] = (
             ActiveInactiveStatus.ACTIVE
             if (
-                in_data['persistedLicenseStatus'] == ActiveInactiveStatus.ACTIVE
+                in_data['jurisdictionUploadedLicenseStatus'] == ActiveInactiveStatus.ACTIVE
                 and date.fromisoformat(in_data['dateOfExpiration'])
                 > datetime.now(tz=config.expiration_date_resolution_timezone).date()
             )
@@ -132,7 +132,7 @@ class CalculatedStatusRecordSchema(BaseRecordSchema):
         in_data['compactEligibility'] = (
             CompactEligibilityStatus.ELIGIBLE
             if (
-                in_data['persistedCompactEligibility'] == CompactEligibilityStatus.ELIGIBLE
+                in_data['jurisdictionUploadedCompactEligibility'] == CompactEligibilityStatus.ELIGIBLE
                 and in_data['licenseStatus'] == ActiveInactiveStatus.ACTIVE
             )
             else CompactEligibilityStatus.INELIGIBLE

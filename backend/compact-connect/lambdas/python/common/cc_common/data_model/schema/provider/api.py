@@ -59,8 +59,8 @@ class ProviderGeneralResponseSchema(ForgivingSchema):
     compactConnectRegisteredEmailAddress = Email(required=False, allow_none=False)
     cognitoSub = String(required=False, allow_none=False)
 
-    persistedLicenseStatus = ActiveInactive(required=True, allow_none=False)
-    persistedCompactEligibility = CompactEligibility(required=True, allow_none=False)
+    jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
+    jurisdictionUploadedCompactEligibility = CompactEligibility(required=True, allow_none=False)
 
     privilegeJurisdictions = Set(String, required=False, allow_none=False, load_default=set())
     providerFamGivMid = String(required=False, allow_none=False, validate=Length(2, 400))

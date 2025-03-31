@@ -108,14 +108,14 @@
             ],
             "type": "string"
           },
-          "persistedLicenseStatus": {
+          "jurisdictionUploadedLicenseStatus": {
             "enum": [
               "active",
               "inactive"
             ],
             "type": "string"
           },
-          "persistedCompactEligibility": {
+          "jurisdictionUploadedCompactEligibility": {
             "enum": [
               "eligible",
               "ineligible"
@@ -226,14 +226,14 @@
                 },
                 "previous": {
                   "properties": {
-                    "persistedLicenseStatus": {
+                    "jurisdictionUploadedLicenseStatus": {
                       "enum": [
                         "active",
                         "inactive"
                       ],
                       "type": "string"
                     },
-                    "persistedCompactEligibility": {
+                    "jurisdictionUploadedCompactEligibility": {
                       "enum": [
                         "eligible",
                         "ineligible"
@@ -356,21 +356,21 @@
                     "homeAddressCity",
                     "homeAddressState",
                     "homeAddressPostalCode",
-                    "persistedLicenseStatus",
-                    "persistedCompactEligibility"
+                    "jurisdictionUploadedLicenseStatus",
+                    "jurisdictionUploadedCompactEligibility"
                   ],
                   "type": "object"
                 },
                 "updatedValues": {
                   "properties": {
-                    "persistedLicenseStatus": {
+                    "jurisdictionUploadedLicenseStatus": {
                       "enum": [
                         "active",
                         "inactive"
                       ],
                       "type": "string"
                     },
-                    "persistedCompactEligibility": {
+                    "jurisdictionUploadedCompactEligibility": {
                       "enum": [
                         "eligible",
                         "ineligible"
@@ -613,8 +613,8 @@
           "birthMonthDay",
           "licenseStatus",
           "compactEligibility",
-          "persistedLicenseStatus",
-          "persistedCompactEligibility",
+          "jurisdictionUploadedLicenseStatus",
+          "jurisdictionUploadedCompactEligibility",
           "history"
         ],
         "type": "object"
@@ -884,7 +884,7 @@
                       ],
                       "type": "string"
                     },
-                    "persistedStatus": {
+                    "administratorSetStatus": {
                       "enum": [
                         "active",
                         "inactive"
@@ -927,7 +927,7 @@
                     "compactTransactionId",
                     "privilegeId",
                     "licenseJurisdiction",
-                    "persistedStatus",
+                    "administratorSetStatus",
                     "attestations"
                   ],
                   "type": "object"
@@ -1094,7 +1094,7 @@
                       ],
                       "type": "string"
                     },
-                    "persistedStatus": {
+                    "administratorSetStatus": {
                       "enum": [
                         "active",
                         "inactive"
@@ -1321,7 +1321,7 @@
             ],
             "type": "string"
           },
-          "persistedStatus": {
+          "administratorSetStatus": {
             "enum": [
               "active",
               "inactive"
@@ -1369,7 +1369,7 @@
           "privilegeId",
           "licenseType",
           "licenseJurisdiction",
-          "persistedStatus",
+          "administratorSetStatus",
           "status",
           "attestations",
           "history"
@@ -1587,14 +1587,14 @@
       ],
       "type": "string"
     },
-    "persistedLicenseStatus": {
+    "jurisdictionUploadedLicenseStatus": {
       "enum": [
         "active",
         "inactive"
       ],
       "type": "string"
     },
-    "persistedCompactEligibility": {
+    "jurisdictionUploadedCompactEligibility": {
       "enum": [
         "eligible",
         "ineligible"

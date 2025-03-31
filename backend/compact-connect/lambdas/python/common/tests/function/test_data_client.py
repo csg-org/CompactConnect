@@ -172,7 +172,7 @@ class TestDataClient(TstFunction):
                 'jurisdiction': 'ca',
                 'licenseJurisdiction': 'oh',
                 'licenseType': 'audiologist',
-                'persistedStatus': 'active',
+                'administratorSetStatus': 'active',
                 'dateOfIssuance': '2024-11-08T23:59:59+00:00',
                 'dateOfRenewal': '2024-11-08T23:59:59+00:00',
                 'dateOfExpiration': '2024-10-31',
@@ -223,7 +223,7 @@ class TestDataClient(TstFunction):
             'jurisdiction': 'ky',
             'licenseJurisdiction': 'oh',
             'licenseType': 'audiologist',
-            'persistedStatus': 'active',
+            'administratorSetStatus': 'active',
             'dateOfIssuance': '2023-11-08T23:59:59+00:00',
             'dateOfRenewal': '2023-11-08T23:59:59+00:00',
             'dateOfExpiration': '2024-10-31',
@@ -245,7 +245,7 @@ class TestDataClient(TstFunction):
             'jurisdiction': 'ne',
             'licenseJurisdiction': 'oh',
             'licenseType': 'speech-language pathologist',
-            'persistedStatus': 'active',
+            'administratorSetStatus': 'active',
             'dateOfIssuance': '2023-11-08T23:59:59+00:00',
             'dateOfRenewal': '2023-11-08T23:59:59+00:00',
             'dateOfExpiration': '2024-10-31',
@@ -287,6 +287,7 @@ class TestDataClient(TstFunction):
             KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_uuid}')
             & Key('sk').begins_with('aslp#PROVIDER#privilege/ky/aud#'),
         )['Items']
+        self.maxDiff = None
         self.assertEqual(
             [
                 # Primary record
@@ -299,7 +300,7 @@ class TestDataClient(TstFunction):
                     'jurisdiction': 'ky',
                     'licenseJurisdiction': 'oh',
                     'licenseType': 'audiologist',
-                    'persistedStatus': 'active',
+                    'administratorSetStatus': 'active',
                     # Should be updated dates for renewal, expiration, update
                     'dateOfIssuance': '2023-11-08T23:59:59+00:00',
                     'dateOfRenewal': '2024-11-08T23:59:59+00:00',
@@ -314,7 +315,7 @@ class TestDataClient(TstFunction):
                 # A new history record
                 {
                     'pk': f'aslp#PROVIDER#{provider_uuid}',
-                    'sk': 'aslp#PROVIDER#privilege/ky/aud#UPDATE#1731110399/cda961edc5c829a8d11850ee101c2b34',
+                    'sk': 'aslp#PROVIDER#privilege/ky/aud#UPDATE#1731110399/f61e34798e1775ff6230d1187d444146',
                     'type': 'privilegeUpdate',
                     'updateType': 'renewal',
                     'providerId': provider_uuid,
@@ -330,7 +331,7 @@ class TestDataClient(TstFunction):
                         'dateOfUpdate': '2023-11-08T23:59:59+00:00',
                         'compactTransactionId': '1234567890',
                         'attestations': self.sample_privilege_attestations,
-                        'persistedStatus': 'active',
+                        'administratorSetStatus': 'active',
                         'licenseJurisdiction': 'oh',
                         'privilegeId': 'AUD-KY-1',
                     },
@@ -363,7 +364,7 @@ class TestDataClient(TstFunction):
                     'jurisdiction': 'ne',
                     'licenseJurisdiction': 'oh',
                     'licenseType': 'audiologist',
-                    'persistedStatus': 'active',
+                    'administratorSetStatus': 'active',
                     # issuance and renewal dates should be the same
                     'dateOfIssuance': '2024-11-08T23:59:59+00:00',
                     'dateOfRenewal': '2024-11-08T23:59:59+00:00',
@@ -446,7 +447,7 @@ class TestDataClient(TstFunction):
                 'dateOfExpiration': date(2024, 10, 31),
                 'dateOfUpdate': datetime(2023, 11, 8, 23, 59, 59, tzinfo=UTC),
                 'compactTransactionId': '1234567890',
-                'persistedStatus': ActiveInactiveStatus.ACTIVE,
+                'administratorSetStatus': ActiveInactiveStatus.ACTIVE,
             }
             self._provider_table.put_item(Item=privilege_record_schema.dump(original_privilege))
             original_privileges.append(original_privilege)
@@ -528,7 +529,7 @@ class TestDataClient(TstFunction):
                 'dateOfExpiration': date(2024, 10, 31),
                 'dateOfUpdate': datetime(2023, 11, 8, 23, 59, 59, tzinfo=UTC),
                 'compactTransactionId': '1234567890',
-                'persistedStatus': ActiveInactiveStatus.ACTIVE,
+                'administratorSetStatus': ActiveInactiveStatus.ACTIVE,
             }
             dumped_privilege = privilege_record_schema.dump(original_privilege)
             self._provider_table.put_item(Item=dumped_privilege)
@@ -707,7 +708,7 @@ class TestDataClient(TstFunction):
             'licenseJurisdiction': 'oh',
             'licenseType': 'audiologist',
             'jurisdiction': 'ne',
-            'persistedStatus': 'active',
+            'administratorSetStatus': 'active',
             'dateOfIssuance': '2023-11-08T23:59:59+00:00',
             'dateOfRenewal': '2023-11-08T23:59:59+00:00',
             'dateOfExpiration': '2024-10-31',
@@ -734,6 +735,7 @@ class TestDataClient(TstFunction):
             KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
             & Key('sk').begins_with('aslp#PROVIDER#privilege/ne/aud#'),
         )['Items']
+        self.maxDiff = None
         self.assertEqual(
             [
                 # Primary record
@@ -746,7 +748,7 @@ class TestDataClient(TstFunction):
                     'licenseJurisdiction': 'oh',
                     'licenseType': 'audiologist',
                     'jurisdiction': 'ne',
-                    'persistedStatus': 'inactive',
+                    'administratorSetStatus': 'inactive',
                     'dateOfIssuance': '2023-11-08T23:59:59+00:00',
                     'dateOfRenewal': '2023-11-08T23:59:59+00:00',
                     'dateOfExpiration': '2024-10-31',
@@ -759,7 +761,7 @@ class TestDataClient(TstFunction):
                 # A new history record
                 {
                     'pk': f'aslp#PROVIDER#{provider_id}',
-                    'sk': 'aslp#PROVIDER#privilege/ne/aud#UPDATE#1731110399/ea6384fced955d3307df919907982f28',
+                    'sk': 'aslp#PROVIDER#privilege/ne/aud#UPDATE#1731110399/aac682a76e1182a641a1b40dd606ae51',
                     'type': 'privilegeUpdate',
                     'updateType': 'deactivation',
                     'providerId': provider_id,
@@ -775,12 +777,12 @@ class TestDataClient(TstFunction):
                         'dateOfUpdate': '2023-11-08T23:59:59+00:00',
                         'compactTransactionId': '1234567890',
                         'attestations': self.sample_privilege_attestations,
-                        'persistedStatus': 'active',
+                        'administratorSetStatus': 'active',
                         'licenseJurisdiction': 'oh',
                         'privilegeId': 'AUD-NE-1',
                     },
                     'updatedValues': {
-                        'persistedStatus': 'inactive',
+                        'administratorSetStatus': 'inactive',
                     },
                 },
             ],
@@ -833,7 +835,7 @@ class TestDataClient(TstFunction):
             'jurisdiction': 'ne',
             'licenseJurisdiction': 'oh',
             'licenseType': 'audiologist',
-            'persistedStatus': 'inactive',
+            'administratorSetStatus': 'inactive',
             'dateOfIssuance': '2023-11-08T23:59:59+00:00',
             'dateOfRenewal': '2023-11-08T23:59:59+00:00',
             'dateOfExpiration': '2024-10-31',
@@ -867,7 +869,7 @@ class TestDataClient(TstFunction):
                 'privilegeId': 'AUD-NE-1',
             },
             'updatedValues': {
-                'persistedStatus': 'inactive',
+                'administratorSetStatus': 'inactive',
             },
         }
         self._provider_table.put_item(Item=original_history)

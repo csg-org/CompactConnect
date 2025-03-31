@@ -29,8 +29,8 @@ class LicenseIngestSchema(LicenseCommonSchema):
     licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
     # This is used to calculate the actual 'licenseStatus' used by the system in addition
     # to the expiration date of the license.
-    persistedLicenseStatus = ActiveInactive(required=True, allow_none=False)
-    persistedCompactEligibility = CompactEligibility(required=True, allow_none=False)
+    jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
+    jurisdictionUploadedCompactEligibility = CompactEligibility(required=True, allow_none=False)
 
     @pre_load
     def pre_load_initialization(self, in_data, **_kwargs):
@@ -39,28 +39,29 @@ class LicenseIngestSchema(LicenseCommonSchema):
 
     def _set_jurisdiction_status(self, in_data, **_kwargs):
         """
-        This maps the income 'licenseStatus' value to the internal 'persistedLicenseStatus' field.
+        This maps the income 'licenseStatus' value to the internal 'jurisdictionUploadedLicenseStatus' field.
         """
-        in_data['persistedLicenseStatus'] = in_data.pop('licenseStatus')
+        in_data['jurisdictionUploadedLicenseStatus'] = in_data.pop('licenseStatus')
         return in_data
 
     def _set_compact_eligibility(self, in_data, **_kwargs):
         """
-        This maps the income 'compactEligibility' value to the internal 'persistedCompactEligibility' field.
+        This maps the income 'compactEligibility' value to the internal 'jurisdictionUploadedCompactEligibility' field.
         """
-        in_data['persistedCompactEligibility'] = in_data.pop('compactEligibility')
+        in_data['jurisdictionUploadedCompactEligibility'] = in_data.pop('compactEligibility')
         return in_data
 
     @validates_schema
     def validate_persisted_compact_eligibility(self, data, **_kwargs):
         if (
-            data['persistedLicenseStatus'] == ActiveInactiveStatus.INACTIVE
-            and data['persistedCompactEligibility'] == CompactEligibilityStatus.ELIGIBLE
+            data['jurisdictionUploadedLicenseStatus'] == ActiveInactiveStatus.INACTIVE
+            and data['jurisdictionUploadedCompactEligibility'] == CompactEligibilityStatus.ELIGIBLE
         ):
             raise ValidationError(
                 {
-                    'persistedCompactEligibility': [
-                        'persistedCompactEligibility cannot be eligible if persistedLicenseStatus is inactive.'
+                    'jurisdictionUploadedCompactEligibility': [
+                        'jurisdictionUploadedCompactEligibility cannot be eligible if jurisdictionUploadedLicenseStatus'
+                        ' is inactive.'
                     ]
                 }
             )

@@ -248,10 +248,10 @@ class TestIngest(TstFunction):
             expected_provider = json.load(f)
 
         # The license status and provider should immediately be inactive
-        expected_provider['persistedLicenseStatus'] = 'inactive'
-        expected_provider['persistedCompactEligibility'] = 'ineligible'
-        expected_provider['licenses'][0]['persistedLicenseStatus'] = 'inactive'
-        expected_provider['licenses'][0]['persistedCompactEligibility'] = 'ineligible'
+        expected_provider['jurisdictionUploadedLicenseStatus'] = 'inactive'
+        expected_provider['jurisdictionUploadedCompactEligibility'] = 'ineligible'
+        expected_provider['licenses'][0]['jurisdictionUploadedLicenseStatus'] = 'inactive'
+        expected_provider['licenses'][0]['jurisdictionUploadedCompactEligibility'] = 'ineligible'
         # these should be calculated as inactive at record load time
         expected_provider['licenseStatus'] = 'inactive'
         expected_provider['licenses'][0]['licenseStatus'] = 'inactive'
@@ -279,9 +279,9 @@ class TestIngest(TstFunction):
                         'ssnLastFour': '1234',
                         'npi': '0608337260',
                         'licenseNumber': 'A0608337260',
-                        'persistedLicenseStatus': 'active',
+                        'jurisdictionUploadedLicenseStatus': 'active',
                         'licenseStatusName': 'DEFINITELY_A_HUMAN',
-                        'persistedCompactEligibility': 'eligible',
+                        'jurisdictionUploadedCompactEligibility': 'eligible',
                         'givenName': 'Björk',
                         'middleName': 'Gunnar',
                         'familyName': 'Guðmundsdóttir',
@@ -298,8 +298,8 @@ class TestIngest(TstFunction):
                         'phoneNumber': '+13213214321',
                     },
                     'updatedValues': {
-                        'persistedLicenseStatus': 'inactive',
-                        'persistedCompactEligibility': 'ineligible',
+                        'jurisdictionUploadedLicenseStatus': 'inactive',
+                        'jurisdictionUploadedCompactEligibility': 'ineligible',
                     },
                 }
             ]
@@ -383,9 +383,9 @@ class TestIngest(TstFunction):
                         'ssnLastFour': '1234',
                         'npi': '0608337260',
                         'licenseNumber': 'A0608337260',
-                        'persistedLicenseStatus': 'active',
+                        'jurisdictionUploadedLicenseStatus': 'active',
                         'licenseStatusName': 'DEFINITELY_A_HUMAN',
-                        'persistedCompactEligibility': 'eligible',
+                        'jurisdictionUploadedCompactEligibility': 'eligible',
                         'givenName': 'Björk',
                         'middleName': 'Gunnar',
                         'familyName': 'Guðmundsdóttir',
@@ -465,9 +465,9 @@ class TestIngest(TstFunction):
                         'ssnLastFour': '1234',
                         'npi': '0608337260',
                         'licenseNumber': 'A0608337260',
-                        'persistedLicenseStatus': 'active',
+                        'jurisdictionUploadedLicenseStatus': 'active',
                         'licenseStatusName': 'DEFINITELY_A_HUMAN',
-                        'persistedCompactEligibility': 'eligible',
+                        'jurisdictionUploadedCompactEligibility': 'eligible',
                         'givenName': 'Björk',
                         'middleName': 'Gunnar',
                         'familyName': 'Guðmundsdóttir',
@@ -587,9 +587,9 @@ class TestIngest(TstFunction):
                         'ssnLastFour': '1234',
                         'npi': '0608337260',
                         'licenseNumber': 'A0608337260',
-                        'persistedLicenseStatus': 'active',
+                        'jurisdictionUploadedLicenseStatus': 'active',
                         'licenseStatusName': 'DEFINITELY_A_HUMAN',
-                        'persistedCompactEligibility': 'eligible',
+                        'jurisdictionUploadedCompactEligibility': 'eligible',
                         'givenName': 'Björk',
                         'middleName': 'Gunnar',
                         'familyName': 'Guðmundsdóttir',
@@ -661,9 +661,9 @@ class TestIngest(TstFunction):
                         'ssnLastFour': '1234',
                         'npi': '0608337260',
                         'licenseNumber': 'A0608337260',
-                        'persistedLicenseStatus': 'active',
+                        'jurisdictionUploadedLicenseStatus': 'active',
                         'licenseStatusName': 'DEFINITELY_A_HUMAN',
-                        'persistedCompactEligibility': 'eligible',
+                        'jurisdictionUploadedCompactEligibility': 'eligible',
                         'givenName': 'Björk',
                         'middleName': 'Gunnar',
                         'familyName': 'Guðmundsdóttir',
@@ -769,7 +769,7 @@ class TestIngest(TstFunction):
             'compactTransactionId': '1234567890',
             'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#1234567890#',
             'privilegeId': 'test-privilege-id',
-            'persistedStatus': 'inactive',  # This privilege is inactive
+            'administratorSetStatus': 'inactive',  # This privilege is inactive
             'attestations': [],
         }
         self.config.provider_table.put_item(Item=inactive_privilege)

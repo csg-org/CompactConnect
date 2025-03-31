@@ -35,8 +35,8 @@ class ProviderRecordSchema(CalculatedStatusRecordSchema):
     compact = Compact(required=True, allow_none=False)
     licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
 
-    persistedLicenseStatus = ActiveInactive(required=True, allow_none=False)
-    persistedCompactEligibility = CompactEligibility(required=True, allow_none=False)
+    jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
+    jurisdictionUploadedCompactEligibility = CompactEligibility(required=True, allow_none=False)
 
     ssnLastFour = String(required=True, allow_none=False)
     npi = NationalProviderIdentifier(required=False, allow_none=False)

@@ -62,7 +62,7 @@ class TestProviderRecordSchema(TstLambdas):
         with open('tests/resources/dynamo/provider.json') as f:
             raw_provider_data = json.load(f)
             raw_provider_data['dateOfExpiration'] = '2100-01-01'
-            raw_provider_data['persistedLicenseStatus'] = 'inactive'
+            raw_provider_data['jurisdictionUploadedLicenseStatus'] = 'inactive'
 
         schema = ProviderRecordSchema()
         provider_data = schema.load(raw_provider_data)

@@ -158,11 +158,11 @@ class TstFunction(TstLambdas):
             with open(resource) as f:
                 record = json.load(f, parse_float=Decimal)
                 if eligibility == CompactEligibilityStatus.ELIGIBLE:
-                    record['persistedCompactEligibility'] = CompactEligibilityStatus.ELIGIBLE
-                    record['persistedLicenseStatus'] = ActiveInactiveStatus.ACTIVE
+                    record['jurisdictionUploadedCompactEligibility'] = CompactEligibilityStatus.ELIGIBLE
+                    record['jurisdictionUploadedLicenseStatus'] = ActiveInactiveStatus.ACTIVE
                 else:
-                    record['persistedCompactEligibility'] = CompactEligibilityStatus.INELIGIBLE
-                    record['persistedLicenseStatus'] = ActiveInactiveStatus.INACTIVE
+                    record['jurisdictionUploadedCompactEligibility'] = CompactEligibilityStatus.INELIGIBLE
+                    record['jurisdictionUploadedLicenseStatus'] = ActiveInactiveStatus.INACTIVE
 
                 if expiration_date:
                     record['dateOfExpiration'] = expiration_date

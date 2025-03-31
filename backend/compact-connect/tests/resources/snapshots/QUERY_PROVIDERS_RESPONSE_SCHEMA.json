@@ -55,14 +55,14 @@
             ],
             "type": "string"
           },
-          "persistedLicenseStatus": {
+          "jurisdictionUploadedLicenseStatus": {
             "enum": [
               "active",
               "inactive"
             ],
             "type": "string"
           },
-          "persistedCompactEligibility": {
+          "jurisdictionUploadedCompactEligibility": {
             "enum": [
               "eligible",
               "ineligible"
@@ -275,8 +275,8 @@
           "familyName",
           "licenseStatus",
           "compactEligibility",
-          "persistedLicenseStatus",
-          "persistedCompactEligibility",
+          "jurisdictionUploadedLicenseStatus",
+          "jurisdictionUploadedCompactEligibility",
           "compact",
           "licenseJurisdiction",
           "privilegeJurisdictions",

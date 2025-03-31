@@ -6,8 +6,8 @@
   "givenName": "Björk",
   "middleName": "Gunnar",
   "familyName": "Guðmundsdóttir",
-  "persistedLicenseStatus": "active",
-  "persistedCompactEligibility": "eligible",
+  "jurisdictionUploadedLicenseStatus": "active",
+  "jurisdictionUploadedCompactEligibility": "eligible",
   "licenseStatus": "active",
   "compactEligibility": "eligible",
   "compact": "aslp",
@@ -36,8 +36,8 @@
       "npi": "0608337260",
       "licenseNumber": "A0608337260",
       "licenseType": "speech-language pathologist",
-      "persistedLicenseStatus": "active",
-      "persistedCompactEligibility": "eligible",
+      "jurisdictionUploadedLicenseStatus": "active",
+      "jurisdictionUploadedCompactEligibility": "eligible",
       "licenseStatus": "active",
       "licenseStatusName": "DEFINITELY_A_HUMAN",
       "compactEligibility": "eligible",
@@ -68,9 +68,9 @@
           "previous": {
             "npi": "0608337260",
             "licenseNumber": "A0608337260",
-            "persistedLicenseStatus": "active",
+            "jurisdictionUploadedLicenseStatus": "active",
             "licenseStatusName": "DEFINITELY_A_HUMAN",
-            "persistedCompactEligibility": "eligible",
+            "jurisdictionUploadedCompactEligibility": "eligible",
             "ssnLastFour": "1234",
             "givenName": "Björk",
             "middleName": "Gunnar",
@@ -111,7 +111,7 @@
       "dateOfUpdate": "2020-05-05T12:59:59+00:00",
       "compactTransactionId": "1234567890",
       "privilegeId": "SLP-NE-1",
-      "persistedStatus": "active",
+      "administratorSetStatus": "active",
       "history": [
         {
           "type": "privilegeUpdate",
@@ -128,7 +128,7 @@
             "dateOfUpdate": "2016-05-05T12:59:59+00:00",
             "licenseJurisdiction": "oh",
             "compactTransactionId": "0123456789",
-            "persistedStatus": "active",
+            "administratorSetStatus": "active",
             "privilegeId": "SLP-NE-1",
             "attestations": [
               {

@@ -104,8 +104,8 @@ class LicenseUpdatePreviousGeneralResponseSchema(ForgivingSchema):
     emailAddress = Email(required=False, allow_none=False)
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
     licenseStatusName = String(required=False, allow_none=False, validate=Length(1, 100))
-    persistedLicenseStatus = ActiveInactive(required=True, allow_none=False)
-    persistedCompactEligibility = CompactEligibility(required=True, allow_none=False)
+    jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
+    jurisdictionUploadedCompactEligibility = CompactEligibility(required=True, allow_none=False)
 
 
 class LicenseUpdateGeneralResponseSchema(ForgivingSchema):
@@ -146,9 +146,9 @@ class LicenseGeneralResponseSchema(ForgivingSchema):
     licenseType = String(required=True, allow_none=False)
     licenseStatusName = String(required=False, allow_none=False, validate=Length(1, 100))
     licenseStatus = ActiveInactive(required=True, allow_none=False)
-    persistedLicenseStatus = ActiveInactive(required=True, allow_none=False)
+    jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
     compactEligibility = CompactEligibility(required=True, allow_none=False)
-    persistedCompactEligibility = CompactEligibility(required=True, allow_none=False)
+    jurisdictionUploadedCompactEligibility = CompactEligibility(required=True, allow_none=False)
     npi = NationalProviderIdentifier(required=False, allow_none=False)
     licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))

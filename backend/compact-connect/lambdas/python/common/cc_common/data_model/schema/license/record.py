@@ -45,8 +45,8 @@ class LicenseRecordSchema(CalculatedStatusRecordSchema, LicenseCommonSchema):
     ssnLastFour = String(required=True, allow_none=False)
 
     # Persisted values
-    persistedLicenseStatus = ActiveInactive(required=True, allow_none=False)
-    persistedCompactEligibility = CompactEligibility(required=True, allow_none=False)
+    jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
+    jurisdictionUploadedCompactEligibility = CompactEligibility(required=True, allow_none=False)
     # Calculated values
     licenseStatusName = String(required=False, allow_none=False, validate=Length(1, 100))
     compactEligibility = CompactEligibility(required=True, allow_none=False)
@@ -103,8 +103,8 @@ class LicenseUpdateRecordPreviousSchema(ForgivingSchema):
     emailAddress = Email(required=False, allow_none=False)
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
     licenseStatusName = String(required=False, allow_none=False, validate=Length(1, 100))
-    persistedLicenseStatus = ActiveInactive(required=True, allow_none=False)
-    persistedCompactEligibility = CompactEligibility(required=True, allow_none=False)
+    jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
+    jurisdictionUploadedCompactEligibility = CompactEligibility(required=True, allow_none=False)
 
 
 @BaseRecordSchema.register_schema('licenseUpdate')

@@ -416,7 +416,7 @@ class TestPostPurchasePrivileges(TstFunction):
             privilege_record['compact'] = TEST_COMPACT
             privilege_record['jurisdiction'] = 'ky'
             privilege_record['providerId'] = TEST_PROVIDER_ID
-            privilege_record['persistedStatus'] = 'inactive'
+            privilege_record['administratorSetStatus'] = 'inactive'
             self.config.provider_table.put_item(Item=privilege_record)
 
         # now make the same call with the same jurisdiction
@@ -429,7 +429,7 @@ class TestPostPurchasePrivileges(TstFunction):
         # ensure the persistent status is now active
         provider_records = self.config.data_client.get_provider(compact=TEST_COMPACT, provider_id=TEST_PROVIDER_ID)
         privilege_records = [record for record in provider_records['items'] if record['type'] == 'privilege']
-        self.assertEqual('active', privilege_records[0]['persistedStatus'])
+        self.assertEqual('active', privilege_records[0]['administratorSetStatus'])
 
     @patch('handlers.privileges.PurchaseClient')
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-10-05T23:59:59+00:00'))

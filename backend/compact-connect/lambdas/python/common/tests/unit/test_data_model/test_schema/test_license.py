@@ -131,7 +131,7 @@ class TestLicenseRecordSchema(TstLambdas):
         with open('tests/resources/dynamo/license.json') as f:
             raw_license_data = json.load(f)
             raw_license_data['dateOfExpiration'] = '2100-01-01'
-            raw_license_data['persistedLicenseStatus'] = 'inactive'
+            raw_license_data['jurisdictionUploadedLicenseStatus'] = 'inactive'
 
         schema = LicenseRecordSchema()
         license_data = schema.load(raw_license_data)
@@ -171,6 +171,7 @@ class TestLicenseUpdateRecordSchema(TstLambdas):
 
         # Round-trip SERDE with a fixed timestamp demonstrates that our sk generation is deterministic for the same
         # input values, which is an important property for this schema.
+        self.maxDiff = None
         self.assertEqual(record, dumped_record)
 
     def test_hash_is_deterministic(self):
@@ -245,8 +246,8 @@ class TestLicenseIngestSchema(TstLambdas):
             del license_record['ssn']
 
             result = LicenseIngestSchema().load({'compact': 'aslp', 'jurisdiction': 'oh', **license_record})
-            self.assertEqual('active', result['persistedLicenseStatus'])
-            self.assertEqual('eligible', result['persistedCompactEligibility'])
+            self.assertEqual('active', result['jurisdictionUploadedLicenseStatus'])
+            self.assertEqual('eligible', result['jurisdictionUploadedCompactEligibility'])
 
     def test_compact_eligible_with_inactive_license_not_allowed(self):
         from cc_common.data_model.schema.license.ingest import LicenseIngestSchema

@@ -293,7 +293,7 @@ class DataClient:
             'compactTransactionId': compact_transaction_id,
             'attestations': attestations,
             'privilegeId': privilege_id,
-            'persistedStatus': ActiveInactiveStatus.ACTIVE,
+            'administratorSetStatus': ActiveInactiveStatus.ACTIVE,
         }
 
     @logger_inject_kwargs(logger, 'compact', 'provider_id', 'compact_transaction_id')
@@ -381,8 +381,8 @@ class DataClient:
                             'privilegeId': privilege_record['privilegeId'],
                             'attestations': attestations,
                             **(
-                                {'persistedStatus': ActiveInactiveStatus.ACTIVE}
-                                if original_privilege['persistedStatus'] == ActiveInactiveStatus.INACTIVE
+                                {'administratorSetStatus': ActiveInactiveStatus.ACTIVE}
+                                if original_privilege['administratorSetStatus'] == ActiveInactiveStatus.INACTIVE
                                 else {}
                             ),
                         },
@@ -837,8 +837,8 @@ class DataClient:
         """
         Deactivate a privilege for a provider in a jurisdiction.
 
-        This will update the privilege record to have a persistedStatus of 'inactive' and will remove the jurisdiction
-        from the provider's privilegeJurisdictions set.
+        This will update the privilege record to have a administratorSetStatus of 'inactive' and will remove the
+        jurisdiction from the provider's privilegeJurisdictions set.
 
         :param str compact: The compact to deactivate the privilege for
         :param str provider_id: The provider to deactivate the privilege for
@@ -862,7 +862,7 @@ class DataClient:
         privilege_record = privilege_record_schema.load(privilege_record)
 
         # If already inactive, do nothing
-        if privilege_record.get('persistedStatus', ActiveInactiveStatus.ACTIVE) == ActiveInactiveStatus.INACTIVE:
+        if privilege_record.get('administratorSetStatus', ActiveInactiveStatus.ACTIVE) == ActiveInactiveStatus.INACTIVE:
             logger.info('Provider already inactive. Doing nothing.')
             raise CCInvalidRequestException('Privilege already deactivated')
 
@@ -881,7 +881,7 @@ class DataClient:
                     **privilege_record,
                 },
                 'updatedValues': {
-                    'persistedStatus': 'inactive',
+                    'administratorSetStatus': 'inactive',
                 },
             }
         )
@@ -890,7 +890,7 @@ class DataClient:
         logger.info('Deactivating privilege')
         self.config.dynamodb_client.transact_write_items(
             TransactItems=[
-                # Set the privilege record's persistedStatus to inactive and update the dateOfUpdate
+                # Set the privilege record's administratorSetStatus to inactive and update the dateOfUpdate
                 {
                     'Update': {
                         'TableName': self.config.provider_table.name,
@@ -898,7 +898,7 @@ class DataClient:
                             'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
                             'sk': {'S': f'{compact}#PROVIDER#privilege/{jurisdiction}/{license_type_abbr}#'},
                         },
-                        'UpdateExpression': 'SET persistedStatus = :status, dateOfUpdate = :dateOfUpdate',
+                        'UpdateExpression': 'SET administratorSetStatus = :status, dateOfUpdate = :dateOfUpdate',
                         'ExpressionAttributeValues': {
                             ':status': {'S': 'inactive'},
                             ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},

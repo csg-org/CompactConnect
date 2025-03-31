@@ -102,7 +102,7 @@
           "privilegeId": {
             "type": "string"
           },
-          "persistedStatus": {
+          "administratorSetStatus": {
             "enum": [
               "active",
               "inactive"

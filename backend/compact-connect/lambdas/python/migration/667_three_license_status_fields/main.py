@@ -25,7 +25,7 @@ def do_migration(_properties: dict) -> None:
     """
     Migrates license and provider records to have three license status fields:
 
-    - jurisdictionStatus -> persistedLicenseStatus
+    - jurisdictionStatus -> jurisdictionUploadedLicenseStatus
     - compactEligibility = 'eligible' | 'ineligible'
     - licenseStatusName = '<some string>'
     """
@@ -61,13 +61,13 @@ def do_migration(_properties: dict) -> None:
                     case 'provider' | 'license':
                         logger.debug('Processing provider or license')
                         license_status = record.get(
-                            'jurisdictionStatus', record.get('persistedLicenseStatus', 'active')
+                            'jurisdictionStatus', record.get('jurisdictionUploadedLicenseStatus', 'active')
                         )
                         # Set the new fields, remove jurisdictionStatus
                         config.provider_table.update_item(
                             Key=key,
-                            UpdateExpression='SET #persisted_compact_eligibility = :compact_eligibility, '
-                            '#persisted_license_status = :license_status, '
+                            UpdateExpression='SET #ju_compact_eligibility = :compact_eligibility, '
+                            '#ju_license_status = :license_status, '
                             '#license_status_name = :license_status_name '
                             'REMOVE #jurisdiction_status',
                             ExpressionAttributeValues={
@@ -77,8 +77,8 @@ def do_migration(_properties: dict) -> None:
                             },
                             ExpressionAttributeNames={
                                 '#jurisdiction_status': 'jurisdictionStatus',
-                                '#persisted_compact_eligibility': 'persistedCompactEligibility',
-                                '#persisted_license_status': 'persistedLicenseStatus',
+                                '#ju_compact_eligibility': 'jurisdictionUploadedCompactEligibility',
+                                '#ju_license_status': 'jurisdictionUploadedLicenseStatus',
                                 '#license_status_name': 'licenseStatusName',
                             },
                         )
@@ -86,13 +86,13 @@ def do_migration(_properties: dict) -> None:
                         logger.debug('Processing licenseUpdate')
                         # Same as provider/license but in previous
                         previous_license_status = record['previous'].get(
-                            'jurisdictionStatus', record['previous'].get('persistedLicenseStatus', 'active')
+                            'jurisdictionStatus', record['previous'].get('jurisdictionUploadedLicenseStatus', 'active')
                         )
                         # Set the new fields, remove jurisdictionStatus
                         config.provider_table.update_item(
                             Key=key,
-                            UpdateExpression='SET #previous.#persisted_compact_eligibility = :compact_eligibility, '
-                            '#previous.#persisted_license_status = :license_status, '
+                            UpdateExpression='SET #previous.#ju_compact_eligibility = :compact_eligibility, '
+                            '#previous.#ju_license_status = :license_status, '
                             '#previous.#license_status_name = :license_status_name '
                             'REMOVE #previous.#jurisdiction_status',
                             ExpressionAttributeValues={
@@ -104,8 +104,8 @@ def do_migration(_properties: dict) -> None:
                             },
                             ExpressionAttributeNames={
                                 '#previous': 'previous',
-                                '#persisted_compact_eligibility': 'persistedCompactEligibility',
-                                '#persisted_license_status': 'persistedLicenseStatus',
+                                '#ju_compact_eligibility': 'jurisdictionUploadedCompactEligibility',
+                                '#ju_license_status': 'jurisdictionUploadedLicenseStatus',
                                 '#license_status_name': 'licenseStatusName',
                                 '#jurisdiction_status': 'jurisdictionStatus',
                             },
@@ -115,14 +115,14 @@ def do_migration(_properties: dict) -> None:
                             logger.debug('Updating updatedValues')
                             updated_license_status = record.get('updatedValues', {}).get(
                                 'jurisdictionStatus',
-                                record.get('updatedValues', {}).get('persistedLicenseStatus', 'active'),
+                                record.get('updatedValues', {}).get('jurisdictionUploadedLicenseStatus', 'active'),
                             )
 
                             config.provider_table.update_item(
                                 Key=key,
-                                UpdateExpression=
-                                'SET #updatedValues.#persisted_compact_eligibility = :compact_eligibility, '
-                                '#updatedValues.#persisted_license_status = :license_status, '
+                                UpdateExpression='SET '
+                                '#updatedValues.#ju_compact_eligibility = :compact_eligibility, '
+                                '#updatedValues.#ju_license_status = :license_status, '
                                 '#updatedValues.#license_status_name = :license_status_name '
                                 'REMOVE #updatedValues.#jurisdiction_status',
                                 ExpressionAttributeValues={
@@ -134,8 +134,8 @@ def do_migration(_properties: dict) -> None:
                                 },
                                 ExpressionAttributeNames={
                                     '#updatedValues': 'updatedValues',
-                                    '#persisted_compact_eligibility': 'persistedCompactEligibility',
-                                    '#persisted_license_status': 'persistedLicenseStatus',
+                                    '#ju_compact_eligibility': 'jurisdictionUploadedCompactEligibility',
+                                    '#ju_license_status': 'jurisdictionUploadedLicenseStatus',
                                     '#license_status_name': 'licenseStatusName',
                                     '#jurisdiction_status': 'jurisdictionStatus',
                                 },
