@@ -23,13 +23,6 @@ import { License, LicenseStatus } from '@models/License/License.model';
 class PrivilegeDetailBlock extends Vue {
     // PROPS
     @Prop({ required: true }) privilege?: License;
-    //
-    // Data
-    //
-
-    //
-    // Lifecycle
-    //
 
     //
     // Computed
@@ -75,10 +68,6 @@ class PrivilegeDetailBlock extends Vue {
     get privilegeId(): string {
         return this.privilege?.privilegeId || '';
     }
-
-    //
-    // Methods
-    //
 }
 
 export default toNative(PrivilegeDetailBlock);

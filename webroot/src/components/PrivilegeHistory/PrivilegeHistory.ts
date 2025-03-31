@@ -28,14 +28,6 @@ class PrivilegeHistory extends Vue {
     @Prop({ required: true }) privilege?: License;
 
     //
-    // Data
-    //
-
-    //
-    // Lifecycle
-    //
-
-    //
     // Computed
     //
     get events(): any {
@@ -100,10 +92,6 @@ class PrivilegeHistory extends Vue {
     get expText(): string {
         return `${this.$t('licensing.expiringIn')} ${this.daysUntilExpiration} ${this.$t('common.days')}`;
     }
-
-    //
-    // Methods
-    //
 }
 
 export default toNative(PrivilegeHistory);

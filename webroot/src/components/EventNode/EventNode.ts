@@ -22,14 +22,6 @@ class EventNode extends Vue {
     @Prop({ default: 'short' }) eventLengthBucket?: string;
 
     //
-    // Data
-    //
-
-    //
-    // Lifecycle
-    //
-
-    //
     // Computed
     //
     get eventDate(): string {
@@ -47,10 +39,6 @@ class EventNode extends Vue {
     get isDeactivating() {
         return this.event?.isDeactivatingEvent();
     }
-
-    //
-    // Methods
-    //
 }
 
 export default toNative(EventNode);

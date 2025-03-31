@@ -21,10 +21,6 @@ import { Licensee } from '@models/Licensee/Licensee.model';
 })
 export default class PrivilegeDetail extends Vue {
     //
-    // Data
-    //
-
-    //
     // Lifecycle
     //
     mounted() {

@@ -24,10 +24,6 @@ class StatusTimeBlock extends Vue {
     @Prop({ required: true }) event?: LicenseHistoryItem;
 
     //
-    // Data
-    //
-
-    //
     // Computed
     //
     get isActivating(): boolean {
@@ -49,10 +45,6 @@ class StatusTimeBlock extends Vue {
 
         return status;
     }
-
-    //
-    // Methods
-    //
 }
 
 export default toNative(StatusTimeBlock);
