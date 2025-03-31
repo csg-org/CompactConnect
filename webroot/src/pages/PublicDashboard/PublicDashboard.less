@@ -1,0 +1,139 @@
+//
+//  PublicDashboard.less
+//  CompactConnect
+//
+//  Created by InspiringApps on 8/12/2024.
+//
+.login-container {
+    @cardSizeDefault: 28rem;
+    @cardSizeSmall: 22rem;
+    @cardSpacing: 2.4rem;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    .dashboard-logo-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 12.8rem;
+        margin-bottom: 6.4rem;
+        text-align: center;
+
+        @media @desktopWidth {
+            margin-bottom: 12.8rem;
+        }
+
+        .dashboard-logo {
+            display: inline-block;
+            width: auto;
+            height: 100%;
+        }
+    }
+
+    .dashboard-row {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 90%;
+
+        @media @desktopWidth {
+            flex-direction: row;
+            justify-content: center;
+            width: auto;
+        }
+    }
+
+    .login-link {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: @cardSizeDefault;
+        min-width: @cardSizeDefault;
+        max-width: @cardSizeDefault;
+        height: @cardSizeDefault;
+        min-height: @cardSizeDefault;
+        max-height: @cardSizeDefault;
+        margin-bottom: @cardSpacing;
+        padding: 0 4rem;
+        border-radius: 8px;
+        color: @white;
+        font-weight: @fontWeightBold;
+        font-size: 2.6rem;
+        text-align: center;
+        background-color: @primaryColor;
+        transition: all 0.2s ease-out;
+
+        @media @desktopWidth {
+            &.small {
+                width: @cardSizeSmall;
+                min-width: @cardSizeSmall;
+                max-width: @cardSizeSmall;
+                height: @cardSizeSmall;
+                min-height: @cardSizeSmall;
+                max-height: @cardSizeSmall;
+
+                &:not(:first-child) {
+                    margin-left: @cardSpacing;
+                }
+            }
+
+            &.large {
+                width: ~"calc((@{cardSizeSmall} * 3) + (@{cardSpacing} * 2))";
+                max-width: 100%;
+            }
+        }
+
+        .login-icon {
+            display: inline-block;
+            width: 4.8rem;
+            margin-bottom: 1.2rem;
+            transition: fill 0.2s ease-out;
+
+            &.fill-type {
+                fill: @white;
+            }
+
+            &.stroke-fill-type,
+            &.stroke-type {
+                fill: fade(@fontColor, 0%);
+                stroke: @white;
+                stroke-width: 2.5;
+            }
+        }
+
+        &:hover {
+            color: @fontColor;
+            background-color: @lightBlue;
+
+            .login-icon {
+                &.fill-type {
+                    fill: @fontColor;
+                }
+
+                &.stroke-fill-type,
+                &.stroke-type {
+                    stroke: @fontColor;
+                }
+
+                &:deep(.custom-fill) {
+                    fill: @primaryColor;
+                }
+
+                &:deep(.custom-fill-alt) {
+                    fill: @white;
+                }
+            }
+        }
+
+        &:deep(.custom-fill),
+        &:deep(.custom-fill-alt) {
+            transition: fill 0.2s ease-out;
+            fill: @darkBlue;
+        }
+    }
+}

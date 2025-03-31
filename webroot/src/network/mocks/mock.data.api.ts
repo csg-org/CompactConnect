@@ -35,14 +35,14 @@ const initMockStore = (store) => {
     return mockStore;
 };
 
+// Helper to simulate wait time on endpoints where desired, to test things like the loading UI
+const wait = (ms = 0) => new Promise((resolve) => {
+    const waitMs = (envConfig.isTest) ? 0 : ms; // Skip any simulated waits during automated tests
+
+    setTimeout(() => resolve(true), waitMs);
+});
+
 export class DataApi {
-    // Helper to simulate wait time on endpoints where desired, to test things like the loading UI
-    wait = (ms = 0) => new Promise((resolve) => {
-        const waitMs = (envConfig.isTest) ? 0 : ms; // Skip any simulated waits during automated tests
-
-        setTimeout(() => resolve(true), waitMs);
-    });
-
     // Init interceptors
     public initInterceptors(store) {
         initMockStore(store);
@@ -54,7 +54,7 @@ export class DataApi {
     // ========================================================================
     // Get state upload request configuration.
     public getStateUploadRequestConfig(compact: string, state: string) {
-        return this.wait(500).then(() => ({
+        return wait(500).then(() => ({
             ...uploadRequestData,
             compact,
             state,
@@ -63,7 +63,7 @@ export class DataApi {
 
     // Post state upload
     public stateUploadRequest(url: string, file: File) {
-        return this.wait(500).then(() => ({
+        return wait(500).then(() => ({
             status: true,
             url,
             file,
@@ -72,7 +72,7 @@ export class DataApi {
 
     //
     public updatePaymentProcessorConfig(compact: string, config: object) {
-        return this.wait(500).then(() => ({
+        return wait(500).then(() => ({
             message: 'success',
             compact,
             config,
@@ -84,7 +84,7 @@ export class DataApi {
     // ========================================================================
     // Create Licensee Account.
     public createLicenseeAccount(compact: string, data: object) {
-        return this.wait(500).then(() => ({
+        return wait(500).then(() => ({
             compact,
             ...data,
         }));
@@ -92,7 +92,17 @@ export class DataApi {
 
     // Get Licensees
     public getLicensees(params: any = {}) {
-        return this.wait(500).then(() => ({
+        return wait(500).then(() => ({
+            prevLastKey: licensees.prevLastKey,
+            lastKey: licensees.lastKey,
+            licensees: licensees.providers.map((serverItem) => LicenseeSerializer.fromServer(serverItem)),
+            params,
+        }));
+    }
+
+    // Get Licensees (Public)
+    public getLicenseesPublic(params: any = {}) {
+        return wait(500).then(() => ({
             prevLastKey: licensees.prevLastKey,
             lastKey: licensees.lastKey,
             licensees: licensees.providers.map((serverItem) => LicenseeSerializer.fromServer(serverItem)),
@@ -106,9 +116,25 @@ export class DataApi {
         let response;
 
         if (serverResponse) {
-            response = this.wait(500).then(() => (LicenseeSerializer.fromServer(licensees.providers[0])));
+            response = wait(500).then(() => (LicenseeSerializer.fromServer(licensees.providers[0])));
         } else {
-            response = this.wait(500).then(() => {
+            response = wait(500).then(() => {
+                throw new Error('not found');
+            });
+        }
+
+        return response;
+    }
+
+    // Get Licensee by ID (Public)
+    public getLicenseePublic(compact, licenseeId) {
+        const serverResponse = licensees.providers.find((item) => item.providerId === licenseeId);
+        let response;
+
+        if (serverResponse) {
+            response = wait(500).then(() => (LicenseeSerializer.fromServer(licensees.providers[0])));
+        } else {
+            response = wait(500).then(() => {
                 throw new Error('not found');
             });
         }
@@ -124,12 +150,12 @@ export class DataApi {
             compact,
         });
 
-        return this.wait(500).then(() => response);
+        return wait(500).then(() => response);
     }
 
     // Delete Privilege for a licensee.
     public deletePrivilege(compact, licenseeId, privilegeState, licenseType) {
-        return this.wait(500).then(() => ({
+        return wait(500).then(() => ({
             message: 'success',
             compact,
             licenseeId,
@@ -139,7 +165,7 @@ export class DataApi {
     }
 
     public getLicenseeSsn(compact, licenseeId) {
-        return this.wait(500).then(() => ({
+        return wait(500).then(() => ({
             ssn: '111-11-1111',
             compact,
             licenseeId,
@@ -151,7 +177,7 @@ export class DataApi {
     // ========================================================================
     // Get Users
     public getUsers() {
-        return this.wait(500).then(() => ({
+        return wait(500).then(() => ({
             prevLastKey: users.prevLastKey,
             lastKey: users.lastKey,
             users: users.items.map((serverItem) => StaffUserSerializer.fromServer(serverItem)),
@@ -160,42 +186,42 @@ export class DataApi {
 
     // Create User
     public createUser() {
-        return this.wait(500).then(() => StaffUserSerializer.fromServer(users.items[0]));
+        return wait(500).then(() => StaffUserSerializer.fromServer(users.items[0]));
     }
 
     // Get User by ID
     public getUser() {
-        return this.wait(500).then(() => StaffUserSerializer.fromServer(users.items[0]));
+        return wait(500).then(() => StaffUserSerializer.fromServer(users.items[0]));
     }
 
     // Update User by ID
     public updateUser() {
-        return this.wait(500).then(() => StaffUserSerializer.fromServer(users.items[0]));
+        return wait(500).then(() => StaffUserSerializer.fromServer(users.items[0]));
     }
 
     // Reinvite User by ID
     public reinviteUser() {
-        return this.wait(500).then(() => ({ message: 'success' }));
+        return wait(500).then(() => ({ message: 'success' }));
     }
 
     // Delete User by ID
     public deleteUser() {
-        return this.wait(500).then(() => ({ message: 'success' }));
+        return wait(500).then(() => ({ message: 'success' }));
     }
 
     // Update Authenticated user password
     public updateAuthenticatedUserPassword() {
-        return this.wait(500).then(() => ({ success: true }));
+        return wait(500).then(() => ({ success: true }));
     }
 
     // Get Authenticated Staff User
     public getAuthenticatedStaffUser() {
-        return this.wait(500).then(() => StaffUserSerializer.fromServer(staffAccount));
+        return wait(500).then(() => StaffUserSerializer.fromServer(staffAccount));
     }
 
     // Update Authenticated Staff User
     public updateAuthenticatedStaffUser() {
-        return this.wait(500).then(() => StaffUserSerializer.fromServer(staffAccount));
+        return wait(500).then(() => StaffUserSerializer.fromServer(staffAccount));
     }
 
     // ========================================================================
@@ -203,17 +229,17 @@ export class DataApi {
     // ========================================================================
     // Get Authenticated Licensee User
     public getAuthenticatedLicenseeUser() {
-        return this.wait(500).then(() => LicenseeUserSerializer.fromServer(licensees.providers[0]));
+        return wait(500).then(() => LicenseeUserSerializer.fromServer(licensees.providers[0]));
     }
 
     // Update Authenticated Licensee User
     public updateAuthenticatedLicenseeUser() {
-        return this.wait(500).then(() => LicenseeUserSerializer.fromServer(licensees.providers[0]));
+        return wait(500).then(() => LicenseeUserSerializer.fromServer(licensees.providers[0]));
     }
 
     // Get Privilege Purchase Information for Licensee User
     public getPrivilegePurchaseInformation() {
-        return this.wait(500).then(() => {
+        return wait(500).then(() => {
             const { items } = privilegePurchaseOptionsResponse;
             const privilegePurchaseOptions = items.filter((serverItem) => (serverItem.type === 'jurisdiction')).map((serverPurchaseOption) => (PrivilegePurchaseOptionSerializer.fromServer(serverPurchaseOption)));
             const compactCommissionFee = items.filter((serverItem) => (serverItem.type === 'compact')).map((serverFeeObject) => (CompactFeeConfigSerializer.fromServer(serverFeeObject)))[0];
@@ -224,12 +250,12 @@ export class DataApi {
 
     // Post Privilege Purchases for Licensee User
     public postPrivilegePurchases() {
-        return this.wait(500).then(() => ({ message: 'Successfully processed charge', transactionId: '120044154134' }));
+        return wait(500).then(() => ({ message: 'Successfully processed charge', transactionId: '120044154134' }));
     }
 
     // Post Upload Military Document Intent
     public postUploadMilitaryDocumentIntent(data) {
-        return this.wait(500).then(() => ({
+        return wait(500).then(() => ({
             ...data,
             documentUploadFields: [{
                 url: 'url.com',
@@ -242,7 +268,7 @@ export class DataApi {
 
     // Post Upload Military Document
     public postUploadMilitaryAffiliationDocument(postUrl: string, documentUploadData: any, file: File) {
-        return this.wait(500).then(() => ({
+        return wait(500).then(() => ({
             status: 204,
             postUrl,
             documentUploadData,
@@ -252,7 +278,7 @@ export class DataApi {
 
     // Patch end military affiliation
     public endMilitaryAffiliation() {
-        return this.wait(500).then(() => ({ success: true }));
+        return wait(500).then(() => ({ success: true }));
     }
 
     // ========================================================================
@@ -260,17 +286,17 @@ export class DataApi {
     // ========================================================================
     // Get styleguide example count
     public getStyleguidePetsCount() {
-        return this.wait(0).then(async () => pets.length);
+        return wait(0).then(async () => pets.length);
     }
 
     // Get styleguide examples
     public getStyleguidePets() {
-        return this.wait(0).then(async () => pets);
+        return wait(0).then(async () => pets);
     }
 
     // Get Account
     public getAccount() {
-        return this.wait(0).then(async () => {
+        return wait(0).then(async () => {
             const mockUser: any = { ...userData };
             const serializedUser = StaffUserSerializer.fromServer(mockUser);
 
