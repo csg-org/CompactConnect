@@ -174,7 +174,7 @@ export default class LicensingDetail extends Vue {
     }
 
     get privilegesTitle(): string {
-        return this.$t('licensing.recentPrivilegesTitle');
+        return this.$t('licensing.privileges');
     }
 
     get licenseDetails(): string {

@@ -13,4 +13,11 @@ export default {
 
         return licensees.find((licensee) => licensee.id === licenseeId);
     },
+    getPrivilegeByLicenseeIdAndId: (state: any) => ({ licenseeId, privilegeId }) => {
+        const licensees = state.model || [];
+
+        const foundLicensee = licensees.find((licensee) => licensee.id === licenseeId);
+
+        return foundLicensee.privileges?.find((privilege) => (privilege.id === privilegeId)) || null;
+    }
 };

@@ -9,8 +9,8 @@
     <div class="event-node-container">
         <div class="node"
             :class="{
-                'inactive': isDeactive,
-                'active': isActive
+                'inactive': isDeactivating,
+                'active': isActivating
             }"
         />
         <div class="event-info">

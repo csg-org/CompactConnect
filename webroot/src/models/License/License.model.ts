@@ -108,6 +108,13 @@ export class License implements InterfaceLicense {
         return Boolean(diff > 0);
     }
 
+    public didExpire({ renewalDate, dateOfExpiration }): boolean {
+        const dateOfRenewal = moment().format(renewalDate);
+        const diff = dateDiff(dateOfRenewal, dateOfExpiration, 'days') || 0;
+
+        return Boolean(diff > 0);
+    }
+
     // Relevant for License only until licenseType is included in privilege return
     public licenseTypeName(): string {
         const licenseTypes = this.$tm('licensing.licenseTypes') || [];
@@ -128,6 +135,45 @@ export class License implements InterfaceLicense {
 
     public displayName(): string {
         return `${this.issueState?.name() || ''}${this.issueState?.name() && this.licenseTypeAbbreviation() ? ' - ' : ''}${this.licenseTypeAbbreviation()}`;
+    }
+
+    public historyWithFabricatedEvents(): Array<LicenseHistoryItem> {
+        // inject purchase event
+        const historyWithFabricatedEvents = [ new LicenseHistoryItem({
+            type: 'fabricatedEvent ',
+            updateType: 'purchased',
+            dateOfUpdate: this.issueDate
+        })];
+
+        // inject expiration events
+        if (Array.isArray(this.history)) {
+            this.history.forEach((historyItem) => {
+                const { updateType, previousValues, dateOfUpdate } = historyItem;
+                const { dateOfExpiration } = previousValues as any;
+
+                if (updateType === 'renewal'
+                    && (previousValues as any)?.dateOfExpiration
+                    && dateOfUpdate && (this.didExpire({ renewalDate: dateOfUpdate, dateOfExpiration }))) {
+                    historyWithFabricatedEvents.push(new LicenseHistoryItem({
+                        type: 'fabricatedEvent ',
+                        updateType: 'expired',
+                        dateOfUpdate: dateOfExpiration
+                    }));
+                }
+
+                historyWithFabricatedEvents.push(historyItem);
+            });
+
+            if (this.isExpired()) {
+                historyWithFabricatedEvents.push(new LicenseHistoryItem({
+                    type: 'fabricatedEvent ',
+                    updateType: 'expired',
+                    dateOfUpdate: this.expireDate
+                }));
+            }
+        }
+
+        return historyWithFabricatedEvents;
     }
 }
 
@@ -157,40 +203,13 @@ export class LicenseSerializer {
             expireDate: json.dateOfExpiration,
             licenseType: json.licenseType,
             status: json.status,
-            history: [ new LicenseHistoryItem({
-                type: 'fabricatedEvent ',
-                updateType: 'purchased',
-                dateOfUpdate: json.dateOfIssuance
-            })],
+            history: [] as Array<LicenseHistoryItem>,
         };
 
         if (Array.isArray(json.history)) {
             json.history.forEach((serverHistoryItem) => {
-                // inject expirations
-                const serializedHistoryItem = LicenseHistoryItemSerializer.fromServer(serverHistoryItem);
-                const { updateType, previousValues, dateOfUpdate } = serializedHistoryItem;
-                const { dateOfExpiration } = previousValues as any;
-
-                if (updateType === 'renewal'
-                    && (previousValues as any)?.dateOfExpiration
-                    && dateOfUpdate && (moment(dateOfUpdate)).isAfter(moment(dateOfExpiration))) {
-                    licenseData.history.push(new LicenseHistoryItem({
-                        type: 'fabricatedEvent ',
-                        updateType: 'expired',
-                        dateOfUpdate: dateOfExpiration
-                    }));
-                }
-
                 licenseData.history.push(LicenseHistoryItemSerializer.fromServer(serverHistoryItem));
             });
-
-            if ((moment()).isAfter(moment(json.dateOfExpiration))) {
-                licenseData.history.push(new LicenseHistoryItem({
-                    type: 'fabricatedEvent ',
-                    updateType: 'expired',
-                    dateOfUpdate: json.dateOfExpiration
-                }));
-            }
         }
 
         return new License(licenseData);

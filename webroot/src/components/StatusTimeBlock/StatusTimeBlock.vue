@@ -9,16 +9,16 @@
     <div
         class="status-time-block-container"
         :class="{
-            'inactive': isDeactive,
-            'active': isActive,
+            'inactive': isDeactivating,
+            'active': isActivating,
             'start': isStart,
             'end': isEnd,
         }"
     >
         <div
             :class="{
-                'inactive': isDeactive,
-                'active': isActive,
+                'inactive': isDeactivating,
+                'active': isActivating,
                 'start': isStart,
                 'end': isEnd,
                 'last': isLast

@@ -7,6 +7,7 @@
 .history-container {
     display: flex;
     flex-direction: column;
+    padding-top: 2rem;
     // align-items: center;
 
     .events {
@@ -49,13 +50,25 @@
                 flex-direction: row;
                 justify-content: flex-end;
                 width: 100%;
+                padding-top: 0.4rem;
+                font-weight: @fontWeightBold;
             }
 
             .exp-detail {
-                margin-top: 40px;
+                margin-top: 35px;
 
                 .exp-warning {
                     margin-bottom: 0.4rem;
+                }
+
+                .exp-title {
+                    font-weight: @fontWeightBold;
+                }
+
+                .exp-text {
+                    margin-top: 0.2rem;
+                    color: @lightTextGrey;
+                    font-size: @fontSizeSmall;
                 }
             }
         }

@@ -21,12 +21,12 @@
             />
         </div>
         <div class="now-line">
-            <div v-if="!isExpired" class="dot"></div>
+            <div v-if="isActive" class="dot"></div>
             <div class="after-now">
-                <div v-if="!isExpired" class="down-dipper">
+                <div v-if="isActive" class="down-dipper">
                 </div>
                 <div class="today">{{$t('common.today')}}</div>
-                <div v-if="!isExpired" class="exp-detail">
+                <div v-if="isActive" class="exp-detail">
                     <div v-if="isExpirationUpcoming" class="exp-warning">
                         <img
                             src="@assets/icons/ico-caution.svg"

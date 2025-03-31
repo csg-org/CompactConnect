@@ -39,11 +39,11 @@ class EventNode extends Vue {
         return this.event?.updateTypeDisplay() || '';
     }
 
-    get isActive() {
+    get isActivating() {
         return this.event?.isActivatingEvent();
     }
 
-    get isDeactive() {
+    get isDeactivating() {
         return this.event?.isDeactivatingEvent();
     }
 

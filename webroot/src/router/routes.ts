@@ -63,6 +63,12 @@ const routes: Array<RouteConfig> = [
         meta: { requiresAuth: true, staffAccess: true },
     },
     {
+        path: '/:compact/Licensing/:licenseeId/Privilege/:privilegeId',
+        name: 'PrivilegeDetail',
+        component: () => import(/* webpackChunkName: "militaryStatusUpdate" */ '@pages/PrivilegeDetail/PrivilegeDetail.vue'),
+        meta: { requiresAuth: true, licenseeAccess: true, staffAccess: true },
+    },
+    {
         path: '/:compact/Settings',
         name: 'CompactSettings',
         component: () => import(/* webpackChunkName: "licensing" */ '@pages/CompactSettings/CompactSettings.vue'),
@@ -91,12 +97,6 @@ const routes: Array<RouteConfig> = [
         name: 'MilitaryStatus',
         component: () => import(/* webpackChunkName: "militaryStatus" */ '@pages/MilitaryStatus/MilitaryStatus.vue'),
         meta: { requiresAuth: true, licenseeAccess: true, },
-    },
-    {
-        path: '/:compact/Privilege/:privilegeId',
-        name: 'PrivilegeDetail',
-        component: () => import(/* webpackChunkName: "militaryStatusUpdate" */ '@pages/PrivilegeDetail/PrivilegeDetail.vue'),
-        meta: { requiresAuth: true, licenseeAccess: true, staffAccess: true },
     },
     {
         path: '/:compact/MilitaryStatus/Update',

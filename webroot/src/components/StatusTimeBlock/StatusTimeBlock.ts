@@ -30,20 +30,20 @@ class StatusTimeBlock extends Vue {
     //
     // Computed
     //
-    get isActive(): boolean {
+    get isActivating(): boolean {
         return this.event?.isActivatingEvent() || false;
     }
 
-    get isDeactive(): boolean {
+    get isDeactivating(): boolean {
         return this.event?.isDeactivatingEvent() || false;
     }
 
     get status(): string {
         let status = '';
 
-        if (this.isActive) {
+        if (this.isActivating) {
             status = this.$t('licensing.statusOptions.active');
-        } else if (this.isDeactive) {
+        } else if (this.isDeactivating) {
             status = this.$t('licensing.statusOptions.inactive');
         }
 

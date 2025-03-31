@@ -13,7 +13,7 @@ import {
 } from 'vue-facing-decorator';
 import EventNode from '@components/EventNode/EventNode.vue';
 import StatusTimeBlock from '@components/StatusTimeBlock/StatusTimeBlock.vue';
-import { License } from '@models/License/License.model';
+import { License, LicenseStatus } from '@models/License/License.model';
 import moment from 'moment';
 
 @Component({
@@ -39,7 +39,7 @@ class PrivilegeHistory extends Vue {
     // Computed
     //
     get events(): any {
-        return this.privilege?.history || [];
+        return this.privilege?.historyWithFabricatedEvents() || [];
     }
 
     get preppedEvents(): any {
@@ -77,8 +77,8 @@ class PrivilegeHistory extends Vue {
         return this.daysUntilExpiration < 90;
     }
 
-    get isExpired(): boolean {
-        return this.privilege?.isExpired() || false;
+    get isActive(): boolean {
+        return this.privilege?.status === LicenseStatus.ACTIVE;
     }
 
     get expText(): string {
