@@ -17,6 +17,7 @@
             />
             <EventNode
                 :event="richEvent.event"
+                :eventLengthBucket="richEvent.eventLengthBucket"
                 class="event-node"
             />
         </div>

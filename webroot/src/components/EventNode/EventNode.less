@@ -7,8 +7,19 @@
 .event-node-container {
     display: flex;
     flex-direction: row;
-    min-height: 8rem;
     padding-bottom: 1rem;
+
+    &.short {
+        min-height: 8rem;
+    }
+
+    &.medium {
+        min-height: 16rem;
+    }
+
+    &.long {
+        min-height: 32rem;
+    }
 
     .node {
         position: absolute;
@@ -32,8 +43,4 @@
             font-weight: @fontWeightBold;
         }
     }
-
-    // .time-block {
-    //     position: absolute;
-    // }
 }

@@ -19,6 +19,7 @@ import { LicenseHistoryItem } from '@models/LicenseHistoryItem/LicenseHistoryIte
 class EventNode extends Vue {
     // PROPS
     @Prop({ required: true }) event?: LicenseHistoryItem;
+    @Prop({ default: 'short' }) eventLengthBucket?: string;
 
     //
     // Data

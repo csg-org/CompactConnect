@@ -6,7 +6,14 @@
 -->
 
 <template>
-    <div class="event-node-container">
+    <div
+        class="event-node-container"
+        :class="{
+            'short': eventLengthBucket === 'short',
+            'medium': eventLengthBucket === 'medium',
+            'long': eventLengthBucket === 'long'
+        }"
+    >
         <div class="node"
             :class="{
                 'inactive': isDeactivating,

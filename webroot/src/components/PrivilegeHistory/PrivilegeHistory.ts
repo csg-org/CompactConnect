@@ -48,6 +48,7 @@ class PrivilegeHistory extends Vue {
         this.events.forEach((event, i) => {
             let isStart = false;
             let isEnd = false;
+            const isLastEvent = Boolean(i === this.events.length - 1);
 
             if (i === 0) {
                 isStart = true;
@@ -56,14 +57,29 @@ class PrivilegeHistory extends Vue {
                 isStart = true;
             }
 
-            if (i === this.events.length - 1) {
+            if (isLastEvent) {
                 isEnd = false;
             } else if ((event.isActivatingEvent() && this.events[i + 1].isDeactivatingEvent())
             || (event.isDeactivatingEvent() && this.events[i + 1].isActivatingEvent())) {
                 isEnd = true;
             }
 
-            preppedEvents.push({ event, isEnd, isStart });
+            let eventLengthBucket = 'short';
+            const nextEventDate = isLastEvent ? moment() : this.events[i + 1].dateOfUpdate;
+            const eventGap = moment(nextEventDate).diff(event.dateOfUpdate, 'days');
+
+            if (eventGap > 30) {
+                eventLengthBucket = 'medium';
+            } else if (eventGap > 364) {
+                eventLengthBucket = 'long';
+            }
+
+            preppedEvents.push({
+                event,
+                isEnd,
+                isStart,
+                eventLengthBucket
+            });
         });
 
         return preppedEvents;
