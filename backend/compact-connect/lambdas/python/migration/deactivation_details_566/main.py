@@ -1,5 +1,6 @@
 from boto3.dynamodb.conditions import Key
 from cc_common.config import config, logger
+from cc_common.data_model.schema.privilege.record import DeactivationDetailsSchema
 from custom_resource_handler import CustomResourceHandler, CustomResourceResponse
 
 
@@ -48,9 +49,11 @@ def do_migration(_properties: dict) -> None:
                 key = {'pk': privilege_deactivation_record['pk'], 'sk': privilege_deactivation_record['sk']}
                 retro_deactivation_details = {
                     'note': 'Notes unavailable. Privilege deactivated before notes supported.',
-                    'deactivatedByStaffUserId': '00000000-0000-0000-0000-000000000000',
+                    'deactivatedByStaffUserId': '00000000-0000-4000-a000-000000000000',
                     'deactivatedByStaffUserName': 'UNKNOWN',
                 }
+                # validate the object before storing it in the database
+                DeactivationDetailsSchema().load(retro_deactivation_details)
 
                 # Use update_item with SET expression to add deactivationDetails remove the field
                 update_expression = 'SET deactivationDetails = :deactivationDetails'

@@ -36,8 +36,8 @@ class DeactivationDetailsSchema(Schema):
     Schema for tracking details about a privilege deactivation.
     """
 
-    note = String(required=False, allow_none=True, validate=Length(1, 256))
-    deactivatedByStaffUserId = String(required=True, allow_none=False)
+    note = String(required=False, allow_none=False, validate=Length(1, 256))
+    deactivatedByStaffUserId = UUID(required=True, allow_none=False)
     deactivatedByStaffUserName = String(required=True, allow_none=False)
 
 
@@ -171,7 +171,7 @@ class PrivilegeUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin, ValidatesLi
     # We'll allow any fields that can show up in the previous field to be here as well, but none are required
     updatedValues = Nested(PrivilegeUpdatePreviousRecordSchema(partial=True), required=True, allow_none=False)
     # optional field that is only included if the update was a deactivation
-    deactivationDetails = Nested(DeactivationDetailsSchema(), required=False, allow_none=True)
+    deactivationDetails = Nested(DeactivationDetailsSchema(), required=False, allow_none=False)
 
     @post_dump  # Must be _post_ dump so we have values that are more easily hashed
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument

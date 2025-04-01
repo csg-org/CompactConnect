@@ -140,7 +140,7 @@ class TestPrivilegeUpdateRecordSchema(TstLambdas):
         with open('tests/resources/dynamo/privilege-update.json') as f:
             privilege_data = json.load(f)
         # Privilege deactivation updates require a 'deactivationDetails' fields
-        privilege_data['updateType'] = UpdateCategory.DEACTIVATION.value
+        privilege_data['updateType'] = UpdateCategory.DEACTIVATION
         privilege_data['deactivationDetails'] = {
             'note': 'test deactivation note',
             'deactivatedByStaffUserId': 'a4182428-d061-701c-82e5-a3d1d547d797',
