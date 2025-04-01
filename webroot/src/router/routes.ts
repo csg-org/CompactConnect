@@ -30,7 +30,7 @@ const routes: Array<RouteConfig> = [
     {
         path: '/Search/:compact/:licenseeId/Privilege/:privilegeId',
         name: 'PrivilegeDetailPublic',
-        component: () => import(/* webpackChunkName: "search" */ '@pages/PrivilegeDetail/PrivilegeDetail.vue'),
+        component: () => import(/* webpackChunkName: "search" */ '@pages/PrivilegeDetailPublic/PrivilegeDetailPublic.vue'),
         beforeEnter: guards.noAuthGuard,
     },
     {

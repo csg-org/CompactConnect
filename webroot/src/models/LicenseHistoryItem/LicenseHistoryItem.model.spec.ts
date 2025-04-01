@@ -5,22 +5,46 @@
 //  Created by InspiringApps on 7/8/2024.
 //
 
-import { expect } from 'chai';
+import chaiMatchPattern from 'chai-match-pattern';
+import chai from 'chai';
 import {
     LicenseHistoryItem,
     LicenseHistoryItemSerializer
 } from '@models/LicenseHistoryItem/LicenseHistoryItem.model';
+import i18n from '@/i18n';
+
+chai.use(chaiMatchPattern);
+
+const { expect } = chai;
 
 describe('LicenseHistoryItem model', () => {
+    before(() => {
+        const { tm: $tm, t: $t } = i18n.global;
+
+        (window as any).Vue = {
+            config: {
+                globalProperties: {
+                    $tm,
+                    $t,
+                }
+            }
+        };
+        i18n.global.locale = 'en';
+    });
     it('should create a LicenseHistoryItem with expected defaults', () => {
         const licenseHistoryItem = new LicenseHistoryItem();
 
         // Test field values
         expect(licenseHistoryItem).to.be.an.instanceof(LicenseHistoryItem);
         expect(licenseHistoryItem.type).to.equal(null);
-        expect(licenseHistoryItem.updateType).to.equal(null);
+        expect(licenseHistoryItem.updateType).to.equal('');
         expect(licenseHistoryItem.previousValues).to.matchPattern({});
         expect(licenseHistoryItem.updatedValues).to.matchPattern({});
+
+        expect(licenseHistoryItem.dateOfUpdateDisplay()).to.equal('');
+        expect(licenseHistoryItem.isActivatingEvent()).to.equal(false);
+        expect(licenseHistoryItem.isDeactivatingEvent()).to.equal(false);
+        expect(licenseHistoryItem.updateTypeDisplay()).to.equal('Unknown');
     });
     it('should create a LicenseHistoryItem with specific values', () => {
         const data = {
@@ -60,11 +84,16 @@ describe('LicenseHistoryItem model', () => {
             dateOfRenewal: '2024-08-29',
             dateOfExpiration: '2025-08-29',
         });
+
+        expect(licenseHistoryItem.dateOfUpdateDisplay()).to.equal('8/29/2023');
+        expect(licenseHistoryItem.isActivatingEvent()).to.equal(true);
+        expect(licenseHistoryItem.isDeactivatingEvent()).to.equal(false);
+        expect(licenseHistoryItem.updateTypeDisplay()).to.equal('Renewal');
     });
     it('should create a LicenseHistoryItem with specific values through serializer', () => {
         const data = {
             type: 'privilegeUpdate',
-            updateType: 'renewal',
+            updateType: 'deactivation',
             dateOfUpdate: '2023-08-29',
             previous: {
                 compactTransactionId: '123',
@@ -98,6 +127,11 @@ describe('LicenseHistoryItem model', () => {
             dateOfRenewal: '2024-08-29',
             dateOfExpiration: '2025-08-29',
         });
+
+        expect(licenseHistoryItem.dateOfUpdateDisplay()).to.equal('8/29/2023');
+        expect(licenseHistoryItem.isActivatingEvent()).to.equal(false);
+        expect(licenseHistoryItem.isDeactivatingEvent()).to.equal(true);
+        expect(licenseHistoryItem.updateTypeDisplay()).to.equal('Deactivation');
     });
     it('should create a LicenseHistoryItem with empty values through serializer', () => {
         const data = {
@@ -123,5 +157,10 @@ describe('LicenseHistoryItem model', () => {
             dateOfRenewal: '',
             dateOfExpiration: '',
         });
+
+        expect(licenseHistoryItem.dateOfUpdateDisplay()).to.equal('8/29/2023');
+        expect(licenseHistoryItem.isActivatingEvent()).to.equal(true);
+        expect(licenseHistoryItem.isDeactivatingEvent()).to.equal(false);
+        expect(licenseHistoryItem.updateTypeDisplay()).to.equal('Renewal');
     });
 });

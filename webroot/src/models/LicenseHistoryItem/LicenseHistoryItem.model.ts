@@ -74,7 +74,7 @@ export class LicenseHistoryItem implements InterfaceLicenseHistoryItem {
         const updateType = this.updateType || '';
         const events = this.$tm('licensing.licenseEvents') || [];
         const event = events.find((st) => st.key === updateType);
-        const eventName = event.name || this.$t('common.stateUnknown');
+        const eventName = event?.name || this.$t('common.stateUnknown');
 
         return eventName;
     }
