@@ -115,15 +115,6 @@ export class License implements InterfaceLicense {
         return Boolean(diff > 0);
     }
 
-    // Relevant for License only until licenseType is included in privilege return
-    public licenseTypeName(): string {
-        const licenseTypes = this.$tm('licensing.licenseTypes') || [];
-        const licenseType = licenseTypes.find((translate) => translate.key === this.licenseType);
-        const licenseTypeName = licenseType?.name || '';
-
-        return licenseTypeName;
-    }
-
     public licenseTypeAbbreviation(): string {
         const licenseTypes = this.$tm('licensing.licenseTypes') || [];
         const licenseType = licenseTypes.find((translate) => translate.key === this.licenseType);

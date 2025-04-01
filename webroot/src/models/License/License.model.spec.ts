@@ -64,7 +64,6 @@ describe('License model', () => {
         expect(license.renewalDateDisplay()).to.equal('');
         expect(license.expireDateDisplay()).to.equal('');
         expect(license.isExpired()).to.equal(false);
-        expect(license.licenseTypeName()).to.equal('');
         expect(license.licenseTypeAbbreviation()).to.equal('');
         expect(license.displayName()).to.equal('Unknown');
     });
@@ -112,7 +111,6 @@ describe('License model', () => {
         expect(license.renewalDateDisplay()).to.equal('Invalid date');
         expect(license.expireDateDisplay()).to.equal('Invalid date');
         expect(license.isExpired()).to.equal(false);
-        expect(license.licenseTypeName()).to.equal('Audiologist');
         expect(license.licenseTypeAbbreviation()).to.equal('AUD');
         expect(license.displayName()).to.equal('Unknown - AUD');
     });
@@ -185,7 +183,6 @@ describe('License model', () => {
         );
         expect(license.isExpired()).to.equal(true);
         expect(license.didExpire({ renewalDate: '2023-08-29', dateOfExpiration: '2023-08-28' })).to.equal(true);
-        expect(license.licenseTypeName()).to.equal('Audiologist');
         expect(license.licenseTypeAbbreviation()).to.equal('AUD');
     });
     it('should create a privilege with specific values through serializer', () => {
@@ -517,7 +514,6 @@ describe('License model', () => {
         );
         expect(license.isExpired()).to.equal(true);
         expect(license.didExpire({ renewalDate: '2023-08-29', dateOfExpiration: '2023-08-28' })).to.equal(true);
-        expect(license.licenseTypeName()).to.equal('Occupational Therapy Assistant');
         expect(license.licenseTypeAbbreviation()).to.equal('OTA');
         expect(license.historyWithFabricatedEvents().length).to.equal(6);
         expect(license.historyWithFabricatedEvents()[0].updateType).to.equal('purchased');
