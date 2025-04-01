@@ -140,7 +140,7 @@ class LicenseeSearch extends mixins(MixinForm) {
                 label: computed(() => this.$t('licensing.licenseTypeSearch')),
                 validation: Joi.string().required().messages(this.joiMessages.string),
                 valueOptions: this.compactOptions,
-                value: this.searchParams.compact || '',
+                value: this.searchParams.compact || this.compactType || '',
             });
         }
 
