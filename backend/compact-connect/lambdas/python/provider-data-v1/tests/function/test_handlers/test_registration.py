@@ -138,6 +138,20 @@ class TestProviderRegistration(TstFunction):
         return event
 
     @patch('handlers.registration.verify_recaptcha')
+    def test_registration_returns_400_if_compact_is_not_configured(self, mock_verify_recaptcha):
+        mock_verify_recaptcha.return_value = True
+        from handlers.registration import register_provider
+
+        response = register_provider(self._get_test_event(body_overrides={'compact': 'coun'}), self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        self.assertEqual(
+            {
+                'message': 'Registration is not currently available for the specified license type.'
+            },
+            json.loads(response['body']),
+        )
+
+    @patch('handlers.registration.verify_recaptcha')
     def test_registration_returns_400_if_compact_is_not_enabled_for_registration(self, mock_verify_recaptcha):
         compact_config_overrides = generate_default_compact_config_overrides()
         # in this case, no environments are enabled for registration
@@ -169,6 +183,17 @@ class TestProviderRegistration(TstFunction):
         self.assertEqual(400, response['statusCode'])
         self.assertEqual(
             {'message': 'Registration is not currently available for Kentucky.'}, json.loads(response['body'])
+        )
+
+    @patch('handlers.registration.verify_recaptcha')
+    def test_registration_returns_400_if_jurisdiction_is_not_configured_for_registration(self, mock_verify_recaptcha):
+        mock_verify_recaptcha.return_value = True
+        from handlers.registration import register_provider
+
+        response = register_provider(self._get_test_event(body_overrides={'jurisdiction': 'oh'}), self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        self.assertEqual(
+            {'message': 'Registration is not currently available for the specified state.'}, json.loads(response['body'])
         )
 
     @patch('handlers.registration.verify_recaptcha')
