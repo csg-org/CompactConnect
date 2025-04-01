@@ -55,6 +55,7 @@ class PageContainer extends Vue {
     get shouldPadTop(): boolean {
         const nonPadTopRouteNames: Array<string> = [
             'LicensingDetail',
+            'LicenseeDetailPublic',
         ];
 
         return !nonPadTopRouteNames.includes(this.currentRouteName);
