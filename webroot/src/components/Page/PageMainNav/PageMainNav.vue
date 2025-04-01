@@ -70,7 +70,7 @@
                 :hideIfNotMultiple="true"
             />
         </div>
-        <div class="separator"></div>
+        <div v-if="isLoggedIn" class="separator"></div>
         <ul class="nav my-nav">
             <li v-for="link in myLinks" :key="link.label" class="page-nav my-links">
                 <!-- Internal links that should only have active style if the route path matches exactly -->

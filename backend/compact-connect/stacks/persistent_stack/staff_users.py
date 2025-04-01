@@ -58,7 +58,7 @@ class StaffUsers(UserPool):
         self.user_table = UsersTable(self, 'UsersTable', encryption_key=encryption_key, removal_policy=removal_policy)
         self._add_resource_servers(stack=stack, environment_name=environment_name)
         self._add_scope_customization(stack=stack)
-        self._add_custom_message_lambda(stack=stack, environment_name=environment_name)
+        self._add_custom_message_lambda(stack=stack)
 
         # Do not allow resource server scopes via the client - they are assigned via token customization
         # to allow for user attribute-based access
@@ -175,6 +175,7 @@ class StaffUsers(UserPool):
                 'USERS_TABLE_NAME': self.user_table.table_name,
                 'COMPACTS': json.dumps(compacts),
                 'JURISDICTIONS': json.dumps(jurisdictions),
+                **stack.common_env_vars,
             },
         )
         self.user_table.grant_read_write_data(scope_customization_handler)
@@ -198,7 +199,7 @@ class StaffUsers(UserPool):
             lambda_version=LambdaVersion.V2_0,
         )
 
-    def _add_custom_message_lambda(self, stack: ps.PersistentStack, environment_name: str):
+    def _add_custom_message_lambda(self, stack: ps.PersistentStack):
         """Add a custom message lambda to the user pool"""
 
         from_address = 'NONE'
@@ -216,7 +217,6 @@ class StaffUsers(UserPool):
                 'FROM_ADDRESS': from_address,
                 'COMPACT_CONFIGURATION_TABLE_NAME': stack.compact_configuration_table.table_name,
                 'UI_BASE_PATH_URL': stack.get_ui_base_path_url(),
-                'ENVIRONMENT_NAME': environment_name,
                 **stack.common_env_vars,
             },
         )

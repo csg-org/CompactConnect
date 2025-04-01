@@ -69,7 +69,6 @@ class TestSanitizeProviderData(TstLambdas):
         # cast to set to match schema
         expected_provider['privilegeJurisdictions'] = set(expected_provider['privilegeJurisdictions'])
 
-        self.maxDiff = None
         self.assertEqual(expected_provider, resp)
 
     def test_sanitized_provider_record_returned_if_caller_does_not_have_read_private_permissions_for_jurisdiction(self):

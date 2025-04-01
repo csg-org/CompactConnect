@@ -83,9 +83,25 @@
                 margin: 0 1rem;
             }
 
-            .select-privileges-title {
+            .title-row {
+                display: flex;
+                flex-direction: row;
+                align-items: flex-start;
+                justify-content: space-between;
                 margin: 4rem 1rem 2rem 1rem;
-                font-weight: @fontWeightBold;
+
+                @media @tabletWidth {
+                    align-items: center;
+                }
+
+                .select-privileges-title {
+                    font-weight: @fontWeightBold;
+                }
+
+                .license-info {
+                    min-width: 10rem;
+                    margin-top: 1rem;
+                }
             }
 
             .lists-container {

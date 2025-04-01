@@ -1,5 +1,5 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
-from marshmallow.fields import Boolean, Email, List, Nested, Raw, String
+from marshmallow.fields import Date, Email, List, Nested, Raw, String
 from marshmallow.validate import Length, Regexp
 
 from cc_common.data_model.schema.base_record import ForgivingSchema
@@ -38,8 +38,6 @@ class ProviderGeneralResponseSchema(ForgivingSchema):
     compact = Compact(required=True, allow_none=False)
     licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
     npi = NationalProviderIdentifier(required=False, allow_none=False)
-    licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
-    licenseType = String(required=True, allow_none=False)
     jurisdictionStatus = ActiveInactive(required=True, allow_none=False)
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
@@ -53,17 +51,16 @@ class ProviderGeneralResponseSchema(ForgivingSchema):
     homeAddressCity = String(required=True, allow_none=False, validate=Length(2, 100))
     homeAddressState = String(required=True, allow_none=False, validate=Length(2, 100))
     homeAddressPostalCode = String(required=True, allow_none=False, validate=Length(5, 7))
-    emailAddress = Email(required=False, allow_none=False, validate=Length(1, 100))
+    emailAddress = Email(required=False, allow_none=False)
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
     compactConnectRegisteredEmailAddress = Email(required=False, allow_none=False)
     cognitoSub = String(required=False, allow_none=False)
     status = ActiveInactive(required=True, allow_none=False)
-    militaryWaiver = Boolean(required=False, allow_none=False)
 
     privilegeJurisdictions = Set(String, required=False, allow_none=False, load_default=set())
     providerFamGivMid = String(required=False, allow_none=False, validate=Length(2, 400))
     providerDateOfUpdate = Raw(required=False, allow_none=False)
-    birthMonthDay = String(required=False, allow_none=False, validate=Regexp('^[0-1]{1}[0-9]{1}-[0-3]{1}[0-9]{1}'))
+    birthMonthDay = String(required=True, allow_none=False, validate=Regexp('^[0-1]{1}[0-9]{1}-[0-3]{1}[0-9]{1}'))
 
     # these records are present when getting provider information from the GET endpoint
     # so we check for them here and sanitize them if they are present
@@ -106,3 +103,25 @@ class ProviderPublicResponseSchema(ForgivingSchema):
     # Unlike the internal provider search endpoints used by staff users, which return license data in addition to
     # privilege data for a provider, we only return privilege data for a provider from the public GET provider endpoint
     privileges = List(Nested(PrivilegePublicResponseSchema(), required=False, allow_none=False))
+
+
+class ProviderRegistrationRequestSchema(ForgivingSchema):
+    """
+    Schema for provider registration requests.
+
+    This schema is used to validate incoming requests to the provider registration API endpoint.
+    It corresponds to the V1ProviderRegistrationRequestModel in the API model.
+
+    Serialization direction:
+    API -> load() -> Python
+    """
+
+    givenName = String(required=True, allow_none=False)
+    familyName = String(required=True, allow_none=False)
+    email = Email(required=True, allow_none=False)
+    partialSocial = String(required=True, allow_none=False)
+    dob = Date(required=True, allow_none=False)
+    jurisdiction = Jurisdiction(required=True, allow_none=False)
+    licenseType = String(required=True, allow_none=False)
+    compact = String(required=True, allow_none=False)
+    token = String(required=True, allow_none=False)

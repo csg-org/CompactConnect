@@ -88,7 +88,7 @@ class TestTransformations(TstFunction):
             ssn=license_ssn,
         )
         self.assertEqual(expected_provider_id, provider_id)
-        provider_record = client.get_provider(compact='aslp', provider_id=provider_id, detail=False)
+        provider_record = client.get_provider(compact='aslp', provider_id=provider_id, detail=False)['items'][0]
 
         # Expected representation of each record in the database
         with open('../common/tests/resources/dynamo/provider.json') as f:
@@ -112,7 +112,7 @@ class TestTransformations(TstFunction):
             jurisdiction_postal_abbreviations=['ne'],
             license_expiration_date=date(2025, 4, 4),
             compact_transaction_id='1234567890',
-            existing_privileges=[],
+            existing_privileges_for_license=[],
             license_type='speech-language pathologist',
             attestations=[{'attestationId': 'jurisprudence-confirmation', 'version': '1'}],
         )

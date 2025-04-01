@@ -11,6 +11,7 @@ from aws_cdk.aws_logs import QueryDefinition, QueryString
 from cdk_nag import NagSuppressions
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.alarm_topic import AlarmTopic
+from common_constructs.data_migration import DataMigration
 from common_constructs.nodejs_function import NodejsFunction
 from common_constructs.python_function import COMMON_PYTHON_LAMBDA_LAYER_SSM_PARAMETER_NAME
 from common_constructs.security_profile import SecurityProfile
@@ -50,7 +51,9 @@ class PersistentStack(AppStack):
         environment_context: dict,
         **kwargs,
     ) -> None:
-        super().__init__(scope, construct_id, environment_context=environment_context, **kwargs)
+        super().__init__(
+            scope, construct_id, environment_context=environment_context, environment_name=environment_name, **kwargs
+        )
         # If we delete this stack, retain the resource (orphan but prevent data loss) or destroy it (clean up)?
         removal_policy = RemovalPolicy.RETAIN if environment_name == 'prod' else RemovalPolicy.DESTROY
 
@@ -134,7 +137,7 @@ class PersistentStack(AppStack):
             # if domain name is not provided, use the default cognito email settings
             user_pool_email_settings = UserPoolEmail.with_cognito()
 
-        self._create_email_notification_service(environment_name)
+        self._create_email_notification_service()
 
         security_profile = SecurityProfile[environment_context.get('security_profile', 'RECOMMENDED')]
         staff_prefix = f'{app_name}-staff'
@@ -152,12 +155,12 @@ class PersistentStack(AppStack):
         )
 
         # PROVIDER USER POOL MIGRATION PLAN:
-        # 1. Create the blue user pool in all environments. (Deploy 1 of 3)
+        # 1. ✓ Create the blue user pool in all environments. (Deploy 1 of 3)
         # 2. Cut over to the blue user pool by: (Deploy 2 of 3)
-        #   a. Update the API stack to use the blue user pool (just rename
+        #   a. ✓ Update the API stack to use the blue user pool (just rename
         #      self.provider_users->self.provider_users_deprecated and
         #      self.provider_users_standby->self.provider_users below)
-        #   b. Move the main provider prefix to the blue user pool (just use the provider_prefix in the other
+        #   b. ✓ Move the main provider prefix to the blue user pool (just use the provider_prefix in the other
         #      ProviderUsers constructor below)
         #   c. Deploy to all environments. You will have to manually delete the original user pool domain right before
         #      deploying to each environment. This will result in a deletion failure in the CFn events, but the overall
@@ -165,14 +168,14 @@ class PersistentStack(AppStack):
         # 3. Testers/users will need to re-register to get a new provider user in the blue user pool.
         # 4. Remove the original user pool. (Deploy 3 of 3)
 
-        # This user pool is currently in use but will be replaced with the blue user pool,
-        # once the blue user pool is deployed across all environments.
+        # This user pool is deprecated and will be removed once we've cut over to the blue user pool
+        # across all environments.
         provider_prefix = f'{app_name}-provider'
         provider_prefix = provider_prefix if environment_name == 'prod' else f'{provider_prefix}-{environment_name}'
-        self.provider_users = ProviderUsers(
+        self.provider_users_deprecated = ProviderUsers(
             self,
             'ProviderUsers',
-            cognito_domain_prefix=provider_prefix,
+            cognito_domain_prefix=None,
             environment_name=environment_name,
             environment_context=environment_context,
             encryption_key=self.shared_encryption_key,
@@ -184,16 +187,14 @@ class PersistentStack(AppStack):
         # We explicitly export the user pool values so we can later move the API stack over to the
         # new user pool without putting our app into a cross-stack dependency 'deadly embrace':
         # https://www.endoflineblog.com/cdk-tips-03-how-to-unblock-cross-stack-references
-        self.export_value(self.provider_users.user_pool_id)
-        self.export_value(self.provider_users.user_pool_arn)
+        self.export_value(self.provider_users_deprecated.user_pool_id)
+        self.export_value(self.provider_users_deprecated.user_pool_arn)
 
-        # This user pool is not yet used but we will cut over to the new pool once it is
-        # deployed across all environments.
         # We have to use a different prefix so we don't have a naming conflict with the original user pool
-        self.provider_users_standby = ProviderUsers(
+        self.provider_users = ProviderUsers(
             self,
             'ProviderUsersBlue',
-            cognito_domain_prefix=None,
+            cognito_domain_prefix=provider_prefix,
             environment_name=environment_name,
             environment_context=environment_context,
             encryption_key=self.shared_encryption_key,
@@ -226,13 +227,13 @@ class PersistentStack(AppStack):
             self.staff_users.node.add_dependency(self.user_email_notifications.dmarc_record)
             self.provider_users.node.add_dependency(self.user_email_notifications.email_identity)
             self.provider_users.node.add_dependency(self.user_email_notifications.dmarc_record)
-            self.provider_users_standby.node.add_dependency(self.user_email_notifications.email_identity)
-            self.provider_users_standby.node.add_dependency(self.user_email_notifications.dmarc_record)
+            self.provider_users_deprecated.node.add_dependency(self.user_email_notifications.email_identity)
+            self.provider_users_deprecated.node.add_dependency(self.user_email_notifications.dmarc_record)
             # the verification custom resource needs to be completed before the user pools are created
             # so that the user pools will be created after the SES identity is verified
             self.staff_users.node.add_dependency(self.user_email_notifications.verification_custom_resource)
             self.provider_users.node.add_dependency(self.user_email_notifications.verification_custom_resource)
-            self.provider_users_standby.node.add_dependency(self.user_email_notifications.verification_custom_resource)
+            self.provider_users_deprecated.node.add_dependency(self.user_email_notifications.verification_custom_resource)
 
     def _add_data_resources(self, removal_policy: RemovalPolicy):
         # Create the ssn related resources before other resources which are dependent on them
@@ -336,9 +337,53 @@ class PersistentStack(AppStack):
         there should be an associated migration script that is run as part of the deployment. These are short-lived
         custom resources that should be removed from the CDK app once the migration has been run in all environments.
         """
-        # No migrations are currently needed
+        multi_license_migration = DataMigration(
+            self,
+            '569MultiLicense',
+            migration_dir='569_multi_license',
+            lambda_environment={
+                'PROVIDER_TABLE_NAME': self.provider_table.table_name,
+                'PROV_FAM_GIV_MID_INDEX_NAME': self.provider_table.provider_fam_giv_mid_index_name,
+                **self.common_env_vars,
+            },
+        )
+        self.provider_table.grant_read_write_data(multi_license_migration)
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            f'{multi_license_migration.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'This policy contains wild-carded actions and resources but they are scoped to the '
+                    'specific actions, reporting Table and Key that this lambda specifically needs access to.',
+                },
+            ],
+        )
 
-    def _create_email_notification_service(self, environment_name: str) -> None:
+        military_waiver_removal_migration = DataMigration(
+            self,
+            '618RemoveMilitaryWaiver',
+            migration_dir='618_remove_military_waiver',
+            lambda_environment={
+                'PROVIDER_TABLE_NAME': self.provider_table.table_name,
+                **self.common_env_vars,
+            },
+        )
+        self.provider_table.grant_read_write_data(military_waiver_removal_migration)
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            f'{military_waiver_removal_migration.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'This policy contains wild-carded actions and resources but they are scoped to the '
+                    'specific actions, Table and Key that this lambda needs access to in order to perform the'
+                    'migration.',
+                },
+            ],
+        )
+
+    def _create_email_notification_service(self) -> None:
         """This lambda is intended to be a general purpose email notification service.
 
         It can be invoked directly to send an email if the lambda is deployed in an environment that has a domain name.
@@ -364,7 +409,6 @@ class PersistentStack(AppStack):
                 'COMPACT_CONFIGURATION_TABLE_NAME': self.compact_configuration_table.table_name,
                 'TRANSACTION_REPORTS_BUCKET_NAME': self.transaction_reports_bucket.bucket_name,
                 'UI_BASE_PATH_URL': self.get_ui_base_path_url(),
-                'ENVIRONMENT_NAME': environment_name,
                 **self.common_env_vars,
             },
         )

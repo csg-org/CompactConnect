@@ -26,6 +26,7 @@ with open('cdk.json') as context_file:
     _context = json.load(context_file)['context']
 JURISDICTIONS = _context['jurisdictions']
 COMPACTS = _context['compacts']
+LICENSE_TYPES = _context['license_types']
 
 os.environ['COMPACTS'] = json.dumps(COMPACTS)
 os.environ['JURISDICTIONS'] = json.dumps(JURISDICTIONS)
@@ -169,6 +170,16 @@ def get_staff_user_auth_headers(username: str, password: str = _TEST_STAFF_USER_
     }
 
 
+def get_license_type_abbreviation(license_type: str):
+    """
+    Gets the abbreviation for a specific license type.
+    """
+    all_license_types = []
+    for compact in LICENSE_TYPES:
+        all_license_types.extend(LICENSE_TYPES[compact])
+    return next((lt['abbreviation'] for lt in all_license_types if lt['name'] == license_type), None)
+
+
 def get_api_base_url():
     return os.environ['CC_TEST_API_BASE_URL']
 
@@ -177,12 +188,24 @@ def get_provider_user_dynamodb_table():
     return boto3.resource('dynamodb').Table(os.environ['CC_TEST_PROVIDER_DYNAMO_TABLE_NAME'])
 
 
+def get_rate_limiting_dynamodb_table():
+    return boto3.resource('dynamodb').Table(os.environ['CC_TEST_RATE_LIMITING_DYNAMO_TABLE_NAME'])
+
+
 def get_ssn_dynamodb_table():
     return boto3.resource('dynamodb').Table(os.environ['CC_TEST_SSN_DYNAMO_TABLE_NAME'])
 
 
 def get_data_events_dynamodb_table():
     return boto3.resource('dynamodb').Table(os.environ['CC_TEST_DATA_EVENT_DYNAMO_TABLE_NAME'])
+
+
+def get_provider_ssn_lambda_name():
+    return os.environ['CC_TEST_GET_PROVIDER_SSN_LAMBDA_NAME']
+
+
+def get_lambda_client():
+    return boto3.client('lambda')
 
 
 def load_smoke_test_env():

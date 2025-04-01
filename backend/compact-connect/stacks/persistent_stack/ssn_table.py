@@ -66,9 +66,7 @@ class SSNTable(Table):
                             'dynamodb:BatchGetItem',
                             'dynamodb:BatchWriteItem',
                             'dynamodb:PartiQL*',
-                            # We will allow Scan to open up the table for migration
-                            # TODO: Uncomment this after the migration is complete  # noqa: FIX002
-                            # 'dynamodb:Scan',
+                            'dynamodb:Scan',
                         ],
                         principals=[StarPrincipal()],
                         resources=['*'],
@@ -84,16 +82,6 @@ class SSNTable(Table):
             **kwargs,
         )
 
-        # This GSI turned out to not actually be helpful. We will remove it in the future.
-        # TODO: Remove this GSI after the ssn-index is fully deployed.  # noqa: FIX002
-        self.inverted_index_name = 'inverted'
-        self.add_global_secondary_index(
-            index_name=self.inverted_index_name,
-            partition_key=Attribute(name='sk', type=AttributeType.STRING),
-            sort_key=Attribute(name='pk', type=AttributeType.STRING),
-            projection_type=ProjectionType.ALL,
-        )
-
         # This GSI will allow a reverse lookup of provider_id -> ssn, in addition to our current ssn -> provider_id
         # pattern.
         self.ssn_index_name = 'ssnIndex'
@@ -102,6 +90,38 @@ class SSNTable(Table):
             partition_key=Attribute(name='providerIdGSIpk', type=AttributeType.STRING),
             sort_key=Attribute(name='sk', type=AttributeType.STRING),
             projection_type=ProjectionType.ALL,
+        )
+
+        # Restrict read access to only the ssnIndex GSI
+        # Because the primary keys include SSN and data events are recorded on a CloudTrail organizaiton trail,
+        # queries outside the ssnIndex will result in SSNs being logged into the data events trail. To reduce
+        # sensitivity of the trail logs, we'll restrict read operations to only the ssnIndex, where queries
+        # by Key include provider ids, not SSNs.
+        stack = Stack.of(self)
+        self.add_to_resource_policy(
+            PolicyStatement(
+                # Deny GetItem and Query operations unless they're targeting the ssnIndex GSI
+                effect=Effect.DENY,
+                actions=[
+                    'dynamodb:GetItem',
+                    'dynamodb:Query',
+                    'dynamodb:DescribeTable',
+                    'dynamodb:GetRecords',
+                    'dynamodb:ConditionCheckItem',
+                ],
+                principals=[StarPrincipal()],
+                not_resources=[
+                    # arn:${Partition}:dynamodb:${Region}:${Account}:table/${TableName}/index/${IndexName}
+                    stack.format_arn(
+                        partition=stack.partition,
+                        service='dynamodb',
+                        region=stack.region,
+                        account=stack.account,
+                        resource='table',
+                        resource_name=f'{self.table_name}/index/{self.ssn_index_name}',
+                    ),
+                ],
+            )
         )
 
         NagSuppressions.add_resource_suppressions(

@@ -14,13 +14,15 @@ export default {
     getLicenseesRequest: async ({ commit, getters, dispatch }, { params }: any) => {
         commit(MutationTypes.GET_LICENSEES_REQUEST);
 
+        const apiRequest = (params?.isPublic) ? dataApi.getLicenseesPublic : dataApi.getLicensees;
+
         if (params?.getNextPage) {
             params.lastKey = getters.lastKey;
         } else if (params?.getPrevPage) {
             params.lastKey = getters.prevLastKey;
         }
 
-        await dataApi.getLicensees(params).then(async ({ prevLastKey, lastKey, licensees }) => {
+        await apiRequest(params).then(async ({ prevLastKey, lastKey, licensees }) => {
             // Support for limited server paging support
             if (!licensees.length && params?.getNextPage) {
                 throw new PageExhaustError('end of list');

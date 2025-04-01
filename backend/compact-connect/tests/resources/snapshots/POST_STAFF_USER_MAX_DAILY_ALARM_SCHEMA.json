@@ -1,0 +1,17 @@
+{
+  "AlarmDescription": "Sandbox/APIStack/LicenseApi max daily staff users created alarm. The POST staff user endpoint has been invoked more than an expected threshold within a day. Investigation is required to ensure requests are authorized.",
+  "ComparisonOperator": "GreaterThanThreshold",
+  "Dimensions": [
+    {
+      "Name": "service",
+      "Value": "common"
+    }
+  ],
+  "EvaluationPeriods": 1,
+  "MetricName": "staff-user-created",
+  "Namespace": "compact-connect",
+  "Period": 86400,
+  "Statistic": "SampleCount",
+  "Threshold": 20,
+  "TreatMissingData": "notBreaching"
+}

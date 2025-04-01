@@ -6,7 +6,7 @@ from marshmallow.fields import UUID, Date, DateTime, List, Nested, String
 
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import BaseRecordSchema, ForgivingSchema
-from cc_common.data_model.schema.common import ChangeHashMixin, ensure_value_is_datetime
+from cc_common.data_model.schema.common import ChangeHashMixin, ValidatesLicenseTypeMixin, ensure_value_is_datetime
 from cc_common.data_model.schema.fields import ActiveInactive, Compact, Jurisdiction, UpdateType
 
 
@@ -26,7 +26,7 @@ class AttestationVersionRecordSchema(Schema):
 
 
 @BaseRecordSchema.register_schema('privilege')
-class PrivilegeRecordSchema(BaseRecordSchema):
+class PrivilegeRecordSchema(BaseRecordSchema, ValidatesLicenseTypeMixin):
     """
     Schema for privilege records in the license data table
 
@@ -40,6 +40,8 @@ class PrivilegeRecordSchema(BaseRecordSchema):
     providerId = UUID(required=True, allow_none=False)
     compact = Compact(required=True, allow_none=False)
     jurisdiction = Jurisdiction(required=True, allow_none=False)
+    licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
+    licenseType = String(required=True, allow_none=False)
     dateOfIssuance = DateTime(required=True, allow_none=False)
     dateOfRenewal = DateTime(required=True, allow_none=False)
     # this is determined by the license expiration date, which is a date field, so this is also a date field
@@ -62,7 +64,8 @@ class PrivilegeRecordSchema(BaseRecordSchema):
     @pre_dump
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         in_data['pk'] = f'{in_data["compact"]}#PROVIDER#{in_data["providerId"]}'
-        in_data['sk'] = f'{in_data["compact"]}#PROVIDER#privilege/{in_data["jurisdiction"]}#'
+        license_type_abbr = config.license_type_abbreviations[in_data['compact']][in_data['licenseType']]
+        in_data['sk'] = f'{in_data["compact"]}#PROVIDER#privilege/{in_data["jurisdiction"]}/{license_type_abbr}#'
         return in_data
 
     @pre_dump
@@ -128,10 +131,11 @@ class PrivilegeUpdatePreviousRecordSchema(ForgivingSchema):
     compactTransactionId = String(required=True, allow_none=False)
     attestations = List(Nested(AttestationVersionRecordSchema()), required=True, allow_none=False)
     persistedStatus = ActiveInactive(required=False, allow_none=False)
+    licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
 
 
 @BaseRecordSchema.register_schema('privilegeUpdate')
-class PrivilegeUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
+class PrivilegeUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin, ValidatesLicenseTypeMixin):
     """
     Schema for privilege update history records in the provider data table
 
@@ -145,6 +149,7 @@ class PrivilegeUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
     providerId = UUID(required=True, allow_none=False)
     compact = Compact(required=True, allow_none=False)
     jurisdiction = Jurisdiction(required=True, allow_none=False)
+    licenseType = String(required=True, allow_none=False)
     compactTransactionIdGSIPK = String(required=True, allow_none=False)
     previous = Nested(PrivilegeUpdatePreviousRecordSchema, required=True, allow_none=False)
     # We'll allow any fields that can show up in the previous field to be here as well, but none are required
@@ -157,8 +162,9 @@ class PrivilegeUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
         # to the record. We'll use the current time and the hash of the updatedValues
         # field for this.
         change_hash = self.hash_changes(in_data)
+        license_type_abbr = config.license_type_abbreviations[in_data['compact']][in_data['licenseType']]
         in_data['sk'] = (
-            f'{in_data["compact"]}#PROVIDER#privilege/{in_data["jurisdiction"]}#UPDATE#{int(config.current_standard_datetime.timestamp())}/{change_hash}'
+            f'{in_data["compact"]}#PROVIDER#privilege/{in_data["jurisdiction"]}/{license_type_abbr}#UPDATE#{int(config.current_standard_datetime.timestamp())}/{change_hash}'
         )
         return in_data
 

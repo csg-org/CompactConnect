@@ -44,7 +44,7 @@ export interface InterfaceFormInput {
     shouldHideErrorMessage?: boolean;
     isFormRow?: boolean;
     shouldHideMargin?: boolean;
-    isDisabled?: boolean;
+    isDisabled?: boolean | ComputedRef<boolean>;
 }
 
 // ========================================================

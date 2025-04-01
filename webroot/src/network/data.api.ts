@@ -79,6 +79,15 @@ export class DataApi {
     }
 
     /**
+     * GET Licensees (Public).
+     * @param  {object}         [params] The request query parameters config.
+     * @return {Promise<Array>}          An array of users server response.
+     */
+    public getLicenseesPublic(params) {
+        return licenseDataApi.getLicenseesPublic(params);
+    }
+
+    /**
      * GET Licensee by ID.
      * @param  {string}          compact    A compact type.
      * @param  {string}          licenseeId A licensee ID.
@@ -86,6 +95,16 @@ export class DataApi {
      */
     public getLicensee(compact, licenseeId) {
         return licenseDataApi.getLicensee(compact, licenseeId);
+    }
+
+    /**
+     * GET Licensee by ID (Public).
+     * @param  {string}          compact    A compact type.
+     * @param  {string}          licenseeId A licensee ID.
+     * @return {Promise<object>}            A licensee server response.
+     */
+    public getLicenseePublic(compact, licenseeId) {
+        return licenseDataApi.getLicenseePublic(compact, licenseeId);
     }
 
     /**

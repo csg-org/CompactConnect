@@ -3,6 +3,10 @@ from boto3.dynamodb.conditions import Key
 from cc_common.config import _Config, logger
 from cc_common.data_model.query_paginator import paginated_query
 from cc_common.data_model.schema.attestation import AttestationRecordSchema
+from cc_common.data_model.schema.compact import Compact
+from cc_common.data_model.schema.compact.record import CompactRecordSchema
+from cc_common.data_model.schema.jurisdiction import Jurisdiction
+from cc_common.data_model.schema.jurisdiction.record import JurisdictionRecordSchema
 from cc_common.exceptions import CCNotFoundException
 from cc_common.utils import logger_inject_kwargs
 
@@ -13,6 +17,8 @@ class CompactConfigurationClient:
     def __init__(self, config: _Config):
         self.config = config
         self.attestation_schema = AttestationRecordSchema()
+        self.compact_schema = CompactRecordSchema()
+        self.jurisdiction_schema = JurisdictionRecordSchema()
 
     def get_attestation(self, *, compact: str, attestation_id: str, locale: str = 'en') -> dict:
         """
@@ -68,6 +74,55 @@ class CompactConfigurationClient:
                 attestations_by_id[attestation_id] = attestation
 
         return attestations_by_id
+
+    def get_compact_configuration(self, compact: str) -> Compact:
+        """
+        Get the configuration for a specific compact.
+
+        :param compact: The compact abbreviation
+        :return: Compact configuration model
+        :raises CCNotFoundException: If the compact configuration is not found
+        """
+        logger.info('Getting compact configuration', compact=compact)
+
+        pk = f'{compact}#CONFIGURATION'
+        sk = f'{compact}#CONFIGURATION'
+
+        response = self.config.compact_configuration_table.get_item(Key={'pk': pk, 'sk': sk})
+
+        item = response.get('Item')
+        if not item:
+            raise CCNotFoundException(f'No configuration found for compact "{compact}"')
+
+        # Load through schema and convert to Compact model
+        compact_data = self.compact_schema.load(item)
+        return Compact(compact_data)
+
+    def get_jurisdiction_configuration(self, compact: str, jurisdiction: str) -> Jurisdiction:
+        """
+        Get the configuration for a specific jurisdiction within a compact.
+
+        :param compact: The compact abbreviation
+        :param jurisdiction: The jurisdiction postal abbreviation
+        :return: Jurisdiction configuration model
+        :raises CCNotFoundException: If the jurisdiction configuration is not found
+        """
+        logger.info('Getting jurisdiction configuration', compact=compact, jurisdiction=jurisdiction)
+
+        pk = f'{compact}#CONFIGURATION'
+        sk = f'{compact}#JURISDICTION#{jurisdiction.lower()}'
+
+        response = self.config.compact_configuration_table.get_item(Key={'pk': pk, 'sk': sk})
+
+        item = response.get('Item')
+        if not item:
+            raise CCNotFoundException(
+                f'No configuration found for jurisdiction "{jurisdiction}" in compact "{compact}"'
+            )
+
+        # Load through schema and convert to Jurisdiction model
+        jurisdiction_data = self.jurisdiction_schema.load(item)
+        return Jurisdiction(jurisdiction_data)
 
     @paginated_query
     @logger_inject_kwargs(logger, 'compact')

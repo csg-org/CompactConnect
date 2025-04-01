@@ -4,6 +4,7 @@ from unittest.mock import patch
 from uuid import uuid4
 
 from boto3.dynamodb.conditions import Key
+from cc_common.exceptions import CCInvalidRequestException
 from moto import mock_aws
 
 from tests.function import TstFunction
@@ -176,27 +177,31 @@ class TestDataClient(TstFunction):
         test_data_client.create_provider_privileges(
             compact='aslp',
             provider_id='test_provider_id',
+            license_type='audiologist',
             jurisdiction_postal_abbreviations=['ca'],
             license_expiration_date=date.fromisoformat('2024-10-31'),
-            provider_record={},
-            existing_privileges=[],
+            provider_record={
+                'licenseJurisdiction': 'oh',
+            },
+            existing_privileges_for_license=[],
             compact_transaction_id='test_transaction_id',
             attestations=self.sample_privilege_attestations,
-            license_type='audiologist',
         )
 
         # Verify that the privilege record was created
         new_privilege = self._provider_table.get_item(
-            Key={'pk': 'aslp#PROVIDER#test_provider_id', 'sk': 'aslp#PROVIDER#privilege/ca#'}
+            Key={'pk': 'aslp#PROVIDER#test_provider_id', 'sk': 'aslp#PROVIDER#privilege/ca/aud#'}
         )['Item']
         self.assertEqual(
             {
                 'pk': 'aslp#PROVIDER#test_provider_id',
-                'sk': 'aslp#PROVIDER#privilege/ca#',
+                'sk': 'aslp#PROVIDER#privilege/ca/aud#',
                 'type': 'privilege',
                 'providerId': 'test_provider_id',
                 'compact': 'aslp',
                 'jurisdiction': 'ca',
+                'licenseJurisdiction': 'oh',
+                'licenseType': 'audiologist',
                 'persistedStatus': 'active',
                 'dateOfIssuance': '2024-11-08T23:59:59+00:00',
                 'dateOfRenewal': '2024-11-08T23:59:59+00:00',
@@ -217,7 +222,13 @@ class TestDataClient(TstFunction):
         self.assertEqual({'ca'}, updated_provider['privilegeJurisdictions'])
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
-    def test_data_client_updates_privilege_records(self):
+    def test_data_client_updates_privilege_records_for_specific_license_type(self):
+        """
+        In this test case, a user has two license types, audiologist and speech-language pathologist.
+        The user is purchasing a renewal for their audiologist privilege in ky, and purchasing a new
+        audiologist privilege in ne. The privilege for the speech-language pathologist license should not be
+        referenced nor updated in any way as part of this purchase.
+        """
         from cc_common.data_model.data_client import DataClient
         from cc_common.data_model.schema.privilege.record import PrivilegeRecordSchema
 
@@ -235,11 +246,13 @@ class TestDataClient(TstFunction):
         provider_uuid = str(uuid4())
         original_privilege = {
             'pk': f'aslp#PROVIDER#{provider_uuid}',
-            'sk': 'aslp#PROVIDER#privilege/ky#',
+            'sk': 'aslp#PROVIDER#privilege/ky/aud#',
             'type': 'privilege',
             'providerId': provider_uuid,
             'compact': 'aslp',
             'jurisdiction': 'ky',
+            'licenseJurisdiction': 'oh',
+            'licenseType': 'audiologist',
             'persistedStatus': 'active',
             'dateOfIssuance': '2023-11-08T23:59:59+00:00',
             'dateOfRenewal': '2023-11-08T23:59:59+00:00',
@@ -251,41 +264,71 @@ class TestDataClient(TstFunction):
             'privilegeId': 'AUD-KY-1',
         }
         self._provider_table.put_item(Item=original_privilege)
+        # Put in another privilege for the slp license type in same jurisdiction to ensure
+        # it is not modified by the renewal
+        slp_ne_privilege = {
+            'pk': f'aslp#PROVIDER#{provider_uuid}',
+            'sk': 'aslp#PROVIDER#privilege/ne/slp#',
+            'type': 'privilege',
+            'providerId': provider_uuid,
+            'compact': 'aslp',
+            'jurisdiction': 'ne',
+            'licenseJurisdiction': 'oh',
+            'licenseType': 'speech-language pathologist',
+            'persistedStatus': 'active',
+            'dateOfIssuance': '2023-11-08T23:59:59+00:00',
+            'dateOfRenewal': '2023-11-08T23:59:59+00:00',
+            'dateOfExpiration': '2024-10-31',
+            'dateOfUpdate': '2023-11-08T23:59:59+00:00',
+            'compactTransactionId': '1234567890',
+            'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#1234567890#',
+            'attestations': self.sample_privilege_attestations,
+            'privilegeId': 'SLP-NE-2',
+        }
+        self._provider_table.put_item(Item=slp_ne_privilege)
 
         test_data_client = DataClient(self.config)
 
         # Now, renew the privilege
         test_data_client.create_provider_privileges(
             compact='aslp',
-            provider_id='test_provider_id',
-            jurisdiction_postal_abbreviations=['ky'],
+            provider_id=provider_uuid,
+            # in this case, the user is renewing their ky priv, and purchasing a new priv in ne
+            jurisdiction_postal_abbreviations=['ky', 'ne'],
             license_expiration_date=date.fromisoformat('2025-10-31'),
             provider_record={
                 'pk': 'aslp#PROVIDER#test_provider_id',
                 'sk': 'aslp#PROVIDER',
+                'licenseJurisdiction': 'oh',
             },
-            existing_privileges=[PrivilegeRecordSchema().load(original_privilege)],
+            # set error scenario where a developer passes in both privileges, even though only one is related to the
+            # specific license type, which should be handled gracefully in the implementation
+            existing_privileges_for_license=[
+                PrivilegeRecordSchema().load(original_privilege.copy()),
+                PrivilegeRecordSchema().load(slp_ne_privilege.copy()),
+            ],
             compact_transaction_id='test_transaction_id',
             attestations=self.sample_privilege_attestations,
             license_type='audiologist',
         )
 
-        # Verify that the privilege record was created
-        new_privilege = self._provider_table.query(
-            KeyConditionExpression=Key('pk').eq('aslp#PROVIDER#test_provider_id')
-            & Key('sk').begins_with('aslp#PROVIDER#privilege/ky#'),
+        # Verify that the audiologist privilege update record was created for ky
+        new_aud_ky_privilege = self._provider_table.query(
+            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_uuid}')
+            & Key('sk').begins_with('aslp#PROVIDER#privilege/ky/aud#'),
         )['Items']
-        self.maxDiff = None
         self.assertEqual(
             [
                 # Primary record
                 {
-                    'pk': 'aslp#PROVIDER#test_provider_id',
-                    'sk': 'aslp#PROVIDER#privilege/ky#',
+                    'pk': f'aslp#PROVIDER#{provider_uuid}',
+                    'sk': 'aslp#PROVIDER#privilege/ky/aud#',
                     'type': 'privilege',
-                    'providerId': 'test_provider_id',
+                    'providerId': provider_uuid,
                     'compact': 'aslp',
                     'jurisdiction': 'ky',
+                    'licenseJurisdiction': 'oh',
+                    'licenseType': 'audiologist',
                     'persistedStatus': 'active',
                     # Should be updated dates for renewal, expiration, update
                     'dateOfIssuance': '2023-11-08T23:59:59+00:00',
@@ -300,14 +343,15 @@ class TestDataClient(TstFunction):
                 },
                 # A new history record
                 {
-                    'pk': 'aslp#PROVIDER#test_provider_id',
-                    'sk': 'aslp#PROVIDER#privilege/ky#UPDATE#1731110399/dec844e72850ff74c8b7f9bea4b7543a',
+                    'pk': f'aslp#PROVIDER#{provider_uuid}',
+                    'sk': 'aslp#PROVIDER#privilege/ky/aud#UPDATE#1731110399/cda961edc5c829a8d11850ee101c2b34',
                     'type': 'privilegeUpdate',
                     'updateType': 'renewal',
-                    'providerId': 'test_provider_id',
+                    'providerId': provider_uuid,
                     'compact': 'aslp',
                     'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#1234567890#',
                     'jurisdiction': 'ky',
+                    'licenseType': 'audiologist',
                     'dateOfUpdate': '2024-11-08T23:59:59+00:00',
                     'previous': {
                         'dateOfIssuance': '2023-11-08T23:59:59+00:00',
@@ -317,6 +361,7 @@ class TestDataClient(TstFunction):
                         'compactTransactionId': '1234567890',
                         'attestations': self.sample_privilege_attestations,
                         'persistedStatus': 'active',
+                        'licenseJurisdiction': 'oh',
                         'privilegeId': 'AUD-KY-1',
                     },
                     'updatedValues': {
@@ -328,14 +373,54 @@ class TestDataClient(TstFunction):
                     },
                 },
             ],
-            new_privilege,
+            new_aud_ky_privilege,
         )
 
-        # The renewal should still ensure that 'ky' is listed in provider privilegeJurisdictions
+        # Verify that a new audiologist privilege record was created for ne with expected values
+        new_aud_ne_privilege = self._provider_table.query(
+            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_uuid}')
+            & Key('sk').begins_with('aslp#PROVIDER#privilege/ne/aud#'),
+        )['Items']
+        self.assertEqual(
+            [
+                # Primary record with no history record
+                {
+                    'pk': f'aslp#PROVIDER#{provider_uuid}',
+                    'sk': 'aslp#PROVIDER#privilege/ne/aud#',
+                    'type': 'privilege',
+                    'providerId': provider_uuid,
+                    'compact': 'aslp',
+                    'jurisdiction': 'ne',
+                    'licenseJurisdiction': 'oh',
+                    'licenseType': 'audiologist',
+                    'persistedStatus': 'active',
+                    # issuance and renewal dates should be the same
+                    'dateOfIssuance': '2024-11-08T23:59:59+00:00',
+                    'dateOfRenewal': '2024-11-08T23:59:59+00:00',
+                    'dateOfExpiration': '2025-10-31',
+                    'dateOfUpdate': '2024-11-08T23:59:59+00:00',
+                    'compactTransactionId': 'test_transaction_id',
+                    'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#test_transaction_id#',
+                    'attestations': self.sample_privilege_attestations,
+                    # Should remain the same, since we're renewing the same privilege
+                    'privilegeId': 'AUD-NE-124',
+                }
+            ],
+            new_aud_ne_privilege,
+        )
+
+        # ensure that slp privilege was not updated with an update record
+        slp_privilege = self._provider_table.query(
+            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_uuid}')
+            & Key('sk').begins_with('aslp#PROVIDER#privilege/ne/slp#'),
+        )['Items']
+        self.assertEqual([slp_ne_privilege], slp_privilege)
+
+        # The renewal should ensure that 'ky' and 'ne' are listed in provider privilegeJurisdictions
         provider = self._provider_table.get_item(
-            Key={'pk': 'aslp#PROVIDER#test_provider_id', 'sk': 'aslp#PROVIDER'},
+            Key={'pk': f'aslp#PROVIDER#{provider_uuid}', 'sk': 'aslp#PROVIDER'},
         )['Item']
-        self.assertEqual({'ky'}, provider['privilegeJurisdictions'])
+        self.assertEqual({'ky', 'ne'}, provider['privilegeJurisdictions'])
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
     def test_data_client_create_privilege_record_invalid_license_type(self):
@@ -350,8 +435,10 @@ class TestDataClient(TstFunction):
                 provider_id='test_provider_id',
                 jurisdiction_postal_abbreviations=['ca'],
                 license_expiration_date=date.fromisoformat('2024-10-31'),
-                provider_record={},
-                existing_privileges=[],
+                provider_record={
+                    'licenseJurisdiction': 'oh',
+                },
+                existing_privileges_for_license=[],
                 compact_transaction_id='test_transaction_id',
                 attestations=self.sample_privilege_attestations,
                 license_type='not-supported-license-type',
@@ -361,6 +448,7 @@ class TestDataClient(TstFunction):
     def test_data_client_handles_large_privilege_purchase(self):
         """Test that we can process privilege purchases with more than 100 transaction items."""
         from cc_common.data_model.data_client import DataClient
+        from cc_common.data_model.schema.common import ProviderEligibilityStatus
         from cc_common.data_model.schema.privilege.record import PrivilegeRecordSchema
 
         test_data_client = DataClient(self.config)
@@ -380,12 +468,15 @@ class TestDataClient(TstFunction):
                 'providerId': provider_uuid,
                 'compact': 'aslp',
                 'jurisdiction': jurisdiction,
+                'licenseJurisdiction': 'oh',
+                'licenseType': 'audiologist',
                 'privilegeId': f'AUD-{jurisdiction.upper()}-1',
                 'dateOfIssuance': datetime(2023, 11, 8, 23, 59, 59, tzinfo=UTC),
                 'dateOfRenewal': datetime(2023, 11, 8, 23, 59, 59, tzinfo=UTC),
                 'dateOfExpiration': date(2024, 10, 31),
                 'dateOfUpdate': datetime(2023, 11, 8, 23, 59, 59, tzinfo=UTC),
                 'compactTransactionId': '1234567890',
+                'persistedStatus': ProviderEligibilityStatus.ACTIVE,
             }
             self._provider_table.put_item(Item=privilege_record_schema.dump(original_privilege))
             original_privileges.append(original_privilege)
@@ -400,8 +491,9 @@ class TestDataClient(TstFunction):
                 'pk': f'aslp#PROVIDER#{provider_uuid}',
                 'sk': 'aslp#PROVIDER',
                 'privilegeJurisdictions': set(jurisdictions),
+                'licenseJurisdiction': 'oh',
             },
-            existing_privileges=original_privileges,
+            existing_privileges_for_license=original_privileges,
             compact_transaction_id='test_transaction_id',
             attestations=self.sample_privilege_attestations,
             license_type='audiologist',
@@ -411,7 +503,7 @@ class TestDataClient(TstFunction):
         for jurisdiction in jurisdictions:
             privilege_records = self._provider_table.query(
                 KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_uuid}')
-                & Key('sk').begins_with(f'aslp#PROVIDER#privilege/{jurisdiction}#'),
+                & Key('sk').begins_with(f'aslp#PROVIDER#privilege/{jurisdiction}/aud#'),
             )['Items']
 
             self.assertEqual(2, len(privilege_records))  # One privilege record and one update record
@@ -438,6 +530,7 @@ class TestDataClient(TstFunction):
         """Test that we properly roll back when a large privilege purchase fails."""
         from botocore.exceptions import ClientError
         from cc_common.data_model.data_client import DataClient
+        from cc_common.data_model.schema.common import ProviderEligibilityStatus
         from cc_common.data_model.schema.privilege.record import PrivilegeRecordSchema
         from cc_common.exceptions import CCAwsServiceException
 
@@ -457,12 +550,15 @@ class TestDataClient(TstFunction):
                 'providerId': provider_uuid,
                 'compact': 'aslp',
                 'jurisdiction': jurisdiction,
+                'licenseJurisdiction': 'oh',
+                'licenseType': 'audiologist',
                 'privilegeId': f'AUD-{jurisdiction.upper()}-1',
                 'dateOfIssuance': datetime(2023, 11, 8, 23, 59, 59, tzinfo=UTC),
                 'dateOfRenewal': datetime(2023, 11, 8, 23, 59, 59, tzinfo=UTC),
                 'dateOfExpiration': date(2024, 10, 31),
                 'dateOfUpdate': datetime(2023, 11, 8, 23, 59, 59, tzinfo=UTC),
                 'compactTransactionId': '1234567890',
+                'persistedStatus': ProviderEligibilityStatus.ACTIVE,
             }
             dumped_privilege = privilege_record_schema.dump(original_privilege)
             self._provider_table.put_item(Item=dumped_privilege)
@@ -474,6 +570,7 @@ class TestDataClient(TstFunction):
             'sk': 'aslp#PROVIDER',
             'providerId': provider_uuid,
             'compact': 'aslp',
+            'licenseJurisdiction': 'oh',
             'privilegeJurisdictions': set(jurisdictions),
         }
         self._provider_table.put_item(Item=original_provider)
@@ -502,7 +599,7 @@ class TestDataClient(TstFunction):
                 jurisdiction_postal_abbreviations=jurisdictions,
                 license_expiration_date=date.fromisoformat('2025-10-31'),
                 provider_record=original_provider,
-                existing_privileges=original_privileges,
+                existing_privileges_for_license=original_privileges,
                 compact_transaction_id='test_transaction_id',
                 attestations=self.sample_privilege_attestations,
                 license_type='audiologist',
@@ -512,7 +609,7 @@ class TestDataClient(TstFunction):
         for jurisdiction in jurisdictions:
             privilege_records = self._provider_table.query(
                 KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_uuid}')
-                & Key('sk').begins_with(f'aslp#PROVIDER#privilege/{jurisdiction}#'),
+                & Key('sk').begins_with(f'aslp#PROVIDER#privilege/{jurisdiction}/aud#'),
             )['Items']
 
             self.assertEqual(1, len(privilege_records))  # Only the original privilege record should exist
@@ -633,10 +730,12 @@ class TestDataClient(TstFunction):
         # Create the first privilege
         original_privilege = {
             'pk': f'aslp#PROVIDER#{provider_id}',
-            'sk': 'aslp#PROVIDER#privilege/ne#',
+            'sk': 'aslp#PROVIDER#privilege/ne/aud#',
             'type': 'privilege',
             'providerId': provider_id,
             'compact': 'aslp',
+            'licenseJurisdiction': 'oh',
+            'licenseType': 'audiologist',
             'jurisdiction': 'ne',
             'persistedStatus': 'active',
             'dateOfIssuance': '2023-11-08T23:59:59+00:00',
@@ -657,23 +756,25 @@ class TestDataClient(TstFunction):
             compact='aslp',
             provider_id=provider_id,
             jurisdiction='ne',
+            license_type_abbr='aud',
         )
 
         # Verify that the privilege record was updated
         new_privilege = self._provider_table.query(
             KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
-            & Key('sk').begins_with('aslp#PROVIDER#privilege/ne#'),
+            & Key('sk').begins_with('aslp#PROVIDER#privilege/ne/aud#'),
         )['Items']
-        self.maxDiff = None
         self.assertEqual(
             [
                 # Primary record
                 {
                     'pk': f'aslp#PROVIDER#{provider_id}',
-                    'sk': 'aslp#PROVIDER#privilege/ne#',
+                    'sk': 'aslp#PROVIDER#privilege/ne/aud#',
                     'type': 'privilege',
                     'providerId': provider_id,
                     'compact': 'aslp',
+                    'licenseJurisdiction': 'oh',
+                    'licenseType': 'audiologist',
                     'jurisdiction': 'ne',
                     'persistedStatus': 'inactive',
                     'dateOfIssuance': '2023-11-08T23:59:59+00:00',
@@ -688,13 +789,14 @@ class TestDataClient(TstFunction):
                 # A new history record
                 {
                     'pk': f'aslp#PROVIDER#{provider_id}',
-                    'sk': 'aslp#PROVIDER#privilege/ne#UPDATE#1731110399/dba34d0647b68b3d577f8135ad6ec677',
+                    'sk': 'aslp#PROVIDER#privilege/ne/aud#UPDATE#1731110399/ea6384fced955d3307df919907982f28',
                     'type': 'privilegeUpdate',
                     'updateType': 'deactivation',
                     'providerId': provider_id,
                     'compact': 'aslp',
                     'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#1234567890#',
                     'jurisdiction': 'ne',
+                    'licenseType': 'audiologist',
                     'dateOfUpdate': '2024-11-08T23:59:59+00:00',
                     'previous': {
                         'dateOfIssuance': '2023-11-08T23:59:59+00:00',
@@ -704,6 +806,7 @@ class TestDataClient(TstFunction):
                         'compactTransactionId': '1234567890',
                         'attestations': self.sample_privilege_attestations,
                         'persistedStatus': 'active',
+                        'licenseJurisdiction': 'oh',
                         'privilegeId': 'AUD-NE-1',
                     },
                     'updatedValues': {
@@ -734,10 +837,11 @@ class TestDataClient(TstFunction):
                 compact='aslp',
                 provider_id='some-provider-id',
                 jurisdiction='ne',
+                license_type_abbr='aud',
             )
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
-    def test_deactivate_privilege_on_inactive_privilege_has_no_effect(self):
+    def test_deactivate_privilege_on_inactive_privilege_raises_exception(self):
         from cc_common.data_model.data_client import DataClient
 
         provider_id = self._load_provider_data()
@@ -752,11 +856,13 @@ class TestDataClient(TstFunction):
         # Create the first privilege
         original_privilege = {
             'pk': f'aslp#PROVIDER#{provider_id}',
-            'sk': 'aslp#PROVIDER#privilege/ne#',
+            'sk': 'aslp#PROVIDER#privilege/ne/aud#',
             'type': 'privilege',
             'providerId': provider_id,
             'compact': 'aslp',
             'jurisdiction': 'ne',
+            'licenseJurisdiction': 'oh',
+            'licenseType': 'audiologist',
             'persistedStatus': 'inactive',
             'dateOfIssuance': '2023-11-08T23:59:59+00:00',
             'dateOfRenewal': '2023-11-08T23:59:59+00:00',
@@ -771,7 +877,7 @@ class TestDataClient(TstFunction):
         # We'll create it as if it were already deactivated
         original_history = {
             'pk': f'aslp#PROVIDER#{provider_id}',
-            'sk': 'aslp#PROVIDER#privilege/ne#UPDATE#1731110399/483bebc6cb3fd6b517f8ce9ad706c518',
+            'sk': 'aslp#PROVIDER#privilege/ne/aud#UPDATE#1731110399/483bebc6cb3fd6b517f8ce9ad706c518',
             'type': 'privilegeUpdate',
             'updateType': 'renewal',
             'providerId': provider_id,
@@ -786,6 +892,8 @@ class TestDataClient(TstFunction):
                 'dateOfUpdate': '2023-11-08T23:59:59+00:00',
                 'compactTransactionId': '1234567890',
                 'attestations': self.sample_privilege_attestations,
+                'licenseJurisdiction': 'oh',
+                'licenseType': 'audiologist',
                 'privilegeId': 'AUD-NE-1',
             },
             'updatedValues': {
@@ -797,16 +905,19 @@ class TestDataClient(TstFunction):
         test_data_client = DataClient(self.config)
 
         # Now, deactivate the privilege
-        test_data_client.deactivate_privilege(
-            compact='aslp',
-            provider_id=provider_id,
-            jurisdiction='ne',
-        )
+        with self.assertRaises(CCInvalidRequestException) as context:
+            test_data_client.deactivate_privilege(
+                compact='aslp',
+                provider_id=provider_id,
+                jurisdiction='ne',
+                license_type_abbr='aud',
+            )
+        self.assertEqual('Privilege already deactivated', context.exception.message)
 
         # Verify that the privilege record was unchanged
         new_privilege = self._provider_table.query(
             KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
-            & Key('sk').begins_with('aslp#PROVIDER#privilege/ne#'),
+            & Key('sk').begins_with('aslp#PROVIDER#privilege/ne/aud#'),
         )['Items']
         self.assertEqual([original_privilege, original_history], new_privilege)
 

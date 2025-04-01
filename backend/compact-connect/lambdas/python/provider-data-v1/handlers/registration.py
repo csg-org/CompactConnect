@@ -6,13 +6,16 @@ from aws_lambda_powertools.metrics import MetricUnit
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
 from cc_common.config import config, logger, metrics
+from cc_common.data_model.schema.provider.api import ProviderRegistrationRequestSchema
 from cc_common.exceptions import (
     CCAccessDeniedException,
     CCAwsServiceException,
     CCInternalException,
+    CCInvalidRequestException,
     CCRateLimitingException,
 )
 from cc_common.utils import api_handler
+from marshmallow import ValidationError
 
 RECAPTCHA_ATTEMPT_METRIC_NAME = 'recaptcha-attempt'
 REGISTRATION_ATTEMPT_METRIC_NAME = 'registration-attempt'
@@ -24,8 +27,7 @@ _RECAPTCHA_SECRET = None
 def _rate_limit_exceeded(ip_address: str) -> bool:
     """Check if the IP address has exceeded the rate limit.
 
-    Returns:
-        bool: True if rate limit is exceeded, False otherwise
+    :return: True if rate limit is exceeded, False otherwise
     """
     now = config.current_standard_datetime
     window_start = now - timedelta(minutes=15)
@@ -106,7 +108,14 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
     """
     # Get IP address from the request context
     source_ip = event['requestContext']['identity']['sourceIp']
-    body = json.loads(event['body'])
+
+    # Parse and validate the request body using the schema
+    try:
+        schema = ProviderRegistrationRequestSchema()
+        body = schema.loads(event['body'])
+    except ValidationError as e:
+        logger.warning('Invalid request body', errors=e.messages)
+        raise CCInvalidRequestException(f'Invalid request: {e.messages}') from e
 
     # Check rate limit before proceeding
     if _rate_limit_exceeded(source_ip):
@@ -123,6 +132,35 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
         metrics.add_metric(name='registration-rate-limit-throttles', unit=MetricUnit.Count, value=1)
         metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
         raise CCRateLimitingException('Rate limit exceeded. Please try again later.')
+
+    # Get configuration for compact and jurisdiction
+    compact_config = config.compact_configuration_client.get_compact_configuration(body['compact'])
+    jurisdiction_config = config.compact_configuration_client.get_jurisdiction_configuration(
+        body['compact'], body['jurisdiction']
+    )
+
+    # Check if registration is enabled for both compact and jurisdiction in the current environment
+    # If registration is not enabled for either the compact or jurisdiction, return an error
+    if config.environment_name not in compact_config.licensee_registration_enabled_for_environments:
+        logger.info(
+            'Registration is not enabled for this compact', compact=body['compact'], environment=config.environment_name
+        )
+        metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
+        raise CCInvalidRequestException(
+            f'Registration is not currently available for the {compact_config.compact_name} compact.'
+        )
+
+    if config.environment_name not in jurisdiction_config.licensee_registration_enabled_for_environments:
+        logger.info(
+            'Registration is not enabled for this jurisdiction',
+            compact=body['compact'],
+            jurisdiction=body['jurisdiction'],
+            environment=config.environment_name,
+        )
+        metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
+        raise CCInvalidRequestException(
+            f'Registration is not currently available for {jurisdiction_config.jurisdiction_name}.'
+        )
 
     # Verify reCAPTCHA token
     if not verify_recaptcha(body['token']):

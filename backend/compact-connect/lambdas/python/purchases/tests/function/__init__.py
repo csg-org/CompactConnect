@@ -148,7 +148,7 @@ class TstFunction(TstLambdas):
             logger.debug('Loading resource, %s: %s', resource, str(record))
             self._provider_table.put_item(Item=record)
 
-    def _load_license_data(self, status: str = 'active', expiration_date: str = None):
+    def _load_license_data(self, status: str = 'active', expiration_date: str = None, license_type: str = None):
         """Use the canned test resources to load a basic provider to the DB"""
         license_test_resources = ['../common/tests/resources/dynamo/license.json']
 
@@ -158,6 +158,11 @@ class TstFunction(TstLambdas):
                 record['jurisdictionStatus'] = status
                 if expiration_date:
                     record['dateOfExpiration'] = expiration_date
+                if license_type:
+                    # add the abbreviation to the sk
+                    license_type_abbr = self.config.license_type_abbreviations['aslp'][license_type]
+                    record['sk'] = f'aslp#PROVIDER#license/oh/{license_type_abbr}#'
+                    record['licenseType'] = license_type
 
             logger.debug('Loading resource, %s: %s', resource, str(record))
             self._provider_table.put_item(Item=record)

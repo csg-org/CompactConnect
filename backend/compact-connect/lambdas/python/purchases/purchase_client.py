@@ -133,6 +133,7 @@ class PaymentProcessorClient(ABC):
         order_information: dict,
         compact_configuration: Compact,
         selected_jurisdictions: list[Jurisdiction],
+        license_type_abbreviation: str,
         user_active_military: bool,
     ) -> dict:
         """
@@ -142,6 +143,7 @@ class PaymentProcessorClient(ABC):
         :param order_information: A dictionary containing the order information (billing, card, etc.)
         :param compact_configuration: The compact configuration.
         :param selected_jurisdictions: A list of selected jurisdictions to purchase privileges for.
+        :param license_type_abbreviation: The license type abbreviation used to generate line item id.
         :param user_active_military: Whether the user is active military.
         """
 
@@ -277,6 +279,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         order_information: dict,
         compact_configuration: Compact,
         selected_jurisdictions: list[Jurisdiction],
+        license_type_abbreviation: str,
         user_active_military: bool,
     ) -> dict:
         # Create a merchantAuthenticationType object with authentication details
@@ -307,7 +310,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         for jurisdiction in selected_jurisdictions:
             jurisdiction_name_title_case = jurisdiction.jurisdiction_name.title()
             privilege_line_item = apicontractsv1.lineItemType()
-            privilege_line_item.itemId = f'priv:{compact_configuration.compact_abbr}-{jurisdiction.postal_abbreviation}'
+            privilege_line_item.itemId = f'priv:{compact_configuration.compact_abbr}-{jurisdiction.postal_abbreviation}-{license_type_abbreviation}'  # noqa: E501
             privilege_line_item.name = f'{jurisdiction_name_title_case} Compact Privilege'
             privilege_line_item.quantity = '1'
             privilege_line_item.unitPrice = _calculate_jurisdiction_fee(jurisdiction, user_active_military)
@@ -837,6 +840,7 @@ class PurchaseClient:
         order_information: dict,
         compact_configuration: Compact,
         selected_jurisdictions: list[Jurisdiction],
+        license_type_abbreviation: str,
         user_active_military: bool,
     ) -> dict:
         """
@@ -846,6 +850,7 @@ class PurchaseClient:
         :param order_information: A dictionary containing the order information (billing, card, etc.)
         :param compact_configuration: The compact configuration.
         :param selected_jurisdictions: A list of selected jurisdictions to purchase privileges for.
+        :param license_type_abbreviation: The license type abbreviation used to generate line item id.
         :param user_active_military: Whether the user is active military.
         """
         if not self.payment_processor_client:
@@ -859,6 +864,7 @@ class PurchaseClient:
             order_information=order_information,
             compact_configuration=compact_configuration,
             selected_jurisdictions=selected_jurisdictions,
+            license_type_abbreviation=license_type_abbreviation,
             user_active_military=user_active_military,
         )
 

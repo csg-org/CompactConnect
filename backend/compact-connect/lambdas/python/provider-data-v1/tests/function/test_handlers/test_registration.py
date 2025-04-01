@@ -7,13 +7,15 @@ from moto import mock_aws
 
 from .. import TstFunction
 
-TEST_COMPACT = 'aslp'
+TEST_COMPACT_ABBR = 'aslp'
+TEST_COMPACT_NAME = 'Audiology and Speech Language Pathology'
 TEST_LICENSE_TYPE = 'speech-language pathologist'
 
 MOCK_SSN_LAST_FOUR = '1234'
 MOCK_GIVEN_NAME = 'Joe'
 MOCK_FAMILY_NAME = 'Dokes'
-MOCK_STATE = 'ky'
+MOCK_JURISDICTION_POSTAL_ABBR = 'ky'
+MOCK_JURISDICTION_NAME = 'Kentucky'
 MOCK_DOB = '1990-01-01'
 # this is the provider id defined in the test resource files
 MOCK_PROVIDER_ID = '89a6377e-c3a5-40e5-bca5-317ec854c570'
@@ -24,22 +26,49 @@ MOCK_DATETIME_STRING = '2025-01-23T08:15:00+00:00'
 MOCK_COGNITO_SUB = '3408b4e8-0061-7052-bbe0-fda9a9369c80'
 
 
+def generate_default_compact_config_overrides():
+    return {
+        'pk': f'{TEST_COMPACT_ABBR}#CONFIGURATION',
+        'sk': f'{TEST_COMPACT_ABBR}#CONFIGURATION',
+        'compactAbbr': TEST_COMPACT_ABBR,
+        'compactName': TEST_COMPACT_NAME,
+        'licenseeRegistrationEnabledForEnvironments': ['test'],
+    }
+
+
+def generate_default_jurisdiction_config_overrides():
+    return {
+        'pk': f'{TEST_COMPACT_ABBR}#CONFIGURATION',
+        'sk': f'{TEST_COMPACT_ABBR}#JURISDICTION#{MOCK_JURISDICTION_POSTAL_ABBR}',
+        'compact': TEST_COMPACT_ABBR,
+        'jurisdictionName': MOCK_JURISDICTION_NAME,
+        'postalAbbreviation': MOCK_JURISDICTION_POSTAL_ABBR,
+        'licenseeRegistrationEnabledForEnvironments': ['test'],
+    }
+
+
 def generate_test_request():
     return {
-        'compact': TEST_COMPACT,
+        'compact': TEST_COMPACT_ABBR,
         'token': 'valid_token',
         'familyName': MOCK_FAMILY_NAME,
         'givenName': MOCK_GIVEN_NAME,
         'email': 'test@example.com',
         'partialSocial': MOCK_SSN_LAST_FOUR,
         'dob': MOCK_DOB,
-        'jurisdiction': MOCK_STATE,
+        'jurisdiction': MOCK_JURISDICTION_POSTAL_ABBR,
         'licenseType': TEST_LICENSE_TYPE,
     }
 
 
 @mock_aws
 class TestProviderRegistration(TstFunction):
+    def setUp(self):
+        super().setUp()
+
+        self._load_compact_configuration(overrides=generate_default_compact_config_overrides())
+        self._load_jurisdiction_configuration(overrides=generate_default_jurisdiction_config_overrides())
+
     def _add_mock_provider_records(self, *, is_registered=False, license_data_overrides=None):
         """
         Adds mock provider and license records to the provider table with customizable data.
@@ -68,8 +97,8 @@ class TestProviderRegistration(TstFunction):
                     'licenseType': TEST_LICENSE_TYPE,
                     'givenName': MOCK_GIVEN_NAME,
                     'familyName': MOCK_FAMILY_NAME,
-                    'jurisdiction': MOCK_STATE,
-                    'compact': TEST_COMPACT,
+                    'jurisdiction': MOCK_JURISDICTION_POSTAL_ABBR,
+                    'compact': TEST_COMPACT_ABBR,
                     'providerId': MOCK_PROVIDER_ID,
                 }
             )
@@ -83,9 +112,9 @@ class TestProviderRegistration(TstFunction):
             home_jurisdiction_schema = ProviderHomeJurisdictionSelectionRecordSchema()
             home_jurisdiction_record = {
                 'type': 'homeJurisdictionSelection',
-                'compact': TEST_COMPACT,
+                'compact': TEST_COMPACT_ABBR,
                 'providerId': MOCK_PROVIDER_ID,
-                'jurisdiction': MOCK_STATE,
+                'jurisdiction': MOCK_JURISDICTION_POSTAL_ABBR,
                 'dateOfSelection': datetime.fromisoformat('2024-01-01T00:00:00Z'),
             }
             serialized_record = home_jurisdiction_schema.dump(home_jurisdiction_record)
@@ -107,6 +136,40 @@ class TestProviderRegistration(TstFunction):
             body.update(body_overrides)
         event['body'] = json.dumps(body)
         return event
+
+    @patch('handlers.registration.verify_recaptcha')
+    def test_registration_returns_400_if_compact_is_not_enabled_for_registration(self, mock_verify_recaptcha):
+        compact_config_overrides = generate_default_compact_config_overrides()
+        # in this case, no environments are enabled for registration
+        compact_config_overrides.update({'licenseeRegistrationEnabledForEnvironments': []})
+        self._load_compact_configuration(overrides=compact_config_overrides)
+        mock_verify_recaptcha.return_value = True
+        from handlers.registration import register_provider
+
+        response = register_provider(self._get_test_event(), self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        self.assertEqual(
+            {
+                'message': 'Registration is not currently available for the Audiology and '
+                + 'Speech Language Pathology compact.'
+            },
+            json.loads(response['body']),
+        )
+
+    @patch('handlers.registration.verify_recaptcha')
+    def test_registration_returns_400_if_jurisdiction_is_not_enabled_for_registration(self, mock_verify_recaptcha):
+        jurisdiction_config_overrides = generate_default_jurisdiction_config_overrides()
+        # in this case, no environments are enabled for registration
+        jurisdiction_config_overrides.update({'licenseeRegistrationEnabledForEnvironments': []})
+        self._load_jurisdiction_configuration(overrides=jurisdiction_config_overrides)
+        mock_verify_recaptcha.return_value = True
+        from handlers.registration import register_provider
+
+        response = register_provider(self._get_test_event(), self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        self.assertEqual(
+            {'message': 'Registration is not currently available for Kentucky.'}, json.loads(response['body'])
+        )
 
     @patch('handlers.registration.verify_recaptcha')
     def test_registration_returns_403_if_recaptcha_fails(self, mock_verify_recaptcha):
@@ -137,29 +200,22 @@ class TestProviderRegistration(TstFunction):
         self.assertEqual({'message': 'request processed'}, json.loads(response['body']))
 
     @patch('handlers.registration.verify_recaptcha')
-    @patch('cc_common.config._Config.cognito_client')
-    def test_registration_returns_200_if_provider_already_registered(self, mock_cognito, mock_verify_recaptcha):
+    def test_registration_returns_200_if_provider_already_registered(self, mock_verify_recaptcha):
         mock_verify_recaptcha.return_value = True
         self._add_mock_provider_records(is_registered=True)
         from handlers.registration import register_provider
 
-        response = register_provider(self._get_test_event(), self.mock_context)
+        with patch('handlers.registration.config.cognito_client') as mock_cognito:
+            response = register_provider(self._get_test_event(), self.mock_context)
+            mock_cognito.admin_create_user.assert_not_called()
+
         self.assertEqual(200, response['statusCode'])
         self.assertEqual({'message': 'request processed'}, json.loads(response['body']))
-        mock_cognito.admin_create_user.assert_not_called()
-
-    def _when_registering_cognito_user(self, mock_cognito_client):
-        mock_cognito_client.admin_create_user.return_value = {
-            'User': {'Attributes': [{'Name': 'sub', 'Value': MOCK_COGNITO_SUB}]}
-        }
 
     @patch('handlers.registration.verify_recaptcha')
-    @patch('cc_common.config._Config.cognito_client')
-    def test_registration_creates_cognito_user(self, mock_cognito, mock_verify_recaptcha):
+    def test_registration_creates_cognito_user(self, mock_verify_recaptcha):
         mock_verify_recaptcha.return_value = True
         provider_data, license_data = self._add_mock_provider_records()
-        self._when_registering_cognito_user(mock_cognito)
-
         from handlers.registration import register_provider
 
         response = register_provider(self._get_test_event(), self.mock_context)
@@ -168,24 +224,30 @@ class TestProviderRegistration(TstFunction):
         self.assertEqual({'message': 'request processed'}, json.loads(response['body']))
 
         # Verify Cognito user was created with correct attributes
-        mock_cognito.admin_create_user.assert_called_once_with(
-            UserPoolId=self.config.provider_user_pool_id,
-            Username='test@example.com',
-            UserAttributes=[
-                {'Name': 'custom:compact', 'Value': TEST_COMPACT},
-                {'Name': 'custom:providerId', 'Value': provider_data['providerId']},
-                {'Name': 'email', 'Value': 'test@example.com'},
-                {'Name': 'email_verified', 'Value': 'true'},
-            ],
+        cognito_users = self.config.cognito_client.list_users(
+            UserPoolId=self.config.provider_user_pool_id, Filter='email = "test@example.com"'
         )
 
+        self.assertEqual(1, len(cognito_users['Users']))
+        user_attributes = {attr['Name']: attr['Value'] for attr in cognito_users['Users'][0]['Attributes']}
+
+        # We can't predict the `sub`, so we'll just make sure there is one
+        sub_value = user_attributes.pop('sub', None)
+        self.assertIsNotNone(sub_value, "User should have a 'sub' attribute")
+
+        # Verify all attributes match exactly what we expect (no more, no less)
+        expected_attributes = {
+            'custom:compact': TEST_COMPACT_ABBR,
+            'custom:providerId': provider_data['providerId'],
+            'email': 'test@example.com',
+            'email_verified': 'true',
+        }
+        self.assertEqual(expected_attributes, user_attributes)
+
     @patch('handlers.registration.verify_recaptcha')
-    @patch('cc_common.config._Config.cognito_client')
-    def test_registration_creates_home_jurisdiction_selection(self, mock_cognito, mock_verify_recaptcha):
+    def test_registration_creates_home_jurisdiction_selection(self, mock_verify_recaptcha):
         mock_verify_recaptcha.return_value = True
         provider_data, license_data = self._add_mock_provider_records(is_registered=False)
-        self._when_registering_cognito_user(mock_cognito)
-
         from handlers.registration import register_provider
 
         response = register_provider(self._get_test_event(), self.mock_context)
@@ -196,24 +258,21 @@ class TestProviderRegistration(TstFunction):
         # Verify home jurisdiction selection record was created
         home_jurisdiction = self.config.provider_table.get_item(
             Key={
-                'pk': f'{TEST_COMPACT}#PROVIDER#{provider_data["providerId"]}',
-                'sk': f'{TEST_COMPACT}#PROVIDER#home-jurisdiction#',
+                'pk': f'{TEST_COMPACT_ABBR}#PROVIDER#{provider_data["providerId"]}',
+                'sk': f'{TEST_COMPACT_ABBR}#PROVIDER#home-jurisdiction#',
             }
         )['Item']
         self.assertEqual('homeJurisdictionSelection', home_jurisdiction['type'])
-        self.assertEqual(TEST_COMPACT, home_jurisdiction['compact'])
+        self.assertEqual(TEST_COMPACT_ABBR, home_jurisdiction['compact'])
         self.assertEqual(provider_data['providerId'], home_jurisdiction['providerId'])
-        self.assertEqual(MOCK_STATE, home_jurisdiction['jurisdiction'])
+        self.assertEqual(MOCK_JURISDICTION_POSTAL_ABBR, home_jurisdiction['jurisdiction'])
         self.assertIsNotNone(home_jurisdiction['dateOfSelection'])
         self.assertIsNotNone(home_jurisdiction['dateOfUpdate'])
 
     @patch('handlers.registration.verify_recaptcha')
-    @patch('cc_common.config._Config.cognito_client')
-    def test_registration_sets_registration_values(self, mock_cognito, mock_verify_recaptcha):
+    def test_registration_sets_registration_values(self, mock_verify_recaptcha):
         mock_verify_recaptcha.return_value = True
         provider_data, license_data = self._add_mock_provider_records()
-        self._when_registering_cognito_user(mock_cognito)
-
         from handlers.registration import register_provider
 
         response = register_provider(self._get_test_event(), self.mock_context)
@@ -222,28 +281,37 @@ class TestProviderRegistration(TstFunction):
         self.assertEqual({'message': 'request processed'}, json.loads(response['body']))
 
         # Verify Cognito user was created with correct attributes
-        mock_cognito.admin_create_user.assert_called_once_with(
-            UserPoolId=self.config.provider_user_pool_id,
-            Username='test@example.com',
-            UserAttributes=[
-                {'Name': 'custom:compact', 'Value': TEST_COMPACT},
-                {'Name': 'custom:providerId', 'Value': provider_data['providerId']},
-                {'Name': 'email', 'Value': 'test@example.com'},
-                {'Name': 'email_verified', 'Value': 'true'},
-            ],
+        cognito_users = self.config.cognito_client.list_users(
+            UserPoolId=self.config.provider_user_pool_id, Filter='email = "test@example.com"'
         )
 
-        # Verify home jurisdiction selection record was created
+        self.assertEqual(1, len(cognito_users['Users']))
+        user_attributes = {attr['Name']: attr['Value'] for attr in cognito_users['Users'][0]['Attributes']}
+
+        # We'll check the sub below
+        sub_value = user_attributes.pop('sub', None)
+
+        # Verify all attributes match exactly what we expect (no more, no less)
+        expected_attributes = {
+            'custom:compact': TEST_COMPACT_ABBR,
+            'custom:providerId': provider_data['providerId'],
+            'email': 'test@example.com',
+            'email_verified': 'true',
+        }
+        self.assertEqual(expected_attributes, user_attributes)
+
+        # Verify provider record was updated with registration values
         provider_record = self.config.provider_table.get_item(
             Key={
-                'pk': f'{TEST_COMPACT}#PROVIDER#{provider_data["providerId"]}',
-                'sk': f'{TEST_COMPACT}#PROVIDER',
+                'pk': f'{TEST_COMPACT_ABBR}#PROVIDER#{provider_data["providerId"]}',
+                'sk': f'{TEST_COMPACT_ABBR}#PROVIDER',
             }
         )['Item']
-        self.assertEqual(TEST_COMPACT, provider_record['compact'])
+        self.assertEqual(TEST_COMPACT_ABBR, provider_record['compact'])
         self.assertEqual(provider_data['providerId'], provider_record['providerId'])
         self.assertEqual('test@example.com', provider_record['compactConnectRegisteredEmailAddress'])
-        self.assertEqual(MOCK_COGNITO_SUB, provider_record['cognitoSub'])
+        # The user sub should match the value saved on the provider record
+        self.assertEqual(sub_value, provider_record['cognitoSub'])
 
     @patch('handlers.registration.verify_recaptcha')
     def test_registration_returns_200_if_dob_does_not_match(self, mock_verify_recaptcha):
@@ -281,25 +349,21 @@ class TestProviderRegistration(TstFunction):
         self.assertEqual('Multiple matching license records found', context.exception.message)
 
     @patch('handlers.registration.verify_recaptcha')
-    @patch('cc_common.config._Config.cognito_client')
-    def test_registration_raises_exception_on_cognito_failure(self, mock_cognito, mock_verify_recaptcha):
+    def test_registration_raises_exception_on_cognito_failure(self, mock_verify_recaptcha):
         mock_verify_recaptcha.return_value = True
-        mock_cognito.admin_create_user.side_effect = Exception('Failed to create Cognito user')
         self._add_mock_provider_records()
         from handlers.registration import register_provider
 
         # Verify the registration fails with the expected error
-        with self.assertRaises(CCInternalException) as context:
-            register_provider(self._get_test_event(), self.mock_context)
-        self.assertEqual('Failed to create user account', context.exception.message)
+        with patch('handlers.registration.config.cognito_client') as mock_cognito:
+            mock_cognito.admin_create_user.side_effect = Exception('Failed to create Cognito user')
+            with self.assertRaises(CCInternalException) as context:
+                register_provider(self._get_test_event(), self.mock_context)
+            self.assertEqual('Failed to create user account', context.exception.message)
 
     @patch('handlers.registration.verify_recaptcha')
-    @patch('cc_common.config._Config.cognito_client')
-    def test_registration_rolls_back_cognito_user_on_dynamo_transaction_failure(
-        self, mock_cognito, mock_verify_recaptcha
-    ):
+    def test_registration_rolls_back_cognito_user_on_dynamo_transaction_failure(self, mock_verify_recaptcha):
         mock_verify_recaptcha.return_value = True
-        self._when_registering_cognito_user(mock_cognito)
         provider_data, license_data = self._add_mock_provider_records(is_registered=False)
         # this simulates having a user shown as not registered, but another user registers for the exact same
         # account in the system at the same time. Highly unlikely, but we check here to make sure the race condition
@@ -310,9 +374,9 @@ class TestProviderRegistration(TstFunction):
         home_jurisdiction_schema = ProviderHomeJurisdictionSelectionRecordSchema()
         home_jurisdiction_record = {
             'type': 'homeJurisdictionSelection',
-            'compact': TEST_COMPACT,
+            'compact': TEST_COMPACT_ABBR,
             'providerId': MOCK_PROVIDER_ID,
-            'jurisdiction': MOCK_STATE,
+            'jurisdiction': MOCK_JURISDICTION_POSTAL_ABBR,
             'dateOfSelection': datetime.fromisoformat('2024-01-01T00:00:00Z'),
         }
         serialized_record = home_jurisdiction_schema.dump(home_jurisdiction_record)
@@ -323,17 +387,17 @@ class TestProviderRegistration(TstFunction):
             register_provider(self._get_test_event(), self.mock_context)
         self.assertEqual('Failed to set registration values', context.exception.message)
 
-        # Verify the cognito user was deleted
-        mock_cognito.admin_delete_user.assert_called_with(
-            UserPoolId=self.config.provider_user_pool_id,
-            Username='test@example.com',
+        # Verify no Cognito user exists for this email (it should have been deleted during rollback)
+        cognito_users = self.config.cognito_client.list_users(
+            UserPoolId=self.config.provider_user_pool_id, Filter='email = "test@example.com"'
         )
+        self.assertEqual(0, len(cognito_users['Users']))
 
         # Verify the provider record was rolled back and the cognitoSub is not present
         provider_record = self.config.provider_table.get_item(
             Key={
-                'pk': f'{TEST_COMPACT}#PROVIDER#{provider_data["providerId"]}',
-                'sk': f'{TEST_COMPACT}#PROVIDER',
+                'pk': f'{TEST_COMPACT_ABBR}#PROVIDER#{provider_data["providerId"]}',
+                'sk': f'{TEST_COMPACT_ABBR}#PROVIDER',
             }
         ).get('Item')
         self.assertIsNone(provider_record.get('cognitoSub'))
@@ -400,11 +464,9 @@ class TestProviderRegistration(TstFunction):
                 self.assertEqual(200, response['statusCode'])
 
     @patch('handlers.registration.verify_recaptcha')
-    @patch('cc_common.config._Config.cognito_client')
-    def test_registration_works_with_special_characters(self, mock_cognito, mock_verify_recaptcha):
+    def test_registration_works_with_special_characters(self, mock_verify_recaptcha):
         """Test that registration works with special characters in names that could break key delimiters."""
         mock_verify_recaptcha.return_value = True
-        self._when_registering_cognito_user(mock_cognito)
 
         # Test with various special characters that could cause issues without URL encoding
         special_chars_name = {
@@ -426,37 +488,44 @@ class TestProviderRegistration(TstFunction):
         self.assertEqual({'message': 'request processed'}, json.loads(response['body']))
 
         # Verify Cognito user was created with correct attributes
-        mock_cognito.admin_create_user.assert_called_once_with(
-            UserPoolId=self.config.provider_user_pool_id,
-            Username='test@example.com',
-            UserAttributes=[
-                {'Name': 'custom:compact', 'Value': TEST_COMPACT},
-                {'Name': 'custom:providerId', 'Value': provider_data['providerId']},
-                {'Name': 'email', 'Value': 'test@example.com'},
-                {'Name': 'email_verified', 'Value': 'true'},
-            ],
+        cognito_users = self.config.cognito_client.list_users(
+            UserPoolId=self.config.provider_user_pool_id, Filter='email = "test@example.com"'
         )
+
+        self.assertEqual(1, len(cognito_users['Users']))
+        user_attributes = {attr['Name']: attr['Value'] for attr in cognito_users['Users'][0]['Attributes']}
+
+        # We can't predict the `sub`, so we'll just make sure there is one
+        sub_value = user_attributes.pop('sub', None)
+        self.assertIsNotNone(sub_value, "User should have a 'sub' attribute")
+
+        # Verify all attributes match exactly what we expect (no more, no less)
+        expected_attributes = {
+            'custom:compact': TEST_COMPACT_ABBR,
+            'custom:providerId': provider_data['providerId'],
+            'email': 'test@example.com',
+            'email_verified': 'true',
+        }
+        self.assertEqual(expected_attributes, user_attributes)
 
         # Verify home jurisdiction selection record was created
         home_jurisdiction = self.config.provider_table.get_item(
             Key={
-                'pk': f'{TEST_COMPACT}#PROVIDER#{provider_data["providerId"]}',
-                'sk': f'{TEST_COMPACT}#PROVIDER#home-jurisdiction#',
+                'pk': f'{TEST_COMPACT_ABBR}#PROVIDER#{provider_data["providerId"]}',
+                'sk': f'{TEST_COMPACT_ABBR}#PROVIDER#home-jurisdiction#',
             }
         )['Item']
         self.assertEqual('homeJurisdictionSelection', home_jurisdiction['type'])
-        self.assertEqual(TEST_COMPACT, home_jurisdiction['compact'])
+        self.assertEqual(TEST_COMPACT_ABBR, home_jurisdiction['compact'])
         self.assertEqual(provider_data['providerId'], home_jurisdiction['providerId'])
-        self.assertEqual(MOCK_STATE, home_jurisdiction['jurisdiction'])
+        self.assertEqual(MOCK_JURISDICTION_POSTAL_ABBR, home_jurisdiction['jurisdiction'])
         self.assertIsNotNone(home_jurisdiction['dateOfSelection'])
         self.assertIsNotNone(home_jurisdiction['dateOfUpdate'])
 
     @patch('handlers.registration.verify_recaptcha')
-    @patch('cc_common.config._Config.cognito_client')
-    def test_registration_works_with_japanese_characters(self, mock_cognito, mock_verify_recaptcha):
+    def test_registration_works_with_japanese_characters(self, mock_verify_recaptcha):
         """Test that registration works with Japanese characters in names."""
         mock_verify_recaptcha.return_value = True
-        self._when_registering_cognito_user(mock_cognito)
 
         # Test with Japanese characters
         japanese_name = {
@@ -478,27 +547,84 @@ class TestProviderRegistration(TstFunction):
         self.assertEqual({'message': 'request processed'}, json.loads(response['body']))
 
         # Verify Cognito user was created with correct attributes
-        mock_cognito.admin_create_user.assert_called_once_with(
-            UserPoolId=self.config.provider_user_pool_id,
-            Username='test@example.com',
-            UserAttributes=[
-                {'Name': 'custom:compact', 'Value': TEST_COMPACT},
-                {'Name': 'custom:providerId', 'Value': provider_data['providerId']},
-                {'Name': 'email', 'Value': 'test@example.com'},
-                {'Name': 'email_verified', 'Value': 'true'},
-            ],
+        cognito_users = self.config.cognito_client.list_users(
+            UserPoolId=self.config.provider_user_pool_id, Filter='email = "test@example.com"'
         )
+
+        self.assertEqual(1, len(cognito_users['Users']))
+        user_attributes = {attr['Name']: attr['Value'] for attr in cognito_users['Users'][0]['Attributes']}
+
+        # We can't predict the `sub`, so we'll just make sure there is one
+        sub_value = user_attributes.pop('sub', None)
+        self.assertIsNotNone(sub_value, "User should have a 'sub' attribute")
+
+        # Verify all attributes match exactly what we expect (no more, no less)
+        expected_attributes = {
+            'custom:compact': TEST_COMPACT_ABBR,
+            'custom:providerId': provider_data['providerId'],
+            'email': 'test@example.com',
+            'email_verified': 'true',
+        }
+        self.assertEqual(expected_attributes, user_attributes)
 
         # Verify home jurisdiction selection record was created
         home_jurisdiction = self.config.provider_table.get_item(
             Key={
-                'pk': f'{TEST_COMPACT}#PROVIDER#{provider_data["providerId"]}',
-                'sk': f'{TEST_COMPACT}#PROVIDER#home-jurisdiction#',
+                'pk': f'{TEST_COMPACT_ABBR}#PROVIDER#{provider_data["providerId"]}',
+                'sk': f'{TEST_COMPACT_ABBR}#PROVIDER#home-jurisdiction#',
             }
         )['Item']
         self.assertEqual('homeJurisdictionSelection', home_jurisdiction['type'])
-        self.assertEqual(TEST_COMPACT, home_jurisdiction['compact'])
+        self.assertEqual(TEST_COMPACT_ABBR, home_jurisdiction['compact'])
         self.assertEqual(provider_data['providerId'], home_jurisdiction['providerId'])
-        self.assertEqual(MOCK_STATE, home_jurisdiction['jurisdiction'])
+        self.assertEqual(MOCK_JURISDICTION_POSTAL_ABBR, home_jurisdiction['jurisdiction'])
         self.assertIsNotNone(home_jurisdiction['dateOfSelection'])
         self.assertIsNotNone(home_jurisdiction['dateOfUpdate'])
+
+    @patch('handlers.registration.verify_recaptcha')
+    def test_registration_rejects_invalid_email(self, mock_verify_recaptcha):
+        """Test that the registration handler rejects an invalid email."""
+        mock_verify_recaptcha.return_value = True
+        from handlers.registration import register_provider
+
+        # Add a provider record with a valid email, just to see how
+        # far the registration goes, if the invalid email is not caught
+        provider_data, _license_data = self._add_mock_provider_records()
+
+        # Create a request with an invalid email
+        request_body = {
+            'email': 'invalid-email',  # Invalid email format
+        }
+
+        event = self._get_test_event(body_overrides=request_body)
+
+        resp = register_provider(event, self.mock_context)
+        self.assertEqual(400, resp['statusCode'])
+        body = json.loads(resp['body'])
+        self.assertIn('Invalid request', body['message'])
+        self.assertIn('email', body['message'])
+
+        # Verify Cognito user was not created
+        cognito_users = self.config.cognito_client.list_users(
+            UserPoolId=self.config.provider_user_pool_id, Filter='email = "test@example.com"'
+        )
+        self.assertEqual(0, len(cognito_users['Users']))
+
+    @patch('handlers.registration.verify_recaptcha')
+    def test_registration_rejects_invalid_date_format(self, mock_verify_recaptcha):
+        """Test that the registration handler rejects an invalid date format."""
+        mock_verify_recaptcha.return_value = True
+        from handlers.registration import register_provider
+
+        # Create a request with an invalid date that matches the regex pattern but is still invalid
+        request_body = {
+            'dob': '2023-13-35',  # Invalid date (month 13, day 35) but matches regex pattern
+        }
+
+        event = self._get_test_event(body_overrides=request_body)
+
+        resp = register_provider(event, self.mock_context)
+        self.assertEqual(400, resp['statusCode'])
+        body = json.loads(resp['body'])
+        self.assertIn('Invalid request', body['message'])
+        self.assertIn('dob', body['message'])

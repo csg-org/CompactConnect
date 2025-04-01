@@ -1,6 +1,6 @@
 {
   "pk": "aslp#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570",
-  "sk": "aslp#PROVIDER#license/oh#",
+  "sk": "aslp#PROVIDER#license/oh/slp#",
   "type": "license",
   "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
   "compact": "aslp",
@@ -24,7 +24,6 @@
   "homeAddressPostalCode": "43004",
   "emailAddress": "björk@example.com",
   "phoneNumber": "+13213214321",
-  "militaryWaiver": false,
   "jurisdictionStatus": "active",
   "licenseGSIPK": "C#aslp#J#oh",
   "licenseGSISK": "FN#gu%C3%B0mundsd%C3%B3ttir#GN#bj%C3%B6rk"

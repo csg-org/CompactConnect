@@ -43,7 +43,6 @@ class TestGetProvider(TstFunction):
         with open('../common/tests/resources/api/provider-detail-response.json') as f:
             expected_provider = json.load(f)
 
-        self.maxDiff = None
         self.assertEqual(expected_provider, provider_data)
 
     def test_get_provider_does_not_return_home_jurisdiction_selection_key_if_not_present(self):
@@ -68,7 +67,6 @@ class TestGetProvider(TstFunction):
             # remove the homeJurisdictionSelection key from the expected provider data
             del expected_provider['homeJurisdictionSelection']
 
-        self.maxDiff = None
         self.assertEqual(expected_provider, provider_data)
 
     def test_get_provider_returns_400_if_api_call_made_without_proper_claims(self):

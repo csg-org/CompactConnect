@@ -66,4 +66,23 @@ describe('CompactFeeConfig model', () => {
         expect(compactFeeConfiguration.perPrivilegeTransactionFeeAmount).to.equal(2);
         expect(compactFeeConfiguration.isPerPrivilegeTransactionFeeActive).to.equal(true);
     });
+    it('should create a CompactFeeConfig with specific values through serializer (missing transactionFeeConfiguration)', () => {
+        const data = {
+            compactAbbr: 'aslp',
+            compactCommissionFee: {
+                feeType: 'FLAT_RATE',
+                feeAmount: 3.5
+            },
+            type: 'compact'
+        };
+        const compactFeeConfiguration = CompactFeeConfigSerializer.fromServer(data);
+
+        // Test field values
+        expect(compactFeeConfiguration).to.be.an.instanceof(CompactFeeConfig);
+        expect(compactFeeConfiguration.compactType).to.equal('aslp');
+        expect(compactFeeConfiguration.compactCommissionFee).to.equal(3.5);
+        expect(compactFeeConfiguration.compactCommissionFeeType).to.equal(FeeTypes.FLAT_RATE);
+        expect(compactFeeConfiguration.perPrivilegeTransactionFeeAmount).to.equal(0);
+        expect(compactFeeConfiguration.isPerPrivilegeTransactionFeeActive).to.equal(false);
+    });
 });

@@ -9,6 +9,7 @@ from faker import Faker
 from smoke_common import (
     SmokeTestFailureException,
     call_provider_users_me_endpoint,
+    get_license_type_abbreviation,
     get_provider_user_auth_headers_cached,
 )
 
@@ -55,8 +56,9 @@ def delete_existing_privileges():
     dynamodb_table = config.provider_user_dynamodb_table
 
     for privilege in privileges:
+        license_type_abbreviation = get_license_type_abbreviation(privilege['licenseType'])
         privilege_pk = f'{compact}#PROVIDER#{provider_id}'
-        privilege_sk = f'{compact}#PROVIDER#privilege/{privilege["jurisdiction"]}#'
+        privilege_sk = f'{compact}#PROVIDER#privilege/{privilege["jurisdiction"]}/{license_type_abbreviation}#'
         logger.info(f'Deleting privilege record:\n{privilege_pk}\n{privilege_sk}')
         dynamodb_table.delete_item(
             Key={
@@ -107,7 +109,7 @@ def get_required_attestations(provider_data: dict) -> list[dict]:
     return attestations
 
 
-def purchase_privilege(jurisdiction: str, card_number: str, attestations: list[dict]) -> str:
+def purchase_privilege(jurisdiction: str, card_number: str, attestations: list[dict], license_type: str) -> str:
     """Purchase a privilege for the given jurisdiction using the specified card number."""
     post_body = {
         'orderInformation': {
@@ -130,6 +132,7 @@ def purchase_privilege(jurisdiction: str, card_number: str, attestations: list[d
         },
         'selectedJurisdictions': [jurisdiction],
         'attestations': attestations,
+        'licenseType': license_type,
     }
 
     headers = get_provider_user_auth_headers_cached()
@@ -154,6 +157,8 @@ def run_load_test(num_iterations: int):
 
     # Get provider data and attestations
     provider_data = call_provider_users_me_endpoint()
+    # Grab the license type from the user's first license
+    license_type = provider_data['licenses'][0]['licenseType']
     attestations = get_required_attestations(provider_data)
 
     for iteration in range(num_iterations):
@@ -178,7 +183,7 @@ def run_load_test(num_iterations: int):
 
             for jurisdiction, card in jurisdictions:
                 try:
-                    purchase_privilege(jurisdiction, card, attestations)
+                    purchase_privilege(jurisdiction, card, attestations, license_type)
                 except Exception as e:
                     logger.error(f'Failed to purchase privilege for {jurisdiction} with card {card}: {str(e)}')
                     continue
