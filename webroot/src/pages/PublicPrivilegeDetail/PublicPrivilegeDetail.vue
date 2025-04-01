@@ -1,5 +1,5 @@
 <!--
-    PrivilegeDetailPublic.vue
+    PublicPrivilegeDetail.vue
     CompactConnect
 
     Created by InspiringApps on 3/18/2025.
@@ -7,7 +7,10 @@
 
 <template>
     <div class="privilege-detail-container">
-        <div class="privilege-detail-content-container">
+        <transition name="fade">
+            <LoadingSpinner class="place-holder" v-show="isLoading"></LoadingSpinner>
+        </transition>
+        <div v-if="licenseeRecord" class="privilege-detail-content-container">
             <InputButton
                 :label="$t('common.back')"
                 :aria-label="$t('common.back')"
@@ -26,5 +29,5 @@
     </div>
 </template>
 
-<script lang="ts" src="./PrivilegeDetailPublic.ts"></script>
-<style scoped lang="less" src="./PrivilegeDetailPublic.less"></style>
+<script lang="ts" src="./PublicPrivilegeDetail.ts"></script>
+<style scoped lang="less" src="./PublicPrivilegeDetail.less"></style>

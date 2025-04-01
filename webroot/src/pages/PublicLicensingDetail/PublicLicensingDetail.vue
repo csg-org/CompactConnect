@@ -45,9 +45,9 @@
                                 :alt="$t('licensing.privilegeIcon')"
                             />
                         </div>
-                        <div class="title-text">{{ $t('licensing.recentPrivilegesTitle') }}</div>
+                        <div class="title-text">{{ $t('licensing.privileges') }}</div>
                     </div>
-                    <CollapseCaretButton @toggleCollapse="toggleRecentPrivsCollapsed" />
+                    <CollapseCaretButton @toggleCollapse="togglePrivsCollapsed" />
                 </div>
                 <div v-if="!isRecentPrivsCollapsed" class="privilege-card-list-container">
                     <PrivilegeCard
@@ -55,23 +55,7 @@
                         :key="index"
                         :privilege="privilege"
                         :licensee="licensee"
-                        class="no-touch-item"
-                    />
-                </div>
-            </div>
-            <div class="privilege-section">
-                <div class="title-row">
-                    <div class="title-info">
-                        <div class="title-text">{{ $t('licensing.pastPrivilegesTitle') }}</div>
-                    </div>
-                    <CollapseCaretButton @toggleCollapse="togglePastPrivsCollapsed" />
-                </div>
-                <div v-if="!isPastPrivsCollapsed" class="privilege-card-list-container">
-                    <PrivilegeCard
-                        v-for="(privilege, index) in pastPrivilegeList"
-                        :key="index"
-                        :privilege="privilege"
-                        :licensee="licensee"
+                        :isPublicSearch="true"
                         class="no-touch-item"
                     />
                 </div>

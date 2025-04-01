@@ -7,7 +7,10 @@
 
 <template>
     <div class="privilege-detail-container">
-        <div class="privilege-detail-content-container">
+        <transition name="fade">
+            <LoadingSpinner class="place-holder" v-show="isLoading"></LoadingSpinner>
+        </transition>
+        <div v-if="isLoggedInAsLicensee || licenseeRecord" class="privilege-detail-content-container">
             <InputButton
                 :label="$t('common.back')"
                 :aria-label="$t('common.back')"

@@ -7,6 +7,7 @@
 
 import { Component, Vue } from 'vue-facing-decorator';
 import { AuthTypes } from '@/app.config';
+import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import PrivilegeDetailBlock from '@components/PrivilegeDetailBlock/PrivilegeDetailBlock.vue';
 import { License } from '@models/License/License.model';
@@ -16,7 +17,8 @@ import { Licensee } from '@models/Licensee/Licensee.model';
     name: 'PrivilegeDetail',
     components: {
         InputButton,
-        PrivilegeDetailBlock
+        PrivilegeDetailBlock,
+        LoadingSpinner
     }
 })
 export default class PrivilegeDetail extends Vue {

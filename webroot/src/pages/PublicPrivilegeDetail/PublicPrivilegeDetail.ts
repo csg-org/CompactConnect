@@ -1,24 +1,26 @@
 //
-//  PrivilegeDetailPublic.ts
+//  PublicPrivilegeDetail.ts
 //  CompactConnect
 //
 //  Created by InspiringApps on 3/18/2025.
 //
 
 import { Component, Vue } from 'vue-facing-decorator';
+import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import PrivilegeDetailBlock from '@components/PrivilegeDetailBlock/PrivilegeDetailBlock.vue';
 import { License } from '@models/License/License.model';
 import { Licensee } from '@models/Licensee/Licensee.model';
 
 @Component({
-    name: 'PrivilegeDetailPublic',
+    name: 'PublicPrivilegeDetail',
     components: {
         InputButton,
-        PrivilegeDetailBlock
+        PrivilegeDetailBlock,
+        LoadingSpinner
     }
 })
-export default class PrivilegeDetailPublic extends Vue {
+export default class PublicPrivilegeDetail extends Vue {
     //
     // Lifecycle
     //
@@ -37,6 +39,10 @@ export default class PrivilegeDetailPublic extends Vue {
 
     get licenseStore(): any {
         return this.$store.state.license;
+    }
+
+    get isLoading(): boolean {
+        return this.licenseStore?.isLoading || false;
     }
 
     get privilegeId(): string {
@@ -85,9 +91,12 @@ export default class PrivilegeDetailPublic extends Vue {
     }
 
     async fetchLicenseePublicData(): Promise<void> {
-        const { licenseeId } = this;
+        const { compact, licenseeId } = this;
 
-        // public version
-        await this.$store.dispatch('license/getLicenseeRequest', { compact: this.compact, licenseeId });
+        await this.$store.dispatch('license/getLicenseeRequest', {
+            compact,
+            licenseeId,
+            isPublic: true,
+        });
     }
 }

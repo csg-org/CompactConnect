@@ -10,7 +10,7 @@ import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
 import PrivilegeCard from '@/components/PrivilegeCard/PrivilegeCard.vue';
 import CollapseCaretButton from '@components/CollapseCaretButton/CollapseCaretButton.vue';
 import { Licensee } from '@models/Licensee/Licensee.model';
-import { License, LicenseStatus } from '@models/License/License.model';
+import { License } from '@models/License/License.model';
 
 @Component({
     name: 'PublicLicensingDetail',
@@ -31,7 +31,9 @@ export default class PublicLicensingDetail extends Vue {
     // Lifecycle
     //
     async mounted() {
-        await this.fetchLicenseeData();
+        if (!this.licenseePrivileges.length) {
+            await this.fetchLicenseeData();
+        }
 
         if (!this.licensee) {
             this.$router.push({ name: '404' });
@@ -96,23 +98,6 @@ export default class PublicLicensingDetail extends Vue {
         return this.licensee?.homeJurisdiction?.name() || '';
     }
 
-    get pastPrivilegeList(): Array<License> {
-        const privilegeList: Array<License> = [];
-
-        this.licenseePrivileges.forEach((privilege) => {
-            privilege.history?.forEach((historyItem: any) => {
-                privilegeList.push(new License({
-                    ...privilege,
-                    expireDate: historyItem.previousValues?.dateOfExpiration || null,
-                    issueDate: historyItem.previousValues?.dateOfIssuance || null,
-                    status: LicenseStatus.INACTIVE
-                }));
-            });
-        });
-
-        return privilegeList;
-    }
-
     //
     // Methods
     //
@@ -126,11 +111,7 @@ export default class PublicLicensingDetail extends Vue {
         });
     }
 
-    toggleRecentPrivsCollapsed(): void {
+    togglePrivsCollapsed(): void {
         this.isRecentPrivsCollapsed = !this.isRecentPrivsCollapsed;
-    }
-
-    togglePastPrivsCollapsed(): void {
-        this.isPastPrivsCollapsed = !this.isPastPrivsCollapsed;
     }
 }
