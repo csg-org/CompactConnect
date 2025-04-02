@@ -312,4 +312,4 @@ class TestPatchUser(TstFunction):
         self.assertEqual(400, resp['statusCode'])
         body = json.loads(resp['body'])
 
-        self.assertEqual({'message': '"FL" is not a valid jurisdiction for "ASLP" compact'}, body)
+        self.assertEqual({'message': "'FL' is not a valid jurisdiction for 'ASLP' compact"}, body)

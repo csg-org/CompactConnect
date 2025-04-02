@@ -477,7 +477,7 @@ def collect_and_authorize_changes(*, path_compact: str, scopes: set, compact_cha
         ]
         if jurisdiction.lower() not in active_jurisdictions_postal_abbreviations:
             raise CCInvalidRequestException(
-                f'"{jurisdiction.upper()}" is not a valid jurisdiction for "{path_compact.upper()}" compact'
+                f"'{jurisdiction.upper()}' is not a valid jurisdiction for '{path_compact.upper()}' compact"
             )
 
         for action, value in jurisdiction_changes.get('actions', {}).items():
