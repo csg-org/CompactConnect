@@ -5,7 +5,7 @@
 //  Created by InspiringApps on 8/27/2024.
 //
 
-import { compacts as compactConfigs, FeeTypes } from '@/app.config';
+import { FeeTypes } from '@/app.config';
 import { expect } from 'chai';
 import { Compact, CompactSerializer, CompactType } from '@models/Compact/Compact.model';
 import { PrivilegePurchaseOption } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
@@ -73,20 +73,15 @@ describe('Compact model', () => {
         const data = {
             id: 'test-id',
             type: CompactType.ASLP,
+            memberStates: [new State()],
         };
         const compact = CompactSerializer.fromServer(data);
-        const compactStates = compactConfigs[CompactType.ASLP].memberStates;
 
         // Test field values
         expect(compact).to.be.an.instanceof(Compact);
         expect(compact.id).to.equal(data.id);
         expect(compact.type).to.equal(data.type);
-        expect(compact.memberStates).to.be.an('array').with.length(33);
-
-        compact.memberStates.forEach((state, idx) => {
-            expect(state).to.be.an.instanceof(State);
-            expect(state.abbrev).to.equal(compactStates[idx]);
-        });
+        expect(compact.memberStates).to.be.an('array').with.length(1);
 
         // Test methods
         expect(compact.name()).to.equal('Audiology and Speech Language Pathology');

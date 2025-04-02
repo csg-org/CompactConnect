@@ -5,7 +5,6 @@
 //  Created by InspiringApps on 8/27/2024.
 //
 
-import { compacts as compactConfigs } from '@/app.config';
 import deleteUndefinedProperties from '@models/_helpers';
 import { PrivilegePurchaseOption } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
 import { State } from '@models/State/State.model';
@@ -83,15 +82,8 @@ export class CompactSerializer {
         const compactData = {
             id: json.id,
             type: json.type,
-            memberStates: [] as Array<State>,
+            memberStates: json.memberStates || [] as Array<State>,
         };
-        const compactConfig: any = compactConfigs[json.type] || {};
-
-        if (Array.isArray(compactConfig.memberStates)) {
-            compactConfig.memberStates.forEach((abbrev) => {
-                compactData.memberStates.push(new State({ abbrev }));
-            });
-        }
 
         return new Compact(compactData);
     }

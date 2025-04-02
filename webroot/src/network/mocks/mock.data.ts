@@ -1052,6 +1052,29 @@ export const attestation = {
     required: true,
 };
 
+export const compactStates = [
+    {
+        compact: 'otcp',
+        postalAbbreviation: 'al',
+    },
+    {
+        compact: 'otcp',
+        postalAbbreviation: 'co',
+    },
+    {
+        compact: 'otcp',
+        postalAbbreviation: 'ky',
+    },
+    {
+        compact: 'otcp',
+        postalAbbreviation: 'ne',
+    },
+    {
+        compact: 'otcp',
+        postalAbbreviation: 'oh',
+    },
+];
+
 export const pets = [
     {
         id: 1,

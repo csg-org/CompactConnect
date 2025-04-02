@@ -114,9 +114,30 @@ export default {
     getAccountFailure: ({ commit }, error: Error) => {
         commit(MutationTypes.GET_ACCOUNT_FAILURE, error);
     },
+    // GET COMPACT STATES FOR USER
+    getCompactStatesRequest: async ({ commit, dispatch }, { compact }) => {
+        commit(MutationTypes.GET_COMPACT_STATES_REQUEST);
+        return dataApi.getCompactStates(compact).then((states) => {
+            dispatch('getCompactStatesSuccess', states);
+
+            return states;
+        }).catch((error) => {
+            dispatch('getCompactStatesFailure', error);
+        });
+    },
+    getCompactStatesSuccess: ({ commit }, states) => {
+        commit(MutationTypes.GET_COMPACT_STATES_SUCCESS, states);
+    },
+    getCompactStatesFailure: ({ commit }, error: Error) => {
+        commit(MutationTypes.GET_COMPACT_STATES_FAILURE, error);
+    },
     // SET THE STORE STATE
-    setCurrentCompact: ({ commit }, compact: Compact | null) => {
+    setCurrentCompact: async ({ commit, dispatch }, compact: Compact | null) => {
         commit(MutationTypes.STORE_UPDATE_CURRENT_COMPACT, compact);
+
+        if (compact?.type) {
+            await dispatch('getCompactStatesRequest', { compact: compact.type });
+        }
     },
     setStoreUser: ({ commit }, user) => {
         commit(MutationTypes.STORE_UPDATE_USER, user);

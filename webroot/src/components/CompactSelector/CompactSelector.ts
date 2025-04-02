@@ -137,7 +137,7 @@ class CompactSelector extends mixins(MixinForm) {
         const selectedCompactType = this.formData.compact.value;
 
         // Set the new compact type on the store
-        this.$store.dispatch('user/setCurrentCompact', CompactSerializer.fromServer({ type: selectedCompactType }));
+        await this.$store.dispatch('user/setCurrentCompact', CompactSerializer.fromServer({ type: selectedCompactType }));
 
         // If the current route is not matching the newly selected compact, then redirect
         if (this.routeCompactType && this.routeCompactType !== selectedCompactType) {

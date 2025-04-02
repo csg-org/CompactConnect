@@ -12,6 +12,7 @@ import { StaffUserSerializer } from '@models/StaffUser/StaffUser.model';
 import { PrivilegePurchaseOptionSerializer } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
 import { PrivilegeAttestationSerializer } from '@models/PrivilegeAttestation/PrivilegeAttestation.model';
 import { CompactFeeConfigSerializer } from '@/models/CompactFeeConfig/CompactFeeConfig.model';
+import { StateSerializer } from '@models/State/State.model';
 import {
     userData,
     staffAccount,
@@ -20,7 +21,8 @@ import {
     users,
     pets,
     privilegePurchaseOptionsResponse,
-    attestation
+    attestation,
+    compactStates
 } from '@network/mocks/mock.data';
 
 let mockStore: any = null;
@@ -222,6 +224,13 @@ export class DataApi {
     // Update Authenticated Staff User
     public updateAuthenticatedStaffUser() {
         return wait(500).then(() => StaffUserSerializer.fromServer(staffAccount));
+    }
+
+    // Get Compact States
+    public getCompactStates() {
+        return wait(500).then(() => compactStates.map((serverItem) => StateSerializer.fromServer({
+            abbrev: serverItem.postalAbbreviation,
+        })));
     }
 
     // ========================================================================

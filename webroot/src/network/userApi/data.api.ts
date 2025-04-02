@@ -16,6 +16,7 @@ import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 import { PrivilegePurchaseOptionSerializer } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
 import { LicenseeUserSerializer } from '@models/LicenseeUser/LicenseeUser.model';
 import { StaffUserSerializer } from '@models/StaffUser/StaffUser.model';
+import { StateSerializer } from '@models/State/State.model';
 import { CompactFeeConfigSerializer } from '@/models/CompactFeeConfig/CompactFeeConfig.model';
 
 export interface RequestParamsInterfaceLocal {
@@ -247,8 +248,20 @@ export class UserDataApi implements DataApiInterface {
      */
     public async getAuthenticatedLicenseeUser() {
         const serverResponse: any = await this.api.get(`/v1/provider-users/me`);
-
         const response = LicenseeUserSerializer.fromServer(serverResponse);
+
+        return response;
+    }
+
+    /**
+     * GET Compact State List.
+     * @return {Promise<Array<State>>} A list of State instances.
+     */
+    public async getCompactStates(compact: string) {
+        const serverResponse: any = await this.api.get(`/v1/compacts/${compact}/jurisdictions`);
+        const response = serverResponse.map((serverItem) => StateSerializer.fromServer({
+            abbrev: serverItem.postalAbbreviation,
+        }));
 
         return response;
     }

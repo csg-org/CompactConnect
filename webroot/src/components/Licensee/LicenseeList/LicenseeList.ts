@@ -199,11 +199,11 @@ class LicenseeList extends Vue {
         }
     }
 
-    resetSearch(): void {
+    async resetSearch(): Promise<void> {
         this.$store.dispatch('license/resetStoreSearch');
 
         if (this.isPublicSearch) {
-            this.$store.dispatch('user/setCurrentCompact', null);
+            await this.$store.dispatch('user/setCurrentCompact', null);
         }
 
         this.toggleSearch();

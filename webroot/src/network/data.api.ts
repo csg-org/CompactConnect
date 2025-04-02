@@ -228,6 +228,15 @@ export class DataApi {
     }
 
     /**
+     * GET Compact States.
+     * @param  {string}                compact A compact type.
+     * @return {Promise<Array<State>>}         A list of State instances.
+     */
+    public getCompactStates(compact) {
+        return userDataApi.getCompactStates(compact);
+    }
+
+    /**
      * GET Privilege Purchase Information for Authenticated Licensee user.
      * @return {Promise<object>} List of privilege purchase options and compact purchase info.
      */
