@@ -7,9 +7,22 @@ from .. import TstFunction
 
 @mock_aws
 class TestPostUser(TstFunction):
+
+    def _when_testing_with_valid_jurisdiction(self):
+        # load oh jurisdiction for aslp compact to pass the jurisdiction validation
+        self._load_test_jurisdiction(jurisdiction_overrides={
+            'pk': 'aslp#CONFIGURATION',
+            'sk': 'aslp#JURISDICTION#oh',
+            'jurisdictionName': 'Ohio',
+            'postalAbbreviation': 'oh',
+            'compact': 'aslp',
+        })
+
     def test_post_user(self):
         from cc_common.data_model.schema.common import StaffUserStatus
         from handlers.users import post_user
+
+        self._when_testing_with_valid_jurisdiction()
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
@@ -41,6 +54,8 @@ class TestPostUser(TstFunction):
     def test_post_user_no_compact_perms_round_trip(self):
         from cc_common.data_model.schema.common import StaffUserStatus
         from handlers.users import get_one_user, post_user
+
+        self._when_testing_with_valid_jurisdiction()
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
@@ -100,3 +115,27 @@ class TestPostUser(TstFunction):
         resp = post_user(event, self.mock_context)
 
         self.assertEqual(403, resp['statusCode'])
+
+    def test_post_user_returns_400_if_invalid_jurisdiction_permission_set(self):
+        from handlers.users import post_user
+
+        with open('tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        with open('tests/resources/api/user-post.json') as f:
+            api_user = json.load(f)
+
+        # A user with an invalid jurisdiction
+        api_user['permissions'] = {'aslp': {'actions': {}, 'jurisdictions': {'fl': {'actions': {'readPrivate': True}}}}}
+        event['body'] = json.dumps(api_user)
+
+        # The user has admin permission for aslp
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin oh/aslp.admin'
+        event['pathParameters'] = {'compact': 'aslp'}
+
+        resp = post_user(event, self.mock_context)
+
+        self.assertEqual(400, resp['statusCode'])
+        body = json.loads(resp['body'])
+
+        self.assertEqual({'message': '"FL" is not a valid jurisdiction for "ASLP" compact'}, body)

@@ -7,8 +7,19 @@ from .. import TstFunction
 
 @mock_aws
 class TestPatchUser(TstFunction):
+    def _when_testing_with_valid_jurisdiction(self, compact: str):
+        # load oh jurisdiction for aslp compact to pass the jurisdiction validation
+        self._load_test_jurisdiction(jurisdiction_overrides={
+            'pk': f'{compact}#CONFIGURATION',
+            'sk': f'{compact}#JURISDICTION#oh',
+            'jurisdictionName': 'Ohio',
+            'postalAbbreviation': 'oh',
+            'compact': compact,
+        })
+
     def test_patch_user(self):
         self._load_user_data()
+        self._when_testing_with_valid_jurisdiction(compact='aslp')
 
         from cc_common.data_model.schema.common import StaffUserStatus
         from handlers.users import patch_user
@@ -45,6 +56,8 @@ class TestPatchUser(TstFunction):
     def test_patch_user_document_path_overlap(self):
         from cc_common.data_model.schema.common import StaffUserStatus
         from handlers.users import patch_user
+        self._when_testing_with_valid_jurisdiction(compact='octp')
+
 
         user = {
             'pk': 'USER#648864e8-10f1-702f-e666-2e0ff3482502',
@@ -111,6 +124,8 @@ class TestPatchUser(TstFunction):
     def test_patch_user_add_to_empty_actions(self):
         from cc_common.data_model.schema.common import StaffUserStatus
         from handlers.users import patch_user, post_user
+        self._when_testing_with_valid_jurisdiction(compact='aslp')
+
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
@@ -152,6 +167,7 @@ class TestPatchUser(TstFunction):
     def test_patch_user_remove_all_actions(self):
         from cc_common.data_model.schema.common import StaffUserStatus
         from handlers.users import patch_user, post_user
+        self._when_testing_with_valid_jurisdiction(compact='aslp')
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
@@ -191,6 +207,7 @@ class TestPatchUser(TstFunction):
 
     def test_patch_user_forbidden(self):
         self._load_user_data()
+        self._when_testing_with_valid_jurisdiction(compact='aslp')
 
         from handlers.users import patch_user
 
@@ -208,6 +225,7 @@ class TestPatchUser(TstFunction):
 
     def test_patch_user_not_found(self):
         from handlers.users import patch_user
+        self._when_testing_with_valid_jurisdiction(compact='aslp')
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
@@ -225,6 +243,7 @@ class TestPatchUser(TstFunction):
 
     def test_patch_user_allows_adding_read_private_permission(self):
         self._load_user_data()
+        self._when_testing_with_valid_jurisdiction(compact='aslp')
 
         from cc_common.data_model.schema.common import StaffUserStatus
         from handlers.users import patch_user
@@ -269,3 +288,24 @@ class TestPatchUser(TstFunction):
             },
             user,
         )
+
+    def test_patch_user_returns_400_if_invalid_jurisdiction(self):
+        self._load_user_data()
+
+        from handlers.users import patch_user
+
+        with open('tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        # The user has admin permission for aslp
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin'
+        event['pathParameters'] = {'compact': 'aslp', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
+        # in this case, the user is attempting to add permission for inactive compact, which is not valid
+        event['body'] = json.dumps({'permissions': {'aslp': {'jurisdictions': {'fl': {'actions': {'admin': True}}}}}})
+
+        resp = patch_user(event, self.mock_context)
+
+        self.assertEqual(400, resp['statusCode'])
+        body = json.loads(resp['body'])
+
+        self.assertEqual({'message': '"FL" is not a valid jurisdiction for "ASLP" compact'}, body)
