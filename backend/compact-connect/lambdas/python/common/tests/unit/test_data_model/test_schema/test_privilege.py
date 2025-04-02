@@ -117,13 +117,12 @@ class TestPrivilegeUpdateRecordSchema(TstLambdas):
             PrivilegeUpdateRecordSchema().load(privilege_data)
 
     def test_invalid_if_missing_deactivation_details_when_update_type_is_deactivation(self):
-        from cc_common.data_model.schema.common import UpdateCategory
         from cc_common.data_model.schema.privilege.record import PrivilegeUpdateRecordSchema
 
         with open('tests/resources/dynamo/privilege-update.json') as f:
             privilege_data = json.load(f)
         # Privilege deactivation updates require a 'deactivationDetails' fields
-        privilege_data['updateType'] = UpdateCategory.DEACTIVATION.value
+        privilege_data['updateType'] = 'deactivation'
 
         with self.assertRaises(ValidationError) as context:
             PrivilegeUpdateRecordSchema().load(privilege_data)

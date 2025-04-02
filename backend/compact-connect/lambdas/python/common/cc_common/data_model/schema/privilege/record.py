@@ -188,7 +188,7 @@ class PrivilegeUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin, ValidatesLi
 
     @validates_schema
     def validate_deactivation_details_present_if_deactivation_update(self, data, **kwargs):  # noqa: ARG002 unused-argument
-        if data['updateType'] == UpdateCategory.DEACTIVATION.value and not data.get('deactivationDetails'):
+        if data['updateType'] == UpdateCategory.DEACTIVATION and not data.get('deactivationDetails'):
             raise ValidationError({'deactivationDetails': ['This field is required when update was deactivation type']})
 
     @pre_dump
