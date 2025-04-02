@@ -153,3 +153,47 @@ class PipelineStack(Stack):
                 ],
             ),
         )
+
+        # Beta Pipeline - Deploy to beta environment when code is merged to main branch
+        self.beta_pipeline = BackendPipeline(
+            self,
+            'BetaPipeline',
+            github_repo_string=github_repo_string,
+            cdk_path=cdk_path,
+            connection_arn=connection_arn,
+            trigger_branch='main',  # Same trigger branch as prod
+            encryption_key=self.shared_encryption_key,
+            alarm_topic=self.alarm_topic,
+            access_logs_bucket=access_logs_bucket,
+            ssm_parameter=parameter,
+            environment_context=pipeline_environment_context,
+            self_mutation=True, # This must be set to true for our first deployment, then can be set to false for
+            # subsequent deployments to match with the prod pipeline
+            removal_policy=removal_policy,
+        )
+        self.beta_stage = BackendStage(
+            self,
+            'Beta',
+            app_name=app_name,
+            environment_name='beta',
+            environment_context=ssm_context['environments']['beta'],
+            github_repo_string=github_repo_string,
+        )
+        self.beta_pipeline.add_stage(self.beta_stage)
+        self.beta_pipeline.build_pipeline()
+        self.beta_pipeline.synth_project.add_to_role_policy(
+            PolicyStatement(
+                effect=Effect.ALLOW,
+                actions=['sts:AssumeRole'],
+                resources=[
+                    self.format_arn(
+                        partition=self.partition,
+                        service='iam',
+                        region='',
+                        account='*',
+                        resource='role',
+                        resource_name='cdk-hnb659fds-lookup-role-*',
+                    ),
+                ],
+            ),
+        )
