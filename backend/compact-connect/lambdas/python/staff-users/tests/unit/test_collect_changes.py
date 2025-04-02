@@ -1,5 +1,6 @@
-from tests import TstLambdas
 from unittest.mock import patch
+
+from tests import TstLambdas
 
 
 class TestCollectChanges(TstLambdas):
@@ -29,6 +30,7 @@ class TestCollectChanges(TstLambdas):
     @patch('cc_common.utils.config.compact_configuration_client')
     def test_jurisdiction_changes(self, mock_compact_configuration_client):
         from cc_common.utils import collect_and_authorize_changes
+
         self._when_testing_collect_and_authorize_changes_with_valid_jurisdiction(mock_compact_configuration_client)
 
         resp = collect_and_authorize_changes(
@@ -71,6 +73,7 @@ class TestCollectChanges(TstLambdas):
     @patch('cc_common.utils.config.compact_configuration_client')
     def test_compact_and_jurisdiction_changes(self, mock_compact_configuration_client):
         from cc_common.utils import collect_and_authorize_changes
+
         self._when_testing_collect_and_authorize_changes_with_valid_jurisdiction(mock_compact_configuration_client)
 
         resp = collect_and_authorize_changes(
@@ -94,8 +97,8 @@ class TestCollectChanges(TstLambdas):
     @patch('cc_common.utils.config.compact_configuration_client')
     def test_jurisdiction_add_only(self, mock_compact_configuration_client):
         from cc_common.utils import collect_and_authorize_changes
-        self._when_testing_collect_and_authorize_changes_with_valid_jurisdiction(mock_compact_configuration_client)
 
+        self._when_testing_collect_and_authorize_changes_with_valid_jurisdiction(mock_compact_configuration_client)
 
         resp = collect_and_authorize_changes(
             path_compact='aslp',

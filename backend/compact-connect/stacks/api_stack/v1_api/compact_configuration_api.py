@@ -21,6 +21,7 @@ class CompactConfigurationApi:
     This class manages all the endpoints related to reading compact configuration data for both compacts and their
     associated jurisdictions.
     """
+
     def __init__(
         self,
         *,
@@ -71,13 +72,11 @@ class CompactConfigurationApi:
 
         self._add_get_compact_jurisdictions_endpoint(
             compact_configuration_api_handler=self.compact_configuration_api_function,
-            general_read_method_options=general_read_method_options
+            general_read_method_options=general_read_method_options,
         )
 
     def _add_get_compact_jurisdictions_endpoint(
-        self,
-        compact_configuration_api_handler: PythonFunction,
-        general_read_method_options: MethodOptions
+        self, compact_configuration_api_handler: PythonFunction, general_read_method_options: MethodOptions
     ):
         self.jurisdictions_resource.add_method(
             'GET',

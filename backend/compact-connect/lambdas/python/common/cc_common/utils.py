@@ -472,11 +472,13 @@ def collect_and_authorize_changes(*, path_compact: str, scopes: set, compact_cha
 
         # verify that the jurisdiction is in the list of active jurisdictions for the compact
         active_jurisdictions = config.compact_configuration_client.get_compact_jurisdictions(compact=path_compact)
-        active_jurisdictions_postal_abbreviations = [jurisdiction['postalAbbreviation'].lower()
-                                                     for jurisdiction in active_jurisdictions]
+        active_jurisdictions_postal_abbreviations = [
+            jurisdiction['postalAbbreviation'].lower() for jurisdiction in active_jurisdictions
+        ]
         if jurisdiction.lower() not in active_jurisdictions_postal_abbreviations:
             raise CCInvalidRequestException(
-                f'"{jurisdiction.upper()}" is not a valid jurisdiction for "{path_compact.upper()}" compact')
+                f'"{jurisdiction.upper()}" is not a valid jurisdiction for "{path_compact.upper()}" compact'
+            )
 
         for action, value in jurisdiction_changes.get('actions', {}).items():
             # dropping the read action as this is now implicitly granted to all users

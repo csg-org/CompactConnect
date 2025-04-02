@@ -145,9 +145,7 @@ class TestProviderRegistration(TstFunction):
         response = register_provider(self._get_test_event(body_overrides={'compact': 'coun'}), self.mock_context)
         self.assertEqual(400, response['statusCode'])
         self.assertEqual(
-            {
-                'message': 'Registration is not currently available for the specified license type.'
-            },
+            {'message': 'Registration is not currently available for the specified license type.'},
             json.loads(response['body']),
         )
 
@@ -193,7 +191,8 @@ class TestProviderRegistration(TstFunction):
         response = register_provider(self._get_test_event(body_overrides={'jurisdiction': 'oh'}), self.mock_context)
         self.assertEqual(400, response['statusCode'])
         self.assertEqual(
-            {'message': 'Registration is not currently available for the specified state.'}, json.loads(response['body'])
+            {'message': 'Registration is not currently available for the specified state.'},
+            json.loads(response['body']),
         )
 
     @patch('handlers.registration.verify_recaptcha')

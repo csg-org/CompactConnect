@@ -12,7 +12,8 @@ from cc_common.exceptions import (
     CCAwsServiceException,
     CCInternalException,
     CCInvalidRequestException,
-    CCRateLimitingException, CCNotFoundException,
+    CCNotFoundException,
+    CCRateLimitingException,
 )
 from cc_common.utils import api_handler
 from marshmallow import ValidationError
@@ -133,7 +134,6 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
         metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
         raise CCRateLimitingException('Rate limit exceeded. Please try again later.')
 
-
     # Verify reCAPTCHA token
     if not verify_recaptcha(body['token']):
         logger.info(
@@ -155,16 +155,13 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
     # Get configuration for compact and jurisdiction
     try:
         compact_config = config.compact_configuration_client.get_compact_configuration(body['compact'])
-    except CCNotFoundException:
+    except CCNotFoundException as e:
         # In theory, this should never happen, since we should only specify license types that are supported in the
         # specific environment. But an end use might pass in invalid data through an api call.
-        logger.error('Specified compact not configured',
-                    compact=body['compact'],
-                    environment=config.environment_name
-                    )
+        logger.error('Specified compact not configured', compact=body['compact'], environment=config.environment_name)
         raise CCInvalidRequestException(
             'Registration is not currently available for the specified license type.'
-        )
+        ) from e
 
     # Check if registration is enabled for both compact and jurisdiction in the current environment
     # If registration is not enabled for either the compact or jurisdiction, return an error
@@ -181,15 +178,14 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
         jurisdiction_config = config.compact_configuration_client.get_jurisdiction_configuration(
             body['compact'], body['jurisdiction']
         )
-    except CCNotFoundException:
-        logger.info('Specified state not found in configured jurisdictions for compact',
+    except CCNotFoundException as e:
+        logger.info(
+            'Specified state not found in configured jurisdictions for compact',
             compact=body['compact'],
             jurisdiction=body['jurisdiction'],
-            environment=config.environment_name
+            environment=config.environment_name,
         )
-        raise CCInvalidRequestException(
-            'Registration is not currently available for the specified state.'
-        )
+        raise CCInvalidRequestException('Registration is not currently available for the specified state.') from e
 
     if config.environment_name not in jurisdiction_config.licensee_registration_enabled_for_environments:
         logger.info(

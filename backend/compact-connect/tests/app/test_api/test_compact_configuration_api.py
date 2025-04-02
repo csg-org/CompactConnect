@@ -37,13 +37,14 @@ class TestCompactConfigurationApi(TestApi):
         # Ensure the lambda is created with expected code path
         compact_configuration_api_handler = TestApi.get_resource_properties_by_logical_id(
             api_stack.get_logical_id(
-                api_stack.api.v1_api.compact_configuration_api.compact_configuration_api_function.node.default_child),
+                api_stack.api.v1_api.compact_configuration_api.compact_configuration_api_function.node.default_child
+            ),
             api_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
         )
 
         self.assertEqual(
             compact_configuration_api_handler['Handler'],
-            'handlers.compact_configuration.compact_configuration_api_handler'
+            'handlers.compact_configuration.compact_configuration_api_handler',
         )
 
         # Ensure the GET method is configured with the lambda integration
@@ -61,8 +62,7 @@ class TestCompactConfigurationApi(TestApi):
                 # ensure the lambda integration is configured with the expected handler
                 'Integration': TestApi.generate_expected_integration_object(
                     api_stack.get_logical_id(
-                        api_stack.api.v1_api.compact_configuration_api
-                        .compact_configuration_api_function.node.default_child,
+                        api_stack.api.v1_api.compact_configuration_api.compact_configuration_api_function.node.default_child,
                     ),
                 ),
                 'MethodResponses': [

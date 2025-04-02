@@ -233,7 +233,9 @@ class PersistentStack(AppStack):
             # so that the user pools will be created after the SES identity is verified
             self.staff_users.node.add_dependency(self.user_email_notifications.verification_custom_resource)
             self.provider_users.node.add_dependency(self.user_email_notifications.verification_custom_resource)
-            self.provider_users_deprecated.node.add_dependency(self.user_email_notifications.verification_custom_resource)
+            self.provider_users_deprecated.node.add_dependency(
+                self.user_email_notifications.verification_custom_resource
+            )
 
     def _add_data_resources(self, removal_policy: RemovalPolicy):
         # Create the ssn related resources before other resources which are dependent on them

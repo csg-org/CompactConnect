@@ -9,13 +9,15 @@ from .. import TstFunction
 class TestPatchUser(TstFunction):
     def _when_testing_with_valid_jurisdiction(self, compact: str):
         # load oh jurisdiction for aslp compact to pass the jurisdiction validation
-        self._load_test_jurisdiction(jurisdiction_overrides={
-            'pk': f'{compact}#CONFIGURATION',
-            'sk': f'{compact}#JURISDICTION#oh',
-            'jurisdictionName': 'Ohio',
-            'postalAbbreviation': 'oh',
-            'compact': compact,
-        })
+        self._load_test_jurisdiction(
+            jurisdiction_overrides={
+                'pk': f'{compact}#CONFIGURATION',
+                'sk': f'{compact}#JURISDICTION#oh',
+                'jurisdictionName': 'Ohio',
+                'postalAbbreviation': 'oh',
+                'compact': compact,
+            }
+        )
 
     def test_patch_user(self):
         self._load_user_data()
@@ -56,8 +58,8 @@ class TestPatchUser(TstFunction):
     def test_patch_user_document_path_overlap(self):
         from cc_common.data_model.schema.common import StaffUserStatus
         from handlers.users import patch_user
-        self._when_testing_with_valid_jurisdiction(compact='octp')
 
+        self._when_testing_with_valid_jurisdiction(compact='octp')
 
         user = {
             'pk': 'USER#648864e8-10f1-702f-e666-2e0ff3482502',
@@ -124,8 +126,8 @@ class TestPatchUser(TstFunction):
     def test_patch_user_add_to_empty_actions(self):
         from cc_common.data_model.schema.common import StaffUserStatus
         from handlers.users import patch_user, post_user
-        self._when_testing_with_valid_jurisdiction(compact='aslp')
 
+        self._when_testing_with_valid_jurisdiction(compact='aslp')
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
@@ -167,6 +169,7 @@ class TestPatchUser(TstFunction):
     def test_patch_user_remove_all_actions(self):
         from cc_common.data_model.schema.common import StaffUserStatus
         from handlers.users import patch_user, post_user
+
         self._when_testing_with_valid_jurisdiction(compact='aslp')
 
         with open('tests/resources/api-event.json') as f:
@@ -225,6 +228,7 @@ class TestPatchUser(TstFunction):
 
     def test_patch_user_not_found(self):
         from handlers.users import patch_user
+
         self._when_testing_with_valid_jurisdiction(compact='aslp')
 
         with open('tests/resources/api-event.json') as f:

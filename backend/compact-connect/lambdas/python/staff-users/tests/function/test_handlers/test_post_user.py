@@ -7,16 +7,17 @@ from .. import TstFunction
 
 @mock_aws
 class TestPostUser(TstFunction):
-
     def _when_testing_with_valid_jurisdiction(self):
         # load oh jurisdiction for aslp compact to pass the jurisdiction validation
-        self._load_test_jurisdiction(jurisdiction_overrides={
-            'pk': 'aslp#CONFIGURATION',
-            'sk': 'aslp#JURISDICTION#oh',
-            'jurisdictionName': 'Ohio',
-            'postalAbbreviation': 'oh',
-            'compact': 'aslp',
-        })
+        self._load_test_jurisdiction(
+            jurisdiction_overrides={
+                'pk': 'aslp#CONFIGURATION',
+                'sk': 'aslp#JURISDICTION#oh',
+                'jurisdictionName': 'Ohio',
+                'postalAbbreviation': 'oh',
+                'compact': 'aslp',
+            }
+        )
 
     def test_post_user(self):
         from cc_common.data_model.schema.common import StaffUserStatus
