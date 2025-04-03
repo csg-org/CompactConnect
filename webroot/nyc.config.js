@@ -23,7 +23,7 @@ module.exports = {
         '.vue',
     ],
     reporter: [
-        'text',
+        // 'text',
         'text-summary',
     ],
     cache: false,
