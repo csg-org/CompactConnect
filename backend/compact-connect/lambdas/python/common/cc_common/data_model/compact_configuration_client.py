@@ -98,7 +98,7 @@ class CompactConfigurationClient:
         compact_data = self.compact_schema.load(item)
         return Compact(compact_data)
 
-    def get_compact_jurisdictions(self, compact: str) -> Compact:
+    def get_compact_jurisdictions(self, compact: str) -> list[dict]:
         """
         Get the jurisdictions for a specific compact.
 
@@ -116,7 +116,7 @@ class CompactConfigurationClient:
             Limit=1000,
         )
 
-        return response.get('Items', [])
+        return self.jurisdiction_schema.load(response.get('Items', []), many=True)
 
     def get_jurisdiction_configuration(self, compact: str, jurisdiction: str) -> Jurisdiction:
         """
