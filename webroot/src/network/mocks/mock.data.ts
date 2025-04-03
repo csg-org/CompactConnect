@@ -847,7 +847,7 @@ export const licensees = {
                     licenseType: 'occupational therapy assistant',
                     dateOfIssuance: '2024-03-19T21:30:27+00:00',
                     dateOfRenewal: '2025-03-26T15:56:58+00:00',
-                    dateOfExpiration: moment(),
+                    dateOfExpiration: moment().format(),
                     compactTransactionId: '120060086502',
                     attestations: [
                         {

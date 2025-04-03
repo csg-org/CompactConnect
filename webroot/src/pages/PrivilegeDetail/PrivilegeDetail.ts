@@ -109,7 +109,7 @@ export default class PrivilegeDetail extends Vue {
     }
 
     get privilegeTitle(): string {
-        return `${this.privilege?.licenseTypeAbbreviation()} - ${this.privilege?.issueState?.name()}`;
+        return `${this.privilege?.licenseTypeAbbreviation() || ''} - ${this.privilege?.issueState?.name() || ''}`;
     }
 
     //
