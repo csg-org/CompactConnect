@@ -78,10 +78,10 @@ class PrivilegeHistory extends Vue {
 
             let eventLengthBucket = 'short';
 
-            if (eventGap > 30) {
-                eventLengthBucket = 'medium';
-            } else if (eventGap > 364) {
+            if (eventGap > 364) {
                 eventLengthBucket = 'long';
+            } else if (eventGap > 30) {
+                eventLengthBucket = 'medium';
             }
 
             preppedEvents.push({
