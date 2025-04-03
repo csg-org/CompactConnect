@@ -1,0 +1,12 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "deactivationNote": {
+      "description": "Note describing why the privilege is being deactivated",
+      "maxLength": 256,
+      "type": "string"
+    }
+  },
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-04/schema#"
+}

@@ -757,6 +757,11 @@ class TestDataClient(TstFunction):
             provider_id=provider_id,
             jurisdiction='ne',
             license_type_abbr='aud',
+            deactivation_details={
+                'note': 'test deactivation note',
+                'deactivatedByStaffUserId': 'a4182428-d061-701c-82e5-a3d1d547d797',
+                'deactivatedByStaffUserName': 'John Doe',
+            },
         )
 
         # Verify that the privilege record was updated
@@ -798,6 +803,11 @@ class TestDataClient(TstFunction):
                     'jurisdiction': 'ne',
                     'licenseType': 'audiologist',
                     'dateOfUpdate': '2024-11-08T23:59:59+00:00',
+                    'deactivationDetails': {
+                        'note': 'test deactivation note',
+                        'deactivatedByStaffUserId': 'a4182428-d061-701c-82e5-a3d1d547d797',
+                        'deactivatedByStaffUserName': 'John Doe',
+                    },
                     'previous': {
                         'dateOfIssuance': '2023-11-08T23:59:59+00:00',
                         'dateOfRenewal': '2023-11-08T23:59:59+00:00',
@@ -838,6 +848,11 @@ class TestDataClient(TstFunction):
                 provider_id='some-provider-id',
                 jurisdiction='ne',
                 license_type_abbr='aud',
+                deactivation_details={
+                    'note': 'test deactivation note',
+                    'deactivatedByStaffUserId': 'a4182428-d061-701c-82e5-a3d1d547d797',
+                    'deactivatedByStaffUserName': 'John Doe',
+                },
             )
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
@@ -911,6 +926,11 @@ class TestDataClient(TstFunction):
                 provider_id=provider_id,
                 jurisdiction='ne',
                 license_type_abbr='aud',
+                deactivation_details={
+                    'note': 'test deactivation note',
+                    'deactivatedByStaffUserId': 'a4182428-d061-701c-82e5-a3d1d547d797',
+                    'deactivatedByStaffUserName': 'John Doe',
+                },
             )
         self.assertEqual('Privilege already deactivated', context.exception.message)
 
