@@ -267,6 +267,19 @@ export class UserDataApi implements DataApiInterface {
     }
 
     /**
+     * GET Compact State List (Public).
+     * @return {Promise<Array<State>>} A list of State instances.
+     */
+    public async getCompactStatesPublic(compact: string) {
+        const serverResponse: any = await this.api.get(`/v1/public/compacts/${compact}/jurisdictions`);
+        const response = serverResponse.map((serverItem) => StateSerializer.fromServer({
+            abbrev: serverItem.postalAbbreviation,
+        }));
+
+        return response;
+    }
+
+    /**
      * GET Privilege Purchase Information for Authenticated Licensee user.
      * @return {Promise<object>} List of privilege purchase options and compact purchase info.
      */

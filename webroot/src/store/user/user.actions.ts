@@ -115,9 +115,12 @@ export default {
         commit(MutationTypes.GET_ACCOUNT_FAILURE, error);
     },
     // GET COMPACT STATES FOR USER
-    getCompactStatesRequest: async ({ commit, dispatch }, { compact }) => {
+    getCompactStatesRequest: async ({ commit, dispatch, state }, { compact }) => {
         commit(MutationTypes.GET_COMPACT_STATES_REQUEST);
-        return dataApi.getCompactStates(compact).then((states) => {
+
+        const apiRequest = (state.isLoggedInAsStaff) ? dataApi.getCompactStates : dataApi.getCompactStatesPublic;
+
+        return apiRequest(compact).then((states) => {
             dispatch('getCompactStatesSuccess', states);
 
             return states;

@@ -781,11 +781,24 @@ describe('User Store Actions', async () => {
             [MutationTypes.UPLOAD_MILITARY_AFFILIATION_FAILURE, error]
         );
     });
-    it('should successfully start compact states request', async () => {
+    it('should successfully start compact states request (logged in as staff)', async () => {
         const commit = sinon.spy();
         const dispatch = sinon.spy();
+        const state = { isLoggedInAsStaff: true };
 
-        await actions.getCompactStatesRequest({ commit, dispatch }, CompactType.ASLP);
+        await actions.getCompactStatesRequest({ commit, dispatch, state }, CompactType.ASLP);
+
+        expect(commit.calledOnce, 'commit').to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_COMPACT_STATES_REQUEST]);
+        expect(dispatch.calledOnce, 'dispatch').to.equal(true);
+        expect([dispatch.firstCall.args[0]]).to.matchPattern(['getCompactStatesSuccess']);
+    });
+    it('should successfully start compact states request (not logged in as staff)', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const state = { isLoggedInAsStaff: false };
+
+        await actions.getCompactStatesRequest({ commit, dispatch, state }, CompactType.ASLP);
 
         expect(commit.calledOnce, 'commit').to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_COMPACT_STATES_REQUEST]);

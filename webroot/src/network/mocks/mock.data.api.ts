@@ -233,6 +233,13 @@ export class DataApi {
         })));
     }
 
+    // Get Compact States (Public)
+    public getCompactStatesPublic() {
+        return wait(500).then(() => compactStates.map((serverItem) => StateSerializer.fromServer({
+            abbrev: serverItem.postalAbbreviation,
+        })));
+    }
+
     // ========================================================================
     //                              LICENSEE USER API
     // ========================================================================

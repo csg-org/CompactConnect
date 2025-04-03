@@ -136,9 +136,6 @@ class CompactSelector extends mixins(MixinForm) {
     async handleCompactSelect(): Promise<void> {
         const selectedCompactType = this.formData.compact.value;
 
-        // Set the new compact type on the store
-        await this.$store.dispatch('user/setCurrentCompact', CompactSerializer.fromServer({ type: selectedCompactType }));
-
         // If the current route is not matching the newly selected compact, then redirect
         if (this.routeCompactType && this.routeCompactType !== selectedCompactType) {
             await this.$router.push({
@@ -146,6 +143,9 @@ class CompactSelector extends mixins(MixinForm) {
                 params: { compact: selectedCompactType }
             });
             await this.$router.go(0); // This is the easiest way to force vue-router to reload components, which suits this compact-switch case
+        } else {
+            // Refresh the compact type on the store
+            await this.$store.dispatch('user/setCurrentCompact', CompactSerializer.fromServer({ type: selectedCompactType }));
         }
     }
 
