@@ -11,21 +11,21 @@
         :class="{
             'inactive': isDeactivating,
             'active': isActivating,
-            'start': isStart,
-            'end': isEnd,
+            'start-of-block': isStartOfVisualBlock,
+            'end-of-block': isEndOfVisualBlock,
         }"
     >
         <div
             :class="{
                 'inactive': isDeactivating,
                 'active': isActivating,
-                'start': isStart,
-                'end': isEnd,
-                'last': isLast
+                'start-of-block': isStartOfVisualBlock,
+                'end-of-block': isEndOfVisualBlock,
+                'last-event': isLastEvent
             }"
             class="status-time-block-color"
         >
-            <span v-if="isStart">{{status}}</span>
+            <span v-if="isStartOfVisualBlock">{{status}}</span>
         </div>
     </div>
 </template>

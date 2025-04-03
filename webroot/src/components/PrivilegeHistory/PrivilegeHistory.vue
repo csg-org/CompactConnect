@@ -10,10 +10,10 @@
         <div v-for="(richEvent, idx) in preppedEvents" :key="idx" class="events">
             <StatusTimeBlock
                 class="status-time-block"
-                :isStart="richEvent.isStart"
-                :isEnd="richEvent.isEnd"
+                :isStartOfVisualBlock="richEvent.isStartOfVisualBlock"
+                :isEndOfVisualBlock="richEvent.isEndOfVisualBlock"
                 :event="richEvent.event"
-                :isLast="idx === preppedEvents.length - 1"
+                :isLastEvent="richEvent.isLastEvent"
             />
             <PrivilegeEventNode
                 :event="richEvent.event"
@@ -37,7 +37,7 @@
                     </div>
                     <div class="exp-date">{{privilege.expireDateDisplay()}}</div>
                     <div class="exp-title">{{$t('licensing.expiration')}}</div>
-                    <div v-if="isExpirationUpcoming" class="exp-text">{{expText}}</div>
+                    <div v-if="isExpirationUpcoming" class="exp-text">{{expirationText}}</div>
                 </div>
             </div>
         </div>

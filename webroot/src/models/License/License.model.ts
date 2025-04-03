@@ -103,13 +103,12 @@ export class License implements InterfaceLicense {
     public isExpired(): boolean {
         const now = moment().format(serverDateFormat);
         const { expireDate } = this;
-        const diff = dateDiff(now, expireDate, 'days') || 0;
 
-        return Boolean(diff > 0);
+        return this.didHistorySegmentExpireBeforeDate({ date: now, dateOfExpiration: expireDate });
     }
 
-    public didExpire({ renewalDate, dateOfExpiration }): boolean {
-        const dateOfRenewal = moment().format(renewalDate);
+    public didHistorySegmentExpireBeforeDate({ date, dateOfExpiration }): boolean {
+        const dateOfRenewal = moment().format(date);
         const diff = dateDiff(dateOfRenewal, dateOfExpiration, 'days') || 0;
 
         return Boolean(diff > 0);
@@ -144,7 +143,8 @@ export class License implements InterfaceLicense {
 
                 if (updateType === 'renewal'
                     && (previousValues as any)?.dateOfExpiration
-                    && dateOfUpdate && (this.didExpire({ renewalDate: dateOfUpdate, dateOfExpiration }))) {
+                    && dateOfUpdate
+                    && (this.didHistorySegmentExpireBeforeDate({ date: dateOfUpdate, dateOfExpiration }))) {
                     historyWithFabricatedEvents.push(new LicenseHistoryItem({
                         type: 'fabricatedEvent ',
                         updateType: 'expired',

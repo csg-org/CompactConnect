@@ -7,13 +7,9 @@
 .status-time-block-container {
     width: 120px;
 
-    &.start {
+    &.start-of-block {
         padding-top: 4px;
     }
-
-    // &.end {
-    //     padding-bottom: 2px;
-    // }
 
     &.inactive {
         border-right: 2px solid @midRed;
@@ -26,7 +22,7 @@
     .status-time-block-color {
         height: 100%;
 
-        &.start {
+        &.start-of-block {
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -34,12 +30,12 @@
             border-top-left-radius: 6px;
         }
 
-        &.end {
+        &.end-of-block {
             justify-content: center;
             border-bottom-left-radius: 6px;
         }
 
-        &.last {
+        &.last-event {
             justify-content: center;
         }
 

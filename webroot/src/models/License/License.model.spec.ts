@@ -182,7 +182,7 @@ describe('License model', () => {
             moment(data.dateOfExpiration, serverDateFormat).format(displayDateFormat)
         );
         expect(license.isExpired()).to.equal(true);
-        expect(license.didExpire({ renewalDate: '2023-08-29', dateOfExpiration: '2023-08-28' })).to.equal(true);
+        expect(license.didHistorySegmentExpireBeforeDate({ renewalDate: '2023-08-29', dateOfExpiration: '2023-08-28' })).to.equal(true);
         expect(license.licenseTypeAbbreviation()).to.equal('AUD');
     });
     it('should create a privilege with specific values through serializer', () => {
@@ -513,7 +513,7 @@ describe('License model', () => {
             moment(data.dateOfExpiration, serverDateFormat).format(displayDateFormat)
         );
         expect(license.isExpired()).to.equal(true);
-        expect(license.didExpire({ renewalDate: '2023-08-29', dateOfExpiration: '2023-08-28' })).to.equal(true);
+        expect(license.didHistorySegmentExpireBeforeDate({ renewalDate: '2023-08-29', dateOfExpiration: '2023-08-28' })).to.equal(true);
         expect(license.licenseTypeAbbreviation()).to.equal('OTA');
         expect(license.historyWithFabricatedEvents().length).to.equal(6);
         expect(license.historyWithFabricatedEvents()[0].updateType).to.equal('purchased');

@@ -18,9 +18,10 @@ import { LicenseHistoryItem } from '@models/LicenseHistoryItem/LicenseHistoryIte
 import moment from 'moment';
 
 export interface RichEvent {
-    event: LicenseHistoryItem
-    isEnd: boolean
-    isStart: boolean
+    event: LicenseHistoryItem,
+    isStartOfVisualBlock: boolean,
+    isEndOfVisualBlock: boolean,
+    isLastEvent: boolean,
     eventLengthBucket: string
 }
 
@@ -85,9 +86,10 @@ class PrivilegeHistory extends Vue {
 
             preppedEvents.push({
                 event,
-                isEnd,
-                isStart,
-                eventLengthBucket
+                isStartOfVisualBlock: isStart,
+                isEndOfVisualBlock: isEnd,
+                isLastEvent,
+                eventLengthBucket,
             });
         });
 
@@ -106,7 +108,7 @@ class PrivilegeHistory extends Vue {
         return this.privilege?.status === LicenseStatus.ACTIVE;
     }
 
-    get expText(): string {
+    get expirationText(): string {
         return `${this.$t('licensing.expiringIn')} ${this.daysUntilExpiration} ${this.$t('common.days')}`;
     }
 }

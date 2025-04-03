@@ -435,4 +435,46 @@ describe('License Store Getters', async () => {
 
         expect(privilege.id).to.equal('12');
     });
+    it('should successfully not get privilege by LicenseeId And PrivilegeId (no licensee)', async () => {
+        const licensee1 = {
+            id: '1',
+            privileges: [
+                new License({ id: '1' }),
+                new License({ id: '2' }),
+            ]
+        };
+
+        const licensee2 = {
+            id: '2',
+            privileges: [
+                new License({ id: '12' }),
+                new License({ id: '22' }),
+            ]
+        };
+        const state = { model: [ licensee1, licensee2 ] };
+        const privilege = getters.getPrivilegeByLicenseeIdAndId(state)({ licenseeId: '3', privilegeId: '12' });
+
+        expect(privilege).to.equal(null);
+    });
+    it('should successfully not get privilege by LicenseeId And PrivilegeId (no privilege)', async () => {
+        const licensee1 = {
+            id: '1',
+            privileges: [
+                new License({ id: '1' }),
+                new License({ id: '2' }),
+            ]
+        };
+
+        const licensee2 = {
+            id: '2',
+            privileges: [
+                new License({ id: '12' }),
+                new License({ id: '22' }),
+            ]
+        };
+        const state = { model: [ licensee1, licensee2 ] };
+        const privilege = getters.getPrivilegeByLicenseeIdAndId(state)({ licenseeId: '2', privilegeId: '123' });
+
+        expect(privilege).to.equal(null);
+    });
 });
