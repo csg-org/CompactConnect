@@ -1,5 +1,5 @@
 //
-//  EventNode.ts
+//  PrivilegeEventNode.ts
 //  CompactConnect
 //
 //  Created by InspiringApps on 3/21/2025.
@@ -14,11 +14,11 @@ import {
 import { LicenseHistoryItem } from '@models/LicenseHistoryItem/LicenseHistoryItem.model';
 
 @Component({
-    name: 'EventNode'
+    name: 'PrivilegeEventNode'
 })
-class EventNode extends Vue {
+class PrivilegeEventNode extends Vue {
     // PROPS
-    @Prop({ required: true }) event?: LicenseHistoryItem;
+    @Prop({ required: true }) event!: LicenseHistoryItem;
     @Prop({ default: 'short' }) eventLengthBucket?: string;
 
     //
@@ -41,6 +41,6 @@ class EventNode extends Vue {
     }
 }
 
-export default toNative(EventNode);
+export default toNative(PrivilegeEventNode);
 
-// export default EventNode;
+// export default PrivilegeEventNode;

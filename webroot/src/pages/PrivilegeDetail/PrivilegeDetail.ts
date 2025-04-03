@@ -74,6 +74,10 @@ export default class PrivilegeDetail extends Vue {
         return (this.$route.params.licenseeId as string || '');
     }
 
+    get isLoading(): boolean {
+        return this.licenseStore?.isLoading || false;
+    }
+
     get compact(): string {
         const defaultCompactType = this.$store.state.user.currentCompact?.type;
 

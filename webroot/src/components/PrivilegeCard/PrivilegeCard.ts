@@ -198,25 +198,18 @@ class PrivilegeCard extends mixins(MixinForm) {
     }
 
     goToPrivilegeDetailsPage(): void {
-        if (this.isPublicSearch) {
-            this.$router.push({
-                name: 'PrivilegeDetailPublic',
+        const routeName = this.isPublicSearch ? 'PrivilegeDetailPublic' : 'PrivilegeDetail';
+
+        this.$router.push(
+            {
+                name: routeName,
                 params: {
                     compact: this.currentCompactType,
                     privilegeId: this.privilege.id,
                     licenseeId: this.licenseeId
                 }
-            });
-        } else {
-            this.$router.push({
-                name: 'PrivilegeDetail',
-                params: {
-                    compact: this.currentCompactType,
-                    privilegeId: this.privilege.id,
-                    licenseeId: this.licenseeId
-                }
-            });
-        }
+            }
+        );
     }
 
     closePrivilegeActionMenu(): void {

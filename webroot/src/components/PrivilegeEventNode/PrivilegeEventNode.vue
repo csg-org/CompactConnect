@@ -1,5 +1,5 @@
 <!--
-    EventNode.vue
+    PrivilegeEventNode.vue
     CompactConnect
 
     Created by InspiringApps on 3/21/2025.
@@ -28,5 +28,5 @@
     </div>
 </template>
 
-<script lang="ts" src="./EventNode.ts"></script>
-<style scoped lang="less" src="./EventNode.less"></style>
+<script lang="ts" src="./PrivilegeEventNode.ts"></script>
+<style scoped lang="less" src="./PrivilegeEventNode.less"></style>

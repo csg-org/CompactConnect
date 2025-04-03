@@ -15,7 +15,7 @@
                 :event="richEvent.event"
                 :isLast="idx === preppedEvents.length - 1"
             />
-            <EventNode
+            <PrivilegeEventNode
                 :event="richEvent.event"
                 :eventLengthBucket="richEvent.eventLengthBucket"
                 class="event-node"

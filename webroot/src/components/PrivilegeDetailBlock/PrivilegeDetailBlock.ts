@@ -22,19 +22,13 @@ import { License, LicenseStatus } from '@models/License/License.model';
 })
 class PrivilegeDetailBlock extends Vue {
     // PROPS
-    @Prop({ required: true }) privilege?: License;
+    @Prop({ required: true }) privilege!: License;
 
     //
     // Computed
     //
     get status(): string {
-        let licenseStatus = this.$t('licensing.statusOptions.inactive');
-
-        if (this.isActive) {
-            licenseStatus = this.$t('licensing.statusOptions.active');
-        }
-
-        return licenseStatus;
+        return this.isActive ? this.$t('licensing.statusOptions.active') : this.$t('licensing.statusOptions.inactive');
     }
 
     get statusDisplay(): string {
@@ -42,7 +36,7 @@ class PrivilegeDetailBlock extends Vue {
     }
 
     get isActive(): boolean {
-        return Boolean(this.privilege && this.privilege.status === LicenseStatus.ACTIVE);
+        return Boolean(this.privilege?.status === LicenseStatus.ACTIVE);
     }
 
     get issuedTitle(): string {

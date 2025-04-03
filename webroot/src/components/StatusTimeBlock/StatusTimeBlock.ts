@@ -18,10 +18,10 @@ import { LicenseHistoryItem } from '@models/LicenseHistoryItem/LicenseHistoryIte
 })
 class StatusTimeBlock extends Vue {
     // PROPS
-    @Prop({ required: true }) isStart?: boolean;
-    @Prop({ required: true }) isEnd?: boolean;
-    @Prop({ required: true }) isLast?: boolean;
-    @Prop({ required: true }) event?: LicenseHistoryItem;
+    @Prop({ required: true }) isStart!: boolean;
+    @Prop({ required: true }) isEnd!: boolean;
+    @Prop({ required: true }) isLast!: boolean;
+    @Prop({ required: true }) event!: LicenseHistoryItem;
 
     //
     // Computed
