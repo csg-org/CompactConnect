@@ -5,7 +5,6 @@ from moto import mock_aws
 
 from . import TstFunction
 
-
 STAFF_USERS_COMPACT_JURISDICTION_ENDPOINT_RESOURCE = '/v1/compacts/{compact}/jurisdictions'
 PUBLIC_COMPACT_JURISDICTION_ENDPOINT_RESOURCE = '/v1/public/compacts/{compact}/jurisdictions'
 
@@ -36,7 +35,6 @@ def load_test_jurisdiction(compact_configuration_table, jurisdiction_overrides: 
 @mock_aws
 class TestGetStaffUsersCompactJurisdictions(TstFunction):
     """Test suite for get compact jurisdiction endpoints."""
-
 
     def test_get_compact_jurisdictions_returns_invalid_exception_if_invalid_http_method(self):
         """Test getting an empty list if no jurisdictions configured."""
@@ -108,10 +106,10 @@ class TestGetStaffUsersCompactJurisdictions(TstFunction):
             response_body,
         )
 
+
 @mock_aws
 class TestGetPublicCompactJurisdictions(TstFunction):
     """Test suite for get compact jurisdiction endpoints."""
-
 
     def test_get_compact_jurisdictions_returns_invalid_exception_if_invalid_http_methog(self):
         """Test getting an empty list if no jurisdictions configured."""

@@ -99,9 +99,7 @@ class CompactConfigurationApi:
             authorization_scopes=general_read_method_options.authorization_scopes,
         )
 
-    def _add_public_get_compact_jurisdictions_endpoint(
-        self, compact_configuration_api_handler: PythonFunction
-    ):
+    def _add_public_get_compact_jurisdictions_endpoint(self, compact_configuration_api_handler: PythonFunction):
         public_get_compact_jurisdictions_method = self.public_jurisdictions_resource.add_method(
             'GET',
             LambdaIntegration(compact_configuration_api_handler),
@@ -110,7 +108,7 @@ class CompactConfigurationApi:
                     status_code='200',
                     response_models={'application/json': self.api_model.get_compact_jurisdictions_response_model},
                 ),
-            ]
+            ],
         )
 
         # Add suppressions for the public GET endpoint
@@ -124,7 +122,7 @@ class CompactConfigurationApi:
                 {
                     'id': 'AwsSolutions-COG4',
                     'reason': 'This is a public endpoint that intentionally '
-                              'does not use a Cognito user pool authorizer',
+                    'does not use a Cognito user pool authorizer',
                 },
             ],
         )

@@ -147,8 +147,9 @@ class V1Api:
         # GET  /v1/compacts/{compact}/jurisdictions
         self.jurisdictions_resource = self.compact_resource.add_resource('jurisdictions')
         # GET  /v1/public/compacts/{compact}/jurisdictions
-        self.public_compacts_compact_jurisdictions_resource = (self.public_compacts_compact_resource
-                                                               .add_resource('jurisdictions'))
+        self.public_compacts_compact_jurisdictions_resource = self.public_compacts_compact_resource.add_resource(
+            'jurisdictions'
+        )
 
         self.compact_configuration_api = CompactConfigurationApi(
             api=self.api,

@@ -1,7 +1,9 @@
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
-from cc_common.data_model.schema.jurisdiction.api import (CompactJurisdictionsStaffUsersResponseSchema,
-                                                          CompactJurisdictionsPublicResponseSchema)
+from cc_common.data_model.schema.jurisdiction.api import (
+    CompactJurisdictionsPublicResponseSchema,
+    CompactJurisdictionsStaffUsersResponseSchema,
+)
 from cc_common.exceptions import CCInvalidRequestException
 from cc_common.utils import api_handler
 
@@ -31,10 +33,7 @@ def _get_staff_users_compact_jurisdictions(event: dict, context: LambdaContext):
     """
     compact = event['pathParameters']['compact']
 
-    logger.info(
-        'Getting active jurisdictions for compact',
-        compact=compact
-    )
+    logger.info('Getting active jurisdictions for compact', compact=compact)
 
     compact_jurisdictions = config.compact_configuration_client.get_compact_jurisdictions(compact=compact)
 
@@ -54,10 +53,7 @@ def _get_public_compact_jurisdictions(event: dict, context: LambdaContext):  # n
     """
     compact = event['pathParameters']['compact']
 
-    logger.info(
-        'Getting active jurisdictions for compact',
-        compact=compact
-    )
+    logger.info('Getting active jurisdictions for compact', compact=compact)
 
     compact_jurisdictions = config.compact_configuration_client.get_compact_jurisdictions(compact=compact)
 

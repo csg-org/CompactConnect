@@ -86,7 +86,6 @@ class TestCompactConfigurationApi(TestApi):
             overwrite_snapshot=False,
         )
 
-
     def test_synth_generates_get_public_compact_jurisdictions_resource(self):
         api_stack = self.app.sandbox_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
@@ -98,7 +97,8 @@ class TestCompactConfigurationApi(TestApi):
                 'ParentId': {
                     # Verify the parent id matches the expected '{compact}' resource
                     'Ref': api_stack.get_logical_id(
-                        api_stack.api.v1_api.public_compacts_compact_resource.node.default_child),
+                        api_stack.api.v1_api.public_compacts_compact_resource.node.default_child
+                    ),
                 },
                 'PathPart': 'jurisdictions',
             },
