@@ -33,6 +33,22 @@ def load_test_jurisdiction(compact_configuration_table, jurisdiction_overrides: 
 class TestGetCompactJurisdictions(TstFunction):
     """Test suite for get compact jurisdiction endpoints."""
 
+
+    def test_get_compact_jurisdictions_returns_invalid_exception_if_invalid_http_methog(self):
+        """Test getting an empty list if no jurisdictions configured."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        event = generate_test_event('PATCH', '/v1/compacts/{compact}/jurisdictions')
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'], msg=json.loads(response['body']))
+        response_body = json.loads(response['body'])
+
+        self.assertEqual(
+            {'message': 'Invalid HTTP method'},
+            response_body,
+        )
+
     def test_get_compact_jurisdictions_returns_empty_list_if_no_active_jurisdictions(self):
         """Test getting an empty list if no jurisdictions configured."""
         from handlers.compact_configuration import compact_configuration_api_handler
