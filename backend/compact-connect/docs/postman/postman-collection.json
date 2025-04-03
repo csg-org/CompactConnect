@@ -2910,6 +2910,101 @@
                                             "description": "",
                                             "item": [
                                                 {
+                                                    "event": [],
+                                                    "id": "992be493-86f5-4ba8-963d-fd9808fd3439",
+                                                    "name": "/v1/public/compacts/:compact/jurisdictions",
+                                                    "protocolProfileBehavior": {
+                                                        "disableBodyPruning": true
+                                                    },
+                                                    "request": {
+                                                        "auth": {
+                                                            "type": "noauth"
+                                                        },
+                                                        "body": {},
+                                                        "description": {},
+                                                        "header": [
+                                                            {
+                                                                "key": "Accept",
+                                                                "value": "application/json"
+                                                            }
+                                                        ],
+                                                        "method": "GET",
+                                                        "name": "/v1/public/compacts/:compact/jurisdictions",
+                                                        "url": {
+                                                            "host": [
+                                                                "{{baseUrl}}"
+                                                            ],
+                                                            "path": [
+                                                                "v1",
+                                                                "public",
+                                                                "compacts",
+                                                                ":compact",
+                                                                "jurisdictions"
+                                                            ],
+                                                            "query": [],
+                                                            "variable": [
+                                                                {
+                                                                    "description": {
+                                                                        "content": "(Required) ",
+                                                                        "type": "text/plain"
+                                                                    },
+                                                                    "disabled": false,
+                                                                    "key": "compact",
+                                                                    "type": "any",
+                                                                    "value": "<string>"
+                                                                }
+                                                            ]
+                                                        }
+                                                    },
+                                                    "response": [
+                                                        {
+                                                            "_postman_previewlanguage": "json",
+                                                            "body": "[\n  {\n    \"compact\": \"<string>\",\n    \"jurisdictionName\": \"<string>\",\n    \"postalAbbreviation\": \"<string>\"\n  },\n  {\n    \"compact\": \"<string>\",\n    \"jurisdictionName\": \"<string>\",\n    \"postalAbbreviation\": \"<string>\"\n  }\n]",
+                                                            "code": 200,
+                                                            "cookie": [],
+                                                            "header": [
+                                                                {
+                                                                    "key": "Content-Type",
+                                                                    "value": "application/json"
+                                                                }
+                                                            ],
+                                                            "id": "512ed85f-28d9-4ebd-b9ff-0d7245800b18",
+                                                            "name": "200 response",
+                                                            "originalRequest": {
+                                                                "body": {},
+                                                                "header": [
+                                                                    {
+                                                                        "key": "Accept",
+                                                                        "value": "application/json"
+                                                                    }
+                                                                ],
+                                                                "method": "GET",
+                                                                "url": {
+                                                                    "host": [
+                                                                        "{{baseUrl}}"
+                                                                    ],
+                                                                    "path": [
+                                                                        "v1",
+                                                                        "public",
+                                                                        "compacts",
+                                                                        ":compact",
+                                                                        "jurisdictions"
+                                                                    ],
+                                                                    "query": [],
+                                                                    "variable": []
+                                                                }
+                                                            },
+                                                            "status": "OK"
+                                                        }
+                                                    ]
+                                                }
+                                            ],
+                                            "name": "jurisdictions"
+                                        },
+                                        {
+                                            "description": "",
+                                            "item": [
+                                                {
                                                     "description": "",
                                                     "item": [
                                                         {

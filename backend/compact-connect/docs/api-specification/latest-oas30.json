@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "LicenseApi",
-    "version": "2025-04-02T15:32:12Z"
+    "version": "2025-04-03T20:16:10Z"
   },
   "servers": [
     {
@@ -1040,6 +1040,32 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SandboLicen1TX0AS3AnO3B"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/public/compacts/{compact}/jurisdictions": {
+      "get": {
+        "parameters": [
+          {
+            "name": "compact",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SandboLicenH0aeRutKFnvv"
                 }
               }
             }
