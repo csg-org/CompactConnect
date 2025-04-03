@@ -27,6 +27,7 @@ class CompactConfigurationApi:
         *,
         api: cc_api.CCApi,
         jurisdictions_resource: Resource,
+        public_jurisdictions_resource: Resource,
         general_read_method_options: MethodOptions,
         persistent_stack: ps.PersistentStack,
         api_model: ApiModel,
@@ -34,7 +35,8 @@ class CompactConfigurationApi:
         super().__init__()
 
         self.api = api
-        self.jurisdictions_resource = jurisdictions_resource
+        self.staff_users_jurisdictions_resource = jurisdictions_resource
+        self.public_jurisdictions_resource = public_jurisdictions_resource
         self.api_model = api_model
 
         stack: Stack = Stack.of(jurisdictions_resource)
@@ -70,15 +72,19 @@ class CompactConfigurationApi:
             ],
         )
 
-        self._add_get_compact_jurisdictions_endpoint(
+        self._add_staff_users_get_compact_jurisdictions_endpoint(
             compact_configuration_api_handler=self.compact_configuration_api_function,
             general_read_method_options=general_read_method_options,
         )
 
-    def _add_get_compact_jurisdictions_endpoint(
+        self._add_public_get_compact_jurisdictions_endpoint(
+            compact_configuration_api_handler=self.compact_configuration_api_function,
+        )
+
+    def _add_staff_users_get_compact_jurisdictions_endpoint(
         self, compact_configuration_api_handler: PythonFunction, general_read_method_options: MethodOptions
     ):
-        self.jurisdictions_resource.add_method(
+        self.staff_users_jurisdictions_resource.add_method(
             'GET',
             LambdaIntegration(compact_configuration_api_handler),
             method_responses=[
@@ -91,4 +97,34 @@ class CompactConfigurationApi:
             authorization_type=general_read_method_options.authorization_type,
             authorizer=general_read_method_options.authorizer,
             authorization_scopes=general_read_method_options.authorization_scopes,
+        )
+
+    def _add_public_get_compact_jurisdictions_endpoint(
+        self, compact_configuration_api_handler: PythonFunction
+    ):
+        public_get_compact_jurisdictions_method = self.public_jurisdictions_resource.add_method(
+            'GET',
+            LambdaIntegration(compact_configuration_api_handler),
+            method_responses=[
+                MethodResponse(
+                    status_code='200',
+                    response_models={'application/json': self.api_model.get_compact_jurisdictions_response_model},
+                ),
+            ]
+        )
+
+        # Add suppressions for the public GET endpoint
+        NagSuppressions.add_resource_suppressions(
+            public_get_compact_jurisdictions_method,
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-APIG4',
+                    'reason': 'This is a public endpoint that intentionally does not require authorization',
+                },
+                {
+                    'id': 'AwsSolutions-COG4',
+                    'reason': 'This is a public endpoint that intentionally '
+                              'does not use a Cognito user pool authorizer',
+                },
+            ],
         )
