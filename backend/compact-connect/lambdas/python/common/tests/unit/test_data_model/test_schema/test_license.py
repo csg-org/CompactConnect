@@ -50,10 +50,12 @@ class TestLicenseRecordSchema(TstLambdas):
         loaded_license = schema.load(expected_license.copy())
         # assert calculated status fields are added
         self.assertIn('licenseStatus', loaded_license)
+        self.assertIn('status', loaded_license)
         self.assertIn('compactEligibility', loaded_license)
 
         license_data = schema.dump(loaded_license)
         # assert that the calculated status fields were stripped from the data on dump
+        self.assertNotIn('status', license_data)
         self.assertNotIn('licenseStatus', license_data)
         self.assertNotIn('compactEligibility', license_data)
 
@@ -171,7 +173,6 @@ class TestLicenseUpdateRecordSchema(TstLambdas):
 
         # Round-trip SERDE with a fixed timestamp demonstrates that our sk generation is deterministic for the same
         # input values, which is an important property for this schema.
-        self.maxDiff = None
         self.assertEqual(record, dumped_record)
 
     def test_hash_is_deterministic(self):

@@ -63,8 +63,6 @@ class ProviderRecordSchema(CalculatedStatusRecordSchema):
     privilegeJurisdictions = Set(String, required=False, allow_none=False, load_default=set())
     providerFamGivMid = String(required=False, allow_none=False, validate=Length(2, 400))
     providerDateOfUpdate = DateTime(required=True, allow_none=False)
-    licenseStatus = ActiveInactive(required=True, allow_none=False)
-    compactEligibility = CompactEligibility(required=True, allow_none=False)
 
     @pre_load
     def pre_load_initialization(self, in_data, **kwargs):  # noqa: ARG001 unused-argument

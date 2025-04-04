@@ -92,7 +92,6 @@ class TestPrivilegeUpdateRecordSchema(TstLambdas):
         del expected_privilege_update['dateOfUpdate']
         del privilege_data['dateOfUpdate']
 
-        self.maxDiff = None
         self.assertEqual(expected_privilege_update, privilege_data)
 
     def test_invalid(self):
