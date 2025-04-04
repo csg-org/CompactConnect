@@ -1,5 +1,5 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
-from datetime import date, datetime
+from datetime import date
 
 from marshmallow import Schema, ValidationError, post_dump, post_load, pre_dump, pre_load, validates_schema
 from marshmallow.fields import UUID, Date, DateTime, List, Nested, String
@@ -115,8 +115,7 @@ class PrivilegeRecordSchema(BaseRecordSchema, ValidatesLicenseTypeMixin):
             'active'
             if (
                 in_data.get('persistedStatus', 'active') == 'active'
-                and date.fromisoformat(in_data['dateOfExpiration'])
-                > datetime.now(tz=config.expiration_date_resolution_timezone).date()
+                and date.fromisoformat(in_data['dateOfExpiration']) > config.current_standard_datetime.date()
             )
             else 'inactive'
         )
