@@ -1,4 +1,6 @@
 import json
+from datetime import datetime
+from unittest.mock import patch
 from urllib.parse import quote
 
 from moto import mock_aws
@@ -7,6 +9,7 @@ from .. import TstFunction
 
 
 @mock_aws
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
 class TestPublicQueryProviders(TstFunction):
     def test_public_query_by_provider_id_returns_public_allowed_fields(self):
         self._load_provider_data()
@@ -310,6 +313,7 @@ class TestPublicQueryProviders(TstFunction):
 
 
 @mock_aws
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
 class TestPublicGetProvider(TstFunction):
     @staticmethod
     def _get_sensitive_hash():

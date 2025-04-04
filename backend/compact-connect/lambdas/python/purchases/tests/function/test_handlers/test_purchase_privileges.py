@@ -74,6 +74,7 @@ def _generate_test_request_body(
 
 
 @mock_aws
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
 class TestPostPurchasePrivileges(TstFunction):
     """
     In this test setup, we simulate having a licensee that has a license in ohio and is
@@ -387,7 +388,6 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertEqual({'audiologist', 'speech-language pathologist'}, privilege_records_license_types)
 
     @patch('handlers.privileges.PurchaseClient')
-    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-10-05T23:59:59+00:00'))
     def test_purchase_privileges_allows_existing_privilege_purchase_if_license_expiration_matches_but_is_inactive(
         self, mock_purchase_client_constructor
     ):
@@ -432,7 +432,6 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertEqual('active', privilege_records[0]['administratorSetStatus'])
 
     @patch('handlers.privileges.PurchaseClient')
-    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-10-05T23:59:59+00:00'))
     def test_purchase_privileges_allows_existing_privilege_purchase_if_license_expiration_does_not_match(
         self, mock_purchase_client_constructor
     ):
@@ -481,7 +480,7 @@ class TestPostPurchasePrivileges(TstFunction):
 
         # ensure the date of renewal is updated
         updated_privilege_record = next(
-            record for record in privilege_records if record['dateOfRenewal'].isoformat() == '2024-10-05T23:59:59+00:00'
+            record for record in privilege_records if record['dateOfRenewal'].isoformat() == '2024-11-08T23:59:59+00:00'
         )
         # ensure the expiration is updated
         self.assertEqual(updated_expiration_date, updated_privilege_record['dateOfExpiration'].isoformat())
@@ -541,7 +540,6 @@ class TestPostPurchasePrivileges(TstFunction):
         )
 
     @patch('handlers.privileges.PurchaseClient')
-    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
     def test_post_purchase_privileges_adds_privilege_record_if_transaction_successful(
         self, mock_purchase_client_constructor
     ):
@@ -657,7 +655,6 @@ class TestPostPurchasePrivileges(TstFunction):
         )
 
     @patch('handlers.privileges.PurchaseClient')
-    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
     def test_post_purchase_privileges_stores_attestations_in_privilege_record(self, mock_purchase_client_constructor):
         """Test that attestations are stored in the privilege record."""
         from handlers.privileges import post_purchase_privileges
@@ -677,7 +674,6 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertEqual(generate_default_attestation_list(), privilege_record['attestations'])
 
     @patch('handlers.privileges.PurchaseClient')
-    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
     def test_post_purchase_privileges_stores_license_type_in_privilege_record(self, mock_purchase_client_constructor):
         """Test that license type is stored in the privilege record."""
         from handlers.privileges import post_purchase_privileges

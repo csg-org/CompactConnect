@@ -32,6 +32,7 @@ DEACTIVATION_HISTORY = {
 
 
 @mock_aws
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
 class TestDeactivatePrivilege(TstFunction):
     def _assert_the_privilege_was_deactivated(self):
         from handlers.providers import get_provider
@@ -82,7 +83,6 @@ class TestDeactivatePrivilege(TstFunction):
 
         return deactivate_privilege(event, self.mock_context)
 
-    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
     @patch('cc_common.config._Config.email_service_client')
     @patch('handlers.privileges.EventBatchWriter', autospec=True)
     def test_compact_admin_can_deactivate_privilege(self, mock_event_writer, mock_email_service_client):  # noqa: ARG002 unused-argument
@@ -118,7 +118,6 @@ class TestDeactivatePrivilege(TstFunction):
             },
         )
 
-    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
     @patch('cc_common.config._Config.email_service_client')
     def test_board_admin_cannot_deactivate_privilege(self, mock_email_service_client):  # noqa: ARG002 unused-argument
         """
@@ -131,7 +130,6 @@ class TestDeactivatePrivilege(TstFunction):
         self.assertEqual(403, resp['statusCode'])
         self.assertEqual({'message': 'Access denied'}, json.loads(resp['body']))
 
-    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
     @patch('cc_common.config._Config.email_service_client')
     def test_deactivate_privilege_handler_sends_expected_email_notifications(self, mock_email_service_client):
         """
@@ -157,7 +155,6 @@ class TestDeactivatePrivilege(TstFunction):
             provider_last_name='Guðmundsdóttir',
         )
 
-    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
     def test_invalid_request_exception_raised_if_privilege_already_deactivated(self):
         """
         If a board admin does not have admin permission in the privilege jurisdiction, they cannot deactivate a
@@ -175,7 +172,6 @@ class TestDeactivatePrivilege(TstFunction):
         self.assertEqual(400, resp['statusCode'])
         self.assertEqual({'message': 'Privilege already deactivated'}, json.loads(resp['body']))
 
-    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
     @patch('handlers.privileges.metrics')
     @patch('cc_common.config._Config.email_service_client')
     def test_deactivate_privilege_handler_still_sends_jurisdiction_notification_if_provider_notification_failed_to_send(
@@ -215,7 +211,6 @@ class TestDeactivatePrivilege(TstFunction):
             name='privilege-deactivation-notification-failed', unit=MetricUnit.Count, value=1
         )
 
-    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
     @patch('handlers.privileges.metrics')
     @patch('cc_common.config._Config.email_service_client')
     def test_deactivate_privilege_handler_pushes_custom_metric_if_state_notification_failed_to_send(
@@ -239,7 +234,6 @@ class TestDeactivatePrivilege(TstFunction):
             name='privilege-deactivation-notification-failed', unit=MetricUnit.Count, value=1
         )
 
-    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
     def test_non_admin_cannot_deactivate_privilege(self):
         """
         If a non-admin user attempts to deactivate a privilege, the response should be a 403
@@ -250,7 +244,6 @@ class TestDeactivatePrivilege(TstFunction):
         resp = self._request_deactivation_with_scopes('openid email aslp/readGeneral ne/aslp.readPrivate')
         self.assertEqual(403, resp['statusCode'])
 
-    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
     def test_deactivate_privilege_not_found(self):
         """
         If a privilege is not found, the response should be a 404

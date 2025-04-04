@@ -11,6 +11,7 @@ from tests.function import TstFunction
 
 
 @mock_aws
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
 class TestDataClient(TstFunction):
     sample_privilege_attestations = [{'attestationId': 'jurisprudence-confirmation', 'version': '1'}]
 
@@ -128,7 +129,6 @@ class TestDataClient(TstFunction):
         self.assertEqual('inactive', oldest_record['status'])
         self.assertEqual('active', newest_record['status'])
 
-    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
     def test_data_client_created_privilege_record(self):
         from cc_common.data_model.data_client import DataClient
 
@@ -191,7 +191,6 @@ class TestDataClient(TstFunction):
         )['Item']
         self.assertEqual({'ca'}, updated_provider['privilegeJurisdictions'])
 
-    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
     def test_data_client_updates_privilege_records_for_specific_license_type(self):
         """
         In this test case, a user has two license types, audiologist and speech-language pathologist.
@@ -287,7 +286,6 @@ class TestDataClient(TstFunction):
             KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_uuid}')
             & Key('sk').begins_with('aslp#PROVIDER#privilege/ky/aud#'),
         )['Items']
-        self.maxDiff = None
         self.assertEqual(
             [
                 # Primary record
@@ -393,7 +391,6 @@ class TestDataClient(TstFunction):
         )['Item']
         self.assertEqual({'ky', 'ne'}, provider['privilegeJurisdictions'])
 
-    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
     def test_data_client_create_privilege_record_invalid_license_type(self):
         from cc_common.data_model.data_client import DataClient
         from cc_common.exceptions import CCInvalidRequestException
@@ -415,7 +412,6 @@ class TestDataClient(TstFunction):
                 license_type='not-supported-license-type',
             )
 
-    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
     def test_data_client_handles_large_privilege_purchase(self):
         """Test that we can process privilege purchases with more than 100 transaction items."""
         from cc_common.data_model.data_client import DataClient
@@ -496,7 +492,6 @@ class TestDataClient(TstFunction):
         )['Item']
         self.assertEqual(set(jurisdictions), provider['privilegeJurisdictions'])
 
-    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
     def test_data_client_rolls_back_failed_large_privilege_purchase(self):
         """Test that we properly roll back when a large privilege purchase fails."""
         from botocore.exceptions import ClientError
@@ -692,7 +687,6 @@ class TestDataClient(TstFunction):
         with self.assertRaises(CCInternalException):
             client.get_ssn_by_provider_id(compact='aslp', provider_id='89a6377e-c3a5-40e5-bca5-317ec854c570')
 
-    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
     def test_deactivate_privilege_updates_record(self):
         from cc_common.data_model.data_client import DataClient
 
@@ -735,7 +729,6 @@ class TestDataClient(TstFunction):
             KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
             & Key('sk').begins_with('aslp#PROVIDER#privilege/ne/aud#'),
         )['Items']
-        self.maxDiff = None
         self.assertEqual(
             [
                 # Primary record
@@ -796,7 +789,6 @@ class TestDataClient(TstFunction):
         )['Item']
         self.assertEqual({'ne'}, provider.get('privilegeJurisdictions', set()))
 
-    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
     def test_deactivate_privilege_raises_if_privilege_not_found(self):
         from cc_common.data_model.data_client import DataClient
         from cc_common.exceptions import CCNotFoundException
@@ -812,7 +804,6 @@ class TestDataClient(TstFunction):
                 license_type_abbr='aud',
             )
 
-    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
     def test_deactivate_privilege_on_inactive_privilege_raises_exception(self):
         from cc_common.data_model.data_client import DataClient
 
