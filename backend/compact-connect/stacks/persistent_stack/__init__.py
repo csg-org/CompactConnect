@@ -17,6 +17,7 @@ from common_constructs.python_function import COMMON_PYTHON_LAMBDA_LAYER_SSM_PAR
 from common_constructs.security_profile import SecurityProfile
 from common_constructs.ssm_parameter_utility import SSMParameterUtility
 from common_constructs.stack import AppStack
+from common_constructs.ui_app_config_utility import UIAppConfigUtility
 from constructs import Construct
 
 from stacks.persistent_stack.bulk_uploads_bucket import BulkUploadsBucket
@@ -248,6 +249,27 @@ class PersistentStack(AppStack):
             self.provider_users_deprecated.node.add_dependency(
                 self.user_email_notifications.verification_custom_resource
             )
+
+        # Create and store UI application configuration in SSM Parameter Store for use in the UI stack
+        ui_app_config = UIAppConfigUtility()
+
+        # Add staff user pool Cognito configuration
+        ui_app_config.set_staff_cognito_values(
+            domain_name=self.staff_users.user_pool_domain.domain_name,
+            client_id=self.staff_users.ui_client.user_pool_client_id,
+        )
+
+        # Add provider user pool Cognito configuration
+        ui_app_config.set_provider_cognito_values(
+            domain_name=self.provider_users.user_pool_domain.domain_name,
+            client_id=self.provider_users.ui_client.user_pool_client_id,
+        )
+
+        # Add UI and API domain names
+        ui_app_config.set_domain_names(ui_domain_name=self.ui_domain_name, api_domain_name=self.api_domain_name)
+
+        # Generate the SSM parameter
+        self.ui_app_config_parameter = ui_app_config.generate_ssm_parameter(self, 'UIAppConfigParameter')
 
     def _add_data_resources(self, removal_policy: RemovalPolicy):
         # Create the ssn related resources before other resources which are dependent on them

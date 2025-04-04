@@ -3,7 +3,7 @@ import os
 
 from aws_cdk import App, Environment
 from common_constructs.stack import StandardTags
-from pipeline import PipelineStack
+from pipeline import BetaPipelineStack, ProdPipelineStack, TestPipelineStack
 from pipeline.backend_stage import BackendStage
 
 
@@ -34,9 +34,26 @@ class CompactConnectApp(App):
                 account=os.environ['CDK_DEFAULT_ACCOUNT'],
                 region=os.environ['CDK_DEFAULT_REGION'],
             )
-            self.pipeline_stack = PipelineStack(
+
+            self.test_pipeline_stack = TestPipelineStack(
                 self,
-                'PipelineStack',
+                'TestPipelineStack',
+                env=environment,
+                standard_tags=StandardTags(**tags, environment='pipeline'),
+                cdk_path='backend/compact-connect',
+            )
+
+            self.prod_pipeline_stack = ProdPipelineStack(
+                self,
+                'ProdPipelineStack',
+                env=environment,
+                standard_tags=StandardTags(**tags, environment='pipeline'),
+                cdk_path='backend/compact-connect',
+            )
+
+            self.beta_pipeline_stack = BetaPipelineStack(
+                self,
+                'BetaPipelineStack',
                 env=environment,
                 standard_tags=StandardTags(**tags, environment='pipeline'),
                 cdk_path='backend/compact-connect',

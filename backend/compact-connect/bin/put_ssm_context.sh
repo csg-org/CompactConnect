@@ -1,9 +1,24 @@
 # Requires that jq and aws-cli be installed
 #
-# 1) Copy cdk.context.production-example.json to cdk.context.json
+# 1) Copy cdk.context.<environment>-example.json to cdk.context.json
 # 2) Edit the values for your configuration
 # 3) Configure your aws-cli to connect to your deployment AWS account
 # 4) Run this script to push your local configuration to SSM for the pipeline to pick up
 
+
+# check which context file to put in SSM using argument, can be prod, beta, or test
+if [ -z "$1" ]; then
+    echo "Usage: $0 <prod|beta|test>"
+    exit 1
+fi
+
+# check if the argument is valid
+if [ "$1" != "prod" ] && [ "$1" != "beta" ] && [ "$1" != "test" ]; then
+    echo "Invalid argument: $1"
+    echo "Usage: $0 <prod|beta|test>"
+    exit 1
+fi
+
+# put the context file into SSM
 val="$(jq '.ssm_context' <cdk.context.json)"
-aws ssm put-parameter --type String --name 'compact-connect-context' --value "$val" --overwrite
+aws ssm put-parameter --type String --name "$1-compact-connect-context" --value "$val" --overwrite

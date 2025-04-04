@@ -4,9 +4,11 @@ from common_constructs.bucket import Bucket
 from common_constructs.github_actions_access import GitHubActionsAccess
 from common_constructs.security_profile import SecurityProfile
 from common_constructs.stack import AppStack
+from common_constructs.ui_app_config_utility import UIAppConfigValues
 from constructs import Construct
 
 from stacks.persistent_stack import PersistentStack
+from stacks.ui_stack.deployment import CompactConnectUIBucketDeployment
 from stacks.ui_stack.distribution import UIDistribution
 
 
@@ -55,6 +57,21 @@ class UIStack(AppStack):
         )
 
         security_profile = SecurityProfile[environment_context.get('security_profile', 'RECOMMENDED')]
+
+        # Load the app configuration if bundling is required
+        ui_app_config_values = UIAppConfigValues.load_from_ssm_parameter(self)
+
+        # If the parameter could not be found, it means that the app_configuration values have not been deployed to SSM
+        # we will skip the bucket deployment until the parameter has been put into place, to avoid deploying without the
+        # needed values.
+        if ui_app_config_values is not None:
+            self.assets = CompactConnectUIBucketDeployment(
+                self,
+                'CompactConnectUIDeployment',
+                ui_bucket=ui_bucket,
+                environment_context=environment_context,
+                ui_app_config_values=ui_app_config_values,
+            )
 
         self.distribution = UIDistribution(
             self,

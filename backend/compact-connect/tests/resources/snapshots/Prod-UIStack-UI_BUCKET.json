@@ -15,7 +15,7 @@
         "DestinationBucketName": {
           "Fn::ImportValue": "Prod-PersistentStack:ExportsOutputRefAccessLogsBucket8398268993F214BC"
         },
-        "LogFilePrefix": "_logs/000011112222/us-east-1/PipelineStack/Prod/UIStack/UIBucket"
+        "LogFilePrefix": "_logs/000011112222/us-east-1/ProdPipelineStack/Prod/UIStack/UIBucket"
       },
       "OwnershipControls": {
         "Rules": [

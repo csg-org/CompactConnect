@@ -20,47 +20,13 @@
           ]
         }
       },
-      "prod": {
-        "account_id": "000011112222",
-        "region": "us-east-1",
-        "domain_name": "compactconnect.org",
-        "notifications": {
-          "ses_operations_support_email": "justin@example.com",
-          "email": [
-            "justin@example.com"
-          ],
-          "slack": [
-            {
-              "channel_name": "ops-monitoring",
-              "channel_id": "C0123456789",
-              "workspace_id": "T01234567"
-            }
-          ]
-        }
-      },
-      "beta": {
-        "account_id": "222233334444",
-        "region": "us-east-1",
-        "domain_name": "beta.compactconnect.org",
-        "notifications": {
-          "ses_operations_support_email": "justin@example.com",
-          "email": [
-            "justin@example.com"
-          ],
-          "slack": [
-            {
-              "channel_name": "ops-monitoring",
-              "channel_id": "C0123456789",
-              "workspace_id": "T01234567"
-            }
-          ]
-        }
-      },
       "test": {
         "account_id": "111122223333",
         "region": "us-east-1",
         "domain_name": "test.compactconnect.org",
         "allow_local_ui": true,
+        "recaptcha_public_key": "123-KFEUsjehfuejILDVUKkRnAF9SSzb8o9uv5lY7Ih",
+        "robots_meta": "noindex,nofollow",
         "notifications": {
           "ses_operations_support_email": "justin@example.com",
           "email": [
