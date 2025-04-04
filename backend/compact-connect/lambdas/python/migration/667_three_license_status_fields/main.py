@@ -73,7 +73,7 @@ def do_migration(_properties: dict) -> None:
                             ExpressionAttributeValues={
                                 ':license_status': license_status,
                                 ':compact_eligibility': 'eligible' if license_status == 'active' else 'ineligible',
-                                ':license_status_name': 'SOMETHING_USEFUL',
+                                ':license_status_name': 'ACTIVE' if license_status == 'active' else 'INACTIVE',
                             },
                             ExpressionAttributeNames={
                                 '#jurisdiction_status': 'jurisdictionStatus',
@@ -100,7 +100,7 @@ def do_migration(_properties: dict) -> None:
                                 ':compact_eligibility': 'eligible'
                                 if previous_license_status == 'active'
                                 else 'ineligible',
-                                ':license_status_name': 'SOMETHING_USEFUL',
+                                ':license_status_name': 'ACTIVE' if previous_license_status == 'active' else 'INACTIVE',
                             },
                             ExpressionAttributeNames={
                                 '#previous': 'previous',
@@ -130,7 +130,9 @@ def do_migration(_properties: dict) -> None:
                                     ':compact_eligibility': 'eligible'
                                     if updated_license_status == 'active'
                                     else 'ineligible',
-                                    ':license_status_name': 'SOMETHING_ELSE_USEFUL',
+                                    ':license_status_name': 'ACTIVE'
+                                    if updated_license_status == 'active'
+                                    else 'INACTIVE',
                                 },
                                 ExpressionAttributeNames={
                                     '#updatedValues': 'updatedValues',

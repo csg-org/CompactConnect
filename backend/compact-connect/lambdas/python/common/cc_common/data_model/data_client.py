@@ -837,8 +837,7 @@ class DataClient:
         """
         Deactivate a privilege for a provider in a jurisdiction.
 
-        This will update the privilege record to have a administratorSetStatus of 'inactive' and will remove the
-        jurisdiction from the provider's privilegeJurisdictions set.
+        This will update the privilege record to have a administratorSetStatus of 'inactive'.
 
         :param str compact: The compact to deactivate the privilege for
         :param str provider_id: The provider to deactivate the privilege for
@@ -881,7 +880,7 @@ class DataClient:
                     **privilege_record,
                 },
                 'updatedValues': {
-                    'administratorSetStatus': 'inactive',
+                    'administratorSetStatus': ActiveInactiveStatus.INACTIVE,
                 },
             }
         )
@@ -900,7 +899,7 @@ class DataClient:
                         },
                         'UpdateExpression': 'SET administratorSetStatus = :status, dateOfUpdate = :dateOfUpdate',
                         'ExpressionAttributeValues': {
-                            ':status': {'S': 'inactive'},
+                            ':status': {'S': ActiveInactiveStatus.INACTIVE},
                             ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
                         },
                     },

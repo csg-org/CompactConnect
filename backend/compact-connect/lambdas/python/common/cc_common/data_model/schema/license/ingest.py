@@ -39,14 +39,15 @@ class LicenseIngestSchema(LicenseCommonSchema):
 
     def _set_jurisdiction_status(self, in_data, **_kwargs):
         """
-        This maps the income 'licenseStatus' value to the internal 'jurisdictionUploadedLicenseStatus' field.
+        This maps the incoming 'licenseStatus' value to the internal 'jurisdictionUploadedLicenseStatus' field.
         """
         in_data['jurisdictionUploadedLicenseStatus'] = in_data.pop('licenseStatus')
         return in_data
 
     def _set_compact_eligibility(self, in_data, **_kwargs):
         """
-        This maps the income 'compactEligibility' value to the internal 'jurisdictionUploadedCompactEligibility' field.
+        This maps the incoming 'compactEligibility' value to the internal 'jurisdictionUploadedCompactEligibility'
+        field.
         """
         in_data['jurisdictionUploadedCompactEligibility'] = in_data.pop('compactEligibility')
         return in_data
