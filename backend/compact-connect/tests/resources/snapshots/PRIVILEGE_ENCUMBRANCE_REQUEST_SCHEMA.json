@@ -1,0 +1,24 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "encumberanceEffectiveDate": {
+      "description": "The effective date of the encumbrance",
+      "type": "string"
+    },
+    "clinicalPrivilegeActionCategory": {
+      "description": "The category of clinical privilege action",
+      "type": "string"
+    },
+    "blocksFuturePrivileges": {
+      "description": "Whether this encumbrance blocks future privileges",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "encumberanceEffectiveDate",
+    "clinicalPrivilegeActionCategory",
+    "blocksFuturePrivileges"
+  ],
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-04/schema#"
+}

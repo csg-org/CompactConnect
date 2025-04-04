@@ -6,9 +6,9 @@ from stacks import persistent_stack as ps
 from stacks.api_stack import cc_api
 from stacks.api_stack.v1_api.attestations import Attestations
 from stacks.api_stack.v1_api.bulk_upload_url import BulkUploadUrl
+from stacks.api_stack.v1_api.provider_management import ProviderManagement
 from stacks.api_stack.v1_api.provider_users import ProviderUsers
 from stacks.api_stack.v1_api.purchases import Purchases
-from stacks.api_stack.v1_api.query_providers import QueryProviders
 
 from .api_model import ApiModel
 from .compact_configuration_api import CompactConfigurationApi
@@ -136,7 +136,7 @@ class V1Api:
         # POST /v1/compacts/{compact}/providers/query
         # GET  /v1/compacts/{compact}/providers/{providerId}
         providers_resource = self.compact_resource.add_resource('providers')
-        self.query_providers = QueryProviders(
+        self.provider_management = ProviderManagement(
             resource=providers_resource,
             method_options=read_auth_method_options,
             admin_method_options=admin_auth_method_options,

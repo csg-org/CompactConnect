@@ -363,9 +363,7 @@ class ApiModel:
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
                 additional_properties=False,
-                # TODO - this 'deactivationNote' should be set to required after frontend has been # noqa: FIX002
-                #  updated to pass it in
-                # required=['deactivationNote'],
+                required=['deactivationNote'],
                 properties={
                     'deactivationNote': JsonSchema(
                         type=JsonSchemaType.STRING,
@@ -378,6 +376,68 @@ class ApiModel:
         )
 
         return self.api._v1_post_privilege_deactivation_request_model
+    
+    @property
+    def post_privilege_encumbrance_request_model(self) -> Model:
+        """Return the post privilege encumbrance request model, which should only be created once per API"""
+        if hasattr(self.api, '_v1_post_privilege_encumbrance_request_model'):
+            return self.api._v1_post_privilege_encumbrance_request_model
+        self.api._v1_post_privilege_encumbrance_request_model = self.api.add_model(
+            'V1PostPrivilegeEncumbranceRequestModel',
+            description='Post privilege encumbrance request model',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                additional_properties=False,
+                required=['encumberanceEffectiveDate', 'clinicalPrivilegeActionCategory', 'blocksFuturePrivileges'],
+                properties={
+                    'encumberanceEffectiveDate': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='The effective date of the encumbrance',
+                    ),
+                    'clinicalPrivilegeActionCategory': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='The category of clinical privilege action',
+                    ),
+                    'blocksFuturePrivileges': JsonSchema(
+                        type=JsonSchemaType.BOOLEAN,
+                        description='Whether this encumbrance blocks future privileges',
+                    ),
+                },
+            ),
+        )
+
+        return self.api._v1_post_privilege_encumbrance_request_model
+    
+    @property
+    def post_license_encumbrance_request_model(self) -> Model:
+        """Return the post license encumbrance request model, which should only be created once per API"""
+        if hasattr(self.api, '_v1_post_license_encumbrance_request_model'):
+            return self.api._v1_post_license_encumbrance_request_model
+        self.api._v1_post_license_encumbrance_request_model = self.api.add_model(
+            'V1PostLicenseEncumbranceRequestModel',
+            description='Post license encumbrance request model',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                additional_properties=False,
+                required=['encumberanceEffectiveDate', 'clinicalPrivilegeActionCategory', 'blocksFuturePrivileges'],
+                properties={
+                    'encumberanceEffectiveDate': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='The effective date of the encumbrance',
+                    ),
+                    'clinicalPrivilegeActionCategory': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='The category of clinical privilege action',
+                    ),
+                    'blocksFuturePrivileges': JsonSchema(
+                        type=JsonSchemaType.BOOLEAN,
+                        description='Whether this encumbrance blocks future privileges',
+                    ),
+                },
+            ),
+        )
+
+        return self.api._v1_post_license_encumbrance_request_model
 
     @property
     def post_provider_user_military_affiliation_request_model(self) -> Model:

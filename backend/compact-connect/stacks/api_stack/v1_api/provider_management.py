@@ -31,7 +31,10 @@ from stacks.persistent_stack import ProviderTable, RateLimitingTable, SSNTable, 
 from .api_model import ApiModel
 
 
-class QueryProviders:
+class ProviderManagement:
+    """
+    These endpoints are used by staff users to view and manage provider records
+    """
     def __init__(
         self,
         *,
@@ -67,6 +70,15 @@ class QueryProviders:
             **stack.common_env_vars,
         }
 
+        # Create the nested resources used by endpoints
+        self.provider_resource = self.resource.add_resource('{providerId}')
+        self.privileges_resource = self.provider_resource.add_resource('privileges')
+        self.privilege_jurisdiction_resource = self.privileges_resource.add_resource('jurisdiction').add_resource('{jurisdiction}')
+        self.privilege_jurisdiction_license_type_resource = self.privilege_jurisdiction_resource.add_resource('licenseType').add_resource('{licenseType}')
+        self.licenses_resource = self.provider_resource.add_resource('licenses')
+        self.license_jurisdiction_resource = self.licenses_resource.add_resource('jurisdiction').add_resource('{jurisdiction}')
+        self.license_jurisdiction_license_type_resource = self.license_jurisdiction_resource.add_resource('licenseType').add_resource('{licenseType}')
+
         self._add_query_providers(
             method_options=method_options,
             data_encryption_key=persistent_stack.shared_encryption_key,
@@ -96,6 +108,21 @@ class QueryProviders:
             lambda_environment=lambda_environment,
         )
 
+        self.provider_encumbrance_handler = self._add_provider_encumbrance_handler(
+            provider_data_table=persistent_stack.provider_table,
+            staff_users_table=persistent_stack.staff_users.user_table,
+            event_bus=data_event_bus,
+            lambda_environment=lambda_environment,
+        )
+
+        self._add_encumber_privilege(
+            method_options=admin_method_options
+        )
+
+        self._add_encumber_license(
+            method_options=admin_method_options
+        )
+
     def _add_get_provider(
         self,
         method_options: MethodOptions,
@@ -110,7 +137,6 @@ class QueryProviders:
         )
         self.api.log_groups.append(self.get_provider_handler.log_group)
 
-        self.provider_resource = self.resource.add_resource('{providerId}')
         self.provider_resource.add_method(
             'GET',
             request_validator=self.api.parameter_body_validator,
@@ -459,11 +485,7 @@ class QueryProviders:
         )
         self.api.log_groups.append(handler.log_group)
 
-        # Create the nested resources for the path
-        privileges_resource = self.provider_resource.add_resource('privileges')
-        jurisdiction_resource = privileges_resource.add_resource('jurisdiction').add_resource('{jurisdiction}')
-        license_type_resource = jurisdiction_resource.add_resource('licenseType').add_resource('{licenseType}')
-        deactivate_resource = license_type_resource.add_resource('deactivate')
+        deactivate_resource = self.privilege_jurisdiction_license_type_resource.add_resource('deactivate')
 
         # Create a metric to track privilege deactivation notification failures
         privilege_deactivation_notification_failed_metric = Metric(
@@ -542,3 +564,86 @@ class QueryProviders:
             ],
         )
         return self.deactivate_privilege_handler
+
+    def _add_provider_encumbrance_handler(
+        self,
+        provider_data_table: ProviderTable,
+        staff_users_table: Table,
+        event_bus: EventBus,
+        lambda_environment: dict,
+    ) -> PythonFunction:
+        """Create and configure the Lambda handler for deactivating a provider's privilege."""
+        encumbrance_handler = PythonFunction(
+            self.resource,
+            'ProviderEncumbranceHandler',
+            description='Provider encumbrance handler',
+            lambda_dir='provider-data-v1',
+            index=os.path.join('handlers', 'encumbrance.py'),
+            handler='encumbrance_handler',
+            environment=lambda_environment,
+            alarm_topic=self.api.alarm_topic,
+        )
+        provider_data_table.grant_read_write_data(encumbrance_handler)
+        staff_users_table.grant_read_data(encumbrance_handler)
+        event_bus.grant_put_events_to(encumbrance_handler)
+
+        NagSuppressions.add_resource_suppressions_by_path(
+            Stack.of(encumbrance_handler.role),
+            path=f'{encumbrance_handler.role.node.path}/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'The actions in this policy are specifically what this lambda needs to read/write '
+                    'and is scoped to the needed tables and event bus.',
+                },
+            ],
+        )
+        return encumbrance_handler
+
+    def _add_encumber_privilege(
+        self,
+        method_options: MethodOptions,
+    ):
+        """Add POST /providers/{providerId}/privileges/jurisdiction/{jurisdiction}
+        /licenseType/{licenseType}/encumbrance endpoint."""
+        self.encumbrance_privilege_resource = self.privilege_jurisdiction_license_type_resource.add_resource('encumbrance')
+        self.encumbrance_privilege_resource.add_method(
+            'POST',
+            request_validator=self.api.parameter_body_validator,
+            request_models={'application/json': self.api_model.post_privilege_encumbrance_request_model},
+            method_responses=[
+                MethodResponse(
+                    status_code='200',
+                    response_models={'application/json': self.api_model.message_response_model},
+                ),
+            ],
+            integration=LambdaIntegration(self.provider_encumbrance_handler, timeout=Duration.seconds(29)),
+            request_parameters={'method.request.header.Authorization': True},
+            authorization_type=method_options.authorization_type,
+            authorizer=method_options.authorizer,
+            authorization_scopes=method_options.authorization_scopes,
+        )
+
+    def _add_encumber_license(
+        self,
+        method_options: MethodOptions,
+    ):
+        """Add POST /providers/{providerId}/licenses/jurisdiction/{jurisdiction}
+        /licenseType/{licenseType}/encumbrance endpoint."""
+        self.encumbrance_license_resource = self.license_jurisdiction_license_type_resource.add_resource('encumbrance')
+        self.encumbrance_license_resource.add_method(
+            'POST',
+            request_validator=self.api.parameter_body_validator,
+            request_models={'application/json': self.api_model.post_license_encumbrance_request_model},
+            method_responses=[
+                MethodResponse(
+                    status_code='200',
+                    response_models={'application/json': self.api_model.message_response_model},
+                ),
+            ],
+            integration=LambdaIntegration(self.provider_encumbrance_handler, timeout=Duration.seconds(29)),
+            request_parameters={'method.request.header.Authorization': True},
+            authorization_type=method_options.authorization_type,
+            authorizer=method_options.authorizer,
+            authorization_scopes=method_options.authorization_scopes,
+        )
