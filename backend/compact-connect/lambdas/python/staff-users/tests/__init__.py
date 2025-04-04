@@ -16,6 +16,7 @@ class TstLambdas(TestCase):
                 'AWS_DEFAULT_REGION': 'us-east-1',
                 'USER_POOL_ID': 'us-east-1-12345',
                 'USERS_TABLE_NAME': 'provider-table',
+                'COMPACT_CONFIGURATION_TABLE_NAME': 'compact-configuration-table',
                 'FAM_GIV_INDEX_NAME': 'famGiv',
                 'COMPACTS': '["aslp", "octp", "coun"]',
                 'JURISDICTIONS': '["ne", "oh", "ky"]',

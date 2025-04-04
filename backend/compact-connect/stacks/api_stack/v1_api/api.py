@@ -11,6 +11,7 @@ from stacks.api_stack.v1_api.purchases import Purchases
 from stacks.api_stack.v1_api.query_providers import QueryProviders
 
 from .api_model import ApiModel
+from .compact_configuration_api import CompactConfigurationApi
 from .credentials import Credentials
 from .post_licenses import PostLicenses
 from .public_lookup_api import PublicLookupApi
@@ -143,12 +144,26 @@ class V1Api:
             persistent_stack=persistent_stack,
             api_model=self.api_model,
         )
+        # GET  /v1/compacts/{compact}/jurisdictions
+        self.jurisdictions_resource = self.compact_resource.add_resource('jurisdictions')
+        # GET  /v1/public/compacts/{compact}/jurisdictions
+        self.public_compacts_compact_jurisdictions_resource = self.public_compacts_compact_resource.add_resource(
+            'jurisdictions'
+        )
 
+        self.compact_configuration_api = CompactConfigurationApi(
+            api=self.api,
+            jurisdictions_resource=self.jurisdictions_resource,
+            public_jurisdictions_resource=self.public_compacts_compact_jurisdictions_resource,
+            general_read_method_options=read_auth_method_options,
+            persistent_stack=persistent_stack,
+            api_model=self.api_model,
+        )
+
+        self.jurisdiction_resource = self.jurisdictions_resource.add_resource('{jurisdiction}')
         # POST /v1/compacts/{compact}/jurisdictions/{jurisdiction}/licenses
         # GET  /v1/compacts/{compact}/jurisdictions/{jurisdiction}/licenses/bulk-upload
-        licenses_resource = (
-            self.compact_resource.add_resource('jurisdictions').add_resource('{jurisdiction}').add_resource('licenses')
-        )
+        licenses_resource = self.jurisdiction_resource.add_resource('licenses')
         PostLicenses(
             resource=licenses_resource,
             method_options=write_auth_method_options,

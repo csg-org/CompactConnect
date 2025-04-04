@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+from decimal import Decimal
 
 import boto3
 from boto3.dynamodb.types import TypeDeserializer
@@ -47,6 +48,7 @@ class TstFunction(TstLambdas):
                 },
             ],
         )
+        self.create_compact_configuration_table()
         # Adding a waiter allows for testing against an actual AWS account, if needed
         waiter = self._table.meta.client.get_waiter('table_exists')
         waiter.wait(TableName=self._table.name)
@@ -62,13 +64,39 @@ class TstFunction(TstLambdas):
         os.environ['USER_POOL_ID'] = user_pool_response['UserPool']['Id']
         self._user_pool_id = user_pool_response['UserPool']['Id']
 
+    def create_compact_configuration_table(self):
+        """Create the compact configuration table for testing."""
+        self._compact_configuration_table = boto3.resource('dynamodb').create_table(
+            AttributeDefinitions=[
+                {'AttributeName': 'pk', 'AttributeType': 'S'},
+                {'AttributeName': 'sk', 'AttributeType': 'S'},
+            ],
+            TableName=os.environ['COMPACT_CONFIGURATION_TABLE_NAME'],
+            KeySchema=[
+                {'AttributeName': 'pk', 'KeyType': 'HASH'},
+                {'AttributeName': 'sk', 'KeyType': 'RANGE'},
+            ],
+            BillingMode='PAY_PER_REQUEST',
+        )
+
     def delete_resources(self):
         self._table.delete()
+        self._compact_configuration_table.delete()
         waiter = self._table.meta.client.get_waiter('table_not_exists')
         waiter.wait(TableName=self._table.name)
         # Delete the Cognito user pool
         cognito_client = boto3.client('cognito-idp')
         cognito_client.delete_user_pool(UserPoolId=self._user_pool_id)
+
+    def _load_test_jurisdiction(self, jurisdiction_overrides: dict):
+        with open('../common/tests/resources/dynamo/jurisdiction.json') as f:
+            record = json.load(f, parse_float=Decimal)
+
+        record.update(jurisdiction_overrides)
+        self.config.compact_configuration_table.put_item(Item=record)
+
+        # return record for optional usage in tests
+        return record
 
     def _load_user_data(self, second_jurisdiction: str = None) -> str:
         with open('../common/tests/resources/dynamo/user.json') as f:

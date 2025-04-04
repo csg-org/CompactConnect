@@ -53,6 +53,7 @@ class StaffUsers:
             'USER_POOL_ID': persistent_stack.staff_users.user_pool_id,
             'USERS_TABLE_NAME': persistent_stack.staff_users.user_table.table_name,
             'FAM_GIV_INDEX_NAME': persistent_stack.staff_users.user_table.family_given_index_name,
+            'COMPACT_CONFIGURATION_TABLE_NAME': persistent_stack.compact_configuration_table.table_name,
         }
 
         # <base-url>/
@@ -339,6 +340,7 @@ class StaffUsers:
             data_encryption_key=persistent_stack.shared_encryption_key,
             user_table=persistent_stack.staff_users.user_table,
         )
+        persistent_stack.compact_configuration_table.grant_read_data(self.patch_user_handler)
 
         # Add the PATCH method to the me_resource
         user_resource.add_method(
@@ -478,6 +480,7 @@ class StaffUsers:
             user_table=persistent_stack.staff_users.user_table,
             user_pool=persistent_stack.staff_users,
         )
+        persistent_stack.compact_configuration_table.grant_read_data(self.post_user_handler)
 
         # Add the POST method to the me_resource
         users_resource.add_method(

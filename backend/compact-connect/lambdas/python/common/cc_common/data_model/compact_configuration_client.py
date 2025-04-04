@@ -98,6 +98,26 @@ class CompactConfigurationClient:
         compact_data = self.compact_schema.load(item)
         return Compact(compact_data)
 
+    def get_compact_jurisdictions(self, compact: str) -> list[dict]:
+        """
+        Get the jurisdictions for a specific compact.
+
+        :param compact: The compact abbreviation
+        :return: List of configured jurisdictions for the compact
+        """
+        logger.info('Getting compact configuration', compact=compact)
+
+        pk = f'{compact}#CONFIGURATION'
+        sk_prefix = f'{compact}#JURISDICTION'
+
+        # Realistically, we should never have more than 50 jurisdictions, so we do not need to handle pagination
+        response = self.config.compact_configuration_table.query(
+            KeyConditionExpression=Key('pk').eq(pk) & Key('sk').begins_with(sk_prefix),
+            Limit=1000,
+        )
+
+        return self.jurisdiction_schema.load(response.get('Items', []), many=True)
+
     def get_jurisdiction_configuration(self, compact: str, jurisdiction: str) -> Jurisdiction:
         """
         Get the configuration for a specific jurisdiction within a compact.

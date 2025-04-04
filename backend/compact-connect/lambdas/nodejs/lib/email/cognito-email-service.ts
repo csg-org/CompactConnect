@@ -64,7 +64,7 @@ export class CognitoEmailService extends BaseEmailService {
             `Your temporary password is: ${codeParameter}\n\nYour username is: ${usernameParameter}`
         );
         this.insertMarkdownBody(template,
-            `Please sign in at ${environmentVariableService.getUiBasePathUrl()}/Login and change your password when prompted.`
+            `Please sign in at ${environmentVariableService.getUiBasePathUrl()}/Dashboard and change your password when prompted.`
         );
         this.insertFooter(template);
 
