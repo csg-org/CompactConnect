@@ -86,6 +86,23 @@
             "dateOfExpiration": "2025-04-04"
           }
         }
+      ],
+      "adverseActions": [
+        {
+          "type": "adverseAction",
+          "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
+          "compact": "aslp",
+          "jurisdiction": "oh",
+          "licenseType": "speech-language pathologist",
+          "actionAgainst": "license",
+          "disablesCompactEligibility": true,
+          "clinicalPrivilegeActionCategory": "Unsafe Practice or Substandard Care",
+          "creationEffectiveDate": "2023-01-15",
+          "submittingUser": "3408b4e8-0061-7052-bbe0-fda9a9369c80",
+          "creationDate": "2023-01-15T14:30:00+00:00",
+          "adverseActionId": "550e8400-e29b-41d4-a716-446655440000",
+          "dateOfUpdate": "2023-01-15T14:30:00+00:00"
+        }
       ]
     }
   ],
@@ -141,6 +158,23 @@
         {
           "attestationId": "jurisprudence-confirmation",
           "version": "1"
+        }
+      ],
+      "adverseActions": [
+        {
+          "type": "adverseAction",
+          "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
+          "compact": "aslp",
+          "jurisdiction": "ne",
+          "licenseType": "speech-language pathologist",
+          "actionAgainst": "privilege",
+          "disablesCompactEligibility": false,
+          "clinicalPrivilegeActionCategory": "Improper Supervision or Allowing Unlicensed Practice",
+          "creationEffectiveDate": "2023-02-20",
+          "creationDate": "2023-02-20T12:59:59+00:00",
+          "submittingUser": "3408b4e8-0061-7052-bbe0-fda9a9369c80",
+          "adverseActionId": "660e8400-e29b-41d4-a716-446655440001",
+          "dateOfUpdate": "2023-01-15T14:30:00+00:00"
         }
       ]
     }

@@ -69,6 +69,10 @@ class TestSanitizeProviderData(TstLambdas):
         # cast to set to match schema
         expected_provider['privilegeJurisdictions'] = set(expected_provider['privilegeJurisdictions'])
 
+        # General read does not expose the submittingUser field of an adverse action
+        del expected_provider['licenses'][0]['adverseActions'][0]['submittingUser']
+        del expected_provider['privileges'][0]['adverseActions'][0]['submittingUser']
+
         self.assertEqual(expected_provider, resp)
 
     def test_sanitized_provider_record_returned_if_caller_does_not_have_read_private_permissions_for_jurisdiction(self):

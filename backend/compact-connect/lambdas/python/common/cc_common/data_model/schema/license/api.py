@@ -8,6 +8,7 @@ from marshmallow.fields import Date, Email, List, Nested, Raw, String
 from marshmallow.validate import Length
 
 from cc_common.config import config
+from cc_common.data_model.schema.adverse_action.api import AdverseActionGeneralResponseSchema
 from cc_common.data_model.schema.base_record import ForgivingSchema
 from cc_common.data_model.schema.fields import (
     ActiveInactive,
@@ -145,3 +146,4 @@ class LicenseGeneralResponseSchema(ForgivingSchema):
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
     status = ActiveInactive(required=True, allow_none=False)
     history = List(Nested(LicenseUpdateGeneralResponseSchema, required=False, allow_none=False))
+    adverseActions = List(Nested(AdverseActionGeneralResponseSchema, required=False, allow_none=False))

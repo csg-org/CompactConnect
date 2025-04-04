@@ -93,6 +93,19 @@ class StaffUserStatus(CCEnum):
     INACTIVE = 'inactive'
 
 
+class ClinicalPrivilegeActionCategory(CCEnum):
+    """
+    Enum for the category of clinical privileges actions, as defined by NPDB:
+    https://www.npdb.hrsa.gov/software/CodeLists.pdf, Tables 41-45
+    """
+
+    FRAUD = 'Fraud, Deception, or Misrepresentation'
+    UNSAFE_PRACTICE = 'Unsafe Practice or Substandard Care'
+    IMPROPER_SUPERVISION = 'Improper Supervision or Allowing Unlicensed Practice'
+    IMPROPER_MEDICATION = 'Improper Prescribing, Dispensing, Administering Medication/Drug Violation'
+    OTHER = 'Other'
+
+
 class ChangeHashMixin:
     """
     Provides change hash methods for *UpdateRecordSchema

@@ -9,6 +9,7 @@ from .. import TstFunction
 
 
 @mock_aws
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
 class TestIngest(TstFunction):
     @staticmethod
     def _set_provider_data_to_empty_values(expected_provider: dict) -> dict:
@@ -100,6 +101,7 @@ class TestIngest(TstFunction):
         expected_provider = self._set_provider_data_to_empty_values(expected_provider)
         for license_data in expected_provider['licenses']:
             license_data['history'] = []
+            license_data['adverseActions'] = []
 
         # Removing/setting dynamic fields for comparison
         del expected_provider['dateOfUpdate']
@@ -304,6 +306,7 @@ class TestIngest(TstFunction):
                     'updatedValues': {'jurisdictionStatus': 'inactive'},
                 }
             ]
+            license_data['adverseActions'] = []
 
         # Removing/setting dynamic fields for comparison
         del expected_provider['dateOfUpdate']
@@ -406,6 +409,7 @@ class TestIngest(TstFunction):
                     },
                 }
             ]
+            license_data['adverseActions'] = []
 
         # Removing/setting dynamic fields for comparison
         del expected_provider['dateOfUpdate']
@@ -485,6 +489,7 @@ class TestIngest(TstFunction):
                     },
                 }
             ]
+            license_data['adverseActions'] = []
 
         # Removing/setting dynamic fields for comparison
         del expected_provider['dateOfUpdate']
@@ -525,6 +530,7 @@ class TestIngest(TstFunction):
         for license_data in expected_provider['licenses']:
             # No changes should show up in the license history
             license_data['history'] = []
+            license_data['adverseActions'] = []
 
         # Removing/setting dynamic fields for comparison
         del expected_provider['dateOfUpdate']
@@ -604,6 +610,7 @@ class TestIngest(TstFunction):
                     'removedValues': ['emailAddress'],
                 }
             ]
+            license_data['adverseActions'] = []
 
         # Removing/setting dynamic fields for comparison
         del expected_provider['dateOfUpdate']
@@ -676,6 +683,7 @@ class TestIngest(TstFunction):
                     },
                 }
             ]
+            license_data['adverseActions'] = []
 
         # Removing/setting dynamic fields for comparison
         del expected_provider['dateOfUpdate']

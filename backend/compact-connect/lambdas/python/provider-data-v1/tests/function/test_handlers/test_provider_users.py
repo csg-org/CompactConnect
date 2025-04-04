@@ -3,7 +3,6 @@ from datetime import datetime
 from unittest.mock import patch
 
 from boto3.dynamodb.conditions import Key
-from cc_common.exceptions import CCInternalException
 from moto import mock_aws
 
 from .. import TstFunction
@@ -14,6 +13,7 @@ MOCK_MILITARY_AFFILIATION_FILE_NAME = 'military_affiliation.pdf'
 
 
 @mock_aws
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
 class TestGetProvider(TstFunction):
     def _create_test_provider(self):
         from cc_common.config import config
@@ -83,6 +83,7 @@ class TestGetProvider(TstFunction):
         self.assertEqual(400, resp['statusCode'])
 
     def test_get_provider_raises_exception_if_user_claims_do_not_match_any_provider_in_database(self):
+        from cc_common.exceptions import CCInternalException
         from handlers.provider_users import get_provider_user_me
 
         event = self._when_testing_provider_user_event_with_custom_claims()

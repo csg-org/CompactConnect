@@ -149,10 +149,12 @@ class ProviderRecordUtility:
                     logger.debug('Identified license record')
                     licenses[f'{record["jurisdiction"]}-{record["licenseType"]}'] = record
                     licenses[f'{record["jurisdiction"]}-{record["licenseType"]}'].setdefault('history', [])
+                    licenses[f'{record["jurisdiction"]}-{record["licenseType"]}'].setdefault('adverseActions', [])
                 case 'privilege':
                     logger.debug('Identified privilege record')
                     privileges[f'{record["jurisdiction"]}-{record["licenseType"]}'] = record
                     privileges[f'{record["jurisdiction"]}-{record["licenseType"]}'].setdefault('history', [])
+                    privileges[f'{record["jurisdiction"]}-{record["licenseType"]}'].setdefault('adverseActions', [])
                 case 'militaryAffiliation':
                     logger.debug('Identified military affiliation record')
                     military_affiliations.append(record)
@@ -160,7 +162,7 @@ class ProviderRecordUtility:
                     logger.debug('Identified home jurisdiction selection record')
                     home_jurisdiction_selection = record
 
-        # Process update records after all base records have been identified
+        # Process update and adverse action records after all base records have been identified
         for record in provider_records:
             match record['type']:
                 case 'licenseUpdate':
@@ -169,6 +171,12 @@ class ProviderRecordUtility:
                 case 'privilegeUpdate':
                     logger.debug('Identified privilege update record')
                     privileges[f'{record["jurisdiction"]}-{record["licenseType"]}']['history'].append(record)
+                case 'adverseAction':
+                    logger.debug('Identified adverse action record')
+                    if record['actionAgainst'] == 'privilege':
+                        privileges[f'{record["jurisdiction"]}-{record["licenseType"]}']['adverseActions'].append(record)
+                    elif record['actionAgainst'] == 'license':
+                        licenses[f'{record["jurisdiction"]}-{record["licenseType"]}']['adverseActions'].append(record)
 
         if provider is None:
             logger.error("Failed to find a provider's primary record!")

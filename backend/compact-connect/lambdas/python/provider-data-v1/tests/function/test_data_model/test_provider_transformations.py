@@ -231,5 +231,9 @@ class TestTransformations(TstFunction):
         expected_provider['licenses'][0]['history'] = []
         expected_provider['privileges'][0]['history'] = []
 
+        # We didn't submit any adverse actions, so we'll blank out them, too
+        expected_provider['licenses'][0]['adverseActions'] = []
+        expected_provider['privileges'][0]['adverseActions'] = []
+
         # Phew! We've loaded the data all the way in via the ingest chain and back out via the API!
         self.assertEqual(expected_provider, provider_data)
