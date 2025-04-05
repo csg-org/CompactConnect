@@ -24,7 +24,9 @@
   "homeAddressPostalCode": "43004",
   "emailAddress": "björk@example.com",
   "phoneNumber": "+13213214321",
-  "jurisdictionStatus": "active",
+  "jurisdictionUploadedLicenseStatus": "active",
+  "licenseStatusName": "DEFINITELY_A_HUMAN",
+  "jurisdictionUploadedCompactEligibility": "eligible",
   "licenseGSIPK": "C#aslp#J#oh",
   "licenseGSISK": "FN#gu%C3%B0mundsd%C3%B3ttir#GN#bj%C3%B6rk"
 }

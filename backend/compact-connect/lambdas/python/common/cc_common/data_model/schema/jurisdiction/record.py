@@ -4,7 +4,7 @@ from marshmallow.fields import Boolean, Decimal, Email, List, Nested, String
 from marshmallow.validate import Length, OneOf
 
 from cc_common.config import config
-from cc_common.data_model.schema.base_record import BaseRecordSchema, ForgivingSchema
+from cc_common.data_model.schema.base_record import BaseRecordSchema
 from cc_common.data_model.schema.jurisdiction import JURISDICTION_TYPE, JurisdictionMilitaryDiscountType
 
 
@@ -21,7 +21,7 @@ class JurisdictionJurisprudenceRequirementsRecordSchema(Schema):
 
 
 @BaseRecordSchema.register_schema(JURISDICTION_TYPE)
-class JurisdictionRecordSchema(ForgivingSchema, BaseRecordSchema):
+class JurisdictionRecordSchema(BaseRecordSchema):
     """Schema for the root jurisdiction configuration records"""
 
     _record_type = JURISDICTION_TYPE

@@ -94,10 +94,31 @@
             "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
             "type": "string"
           },
-          "jurisdictionStatus": {
+          "licenseStatus": {
             "enum": [
               "active",
               "inactive"
+            ],
+            "type": "string"
+          },
+          "compactEligibility": {
+            "enum": [
+              "eligible",
+              "ineligible"
+            ],
+            "type": "string"
+          },
+          "jurisdictionUploadedLicenseStatus": {
+            "enum": [
+              "active",
+              "inactive"
+            ],
+            "type": "string"
+          },
+          "jurisdictionUploadedCompactEligibility": {
+            "enum": [
+              "eligible",
+              "ineligible"
             ],
             "type": "string"
           },
@@ -205,6 +226,20 @@
                 },
                 "previous": {
                   "properties": {
+                    "jurisdictionUploadedLicenseStatus": {
+                      "enum": [
+                        "active",
+                        "inactive"
+                      ],
+                      "type": "string"
+                    },
+                    "jurisdictionUploadedCompactEligibility": {
+                      "enum": [
+                        "eligible",
+                        "ineligible"
+                      ],
+                      "type": "string"
+                    },
                     "npi": {
                       "pattern": "^[0-9]{10}$",
                       "type": "string"
@@ -274,10 +309,22 @@
                       "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
                       "type": "string"
                     },
-                    "status": {
+                    "licenseStatus": {
                       "enum": [
                         "active",
                         "inactive"
+                      ],
+                      "type": "string"
+                    },
+                    "licenseStatusName": {
+                      "maxLength": 100,
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "compactEligibility": {
+                      "enum": [
+                        "eligible",
+                        "ineligible"
                       ],
                       "type": "string"
                     },
@@ -309,12 +356,27 @@
                     "homeAddressCity",
                     "homeAddressState",
                     "homeAddressPostalCode",
-                    "jurisdictionStatus"
+                    "jurisdictionUploadedLicenseStatus",
+                    "jurisdictionUploadedCompactEligibility"
                   ],
                   "type": "object"
                 },
                 "updatedValues": {
                   "properties": {
+                    "jurisdictionUploadedLicenseStatus": {
+                      "enum": [
+                        "active",
+                        "inactive"
+                      ],
+                      "type": "string"
+                    },
+                    "jurisdictionUploadedCompactEligibility": {
+                      "enum": [
+                        "eligible",
+                        "ineligible"
+                      ],
+                      "type": "string"
+                    },
                     "npi": {
                       "pattern": "^[0-9]{10}$",
                       "type": "string"
@@ -384,10 +446,22 @@
                       "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
                       "type": "string"
                     },
-                    "status": {
+                    "licenseStatus": {
                       "enum": [
                         "active",
                         "inactive"
+                      ],
+                      "type": "string"
+                    },
+                    "licenseStatusName": {
+                      "maxLength": 100,
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "compactEligibility": {
+                      "enum": [
+                        "eligible",
+                        "ineligible"
                       ],
                       "type": "string"
                     },
@@ -498,11 +572,9 @@
             "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
             "type": "string"
           },
-          "status": {
-            "enum": [
-              "active",
-              "inactive"
-            ],
+          "licenseStatusName": {
+            "maxLength": 100,
+            "minLength": 1,
             "type": "string"
           },
           "emailAddress": {
@@ -539,8 +611,10 @@
           "dateOfRenewal",
           "dateOfExpiration",
           "birthMonthDay",
-          "jurisdictionStatus",
-          "status",
+          "licenseStatus",
+          "compactEligibility",
+          "jurisdictionUploadedLicenseStatus",
+          "jurisdictionUploadedCompactEligibility",
           "history"
         ],
         "type": "object"
@@ -810,7 +884,7 @@
                       ],
                       "type": "string"
                     },
-                    "persistedStatus": {
+                    "administratorSetStatus": {
                       "enum": [
                         "active",
                         "inactive"
@@ -853,7 +927,7 @@
                     "compactTransactionId",
                     "privilegeId",
                     "licenseJurisdiction",
-                    "persistedStatus",
+                    "administratorSetStatus",
                     "attestations"
                   ],
                   "type": "object"
@@ -1020,7 +1094,7 @@
                       ],
                       "type": "string"
                     },
-                    "persistedStatus": {
+                    "administratorSetStatus": {
                       "enum": [
                         "active",
                         "inactive"
@@ -1247,7 +1321,7 @@
             ],
             "type": "string"
           },
-          "persistedStatus": {
+          "administratorSetStatus": {
             "enum": [
               "active",
               "inactive"
@@ -1295,7 +1369,7 @@
           "privilegeId",
           "licenseType",
           "licenseJurisdiction",
-          "persistedStatus",
+          "administratorSetStatus",
           "status",
           "attestations",
           "history"
@@ -1499,10 +1573,31 @@
       "minLength": 1,
       "type": "string"
     },
-    "jurisdictionStatus": {
+    "licenseStatus": {
       "enum": [
         "active",
         "inactive"
+      ],
+      "type": "string"
+    },
+    "compactEligibility": {
+      "enum": [
+        "eligible",
+        "ineligible"
+      ],
+      "type": "string"
+    },
+    "jurisdictionUploadedLicenseStatus": {
+      "enum": [
+        "active",
+        "inactive"
+      ],
+      "type": "string"
+    },
+    "jurisdictionUploadedCompactEligibility": {
+      "enum": [
+        "eligible",
+        "ineligible"
       ],
       "type": "string"
     },

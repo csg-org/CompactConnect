@@ -1,6 +1,6 @@
 import json
 import uuid
-from datetime import timedelta
+from datetime import datetime, timedelta
 from unittest.mock import patch
 from urllib.parse import quote
 
@@ -10,6 +10,7 @@ from .. import TstFunction
 
 
 @mock_aws
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
 class TestQueryProviders(TstFunction):
     def test_query_by_provider_id_sanitizes_data_even_with_read_private_permission(self):
         self._load_provider_data()
@@ -227,6 +228,7 @@ class TestQueryProviders(TstFunction):
 
 
 @mock_aws
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
 class TestGetProvider(TstFunction):
     @staticmethod
     def _get_sensitive_hash():

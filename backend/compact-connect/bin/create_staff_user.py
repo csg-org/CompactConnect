@@ -28,6 +28,9 @@ COMPACTS = _context['compacts']
 
 os.environ['COMPACTS'] = json.dumps(COMPACTS)
 os.environ['JURISDICTIONS'] = json.dumps(JURISDICTIONS)
+# The environment name has no bearing on the staff user creation process, but we need a value to be set
+# for the data model to work.
+os.environ['ENVIRONMENT_NAME'] = 'test'
 
 # We have to import this after we've mucked with our path and environment
 from cc_common.data_model.schema.common import StaffUserStatus  # noqa: E402

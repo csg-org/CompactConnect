@@ -8,8 +8,8 @@ from .. import TstFunction
 
 
 @mock_aws
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
 class TestLicenses(TstFunction):
-    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-12-04T08:08:08+00:00'))
     def test_post_licenses_puts_expected_messages_on_the_queue(self):
         from handlers.licenses import post_licenses
 
@@ -34,7 +34,7 @@ class TestLicenses(TstFunction):
         # add the compact, jurisdiction, and eventTime to the expected message
         expected_message['compact'] = 'aslp'
         expected_message['jurisdiction'] = 'oh'
-        expected_message['eventTime'] = '2024-12-04T08:08:08+00:00'
+        expected_message['eventTime'] = '2024-11-08T23:59:59+00:00'
         self.assertEqual(expected_message, json.loads(queue_messages[0].body))
 
     def test_post_licenses_invalid_license_type(self):
