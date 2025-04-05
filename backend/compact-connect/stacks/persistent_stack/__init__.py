@@ -393,9 +393,6 @@ class PersistentStack(AppStack):
                 'PROVIDER_TABLE_NAME': self.provider_table.table_name,
                 **self.common_env_vars,
             },
-            custom_resource_properties={
-                'foo': 'bar',
-            },
         )
         self.provider_table.grant_read_write_data(three_license_status_migration)
         NagSuppressions.add_resource_suppressions_by_path(
@@ -410,6 +407,30 @@ class PersistentStack(AppStack):
                 },
             ],
         )
+
+        deactivation_details_migration = DataMigration(
+            self,
+            '566DeactivationDetails',
+            migration_dir='deactivation_details_566',
+            lambda_environment={
+                'PROVIDER_TABLE_NAME': self.provider_table.table_name,
+                **self.common_env_vars,
+            },
+        )
+        self.provider_table.grant_read_write_data(deactivation_details_migration)
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            f'{deactivation_details_migration.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'This policy contains wild-carded actions and resources but they are scoped to the '
+                    'specific actions, Table and Key that this lambda needs access to in order to perform the'
+                    'migration.',
+                },
+            ],
+        )
+
         QueryDefinition(
             self,
             'Migrations',

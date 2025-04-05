@@ -4,3 +4,154 @@
 //
 //  Created by InspiringApps on 3/17/2025.
 //
+
+.licensee-detail-container {
+    @spacingMobile: 2.4rem;
+    @spacingTablet: 4.8rem;
+    @spacingDesktop: 12rem;
+
+    .title-row {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+
+        .title-info {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+
+            .title-text {
+                padding-left: 1rem;
+                font-size: @fontSizeLarger;
+            }
+
+            .license-logo-container {
+                width: 3.2rem;
+                height: 2.8rem;
+            }
+        }
+
+        :deep(.collapse-caret-button) {
+            svg {
+                width: 2.4rem;
+                height: 1.4rem;
+                stroke: @black;
+            }
+        }
+    }
+
+    .licensee-header {
+        display: flex;
+        flex-direction: column;
+        padding: @spacingMobile;
+        background-color: @white;
+
+        @media @tabletWidth {
+            padding: 9rem @spacingTablet @spacingTablet @spacingTablet;
+        }
+
+        @media @desktopWidth {
+            padding: 9rem @spacingDesktop @spacingMobile @spacingDesktop;
+        }
+
+        .breadcrumbs {
+            display: flex;
+            margin-bottom: @spacingMobile;
+
+            .breadcrumb-link {
+                margin-right: 4px;
+                color: #6e6e6e;
+            }
+        }
+
+        .licensee-name {
+            margin-bottom: 1.2rem;
+            font-weight: @fontWeightBold;
+            font-size: 3.2rem;
+        }
+
+        .tags {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+
+            .tag {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                margin: 0.3rem;
+                padding: 0.6rem 1rem;
+                border-radius: 9999px; // pill shaped
+                color: @white;
+                font-weight: @fontWeightBold;
+                font-size: 1.4rem;
+                background-color: @darkBlue;
+
+                @media @tabletWidth {
+                    font-size: 1.6rem;
+                }
+
+                .tag-text {
+                    margin-left: 0.5rem;
+                }
+
+                .tag-icon-container {
+                    width: 1.4rem;
+                    height: 1.45rem;
+
+                    @media @tabletWidth {
+                        width: 1.6rem;
+                        height: 1.7rem;
+                    }
+
+                    &.house {
+                        width: 1.4rem;
+                        height: 1.6rem;
+
+                        @media @tabletWidth {
+                            width: 1.6rem;
+                            height: 1.8rem;
+                        }
+                    }
+
+                    :deep(path) {
+                        fill: @white;
+                    }
+                }
+            }
+        }
+    }
+
+    .privilege-section {
+        margin: @spacingMobile;
+        padding-top: @spacingMobile;
+        border-top: 1px solid @lightGrey;
+
+        @media @tabletWidth {
+            margin: @spacingMobile @spacingTablet;
+            padding-top: @spacingMobile;
+        }
+
+        @media @desktopWidth {
+            margin: @spacingMobile @spacingDesktop;
+            padding-top: @spacingMobile;
+        }
+
+        .privilege-card-list-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            @media @tabletWidth {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+        }
+    }
+
+    .no-touch-item {
+        margin: 1rem;
+    }
+}

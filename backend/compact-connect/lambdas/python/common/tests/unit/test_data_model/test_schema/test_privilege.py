@@ -97,7 +97,7 @@ class TestPrivilegeUpdateRecordSchema(TstLambdas):
     def test_invalid(self):
         from cc_common.data_model.schema.privilege.record import PrivilegeUpdateRecordSchema
 
-        with open('tests/resources/dynamo/privilege.json') as f:
+        with open('tests/resources/dynamo/privilege-update.json') as f:
             privilege_data = json.load(f)
         privilege_data.pop('providerId')
 
@@ -107,10 +107,42 @@ class TestPrivilegeUpdateRecordSchema(TstLambdas):
     def test_invalid_license_type(self):
         from cc_common.data_model.schema.privilege.record import PrivilegeUpdateRecordSchema
 
-        with open('tests/resources/dynamo/privilege.json') as f:
+        with open('tests/resources/dynamo/privilege-update.json') as f:
             privilege_data = json.load(f)
         # This privilege is in the ASLP compact, not Counseling
         privilege_data['licenseType'] = 'occupational therapist'
 
         with self.assertRaises(ValidationError):
             PrivilegeUpdateRecordSchema().load(privilege_data)
+
+    def test_invalid_if_missing_deactivation_details_when_update_type_is_deactivation(self):
+        from cc_common.data_model.schema.privilege.record import PrivilegeUpdateRecordSchema
+
+        with open('tests/resources/dynamo/privilege-update.json') as f:
+            privilege_data = json.load(f)
+        # Privilege deactivation updates require a 'deactivationDetails' fields
+        privilege_data['updateType'] = 'deactivation'
+
+        with self.assertRaises(ValidationError) as context:
+            PrivilegeUpdateRecordSchema().load(privilege_data)
+
+        self.assertEqual(
+            {'deactivationDetails': ['This field is required when update was deactivation type']},
+            context.exception.messages,
+        )
+
+    def test_valid_if_deactivation_details_present_when_update_type_is_deactivation(self):
+        from cc_common.data_model.schema.common import UpdateCategory
+        from cc_common.data_model.schema.privilege.record import PrivilegeUpdateRecordSchema
+
+        with open('tests/resources/dynamo/privilege-update.json') as f:
+            privilege_data = json.load(f)
+        # Privilege deactivation updates require a 'deactivationDetails' fields
+        privilege_data['updateType'] = UpdateCategory.DEACTIVATION
+        privilege_data['deactivationDetails'] = {
+            'note': 'test deactivation note',
+            'deactivatedByStaffUserId': 'a4182428-d061-701c-82e5-a3d1d547d797',
+            'deactivatedByStaffUserName': 'John Doe',
+        }
+
+        PrivilegeUpdateRecordSchema().load(privilege_data)

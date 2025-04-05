@@ -159,6 +159,7 @@ class PageMainNav extends Vue {
                 isEnabled: !this.isLoggedIn,
                 isExternal: false,
                 isExactActive: false,
+                isActive: this.isActiveMatch('LicenseeDetailPublic'),
             },
             {
                 to: 'RegisterLicensee',
@@ -249,6 +250,10 @@ class PageMainNav extends Vue {
     //
     // Methods
     //
+    isActiveMatch(routeName): boolean {
+        return this.$route.name === routeName;
+    }
+
     logoClick(): void {
         this.$router.push({ name: 'Home' });
     }

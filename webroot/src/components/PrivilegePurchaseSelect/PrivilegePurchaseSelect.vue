@@ -44,6 +44,7 @@
                                         <div
                                             @click.prevent="toggleStateSelected(state)"
                                             @keyup.enter="toggleStateSelected(state)"
+                                            @keyup.space="toggleStateSelected(state)"
                                             tabindex="0"
                                             class="enabled-state-overlay"
                                         />

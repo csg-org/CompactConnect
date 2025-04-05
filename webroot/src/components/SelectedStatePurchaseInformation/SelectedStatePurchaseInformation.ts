@@ -98,6 +98,14 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
         return date;
     }
 
+    get jurisprudenceInputRef(): HTMLElement | null {
+        return document.getElementById((this.jurisprudenceCheckInput?.id || ''));
+    }
+
+    get scopeOfPracticeInputRef(): HTMLElement | null {
+        return document.getElementById((this.scopeOfPracticeCheckInput?.id || ''));
+    }
+
     get expirationDateText(): string {
         return this.$t('licensing.expirationDate');
     }
@@ -186,18 +194,16 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
     // Methods
     //
     initFormInputs(): void {
-        const initFormData: any = {
+        this.formData = reactive({
             submitJurisprudenceUnderstanding: new FormInput({
-                isSubmitInput: true,
                 id: 'submit-jurisprudence-understanding',
+                isSubmitInput: true,
             }),
             submitScopeUnderstanding: new FormInput({
-                isSubmitInput: true,
                 id: 'submit-scope-understanding',
+                isSubmitInput: true,
             }),
-        };
-
-        this.formData = reactive(initFormData);
+        });
     }
 
     handleJurisprudenceClicked(): void {
@@ -248,6 +254,7 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
         if (isJurisprudencePending && jurisprudenceCheckInput) {
             this.setJurisprudenceInputValue(true);
             this.$store.dispatch('setModalIsOpen', false);
+            this.jurisprudenceInputRef?.focus();
             this.isJurisprudencePending = false;
         }
     }
@@ -258,6 +265,7 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
         if (isScopeOfPracticePending && scopeOfPracticeCheckInput) {
             this.setScopeInputValue(true);
             this.$store.dispatch('setModalIsOpen', false);
+            this.scopeOfPracticeInputRef?.focus();
             this.isScopeOfPracticePending = false;
         }
     }
@@ -268,6 +276,7 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
         if (isJurisprudencePending && jurisprudenceCheckInput) {
             this.setJurisprudenceInputValue(false);
             this.$store.dispatch('setModalIsOpen', false);
+            this.jurisprudenceInputRef?.focus();
             this.isJurisprudencePending = false;
         }
     }
@@ -278,6 +287,7 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
         if (isScopeOfPracticePending && scopeOfPracticeCheckInput) {
             this.setScopeInputValue(false);
             this.$store.dispatch('setModalIsOpen', false);
+            this.scopeOfPracticeInputRef?.focus();
             this.isScopeOfPracticePending = false;
         }
     }
