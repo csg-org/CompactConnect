@@ -30,7 +30,7 @@
         "sendInvite": "Enviar invitación",
         "toggleNav": "Alternar menú de navegación",
         "saveChanges": "Guardar cambios",
-        "days": "dias",
+        "days": "días",
         "submit": "Enviar",
         "search": "Buscar",
         "clear": "Borrar",
@@ -39,6 +39,7 @@
         "history": "Historia",
         "success": "Correcto",
         "error": "Error",
+        "somethingWentWrong": "Algo salió mal",
         "saveAndContinue": "Guardar y continuar",
         "saveAndClose": "Guardar y cerrar",
         "saving": "Guardando...",
@@ -624,7 +625,9 @@
             }
         ],
         "privilegePurchaseTitle": "Compra privada",
-        "personalInfoTitle": "Información personal"
+        "personalInfoTitle": "Información personal",
+        "eventNodeLabel": "Evento: {eventNameDisplay} en {eventDate}",
+        "statusBlockLabel": "{status} bloque de estado"
     },
     "military": {
         "militaryStatusTitle": "Estado militar",

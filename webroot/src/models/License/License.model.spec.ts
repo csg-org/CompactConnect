@@ -117,7 +117,7 @@ describe('License model', () => {
     it('should create a License with specific values through serializer', () => {
         const data = {
             compact: CompactType.ASLP,
-            type: 'privilege',
+            type: 'License',
             providerId: 'test-provider-id',
             jurisdiction: 'al',
             dateOfIssuance: moment().format(serverDateFormat),
@@ -125,7 +125,6 @@ describe('License model', () => {
             dateOfExpiration: moment().subtract(1, 'day').format(serverDateFormat),
             npi: 'npi',
             licenseNumber: 'licenseNumber',
-            privilegeId: 'privilegeId',
             homeAddressStreet1: 'test-street1',
             homeAddressStreet2: 'test-street2',
             homeAddressCity: 'test-city',
@@ -133,22 +132,7 @@ describe('License model', () => {
             homeAddressPostalCode: 'test-zip',
             licenseType: LicenseType.AUDIOLOGIST,
             status: LicenseStatus.ACTIVE,
-            history: [{
-                type: 'privilegeUpdate',
-                updateType: 'renewal',
-                previous: {
-                    compactTransactionId: '123',
-                    dateOfIssuance: '2022-08-29',
-                    dateOfRenewal: '2023-08-29',
-                    dateOfExpiration: '2025-08-29',
-                },
-                updatedValues: {
-                    compactTransactionId: '124',
-                    dateOfIssuance: '2022-08-29',
-                    dateOfRenewal: '2024-08-29',
-                    dateOfExpiration: '2025-08-29',
-                }
-            }]
+            history: []
         };
         const license = LicenseSerializer.fromServer(data);
 
@@ -156,18 +140,16 @@ describe('License model', () => {
         expect(license).to.be.an.instanceof(License);
         expect(license.id).to.equal('test-provider-id-al-audiologist');
         expect(license.compact).to.be.an.instanceof(Compact);
-        expect(license.isPrivilege).to.equal(true);
+        expect(license.isPrivilege).to.equal(false);
         expect(license.licenseeId).to.equal(data.providerId);
         expect(license.issueState).to.be.an.instanceof(State);
         expect(license.mailingAddress).to.be.an.instanceof(Address);
-        expect(license.history[0]).to.be.an.instanceof(LicenseHistoryItem);
         expect(license.issueState.abbrev).to.equal(data.jurisdiction);
         expect(license.issueDate).to.equal(data.dateOfIssuance);
         expect(license.renewalDate).to.equal(data.dateOfRenewal);
         expect(license.expireDate).to.equal(data.dateOfExpiration);
         expect(license.licenseType).to.equal(data.licenseType);
         expect(license.status).to.equal(data.status);
-        expect(license.privilegeId).to.equal(data.privilegeId);
         expect(license.displayName()).to.equal('Alabama - AUD');
         expect(license.status).to.equal(data.status);
 
@@ -182,7 +164,6 @@ describe('License model', () => {
             moment(data.dateOfExpiration, serverDateFormat).format(displayDateFormat)
         );
         expect(license.isExpired()).to.equal(true);
-        expect(license.didHistorySegmentExpireBeforeDate({ renewalDate: '2023-08-29', dateOfExpiration: '2023-08-28' })).to.equal(true);
         expect(license.licenseTypeAbbreviation()).to.equal('AUD');
     });
     it('should create a privilege with specific values through serializer', () => {
@@ -513,7 +494,9 @@ describe('License model', () => {
             moment(data.dateOfExpiration, serverDateFormat).format(displayDateFormat)
         );
         expect(license.isExpired()).to.equal(true);
-        expect(license.didHistorySegmentExpireBeforeDate({ renewalDate: '2023-08-29', dateOfExpiration: '2023-08-28' })).to.equal(true);
+        expect(license.didHistorySegmentExpireBeforeDate({ date: '2023-08-29', dateOfExpiration: '2023-08-28' })).to.equal(true);
+        expect(license.didHistorySegmentExpireBeforeDate({ date: '2023-08-29', dateOfExpiration: '2024-08-28' })).to.equal(false);
+        expect(license.didHistorySegmentExpireBeforeDate({ date: '2023-08-29', dateOfExpiration: '2023-08-29' })).to.equal(false);
         expect(license.licenseTypeAbbreviation()).to.equal('OTA');
         expect(license.historyWithFabricatedEvents().length).to.equal(6);
         expect(license.historyWithFabricatedEvents()[0].updateType).to.equal('purchased');

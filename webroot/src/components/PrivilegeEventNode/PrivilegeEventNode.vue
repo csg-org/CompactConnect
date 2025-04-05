@@ -8,6 +8,8 @@
 <template>
     <div
         class="event-node-container"
+        role="listitem"
+        :aria-label="$t('licensing.eventNodeLabel', { eventNameDisplay, eventDate })"
         :class="{
             'short': eventLengthBucket === 'short',
             'medium': eventLengthBucket === 'medium',

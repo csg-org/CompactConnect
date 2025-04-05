@@ -49,7 +49,7 @@
                     </div>
                     <CollapseCaretButton @toggleCollapse="togglePrivsCollapsed" />
                 </div>
-                <div v-if="!isRecentPrivsCollapsed" class="privilege-card-list-container">
+                <div v-if="!isPrivsCollapsed" class="privilege-card-list-container">
                     <PrivilegeCard
                         v-for="(privilege, index) in licenseePrivileges"
                         :key="index"

@@ -24,8 +24,7 @@ export default class PublicLicensingDetail extends Vue {
     //
     // Data
     //
-    isRecentPrivsCollapsed = false;
-    isPastPrivsCollapsed = false;
+    isPrivsCollapsed = false;
 
     //
     // Lifecycle
@@ -112,6 +111,6 @@ export default class PublicLicensingDetail extends Vue {
     }
 
     togglePrivsCollapsed(): void {
-        this.isRecentPrivsCollapsed = !this.isRecentPrivsCollapsed;
+        this.isPrivsCollapsed = !this.isPrivsCollapsed;
     }
 }

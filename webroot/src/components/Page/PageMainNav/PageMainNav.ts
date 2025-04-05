@@ -250,7 +250,7 @@ class PageMainNav extends Vue {
     //
     // Methods
     //
-    isActiveMatch(routeNames): boolean {
+    isActiveMatch(routeNames: Array<string>): boolean {
         return routeNames.some((routeName) => (routeName === this.$route.name));
     }
 

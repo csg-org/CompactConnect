@@ -36,6 +36,7 @@
         "clear": "Clear",
         "success": "Success",
         "error": "Error",
+        "somethingWentWrong": "Something went wrong",
         "saveAndContinue": "Save & Continue",
         "saveAndClose": "Save & Close",
         "subtotal": "Subtotal",
@@ -364,7 +365,6 @@
         "home": "Home",
         "upload": "Upload data",
         "licensing": "Search licensing data",
-        "dashboard": "Dashboard",
         "users": "Manage users",
         "compactSettings": "Compact Settings",
         "purchasePrivileges": "Privilege purchasing",
@@ -626,7 +626,9 @@
             }
         ],
         "privilegePurchaseTitle": "Privilege purchase",
-        "personalInfoTitle": "Personal information"
+        "personalInfoTitle": "Personal information",
+        "eventNodeLabel": "Event: {eventNameDisplay} on {eventDate}",
+        "statusBlockLabel": "{status} status block"
     },
     "military": {
         "militaryStatusTitle": "Military status",

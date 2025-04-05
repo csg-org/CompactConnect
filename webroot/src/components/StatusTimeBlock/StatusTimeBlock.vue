@@ -8,6 +8,8 @@
 <template>
     <div
         class="status-time-block-container"
+        role="status"
+        :aria-label="$t('licensing.statusBlockLabel', { status })"
         :class="{
             'inactive': isDeactivating,
             'active': isActivating,

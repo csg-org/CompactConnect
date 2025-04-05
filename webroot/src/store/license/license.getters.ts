@@ -4,16 +4,17 @@
 //
 //  Created by InspiringApps on 7/2/24.
 //
+import { State as LicenseState } from '@/store/license/license.state';
 
 export default {
-    lastKey: (state: any) => state.lastKey,
-    prevLastKey: (state: any) => state.prevLastKey,
-    licenseeById: (state: any) => (licenseeId: string) => {
+    lastKey: (state: LicenseState) => state.lastKey,
+    prevLastKey: (state: LicenseState) => state.prevLastKey,
+    licenseeById: (state: LicenseState) => (licenseeId: string) => {
         const licensees = state.model || [];
 
         return licensees.find((licensee) => licensee.id === licenseeId);
     },
-    getPrivilegeByLicenseeIdAndId: (state: any) => ({ licenseeId, privilegeId }) => {
+    getPrivilegeByLicenseeIdAndId: (state: LicenseState) => ({ licenseeId, privilegeId }) => {
         const licensees = state.model || [];
         const foundLicensee = licensees.find((licensee) => licensee.id === licenseeId);
 

@@ -4,6 +4,7 @@
 //
 //  Created by InspiringApps on 5/6/20.
 //
+import { serverDateFormat } from '@/app.config';
 import moment from 'moment';
 
 export const userData = {
@@ -847,7 +848,7 @@ export const licensees = {
                     licenseType: 'occupational therapy assistant',
                     dateOfIssuance: '2024-03-19T21:30:27+00:00',
                     dateOfRenewal: '2025-03-26T15:56:58+00:00',
-                    dateOfExpiration: moment().format(),
+                    dateOfExpiration: moment().format(serverDateFormat),
                     compactTransactionId: '120060086502',
                     attestations: [
                         {

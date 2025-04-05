@@ -130,7 +130,7 @@ export class License implements InterfaceLicense {
     public historyWithFabricatedEvents(): Array<LicenseHistoryItem> {
         // inject purchase event
         const historyWithFabricatedEvents = [ new LicenseHistoryItem({
-            type: 'fabricatedEvent ',
+            type: 'fabricatedEvent',
             updateType: 'purchased',
             dateOfUpdate: this.issueDate
         })];
@@ -146,7 +146,7 @@ export class License implements InterfaceLicense {
                     && dateOfUpdate
                     && (this.didHistorySegmentExpireBeforeDate({ date: dateOfUpdate, dateOfExpiration }))) {
                     historyWithFabricatedEvents.push(new LicenseHistoryItem({
-                        type: 'fabricatedEvent ',
+                        type: 'fabricatedEvent',
                         updateType: 'expired',
                         dateOfUpdate: dateOfExpiration
                     }));
@@ -157,7 +157,7 @@ export class License implements InterfaceLicense {
 
             if (this.isExpired()) {
                 historyWithFabricatedEvents.push(new LicenseHistoryItem({
-                    type: 'fabricatedEvent ',
+                    type: 'fabricatedEvent',
                     updateType: 'expired',
                     dateOfUpdate: this.expireDate
                 }));

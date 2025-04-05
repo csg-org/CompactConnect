@@ -45,8 +45,8 @@ export default class PublicPrivilegeDetail extends Vue {
         return this.licenseStore?.isLoading || false;
     }
 
-    get privilegeId(): string {
-        return (this.$route.params.privilegeId as string || '');
+    get privilegeId(): string | null {
+        return (this.$route.params.privilegeId as string || null);
     }
 
     get licenseeId(): string {
@@ -68,12 +68,12 @@ export default class PublicPrivilegeDetail extends Vue {
         return storeRecord;
     }
 
-    get privilege(): License {
-        let foundPrivilege = new License();
+    get privilege(): License | null {
+        let foundPrivilege: Licensee | null = null;
 
         if (this.licenseeRecord) {
-            foundPrivilege = this.licenseeRecord.privileges?.find((privilege) =>
-                ((privilege as any).id === this.privilegeId)) || new License();
+            foundPrivilege = this.licenseeRecord.privileges?.find((privilege: License) =>
+                (privilege.id === this.privilegeId)) || null;
         }
 
         return foundPrivilege;
