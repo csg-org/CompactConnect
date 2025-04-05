@@ -1,0 +1,85 @@
+//
+//  PrivilegeHistory.less
+//  CompactConnect
+//
+//  Created by InspiringApps on 3/26/2025.
+//
+.history-container {
+    display: flex;
+    flex-direction: column;
+    padding-top: 2rem;
+
+    .events {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-end;
+
+        .status-time-block {
+            position: absolute;
+            top: 0;
+            left: calc(50% - 112px);
+            height: 100%;
+        }
+
+        .event-node {
+            width: 50%;
+        }
+    }
+
+    .now-line {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        justify-content: flex-end;
+        border-top: 3px solid black;
+
+        .after-now {
+            width: 50%;
+            padding-left: 2.4rem;
+
+            .down-dipper {
+                position: absolute;
+                left: 6px;
+                height: 60px;
+                border-left: 2px solid lightgrey;
+            }
+
+            .today {
+                display: flex;
+                flex-direction: row;
+                justify-content: flex-end;
+                width: 100%;
+                padding-top: 0.4rem;
+                font-weight: @fontWeightBold;
+            }
+
+            .exp-detail {
+                margin-top: 35px;
+
+                .exp-warning {
+                    margin-bottom: 0.4rem;
+                }
+
+                .exp-title {
+                    font-weight: @fontWeightBold;
+                }
+
+                .exp-text {
+                    margin-top: 0.2rem;
+                    color: @lightTextGrey;
+                    font-size: @fontSizeSmall;
+                }
+            }
+        }
+
+        .dot {
+            position: absolute;
+            top: 60px;
+            left: 50%;
+            width: 14px;
+            height: 14px;
+            border-radius: 14px;
+            background-color: lightgray;
+        }
+    }
+}

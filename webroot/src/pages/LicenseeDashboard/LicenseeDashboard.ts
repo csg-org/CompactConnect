@@ -103,27 +103,6 @@ export default class LicenseeDashboard extends Vue {
         return this.$t('licensing.licenseExpiredMessage');
     }
 
-    get pastPrivilegeList(): Array<License> {
-        const privilegeList: Array<License> = [];
-
-        this.licenseePrivileges.forEach((privilege) => {
-            privilege.history?.forEach((historyItem: any) => {
-                privilegeList.push(new License({
-                    ...privilege,
-                    expireDate: historyItem.previousValues?.dateOfExpiration || null,
-                    issueDate: historyItem.previousValues?.dateOfIssuance || null,
-                    status: LicenseStatus.INACTIVE
-                }));
-            });
-        });
-
-        return privilegeList;
-    }
-
-    get pastPrivilegesTitle(): string {
-        return this.$t('licensing.pastPrivilegesTitle');
-    }
-
     //
     // Methods
     //

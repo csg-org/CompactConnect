@@ -6,26 +6,26 @@
 -->
 
 <template>
-   <div class="military-status-container">
-    <div class="military-status-content-container">
-        <InputButton
-            :label="$t('common.back')"
-            :aria-label="$t('common.back')"
-            :isTextLike="true"
-            :shouldHideMargin="true"
-            class="back-btn"
-            @click="goBack"
-        />
-        <div class="military-status-title">
-            {{ $t('military.militaryStatusTitle') }}
+    <div class="military-status-container">
+        <div class="military-status-content-container">
+            <InputButton
+                :label="$t('common.back')"
+                :aria-label="$t('common.back')"
+                :isTextLike="true"
+                :shouldHideMargin="true"
+                class="back-btn"
+                @click="goBack"
+            />
+            <div class="military-status-title">
+                {{ $t('military.militaryStatusTitle') }}
+            </div>
+            <MilitaryAffiliationInfoBlock
+                :licensee="licensee"
+                :currentCompactType="currentCompactType"
+                :shouldShowEditButtons="true"
+            />
         </div>
-        <MilitaryAffiliationInfoBlock
-            :licensee="licensee"
-            :currentCompactType="currentCompactType"
-            :shouldShowEditButtons="true"
-        />
     </div>
-   </div>
 </template>
 
 <script lang="ts" src="./MilitaryStatus.ts"></script>

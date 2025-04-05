@@ -34,6 +34,7 @@ import moment from 'moment';
 class PrivilegeCard extends mixins(MixinForm) {
     @Prop({ required: true }) privilege!: License;
     @Prop({ required: true }) licensee!: Licensee;
+    @Prop({ default: false }) isPublicSearch!: boolean;
 
     //
     // Data
@@ -147,6 +148,10 @@ class PrivilegeCard extends mixins(MixinForm) {
         return this.$t('licensing.noDiscipline');
     }
 
+    get viewDetails(): string {
+        return this.$t('common.viewDetails');
+    }
+
     get isPastExiprationDate(): boolean {
         let isPastDate = false;
 
@@ -190,6 +195,21 @@ class PrivilegeCard extends mixins(MixinForm) {
 
     togglePrivilegeActionMenu(): void {
         this.isPrivilegeActionMenuDisplayed = !this.isPrivilegeActionMenuDisplayed;
+    }
+
+    goToPrivilegeDetailsPage(): void {
+        const routeName = this.isPublicSearch ? 'PrivilegeDetailPublic' : 'PrivilegeDetail';
+
+        this.$router.push(
+            {
+                name: routeName,
+                params: {
+                    compact: this.currentCompactType,
+                    privilegeId: this.privilege.id,
+                    licenseeId: this.licenseeId
+                }
+            }
+        );
     }
 
     closePrivilegeActionMenu(): void {

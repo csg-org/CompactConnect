@@ -103,18 +103,15 @@ export class License implements InterfaceLicense {
     public isExpired(): boolean {
         const now = moment().format(serverDateFormat);
         const { expireDate } = this;
-        const diff = dateDiff(now, expireDate, 'days') || 0;
 
-        return Boolean(diff > 0);
+        return this.didHistorySegmentExpireBeforeDate({ date: now, dateOfExpiration: expireDate });
     }
 
-    // Relevant for License only until licenseType is included in privilege return
-    public licenseTypeName(): string {
-        const licenseTypes = this.$tm('licensing.licenseTypes') || [];
-        const licenseType = licenseTypes.find((translate) => translate.key === this.licenseType);
-        const licenseTypeName = licenseType?.name || '';
+    public didHistorySegmentExpireBeforeDate({ date, dateOfExpiration }): boolean {
+        const dateOfRenewal = moment().format(date);
+        const diff = dateDiff(dateOfRenewal, dateOfExpiration, 'days') || 0;
 
-        return licenseTypeName;
+        return Boolean(diff > 0);
     }
 
     public licenseTypeAbbreviation(): string {
@@ -128,6 +125,46 @@ export class License implements InterfaceLicense {
 
     public displayName(): string {
         return `${this.issueState?.name() || ''}${this.issueState?.name() && this.licenseTypeAbbreviation() ? ' - ' : ''}${this.licenseTypeAbbreviation()}`;
+    }
+
+    public historyWithFabricatedEvents(): Array<LicenseHistoryItem> {
+        // inject purchase event
+        const historyWithFabricatedEvents = [ new LicenseHistoryItem({
+            type: 'fabricatedEvent',
+            updateType: 'purchased',
+            dateOfUpdate: this.issueDate
+        })];
+
+        // inject expiration events
+        if (Array.isArray(this.history)) {
+            this.history.forEach((historyItem) => {
+                const { updateType, previousValues, dateOfUpdate } = historyItem;
+                const { dateOfExpiration } = previousValues as any;
+
+                if (updateType === 'renewal'
+                    && (previousValues as any)?.dateOfExpiration
+                    && dateOfUpdate
+                    && (this.didHistorySegmentExpireBeforeDate({ date: dateOfUpdate, dateOfExpiration }))) {
+                    historyWithFabricatedEvents.push(new LicenseHistoryItem({
+                        type: 'fabricatedEvent',
+                        updateType: 'expired',
+                        dateOfUpdate: dateOfExpiration
+                    }));
+                }
+
+                historyWithFabricatedEvents.push(historyItem);
+            });
+
+            if (this.isExpired()) {
+                historyWithFabricatedEvents.push(new LicenseHistoryItem({
+                    type: 'fabricatedEvent',
+                    updateType: 'expired',
+                    dateOfUpdate: this.expireDate
+                }));
+            }
+        }
+
+        return historyWithFabricatedEvents;
     }
 }
 
@@ -157,15 +194,12 @@ export class LicenseSerializer {
             expireDate: json.dateOfExpiration,
             licenseType: json.licenseType,
             status: json.status,
-            history: [] as Array <LicenseHistoryItem>,
+            history: [] as Array<LicenseHistoryItem>,
         };
 
         if (Array.isArray(json.history)) {
             json.history.forEach((serverHistoryItem) => {
-                // We are only populating renewals at this time
-                if (serverHistoryItem.updateType === 'renewal') {
-                    licenseData.history.push(LicenseHistoryItemSerializer.fromServer(serverHistoryItem));
-                }
+                licenseData.history.push(LicenseHistoryItemSerializer.fromServer(serverHistoryItem));
             });
         }
 

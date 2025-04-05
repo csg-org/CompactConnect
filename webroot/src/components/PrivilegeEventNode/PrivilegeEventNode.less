@@ -1,0 +1,46 @@
+//
+//  PrivilegeEventNode.less
+//  CompactConnect
+//
+//  Created by InspiringApps on 3/21/2025.
+//
+.event-node-container {
+    display: flex;
+    flex-direction: row;
+    padding-bottom: 1rem;
+
+    &.short {
+        min-height: 8rem;
+    }
+
+    &.medium {
+        min-height: 12rem;
+    }
+
+    &.long {
+        min-height: 16rem;
+    }
+
+    .node {
+        position: absolute;
+        width: 14px;
+        height: 14px;
+        border-radius: 14px;
+
+        &.inactive {
+            background-color: @midRed;
+        }
+
+        &.active {
+            background-color: @midGreen;
+        }
+    }
+
+    .event-info {
+        padding-left: 2.2rem;
+
+        .event-type {
+            font-weight: @fontWeightBold;
+        }
+    }
+}

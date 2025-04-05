@@ -6,67 +6,67 @@
 -->
 
 <template>
-        <div class="core-info-block">
-            <div class="info-row">
-                <div class="chunk">
-                    <div class="chunk-title">{{statusTitleText}}</div>
-                    <div class="chunk-text">{{status}}</div>
-                </div>
-                <div class="chunk affiliation-type">
-                    <div class="chunk-title">{{affiliationTypeTitle}}</div>
-                    <div class="chunk-text">{{affiliationType}}</div>
-                </div>
-            </div>
+    <div class="core-info-block">
+        <div class="info-row">
             <div class="chunk">
-                <div class="chunk-title">{{previouslyUploadedTitle}}</div>
-                <div class="prev-doc-table">
-                    <ListContainer
-                        listId="military-affiliations"
-                        :listData="this.affiliations"
-                        :listSize="this.affiliations.length"
-                        :sortOptions="sortOptions"
-                        :sortChange="sortingChange"
-                        :pageChange="paginationChange"
-                        :excludeSorting="true"
-                        :excludeTopPagination="true"
-                        :excludeBottomPagination="true"
-                        :isServerPaging="false"
-                        :emptyListMessage="$t('military.noUploadedDocuments')"
-                        :isLoading="$store.state.user.isLoadingAccount"
-                    >
-                        <template v-slot:headers>
-                            <MilitaryDocumentRow
-                                :item="militaryDocumentHeader"
-                                :isHeaderRow="true"
-                            />
-                        </template>
-                        <template v-slot:list>
-                            <MilitaryDocumentRow
-                                v-for="(record, index) in this.affiliations"
-                                :key="index"
-                                :item="record"
-                            />
-                        </template>
-                    </ListContainer>
-                </div>
+                <div class="chunk-title">{{statusTitleText}}</div>
+                <div class="chunk-text">{{status}}</div>
             </div>
-            <div v-if="shouldShowEditButtons" class="button-row">
-                <InputButton
-                    :label="$t('military.endMilitaryAffiliation')"
-                    :aria-label="$t('military.endMilitaryAffiliation')"
-                    :isTextLike="true"
-                    :shouldHideMargin="true"
-                    class="end-aff-button"
-                    @click="startEndAffiliationFlow"
-                />
-                <InputButton
-                    :label="$t('military.editInfo')"
-                    :aria-label="$t('military.editInfo')"
-                    :shouldHideMargin="true"
-                    class="edit-info-button"
-                    @click="editInfo"
-                />
+            <div class="chunk affiliation-type">
+                <div class="chunk-title">{{affiliationTypeTitle}}</div>
+                <div class="chunk-text">{{affiliationType}}</div>
             </div>
+        </div>
+        <div class="chunk">
+            <div class="chunk-title">{{previouslyUploadedTitle}}</div>
+            <div class="prev-doc-table">
+                <ListContainer
+                    listId="military-affiliations"
+                    :listData="this.affiliations"
+                    :listSize="this.affiliations.length"
+                    :sortOptions="sortOptions"
+                    :sortChange="sortingChange"
+                    :pageChange="paginationChange"
+                    :excludeSorting="true"
+                    :excludeTopPagination="true"
+                    :excludeBottomPagination="true"
+                    :isServerPaging="false"
+                    :emptyListMessage="$t('military.noUploadedDocuments')"
+                    :isLoading="$store.state.user.isLoadingAccount"
+                >
+                    <template v-slot:headers>
+                        <MilitaryDocumentRow
+                            :item="militaryDocumentHeader"
+                            :isHeaderRow="true"
+                        />
+                    </template>
+                    <template v-slot:list>
+                        <MilitaryDocumentRow
+                            v-for="(record, index) in this.affiliations"
+                            :key="index"
+                            :item="record"
+                        />
+                    </template>
+                </ListContainer>
+            </div>
+        </div>
+        <div v-if="shouldShowEditButtons" class="button-row">
+            <InputButton
+                :label="$t('military.endMilitaryAffiliation')"
+                :aria-label="$t('military.endMilitaryAffiliation')"
+                :isTextLike="true"
+                :shouldHideMargin="true"
+                class="end-aff-button"
+                @click="startEndAffiliationFlow"
+            />
+            <InputButton
+                :label="$t('military.editInfo')"
+                :aria-label="$t('military.editInfo')"
+                :shouldHideMargin="true"
+                class="edit-info-button"
+                @click="editInfo"
+            />
+        </div>
         <Modal
             v-if="shouldShowEndAffiliationModal"
             class="end-affiliation-modal"

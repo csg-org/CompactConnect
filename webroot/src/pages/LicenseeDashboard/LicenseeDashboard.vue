@@ -75,27 +75,6 @@
                 />
             </div>
         </div>
-         <div class="privilege-section bottom">
-            <div class="privilege-section-title-row">
-                <div class="title-info">
-                    <div class="title-text">
-                        {{pastPrivilegesTitle}}
-                    </div>
-                </div>
-                <CollapseCaretButton
-                    @toggleCollapse="togglePastPrivsCollapsed"
-                />
-            </div>
-            <div v-if="!isPastPrivsCollapsed" class="privilege-card-list-container">
-                <PrivilegeCard
-                    v-for="(privilege, index) in pastPrivilegeList"
-                    :key="index"
-                    :privilege="privilege"
-                    :licensee="licensee"
-                    class="no-touch-item"
-                />
-            </div>
-        </div>
     </div>
 </template>
 
