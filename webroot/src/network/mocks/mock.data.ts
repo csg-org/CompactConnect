@@ -1054,23 +1054,23 @@ export const attestation = {
 
 export const compactStates = [
     {
-        compact: 'otcp',
+        compact: 'octp',
         postalAbbreviation: 'al',
     },
     {
-        compact: 'otcp',
+        compact: 'octp',
         postalAbbreviation: 'co',
     },
     {
-        compact: 'otcp',
+        compact: 'octp',
         postalAbbreviation: 'ky',
     },
     {
-        compact: 'otcp',
+        compact: 'octp',
         postalAbbreviation: 'ne',
     },
     {
-        compact: 'otcp',
+        compact: 'octp',
         postalAbbreviation: 'oh',
     },
 ];
