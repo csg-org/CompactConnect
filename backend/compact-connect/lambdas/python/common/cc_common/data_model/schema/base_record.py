@@ -113,7 +113,8 @@ class CalculatedStatusRecordSchema(BaseRecordSchema):
             # so we need to check for the existence of the field before using it
             if (
                 in_data.get('jurisdictionStatus', 'active') == 'active'
-                and date.fromisoformat(in_data['dateOfExpiration']) > config.current_standard_datetime.date()
+                and date.fromisoformat(in_data['dateOfExpiration'])
+                > config.expiration_resolution_date
             )
             else 'inactive'
         )
