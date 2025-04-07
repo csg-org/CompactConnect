@@ -212,7 +212,8 @@ class _Config:
         so we have a configuration value for it.
         """
         utc_minus_four_timezone = timezone(offset=timedelta(hours=-4))
-        return self.current_standard_datetime.replace(tzinfo=utc_minus_four_timezone).date()
+        # the astimezone method returns a new datetime object adjusted to the new timezone
+        return self.current_standard_datetime.astimezone(utc_minus_four_timezone).date()
 
     @cached_property
     def data_events_table(self):

@@ -116,7 +116,7 @@ class PrivilegeRecordSchema(BaseRecordSchema, ValidatesLicenseTypeMixin):
             if (
                 in_data.get('persistedStatus', 'active') == 'active'
                 and date.fromisoformat(in_data['dateOfExpiration'])
-                > config.expiration_resolution_date
+                >= config.expiration_resolution_date
             )
             else 'inactive'
         )
