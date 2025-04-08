@@ -7,7 +7,7 @@ from tests.app.test_api import TestApi
 
 class TestCompactConfigurationApi(TestApi):
     """
-    These tests are focused on checking that the API endpoints related to fetching compact configuration
+    These tests are focused on checking API endpoint configuration related to fetching compact configuration.
 
     When adding or modifying API resources related to compact configuration data, a test should be added to ensure
     that the resource is created as expected. The pattern for these tests includes the following checks:

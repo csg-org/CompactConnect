@@ -8,7 +8,7 @@ from .. import TstFunction
 @mock_aws
 class TestPatchUser(TstFunction):
     def _when_testing_with_valid_jurisdiction(self, compact: str):
-        # load oh jurisdiction for aslp compact to pass the jurisdiction validation
+        # load oh jurisdiction for provided compact to pass the jurisdiction validation
         self._load_test_jurisdiction(
             jurisdiction_overrides={
                 'pk': f'{compact}#CONFIGURATION',

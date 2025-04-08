@@ -157,7 +157,7 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
         compact_config = config.compact_configuration_client.get_compact_configuration(body['compact'])
     except CCNotFoundException as e:
         # In theory, this should never happen, since we should only specify license types that are supported in the
-        # specific environment. But an end use might pass in invalid data through an api call.
+        # specific environment. But an end user might pass in invalid data through an api call.
         logger.error('Specified compact not configured', compact=body['compact'], environment=config.environment_name)
         raise CCInvalidRequestException(
             'Registration is not currently available for the specified license type.'
