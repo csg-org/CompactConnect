@@ -360,6 +360,7 @@
         "home": "Home",
         "upload": "Upload data",
         "licensing": "Search licensing data",
+        "licensingPublic": "Search health providers",
         "dashboard": "Dashboard",
         "users": "Manage users",
         "compactSettings": "Compact Settings",
