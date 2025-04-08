@@ -154,7 +154,7 @@ class PageMainNav extends Vue {
             },
             {
                 to: 'LicneseeSearchPublic',
-                label: computed(() => this.$t('navigation.licensing')),
+                label: computed(() => this.$t('navigation.licensingPublic')),
                 iconComponent: markRaw(LicenseSearchIcon),
                 isEnabled: !this.isLoggedIn,
                 isExternal: false,

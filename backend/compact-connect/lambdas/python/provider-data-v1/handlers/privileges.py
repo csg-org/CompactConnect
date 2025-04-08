@@ -23,6 +23,14 @@ def deactivate_privilege(event: dict, context: LambdaContext):  # noqa: ARG001 u
     jurisdiction = event['pathParameters']['jurisdiction']
     license_type_abbr = event['pathParameters']['licenseType']
 
+    # Get deactivation note from request body
+    try:
+        # TODO # make this required once the frontend is updated to pass it in # noqa: FIX002
+        body = json.loads(event.get('body', '{}'))
+        deactivation_note = body.get('deactivationNote')
+    except json.JSONDecodeError as e:
+        raise CCInvalidRequestException('Invalid request body') from e
+
     with logger.append_context_keys(
         compact=compact, provider_id=provider_id, jurisdiction=jurisdiction, license_type=license_type_abbr
     ):
@@ -31,12 +39,24 @@ def deactivate_privilege(event: dict, context: LambdaContext):  # noqa: ARG001 u
             logger.warning('Invalid license type abbreviation')
             raise CCInvalidRequestException(f'Invalid license type abbreviation: {license_type_abbr}')
 
+        staff_user_id = event['requestContext']['authorizer']['claims']['sub']
+        staff_user = config.user_client.get_user_in_compact(compact=compact, user_id=staff_user_id)
+
+        deactivation_details = {
+            # TODO - Putting in this generic note until the front end is updated to pass in note # noqa: FIX002
+            #   This if/else check should be removed at that time
+            'note': deactivation_note if deactivation_note else 'privilege deactivated by staff user.',
+            'deactivatedByStaffUserId': staff_user_id,
+            'deactivatedByStaffUserName': f'{staff_user["attributes"]["givenName"]} {staff_user["attributes"]["familyName"]}',  # noqa: E501
+        }
+
         logger.info('Deactivating privilege')
         deactivated_privilege_record = config.data_client.deactivate_privilege(
             compact=compact,
             provider_id=provider_id,
             jurisdiction=jurisdiction,
             license_type_abbr=license_type_abbr,
+            deactivation_details=deactivation_details,
         )
         with EventBatchWriter(config.events_client) as event_writer:
             event_writer.put_event(
