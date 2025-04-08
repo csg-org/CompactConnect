@@ -235,11 +235,13 @@ class TestLicenseUpdateRecordSchema(TstLambdas):
 
 
 class TestLicenseIngestSchema(TstLambdas):
-    def test_calculated_status_to_persisted(self):
+    def test_calculated_status_to_jurisdiction_uploaded_status(self):
         from cc_common.data_model.schema.license.ingest import LicenseIngestSchema
 
         with open('tests/resources/api/license-post.json') as f:
+            # This license record contains a `licenseStatus` and `compactEligibility` field
             license_record = json.load(f)
+
             # the preprocessor lambda removes the full SSN and replaces it with the last 4 digits as well as the
             # associated provider id within the system.
             license_record['ssnLastFour'] = license_record['ssn'][-4:]
@@ -247,6 +249,7 @@ class TestLicenseIngestSchema(TstLambdas):
             del license_record['ssn']
 
             result = LicenseIngestSchema().load({'compact': 'aslp', 'jurisdiction': 'oh', **license_record})
+            # Verify that the `licenseStatus` and `compactEligibility` fields are renamed to `jurisdictionUploaded*`
             self.assertEqual('active', result['jurisdictionUploadedLicenseStatus'])
             self.assertEqual('eligible', result['jurisdictionUploadedCompactEligibility'])
 

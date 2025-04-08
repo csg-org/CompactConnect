@@ -25,6 +25,9 @@ def get_table_name() -> str:
     table_name = os.environ.get('PROVIDER_TABLE_NAME')
     if not table_name:
         raise ValueError('Please set PROVIDER_TABLE_NAME environment variable')
+
+    if table_name.startswith('Prod'):
+        raise ValueError('This script should not be run against production tables. Aborting.')
     return table_name
 
 

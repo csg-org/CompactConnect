@@ -45,9 +45,9 @@ The following table describes all available fields for the license CSV file. Req
 | homeAddressStreet1* | First line of provider's street address | String (max 100 chars) | 123 Main St |
 | licenseType* | Type of professional license. Types you provide must be associated with the compact you are uploading for. | One of: `audiologist`, `speech-language pathologist`, `occupational therapist`, `occupational therapy assistant`, `licensed professional counselor` | occupational therapist |
 | ssn* | Social Security Number | Format: XXX-XX-XXXX | 123-45-6789 |
-| licenseStatus* | Current status of the license. "active" means they are allowed to practice their profession. *Note: licenses will automatically be displayed as `inactive` on or after their date of expiration, even if the last updload still showed them as `active`.* | One of: `active`, `inactive` | active |
+| licenseStatus* | Current status of the license. "active" means they are allowed to practice their profession. *Note: licenses will automatically be displayed as `inactive` after their date of expiration, even if the last updload still showed them as `active`.* | One of: `active`, `inactive` | active |
 | licenseStatusName | An optional more descriptive name of the license status. | String (max 100 chars) | SUSPENDED |
-| compactEligibility* | Whether this license makes the licensee eligible to participate in the compact. Cannot be `eligible` if licenseStatus is `inactive`. *Note: licenses will automatically be displayed as `ineligible` on or after their date of expiration, even if the last upload still showed them as `eligible`.* | One of: `eligible`, `ineligible` | eligible |
+| compactEligibility* | Whether this license makes the licensee eligible to participate in the compact based on the compact's requirements. Cannot be `eligible` if licenseStatus is `inactive`. *Note: licenses will automatically be displayed as `ineligible` on or after their date of expiration, even if the last upload still showed them as `eligible`.* | One of: `eligible`, `ineligible` | eligible |
 | emailAddress | Provider's email address (optional) | Email (max 100 chars) | john.smith@example.com |
 | homeAddressStreet2 | Second line of provider's street address (optional) | String (max 100 chars) | Suite 100 |
 | licenseNumber | License number (optional) | String (max 100 chars) | OT12345 |

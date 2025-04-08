@@ -194,7 +194,7 @@ class TestPostProviderMilitaryAffiliation(TstFunction):
 
         event = self._when_testing_post_provider_user_military_affiliation_event_with_custom_claims()
 
-        # We'll set the 'current datetime' to a date after the initial military affiliation record
+        # We'll set the 'current datetime' to a date after the initial military affiliation record was uploaded
         # so we can create a second record with an 'inactive' status
         with patch(
             'cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-09T23:59:59+00:00')

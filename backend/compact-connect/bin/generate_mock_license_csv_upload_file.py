@@ -27,6 +27,8 @@ LICENSE_TYPES = {compact: [t['name'] for t in types] for compact, types in _cont
 
 os.environ['COMPACTS'] = json.dumps(COMPACTS)
 os.environ['JURISDICTIONS'] = json.dumps(JURISDICTIONS)
+# The environment name has no bearing on the staff user creation process, but we need a value to be set
+# for the data model to work.
 os.environ['ENVIRONMENT_NAME'] = 'test'
 
 from cc_common.data_model.schema.common import ActiveInactiveStatus, CompactEligibilityStatus  # noqa: E402

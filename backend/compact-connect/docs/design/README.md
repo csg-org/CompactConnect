@@ -277,13 +277,13 @@ The data model comprises seven distinct record types, each with a specific purpo
    - License number and type
    - Issuing jurisdiction
    - Issuance, renewal, and expiration dates
-   - License status (active/inactive, calculated at load time)
+   - License status (active/inactive, calculated at load time, based on current time, expiry, and other factors)
    - Provider's name and contact details at time of issuance
 
 3. **Privilege Record** (`privilege`): Represents authorizations to practice in other jurisdictions:
    - Jurisdiction where privilege is granted
    - Dates of issuance, renewal, and expiration
-   - Status (active/inactive, calculated at load time)
+   - Status (active/inactive, calculated at load time, based on current time, expiry, and other factors)
    - Reference to the transaction ID from purchase
    - Attestations accepted when purchasing the privilege
    - Unique privilege identifier

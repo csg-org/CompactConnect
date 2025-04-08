@@ -107,7 +107,7 @@ class TestProviderRecordUtility(TstLambdas):
             ProviderRecordUtility.find_best_license([])
 
     def test_find_best_license_complex_scenario(self):
-        """Test a complex scenario with multiple licenses of different types and statuses."""
+        """Test a complex scenario with multiple licenses of different statuses."""
         from cc_common.data_model.provider_record_util import ProviderRecordUtility
         from cc_common.data_model.schema.common import ActiveInactiveStatus, CompactEligibilityStatus
 
