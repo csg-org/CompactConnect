@@ -49,11 +49,11 @@ class PrivilegeHistory extends Vue {
         this.events.forEach((event, i) => {
             let isStart = false;
             let isEnd = false;
-            const isLastEvent = Boolean(i === this.events.length - 1);
+            const isLastEvent = (i === this.events.length - 1);
 
             // used for styling the StatusTimeBlocks and distinguising between continuous blocks and new blocks
             // isStart will return true if the event is the first in the timeline or if the status
-            // chenged between this and the previous event
+            // changed between this and the previous event
             if (i === 0) {
                 isStart = true;
             } else if ((event.isActivatingEvent() && this.events[i - 1].isDeactivatingEvent())
@@ -63,7 +63,7 @@ class PrivilegeHistory extends Vue {
 
             // used for styling the StatusTimeBlocks and distinguising between continuous blocks and new blocks
             // isEnd will return false if the event is the last event in the timeline or if the status
-            // chenged between this and the next event
+            // changed between this and the next event
             if (isLastEvent) {
                 isEnd = false;
             } else if ((event.isActivatingEvent() && this.events[i + 1].isDeactivatingEvent())

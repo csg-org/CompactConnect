@@ -111,7 +111,7 @@ export class License implements InterfaceLicense {
         const dateOfRenewal = moment().format(date);
         const diff = dateDiff(dateOfRenewal, dateOfExpiration, 'days') || 0;
 
-        return Boolean(diff > 0);
+        return diff > 0;
     }
 
     public licenseTypeAbbreviation(): string {

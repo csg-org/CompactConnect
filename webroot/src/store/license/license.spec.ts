@@ -473,7 +473,7 @@ describe('License Store Getters', async () => {
             ]
         };
         const state = { model: [ licensee1, licensee2 ] };
-        const privilege = getters.getPrivilegeByLicenseeIdAndId(state)({ licenseeId: '2', privilegeId: '123' });
+        const privilege = getters.getPrivilegeByLicenseeIdAndId(state)({ licenseeId: '2', privilegeId: '1' });
 
         expect(privilege).to.equal(null);
     });
