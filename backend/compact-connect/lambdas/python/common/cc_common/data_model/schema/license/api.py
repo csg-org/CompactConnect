@@ -34,9 +34,11 @@ class LicensePostRequestSchema(StrictSchema):
     npi = NationalProviderIdentifier(required=False, allow_none=False)
     licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
     licenseStatusName = String(required=False, allow_none=False, validate=Length(1, 100))
-    # The two fields below are stored in the database as fields, renamed in the ingest chain to include
-    # 'jurisdictionUploaded' because, when they are returned via the API, the named values are calculated based on
-    # the logic that includes the current time and the license expiration date.
+    # Note that the two fields below, `licenseStatus` and `compactEligibility`, are stored
+    # in the database as `jurisdictionUploadedLicenseStatus` and `jurisdictionUploadedCompactEligibility`.
+    # This is to distinguish them from the `licenseStatus` and `compactEligibility` fields returned via the
+    # API, which are dynamically calculated based on logic that includes the current time and the
+    # license expiration date.
     licenseStatus = ActiveInactive(required=True, allow_none=False)
     compactEligibility = CompactEligibility(required=True, allow_none=False)
 

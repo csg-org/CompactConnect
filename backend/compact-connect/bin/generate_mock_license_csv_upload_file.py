@@ -145,20 +145,20 @@ def _set_dates_and_statuses(license_data: dict) -> dict:
     date_of_issuance = min(date_of_birth + timedelta(days=randint(22 * 365, 40 * 365)), now - timedelta(days=1))
     # For simplicity, we'll assume that under-70-year-olds are active, over are inactive.
     if date_of_birth + 70 * timedelta(days=365) > now:
-        active = True
+        is_active = True
         # We'll have renewal be within the last year, but on or after issuance.
         date_of_renewal = max(now - timedelta(days=randint(1, 365)), date_of_issuance)
         # Expiry, one year from renewal
         date_of_expiry = date_of_renewal + timedelta(days=365)
     else:
-        active = False
+        is_active = False
         # They renewed at some point in the last 20 years, but on or after their issuance date.
         date_of_renewal = max(date_of_issuance, now - randint(1, 20) * timedelta(days=365))
         # Their license expired a year after renewal, but no later than yesterday.
         date_of_expiry = min(date_of_renewal + timedelta(days=365), now - timedelta(days=1))
 
     # Licensees can only be eligible if they are also active
-    if active == ActiveInactiveStatus.ACTIVE:
+    if is_active:
         compact_eligibility = (
             CompactEligibilityStatus.ELIGIBLE if choice([True, False]) else CompactEligibilityStatus.INELIGIBLE
         )
@@ -166,7 +166,7 @@ def _set_dates_and_statuses(license_data: dict) -> dict:
         compact_eligibility = CompactEligibilityStatus.INELIGIBLE
     license_data.update(
         {
-            'licenseStatus': ActiveInactiveStatus.ACTIVE if active else ActiveInactiveStatus.INACTIVE,
+            'licenseStatus': ActiveInactiveStatus.ACTIVE if is_active else ActiveInactiveStatus.INACTIVE,
             'compactEligibility': compact_eligibility,
             'dateOfBirth': date_of_birth,
             'dateOfIssuance': date_of_issuance,
@@ -179,7 +179,7 @@ def _set_dates_and_statuses(license_data: dict) -> dict:
     active_status_names = ['ACTIVE', 'ACTIVE_IN_RENEWAL']
     inactive_status_names = ['INACTIVE', 'SUSPENDED', 'EXPIRED', 'REVOKED', 'ON_PROBATION']
     if choice([True, False]):
-        license_data['licenseStatusName'] = choice(active_status_names if active else inactive_status_names)
+        license_data['licenseStatusName'] = choice(active_status_names if is_active else inactive_status_names)
     return license_data
 
 
