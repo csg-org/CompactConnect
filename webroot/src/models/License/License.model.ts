@@ -5,9 +5,9 @@
 //  Created by InspiringApps on 7/2/2024.
 //
 
-import deleteUndefinedProperties from '@models/_helpers';
+import { deleteUndefinedProperties, isDatePastExpiration } from '@models/_helpers';
 import { serverDateFormat } from '@/app.config';
-import { dateDisplay, dateDiff } from '@models/_formatters/date';
+import { dateDisplay } from '@models/_formatters/date';
 import { Compact } from '@models/Compact/Compact.model';
 import { State } from '@models/State/State.model';
 import { LicenseHistoryItem, LicenseHistoryItemSerializer } from '@models/LicenseHistoryItem/LicenseHistoryItem.model';
@@ -104,14 +104,7 @@ export class License implements InterfaceLicense {
         const now = moment().format(serverDateFormat);
         const { expireDate } = this;
 
-        return this.didHistorySegmentExpireBeforeDate({ date: now, dateOfExpiration: expireDate });
-    }
-
-    public didHistorySegmentExpireBeforeDate({ date, dateOfExpiration }): boolean {
-        const dateOfRenewal = moment().format(date);
-        const diff = dateDiff(dateOfRenewal, dateOfExpiration, 'days') || 0;
-
-        return diff > 0;
+        return isDatePastExpiration({ date: now, dateOfExpiration: expireDate });
     }
 
     public licenseTypeAbbreviation(): string {
@@ -144,7 +137,7 @@ export class License implements InterfaceLicense {
                 if (updateType === 'renewal'
                     && (previousValues as any)?.dateOfExpiration
                     && dateOfUpdate
-                    && (this.didHistorySegmentExpireBeforeDate({ date: dateOfUpdate, dateOfExpiration }))) {
+                    && (isDatePastExpiration({ date: dateOfUpdate, dateOfExpiration }))) {
                     historyWithFabricatedEvents.push(new LicenseHistoryItem({
                         type: 'fabricatedEvent',
                         updateType: 'expired',

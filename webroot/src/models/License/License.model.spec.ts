@@ -494,9 +494,6 @@ describe('License model', () => {
             moment(data.dateOfExpiration, serverDateFormat).format(displayDateFormat)
         );
         expect(license.isExpired()).to.equal(true);
-        expect(license.didHistorySegmentExpireBeforeDate({ date: '2023-08-29', dateOfExpiration: '2023-08-28' })).to.equal(true);
-        expect(license.didHistorySegmentExpireBeforeDate({ date: '2023-08-29', dateOfExpiration: '2024-08-28' })).to.equal(false);
-        expect(license.didHistorySegmentExpireBeforeDate({ date: '2023-08-29', dateOfExpiration: '2023-08-29' })).to.equal(false);
         expect(license.licenseTypeAbbreviation()).to.equal('OTA');
         expect(license.historyWithFabricatedEvents().length).to.equal(6);
         expect(license.historyWithFabricatedEvents()[0].updateType).to.equal('purchased');

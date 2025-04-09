@@ -5,7 +5,7 @@
 //  Created by InspiringApps on MM/DD/YYYY.
 //
 
-import deleteUndefinedProperties from '@models/_helpers';
+import { deleteUndefinedProperties } from '@models/_helpers';
 
 // ========================================================
 // =                       Interface                      =
