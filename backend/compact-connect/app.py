@@ -3,7 +3,7 @@ import os
 
 from aws_cdk import App, Environment
 from common_constructs.stack import StandardTags
-from pipeline import BetaPipelineStack, ProdPipelineStack, TestPipelineStack
+from pipeline import BetaPipelineStack, DeploymentResourcesStack, ProdPipelineStack, TestPipelineStack
 from pipeline.backend_stage import BackendStage
 
 
@@ -35,9 +35,18 @@ class CompactConnectApp(App):
                 region=os.environ['CDK_DEFAULT_REGION'],
             )
 
+            self.deployment_resources_stack = DeploymentResourcesStack(
+                self,
+                'DeploymentResourcesStack',
+                env=environment,
+                standard_tags=StandardTags(**tags, environment='deploy'),
+            )
+
             self.test_pipeline_stack = TestPipelineStack(
                 self,
                 'TestPipelineStack',
+                pipeline_shared_encryption_key=self.deployment_resources_stack.pipeline_shared_encryption_key,
+                pipeline_alarm_topic=self.deployment_resources_stack.pipeline_alarm_topic,
                 env=environment,
                 standard_tags=StandardTags(**tags, environment='pipeline'),
                 cdk_path='backend/compact-connect',
@@ -46,6 +55,8 @@ class CompactConnectApp(App):
             self.prod_pipeline_stack = ProdPipelineStack(
                 self,
                 'ProdPipelineStack',
+                pipeline_shared_encryption_key=self.deployment_resources_stack.pipeline_shared_encryption_key,
+                pipeline_alarm_topic=self.deployment_resources_stack.pipeline_alarm_topic,
                 env=environment,
                 standard_tags=StandardTags(**tags, environment='pipeline'),
                 cdk_path='backend/compact-connect',
@@ -54,6 +65,8 @@ class CompactConnectApp(App):
             self.beta_pipeline_stack = BetaPipelineStack(
                 self,
                 'BetaPipelineStack',
+                pipeline_shared_encryption_key=self.deployment_resources_stack.pipeline_shared_encryption_key,
+                pipeline_alarm_topic=self.deployment_resources_stack.pipeline_alarm_topic,
                 env=environment,
                 standard_tags=StandardTags(**tags, environment='pipeline'),
                 cdk_path='backend/compact-connect',

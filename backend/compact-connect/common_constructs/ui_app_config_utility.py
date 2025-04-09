@@ -106,16 +106,18 @@ class UIAppConfigValues:
         # those cases here.
         if config_value is not None and config_value != f'dummy-value-for-{UI_APP_CONFIGURATION_PARAMETER_NAME}':
             return UIAppConfigValues(config_value)
+        if config_value == f'dummy-value-for-{UI_APP_CONFIGURATION_PARAMETER_NAME}':
+            return UIAppConfigValues._create_dummy_values()
 
         return None
 
     @staticmethod
-    def create_dummy_values() -> 'UIAppConfigValues':
+    def _create_dummy_values() -> 'UIAppConfigValues':
         """
         Create a mock instance with default values for testing.
 
-        This method is intended for use where bundling is not required (ie unit tests) and we just populate the config
-        with dummy values.
+        This method is intended for use where bundling is not required (ie unit tests) or CDK returns a dummy parameter
+        value, and we just populate the config with dummy values.
 
         :return: An instance of UIAppConfigValues with default test values
         """

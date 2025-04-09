@@ -8,14 +8,14 @@
 
 # check which context file to put in SSM using argument, can be prod, beta, or test
 if [ -z "$1" ]; then
-    echo "Usage: $0 <prod|beta|test>"
+    echo "Usage: $0 <prod|beta|test|deploy>"
     exit 1
 fi
 
 # check if the argument is valid
-if [ "$1" != "prod" ] && [ "$1" != "beta" ] && [ "$1" != "test" ]; then
+if [ "$1" != "prod" ] && [ "$1" != "beta" ] && [ "$1" != "test" ] && [ "$1" != "deploy" ]; then
     echo "Invalid argument: $1"
-    echo "Usage: $0 <prod|beta|test>"
+    echo "Usage: $0 <prod|beta|test|deploy>"
     exit 1
 fi
 
