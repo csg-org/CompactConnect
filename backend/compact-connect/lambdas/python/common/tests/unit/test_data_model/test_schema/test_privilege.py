@@ -73,6 +73,32 @@ class TestPrivilegeRecordSchema(TstLambdas):
 
         self.assertEqual(result['status'], 'active')
 
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-09T03:59:59+00:00'))
+    def test_status_is_set_to_active_right_before_expiration_for_utc_minus_four_timezone(self):
+        from cc_common.data_model.schema.privilege.record import PrivilegeRecordSchema
+
+        with open('tests/resources/dynamo/privilege.json') as f:
+            privilege_data = json.load(f)
+            privilege_data['dateOfExpiration'] = '2024-11-08'
+
+        result = PrivilegeRecordSchema().load(privilege_data)
+
+        self.assertEqual(result['status'], 'active')
+
+
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-09T04:00:00+00:00'))
+    def test_status_is_set_to_inactive_right_at_expiration_for_utc_minus_four_timezone(self):
+        from cc_common.data_model.schema.privilege.record import PrivilegeRecordSchema
+
+        with open('tests/resources/dynamo/privilege.json') as f:
+            privilege_data = json.load(f)
+            privilege_data['dateOfExpiration'] = '2024-11-08'
+
+        result = PrivilegeRecordSchema().load(privilege_data)
+
+        self.assertEqual(result['status'], 'inactive')
+
+
 
 class TestPrivilegeUpdateRecordSchema(TstLambdas):
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))

@@ -1,8 +1,13 @@
+from unittest.mock import patch
+
 from tests import TstLambdas
 
 
 class TestCollectChanges(TstLambdas):
     """Testing that permissions changes are parsed correctly from the API"""
+
+    def _when_testing_collect_and_authorize_changes_with_valid_jurisdiction(self, mock_compact_configuration_client):
+        mock_compact_configuration_client.get_compact_jurisdictions.return_value = [{'postalAbbreviation': 'OH'}]
 
     def test_compact_changes(self):
         from cc_common.utils import collect_and_authorize_changes
@@ -22,8 +27,11 @@ class TestCollectChanges(TstLambdas):
             resp,
         )
 
-    def test_jurisdiction_changes(self):
+    @patch('cc_common.utils.config.compact_configuration_client')
+    def test_jurisdiction_changes(self, mock_compact_configuration_client):
         from cc_common.utils import collect_and_authorize_changes
+
+        self._when_testing_collect_and_authorize_changes_with_valid_jurisdiction(mock_compact_configuration_client)
 
         resp = collect_and_authorize_changes(
             path_compact='aslp',
@@ -62,8 +70,11 @@ class TestCollectChanges(TstLambdas):
                 compact_changes={'actions': {'admin': True}, 'jurisdictions': {}},
             )
 
-    def test_compact_and_jurisdiction_changes(self):
+    @patch('cc_common.utils.config.compact_configuration_client')
+    def test_compact_and_jurisdiction_changes(self, mock_compact_configuration_client):
         from cc_common.utils import collect_and_authorize_changes
+
+        self._when_testing_collect_and_authorize_changes_with_valid_jurisdiction(mock_compact_configuration_client)
 
         resp = collect_and_authorize_changes(
             path_compact='aslp',
@@ -83,8 +94,11 @@ class TestCollectChanges(TstLambdas):
             resp,
         )
 
-    def test_jurisdiction_add_only(self):
+    @patch('cc_common.utils.config.compact_configuration_client')
+    def test_jurisdiction_add_only(self, mock_compact_configuration_client):
         from cc_common.utils import collect_and_authorize_changes
+
+        self._when_testing_collect_and_authorize_changes_with_valid_jurisdiction(mock_compact_configuration_client)
 
         resp = collect_and_authorize_changes(
             path_compact='aslp',

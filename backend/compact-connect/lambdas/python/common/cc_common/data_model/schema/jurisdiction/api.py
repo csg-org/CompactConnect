@@ -35,3 +35,25 @@ class JurisdictionOptionsResponseSchema(ForgivingSchema):
     jurisprudenceRequirements = Nested(
         JurisdictionJurisprudenceRequirementsResponseSchema(), required=True, allow_none=False
     )
+
+
+class CompactJurisdictionsStaffUsersResponseSchema(ForgivingSchema):
+    """
+    Used to enforce which fields are returned in jurisdiction objects for the
+    GET /compacts/{compact}/jurisdictions endpoint
+    """
+
+    jurisdictionName = String(required=True, allow_none=False)
+    postalAbbreviation = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
+    compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
+
+
+class CompactJurisdictionsPublicResponseSchema(ForgivingSchema):
+    """
+    Used to enforce which fields are returned in jurisdiction objects for the
+    GET public/compacts/{compact}/jurisdictions endpoint
+    """
+
+    jurisdictionName = String(required=True, allow_none=False)
+    postalAbbreviation = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
+    compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))

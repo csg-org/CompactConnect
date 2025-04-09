@@ -110,7 +110,8 @@ class CalculatedStatusRecordSchema(BaseRecordSchema):
         return in_data
 
     @pre_load
-    def calculate_statuses(self, in_data, **_kwargs):
+    def _calculate_statuses(self, in_data, **_kwargs):
+        """Determine the statuses of the record based on the expiration date"""
         in_data = self._calculate_license_status(in_data)
         return self._calculate_compact_eligibility(in_data)
 
@@ -120,7 +121,7 @@ class CalculatedStatusRecordSchema(BaseRecordSchema):
             ActiveInactiveStatus.ACTIVE
             if (
                 in_data['jurisdictionUploadedLicenseStatus'] == ActiveInactiveStatus.ACTIVE
-                and date.fromisoformat(in_data['dateOfExpiration']) > config.current_standard_datetime.date()
+                and date.fromisoformat(in_data['dateOfExpiration']) >= config.expiration_resolution_date
             )
             else ActiveInactiveStatus.INACTIVE
         )

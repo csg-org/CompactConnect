@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "LicenseApi",
-    "version": "2025-04-01T16:58:38Z"
+    "version": "2025-04-09T19:05:00Z"
   },
   "servers": [
     {
@@ -109,11 +109,58 @@
               "octp/admin",
               "ne/octp.admin",
               "oh/octp.admin",
+              "ar/octp.admin",
+              "ms/octp.admin",
+              "la/octp.admin",
+              "al/octp.admin",
               "ky/octp.admin",
               "coun/admin",
               "ne/coun.admin",
               "oh/coun.admin",
               "ky/coun.admin"
+            ]
+          }
+        ]
+      }
+    },
+    "/v1/compacts/{compact}/jurisdictions": {
+      "get": {
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "compact",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SandboLicenSFaEGGWOs5rH"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
+              "aslp/readGeneral",
+              "octp/readGeneral",
+              "coun/readGeneral"
             ]
           }
         ]
@@ -179,6 +226,10 @@
               "octp/write",
               "ne/octp.write",
               "oh/octp.write",
+              "ar/octp.write",
+              "ms/octp.write",
+              "la/octp.write",
+              "al/octp.write",
               "ky/octp.write",
               "coun/write",
               "ne/coun.write",
@@ -239,6 +290,10 @@
               "octp/write",
               "ne/octp.write",
               "oh/octp.write",
+              "ar/octp.write",
+              "ms/octp.write",
+              "la/octp.write",
+              "al/octp.write",
               "ky/octp.write",
               "coun/write",
               "ne/coun.write",
@@ -397,6 +452,16 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SandboLicenKFMSs4LH04ge"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "200 response",
@@ -419,6 +484,10 @@
               "octp/admin",
               "ne/octp.admin",
               "oh/octp.admin",
+              "ar/octp.admin",
+              "ms/octp.admin",
+              "la/octp.admin",
+              "al/octp.admin",
               "ky/octp.admin",
               "coun/admin",
               "ne/coun.admin",
@@ -479,6 +548,10 @@
               "octp/readSSN",
               "ne/octp.readSSN",
               "oh/octp.readSSN",
+              "ar/octp.readSSN",
+              "ms/octp.readSSN",
+              "la/octp.readSSN",
+              "al/octp.readSSN",
               "ky/octp.readSSN",
               "coun/readSSN",
               "ne/coun.readSSN",
@@ -530,6 +603,10 @@
               "octp/admin",
               "ne/octp.admin",
               "oh/octp.admin",
+              "ar/octp.admin",
+              "ms/octp.admin",
+              "la/octp.admin",
+              "al/octp.admin",
               "ky/octp.admin",
               "coun/admin",
               "ne/coun.admin",
@@ -589,6 +666,10 @@
               "octp/admin",
               "ne/octp.admin",
               "oh/octp.admin",
+              "ar/octp.admin",
+              "ms/octp.admin",
+              "la/octp.admin",
+              "al/octp.admin",
               "ky/octp.admin",
               "coun/admin",
               "ne/coun.admin",
@@ -658,6 +739,10 @@
               "octp/admin",
               "ne/octp.admin",
               "oh/octp.admin",
+              "ar/octp.admin",
+              "ms/octp.admin",
+              "la/octp.admin",
+              "al/octp.admin",
               "ky/octp.admin",
               "coun/admin",
               "ne/coun.admin",
@@ -718,6 +803,10 @@
               "octp/admin",
               "ne/octp.admin",
               "oh/octp.admin",
+              "ar/octp.admin",
+              "ms/octp.admin",
+              "la/octp.admin",
+              "al/octp.admin",
               "ky/octp.admin",
               "coun/admin",
               "ne/coun.admin",
@@ -795,6 +884,10 @@
               "octp/admin",
               "ne/octp.admin",
               "oh/octp.admin",
+              "ar/octp.admin",
+              "ms/octp.admin",
+              "la/octp.admin",
+              "al/octp.admin",
               "ky/octp.admin",
               "coun/admin",
               "ne/coun.admin",
@@ -857,6 +950,10 @@
               "octp/admin",
               "ne/octp.admin",
               "oh/octp.admin",
+              "ar/octp.admin",
+              "ms/octp.admin",
+              "la/octp.admin",
+              "al/octp.admin",
               "ky/octp.admin",
               "coun/admin",
               "ne/coun.admin",
@@ -997,6 +1094,32 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SandboLicennbCiTFugFRZw"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/public/compacts/{compact}/jurisdictions": {
+      "get": {
+        "parameters": [
+          {
+            "name": "compact",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SandboLicenSFaEGGWOs5rH"
                 }
               }
             }
@@ -3647,6 +3770,30 @@
         },
         "additionalProperties": false
       },
+      "SandboLicenSFaEGGWOs5rH": {
+        "type": "array",
+        "items": {
+          "required": [
+            "compact",
+            "jurisdictionName",
+            "postalAbbreviation"
+          ],
+          "type": "object",
+          "properties": {
+            "postalAbbreviation": {
+              "type": "string",
+              "description": "The postal abbreviation of the jurisdiction"
+            },
+            "compact": {
+              "type": "string"
+            },
+            "jurisdictionName": {
+              "type": "string",
+              "description": "The name of the jurisdiction"
+            }
+          }
+        }
+      },
       "SandboLicentklD8M9BL5Nl": {
         "required": [
           "pagination",
@@ -4781,6 +4928,17 @@
             }
           }
         }
+      },
+      "SandboLicenKFMSs4LH04ge": {
+        "type": "object",
+        "properties": {
+          "deactivationNote": {
+            "maxLength": 256,
+            "type": "string",
+            "description": "Note describing why the privilege is being deactivated"
+          }
+        },
+        "additionalProperties": false
       },
       "SandboLicenuSgVopjVWnQa": {
         "type": "object",

@@ -389,6 +389,44 @@
     ],
     "octp": [
       {
+        "jurisdictionName": "Alabama",
+        "postalAbbreviation": "al",
+        "jurisdictionFee": 100,
+        "jurisdictionOperationsTeamEmails": [
+          "cloud-team-nonprod-alerts@inspiringapps.com"
+        ],
+        "jurisdictionAdverseActionsNotificationEmails": [],
+        "jurisdictionSummaryReportNotificationEmails": [],
+        "jurisprudenceRequirements": {
+          "required": true
+        },
+        "licenseeRegistrationEnabledForEnvironments": [
+          "test"
+        ],
+        "activeEnvironments": [
+          "test"
+        ]
+      },
+      {
+        "jurisdictionName": "Arkansas",
+        "postalAbbreviation": "ar",
+        "jurisdictionFee": 100,
+        "jurisdictionOperationsTeamEmails": [
+          "cloud-team-nonprod-alerts@inspiringapps.com"
+        ],
+        "jurisdictionAdverseActionsNotificationEmails": [],
+        "jurisdictionSummaryReportNotificationEmails": [],
+        "jurisprudenceRequirements": {
+          "required": true
+        },
+        "licenseeRegistrationEnabledForEnvironments": [
+          "test"
+        ],
+        "activeEnvironments": [
+          "test"
+        ]
+      },
+      {
         "jurisdictionName": "Kentucky",
         "postalAbbreviation": "ky",
         "jurisdictionFee": 100,
@@ -397,6 +435,44 @@
           "discountType": "FLAT_RATE",
           "discountAmount": 10
         },
+        "jurisdictionOperationsTeamEmails": [
+          "cloud-team-nonprod-alerts@inspiringapps.com"
+        ],
+        "jurisdictionAdverseActionsNotificationEmails": [],
+        "jurisdictionSummaryReportNotificationEmails": [],
+        "jurisprudenceRequirements": {
+          "required": true
+        },
+        "licenseeRegistrationEnabledForEnvironments": [
+          "test"
+        ],
+        "activeEnvironments": [
+          "test"
+        ]
+      },
+      {
+        "jurisdictionName": "Louisiana",
+        "postalAbbreviation": "la",
+        "jurisdictionFee": 100,
+        "jurisdictionOperationsTeamEmails": [
+          "cloud-team-nonprod-alerts@inspiringapps.com"
+        ],
+        "jurisdictionAdverseActionsNotificationEmails": [],
+        "jurisdictionSummaryReportNotificationEmails": [],
+        "jurisprudenceRequirements": {
+          "required": true
+        },
+        "licenseeRegistrationEnabledForEnvironments": [
+          "test"
+        ],
+        "activeEnvironments": [
+          "test"
+        ]
+      },
+      {
+        "jurisdictionName": "Mississippi",
+        "postalAbbreviation": "ms",
+        "jurisdictionFee": 100,
         "jurisdictionOperationsTeamEmails": [
           "cloud-team-nonprod-alerts@inspiringapps.com"
         ],

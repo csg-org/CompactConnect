@@ -127,7 +127,33 @@ class TestLicenseRecordSchema(TstLambdas):
         self.assertEqual('inactive', license_data['licenseStatus'])
         self.assertEqual('ineligible', license_data['compactEligibility'])
 
-    def test_sets_status_to_inactive_if_license_status_inactive(self):
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-09T03:59:59+00:00'))
+    def test_status_is_set_to_active_right_before_expiration_for_utc_minus_four_timezone(self):
+        from cc_common.data_model.schema.license.record import LicenseRecordSchema
+
+        with open('tests/resources/dynamo/license.json') as f:
+            privilege_data = json.load(f)
+            privilege_data['dateOfExpiration'] = '2024-11-08'
+
+        result = LicenseRecordSchema().load(privilege_data)
+
+        self.assertEqual(result['licenseStatus'], 'active')
+
+
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-09T04:00:00+00:00'))
+    def test_status_is_set_to_inactive_right_at_expiration_for_utc_minus_four_timezone(self):
+        from cc_common.data_model.schema.license.record import LicenseRecordSchema
+
+        with open('tests/resources/dynamo/license.json') as f:
+            privilege_data = json.load(f)
+            privilege_data['dateOfExpiration'] = '2024-11-08'
+
+        result = LicenseRecordSchema().load(privilege_data)
+
+        self.assertEqual(result['licenseStatus'], 'inactive')
+
+
+    def test_license_record_schema_sets_status_to_inactive_if_jurisdiction_status_inactive(self):
         from cc_common.data_model.schema import LicenseRecordSchema
 
         with open('tests/resources/dynamo/license.json') as f:
