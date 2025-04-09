@@ -73,8 +73,8 @@ def generate_mock_compact_configuration():
 
 
 @mock_aws
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(MOCK_CURRENT_TIMESTAMP))
 class TestCompactConfigurationUploader(TstFunction):
-    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(MOCK_CURRENT_TIMESTAMP))
     def test_compact_configuration_uploader_store_all_config(self):
         from handlers.compact_config_uploader import on_event
 
@@ -211,7 +211,6 @@ class TestCompactConfigurationUploader(TstFunction):
         with self.assertRaises(ValidationError):
             on_event(event, self.mock_context)
 
-    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(MOCK_CURRENT_TIMESTAMP))
     def test_compact_configuration_uploader_uploads_attestations(self):
         """Test that attestations are correctly uploaded to DynamoDB."""
         from handlers.compact_config_uploader import on_event
@@ -318,27 +317,22 @@ class TestCompactConfigurationUploader(TstFunction):
         self.assertEqual('2', attestations[1]['version'])
         self.assertEqual(new_value, attestations[1][field_to_change])
 
-    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(MOCK_CURRENT_TIMESTAMP))
     def test_compact_configuration_uploader_handles_attestation_versioning_when_updating_text(self):
         """Test that attestation versioning works correctly when content changes."""
         self._when_testing_attestation_field_updates('text', 'New text')
 
-    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(MOCK_CURRENT_TIMESTAMP))
     def test_compact_configuration_uploader_handles_attestation_versioning_when_updating_description(self):
         """Test that attestation versioning works correctly when content changes."""
         self._when_testing_attestation_field_updates('description', 'New description')
 
-    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(MOCK_CURRENT_TIMESTAMP))
     def test_compact_configuration_uploader_handles_attestation_versioning_when_updating_display_name(self):
         """Test that attestation versioning works correctly when content changes."""
         self._when_testing_attestation_field_updates('displayName', 'New Display Name')
 
-    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(MOCK_CURRENT_TIMESTAMP))
     def test_compact_configuration_uploader_handles_attestation_versioning_when_updating_required_field(self):
         """Test that attestation versioning works correctly when content changes."""
         self._when_testing_attestation_field_updates('required', False)
 
-    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(MOCK_CURRENT_TIMESTAMP))
     def test_compact_configuration_uploader_skips_upload_when_no_changes(self):
         """Test that attestation is not uploaded when content hasn't changed."""
         from handlers.compact_config_uploader import on_event

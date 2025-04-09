@@ -93,11 +93,7 @@ class LandingZoneStack(Stack):
                 # account ids above to an account we didn't control, this org id check will prevent
                 # the access from working, since the account would have to be both named above and
                 # be in our organization.
-                conditions={
-                    'StringEquals': {
-                        'aws:PrincipalOrgID': ['${aws:ResourceOrgId}']
-                    }
-                }
+                conditions={'StringEquals': {'aws:PrincipalOrgID': ['${aws:ResourceOrgId}']}},
             )
         )
 

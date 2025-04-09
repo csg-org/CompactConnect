@@ -2,7 +2,7 @@
 # We diverge from PEP8 variable naming in schema because they map to our API JSON Schema in which,
 # by convention, we use camelCase.
 from abc import ABC
-from datetime import date, datetime
+from datetime import date
 
 from marshmallow import EXCLUDE, RAISE, Schema, post_load, pre_dump, pre_load
 from marshmallow.fields import UUID, DateTime, String
@@ -114,7 +114,7 @@ class CalculatedStatusRecordSchema(BaseRecordSchema):
             if (
                 in_data.get('jurisdictionStatus', 'active') == 'active'
                 and date.fromisoformat(in_data['dateOfExpiration'])
-                > datetime.now(tz=config.expiration_date_resolution_timezone).date()
+                >= config.expiration_resolution_date
             )
             else 'inactive'
         )
