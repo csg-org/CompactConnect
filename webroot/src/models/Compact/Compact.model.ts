@@ -6,7 +6,7 @@
 //
 
 import { compacts as compactConfigs } from '@/app.config';
-import deleteUndefinedProperties from '@models/_helpers';
+import { deleteUndefinedProperties } from '@models/_helpers';
 import { PrivilegePurchaseOption } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
 import { State } from '@models/State/State.model';
 import { CompactFeeConfig } from '@models/CompactFeeConfig/CompactFeeConfig.model';

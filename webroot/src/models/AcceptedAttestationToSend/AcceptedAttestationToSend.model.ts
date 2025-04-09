@@ -5,7 +5,7 @@
 //  Created by InspiringApps on 2/4/2025.
 //
 
-import deleteUndefinedProperties from '@models/_helpers';
+import { deleteUndefinedProperties } from '@models/_helpers';
 
 // ========================================================
 // =                       Interface                      =

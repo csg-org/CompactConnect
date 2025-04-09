@@ -828,4 +828,84 @@ describe('User Store Getters', async () => {
 
         expect(licenseSelected.licenseNumber).to.equal('1');
     });
+    it('should successfully get the user privilege by Id', async () => {
+        const state = {
+            model: new LicenseeUser({
+                licensee: new Licensee({
+                    privileges: [
+                        new License({
+                            id: 'license-1',
+                            issueState: new State({ abbrev: 'co' }),
+                            mailingAddress: new Address({
+                                street1: 'test-street1',
+                                street2: 'test-street2',
+                                city: 'test-city',
+                                state: 'co',
+                                zip: 'test-zip'
+                            }),
+                            licenseNumber: '1',
+                            status: 'active'
+                        }),
+                        new License({
+                            id: 'license-2',
+                            issueState: new State({ abbrev: 'mi' }),
+                            mailingAddress: new Address({
+                                street1: 'test-street1',
+                                street2: 'test-street2',
+                                city: 'test-city',
+                                state: 'co',
+                                zip: 'test-zip'
+                            }),
+                            status: 'inactive'
+                        }),
+                        new License(),
+                    ],
+                })
+            })
+        };
+
+        const licenseSelected = getters.getUserPrivilegeById(state)('license-2');
+
+        expect(licenseSelected.id).to.equal('license-2');
+    });
+    it('should not successfully get the user privilege by Id', async () => {
+        const state = {
+            model: new LicenseeUser({
+                licensee: new Licensee({
+                    privileges: [
+                        new License({
+                            id: 'license-1',
+                            issueState: new State({ abbrev: 'co' }),
+                            mailingAddress: new Address({
+                                street1: 'test-street1',
+                                street2: 'test-street2',
+                                city: 'test-city',
+                                state: 'co',
+                                zip: 'test-zip'
+                            }),
+                            licenseNumber: '1',
+                            status: 'active'
+                        }),
+                        new License({
+                            id: 'license-2',
+                            issueState: new State({ abbrev: 'mi' }),
+                            mailingAddress: new Address({
+                                street1: 'test-street1',
+                                street2: 'test-street2',
+                                city: 'test-city',
+                                state: 'co',
+                                zip: 'test-zip'
+                            }),
+                            status: 'inactive'
+                        }),
+                        new License(),
+                    ],
+                })
+            })
+        };
+
+        const licenseSelected = getters.getUserPrivilegeById(state)('license-3');
+
+        expect(licenseSelected).to.equal(null);
+    });
 });
