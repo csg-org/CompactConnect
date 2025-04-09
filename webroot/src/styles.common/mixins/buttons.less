@@ -16,6 +16,11 @@
     @buttonTransparentTextColor: @primaryColor;
     @buttonTransparentHoverBGColor: @primaryColor;
     @buttonTransparentHoverTextColor: @buttonEnabledTextColor;
+    @buttonWarningBGColor: @midRed;
+    @buttonWarningTextColor: @white;
+    @buttonWarningHoverColor: @darkRed;
+    @buttonWarningDisabledBGColor: @lightRed;
+    @buttonWarningDisabledTextColor: @white;
     @transition: 0.2s ease-out;
 
     padding: 0.4rem 2.4rem;
@@ -40,7 +45,24 @@
         cursor: default;
     }
 
-    &:not(:disabled):not(.transparent):not(.text-like) {
+    &.warning {
+        border-color: @buttonWarningBGColor;
+        color: @buttonWarningTextColor;
+        background-color: @buttonWarningBGColor;
+
+        &:hover {
+            border-color: @buttonWarningHoverColor;
+            background-color: @buttonWarningHoverColor;
+        }
+
+        &:disabled {
+            border-color: @buttonWarningDisabledBGColor;
+            color: @buttonWarningDisabledTextColor;
+            background-color: @buttonWarningDisabledBGColor;
+        }
+    }
+
+    &:not(.warning):not(:disabled):not(.transparent):not(.text-like) {
         &:hover,
         &:focus,
         &:active {

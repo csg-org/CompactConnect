@@ -565,9 +565,14 @@
             "inactive": "Inactivo"
         },
         "privilegeActions": "Acciones de privilegio",
+        "privilegeActionsNone": "No hay acciones disponibles",
         "deactivate": "Desactivar",
         "deactivated": "Desactivado",
-        "confirmPrivilegeDeactivate": "¿Está seguro de que desea desactivar este privilegio? No es posible deshacer esta acción.",
+        "confirmPrivilegeDeactivateTitle": "¿Está seguro de que desea desactivar este privilegio?",
+        "confirmPrivilegeDeactivateSubtext": "El profesional ya no podrá ejercer este privilegio. Esto no constituye una sanción disciplinaria.",
+        "deactivateNotesTitle": "Notas de desactivación",
+        "deactivateNotesPlaceholder": "Introduzca notas aquí",
+        "confirmPrivilegeDeactivateSubmit": "Sí, desactivar privilegio",
         "licenseTypes": [
             {
                 "name": "Audiólogo",
