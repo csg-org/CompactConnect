@@ -18,7 +18,6 @@ class BackendStage(Stage):
         app_name: str,
         environment_name: str,
         environment_context: dict,
-        github_repo_string: str,
         **kwargs,
     ):
         super().__init__(scope, construct_id, **kwargs)
@@ -54,7 +53,6 @@ class BackendStage(Stage):
             environment_context=environment_context,
             environment_name=environment_name,
             standard_tags=standard_tags,
-            github_repo_string=github_repo_string,
             persistent_stack=self.persistent_stack,
         )
 

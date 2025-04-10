@@ -6,7 +6,7 @@ from aws_cdk import BundlingOptions, DockerImage, Size, Stack
 from aws_cdk.aws_s3 import IBucket
 from aws_cdk.aws_s3_deployment import BucketDeployment, Source
 from cdk_nag import NagSuppressions
-from common_constructs.ui_app_config_utility import UIAppConfigValues
+from common_constructs.frontend_app_config_utility import PersistentStackFrontendAppConfigValues
 from constructs import Construct
 
 HTTPS_PREFIX = 'https://'
@@ -21,7 +21,7 @@ class CompactConnectUIBucketDeployment(BucketDeployment):
         *,
         ui_bucket: IBucket,
         environment_context: dict,
-        ui_app_config_values: UIAppConfigValues,
+        ui_app_config_values: PersistentStackFrontendAppConfigValues,
     ):
         stack = Stack.of(scope)
         # Get environment-specific values from context

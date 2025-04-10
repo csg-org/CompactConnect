@@ -22,7 +22,7 @@ class TestQueryProvidersApi(TestApi):
 
     def test_synth_generates_providers_resource(self):
         """Test that the /providers resource is created correctly."""
-        api_stack = self.app.sandbox_stage.api_stack
+        api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
 
         # Ensure the resource is created with expected path
@@ -39,7 +39,7 @@ class TestQueryProvidersApi(TestApi):
 
     def test_synth_generates_get_provider_endpoint(self):
         """Test that the GET /providers/{providerId} endpoint is configured correctly."""
-        api_stack = self.app.sandbox_stage.api_stack
+        api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
 
         # Ensure the resource is created with expected path
@@ -99,7 +99,7 @@ class TestQueryProvidersApi(TestApi):
 
     def test_synth_generates_query_providers_endpoint(self):
         """Test that the POST /providers/query endpoint is configured correctly."""
-        api_stack = self.app.sandbox_stage.api_stack
+        api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
 
         # Ensure the resource is created with expected path
@@ -175,7 +175,7 @@ class TestQueryProvidersApi(TestApi):
 
     def test_synth_generates_get_provider_ssn_endpoint(self):
         """Test that the GET /providers/{providerId}/ssn endpoint is configured correctly."""
-        api_stack = self.app.sandbox_stage.api_stack
+        api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
 
         # Ensure the resource is created with expected path
@@ -237,7 +237,7 @@ class TestQueryProvidersApi(TestApi):
 
     def test_synth_generates_get_provider_ssn_alarms(self):
         """Test that the GET /providers/{providerId}/ssn alarms are configured correctly."""
-        api_stack = self.app.sandbox_stage.api_stack
+        api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
 
         # Ensure the anomaly detection alarm is created
@@ -308,7 +308,7 @@ class TestQueryProvidersApi(TestApi):
     def test_synth_generates_deactivate_privilege_endpoint(self):
         """Test that the POST /providers/{providerId}/privileges/jurisdiction/{jurisdiction}
         /licenseType/{licenseType}/deactivate endpoint is configured correctly."""
-        api_stack = self.app.sandbox_stage.api_stack
+        api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
 
         # Ensure the lambda is created with expected code path
@@ -437,7 +437,7 @@ class TestQueryProvidersApi(TestApi):
 
     def test_synth_generates_deactivate_privilege_alarms(self):
         """Test that the alarms are configured correctly for the privilege deactivation endpoint."""
-        api_stack = self.app.sandbox_stage.api_stack
+        api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
 
         # Ensure the anomaly detection alarm is created

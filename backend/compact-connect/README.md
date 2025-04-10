@@ -178,7 +178,8 @@ its environment:
    type of authentication you use to login to your account. See the [AWS CLI Configuration Guide](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-quickstart.html).
 7) Complete the [Google reCAPTCHA Setup](#google-recaptcha-setup) steps for your sandbox environment.
 8) Run `cdk bootstrap` to add some base CDK support infrastructure to your AWS account.
-9) Run `cdk deploy 'Sandbox/*'` to get the initial stack resources deployed.
+9) Run `cdk deploy 'Sandbox/*'` to get the initial backend stack resources deployed.
+10) *Optional:* Once the backend stacks have successfully deployed, deploy the frontend UI by setting the 'deploy_sandbox_ui' context field to `true` and run `cdk deploy 'SandboxUI/*'`
 
 ### Subsequent sandbox deploys:
 For any future deploys, everything is set up so a simple `cdk deploy 'Sandbox/*'` should update all your infrastructure

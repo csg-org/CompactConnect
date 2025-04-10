@@ -34,10 +34,6 @@
         {
           "Key": "aws-cdk:auto-delete-objects",
           "Value": "true"
-        },
-        {
-          "Key": "aws-cdk:cr-owned:3d7141dd",
-          "Value": "true"
         }
       ]
     },

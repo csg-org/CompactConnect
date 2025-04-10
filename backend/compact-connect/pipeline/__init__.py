@@ -5,6 +5,7 @@ from aws_cdk.aws_iam import Effect, PolicyStatement
 from aws_cdk.aws_kms import IKey, Key
 from aws_cdk.aws_sns import ITopic
 from aws_cdk.aws_ssm import StringParameter
+from aws_cdk.pipelines import CodePipeline as CdkCodePipeline
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.alarm_topic import AlarmTopic
 from common_constructs.stack import Stack
@@ -12,6 +13,8 @@ from constructs import Construct
 
 from pipeline.backend_pipeline import BackendPipeline
 from pipeline.backend_stage import BackendStage
+from pipeline.frontend_pipeline import FrontendPipeline
+from pipeline.frontend_stage import FrontendStage
 
 TEST_ENVIRONMENT_NAME = 'test'
 BETA_ENVIRONMENT_NAME = 'beta'
@@ -118,6 +121,24 @@ class BasePipelineStack(Stack):
             auto_delete_objects=self.removal_policy == RemovalPolicy.DESTROY,
         )
 
+    def _add_pipeline_role_policy(self, pipeline: CdkCodePipeline):
+        pipeline.synth_project.add_to_role_policy(
+            PolicyStatement(
+                effect=Effect.ALLOW,
+                actions=['sts:AssumeRole'],
+                resources=[
+                    self.format_arn(
+                        partition=self.partition,
+                        service='iam',
+                        region='',
+                        account='*',
+                        resource='role',
+                        resource_name='cdk-hnb659fds-lookup-role-*',
+                    ),
+                ],
+            ),
+        )
+
 
 class TestPipelineStack(BasePipelineStack):
     """Pipeline stack for the test environment, triggered by the development branch."""
@@ -145,7 +166,7 @@ class TestPipelineStack(BasePipelineStack):
 
         self.pre_prod_pipeline = BackendPipeline(
             self,
-            'PreProdPipeline',
+            'TestBackendPipeline',
             github_repo_string=self.github_repo_string,
             cdk_path=cdk_path,
             connection_arn=self.connection_arn,
@@ -165,27 +186,38 @@ class TestPipelineStack(BasePipelineStack):
             app_name=self.app_name,
             environment_name=TEST_ENVIRONMENT_NAME,
             environment_context=self.ssm_context['environments'][TEST_ENVIRONMENT_NAME],
-            github_repo_string=self.github_repo_string,
         )
 
         self.pre_prod_pipeline.add_stage(self.test_stage)
         self.pre_prod_pipeline.build_pipeline()
-        self.pre_prod_pipeline.synth_project.add_to_role_policy(
-            PolicyStatement(
-                effect=Effect.ALLOW,
-                actions=['sts:AssumeRole'],
-                resources=[
-                    self.format_arn(
-                        partition=self.partition,
-                        service='iam',
-                        region='',
-                        account='*',
-                        resource='role',
-                        resource_name='cdk-hnb659fds-lookup-role-*',
-                    ),
-                ],
-            ),
+        self._add_pipeline_role_policy(self.pre_prod_pipeline)
+
+        self.pre_prod_frontend_pipeline = FrontendPipeline(
+            self,
+            'TestFrontendPipeline',
+            github_repo_string=self.github_repo_string,
+            cdk_path=cdk_path,
+            connection_arn=self.connection_arn,
+            trigger_branch=pre_prod_trigger_branch,
+            encryption_key=pipeline_shared_encryption_key,
+            alarm_topic=pipeline_alarm_topic,
+            access_logs_bucket=self.access_logs_bucket,
+            ssm_parameter=self.parameter,
+            environment_context=self.pipeline_environment_context,
+            self_mutation=True,
+            removal_policy=self.removal_policy,
         )
+
+        self.pre_prod_frontend_stage = FrontendStage(
+            self,
+            'PreProdFrontendStage',
+            environment_name=TEST_ENVIRONMENT_NAME,
+            environment_context=self.ssm_context['environments'][TEST_ENVIRONMENT_NAME],
+        )
+
+        self.pre_prod_frontend_pipeline.add_stage(self.pre_prod_frontend_stage)
+        self.pre_prod_frontend_pipeline.build_pipeline()
+        self._add_pipeline_role_policy(self.pre_prod_frontend_pipeline)
 
 
 class BetaPipelineStack(BasePipelineStack):
@@ -207,7 +239,7 @@ class BetaPipelineStack(BasePipelineStack):
 
         self.beta_pipeline = BackendPipeline(
             self,
-            'BetaPipeline',
+            'BetaBackendPipeline',
             github_repo_string=self.github_repo_string,
             cdk_path=cdk_path,
             connection_arn=self.connection_arn,
@@ -227,27 +259,37 @@ class BetaPipelineStack(BasePipelineStack):
             app_name=self.app_name,
             environment_name=BETA_ENVIRONMENT_NAME,
             environment_context=self.ssm_context['environments'][BETA_ENVIRONMENT_NAME],
-            github_repo_string=self.github_repo_string,
         )
 
         self.beta_pipeline.add_stage(self.beta_stage)
         self.beta_pipeline.build_pipeline()
-        self.beta_pipeline.synth_project.add_to_role_policy(
-            PolicyStatement(
-                effect=Effect.ALLOW,
-                actions=['sts:AssumeRole'],
-                resources=[
-                    self.format_arn(
-                        partition=self.partition,
-                        service='iam',
-                        region='',
-                        account='*',
-                        resource='role',
-                        resource_name='cdk-hnb659fds-lookup-role-*',
-                    ),
-                ],
-            ),
+        self._add_pipeline_role_policy(self.beta_pipeline)
+
+        self.beta_frontend_pipeline = FrontendPipeline(
+            self,
+            'BetaFrontendPipeline',
+            github_repo_string=self.github_repo_string,
+            cdk_path=cdk_path,
+            connection_arn=self.connection_arn,
+            trigger_branch='main',
+            encryption_key=pipeline_shared_encryption_key,
+            alarm_topic=pipeline_alarm_topic,
+            access_logs_bucket=self.access_logs_bucket,
+            ssm_parameter=self.parameter,
+            environment_context=self.pipeline_environment_context,
+            self_mutation=True,
+            removal_policy=self.removal_policy,
         )
+        self.beta_frontend_stage = FrontendStage(
+            self,
+            'BetaFrontendStage',
+            environment_name=BETA_ENVIRONMENT_NAME,
+            environment_context=self.ssm_context['environments'][BETA_ENVIRONMENT_NAME],
+        )
+
+        self.beta_frontend_pipeline.add_stage(self.beta_frontend_stage)
+        self.beta_frontend_pipeline.build_pipeline()
+        self._add_pipeline_role_policy(self.beta_frontend_pipeline)
 
 
 class ProdPipelineStack(BasePipelineStack):
@@ -269,7 +311,7 @@ class ProdPipelineStack(BasePipelineStack):
 
         self.prod_pipeline = BackendPipeline(
             self,
-            'ProdPipeline',
+            'ProdBackendPipeline',
             github_repo_string=self.github_repo_string,
             cdk_path=cdk_path,
             connection_arn=self.connection_arn,
@@ -289,24 +331,35 @@ class ProdPipelineStack(BasePipelineStack):
             app_name=self.app_name,
             environment_name=PROD_ENVIRONMENT_NAME,
             environment_context=self.ssm_context['environments'][PROD_ENVIRONMENT_NAME],
-            github_repo_string=self.github_repo_string,
         )
 
         self.prod_pipeline.add_stage(self.prod_stage)
         self.prod_pipeline.build_pipeline()
-        self.prod_pipeline.synth_project.add_to_role_policy(
-            PolicyStatement(
-                effect=Effect.ALLOW,
-                actions=['sts:AssumeRole'],
-                resources=[
-                    self.format_arn(
-                        partition=self.partition,
-                        service='iam',
-                        region='',
-                        account='*',
-                        resource='role',
-                        resource_name='cdk-hnb659fds-lookup-role-*',
-                    ),
-                ],
-            ),
+        self._add_pipeline_role_policy(self.prod_pipeline)
+
+        self.prod_frontend_pipeline = FrontendPipeline(
+            self,
+            'ProdFrontendPipeline',
+            github_repo_string=self.github_repo_string,
+            cdk_path=cdk_path,
+            connection_arn=self.connection_arn,
+            trigger_branch='main',
+            encryption_key=pipeline_shared_encryption_key,
+            alarm_topic=pipeline_alarm_topic,
+            access_logs_bucket=self.access_logs_bucket,
+            ssm_parameter=self.parameter,
+            environment_context=self.pipeline_environment_context,
+            self_mutation=True,
+            removal_policy=self.removal_policy,
         )
+
+        self.prod_frontend_stage = FrontendStage(
+            self,
+            'ProdFrontend',
+            environment_name=PROD_ENVIRONMENT_NAME,
+            environment_context=self.ssm_context['environments'][PROD_ENVIRONMENT_NAME],
+        )
+
+        self.prod_frontend_pipeline.add_stage(self.prod_frontend_stage)
+        self.prod_frontend_pipeline.build_pipeline()
+        self._add_pipeline_role_policy(self.prod_frontend_pipeline)

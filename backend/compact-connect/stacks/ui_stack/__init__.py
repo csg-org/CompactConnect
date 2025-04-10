@@ -1,14 +1,12 @@
 from aws_cdk import RemovalPolicy
 from cdk_nag import NagSuppressions
 from common_constructs.bucket import Bucket
-from common_constructs.github_actions_access import GitHubActionsAccess
+from common_constructs.frontend_app_config_utility import UIStackFrontendAppConfigUtility
 from common_constructs.security_profile import SecurityProfile
 from common_constructs.stack import AppStack
-from common_constructs.ui_app_config_utility import UIAppConfigValues
 from constructs import Construct
 
 from stacks.persistent_stack import PersistentStack
-from stacks.ui_stack.deployment import CompactConnectUIBucketDeployment
 from stacks.ui_stack.distribution import UIDistribution
 
 
@@ -18,7 +16,6 @@ class UIStack(AppStack):
         scope: Construct,
         construct_id: str,
         *,
-        github_repo_string: str,
         environment_context: dict,
         environment_name: str,
         persistent_stack: PersistentStack,
@@ -58,21 +55,6 @@ class UIStack(AppStack):
 
         security_profile = SecurityProfile[environment_context.get('security_profile', 'RECOMMENDED')]
 
-        # Load the app configuration if bundling is required
-        ui_app_config_values = UIAppConfigValues.load_from_ssm_parameter(self)
-
-        # If the parameter could not be found, it means that the app_configuration values have not been deployed to SSM
-        # we will skip the bucket deployment until the parameter has been put into place, to avoid deploying without the
-        # needed values.
-        if ui_app_config_values is not None:
-            self.assets = CompactConnectUIBucketDeployment(
-                self,
-                'CompactConnectUIDeployment',
-                ui_bucket=ui_bucket,
-                environment_context=environment_context,
-                ui_app_config_values=ui_app_config_values,
-            )
-
         self.distribution = UIDistribution(
             self,
             'UIDistribution',
@@ -81,21 +63,7 @@ class UIStack(AppStack):
             persistent_stack=persistent_stack,
         )
 
-        # Configure permission for GitHub Actions to deploy the UI
-        github_actions = GitHubActionsAccess(
-            self, 'GitHubActionsAccess', github_repo_string=github_repo_string, role_name='github_ui_push'
-        )
-        self.distribution.grant_create_invalidation(github_actions)
-        self.distribution.grant(github_actions, 'cloudfront:GetInvalidation')
-        ui_bucket.grant_read_write(github_actions)
-        NagSuppressions.add_resource_suppressions_by_path(
-            self,
-            path=f'{github_actions.node.path}/Role/DefaultPolicy',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': """The wild-carded actions and resources in this policy are still scoped specifically
-                     to the bucket and actions needed for this principal to deploy the UI to this infrastructure""",
-                }
-            ],
-        )
+        ui_app_config = UIStackFrontendAppConfigUtility()
+        ui_app_config.set_ui_bucket_arn(ui_bucket.bucket_arn)
+        # store the ui bucket arn in ssm parameter store for the frontend deployment stack to use
+        ui_app_config.generate_ssm_parameter(self, 'UIAppConfig')

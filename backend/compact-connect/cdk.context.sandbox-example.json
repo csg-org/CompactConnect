@@ -10,6 +10,7 @@
         "region": "us-east-1",
         "domain_name": "justin.compactconnect.org",
         "allow_local_ui": true,
+        "deploy_sandbox_ui": false,
         "security_profile": "VULNERABLE",
         "recaptcha_public_key": "123-KFEUsjehfuejILDVUKkRnAF9SSzb8o9uv5lY7Ih",
         "robots_meta": "noindex,nofollow",

@@ -1,16 +1,21 @@
 import json
 from unittest import TestCase
 
-from common_constructs.ui_app_config_utility import UIAppConfigUtility, UIAppConfigValues
+from common_constructs.frontend_app_config_utility import (
+    PersistentStackFrontendAppConfigUtility,
+    PersistentStackFrontendAppConfigValues,
+    UIStackFrontendAppConfigUtility,
+    UIStackFrontendAppConfigValues,
+)
 
 
-class TestUIAppConfigUtility(TestCase):
-    """Tests for the UIAppConfigUtility class"""
+class TestPersistentStackFrontendAppConfigUtility(TestCase):
+    """Tests for the PersistentStackFrontendAppConfigUtility class"""
 
     def test_setters_set_expected_fields(self):
         """Test that values can be set and retrieved as JSON"""
         # Create a new utility instance
-        util = UIAppConfigUtility()
+        util = PersistentStackFrontendAppConfigUtility()
 
         # Set values
         util.set_staff_cognito_values(domain_name='staff-domain.example.com', client_id='staff-client-123')
@@ -37,7 +42,7 @@ class TestUIAppConfigUtility(TestCase):
     def test_getters_return_expected_values(self):
         """Test that getters return expected values"""
         # Create a new utility instance
-        util = UIAppConfigValues(
+        util = PersistentStackFrontendAppConfigValues(
             json.dumps(
                 {
                     'staff_cognito_domain': 'staff-domain.example.com',
@@ -57,3 +62,41 @@ class TestUIAppConfigUtility(TestCase):
         self.assertEqual(util.provider_cognito_client_id, 'provider-client-456')
         self.assertEqual(util.ui_domain_name, 'ui.example.com')
         self.assertEqual(util.api_domain_name, 'api.example.com')
+
+
+class TestUIStackFrontendAppConfigUtility(TestCase):
+    """Tests for the UIStackFrontendAppConfigUtility class"""
+
+    def test_setters_set_expected_fields(self):
+        """Test that values can be set and retrieved as JSON"""
+        # Create a new utility instance
+        util = UIStackFrontendAppConfigUtility()
+
+        # Set values
+        util.set_ui_bucket_arn(ui_bucket_arn='ui-bucket-arn')
+
+        # Get JSON representation
+        config_json = util.get_config_json()
+        config_dict = json.loads(config_json)
+
+        # Verify values as a full dictionary
+        self.assertEqual(
+            {
+                'ui_bucket_arn': 'ui-bucket-arn',
+            },
+            config_dict,
+        )
+
+    def test_getters_return_expected_values(self):
+        """Test that getters return expected values"""
+        # Create a new utility instance
+        util = UIStackFrontendAppConfigValues(
+            json.dumps(
+                {
+                    'ui_bucket_arn': 'ui-bucket-arn',
+                }
+            )
+        )
+
+        # Test getters
+        self.assertEqual(util.ui_bucket_arn, 'ui-bucket-arn')
