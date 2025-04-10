@@ -40,7 +40,7 @@ describe('CognitoEmailService', () => {
             expect(subject).toBe('Welcome to CompactConnect');
             expect(htmlContent).toContain('Your temporary password is: {####}');
             expect(htmlContent).toContain('Your username is: testuser');
-            expect(htmlContent).toContain('https://app.test.compactconnect.org/Login');
+            expect(htmlContent).toContain('https://app.test.compactconnect.org/Dashboard');
         });
 
         it('should generate ForgotPassword message', () => {

@@ -5,7 +5,7 @@
 //  Created by InspiringApps on 1/21/2025.
 //
 
-import deleteUndefinedProperties from '@models/_helpers';
+import { deleteUndefinedProperties } from '@models/_helpers';
 import { dateDisplay } from '@models/_formatters/date';
 import { Compact } from '@models/Compact/Compact.model';
 

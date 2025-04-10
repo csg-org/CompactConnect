@@ -1,3 +1,6 @@
+import { dateDiff } from '@models/_formatters/date';
+import moment from 'moment';
+
 const deleteUndefinedProperties = (data = {}) => {
     const cleanObject = { ...data };
 
@@ -10,4 +13,14 @@ const deleteUndefinedProperties = (data = {}) => {
     return cleanObject;
 };
 
-export default deleteUndefinedProperties;
+const isDatePastExpiration = ({ date, dateOfExpiration }): boolean => {
+    const dateOfRenewal = moment().format(date);
+    const diff = dateDiff(dateOfRenewal, dateOfExpiration, 'days') || 0;
+
+    return diff > 0;
+};
+
+export {
+    deleteUndefinedProperties,
+    isDatePastExpiration
+};

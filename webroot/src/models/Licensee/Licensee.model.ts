@@ -5,7 +5,7 @@
 //  Created by InspiringApps on 7/1/2024.
 //
 
-import deleteUndefinedProperties from '@models/_helpers';
+import { deleteUndefinedProperties } from '@models/_helpers';
 import { dateDisplay, relativeFromNowDisplay } from '@models/_formatters/date';
 import { formatPhoneNumber, stripPhoneNumber } from '@models/_formatters/phone';
 import { Address, AddressSerializer } from '@models/Address/Address.model';

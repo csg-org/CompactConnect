@@ -4,7 +4,7 @@
 //
 //  Created by InspiringApps on 7/2/24.
 //
-
+import { License } from '@/models/License/License.model';
 import mutations, { MutationTypes } from './license.mutations';
 import actions from './license.actions';
 import getters from './license.getters';
@@ -413,5 +413,68 @@ describe('License Store Getters', async () => {
         const licensee = getters.licenseeById(state)('1');
 
         expect(licensee).to.matchPattern(record);
+    });
+    it('should successfully get privilege by LicenseeId And PrivilegeId', async () => {
+        const licensee1 = {
+            id: '1',
+            privileges: [
+                new License({ id: '1' }),
+                new License({ id: '2' }),
+            ]
+        };
+
+        const licensee2 = {
+            id: '2',
+            privileges: [
+                new License({ id: '12' }),
+                new License({ id: '22' }),
+            ]
+        };
+        const state = { model: [ licensee1, licensee2 ] };
+        const privilege = getters.getPrivilegeByLicenseeIdAndId(state)({ licenseeId: '2', privilegeId: '12' });
+
+        expect(privilege.id).to.equal('12');
+    });
+    it('should successfully not get privilege by LicenseeId And PrivilegeId (no licensee)', async () => {
+        const licensee1 = {
+            id: '1',
+            privileges: [
+                new License({ id: '1' }),
+                new License({ id: '2' }),
+            ]
+        };
+
+        const licensee2 = {
+            id: '2',
+            privileges: [
+                new License({ id: '12' }),
+                new License({ id: '22' }),
+            ]
+        };
+        const state = { model: [ licensee1, licensee2 ] };
+        const privilege = getters.getPrivilegeByLicenseeIdAndId(state)({ licenseeId: '3', privilegeId: '12' });
+
+        expect(privilege).to.equal(null);
+    });
+    it('should successfully not get privilege by LicenseeId And PrivilegeId (no privilege)', async () => {
+        const licensee1 = {
+            id: '1',
+            privileges: [
+                new License({ id: '1' }),
+                new License({ id: '2' }),
+            ]
+        };
+
+        const licensee2 = {
+            id: '2',
+            privileges: [
+                new License({ id: '12' }),
+                new License({ id: '22' }),
+            ]
+        };
+        const state = { model: [ licensee1, licensee2 ] };
+        const privilege = getters.getPrivilegeByLicenseeIdAndId(state)({ licenseeId: '2', privilegeId: '1' });
+
+        expect(privilege).to.equal(null);
     });
 });

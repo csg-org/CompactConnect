@@ -72,6 +72,13 @@
                 <div class="info-item">{{disciplineContent}}</div>
             </div>
         </div>
+        <InputButton
+            :label="viewDetails"
+            :aria-label="viewDetails"
+            class="view-details-button"
+            :isTransparent="true"
+            @click="goToPrivilegeDetailsPage"
+        />
         <TransitionGroup>
             <Modal
                 v-if="isDeactivatePrivilegeModalDisplayed"

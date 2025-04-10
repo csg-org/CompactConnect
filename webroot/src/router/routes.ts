@@ -28,6 +28,12 @@ const routes: Array<RouteConfig> = [
         beforeEnter: guards.noAuthGuard,
     },
     {
+        path: '/Search/:compact/:licenseeId/Privilege/:privilegeId',
+        name: 'PrivilegeDetailPublic',
+        component: () => import(/* webpackChunkName: "search" */ '@pages/PublicPrivilegeDetail/PublicPrivilegeDetail.vue'),
+        beforeEnter: guards.noAuthGuard,
+    },
+    {
         path: '/Search/:compact/:licenseeId',
         name: 'LicenseeDetailPublic',
         component: () => import(/* webpackChunkName: "search" */ '@pages/PublicLicensingDetail/PublicLicensingDetail.vue'),
@@ -73,6 +79,12 @@ const routes: Array<RouteConfig> = [
         name: 'LicensingDetail',
         component: () => import(/* webpackChunkName: "licensing" */ '@pages/LicensingDetail/LicensingDetail.vue'),
         meta: { requiresAuth: true, staffAccess: true },
+    },
+    {
+        path: '/:compact/Licensing/:licenseeId/Privilege/:privilegeId',
+        name: 'PrivilegeDetail',
+        component: () => import(/* webpackChunkName: "licensing" */ '@pages/PrivilegeDetail/PrivilegeDetail.vue'),
+        meta: { requiresAuth: true, licenseeAccess: true, staffAccess: true },
     },
     {
         path: '/:compact/Settings',

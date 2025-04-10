@@ -1,0 +1,45 @@
+//
+//  PublicPrivilegeDetail.less
+//  CompactConnect
+//
+//  Created by InspiringApps on 3/18/2025.
+//
+.privilege-detail-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem;
+
+    @media @tabletWidth {
+        padding: 4rem;
+    }
+
+    .place-holder {
+        min-height: 98vh;
+    }
+
+    .not-found-error {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 30vh;
+        font-size: @fontSizeLarge;
+
+        .back-btn {
+            margin-top: 4rem;
+        }
+    }
+
+    .privilege-detail-content-container {
+        width: 100%;
+
+        @media @desktopWidth {
+            width: unset;
+        }
+
+        .privilege-detail-title {
+            margin-bottom: 1.4rem;
+            font-size: @h1FontSize;
+        }
+    }
+}

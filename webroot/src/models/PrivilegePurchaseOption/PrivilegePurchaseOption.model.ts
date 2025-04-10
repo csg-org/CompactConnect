@@ -5,7 +5,7 @@
 //  Created by InspiringApps on 7/2/2024.
 //
 import { FeeTypes } from '@/app.config';
-import deleteUndefinedProperties from '@models/_helpers';
+import { deleteUndefinedProperties } from '@models/_helpers';
 import { State } from '@models/State/State.model';
 
 // ========================================================
