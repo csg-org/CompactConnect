@@ -32,7 +32,7 @@ class PrivilegeDetailBlock extends Vue {
     }
 
     get statusDisplay(): string {
-        return `${this.status} (${this.isDeactivated ? this.$t('licensing.deactivated') : this.expireConjugatedCorrectly}${this.expiresContent})`;
+        return `${this.status} (${this.isDeactivated ? this.$t('licensing.deactivated') : this.expiryLabel}${this.expiresContent})`.trim();
     }
 
     get isActive(): boolean {
@@ -47,7 +47,7 @@ class PrivilegeDetailBlock extends Vue {
         return Boolean(this.privilege?.isExpired());
     }
 
-    get expireConjugatedCorrectly(): string {
+    get expiryLabel(): string {
         return this.isExpired ? this.$t('licensing.expired') : this.$t('licensing.expires');
     }
 
