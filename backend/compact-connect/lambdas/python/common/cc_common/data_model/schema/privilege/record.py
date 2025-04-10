@@ -1,12 +1,18 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
-from datetime import date, datetime
+from datetime import date
 
-from marshmallow import Schema, post_dump, post_load, pre_dump, pre_load
+from marshmallow import Schema, ValidationError, post_dump, post_load, pre_dump, pre_load, validates_schema
 from marshmallow.fields import UUID, Date, DateTime, List, Nested, String
+from marshmallow.validate import Length
 
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import BaseRecordSchema, ForgivingSchema
-from cc_common.data_model.schema.common import ChangeHashMixin, ValidatesLicenseTypeMixin, ensure_value_is_datetime
+from cc_common.data_model.schema.common import (
+    ChangeHashMixin,
+    UpdateCategory,
+    ValidatesLicenseTypeMixin,
+    ensure_value_is_datetime,
+)
 from cc_common.data_model.schema.fields import ActiveInactive, Compact, Jurisdiction, UpdateType
 
 
@@ -23,6 +29,16 @@ class AttestationVersionRecordSchema(Schema):
 
     attestationId = String(required=True, allow_none=False)
     version = String(required=True, allow_none=False)
+
+
+class DeactivationDetailsSchema(Schema):
+    """
+    Schema for tracking details about a privilege deactivation.
+    """
+
+    note = String(required=False, allow_none=False, validate=Length(1, 256))
+    deactivatedByStaffUserId = UUID(required=True, allow_none=False)
+    deactivatedByStaffUserName = String(required=True, allow_none=False)
 
 
 @BaseRecordSchema.register_schema('privilege')
@@ -100,7 +116,7 @@ class PrivilegeRecordSchema(BaseRecordSchema, ValidatesLicenseTypeMixin):
             if (
                 in_data.get('persistedStatus', 'active') == 'active'
                 and date.fromisoformat(in_data['dateOfExpiration'])
-                > datetime.now(tz=config.expiration_date_resolution_timezone).date()
+                >= config.expiration_resolution_date
             )
             else 'inactive'
         )
@@ -154,6 +170,8 @@ class PrivilegeUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin, ValidatesLi
     previous = Nested(PrivilegeUpdatePreviousRecordSchema, required=True, allow_none=False)
     # We'll allow any fields that can show up in the previous field to be here as well, but none are required
     updatedValues = Nested(PrivilegeUpdatePreviousRecordSchema(partial=True), required=True, allow_none=False)
+    # optional field that is only included if the update was a deactivation
+    deactivationDetails = Nested(DeactivationDetailsSchema(), required=False, allow_none=False)
 
     @post_dump  # Must be _post_ dump so we have values that are more easily hashed
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
@@ -167,6 +185,11 @@ class PrivilegeUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin, ValidatesLi
             f'{in_data["compact"]}#PROVIDER#privilege/{in_data["jurisdiction"]}/{license_type_abbr}#UPDATE#{int(config.current_standard_datetime.timestamp())}/{change_hash}'
         )
         return in_data
+
+    @validates_schema
+    def validate_deactivation_details_present_if_deactivation_update(self, data, **kwargs):  # noqa: ARG002 unused-argument
+        if data['updateType'] == UpdateCategory.DEACTIVATION and not data.get('deactivationDetails'):
+            raise ValidationError({'deactivationDetails': ['This field is required when update was deactivation type']})
 
     @pre_dump
     def generate_compact_transaction_gsi_field(self, in_data, **kwargs):  # noqa: ARG001 unused-argument

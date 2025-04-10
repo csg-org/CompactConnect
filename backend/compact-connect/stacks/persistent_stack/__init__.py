@@ -233,7 +233,9 @@ class PersistentStack(AppStack):
             # so that the user pools will be created after the SES identity is verified
             self.staff_users.node.add_dependency(self.user_email_notifications.verification_custom_resource)
             self.provider_users.node.add_dependency(self.user_email_notifications.verification_custom_resource)
-            self.provider_users_deprecated.node.add_dependency(self.user_email_notifications.verification_custom_resource)
+            self.provider_users_deprecated.node.add_dependency(
+                self.user_email_notifications.verification_custom_resource
+            )
 
     def _add_data_resources(self, removal_policy: RemovalPolicy):
         # Create the ssn related resources before other resources which are dependent on them
@@ -373,6 +375,30 @@ class PersistentStack(AppStack):
         NagSuppressions.add_resource_suppressions_by_path(
             self,
             f'{military_waiver_removal_migration.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'This policy contains wild-carded actions and resources but they are scoped to the '
+                    'specific actions, Table and Key that this lambda needs access to in order to perform the'
+                    'migration.',
+                },
+            ],
+        )
+
+        deactivation_details_migration = DataMigration(
+            self,
+            '566DeactivationDetails',
+            migration_dir='deactivation_details_566',
+            lambda_environment={
+                'PROVIDER_TABLE_NAME': self.provider_table.table_name,
+                **self.common_env_vars,
+            },
+        )
+        self.provider_table.grant_read_write_data(deactivation_details_migration)
+
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            f'{deactivation_details_migration.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',

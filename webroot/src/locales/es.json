@@ -7,10 +7,10 @@
         "next": "Siguiente",
         "continue": "Continuar",
         "confirm": "Confirmar",
+        "caution": "Cuidado",
         "cancel": "Cancelar",
         "close": "Cerrar",
         "skip": "Saltear",
-        "confirm": "Confirmar",
         "fees": "Tarifas",
         "choose": "Elige",
         "chooseOne": "Elige uno",
@@ -25,22 +25,27 @@
         "remove": "Eliminar",
         "reset": "Restablecer",
         "invite": "Invitar",
+        "today": "Hoy",
         "save": "Guardar",
         "sendInvite": "Enviar invitación",
         "toggleNav": "Alternar menú de navegación",
         "saveChanges": "Guardar cambios",
+        "days": "días",
         "submit": "Enviar",
         "search": "Buscar",
         "clear": "Borrar",
         "subtotal": "Total parcial",
         "total": "Total",
+        "history": "Historia",
         "success": "Correcto",
         "error": "Error",
+        "somethingWentWrong": "Algo salió mal",
         "saveAndContinue": "Guardar y continuar",
         "saveAndClose": "Guardar y cerrar",
         "saving": "Guardando...",
         "loading": "Cargando...",
         "viewing": "Viendo",
+        "viewDetails": "Ver detalles",
         "name": "Nombre",
         "firstName": "Nombre",
         "givenName": "Nombre de pila",
@@ -359,7 +364,7 @@
         "home": "Hogar",
         "upload": "Subir",
         "licensing": "Licencia",
-        "dashboard": "Panel",
+        "licensingPublic": "Buscar proveedores de salud",
         "users": "Usuarios",
         "compactSettings": "Configuraciones compactas",
         "purchasePrivileges": "Compras con privilegios",
@@ -505,6 +510,7 @@
         "residenceLocation": "Ubicación de la residencia",
         "privileges": "Privilegios",
         "privilege": "Privilegio",
+        "privilegeSummary": "Resumen de privilegios",
         "recentPrivilegesTitle": "Privilegios recientes",
         "pastPrivilegesTitle": "Privilegios pasados",
         "licenseDetails": "Detalles de la licencia",
@@ -530,8 +536,9 @@
         "status": "Estado",
         "deselectState": "Deseleccionar estado",
         "issueDate": "Fecha de asunto",
-        "expireDate": "Fecha de caducidad",
         "expirationDate": "Fecha de caducidad",
+        "expiration": "Vencimiento",
+        "expireDate": "Fecha de caducidad",
         "lastUpdate": "Última carga",
         "license": "Licencia",
         "licenseNumber": "Número de licencia",
@@ -567,6 +574,25 @@
         "deactivate": "Desactivar",
         "deactivated": "Desactivado",
         "confirmPrivilegeDeactivate": "¿Está seguro de que desea desactivar este privilegio? No es posible deshacer esta acción.",
+        "expiringIn": "Expirando en",
+        "licenseEvents": [
+            {
+                "name": "Privilegio comprado",
+                "key": "purchased"
+            },
+            {
+                "name": "Renovación",
+                "key": "renewal"
+            },
+            {
+                "name": "Expirado",
+                "key": "expired"
+            },
+            {
+                "name": "Desactivación",
+                "key": "deactivation"
+            }
+        ],
         "licenseTypes": [
             {
                 "name": "Audiólogo",
@@ -600,7 +626,9 @@
             }
         ],
         "privilegePurchaseTitle": "Compra privada",
-        "personalInfoTitle": "Información personal"
+        "personalInfoTitle": "Información personal",
+        "eventNodeLabel": "Evento: {eventNameDisplay} en {eventDate}",
+        "statusBlockLabel": "{status} bloque de estado"
     },
     "military": {
         "militaryStatusTitle": "Estado militar",
