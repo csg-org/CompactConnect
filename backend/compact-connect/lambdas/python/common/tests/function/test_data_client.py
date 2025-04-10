@@ -15,36 +15,6 @@ from tests.function import TstFunction
 class TestDataClient(TstFunction):
     sample_privilege_attestations = [{'attestationId': 'jurisprudence-confirmation', 'version': '1'}]
 
-    def test_get_provider_id(self):
-        from cc_common.data_model.data_client import DataClient
-
-        with open('tests/resources/dynamo/provider-ssn.json') as f:
-            record = json.load(f)
-        provider_ssn = record['ssn']
-        expected_provider_id = record['providerId']
-
-        self._ssn_table.put_item(
-            # We'll use the schema/serializer to populate index fields for us
-            Item=record,
-        )
-
-        client = DataClient(self.config)
-
-        resp = client.get_provider_id(compact='aslp', ssn=provider_ssn)
-        # Verify that we're getting the expected provider ID
-        self.assertEqual(expected_provider_id, resp)
-
-    def test_get_provider_id_not_found(self):
-        """Provider ID not found should raise an exception"""
-        from cc_common.data_model.data_client import DataClient
-        from cc_common.exceptions import CCNotFoundException
-
-        client = DataClient(self.config)
-
-        # This SSN isn't in the DB, so it should raise an exception
-        with self.assertRaises(CCNotFoundException):
-            client.get_provider_id(compact='aslp', ssn='321-21-4321')
-
     def test_get_provider(self):
         from cc_common.data_model.data_client import DataClient
 
@@ -66,7 +36,6 @@ class TestDataClient(TstFunction):
         and throw an error if it doesn't look as expected.
         """
         from cc_common.data_model.data_client import DataClient
-        from cc_common.exceptions import CCInternalException
 
         provider_id = self._load_provider_data()
 
@@ -75,7 +44,7 @@ class TestDataClient(TstFunction):
 
         self._provider_table.put_item(
             Item={
-                # Oh, no! We've somehow put somebody's SSN in the wrong place!
+                # Oh, no! We've somehow put somebody's full SSN in the wrong place!
                 'something_unexpected': '123-12-1234',
                 **license_record,
             },
@@ -83,12 +52,13 @@ class TestDataClient(TstFunction):
 
         client = DataClient(self.config)
 
-        # This record should not be allowed out via API
-        with self.assertRaises(CCInternalException):
-            client.get_provider(
-                compact='aslp',
-                provider_id=provider_id,
-            )
+        # The field should not be allowed out via API
+        resp = client.get_provider(
+            compact='aslp',
+            provider_id=provider_id,
+        )
+        for item in resp['items']:
+            self.assertNotIn('something_unexpected', item)
 
     def _load_provider_data(self) -> str:
         with open('tests/resources/dynamo/provider.json') as f:
@@ -202,7 +172,7 @@ class TestDataClient(TstFunction):
                 'jurisdiction': 'ca',
                 'licenseJurisdiction': 'oh',
                 'licenseType': 'audiologist',
-                'persistedStatus': 'active',
+                'administratorSetStatus': 'active',
                 'dateOfIssuance': '2024-11-08T23:59:59+00:00',
                 'dateOfRenewal': '2024-11-08T23:59:59+00:00',
                 'dateOfExpiration': '2024-10-31',
@@ -252,7 +222,7 @@ class TestDataClient(TstFunction):
             'jurisdiction': 'ky',
             'licenseJurisdiction': 'oh',
             'licenseType': 'audiologist',
-            'persistedStatus': 'active',
+            'administratorSetStatus': 'active',
             'dateOfIssuance': '2023-11-08T23:59:59+00:00',
             'dateOfRenewal': '2023-11-08T23:59:59+00:00',
             'dateOfExpiration': '2024-10-31',
@@ -274,7 +244,7 @@ class TestDataClient(TstFunction):
             'jurisdiction': 'ne',
             'licenseJurisdiction': 'oh',
             'licenseType': 'speech-language pathologist',
-            'persistedStatus': 'active',
+            'administratorSetStatus': 'active',
             'dateOfIssuance': '2023-11-08T23:59:59+00:00',
             'dateOfRenewal': '2023-11-08T23:59:59+00:00',
             'dateOfExpiration': '2024-10-31',
@@ -328,7 +298,7 @@ class TestDataClient(TstFunction):
                     'jurisdiction': 'ky',
                     'licenseJurisdiction': 'oh',
                     'licenseType': 'audiologist',
-                    'persistedStatus': 'active',
+                    'administratorSetStatus': 'active',
                     # Should be updated dates for renewal, expiration, update
                     'dateOfIssuance': '2023-11-08T23:59:59+00:00',
                     'dateOfRenewal': '2024-11-08T23:59:59+00:00',
@@ -343,7 +313,7 @@ class TestDataClient(TstFunction):
                 # A new history record
                 {
                     'pk': f'aslp#PROVIDER#{provider_uuid}',
-                    'sk': 'aslp#PROVIDER#privilege/ky/aud#UPDATE#1731110399/cda961edc5c829a8d11850ee101c2b34',
+                    'sk': 'aslp#PROVIDER#privilege/ky/aud#UPDATE#1731110399/f61e34798e1775ff6230d1187d444146',
                     'type': 'privilegeUpdate',
                     'updateType': 'renewal',
                     'providerId': provider_uuid,
@@ -359,7 +329,7 @@ class TestDataClient(TstFunction):
                         'dateOfUpdate': '2023-11-08T23:59:59+00:00',
                         'compactTransactionId': '1234567890',
                         'attestations': self.sample_privilege_attestations,
-                        'persistedStatus': 'active',
+                        'administratorSetStatus': 'active',
                         'licenseJurisdiction': 'oh',
                         'privilegeId': 'AUD-KY-1',
                     },
@@ -392,7 +362,7 @@ class TestDataClient(TstFunction):
                     'jurisdiction': 'ne',
                     'licenseJurisdiction': 'oh',
                     'licenseType': 'audiologist',
-                    'persistedStatus': 'active',
+                    'administratorSetStatus': 'active',
                     # issuance and renewal dates should be the same
                     'dateOfIssuance': '2024-11-08T23:59:59+00:00',
                     'dateOfRenewal': '2024-11-08T23:59:59+00:00',
@@ -445,7 +415,7 @@ class TestDataClient(TstFunction):
     def test_data_client_handles_large_privilege_purchase(self):
         """Test that we can process privilege purchases with more than 100 transaction items."""
         from cc_common.data_model.data_client import DataClient
-        from cc_common.data_model.schema.common import ProviderEligibilityStatus
+        from cc_common.data_model.schema.common import ActiveInactiveStatus
         from cc_common.data_model.schema.privilege.record import PrivilegeRecordSchema
 
         test_data_client = DataClient(self.config)
@@ -473,7 +443,7 @@ class TestDataClient(TstFunction):
                 'dateOfExpiration': date(2024, 10, 31),
                 'dateOfUpdate': datetime(2023, 11, 8, 23, 59, 59, tzinfo=UTC),
                 'compactTransactionId': '1234567890',
-                'persistedStatus': ProviderEligibilityStatus.ACTIVE,
+                'administratorSetStatus': ActiveInactiveStatus.ACTIVE,
             }
             self._provider_table.put_item(Item=privilege_record_schema.dump(original_privilege))
             original_privileges.append(original_privilege)
@@ -526,7 +496,7 @@ class TestDataClient(TstFunction):
         """Test that we properly roll back when a large privilege purchase fails."""
         from botocore.exceptions import ClientError
         from cc_common.data_model.data_client import DataClient
-        from cc_common.data_model.schema.common import ProviderEligibilityStatus
+        from cc_common.data_model.schema.common import ActiveInactiveStatus
         from cc_common.data_model.schema.privilege.record import PrivilegeRecordSchema
         from cc_common.exceptions import CCAwsServiceException
 
@@ -554,7 +524,7 @@ class TestDataClient(TstFunction):
                 'dateOfExpiration': date(2024, 10, 31),
                 'dateOfUpdate': datetime(2023, 11, 8, 23, 59, 59, tzinfo=UTC),
                 'compactTransactionId': '1234567890',
-                'persistedStatus': ProviderEligibilityStatus.ACTIVE,
+                'administratorSetStatus': ActiveInactiveStatus.ACTIVE,
             }
             dumped_privilege = privilege_record_schema.dump(original_privilege)
             self._provider_table.put_item(Item=dumped_privilege)
@@ -732,7 +702,7 @@ class TestDataClient(TstFunction):
             'licenseJurisdiction': 'oh',
             'licenseType': 'audiologist',
             'jurisdiction': 'ne',
-            'persistedStatus': 'active',
+            'administratorSetStatus': 'active',
             'dateOfIssuance': '2023-11-08T23:59:59+00:00',
             'dateOfRenewal': '2023-11-08T23:59:59+00:00',
             'dateOfExpiration': '2024-10-31',
@@ -776,7 +746,7 @@ class TestDataClient(TstFunction):
                     'licenseJurisdiction': 'oh',
                     'licenseType': 'audiologist',
                     'jurisdiction': 'ne',
-                    'persistedStatus': 'inactive',
+                    'administratorSetStatus': 'inactive',
                     'dateOfIssuance': '2023-11-08T23:59:59+00:00',
                     'dateOfRenewal': '2023-11-08T23:59:59+00:00',
                     'dateOfExpiration': '2024-10-31',
@@ -789,7 +759,7 @@ class TestDataClient(TstFunction):
                 # A new history record
                 {
                     'pk': f'aslp#PROVIDER#{provider_id}',
-                    'sk': 'aslp#PROVIDER#privilege/ne/aud#UPDATE#1731110399/ea6384fced955d3307df919907982f28',
+                    'sk': 'aslp#PROVIDER#privilege/ne/aud#UPDATE#1731110399/aac682a76e1182a641a1b40dd606ae51',
                     'type': 'privilegeUpdate',
                     'updateType': 'deactivation',
                     'providerId': provider_id,
@@ -810,12 +780,12 @@ class TestDataClient(TstFunction):
                         'dateOfUpdate': '2023-11-08T23:59:59+00:00',
                         'compactTransactionId': '1234567890',
                         'attestations': self.sample_privilege_attestations,
-                        'persistedStatus': 'active',
+                        'administratorSetStatus': 'active',
                         'licenseJurisdiction': 'oh',
                         'privilegeId': 'AUD-NE-1',
                     },
                     'updatedValues': {
-                        'persistedStatus': 'inactive',
+                        'administratorSetStatus': 'inactive',
                     },
                 },
             ],
@@ -871,7 +841,7 @@ class TestDataClient(TstFunction):
             'jurisdiction': 'ne',
             'licenseJurisdiction': 'oh',
             'licenseType': 'audiologist',
-            'persistedStatus': 'inactive',
+            'administratorSetStatus': 'inactive',
             'dateOfIssuance': '2023-11-08T23:59:59+00:00',
             'dateOfRenewal': '2023-11-08T23:59:59+00:00',
             'dateOfExpiration': '2024-10-31',
@@ -905,7 +875,7 @@ class TestDataClient(TstFunction):
                 'privilegeId': 'AUD-NE-1',
             },
             'updatedValues': {
-                'persistedStatus': 'inactive',
+                'administratorSetStatus': 'inactive',
             },
         }
         self._provider_table.put_item(Item=original_history)

@@ -329,7 +329,9 @@ class TstFunction(TstLambdas):
                     self.mock_context,
                 )
                 # we need to get the provider id from the ssn table so it can be used in the ingest message
-                provider_id = data_client.get_provider_id(compact='aslp', ssn=ssn)
+                provider_id = self._ssn_table.get_item(Key={'pk': f'aslp#SSN#{ssn}', 'sk': f'aslp#SSN#{ssn}'})['Item'][
+                    'providerId'
+                ]
 
                 # update the ingest message with the provider id
                 ingest_message_copy['detail']['providerId'] = provider_id

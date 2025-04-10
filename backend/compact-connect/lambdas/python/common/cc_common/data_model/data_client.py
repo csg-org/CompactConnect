@@ -12,7 +12,7 @@ from cc_common.config import _Config, config, logger, metrics
 from cc_common.data_model.query_paginator import paginated_query
 from cc_common.data_model.schema import PrivilegeRecordSchema
 from cc_common.data_model.schema.base_record import SSNIndexRecordSchema
-from cc_common.data_model.schema.common import ProviderEligibilityStatus
+from cc_common.data_model.schema.common import ActiveInactiveStatus
 from cc_common.data_model.schema.home_jurisdiction.record import ProviderHomeJurisdictionSelectionRecordSchema
 from cc_common.data_model.schema.military_affiliation import (
     MilitaryAffiliationStatus,
@@ -35,21 +35,6 @@ class DataClient:
     def __init__(self, config: _Config):
         self.config = config
         self.ssn_index_record_schema = SSNIndexRecordSchema()
-
-    @logger_inject_kwargs(logger, 'compact')
-    def get_provider_id(self, *, compact: str, ssn: str) -> str:
-        """Get all records associated with a given SSN."""
-        logger.info('Getting provider id by ssn')
-        try:
-            resp = self.config.ssn_table.get_item(
-                Key={'pk': f'{compact}#SSN#{ssn}', 'sk': f'{compact}#SSN#{ssn}'},
-                ConsistentRead=True,
-            )['Item']
-        except KeyError as e:
-            logger.info('Provider not found by SSN', exc_info=e)
-            raise CCNotFoundException('No provider found by that identifier') from e
-
-        return resp['providerId']
 
     @logger_inject_kwargs(logger, 'compact')
     def get_or_create_provider_id(self, *, compact: str, ssn: str) -> str:
@@ -308,7 +293,7 @@ class DataClient:
             'compactTransactionId': compact_transaction_id,
             'attestations': attestations,
             'privilegeId': privilege_id,
-            'persistedStatus': 'active',
+            'administratorSetStatus': ActiveInactiveStatus.ACTIVE,
         }
 
     @logger_inject_kwargs(logger, 'compact', 'provider_id', 'compact_transaction_id')
@@ -396,8 +381,8 @@ class DataClient:
                             'privilegeId': privilege_record['privilegeId'],
                             'attestations': attestations,
                             **(
-                                {'persistedStatus': ProviderEligibilityStatus.ACTIVE}
-                                if original_privilege['persistedStatus'] == ProviderEligibilityStatus.INACTIVE
+                                {'administratorSetStatus': ActiveInactiveStatus.ACTIVE}
+                                if original_privilege['administratorSetStatus'] == ActiveInactiveStatus.INACTIVE
                                 else {}
                             ),
                         },
@@ -852,8 +837,7 @@ class DataClient:
         """
         Deactivate a privilege for a provider in a jurisdiction.
 
-        This will update the privilege record to have a persistedStatus of 'inactive' and will remove the jurisdiction
-        from the provider's privilegeJurisdictions set.
+        This will update the privilege record to have a administratorSetStatus of 'inactive'.
 
         :param str compact: The compact to deactivate the privilege for
         :param str provider_id: The provider to deactivate the privilege for
@@ -878,7 +862,7 @@ class DataClient:
         privilege_record = privilege_record_schema.load(privilege_record)
 
         # If already inactive, do nothing
-        if privilege_record.get('persistedStatus', 'active') == 'inactive':
+        if privilege_record.get('administratorSetStatus', ActiveInactiveStatus.ACTIVE) == ActiveInactiveStatus.INACTIVE:
             logger.info('Provider already inactive. Doing nothing.')
             raise CCInvalidRequestException('Privilege already deactivated')
 
@@ -898,7 +882,7 @@ class DataClient:
                     **privilege_record,
                 },
                 'updatedValues': {
-                    'persistedStatus': 'inactive',
+                    'administratorSetStatus': ActiveInactiveStatus.INACTIVE,
                 },
             }
         )
@@ -907,7 +891,7 @@ class DataClient:
         logger.info('Deactivating privilege')
         self.config.dynamodb_client.transact_write_items(
             TransactItems=[
-                # Set the privilege record's persistedStatus to inactive and update the dateOfUpdate
+                # Set the privilege record's administratorSetStatus to inactive and update the dateOfUpdate
                 {
                     'Update': {
                         'TableName': self.config.provider_table.name,
@@ -915,9 +899,9 @@ class DataClient:
                             'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
                             'sk': {'S': f'{compact}#PROVIDER#privilege/{jurisdiction}/{license_type_abbr}#'},
                         },
-                        'UpdateExpression': 'SET persistedStatus = :status, dateOfUpdate = :dateOfUpdate',
+                        'UpdateExpression': 'SET administratorSetStatus = :status, dateOfUpdate = :dateOfUpdate',
                         'ExpressionAttributeValues': {
-                            ':status': {'S': 'inactive'},
+                            ':status': {'S': ActiveInactiveStatus.INACTIVE},
                             ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
                         },
                     },

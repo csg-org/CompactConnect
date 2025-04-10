@@ -115,7 +115,6 @@ class TestPrivilegeUpdateRecordSchema(TstLambdas):
         privilege_data = schema.dump(loaded_schema)
 
         # Drop dynamic fields
-        self.maxDiff = None
         del expected_privilege_update['dateOfUpdate']
         del privilege_data['dateOfUpdate']
 

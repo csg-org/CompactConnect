@@ -14,7 +14,7 @@
   "compactTransactionId": "1234567890",
   "compactTransactionIdGSIPK": "COMPACT#aslp#TX#1234567890#",
   "privilegeId": "SLP-NE-1",
-  "persistedStatus": "active",
+  "administratorSetStatus": "active",
   "attestations": [
     {
       "attestationId": "jurisprudence-confirmation",

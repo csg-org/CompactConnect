@@ -27,7 +27,11 @@ LICENSE_TYPES = {compact: [t['name'] for t in types] for compact, types in _cont
 
 os.environ['COMPACTS'] = json.dumps(COMPACTS)
 os.environ['JURISDICTIONS'] = json.dumps(JURISDICTIONS)
+# The environment name has no bearing on the staff user creation process, but we need a value to be set
+# for the data model to work.
+os.environ['ENVIRONMENT_NAME'] = 'test'
 
+from cc_common.data_model.schema.common import ActiveInactiveStatus, CompactEligibilityStatus  # noqa: E402
 from cc_common.data_model.schema.license.api import LicensePostRequestSchema  # noqa: E402
 
 # We'll grab three different localizations to provide a variety of names/characters
@@ -41,7 +45,9 @@ FIELDS = (
     'npi',
     'licenseNumber',
     'licenseType',
-    'status',
+    'licenseStatus',
+    'licenseStatusName',
+    'compactEligibility',
     'givenName',
     'middleName',
     'familyName',
@@ -103,7 +109,7 @@ def get_mock_license(i: int, *, compact: str, jurisdiction: str = None) -> dict:
         'phoneNumber': f'+1{randint(1_000_000_000, 9_999_999_999)}',
     }
     license_data = _set_address_state(license_data, jurisdiction)
-    license_data = _set_dates(license_data)
+    license_data = _set_dates_and_statuses(license_data)
     return schema.dump(license_data)
 
 
@@ -132,33 +138,48 @@ def _set_address_state(license_data: dict, jurisdiction: str) -> dict:
     return license_data
 
 
-def _set_dates(license_data: dict) -> dict:
+def _set_dates_and_statuses(license_data: dict) -> dict:
     date_of_birth = faker.date_of_birth()
     # Issuance between when they were ~22 and ~40 years old, but still in the past
     now = datetime.now(tz=UTC).date()
     date_of_issuance = min(date_of_birth + timedelta(days=randint(22 * 365, 40 * 365)), now - timedelta(days=1))
     # For simplicity, we'll assume that under-70-year-olds are active, over are inactive.
     if date_of_birth + 70 * timedelta(days=365) > now:
-        active = True
+        is_active = True
         # We'll have renewal be within the last year, but on or after issuance.
         date_of_renewal = max(now - timedelta(days=randint(1, 365)), date_of_issuance)
         # Expiry, one year from renewal
         date_of_expiry = date_of_renewal + timedelta(days=365)
     else:
-        active = False
+        is_active = False
         # They renewed at some point in the last 20 years, but on or after their issuance date.
         date_of_renewal = max(date_of_issuance, now - randint(1, 20) * timedelta(days=365))
         # Their license expired a year after renewal, but no later than yesterday.
         date_of_expiry = min(date_of_renewal + timedelta(days=365), now - timedelta(days=1))
+
+    # Licensees can only be eligible if they are also active
+    if is_active:
+        compact_eligibility = (
+            CompactEligibilityStatus.ELIGIBLE if choice([True, False]) else CompactEligibilityStatus.INELIGIBLE
+        )
+    else:
+        compact_eligibility = CompactEligibilityStatus.INELIGIBLE
     license_data.update(
         {
-            'status': 'active' if active else 'inactive',
+            'licenseStatus': ActiveInactiveStatus.ACTIVE if is_active else ActiveInactiveStatus.INACTIVE,
+            'compactEligibility': compact_eligibility,
             'dateOfBirth': date_of_birth,
             'dateOfIssuance': date_of_issuance,
             'dateOfRenewal': date_of_renewal,
             'dateOfExpiration': date_of_expiry,
         },
     )
+
+    # Flip a coin, include a license status name?
+    active_status_names = ['ACTIVE', 'ACTIVE_IN_RENEWAL']
+    inactive_status_names = ['INACTIVE', 'SUSPENDED', 'EXPIRED', 'REVOKED', 'ON_PROBATION']
+    if choice([True, False]):
+        license_data['licenseStatusName'] = choice(active_status_names if is_active else inactive_status_names)
     return license_data
 
 

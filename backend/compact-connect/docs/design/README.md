@@ -45,18 +45,22 @@ of the ingest chain architecture. Board admins and/or information systems have t
 ### SSN Access Controls
 The system implements strict controls for SSN access:
 
-1. **Dedicated SSN Table**: All SSN data is stored in a dedicated DynamoDB table with strict access controls and customer-managed KMS encryption.
-2. **Limited API Access**: Only specific API endpoints can query SSN data for staff users with the proper `readSSN` scope.
+1. **Dedicated SSN Table**: All SSN data is stored in a dedicated DynamoDB table with strict access controls and
+   customer-managed KMS encryption.
+2. **Limited API Access**: Only specific API endpoints can query SSN data for staff users with the proper `readSSN`
+   scope.
 3. **Comprehensive Audit Logging**:
    - All SSN data access through the application is logged with user identity, timestamp, and access context
-   - Direct database access is independently tracked through our secure audit logging system (see [Audit Logging](#audit-logging))
+   - Direct database access is independently tracked through our secure audit logging system (see
+     [Audit Logging](#audit-logging))
 4. **Restricted Operations**: The SSN table policy explicitly denies batch operations to prevent mass data extraction.
 
 #### SSN Role-Based Access
 Three specialized IAM roles control access to SSN data:
    - `license_upload_role`: Used by upload handlers to encrypt SSN data for the preprocessing queue.
    - `ingest_role`: Used by the license preprocessor to create and update SSN records in the SSN table.
-   - `api_query_role`: Used by the Get SSN API endpoint to allow staff users to read the SSN for an individual provider per request (staff user must have the readSSN permission).
+   - `api_query_role`: Used by the Get SSN API endpoint to allow staff users to read the SSN for an individual provider
+     per request (staff user must have the readSSN permission).
 
 ### Ingest Flow
 
@@ -73,22 +77,27 @@ the API will send the validated licenses to the preprocessing queue.
 client to directly upload their file to s3. Once the file is uploaded to s3, an s3 event triggers a lambda to read and
 validate each license in the data file, then fire either a success or failure event to the license data event bus.
 
-Both of these upload methods will place license records containing full SSNs in an SQS queue which is encrypted with the same KMS key as the SSN table to invoke the license preprocessor Lambda function.
+Both of these upload methods will place license records containing full SSNs in an SQS queue which is encrypted with the
+same KMS key as the SSN table to invoke the license preprocessor Lambda function.
 
 #### **License Preprocessing**:
    - A Lambda function processes messages from the encrypted queue
    - For each license, it:
-     - Extracts the full SSN from the license data and creates/updates a record in the SSN table, which becomes associated with a provider ID. This provider id is unique to the CompactConnect system and is used to generate provider records within the system.
-     - After creating the SSN record, the lambda Publishes an event to the data event bus with the license data (minus the full SSN)
+     - Extracts the full SSN from the license data and creates/updates a record in the SSN table, which becomes
+       associated with a provider ID. This provider id is unique to the CompactConnect system and is used to generate
+       provider records within the system.
+     - After creating the SSN record, the lambda Publishes an event to the data event bus with the license data
+       (minus the full SSN)
 
    The event bus then triggers the license data processing Lambda function.
 
 #### **License Data Processing**:
    - The data event bus receives the sanitized license events
-   - Downstream processors create provider and license records in the provider table, using only the last four digits of the SSN
+   - Downstream processors create provider and license records in the provider table, using only the last four digits
+     of the SSN
 
-
-This architecture ensures that SSN data is protected throughout the ingest process while still allowing the system to associate licenses with the correct providers across jurisdictions.
+This architecture ensures that SSN data is protected throughout the ingest process while still allowing the system to
+associate licenses with the correct providers across jurisdictions.
 
 ### Asynchronous validation feedback
 Asynchronous validation feedback for boards to review is not yet implemented.
@@ -106,9 +115,9 @@ the accompanying [architecture diagram](./users-arch-diagram.pdf) for an illustr
 Staff users will be granted a variety of different permissions, depending on their role. Read permissions are granted
 to a user for an entire compact or not at all. Data writing and user administration permissions can each be granted to
 a user per compact/jurisdiction combination. All of a compact user's permissions are stored in a DynamoDB record that is
-associated with their own Cognito user id. That record will be used to generate scopes in the Oauth2 token issued to them
-on login. See [Implementation of scopes](#implementation-of-scopes) for a detailed explanation of the design for exactly
-how permissions will be represented by scopes in an access token. See
+associated with their own Cognito user id. That record will be used to generate scopes in the Oauth2 token issued to
+them on login. See [Implementation of scopes](#implementation-of-scopes) for a detailed explanation of the design for
+exactly how permissions will be represented by scopes in an access token. See
 [Implementation of permissions](#implementation-of-permissions) for a detailed explanation of the design for exactly
 how permissions are stored and translated into scopes.
 
@@ -131,8 +140,8 @@ jurisdiction and to create more users associated with a particular jurisdiction.
 their compact, so long as that user does not have permissions associated with a different compact, in which case the
 permissions from the other compact would have to be removed first.
 
-Users granted any of these permissions will also be implicitly granted the `readGeneral` scope for the associated compact,
-which allows them to read any licensee data within that compact that is not considered private.
+Users granted any of these permissions will also be implicitly granted the `readGeneral` scope for the associated
+compact, which allows them to read any licensee data within that compact that is not considered private.
 
 ##### Board Executive Directors and Staff
 
@@ -141,19 +150,26 @@ Board ED level staff may be granted the following permissions at a jurisdiction 
 - `admin` - grants access to administrative functions for the jurisdiction, such as creating and managing users and
 their permissions.
 - `write` - grants access to write data for their particular jurisdiction (ie uploading license information).
-- `readPrivate` - grants access to view all information for any licensee that has either a license or privilege within their jurisdiction (except the full SSN, see `readSSN` permission below. This permission allows viewing the last 4 digits of the SSN).
-- `readSSN` - grants access to view the full SSN for any licensee that has either a license or privilege within their jurisdiction.
+- `readPrivate` - grants access to view all information for any licensee that has either a license or privilege within
+  their jurisdiction (except the full SSN, see `readSSN` permission below. This permission allows viewing the last 4
+  digits of the SSN).
+- `readSSN` - grants access to view the full SSN for any licensee that has either a license or privilege within their
+  jurisdiction.
 
 #### Implementation of Scopes
 
-AWS Cognito integrates with API Gateway to provide [authorizers](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-integrate-with-cognito.html)
+AWS Cognito integrates with API Gateway to provide
+[authorizers](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-integrate-with-cognito.html)
 on an API that can verify the tokens issued by a given User Pool and to protect access based on scopes belonging to
 [Resource Servers](https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-define-resource-servers.html)
 associated with that User Pool.
 
-The Staff Users pool implements authorization using resource servers configured for each jurisdiction and compact. This design allows for efficient management of permissions while staying within AWS Cognito's limits (100 scopes per resource server, 300 resource servers per user pool).
+The Staff Users pool implements authorization using resource servers configured for each jurisdiction and compact. This
+design allows for efficient management of permissions while staying within AWS Cognito's limits (100 scopes per
+resource server, 300 resource servers per user pool).
 
-Each jurisdiction has its own resource server with scopes that control access to that jurisdiction's data across different compacts. For example, the Kentucky (KY) resource server would have scopes like:
+Each jurisdiction has its own resource server with scopes that control access to that jurisdiction's data across
+different compacts. For example, the Kentucky (KY) resource server would have scopes like:
 
 ```
 ky/aslp.admin
@@ -166,9 +182,11 @@ ky/octp.readPrivate
 ky/octp.readSSN
 ```
 
-If a user has the `ky/aslp.admin` scope, for example, they will be able to perform any admin action within the Kentucky jurisdiction within the ASLP compact.
+If a user has the `ky/aslp.admin` scope, for example, they will be able to perform any admin action within the Kentucky
+jurisdiction within the ASLP compact.
 
-Each compact also has its own resource server with compact-wide scopes, which are used to control access to data across all jurisdictions within a compact:
+Each compact also has its own resource server with compact-wide scopes, which are used to control access to data across
+all jurisdictions within a compact:
 
 ```
 aslp/admin
@@ -177,25 +195,30 @@ aslp/readPrivate
 aslp/readSSN
 ```
 
-If a user has the `aslp/admin` scope, for example, they will be able to perform any admin action for any jurisdiction within the compact.
+If a user has the `aslp/admin` scope, for example, they will be able to perform any admin action for any jurisdiction
+within the compact.
 
 Staff users in a compact will also be implicitly granted the `readGeneral` scope for the associated compact,
 which allows them to read any licensee data that is not considered private.
 
-In addition to the `readGeneral` scope, there is a `readPrivate` scope, which can be granted at both compact and jurisdiction levels. This permission indicates the user can read all of a compact's provider data (licenses and privileges),so long as the provider has at least one license or privilege within their jurisdiction or the user has compact-wide permissions.
+In addition to the `readGeneral` scope, there is a `readPrivate` scope, which can be granted at both compact and
+jurisdiction levels. This permission indicates the user can read all of a compact's provider data (licenses and
+privileges), so long as the provider has at least one license or privilege within their jurisdiction or the user has
+compact-wide permissions.
 
 #### Implementation of Permissions
 
 Staff user permissions are stored in a dedicated DynamoDB table, which has a single record for each user
-and includes a data structure that details that user's particular permissions. Cognito allows for a lambda to be [invoked
-just before it issues a token](https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-lambda-pre-token-generation.html).
+and includes a data structure that details that user's particular permissions. Cognito allows for a lambda to be
+[invoked just before it issues a token](https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-lambda-pre-token-generation.html).
 We use that feature to retrieve the database record for each user, parse the permissions data and translate those
 into scopes, which will be added to the Cognito token. The lambda generates scopes based on both compact-level and
 jurisdiction-level permissions, ensuring consistent access control at token issuance.
 
 #### Machine-to-machine app clients
 
-See README under the [app_clients](../../app_clients/README.md) directory for more information about how machine-to-machine app clients are configured and used in the system.
+See README under the [app_clients](../../app_clients/README.md) directory for more information about how
+machine-to-machine app clients are configured and used in the system.
 
 ### Licensee Users
 
@@ -207,64 +230,163 @@ across jurisdictions, subject to their eligibility.
 ## Data Model
 [Back to top](#backend-design)
 
-Data for the licensed practitioners is housed primarily in a single noSQL (DynamoDB) table, using a
-[single table design](https://aws.amazon.com/blogs/database/single-table-vs-multi-table-design-in-amazon-dynamodb/).
-The design of the data model is built around expected access patterns for practitioner data, with two main priorities
-in mind:
-1) Compact data should always be partitioned. This means that, whenever querying the database, it should not be possible
-   to query for data that may contain records for more than one compact in the response. The intent here is that
-   CompactConnect should have a deliberately partitioned experience in its data, from the UI, to the API, and all the
-   way down to the database layer, where a user must always be explicit about which compact's data they are interacting
-   with.
-2) As much as is practical, an access pattern for retrieving practitioner data should be satisfied in a single query.
-   DynamoDB is designed to have single-millisecond latency for queries, at any scale. If we want a fast, performant
-   API, we should leverage that performance by deliberately crafting our records so that any set of records we expect
-   our users to want should be retrieved in a single query.
+CompactConnect uses a single noSQL (DynamoDB) table design for storing provider (practitioner) data, following the
+[single table design](https://aws.amazon.com/blogs/database/single-table-vs-multi-table-design-in-amazon-dynamodb/)
+pattern. This approach optimizes for:
 
-### Provider records
+1) **Compact-Level Partitioning**: Data is always partitioned by compact, ensuring that queries never return records
+   from multiple compacts. This enforces a deliberate separation of data across all layers - UI, API, and database -
+   where users must explicitly specify which compact's data they're accessing.
 
-Provider (practitioner) records are stored in the database with each provider having their own partition key, for
-example: `"pk": "aslp#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570"`. This allows for the partition to be retrieved
-if a user is armed with only a compact and the identifier for the provider. From there, the provider's data is split
-into records of multiple types that are distinguished by their sort key:
+2) **Query Efficiency**: Access patterns are optimized so most data needs can be satisfied in a single query, leveraging
+   DynamoDB's single-digit-millisecond latency at any scale.
 
-Primary information about a provider, as deduced mostly from license data provided by states, is stored in their
-`provider` type record and includes things like their name, home address, and date of birth. The provider record uses
-a sort key like `"sk": "aslp#PROVIDER"`.
+### Key Structure and Record Types
 
-Each license associated with a provider has the data submitted by a state saved in a record with a sort key like
-`"sk": "aslp#PROVIDER#license/oh#"`. This example record would be for a license in Ohio. Each license a state uploads
-that is associated with this provider can then be returned by a query for that provider's partition, with a query
-key condition that specifies a sort key starting with `aslp#PROVIDER#license/`.
+Each provider is assigned a unique partition key in the format: `{compact}#PROVIDER#{providerId}` (example:
+`"pk": "aslp#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570"`). Within this partition, multiple record types are stored
+with different sort keys:
 
-Similarly, privileges to practice granted to the provider for a state are stored in a record with a sort key like
-`"sk": "aslp#PROVIDER#privilege/ne#"`. This example record represents a privilege granted to practice in Nebraska.
-The sort key pattern for privileges allows all privilege records to be queried by a sort key starting with
-`aslp#PROVIDER#privilege/`.
+```
+- Provider:           {compact}#PROVIDER
+- License:            {compact}#PROVIDER#license/{jurisdiction}/{licenseTypeAbbr}#
+- Privilege:          {compact}#PROVIDER#privilege/{jurisdiction}/{licenseTypeAbbr}#
+- License Update:     {compact}#PROVIDER#license/{jurisdiction}/{licenseTypeAbbr}#UPDATE#{timestamp}/{changeHash}
+- Privilege Update:   {compact}#PROVIDER#privilege/{jurisdiction}/{licenseTypeAbbr}#UPDATE#{timestamp}/{changeHash}
+- Home Jurisdiction:  {compact}#PROVIDER#home-jurisdiction#
+- Military Affiliation: {compact}#PROVIDER#military-affiliation#{timestamp}
+```
 
-In addition to recording the current state of the provider, their licenses and privileges, CompactConnect also stores
-historical data for providers, starting the day they are first added to the system. This historical data allows
-interested parties to determine the status of a provider's ability to practice in any given member state on any given
-day in the past. Any time a provider's status, date of expiration, renewal, or other values like name are changed,
-a supporting record is created to track the change. For changes to a license, the record is stored with a sort key like
-`aslp#PROVIDER#license/oh#UPDATE#1735232821/1a812bc8f`. This sort key will uniquely represent one particular change,
-the time it was effective in the system, and the contents of that change. The last segment of the key is the POSIX
-timestamp of the second the change was made followed by a hash of the previous and updated values. Similarly, a change
-to a privilege will be represented with a record stored with a sort key like
-`aslp#PROVIDER#privilege/ne#UPDATE#1735232821/1a812bc8f`.
+This design allows for retrieving specific record types by using sort key prefixes. For example, querying with a sort
+key beginning with `{compact}#PROVIDER#license/` would return all license records for that provider.
 
-A query for a provider's partition and a sort key starting with `aslp#PROVIDER` would retrieve enough records to
-represent all of the provider's licenses, privileges and their complete history from when they were created in
-the system.
+### Record Types in Detail
+
+The data model comprises seven distinct record types, each with a specific purpose:
+
+1. **Provider Record** (`provider`): The core record containing a provider's foundational information:
+   - Personal details (name, DOB, contact information)
+   - Home address
+   - License jurisdiction of record
+   - SSN last four digits (full SSN is stored separately for security)
+   - National Provider Identifier (NPI)
+   - Set of privilege jurisdictions
+   - Status (calculated based on expiration date and jurisdiction status)
+
+2. **License Record** (`license`): Represents professional licenses held by the provider:
+   - License number and type
+   - Issuing jurisdiction
+   - Issuance, renewal, and expiration dates
+   - License status (active/inactive, calculated at load time, based on current time, expiry, and other factors)
+   - Provider's name and contact details at time of issuance
+
+3. **Privilege Record** (`privilege`): Represents authorizations to practice in other jurisdictions:
+   - Jurisdiction where privilege is granted
+   - Dates of issuance, renewal, and expiration
+   - Status (active/inactive, calculated at load time, based on current time, expiry, and other factors)
+   - Reference to the transaction ID from purchase
+   - Attestations accepted when purchasing the privilege
+   - Unique privilege identifier
+   - License jurisdiction and type on which the privilege is based
+
+4. **License Update Record** (`licenseUpdate`): Tracks historical changes to licenses:
+   - Update type (renewal, deactivation, or other)
+   - Previous values before the update
+   - Updated values that changed
+   - List of values that were removed
+   - Timestamp of the update
+   - Change hash for uniqueness
+
+5. **Privilege Update Record** (`privilegeUpdate`): Similar to license updates, tracks changes to privileges:
+   - Previous privilege state
+   - Updated values
+   - Timestamp of the update
+   - Change hash for uniqueness
+
+6. **Home Jurisdiction Selection Record** (`homeJurisdictionSelection`): Records the provider's selected home
+   jurisdiction:
+   - Selected jurisdiction
+   - Date of selection
+
+7. **Military Affiliation Record** (`militaryAffiliation`): Tracks a provider's military status:
+   - Affiliation type
+   - Status (active/inactive/initializing)
+   - Documentation references
+   - Upload date
+
+A single query for a provider's partition with a sort key starting with `{compact}#PROVIDER` retrieves all records
+needed to construct a complete view of the provider, including licenses, privileges, and their entire history in the
+system.
+
+### Historical Tracking
+
+CompactConnect maintains a comprehensive historical record of each provider from their first addition to the system.
+Any change to a provider's status, dates, or demographic information creates a supporting record that tracks the change.
+
+For license changes, records use sort keys like `aslp#PROVIDER#license/oh#UPDATE#1735232821/1a812bc8f`. This key
+contains:
+- The jurisdiction (e.g., "oh")
+- "UPDATE" indicator
+- POSIX timestamp of the change
+- A hash of the previous and updated values for uniqueness
+
+Similarly, privilege changes use sort keys like `aslp#PROVIDER#privilege/ne#UPDATE#1735232821/1a812bc8f`.
+
+This historical tracking allows authorized users to determine a provider's practice eligibility status in any member
+state for any point in time since they entered the system.
+
+### Global Secondary Indexes (GSIs)
+
+The provider table includes several GSIs to support different access patterns:
+
+1. **Provider Name Index** (`providerFamGivMid`):
+   - Enables searching providers by name
+   - Uses a composite sort key of quoted and lowercase family name, given name, and middle name
+
+2. **Provider Update Time Index** (`providerDateOfUpdate`):
+   - Allows retrieving providers by the date they were last updated
+   - Useful for getting recently modified provider records
+
+3. **License GSI** (`licenseGSI`):
+   - Facilitates finding licenses by jurisdiction and provider name
+   - Supports compact and jurisdiction-specific queries
+
+4. **Compact Transaction ID GSI** (`compactTransactionIdGSI`):
+   - Links privileges to their purchase transactions
+   - Important for financial reporting and reconciliation
+
+### Security and Status Calculation
+
+The model incorporates several security and operational features:
+
+1. **SSN Protection**: Only the last four digits of SSNs are stored in the provider table. Full SSNs are stored in a
+   separate, highly secured table with strict access controls.
+
+2. **Status Calculation**: Rather than storing a simple status flag, the system calculates status at read time based on:
+   - The jurisdiction's reported status (active/inactive)
+   - The current date compared to the expiration date
+   - This ensures accurate representation of a provider's current status without requiring updates
+
+3. **Historical Tracking**: All changes are preserved as separate records, allowing point-in-time deduction of a
+   provider's status for any historical date.
+
+4. **Attestation Tracking**: When providers purchase privileges, the system records which attestation versions they
+   accepted, creating an audit trail of consent.
+
+This comprehensive data model enables efficient queries while maintaining complete historical data, supporting both
+operational needs and audit requirements for healthcare provider licensing across jurisdictions.
 
 ## Attestations
 [Back to top](#backend-design)
 
-Attestations are statements that providers must agree to when performing certain actions within the system, such as purchasing privileges. The attestation system is designed to support versioned, localized attestation text that providers must explicitly accept.
+Attestations are statements that providers must agree to when performing certain actions within the system, such as
+purchasing privileges. The attestation system is designed to support versioned, localized attestation text that
+providers must explicitly accept.
 
 ### Storage and Versioning
 
-Attestations are stored in the compact configuration table with a composite key structure that enables efficient querying of the latest version for a given attestation type and locale:
+Attestations are stored in the compact configuration table with a composite key structure that enables efficient
+querying of the latest version for a given attestation type and locale:
 
 ```
 PK: {compact}#CONFIGURATION
@@ -278,7 +400,8 @@ This structure allows us to:
 
 ### Retrieval and Validation
 
-The system provides a `GET /v1/compacts/{compact}/attestations/{attestationId}` endpoint that returns the latest version of an attestation. This endpoint:
+The system provides a `GET /v1/compacts/{compact}/attestations/{attestationId}` endpoint that returns the latest version
+of an attestation. This endpoint:
 1. Accepts an optional `locale` query parameter (defaults to 'en').
 2. Returns a 404 if no attestation is found for the given type/locale.
 3. Always returns the latest version of the attestation.
@@ -299,14 +422,17 @@ When purchasing privileges, providers must accept all required attestations. The
 3. Stores the accepted attestations with the privilege record
 4. Returns a 400 error if any attestation is invalid or outdated
 
-This ensures that providers always see and accept the most current version of required attestations, and we maintain an audit trail of which attestation versions were accepted for each privilege purchase.
+This ensures that providers always see and accept the most current version of required attestations, and we maintain an
+audit trail of which attestation versions were accepted for each privilege purchase.
 
 ## Transaction History Reporting
 [Back to top](#backend-design)
 
-![Transaction History Reporting Diagram](/backend/compact-connect/docs/design/transaction-history-reporting-diagram.pdf)
+![Transaction History Reporting Diagram](./transaction-history-reporting-diagram.pdf)
 
-When a provider purchases privileges in a compact, the purchase is recorded in the compact's payment processor (currently we only support Authorize.net). There is at least a 24 hour delay before the transaction is settled. The transaction history reporting system is designed to track and report on all settled transactions in the system.
+When a provider purchases privileges in a compact, the purchase is recorded in the compact's payment processor
+(currently we only support Authorize.net). There is at least a 24 hour delay before the transaction is settled. The
+transaction history reporting system is designed to track and report on all settled transactions in the system.
 
 ### Transaction Processing Overview
 
@@ -321,18 +447,22 @@ The system processes transactions through multiple stages:
    - Transaction details include provider ID in the order description for tracking
 
 2. **Settlement Process**
-   - By default, Authorize.net batches settlements daily at 4:00 PM Pacific Time (this can be changed by the Authorize.net account owners)
+   - By default, Authorize.net batches settlements daily at 4:00 PM Pacific Time (this can be changed by the
+     Authorize.net account owners)
    - Each batch contains transactions since the last batch was settled
    - Batches can be in one of several states:
      - Settled: Successfully processed
-     - Settlement Error: Failed to settle (triggers email notification to compact support contacts) see [Batch Settlement Failure Handling](#batch-settlement-failure-handling)
+     - Settlement Error: Failed to settle (triggers email notification to compact support contacts) see
+       [Batch Settlement Failure Handling](#batch-settlement-failure-handling)
 
 3. **Transaction Collection**
    - A Step Function workflow runs daily at 5:00 PM Pacific Time (1:00 AM UTC)
    - The workflow:
      - Queries Authorize.net for all batches in the last 24 hours
      - Processes transactions in groups of up to 500 (to avoid lambda timeouts)
-     - Retrieves the associated privilege id from CompactConnect's provider data DynamoDB Table for the privilege that was purchased for each transaction and injects it into the data that is stored in the Transaction History DynamoDB Table.
+     - Retrieves the associated privilege id from CompactConnect's provider data DynamoDB Table for the privilege that
+       was purchased for each transaction and injects it into the data that is stored in the Transaction History
+       DynamoDB Table.
      - Handles pagination across multiple batches
      - Sends email alerts if settlement errors are detected
 
@@ -376,27 +506,47 @@ The system includes several monitoring mechanisms:
 - Duration monitoring for long-running processes
 - Error tracking for transaction processing issues
 
-This design ensures reliable transaction processing and reporting while maintaining a complete audit trail of all successfully settled financial transactions within the system.
+This design ensures reliable transaction processing and reporting while maintaining a complete audit trail of all
+successfully settled financial transactions within the system.
 
 ### Batch Settlement Failure Handling
-If a batch fails to settle for whatever reason, Authorize.net will return the batch with a status of `Settlement Error`. From their [documentation about possible transaction statuses](https://support.authorize.net/knowledgebase/Knowledgearticle/?code=000001360), a settlement error can result from one of the following:
- > - Entire Batch with Settlement Error: If all transactions in the batch show a "Settlement Error" status, it may indicate that the batch initially failed. If the batch was not reset or made viewable within 30 days of the failure, further action cannot be taken. If funding is missing for this batch, please contact your Merchant Service Provider (MSP) to explore possible solutions or reprocess the transactions from that batch.
- > - Partial Batch with Settlement Error: If one or more (but not all) transactions in the batch show a "Settlement Error" status, there might be a configuration issue (likely related to accepted card types) where the processor authorized the transactions but rejected them at settlement. In this case, please ask your MSP to investigate the issue with the processor.
+If a batch fails to settle for whatever reason, Authorize.net will return the batch with a status of `Settlement Error`.
+From their [documentation about possible transaction statuses](https://support.authorize.net/knowledgebase/Knowledgearticle/?code=000001360),
+a settlement error can result from one of the following:
+ > - Entire Batch with Settlement Error: If all transactions in the batch show a "Settlement Error" status, it may
+ >   indicate that the batch initially failed. If the batch was not reset or made viewable within 30 days of the
+ >   failure, further action cannot be taken. If funding is missing for this batch, please contact your Merchant Service
+ >   Provider (MSP) to explore possible solutions or reprocess the transactions from that batch.
+ > - Partial Batch with Settlement Error: If one or more (but not all) transactions in the batch show a "Settlement
+ >   Error" status, there might be a configuration issue (likely related to accepted card types) where the processor
+ >   authorized the transactions but rejected them at settlement. In this case, please ask your MSP to investigate the
+ >   issue with the processor.
 
-When a batch fails to settle, we send an email to the compact's support contacts alerting them to reach out to their MSP to investigate the issue. After the issue is resolved, Authorize.net can be instructed to reprocess the batch. Per Authorize.net [support documentation](https://community.developer.cybersource.com/t5/Integration-and-Testing/What-happens-to-a-batch-having-a-settlementState-of/td-p/58993):
+When a batch fails to settle, we send an email to the compact's support contacts alerting them to reach out to their MSP
+to investigate the issue. After the issue is resolved, Authorize.net can be instructed to reprocess the batch. Per
+Authorize.net [support documentation](https://community.developer.cybersource.com/t5/Integration-and-Testing/What-happens-to-a-batch-having-a-settlementState-of/td-p/58993):
 
-> A failed batch needs to be reset and this means that the merchant will need to contact Authorize.Net to request for a batch reset. It is important to note that batches over 30 days old cannot be reset. When resetting a batch, merchant needs to confirm first with their MSP (Merchant Service Provider) that the batch was not funded, and the error that failed the batch has been fixed, before submitting a ticket for the batch to be reset.
+> A failed batch needs to be reset and this means that the merchant will need to contact Authorize.Net to request for a
+> batch reset. It is important to note that batches over 30 days old cannot be reset. When resetting a batch, merchant
+> needs to confirm first with their MSP (Merchant Service Provider) that the batch was not funded, and the error that
+> failed the batch has been fixed, before submitting a ticket for the batch to be reset.
 
-> Resetting a batch doesn't really modify the batch, what it does, is it takes the transactions from the batch and puts them back into unsetttled so they settle with the next batch. Those transactions that were in the failed batch will still have the original submit date.
+> Resetting a batch doesn't really modify the batch, what it does, is it takes the transactions from the batch and puts
+> them back into unsetttled so they settle with the next batch. Those transactions that were in the failed batch will
+> still have the original submit date.
 
-For this reason, we use the batch settlement time as the timestamp for the transaction records we store in the transaction history table. This ensures that any transactions that are in a batch which fails to settle will eventually be processed and stored in the transaction history table.
+For this reason, we use the batch settlement time as the timestamp for the transaction records we store in the
+transaction history table. This ensures that any transactions that are in a batch which fails to settle will eventually
+be processed and stored in the transaction history table.
 
 ## Audit Logging
 [Back to top](#backend-design)
 
 ### Overview
 
-CompactConnect implements a comprehensive audit logging system using AWS CloudTrail to track access to sensitive data, particularly DynamoDB tables containing SSNs. This system provides accountability, supports audit requirements, and enables incident investigation when needed.
+CompactConnect implements a comprehensive audit logging system using AWS CloudTrail to track access to sensitive data,
+particularly DynamoDB tables containing SSNs. This system provides accountability, supports audit requirements, and
+enables incident investigation when needed.
 
 ### Multi-Account Architecture
 
@@ -408,18 +558,22 @@ The audit logging infrastructure is deployed across two AWS accounts for enhance
 
 2. **Management Account**: Hosts the CloudTrail organization trail and the KMS encryption key
 
-This separation follows security best practices and ensures that those who can access sensitive data can't modify the logs of their actions, and vice versa.
+This separation follows security best practices and ensures that those who can access sensitive data can't modify the
+logs of their actions, and vice versa.
 
 ### Understanding CloudTrail Organization Trail
 
-AWS CloudTrail is a service that records API calls made within an AWS account. Our implementation uses an organization trail, which provides several important capabilities:
+AWS CloudTrail is a service that records API calls made within an AWS account. Our implementation uses an organization
+trail, which provides several important capabilities:
 
 - **Cross-Account Visibility**: A single trail that captures activities across all AWS accounts in our organization
 - **Centralized Logging**: All logs are automatically sent to a central, secured location in the logs account
-- **Data Event Focus**: The trail is configured to capture specific "data events" - detailed records of when someone reads data from sensitive tables
+- **Data Event Focus**: The trail is configured to capture specific "data events" - detailed records of when someone
+  reads data from sensitive tables
 - **Consistent Policy**: The same logging standards are automatically applied to all accounts in the organization
 
-This approach ensures that all interactions with sensitive data are captured, regardless of which account the user is operating from.
+This approach ensures that all interactions with sensitive data are captured, regardless of which account the user is
+operating from.
 
 ### Logging Strategy
 
@@ -433,10 +587,12 @@ The system balances comprehensive coverage with cost efficiency:
 
 Several important controls protect the integrity of the audit logs:
 
-- **Immutable Storage**: S3 buckets with versioning and support for object locks, to prevent log deletion or modification
+- **Immutable Storage**: S3 buckets with versioning and support for object locks, to prevent log deletion or
+  modification
 - **Encryption**: KMS encryption with restricted access protects log content
 - **Break-Glass Access**: A security model where even administrators need special authorization to access logs
-- **Organization-wide Visibility**: The CloudTrail is configured as an organization trail, capturing events across all accounts
+- **Organization-wide Visibility**: The CloudTrail is configured as an organization trail, capturing events across all
+  accounts
 
 ### Business Benefits
 
@@ -447,4 +603,5 @@ This audit logging architecture delivers several advantages:
 - **Accountability**: Creates clear audit trails of who accessed what data and when
 - **Cost Optimization**: Intelligent storage tiering and selective logging minimize expenses
 
-The system operates automatically in the background, requiring minimal day-to-day management while providing essential security and governance capabilities.
+The system operates automatically in the background, requiring minimal day-to-day management while providing essential
+security and governance capabilities.
