@@ -32,11 +32,23 @@ class PrivilegeDetailBlock extends Vue {
     }
 
     get statusDisplay(): string {
-        return `${this.status} (${this.$t('licensing.expires')}: ${this.expiresContent})`;
+        return `${this.status} (${this.isDeactivated ? this.$t('licensing.deactivated') : this.expireConjugatedCorrectly}${this.expiresContent})`;
     }
 
     get isActive(): boolean {
-        return Boolean(this.privilege?.status === LicenseStatus.ACTIVE);
+        return this.privilege?.status === LicenseStatus.ACTIVE;
+    }
+
+    get isDeactivated(): boolean {
+        return Boolean(this.privilege?.isDeactivated());
+    }
+
+    get isExpired(): boolean {
+        return Boolean(this.privilege?.isExpired());
+    }
+
+    get expireConjugatedCorrectly(): string {
+        return this.isExpired ? this.$t('licensing.expired') : this.$t('licensing.expires');
     }
 
     get issuedTitle(): string {
@@ -48,7 +60,7 @@ class PrivilegeDetailBlock extends Vue {
     }
 
     get expiresContent(): string {
-        return this.privilege?.expireDateDisplay() || '';
+        return this.isDeactivated ? '' : `: ${this.privilege?.expireDateDisplay() || ''}`;
     }
 
     get disciplineTitle(): string {
