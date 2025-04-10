@@ -3,12 +3,38 @@ import os
 
 from aws_cdk import App, Environment
 from common_constructs.stack import StandardTags
-from pipeline import BetaPipelineStack, DeploymentResourcesStack, ProdPipelineStack, TestPipelineStack
+from pipeline import (
+    BetaBackendPipelineStack,
+    BetaFrontendPipelineStack,
+    DeploymentResourcesStack,
+    ProdBackendPipelineStack,
+    ProdFrontendPipelineStack,
+    TestBackendPipelineStack,
+    TestFrontendPipelineStack,
+)
 from pipeline.backend_stage import BackendStage
 from pipeline.frontend_stage import FrontendStage
 
 
 class CompactConnectApp(App):
+    """
+    CompactConnect CDK Application
+
+    This application implements a two-pipeline deployment architecture:
+
+    1. Backend Pipelines: Deploy infrastructure resources and backend components
+    2. Frontend Pipelines: Deploy frontend applications that depend on backend resources
+
+    Pipeline Execution Flow:
+    - GitHub push → Backend Pipeline → Frontend Pipeline
+
+    The application creates these pipeline stacks:
+    - Backend Pipeline Stacks: TestBackendPipelineStack, BetaBackendPipelineStack, ProdBackendPipelineStack
+    - Frontend Pipeline Stacks: TestFrontendPipelineStack, BetaFrontendPipelineStack, ProdFrontendPipelineStack
+
+    Each pipeline type is in its own dedicated stack to avoid self-mutation conflicts.
+    """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         sandbox_environment = self.node.try_get_context('sandbox')
@@ -53,31 +79,70 @@ class CompactConnectApp(App):
                 standard_tags=StandardTags(**tags, environment='deploy'),
             )
 
-            self.test_pipeline_stack = TestPipelineStack(
+            # Test environment pipeline stacks
+            self.test_backend_pipeline_stack = TestBackendPipelineStack(
                 self,
-                'TestPipelineStack',
+                'TestBackendPipelineStack',
                 pipeline_shared_encryption_key=self.deployment_resources_stack.pipeline_shared_encryption_key,
                 pipeline_alarm_topic=self.deployment_resources_stack.pipeline_alarm_topic,
+                pipeline_access_logs_bucket=self.deployment_resources_stack.pipeline_access_logs_bucket,
                 env=environment,
                 standard_tags=StandardTags(**tags, environment='pipeline'),
                 cdk_path='backend/compact-connect',
             )
 
-            self.prod_pipeline_stack = ProdPipelineStack(
+            self.test_frontend_pipeline_stack = TestFrontendPipelineStack(
                 self,
-                'ProdPipelineStack',
+                'TestFrontendPipelineStack',
                 pipeline_shared_encryption_key=self.deployment_resources_stack.pipeline_shared_encryption_key,
                 pipeline_alarm_topic=self.deployment_resources_stack.pipeline_alarm_topic,
+                pipeline_access_logs_bucket=self.deployment_resources_stack.pipeline_access_logs_bucket,
                 env=environment,
                 standard_tags=StandardTags(**tags, environment='pipeline'),
                 cdk_path='backend/compact-connect',
             )
 
-            self.beta_pipeline_stack = BetaPipelineStack(
+            # Production environment pipeline stacks
+            self.prod_backend_pipeline_stack = ProdBackendPipelineStack(
                 self,
-                'BetaPipelineStack',
+                'ProdBackendPipelineStack',
                 pipeline_shared_encryption_key=self.deployment_resources_stack.pipeline_shared_encryption_key,
                 pipeline_alarm_topic=self.deployment_resources_stack.pipeline_alarm_topic,
+                pipeline_access_logs_bucket=self.deployment_resources_stack.pipeline_access_logs_bucket,
+                env=environment,
+                standard_tags=StandardTags(**tags, environment='pipeline'),
+                cdk_path='backend/compact-connect',
+            )
+
+            self.prod_frontend_pipeline_stack = ProdFrontendPipelineStack(
+                self,
+                'ProdFrontendPipelineStack',
+                pipeline_shared_encryption_key=self.deployment_resources_stack.pipeline_shared_encryption_key,
+                pipeline_alarm_topic=self.deployment_resources_stack.pipeline_alarm_topic,
+                pipeline_access_logs_bucket=self.deployment_resources_stack.pipeline_access_logs_bucket,
+                env=environment,
+                standard_tags=StandardTags(**tags, environment='pipeline'),
+                cdk_path='backend/compact-connect',
+            )
+
+            # Beta environment pipeline stacks
+            self.beta_backend_pipeline_stack = BetaBackendPipelineStack(
+                self,
+                'BetaBackendPipelineStack',
+                pipeline_shared_encryption_key=self.deployment_resources_stack.pipeline_shared_encryption_key,
+                pipeline_alarm_topic=self.deployment_resources_stack.pipeline_alarm_topic,
+                pipeline_access_logs_bucket=self.deployment_resources_stack.pipeline_access_logs_bucket,
+                env=environment,
+                standard_tags=StandardTags(**tags, environment='pipeline'),
+                cdk_path='backend/compact-connect',
+            )
+
+            self.beta_frontend_pipeline_stack = BetaFrontendPipelineStack(
+                self,
+                'BetaFrontendPipelineStack',
+                pipeline_shared_encryption_key=self.deployment_resources_stack.pipeline_shared_encryption_key,
+                pipeline_alarm_topic=self.deployment_resources_stack.pipeline_alarm_topic,
+                pipeline_access_logs_bucket=self.deployment_resources_stack.pipeline_access_logs_bucket,
                 env=environment,
                 standard_tags=StandardTags(**tags, environment='pipeline'),
                 cdk_path='backend/compact-connect',

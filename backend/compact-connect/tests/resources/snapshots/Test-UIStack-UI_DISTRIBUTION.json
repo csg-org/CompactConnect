@@ -16,7 +16,7 @@
             "CachePolicyId": "4135ea2d-6df8-44a3-9df3-4b5a84be39ad",
             "Compress": true,
             "PathPattern": "service-worker.js",
-            "TargetOriginId": "TestPipelineStackTestUIStackUIDistributionOrigin27AF1E63F",
+            "TargetOriginId": "TestBackendPipelineStackTestUIStackUIDistributionOrigin222B319ED",
             "ViewerProtocolPolicy": "https-only"
           }
         ],
@@ -43,7 +43,7 @@
               }
             }
           ],
-          "TargetOriginId": "TestPipelineStackTestUIStackUIDistributionOrigin1F6CE5F22",
+          "TargetOriginId": "TestBackendPipelineStackTestUIStackUIDistributionOrigin1E964AFAF",
           "ViewerProtocolPolicy": "https-only"
         },
         "DefaultRootObject": "index.html",
@@ -54,7 +54,7 @@
           "Bucket": {
             "Fn::ImportValue": "Test-PersistentStack:ExportsOutputFnGetAttAccessLogsBucket83982689RegionalDomainNameD3277804"
           },
-          "Prefix": "_logs/111122223333/us-east-1/TestPipelineStack/Test/UIStack/UIDistribution/"
+          "Prefix": "_logs/111122223333/us-east-1/TestBackendPipelineStack/Test/UIStack/UIDistribution/"
         },
         "Origins": [
           {
@@ -64,7 +64,7 @@
                 "RegionalDomainName"
               ]
             },
-            "Id": "TestPipelineStackTestUIStackUIDistributionOrigin1F6CE5F22",
+            "Id": "TestBackendPipelineStackTestUIStackUIDistributionOrigin1E964AFAF",
             "OriginAccessControlId": {
               "Fn::GetAtt": [
                 "UIDistributionOrigin1S3OriginAccessControl71BC2D71",
@@ -85,7 +85,7 @@
                 "RegionalDomainName"
               ]
             },
-            "Id": "TestPipelineStackTestUIStackUIDistributionOrigin27AF1E63F",
+            "Id": "TestBackendPipelineStackTestUIStackUIDistributionOrigin222B319ED",
             "OriginAccessControlId": {
               "Fn::GetAtt": [
                 "UIDistributionOrigin2S3OriginAccessControl3DEC1613",

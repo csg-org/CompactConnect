@@ -14,13 +14,28 @@ from cdk_nag import NagSuppressions
 from common_constructs.bucket import Bucket
 from constructs import Construct
 
+BACKEND_PIPELINE_TYPE = 'backend'
+
 
 class BackendPipeline(CdkCodePipeline):
+    """
+    Stack for creating the Backend CodePipeline resources.
+
+    This pipeline is part of a two-pipeline architecture where:
+    1. This Backend Pipeline deploys infrastructure and creates required resources
+    2. The Frontend Pipeline then deploys the frontend application using those resources
+
+    Deployment Flow:
+    - IS triggered by GitHub pushes (trigger_on_push=True)
+    - Triggers the Frontend Pipeline after successful deployment
+    """
+
     def __init__(
         self,
         scope: Construct,
         construct_id: str,
         *,
+        pipeline_name: str,
         github_repo_string: str,
         cdk_path: str,
         connection_arn: str,
@@ -29,6 +44,7 @@ class BackendPipeline(CdkCodePipeline):
         encryption_key: IKey,
         alarm_topic: ITopic,
         ssm_parameter: IParameter,
+        stacks_to_synth: list[str],
         environment_context: dict,
         removal_policy: RemovalPolicy,
         **kwargs,
@@ -57,6 +73,7 @@ class BackendPipeline(CdkCodePipeline):
         super().__init__(
             scope,
             construct_id,
+            pipeline_name=pipeline_name,
             artifact_bucket=artifact_bucket,
             synth=ShellStep(
                 'Synth',
@@ -78,7 +95,8 @@ class BackendPipeline(CdkCodePipeline):
                     'npm install -g aws-cdk',
                     'python -m pip install -r requirements.txt',
                     '( cd lambdas/nodejs; yarn install --frozen-lockfile )',
-                    'cdk synth',
+                    # Only synthesize the specific stacks needed
+                    f'cdk synth {" ".join(stacks_to_synth)}',
                 ],
             ),
             synth_code_build_defaults=CodeBuildOptions(

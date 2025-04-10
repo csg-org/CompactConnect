@@ -35,33 +35,33 @@ class TestPipeline(TstAppABC, TestCase):
         Test infrastructure as deployed via the pipeline
         """
         # Identify any findings from our AwsSolutions rule sets
-        self._check_no_stack_annotations(self.app.test_pipeline_stack)
-        self._check_no_stack_annotations(self.app.prod_pipeline_stack)
+        self._check_no_stack_annotations(self.app.test_backend_pipeline_stack)
+        self._check_no_stack_annotations(self.app.prod_backend_pipeline_stack)
         for stage in (
-            self.app.test_pipeline_stack.test_stage,
-            self.app.prod_pipeline_stack.prod_stage,
+            self.app.test_backend_pipeline_stack.test_stage,
+            self.app.prod_backend_pipeline_stack.prod_stage,
         ):
             self._check_no_stage_annotations(stage)
 
         for api_stack in (
-            self.app.test_pipeline_stack.test_stage.api_stack,
-            self.app.prod_pipeline_stack.prod_stage.api_stack,
+            self.app.test_backend_pipeline_stack.test_stage.api_stack,
+            self.app.prod_backend_pipeline_stack.prod_stage.api_stack,
         ):
             with self.subTest(api_stack.stack_name):
                 self._inspect_api_stack(api_stack)
 
         self._inspect_persistent_stack(
-            self.app.test_pipeline_stack.test_stage.persistent_stack,
+            self.app.test_backend_pipeline_stack.test_stage.persistent_stack,
             domain_name='app.test.compactconnect.org',
             allow_local_ui=True,
         )
         self._inspect_persistent_stack(
-            self.app.prod_pipeline_stack.prod_stage.persistent_stack, domain_name='app.compactconnect.org'
+            self.app.prod_backend_pipeline_stack.prod_stage.persistent_stack, domain_name='app.compactconnect.org'
         )
 
         for ui_stack in (
-            self.app.test_pipeline_stack.test_stage.ui_stack,
-            self.app.prod_pipeline_stack.prod_stage.ui_stack,
+            self.app.test_backend_pipeline_stack.test_stage.ui_stack,
+            self.app.prod_backend_pipeline_stack.prod_stage.ui_stack,
         ):
             self._inspect_ui_stack(ui_stack)
 
@@ -90,11 +90,11 @@ class TestPipeline(TstAppABC, TestCase):
             )
 
     def test_synth_generates_compact_resource_servers_with_expected_scopes_for_staff_users_test_stage(self):
-        persistent_stack = self.app.test_pipeline_stack.test_stage.persistent_stack
+        persistent_stack = self.app.test_backend_pipeline_stack.test_stage.persistent_stack
         self._when_testing_compact_resource_servers(persistent_stack, environment_name='test')
 
     def test_synth_generates_compact_resource_servers_with_expected_scopes_for_staff_users_prod_stage(self):
-        persistent_stack = self.app.prod_pipeline_stack.prod_stage.persistent_stack
+        persistent_stack = self.app.prod_backend_pipeline_stack.prod_stage.persistent_stack
         self._when_testing_compact_resource_servers(persistent_stack, environment_name='prod')
 
     def _when_testing_jurisdiction_resource_servers(self, persistent_stack, snapshot_name, overwrite_snapshot):
@@ -133,7 +133,7 @@ class TestPipeline(TstAppABC, TestCase):
         Test that the jurisdiction resource servers are created with the expected scopes
         for the staff users in the test environment.
         """
-        persistent_stack = self.app.test_pipeline_stack.test_stage.persistent_stack
+        persistent_stack = self.app.test_backend_pipeline_stack.test_stage.persistent_stack
         self._when_testing_jurisdiction_resource_servers(
             persistent_stack=persistent_stack,
             snapshot_name='JURISDICTION_RESOURCE_SERVER_CONFIGURATION_TEST_ENV',
@@ -145,7 +145,7 @@ class TestPipeline(TstAppABC, TestCase):
         Test that the jurisdiction resource servers are created with the expected scopes
         for the staff users in the prod environment.
         """
-        persistent_stack = self.app.prod_pipeline_stack.prod_stage.persistent_stack
+        persistent_stack = self.app.prod_backend_pipeline_stack.prod_stage.persistent_stack
         self._when_testing_jurisdiction_resource_servers(
             persistent_stack=persistent_stack,
             snapshot_name='JURISDICTION_RESOURCE_SERVER_CONFIGURATION_PROD_ENV',
@@ -153,7 +153,7 @@ class TestPipeline(TstAppABC, TestCase):
         )
 
     def test_cognito_using_recommended_security_in_prod(self):
-        stack = self.app.prod_pipeline_stack.prod_stage.persistent_stack
+        stack = self.app.prod_backend_pipeline_stack.prod_stage.persistent_stack
         template = Template.from_stack(stack)
 
         # Make sure both user pools match the security settings above
@@ -190,7 +190,7 @@ class TestPipeline(TstAppABC, TestCase):
         self.assertEqual(0, len(implicit_grant_clients))
 
     def test_synth_generates_compact_configuration_upload_custom_resource_with_expected_test_configuration_data(self):
-        persistent_stack = self.app.test_pipeline_stack.test_stage.persistent_stack
+        persistent_stack = self.app.test_backend_pipeline_stack.test_stage.persistent_stack
         persistent_stack_template = Template.from_stack(persistent_stack)
 
         # Ensure our provider user pool is created with expected custom attributes
@@ -217,7 +217,7 @@ class TestPipeline(TstAppABC, TestCase):
     def test_prod_synth_generates_compact_configuration_upload_custom_resource_with_expected_prod_configuration_data(
         self,
     ):
-        persistent_stack = self.app.prod_pipeline_stack.prod_stage.persistent_stack
+        persistent_stack = self.app.prod_backend_pipeline_stack.prod_stage.persistent_stack
         persistent_stack_template = Template.from_stack(persistent_stack)
 
         # Ensure our provider user pool is created with expected custom attributes
@@ -242,7 +242,7 @@ class TestPipeline(TstAppABC, TestCase):
         )
 
     def test_synth_generates_python_lambda_layer_with_ssm_parameter(self):
-        persistent_stack = self.app.test_pipeline_stack.test_stage.persistent_stack
+        persistent_stack = self.app.test_backend_pipeline_stack.test_stage.persistent_stack
         persistent_stack_template = Template.from_stack(persistent_stack)
 
         # Ensure our provider user pool is created with expected custom attributes
@@ -263,7 +263,7 @@ class TestPipeline(TstAppABC, TestCase):
         self.assertEqual(['python3.12'], lambda_layer_parameter_properties['CompatibleRuntimes'])
 
     def test_synth_generates_provider_users_bucket_with_event_handler(self):
-        persistent_stack = self.app.test_pipeline_stack.test_stage.persistent_stack
+        persistent_stack = self.app.test_backend_pipeline_stack.test_stage.persistent_stack
         persistent_stack_template = Template.from_stack(persistent_stack)
 
         provider_users_bucket_event_lambda_logical_id = persistent_stack.get_logical_id(
