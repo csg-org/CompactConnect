@@ -171,8 +171,8 @@ class UserRowEdit extends mixins(MixinForm) {
     }
 
     get userOptionsState(): Array<PermissionOption> {
-        const { userCompact } = this;
-        let options = userCompact?.memberStates?.map((memberState: State) => ({
+        const { currentCompact } = this;
+        let options = currentCompact?.memberStates?.map((memberState: State) => ({
             value: (memberState.abbrev as unknown as string)?.toLowerCase() || '',
             name: memberState.name(),
         })) || [];

@@ -4,7 +4,7 @@
 //
 //  Created by InspiringApps on 4/12/2020.
 //
-import { compacts as compactConfigs, AuthTypes, Permission } from '@/app.config';
+import { AuthTypes, Permission } from '@/app.config';
 import { StaffUser, StaffUserSerializer } from '@models/StaffUser/StaffUser.model';
 import { Compact, CompactType } from '@models/Compact/Compact.model';
 import { State } from '@models/State/State.model';
@@ -247,10 +247,6 @@ describe('Staff User model', () => {
             {
                 compact: {
                     type: CompactType.ASLP,
-                    memberStates: compactConfigs.aslp.memberStates.map((memberState) => ({
-                        abbrev: memberState,
-                        '...': '',
-                    })),
                     '...': '',
                 },
                 isReadPrivate: true,

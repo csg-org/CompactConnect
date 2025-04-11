@@ -1578,6 +1578,29 @@ export const attestation = {
     required: true,
 };
 
+export const compactStates = [
+    {
+        compact: 'octp',
+        postalAbbreviation: 'al',
+    },
+    {
+        compact: 'octp',
+        postalAbbreviation: 'co',
+    },
+    {
+        compact: 'octp',
+        postalAbbreviation: 'ky',
+    },
+    {
+        compact: 'octp',
+        postalAbbreviation: 'ne',
+    },
+    {
+        compact: 'octp',
+        postalAbbreviation: 'oh',
+    },
+];
+
 export const pets = [
     {
         id: 1,

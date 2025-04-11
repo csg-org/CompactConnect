@@ -27,7 +27,7 @@ describe('StateUpload component', async () => {
         const component = wrapper.vm;
 
         component.$store.dispatch('user/setStoreUser', new StaffUser());
-        component.$store.dispatch('user/setCurrentCompact', new Compact({ type: CompactType.ASLP }));
+        await component.$store.dispatch('user/setCurrentCompact', new Compact({ type: CompactType.ASLP }));
         component.isFormSuccessful = true;
         await nextTick();
 
