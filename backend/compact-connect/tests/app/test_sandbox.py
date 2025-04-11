@@ -32,7 +32,9 @@ class TestSandbox(TstSandbox):
         self._inspect_api_stack(self.app.sandbox_backend_stage.api_stack)
 
         self._inspect_persistent_stack(
-            self.app.sandbox_backend_stage.persistent_stack, domain_name='app.justin.compactconnect.org', allow_local_ui=True
+            self.app.sandbox_backend_stage.persistent_stack,
+            domain_name='app.justin.compactconnect.org',
+            allow_local_ui=True,
         )
 
 

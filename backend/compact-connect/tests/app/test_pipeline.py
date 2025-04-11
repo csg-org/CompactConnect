@@ -35,6 +35,7 @@ class TestPipeline(TstAppABC, TestCase):
         Test infrastructure as deployed via the pipeline
         """
         # Identify any findings from our AwsSolutions rule sets
+        self._check_no_stack_annotations(self.app.deployment_resources_stack)
         self._check_no_stack_annotations(self.app.test_backend_pipeline_stack)
         self._check_no_stack_annotations(self.app.prod_backend_pipeline_stack)
         for stage in (

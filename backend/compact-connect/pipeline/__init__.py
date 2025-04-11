@@ -114,6 +114,17 @@ class DeploymentResourcesStack(Stack):
             auto_delete_objects=False,
         )
 
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            f'{self.pipeline_access_logs_bucket.node.path}/Resource',
+            suppressions=[
+                {
+                    'id': 'HIPAA.Security-S3BucketLoggingEnabled',
+                    'reason': 'This is the access logging bucket.',
+                },
+            ],
+        )
+
 
 class BasePipelineStack(Stack):
     """Base stack with common functionality for all pipeline stacks (both backend and frontend)."""
