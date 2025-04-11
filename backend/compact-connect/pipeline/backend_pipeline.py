@@ -44,7 +44,7 @@ class BackendPipeline(CdkCodePipeline):
         encryption_key: IKey,
         alarm_topic: ITopic,
         ssm_parameter: IParameter,
-        stacks_to_synth: list[str],
+        pipeline_stack_name: str,
         environment_context: dict,
         removal_policy: RemovalPolicy,
         **kwargs,
@@ -95,8 +95,8 @@ class BackendPipeline(CdkCodePipeline):
                     'npm install -g aws-cdk',
                     'python -m pip install -r requirements.txt',
                     '( cd lambdas/nodejs; yarn install --frozen-lockfile )',
-                    # Only synthesize the specific stacks needed
-                    f'cdk synth {" ".join(stacks_to_synth)}',
+                    # Only synthesize the specific pipeline stack needed
+                    f'cdk synth --context pipelineStack={pipeline_stack_name} --context action=pipelineSynth',
                 ],
             ),
             synth_code_build_defaults=CodeBuildOptions(

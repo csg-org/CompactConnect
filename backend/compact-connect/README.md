@@ -13,6 +13,7 @@ This is an [AWS-CDK](https://aws.amazon.com/cdk/) based project for the backend 
 - **[Installing Dependencies](#installing-dependencies)**
 - **[Local Development](#local-development)**
 - **[Tests](#tests)**
+- **[Google reCAPTCHA Setup](#google-recaptcha-setup)**
 - **[Deployment](#deployment)**
 - **[Decommissioning](#decommissioning)**
 - **[More Info](#more-info)**
@@ -225,21 +226,23 @@ that is done, perform the following steps to deploy the CI/CD pipelines into the
   identify in your `cdk.context.json` file. For each Slack channel you want to integrate, be sure to invite your new AWS app to those channels. Update the
   `notifications.slack` sections of the `cdk.context.json` file with the details for your Slack workspace and channels.
   If you opt not to integrate with Slack, remove the `slack` fields from the file.
-- Set cli-environment variables `CDK_DEFAULT_ACCOUNT` and `CDK_DEFAULT_REGION` to your deploy account id and
-  `us-east-1`, respectively.
-- Deploy the specific pipeline stack you want to set up:
-  - For the test environment pipeline: `cdk deploy TestPipelineStack`
-  - For the beta environment pipeline: `cdk deploy BetaPipelineStack`
-  - For the production environment pipeline: `cdk deploy ProdPipelineStack`
-  - To deploy all pipelines at once: `cdk deploy TestPipelineStack BetaPipelineStack ProdPipelineStack`
-  
+- Set cli-environment variables `CDK_DEFAULT_ACCOUNT` and `CDK_DEFAULT_REGION` to your deployment account id and `us-east-1`, respectively.
+- For each environment (test, beta, prod), you need to deploy both the backend and frontend pipeline stacks:
 
-  **Note that deploying a pipeline stack will trigger an automatic deployment from the configured branch in your GitHub repo.**
+1. **Deploy the Backend Pipeline Stacks first**:
+  `cdk deploy --context action=bootstrapDeploy TestBackendPipelineStack BetaBackendPipelineStack ProdBackendPipelineStack`
+
+2. **Then deploy the Frontend Pipeline Stacks**:
+  `cdk deploy --context action=bootstrapDeploy TestFrontendPipelineStack BetaFrontendPipelineStack ProdFrontendPipelineStack`
+
+**Important**: When a pipeline stack is deployed, it will automatically trigger a deployment to its environment from the configured branch in your GitHub repo. The first time you deploy the backend pipeline, it should pass all the steps except the final trigger of the frontend pipeline, since the frontend pipeline will not exist until you deploy it. From there on the pipelines should integrate as designed.
 
 ### Subsequent production deploys
 
-Once the pipelines are established with the above steps, deploys will automatically execute to the test environment whenever changes are pushed to the `development` branch of the repository named in your
-`cdk.context.json` file. Likewise, changes pushed to the `main` branch will execute deployments to the beta and production environments.
+Once the pipelines are established with the above steps, deployments will be automatically handled:
+
+- Pushes to the `development` branch will trigger the test backend pipeline, which will then trigger the test frontend pipeline
+- Pushes to the `main` branch will trigger both the beta and production backend pipelines, which will then trigger their respective frontend pipelines.
 
 ### Useful commands
 

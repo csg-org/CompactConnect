@@ -47,6 +47,7 @@ from pipeline.backend_pipeline import BACKEND_PIPELINE_TYPE, BackendPipeline
 from pipeline.backend_stage import BackendStage
 from pipeline.frontend_pipeline import FRONTEND_PIPELINE_TYPE, FrontendPipeline
 from pipeline.frontend_stage import FrontendStage
+from pipeline.SynthSubstituteStage import SynthSubstituteStage
 
 TEST_ENVIRONMENT_NAME = 'test'
 BETA_ENVIRONMENT_NAME = 'beta'
@@ -55,6 +56,11 @@ PROD_ENVIRONMENT_NAME = 'prod'
 ALLOWED_ENVIRONMENT_NAMES = [TEST_ENVIRONMENT_NAME, BETA_ENVIRONMENT_NAME, PROD_ENVIRONMENT_NAME]
 
 DEPLOY_ENVIRONMENT_NAME = 'deploy'
+
+# Action constants
+ACTION_CONTEXT_KEY = 'action'
+PIPELINE_STACK_CONTEXT_KEY = 'pipelineStack'
+PIPELINE_SYNTH_ACTION = 'pipelineSynth'
 
 
 class DeploymentResourcesStack(Stack):
@@ -214,7 +220,10 @@ class BasePipelineStack(Stack):
 
 
 class BaseBackendPipelineStack(BasePipelineStack):
-    """Base stack with shared resources for backend pipeline stacks."""
+    """
+    Base class for backend pipeline stacks.
+    Implements common functionality for all backend pipeline stacks.
+    """
 
     def __init__(
         self,
@@ -234,6 +243,35 @@ class BaseBackendPipelineStack(BasePipelineStack):
             removal_policy=removal_policy,
             pipeline_access_logs_bucket=pipeline_access_logs_bucket,
             **kwargs,
+        )
+
+    def _determine_backend_stage(self, construct_id, app_name, environment_name, environment_context):
+        """
+        Return either a real BackendStage or a SynthSubstituteStage depending on pipeline synthesis context.
+
+        This method centralizes the stage creation logic to conditionally create a lightweight substitute
+        stage during pipeline synthesis when the stage is not part of the pipeline being synthesized.
+        """
+        # Check if we're in pipeline synthesis mode and if we're synthesizing this specific pipeline
+        action = self.node.try_get_context('action')
+        pipeline_stack_name = self.node.try_get_context('pipelineStack')
+
+        # If we're in pipeline synthesis mode and this is not the pipeline being synthesized,
+        # use a lightweight substitute stage
+        if action == 'pipelineSynth' and pipeline_stack_name != self.stack_name:
+            return SynthSubstituteStage(
+                self,
+                'SubstituteBackendStage',
+                environment_context=environment_context,
+            )
+
+        # Otherwise, use the real stage for deployment
+        return BackendStage(
+            self,
+            construct_id,
+            app_name=app_name,
+            environment_name=environment_name,
+            environment_context=environment_context,
         )
 
     def _generate_frontend_pipeline_trigger_step(self):
@@ -294,7 +332,10 @@ class BaseBackendPipelineStack(BasePipelineStack):
 
 
 class BaseFrontendPipelineStack(BasePipelineStack):
-    """Base stack with shared resources for frontend pipeline stacks."""
+    """
+    Base class for frontend pipeline stacks.
+    Implements common functionality for all frontend pipeline stacks.
+    """
 
     def __init__(
         self,
@@ -314,6 +355,34 @@ class BaseFrontendPipelineStack(BasePipelineStack):
             removal_policy=removal_policy,
             pipeline_access_logs_bucket=pipeline_access_logs_bucket,
             **kwargs,
+        )
+
+    def _determine_frontend_stage(self, construct_id, environment_name, environment_context):
+        """
+        Return either a real FrontendStage or a SynthSubstituteStage depending on pipeline synthesis context.
+
+        This method centralizes the stage creation logic to conditionally create a lightweight substitute
+        stage during pipeline synthesis when the stage is not part of the pipeline being synthesized.
+        """
+        # Check if we're in pipeline synthesis mode and if we're synthesizing this specific pipeline
+        action = self.node.try_get_context('action')
+        pipeline_stack_name = self.node.try_get_context('pipelineStack')
+
+        # If we're in pipeline synthesis mode and this is not the pipeline being synthesized,
+        # use a lightweight substitute stage
+        if action == 'pipelineSynth' and pipeline_stack_name != self.stack_name:
+            return SynthSubstituteStage(
+                self,
+                'SubstituteFrontendStage',
+                environment_context=environment_context,
+            )
+
+        # Otherwise, use the real stage for deployment
+        return FrontendStage(
+            self,
+            construct_id,
+            environment_name=environment_name,
+            environment_context=environment_context,
         )
 
 
@@ -355,15 +424,16 @@ class TestBackendPipelineStack(BaseBackendPipelineStack):
             alarm_topic=pipeline_alarm_topic,
             access_logs_bucket=self.access_logs_bucket,
             ssm_parameter=self.parameter,
-            stacks_to_synth=[self.stack_name],
+            pipeline_stack_name=self.stack_name,
             environment_context=self.pipeline_environment_context,
             self_mutation=True,
             removal_policy=self.removal_policy,
         )
 
-        self.test_stage = BackendStage(
-            self,
-            'Test',
+        self.test_stage = self._determine_backend_stage(
+            # NOTE: it is critical that the construct_id stays the same, as all the underlying stacks
+            # are named based on this construct_id
+            construct_id='Test',
             app_name=self.app_name,
             environment_name=TEST_ENVIRONMENT_NAME,
             environment_context=self.ssm_context['environments'][TEST_ENVIRONMENT_NAME],
@@ -416,15 +486,14 @@ class TestFrontendPipelineStack(BaseFrontendPipelineStack):
             alarm_topic=pipeline_alarm_topic,
             access_logs_bucket=self.access_logs_bucket,
             ssm_parameter=self.parameter,
-            stacks_to_synth=[self.stack_name],
+            pipeline_stack_name=self.stack_name,
             environment_context=self.pipeline_environment_context,
             self_mutation=True,
             removal_policy=self.removal_policy,
         )
 
-        self.pre_prod_frontend_stage = FrontendStage(
-            self,
-            'TestFrontendStage',
+        self.pre_prod_frontend_stage = self._determine_frontend_stage(
+            construct_id='TestFrontend',
             environment_name=TEST_ENVIRONMENT_NAME,
             environment_context=self.ssm_context['environments'][TEST_ENVIRONMENT_NAME],
         )
@@ -470,15 +539,16 @@ class BetaBackendPipelineStack(BaseBackendPipelineStack):
             alarm_topic=pipeline_alarm_topic,
             access_logs_bucket=self.access_logs_bucket,
             ssm_parameter=self.parameter,
-            stacks_to_synth=[self.stack_name],
+            pipeline_stack_name=self.stack_name,
             environment_context=self.pipeline_environment_context,
             self_mutation=True,
             removal_policy=self.removal_policy,
         )
 
-        self.beta_backend_stage = BackendStage(
-            self,
-            'Beta',
+        self.beta_backend_stage = self._determine_backend_stage(
+            # NOTE: it is critical that the construct_id stays the same, as all the underlying stacks
+            # are named based on this construct_id
+            construct_id='Beta',
             app_name=self.app_name,
             environment_name=BETA_ENVIRONMENT_NAME,
             environment_context=self.ssm_context['environments'][BETA_ENVIRONMENT_NAME],
@@ -529,15 +599,14 @@ class BetaFrontendPipelineStack(BaseFrontendPipelineStack):
             alarm_topic=pipeline_alarm_topic,
             access_logs_bucket=self.access_logs_bucket,
             ssm_parameter=self.parameter,
-            stacks_to_synth=[self.stack_name],
+            pipeline_stack_name=self.stack_name,
             environment_context=self.pipeline_environment_context,
             self_mutation=True,
             removal_policy=self.removal_policy,
         )
 
-        self.beta_frontend_stage = FrontendStage(
-            self,
-            'BetaFrontend',
+        self.beta_frontend_stage = self._determine_frontend_stage(
+            construct_id='BetaFrontend',
             environment_name=BETA_ENVIRONMENT_NAME,
             environment_context=self.ssm_context['environments'][BETA_ENVIRONMENT_NAME],
         )
@@ -582,15 +651,16 @@ class ProdBackendPipelineStack(BaseBackendPipelineStack):
             alarm_topic=pipeline_alarm_topic,
             access_logs_bucket=self.access_logs_bucket,
             ssm_parameter=self.parameter,
-            stacks_to_synth=[self.stack_name],
+            pipeline_stack_name=self.stack_name,
             environment_context=self.pipeline_environment_context,
             self_mutation=True,
             removal_policy=self.removal_policy,
         )
 
-        self.prod_stage = BackendStage(
-            self,
-            'Prod',
+        self.prod_stage = self._determine_backend_stage(
+            # NOTE: it is critical that the construct_id stays the same, as all the underlying stacks
+            # are named based on this construct_id
+            construct_id='Prod',
             app_name=self.app_name,
             environment_name=PROD_ENVIRONMENT_NAME,
             environment_context=self.ssm_context['environments'][PROD_ENVIRONMENT_NAME],
@@ -640,15 +710,14 @@ class ProdFrontendPipelineStack(BaseFrontendPipelineStack):
             alarm_topic=pipeline_alarm_topic,
             access_logs_bucket=self.access_logs_bucket,
             ssm_parameter=self.parameter,
-            stacks_to_synth=[self.stack_name],
+            pipeline_stack_name=self.stack_name,
             environment_context=self.pipeline_environment_context,
             self_mutation=True,
             removal_policy=self.removal_policy,
         )
 
-        self.prod_frontend_stage = FrontendStage(
-            self,
-            'ProdFrontend',
+        self.prod_frontend_stage = self._determine_frontend_stage(
+            construct_id='ProdFrontend',
             environment_name=PROD_ENVIRONMENT_NAME,
             environment_context=self.ssm_context['environments'][PROD_ENVIRONMENT_NAME],
         )
