@@ -111,6 +111,7 @@ export class License implements InterfaceLicense {
         const { history } = this;
         const historyLength = history?.length || 0;
         const lastEvent = (history && historyLength) ? history[historyLength - 1] : new LicenseHistoryItem();
+
         const isLastEventDeactivation = lastEvent.updateType === 'deactivation';
         const isInactive = this.status === LicenseStatus.INACTIVE;
 

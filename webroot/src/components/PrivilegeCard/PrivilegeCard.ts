@@ -104,7 +104,7 @@ class PrivilegeCard extends mixins(MixinForm) {
     }
 
     get isActive(): boolean {
-        return Boolean(this.privilege?.status === LicenseStatus.ACTIVE);
+        return this.privilege?.status === LicenseStatus.ACTIVE;
     }
 
     get stateTitle(): string {
