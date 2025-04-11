@@ -291,7 +291,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
         )
 
         # transaction was successful, now we create privilege records for the selected jurisdictions
-        config.data_client.create_provider_privileges(
+        genereated_privileges = config.data_client.create_provider_privileges(
             compact=compact_abbr,
             provider_id=provider_id,
             jurisdiction_postal_abbreviations=selected_jurisdictions_postal_abbreviations,
@@ -303,7 +303,30 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             attestations=body['attestations'],
         )
 
+        event_entry = {
+            'Source': 'org.compactconnect.provider-data',
+            'DetailType': 'privilege.purchase',
+            'Detail': json.dumps(
+                {
+                    'eventTime': config.current_standard_datetime.isoformat(),
+                    'compact': compact,
+                    'jurisdiction': jurisdiction,
+                    'providerId': provider_id,
+                    'licenseTypeAbbr': license_type_abbr,
+                    'privilegeId': privilege_record['privilegeId'],
+                }
+            ),
+            'EventBusName': config.event_bus_name,
+        }
+        # We'll support using a provided event batch writer to send the event to the event bus
+        if event_batch_writer:
+            event_batch_writer.put_event(Entry=event_entry)
+        else:
+            # If no event batch writer is provided, we'll use the default event bus client
+            config.events_client.put_events(Entries=[event_entry])
+
         return transaction_response
+
 
     except CCFailedTransactionException as e:
         logger.warning(f'Failed transaction: {e}.')
