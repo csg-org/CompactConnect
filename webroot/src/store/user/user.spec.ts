@@ -13,7 +13,7 @@ import {
 } from '@/app.config';
 import chaiMatchPattern from 'chai-match-pattern';
 import chai from 'chai';
-import { Compact } from '@models/Compact/Compact.model';
+import { Compact, CompactType } from '@models/Compact/Compact.model';
 import { PrivilegePurchaseOption } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
 import { PurchaseFlowStep } from '@models/PurchaseFlowStep/PurchaseFlowStep.model';
 import { PurchaseFlowState } from '@models/PurchaseFlowState/PurchaseFlowState.model';
@@ -142,6 +142,40 @@ describe('Use Store Mutations', () => {
 
         expect(state.isLoadingAccount).to.equal(false);
         expect(state.error).to.equal(null);
+    });
+    it('should successfully get compact states request', () => {
+        const state = {};
+
+        mutations[MutationTypes.GET_COMPACT_STATES_REQUEST](state);
+
+        expect(state.isLoadingCompactStates).to.equal(true);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully get compact states failure', () => {
+        const state = {};
+        const error = new Error();
+
+        mutations[MutationTypes.GET_COMPACT_STATES_FAILURE](state, error);
+
+        expect(state.isLoadingCompactStates).to.equal(false);
+        expect(state.error).to.equal(error);
+    });
+    it('should successfully get compact states success (no compact to update)', () => {
+        const state = {};
+
+        mutations[MutationTypes.GET_COMPACT_STATES_SUCCESS](state);
+
+        expect(state.isLoadingCompactStates).to.equal(false);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully get compact states success (compact updated with states)', () => {
+        const state = { currentCompact: new Compact() };
+
+        mutations[MutationTypes.GET_COMPACT_STATES_SUCCESS](state, [new State()]);
+
+        expect(state.isLoadingCompactStates).to.equal(false);
+        expect(state.error).to.equal(null);
+        expect(state.currentCompact.memberStates.length).to.equal(1);
     });
     it('should successfully update user', () => {
         const state = {};
@@ -593,11 +627,11 @@ describe('User Store Actions', async () => {
     it('should successfully start get privilege purchase information success', async () => {
         const commit = sinon.spy();
         const dispatch = sinon.spy();
-        const state = { currentCompact: new Compact({ type: 'aslp' }) };
+        const state = { currentCompact: new Compact({ type: CompactType.ASLP }) };
 
         const data = {
             jurisdiction: new State({ abbrev: 'ca' }),
-            compactType: 'aslp',
+            compactType: CompactType.ASLP,
             fee: 5,
             isMilitaryDiscountActive: true,
             militaryDiscountType: FeeTypes.FLAT_RATE,
@@ -608,7 +642,7 @@ describe('User Store Actions', async () => {
 
         const privilegePurchaseData = {
             privilegePurchaseOptions: [ privilegePurchaseOption ],
-            compactCommissionFee: { compactType: 'aslp', feeType: 'FLAT_RATE', feeAmount: 3.5 }
+            compactCommissionFee: { compactType: CompactType.ASLP, feeType: 'FLAT_RATE', feeAmount: 3.5 }
         };
 
         await actions.getPrivilegePurchaseInformationSuccess({ commit, dispatch, state }, privilegePurchaseData);
@@ -747,6 +781,70 @@ describe('User Store Actions', async () => {
             [MutationTypes.UPLOAD_MILITARY_AFFILIATION_FAILURE, error]
         );
     });
+    it('should successfully start compact states request (logged in as staff)', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const state = { isLoggedInAsStaff: true };
+
+        await actions.getCompactStatesRequest({ commit, dispatch, state }, CompactType.ASLP);
+
+        expect(commit.calledOnce, 'commit').to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_COMPACT_STATES_REQUEST]);
+        expect(dispatch.calledOnce, 'dispatch').to.equal(true);
+        expect([dispatch.firstCall.args[0]]).to.matchPattern(['getCompactStatesSuccess']);
+    });
+    it('should successfully start compact states request (not logged in as staff)', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const state = { isLoggedInAsStaff: false };
+
+        await actions.getCompactStatesRequest({ commit, dispatch, state }, CompactType.ASLP);
+
+        expect(commit.calledOnce, 'commit').to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_COMPACT_STATES_REQUEST]);
+        expect(dispatch.calledOnce, 'dispatch').to.equal(true);
+        expect([dispatch.firstCall.args[0]]).to.matchPattern(['getCompactStatesSuccess']);
+    });
+    it('should successfully start compact states success', () => {
+        const commit = sinon.spy();
+        const states = [new State()];
+
+        actions.getCompactStatesSuccess({ commit }, states);
+
+        expect(commit.calledOnce, 'commit').to.equal(true);
+        expect(commit.firstCall.args[0]).to.equal(MutationTypes.GET_COMPACT_STATES_SUCCESS);
+    });
+    it('should successfully start compact states failure', () => {
+        const commit = sinon.spy();
+        const error = new Error();
+
+        actions.getCompactStatesFailure({ commit }, error);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_COMPACT_STATES_FAILURE, error]);
+    });
+    it('should successfully set current compact (null)', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+
+        await actions.setCurrentCompact({ commit, dispatch }, null);
+
+        expect(commit.calledOnce, 'commit').to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.STORE_UPDATE_CURRENT_COMPACT, null]);
+        expect(dispatch.callCount, 'dispatch').to.equal(0);
+    });
+    it('should successfully set current compact (with compact)', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const compact = new Compact({ type: CompactType.ASLP });
+
+        await actions.setCurrentCompact({ commit, dispatch }, compact);
+
+        expect(commit.calledOnce, 'commit').to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.STORE_UPDATE_CURRENT_COMPACT, compact]);
+        expect(dispatch.callCount, 'dispatch').to.equal(1);
+        expect([dispatch.firstCall.args[0]]).to.matchPattern(['getCompactStatesRequest']);
+    });
 });
 describe('User Store Getters', async () => {
     it('should successfully get state', async () => {
@@ -756,10 +854,10 @@ describe('User Store Getters', async () => {
         expect(prevLastKey).to.matchPattern(state);
     });
     it('should successfully get current compact', async () => {
-        const state = { currentCompact: 'aslp' };
+        const state = { currentCompact: CompactType.ASLP };
         const compact = getters.currentCompact(state);
 
-        expect(compact).to.equal('aslp');
+        expect(compact).to.equal(CompactType.ASLP);
     });
     it('should successfully get the next needed purchase flow step)', async () => {
         const state = {

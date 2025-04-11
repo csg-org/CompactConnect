@@ -36,10 +36,10 @@ DEACTIVATION_HISTORY = {
         'dateOfUpdate': '2020-05-05T12:59:59+00:00',
         'compactTransactionId': '1234567890',
         'privilegeId': 'SLP-NE-1',
-        'persistedStatus': 'active',
+        'administratorSetStatus': 'active',
         'licenseJurisdiction': 'oh',
     },
-    'updatedValues': {'persistedStatus': 'inactive'},
+    'updatedValues': {'administratorSetStatus': 'inactive'},
 }
 
 
@@ -88,7 +88,7 @@ class TestDeactivatePrivilege(TstFunction):
         self.assertEqual(200, resp['statusCode'])
 
         # Update expected provider data to include the deactivation
-        expected_provider['privileges'][0]['persistedStatus'] = 'inactive'
+        expected_provider['privileges'][0]['administratorSetStatus'] = 'inactive'
         expected_provider['privileges'][0]['status'] = 'inactive'
         # Add the deactivation history
         expected_provider['privileges'][0]['history'].insert(0, DEACTIVATION_HISTORY)
@@ -197,7 +197,7 @@ class TestDeactivatePrivilege(TstFunction):
         with open('../common/tests/resources/dynamo/privilege.json') as f:
             privilege = json.load(f)
             # set persisted status to deactivated
-            privilege['persistedStatus'] = 'inactive'
+            privilege['administratorSetStatus'] = 'inactive'
             self.config.provider_table.put_item(Item=privilege)
         # calling deactivation on privilege that is already deactivated
         resp = self._request_deactivation_with_scopes('openid email aslp/admin')

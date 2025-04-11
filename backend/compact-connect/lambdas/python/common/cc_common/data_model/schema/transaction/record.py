@@ -5,11 +5,11 @@ from marshmallow import pre_dump
 from marshmallow.fields import List, Nested, String
 from marshmallow.validate import OneOf
 
-from cc_common.data_model.schema.base_record import BaseRecordSchema, StrictSchema
+from cc_common.data_model.schema.base_record import BaseRecordSchema, ForgivingSchema
 from cc_common.data_model.schema.fields import Compact
 
 
-class TransactionLineItemSchema(StrictSchema):
+class TransactionLineItemSchema(ForgivingSchema):
     """Schema for line items within a transaction."""
 
     description = String(required=True, allow_none=False)
@@ -21,7 +21,7 @@ class TransactionLineItemSchema(StrictSchema):
     privilegeId = String(required=False, allow_none=False)  # Optional, added for privilege-related line items
 
 
-class TransactionBatchSchema(StrictSchema):
+class TransactionBatchSchema(ForgivingSchema):
     """Schema for batch information within a transaction."""
 
     batchId = String(required=True, allow_none=False)
