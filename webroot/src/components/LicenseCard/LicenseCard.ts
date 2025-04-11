@@ -13,7 +13,6 @@ import {
 import LicenseIcon from '@components/Icons/LicenseIcon/LicenseIcon.vue';
 import { License, LicenseStatus } from '@/models/License/License.model';
 import { State } from '@/models/State/State.model';
-import moment from 'moment';
 
 @Component({
     name: 'LicenseCard',
@@ -22,7 +21,7 @@ import moment from 'moment';
     }
 })
 class LicenseCard extends Vue {
-    @Prop({ required: true }) license?: License;
+    @Prop({ required: true }) license!: License;
     @Prop({ default: false }) shouldIncludeLogo?: boolean;
 
     //
@@ -59,7 +58,7 @@ class LicenseCard extends Vue {
     }
 
     get expiresTitle(): string {
-        return this.$t('licensing.expires');
+        return this.isExpired ? this.$t('licensing.expired') : this.$t('licensing.expires');
     }
 
     get expiresContent(): string {
@@ -82,21 +81,8 @@ class LicenseCard extends Vue {
         return this.license?.licenseNumber || '';
     }
 
-    get isPastExiprationDate(): boolean {
-        let isPastDate = false;
-
-        const expireDate = this.license?.expireDate;
-
-        if (expireDate) {
-            const now = moment();
-            const expirationDate = moment(expireDate);
-
-            if (!expirationDate.isAfter(now)) {
-                isPastDate = true;
-            }
-        }
-
-        return isPastDate;
+    get isExpired(): boolean {
+        return Boolean(this.license?.isExpired());
     }
 
     get licenseTypeDisplay(): string {

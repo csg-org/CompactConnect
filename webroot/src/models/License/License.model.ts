@@ -107,6 +107,17 @@ export class License implements InterfaceLicense {
         return isDatePastExpiration({ date: now, dateOfExpiration: expireDate });
     }
 
+    public isDeactivated(): boolean {
+        const { history } = this;
+        const historyLength = history?.length || 0;
+        const lastEvent = (history && historyLength) ? history[historyLength - 1] : new LicenseHistoryItem();
+
+        const isLastEventDeactivation = lastEvent.updateType === 'deactivation';
+        const isInactive = this.status === LicenseStatus.INACTIVE;
+
+        return isLastEventDeactivation && isInactive;
+    }
+
     public licenseTypeAbbreviation(): string {
         const licenseTypes = this.$tm('licensing.licenseTypes') || [];
         const licenseType = licenseTypes.find((translate) => translate.key === this.licenseType);
