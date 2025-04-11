@@ -580,6 +580,7 @@
         "deactivateNotesTitle": "Notas de desactivación",
         "deactivateNotesPlaceholder": "Introduzca notas aquí",
         "confirmPrivilegeDeactivateSubmit": "Sí, desactivar privilegio",
+        "encumber": "Cargar",
         "expiringIn": "Expirando en",
         "licenseEvents": [
             {

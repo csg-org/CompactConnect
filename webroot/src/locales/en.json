@@ -581,6 +581,7 @@
         "deactivateNotesTitle": "Deactivation notes",
         "deactivateNotesPlaceholder": "Enter notes here",
         "confirmPrivilegeDeactivateSubmit": "Yes, deactivate privilege",
+        "encumber": "Encumber",
         "expiringIn": "Expiring in",
         "licenseEvents": [
             {

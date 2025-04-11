@@ -44,11 +44,11 @@
                             {{ (isActive) ? $t('licensing.deactivate') : $t('licensing.deactivated') }}
                         </li>
                         <li
-                            v-else
+                            v-if="isCurrentUserPrivilegeStateAdmin"
                             class="privilege-menu-item"
                             :class="{ 'disabled': true }"
                         >
-                            {{ $t('licensing.privilegeActionsNone') }}
+                            {{ $t('licensing.encumber') }}
                         </li>
                     </ul>
                 </transition>
