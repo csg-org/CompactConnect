@@ -183,3 +183,39 @@ class EmailServiceClient:
         }
 
         return self._invoke_lambda(payload)
+
+    def send_privilege_purchase_email(
+        self,
+        privilege_id: str,
+        jurisdiction: str,
+        license_type: str,
+        total_cost: str,
+        cost_line_items: list[dict]
+    ) -> dict[str, str]:
+        """
+        Send a jurisdiction transaction report email.
+
+        :param compact: Compact name
+        :param jurisdiction: Jurisdiction name
+        :param report_s3_path: S3 path to the report zip file
+        :param reporting_cycle: Reporting cycle (e.g., 'weekly', 'monthly')
+        :param start_date: Start date of the reporting period
+        :param end_date: End date of the reporting period
+        :return: Response from the email notification service
+        """
+
+    # TODO learn payload shape needed here and figure out emailer stuff
+        payload = {
+            'compact': compact,
+            'jurisdiction': jurisdiction,
+            'template': 'JurisdictionTransactionReporting',
+            'recipientType': 'JURISDICTION_SUMMARY_REPORT',
+            'templateVariables': {
+                'reportS3Path': report_s3_path,
+                'reportingCycle': reporting_cycle,
+                'startDate': start_date.strftime('%Y-%m-%d'),
+                'endDate': end_date.strftime('%Y-%m-%d'),
+            },
+        }
+
+        return self._invoke_lambda(payload)

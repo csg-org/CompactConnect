@@ -86,7 +86,7 @@ class NotificationStack(AppStack):
         # Create the QueuedLambdaProcessor
         processor = QueuedLambdaProcessor(
             self,
-            'PrivilegeDeactivation',
+            'PrivilegePurchase',
             process_function=privilege_purchase_handler,
             visibility_timeout=Duration.minutes(5),
             retention_period=Duration.hours(12),
@@ -99,12 +99,12 @@ class NotificationStack(AppStack):
             dlq_count_alarm_threshold=1,
         )
 
-        # Create rule to route privilege.deactivation events to the SQS queue
+        # Create rule to route privilege.purchase events to the SQS queue
         privilege_purchase_rule = Rule(
             self,
             'PrivilegePurchaseEventRule',
             event_bus=persistent_stack.data_event_bus,
-            event_pattern=EventPattern(detail_type=['privilege.deactivation']),
+            event_pattern=EventPattern(detail_type=['privilege.purchase']),
             targets=[SqsQueue(processor.queue, dead_letter_queue=processor.dlq)],
         )
 
