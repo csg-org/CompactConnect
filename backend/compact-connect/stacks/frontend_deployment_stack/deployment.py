@@ -39,7 +39,7 @@ class CompactConnectUIBucketDeployment(BucketDeployment):
                 Source.asset(
                     # we need to back up two parent directories to get to root
                     os.path.join('..', '..', 'webroot')
-                    if stack.bundling_required
+                    if ui_app_config_values.should_bundle
                     else os.path.join('tests', 'resources', 'test_ui_directory'),
                     # This will take a long time to run because it installs a bunch of packages
                     # into a docker container before building the UI, every time
@@ -70,7 +70,7 @@ class CompactConnectUIBucketDeployment(BucketDeployment):
                             user='root',
                         )
                     }
-                    if stack.bundling_required
+                    if ui_app_config_values.should_bundle
                     else {},
                 )
             ],

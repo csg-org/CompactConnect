@@ -181,6 +181,8 @@ class PersistentStackFrontendAppConfigValues:
             'provider_cognito_client_id': 'test-provider-client-id',
             'ui_domain_name': 'test-ui.example.com',
             'api_domain_name': 'test-api.example.com',
+            # if we are working with dummy values, no need to run an actual bundle
+            'should_bundle': False
         }
         return PersistentStackFrontendAppConfigValues(json.dumps(test_config))
 
@@ -218,6 +220,19 @@ class PersistentStackFrontendAppConfigValues:
     def ui_bucket_arn(self) -> str:
         """Get the ARN of the access logs bucket."""
         return self._config['ui_bucket_arn']
+
+    @property
+    def should_bundle(self) -> str:
+        """Return bool that determines if front end will run bundling process
+
+        There are many synth steps run during the pipeline deployment as part of the self-mutating process.
+        During those phases, we set dummy config values, including this one which tells the bundler not to run and
+        eat up extra build time for no purpose.
+
+        This key is not present in our actual values set by the backend, so we set the default
+        value here to True, since if the key is not present the config is likely coming from the real parameter
+        """
+        return self._config.get('should_bundle', True)
 
 
 class UIStackFrontendAppConfigValues:
