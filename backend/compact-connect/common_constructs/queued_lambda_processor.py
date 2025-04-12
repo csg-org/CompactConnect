@@ -8,6 +8,7 @@ from aws_cdk.aws_logs import QueryDefinition, QueryString
 from aws_cdk.aws_sns import ITopic
 from aws_cdk.aws_sqs import DeadLetterQueue, IQueue, Queue, QueueEncryption
 from constructs import Construct
+from aws_cdk import Stack
 
 
 class QueuedLambdaProcessor(Construct):
@@ -70,7 +71,7 @@ class QueuedLambdaProcessor(Construct):
         # role on the queue. In some cases, adding the dependency on the role can cause a circular
         # dependency.
         process_function.add_event_source_mapping(
-            f'SqsEventSource:{Names.node_unique_id(self.queue.node)}',
+            f'SqsEventSource:{Stack.of(self).stack_name}:{construct_id}',
             batch_size=batch_size,
             max_batching_window=max_batching_window,
             report_batch_item_failures=True,
