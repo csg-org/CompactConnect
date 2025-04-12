@@ -116,7 +116,7 @@ class DataEventTable(Table):
                 namespace='AWS/Events',
                 metric_name='FailedInvocations',
                 dimensions_map={
-                    'EventBusName': stack.data_event_bus.event_bus_name,
+                    'EventBusName': event_bus.event_bus_name,
                     'RuleName': event_receiver_rule.rule_name,
                 },
                 period=Duration.minutes(5),

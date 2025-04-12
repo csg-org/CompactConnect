@@ -15,6 +15,7 @@ from common_constructs.data_migration import DataMigration
 from common_constructs.nodejs_function import NodejsFunction
 from common_constructs.python_function import COMMON_PYTHON_LAMBDA_LAYER_SSM_PARAMETER_NAME
 from common_constructs.security_profile import SecurityProfile
+from common_constructs.ssm_parameter_utility import DATA_EVENT_BUS_ARN_SSM_PARAMETER_NAME
 from common_constructs.stack import AppStack
 from constructs import Construct
 
@@ -106,7 +107,21 @@ class PersistentStack(AppStack):
             auto_delete_objects=removal_policy == RemovalPolicy.DESTROY,
         )
 
-        self.data_event_bus = EventBus(self, 'DataEventBus')
+        # This resource should not be reference directly as a cross stack reference, any reference should
+        # be made through the SSM parameter
+        self._data_event_bus = EventBus( self, 'DataEventBus')
+        # We Store the data event bus name in SSM Parameter Store
+        # to avoid issues with cross stack references due to the fact that
+        # you can't update a CloudFormation exported value that is being referenced by a resource in another stack.
+        self.data_event_bus_arn_ssm_parameter = aws_ssm.StringParameter(
+            self,
+            'DataEventBusArnParameter',
+            parameter_name=DATA_EVENT_BUS_ARN_SSM_PARAMETER_NAME,
+            string_value=self._data_event_bus.event_bus_arn,
+        )
+        # TODO - these are needed until pipeline migration effort is complete  # noqa: FIX002
+        self.export_value(self._data_event_bus.event_bus_arn)
+        self.export_value(self._data_event_bus.event_bus_name)
 
         self._add_data_resources(removal_policy=removal_policy)
         self._add_migrations()
@@ -243,7 +258,7 @@ class PersistentStack(AppStack):
             self,
             'SSNTable',
             removal_policy=removal_policy,
-            data_event_bus=self.data_event_bus,
+            data_event_bus=self._data_event_bus,
             alarm_topic=self.alarm_topic,
         )
 
@@ -257,7 +272,7 @@ class PersistentStack(AppStack):
             bucket_encryption_key=self.ssn_table.key,
             removal_policy=removal_policy,
             auto_delete_objects=removal_policy == RemovalPolicy.DESTROY,
-            event_bus=self.data_event_bus,
+            event_bus=self._data_event_bus,
             license_preprocessing_queue=self.ssn_table.preprocessor_queue.queue,
             license_upload_role=self.ssn_table.license_upload_role,
         )
@@ -304,7 +319,7 @@ class PersistentStack(AppStack):
             scope=self,
             construct_id='DataEventTable',
             encryption_key=self.shared_encryption_key,
-            event_bus=self.data_event_bus,
+            event_bus=self._data_event_bus,
             alarm_topic=self.alarm_topic,
             removal_policy=removal_policy,
         )
