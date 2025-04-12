@@ -14,6 +14,7 @@ class EventBus(CdkEventBus):
         archive_retention: Duration = DEFAULT_ARCHIVE_RETENTION_DURATION,
         **kwargs,
     ):
+        # we explicitly name this resource, so that any future pipeline migrations will not change the namespace
         super().__init__(scope, construct_id, **kwargs)
         self.archive(
             f'{construct_id}Archive',
