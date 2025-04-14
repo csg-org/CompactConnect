@@ -109,12 +109,13 @@ class PersistentStack(AppStack):
 
         # This resource should not be reference directly as a cross stack reference, any reference should
         # be made through the SSM parameter
-        self._data_event_bus = EventBus( self, 'DataEventBus')
+        self._data_event_bus = EventBus(self, 'DataEventBus')
         # We Store the data event bus name in SSM Parameter Store
         # to avoid issues with cross stack references due to the fact that
         # you can't update a CloudFormation exported value that is being referenced by a resource in another stack.
-        self.data_event_bus_arn_ssm_parameter = (SSMParameterUtility
-                                                 .set_data_event_bus_arn_ssm_parameter(self, self._data_event_bus))
+        self.data_event_bus_arn_ssm_parameter = SSMParameterUtility.set_data_event_bus_arn_ssm_parameter(
+            self, self._data_event_bus
+        )
         # TODO - these are needed until pipeline migration effort is complete  # noqa: FIX002
         self.export_value(self._data_event_bus.event_bus_arn)
         self.export_value(self._data_event_bus.event_bus_name)
