@@ -107,7 +107,7 @@ class PersistentStack(AppStack):
             auto_delete_objects=removal_policy == RemovalPolicy.DESTROY,
         )
 
-        # This resource should not be reference directly as a cross stack reference, any reference should
+        # This resource should not be referenced directly as a cross stack reference, any reference should
         # be made through the SSM parameter
         self._data_event_bus = EventBus(self, 'DataEventBus')
         # We Store the data event bus name in SSM Parameter Store
