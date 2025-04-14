@@ -113,6 +113,7 @@ describe('License model', () => {
         expect(license.isExpired()).to.equal(false);
         expect(license.licenseTypeAbbreviation()).to.equal('AUD');
         expect(license.displayName()).to.equal('Unknown - AUD');
+        expect(license.isDeactivated()).to.equal(false);
     });
     it('should create a License with specific values through serializer', () => {
         const data = {
@@ -502,5 +503,87 @@ describe('License model', () => {
         expect(license.historyWithFabricatedEvents()[3].updateType).to.equal('expired');
         expect(license.historyWithFabricatedEvents()[4].updateType).to.equal('renewal');
         expect(license.historyWithFabricatedEvents()[5].updateType).to.equal('expired');
+        expect(license.isDeactivated()).to.equal(false);
+    });
+    it('should create a privilege with specific values through serializer(deactivated)', () => {
+        const data = {
+            dateOfUpdate: '2025-03-26T16:19:09+00:00',
+            type: 'privilege',
+            providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
+            compact: 'octp',
+            jurisdiction: 'ne',
+            licenseJurisdiction: 'ky',
+            licenseType: 'occupational therapy assistant',
+            dateOfIssuance: '2022-03-19T21:51:26+00:00',
+            dateOfRenewal: '2025-03-26T16:19:09+00:00',
+            dateOfExpiration: '2025-02-12',
+            compactTransactionId: '120060088901',
+            attestations: [],
+            privilegeId: 'OTA-NE-10',
+            persistedStatus: 'active',
+            status: 'inactive',
+            history: [
+                {
+                    dateOfUpdate: '2022-03-19T22:02:17+00:00',
+                    type: 'privilegeUpdate',
+                    updateType: 'deactivation',
+                    providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
+                    compact: 'octp',
+                    jurisdiction: 'ne',
+                    licenseType: 'occupational therapy assistant',
+                    previous: {
+                        dateOfIssuance: '2025-03-19T21:51:26+00:00',
+                        dateOfRenewal: '2025-03-19T21:51:26+00:00',
+                        dateOfExpiration: '2026-02-12',
+                        dateOfUpdate: '2022-03-19T21:51:26+00:00',
+                        privilegeId: 'OTA-NE-10',
+                        compactTransactionId: '120059525522',
+                        attestations: [
+                            {
+                                attestationId: 'personal-information-address-attestation',
+                                version: '3'
+                            },
+                            {
+                                attestationId: 'personal-information-home-state-attestation',
+                                version: '1'
+                            },
+                            {
+                                attestationId: 'jurisprudence-confirmation',
+                                version: '1'
+                            },
+                            {
+                                attestationId: 'scope-of-practice-attestation',
+                                version: '1'
+                            },
+                            {
+                                attestationId: 'not-under-investigation-attestation',
+                                version: '1'
+                            },
+                            {
+                                attestationId: 'discipline-no-current-encumbrance-attestation',
+                                version: '1'
+                            },
+                            {
+                                attestationId: 'discipline-no-prior-encumbrance-attestation',
+                                version: '1'
+                            },
+                            {
+                                attestationId: 'provision-of-true-information-attestation',
+                                version: '1'
+                            }
+                        ],
+                        persistedStatus: 'active',
+                        licenseJurisdiction: 'ky'
+                    },
+                    updatedValues: {
+                        persistedStatus: 'inactive'
+                    }
+                }
+            ]
+        };
+        const license = LicenseSerializer.fromServer(data);
+
+        // Test field values
+        expect(license.isDeactivated()).to.equal(true);
     });
 });
