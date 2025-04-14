@@ -110,7 +110,7 @@ class PersistentStack(AppStack):
 
         # This resource should not be referenced directly as a cross stack reference, any reference should
         # be made through the SSM parameter
-        self._data_event_bus = EventBus(self, 'DataEventBus')
+        self._data_event_bus = EventBus(self, 'DataEventBus', event_bus_name=f'{environment_name}-dataEventBus')
         # We Store the data event bus name in SSM Parameter Store
         # to avoid issues with cross stack references due to the fact that
         # you can't update a CloudFormation exported value that is being referenced by a resource in another stack.

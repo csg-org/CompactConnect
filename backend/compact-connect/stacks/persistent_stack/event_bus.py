@@ -10,12 +10,13 @@ class EventBus(CdkEventBus):
     def __init__(
         self,
         scope: Construct,
-        construct_id,
+        construct_id: str,
+        event_bus_name: str,
         archive_retention: Duration = DEFAULT_ARCHIVE_RETENTION_DURATION,
         **kwargs,
     ):
         # we explicitly name this resource, so that any future pipeline migrations will not change the namespace
-        super().__init__(scope, construct_id, **kwargs)
+        super().__init__(scope, construct_id, event_bus_name=event_bus_name, **kwargs)
         self.archive(
             f'{construct_id}Archive',
             description=f'{construct_id} event archive',
