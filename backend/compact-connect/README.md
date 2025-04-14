@@ -192,10 +192,10 @@ that is done, perform the following steps to deploy the CI/CD pipelines into the
 - Set cli-environment variables `CDK_DEFAULT_ACCOUNT` and `CDK_DEFAULT_REGION` to your deployment account id and `us-east-1`, respectively.
 - For each environment (test, beta, prod), you need to deploy both the backend and frontend pipeline stacks:
 
-1. **Deploy the Backend Pipeline Stacks first**:
+1. **Deploy the Backend Pipeline Stacks first (note: you will need to approve the permission change requests for each stack deployment in the terminal)**:
   `cdk deploy --context action=bootstrapDeploy TestBackendPipelineStack BetaBackendPipelineStack ProdBackendPipelineStack`
 
-2. **Then deploy the Frontend Pipeline Stacks**:
+2. **Then deploy the Frontend Pipeline Stacks (approve the permission change requests for each stack deployment)**:
   `cdk deploy --context action=bootstrapDeploy TestFrontendPipelineStack BetaFrontendPipelineStack ProdFrontendPipelineStack`
 
 **Important**: When a pipeline stack is deployed, it will automatically trigger a deployment to its environment from the configured branch in your GitHub repo. The first time you deploy the backend pipeline, it should pass all the steps except the final trigger of the frontend pipeline, since the frontend pipeline will not exist until you deploy it. From there on the pipelines should integrate as designed.

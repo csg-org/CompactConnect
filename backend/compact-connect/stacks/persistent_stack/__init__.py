@@ -71,6 +71,13 @@ class PersistentStack(AppStack):
             entry=os.path.join('lambdas', 'python', 'common'),
             compatible_runtimes=[Runtime.PYTHON_3_12],
             description='A layer for common code shared between python lambdas',
+            # We retain the layer versions in our environments, to avoid a situation where a consuming stack is unable
+            # to roll back because old versions are destroyed. This means that over time, these versions
+            # will accumulate in prod, and given the AWS limit of 75 GB for all layer and lambda code storage
+            # we will likely need to add a custom resource to track these versions, and clean up versions that are
+            # older than a certain date. That is out of scope for our current effort, but we're leaving this comment
+            # here to remind us that this will need to be addressed at a later date.
+            removal_policy=removal_policy.RETAIN if not self.node.try_get_context('sandbox') else removal_policy.DESTROY
         )
 
         # We Store the layer ARN in SSM Parameter Store
