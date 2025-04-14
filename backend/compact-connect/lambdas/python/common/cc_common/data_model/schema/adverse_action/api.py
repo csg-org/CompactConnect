@@ -17,7 +17,7 @@ class AdverseActionPostRequestSchema(ForgivingSchema):
 
     encumberanceEffectiveDate = Date(required=True, allow_none=False)
     clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategoryField(required=True, allow_none=False)
-    disablesCompactEligibility = Boolean(required=True, allow_none=False)
+    blocksFuturePrivileges = Boolean(required=True, allow_none=False)
 
 
 class AdverseActionPublicResponseSchema(ForgivingSchema):
@@ -36,7 +36,7 @@ class AdverseActionPublicResponseSchema(ForgivingSchema):
     actionAgainst = String(required=True, allow_none=False, validate=OneOf(['privilege', 'license']))
 
     # Populated on creation
-    disablesCompactEligibility = Boolean(required=True, allow_none=False)
+    blocksFuturePrivileges = Boolean(required=True, allow_none=False)
     creationEffectiveDate = Raw(required=True, allow_none=False)
     creationDate = Raw(required=True, allow_none=False)
     adverseActionId = Raw(required=True, allow_none=False)

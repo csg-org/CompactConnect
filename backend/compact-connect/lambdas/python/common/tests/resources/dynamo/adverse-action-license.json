@@ -7,7 +7,7 @@
   "jurisdiction": "oh",
   "licenseType": "speech-language pathologist",
   "actionAgainst": "license",
-  "disablesCompactEligibility": true,
+  "blocksFuturePrivileges": true,
   "clinicalPrivilegeActionCategory": "Unsafe Practice or Substandard Care",
   "creationEffectiveDate": "2023-01-15",
   "submittingUser": "3408b4e8-0061-7052-bbe0-fda9a9369c80",

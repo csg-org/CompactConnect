@@ -7,7 +7,7 @@
   "jurisdiction": "ne",
   "licenseType": "speech-language pathologist",
   "actionAgainst": "privilege",
-  "disablesCompactEligibility": false,
+  "blocksFuturePrivileges": false,
   "clinicalPrivilegeActionCategory": "Improper Supervision or Allowing Unlicensed Practice",
   "creationEffectiveDate": "2023-02-20",
   "submittingUser": "3408b4e8-0061-7052-bbe0-fda9a9369c80",
