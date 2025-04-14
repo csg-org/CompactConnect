@@ -15,7 +15,7 @@ from common_constructs.data_migration import DataMigration
 from common_constructs.nodejs_function import NodejsFunction
 from common_constructs.python_function import COMMON_PYTHON_LAMBDA_LAYER_SSM_PARAMETER_NAME
 from common_constructs.security_profile import SecurityProfile
-from common_constructs.ssm_parameter_utility import DATA_EVENT_BUS_ARN_SSM_PARAMETER_NAME
+from common_constructs.ssm_parameter_utility import SSMParameterUtility
 from common_constructs.stack import AppStack
 from constructs import Construct
 
@@ -113,12 +113,8 @@ class PersistentStack(AppStack):
         # We Store the data event bus name in SSM Parameter Store
         # to avoid issues with cross stack references due to the fact that
         # you can't update a CloudFormation exported value that is being referenced by a resource in another stack.
-        self.data_event_bus_arn_ssm_parameter = aws_ssm.StringParameter(
-            self,
-            'DataEventBusArnParameter',
-            parameter_name=DATA_EVENT_BUS_ARN_SSM_PARAMETER_NAME,
-            string_value=self._data_event_bus.event_bus_arn,
-        )
+        self.data_event_bus_arn_ssm_parameter = (SSMParameterUtility
+                                                 .set_data_event_bus_arn_ssm_parameter(self, self._data_event_bus))
         # TODO - these are needed until pipeline migration effort is complete  # noqa: FIX002
         self.export_value(self._data_event_bus.event_bus_arn)
         self.export_value(self._data_event_bus.event_bus_name)

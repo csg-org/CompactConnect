@@ -14,6 +14,15 @@ class SSMParameterUtility:
     """
 
     @staticmethod
+    def set_data_event_bus_arn_ssm_parameter(scope: Construct, data_event_bus: EventBus) -> StringParameter:
+        return StringParameter(
+            scope,
+            'DataEventBusArnParameter',
+            parameter_name=DATA_EVENT_BUS_ARN_SSM_PARAMETER_NAME,
+            string_value=data_event_bus.event_bus_arn,
+        )
+
+    @staticmethod
     def load_data_event_bus_from_ssm_parameter(scope: Construct) -> EventBus:
         """
         Load the data event bus from an SSM parameter.
