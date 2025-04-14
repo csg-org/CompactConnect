@@ -1,4 +1,4 @@
-from aws_cdk import Duration, Names
+from aws_cdk import Duration, Stack
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_iam import Effect, PolicyStatement
@@ -8,7 +8,6 @@ from aws_cdk.aws_logs import QueryDefinition, QueryString
 from aws_cdk.aws_sns import ITopic
 from aws_cdk.aws_sqs import DeadLetterQueue, IQueue, Queue, QueueEncryption
 from constructs import Construct
-from aws_cdk import Stack
 
 
 class QueuedLambdaProcessor(Construct):

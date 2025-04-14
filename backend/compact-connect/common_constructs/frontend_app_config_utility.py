@@ -182,7 +182,7 @@ class PersistentStackFrontendAppConfigValues:
             'ui_domain_name': 'test-ui.example.com',
             'api_domain_name': 'test-api.example.com',
             # if we are working with dummy values, no need to run an actual bundle
-            'should_bundle': False
+            'should_bundle': False,
         }
         return PersistentStackFrontendAppConfigValues(json.dumps(test_config))
 

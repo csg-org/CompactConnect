@@ -1,7 +1,7 @@
-from aws_cdk import Environment, Stack, Stage, aws_ssm
+from aws_cdk import Environment, Stage
 from constructs import Construct
 
-from pipeline.SynthSubstituteStack import SynthSubstituteStack
+from pipeline.synth_substitute_stack import SynthSubstituteStack
 
 
 class SynthSubstituteStage(Stage):

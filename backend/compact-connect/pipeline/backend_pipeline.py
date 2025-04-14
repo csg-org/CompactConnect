@@ -14,8 +14,6 @@ from cdk_nag import NagSuppressions
 from common_constructs.bucket import Bucket
 from constructs import Construct
 
-BACKEND_PIPELINE_TYPE = 'backend'
-
 
 class BackendPipeline(CdkCodePipeline):
     """

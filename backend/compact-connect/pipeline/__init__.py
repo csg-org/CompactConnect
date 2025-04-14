@@ -1,33 +1,5 @@
 import json
 
-"""
-CompactConnect Pipeline Architecture
-====================================
-
-This module implements a two-pipeline deployment architecture where:
-
-1. Backend Pipelines: Deploy all backend infrastructure and resources
-2. Frontend Pipelines: Deploy the frontend application using backend configuration values
-
-The two pipeline types are designed to work together while avoiding circular dependencies:
-
-1. When GitHub pushes occur, only the Backend Pipeline is triggered automatically
-2. After backend deployment completes, the Backend Pipeline triggers the Frontend Pipeline
-3. The Frontend Pipeline then deploys frontend resources that depend on backend resources
-
-To prevent issues with self-mutation, each pipeline type is in its own dedicated stack:
-- Backend Pipeline Stacks: Handle backend infrastructure deployment
-- Frontend Pipeline Stacks: Handle frontend application deployment
-
-Pipeline Naming Convention
--------------------------
-Pipelines follow a consistent naming convention: 
-- Backend: {environment}-compactConnect-backendPipeline
-- Frontend: {environment}-compactConnect-frontendPipeline
-
-This conventional naming allows pipelines to reference each other without needing SSM parameters.
-"""
-
 from aws_cdk import Environment, RemovalPolicy
 from aws_cdk.aws_iam import Effect, PolicyDocument, PolicyStatement, Role, ServicePrincipal
 from aws_cdk.aws_kms import IKey, Key
@@ -42,11 +14,11 @@ from common_constructs.alarm_topic import AlarmTopic
 from common_constructs.stack import Stack
 from constructs import Construct
 
-from pipeline.backend_pipeline import BACKEND_PIPELINE_TYPE, BackendPipeline
+from pipeline.backend_pipeline import BackendPipeline
 from pipeline.backend_stage import BackendStage
-from pipeline.frontend_pipeline import FRONTEND_PIPELINE_TYPE, FrontendPipeline
+from pipeline.frontend_pipeline import FrontendPipeline
 from pipeline.frontend_stage import FrontendStage
-from pipeline.SynthSubstituteStage import SynthSubstituteStage
+from pipeline.synth_substitute_stage import SynthSubstituteStage
 
 TEST_ENVIRONMENT_NAME = 'test'
 BETA_ENVIRONMENT_NAME = 'beta'
@@ -260,8 +232,9 @@ class BaseBackendPipelineStack(BasePipelineStack):
         # use a lightweight substitute stage. Likewise, during a bootstrap deployment of the pipeline, we don't need
         # to synth the application stack resources, since that will be performed when the pipeline self-mutates on the
         # first deployment.
-        if ((action == PIPELINE_SYNTH_ACTION and pipeline_stack_name != self.stack_name)
-                or action == BOOTSTRAP_DEPLOY_ACTION):
+        if (
+            action == PIPELINE_SYNTH_ACTION and pipeline_stack_name != self.stack_name
+        ) or action == BOOTSTRAP_DEPLOY_ACTION:
             return SynthSubstituteStage(
                 self,
                 'SubstituteBackendStage',
@@ -373,8 +346,9 @@ class BaseFrontendPipelineStack(BasePipelineStack):
 
         # If we're in pipeline synthesis mode and this is not the pipeline being synthesized,
         # use a lightweight substitute stage
-        if ((action == PIPELINE_SYNTH_ACTION and pipeline_stack_name != self.stack_name)
-                or action == BOOTSTRAP_DEPLOY_ACTION):
+        if (
+            action == PIPELINE_SYNTH_ACTION and pipeline_stack_name != self.stack_name
+        ) or action == BOOTSTRAP_DEPLOY_ACTION:
             return SynthSubstituteStage(
                 self,
                 'SubstituteFrontendStage',
@@ -485,7 +459,7 @@ class TestFrontendPipelineStack(BaseFrontendPipelineStack):
             github_repo_string=self.github_repo_string,
             cdk_path=cdk_path,
             connection_arn=self.connection_arn,
-            trigger_branch=pre_prod_trigger_branch,
+            source_branch=pre_prod_trigger_branch,
             encryption_key=pipeline_shared_encryption_key,
             alarm_topic=pipeline_alarm_topic,
             access_logs_bucket=self.access_logs_bucket,
@@ -537,8 +511,7 @@ class BetaBackendPipelineStack(BaseBackendPipelineStack):
             github_repo_string=self.github_repo_string,
             cdk_path=cdk_path,
             connection_arn=self.connection_arn,
-            # TODO - change to main after done testing
-            trigger_branch='feat/add-beta-environment',
+            trigger_branch='main',
             encryption_key=pipeline_shared_encryption_key,
             alarm_topic=pipeline_alarm_topic,
             access_logs_bucket=self.access_logs_bucket,
@@ -597,8 +570,7 @@ class BetaFrontendPipelineStack(BaseFrontendPipelineStack):
             github_repo_string=self.github_repo_string,
             cdk_path=cdk_path,
             connection_arn=self.connection_arn,
-            # TODO - change to main after done testing
-            trigger_branch='feat/add-beta-environment',
+            source_branch='main',
             encryption_key=pipeline_shared_encryption_key,
             alarm_topic=pipeline_alarm_topic,
             access_logs_bucket=self.access_logs_bucket,
@@ -709,7 +681,7 @@ class ProdFrontendPipelineStack(BaseFrontendPipelineStack):
             github_repo_string=self.github_repo_string,
             cdk_path=cdk_path,
             connection_arn=self.connection_arn,
-            trigger_branch='main',
+            source_branch='main',
             encryption_key=pipeline_shared_encryption_key,
             alarm_topic=pipeline_alarm_topic,
             access_logs_bucket=self.access_logs_bucket,

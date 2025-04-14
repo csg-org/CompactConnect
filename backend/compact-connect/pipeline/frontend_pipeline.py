@@ -14,8 +14,6 @@ from cdk_nag import NagSuppressions
 from common_constructs.bucket import Bucket
 from constructs import Construct
 
-FRONTEND_PIPELINE_TYPE = 'frontend'
-
 
 class FrontendPipeline(CdkCodePipeline):
     """
@@ -42,7 +40,7 @@ class FrontendPipeline(CdkCodePipeline):
         github_repo_string: str,
         cdk_path: str,
         connection_arn: str,
-        trigger_branch: str,
+        source_branch: str,
         access_logs_bucket: IBucket,
         encryption_key: IKey,
         alarm_topic: ITopic,
@@ -82,7 +80,7 @@ class FrontendPipeline(CdkCodePipeline):
                 'Synth',
                 input=CodePipelineSource.connection(
                     repo_string=github_repo_string,
-                    branch=trigger_branch,
+                    branch=source_branch,
                     # This pipeline is triggered by the backend pipeline, so we don't
                     # want push events to trigger it. This prevents duplicate deployments
                     # since both pipelines use the same source code.
