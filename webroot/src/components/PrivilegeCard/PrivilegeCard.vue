@@ -61,7 +61,7 @@
             </div>
            <div class="info-item-container">
                 <div class="info-item-title">{{expiresTitle}}</div>
-                <div class="info-item" :class="{ 'error': isPastExiprationDate }">{{expiresContent}}</div>
+                <div class="info-item" :class="{ 'error': isExpired }">{{expiresContent}}</div>
             </div>
             <div class="info-item-container">
                 <div class="info-item-title">{{$t('licensing.privilegeNumSymbol')}}</div>
