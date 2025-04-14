@@ -1,5 +1,4 @@
 import json
-import os
 
 """
 CompactConnect Pipeline Architecture
@@ -61,6 +60,7 @@ DEPLOY_ENVIRONMENT_NAME = 'deploy'
 ACTION_CONTEXT_KEY = 'action'
 PIPELINE_STACK_CONTEXT_KEY = 'pipelineStack'
 PIPELINE_SYNTH_ACTION = 'pipelineSynth'
+BOOTSTRAP_DEPLOY_ACTION = 'bootstrapDeploy'
 
 
 class DeploymentResourcesStack(Stack):
@@ -257,8 +257,11 @@ class BaseBackendPipelineStack(BasePipelineStack):
         pipeline_stack_name = self.node.try_get_context('pipelineStack')
 
         # If we're in pipeline synthesis mode and this is not the pipeline being synthesized,
-        # use a lightweight substitute stage
-        if action == 'pipelineSynth' and pipeline_stack_name != self.stack_name:
+        # use a lightweight substitute stage. Likewise, during a bootstrap deployment of the pipeline, we don't need
+        # to synth the application stack resources, since that will be performed when the pipeline self-mutates on the
+        # first deployment.
+        if ((action == PIPELINE_SYNTH_ACTION and pipeline_stack_name != self.stack_name)
+                or action == BOOTSTRAP_DEPLOY_ACTION):
             return SynthSubstituteStage(
                 self,
                 'SubstituteBackendStage',
@@ -370,7 +373,8 @@ class BaseFrontendPipelineStack(BasePipelineStack):
 
         # If we're in pipeline synthesis mode and this is not the pipeline being synthesized,
         # use a lightweight substitute stage
-        if action == 'pipelineSynth' and pipeline_stack_name != self.stack_name:
+        if ((action == PIPELINE_SYNTH_ACTION and pipeline_stack_name != self.stack_name)
+                or action == BOOTSTRAP_DEPLOY_ACTION):
             return SynthSubstituteStage(
                 self,
                 'SubstituteFrontendStage',
