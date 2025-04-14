@@ -30,6 +30,15 @@ const environments = {
             cognitoStaff: `compact-connect-staff-test.auth.us-east-1.amazoncognito.com`,
             cognitoProvider: `compact-connect-provider-test.auth.us-east-1.amazoncognito.com`,
         },
+        beta: {
+            webFrontend: `app.beta.compactconnect.org`,
+            dataApi: `api.beta.compactconnect.org`,
+            // TODO: set these s3 values after beta environment has been successfully deployed
+            s3UploadUrlState: `beta-persistentstack-bulkuploadsbucketda4bdcd0-gxzuwbuqfepm.s3.amazonaws.com`,
+            s3UploadUrlProvider: `beta-persistentstack-providerusersbucket5c7b202b-dr6ddil25dol.s3.amazonaws.com`,
+            cognitoStaff: `compact-connect-staff-beta.auth.us-east-1.amazoncognito.com`,
+            cognitoProvider: `compact-connect-provider-beta.auth.us-east-1.amazoncognito.com`,
+        },
     },
     ia: {
         test: {
@@ -39,6 +48,22 @@ const environments = {
             s3UploadUrlProvider: `test-persistentstack-providerusersbucket5c7b202b-sgh3k0h87td2.s3.amazonaws.com`,
             cognitoStaff: `ia-cc-staff-test.auth.us-east-1.amazoncognito.com`,
             cognitoProvider: `ia-cc-provider-test.auth.us-east-1.amazoncognito.com`,
+        },
+        beta: {
+            webFrontend: `app.beta.jcc.iaapi.io`,
+            dataApi: `api.beta.jcc.iaapi.io`,
+            s3UploadUrlState: `beta-persistentstack-bulkuploadsbucketda4bdcd0-4nbp6zqih3vd.s3.amazonaws.com`,
+            s3UploadUrlProvider: `beta-persistentstack-providerusersbucket5c7b202b-lcucct85szqz.s3.amazonaws.com`,
+            cognitoStaff: `ia-cc-staff-beta.auth.us-east-1.amazoncognito.com`,
+            cognitoProvider: `ia-cc-provider-beta.auth.us-east-1.amazoncognito.com`,
+        },
+        prod: {
+            webFrontend: `app.jcc.iaapi.io`,
+            dataApi: `api.jcc.iaapi.io`,
+            s3UploadUrlState: `prod-persistentstack-bulkuploadsbucketda4bdcd0-rxakgsrrw7cn.s3.amazonaws.com`,
+            s3UploadUrlProvider: `prod-persistentstack-providerusersbucket5c7b202b-tan3ci6uhfx4.s3.amazonaws.com`,
+            cognitoStaff: `ia-cc-staff.auth.us-east-1.amazoncognito.com`,
+            cognitoProvider: `ia-cc-provider.auth.us-east-1.amazoncognito.com`,
         },
         justin: {
             webFrontend: `app.justin.jcc.iaapi.io`,
@@ -109,8 +134,17 @@ const getEnvironmentUrls = (requestDomain) => {
     case environments.csg.test.webFrontend:
         environment = environments.csg.test;
         break;
+    case environments.csg.beta.webFrontend:
+        environment = environments.csg.beta;
+        break;
     case environments.ia.test.webFrontend:
         environment = environments.ia.test;
+        break;
+    case environments.ia.beta.webFrontend:
+        environment = environments.ia.beta;
+        break;
+    case environments.ia.prod.webFrontend:
+        environment = environments.ia.prod;
         break;
     case environments.ia.justin.webFrontend:
         environment = environments.ia.justin;
