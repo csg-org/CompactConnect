@@ -37,7 +37,7 @@ class NotificationStack(AppStack):
     def _add_privilege_purchase_notification_chain(self, persistent_stack: ps.PersistentStack):
         """Add the privilege deactivation notification lambda and event rules."""
         # Create the Lambda function handler for privilege purchase messages
-        privilege_purchase_handler = PythonFunction(
+        privilege_purchase_notification_handler = PythonFunction(
             self,
             'PrivilegePurchaseHandler',
             description='Privilege purchase notification handler',
@@ -53,12 +53,12 @@ class NotificationStack(AppStack):
         )
 
         # Grant necessary permissions
-        persistent_stack.provider_table.grant_read_data(privilege_purchase_handler)
-        persistent_stack.setup_ses_permissions_for_lambda(privilege_purchase_handler)
+        persistent_stack.provider_table.grant_read_data(privilege_purchase_notification_handler)
+        persistent_stack.setup_ses_permissions_for_lambda(privilege_purchase_notification_handler)
 
         NagSuppressions.add_resource_suppressions_by_path(
             self,
-            f'{privilege_purchase_handler.node.path}/ServiceRole/DefaultPolicy/Resource',
+            f'{privilege_purchase_notification_handler.node.path}/ServiceRole/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
@@ -74,11 +74,11 @@ class NotificationStack(AppStack):
         Alarm(
             self,
             'PrivilegePurchaseHandlerFailureAlarm',
-            metric=privilege_purchase_handler.metric_errors(statistic=Stats.SUM),
+            metric=privilege_purchase_notification_handler.metric_errors(statistic=Stats.SUM),
             evaluation_periods=1,
             threshold=1,
             actions_enabled=True,
-            alarm_description=f'{privilege_purchase_handler.node.path} failed to process a message batch',
+            alarm_description=f'{privilege_purchase_notification_handler.node.path} failed to process a message batch',
             comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
             treat_missing_data=TreatMissingData.NOT_BREACHING,
         ).add_alarm_action(SnsAction(persistent_stack.alarm_topic))
@@ -87,7 +87,7 @@ class NotificationStack(AppStack):
         processor = QueuedLambdaProcessor(
             self,
             'PrivilegePurchase',
-            process_function=privilege_purchase_handler,
+            process_function=privilege_purchase_notification_handler,
             visibility_timeout=Duration.minutes(5),
             retention_period=Duration.hours(12),
             max_batching_window=Duration.minutes(5),

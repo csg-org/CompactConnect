@@ -186,6 +186,7 @@ class EmailServiceClient:
 
     def send_privilege_purchase_email(
         self,
+        provider_first_name: str,
         privilege_id: str,
         jurisdiction: str,
         license_type: str,
@@ -195,26 +196,24 @@ class EmailServiceClient:
         """
         Send a jurisdiction transaction report email.
 
-        :param compact: Compact name
+        :param provider_first_name: Provider's first name
+        :param privilege_id: Privilege Id of the purchased privilege
         :param jurisdiction: Jurisdiction name
-        :param report_s3_path: S3 path to the report zip file
-        :param reporting_cycle: Reporting cycle (e.g., 'weekly', 'monthly')
+        :param license_type: Reporting cycle (e.g., 'weekly', 'monthly')
         :param start_date: Start date of the reporting period
         :param end_date: End date of the reporting period
         :return: Response from the email notification service
         """
 
-    # TODO learn payload shape needed here and figure out emailer stuff
         payload = {
-            'compact': compact,
-            'jurisdiction': jurisdiction,
-            'template': 'JurisdictionTransactionReporting',
-            'recipientType': 'JURISDICTION_SUMMARY_REPORT',
+            'template': 'privilegePurchaseProviderNotification',
             'templateVariables': {
-                'reportS3Path': report_s3_path,
-                'reportingCycle': reporting_cycle,
-                'startDate': start_date.strftime('%Y-%m-%d'),
-                'endDate': end_date.strftime('%Y-%m-%d'),
+                'providerFirstName': provider_first_name,
+                'privilegeId': privilege_id,
+                'jurisdiction': jurisdiction,
+                'licenseType': license_type,
+                'totalCost': total_cost,
+                'costLineItems': cost_line_items
             },
         }
 

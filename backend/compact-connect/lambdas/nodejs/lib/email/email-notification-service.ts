@@ -265,4 +265,35 @@ export class EmailNotificationService extends BaseEmailService {
             ]
         });
     }
+    /**
+     * Sends an email notification to a provider when one of their privileges is deactivated
+     * @param compact - The compact name for which the privilege was deactivated
+     * @param jurisdiction - The jurisdiction for which the privilege was deactivated
+     * @param privilegeId - The privilege ID
+     */
+    public async sendPrivilegePurchaseProviderNotificationEmail(
+        compact: string,
+        specificEmails: string[] | undefined,
+        privilegeId: string
+    ): Promise<void> {
+        this.logger.info('Sending provider privilege deactivation notification email', { compact: compact });
+
+        const recipients = specificEmails || [];
+
+        if (recipients.length === 0) {
+            throw new Error(`No recipients specified for provider privilege deactivation notification email`);
+        }
+
+        const report = this.getNewEmailTemplate();
+        const subject = `Your Privilege ${privilegeId} is Deactivated`;
+        const bodyText = `This message is to notify you that your privilege ${privilegeId} is deactivated and can no longer be used to practice.`;
+
+        this.insertHeader(report, subject);
+        this.insertBody(report, bodyText);
+        this.insertFooter(report);
+
+        const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
+
+        await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send provider privilege deactivation notification email' });
+    }
 }

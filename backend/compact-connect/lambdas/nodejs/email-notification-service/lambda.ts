@@ -126,6 +126,18 @@ export class Lambda implements LambdaInterface {
                 event.templateVariables.endDate
             );
             break;
+        case 'privilegePurchaseProviderNotification':
+            if (!event.templateVariables?.reportS3Path) {
+                throw new Error('Missing required template variables for privilegePurchaseProviderNotification template');
+            }
+            await this.emailService.sendPrivilegePurchaseProviderNotificationEmail(
+                event.compact,
+                event.templateVariables.reportS3Path,
+                event.templateVariables.reportingCycle,
+                event.templateVariables.startDate,
+                event.templateVariables.endDate
+            );
+            break;
         default:
             logger.info('Unsupported email template provided', { template: event.template });
             throw new Error(`Unsupported email template: ${event.template}`);
