@@ -397,7 +397,8 @@ class TestBackendPipelineStack(BaseBackendPipelineStack):
             github_repo_string=self.github_repo_string,
             cdk_path=cdk_path,
             connection_arn=self.connection_arn,
-            trigger_branch=pre_prod_trigger_branch,
+            #TODO - change this back after test
+            trigger_branch='feat/add-beta-environment',
             encryption_key=pipeline_shared_encryption_key,
             alarm_topic=pipeline_alarm_topic,
             access_logs_bucket=self.access_logs_bucket,
@@ -459,7 +460,8 @@ class TestFrontendPipelineStack(BaseFrontendPipelineStack):
             github_repo_string=self.github_repo_string,
             cdk_path=cdk_path,
             connection_arn=self.connection_arn,
-            source_branch=pre_prod_trigger_branch,
+            # TODO - change this back after test
+            source_branch='feat/add-beta-environment',
             encryption_key=pipeline_shared_encryption_key,
             alarm_topic=pipeline_alarm_topic,
             access_logs_bucket=self.access_logs_bucket,
@@ -511,7 +513,8 @@ class BetaBackendPipelineStack(BaseBackendPipelineStack):
             github_repo_string=self.github_repo_string,
             cdk_path=cdk_path,
             connection_arn=self.connection_arn,
-            trigger_branch='main',
+            #TODO - change this back after test
+            trigger_branch='feat/add-beta-environment',
             encryption_key=pipeline_shared_encryption_key,
             alarm_topic=pipeline_alarm_topic,
             access_logs_bucket=self.access_logs_bucket,
@@ -570,7 +573,8 @@ class BetaFrontendPipelineStack(BaseFrontendPipelineStack):
             github_repo_string=self.github_repo_string,
             cdk_path=cdk_path,
             connection_arn=self.connection_arn,
-            source_branch='main',
+            # TODO - change this back after test
+            source_branch='feat/add-beta-environment',
             encryption_key=pipeline_shared_encryption_key,
             alarm_topic=pipeline_alarm_topic,
             access_logs_bucket=self.access_logs_bucket,
@@ -622,7 +626,8 @@ class ProdBackendPipelineStack(BaseBackendPipelineStack):
             github_repo_string=self.github_repo_string,
             cdk_path=cdk_path,
             connection_arn=self.connection_arn,
-            trigger_branch='main',
+            # TODO - change this back after test
+            trigger_branch='feat/add-beta-environment',
             encryption_key=pipeline_shared_encryption_key,
             alarm_topic=pipeline_alarm_topic,
             access_logs_bucket=self.access_logs_bucket,
@@ -681,7 +686,8 @@ class ProdFrontendPipelineStack(BaseFrontendPipelineStack):
             github_repo_string=self.github_repo_string,
             cdk_path=cdk_path,
             connection_arn=self.connection_arn,
-            source_branch='main',
+            # TODO - change this back after test
+            source_branch='feat/add-beta-environment',
             encryption_key=pipeline_shared_encryption_key,
             alarm_topic=pipeline_alarm_topic,
             access_logs_bucket=self.access_logs_bucket,
