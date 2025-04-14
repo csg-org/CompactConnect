@@ -7,7 +7,7 @@
 
 /* eslint-disable max-classes-per-file */
 import { AuthTypes } from '@/app.config';
-import deleteUndefinedProperties from '@models/_helpers';
+import { deleteUndefinedProperties } from '@models/_helpers';
 import { Licensee, LicenseeSerializer } from '@models/Licensee/Licensee.model';
 import { User, InterfaceUserCreate } from '@models/User/User.model';
 

@@ -2,7 +2,6 @@ import json
 from datetime import datetime
 from unittest.mock import patch
 
-from cc_common.exceptions import CCNotFoundException
 from moto import mock_aws
 
 from .. import TstFunction
@@ -66,30 +65,17 @@ class TestIngest(TstFunction):
 
     def test_new_provider_ingest(self):
         from handlers.ingest import ingest_license_message
-        from handlers.providers import query_providers
 
         with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = f.read()
+
+        provider_id = json.loads(message)['detail']['providerId']
 
         event = {'Records': [{'messageId': '123', 'body': message}]}
 
         resp = ingest_license_message(event, self.mock_context)
 
         self.assertEqual({'batchItemFailures': []}, resp)
-
-        # To test full internal consistency, we'll also pull this new license record out
-        # via the API to make sure it shows up as expected.
-        with open('../common/tests/resources/api-event.json') as f:
-            event = json.load(f)
-
-        event['pathParameters'] = {'compact': 'aslp'}
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff aslp/readGeneral'
-        event['body'] = json.dumps({'query': {'ssn': '123-12-1234'}})
-
-        # Find the provider's id from their ssn
-        resp = query_providers(event, self.mock_context)
-        self.assertEqual(resp['statusCode'], 200)
-        provider_id = json.loads(resp['body'])['providers'][0]['providerId']
 
         # Now get the full provider details
         provider_data = self._get_provider_via_api(provider_id)
@@ -130,7 +116,8 @@ class TestIngest(TstFunction):
         message['detail']['dateOfIssuance'] = '2023-01-01'
         message['detail']['familyName'] = 'Oldname'
         message['detail']['jurisdiction'] = 'ky'
-        message['detail']['status'] = 'inactive'
+        message['detail']['licenseStatus'] = 'inactive'
+        message['detail']['compactEligibility'] = 'ineligible'
 
         event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
 
@@ -177,7 +164,8 @@ class TestIngest(TstFunction):
         message['detail']['dateOfIssuance'] = '2024-08-01'
         message['detail']['familyName'] = 'Newname'
         message['detail']['jurisdiction'] = 'ky'
-        message['detail']['status'] = 'active'
+        message['detail']['licenseStatus'] = 'active'
+        message['detail']['compactEligibility'] = 'eligible'
         # remove the home state selection for the provider which was added by the TstFunction test setup
         self.config.provider_table.delete_item(
             Key={
@@ -223,7 +211,8 @@ class TestIngest(TstFunction):
         message['detail']['dateOfIssuance'] = '2024-08-01'
         message['detail']['familyName'] = 'Newname'
         message['detail']['jurisdiction'] = 'ky'
-        message['detail']['status'] = 'active'
+        message['detail']['licenseStatus'] = 'active'
+        message['detail']['compactEligibility'] = 'eligible'
 
         event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
 
@@ -240,7 +229,6 @@ class TestIngest(TstFunction):
         # And the second license should now be listed
         self.assertEqual(2, len(provider_data['licenses']))
 
-    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
     @patch('handlers.ingest.EventBatchWriter', autospec=True)
     def test_existing_provider_deactivation(self, mock_event_writer):
         from handlers.ingest import ingest_license_message
@@ -251,7 +239,8 @@ class TestIngest(TstFunction):
             message = json.load(f)
 
         # What happens if their license goes inactive in a subsequent upload?
-        message['detail']['status'] = 'inactive'
+        message['detail']['licenseStatus'] = 'inactive'
+        message['detail']['compactEligibility'] = 'ineligible'
         event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
         resp = ingest_license_message(event, self.mock_context)
         self.assertEqual({'batchItemFailures': []}, resp)
@@ -260,11 +249,17 @@ class TestIngest(TstFunction):
             expected_provider = json.load(f)
 
         # The license status and provider should immediately be inactive
-        expected_provider['jurisdictionStatus'] = 'inactive'
-        expected_provider['licenses'][0]['jurisdictionStatus'] = 'inactive'
+        expected_provider['jurisdictionUploadedLicenseStatus'] = 'inactive'
+        expected_provider['jurisdictionUploadedCompactEligibility'] = 'ineligible'
+        expected_provider['licenses'][0]['jurisdictionUploadedLicenseStatus'] = 'inactive'
+        expected_provider['licenses'][0]['jurisdictionUploadedCompactEligibility'] = 'ineligible'
         # these should be calculated as inactive at record load time
+        expected_provider['licenseStatus'] = 'inactive'
         expected_provider['status'] = 'inactive'
+        expected_provider['licenses'][0]['licenseStatus'] = 'inactive'
         expected_provider['licenses'][0]['status'] = 'inactive'
+        expected_provider['compactEligibility'] = 'ineligible'
+        expected_provider['licenses'][0]['compactEligibility'] = 'ineligible'
         # ensure the privilege record is also set to inactive
         expected_provider['privileges'][0]['status'] = 'inactive'
 
@@ -273,7 +268,7 @@ class TestIngest(TstFunction):
         # Reset the expected data to match the canned response
         expected_provider = self._set_provider_data_to_empty_values(expected_provider)
         for license_data in expected_provider['licenses']:
-            # We uploaded a 'deactivation' by just switching 'status' to 'inactive', so this change
+            # We uploaded a 'deactivation' by just switching 'licenseStatus' to 'inactive', so this change
             # should show up in the license history
             license_data['history'] = [
                 {
@@ -287,7 +282,9 @@ class TestIngest(TstFunction):
                         'ssnLastFour': '1234',
                         'npi': '0608337260',
                         'licenseNumber': 'A0608337260',
-                        'jurisdictionStatus': 'active',
+                        'jurisdictionUploadedLicenseStatus': 'active',
+                        'licenseStatusName': 'DEFINITELY_A_HUMAN',
+                        'jurisdictionUploadedCompactEligibility': 'eligible',
                         'givenName': 'Björk',
                         'middleName': 'Gunnar',
                         'familyName': 'Guðmundsdóttir',
@@ -303,7 +300,10 @@ class TestIngest(TstFunction):
                         'emailAddress': 'björk@example.com',
                         'phoneNumber': '+13213214321',
                     },
-                    'updatedValues': {'jurisdictionStatus': 'inactive'},
+                    'updatedValues': {
+                        'jurisdictionUploadedLicenseStatus': 'inactive',
+                        'jurisdictionUploadedCompactEligibility': 'ineligible',
+                    },
                 }
             ]
             license_data['adverseActions'] = []
@@ -387,7 +387,9 @@ class TestIngest(TstFunction):
                         'ssnLastFour': '1234',
                         'npi': '0608337260',
                         'licenseNumber': 'A0608337260',
-                        'jurisdictionStatus': 'active',
+                        'jurisdictionUploadedLicenseStatus': 'active',
+                        'licenseStatusName': 'DEFINITELY_A_HUMAN',
+                        'jurisdictionUploadedCompactEligibility': 'eligible',
                         'givenName': 'Björk',
                         'middleName': 'Gunnar',
                         'familyName': 'Guðmundsdóttir',
@@ -468,7 +470,9 @@ class TestIngest(TstFunction):
                         'ssnLastFour': '1234',
                         'npi': '0608337260',
                         'licenseNumber': 'A0608337260',
-                        'jurisdictionStatus': 'active',
+                        'jurisdictionUploadedLicenseStatus': 'active',
+                        'licenseStatusName': 'DEFINITELY_A_HUMAN',
+                        'jurisdictionUploadedCompactEligibility': 'eligible',
                         'givenName': 'Björk',
                         'middleName': 'Gunnar',
                         'familyName': 'Guðmundsdóttir',
@@ -590,7 +594,9 @@ class TestIngest(TstFunction):
                         'ssnLastFour': '1234',
                         'npi': '0608337260',
                         'licenseNumber': 'A0608337260',
-                        'jurisdictionStatus': 'active',
+                        'jurisdictionUploadedLicenseStatus': 'active',
+                        'licenseStatusName': 'DEFINITELY_A_HUMAN',
+                        'jurisdictionUploadedCompactEligibility': 'eligible',
                         'givenName': 'Björk',
                         'middleName': 'Gunnar',
                         'familyName': 'Guðmundsdóttir',
@@ -663,7 +669,9 @@ class TestIngest(TstFunction):
                         'ssnLastFour': '1234',
                         'npi': '0608337260',
                         'licenseNumber': 'A0608337260',
-                        'jurisdictionStatus': 'active',
+                        'jurisdictionUploadedLicenseStatus': 'active',
+                        'licenseStatusName': 'DEFINITELY_A_HUMAN',
+                        'jurisdictionUploadedCompactEligibility': 'eligible',
                         'givenName': 'Björk',
                         'middleName': 'Gunnar',
                         'familyName': 'Guðmundsdóttir',
@@ -706,8 +714,8 @@ class TestIngest(TstFunction):
         test_ssn = '123-12-1234'
 
         # Before running method under test, ensure the provider ssn record does not exist
-        with self.assertRaises(CCNotFoundException):
-            self.config.data_client.get_provider_id(compact='aslp', ssn=test_ssn)
+        provider = self._ssn_table.get_item(Key={'pk': f'aslp#SSN#{test_ssn}', 'sk': f'aslp#SSN#{test_ssn}'})
+        self.assertNotIn('Item', provider)
 
         with open('../common/tests/resources/ingest/preprocessor-sqs-message.json') as f:
             message = json.load(f)
@@ -720,8 +728,8 @@ class TestIngest(TstFunction):
         self.assertEqual({'batchItemFailures': []}, resp)
 
         # Find the provider's id from their ssn
-        provider_id = self.config.data_client.get_provider_id(compact='aslp', ssn=test_ssn)
-
+        provider = self._ssn_table.get_item(Key={'pk': f'aslp#SSN#{test_ssn}', 'sk': f'aslp#SSN#{test_ssn}'})['Item']
+        provider_id = provider['providerId']
         # the provider_id is randomly generated, so we cannot check an exact value, just to make sure it exists
         self.assertIsNotNone(provider_id)
 
@@ -770,7 +778,7 @@ class TestIngest(TstFunction):
             'compactTransactionId': '1234567890',
             'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#1234567890#',
             'privilegeId': 'test-privilege-id',
-            'persistedStatus': 'inactive',  # This privilege is inactive
+            'administratorSetStatus': 'inactive',  # This privilege is inactive
             'attestations': [],
         }
         self.config.provider_table.put_item(Item=inactive_privilege)

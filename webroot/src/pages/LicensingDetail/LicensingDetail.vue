@@ -168,37 +168,16 @@
                             />
                         </div>
                         <div class="title-text">
-                            {{recentPrivilegesTitle}}
+                            {{privilegesTitle}}
                         </div>
                     </div>
                     <CollapseCaretButton
-                        @toggleCollapse="toggleRecentPrivsCollapsed"
+                        @toggleCollapse="togglePrivsCollapsed"
                     />
                 </div>
-                <div v-if="!isRecentPrivsCollapsed" class="privilege-card-list-container">
+                <div v-if="!isPrivsCollapsed" class="privilege-card-list-container">
                     <PrivilegeCard
                         v-for="(privilege, index) in licenseePrivileges"
-                        :key="index"
-                        :privilege="privilege"
-                        :licensee="licensee"
-                        class="no-touch-item"
-                    />
-                </div>
-            </div>
-            <div class="privilege-section">
-                <div class="title-row">
-                    <div class="title-info">
-                        <div class="title-text">
-                            {{pastPrivilegesTitle}}
-                        </div>
-                    </div>
-                    <CollapseCaretButton
-                        @toggleCollapse="togglePastPrivsCollapsed"
-                    />
-                </div>
-                <div v-if="!isPastPrivsCollapsed" class="privilege-card-list-container">
-                    <PrivilegeCard
-                        v-for="(privilege, index) in pastPrivilegeList"
                         :key="index"
                         :privilege="privilege"
                         :licensee="licensee"

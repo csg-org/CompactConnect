@@ -95,6 +95,7 @@ class TestGetProvider(TstFunction):
 
 
 @mock_aws
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
 class TestPostProviderMilitaryAffiliation(TstFunction):
     def _create_test_provider(self):
         from cc_common.config import config
@@ -128,7 +129,6 @@ class TestPostProviderMilitaryAffiliation(TstFunction):
         return event
 
     @patch('handlers.provider_users.uuid')
-    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-12-04T08:08:08+00:00'))
     def test_post_provider_military_affiliation_returns_affiliation_information(self, mock_uuid):
         from handlers.provider_users import provider_user_me_military_affiliation
 
@@ -155,12 +155,12 @@ class TestPostProviderMilitaryAffiliation(TstFunction):
         self.assertEqual(
             {
                 'affiliationType': 'militaryMember',
-                'dateOfUpdate': '2024-12-04T08:08:08+00:00',
+                'dateOfUpdate': '2024-11-08T23:59:59+00:00',
                 'documentUploadFields': [
                     {
                         'fields': {
                             'key': f'compact/{TEST_COMPACT}/provider/{provider_id}/document-type/military-affiliations'
-                            f'/2024-12-04/1234#military_affiliation.pdf',
+                            f'/2024-11-08/1234#military_affiliation.pdf',
                             'x-amz-algorithm': 'AWS4-HMAC-SHA256',
                         },
                         'url': 'https://provider-user-bucket.s3.amazonaws.com/',
@@ -173,7 +173,6 @@ class TestPostProviderMilitaryAffiliation(TstFunction):
         )
 
     @patch('handlers.provider_users.uuid')
-    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-12-04T08:08:08+00:00'))
     def test_post_provider_military_affiliation_handles_file_with_uppercase_extension(self, mock_uuid):
         from handlers.provider_users import provider_user_me_military_affiliation
 
@@ -195,7 +194,12 @@ class TestPostProviderMilitaryAffiliation(TstFunction):
 
         event = self._when_testing_post_provider_user_military_affiliation_event_with_custom_claims()
 
-        resp = provider_user_me_military_affiliation(event, self.mock_context)
+        # We'll set the 'current datetime' to a date after the initial military affiliation record was uploaded
+        # so we can create a second record with an 'inactive' status
+        with patch(
+            'cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-09T23:59:59+00:00')
+        ):
+            resp = provider_user_me_military_affiliation(event, self.mock_context)
 
         self.assertEqual(200, resp['statusCode'])
 
@@ -254,6 +258,7 @@ class TestPostProviderMilitaryAffiliation(TstFunction):
 
 
 @mock_aws
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
 class TestPatchProviderMilitaryAffiliation(TstFunction):
     def _create_test_provider(self):
         from cc_common.config import config

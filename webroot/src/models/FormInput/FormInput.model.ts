@@ -4,7 +4,7 @@
 //
 //  Created by InspiringApps on 4/25/2020.
 //
-import deleteUndefinedProperties from '@models/_helpers';
+import { deleteUndefinedProperties } from '@models/_helpers';
 import { ComputedRef } from 'vue';
 import { Schema as JoiSchema } from 'joi';
 

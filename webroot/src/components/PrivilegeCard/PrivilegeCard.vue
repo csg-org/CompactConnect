@@ -53,7 +53,7 @@
             </div>
            <div class="info-item-container">
                 <div class="info-item-title">{{expiresTitle}}</div>
-                <div class="info-item" :class="{ 'error': isPastExiprationDate }">{{expiresContent}}</div>
+                <div class="info-item" :class="{ 'error': isExpired }">{{expiresContent}}</div>
             </div>
             <div class="info-item-container">
                 <div class="info-item-title">{{$t('licensing.privilegeNumSymbol')}}</div>
@@ -64,6 +64,13 @@
                 <div class="info-item">{{disciplineContent}}</div>
             </div>
         </div>
+        <InputButton
+            :label="viewDetails"
+            :aria-label="viewDetails"
+            class="view-details-button"
+            :isTransparent="true"
+            @click="goToPrivilegeDetailsPage"
+        />
         <TransitionGroup>
             <Modal
                 v-if="isDeactivatePrivilegeModalDisplayed"

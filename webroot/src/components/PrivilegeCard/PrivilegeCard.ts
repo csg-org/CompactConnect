@@ -21,7 +21,6 @@ import { Compact } from '@models/Compact/Compact.model';
 import { State } from '@/models/State/State.model';
 import { StaffUser, CompactPermission } from '@models/StaffUser/StaffUser.model';
 import { FormInput } from '@/models/FormInput/FormInput.model';
-import moment from 'moment';
 
 @Component({
     name: 'PrivilegeCard',
@@ -34,6 +33,7 @@ import moment from 'moment';
 class PrivilegeCard extends mixins(MixinForm) {
     @Prop({ required: true }) privilege!: License;
     @Prop({ required: true }) licensee!: Licensee;
+    @Prop({ default: false }) isPublicSearch!: boolean;
 
     //
     // Data
@@ -104,7 +104,7 @@ class PrivilegeCard extends mixins(MixinForm) {
     }
 
     get isActive(): boolean {
-        return Boolean(this.privilege && this.privilege.status === LicenseStatus.ACTIVE);
+        return this.privilege?.status === LicenseStatus.ACTIVE;
     }
 
     get stateTitle(): string {
@@ -132,11 +132,11 @@ class PrivilegeCard extends mixins(MixinForm) {
     }
 
     get expiresTitle(): string {
-        return this.$t('licensing.expires');
+        return this.isExpired ? this.$t('licensing.expired') : this.$t('licensing.expires');
     }
 
     get expiresContent(): string {
-        return this.privilege?.expireDateDisplay() || '';
+        return this.privilege?.isDeactivated() ? this.$t('licensing.deactivated') : this.privilege?.expireDateDisplay() || '';
     }
 
     get disciplineTitle(): string {
@@ -147,21 +147,12 @@ class PrivilegeCard extends mixins(MixinForm) {
         return this.$t('licensing.noDiscipline');
     }
 
-    get isPastExiprationDate(): boolean {
-        let isPastDate = false;
+    get viewDetails(): string {
+        return this.$t('common.viewDetails');
+    }
 
-        const expireDate = this.privilege?.expireDate;
-
-        if (expireDate) {
-            const now = moment();
-            const expirationDate = moment(expireDate);
-
-            if (!expirationDate.isAfter(now)) {
-                isPastDate = true;
-            }
-        }
-
-        return isPastDate;
+    get isExpired(): boolean {
+        return Boolean(this.privilege?.isExpired());
     }
 
     get privilegeId(): string {
@@ -190,6 +181,21 @@ class PrivilegeCard extends mixins(MixinForm) {
 
     togglePrivilegeActionMenu(): void {
         this.isPrivilegeActionMenuDisplayed = !this.isPrivilegeActionMenuDisplayed;
+    }
+
+    goToPrivilegeDetailsPage(): void {
+        const routeName = this.isPublicSearch ? 'PrivilegeDetailPublic' : 'PrivilegeDetail';
+
+        this.$router.push(
+            {
+                name: routeName,
+                params: {
+                    compact: this.currentCompactType,
+                    privilegeId: this.privilege.id,
+                    licenseeId: this.licenseeId
+                }
+            }
+        );
     }
 
     closePrivilegeActionMenu(): void {

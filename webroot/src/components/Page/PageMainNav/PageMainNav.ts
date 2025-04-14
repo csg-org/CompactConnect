@@ -154,12 +154,12 @@ class PageMainNav extends Vue {
             },
             {
                 to: 'LicneseeSearchPublic',
-                label: computed(() => this.$t('navigation.licensing')),
+                label: computed(() => this.$t('navigation.licensingPublic')),
                 iconComponent: markRaw(LicenseSearchIcon),
                 isEnabled: !this.isLoggedIn,
                 isExternal: false,
                 isExactActive: false,
-                isActive: this.isActiveMatch('LicenseeDetailPublic'),
+                isActive: this.isActiveMatch(['LicenseeDetailPublic', 'PrivilegeDetailPublic']),
             },
             {
                 to: 'RegisterLicensee',
@@ -250,8 +250,8 @@ class PageMainNav extends Vue {
     //
     // Methods
     //
-    isActiveMatch(routeName): boolean {
-        return this.$route.name === routeName;
+    isActiveMatch(routeNames: Array<string>): boolean {
+        return routeNames.some((routeName) => (routeName === this.$route.name));
     }
 
     logoClick(): void {

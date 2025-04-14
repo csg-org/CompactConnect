@@ -12,6 +12,7 @@ from aws_cdk.aws_cloudwatch import (
     TreatMissingData,
 )
 from aws_cdk.aws_cloudwatch_actions import SnsAction
+from aws_cdk.aws_dynamodb import Table
 from aws_cdk.aws_events import EventBus
 from aws_cdk.aws_iam import Policy, PolicyStatement
 from aws_cdk.aws_kms import IKey
@@ -57,6 +58,7 @@ class QueryProviders:
             'RATE_LIMITING_TABLE_NAME': persistent_stack.rate_limiting_table.table_name,
             'USER_POOL_ID': persistent_stack.staff_users.user_pool_id,
             'EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME': persistent_stack.email_notification_service_lambda.function_name,
+            'USERS_TABLE_NAME': persistent_stack.staff_users.user_table.table_name,
             **stack.common_env_vars,
         }
 
@@ -85,6 +87,7 @@ class QueryProviders:
             provider_data_table=persistent_stack.provider_table,
             event_bus=persistent_stack.data_event_bus,
             email_service_lambda=persistent_stack.email_notification_service_lambda,
+            staff_users_table=persistent_stack.staff_users.user_table,
             lambda_environment=lambda_environment,
         )
 
@@ -437,6 +440,7 @@ class QueryProviders:
         event_bus: EventBus,
         provider_data_table: ProviderTable,
         email_service_lambda: NodejsFunction,
+        staff_users_table: Table,
         lambda_environment: dict,
     ):
         """Add POST /providers/{providerId}/privileges/jurisdiction/{jurisdiction}
@@ -445,6 +449,7 @@ class QueryProviders:
             provider_data_table=provider_data_table,
             event_bus=event_bus,
             email_service_lambda=email_service_lambda,
+            staff_users_table=staff_users_table,
             lambda_environment=lambda_environment,
         )
         self.api.log_groups.append(handler.log_group)
@@ -482,6 +487,7 @@ class QueryProviders:
         deactivate_resource.add_method(
             'POST',
             request_validator=self.api.parameter_body_validator,
+            request_models={'application/json': self.api_model.post_privilege_deactivation_request_model},
             method_responses=[
                 MethodResponse(
                     status_code='200',
@@ -500,6 +506,7 @@ class QueryProviders:
         provider_data_table: ProviderTable,
         event_bus: EventBus,
         email_service_lambda: NodejsFunction,
+        staff_users_table: Table,
         lambda_environment: dict,
     ) -> PythonFunction:
         """Create and configure the Lambda handler for deactivating a provider's privilege."""
@@ -514,6 +521,7 @@ class QueryProviders:
             alarm_topic=self.api.alarm_topic,
         )
         provider_data_table.grant_read_write_data(self.deactivate_privilege_handler)
+        staff_users_table.grant_read_data(self.deactivate_privilege_handler)
         event_bus.grant_put_events_to(self.deactivate_privilege_handler)
         email_service_lambda.grant_invoke(self.deactivate_privilege_handler)
 
