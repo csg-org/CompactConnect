@@ -18,6 +18,7 @@ from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
 from common_constructs.nodejs_function import NodejsFunction
 from common_constructs.python_function import PythonFunction
+from common_constructs.ssm_parameter_utility import SSMParameterUtility
 from common_constructs.stack import Stack
 
 from stacks import persistent_stack as ps
@@ -47,13 +48,17 @@ class QueryProviders:
         self.api_model = api_model
 
         stack: Stack = Stack.of(resource)
+
+        # Load the data event bus from SSM parameter instead of direct reference
+        data_event_bus = SSMParameterUtility.load_data_event_bus_from_ssm_parameter(stack)
+
         lambda_environment = {
             'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
             'PROV_FAM_GIV_MID_INDEX_NAME': persistent_stack.provider_table.provider_fam_giv_mid_index_name,
             'PROV_DATE_OF_UPDATE_INDEX_NAME': persistent_stack.provider_table.provider_date_of_update_index_name,
             'SSN_TABLE_NAME': persistent_stack.ssn_table.table_name,
             'SSN_INDEX_NAME': persistent_stack.ssn_table.ssn_index_name,
-            'EVENT_BUS_NAME': persistent_stack.data_event_bus.event_bus_name,
+            'EVENT_BUS_NAME': data_event_bus.event_bus_name,
             'RATE_LIMITING_TABLE_NAME': persistent_stack.rate_limiting_table.table_name,
             'USER_POOL_ID': persistent_stack.staff_users.user_pool_id,
             'EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME': persistent_stack.email_notification_service_lambda.function_name,
@@ -83,7 +88,7 @@ class QueryProviders:
         self._add_deactivate_privilege(
             method_options=admin_method_options,
             provider_data_table=persistent_stack.provider_table,
-            event_bus=persistent_stack.data_event_bus,
+            event_bus=data_event_bus,
             email_service_lambda=persistent_stack.email_notification_service_lambda,
             lambda_environment=lambda_environment,
         )
