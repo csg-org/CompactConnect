@@ -229,8 +229,10 @@ class PrivilegeCard extends mixins(MixinForm) {
     }
 
     focusTrapDeactivatePrivilegeModal(event: KeyboardEvent): void {
-        const firstTabIndex = document.getElementById('deactivate-modal-cancel-button');
-        const lastTabIndex = document.getElementById(this.formData.submitModalContinue.id);
+        const firstTabIndex = document.getElementById('notes');
+        const lastTabIndex = (this.isFormValid && !this.isFormLoading)
+            ? document.getElementById(this.formData.submitModalContinue.id)
+            : document.getElementById('deactivate-modal-cancel-button');
 
         if (event.shiftKey) {
             // shift + tab to last input

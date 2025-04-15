@@ -103,13 +103,13 @@
                             <div class="action-button-row">
                                 <InputButton
                                     id="deactivate-modal-cancel-button"
-                                    class="cancel-button"
+                                    class="action-button cancel-button"
                                     :label="$t('common.cancel')"
                                     :isTransparent="true"
                                     :onClick="closeDeactivatePrivilegeModal"
                                 />
                                 <InputSubmit
-                                    class="submit-button continue-button"
+                                    class="action-button submit-button continue-button"
                                     :formInput="formData.submitModalContinue"
                                     :label="(isFormLoading)
                                         ? $t('common.loading')
