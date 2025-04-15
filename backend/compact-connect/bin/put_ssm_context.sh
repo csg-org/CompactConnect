@@ -20,5 +20,6 @@ if [ "$1" != "prod" ] && [ "$1" != "beta" ] && [ "$1" != "test" ] && [ "$1" != "
 fi
 
 # put the context file into SSM
+echo "Reading configuration from cdk.context.json (ensure you've copied from cdk.context.$1-example.json)"
 val="$(jq '.ssm_context' <cdk.context.json)"
 aws ssm put-parameter --type String --name "$1-compact-connect-context" --value "$val" --overwrite

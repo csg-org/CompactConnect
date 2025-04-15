@@ -169,8 +169,8 @@ authentication is working as expected.
 The production environment requires a few steps to fully set up before deploys can be automated. Refer to the
 [README.md](../multi-account/README.md) for details on setting up a full multi-account architecture environment. Once
 that is done, perform the following steps to deploy the CI/CD pipelines into the appropriate AWS account:
-- Complete the [Google reCAPTCHA Setup](#google-recaptcha-setup) steps for each environment you will be deploying to (test, beta, prod). Use the appropriate domain name for the environment (`app.test.compactconnect.org` for test environment, `app.beta.compactconnect.org` for beta environment, `app.compactconnect.org` for production). For the production environment, make sure to complete the billing setup steps as well.
-- Have someone with suitable permissions in the GitHub organization that hosts this code navigate to the AWS Console
+- Complete the [Google reCAPTCHA Setup](#google-recaptcha-setup) steps for each environment you will be deploying to (test, beta, prod). Use the appropriate domain name for the environment (ie `app.test.compactconnect.org` for test environment, `app.beta.compactconnect.org` for beta environment, `app.compactconnect.org` for production). For the production environment, make sure to complete the billing setup steps as well.
+- Have someone who has suitable permissions in the GitHub organization that hosts this code navigate to the AWS Console
   for the Deploy account, go to the
   [AWS CodeStar Connections](https://us-east-1.console.aws.amazon.com/codesuite/settings/connections) page and create a
   connection that grants AWS permission to receive GitHub events. Note the ARN of the resulting connection for
@@ -180,7 +180,7 @@ that is done, perform the following steps to deploy the CI/CD pipelines into the
 - Request AWS to remove your account from the SES sandbox and wait for them to complete this request.
   See [SES Sandbox](https://docs.aws.amazon.com/ses/latest/dg/request-production-access.html).
 - With the [aws-cli](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html), set up your local machine to authenticate against the Deploy account as an administrator.
-- For every environment, copy the appropriate example context file (`cdk.context.deploy-example.json`, `cdk.context.test-example.json`, `cdk.context.beta-example.json`, or `cdk.context.prod-example.json`) to `cdk.context.json` and update accounts and other identifiers, including the Code Star connection you just had created to match the identifiers for your actual accounts and resources. You will then need to run the `bin/put_ssm_context.sh <environment>` script to push relevant content from your `cdk.context.json` script into an SSM Parameter in your Deploy account. Replace `<environment>` with the target environment. For example, to set up for the test environment: `bin/put_ssm_context.sh test`.
+- For every environment, copy the appropriate example context file (`cdk.context.deploy-example.json`, `cdk.context.test-example.json`, `cdk.context.beta-example.json`, or `cdk.context.prod-example.json`) to `cdk.context.json` and update accounts and other identifiers, including the code star connection you just created to match the identifiers for your actual accounts and resources. You will then need to run the `bin/put_ssm_context.sh <environment>` script to push relevant content from your `cdk.context.json` script into an SSM Parameter in your Deploy account. Replace `<environment>` with the target environment. For example, to set up for the test environment: `bin/put_ssm_context.sh test`.
   For example, to set up for the test environment: `bin/put_ssm_context.sh test`. 
 - Optional: If a Slack integration is desired for operational support, have someone with permission to install Slack
   apps in your workspace and Admin access to each of the Test, Beta, Prod, and Deploy accounts log into each AWS account
@@ -198,7 +198,7 @@ that is done, perform the following steps to deploy the CI/CD pipelines into the
 2. **Then deploy the Frontend Pipeline Stacks (approve the permission change requests for each stack deployment)**:
   `cdk deploy --context action=bootstrapDeploy TestFrontendPipelineStack BetaFrontendPipelineStack ProdFrontendPipelineStack`
 
-**Important**: When a pipeline stack is deployed, it will automatically trigger a deployment to its environment from the configured branch in your GitHub repo. The first time you deploy the backend pipeline, it should pass all the steps except the final trigger of the frontend pipeline, since the frontend pipeline will not exist until you deploy it. From there on the pipelines should integrate as designed.
+**Important**: When a pipeline stack is deployed, it will automatically trigger a deployment to its environment from the configured branch in your GitHub repo. The first time you deploy the backend pipeline, it should pass all the steps except the final trigger of the frontend pipeline, since the frontend pipeline will not exist until you deploy it. From there on, the pipelines should integrate as designed.
 
 ### Subsequent production deploys
 
@@ -238,7 +238,7 @@ The practitioner registration endpoint uses Google reCAPTCHA to prevent abuse. F
 For Production environments, additional billing setup is required:
 1. In the Settings for a reCAPTCHA site, click "View in Cloud Console"
 2. From the main nav, go to Billing
-3. If you have an existing billing account, you may link it, otherwise you can Create a New Billing account, where you will add payment information
+3. If you have an existing billing account, you may link it. Otherwise, you can create a New Billing account, where you will add payment information
 4. More info on Google Recaptcha billing: https://cloud.google.com/recaptcha/docs/billing-information
 
 ### Useful commands
