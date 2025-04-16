@@ -19,8 +19,9 @@ from aws_cdk.aws_sqs import CfnQueue
 from common_constructs.stack import Stack
 from pipeline import BackendStage, FrontendStage
 from stacks.api_stack import ApiStack
-from stacks.persistent_stack import PersistentStack
 from stacks.frontend_deployment_stack import FrontendDeploymentStack
+from stacks.persistent_stack import PersistentStack
+
 
 class TstAppABC(ABC):
     """
@@ -76,24 +77,22 @@ class TstAppABC(ABC):
             # Ensure we have a CloudFront distribution
             ui_stack_template.resource_count_is('AWS::CloudFront::Distribution', 1)
             # This stack is not anticipated to do much changing, so we'll just snapshot-test key resources
-            ui_bucket = ui_stack_template.find_resources(
-                CfnBucket.CFN_RESOURCE_TYPE_NAME)[ui_stack.get_logical_id(ui_stack.ui_bucket.node.default_child)]
-            self.compare_snapshot(ui_bucket,
-                                  snapshot_name=f'{ui_stack.stack_name}-UI_BUCKET',
-                                  overwrite_snapshot=False)
+            ui_bucket = ui_stack_template.find_resources(CfnBucket.CFN_RESOURCE_TYPE_NAME)[
+                ui_stack.get_logical_id(ui_stack.ui_bucket.node.default_child)
+            ]
+            self.compare_snapshot(ui_bucket, snapshot_name=f'{ui_stack.stack_name}-UI_BUCKET', overwrite_snapshot=False)
             distribution = ui_stack_template.find_resources(CfnDistribution.CFN_RESOURCE_TYPE_NAME)
             self.assertEqual(len(distribution), 1)
-            self.compare_snapshot(distribution,
-                                  f'{ui_stack.stack_name}-UI_DISTRIBUTION',
-                                  overwrite_snapshot=False)
+            self.compare_snapshot(distribution, f'{ui_stack.stack_name}-UI_DISTRIBUTION', overwrite_snapshot=False)
             # take a snapshot of the lambda@edge code to ensure placeholder values are being injected
-            distribution_function = ui_stack_template.find_resources(
-                CfnFunction.CFN_RESOURCE_TYPE_NAME
-            )[ui_stack.get_logical_id(ui_stack.distribution.csp_function.node.default_child)]
-            self.compare_snapshot(distribution_function,
-                                  f'{ui_stack.stack_name}-UI_DISTRIBUTION_LAMBDA_FUNCTION',
-                                  overwrite_snapshot=False
-                                  )
+            distribution_function = ui_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME)[
+                ui_stack.get_logical_id(ui_stack.distribution.csp_function.node.default_child)
+            ]
+            self.compare_snapshot(
+                distribution_function,
+                f'{ui_stack.stack_name}-UI_DISTRIBUTION_LAMBDA_FUNCTION',
+                overwrite_snapshot=False,
+            )
 
     def _inspect_persistent_stack(
         self,

@@ -70,17 +70,17 @@ class FrontendDeploymentStack(AppStack):
                 {
                     'id': 'HIPAA.Security-S3BucketReplicationEnabled',
                     'reason': 'This bucket contains built files that are replaced each deploy of the UI. We have no'
-                              ' desire for the resilience of bucket replication for this data.',
+                    ' desire for the resilience of bucket replication for this data.',
                 },
                 {
                     'id': 'HIPAA.Security-S3DefaultEncryptionKMS',
                     'reason': 'The data in this bucket is public web app static files. Default S3 encryption is'
-                              ' more than enough for protecting this data.',
+                    ' more than enough for protecting this data.',
                 },
                 {
                     'id': 'HIPAA.Security-S3BucketVersioningEnabled',
                     'reason': 'This bucket contains built files that are replaced each deploy. We have no '
-                              'desire for the resilience of versioning',
+                    'desire for the resilience of versioning',
                 },
             ],
         )

@@ -116,7 +116,7 @@ class PersistentStack(AppStack):
             removal_policy=removal_policy,
             auto_delete_objects=removal_policy == RemovalPolicy.DESTROY,
         )
-        # TODO: remove these exports after CloudFront Distribution has been moved over to frontend pipeline.
+        # TODO: remove these exports after CF Distribution has been moved over to frontend pipeline.  # noqa: FIX002
         self.export_value(self.access_logs_bucket.bucket_name)
         self.export_value(self.access_logs_bucket.bucket_arn)
         self.export_value(self.access_logs_bucket.bucket_regional_domain_name)
@@ -638,7 +638,7 @@ class PersistentStack(AppStack):
 
     def _create_frontend_app_config_parameter(self):
         """
-        Creates and stores UI application configuration in SSM Parameter Store for use in the UI stack and 
+        Creates and stores UI application configuration in SSM Parameter Store for use in the UI stack and
         frontend deployment stack.
         """
         # Create and store UI application configuration in SSM Parameter Store for use in the UI stack
@@ -658,7 +658,7 @@ class PersistentStack(AppStack):
 
         # Add UI and API domain names
         frontend_app_config.set_domain_names(ui_domain_name=self.ui_domain_name, api_domain_name=self.api_domain_name)
-        
+
         # Add bucket names needed for CSP Lambda
         frontend_app_config.set_license_bulk_uploads_bucket_name(bucket_name=self.bulk_uploads_bucket.bucket_name)
         frontend_app_config.set_provider_users_bucket_name(bucket_name=self.provider_users_bucket.bucket_name)

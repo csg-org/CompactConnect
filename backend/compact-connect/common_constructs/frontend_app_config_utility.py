@@ -10,6 +10,7 @@ COGNITO_AUTH_DOMAIN_SUFFIX = '.auth.us-east-1.amazoncognito.com'
 
 PERSISTENT_STACK_FRONTEND_APP_CONFIGURATION_PARAMETER_NAME = '/deployment/persistent-stack/frontend_app_configuration'
 
+
 class PersistentStackFrontendAppConfigUtility:
     """
     Utility class for managing frontend application configuration values from persistent stack in SSM Parameter Store.

@@ -31,6 +31,7 @@ from constructs import Construct
 
 S3_URL_SUFFIX = '.s3.amazonaws.com'
 
+
 def generate_csp_lambda_code(persistent_stack_values: PersistentStackFrontendAppConfigValues) -> str:
     """
     Generate CSP Lambda code with injected configuration values.
@@ -157,7 +158,8 @@ class UIDistribution(Distribution):
                 viewer_protocol_policy=ViewerProtocolPolicy.HTTPS_ONLY,
                 edge_lambdas=[
                     EdgeLambda(
-                        event_type=LambdaEdgeEventType.VIEWER_RESPONSE, function_version=self.csp_function.current_version
+                        event_type=LambdaEdgeEventType.VIEWER_RESPONSE,
+                        function_version=self.csp_function.current_version,
                     )
                 ],
             ),
