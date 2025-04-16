@@ -19,12 +19,16 @@ from aws_cdk.aws_route53 import ARecord, RecordTarget
 from aws_cdk.aws_route53_targets import CloudFrontTarget
 from aws_cdk.aws_s3 import IBucket
 from cdk_nag import NagSuppressions
-from common_constructs.frontend_app_config_utility import PersistentStackFrontendAppConfigValues
+from common_constructs.frontend_app_config_utility import (
+    COGNITO_AUTH_DOMAIN_SUFFIX,
+    PersistentStackFrontendAppConfigValues,
+)
 from common_constructs.security_profile import SecurityProfile
 from common_constructs.stack import AppStack
 from common_constructs.webacl import WebACL, WebACLScope
 from constructs import Construct
 
+S3_URL_SUFFIX = '.s3.amazonaws.com'
 
 def generate_csp_lambda_code(persistent_stack_values: PersistentStackFrontendAppConfigValues) -> str:
     """
@@ -44,10 +48,10 @@ def generate_csp_lambda_code(persistent_stack_values: PersistentStackFrontendApp
     replacements = {
         '##WEB_FRONTEND##': persistent_stack_values.ui_domain_name,
         '##DATA_API##': persistent_stack_values.api_domain_name,
-        '##S3_UPLOAD_URL_STATE##': persistent_stack_values.bulk_uploads_bucket_name,
-        '##S3_UPLOAD_URL_PROVIDER##': persistent_stack_values.provider_users_bucket_name,
-        '##COGNITO_STAFF##': persistent_stack_values.staff_cognito_domain,
-        '##COGNITO_PROVIDER##': persistent_stack_values.provider_cognito_domain,
+        '##S3_UPLOAD_URL_STATE##': f'{persistent_stack_values.bulk_uploads_bucket_name}{S3_URL_SUFFIX}',
+        '##S3_UPLOAD_URL_PROVIDER##': f'{persistent_stack_values.provider_users_bucket_name}{S3_URL_SUFFIX}',
+        '##COGNITO_STAFF##': f'{persistent_stack_values.staff_cognito_domain}{COGNITO_AUTH_DOMAIN_SUFFIX}',
+        '##COGNITO_PROVIDER##': f'{persistent_stack_values.provider_cognito_domain}{COGNITO_AUTH_DOMAIN_SUFFIX}',
     }
 
     for placeholder, value in replacements.items():

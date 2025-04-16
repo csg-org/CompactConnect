@@ -5,6 +5,9 @@ from aws_cdk import Stack
 from aws_cdk.aws_ssm import StringParameter
 from constructs import Construct
 
+HTTPS_PREFIX = 'https://'
+COGNITO_AUTH_DOMAIN_SUFFIX = '.auth.us-east-1.amazoncognito.com'
+
 PERSISTENT_STACK_FRONTEND_APP_CONFIGURATION_PARAMETER_NAME = '/deployment/persistent-stack/frontend_app_configuration'
 
 class PersistentStackFrontendAppConfigUtility:

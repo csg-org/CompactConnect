@@ -6,11 +6,12 @@ from aws_cdk import BundlingOptions, DockerImage, Size, Stack
 from aws_cdk.aws_s3 import IBucket
 from aws_cdk.aws_s3_deployment import BucketDeployment, Source
 from cdk_nag import NagSuppressions
-from common_constructs.frontend_app_config_utility import PersistentStackFrontendAppConfigValues
+from common_constructs.frontend_app_config_utility import (
+    COGNITO_AUTH_DOMAIN_SUFFIX,
+    HTTPS_PREFIX,
+    PersistentStackFrontendAppConfigValues,
+)
 from constructs import Construct
-
-HTTPS_PREFIX = 'https://'
-COGNITO_AUTH_DOMAIN_SUFFIX = '.auth.us-east-1.amazoncognito.com'
 
 
 class CompactConnectUIBucketDeployment(BucketDeployment):
