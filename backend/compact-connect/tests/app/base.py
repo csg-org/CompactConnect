@@ -212,7 +212,7 @@ class TstAppABC(ABC):
 
     def _inspect_data_events_table(self, persistent_stack: PersistentStack, persistent_stack_template: Template):
         # Ensure our DataEventTable and queues are created
-        event_bus_logical_id = persistent_stack.get_logical_id(persistent_stack.data_event_bus.node.default_child)
+        event_bus_logical_id = persistent_stack.get_logical_id(persistent_stack._data_event_bus.node.default_child)  # noqa: SLF001 private_member_access
         queue_logical_id = persistent_stack.get_logical_id(
             persistent_stack.data_event_table.event_processor.queue.node.default_child
         )
