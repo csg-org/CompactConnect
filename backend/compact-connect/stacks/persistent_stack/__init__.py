@@ -126,9 +126,6 @@ class PersistentStack(AppStack):
         self.data_event_bus_arn_ssm_parameter = SSMParameterUtility.set_data_event_bus_arn_ssm_parameter(
             self, self._data_event_bus
         )
-        # TODO - these are needed until pipeline migration effort is complete  # noqa: FIX002
-        self.export_value(self._data_event_bus.event_bus_arn)
-        self.export_value(self._data_event_bus.event_bus_name)
 
         self._add_data_resources(removal_policy=removal_policy)
         self._add_migrations()
