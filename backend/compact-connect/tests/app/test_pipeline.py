@@ -17,7 +17,7 @@ from aws_cdk.aws_ssm import CfnParameter
 from tests.app.base import TstAppABC
 
 
-class TestPipeline(TstAppABC, TestCase):
+class TestBackendPipeline(TstAppABC, TestCase):
     @classmethod
     def get_context(cls):
         with open('cdk.json') as f:
@@ -42,7 +42,7 @@ class TestPipeline(TstAppABC, TestCase):
             self.app.test_backend_pipeline_stack.test_stage,
             self.app.prod_backend_pipeline_stack.prod_stage,
         ):
-            self._check_no_stage_annotations(stage)
+            self._check_no_backend_stage_annotations(stage)
 
         for api_stack in (
             self.app.test_backend_pipeline_stack.test_stage.api_stack,
@@ -59,12 +59,6 @@ class TestPipeline(TstAppABC, TestCase):
         self._inspect_persistent_stack(
             self.app.prod_backend_pipeline_stack.prod_stage.persistent_stack, domain_name='app.compactconnect.org'
         )
-
-        for ui_stack in (
-            self.app.test_backend_pipeline_stack.test_stage.ui_stack,
-            self.app.prod_backend_pipeline_stack.prod_stage.ui_stack,
-        ):
-            self._inspect_ui_stack(ui_stack)
 
     def _when_testing_compact_resource_servers(self, persistent_stack, environment_name):
         persistent_stack_template = Template.from_stack(persistent_stack)
@@ -321,7 +315,7 @@ class TestPipeline(TstAppABC, TestCase):
         return compact_configuration_input
 
 
-class TestPipelineVulnerable(TestCase):
+class TestBackendPipelineVulnerable(TestCase):
     @patch.dict(os.environ, {'CDK_DEFAULT_ACCOUNT': '000000000000', 'CDK_DEFAULT_REGION': 'us-east-1'})
     def test_app_refuses_to_synth_with_prod_vulnerable(self):
         with open('cdk.json') as f:
@@ -347,3 +341,37 @@ class TestPipelineVulnerable(TestCase):
 
         with self.assertRaises(ValueError):
             CompactConnectApp(context=context)
+
+
+class TestFrontendPipeline(TstAppABC, TestCase):
+    @classmethod
+    def get_context(cls):
+        with open('cdk.json') as f:
+            context = json.load(f)['context']
+        # For pipeline deployments, we do not have a cdk.context.json file to extend context:
+        # ssm_context is actually pulled from SSM Parameter Store
+
+        # Suppresses lambda bundling for tests
+        context['aws:cdk:bundling-stacks'] = []
+
+        return context
+
+    def test_synth_pipeline(self):
+        """
+        Test infrastructure as deployed via the pipeline
+        """
+        # Identify any findings from our AwsSolutions rule sets
+        self._check_no_stack_annotations(self.app.deployment_resources_stack)
+        self._check_no_stack_annotations(self.app.test_frontend_pipeline_stack)
+        self._check_no_stack_annotations(self.app.prod_frontend_pipeline_stack)
+        for stage in (
+            self.app.test_frontend_pipeline_stack.pre_prod_frontend_stage,
+            self.app.prod_frontend_pipeline_stack.prod_frontend_stage,
+        ):
+            self._check_no_frontend_stage_annotations(stage)
+
+        for frontend_deployment_stack in (
+            self.app.test_frontend_pipeline_stack.pre_prod_frontend_stage.frontend_deployment_stack,
+            self.app.prod_frontend_pipeline_stack.prod_frontend_stage.frontend_deployment_stack,
+        ):
+            self._inspect_frontend_deployment_stack(frontend_deployment_stack)

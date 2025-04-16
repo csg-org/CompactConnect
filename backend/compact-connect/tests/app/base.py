@@ -13,15 +13,14 @@ from aws_cdk.aws_cognito import CfnUserPool, CfnUserPoolClient
 from aws_cdk.aws_dynamodb import CfnTable
 from aws_cdk.aws_events import CfnRule
 from aws_cdk.aws_kms import CfnKey
-from aws_cdk.aws_lambda import CfnEventSourceMapping
+from aws_cdk.aws_lambda import CfnEventSourceMapping, CfnFunction
 from aws_cdk.aws_s3 import CfnBucket
 from aws_cdk.aws_sqs import CfnQueue
 from common_constructs.stack import Stack
-from pipeline import BackendStage
+from pipeline import BackendStage, FrontendStage
 from stacks.api_stack import ApiStack
 from stacks.persistent_stack import PersistentStack
-from stacks.ui_stack import UIStack
-
+from stacks.frontend_deployment_stack import FrontendDeploymentStack
 
 class TstAppABC(ABC):
     """
@@ -71,18 +70,30 @@ class TstAppABC(ABC):
         except KeyError as exc:
             raise RuntimeError(f'{logical_id} not found in resources!') from exc
 
-    def _inspect_ui_stack(self, ui_stack: UIStack):
+    def _inspect_frontend_deployment_stack(self, ui_stack: FrontendDeploymentStack):
         with self.subTest(ui_stack.stack_name):
             ui_stack_template = Template.from_stack(ui_stack)
             # Ensure we have a CloudFront distribution
             ui_stack_template.resource_count_is('AWS::CloudFront::Distribution', 1)
             # This stack is not anticipated to do much changing, so we'll just snapshot-test key resources
-            ui_bucket = ui_stack_template.find_resources(CfnBucket.CFN_RESOURCE_TYPE_NAME)
-            self.assertEqual(len(ui_bucket), 1)
-            self.compare_snapshot(ui_bucket, snapshot_name=f'{ui_stack.stack_name}-UI_BUCKET', overwrite_snapshot=False)
+            ui_bucket = ui_stack_template.find_resources(
+                CfnBucket.CFN_RESOURCE_TYPE_NAME)[ui_stack.get_logical_id(ui_stack.ui_bucket.node.default_child)]
+            self.compare_snapshot(ui_bucket,
+                                  snapshot_name=f'{ui_stack.stack_name}-UI_BUCKET',
+                                  overwrite_snapshot=False)
             distribution = ui_stack_template.find_resources(CfnDistribution.CFN_RESOURCE_TYPE_NAME)
             self.assertEqual(len(distribution), 1)
-            self.compare_snapshot(distribution, f'{ui_stack.stack_name}-UI_DISTRIBUTION', overwrite_snapshot=False)
+            self.compare_snapshot(distribution,
+                                  f'{ui_stack.stack_name}-UI_DISTRIBUTION',
+                                  overwrite_snapshot=False)
+            # take a snapshot of the lambda@edge code to ensure placeholder values are being injected
+            distribution_function = ui_stack_template.find_resources(
+                CfnFunction.CFN_RESOURCE_TYPE_NAME
+            )[ui_stack.get_logical_id(ui_stack.distribution.csp_function.node.default_child)]
+            self.compare_snapshot(distribution_function,
+                                  f'{ui_stack.stack_name}-UI_DISTRIBUTION_LAMBDA_FUNCTION',
+                                  overwrite_snapshot=False
+                                  )
 
     def _inspect_persistent_stack(
         self,
@@ -368,15 +379,17 @@ class TstAppABC(ABC):
                 0, len(warnings), msg='\n'.join(f'{warn.id}: {warn.entry.data.strip()}' for warn in warnings)
             )
 
-    def _check_no_stage_annotations(self, stage: BackendStage):
+    def _check_no_backend_stage_annotations(self, stage: BackendStage):
         self._check_no_stack_annotations(stage.persistent_stack)
-        self._check_no_stack_annotations(stage.ui_stack)
         self._check_no_stack_annotations(stage.api_stack)
         self._check_no_stack_annotations(stage.ingest_stack)
         self._check_no_stack_annotations(stage.transaction_monitoring_stack)
         # There is on reporting stack if no hosted zone is configured
         if stage.persistent_stack.hosted_zone:
             self._check_no_stack_annotations(stage.reporting_stack)
+
+    def _check_no_frontend_stage_annotations(self, stage: FrontendStage):
+        self._check_no_stack_annotations(stage.frontend_deployment_stack)
 
     def compare_snapshot(self, actual: Mapping | list, snapshot_name: str, overwrite_snapshot: bool = False):
         """

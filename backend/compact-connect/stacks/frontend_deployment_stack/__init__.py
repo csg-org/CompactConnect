@@ -1,5 +1,6 @@
 from aws_cdk import RemovalPolicy
 from cdk_nag import NagSuppressions
+from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.bucket import Bucket
 from common_constructs.frontend_app_config_utility import (
     PersistentStackFrontendAppConfigValues,
@@ -30,6 +31,9 @@ class FrontendDeploymentStack(AppStack):
             scope, construct_id, environment_context=environment_context, environment_name=environment_name, **kwargs
         )
 
+        # If we delete this stack, retain the resource (orphan but prevent data loss) or destroy it (clean up)?
+        removal_policy = RemovalPolicy.RETAIN if environment_name == 'prod' else RemovalPolicy.DESTROY
+
         # Load the app configuration if bundling is required
         persistent_stack_frontend_app_config_values = (
             PersistentStackFrontendAppConfigValues.load_persistent_stack_values_from_ssm_parameter(self)
@@ -46,21 +50,22 @@ class FrontendDeploymentStack(AppStack):
 
         security_profile = SecurityProfile[environment_context.get('security_profile', 'RECOMMENDED')]
 
-        access_logs_bucket = Bucket.from_bucket_name(
+        self.frontend_access_logs_bucket = AccessLogsBucket(
             self,
-            'AccessLogsBucket',
-            persistent_stack_frontend_app_config_values.access_logs_bucket_name,
+            'UIAccessLogsBucket',
+            removal_policy=removal_policy,
+            auto_delete_objects=removal_policy == RemovalPolicy.DESTROY,
         )
 
-        ui_bucket = Bucket(
+        self.ui_bucket = Bucket(
             self,
             'UIBucket',
             removal_policy=RemovalPolicy.DESTROY,
             auto_delete_objects=True,
-            server_access_logs_bucket=access_logs_bucket,
+            server_access_logs_bucket=self.frontend_access_logs_bucket,
         )
         NagSuppressions.add_resource_suppressions(
-            ui_bucket,
+            self.ui_bucket,
             suppressions=[
                 {
                     'id': 'HIPAA.Security-S3BucketReplicationEnabled',
@@ -83,7 +88,7 @@ class FrontendDeploymentStack(AppStack):
         self.assets = CompactConnectUIBucketDeployment(
             self,
             'CompactConnectUIDeployment',
-            ui_bucket=ui_bucket,
+            ui_bucket=self.ui_bucket,
             environment_context=environment_context,
             ui_app_config_values=persistent_stack_frontend_app_config_values,
         )
@@ -91,8 +96,8 @@ class FrontendDeploymentStack(AppStack):
         self.distribution = UIDistribution(
             self,
             'UIDistribution',
-            ui_bucket=ui_bucket,
+            ui_bucket=self.ui_bucket,
             security_profile=security_profile,
-            access_logs_bucket=access_logs_bucket,
+            access_logs_bucket=self.frontend_access_logs_bucket,
             persistent_stack_frontend_app_config_values=persistent_stack_frontend_app_config_values,
         )

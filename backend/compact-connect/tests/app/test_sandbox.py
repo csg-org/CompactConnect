@@ -26,7 +26,7 @@ class TestSandbox(TstSandbox):
         Test infrastructure as deployed in a developer's sandbox
         """
         # Identify any findings from our AwsSolutions rule sets
-        self._check_no_stage_annotations(self.app.sandbox_backend_stage)
+        self._check_no_backend_stage_annotations(self.app.sandbox_backend_stage)
 
     def test_api_stack(self):
         self._inspect_api_stack(self.app.sandbox_backend_stage.api_stack)
@@ -54,7 +54,7 @@ class TestSandboxNoDomain(TstSandbox):
         return context
 
     def test_synth_sandbox_no_domain(self):
-        self._check_no_stage_annotations(self.app.sandbox_backend_stage)
+        self._check_no_backend_stage_annotations(self.app.sandbox_backend_stage)
 
         self._inspect_api_stack(self.app.sandbox_backend_stage.api_stack)
 
@@ -77,7 +77,7 @@ class TestSandboxLocalUiPortOverride(TstSandbox):
         return context
 
     def test_synth_local_ui_port_override(self):
-        self._check_no_stage_annotations(self.app.sandbox_backend_stage)
+        self._check_no_backend_stage_annotations(self.app.sandbox_backend_stage)
 
         self._inspect_api_stack(self.app.sandbox_backend_stage.api_stack)
 

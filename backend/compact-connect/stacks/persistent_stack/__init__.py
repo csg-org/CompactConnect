@@ -660,7 +660,6 @@ class PersistentStack(AppStack):
         frontend_app_config.set_domain_names(ui_domain_name=self.ui_domain_name, api_domain_name=self.api_domain_name)
         
         # Add bucket names needed for CSP Lambda
-        frontend_app_config.set_access_logs_bucket_name(bucket_name=self.access_logs_bucket.bucket_name)
         frontend_app_config.set_license_bulk_uploads_bucket_name(bucket_name=self.bulk_uploads_bucket.bucket_name)
         frontend_app_config.set_provider_users_bucket_name(bucket_name=self.provider_users_bucket.bucket_name)
 

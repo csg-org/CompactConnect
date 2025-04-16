@@ -19,6 +19,7 @@ from aws_cdk.aws_route53 import ARecord, RecordTarget
 from aws_cdk.aws_route53_targets import CloudFrontTarget
 from aws_cdk.aws_s3 import IBucket
 from cdk_nag import NagSuppressions
+from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.frontend_app_config_utility import (
     COGNITO_AUTH_DOMAIN_SUFFIX,
     PersistentStackFrontendAppConfigValues,
@@ -68,7 +69,7 @@ class UIDistribution(Distribution):
         *,
         ui_bucket: IBucket,
         security_profile: SecurityProfile = SecurityProfile.RECOMMENDED,
-        access_logs_bucket: IBucket,
+        access_logs_bucket: AccessLogsBucket,
         persistent_stack_frontend_app_config_values: PersistentStackFrontendAppConfigValues,
     ):
         stack: AppStack = AppStack.of(scope)
@@ -108,7 +109,7 @@ class UIDistribution(Distribution):
         # Generate the CSP Lambda code with injected values
         csp_function_code = generate_csp_lambda_code(persistent_stack_frontend_app_config_values)
 
-        csp_function = Function(
+        self.csp_function = Function(
             scope,
             'CSPFunction',
             code=Code.from_inline(csp_function_code),
@@ -118,7 +119,7 @@ class UIDistribution(Distribution):
 
         NagSuppressions.add_resource_suppressions_by_path(
             stack,
-            f'{csp_function.node.path}/ServiceRole/Resource',
+            f'{self.csp_function.node.path}/ServiceRole/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM4',
@@ -130,7 +131,7 @@ class UIDistribution(Distribution):
             ],
         )
         NagSuppressions.add_resource_suppressions(
-            csp_function,
+            self.csp_function,
             suppressions=[
                 {
                     'id': 'HIPAA.Security-LambdaDLQ',
@@ -156,7 +157,7 @@ class UIDistribution(Distribution):
                 viewer_protocol_policy=ViewerProtocolPolicy.HTTPS_ONLY,
                 edge_lambdas=[
                     EdgeLambda(
-                        event_type=LambdaEdgeEventType.VIEWER_RESPONSE, function_version=csp_function.current_version
+                        event_type=LambdaEdgeEventType.VIEWER_RESPONSE, function_version=self.csp_function.current_version
                     )
                 ],
             ),
