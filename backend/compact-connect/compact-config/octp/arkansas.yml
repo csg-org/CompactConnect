@@ -1,12 +1,13 @@
 # PLACEHOLDER DATA, NOT FINAL CONFIGURATION.
 jurisdictionName: "Arkansas"
 postalAbbreviation: "ar"
-jurisdictionFee: 100
+jurisdictionFee: 3
 jurisdictionOperationsTeamEmails:
-    - "cloud-team-nonprod-alerts@inspiringapps.com"
-jurisdictionAdverseActionsNotificationEmails: []
+    - "ASMBOTOperations@armedicalboard.org"
+jurisdictionAdverseActionsNotificationEmails: ["ASMBOTAdverseActions@armedicalboard.org"]
+# will add report email closer to launch
 jurisdictionSummaryReportNotificationEmails: []
 jurisprudenceRequirements:
-    required: true
-licenseeRegistrationEnabledForEnvironments: ["test"]
-activeEnvironments: ["test"]
+    required: false
+licenseeRegistrationEnabledForEnvironments: []
+activeEnvironments: []
