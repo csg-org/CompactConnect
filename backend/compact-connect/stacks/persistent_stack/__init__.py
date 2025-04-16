@@ -256,28 +256,8 @@ class PersistentStack(AppStack):
                 self.user_email_notifications.verification_custom_resource
             )
 
-        # Create and store UI application configuration in SSM Parameter Store for use in the UI stack
-        frontend_app_config = PersistentStackFrontendAppConfigUtility()
-
-        # Add staff user pool Cognito configuration
-        frontend_app_config.set_staff_cognito_values(
-            domain_name=self.staff_users.user_pool_domain.domain_name,
-            client_id=self.staff_users.ui_client.user_pool_client_id,
-        )
-
-        # Add provider user pool Cognito configuration
-        frontend_app_config.set_provider_cognito_values(
-            domain_name=self.provider_users.user_pool_domain.domain_name,
-            client_id=self.provider_users.ui_client.user_pool_client_id,
-        )
-
-        # Add UI and API domain names
-        frontend_app_config.set_domain_names(ui_domain_name=self.ui_domain_name, api_domain_name=self.api_domain_name)
-
-        # Generate the SSM parameter
-        self.frontend_app_config_parameter = frontend_app_config.generate_ssm_parameter(
-            self, 'FrontendAppConfigParameter'
-        )
+        # This parameter is used to store the frontend app config values for use in the frontend deployment stack
+        self._create_frontend_app_config_parameter()
 
     def _add_data_resources(self, removal_policy: RemovalPolicy):
         # Create the ssn related resources before other resources which are dependent on them
@@ -651,3 +631,36 @@ class PersistentStack(AppStack):
                         active_jurisdictions.append(formatted_jurisdiction['postalAbbreviation'].lower())
 
         return active_jurisdictions
+
+    def _create_frontend_app_config_parameter(self):
+        """
+        Creates and stores UI application configuration in SSM Parameter Store for use in the UI stack and 
+        frontend deployment stack.
+        """
+        # Create and store UI application configuration in SSM Parameter Store for use in the UI stack
+        frontend_app_config = PersistentStackFrontendAppConfigUtility()
+
+        # Add staff user pool Cognito configuration
+        frontend_app_config.set_staff_cognito_values(
+            domain_name=self.staff_users.user_pool_domain.domain_name,
+            client_id=self.staff_users.ui_client.user_pool_client_id,
+        )
+
+        # Add provider user pool Cognito configuration
+        frontend_app_config.set_provider_cognito_values(
+            domain_name=self.provider_users.user_pool_domain.domain_name,
+            client_id=self.provider_users.ui_client.user_pool_client_id,
+        )
+
+        # Add UI and API domain names
+        frontend_app_config.set_domain_names(ui_domain_name=self.ui_domain_name, api_domain_name=self.api_domain_name)
+        
+        # Add bucket names needed for CSP Lambda
+        frontend_app_config.set_access_logs_bucket_name(bucket_name=self.access_logs_bucket.bucket_name)
+        frontend_app_config.set_license_bulk_uploads_bucket_name(bucket_name=self.bulk_uploads_bucket.bucket_name)
+        frontend_app_config.set_provider_users_bucket_name(bucket_name=self.provider_users_bucket.bucket_name)
+
+        # Generate the SSM parameter
+        self.frontend_app_config_parameter = frontend_app_config.generate_ssm_parameter(
+            self, 'FrontendAppConfigParameter'
+        )

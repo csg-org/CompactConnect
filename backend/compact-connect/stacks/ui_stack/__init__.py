@@ -2,7 +2,6 @@ from aws_cdk import RemovalPolicy
 from cdk_nag import NagSuppressions
 from common_constructs.bucket import Bucket
 from common_constructs.frontend_app_config_utility import UIStackFrontendAppConfigUtility
-from common_constructs.security_profile import SecurityProfile
 from common_constructs.stack import AppStack
 from constructs import Construct
 
@@ -51,16 +50,6 @@ class UIStack(AppStack):
                     'desire for the resilience of versioning',
                 },
             ],
-        )
-
-        security_profile = SecurityProfile[environment_context.get('security_profile', 'RECOMMENDED')]
-
-        self.distribution = UIDistribution(
-            self,
-            'UIDistribution',
-            ui_bucket=ui_bucket,
-            security_profile=security_profile,
-            persistent_stack=persistent_stack,
         )
 
         ui_app_config = UIStackFrontendAppConfigUtility()

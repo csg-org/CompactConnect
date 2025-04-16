@@ -48,7 +48,31 @@ class PersistentStackFrontendAppConfigUtility:
         :param api_domain_name: The domain name for the API
         """
         self._config['ui_domain_name'] = ui_domain_name
-        self._config['api_domain_name'] = api_domain_name
+        self._config['api_domain_name'] = api_domain_name   
+
+    def set_access_logs_bucket_name(self, bucket_name: str) -> None:
+        """
+        Set the access logs bucket name.
+
+        :param bucket_name: The name of the access logs bucket
+        """
+        self._config['access_logs_bucket_name'] = bucket_name
+        
+    def set_license_bulk_uploads_bucket_name(self, bucket_name: str) -> None:
+        """
+        Set the license bulk uploads bucket name.
+
+        :param bucket_name: The name of the bulk uploads bucket
+        """
+        self._config['bulk_uploads_bucket_name'] = bucket_name
+        
+    def set_provider_users_bucket_name(self, bucket_name: str) -> None:
+        """
+        Set the provider users bucket name.
+
+        :param bucket_name: The name of the provider users bucket
+        """
+        self._config['provider_users_bucket_name'] = bucket_name
 
     def get_config_json(self) -> str:
         """
@@ -181,6 +205,9 @@ class PersistentStackFrontendAppConfigValues:
             'provider_cognito_client_id': 'test-provider-client-id',
             'ui_domain_name': 'test-ui.example.com',
             'api_domain_name': 'test-api.example.com',
+            'access_logs_bucket_name': 'test-access-logs-bucket-name',
+            'bulk_uploads_bucket_name': 'test-bulk-uploads-bucket-name',
+            'provider_users_bucket_name': 'test-provider-users-bucket-name',
             # if we are working with dummy values, no need to run an actual bundle
             'should_bundle': False,
         }
@@ -215,11 +242,21 @@ class PersistentStackFrontendAppConfigValues:
     def api_domain_name(self) -> str:
         """Get the domain name for the API."""
         return self._config['api_domain_name']
-
+    
     @property
-    def ui_bucket_arn(self) -> str:
-        """Get the ARN of the access logs bucket."""
-        return self._config['ui_bucket_arn']
+    def access_logs_bucket_name(self) -> str:
+        """Get the name of the access logs bucket."""
+        return self._config['access_logs_bucket_name']
+    
+    @property
+    def bulk_uploads_bucket_name(self) -> str:
+        """Get the name of the bulk uploads bucket."""
+        return self._config['bulk_uploads_bucket_name']
+    
+    @property
+    def provider_users_bucket_name(self) -> str:
+        """Get the name of the provider users bucket."""
+        return self._config['provider_users_bucket_name']
 
     @property
     def should_bundle(self) -> str:

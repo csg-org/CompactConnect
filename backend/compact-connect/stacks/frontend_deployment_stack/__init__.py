@@ -3,10 +3,12 @@ from common_constructs.frontend_app_config_utility import (
     PersistentStackFrontendAppConfigValues,
     UIStackFrontendAppConfigValues,
 )
+from common_constructs.security_profile import SecurityProfile
 from common_constructs.stack import AppStack
 from constructs import Construct
 
 from stacks.frontend_deployment_stack.deployment import CompactConnectUIBucketDeployment
+from stacks.frontend_deployment_stack.distribution import UIDistribution
 
 
 class FrontendDeploymentStack(AppStack):
@@ -48,6 +50,9 @@ class FrontendDeploymentStack(AppStack):
                 'UI Stack App Configuration not found in SSM. Make sure UI Stack resources have been deployed.'
             )
 
+        security_profile = SecurityProfile[environment_context.get('security_profile', 'RECOMMENDED')]
+
+
         ui_bucket = Bucket.from_bucket_arn(self, 'UIBucket', ui_stack_frontend_app_config_values.ui_bucket_arn)
 
         self.assets = CompactConnectUIBucketDeployment(
@@ -56,4 +61,12 @@ class FrontendDeploymentStack(AppStack):
             ui_bucket=ui_bucket,
             environment_context=environment_context,
             ui_app_config_values=persistent_stack_frontend_app_config_values,
+        )
+
+        self.distribution = UIDistribution(
+            self,
+            'UIDistribution',
+            ui_bucket=ui_bucket,
+            security_profile=security_profile,
+            persistent_stack_frontend_app_config_values=persistent_stack_frontend_app_config_values,
         )
