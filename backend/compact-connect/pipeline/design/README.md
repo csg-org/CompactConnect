@@ -84,4 +84,4 @@ def _determine_backend_stage(self, construct_id, app_name, environment_name, env
 ```
 
 # Bootstrapping the piplines
-See this [README.md](../README.md) for details on performing a bootstrap deployment of the pipelines. 
+See this [README.md](../../README.md) for details on performing a bootstrap deployment of the pipelines. 
