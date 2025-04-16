@@ -116,6 +116,10 @@ class PersistentStack(AppStack):
             removal_policy=removal_policy,
             auto_delete_objects=removal_policy == RemovalPolicy.DESTROY,
         )
+        # TODO: remove these exports after CloudFront Distribution has been moved over to frontend pipeline.
+        self.export_value(self.access_logs_bucket.bucket_name)
+        self.export_value(self.access_logs_bucket.bucket_arn)
+        self.export_value(self.access_logs_bucket.bucket_regional_domain_name)
 
         # This resource should not be referenced directly as a cross stack reference, any reference should
         # be made through the SSM parameter

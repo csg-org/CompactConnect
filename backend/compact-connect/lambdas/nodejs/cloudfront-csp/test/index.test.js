@@ -5,6 +5,8 @@
 //  Created by InspiringApps on 7/22/2024.
 //
 
+const fs = require('fs');
+const path = require('path');
 const {
     expect,
     testFilename,
@@ -15,44 +17,58 @@ const {
 // ================================================================================================
 // =                                        SETUP                                                 =
 // ================================================================================================
-const environments = {
-    csg: {
-        prod: {
-            webFrontend: `app.compactconnect.org`,
-            dataApi: `api.compactconnect.org`,
-            s3UploadUrlState: `prod-persistentstack-bulkuploadsbucketda4bdcd0-zq5o0q8uqq5i.s3.amazonaws.com`,
-            s3UploadUrlProvider: `prod-persistentstack-providerusersbucket5c7b202b-ffpgh4fyozwk.s3.amazonaws.com`,
-            cognitoStaff: `compact-connect-staff.auth.us-east-1.amazoncognito.com`,
-            cognitoProvider: `compact-connect-provider.auth.us-east-1.amazoncognito.com`,
-        },
-        test: {
-            webFrontend: `app.test.compactconnect.org`,
-            dataApi: `api.test.compactconnect.org`,
-            s3UploadUrlState: `test-persistentstack-bulkuploadsbucketda4bdcd0-gxzuwbuqfepm.s3.amazonaws.com`,
-            s3UploadUrlProvider: `test-persistentstack-providerusersbucket5c7b202b-dr6ddil25dol.s3.amazonaws.com`,
-            cognitoStaff: `compact-connect-staff-test.auth.us-east-1.amazoncognito.com`,
-            cognitoProvider: `compact-connect-provider-test.auth.us-east-1.amazoncognito.com`,
-        },
-    },
-    ia: {
-        test: {
-            webFrontend: `app.test.jcc.iaapi.io`,
-            dataApi: `api.test.jcc.iaapi.io`,
-            s3UploadUrlState: `test-persistentstack-bulkuploadsbucketda4bdcd0-er1izmgsrdva.s3.amazonaws.com`,
-            s3UploadUrlProvider: `test-persistentstack-providerusersbucket5c7b202b-sgh3k0h87td2.s3.amazonaws.com`,
-            cognitoStaff: `ia-cc-staff-test.auth.us-east-1.amazoncognito.com`,
-            cognitoProvider: `ia-cc-provider-test.auth.us-east-1.amazoncognito.com`,
-        },
-        justin: {
-            webFrontend: `app.justin.jcc.iaapi.io`,
-            dataApi: `api.justin.jcc.iaapi.io`,
-            s3UploadUrlState: `sandbox-persistentstack-bulkuploadsbucketda4bdcd0-pi5pskm7prtp.s3.amazonaws.com`,
-            s3UploadUrlProvider: `sandbox-persistentstack-providerusersbucket5c7b202-myduyskldlxb.s3.amazonaws.com`,
-            cognitoStaff: `ia-cc-staff-justin.auth.us-east-1.amazoncognito.com`,
-            cognitoProvider: `ia-cc-provider-justin.auth.us-east-1.amazoncognito.com`,
-        },
-    },
+const environment_values = {
+    webFrontend: `app.compactconnect.org`,
+    dataApi: `api.compactconnect.org`,
+    s3UploadUrlState: `prod-persistentstack-bulkuploadsbucketda4bdcd0-zq5o0q8uqq5i.s3.amazonaws.com`,
+    s3UploadUrlProvider: `prod-persistentstack-providerusersbucket5c7b202b-ffpgh4fyozwk.s3.amazonaws.com`,
+    cognitoStaff: `compact-connect-staff.auth.us-east-1.amazoncognito.com`,
+    cognitoProvider: `compact-connect-provider.auth.us-east-1.amazoncognito.com`,
 };
+
+/**
+ * Helper function to replace placeholders in the Lambda code with test values
+ * 
+ * At deploy time, there are placeholders in the Lambda code that are replaced with the actual values.
+ * From the CDK deployment. To run these tests, we need to replace the placeholders
+ * with test values.
+ * 
+ * @returns {string} The relative path to the prepared Lambda file for testing
+ */
+const prepareLambdaForTest = () => {
+    // Path to the original Lambda file
+    const originalLambdaPath = path.join(__dirname, '..', 'index.js');
+    // Path to the temporary test Lambda file
+    const testLambdaPath = path.join(__dirname, 'temp-index.js');
+    
+    // Read the original Lambda file
+    let lambdaCode = fs.readFileSync(originalLambdaPath, 'utf8');
+    
+    // Replace placeholders with test values
+    const replacements = {
+        '##WEB_FRONTEND##': environment_values.webFrontend,
+        '##DATA_API##': environment_values.dataApi,
+        '##S3_UPLOAD_URL_STATE##': environment_values.s3UploadUrlState,
+        '##S3_UPLOAD_URL_PROVIDER##': environment_values.s3UploadUrlProvider,
+        '##COGNITO_STAFF##': environment_values.cognitoStaff,
+        '##COGNITO_PROVIDER##': environment_values.cognitoProvider,
+    };
+    
+    // Apply all replacements to the Lambda code
+    for (const [placeholder, value] of Object.entries(replacements)) {
+        lambdaCode = lambdaCode.replace(new RegExp(placeholder, 'g'), value);
+    }
+    
+    // Write the modified Lambda code to the temporary test file
+    fs.writeFileSync(testLambdaPath, lambdaCode);
+    
+    console.log(`Created temporary Lambda test file at: ${testLambdaPath}`);
+    
+    // Return a relative path that will work correctly with the lambdaPath function in config
+    // lambdaPath joins with __dirname, '../..' so this needs to be a path relative to the lambda root
+    return 'test/temp-index.js';
+};
+
 const buildCspHeaders = (environment) => {
     const dataApiUrl = (environment?.dataApi) ? `https://${environment.dataApi}` : '';
     const s3UploadUrlState = (environment?.s3UploadUrlState) ? `https://${environment.s3UploadUrlState}` : '';
@@ -155,7 +171,8 @@ const buildCspHeaders = (environment) => {
         `connect-src ${cspConnectSrc};`,
     ].join(' ')}`;
 };
-const checkLambdaResult = (environment, result) => {
+
+const checkLambdaResult = (result) => {
     expect(result.headers['strict-transport-security'][0].key).to.equal('Strict-Transport-Security');
     expect(result.headers['strict-transport-security'][0].value).to.equal('max-age=31536000; includeSubdomains; preload');
     expect(result.headers['x-content-type-options'][0].key).to.equal('X-Content-Type-Options');
@@ -165,7 +182,7 @@ const checkLambdaResult = (environment, result) => {
     expect(result.headers['referrer-policy'][0].key).to.equal('Referrer-Policy');
     expect(result.headers['referrer-policy'][0].value).to.equal('strict-origin-when-cross-origin');
     expect(result.headers['content-security-policy'][0].key).to.equal('Content-Security-Policy');
-    expect(result.headers['content-security-policy'][0].value).to.equal(buildCspHeaders(environment));
+    expect(result.headers['content-security-policy'][0].value).to.equal(buildCspHeaders(environment_values));
     expect(result.headers.server[0].key).to.equal('Server');
     expect(result.headers.server[0].value).to.equal('CompactConnect');
 };
@@ -174,13 +191,29 @@ const checkLambdaResult = (environment, result) => {
 // =                                        TESTS                                                 =
 // ================================================================================================
 describe(testFilename(__filename), () => {
+    // Prepare the Lambda test file once before all tests
+    let testLambdaPath;
+    
+    before(() => {
+        testLambdaPath = prepareLambdaForTest();
+    });
+    
+    // Clean up the test Lambda file after all tests
+    after(() => {
+        // Get the full path to the file for deletion
+        const fullPath = path.join(__dirname, 'temp-index.js');
+        if (fs.existsSync(fullPath)) {
+            fs.unlinkSync(fullPath);
+            console.log(`Removed temporary test file: ${fullPath}`);
+        }
+    });
+    
     describe('Cloudfront security headers', () => {
-        it('should successfully return the security headers for csg prod', async () => {
-            const environment = environments.csg.prod;
+        it('should successfully return the security headers', async () => {
             const request = {
                 headers: {
                     host: [{
-                        value: environment.webFrontend,
+                        value: environment_values.webFrontend,
                     }],
                 },
             };
@@ -188,79 +221,15 @@ describe(testFilename(__filename), () => {
                 headers: {},
             };
             const config = lambdaConfig({
-                lambdaPath: `index.js`,
+                lambdaPath: testLambdaPath,
                 request,
                 response,
             });
             const result = await runLambda(config);
 
-            checkLambdaResult(environment, result);
+            checkLambdaResult(result);
         });
-        it('should successfully return the security headers for csg test', async () => {
-            const environment = environments.csg.test;
-            const request = {
-                headers: {
-                    host: [{
-                        value: environment.webFrontend,
-                    }],
-                },
-            };
-            const response = {
-                headers: {},
-            };
-            const config = lambdaConfig({
-                lambdaPath: `index.js`,
-                request,
-                response,
-            });
-            const result = await runLambda(config);
-
-            checkLambdaResult(environment, result);
-        });
-        it('should successfully return the security headers for ia test', async () => {
-            const environment = environments.ia.test;
-            const request = {
-                headers: {
-                    host: [{
-                        value: environment.webFrontend,
-                    }],
-                },
-            };
-            const response = {
-                headers: {},
-            };
-            const config = lambdaConfig({
-                lambdaPath: `index.js`,
-                request,
-                response,
-            });
-            const result = await runLambda(config);
-
-            checkLambdaResult(environment, result);
-        });
-        it('should successfully return the security headers for ia justin', async () => {
-            const environment = environments.ia.justin;
-            const request = {
-                headers: {
-                    host: [{
-                        value: environment.webFrontend,
-                    }],
-                },
-            };
-            const response = {
-                headers: {},
-            };
-            const config = lambdaConfig({
-                lambdaPath: `index.js`,
-                request,
-                response,
-            });
-            const result = await runLambda(config);
-
-            checkLambdaResult(environment, result);
-        });
-        it('should successfully return the security headers for csg prod when subdomain is missing', async () => {
-            const environment = environments.csg.prod;
+        it('should successfully return the security headers when subdomain is missing', async () => {
             const request = {
                 origin: {
                     custom: {
@@ -272,16 +241,15 @@ describe(testFilename(__filename), () => {
                 headers: {},
             };
             const config = lambdaConfig({
-                lambdaPath: `index.js`,
+                lambdaPath: testLambdaPath,
                 request,
                 response,
             });
             const result = await runLambda(config);
 
-            checkLambdaResult(environment, result);
+            checkLambdaResult(result);
         });
-        it('should successfully return the security headers for csg prod when lambda event is missing the request domain', async () => {
-            const environment = environments.csg.prod;
+        it('should successfully return the security headers when lambda event is missing the request domain', async () => {
             const request = {
                 origin: {},
             };
@@ -289,13 +257,13 @@ describe(testFilename(__filename), () => {
                 headers: {},
             };
             const config = lambdaConfig({
-                lambdaPath: `index.js`,
+                lambdaPath: testLambdaPath,
                 request,
                 response,
             });
             const result = await runLambda(config);
 
-            checkLambdaResult(environment, result);
+            checkLambdaResult(result);
         });
     });
 });

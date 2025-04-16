@@ -19,12 +19,41 @@ from aws_cdk.aws_route53 import ARecord, RecordTarget
 from aws_cdk.aws_route53_targets import CloudFrontTarget
 from aws_cdk.aws_s3 import IBucket
 from cdk_nag import NagSuppressions
-from common_constructs.bucket import Bucket
 from common_constructs.frontend_app_config_utility import PersistentStackFrontendAppConfigValues
 from common_constructs.security_profile import SecurityProfile
 from common_constructs.stack import AppStack
 from common_constructs.webacl import WebACL, WebACLScope
 from constructs import Construct
+
+
+def generate_csp_lambda_code(persistent_stack_values: PersistentStackFrontendAppConfigValues) -> str:
+    """
+    Generate CSP Lambda code with injected configuration values.
+
+    This function reads the template file and replaces placeholders with actual values.
+
+    :param persistent_stack_values: The values from the persistent stack
+    :return: The generated Lambda function code
+    """
+    template_path = os.path.join('lambdas', 'nodejs', 'cloudfront-csp', 'index.js')
+
+    with open(template_path) as f:
+        template = f.read()
+
+    # Replace placeholders with actual values
+    replacements = {
+        '##WEB_FRONTEND##': persistent_stack_values.ui_domain_name,
+        '##DATA_API##': persistent_stack_values.api_domain_name,
+        '##S3_UPLOAD_URL_STATE##': persistent_stack_values.bulk_uploads_bucket_name,
+        '##S3_UPLOAD_URL_PROVIDER##': persistent_stack_values.provider_users_bucket_name,
+        '##COGNITO_STAFF##': persistent_stack_values.staff_cognito_domain,
+        '##COGNITO_PROVIDER##': persistent_stack_values.provider_cognito_domain,
+    }
+
+    for placeholder, value in replacements.items():
+        template = template.replace(placeholder, value)
+
+    return template
 
 
 class UIDistribution(Distribution):
@@ -35,6 +64,7 @@ class UIDistribution(Distribution):
         *,
         ui_bucket: IBucket,
         security_profile: SecurityProfile = SecurityProfile.RECOMMENDED,
+        access_logs_bucket: IBucket,
         persistent_stack_frontend_app_config_values: PersistentStackFrontendAppConfigValues,
     ):
         stack: AppStack = AppStack.of(scope)
@@ -70,14 +100,18 @@ class UIDistribution(Distribution):
                 }
             ],
         )
-        with open(os.path.join('lambdas', 'nodejs', 'cloudfront-csp', 'index.js')) as f:
-            csp_function = Function(
-                scope,
-                'CSPFunction',
-                code=Code.from_inline(f.read()),
-                runtime=Runtime.NODEJS_22_X,
-                handler='index.handler',
-            )
+
+        # Generate the CSP Lambda code with injected values
+        csp_function_code = generate_csp_lambda_code(persistent_stack_frontend_app_config_values)
+
+        csp_function = Function(
+            scope,
+            'CSPFunction',
+            code=Code.from_inline(csp_function_code),
+            runtime=Runtime.NODEJS_22_X,
+            handler='index.handler',
+        )
+
         NagSuppressions.add_resource_suppressions_by_path(
             stack,
             f'{csp_function.node.path}/ServiceRole/Resource',
@@ -104,12 +138,6 @@ class UIDistribution(Distribution):
                     ' There is no benefit to putting it inside a custom VPC',
                 },
             ],
-        )
-
-        access_logs_bucket = Bucket.from_bucket_name(
-            self,
-            'AccessLogsBucket',
-            persistent_stack_frontend_app_config_values.access_logs_bucket_name,
         )
 
         super().__init__(
