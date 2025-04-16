@@ -55,26 +55,9 @@ class CompactConnectApp(App):
 
     Each pipeline type is in its own dedicated stack to avoid self-mutation conflicts.
 
-    Sandbox Environment Deployments:
+    Environment Deployments:
     -------------------------------
-    see README.md for instructions on how to deploy to a sandbox environment.
-
-    CDK PipelinePerformance Optimization:
-    -----------------------
-    CDK normally synthesizes all stacks defined in an app, even when only one is needed.
-    This can lead to slow synthesis times, especially with frontend bundling operations
-    running for every environment.
-
-    To optimize performance, this app uses conditional stack creation based on the 'action' context:
-
-    - bootstrapDeploy: Used for initial deployments to AWS, creates all stacks to ensure proper
-      permissions are maintained between resources like the access logs bucket and pipeline stacks.
-
-    - pipelineSynth: Used during pipeline deployments, creates only the specific stack being
-      synthesized, dramatically reducing synthesis time by avoiding unnecessary stack creation.
-
-    The frontend bundling is also automatically skipped for backend pipeline stacks, further
-    improving performance during synthesis.
+    see README.md for instructions on how to deploy to a sandbox or pipeline environment.
     """
 
     def __init__(self, *args, **kwargs):
@@ -106,7 +89,7 @@ class CompactConnectApp(App):
         # by running `cdk deploy 'Sandbox/*'`, then if you want to deploy the UI for your sandbox environment, set
         # the 'deploy_sandbox_ui' field to true and deploy this stack by running `cdk deploy 'SandboxUI/*'. This
         # ensures the user pool values are configured to be bundled with the UI build artifact.
-        if environment_context['deploy_sandbox_ui']:
+        if environment_context.get('deploy_sandbox_ui', False):
             self.sandbox_frontend_stage = FrontendStage(
                 self,
                 'SandboxUI',
