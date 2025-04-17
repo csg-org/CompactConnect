@@ -361,55 +361,12 @@
         "activeEnvironments": [
           "test"
         ]
-      },
-      {
-        "jurisdictionName": "Ohio",
-        "postalAbbreviation": "oh",
-        "jurisdictionFee": 100,
-        "militaryDiscount": {
-          "active": true,
-          "discountType": "FLAT_RATE",
-          "discountAmount": 10
-        },
-        "jurisdictionOperationsTeamEmails": [
-          "cloud-team-nonprod-alerts@inspiringapps.com"
-        ],
-        "jurisdictionAdverseActionsNotificationEmails": [],
-        "jurisdictionSummaryReportNotificationEmails": [],
-        "jurisprudenceRequirements": {
-          "required": true
-        },
-        "licenseeRegistrationEnabledForEnvironments": [
-          "test"
-        ],
-        "activeEnvironments": [
-          "test"
-        ]
       }
     ],
     "octp": [
       {
         "jurisdictionName": "Alabama",
         "postalAbbreviation": "al",
-        "jurisdictionFee": 100,
-        "jurisdictionOperationsTeamEmails": [
-          "cloud-team-nonprod-alerts@inspiringapps.com"
-        ],
-        "jurisdictionAdverseActionsNotificationEmails": [],
-        "jurisdictionSummaryReportNotificationEmails": [],
-        "jurisprudenceRequirements": {
-          "required": true
-        },
-        "licenseeRegistrationEnabledForEnvironments": [
-          "test"
-        ],
-        "activeEnvironments": [
-          "test"
-        ]
-      },
-      {
-        "jurisdictionName": "Arkansas",
-        "postalAbbreviation": "ar",
         "jurisdictionFee": 100,
         "jurisdictionOperationsTeamEmails": [
           "cloud-team-nonprod-alerts@inspiringapps.com"
@@ -538,6 +495,25 @@
       }
     ],
     "coun": [
+      {
+        "jurisdictionName": "Florida",
+        "postalAbbreviation": "FL",
+        "jurisdictionFee": 15,
+        "jurisdictionOperationsTeamEmails": [
+          "cloud-team-nonprod-alerts@inspiringapps.com"
+        ],
+        "jurisdictionAdverseActionsNotificationEmails": [],
+        "jurisdictionSummaryReportNotificationEmails": [],
+        "jurisprudenceRequirements": {
+          "required": false
+        },
+        "licenseeRegistrationEnabledForEnvironments": [
+          "test"
+        ],
+        "activeEnvironments": [
+          "test"
+        ]
+      },
       {
         "jurisdictionName": "Kentucky",
         "postalAbbreviation": "ky",
