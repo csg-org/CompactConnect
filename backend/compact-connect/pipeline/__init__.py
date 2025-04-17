@@ -222,7 +222,7 @@ class BaseBackendPipelineStack(BasePipelineStack):
         Return either a real BackendStage or a SynthSubstituteStage depending on pipeline synthesis context.
 
         This method centralizes the stage creation logic to conditionally create a lightweight substitute
-        stage during pipeline synthesis when the stage is not part of the pipeline being synthesized.
+        stage during pipeline synthesis when the stage is not part of the pipeline being deployed.
         """
         # Check if we're in pipeline synthesis mode and if we're synthesizing this specific pipeline
         action = self.node.try_get_context('action')

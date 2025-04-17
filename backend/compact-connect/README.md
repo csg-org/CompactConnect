@@ -13,8 +13,8 @@ This is an [AWS-CDK](https://aws.amazon.com/cdk/) based project for the backend 
 - **[Installing Dependencies](#installing-dependencies)**
 - **[Local Development](#local-development)**
 - **[Tests](#tests)**
-- **[Google reCAPTCHA Setup](#google-recaptcha-setup)**
 - **[Deployment](#deployment)**
+- **[Google reCAPTCHA Setup](#google-recaptcha-setup)**
 - **[Decommissioning](#decommissioning)**
 - **[More Info](#more-info)**
 
