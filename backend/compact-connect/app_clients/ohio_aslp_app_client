@@ -1,0 +1,8 @@
+clientName: "ohio-aslp-app-client-v1"
+description: "Ohio ASLP App Client for Automated License Data Management"
+createdDate: "2025-04-17"
+ownerContact: "ckenneth.brennan@das.ohio.gov"
+environments:
+  - "test"
+scopes:
+  - "oh/aslp.write"
