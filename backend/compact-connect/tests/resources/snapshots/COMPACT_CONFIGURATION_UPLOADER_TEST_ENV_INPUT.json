@@ -497,7 +497,7 @@
     "coun": [
       {
         "jurisdictionName": "Florida",
-        "postalAbbreviation": "FL",
+        "postalAbbreviation": "fl",
         "jurisdictionFee": 15,
         "jurisdictionOperationsTeamEmails": [
           "cloud-team-nonprod-alerts@inspiringapps.com"
