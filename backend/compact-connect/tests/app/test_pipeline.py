@@ -40,12 +40,14 @@ class TestBackendPipeline(TstAppABC, TestCase):
         self._check_no_stack_annotations(self.app.prod_backend_pipeline_stack)
         for stage in (
             self.app.test_backend_pipeline_stack.test_stage,
+            self.app.beta_backend_pipeline_stack.beta_backend_stage,
             self.app.prod_backend_pipeline_stack.prod_stage,
         ):
             self._check_no_backend_stage_annotations(stage)
 
         for api_stack in (
             self.app.test_backend_pipeline_stack.test_stage.api_stack,
+            self.app.beta_backend_pipeline_stack.beta_backend_stage.api_stack,
             self.app.prod_backend_pipeline_stack.prod_stage.api_stack,
         ):
             with self.subTest(api_stack.stack_name):
@@ -55,6 +57,11 @@ class TestBackendPipeline(TstAppABC, TestCase):
             self.app.test_backend_pipeline_stack.test_stage.persistent_stack,
             domain_name='app.test.compactconnect.org',
             allow_local_ui=True,
+        )
+        self._inspect_persistent_stack(
+            self.app.beta_backend_pipeline_stack.beta_backend_stage.persistent_stack,
+            domain_name='app.beta.compactconnect.org',
+            allow_local_ui=False,
         )
         self._inspect_persistent_stack(
             self.app.prod_backend_pipeline_stack.prod_stage.persistent_stack, domain_name='app.compactconnect.org'
@@ -367,12 +374,14 @@ class TestFrontendPipeline(TstAppABC, TestCase):
         self._check_no_stack_annotations(self.app.prod_frontend_pipeline_stack)
         for stage in (
             self.app.test_frontend_pipeline_stack.pre_prod_frontend_stage,
+            self.app.beta_frontend_pipeline_stack.beta_frontend_stage,
             self.app.prod_frontend_pipeline_stack.prod_frontend_stage,
         ):
             self._check_no_frontend_stage_annotations(stage)
 
         for frontend_deployment_stack in (
             self.app.test_frontend_pipeline_stack.pre_prod_frontend_stage.frontend_deployment_stack,
+            self.app.beta_frontend_pipeline_stack.beta_frontend_stage.frontend_deployment_stack,
             self.app.prod_frontend_pipeline_stack.prod_frontend_stage.frontend_deployment_stack,
         ):
             self._inspect_frontend_deployment_stack(frontend_deployment_stack)
