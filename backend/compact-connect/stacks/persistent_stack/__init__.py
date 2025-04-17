@@ -123,6 +123,9 @@ class PersistentStack(AppStack):
 
         # This resource should not be referenced directly as a cross stack reference, any reference should
         # be made through the SSM parameter
+        # IMPORTANT NOTE: changing the name of the event bus will result in a BREAKING CHANGE (ie downtime) if the name
+        # must be changed for whatever reason, you must create another event bus and perform a blue/green cut over to
+        # safely migrate consumers
         self._data_event_bus = EventBus(self, 'DataEventBus', event_bus_name=f'{environment_name}-dataEventBus')
         # We Store the data event bus name in SSM Parameter Store
         # to avoid issues with cross stack references due to the fact that
