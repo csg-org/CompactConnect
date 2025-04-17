@@ -1,5 +1,6 @@
 # ruff: noqa: E501 line-too-long
 # For the sake of readability, we don't want to break up environment values into separate lines
+
 import os
 
 from aws_cdk import BundlingOptions, DockerImage, Size, Stack

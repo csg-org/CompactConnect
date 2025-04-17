@@ -348,8 +348,9 @@ class TestFrontendPipeline(TstAppABC, TestCase):
     def get_context(cls):
         with open('cdk.json') as f:
             context = json.load(f)['context']
-        # For pipeline deployments, we do not have a cdk.context.json file to extend context:
-        # ssm_context is actually pulled from SSM Parameter Store
+        # For pipeline deployments, the pipelines pull their CDK context values from SSM Parameter Store, rather
+        # than the cdk.context.json files used in local development. We can override the context values used in the
+        # tests by adding values here.
 
         # Suppresses lambda bundling for tests
         context['aws:cdk:bundling-stacks'] = []

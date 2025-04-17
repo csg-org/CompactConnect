@@ -124,9 +124,9 @@ class PersistentStackFrontendAppConfigValues:
         config_value = StringParameter.value_from_lookup(
             stack, PERSISTENT_STACK_FRONTEND_APP_CONFIGURATION_PARAMETER_NAME, default_value=None
         )
-        # The first time synth is run, CDK returns a dummy value without actually looking up the value
-        # the second time, it will either return a value if the parameter exists, or None. So we check for both of
-        # those cases here.
+        # The first time synth is run, CDK returns a dummy value without actually looking up the value.
+        # The second time it's run, it will either return a value if the parameter exists, or None. So we check for
+        # both of those cases here.
         if (
             config_value is not None
             and config_value != f'dummy-value-for-{PERSISTENT_STACK_FRONTEND_APP_CONFIGURATION_PARAMETER_NAME}'

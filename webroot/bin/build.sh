@@ -13,7 +13,7 @@ yarn install --ignore-engines
 yarn build --dest dist --ignore-engines
 
 # yarn tries to delete its dest folder before building to it, which it can't do to /asset-output
-# so we do a little dance to build in a more pliable location then move # everything over cleanly
+# so we do a little dance to build in a more pliable location then move everything over cleanly
 shopt -s dotglob
 rm -rf /asset-output/* >/dev/null || echo "No /asset-output files to clean"
 mv dist/* /asset-output

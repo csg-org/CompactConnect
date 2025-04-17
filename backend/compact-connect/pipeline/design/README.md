@@ -1,6 +1,6 @@
 # CDK Pipeline Architecture Design
 
-![Pipeline Architecture](./pipeline-architecture.pdf)
+[View Pipeline Architecture (PDF)](./pipeline-architecture.pdf)
 
 ## Overview
 
@@ -52,7 +52,16 @@ To address these challenges, we've implemented the `SynthSubstituteStage` and `S
 
 ## Implementation Details
 
-The substitution mechanism relies on CDK context values:
+The substitution mechanism relies on CDK context values which we pass in during the CDK synth step of the pipeline definition (see the [BackendPipeline](../backend_pipeline.py) and [FrontendPipeline](../frontend_pipeline.py) class constructors, specifically the `synth.commands` property):
+
+```python
+commands=[
+    ... other commands
+    # Only synthesize the specific pipeline stack needed
+    f'cdk synth --context pipelineStack={pipeline_stack_name} --context action=pipelineSynth',
+],
+```
+The following context values are used to determine which pipeline to fully synthesize:
 
 - `action`: Specifies the current action (e.g., `pipelineSynth`, `bootstrapDeploy`)
 - `pipelineStack`: The specific pipeline stack being synthesized

@@ -6,7 +6,7 @@
 # 4) Run this script to push your local configuration to SSM for the pipeline to pick up
 
 
-# check which context file to put in SSM using argument, can be prod, beta, or test
+# check which context file to put in SSM using argument, can be prod, beta, test, or deploy
 if [ -z "$1" ]; then
     echo "Usage: $0 <prod|beta|test|deploy>"
     exit 1

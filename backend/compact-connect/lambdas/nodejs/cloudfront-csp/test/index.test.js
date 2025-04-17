@@ -30,7 +30,7 @@ const environmentValues = {
  * Helper function to replace placeholders in the Lambda code with test values
  * 
  * At deploy time, there are placeholders in the Lambda code that are replaced with the actual values.
- * From the CDK deployment. To run these tests, we need to replace the placeholders
+ * from the CDK deployment. To run these tests, we need to replace the placeholders
  * with test values.
  * 
  * @returns {string} The relative path to the prepared Lambda file for testing
