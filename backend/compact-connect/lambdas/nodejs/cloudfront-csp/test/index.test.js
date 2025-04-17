@@ -202,6 +202,7 @@ describe(testFilename(__filename), () => {
     after(() => {
         // Get the full path to the file for deletion
         const fullPath = path.join(__dirname, 'temp-index.js');
+        
         if (fs.existsSync(fullPath)) {
             fs.unlinkSync(fullPath);
             console.log(`Removed temporary test file: ${fullPath}`);

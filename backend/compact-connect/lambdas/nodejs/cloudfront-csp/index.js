@@ -13,12 +13,12 @@
  * @type {object}
  */
 const environment_values = {
-        webFrontend: `##WEB_FRONTEND##`,
-        dataApi: `##DATA_API##`,
-        s3UploadUrlState: `##S3_UPLOAD_URL_STATE##`,
-        s3UploadUrlProvider: `##S3_UPLOAD_URL_PROVIDER##`,
-        cognitoStaff: `##COGNITO_STAFF##`,
-        cognitoProvider: `##COGNITO_PROVIDER##`,
+    webFrontend: `##WEB_FRONTEND##`,
+    dataApi: `##DATA_API##`,
+    s3UploadUrlState: `##S3_UPLOAD_URL_STATE##`,
+    s3UploadUrlProvider: `##S3_UPLOAD_URL_PROVIDER##`,
+    cognitoStaff: `##COGNITO_STAFF##`,
+    cognitoProvider: `##COGNITO_PROVIDER##`,
 };
 
 // ============================================================================
