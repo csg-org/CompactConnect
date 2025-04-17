@@ -10,9 +10,13 @@
 // ============================================================================
 /**
  * Configuration of supported domains.
+ * 
+ * These values are injected into the lambda function at build time. See the 
+ * `generate_csp_lambda_code` function in 
+ * backend/compact-connect/stacks/frontend_deployment_stack/distribution.py
  * @type {object}
  */
-const environment_values = {
+const environmentValues = {
     webFrontend: `##WEB_FRONTEND##`,
     dataApi: `##DATA_API##`,
     s3UploadUrlState: `##S3_UPLOAD_URL_STATE##`,
@@ -47,9 +51,8 @@ const getFullyQualified = (domain) => {
 };
 
 /**
- * Helper to get the fully-qualified domains for connected services based on the request domain.
- * @param  {string} requestDomain The bare domain of the request.
- * @return {object}               A map of fully-qualified domains for the request environment.
+ * Helper to get the fully-qualified domains for connected services.
+ * @return {object}               A map of fully-qualified domains for the environment.
  *   @return {string} dataApi       The data API fully-qualified domain.
  *   @return {string} s3UploadUrlState      The S3 fully-qualified domain for uploading state files.
  *   @return {string} s3UploadUrlProvider      The S3 fully-qualified domain for uploading provider files.
@@ -58,11 +61,11 @@ const getFullyQualified = (domain) => {
 const getEnvironmentUrls = () => {
     const environmentUrls = {};
 
-    environmentUrls.dataApi = getFullyQualified(environment_values.dataApi);
-    environmentUrls.s3UploadUrlState = getFullyQualified(environment_values.s3UploadUrlState);
-    environmentUrls.s3UploadUrlProvider = getFullyQualified(environment_values.s3UploadUrlProvider);
-    environmentUrls.cognitoStaff = getFullyQualified(environment_values.cognitoStaff);
-    environmentUrls.cognitoProvider = getFullyQualified(environment_values.cognitoProvider);
+    environmentUrls.dataApi = getFullyQualified(environmentValues.dataApi);
+    environmentUrls.s3UploadUrlState = getFullyQualified(environmentValues.s3UploadUrlState);
+    environmentUrls.s3UploadUrlProvider = getFullyQualified(environmentValues.s3UploadUrlProvider);
+    environmentUrls.cognitoStaff = getFullyQualified(environmentValues.cognitoStaff);
+    environmentUrls.cognitoProvider = getFullyQualified(environmentValues.cognitoProvider);
 
     return environmentUrls;
 };
@@ -152,10 +155,9 @@ const buildSrcString = (name = '', list = []) => {
 // ============================================================================
 /**
  * Set the CSP header on the response (by reference).
- * @param {string} requestDomain The domain making the request.
  * @param {object} [headers={}]  The event response headers (updated by reference).
  */
-const setCspHeader = ( headers = {}) => {
+const setCspHeader = (headers = {}) => {
     const domains = getEnvironmentUrls();
     const cognitoIdpUrl = 'https://cognito-idp.us-east-1.amazonaws.com';
 
@@ -239,7 +241,6 @@ const setCspHeader = ( headers = {}) => {
 
 /**
  * Set security headers on the response (by reference).
- * @param {string} requestDomain The domain making the request.
  * @param {object} [headers={}]  The event response headers (updated by reference).
  */
 const setSecurityHeaders = (headers = {}) => {

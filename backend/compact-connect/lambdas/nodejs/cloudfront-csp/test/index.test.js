@@ -17,7 +17,7 @@ const {
 // ================================================================================================
 // =                                        SETUP                                                 =
 // ================================================================================================
-const environment_values = {
+const environmentValues = {
     webFrontend: 'app.compactconnect.org',
     dataApi: 'api.compactconnect.org',
     s3UploadUrlState: 'prod-persistentstack-bulkuploadsbucketda4bdcd0-zq5o0q8uqq5i.s3.amazonaws.com',
@@ -40,24 +40,22 @@ const prepareLambdaForTest = () => {
     const originalLambdaPath = path.join(__dirname, '..', 'index.js');
     // Path to the temporary test Lambda file
     const testLambdaPath = path.join(__dirname, 'temp-index.js');
-    
     // Read the original Lambda file
     let lambdaCode = fs.readFileSync(originalLambdaPath, 'utf8');
-    
     // Replace placeholders with test values
     const replacements = {
-        '##WEB_FRONTEND##': environment_values.webFrontend,
-        '##DATA_API##': environment_values.dataApi,
-        '##S3_UPLOAD_URL_STATE##': environment_values.s3UploadUrlState,
-        '##S3_UPLOAD_URL_PROVIDER##': environment_values.s3UploadUrlProvider,
-        '##COGNITO_STAFF##': environment_values.cognitoStaff,
-        '##COGNITO_PROVIDER##': environment_values.cognitoProvider,
+        '##WEB_FRONTEND##': environmentValues.webFrontend,
+        '##DATA_API##': environmentValues.dataApi,
+        '##S3_UPLOAD_URL_STATE##': environmentValues.s3UploadUrlState,
+        '##S3_UPLOAD_URL_PROVIDER##': environmentValues.s3UploadUrlProvider,
+        '##COGNITO_STAFF##': environmentValues.cognitoStaff,
+        '##COGNITO_PROVIDER##': environmentValues.cognitoProvider,
     };
     
     // Apply all replacements to the Lambda code
-    for (const [placeholder, value] of Object.entries(replacements)) {
+    Object.entries(replacements).forEach(([placeholder, value]) => {
         lambdaCode = lambdaCode.replace(new RegExp(placeholder, 'g'), value);
-    }
+    });
     
     // Write the modified Lambda code to the temporary test file
     fs.writeFileSync(testLambdaPath, lambdaCode);
@@ -182,7 +180,7 @@ const checkLambdaResult = (result) => {
     expect(result.headers['referrer-policy'][0].key).to.equal('Referrer-Policy');
     expect(result.headers['referrer-policy'][0].value).to.equal('strict-origin-when-cross-origin');
     expect(result.headers['content-security-policy'][0].key).to.equal('Content-Security-Policy');
-    expect(result.headers['content-security-policy'][0].value).to.equal(buildCspHeaders(environment_values));
+    expect(result.headers['content-security-policy'][0].value).to.equal(buildCspHeaders(environmentValues));
     expect(result.headers.server[0].key).to.equal('Server');
     expect(result.headers.server[0].value).to.equal('CompactConnect');
 };
@@ -214,7 +212,7 @@ describe(testFilename(__filename), () => {
             const request = {
                 headers: {
                     host: [{
-                        value: environment_values.webFrontend,
+                        value: environmentValues.webFrontend,
                     }],
                 },
             };
