@@ -19,6 +19,7 @@ import MixinInput from '@components/Forms/_mixins/input.mixin';
 class InputSubmit extends mixins(MixinInput) {
     @Prop({ default: '' }) private label?: string;
     @Prop({ default: true }) private isEnabled?: boolean;
+    @Prop({ default: false }) private isWarning?: boolean;
 }
 
 export default toNative(InputSubmit);

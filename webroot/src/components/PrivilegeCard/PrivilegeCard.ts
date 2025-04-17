@@ -10,8 +10,9 @@ import {
     toNative,
     Prop
 } from 'vue-facing-decorator';
-import { reactive, nextTick } from 'vue';
+import { reactive, computed, nextTick } from 'vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
+import InputTextarea from '@components/Forms/InputTextarea/InputTextarea.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import Modal from '@components/Modal/Modal.vue';
@@ -21,10 +22,12 @@ import { Compact } from '@models/Compact/Compact.model';
 import { State } from '@/models/State/State.model';
 import { StaffUser, CompactPermission } from '@models/StaffUser/StaffUser.model';
 import { FormInput } from '@/models/FormInput/FormInput.model';
+import Joi from 'joi';
 
 @Component({
     name: 'PrivilegeCard',
     components: {
+        InputTextarea,
         InputButton,
         InputSubmit,
         Modal,
@@ -172,11 +175,21 @@ class PrivilegeCard extends mixins(MixinForm) {
     //
     initFormInputs(): void {
         this.formData = reactive({
+            submitModalNotes: new FormInput({
+                id: 'notes',
+                name: 'notes',
+                label: computed(() => this.$t('licensing.deactivateNotesTitle')),
+                placeholder: computed(() => this.$t('licensing.deactivateNotesPlaceholder')),
+                validation: Joi.string().required().max(256).messages(this.joiMessages.string),
+                enforceMax: true,
+            }),
             submitModalContinue: new FormInput({
                 isSubmitInput: true,
                 id: 'submit-modal-continue',
             }),
         });
+
+        this.watchFormInputs(); // Important if you want automated form validation
     }
 
     togglePrivilegeActionMenu(): void {
@@ -216,8 +229,10 @@ class PrivilegeCard extends mixins(MixinForm) {
     }
 
     focusTrapDeactivatePrivilegeModal(event: KeyboardEvent): void {
-        const firstTabIndex = document.getElementById('deactivate-modal-cancel-button');
-        const lastTabIndex = document.getElementById(this.formData.submitModalContinue.id);
+        const firstTabIndex = document.getElementById('notes');
+        const lastTabIndex = (this.isFormValid && !this.isFormLoading)
+            ? document.getElementById(this.formData.submitModalContinue.id)
+            : document.getElementById('deactivate-modal-cancel-button');
 
         if (event.shiftKey) {
             // shift + tab to last input
@@ -233,33 +248,38 @@ class PrivilegeCard extends mixins(MixinForm) {
     }
 
     async submitDeactivatePrivilege(): Promise<void> {
-        this.startFormLoading();
-        this.modalErrorMessage = '';
+        this.validateAll({ asTouched: true });
 
-        const {
-            currentCompactType: compactType,
-            licenseeId,
-            stateAbbrev,
-            privilegeTypeAbbrev
-        } = this;
+        if (this.isFormValid) {
+            this.startFormLoading();
+            this.modalErrorMessage = '';
 
-        await this.$store.dispatch(`users/deletePrivilegeRequest`, {
-            compact: compactType,
-            licenseeId,
-            privilegeState: stateAbbrev,
-            licenseType: privilegeTypeAbbrev.toLowerCase()
-        }).catch((err) => {
-            this.modalErrorMessage = err?.message || this.$t('common.error');
-            this.isFormError = true;
-        });
+            const {
+                currentCompactType: compactType,
+                licenseeId,
+                stateAbbrev,
+                privilegeTypeAbbrev
+            } = this;
 
-        if (!this.isFormError) {
-            this.isFormSuccessful = true;
-            await this.$store.dispatch('license/getLicenseeRequest', { compact: compactType, licenseeId });
-            this.closeDeactivatePrivilegeModal();
+            await this.$store.dispatch(`users/deletePrivilegeRequest`, {
+                compact: compactType,
+                licenseeId,
+                privilegeState: stateAbbrev,
+                licenseType: privilegeTypeAbbrev.toLowerCase(),
+                notes: this.formData.submitModalNotes.value,
+            }).catch((err) => {
+                this.modalErrorMessage = err?.message || this.$t('common.error');
+                this.isFormError = true;
+            });
+
+            if (!this.isFormError) {
+                this.isFormSuccessful = true;
+                await this.$store.dispatch('license/getLicenseeRequest', { compact: compactType, licenseeId });
+                this.closeDeactivatePrivilegeModal();
+            }
+
+            this.endFormLoading();
         }
-
-        this.endFormLoading();
     }
 
     resetForm(): void {

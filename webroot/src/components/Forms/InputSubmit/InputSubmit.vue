@@ -18,6 +18,9 @@
             :value="label || formInput.label"
             :disabled="!isEnabled"
             class="input-submit"
+            :class="{
+                'warning': isWarning,
+            }"
         />
     </div>
 </template>
