@@ -226,7 +226,8 @@
         "test"
       ],
       "activeEnvironments": [
-        "test"
+        "test",
+        "beta"
       ],
       "attestations": [
         {
@@ -533,7 +534,8 @@
           "test"
         ],
         "activeEnvironments": [
-          "test"
+          "test",
+          "beta"
         ]
       }
     ],
