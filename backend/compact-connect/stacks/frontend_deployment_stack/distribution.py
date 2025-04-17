@@ -36,6 +36,9 @@ def generate_csp_lambda_code(persistent_stack_values: PersistentStackFrontendApp
     """
     Generate CSP Lambda code with injected configuration values.
 
+    Given that this is a lambda@edge function, we cannot specify environment variables through
+    CDK (see https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-at-edge-function-restrictions.html#lambda-at-edge-restrictions-features)
+    Given this limitation, we inject the values into the lambda function code at build time.
     This function reads the template file and replaces placeholders with actual values.
 
     :param persistent_stack_values: The values from the persistent stack
