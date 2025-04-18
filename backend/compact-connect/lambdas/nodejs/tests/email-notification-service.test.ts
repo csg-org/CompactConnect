@@ -494,7 +494,7 @@ describe('EmailNotificationServiceLambda', () => {
                 .toThrow('No recipients specified for provider privilege deactivation notification email');
         });
     });
-    describe('Privilege Purchase Procider Notification', () => {
+    describe('Privilege Purchase Provider Notification', () => {
         const SAMPLE_PRIVILEGE_PURCHASE_PROVIDER_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'privilegePurchaseProviderNotification',
             recipientType: 'SPECIFIC',
@@ -502,11 +502,14 @@ describe('EmailNotificationServiceLambda', () => {
             specificEmails: ['provider@example.com'],
             templateVariables: {
                 transactionDate: '12/12/2004',
-                providerFirstName: 'Max',
-                privilegeId: 'OTA-oh-019',
-                jurisdiction: 'OH',
-                licenseType: 'OTA',
-                totalCost: '45.00',
+                privileges: [
+                    {
+                        privilegeId: 'OTA-oh-019',
+                        jurisdiction: 'Ohio',
+                        licenseType: 'OTA'
+                    }
+                ],
+                totalCost: '$45.00',
                 costLineItems: [
                     {
                         name: 'OH OTA fee', cost: '$45.00'

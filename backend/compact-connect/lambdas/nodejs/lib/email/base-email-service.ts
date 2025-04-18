@@ -310,7 +310,10 @@ export abstract class BaseEmailService {
         report['root']['data']['childrenIds'].push(blockHeaderId);
     }
 
-    protected insertBody(report: TReaderDocument, bodyText: string, textAlign: string = '') {
+    protected insertBody(
+        report: TReaderDocument,
+        bodyText: string,
+        textAlign: 'center' | 'right' | 'left' | null = null) {
         const blockId = `block-${crypto.randomUUID()}`;
 
         report[blockId] = {
@@ -333,7 +336,7 @@ export abstract class BaseEmailService {
             }
         };
 
-        if (textAlign) {
+        if (textAlign && report[blockId]['data']['style']) {
             report[blockId]['data']['style']['textAlign'] = textAlign;
         }
 
@@ -519,7 +522,11 @@ export abstract class BaseEmailService {
             }
         };
 
-        if (isBold) {
+        if (
+            isBold
+            && report[leftCellId]['data']['style']
+            && report[rightCellId]['data']['style']
+            ) {
             report[leftCellId]['data']['style']['fontWeight'] = 'bold';
             report[rightCellId]['data']['style']['fontWeight'] = 'bold';
         }

@@ -130,10 +130,7 @@ export class Lambda implements LambdaInterface {
             await this.emailService.sendPrivilegePurchaseProviderNotificationEmail(
                 event.specificEmails,
                 event.templateVariables.transactionDate,
-                event.templateVariables.providerFirstName,
-                event.templateVariables.privilegeId,
-                event.templateVariables.jurisdiction,
-                event.templateVariables.licenseType,
+                event.templateVariables.privileges,
                 event.templateVariables.totalCost,
                 event.templateVariables.costLineItems
             );

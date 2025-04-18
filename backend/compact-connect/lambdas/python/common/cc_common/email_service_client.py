@@ -186,10 +186,7 @@ class EmailServiceClient:
 
     def send_privilege_purchase_email(
         self,
-        provider_first_name: str,
-        privilege_id: str,
-        jurisdiction: str,
-        license_type: str,
+        privileges: list[dict],
         total_cost: str,
         cost_line_items: list[dict]
     ) -> dict[str, str]:
@@ -208,10 +205,7 @@ class EmailServiceClient:
         payload = {
             'template': 'privilegePurchaseProviderNotification',
             'templateVariables': {
-                'providerFirstName': provider_first_name,
-                'privilegeId': privilege_id,
-                'jurisdiction': jurisdiction,
-                'licenseType': license_type,
+                'privileges': privileges,
                 'totalCost': total_cost,
                 'costLineItems': cost_line_items
             },
