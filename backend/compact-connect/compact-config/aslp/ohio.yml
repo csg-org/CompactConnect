@@ -2,6 +2,11 @@
 jurisdictionName: "Ohio"
 postalAbbreviation: "oh"
 jurisdictionFee: 25
+licenseFees:
+  - licenseType: "aud"
+    amount: 25
+  - licenseType: "slp"
+    amount: 25
 jurisdictionOperationsTeamEmails:
     - "gregg.thornton@shp.ohio.gov"
 jurisdictionAdverseActionsNotificationEmails: ["gregg.thornton@shp.ohio.gov"]

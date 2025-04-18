@@ -39,6 +39,21 @@ class JurisdictionJurisprudenceRequirements(UserDict):
     @property
     def required(self) -> bool:
         return self['required']
+    
+
+class JurisdictionLicenseFee(UserDict):
+    """
+    Jurisdiction license fee data model. Used to access variables without needing to know
+    the underlying key structure.
+    """
+    
+    @property
+    def license_type(self) -> str:
+        return self['licenseType']
+    
+    @property
+    def amount(self) -> Decimal:
+        return self['amount']
 
 
 class Jurisdiction(UserDict):
@@ -59,10 +74,16 @@ class Jurisdiction(UserDict):
     def compact(self) -> str:
         return self['compact']
 
+    # Deprecated - will be removed when frontend is updated
+    # use license_fees instead
     @property
     def jurisdiction_fee(self) -> Decimal:
         return self['jurisdictionFee']
-
+    
+    @property
+    def license_fees(self) -> list[JurisdictionLicenseFee]:
+        return [JurisdictionLicenseFee(fee) for fee in self.data['licenseFees']]
+    
     @property
     def military_discount(self) -> JurisdictionMilitaryDiscount | None:
         if 'militaryDiscount' in self.data:

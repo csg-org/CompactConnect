@@ -59,9 +59,14 @@ class Stack(CdkStack):
         )
 
     @cached_property
-    def license_types(self):
-        """Flattened list of all license types across all compacts"""
+    def license_type_names(self):
+        """Flattened list of all license type names across all compacts"""
         return [typ['name'] for compact in self.node.get_context('license_types').values() for typ in compact]
+
+    @cached_property
+    def license_types(self):
+        """Dictionary of license types by compact"""
+        return self.node.get_context('license_types')
 
     @cached_property
     def common_env_vars(self):
