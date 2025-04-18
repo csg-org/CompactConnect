@@ -13,4 +13,4 @@ jurisdictionSummaryReportNotificationEmails: []
 jurisprudenceRequirements:
     required: true
 licenseeRegistrationEnabledForEnvironments: ["test"]
-activeEnvironments: ["test"]
+activeEnvironments: ["test", "beta"]

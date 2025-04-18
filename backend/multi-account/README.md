@@ -39,6 +39,7 @@ new AWS organization that we will set up here. Have them:
   - `<account_name_prefix>-audit@<email_domain>`
   - `<account_name_prefix>-deploy@<email_domain>`
   - `<account_name_prefix>-prod@<email_domain>`
+  - `<account_name_prefix>-beta@<email_domain>`
   - `<account_name_prefix>-test@<email_domain>`
 - Configure your local CLI to use your new IAM User admin credentials.
 - Install the requirements in `requirements.txt` into your local python environment.
@@ -72,7 +73,7 @@ new AWS organization that we will set up here. Have them:
     └── Prod
 ```
 - Go to the ControlTower service, Account factory view
-- Create three new AWS accounts for the OUs in the following structure, with the following details. Use the
+- Create four new AWS accounts for the OUs in the following structure, with the following details. Use the
   corresponding email distribution list as the account address, the names in the following structure for Display name,
   and your own IAM Identity Center user for Access configuration:
 ```text
@@ -81,6 +82,7 @@ new AWS organization that we will set up here. Have them:
     │   └── Deploy
     ├── PreProd
     │   └── Test
+    │   └── Beta 
     └── Prod
         └── Production
 ```
@@ -106,7 +108,7 @@ new AWS organization that we will set up here. Have them:
 - Configure your cli and CDK to use the new Deploy account via your IAM Identity Center user
 - Make note of your Deploy AWS account ID
 - Run `cdk bootstrap <deploy account id>/us-east-1`
-- For your Test and Production accounts:
+- For your Test, Beta, and Production accounts:
   - Configure your CLI to use the account
   - Run `cdk bootstrap <target account>/us-east-1 --trust <deploy account> --trust-for-lookup <deploy account> --cloudformation-execution-policies 'arn:aws:iam::aws:policy/AdministratorAccess'`
 
