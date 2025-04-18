@@ -79,42 +79,7 @@
         }
 
         .button-row {
-            display: flex;
-            flex-direction: column-reverse;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            margin-top: 2rem;
-
-            @media @tabletWidth {
-                flex-direction: row;
-                align-items: flex-end;
-                justify-content: space-between;
-            }
-
-            :deep(.input-container) {
-                margin-bottom: 1rem;
-
-                @media @tabletWidth {
-                    margin-bottom: unset;
-                }
-            }
-
-            .right-cell {
-                display: flex;
-                flex-direction: row;
-                align-items: center;
-                justify-content: center;
-
-                @media @tabletWidth {
-                    align-items: flex-end;
-                    justify-content: space-between;
-                }
-
-                .back {
-                    margin-right: 1rem;
-                }
-            }
+            .purchase-flow-buttons();
         }
     }
 
