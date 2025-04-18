@@ -494,4 +494,56 @@ describe('EmailNotificationServiceLambda', () => {
                 .toThrow('No recipients specified for provider privilege deactivation notification email');
         });
     });
+    describe('Privilege Purchase Procider Notification', () => {
+        const SAMPLE_PRIVILEGE_PURCHASE_PROVIDER_NOTIFICATION_EVENT: EmailNotificationEvent = {
+            template: 'privilegePurchaseProviderNotification',
+            recipientType: 'SPECIFIC',
+            compact: 'aslp',
+            specificEmails: ['provider@example.com'],
+            templateVariables: {
+                transactionDate: '12/12/2004',
+                providerFirstName: 'Max',
+                privilegeId: 'OTA-oh-019',
+                jurisdiction: 'OH',
+                licenseType: 'OTA',
+                totalCost: '45.00',
+                costLineItems: [
+                    {
+                        name: 'OH OTA fee', cost: '$45.00'
+                    },
+                    {
+                        name: 'cc fees', cost: '$3.25'
+                    }
+                ]
+            }
+        };
+
+        it('should successfully send privilege deactivation provider notification email', async () => {
+            const response = await lambda.handler(SAMPLE_PRIVILEGE_PURCHASE_PROVIDER_NOTIFICATION_EVENT, {} as any);
+
+            expect(response).toEqual({
+                message: 'Email message sent'
+            });
+
+            // Verify email was sent with correct parameters
+            expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
+                Destination: {
+                    ToAddresses: ['provider@example.com']
+                },
+                Message: {
+                    Body: {
+                        Html: {
+                            Charset: 'UTF-8',
+                            Data: expect.stringContaining('<!DOCTYPE html>')
+                        }
+                    },
+                    Subject: {
+                        Charset: 'UTF-8',
+                        Data: 'Your Privilege 123 is Deactivated'
+                    }
+                },
+                Source: 'Compact Connect <noreply@example.org>'
+            });
+        });
+    });
 });

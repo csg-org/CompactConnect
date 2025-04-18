@@ -356,7 +356,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         # Add values for transaction settings
         duplicate_window_setting = apicontractsv1.settingType()
         duplicate_window_setting.settingName = 'duplicateWindow'
-        duplicate_window_setting.settingValue = '180'
+        duplicate_window_setting.settingValue = '10'
         settings = apicontractsv1.ArrayOfSetting()
         settings.setting.append(duplicate_window_setting)
 

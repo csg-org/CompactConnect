@@ -310,7 +310,7 @@ export abstract class BaseEmailService {
         report['root']['data']['childrenIds'].push(blockHeaderId);
     }
 
-    protected insertBody(report: TReaderDocument, bodyText: string) {
+    protected insertBody(report: TReaderDocument, bodyText: string, textAlign: string = '') {
         const blockId = `block-${crypto.randomUUID()}`;
 
         report[blockId] = {
@@ -333,7 +333,200 @@ export abstract class BaseEmailService {
             }
         };
 
+        if (textAlign) {
+            report[blockId]['data']['style']['textAlign'] = textAlign;
+        }
+
         report['root']['data']['childrenIds'].push(blockId);
+    }
+
+    protected insertTuple(report: TReaderDocument, keyText: string, valueText: string) {
+        const containerBlockId = `block-${crypto.randomUUID()}`;
+        const keyBlockId = `block-${crypto.randomUUID()}`;
+        const valueBlockId = `block-${crypto.randomUUID()}`;
+
+
+        report[keyBlockId] = {
+            'type': 'Text',
+            'data': {
+              'style': {
+                'fontWeight': 'bold',
+                'padding': {
+                  'top': 16,
+                  'bottom': 0,
+                  'right': 12,
+                  'left': 24
+                }
+              },
+              'props': {
+                'text': keyText
+              }
+            }
+        };
+
+        report[valueBlockId] = {
+            'type': 'Text',
+            'data': {
+              'style': {
+                'color': '#525252',
+                'fontSize': 14,
+                'fontWeight': 'normal',
+                'padding': {
+                  'top': 0,
+                  'bottom': 0,
+                  'right': 24,
+                  'left': 24
+                }
+              },
+              'props': {
+                'text': valueText
+              }
+            }
+        };
+
+        report[containerBlockId] = {
+            'type': 'Container',
+            'data': {
+              'style': {
+                'padding': {
+                  'top': 0,
+                  'bottom': 0,
+                  'right': 72,
+                  'left': 76
+                }
+              },
+              'props': {
+                'childrenIds': [
+                    keyBlockId,
+                    valueBlockId
+                ]
+              }
+            }
+        };
+
+        report['root']['data']['childrenIds'].push(containerBlockId);
+        report['root']['data']['childrenIds'].push(keyBlockId);
+        report['root']['data']['childrenIds'].push(valueBlockId);
+    }
+
+    protected insertTwoColumnTable(report: TReaderDocument, title: string, rows: any[]) {
+        const titleBlockId = `block-${crypto.randomUUID()}`;
+
+
+        report[titleBlockId] = {
+            'type': 'Text',
+            'data': {
+              'style': {
+                'fontWeight': 'bold',
+                'padding': {
+                  'top': 16,
+                  'bottom': 16,
+                  'right': 24,
+                  'left': 68
+                }
+              },
+              'props': {
+                'text': title
+              }
+            }
+        }
+
+        report['root']['data']['childrenIds'].push(titleBlockId);
+
+        rows.forEach((row) => {
+            this.insertTwoColumnRow(report, row.left, row.right, false);
+        });
+    }
+
+    protected insertTwoColumnRow(report: TReaderDocument, leftContent: string, rightContent: string, isBold: boolean) {
+        const containerId = `block-${crypto.randomUUID()}`;
+        const leftCellId = `block-${crypto.randomUUID()}`;
+        const rightCellId = `block-${crypto.randomUUID()}`;
+
+        report[leftCellId] = {
+            "type": "Text",
+            "data": {
+              "style": {
+                "fontWeight": "normal",
+                "textAlign": "left",
+                "padding": {
+                  "top": 0,
+                  "bottom": 0,
+                  "right": 24,
+                  "left": 24
+                }
+              },
+              "props": {
+                "text": leftContent
+              }
+            }
+        };
+
+        report[rightCellId] = {
+            "type": "Text",
+            "data": {
+              "style": {
+                "fontWeight": "normal",
+                "textAlign": "right",
+                "padding": {
+                  "top": 0,
+                  "bottom": 0,
+                  "right": 24,
+                  "left": 24
+                }
+              },
+              "props": {
+                "text": rightContent
+              }
+            }
+        };
+
+        report[containerId] = {
+            "type": "ColumnsContainer",
+            "data": {
+              "style": {
+                "padding": {
+                  "top": 0,
+                  "bottom": 0,
+                  "right": 44,
+                  "left": 44
+                }
+              },
+              "props": {
+                "fixedWidths": [
+                  null,
+                  null,
+                  null
+                ],
+                "columnsCount": 2,
+                "columnsGap": 16,
+                "columns": [
+                  {
+                    "childrenIds": [
+                      leftCellId
+                    ]
+                  },
+                  {
+                    "childrenIds": [
+                      rightCellId
+                    ]
+                  },
+                  {
+                    "childrenIds": []
+                  }
+                ]
+              }
+            }
+        };
+
+        if (isBold) {
+            report[leftCellId]['data']['style']['fontWeight'] = 'bold';
+            report[rightCellId]['data']['style']['fontWeight'] = 'bold';
+        }
+
+        report['root']['data']['childrenIds'].push(containerId);
+        report['root']['data']['childrenIds'].push(leftCellId);
+        report['root']['data']['childrenIds'].push(rightCellId);
     }
 
     protected insertMarkdownBody(report: TReaderDocument, bodyText: string) {

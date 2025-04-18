@@ -200,8 +200,8 @@ class EmailServiceClient:
         :param privilege_id: Privilege Id of the purchased privilege
         :param jurisdiction: Jurisdiction name
         :param license_type: Reporting cycle (e.g., 'weekly', 'monthly')
-        :param start_date: Start date of the reporting period
-        :param end_date: End date of the reporting period
+        :param total_cost: Total cost of the transaction
+        :param cost_line_items: Line items (name, cost) of transaction
         :return: Response from the email notification service
         """
 

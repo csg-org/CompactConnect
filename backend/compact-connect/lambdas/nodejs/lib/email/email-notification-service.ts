@@ -266,34 +266,54 @@ export class EmailNotificationService extends BaseEmailService {
         });
     }
     /**
-     * Sends an email notification to a provider when one of their privileges is deactivated
+     * Sends an email notification to a provider when they purchase privilege(s)
      * @param compact - The compact name for which the privilege was deactivated
      * @param jurisdiction - The jurisdiction for which the privilege was deactivated
      * @param privilegeId - The privilege ID
      */
     public async sendPrivilegePurchaseProviderNotificationEmail(
-        compact: string,
         specificEmails: string[] | undefined,
-        privilegeId: string
+        transactionDate: string,
+        privileges: any[], // fix later
+        // privilegeIds: string[],
+        // jurisdiction: string,
+        // licenseType: string,
+        totalCost: string,
+        costLineItems: any[]
     ): Promise<void> {
-        this.logger.info('Sending provider privilege deactivation notification email', { compact: compact });
+        this.logger.info('Sending provider privilege purchase notification email', { providerEmail: specificEmails ? specificEmails[0] : 'none' });
 
         const recipients = specificEmails || [];
 
         if (recipients.length === 0) {
-            throw new Error(`No recipients specified for provider privilege deactivation notification email`);
+            throw new Error(`No recipients found`);
         }
 
-        const report = this.getNewEmailTemplate();
-        const subject = `Your Privilege ${privilegeId} is Deactivated`;
-        const bodyText = `This message is to notify you that your privilege ${privilegeId} is deactivated and can no longer be used to practice.`;
+        const emailContent = this.getNewEmailTemplate();
+        const headerText = `Privilege Purchase Confirmation`;
+        const subject = `Compact Connect Privilege Purchase Confirmation`;
+        const bodyText = `This email is to confirm you successfully purchased the following privileges on ${transactionDate}`;
 
-        this.insertHeader(report, subject);
-        this.insertBody(report, bodyText);
-        this.insertFooter(report);
+        this.insertHeader(emailContent, headerText);
+        this.insertBody(emailContent, bodyText, 'center');
 
-        const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
+        privileges.forEach((privilege) => {
+            const titleText = `${privilege.licenseTypeAbbrev} - ${privilege.jurisdiction}`;
+            const privilegeIdText = `Privilege Id: ${privilege.jurisdiction}`;
+    
+            this.insertTuple(emailContent, titleText, privilegeIdText);
+        });
 
-        await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send provider privilege deactivation notification email' });
+        this.insertTwoColumnTable(emailContent, 'Cost breakdown', costLineItems);
+
+        this.insertTwoColumnRow(emailContent, 'Total', totalCost, true);
+
+        this.insertFooter(emailContent);
+
+        console.log('template', emailContent);
+
+        const htmlContent = renderToStaticMarkup(emailContent, { rootBlockId: 'root' });
+
+        await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send provider privilege purchase notification email' });
     }
 }

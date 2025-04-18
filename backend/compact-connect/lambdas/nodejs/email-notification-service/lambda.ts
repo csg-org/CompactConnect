@@ -127,15 +127,15 @@ export class Lambda implements LambdaInterface {
             );
             break;
         case 'privilegePurchaseProviderNotification':
-            if (!event.templateVariables?.reportS3Path) {
-                throw new Error('Missing required template variables for privilegePurchaseProviderNotification template');
-            }
             await this.emailService.sendPrivilegePurchaseProviderNotificationEmail(
-                event.compact,
-                event.templateVariables.reportS3Path,
-                event.templateVariables.reportingCycle,
-                event.templateVariables.startDate,
-                event.templateVariables.endDate
+                event.specificEmails,
+                event.templateVariables.transactionDate,
+                event.templateVariables.providerFirstName,
+                event.templateVariables.privilegeId,
+                event.templateVariables.jurisdiction,
+                event.templateVariables.licenseType,
+                event.templateVariables.totalCost,
+                event.templateVariables.costLineItems
             );
             break;
         default:
