@@ -2,6 +2,11 @@
 jurisdictionName: "Kentucky"
 postalAbbreviation: "ky"
 jurisdictionFee: 100
+licenseFees:
+  - licenseType: "ot"
+    amount: 100
+  - licenseType: "ota"
+    amount: 100
 militaryDiscount:
     active: true
     discountType: "FLAT_RATE"

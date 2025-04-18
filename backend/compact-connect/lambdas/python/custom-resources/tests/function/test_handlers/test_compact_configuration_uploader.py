@@ -42,7 +42,12 @@ def generate_single_jurisdiction_config(jurisdiction_name: str, postal_abbreviat
     return {
         'jurisdictionName': jurisdiction_name,
         'postalAbbreviation': postal_abbreviation,
+        # deprecated - will be removed when frontend is updated
         'jurisdictionFee': 100,
+        'licenseFees': [
+            {'licenseType': 'aud', 'amount': 100},
+            {'licenseType': 'slp', 'amount': 100}
+        ],
         'militaryDiscount': {'active': True, 'discountType': 'FLAT_RATE', 'discountAmount': 10},
         'jurisdictionOperationsTeamEmails': ['cloud-team@example.com'],
         'jurisdictionAdverseActionsNotificationEmails': [],
@@ -118,7 +123,12 @@ class TestCompactConfigurationUploader(TstFunction):
                     'compact': 'aslp',
                     'dateOfUpdate': MOCK_CURRENT_TIMESTAMP,
                     'jurisdictionAdverseActionsNotificationEmails': [],
+                    # deprecated - will be removed when frontend is updated
                     'jurisdictionFee': Decimal('100'),
+                    'licenseFees': [
+                        {'licenseType': 'aud', 'amount': Decimal('100')},
+                        {'licenseType': 'slp', 'amount': Decimal('100')}
+                    ],
                     'jurisdictionName': 'nebraska',
                     'jurisdictionOperationsTeamEmails': ['cloud-team@example.com'],
                     'jurisdictionSummaryReportNotificationEmails': [],
@@ -134,7 +144,12 @@ class TestCompactConfigurationUploader(TstFunction):
                     'compact': 'aslp',
                     'dateOfUpdate': MOCK_CURRENT_TIMESTAMP,
                     'jurisdictionAdverseActionsNotificationEmails': [],
+                    # deprecated - will be removed when frontend is updated
                     'jurisdictionFee': Decimal('100'),
+                    'licenseFees': [
+                        {'licenseType': 'aud', 'amount': Decimal('100')},
+                        {'licenseType': 'slp', 'amount': Decimal('100')}
+                    ],
                     'jurisdictionName': 'ohio',
                     'jurisdictionOperationsTeamEmails': ['cloud-team@example.com'],
                     'jurisdictionSummaryReportNotificationEmails': [],
@@ -162,7 +177,12 @@ class TestCompactConfigurationUploader(TstFunction):
                     'compact': 'octp',
                     'dateOfUpdate': MOCK_CURRENT_TIMESTAMP,
                     'jurisdictionAdverseActionsNotificationEmails': [],
+                    # deprecated - will be removed when frontend is updated
                     'jurisdictionFee': Decimal('100'),
+                    'licenseFees': [
+                        {'licenseType': 'ot', 'amount': Decimal('100')},
+                        {'licenseType': 'ota', 'amount': Decimal('100')}
+                    ],
                     'jurisdictionName': 'nebraska',
                     'jurisdictionOperationsTeamEmails': ['cloud-team@example.com'],
                     'jurisdictionSummaryReportNotificationEmails': [],
@@ -178,7 +198,12 @@ class TestCompactConfigurationUploader(TstFunction):
                     'compact': 'octp',
                     'dateOfUpdate': MOCK_CURRENT_TIMESTAMP,
                     'jurisdictionAdverseActionsNotificationEmails': [],
+                    # deprecated - will be removed when frontend is updated
                     'jurisdictionFee': Decimal('100'),
+                    'licenseFees': [
+                        {'licenseType': 'ot', 'amount': Decimal('100')},
+                        {'licenseType': 'ota', 'amount': Decimal('100')}
+                    ],
                     'jurisdictionName': 'ohio',
                     'jurisdictionOperationsTeamEmails': ['cloud-team@example.com'],
                     'jurisdictionSummaryReportNotificationEmails': [],
