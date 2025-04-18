@@ -85,7 +85,6 @@ class TestPrivilegeRecordSchema(TstLambdas):
 
         self.assertEqual(result['status'], 'active')
 
-
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-09T04:00:00+00:00'))
     def test_status_is_set_to_inactive_right_at_expiration_for_utc_minus_four_timezone(self):
         from cc_common.data_model.schema.privilege.record import PrivilegeRecordSchema
@@ -97,7 +96,6 @@ class TestPrivilegeRecordSchema(TstLambdas):
         result = PrivilegeRecordSchema().load(privilege_data)
 
         self.assertEqual(result['status'], 'inactive')
-
 
 
 class TestPrivilegeUpdateRecordSchema(TstLambdas):

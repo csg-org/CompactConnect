@@ -26,7 +26,7 @@ class TestPurchasesApi(TestApi):
     """
 
     def test_synth_generates_purchases_resource(self):
-        api_stack = self.app.sandbox_stage.api_stack
+        api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
 
         # Ensure the resource is created with expected path
@@ -42,7 +42,7 @@ class TestPurchasesApi(TestApi):
         )
 
     def test_synth_generates_purchases_privileges_resource(self):
-        api_stack = self.app.sandbox_stage.api_stack
+        api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
 
         # Ensure the resource is created with expected path
@@ -58,7 +58,7 @@ class TestPurchasesApi(TestApi):
         )
 
     def test_synth_generates_post_purchases_privileges_handler_with_required_secret_permissions(self):
-        api_stack = self.app.sandbox_stage.api_stack
+        api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
 
         # Ensure the resource is created with expected path
@@ -98,7 +98,7 @@ class TestPurchasesApi(TestApi):
         )
 
     def test_synth_generates_post_purchases_privileges_endpoint_resources(self):
-        api_stack = self.app.sandbox_stage.api_stack
+        api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
 
         # Ensure the resource is created with expected path
@@ -162,7 +162,7 @@ class TestPurchasesApi(TestApi):
         )
 
     def test_synth_generates_get_purchases_privileges_options_endpoint_resource(self):
-        api_stack = self.app.sandbox_stage.api_stack
+        api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
 
         # Ensure the resource is created with expected path

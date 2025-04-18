@@ -12,6 +12,7 @@ from cdk_nag import NagSuppressions
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.alarm_topic import AlarmTopic
 from common_constructs.data_migration import DataMigration
+from common_constructs.frontend_app_config_utility import PersistentStackFrontendAppConfigUtility
 from common_constructs.nodejs_function import NodejsFunction
 from common_constructs.python_function import COMMON_PYTHON_LAMBDA_LAYER_SSM_PARAMETER_NAME
 from common_constructs.security_profile import SecurityProfile
@@ -70,6 +71,15 @@ class PersistentStack(AppStack):
             entry=os.path.join('lambdas', 'python', 'common'),
             compatible_runtimes=[Runtime.PYTHON_3_12],
             description='A layer for common code shared between python lambdas',
+            # We retain the layer versions in our environments, to avoid a situation where a consuming stack is unable
+            # to roll back because old versions are destroyed. This means that over time, these versions
+            # will accumulate in prod, and given the AWS limit of 75 GB for all layer and lambda code storage
+            # we will likely need to add a custom resource to track these versions, and clean up versions that are
+            # older than a certain date. That is out of scope for our current effort, but we're leaving this comment
+            # here to remind us that this will need to be addressed at a later date.
+            removal_policy=removal_policy.RETAIN
+            if not self.node.try_get_context('sandbox')
+            else removal_policy.DESTROY,
         )
 
         # We Store the layer ARN in SSM Parameter Store
@@ -106,19 +116,24 @@ class PersistentStack(AppStack):
             removal_policy=removal_policy,
             auto_delete_objects=removal_policy == RemovalPolicy.DESTROY,
         )
+        # TODO: remove these exports after CF Distribution has been moved over to frontend pipeline.  # noqa: FIX002
+        self.export_value(self.access_logs_bucket.bucket_name)
+        self.export_value(self.access_logs_bucket.bucket_arn)
+        self.export_value(self.access_logs_bucket.bucket_regional_domain_name)
 
         # This resource should not be referenced directly as a cross stack reference, any reference should
         # be made through the SSM parameter
-        self._data_event_bus = EventBus(self, 'DataEventBus')
+        # IMPORTANT NOTE: changing the name of the event bus will result in a BREAKING CHANGE (ie downtime). If the name
+        # must be changed for whatever reason, you must create another event bus and SSM parameter and perform a
+        # blue/green cut over to safely migrate consumers to the new event bus before deleting the original one in order
+        # to prevent downtime.
+        self._data_event_bus = EventBus(self, 'DataEventBus', event_bus_name=f'{environment_name}-dataEventBus')
         # We Store the data event bus name in SSM Parameter Store
         # to avoid issues with cross stack references due to the fact that
         # you can't update a CloudFormation exported value that is being referenced by a resource in another stack.
         self.data_event_bus_arn_ssm_parameter = SSMParameterUtility.set_data_event_bus_arn_ssm_parameter(
             self, self._data_event_bus
         )
-        # TODO - these are needed until pipeline migration effort is complete  # noqa: FIX002
-        self.export_value(self._data_event_bus.event_bus_arn)
-        self.export_value(self._data_event_bus.event_bus_name)
 
         self._add_data_resources(removal_policy=removal_policy)
         self._add_migrations()
@@ -248,6 +263,9 @@ class PersistentStack(AppStack):
             self.provider_users_deprecated.node.add_dependency(
                 self.user_email_notifications.verification_custom_resource
             )
+
+        # This parameter is used to store the frontend app config values for use in the frontend deployment stack
+        self._create_frontend_app_config_parameter()
 
     def _add_data_resources(self, removal_policy: RemovalPolicy):
         # Create the ssn related resources before other resources which are dependent on them
@@ -621,3 +639,35 @@ class PersistentStack(AppStack):
                         active_jurisdictions.append(formatted_jurisdiction['postalAbbreviation'].lower())
 
         return active_jurisdictions
+
+    def _create_frontend_app_config_parameter(self):
+        """
+        Creates and stores UI application configuration in SSM Parameter Store for use in the UI stack and
+        frontend deployment stack.
+        """
+        # Create and store UI application configuration in SSM Parameter Store for use in the UI stack
+        frontend_app_config = PersistentStackFrontendAppConfigUtility()
+
+        # Add staff user pool Cognito configuration
+        frontend_app_config.set_staff_cognito_values(
+            domain_name=self.staff_users.user_pool_domain.domain_name,
+            client_id=self.staff_users.ui_client.user_pool_client_id,
+        )
+
+        # Add provider user pool Cognito configuration
+        frontend_app_config.set_provider_cognito_values(
+            domain_name=self.provider_users.user_pool_domain.domain_name,
+            client_id=self.provider_users.ui_client.user_pool_client_id,
+        )
+
+        # Add UI and API domain names
+        frontend_app_config.set_domain_names(ui_domain_name=self.ui_domain_name, api_domain_name=self.api_domain_name)
+
+        # Add bucket names needed for CSP Lambda
+        frontend_app_config.set_license_bulk_uploads_bucket_name(bucket_name=self.bulk_uploads_bucket.bucket_name)
+        frontend_app_config.set_provider_users_bucket_name(bucket_name=self.provider_users_bucket.bucket_name)
+
+        # Generate the SSM parameter
+        self.frontend_app_config_parameter = frontend_app_config.generate_ssm_parameter(
+            self, 'FrontendAppConfigParameter'
+        )

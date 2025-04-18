@@ -15,17 +15,20 @@ from common_constructs.bucket import Bucket
 from constructs import Construct
 
 
-class BackendPipeline(CdkCodePipeline):
+class FrontendPipeline(CdkCodePipeline):
     """
-    Stack for creating the Backend CodePipeline resources.
+    Stack for creating the Frontend CodePipeline resources.
 
     This pipeline is part of a two-pipeline architecture where:
-    1. This Backend Pipeline deploys infrastructure and creates required resources
-    2. The Frontend Pipeline then deploys the frontend application using those resources
+    1. The Backend Pipeline deploys infrastructure and creates required resources
+    2. This Frontend Pipeline then deploys the frontend application using those resources
 
     Deployment Flow:
-    - IS triggered by GitHub pushes (trigger_on_push=True)
-    - Triggers the Frontend Pipeline after successful deployment
+    1. Backend Pipeline completes deployment of infrastructure resources
+    2. Backend Pipeline triggers this Frontend Pipeline via AWS CLI command
+    3. This pipeline pulls the same source code but synthesizes only frontend resources
+    4. Frontend application deploys using configuration values created by the Backend Pipeline
+    and stored in SSM Parameter Store
     """
 
     def __init__(
@@ -37,7 +40,7 @@ class BackendPipeline(CdkCodePipeline):
         github_repo_string: str,
         cdk_path: str,
         connection_arn: str,
-        trigger_branch: str,
+        source_branch: str,
         access_logs_bucket: IBucket,
         encryption_key: IKey,
         alarm_topic: ITopic,
@@ -77,8 +80,11 @@ class BackendPipeline(CdkCodePipeline):
                 'Synth',
                 input=CodePipelineSource.connection(
                     repo_string=github_repo_string,
-                    branch=trigger_branch,
-                    trigger_on_push=True,
+                    branch=source_branch,
+                    # This pipeline is triggered by the backend pipeline, so we don't
+                    # want push events to trigger it. This prevents duplicate deployments
+                    # since both pipelines use the same source code.
+                    trigger_on_push=False,
                     # Arn format:
                     # arn:aws:codeconnections:us-east-1:111122223333:connection/<uuid>
                     connection_arn=connection_arn,

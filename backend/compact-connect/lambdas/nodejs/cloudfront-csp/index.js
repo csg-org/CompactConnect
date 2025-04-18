@@ -9,46 +9,20 @@
 //                               CONFIGURATION                                =
 // ============================================================================
 /**
- * Configuration of supported domains per environment.
+ * Configuration of supported domains.
+ * 
+ * These values are injected into the lambda function at build time. See the 
+ * `generate_csp_lambda_code` function in 
+ * backend/compact-connect/stacks/frontend_deployment_stack/distribution.py
  * @type {object}
  */
-const environments = {
-    csg: {
-        prod: {
-            webFrontend: `app.compactconnect.org`,
-            dataApi: `api.compactconnect.org`,
-            s3UploadUrlState: `prod-persistentstack-bulkuploadsbucketda4bdcd0-zq5o0q8uqq5i.s3.amazonaws.com`,
-            s3UploadUrlProvider: `prod-persistentstack-providerusersbucket5c7b202b-ffpgh4fyozwk.s3.amazonaws.com`,
-            cognitoStaff: `compact-connect-staff.auth.us-east-1.amazoncognito.com`,
-            cognitoProvider: `compact-connect-provider.auth.us-east-1.amazoncognito.com`,
-        },
-        test: {
-            webFrontend: `app.test.compactconnect.org`,
-            dataApi: `api.test.compactconnect.org`,
-            s3UploadUrlState: `test-persistentstack-bulkuploadsbucketda4bdcd0-gxzuwbuqfepm.s3.amazonaws.com`,
-            s3UploadUrlProvider: `test-persistentstack-providerusersbucket5c7b202b-dr6ddil25dol.s3.amazonaws.com`,
-            cognitoStaff: `compact-connect-staff-test.auth.us-east-1.amazoncognito.com`,
-            cognitoProvider: `compact-connect-provider-test.auth.us-east-1.amazoncognito.com`,
-        },
-    },
-    ia: {
-        test: {
-            webFrontend: `app.test.jcc.iaapi.io`,
-            dataApi: `api.test.jcc.iaapi.io`,
-            s3UploadUrlState: `test-persistentstack-bulkuploadsbucketda4bdcd0-er1izmgsrdva.s3.amazonaws.com`,
-            s3UploadUrlProvider: `test-persistentstack-providerusersbucket5c7b202b-sgh3k0h87td2.s3.amazonaws.com`,
-            cognitoStaff: `ia-cc-staff-test.auth.us-east-1.amazoncognito.com`,
-            cognitoProvider: `ia-cc-provider-test.auth.us-east-1.amazoncognito.com`,
-        },
-        justin: {
-            webFrontend: `app.justin.jcc.iaapi.io`,
-            dataApi: `api.justin.jcc.iaapi.io`,
-            s3UploadUrlState: `sandbox-persistentstack-bulkuploadsbucketda4bdcd0-pi5pskm7prtp.s3.amazonaws.com`,
-            s3UploadUrlProvider: `sandbox-persistentstack-providerusersbucket5c7b202-myduyskldlxb.s3.amazonaws.com`,
-            cognitoStaff: `ia-cc-staff-justin.auth.us-east-1.amazoncognito.com`,
-            cognitoProvider: `ia-cc-provider-justin.auth.us-east-1.amazoncognito.com`,
-        },
-    },
+const environmentValues = {
+    webFrontend: `##WEB_FRONTEND##`,
+    dataApi: `##DATA_API##`,
+    s3UploadUrlState: `##S3_UPLOAD_URL_STATE##`,
+    s3UploadUrlProvider: `##S3_UPLOAD_URL_PROVIDER##`,
+    cognitoStaff: `##COGNITO_STAFF##`,
+    cognitoProvider: `##COGNITO_PROVIDER##`,
 };
 
 // ============================================================================
@@ -59,19 +33,6 @@ const environments = {
  * @param  {object} eventRecord The cloudfront record from the lambda event.
  * @return {string}             The bare domain of the request domain.
  */
-const getRequestDomain = (eventRecord) => {
-    let requestDomain = environments.csg.prod.webFrontend;
-
-    if (eventRecord) {
-        const requestHostHeaderValue = eventRecord.request?.headers?.host?.[0]?.value;
-
-        if (requestHostHeaderValue) {
-            requestDomain = requestHostHeaderValue;
-        }
-    }
-
-    return requestDomain;
-};
 
 /**
  * Get a fully qualified domain URI with the protocol scheme.
@@ -90,41 +51,21 @@ const getFullyQualified = (domain) => {
 };
 
 /**
- * Helper to get the fully-qualified domains for connected services based on the request domain.
- * @param  {string} requestDomain The bare domain of the request.
- * @return {object}               A map of fully-qualified domains for the request environment.
+ * Helper to get the fully-qualified domains for connected services.
+ * @return {object}               A map of fully-qualified domains for the environment.
  *   @return {string} dataApi       The data API fully-qualified domain.
  *   @return {string} s3UploadUrlState      The S3 fully-qualified domain for uploading state files.
  *   @return {string} s3UploadUrlProvider      The S3 fully-qualified domain for uploading provider files.
  *   @return {string} cognitoStaff  The Cognito fully-qualified domain for authenticating staff users.
  */
-const getEnvironmentUrls = (requestDomain) => {
+const getEnvironmentUrls = () => {
     const environmentUrls = {};
-    let environment;
 
-    switch (requestDomain) {
-    case environments.csg.prod.webFrontend:
-        environment = environments.csg.prod;
-        break;
-    case environments.csg.test.webFrontend:
-        environment = environments.csg.test;
-        break;
-    case environments.ia.test.webFrontend:
-        environment = environments.ia.test;
-        break;
-    case environments.ia.justin.webFrontend:
-        environment = environments.ia.justin;
-        break;
-    default:
-        environment = environments.csg.prod;
-        break;
-    }
-
-    environmentUrls.dataApi = getFullyQualified(environment.dataApi);
-    environmentUrls.s3UploadUrlState = getFullyQualified(environment.s3UploadUrlState);
-    environmentUrls.s3UploadUrlProvider = getFullyQualified(environment.s3UploadUrlProvider);
-    environmentUrls.cognitoStaff = getFullyQualified(environment.cognitoStaff);
-    environmentUrls.cognitoProvider = getFullyQualified(environment.cognitoProvider);
+    environmentUrls.dataApi = getFullyQualified(environmentValues.dataApi);
+    environmentUrls.s3UploadUrlState = getFullyQualified(environmentValues.s3UploadUrlState);
+    environmentUrls.s3UploadUrlProvider = getFullyQualified(environmentValues.s3UploadUrlProvider);
+    environmentUrls.cognitoStaff = getFullyQualified(environmentValues.cognitoStaff);
+    environmentUrls.cognitoProvider = getFullyQualified(environmentValues.cognitoProvider);
 
     return environmentUrls;
 };
@@ -214,11 +155,10 @@ const buildSrcString = (name = '', list = []) => {
 // ============================================================================
 /**
  * Set the CSP header on the response (by reference).
- * @param {string} requestDomain The domain making the request.
  * @param {object} [headers={}]  The event response headers (updated by reference).
  */
-const setCspHeader = (requestDomain, headers = {}) => {
-    const domains = getEnvironmentUrls(requestDomain);
+const setCspHeader = (headers = {}) => {
+    const domains = getEnvironmentUrls();
     const cognitoIdpUrl = 'https://cognito-idp.us-east-1.amazonaws.com';
 
     // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy
@@ -301,10 +241,9 @@ const setCspHeader = (requestDomain, headers = {}) => {
 
 /**
  * Set security headers on the response (by reference).
- * @param {string} requestDomain The domain making the request.
  * @param {object} [headers={}]  The event response headers (updated by reference).
  */
-const setSecurityHeaders = (requestDomain, headers = {}) => {
+const setSecurityHeaders = (headers = {}) => {
     // Strict-Transport-Security
     headers['strict-transport-security'] = [{
         key: 'Strict-Transport-Security',
@@ -331,7 +270,7 @@ const setSecurityHeaders = (requestDomain, headers = {}) => {
         value: 'CompactConnect',
     }];
     // Content-Security-Policy
-    setCspHeader(requestDomain, headers);
+    setCspHeader(headers);
 };
 
 // ============================================================================
@@ -340,11 +279,10 @@ const setSecurityHeaders = (requestDomain, headers = {}) => {
 exports.handler = async (event) => {
     // https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-event-structure.html
     const eventRecord = event?.Records[0]?.cf || {};
-    const requestDomain = getRequestDomain(eventRecord);
     const response = eventRecord.response || {};
     const responseHeaders = response.headers || {};
 
-    setSecurityHeaders(requestDomain, responseHeaders);
+    setSecurityHeaders(responseHeaders);
 
     return response;
 };

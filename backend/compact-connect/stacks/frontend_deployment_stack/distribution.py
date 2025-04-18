@@ -19,12 +19,50 @@ from aws_cdk.aws_route53 import ARecord, RecordTarget
 from aws_cdk.aws_route53_targets import CloudFrontTarget
 from aws_cdk.aws_s3 import IBucket
 from cdk_nag import NagSuppressions
+from common_constructs.access_logs_bucket import AccessLogsBucket
+from common_constructs.frontend_app_config_utility import (
+    COGNITO_AUTH_DOMAIN_SUFFIX,
+    PersistentStackFrontendAppConfigValues,
+)
 from common_constructs.security_profile import SecurityProfile
 from common_constructs.stack import AppStack
 from common_constructs.webacl import WebACL, WebACLScope
 from constructs import Construct
 
-from stacks.persistent_stack import PersistentStack
+S3_URL_SUFFIX = '.s3.amazonaws.com'
+
+
+def generate_csp_lambda_code(persistent_stack_values: PersistentStackFrontendAppConfigValues) -> str:
+    """
+    Generate CSP Lambda code with injected configuration values.
+
+    Given that this is a lambda@edge function, we cannot specify environment variables through
+    CDK (see https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-at-edge-function-restrictions.html#lambda-at-edge-restrictions-features)
+    Given this limitation, we inject the values into the lambda function code at build time.
+    This function reads the template file and replaces placeholders with actual values.
+
+    :param persistent_stack_values: The values from the persistent stack
+    :return: The generated Lambda function code
+    """
+    template_path = os.path.join('lambdas', 'nodejs', 'cloudfront-csp', 'index.js')
+
+    with open(template_path) as f:
+        template = f.read()
+
+    # Replace placeholders with actual values
+    replacements = {
+        '##WEB_FRONTEND##': persistent_stack_values.ui_domain_name,
+        '##DATA_API##': persistent_stack_values.api_domain_name,
+        '##S3_UPLOAD_URL_STATE##': f'{persistent_stack_values.bulk_uploads_bucket_name}{S3_URL_SUFFIX}',
+        '##S3_UPLOAD_URL_PROVIDER##': f'{persistent_stack_values.provider_users_bucket_name}{S3_URL_SUFFIX}',
+        '##COGNITO_STAFF##': f'{persistent_stack_values.staff_cognito_domain}{COGNITO_AUTH_DOMAIN_SUFFIX}',
+        '##COGNITO_PROVIDER##': f'{persistent_stack_values.provider_cognito_domain}{COGNITO_AUTH_DOMAIN_SUFFIX}',
+    }
+
+    for placeholder, value in replacements.items():
+        template = template.replace(placeholder, value)
+
+    return template
 
 
 class UIDistribution(Distribution):
@@ -35,7 +73,8 @@ class UIDistribution(Distribution):
         *,
         ui_bucket: IBucket,
         security_profile: SecurityProfile = SecurityProfile.RECOMMENDED,
-        persistent_stack: PersistentStack,
+        access_logs_bucket: AccessLogsBucket,
+        persistent_stack_frontend_app_config_values: PersistentStackFrontendAppConfigValues,
     ):
         stack: AppStack = AppStack.of(scope)
 
@@ -70,17 +109,21 @@ class UIDistribution(Distribution):
                 }
             ],
         )
-        with open(os.path.join('lambdas', 'nodejs', 'cloudfront-csp', 'index.js')) as f:
-            csp_function = Function(
-                scope,
-                'CSPFunction',
-                code=Code.from_inline(f.read()),
-                runtime=Runtime.NODEJS_22_X,
-                handler='index.handler',
-            )
+
+        # Generate the CSP Lambda code with injected values
+        csp_function_code = generate_csp_lambda_code(persistent_stack_frontend_app_config_values)
+
+        self.csp_function = Function(
+            scope,
+            'CSPFunction',
+            code=Code.from_inline(csp_function_code),
+            runtime=Runtime.NODEJS_22_X,
+            handler='index.handler',
+        )
+
         NagSuppressions.add_resource_suppressions_by_path(
             stack,
-            f'{csp_function.node.path}/ServiceRole/Resource',
+            f'{self.csp_function.node.path}/ServiceRole/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM4',
@@ -92,7 +135,7 @@ class UIDistribution(Distribution):
             ],
         )
         NagSuppressions.add_resource_suppressions(
-            csp_function,
+            self.csp_function,
             suppressions=[
                 {
                     'id': 'HIPAA.Security-LambdaDLQ',
@@ -118,7 +161,8 @@ class UIDistribution(Distribution):
                 viewer_protocol_policy=ViewerProtocolPolicy.HTTPS_ONLY,
                 edge_lambdas=[
                     EdgeLambda(
-                        event_type=LambdaEdgeEventType.VIEWER_RESPONSE, function_version=csp_function.current_version
+                        event_type=LambdaEdgeEventType.VIEWER_RESPONSE,
+                        function_version=self.csp_function.current_version,
                     )
                 ],
             ),
@@ -134,7 +178,7 @@ class UIDistribution(Distribution):
             ssl_support_method=SSLMethod.SNI,
             enable_logging=True,
             web_acl_id=web_acl.web_acl_arn,
-            log_bucket=persistent_stack.access_logs_bucket,
+            log_bucket=access_logs_bucket,
             log_file_prefix=f'_logs/{stack.account}/{stack.region}/{scope.node.path}/{construct_id}/',
             error_responses=[
                 ErrorResponse(http_status=404, response_http_status=200, response_page_path='/index.html'),
@@ -143,7 +187,7 @@ class UIDistribution(Distribution):
             **domain_name_kwargs,
         )
 
-        if stack.hosted_zone is not None:
+        if persistent_stack_frontend_app_config_values.ui_domain_name is not None:
             self.record = ARecord(
                 self,
                 'UiARecord',

@@ -20,7 +20,7 @@ class TestStaffUsersApi(TestApi):
     """
 
     def test_synth_generates_staff_users_resources(self):
-        api_stack = self.app.sandbox_stage.api_stack
+        api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
 
         # Ensure the resource is created with expected path for self-service endpoints
@@ -50,7 +50,7 @@ class TestStaffUsersApi(TestApi):
         )
 
     def test_synth_generates_patch_staff_users_endpoint_resource(self):
-        api_stack = self.app.sandbox_stage.api_stack
+        api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
 
         # Ensure the resource is created with expected path
@@ -133,7 +133,7 @@ class TestStaffUsersApi(TestApi):
         )
 
     def test_synth_generates_post_staff_user_endpoint_resource(self):
-        api_stack = self.app.sandbox_stage.api_stack
+        api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
 
         post_user_handler_properties = self.get_resource_properties_by_logical_id(
@@ -200,7 +200,7 @@ class TestStaffUsersApi(TestApi):
 
     def test_synth_generates_post_staff_user_alarms(self):
         """Test that the POST staff users endpoint alarms are configured correctly."""
-        api_stack = self.app.sandbox_stage.api_stack
+        api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
 
         # Ensure the anomaly detection alarm is created
@@ -256,7 +256,7 @@ class TestStaffUsersApi(TestApi):
         )
 
     def test_synth_generates_reinvite_user_endpoint_resource(self):
-        api_stack = self.app.sandbox_stage.api_stack
+        api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
 
         # Ensure the resource is created with expected path
