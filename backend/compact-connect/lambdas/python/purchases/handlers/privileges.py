@@ -291,7 +291,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
         )
 
         # transaction was successful, now we create privilege records for the selected jurisdictions
-        config.data_client.create_provider_privileges(
+        genereated_privileges = config.data_client.create_provider_privileges(
             compact=compact_abbr,
             provider_id=provider_id,
             jurisdiction_postal_abbreviations=selected_jurisdictions_postal_abbreviations,
@@ -303,7 +303,10 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             attestations=body['attestations'],
         )
 
+
+
         return transaction_response
+
 
     except CCFailedTransactionException as e:
         logger.warning(f'Failed transaction: {e}.')
