@@ -24,7 +24,6 @@ class JurisdictionPrivilegeFeeRecordSchema(Schema):
     licenseTypeAbbreviation = String(required=True, allow_none=False)
     amount = Decimal(required=True, allow_none=False, places=2)
 
-
 @BaseRecordSchema.register_schema(JURISDICTION_TYPE)
 class JurisdictionRecordSchema(BaseRecordSchema):
     """Schema for the root jurisdiction configuration records"""
@@ -58,8 +57,6 @@ class JurisdictionRecordSchema(BaseRecordSchema):
     jurisprudenceRequirements = Nested(
         JurisdictionJurisprudenceRequirementsRecordSchema(), required=True, allow_none=False
     )
-    # deprecated - will be removed as part of https://github.com/csg-org/CompactConnect/issues/636
-    jurisdictionFee = Decimal(required=False, allow_none=False, places=2)
 
     # Generated fields
     pk = String(required=True, allow_none=False)
