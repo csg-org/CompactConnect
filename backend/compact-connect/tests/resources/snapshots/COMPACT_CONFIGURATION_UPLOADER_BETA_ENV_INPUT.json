@@ -320,7 +320,6 @@
       {
         "jurisdictionName": "Ohio",
         "postalAbbreviation": "oh",
-        "jurisdictionFee": 25,
         "privilegeFees": [
           {
             "licenseTypeAbbreviation": "aud",
@@ -351,7 +350,6 @@
       {
         "jurisdictionName": "Alabama",
         "postalAbbreviation": "al",
-        "jurisdictionFee": 100,
         "privilegeFees": [
           {
             "licenseTypeAbbreviation": "ot",
@@ -381,7 +379,6 @@
       {
         "jurisdictionName": "Arkansas",
         "postalAbbreviation": "ar",
-        "jurisdictionFee": 3,
         "privilegeFees": [
           {
             "licenseTypeAbbreviation": "ot",
@@ -410,7 +407,6 @@
       {
         "jurisdictionName": "Louisiana",
         "postalAbbreviation": "la",
-        "jurisdictionFee": 100,
         "privilegeFees": [
           {
             "licenseTypeAbbreviation": "ot",
@@ -440,7 +436,6 @@
       {
         "jurisdictionName": "Mississippi",
         "postalAbbreviation": "ms",
-        "jurisdictionFee": 100,
         "privilegeFees": [
           {
             "licenseTypeAbbreviation": "ot",
@@ -470,7 +465,6 @@
       {
         "jurisdictionName": "Ohio",
         "postalAbbreviation": "oh",
-        "jurisdictionFee": 100,
         "privilegeFees": [
           {
             "licenseTypeAbbreviation": "ot",

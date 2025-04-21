@@ -40,9 +40,6 @@ class JurisdictionOptionsResponseSchema(ForgivingSchema):
     jurisprudenceRequirements = Nested(
         JurisdictionJurisprudenceRequirementsResponseSchema(), required=True, allow_none=False
     )
-    # deprecated - will be removed as part of https://github.com/csg-org/CompactConnect/issues/636
-    jurisdictionFee = Decimal(required=False, allow_none=False)
-
 
 class CompactJurisdictionsStaffUsersResponseSchema(ForgivingSchema):
     """

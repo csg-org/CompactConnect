@@ -96,10 +96,6 @@
                 "description": "The postal abbreviation of the jurisdiction",
                 "type": "string"
               },
-              "jurisdictionFee": {
-                "description": "The fee for the jurisdiction",
-                "type": "number"
-              },
               "privilegeFees": {
                 "description": "The fees for the privileges",
                 "items": {
