@@ -2,6 +2,9 @@
 jurisdictionName: "Kentucky"
 postalAbbreviation: "ky"
 jurisdictionFee: 100
+privilegeFees:
+  - licenseTypeAbbreviation: "lpc"
+    amount: 100
 militaryDiscount:
     active: true
     discountType: "FLAT_RATE"

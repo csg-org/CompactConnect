@@ -154,7 +154,7 @@ class ApiModel:
                     ],
                     additional_properties=False,
                     properties={
-                        'licenseType': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.license_types),
+                        'licenseType': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.license_type_names),
                         **self._common_license_properties,
                     },
                 ),
@@ -525,7 +525,7 @@ class ApiModel:
                     'licenseType': JsonSchema(
                         type=JsonSchemaType.STRING,
                         description='The type of license the provider is purchasing a privilege for.',
-                        enum=self.stack.license_types,
+                        enum=self.stack.license_type_names,
                     ),
                     'selectedJurisdictions': JsonSchema(
                         type=JsonSchemaType.ARRAY,
@@ -959,7 +959,7 @@ class ApiModel:
                                 type=JsonSchemaType.STRING,
                                 enum=self.stack.node.get_context('jurisdictions'),
                             ),
-                            'licenseType': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.license_types),
+                            'licenseType': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.license_type_names),
                             'dateOfUpdate': JsonSchema(
                                 type=JsonSchemaType.STRING,
                                 format='date',
@@ -1001,7 +1001,7 @@ class ApiModel:
                                             enum=self.stack.node.get_context('jurisdictions'),
                                         ),
                                         'licenseType': JsonSchema(
-                                            type=JsonSchemaType.STRING, enum=self.stack.license_types
+                                            type=JsonSchemaType.STRING, enum=self.stack.license_type_names
                                         ),
                                         'dateOfUpdate': JsonSchema(
                                             type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
@@ -1106,7 +1106,7 @@ class ApiModel:
                                             enum=self.stack.node.get_context('jurisdictions'),
                                         ),
                                         'licenseType': JsonSchema(
-                                            type=JsonSchemaType.STRING, enum=self.stack.license_types
+                                            type=JsonSchemaType.STRING, enum=self.stack.license_type_names
                                         ),
                                         'dateOfUpdate': JsonSchema(
                                             type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
@@ -1138,7 +1138,7 @@ class ApiModel:
                                     },
                                 ),
                             ),
-                            'licenseType': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.license_types),
+                            'licenseType': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.license_type_names),
                             **self._common_privilege_properties,
                         },
                     ),
@@ -1621,7 +1621,7 @@ class ApiModel:
                         type=JsonSchemaType.STRING,
                         description='Type of license',
                         max_length=500,
-                        enum=self.stack.license_types,
+                        enum=self.stack.license_type_names,
                     ),
                     'compact': JsonSchema(
                         type=JsonSchemaType.STRING,

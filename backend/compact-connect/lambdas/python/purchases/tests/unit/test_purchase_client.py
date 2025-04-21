@@ -108,7 +108,7 @@ def _generate_selected_jurisdictions(jurisdiction_items: list[dict] = None):
 
     if jurisdiction_items is None:
         jurisdiction_items = [
-            {'postalCode': 'oh', 'jurisdictionName': 'ohio', 'jurisdictionFee': 100.00},
+            {'postalCode': 'oh', 'jurisdictionName': 'ohio', 'licenseFee': 100.00},
         ]
 
     jurisdiction_configurations = []
@@ -116,7 +116,10 @@ def _generate_selected_jurisdictions(jurisdiction_items: list[dict] = None):
     for jurisdiction_test_item in jurisdiction_items:
         with open('../common/tests/resources/dynamo/jurisdiction.json') as f:
             jurisdiction = json.load(f)
-            jurisdiction['jurisdictionFee'] = Decimal(jurisdiction_test_item['jurisdictionFee'])
+            for licensee_fee in jurisdiction['privilegeFees']:
+                # DynamoDB loads this as a decimal
+                licensee_fee['amount'] = Decimal(jurisdiction_test_item['licenseFee'])
+
             # set military discount to fixed amount for tests
             jurisdiction['militaryDiscount']['discountAmount'] = Decimal(25.00)
             jurisdiction['militaryDiscount']['active'] = True
@@ -342,8 +345,8 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
 
         test_jurisdictions = [
-            {'postalCode': 'oh', 'jurisdictionName': 'ohio', 'jurisdictionFee': 50.00},
-            {'postalCode': 'ky', 'jurisdictionName': 'kentucky', 'jurisdictionFee': 200.00},
+            {'postalCode': 'oh', 'jurisdictionName': 'ohio', 'licenseFee': 50.00},
+            {'postalCode': 'ky', 'jurisdictionName': 'kentucky', 'licenseFee': 200.00},
         ]
 
         test_purchase_client.process_charge_for_licensee_privileges(

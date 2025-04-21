@@ -23,8 +23,33 @@ const SAMPLE_JURISDICTION_ITEMS = [
         'jurisdictionAdverseActionsNotificationEmails': {
             'L': []
         },
+        // deprecated - to be removed as part of https://github.com/csg-org/CompactConnect/issues/636
         'jurisdictionFee': {
             'N': '100'
+        },
+        'privilegeFees': {
+            'L': [
+                {
+                    'M': {
+                        'licenseTypeAbbreviation': {
+                            'S': 'aud'
+                        },
+                        'amount': {
+                            'N': '100'
+                        }
+                    }
+                },
+                {
+                    'M': {
+                        'licenseTypeAbbreviation': {
+                            'S': 'slp'
+                        },
+                        'amount': {
+                            'N': '100'
+                        }
+                    }
+                }
+            ]
         },
         'jurisdictionName': {
             'S': 'ohio'
@@ -82,8 +107,33 @@ const SAMPLE_JURISDICTION_ITEMS = [
         'jurisdictionAdverseActionsNotificationEmails': {
             'L': []
         },
+        // deprecated - to be removed as part of https://github.com/csg-org/CompactConnect/issues/636
         'jurisdictionFee': {
             'N': '100'
+        },
+        'privilegeFees': {
+            'L': [
+                {
+                    'M': {
+                        'licenseTypeAbbreviation': {
+                            'S': 'aud'
+                        },
+                        'amount': {
+                            'N': '100'
+                        }
+                    }
+                },
+                {
+                    'M': {
+                        'licenseTypeAbbreviation': {
+                            'S': 'slp'
+                        },
+                        'amount': {
+                            'N': '100'
+                        }
+                    }
+                }
+            ]
         },
         'jurisdictionName': {
             'S': 'nebraska'

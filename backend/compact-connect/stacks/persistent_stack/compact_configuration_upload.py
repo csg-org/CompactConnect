@@ -140,6 +140,7 @@ class CompactConfigurationUpload(Construct):
         This reads the YAML configuration files and generates a JSON string of all the configuration objects that
         should be uploaded into the provider table.
         """
+        stack = Stack.of(self)
         # This object consists of two attributes: compacts and jurisdictions.
         # 'compacts' is a list of top level compact configuration files converted into JSON.
         # 'jurisdictions' is a dictionary of jurisdiction configuration files for a specific
@@ -186,7 +187,11 @@ class CompactConfigurationUpload(Construct):
                             formatted_jurisdiction = self._apply_jurisdiction_configuration_overrides(
                                 formatted_jurisdiction, environment_context
                             )
-                            self._validate_jurisdiction_configuration(formatted_jurisdiction)
+                            self._validate_jurisdiction_configuration(
+                                compact=compact_abbr,
+                                jurisdiction=formatted_jurisdiction,
+                                license_types_for_compact=stack.license_types[compact_abbr],
+                            )
                             uploader_input['jurisdictions'][compact_abbr].append(formatted_jurisdiction)
 
         return json.dumps(uploader_input)
@@ -197,10 +202,41 @@ class CompactConfigurationUpload(Construct):
             jurisdiction.update(environment_context['jurisdiction_configuration_overrides'])
         return jurisdiction
 
-    @staticmethod
-    def _validate_jurisdiction_configuration(jurisdiction: dict):
+    def _validate_jurisdiction_configuration(
+        self, compact: str, jurisdiction: dict, license_types_for_compact: list[dict]
+    ):
         """Do some basic jurisdiction configuration validation to catch some easy mistakes early"""
         if not jurisdiction.get('jurisdictionOperationsTeamEmails', []):
             raise ValueError(
                 f'jurisdictionOperationsTeamEmails is required for jurisdiction {jurisdiction["postalAbbreviation"]}'
+            )
+
+        license_type_abbreviations = [lt['abbreviation'] for lt in license_types_for_compact]
+
+        # Ensure all license types are covered
+        if jurisdiction.get('privilegeFees'):
+            defined_license_types = [fee['licenseTypeAbbreviation'] for fee in jurisdiction['privilegeFees']]
+            missing_license_types = set(license_type_abbreviations) - set(defined_license_types)
+
+            if missing_license_types:
+                raise ValueError(
+                    f'Jurisdiction {jurisdiction["postalAbbreviation"]} in Compact {compact["compactAbbr"]} '
+                    f'is missing license fees for the following license types: {", ".join(missing_license_types)}'
+                )
+
+            # Check for duplicate license types
+            if len(defined_license_types) != len(set(defined_license_types)):
+                raise ValueError(f'Jurisdiction {jurisdiction["postalAbbreviation"]} has duplicate license type fees')
+
+            # Check for unknown license types
+            unknown_license_types = set(defined_license_types) - set(license_type_abbreviations)
+            if unknown_license_types:
+                raise ValueError(
+                    f'Jurisdiction {jurisdiction["postalAbbreviation"]} defines fees for unknown license types: '
+                    f'{", ".join(unknown_license_types)}'
+                )
+        else:
+            # Neither privilegeFees nor jurisdictionFee is defined
+            raise ValueError(
+                f'Jurisdiction {jurisdiction["postalAbbreviation"]} in compact {compact} must define privilegeFees'
             )

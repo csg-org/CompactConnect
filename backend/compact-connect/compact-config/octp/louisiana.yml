@@ -2,6 +2,11 @@
 jurisdictionName: "Louisiana"
 postalAbbreviation: "la"
 jurisdictionFee: 100
+privilegeFees:
+  - licenseTypeAbbreviation: "ot"
+    amount: 100
+  - licenseTypeAbbreviation: "ota"
+    amount: 100
 jurisdictionOperationsTeamEmails:
     - "cloud-team-nonprod-alerts@inspiringapps.com"
 jurisdictionAdverseActionsNotificationEmails: []

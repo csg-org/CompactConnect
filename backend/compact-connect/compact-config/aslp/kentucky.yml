@@ -2,6 +2,11 @@
 jurisdictionName: "Kentucky"
 postalAbbreviation: "ky"
 jurisdictionFee: 100
+privilegeFees:
+  - licenseTypeAbbreviation: "aud"
+    amount: 100
+  - licenseTypeAbbreviation: "slp"
+    amount: 100
 militaryDiscount:
     active: true
     discountType: "FLAT_RATE"

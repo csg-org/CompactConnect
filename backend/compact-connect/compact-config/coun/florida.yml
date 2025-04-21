@@ -2,6 +2,9 @@
 jurisdictionName: "Florida"
 postalAbbreviation: "fl"
 jurisdictionFee: 15
+privilegeFees:
+  - licenseTypeAbbreviation: "lpc"
+    amount: 15
 jurisdictionOperationsTeamEmails:
     - "cloud-team-nonprod-alerts@inspiringapps.com"
 jurisdictionAdverseActionsNotificationEmails: []

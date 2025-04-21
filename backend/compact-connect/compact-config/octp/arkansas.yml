@@ -2,6 +2,11 @@
 jurisdictionName: "Arkansas"
 postalAbbreviation: "ar"
 jurisdictionFee: 3
+privilegeFees:
+  - licenseTypeAbbreviation: "ot"
+    amount: 3
+  - licenseTypeAbbreviation: "ota"
+    amount: 3
 jurisdictionOperationsTeamEmails:
     - "ASMBOTOperations@armedicalboard.org"
 jurisdictionAdverseActionsNotificationEmails: ["ASMBOTAdverseActions@armedicalboard.org"]
