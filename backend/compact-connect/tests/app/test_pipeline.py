@@ -130,15 +130,15 @@ class TestBackendPipeline(TstAppABC, TestCase):
             overwrite_snapshot=overwrite_snapshot,
         )
 
-    def test_synth_generates_jurisdiction_resource_servers_with_expected_scopes_for_staff_users_test_stage(self):
+    def test_synth_generates_jurisdiction_resource_servers_with_expected_scopes_for_staff_users_beta_stage(self):
         """
         Test that the jurisdiction resource servers are created with the expected scopes
         for the staff users in the test environment.
         """
-        persistent_stack = self.app.test_backend_pipeline_stack.test_stage.persistent_stack
+        persistent_stack = self.app.beta_backend_pipeline_stack.beta_backend_stage.persistent_stack
         self._when_testing_jurisdiction_resource_servers(
             persistent_stack=persistent_stack,
-            snapshot_name='JURISDICTION_RESOURCE_SERVER_CONFIGURATION_TEST_ENV',
+            snapshot_name='JURISDICTION_RESOURCE_SERVER_CONFIGURATION_BETA_ENV',
             overwrite_snapshot=False,
         )
 
@@ -191,8 +191,8 @@ class TestBackendPipeline(TstAppABC, TestCase):
         )
         self.assertEqual(0, len(implicit_grant_clients))
 
-    def test_synth_generates_compact_configuration_upload_custom_resource_with_expected_test_configuration_data(self):
-        persistent_stack = self.app.test_backend_pipeline_stack.test_stage.persistent_stack
+    def test_synth_generates_compact_configuration_upload_custom_resource_with_expected_beta_configuration_data(self):
+        persistent_stack = self.app.beta_backend_pipeline_stack.beta_backend_stage.persistent_stack
         persistent_stack_template = Template.from_stack(persistent_stack)
 
         # Ensure our provider user pool is created with expected custom attributes
@@ -212,7 +212,7 @@ class TestBackendPipeline(TstAppABC, TestCase):
         # If the configuration values for any jurisdiction changes, the snapshot will need to be updated.
         self.compare_snapshot(
             actual=sorted_compact_configuration,
-            snapshot_name='COMPACT_CONFIGURATION_UPLOADER_TEST_ENV_INPUT',
+            snapshot_name='COMPACT_CONFIGURATION_UPLOADER_BETA_ENV_INPUT',
             overwrite_snapshot=False,
         )
 
