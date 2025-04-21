@@ -224,7 +224,7 @@ class TestCompactConfigurationUploader(TstFunction):
                     'compact': OT_COMPACT_ABBREVIATION,
                     'dateOfUpdate': MOCK_CURRENT_TIMESTAMP,
                     'jurisdictionAdverseActionsNotificationEmails': [],
-                    # deprecated - will be removed when frontend is updated
+                    # deprecated - will be removed as part of https://github.com/csg-org/CompactConnect/issues/636
                     'jurisdictionFee': Decimal('100.00'),
                     'privilegeFees': [
                         {'licenseTypeAbbreviation': 'ot', 'amount': Decimal('100.00')},

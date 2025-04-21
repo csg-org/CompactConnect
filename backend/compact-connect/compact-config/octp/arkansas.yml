@@ -1,6 +1,7 @@
 # PLACEHOLDER DATA, NOT FINAL CONFIGURATION.
 jurisdictionName: "Arkansas"
 postalAbbreviation: "ar"
+# deprecated - will be removed as part of https://github.com/csg-org/CompactConnect/issues/636
 jurisdictionFee: 3
 privilegeFees:
   - licenseTypeAbbreviation: "ot"
