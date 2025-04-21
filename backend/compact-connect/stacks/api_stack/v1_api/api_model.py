@@ -816,8 +816,6 @@ class ApiModel:
                         'type',
                         'jurisdictionName',
                         'postalAbbreviation',
-                        # deprecated - to be removed as part of https://github.com/csg-org/CompactConnect/issues/636
-                        'jurisdictionFee',
                         'privilegeFees',
                         'jurisprudenceRequirements',
                     ],

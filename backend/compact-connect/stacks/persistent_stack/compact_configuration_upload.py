@@ -188,7 +188,7 @@ class CompactConfigurationUpload(Construct):
                                 formatted_jurisdiction, environment_context
                             )
                             self._validate_jurisdiction_configuration(
-                                compact=compact_abbr,
+                                compact_abbr=compact_abbr,
                                 jurisdiction=formatted_jurisdiction,
                                 license_types_for_compact=stack.license_types[compact_abbr],
                             )
@@ -203,7 +203,7 @@ class CompactConfigurationUpload(Construct):
         return jurisdiction
 
     def _validate_jurisdiction_configuration(
-        self, compact: str, jurisdiction: dict, license_types_for_compact: list[dict]
+        self, compact_abbr: str, jurisdiction: dict, license_types_for_compact: list[dict]
     ):
         """Do some basic jurisdiction configuration validation to catch some easy mistakes early"""
         if not jurisdiction.get('jurisdictionOperationsTeamEmails', []):
@@ -220,7 +220,7 @@ class CompactConfigurationUpload(Construct):
 
             if missing_license_types:
                 raise ValueError(
-                    f'Jurisdiction {jurisdiction["postalAbbreviation"]} in Compact {compact["compactAbbr"]} '
+                    f'Jurisdiction {jurisdiction["postalAbbreviation"]} in Compact {compact_abbr} '
                     f'is missing license fees for the following license types: {", ".join(missing_license_types)}'
                 )
 
@@ -238,5 +238,5 @@ class CompactConfigurationUpload(Construct):
         else:
             # Neither privilegeFees nor jurisdictionFee is defined
             raise ValueError(
-                f'Jurisdiction {jurisdiction["postalAbbreviation"]} in compact {compact} must define privilegeFees'
+                f'Jurisdiction {jurisdiction["postalAbbreviation"]} in compact {compact_abbr} must define privilegeFees'
             )
