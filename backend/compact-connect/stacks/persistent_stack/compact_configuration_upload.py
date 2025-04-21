@@ -211,13 +211,13 @@ class CompactConfigurationUpload(Construct):
                 f'jurisdictionOperationsTeamEmails is required for jurisdiction {jurisdiction["postalAbbreviation"]}'
             )
 
-        license_type_abbreviations = [lt['abbreviation'] for lt in license_types_for_compact]
-
         # Ensure all license types are covered
         if jurisdiction.get('privilegeFees'):
-            defined_license_types = [fee['licenseTypeAbbreviation'] for fee in jurisdiction['privilegeFees']]
-            missing_license_types = set(license_type_abbreviations) - set(defined_license_types)
+            defined_license_types_list = [fee['licenseTypeAbbreviation'] for fee in jurisdiction['privilegeFees']]
+            defined_license_types_set = set(defined_license_types_list)
+            compact_license_type_abbreviations = set([lt['abbreviation'] for lt in license_types_for_compact])
 
+            missing_license_types = compact_license_type_abbreviations - defined_license_types_set
             if missing_license_types:
                 raise ValueError(
                     f'Jurisdiction {jurisdiction["postalAbbreviation"]} in Compact {compact_abbr} '
@@ -225,15 +225,16 @@ class CompactConfigurationUpload(Construct):
                 )
 
             # Check for duplicate license types
-            if len(defined_license_types) != len(set(defined_license_types)):
-                raise ValueError(f'Jurisdiction {jurisdiction["postalAbbreviation"]} has duplicate license type fees')
+            if len(defined_license_types_list) != len(defined_license_types_set):
+                raise ValueError(f'Jurisdiction {jurisdiction["postalAbbreviation"]} in Compact {compact_abbr} '
+                                 f'has duplicate license type fees')
 
             # Check for unknown license types
-            unknown_license_types = set(defined_license_types) - set(license_type_abbreviations)
+            unknown_license_types = defined_license_types_set - compact_license_type_abbreviations
             if unknown_license_types:
                 raise ValueError(
-                    f'Jurisdiction {jurisdiction["postalAbbreviation"]} defines fees for unknown license types: '
-                    f'{", ".join(unknown_license_types)}'
+                    f'Jurisdiction {jurisdiction["postalAbbreviation"]} in Compact {compact_abbr} '
+                    f'defines fees for unknown license types: {", ".join(unknown_license_types)}'
                 )
         else:
             # Neither privilegeFees nor jurisdictionFee is defined
