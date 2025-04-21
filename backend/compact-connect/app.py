@@ -86,10 +86,18 @@ class CompactConnectApp(App):
             environment_context=environment_context,
         )
         # NOTE: for first-time sandbox deployments, ensure you deploy the backend stage successfully first
-        # by running `cdk deploy 'Sandbox/*'`, then if you want to deploy the UI for your sandbox environment, set
-        # the 'deploy_sandbox_ui' field to true and deploy this stack by running `cdk deploy 'SandboxUI/*'. This
-        # ensures the user pool values are configured to be bundled with the UI build artifact.
+        # by running `cdk deploy 'Sandbox/*'`, then if you have a domain name configured and want to deploy the UI for
+        # your sandbox environment, set the 'deploy_sandbox_ui' field to true and deploy this stack by running
+        # `cdk deploy 'SandboxUI/*'. This ensures the user pool values are configured to be bundled with the UI build
+        # artifact.
         if environment_context.get('deploy_sandbox_ui', False):
+            if not environment_context.get('domain_name'):
+                raise ValueError(
+                    'Cannot deploy sandbox UI if domain name is not configured for your environment. '
+                    'You may still run the app from localhost. See README.md in the webroot folder for '
+                    'more information about running the app from localhost.'
+                )
+
             self.sandbox_frontend_stage = FrontendStage(
                 self,
                 'SandboxUI',
