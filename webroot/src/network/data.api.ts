@@ -123,10 +123,11 @@ export class DataApi {
      * @param  {string}           licenseeId     The Licensee ID.
      * @param  {string}           privilegeState The 2-character state abbreviation for the Privilege.
      * @param  {string}           licenseType    The license type.
+     * @param  {string}           notes          The deletion notes.
      * @return {Promise<object>}                 The server response.
      */
-    public deletePrivilege(compact, licenseeId, privilegeState, licenseType) {
-        return licenseDataApi.deletePrivilege(compact, licenseeId, privilegeState, licenseType);
+    public deletePrivilege(compact, licenseeId, privilegeState, licenseType, notes) {
+        return licenseDataApi.deletePrivilege(compact, licenseeId, privilegeState, licenseType, notes);
     }
 
     /**

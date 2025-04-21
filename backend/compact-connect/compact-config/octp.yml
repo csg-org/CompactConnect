@@ -13,7 +13,7 @@ compactOperationsTeamEmails: []
 compactAdverseActionsNotificationEmails: []
 compactSummaryReportNotificationEmails: []
 licenseeRegistrationEnabledForEnvironments: ["test"]
-activeEnvironments: ["test"]
+activeEnvironments: ["test", "beta"]
 
 attestations:
   - attestationId: "jurisprudence-confirmation"

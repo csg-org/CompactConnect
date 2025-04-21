@@ -6,7 +6,6 @@ from stacks.ingest_stack import IngestStack
 from stacks.persistent_stack import PersistentStack
 from stacks.reporting_stack import ReportingStack
 from stacks.transaction_monitoring_stack import TransactionMonitoringStack
-from stacks.ui_stack import UIStack
 
 
 class BackendStage(Stage):
@@ -18,7 +17,6 @@ class BackendStage(Stage):
         app_name: str,
         environment_name: str,
         environment_context: dict,
-        github_repo_string: str,
         **kwargs,
     ):
         super().__init__(scope, construct_id, **kwargs)
@@ -44,17 +42,6 @@ class BackendStage(Stage):
             environment_context=environment_context,
             environment_name=environment_name,
             standard_tags=standard_tags,
-            persistent_stack=self.persistent_stack,
-        )
-
-        self.ui_stack = UIStack(
-            self,
-            'UIStack',
-            env=environment,
-            environment_context=environment_context,
-            environment_name=environment_name,
-            standard_tags=standard_tags,
-            github_repo_string=github_repo_string,
             persistent_stack=self.persistent_stack,
         )
 

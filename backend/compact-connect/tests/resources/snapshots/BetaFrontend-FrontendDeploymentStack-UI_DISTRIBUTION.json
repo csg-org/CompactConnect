@@ -4,7 +4,7 @@
     "Properties": {
       "DistributionConfig": {
         "Aliases": [
-          "app.test.compactconnect.org"
+          "app.beta.compactconnect.org"
         ],
         "CacheBehaviors": [
           {
@@ -16,7 +16,7 @@
             "CachePolicyId": "4135ea2d-6df8-44a3-9df3-4b5a84be39ad",
             "Compress": true,
             "PathPattern": "service-worker.js",
-            "TargetOriginId": "PipelineStackTestUIStackUIDistributionOrigin24A1AC6A0",
+            "TargetOriginId": "BetaFrontendPipelineStackBetaFrontendFrontendDeploymentStackUIDistributionOrigin297996453",
             "ViewerProtocolPolicy": "https-only"
           }
         ],
@@ -39,11 +39,11 @@
             {
               "EventType": "viewer-response",
               "LambdaFunctionARN": {
-                "Ref": "CSPFunctionCurrentVersionB61A66119bca9bd93f3bff71b510b936e7c48161"
+                "Ref": "CSPFunctionCurrentVersionB61A66111d0bfad3c957cdf188afd3c1de9c278f"
               }
             }
           ],
-          "TargetOriginId": "PipelineStackTestUIStackUIDistributionOrigin1A5312F0A",
+          "TargetOriginId": "BetaFrontendPipelineStackBetaFrontendFrontendDeploymentStackUIDistributionOrigin12473EA36",
           "ViewerProtocolPolicy": "https-only"
         },
         "DefaultRootObject": "index.html",
@@ -52,9 +52,12 @@
         "IPV6Enabled": true,
         "Logging": {
           "Bucket": {
-            "Fn::ImportValue": "Test-PersistentStack:ExportsOutputFnGetAttAccessLogsBucket83982689RegionalDomainNameD3277804"
+            "Fn::GetAtt": [
+              "UIAccessLogsBucket83B32FFC",
+              "RegionalDomainName"
+            ]
           },
-          "Prefix": "_logs/111122223333/us-east-1/PipelineStack/Test/UIStack/UIDistribution/"
+          "Prefix": "_logs/222233334444/us-east-1/BetaFrontendPipelineStack/BetaFrontend/FrontendDeploymentStack/UIDistribution/"
         },
         "Origins": [
           {
@@ -64,7 +67,7 @@
                 "RegionalDomainName"
               ]
             },
-            "Id": "PipelineStackTestUIStackUIDistributionOrigin1A5312F0A",
+            "Id": "BetaFrontendPipelineStackBetaFrontendFrontendDeploymentStackUIDistributionOrigin12473EA36",
             "OriginAccessControlId": {
               "Fn::GetAtt": [
                 "UIDistributionOrigin1S3OriginAccessControl71BC2D71",
@@ -85,7 +88,7 @@
                 "RegionalDomainName"
               ]
             },
-            "Id": "PipelineStackTestUIStackUIDistributionOrigin24A1AC6A0",
+            "Id": "BetaFrontendPipelineStackBetaFrontendFrontendDeploymentStackUIDistributionOrigin297996453",
             "OriginAccessControlId": {
               "Fn::GetAtt": [
                 "UIDistributionOrigin2S3OriginAccessControl3DEC1613",

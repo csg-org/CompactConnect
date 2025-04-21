@@ -142,6 +142,15 @@
             .modal-content {
                 padding-top: 1rem;
 
+                .deactivation-notes {
+                    margin-top: 1.8rem;
+
+                    #notes {
+                        min-height: 12rem;
+                        border-color: @fontColor;
+                    }
+                }
+
                 .modal-error {
                     margin-top: 2.4rem;
                     color: @midRed;
@@ -150,12 +159,33 @@
 
                 .action-button-row {
                     display: flex;
-                    flex-direction: row;
-                    justify-content: flex-end;
-                    margin-top: 4rem;
+                    flex-direction: column;
+                    margin-top: 2rem;
 
-                    .submit-button {
-                        margin-left: 1rem;
+                    @media @desktopWidth {
+                        flex-direction: row;
+                        flex-wrap: wrap;
+                        justify-content: flex-end;
+                        margin-top: 4rem;
+                    }
+
+                    .action-button {
+                        margin-bottom: 1rem;
+
+                        @media @desktopWidth {
+                            &:not(:first-child) {
+                                margin-left: 2.4rem;
+                            }
+                        }
+
+                        .input-button,
+                        .input-submit {
+                            width: 100%;
+
+                            @media @desktopWidth {
+                                width: auto;
+                            }
+                        }
                     }
                 }
             }

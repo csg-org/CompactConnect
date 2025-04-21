@@ -257,10 +257,19 @@ export class LicenseDataApi implements DataApiInterface {
      * @param  {string}           licenseeId     The Licensee ID.
      * @param  {string}           privilegeState The 2-character state abbreviation for the Privilege.
      * @param  {string}           licenseType    The license type.
+     * @param  {string}           notes          The deletion notes.
      * @return {Promise<object>}                 The server response.
      */
-    public async deletePrivilege(compact: string, licenseeId: string, privilegeState: string, licenseType: string) {
-        const serverResponse: any = await this.api.post(`/v1/compacts/${compact}/providers/${licenseeId}/privileges/jurisdiction/${privilegeState}/licenseType/${licenseType}/deactivate`, {});
+    public async deletePrivilege(
+        compact: string,
+        licenseeId: string,
+        privilegeState: string,
+        licenseType: string,
+        notes: string
+    ) {
+        const serverResponse: any = await this.api.post(`/v1/compacts/${compact}/providers/${licenseeId}/privileges/jurisdiction/${privilegeState}/licenseType/${licenseType}/deactivate`, {
+            deactivationNote: notes,
+        });
 
         return serverResponse;
     }

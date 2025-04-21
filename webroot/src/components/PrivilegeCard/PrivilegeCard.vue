@@ -33,6 +33,7 @@
                         v-click-outside="closePrivilegeActionMenu"
                     >
                         <li
+                            v-if="isCurrentUserCompactAdmin"
                             class="privilege-menu-item"
                             :class="{ 'disabled': !isActive, 'danger': isActive }"
                             role="button"
@@ -41,6 +42,13 @@
                             tabindex="0"
                         >
                             {{ (isActive) ? $t('licensing.deactivate') : $t('licensing.deactivated') }}
+                        </li>
+                        <li
+                            v-if="isCurrentUserPrivilegeStateAdmin"
+                            class="privilege-menu-item"
+                            :class="{ 'disabled': true }"
+                        >
+                            {{ $t('licensing.encumber') }}
                         </li>
                     </ul>
                 </transition>
@@ -75,29 +83,39 @@
             <Modal
                 v-if="isDeactivatePrivilegeModalDisplayed"
                 class="deactivate-privilege-modal"
-                :title="stateContent"
+                :title="$t('licensing.confirmPrivilegeDeactivateTitle')"
                 :showActions="false"
                 @keydown.tab="focusTrapDeactivatePrivilegeModal($event)"
                 @keyup.esc="closeDeactivatePrivilegeModal"
             >
                 <template v-slot:content>
                     <div class="modal-content deactivate-modal-content">
-                        {{ $t('licensing.confirmPrivilegeDeactivate') }}
+                        {{ $t('licensing.confirmPrivilegeDeactivateSubtext') }}
                         <form @submit.prevent="submitDeactivatePrivilege">
+                            <div class="form-row">
+                                <InputTextarea
+                                    class="deactivation-notes"
+                                    :formInput="formData.submitModalNotes"
+                                    :shouldResizeY="true"
+                                />
+                            </div>
                             <div v-if="modalErrorMessage" class="modal-error">{{ modalErrorMessage }}</div>
                             <div class="action-button-row">
                                 <InputButton
                                     id="deactivate-modal-cancel-button"
-                                    class="cancel-button"
+                                    class="action-button cancel-button"
                                     :label="$t('common.cancel')"
                                     :isTransparent="true"
                                     :onClick="closeDeactivatePrivilegeModal"
                                 />
                                 <InputSubmit
-                                    class="submit-button continue-button"
+                                    class="action-button submit-button continue-button"
                                     :formInput="formData.submitModalContinue"
-                                    :label="(isFormLoading) ? $t('common.loading') : $t('common.continue')"
-                                    :isEnabled="!isFormLoading"
+                                    :label="(isFormLoading)
+                                        ? $t('common.loading')
+                                        : $t('licensing.confirmPrivilegeDeactivateSubmit')"
+                                    :isWarning="true"
+                                    :isEnabled="isFormValid && !isFormLoading"
                                 />
                             </div>
                         </form>

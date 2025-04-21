@@ -20,7 +20,7 @@ class TestAttestationsApi(TestApi):
     """
 
     def test_synth_generates_attestations_resource(self):
-        api_stack = self.app.sandbox_stage.api_stack
+        api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
 
         # Ensure the resource is created with expected path
@@ -36,7 +36,7 @@ class TestAttestationsApi(TestApi):
         )
 
     def test_synth_generates_get_attestation_resource(self):
-        api_stack = self.app.sandbox_stage.api_stack
+        api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
 
         # Ensure the resource is created with expected path
