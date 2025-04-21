@@ -816,7 +816,9 @@ class ApiModel:
                         'type',
                         'jurisdictionName',
                         'postalAbbreviation',
+                        # deprecated - to be removed as part of https://github.com/csg-org/CompactConnect/issues/636
                         'jurisdictionFee',
+                        'privilegeFees',
                         'jurisprudenceRequirements',
                     ],
                     properties={
@@ -829,9 +831,22 @@ class ApiModel:
                             type=JsonSchemaType.STRING,
                             description='The postal abbreviation of the jurisdiction',
                         ),
+                        # deprecated - to be removed as part of https://github.com/csg-org/CompactConnect/issues/636
                         'jurisdictionFee': JsonSchema(
                             type=JsonSchemaType.NUMBER,
                             description='The fee for the jurisdiction',
+                        ),
+                        'privilegeFees': JsonSchema(
+                            type=JsonSchemaType.ARRAY,
+                            description='The fees for the privileges',
+                            items=JsonSchema(
+                                type=JsonSchemaType.OBJECT,
+                                required=['licenseTypeAbbreviation', 'amount'],
+                                properties={
+                                    'licenseTypeAbbreviation': JsonSchema(type=JsonSchemaType.STRING),
+                                    'amount': JsonSchema(type=JsonSchemaType.NUMBER),
+                                },
+                            )
                         ),
                         'militaryDiscount': JsonSchema(
                             type=JsonSchemaType.OBJECT,
