@@ -1,10 +1,11 @@
 # ruff: noqa: N801, N815, ARG002 invalid-name unused-kwargs
-from cc_common.config import config
-from cc_common.data_model.schema.base_record import BaseRecordSchema
-from cc_common.data_model.schema.jurisdiction import JURISDICTION_TYPE, JurisdictionMilitaryDiscountType
 from marshmallow import Schema, pre_dump
 from marshmallow.fields import Boolean, Decimal, Email, List, Nested, String
 from marshmallow.validate import Length, OneOf
+
+from cc_common.config import config
+from cc_common.data_model.schema.base_record import BaseRecordSchema
+from cc_common.data_model.schema.jurisdiction import JURISDICTION_TYPE, JurisdictionMilitaryDiscountType
 
 
 class JurisdictionMilitaryDiscountRecordSchema(Schema):
@@ -22,6 +23,7 @@ class JurisdictionJurisprudenceRequirementsRecordSchema(Schema):
 class JurisdictionPrivilegeFeeRecordSchema(Schema):
     licenseTypeAbbreviation = String(required=True, allow_none=False)
     amount = Decimal(required=True, allow_none=False, places=2)
+
 
 @BaseRecordSchema.register_schema(JURISDICTION_TYPE)
 class JurisdictionRecordSchema(BaseRecordSchema):
