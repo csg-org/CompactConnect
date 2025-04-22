@@ -13,7 +13,8 @@ import {
     License,
     LicenseType,
     LicenseSerializer,
-    LicenseStatus
+    LicenseStatus,
+    EligibilityStatus
 } from '@models/License/License.model';
 import { MilitaryAffiliation, MilitaryAffiliationSerializer } from '@models/MilitaryAffiliation/MilitaryAffiliation.model';
 import { State } from '@models/State/State.model';
@@ -201,7 +202,7 @@ export class Licensee implements InterfaceLicensee {
         return this.militaryAffiliations?.some((affiliation) => ((affiliation as MilitaryAffiliation).status as any) === 'active') || false;
     }
 
-    public aciveMilitaryAffiliation(): MilitaryAffiliation | null {
+    public activeMilitaryAffiliation(): MilitaryAffiliation | null {
         // The API does not return the affiliations in the get-all endpoint therefore all users will appear unaffiliated
         // if only that endpoint has been called
         return this.militaryAffiliations?.find((affiliation) => ((affiliation as MilitaryAffiliation).status as any) === 'active') || null;
@@ -254,9 +255,12 @@ export class Licensee implements InterfaceLicensee {
         return this.bestHomeJurisdictionLicense().mailingAddress || new Address();
     }
 
+    public eligibleLicenses(): Array<License> {
+        return this.licenses?.filter((license: License) => (license.eligibility === EligibilityStatus.ELIGIBLE)) || [];
+    }
+
     public canPurchasePrivileges(): boolean {
-        // Return true if the user has an active license in their chosen homestate
-        return !!this.activeHomeJurisdictionLicenses().length;
+        return !!this.eligibleLicenses().length;
     }
 }
 

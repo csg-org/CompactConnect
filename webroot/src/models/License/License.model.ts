@@ -34,6 +34,12 @@ export enum LicenseStatus { // Temp server definition until server returns via e
     INACTIVE = 'inactive',
 }
 
+export enum EligibilityStatus {
+    ELIGIBLE = 'eligible',
+    INELIGIBLE = 'ineligible',
+    NA = 'n/a',
+}
+
 export interface InterfaceLicense {
     id?: string | null;
     compact?: Compact | null;
@@ -51,6 +57,8 @@ export interface InterfaceLicense {
     licenseType?: LicenseType | null,
     history?: Array<LicenseHistoryItem>,
     status?: LicenseStatus,
+    statusDescription?: string | null,
+    eligibility?: EligibilityStatus,
 }
 
 // ========================================================
@@ -74,6 +82,8 @@ export class License implements InterfaceLicense {
     public licenseType? = null;
     public history? = [];
     public status? = LicenseStatus.INACTIVE;
+    public statusDescription? = null;
+    public eligibility? = EligibilityStatus.INELIGIBLE;
 
     constructor(data?: InterfaceLicense) {
         const cleanDataObject = deleteUndefinedProperties(data);
@@ -116,6 +126,10 @@ export class License implements InterfaceLicense {
         const isInactive = this.status === LicenseStatus.INACTIVE;
 
         return isLastEventDeactivation && isInactive;
+    }
+
+    public isCompactEligible(): boolean {
+        return this.eligibility === EligibilityStatus.ELIGIBLE;
     }
 
     public licenseTypeAbbreviation(): string {
@@ -197,8 +211,10 @@ export class LicenseSerializer {
             renewalDate: json.dateOfRenewal,
             expireDate: json.dateOfExpiration,
             licenseType: json.licenseType,
-            status: json.status,
             history: [] as Array<LicenseHistoryItem>,
+            status: json.licenseStatus || json.status,
+            statusDescription: json.licenseStatusName,
+            eligibility: (json.type?.startsWith('license')) ? json.compactEligibility : EligibilityStatus.NA,
         };
 
         if (Array.isArray(json.history)) {

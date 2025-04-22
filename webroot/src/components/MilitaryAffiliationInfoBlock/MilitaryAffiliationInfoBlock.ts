@@ -71,7 +71,7 @@ class MilitaryAffiliationInfoBlock extends mixins(MixinForm) {
         let militaryStatus = '';
 
         if (this.licensee) {
-            const activeAffiliation = this.licensee.aciveMilitaryAffiliation() as any;
+            const activeAffiliation = this.licensee.activeMilitaryAffiliation() as any;
             const isMilitary = this.licensee.isMilitary();
 
             if (isMilitary && activeAffiliation?.affiliationType === 'militaryMember') {
