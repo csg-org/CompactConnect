@@ -11,41 +11,64 @@
     color: #2d2d2d;
     background-color: @lightBlue;
 
-    .license-title-row {
+    .error {
+        color: @midRed;
+    }
+
+    .license-heading-row {
         display: flex;
         flex-direction: row;
-        align-items: flex-start;
+        margin-bottom: 0.6rem;
 
         .license-title {
-            font-weight: @fontWeightBold;
+            margin-bottom: 0.4rem;
+            color: @primaryColor;
+            font-weight: @fontWeightExtraBold;
+            font-size: 1.4rem;
+            letter-spacing: 0.1rem;
+            text-transform: uppercase;
         }
-    }
-
-    .license-icon-container {
-        width: 3rem;
-
-        .license-logo {
-            width: 100%;
-        }
-
-        :deep(path) {
-            fill: @black;
-        }
-    }
-
-    .license-heading-text {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        margin-top: 0.4rem;
 
         .state-title {
+            display: flex;
             font-weight: @fontWeightBold;
             font-size: @fontSizeLarge;
+
+            .license-icon-container {
+                width: 3rem;
+                margin-right: 0.8rem;
+
+                .license-logo {
+                    width: 100%;
+                }
+
+                :deep(path) {
+                    fill: @black;
+                }
+            }
+        }
+
+        .license-status {
+            max-height: 2.4rem;
+            margin-left: auto;
+            padding: 0.2rem 1rem;
+            border-radius: @borderRadiusPillShape;
+            font-weight: @fontWeightBold;
+            background-color: rgba(@white, 0.04);
+
+            &.active {
+                background-color: rgba(@white, 0.5);
+            }
         }
 
         .license-type-abbrev {
-            font-size: @fontSizeSmall;
+            font-size: 1.4rem;
+        }
+
+        .license-status-description {
+            margin-left: auto;
+            font-size: 1.4rem;
+            font-style: italic;
         }
     }
 
@@ -72,29 +95,37 @@
         }
     }
 
-    .license-status {
-        position: absolute;
-        top: 2rem;
-        right: 2rem;
+    .license-eligibility-container {
+        @spacing: 2rem;
+        @iconSize: 2rem;
 
-        &.expired {
-            font-style: italic;
+        display: flex;
+        align-items: center;
+        margin-top: @spacing;
+        padding: @spacing 0 1.2rem;
+        border-top: 1px solid rgba(@darkGrey, 0.15);
+
+        .eligibility-icon-container {
+            width: @iconSize;
+            height: @iconSize;
+            margin-right: 0.8rem;
+            border-radius: 50%;
+            background-color: @black;
+
+            &.eligible {
+                background-color: @midGreen;
+            }
+
+            &.not-eligible {
+                background-color: @midRed;
+            }
+
+            .eligibility-icon {
+                width: @iconSize;
+                height: @iconSize;
+                fill: @white;
+                stroke: @white;
+            }
         }
     }
-}
-
-.italics {
-    font-style: italic;
-}
-
-.bold {
-    font-weight: @fontWeightBold;
-}
-
-.error {
-    color: @midRed;
-}
-
-.left-marg {
-    margin-left: 1rem;
 }

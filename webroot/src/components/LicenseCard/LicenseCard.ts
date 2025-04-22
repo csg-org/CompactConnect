@@ -11,13 +11,17 @@ import {
     Prop
 } from 'vue-facing-decorator';
 import LicenseIcon from '@components/Icons/LicenseIcon/LicenseIcon.vue';
+import CheckCircleIcon from '@components/Icons/CheckCircle/CheckCircle.vue';
+import CloseXIcon from '@components/Icons/CloseX/CloseX.vue';
 import { License, LicenseStatus } from '@/models/License/License.model';
 import { State } from '@/models/State/State.model';
 
 @Component({
     name: 'LicenseCard',
     components: {
-        LicenseIcon
+        LicenseIcon,
+        CheckCircleIcon,
+        CloseXIcon,
     }
 })
 class LicenseCard extends Vue {
@@ -35,6 +39,10 @@ class LicenseCard extends Vue {
         }
 
         return licenseStatus;
+    }
+
+    get statusDescriptionDisplay(): string {
+        return this.license?.statusDescription || '';
     }
 
     get isActive(): boolean {
@@ -73,10 +81,6 @@ class LicenseCard extends Vue {
         return this.$t('licensing.noDiscipline');
     }
 
-    get licenseTitleDisplay(): string {
-        return this.$t('licensing.license').toUpperCase();
-    }
-
     get licenseNumber(): string {
         return this.license?.licenseNumber || '';
     }
@@ -87,6 +91,10 @@ class LicenseCard extends Vue {
 
     get licenseTypeDisplay(): string {
         return this.license?.licenseTypeAbbreviation() || '';
+    }
+
+    get isCompactEligible(): boolean {
+        return Boolean(this.license?.isCompactEligible());
     }
 }
 
