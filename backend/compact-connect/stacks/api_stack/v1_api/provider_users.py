@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 
 from aws_cdk import Duration
-from aws_cdk.aws_apigateway import LambdaIntegration, MethodResponse, Resource
+from aws_cdk.aws_apigateway import LambdaIntegration, MethodResponse, Resource, PassthroughBehavior
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, MathExpression, Metric, Stats, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_kms import IKey
@@ -347,7 +347,11 @@ class ProviderUsers:
                     response_models={'application/json': self.api_model.message_response_model},
                 ),
             ],
-            integration=LambdaIntegration(self.provider_registration_handler, timeout=Duration.seconds(29)),
+            integration=LambdaIntegration(
+                self.provider_registration_handler,
+                timeout=Duration.seconds(29),
+                passthrough_behavior=PassthroughBehavior.NEVER
+            ),
         )
 
         NagSuppressions.add_resource_suppressions_by_path(
