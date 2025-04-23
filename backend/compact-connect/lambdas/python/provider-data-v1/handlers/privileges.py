@@ -136,33 +136,30 @@ def privilege_purchase_message_handler(message: dict):
     which will cause the SQS handler decorator to report the message as a failure
     and the message will be retried according to the queue's retry policy.
     """
-    license_type = message.get('licenseType')
     total_cost = message.get('totalCost')
     cost_line_items = message.get('costLineItems')
-    provider_id = message.get('providerId')
-    jurisdiction = message.get('jurisdiction')
-    privilege_id = message.get('privilegeId')
+    privileges = message.get('privileges')
+    provider_email = message.get('providerEmail')
+    transaction_date = message.get('transactionDate')
     
     with logger.append_context_keys(
-        provider_id=provider_id, jurisdiction=jurisdiction, privilege_id=privilege_id
+        provider_email=provider_email
     ):
         logger.info('Processing privilege purchase notification')
         
         # Get provider information to retrieve email and name
         # TODO: copy this pattern to get data needed to furnish info?
-        provider = config.data_client.get_provider(compact=compact, provider_id=provider_id, detail=False)['items'][0]
+        # provider = config.data_client.get_provider(compact=compact, provider_id=provider_id, detail=False)['items'][0]
         
         error_messages = []
 
         # Send notification to the jurisdiction
         try:
-            logger.info('Sending privilege purchase notification to provider', provider=provider_id)
-            provider_first_name = provider['givenName']
+            logger.info('Sending privilege purchase notification to provider', provider=provider_email)
             config.email_service_client.send_privilege_purchase_email(
-                provider_first_name=provider_first_name,
-                privilege_id=privilege_id,
-                jurisdiction=jurisdiction,
-                license_type=license_type,
+                transaction_date=transaction_date,
+                provider_email=provider_email,
+                privileges=privileges,
                 total_cost=total_cost,
                 cost_line_items=cost_line_items
             )

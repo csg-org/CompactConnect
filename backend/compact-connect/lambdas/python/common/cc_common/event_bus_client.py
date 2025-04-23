@@ -54,14 +54,19 @@ class EventBusClient:
     def publish_privilege_purchase_event(
         self,
         source, str,
-        compact: str,
         provider_email: str,
-        privilege_id: str,
-        total_cost: str
+        transaction_date: str,
+        privileges: list[dict],
+        total_cost: str,
+        cost_line_items: list[dict]
     ):
 
         event_detail = {
-            'this': 'this'
+            'providerEmail': provider_email,
+            'transactionDate': transaction_date,
+            'privileges': privileges,
+            'totalCost': total_cost,
+            'costLineItems': cost_line_items
         }
         self._publish_event(
             source=source,

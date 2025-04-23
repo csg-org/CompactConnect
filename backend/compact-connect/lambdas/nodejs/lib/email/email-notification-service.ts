@@ -275,9 +275,6 @@ export class EmailNotificationService extends BaseEmailService {
         specificEmails: string[] | undefined,
         transactionDate: string,
         privileges: any[], // fix later
-        // privilegeIds: string[],
-        // jurisdiction: string,
-        // licenseType: string,
         totalCost: string,
         costLineItems: any[]
     ): Promise<void> {
