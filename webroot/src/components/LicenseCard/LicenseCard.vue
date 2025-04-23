@@ -9,7 +9,10 @@
     <div class="license-card-container">
         <div class="license-heading-row">
             <div class="state-title">
-                <div v-if="shouldIncludeLogo" class="license-icon-container"><LicenseIcon /></div>
+                <div v-if="shouldIncludeLogo" class="license-icon-container">
+                    <LicenseHomeIcon v-if="isHomeState" class="icon-license" />
+                    <LicenseIcon v-else class="icon-license" />
+                </div>
                 {{stateContent}}
             </div>
             <div class="license-status" :class="{ 'active': isActive }">{{statusDisplay}}</div>

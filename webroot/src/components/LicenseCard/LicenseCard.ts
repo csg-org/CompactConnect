@@ -11,6 +11,7 @@ import {
     Prop
 } from 'vue-facing-decorator';
 import LicenseIcon from '@components/Icons/LicenseIcon/LicenseIcon.vue';
+import LicenseHomeIcon from '@components/Icons/LicenseHome/LicenseHome.vue';
 import CheckCircleIcon from '@components/Icons/CheckCircle/CheckCircle.vue';
 import CloseXIcon from '@components/Icons/CloseX/CloseX.vue';
 import { License, LicenseStatus } from '@/models/License/License.model';
@@ -20,12 +21,14 @@ import { State } from '@/models/State/State.model';
     name: 'LicenseCard',
     components: {
         LicenseIcon,
+        LicenseHomeIcon,
         CheckCircleIcon,
         CloseXIcon,
     }
 })
 class LicenseCard extends Vue {
     @Prop({ required: true }) license!: License;
+    @Prop({ default: null }) homeState?: State | null;
     @Prop({ default: false }) shouldIncludeLogo?: boolean;
 
     //
@@ -55,6 +58,10 @@ class LicenseCard extends Vue {
 
     get stateContent(): string {
         return this.state?.name() || '';
+    }
+
+    get isHomeState(): boolean {
+        return this.license?.issueState?.abbrev === this.homeState?.abbrev;
     }
 
     get issuedTitle(): string {
