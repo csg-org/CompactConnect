@@ -153,6 +153,13 @@ def api_handler(fn: Callable):
                     'statusCode': 400,
                     'body': json.dumps({'message': e.message}),
                 }
+            except json.JSONDecodeError as e:
+                logger.warning('Invalid JSON in request body', exc_info=e)
+                return {
+                    'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
+                    'statusCode': 400,
+                    'body': json.dumps({'message': 'Invalid request: Malformed JSON'}),
+                }
             except ClientError as e:
                 # Any boto3 ClientErrors we haven't already caught and transformed are probably on us
                 logger.error('boto3 ClientError', response=e.response, exc_info=e)
