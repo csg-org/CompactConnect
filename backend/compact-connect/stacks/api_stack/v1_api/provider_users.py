@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 
 from aws_cdk import Duration
-from aws_cdk.aws_apigateway import LambdaIntegration, MethodResponse, Resource, PassthroughBehavior
+from aws_cdk.aws_apigateway import LambdaIntegration, MethodResponse, PassthroughBehavior, Resource
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, MathExpression, Metric, Stats, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_kms import IKey
@@ -350,7 +350,7 @@ class ProviderUsers:
             integration=LambdaIntegration(
                 self.provider_registration_handler,
                 timeout=Duration.seconds(29),
-                passthrough_behavior=PassthroughBehavior.NEVER
+                passthrough_behavior=PassthroughBehavior.NEVER,
             ),
         )
 
