@@ -221,6 +221,16 @@
         "jurisdictionName": "Ohio",
         "postalAbbreviation": "oh",
         "jurisdictionFee": 25,
+        "privilegeFees": [
+          {
+            "licenseTypeAbbreviation": "aud",
+            "amount": 25
+          },
+          {
+            "licenseTypeAbbreviation": "slp",
+            "amount": 25
+          }
+        ],
         "jurisdictionOperationsTeamEmails": [
           "gregg.thornton@shp.ohio.gov"
         ],
@@ -242,6 +252,16 @@
         "jurisdictionName": "Alabama",
         "postalAbbreviation": "al",
         "jurisdictionFee": 100,
+        "privilegeFees": [
+          {
+            "licenseTypeAbbreviation": "ot",
+            "amount": 100
+          },
+          {
+            "licenseTypeAbbreviation": "ota",
+            "amount": 100
+          }
+        ],
         "jurisdictionOperationsTeamEmails": [
           "cloud-team-nonprod-alerts@inspiringapps.com"
         ],
@@ -262,6 +282,16 @@
         "jurisdictionName": "Arkansas",
         "postalAbbreviation": "ar",
         "jurisdictionFee": 3,
+        "privilegeFees": [
+          {
+            "licenseTypeAbbreviation": "ot",
+            "amount": 3
+          },
+          {
+            "licenseTypeAbbreviation": "ota",
+            "amount": 3
+          }
+        ],
         "jurisdictionOperationsTeamEmails": [
           "ASMBOTOperations@armedicalboard.org"
         ],
@@ -281,6 +311,16 @@
         "jurisdictionName": "Louisiana",
         "postalAbbreviation": "la",
         "jurisdictionFee": 100,
+        "privilegeFees": [
+          {
+            "licenseTypeAbbreviation": "ot",
+            "amount": 100
+          },
+          {
+            "licenseTypeAbbreviation": "ota",
+            "amount": 100
+          }
+        ],
         "jurisdictionOperationsTeamEmails": [
           "cloud-team-nonprod-alerts@inspiringapps.com"
         ],
@@ -301,6 +341,16 @@
         "jurisdictionName": "Mississippi",
         "postalAbbreviation": "ms",
         "jurisdictionFee": 100,
+        "privilegeFees": [
+          {
+            "licenseTypeAbbreviation": "ot",
+            "amount": 100
+          },
+          {
+            "licenseTypeAbbreviation": "ota",
+            "amount": 100
+          }
+        ],
         "jurisdictionOperationsTeamEmails": [
           "cloud-team-nonprod-alerts@inspiringapps.com"
         ],
@@ -321,6 +371,16 @@
         "jurisdictionName": "Ohio",
         "postalAbbreviation": "oh",
         "jurisdictionFee": 100,
+        "privilegeFees": [
+          {
+            "licenseTypeAbbreviation": "ot",
+            "amount": 100
+          },
+          {
+            "licenseTypeAbbreviation": "ota",
+            "amount": 100
+          }
+        ],
         "militaryDiscount": {
           "active": true,
           "discountType": "FLAT_RATE",

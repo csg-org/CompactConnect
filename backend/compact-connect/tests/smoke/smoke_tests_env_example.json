@@ -11,5 +11,6 @@
   "CC_TEST_COGNITO_PROVIDER_USER_POOL_ID": "us-east-1_12345",
   "CC_TEST_COGNITO_PROVIDER_USER_POOL_CLIENT_ID": "72612345",
   "CC_TEST_PROVIDER_USER_USERNAME": "example@example.com",
-  "CC_TEST_PROVIDER_USER_PASSWORD": "examplePassword"
+  "CC_TEST_PROVIDER_USER_PASSWORD": "examplePassword",
+  "ENVIRONMENT_NAME": "sandboxEnvironmentNamePlaceholder"
 }
