@@ -1,0 +1,33 @@
+{
+  "ssm_context": {
+    "github_repo_string": "csg-org/CompactConnect",
+    "app_name": "compact-connect",
+    "environments": {
+      "pipeline": {
+        "account_id": "000000000000",
+        "region": "us-east-1",
+        "connection_arn": "arn:aws:codestar-connections:us-east-1:000000000000:connection/11111111-1111-1111-111111111111"
+      },
+      "beta": {
+        "account_id": "222233334444",
+        "region": "us-east-1",
+        "domain_name": "beta.compactconnect.org",
+        "recaptcha_public_key": "123-KFEUsjehfuejILDVUKkRnAF9SSzb8o9uv5lY7Ih",
+        "robots_meta": "noindex,nofollow",
+        "notifications": {
+          "ses_operations_support_email": "justin@example.com",
+          "email": [
+            "justin@example.com"
+          ],
+          "slack": [
+            {
+              "channel_name": "ops-monitoring",
+              "channel_id": "C0123456789",
+              "workspace_id": "T01234567"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

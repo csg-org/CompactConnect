@@ -31,4 +31,7 @@ export default {
 
         return state.model?.licensee?.licenses?.find((license) => (license.id === licenseId)) || null;
     },
+    getUserPrivilegeById: (state: any) => (privilegeId: string) =>
+        (state.model?.licensee?.privileges?.find((privilege) =>
+            (privilege.id === privilegeId)) || null),
 };

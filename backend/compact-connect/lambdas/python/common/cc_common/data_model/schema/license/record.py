@@ -9,12 +9,13 @@ from cc_common.config import config
 from cc_common.data_model.schema.base_record import (
     BaseRecordSchema,
     CalculatedStatusRecordSchema,
-    StrictSchema,
+    ForgivingSchema,
 )
 from cc_common.data_model.schema.common import ChangeHashMixin
 from cc_common.data_model.schema.fields import (
     ActiveInactive,
     Compact,
+    CompactEligibility,
     ITUTE164PhoneNumber,
     Jurisdiction,
     NationalProviderIdentifier,
@@ -34,14 +35,21 @@ class LicenseRecordSchema(CalculatedStatusRecordSchema, LicenseCommonSchema):
 
     _record_type = 'license'
 
+    providerId = UUID(required=True, allow_none=False)
+    licenseGSIPK = String(required=True, allow_none=False)
+    licenseGSISK = String(required=True, allow_none=False)
+
+    # Provided fields
     npi = NationalProviderIdentifier(required=False, allow_none=False)
     licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
     ssnLastFour = String(required=True, allow_none=False)
-    # Provided fields
-    providerId = UUID(required=True, allow_none=False)
-    jurisdictionStatus = ActiveInactive(required=True, allow_none=False)
-    licenseGSIPK = String(required=True, allow_none=False)
-    licenseGSISK = String(required=True, allow_none=False)
+
+    # Persisted values
+    jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
+    jurisdictionUploadedCompactEligibility = CompactEligibility(required=True, allow_none=False)
+    # Calculated values
+    licenseStatusName = String(required=False, allow_none=False, validate=Length(1, 100))
+    compactEligibility = CompactEligibility(required=True, allow_none=False)
 
     @pre_dump
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
@@ -65,7 +73,7 @@ class LicenseRecordSchema(CalculatedStatusRecordSchema, LicenseCommonSchema):
         return in_data
 
 
-class LicenseUpdateRecordPreviousSchema(StrictSchema):
+class LicenseUpdateRecordPreviousSchema(ForgivingSchema):
     """
     A snapshot of a previous state of a license record
 
@@ -94,7 +102,9 @@ class LicenseUpdateRecordPreviousSchema(StrictSchema):
     homeAddressPostalCode = String(required=True, allow_none=False, validate=Length(5, 7))
     emailAddress = Email(required=False, allow_none=False)
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
-    jurisdictionStatus = ActiveInactive(required=True, allow_none=False)
+    licenseStatusName = String(required=False, allow_none=False, validate=Length(1, 100))
+    jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
+    jurisdictionUploadedCompactEligibility = CompactEligibility(required=True, allow_none=False)
 
 
 @BaseRecordSchema.register_schema('licenseUpdate')
@@ -144,6 +154,3 @@ class LicenseUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
         license_types = config.license_types_for_compact(data['compact'])
         if data['licenseType'] not in license_types:
             raise ValidationError({'licenseType': [f'Must be one of: {", ".join(license_types)}.']})
-        # We have to check for existence here to allow for the updatedValues partial case
-        if data['updatedValues'].get('licenseType') and data['updatedValues']['licenseType'] not in license_types:
-            raise ValidationError({'updatedValues.licenseType': [f'Must be one of: {", ".join(license_types)}.']})

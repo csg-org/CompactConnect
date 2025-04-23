@@ -2,7 +2,7 @@ from collections.abc import Callable, Iterable
 from enum import StrEnum
 
 from cc_common.config import logger
-from cc_common.data_model.schema.common import ProviderEligibilityStatus
+from cc_common.data_model.schema.common import ActiveInactiveStatus, CompactEligibilityStatus
 from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationStatus
 from cc_common.data_model.schema.provider.record import ProviderRecordSchema
 from cc_common.exceptions import CCInternalException, CCInvalidRequestException
@@ -54,8 +54,9 @@ class ProviderRecordUtility:
 
         Strategy:
         1. If home jurisdiction is selected, only consider licenses from that jurisdiction
-        2. Select the most recently issued active license if any exist
-        3. Otherwise, select the most recently issued license regardless of status
+        2. Select the most recently issued compact-eligible license if any exist
+        3. Otherwise, select the most recently issued active license if any exist
+        4. Otherwise, select the most recently issued license regardless of status
 
         :param license_records: An iterable of license records
         :param home_jurisdiction: The home jurisdiction selection
@@ -67,12 +68,25 @@ class ProviderRecordUtility:
                 license_records, ProviderRecordType.LICENSE, _filter=lambda x: x['jurisdiction'] == home_jurisdiction
             )
 
+        # Last issued compact-eligible license, if there are any compact-eligible licenses
+        latest_compact_eligible_licenses = sorted(
+            [
+                license_record
+                for license_record in license_records
+                if license_record['compactEligibility'] == CompactEligibilityStatus.ELIGIBLE
+            ],
+            key=lambda x: x['dateOfIssuance'],
+            reverse=True,
+        )
+        if latest_compact_eligible_licenses:
+            return latest_compact_eligible_licenses[0]
+
         # Last issued active license, if there are any active licenses
         latest_active_licenses = sorted(
             [
                 license_record
                 for license_record in license_records
-                if license_record['jurisdictionStatus'] == ProviderEligibilityStatus.ACTIVE
+                if license_record['licenseStatus'] == ActiveInactiveStatus.ACTIVE
             ],
             key=lambda x: x['dateOfIssuance'],
             reverse=True,

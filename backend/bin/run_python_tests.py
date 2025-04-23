@@ -22,7 +22,7 @@ BACKEND_DIR = Path(__file__).parent.parent.absolute()
 
 # Define the test directories to include
 TEST_DIRS = (
-    'compact-connect/lambdas/python/attestations',
+    'compact-connect/lambdas/python/compact-configuration',
     'compact-connect/lambdas/python/custom-resources',
     'compact-connect/lambdas/python/data-events',
     'compact-connect/lambdas/python/migration',

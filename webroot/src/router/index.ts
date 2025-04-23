@@ -39,7 +39,7 @@ router.beforeEach(async (to, from, next) => {
         const { currentCompact } = store.getters['user/state'];
 
         if (!currentCompact || currentCompact.type !== routeParamCompactType) {
-            store.dispatch('user/setCurrentCompact', CompactSerializer.fromServer({ type: routeParamCompactType }));
+            await store.dispatch('user/setCurrentCompact', CompactSerializer.fromServer({ type: routeParamCompactType }));
         }
     }
 

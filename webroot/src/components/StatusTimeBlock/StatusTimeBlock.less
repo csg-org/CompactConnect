@@ -1,0 +1,50 @@
+//
+//  StatusTimeBlock.less
+//  CompactConnect
+//
+//  Created by InspiringApps on 3/21/2025.
+//
+.status-time-block-container {
+    width: 120px;
+
+    &.start-of-block {
+        padding-top: 4px;
+    }
+
+    &.inactive {
+        border-right: 2px solid @midRed;
+    }
+
+    &.active {
+        border-right: 2px solid @midGreen;
+    }
+
+    .status-time-block-color {
+        height: 100%;
+
+        &.start-of-block {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            border-top-left-radius: 6px;
+        }
+
+        &.end-of-block {
+            justify-content: center;
+            border-bottom-left-radius: 6px;
+        }
+
+        &.last-event {
+            justify-content: center;
+        }
+
+        &.inactive {
+            background-color: @veryLightRed;
+        }
+
+        &.active {
+            background-color: @veryLightGreen;
+        }
+    }
+}

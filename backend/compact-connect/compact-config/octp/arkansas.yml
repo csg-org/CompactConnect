@@ -1,0 +1,14 @@
+# PLACEHOLDER DATA, NOT FINAL CONFIGURATION.
+jurisdictionName: "Arkansas"
+postalAbbreviation: "ar"
+jurisdictionFee: 3
+jurisdictionOperationsTeamEmails:
+    - "ASMBOTOperations@armedicalboard.org"
+jurisdictionAdverseActionsNotificationEmails: ["ASMBOTAdverseActions@armedicalboard.org"]
+# will add report email closer to launch
+jurisdictionSummaryReportNotificationEmails: []
+jurisprudenceRequirements:
+    required: false
+licenseeRegistrationEnabledForEnvironments: []
+activeEnvironments: ["beta"]
+

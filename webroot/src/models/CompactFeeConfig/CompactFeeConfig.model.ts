@@ -6,7 +6,7 @@
 //
 
 import { FeeTypes } from '@/app.config';
-import deleteUndefinedProperties from '@models/_helpers';
+import { deleteUndefinedProperties } from '@models/_helpers';
 
 // ========================================================
 // =                       Interface                      =

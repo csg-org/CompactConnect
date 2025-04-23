@@ -6,11 +6,11 @@
         "back": "Back",
         "continue": "Continue",
         "next": "Next",
-        "confirm": "Confirm",
         "cancel": "Cancel",
         "close": "Close",
         "skip": "Skip",
         "confirm": "Confirm",
+        "caution": "Caution",
         "fees": "Fees",
         "choose": "Choose",
         "chooseOne": "Choose one",
@@ -25,8 +25,10 @@
         "remove": "Remove",
         "reset": "Reset",
         "invite": "Invite",
+        "today": "Today",
         "save": "Save",
         "saveChanges": "Save changes",
+        "days": "days",
         "sendInvite": "Send invite",
         "toggleNav": "Toggle nav menu",
         "submit": "Submit",
@@ -34,13 +36,16 @@
         "clear": "Clear",
         "success": "Success",
         "error": "Error",
+        "somethingWentWrong": "Something went wrong",
         "saveAndContinue": "Save & Continue",
         "saveAndClose": "Save & Close",
         "subtotal": "Subtotal",
         "total": "Total",
+        "history": "History",
         "saving": "Saving...",
         "loading": "Loading...",
         "viewing": "Viewing",
+        "viewDetails": "View details",
         "name": "Name",
         "firstName": "First Name",
         "givenName": "Given Name",
@@ -360,7 +365,7 @@
         "home": "Home",
         "upload": "Upload data",
         "licensing": "Search licensing data",
-        "dashboard": "Dashboard",
+        "licensingPublic": "Search health providers",
         "users": "Manage users",
         "compactSettings": "Compact Settings",
         "purchasePrivileges": "Privilege purchasing",
@@ -511,6 +516,7 @@
         "obtainPrivileges": "Obtain Privileges",
         "privileges": "Privileges",
         "privilege": "Privilege",
+        "privilegeSummary": "Privilege summary",
         "recentPrivilegesTitle": "Recent privileges",
         "birthMonthDay": "Birth month-day",
         "pastPrivilegesTitle": "Past privileges",
@@ -541,6 +547,7 @@
         "state": "State",
         "issued": "Issued",
         "expirationDate": "Expiration date",
+        "expiration": "Expiration",
         "expireDate": "Expire Date",
         "expires": "Expires",
         "selectPrivileges": "Select privileges",
@@ -565,9 +572,35 @@
             "inactive": "Inactive"
         },
         "privilegeActions": "Privilege actions",
+        "privilegeActionsNone": "No available actions",
         "deactivate": "Deactivate",
         "deactivated": "Deactivated",
         "confirmPrivilegeDeactivate": "Are you sure you want to deactivate this privilege? This cannot be undone.",
+        "confirmPrivilegeDeactivateTitle": "Are you sure you want to deactivate this privilege?",
+        "confirmPrivilegeDeactivateSubtext": "The practitioner will no longer be able to use this privilege. This does not constitute a disciplinary action.",
+        "deactivateNotesTitle": "Deactivation notes",
+        "deactivateNotesPlaceholder": "Enter notes here",
+        "confirmPrivilegeDeactivateSubmit": "Yes, deactivate privilege",
+        "encumber": "Encumber",
+        "expiringIn": "Expiring in",
+        "licenseEvents": [
+            {
+                "name": "Privilege purchased",
+                "key": "purchased"
+            },
+            {
+                "name": "Renewal",
+                "key": "renewal"
+            },
+            {
+                "name": "Expired",
+                "key": "expired"
+            },
+            {
+                "name": "Deactivation",
+                "key": "deactivation"
+            }
+        ],
         "licenseTypes": [
             {
                 "name": "Audiologist",
@@ -601,7 +634,9 @@
             }
         ],
         "privilegePurchaseTitle": "Privilege purchase",
-        "personalInfoTitle": "Personal information"
+        "personalInfoTitle": "Personal information",
+        "eventNodeLabel": "Event: {eventNameDisplay} on {eventDate}",
+        "statusBlockLabel": "{status} status block"
     },
     "military": {
         "militaryStatusTitle": "Military status",

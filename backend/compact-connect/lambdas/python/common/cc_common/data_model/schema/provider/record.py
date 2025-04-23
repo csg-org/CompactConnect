@@ -10,6 +10,7 @@ from cc_common.data_model.schema.common import ensure_value_is_datetime
 from cc_common.data_model.schema.fields import (
     ActiveInactive,
     Compact,
+    CompactEligibility,
     ITUTE164PhoneNumber,
     Jurisdiction,
     NationalProviderIdentifier,
@@ -19,7 +20,12 @@ from cc_common.data_model.schema.fields import (
 
 @BaseRecordSchema.register_schema('provider')
 class ProviderRecordSchema(CalculatedStatusRecordSchema):
-    """Schema for provider records in the provider data table"""
+    """
+    Schema for provider records in the provider data table
+
+    Serialization direction:
+    DB -> load() -> Python
+    """
 
     _record_type = 'provider'
 
@@ -28,9 +34,12 @@ class ProviderRecordSchema(CalculatedStatusRecordSchema):
 
     compact = Compact(required=True, allow_none=False)
     licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
+
+    jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
+    jurisdictionUploadedCompactEligibility = CompactEligibility(required=True, allow_none=False)
+
     ssnLastFour = String(required=True, allow_none=False)
     npi = NationalProviderIdentifier(required=False, allow_none=False)
-    jurisdictionStatus = ActiveInactive(required=True, allow_none=False)
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
@@ -51,8 +60,6 @@ class ProviderRecordSchema(CalculatedStatusRecordSchema):
 
     # Generated fields
     birthMonthDay = String(required=False, allow_none=False, validate=Regexp('^[0-1]{1}[0-9]{1}-[0-3]{1}[0-9]{1}'))
-
-    # Generated fields
     privilegeJurisdictions = Set(String, required=False, allow_none=False, load_default=set())
     providerFamGivMid = String(required=False, allow_none=False, validate=Length(2, 400))
     providerDateOfUpdate = DateTime(required=True, allow_none=False)

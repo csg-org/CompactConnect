@@ -9,6 +9,7 @@ import {
     Component,
     mixins,
     Prop,
+    Watch,
     toNative
 } from 'vue-facing-decorator';
 import { reactive, computed } from 'vue';
@@ -18,6 +19,7 @@ import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import SearchIcon from '@components/Icons/LicenseSearchAlt/LicenseSearchAlt.vue';
 import { CompactType, CompactSerializer } from '@models/Compact/Compact.model';
+import { State } from '@models/State/State.model';
 import { FormInput } from '@models/FormInput/FormInput.model';
 import Joi from 'joi';
 
@@ -78,9 +80,12 @@ class LicenseeSearch extends mixins(MixinForm) {
         return this.isPublicSearch;
     }
 
+    get compactStates(): Array<State> {
+        return this.userStore.currentCompact?.memberStates || [];
+    }
+
     get stateOptions(): Array<any> {
-        const { currentCompact } = this.userStore;
-        const compactMemberStates = (currentCompact?.memberStates || []).map((state) => ({
+        const compactMemberStates = this.compactStates.map((state) => ({
             value: state.abbrev, name: state.name()
         }));
         const defaultSelectOption: any = { value: '' };
@@ -140,7 +145,7 @@ class LicenseeSearch extends mixins(MixinForm) {
                 label: computed(() => this.$t('licensing.licenseTypeSearch')),
                 validation: Joi.string().required().messages(this.joiMessages.string),
                 valueOptions: this.compactOptions,
-                value: this.searchParams.compact || '',
+                value: this.searchParams.compact || this.compactType || '',
             });
         }
 
@@ -153,7 +158,6 @@ class LicenseeSearch extends mixins(MixinForm) {
         if (this.enableCompactSelect) {
             await this.$store.dispatch('user/setCurrentCompact', CompactSerializer.fromServer({ type: selectedCompactType.value }));
             state.value = '';
-            state.valueOptions = this.stateOptions;
         }
     }
 
@@ -193,6 +197,13 @@ class LicenseeSearch extends mixins(MixinForm) {
         }
 
         this.checkValidForAll();
+    }
+
+    //
+    // Watch
+    //
+    @Watch('compactStates') updateStateInput() {
+        this.formData.state.valueOptions = this.stateOptions;
     }
 }
 

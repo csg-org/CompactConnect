@@ -83,9 +83,14 @@ class UpdateCategory(CCEnum):
     OTHER = 'other'
 
 
-class ProviderEligibilityStatus(CCEnum):
+class ActiveInactiveStatus(CCEnum):
     ACTIVE = 'active'
     INACTIVE = 'inactive'
+
+
+class CompactEligibilityStatus(CCEnum):
+    ELIGIBLE = 'eligible'
+    INELIGIBLE = 'ineligible'
 
 
 class StaffUserStatus(CCEnum):

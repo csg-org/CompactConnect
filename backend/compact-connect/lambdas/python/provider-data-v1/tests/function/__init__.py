@@ -37,6 +37,7 @@ class TstFunction(TstLambdas):
     def build_resources(self):
         self._bucket = boto3.resource('s3').create_bucket(Bucket=os.environ['BULK_BUCKET_NAME'])
         self.create_provider_table()
+        self.create_staff_users_table()
         self.create_ssn_table()
         self.create_rate_limiting_table()
         self.create_compact_configuration_table()
@@ -67,6 +68,28 @@ class TstFunction(TstLambdas):
         )
         os.environ['USER_POOL_ID'] = user_pool_response['UserPool']['Id']
         self._user_pool_id = user_pool_response['UserPool']['Id']
+
+    def create_staff_users_table(self):
+        self._staff_users_table = boto3.resource('dynamodb').create_table(
+            AttributeDefinitions=[
+                {'AttributeName': 'pk', 'AttributeType': 'S'},
+                {'AttributeName': 'sk', 'AttributeType': 'S'},
+                {'AttributeName': 'famGiv', 'AttributeType': 'S'},
+            ],
+            TableName=self.config.users_table_name,
+            KeySchema=[{'AttributeName': 'pk', 'KeyType': 'HASH'}, {'AttributeName': 'sk', 'KeyType': 'RANGE'}],
+            BillingMode='PAY_PER_REQUEST',
+            GlobalSecondaryIndexes=[
+                {
+                    'IndexName': os.environ['FAM_GIV_INDEX_NAME'],
+                    'KeySchema': [
+                        {'AttributeName': 'sk', 'KeyType': 'HASH'},
+                        {'AttributeName': 'famGiv', 'KeyType': 'RANGE'},
+                    ],
+                    'Projection': {'ProjectionType': 'ALL'},
+                },
+            ],
+        )
 
     def create_provider_table(self):
         self._provider_table = boto3.resource('dynamodb').create_table(
@@ -168,6 +191,7 @@ class TstFunction(TstLambdas):
         self._bucket.objects.delete()
         self._bucket.delete()
         self._provider_table.delete()
+        self._staff_users_table.delete()
         self._ssn_table.delete()
         self._compact_configuration_table.delete()
         self._rate_limiting_table.delete()
@@ -305,7 +329,9 @@ class TstFunction(TstLambdas):
                     self.mock_context,
                 )
                 # we need to get the provider id from the ssn table so it can be used in the ingest message
-                provider_id = data_client.get_provider_id(compact='aslp', ssn=ssn)
+                provider_id = self._ssn_table.get_item(Key={'pk': f'aslp#SSN#{ssn}', 'sk': f'aslp#SSN#{ssn}'})['Item'][
+                    'providerId'
+                ]
 
                 # update the ingest message with the provider id
                 ingest_message_copy['detail']['providerId'] = provider_id

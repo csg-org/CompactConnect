@@ -41,7 +41,7 @@ class Attestations:
             self.api,
             'AttestationsFunction',
             index=os.path.join('handlers', 'attestations.py'),
-            lambda_dir='attestations',
+            lambda_dir='compact-configuration',
             handler='attestations',
             environment=lambda_environment,
             timeout=Duration.seconds(30),

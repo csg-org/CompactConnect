@@ -4,7 +4,7 @@
 //
 //  Created by InspiringApps on 7/2/24.
 //
-
+import { License } from '@/models/License/License.model';
 import mutations, { MutationTypes } from './license.mutations';
 import actions from './license.actions';
 import getters from './license.getters';
@@ -287,6 +287,19 @@ describe('License Store Actions', async () => {
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_LICENSEE_REQUEST]);
         expect(dispatch.calledOnce).to.equal(true);
     });
+    it('should successfully start licensee request as public request', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const compact = 'aslp';
+        const licenseeId = '1';
+        const isPublic = true;
+
+        await actions.getLicenseeRequest({ commit, dispatch }, { compact, licenseeId, isPublic });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_LICENSEE_REQUEST]);
+        expect(dispatch.calledOnce).to.equal(true);
+    });
     it('should successfully start licensee failure', () => {
         const commit = sinon.spy();
         const error = new Error();
@@ -400,5 +413,68 @@ describe('License Store Getters', async () => {
         const licensee = getters.licenseeById(state)('1');
 
         expect(licensee).to.matchPattern(record);
+    });
+    it('should successfully get privilege by LicenseeId And PrivilegeId', async () => {
+        const licensee1 = {
+            id: '1',
+            privileges: [
+                new License({ id: '1' }),
+                new License({ id: '2' }),
+            ]
+        };
+
+        const licensee2 = {
+            id: '2',
+            privileges: [
+                new License({ id: '12' }),
+                new License({ id: '22' }),
+            ]
+        };
+        const state = { model: [ licensee1, licensee2 ] };
+        const privilege = getters.getPrivilegeByLicenseeIdAndId(state)({ licenseeId: '2', privilegeId: '12' });
+
+        expect(privilege.id).to.equal('12');
+    });
+    it('should successfully not get privilege by LicenseeId And PrivilegeId (no licensee)', async () => {
+        const licensee1 = {
+            id: '1',
+            privileges: [
+                new License({ id: '1' }),
+                new License({ id: '2' }),
+            ]
+        };
+
+        const licensee2 = {
+            id: '2',
+            privileges: [
+                new License({ id: '12' }),
+                new License({ id: '22' }),
+            ]
+        };
+        const state = { model: [ licensee1, licensee2 ] };
+        const privilege = getters.getPrivilegeByLicenseeIdAndId(state)({ licenseeId: '3', privilegeId: '12' });
+
+        expect(privilege).to.equal(null);
+    });
+    it('should successfully not get privilege by LicenseeId And PrivilegeId (no privilege)', async () => {
+        const licensee1 = {
+            id: '1',
+            privileges: [
+                new License({ id: '1' }),
+                new License({ id: '2' }),
+            ]
+        };
+
+        const licensee2 = {
+            id: '2',
+            privileges: [
+                new License({ id: '12' }),
+                new License({ id: '22' }),
+            ]
+        };
+        const state = { model: [ licensee1, licensee2 ] };
+        const privilege = getters.getPrivilegeByLicenseeIdAndId(state)({ licenseeId: '2', privilegeId: '1' });
+
+        expect(privilege).to.equal(null);
     });
 });

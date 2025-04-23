@@ -1,16 +1,13 @@
 # PLACEHOLDER DATA, NOT FINAL CONFIGURATION.
 jurisdictionName: "Ohio"
 postalAbbreviation: "oh"
-jurisdictionFee: 100
-militaryDiscount:
-    active: true
-    discountType: "FLAT_RATE"
-    discountAmount: 10
+jurisdictionFee: 25
 jurisdictionOperationsTeamEmails:
-    - "cloud-team-nonprod-alerts@inspiringapps.com"
-jurisdictionAdverseActionsNotificationEmails: []
+    - "gregg.thornton@shp.ohio.gov"
+jurisdictionAdverseActionsNotificationEmails: ["gregg.thornton@shp.ohio.gov"]
+# will add report email closer to launch
 jurisdictionSummaryReportNotificationEmails: []
 jurisprudenceRequirements:
-    required: true
-licenseeRegistrationEnabledForEnvironments: ["test"]
-activeEnvironments: ["test"]
+    required: false
+licenseeRegistrationEnabledForEnvironments: []
+activeEnvironments: ["beta"]

@@ -2,14 +2,14 @@
 # We diverge from PEP8 variable naming in schema because they map to our API JSON Schema in which,
 # by convention, we use camelCase.
 from abc import ABC
-from datetime import date, datetime
+from datetime import date
 
 from marshmallow import EXCLUDE, RAISE, Schema, post_load, pre_dump, pre_load
 from marshmallow.fields import UUID, DateTime, String
-from marshmallow.validate import OneOf
 
 from cc_common.config import config
-from cc_common.data_model.schema.fields import Compact, SocialSecurityNumber
+from cc_common.data_model.schema.common import ActiveInactiveStatus, CompactEligibilityStatus
+from cc_common.data_model.schema.fields import ActiveInactive, Compact, CompactEligibility, SocialSecurityNumber
 from cc_common.exceptions import CCInternalException
 
 
@@ -27,7 +27,7 @@ class ForgivingSchema(Schema):
         unknown = EXCLUDE
 
 
-class BaseRecordSchema(StrictSchema, ABC):
+class BaseRecordSchema(ForgivingSchema, ABC):
     """
     Abstract base class, common to all records in the provider data table
 
@@ -94,31 +94,54 @@ class CalculatedStatusRecordSchema(BaseRecordSchema):
     """
 
     # This field is the actual status referenced by the system, which is determined by the expiration date
-    # in addition to the jurisdictionStatus. This should never be written to the DB. It is calculated
+    # in addition to the jurisdictionUploadedStatus. This should never be written to the DB. It is calculated
     # whenever the record is loaded.
-    status = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
+    licenseStatus = ActiveInactive(required=True, allow_none=False)
+    # TODO: remove this once the UI is updated to use licenseStatus  # noqa: FIX002
+    status = ActiveInactive(required=True, allow_none=False)
+    compactEligibility = CompactEligibility(required=True, allow_none=False)
 
     @pre_dump
     def remove_status_field_if_present(self, in_data, **kwargs):
-        """Remove the status field before dumping to the database"""
+        """Remove the calculated status fields before dumping to the database"""
         in_data.pop('status', None)
+        in_data.pop('licenseStatus', None)
+        in_data.pop('compactEligibility', None)
         return in_data
 
     @pre_load
-    def _calculate_status(self, in_data, **kwargs):
-        """Determine the status of the record based on the expiration date"""
-        in_data['status'] = (
-            'active'
-            # licenses have a jurisdictionStatus field, but privileges do not
-            # so we need to check for the existence of the field before using it
-            if (
-                in_data.get('jurisdictionStatus', 'active') == 'active'
-                and date.fromisoformat(in_data['dateOfExpiration'])
-                > datetime.now(tz=config.expiration_date_resolution_timezone).date()
-            )
-            else 'inactive'
-        )
+    def _calculate_statuses(self, in_data, **_kwargs):
+        """Determine the statuses of the record based on the expiration date"""
+        in_data = self._calculate_license_status(in_data)
+        return self._calculate_compact_eligibility(in_data)
 
+    def _calculate_license_status(self, in_data, **kwargs):
+        """Determine the status of the license based on the expiration date"""
+        in_data['licenseStatus'] = (
+            ActiveInactiveStatus.ACTIVE
+            if (
+                in_data['jurisdictionUploadedLicenseStatus'] == ActiveInactiveStatus.ACTIVE
+                and date.fromisoformat(in_data['dateOfExpiration']) >= config.expiration_resolution_date
+            )
+            else ActiveInactiveStatus.INACTIVE
+        )
+        # TODO: Remove `status` once the UI is updated to use the new `licenseStatus` field  # noqa: FIX002
+        in_data['status'] = in_data['licenseStatus']
+        return in_data
+
+    def _calculate_compact_eligibility(self, in_data, **_kwargs):
+        """
+        Providers are only eligible for the compact if their home jurisdiction says they are and
+        if their license is active.
+        """
+        in_data['compactEligibility'] = (
+            CompactEligibilityStatus.ELIGIBLE
+            if (
+                in_data['jurisdictionUploadedCompactEligibility'] == CompactEligibilityStatus.ELIGIBLE
+                and in_data['licenseStatus'] == ActiveInactiveStatus.ACTIVE
+            )
+            else CompactEligibilityStatus.INELIGIBLE
+        )
         return in_data
 
 

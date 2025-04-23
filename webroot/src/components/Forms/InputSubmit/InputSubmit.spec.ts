@@ -32,4 +32,15 @@ describe('InputSubmit component', async () => {
 
         expect(input.html()).to.contain('disabled');
     });
+    it('should be warning', async () => {
+        const wrapper = await mountShallow(InputSubmit, {
+            props: {
+                formInput: new FormInput(),
+                isWarning: true,
+            }
+        });
+        const input = wrapper.find('input');
+
+        expect(input.classes()).to.contain('warning');
+    });
 });

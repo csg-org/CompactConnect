@@ -1,0 +1,12 @@
+# PLACEHOLDER DATA, NOT FINAL CONFIGURATION.
+jurisdictionName: "Alabama"
+postalAbbreviation: "al"
+jurisdictionFee: 100
+jurisdictionOperationsTeamEmails:
+    - "cloud-team-nonprod-alerts@inspiringapps.com"
+jurisdictionAdverseActionsNotificationEmails: []
+jurisdictionSummaryReportNotificationEmails: []
+jurisprudenceRequirements:
+    required: true
+licenseeRegistrationEnabledForEnvironments: ["test"]
+activeEnvironments: ["test", "beta"]
