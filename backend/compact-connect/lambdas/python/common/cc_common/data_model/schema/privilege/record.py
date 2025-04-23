@@ -139,15 +139,15 @@ class PrivilegeUpdatePreviousRecordSchema(ForgivingSchema):
     DB -> load() -> Python
     """
 
+    administratorSetStatus = ActiveInactive(required=False, allow_none=False)
+    attestations = List(Nested(AttestationVersionRecordSchema()), required=True, allow_none=False)
+    compactTransactionId = String(required=True, allow_none=False)
+    dateOfExpiration = Date(required=True, allow_none=False)
     dateOfIssuance = DateTime(required=True, allow_none=False)
     dateOfRenewal = DateTime(required=True, allow_none=False)
-    dateOfExpiration = Date(required=True, allow_none=False)
     dateOfUpdate = DateTime(required=True, allow_none=False)
-    privilegeId = String(required=True, allow_none=False)
-    compactTransactionId = String(required=True, allow_none=False)
-    attestations = List(Nested(AttestationVersionRecordSchema()), required=True, allow_none=False)
-    administratorSetStatus = ActiveInactive(required=False, allow_none=False)
     licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
+    privilegeId = String(required=True, allow_none=False)
 
 
 @BaseRecordSchema.register_schema('privilegeUpdate')

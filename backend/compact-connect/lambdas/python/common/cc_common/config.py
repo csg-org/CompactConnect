@@ -205,15 +205,18 @@ class _Config:
         return os.environ['FAM_GIV_INDEX_NAME']
 
     @property
+    def expiration_resolution_timezone(self):
+        return timezone(offset=timedelta(hours=-4))
+
+    @property
     def expiration_resolution_date(self):
         """
         This is the date used to determine if a license or privilege is expired.
         This is currently set to use the UTC-4 timezone. We anticipate that this may change in the future,
         so we have a configuration value for it.
         """
-        utc_minus_four_timezone = timezone(offset=timedelta(hours=-4))
         # the astimezone method returns a new datetime object adjusted to the new timezone
-        return self.current_standard_datetime.astimezone(utc_minus_four_timezone).date()
+        return self.current_standard_datetime.astimezone(self.expiration_resolution_timezone).date()
 
     @cached_property
     def data_events_table(self):

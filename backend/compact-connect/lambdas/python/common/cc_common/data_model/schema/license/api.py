@@ -172,3 +172,35 @@ class LicenseGeneralResponseSchema(ForgivingSchema):
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
     history = List(Nested(LicenseUpdateGeneralResponseSchema, required=False, allow_none=False))
     adverseActions = List(Nested(AdverseActionGeneralResponseSchema, required=False, allow_none=False))
+
+
+class LicenseUpdatePreviousResponseSchema(ForgivingSchema):
+    """
+    A full snapshot of a previous state of a license, as seen by staff users with only the 'readPrivate' permission.
+
+    Serialization direction:
+    Python -> load() -> API
+    """
+
+    npi = NationalProviderIdentifier(required=False, allow_none=False)
+    licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
+    ssnLastFour = String(required=True, allow_none=False)
+    givenName = String(required=True, allow_none=False, validate=Length(1, 100))
+    middleName = String(required=False, allow_none=False, validate=Length(1, 100))
+    familyName = String(required=True, allow_none=False, validate=Length(1, 100))
+    suffix = String(required=False, allow_none=False, validate=Length(1, 100))
+    dateOfIssuance = Raw(required=True, allow_none=False)
+    dateOfRenewal = Raw(required=True, allow_none=False)
+    dateOfExpiration = Raw(required=True, allow_none=False)
+    dateOfBirth = Raw(required=True, allow_none=False)
+    homeAddressStreet1 = String(required=True, allow_none=False, validate=Length(2, 100))
+    homeAddressStreet2 = String(required=False, allow_none=False, validate=Length(1, 100))
+    homeAddressCity = String(required=True, allow_none=False, validate=Length(2, 100))
+    homeAddressState = String(required=True, allow_none=False, validate=Length(2, 100))
+    homeAddressPostalCode = String(required=True, allow_none=False, validate=Length(5, 7))
+    emailAddress = Email(required=False, allow_none=False)
+    phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
+    licenseStatusName = String(required=False, allow_none=False, validate=Length(1, 100))
+    jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
+    jurisdictionUploadedCompactEligibility = CompactEligibility(required=True, allow_none=False)
+    dateOfUpdate = Raw(required=True, allow_none=False)

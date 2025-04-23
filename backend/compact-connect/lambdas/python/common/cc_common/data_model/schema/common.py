@@ -78,9 +78,11 @@ def ensure_value_is_datetime(value: str):
 
 
 class UpdateCategory(CCEnum):
-    RENEWAL = 'renewal'
     DEACTIVATION = 'deactivation'
+    EXPIRATION = 'expiration'
+    ISSUANCE = 'issuance'
     OTHER = 'other'
+    RENEWAL = 'renewal'
 
 
 class ActiveInactiveStatus(CCEnum):

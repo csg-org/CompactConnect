@@ -225,10 +225,65 @@ class TestTransformations(TstFunction):
         del expected_provider['homeJurisdictionSelection']['dateOfUpdate']
         del expected_provider['homeJurisdictionSelection']['dateOfSelection']
 
-        # This lengthy test does not include change records for licenses or privileges, so we'll blank out the
-        # sample history from our expected_provider
-        expected_provider['licenses'][0]['history'] = []
-        expected_provider['privileges'][0]['history'] = []
+        # We automatically create 'synthetic' updates for licenses and privileges, which in this case
+        # will just be an 'issuance' update.
+        expected_provider['licenses'][0]['history'] = [
+            {
+                'type': 'licenseUpdate',
+                'updateType': 'issuance',
+                'providerId': provider_id,
+                'compact': 'aslp',
+                'jurisdiction': 'oh',
+                'licenseType': 'speech-language pathologist',
+                'dateOfUpdate': '2024-11-08T23:59:59+00:00',
+                'previous': {
+                    'dateOfBirth': '1985-06-06',
+                    'dateOfExpiration': '2025-04-04',
+                    'dateOfIssuance': '2010-06-06',
+                    'dateOfRenewal': '2020-04-04',
+                    'emailAddress': 'björk@example.com',
+                    'familyName': 'Guðmundsdóttir',
+                    'givenName': 'Björk',
+                    'homeAddressCity': 'Columbus',
+                    'homeAddressPostalCode': '43004',
+                    'homeAddressState': 'oh',
+                    'homeAddressStreet1': '123 A St.',
+                    'homeAddressStreet2': 'Apt 321',
+                    'jurisdictionUploadedCompactEligibility': 'eligible',
+                    'jurisdictionUploadedLicenseStatus': 'active',
+                    'licenseNumber': 'A0608337260',
+                    'licenseStatusName': 'DEFINITELY_A_HUMAN',
+                    'middleName': 'Gunnar',
+                    'npi': '0608337260',
+                    'phoneNumber': '+13213214321',
+                    'ssnLastFour': '1234',
+                },
+                'updatedValues': {},
+            }
+        ]
+        expected_provider['privileges'][0]['history'] = [
+            {
+                'type': 'licenseUpdate',
+                'updateType': 'issuance',
+                'providerId': provider_id,
+                'compact': 'aslp',
+                'jurisdiction': 'ne',
+                'licenseType': 'speech-language pathologist',
+                'dateOfUpdate': '2024-11-08T23:59:59+00:00',
+                'previous': {
+                    'administratorSetStatus': 'active',
+                    'attestations': [{'attestationId': 'jurisprudence-confirmation', 'version': '1'}],
+                    'compactTransactionId': '1234567890',
+                    'dateOfExpiration': '2025-04-04',
+                    'dateOfIssuance': '2024-11-08T23:59:59+00:00',
+                    'dateOfRenewal': '2024-11-08T23:59:59+00:00',
+                    'dateOfUpdate': '2024-11-08T23:59:59+00:00',
+                    'licenseJurisdiction': 'oh',
+                    'privilegeId': 'SLP-NE-1',
+                },
+                'updatedValues': {},
+            }
+        ]
 
         # We didn't submit any adverse actions, so we'll blank out them, too
         expected_provider['licenses'][0]['adverseActions'] = []

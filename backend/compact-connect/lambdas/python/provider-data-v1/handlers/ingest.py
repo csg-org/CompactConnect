@@ -265,7 +265,8 @@ def _populate_update_record(*, existing_license: dict, updated_values: dict, rem
         jurisdiction=existing_license['jurisdiction'],
     )
     update_type = None
-    if {'dateOfExpiration', 'dateOfRenewal'} == updated_values.keys():
+    # If both of these keys are present in the updated values
+    if not {'dateOfExpiration', 'dateOfRenewal'} - updated_values.keys():
         original_values = {key: value for key, value in existing_license.items() if key in updated_values}
         if (
             updated_values['dateOfExpiration'] > original_values['dateOfExpiration']

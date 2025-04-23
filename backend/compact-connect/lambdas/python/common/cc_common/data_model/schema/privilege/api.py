@@ -33,6 +33,7 @@ class PrivilegeUpdatePreviousGeneralResponseSchema(ForgivingSchema):
     Python -> load() -> API
     """
 
+    administratorSetStatus = ActiveInactive(required=True, allow_none=False)
     # list of attestations that were accepted when purchasing this privilege
     attestations = List(Nested(AttestationVersionResponseSchema()), required=False, allow_none=False)
     compactTransactionId = String(required=False, allow_none=False)
@@ -40,9 +41,8 @@ class PrivilegeUpdatePreviousGeneralResponseSchema(ForgivingSchema):
     dateOfIssuance = Raw(required=True, allow_none=False)
     dateOfRenewal = Raw(required=True, allow_none=False)
     dateOfUpdate = Raw(required=True, allow_none=False)
-    administratorSetStatus = ActiveInactive(required=True, allow_none=False)
-    privilegeId = String(required=True, allow_none=False)
     licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
+    privilegeId = String(required=True, allow_none=False)
 
 
 class PrivilegeUpdateGeneralResponseSchema(ForgivingSchema):
@@ -103,13 +103,13 @@ class PrivilegeUpdatePreviousPublicResponseSchema(ForgivingSchema):
     Python -> load() -> API
     """
 
+    administratorSetStatus = ActiveInactive(required=True, allow_none=False)
     dateOfExpiration = Raw(required=True, allow_none=False)
     dateOfIssuance = Raw(required=True, allow_none=False)
     dateOfRenewal = Raw(required=True, allow_none=False)
     dateOfUpdate = Raw(required=True, allow_none=False)
-    administratorSetStatus = ActiveInactive(required=True, allow_none=False)
-    privilegeId = String(required=True, allow_none=False)
     licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
+    privilegeId = String(required=True, allow_none=False)
 
 
 class PrivilegeUpdatePublicResponseSchema(ForgivingSchema):

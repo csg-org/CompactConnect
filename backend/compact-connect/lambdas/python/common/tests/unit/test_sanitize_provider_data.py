@@ -64,8 +64,9 @@ class TestSanitizeProviderData(TstLambdas):
         # also remove the ssn from the license record
         del expected_provider['licenses'][0]['ssnLastFour']
         del expected_provider['licenses'][0]['dateOfBirth']
-        del expected_provider['licenses'][0]['history'][0]['previous']['ssnLastFour']
-        del expected_provider['licenses'][0]['history'][0]['previous']['dateOfBirth']
+        for history in expected_provider['licenses'][0]['history']:
+            del history['previous']['ssnLastFour']
+            del history['previous']['dateOfBirth']
         # cast to set to match schema
         expected_provider['privilegeJurisdictions'] = set(expected_provider['privilegeJurisdictions'])
 
@@ -73,6 +74,7 @@ class TestSanitizeProviderData(TstLambdas):
         del expected_provider['licenses'][0]['adverseActions'][0]['submittingUser']
         del expected_provider['privileges'][0]['adverseActions'][0]['submittingUser']
 
+        self.maxDiff = None
         self.assertEqual(expected_provider, resp)
 
     def test_sanitized_provider_record_returned_if_caller_does_not_have_read_private_permissions_for_jurisdiction(self):

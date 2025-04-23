@@ -8,12 +8,20 @@ from .. import TstFunction
 
 
 @mock_aws
-@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-05-08T23:59:59+00:00'))
 class TestIngest(TstFunction):
     @staticmethod
     def _set_provider_data_to_empty_values(expected_provider: dict) -> dict:
         # The canned response resource assumes that the provider will be given a privilege, military affiliation,
         # home state selection, and one license renewal. We didn't do any of that here, so we'll reset that data
+
+        # We'll start by setting the dates to their original values, before any renewals or other updates were made
+        expected_provider['dateOfExpiration'] = '2024-06-06'
+        expected_provider['licenses'][0]['dateOfExpiration'] = '2024-06-06'
+        expected_provider['licenses'][0]['dateOfRenewal'] = '2022-06-06'
+        expected_provider['licenses'][0]['history'][0]['dateOfUpdate'] = '2024-05-08T23:59:59+00:00'
+        expected_provider['licenses'][0]['history'][0]['previous']['dateOfUpdate'] = '2024-05-08T23:59:59+00:00'
+
         expected_provider['privilegeJurisdictions'] = []
         expected_provider['privileges'] = []
         expected_provider['militaryAffiliations'] = []
@@ -86,7 +94,8 @@ class TestIngest(TstFunction):
         # Reset the expected data to match the canned response
         expected_provider = self._set_provider_data_to_empty_values(expected_provider)
         for license_data in expected_provider['licenses']:
-            license_data['history'] = []
+            # Only keep the first history item
+            license_data['history'] = license_data['history'][:1]
             license_data['adverseActions'] = []
 
         # Removing/setting dynamic fields for comparison
@@ -99,6 +108,7 @@ class TestIngest(TstFunction):
         for license_data in provider_data['licenses']:
             del license_data['dateOfUpdate']
 
+        self.maxDiff = None
         self.assertEqual(expected_provider, provider_data)
 
     def test_old_inactive_license(self):
@@ -143,6 +153,7 @@ class TestIngest(TstFunction):
         expected_provider['privileges'][0]['compactTransactionId'] = '1234567890'
 
         # The original provider data is preferred over the posted license data in our test case
+        self.maxDiff = None
         self.assertEqual(expected_provider, provider_data)
 
         # But the second license should now be listed
@@ -270,7 +281,8 @@ class TestIngest(TstFunction):
         for license_data in expected_provider['licenses']:
             # We uploaded a 'deactivation' by just switching 'licenseStatus' to 'inactive', so this change
             # should show up in the license history
-            license_data['history'] = [
+            license_data['history'] = license_data['history'][:1]
+            license_data['history'].append(
                 {
                     'type': 'licenseUpdate',
                     'updateType': 'deactivation',
@@ -278,6 +290,7 @@ class TestIngest(TstFunction):
                     'compact': 'aslp',
                     'jurisdiction': 'oh',
                     'licenseType': 'speech-language pathologist',
+                    'dateOfUpdate': '2025-04-04T23:59:59+00:00',
                     'previous': {
                         'ssnLastFour': '1234',
                         'npi': '0608337260',
@@ -290,8 +303,8 @@ class TestIngest(TstFunction):
                         'familyName': 'Guðmundsdóttir',
                         'dateOfIssuance': '2010-06-06',
                         'dateOfBirth': '1985-06-06',
-                        'dateOfExpiration': '2025-04-04',
-                        'dateOfRenewal': '2020-04-04',
+                        'dateOfExpiration': '2024-06-06',
+                        'dateOfRenewal': '2022-06-06',
                         'homeAddressStreet1': '123 A St.',
                         'homeAddressStreet2': 'Apt 321',
                         'homeAddressCity': 'Columbus',
@@ -299,13 +312,14 @@ class TestIngest(TstFunction):
                         'homeAddressPostalCode': '43004',
                         'emailAddress': 'björk@example.com',
                         'phoneNumber': '+13213214321',
+                        'dateOfUpdate': '2024-11-08T23:59:59+00:00',
                     },
                     'updatedValues': {
                         'jurisdictionUploadedLicenseStatus': 'inactive',
                         'jurisdictionUploadedCompactEligibility': 'ineligible',
                     },
                 }
-            ]
+            )
             license_data['adverseActions'] = []
 
         # Removing/setting dynamic fields for comparison
@@ -315,12 +329,16 @@ class TestIngest(TstFunction):
         for license_data in expected_provider['licenses']:
             del license_data['dateOfUpdate']
             license_data['providerId'] = provider_id
+            for hist in license_data['history']:
+                del hist['dateOfUpdate']
+                del hist['previous']['dateOfUpdate']
         for license_data in provider_data['licenses']:
             del license_data['dateOfUpdate']
             for hist in license_data['history']:
                 del hist['dateOfUpdate']
                 del hist['previous']['dateOfUpdate']
 
+        self.maxDiff = None
         self.assertEqual(expected_provider, provider_data)
         # Assert that an event was sent for the deactivation
         mock_event_writer.return_value.__enter__.return_value.put_event.assert_called_once()
@@ -333,7 +351,7 @@ class TestIngest(TstFunction):
                     'DetailType': 'license.deactivation',
                     'Detail': json.dumps(
                         {
-                            'eventTime': '2024-11-08T23:59:59+00:00',
+                            'eventTime': '2024-05-08T23:59:59+00:00',
                             'compact': 'aslp',
                             'jurisdiction': 'oh',
                             'providerId': provider_id,
@@ -352,7 +370,8 @@ class TestIngest(TstFunction):
         with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
 
-        message['detail'].update({'dateOfRenewal': '2025-03-03', 'dateOfExpiration': '2030-03-03'})
+        # We'll 'renew' the license with dates that match what is in our sample provider detail response
+        message['detail'].update({'dateOfRenewal': '2024-04-04', 'dateOfExpiration': '2026-04-04'})
 
         # What happens if their license is renewed in a subsequent upload?
         event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
@@ -362,70 +381,33 @@ class TestIngest(TstFunction):
         with open('../common/tests/resources/api/provider-detail-response.json') as f:
             expected_provider = json.load(f)
 
-        # The license status and provider should immediately reflect the new dates
-        expected_provider['dateOfExpiration'] = '2030-03-03'
-        expected_provider['licenses'][0]['dateOfExpiration'] = '2030-03-03'
-        expected_provider['licenses'][0]['dateOfRenewal'] = '2025-03-03'
-
         provider_data = self._get_provider_via_api(provider_id)
 
         # Reset the expected data to match the canned response
         expected_provider = self._set_provider_data_to_empty_values(expected_provider)
-
-        for license_data in expected_provider['licenses']:
-            # We uploaded a 'renewal' by just updating the dateOfRenewal and dateOfExpiration
-            # This should show up in the license history
-            license_data['history'] = [
-                {
-                    'type': 'licenseUpdate',
-                    'updateType': 'renewal',
-                    'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
-                    'compact': 'aslp',
-                    'jurisdiction': 'oh',
-                    'licenseType': 'speech-language pathologist',
-                    'previous': {
-                        'ssnLastFour': '1234',
-                        'npi': '0608337260',
-                        'licenseNumber': 'A0608337260',
-                        'jurisdictionUploadedLicenseStatus': 'active',
-                        'licenseStatusName': 'DEFINITELY_A_HUMAN',
-                        'jurisdictionUploadedCompactEligibility': 'eligible',
-                        'givenName': 'Björk',
-                        'middleName': 'Gunnar',
-                        'familyName': 'Guðmundsdóttir',
-                        'dateOfIssuance': '2010-06-06',
-                        'dateOfBirth': '1985-06-06',
-                        'dateOfExpiration': '2025-04-04',
-                        'dateOfRenewal': '2020-04-04',
-                        'homeAddressStreet1': '123 A St.',
-                        'homeAddressStreet2': 'Apt 321',
-                        'homeAddressCity': 'Columbus',
-                        'homeAddressState': 'oh',
-                        'homeAddressPostalCode': '43004',
-                        'emailAddress': 'björk@example.com',
-                        'phoneNumber': '+13213214321',
-                    },
-                    'updatedValues': {
-                        'dateOfRenewal': '2025-03-03',
-                        'dateOfExpiration': '2030-03-03',
-                    },
-                }
-            ]
-            license_data['adverseActions'] = []
+        # The license status and provider should immediately reflect the new dates
+        expected_provider['dateOfExpiration'] = '2026-04-04'
+        expected_provider['licenses'][0]['dateOfRenewal'] = '2024-04-04'
+        expected_provider['licenses'][0]['dateOfExpiration'] = '2026-04-04'
 
         # Removing/setting dynamic fields for comparison
         del expected_provider['dateOfUpdate']
         del provider_data['dateOfUpdate']
         expected_provider['providerId'] = provider_id
         for license_data in expected_provider['licenses']:
+            license_data['adverseActions'] = []
             del license_data['dateOfUpdate']
             license_data['providerId'] = provider_id
+            for hist in license_data['history']:
+                del hist['dateOfUpdate']
+                del hist['previous']['dateOfUpdate']
         for license_data in provider_data['licenses']:
             del license_data['dateOfUpdate']
             for hist in license_data['history']:
                 del hist['dateOfUpdate']
                 del hist['previous']['dateOfUpdate']
 
+        self.maxDiff = None
         self.assertEqual(expected_provider, provider_data)
 
     def test_existing_provider_name_change(self):
@@ -458,7 +440,7 @@ class TestIngest(TstFunction):
         for license_data in expected_provider['licenses']:
             # We uploaded a 'name change' by just updating the familyName
             # This should show up in the license history
-            license_data['history'] = [
+            license_data['history'].append(
                 {
                     'type': 'licenseUpdate',
                     'updateType': 'other',
@@ -492,22 +474,15 @@ class TestIngest(TstFunction):
                         'familyName': 'VonSmitherton',
                     },
                 }
-            ]
+            )
             license_data['adverseActions'] = []
 
         # Removing/setting dynamic fields for comparison
-        del expected_provider['dateOfUpdate']
-        del provider_data['dateOfUpdate']
         expected_provider['providerId'] = provider_id
         for license_data in expected_provider['licenses']:
-            del license_data['dateOfUpdate']
             license_data['providerId'] = provider_id
-        for license_data in provider_data['licenses']:
-            del license_data['dateOfUpdate']
-            for hist in license_data['history']:
-                del hist['dateOfUpdate']
-                del hist['previous']['dateOfUpdate']
 
+        self.maxDiff = None
         self.assertEqual(expected_provider, provider_data)
 
     def test_existing_provider_no_change(self):

@@ -7,7 +7,7 @@
   "compact": "aslp",
   "jurisdiction": "oh",
   "licenseType": "speech-language pathologist",
-  "dateOfUpdate": "2020-04-07T12:59:59+00:00",
+  "dateOfUpdate": "2024-04-07T12:59:59+00:00",
   "previous": {
     "npi": "0608337260",
     "licenseNumber": "A0608337260",
@@ -16,10 +16,10 @@
     "middleName": "Gunnar",
     "familyName": "Guðmundsdóttir",
     "dateOfIssuance": "2010-06-06",
-    "dateOfRenewal": "2015-06-06",
-    "dateOfExpiration": "2020-06-06",
+    "dateOfRenewal": "2022-06-06",
+    "dateOfExpiration": "2024-06-06",
     "dateOfBirth": "1985-06-06",
-    "dateOfUpdate": "2020-06-06T12:59:59+00:00",
+    "dateOfUpdate": "2020-06-07T12:59:59+00:00",
     "homeAddressStreet1": "123 A St.",
     "homeAddressStreet2": "Apt 321",
     "homeAddressCity": "Columbus",
@@ -32,7 +32,7 @@
     "jurisdictionUploadedCompactEligibility": "eligible"
   },
   "updatedValues": {
-    "dateOfRenewal": "2020-04-04",
-    "dateOfExpiration": "2025-04-04"
+    "dateOfRenewal": "2024-04-04",
+    "dateOfExpiration": "2026-04-04"
   }
 }
