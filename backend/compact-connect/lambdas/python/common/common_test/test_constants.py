@@ -43,6 +43,8 @@ DEFAULT_HOME_ADDRESS_POSTAL_CODE = "43215"
 # Default contact information
 DEFAULT_EMAIL_ADDRESS = "bjork@example.com"
 DEFAULT_PHONE_NUMBER = "+16141234567"
+DEFAULT_REGISTERED_EMAIL_ADDRESS = "björkRegisteredEmail@example.com"
+DEFAULT_COGNITO_SUB = "3408b4e8-0061-7052-bbe0-fda9a9369c80"
 
 # record type constants
 HOME_JURISDICTION_RECORD_TYPE = "homeJurisdiction"
@@ -52,6 +54,7 @@ LICENSE_RECORD_TYPE = "license"
 LICENSE_UPDATE_RECORD_TYPE = "licenseUpdate"
 PRIVILEGE_RECORD_TYPE = "privilege"
 PRIVILEGE_UPDATE_RECORD_TYPE = "privilegeUpdate"
+PROVIDER_RECORD_TYPE = "provider"
 
 # Adverse Action defaults
 DEFAULT_ACTION_AGAINST = "privilege"
