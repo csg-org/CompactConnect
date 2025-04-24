@@ -1,5 +1,5 @@
 import json
-from datetime import date
+from datetime import UTC, datetime
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
@@ -9,6 +9,7 @@ from cc_common.data_model.schema.compact import COMPACT_TYPE, Compact
 from cc_common.data_model.schema.compact.api import CompactOptionsResponseSchema
 from cc_common.data_model.schema.jurisdiction import JURISDICTION_TYPE, Jurisdiction
 from cc_common.data_model.schema.jurisdiction.api import JurisdictionOptionsResponseSchema
+from cc_common.event_bus_client import EventBusClient
 from cc_common.exceptions import (
     CCAwsServiceException,
     CCFailedTransactionException,
@@ -290,8 +291,10 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             user_active_military=user_active_military,
         )
 
+        #### TODO here need to
+
         # transaction was successful, now we create privilege records for the selected jurisdictions
-        genereated_privileges = config.data_client.create_provider_privileges(
+        generated_privileges = config.data_client.create_provider_privileges(
             compact=compact_abbr,
             provider_id=provider_id,
             jurisdiction_postal_abbreviations=selected_jurisdictions_postal_abbreviations,
@@ -303,7 +306,24 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             attestations=body['attestations'],
         )
 
+        ## Hererererere ------------------
+        provider_email = user_provider_data.emailAddress
+        transaction_date = datetime.now(tz=UTC).date()
 
+        {privilege.licenseTypeAbbrev} - ${privilege.jurisdiction}`
+
+        privileges = generated_privileges ## or dict of only the values we need, double check what those are, maybe dont need to change the return there
+        total_cost = transaction_response['totalCost']
+        cost_line_items = transaction_response['lineItems']
+
+        EventBusClient.publish_privilege_purchase_event(
+            source='post_purchase_privileges',
+            provider_email=provider_email,
+            transaction_date=transaction_date,
+            privileges=privileges,
+            total_cost=total_cost,
+            cost_line_items=cost_line_items
+        )
 
         return transaction_response
 

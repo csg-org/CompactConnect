@@ -53,7 +53,7 @@ class EventBusClient:
 
     def publish_privilege_purchase_event(
         self,
-        source, str,
+        source: str,
         provider_email: str,
         transaction_date: str,
         privileges: list[dict],
