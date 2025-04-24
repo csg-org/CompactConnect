@@ -2,7 +2,12 @@ from marshmallow.fields import List, String
 from marshmallow.validate import OneOf, Regexp
 
 from cc_common.config import config
-from cc_common.data_model.schema.common import ActiveInactiveStatus, CompactEligibilityStatus, UpdateCategory
+from cc_common.data_model.schema.common import (
+    ActiveInactiveStatus,
+    ClinicalPrivilegeActionCategory,
+    CompactEligibilityStatus,
+    UpdateCategory,
+)
 
 
 class SocialSecurityNumber(String):
@@ -59,3 +64,8 @@ class ITUTE164PhoneNumber(String):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, validate=Regexp(r'^\+[0-9]{8,15}$'), **kwargs)
+
+
+class ClinicalPrivilegeActionCategoryField(String):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, validate=OneOf([entry.value for entry in ClinicalPrivilegeActionCategory]), **kwargs)

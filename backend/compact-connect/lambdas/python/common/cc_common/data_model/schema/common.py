@@ -78,9 +78,11 @@ def ensure_value_is_datetime(value: str):
 
 
 class UpdateCategory(CCEnum):
-    RENEWAL = 'renewal'
     DEACTIVATION = 'deactivation'
+    EXPIRATION = 'expiration'
+    ISSUANCE = 'issuance'
     OTHER = 'other'
+    RENEWAL = 'renewal'
 
 
 class ActiveInactiveStatus(CCEnum):
@@ -96,6 +98,19 @@ class CompactEligibilityStatus(CCEnum):
 class StaffUserStatus(CCEnum):
     ACTIVE = 'active'
     INACTIVE = 'inactive'
+
+
+class ClinicalPrivilegeActionCategory(CCEnum):
+    """
+    Enum for the category of clinical privileges actions, as defined by NPDB:
+    https://www.npdb.hrsa.gov/software/CodeLists.pdf, Tables 41-45
+    """
+
+    FRAUD = 'Fraud, Deception, or Misrepresentation'
+    UNSAFE_PRACTICE = 'Unsafe Practice or Substandard Care'
+    IMPROPER_SUPERVISION = 'Improper Supervision or Allowing Unlicensed Practice'
+    IMPROPER_MEDICATION = 'Improper Prescribing, Dispensing, Administering Medication/Drug Violation'
+    OTHER = 'Other'
 
 
 class ChangeHashMixin:
