@@ -42,3 +42,5 @@ class LicenseCommonSchema(ForgivingSchema, ValidatesLicenseTypeMixin):
     emailAddress = Email(required=False, allow_none=False)
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
     licenseStatusName = String(required=False, allow_none=False, validate=Length(1, 100))
+
+

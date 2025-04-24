@@ -6,9 +6,11 @@ from uuid import UUID, uuid4
 from marshmallow import ValidationError
 
 from tests import TstLambdas
+from common_test.test_data_generator import TestDataGenerator
 
 
 class TestLicensePostSchema(TstLambdas):
+
     def test_validate_post(self):
         from cc_common.data_model.schema.license.api import LicensePostRequestSchema
 
