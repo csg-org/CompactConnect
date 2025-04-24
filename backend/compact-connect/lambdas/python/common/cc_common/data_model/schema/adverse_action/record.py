@@ -1,12 +1,13 @@
 # ruff: noqa: N801, N815  invalid-name
 from uuid import uuid4
 
-from cc_common.config import config
-from cc_common.data_model.schema.base_record import BaseRecordSchema
-from cc_common.data_model.schema.fields import ClinicalPrivilegeActionCategoryField, Compact, Jurisdiction
 from marshmallow import pre_dump
 from marshmallow.fields import UUID, Boolean, Date, DateTime, String
 from marshmallow.validate import OneOf
+
+from cc_common.config import config
+from cc_common.data_model.schema.base_record import BaseRecordSchema
+from cc_common.data_model.schema.fields import ClinicalPrivilegeActionCategoryField, Compact, Jurisdiction
 
 
 @BaseRecordSchema.register_schema('adverseAction')

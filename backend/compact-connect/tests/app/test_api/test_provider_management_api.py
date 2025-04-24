@@ -47,7 +47,9 @@ class TestProviderManagementApi(TestApi):
             type=CfnResource.CFN_RESOURCE_TYPE_NAME,
             props={
                 'ParentId': {
-                    'Ref': api_stack.get_logical_id(api_stack.api.v1_api.provider_management.resource.node.default_child),
+                    'Ref': api_stack.get_logical_id(
+                        api_stack.api.v1_api.provider_management.resource.node.default_child
+                    ),
                 },
                 'PathPart': '{providerId}',
             },
@@ -108,7 +110,9 @@ class TestProviderManagementApi(TestApi):
             props={
                 'ParentId': {
                     # Verify the parent id matches the expected 'provider' resource
-                    'Ref': api_stack.get_logical_id(api_stack.api.v1_api.provider_management.resource.node.default_child),
+                    'Ref': api_stack.get_logical_id(
+                        api_stack.api.v1_api.provider_management.resource.node.default_child
+                    ),
                 },
                 'PathPart': 'query',
             },
@@ -116,7 +120,9 @@ class TestProviderManagementApi(TestApi):
 
         # Ensure the lambda is created with expected code path
         query_handler = TestApi.get_resource_properties_by_logical_id(
-            api_stack.get_logical_id(api_stack.api.v1_api.provider_management.query_providers_handler.node.default_child),
+            api_stack.get_logical_id(
+                api_stack.api.v1_api.provider_management.query_providers_handler.node.default_child
+            ),
             api_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
         )
 
@@ -193,7 +199,9 @@ class TestProviderManagementApi(TestApi):
 
         # Ensure the lambda is created with expected code path
         ssn_handler = TestApi.get_resource_properties_by_logical_id(
-            api_stack.get_logical_id(api_stack.api.v1_api.provider_management.get_provider_ssn_handler.node.default_child),
+            api_stack.get_logical_id(
+                api_stack.api.v1_api.provider_management.get_provider_ssn_handler.node.default_child
+            ),
             api_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
         )
 
@@ -260,7 +268,9 @@ class TestProviderManagementApi(TestApi):
 
         # Ensure the ssn read rate-limited alarm is created
         ssn_read_rate_limited_alarm = TestApi.get_resource_properties_by_logical_id(
-            api_stack.get_logical_id(api_stack.api.v1_api.provider_management.ssn_rate_limited_alarm.node.default_child),
+            api_stack.get_logical_id(
+                api_stack.api.v1_api.provider_management.ssn_rate_limited_alarm.node.default_child
+            ),
             alarms,
         )
 
@@ -292,7 +302,9 @@ class TestProviderManagementApi(TestApi):
 
         # Ensure the 4xx API alarm is created
         throttling_alarm = TestApi.get_resource_properties_by_logical_id(
-            api_stack.get_logical_id(api_stack.api.v1_api.provider_management.ssn_api_throttling_alarm.node.default_child),
+            api_stack.get_logical_id(
+                api_stack.api.v1_api.provider_management.ssn_api_throttling_alarm.node.default_child
+            ),
             alarms,
         )
 
@@ -548,8 +560,9 @@ class TestProviderManagementApi(TestApi):
             },
         )
         self.assertEqual(len(encumbrance_resource_logical_ids), 1)
-        encumbrance_resource_logical_id = api_stack.get_logical_id(api_stack.api.v1_api.provider_management
-                                           .encumbrance_privilege_resource.node.default_child)
+        encumbrance_resource_logical_id = api_stack.get_logical_id(
+            api_stack.api.v1_api.provider_management.encumbrance_privilege_resource.node.default_child
+        )
 
         # Ensure the POST method is configured correctly
         request_model_logical_id_capture = Capture()

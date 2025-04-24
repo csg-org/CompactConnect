@@ -376,7 +376,7 @@ class ApiModel:
         )
 
         return self.api._v1_post_privilege_deactivation_request_model
-    
+
     @property
     def post_privilege_encumbrance_request_model(self) -> Model:
         """Return the post privilege encumbrance request model, which should only be created once per API"""
@@ -407,7 +407,7 @@ class ApiModel:
         )
 
         return self.api._v1_post_privilege_encumbrance_request_model
-    
+
     @property
     def post_license_encumbrance_request_model(self) -> Model:
         """Return the post license encumbrance request model, which should only be created once per API"""

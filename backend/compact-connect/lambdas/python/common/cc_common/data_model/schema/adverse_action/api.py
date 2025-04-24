@@ -1,8 +1,9 @@
 # ruff: noqa: N801, N815  invalid-name
-from cc_common.data_model.schema.base_record import ForgivingSchema
-from cc_common.data_model.schema.fields import ClinicalPrivilegeActionCategoryField, Compact, Jurisdiction
 from marshmallow.fields import Boolean, Date, Raw, String
 from marshmallow.validate import OneOf
+
+from cc_common.data_model.schema.base_record import ForgivingSchema
+from cc_common.data_model.schema.fields import ClinicalPrivilegeActionCategoryField, Compact, Jurisdiction
 
 
 class AdverseActionPostRequestSchema(ForgivingSchema):

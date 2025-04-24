@@ -35,6 +35,7 @@ class ProviderManagement:
     """
     These endpoints are used by staff users to view and manage provider records
     """
+
     def __init__(
         self,
         *,
@@ -73,11 +74,19 @@ class ProviderManagement:
         # Create the nested resources used by endpoints
         self.provider_resource = self.resource.add_resource('{providerId}')
         self.privileges_resource = self.provider_resource.add_resource('privileges')
-        self.privilege_jurisdiction_resource = self.privileges_resource.add_resource('jurisdiction').add_resource('{jurisdiction}')
-        self.privilege_jurisdiction_license_type_resource = self.privilege_jurisdiction_resource.add_resource('licenseType').add_resource('{licenseType}')
+        self.privilege_jurisdiction_resource = self.privileges_resource.add_resource('jurisdiction').add_resource(
+            '{jurisdiction}'
+        )
+        self.privilege_jurisdiction_license_type_resource = self.privilege_jurisdiction_resource.add_resource(
+            'licenseType'
+        ).add_resource('{licenseType}')
         self.licenses_resource = self.provider_resource.add_resource('licenses')
-        self.license_jurisdiction_resource = self.licenses_resource.add_resource('jurisdiction').add_resource('{jurisdiction}')
-        self.license_jurisdiction_license_type_resource = self.license_jurisdiction_resource.add_resource('licenseType').add_resource('{licenseType}')
+        self.license_jurisdiction_resource = self.licenses_resource.add_resource('jurisdiction').add_resource(
+            '{jurisdiction}'
+        )
+        self.license_jurisdiction_license_type_resource = self.license_jurisdiction_resource.add_resource(
+            'licenseType'
+        ).add_resource('{licenseType}')
 
         self._add_query_providers(
             method_options=method_options,
@@ -115,13 +124,9 @@ class ProviderManagement:
             lambda_environment=lambda_environment,
         )
 
-        self._add_encumber_privilege(
-            method_options=admin_method_options
-        )
+        self._add_encumber_privilege(method_options=admin_method_options)
 
-        self._add_encumber_license(
-            method_options=admin_method_options
-        )
+        self._add_encumber_license(method_options=admin_method_options)
 
     def _add_get_provider(
         self,
@@ -606,7 +611,9 @@ class ProviderManagement:
     ):
         """Add POST /providers/{providerId}/privileges/jurisdiction/{jurisdiction}
         /licenseType/{licenseType}/encumbrance endpoint."""
-        self.encumbrance_privilege_resource = self.privilege_jurisdiction_license_type_resource.add_resource('encumbrance')
+        self.encumbrance_privilege_resource = self.privilege_jurisdiction_license_type_resource.add_resource(
+            'encumbrance'
+        )
         self.encumbrance_privilege_resource.add_method(
             'POST',
             request_validator=self.api.parameter_body_validator,

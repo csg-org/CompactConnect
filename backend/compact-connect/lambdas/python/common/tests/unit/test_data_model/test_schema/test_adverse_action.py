@@ -48,20 +48,17 @@ class TestAdverseActionRecordSchema(TstLambdas):
 
     def test_adverse_action_id_is_generated_if_not_provided(self):
         """Test that an adverseActionId is generated if not provided during dump()"""
-        from cc_common.data_model.schema.adverse_action import AdverseAction
-
+        from cc_common.data_model.schema.adverse_action.record import AdverseActionRecordSchema
 
         with open('tests/resources/dynamo/adverse-action-license.json') as f:
             adverse_action_data = json.load(f)
 
-        # Load the data to convert strings to proper types
-        test_adverse_action = AdverseAction.from_dict(adverse_action_data)
-
-        # Verify adverseActionId is not in the loaded data
-        test_adverse_action._data.pop('adverseActionId')
+        loaded_record = AdverseActionRecordSchema().load(adverse_action_data)
+        #  adverseActionId is not in the loaded data
+        loaded_record.pop('adverseActionId')
 
         # Dump the data and verify adverseActionId is generated
-        dumped_data = test_adverse_action.serialize_to_data()
+        dumped_data = AdverseActionRecordSchema().dump(loaded_record)
         self.assertIn('adverseActionId', dumped_data)
         self.assertIsInstance(dumped_data['adverseActionId'], str)
 
@@ -94,12 +91,16 @@ class TestAdverseActionDataClass(TstLambdas):
         self.assertEqual(adverse_action.license_type, adverse_action_data['licenseType'])
         self.assertEqual(adverse_action.action_against, adverse_action_data['actionAgainst'])
         self.assertEqual(adverse_action.blocks_future_privileges, adverse_action_data['blocksFuturePrivileges'])
-        self.assertEqual(adverse_action.clinical_privilege_action_category, adverse_action_data['clinicalPrivilegeActionCategory'])
-        self.assertEqual(adverse_action.creation_effective_date.isoformat(), adverse_action_data['creationEffectiveDate'])
+        self.assertEqual(
+            adverse_action.clinical_privilege_action_category, adverse_action_data['clinicalPrivilegeActionCategory']
+        )
+        self.assertEqual(
+            adverse_action.creation_effective_date.isoformat(), adverse_action_data['creationEffectiveDate']
+        )
         self.assertEqual(str(adverse_action.submitting_user), adverse_action_data['submittingUser'])
         self.assertEqual(adverse_action.creation_date.isoformat(), adverse_action_data['creationDate'])
         self.assertEqual(str(adverse_action.adverse_action_id), adverse_action_data['adverseActionId'])
-        
+
 
 class TestAdverseActionPostRequestSchema(TstLambdas):
     def test_validate_post(self):
@@ -107,7 +108,6 @@ class TestAdverseActionPostRequestSchema(TstLambdas):
         from cc_common.data_model.schema.adverse_action.api import AdverseActionPostRequestSchema
 
         with open('tests/resources/api/adverse-action-post.json') as f:
-
             AdverseActionPostRequestSchema().load(json.load(f))
 
     def test_invalid_post(self):

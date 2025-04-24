@@ -1,12 +1,12 @@
-from uuid import UUID
 from datetime import date, datetime
-from typing import Optional, Dict, Any
+from typing import Any
+from uuid import UUID
 
-from cc_common.data_model.schema.adverse_action.record import AdverseActionRecordSchema
 from cc_common.data_model.schema.adverse_action.api import (
+    AdverseActionGeneralResponseSchema,
     AdverseActionPublicResponseSchema,
-    AdverseActionGeneralResponseSchema
 )
+from cc_common.data_model.schema.adverse_action.record import AdverseActionRecordSchema
 
 
 class AdverseAction:
@@ -15,7 +15,7 @@ class AdverseAction:
     Takes a dict as an argument to the constructor to avoid primitive obsession.
     """
 
-    def __init__(self, data: Dict[str, Any] = None):
+    def __init__(self, data: dict[str, Any] = None):
         self._record_schema = AdverseActionRecordSchema()
         if data:
             # Deserialize input data through the schema if provided
@@ -112,7 +112,7 @@ class AdverseAction:
         self._data['adverseActionId'] = value
 
     @property
-    def effective_lift_date(self) -> Optional[date]:
+    def effective_lift_date(self) -> date | None:
         return self._data.get('effectiveLiftDate')
 
     @effective_lift_date.setter
@@ -120,36 +120,36 @@ class AdverseAction:
         self._data['effectiveLiftDate'] = value
 
     @property
-    def lifting_user(self) -> Optional[UUID]:
+    def lifting_user(self) -> UUID | None:
         return self._data.get('liftingUser')
 
     @lifting_user.setter
     def lifting_user(self, value: UUID) -> None:
         self._data['liftingUser'] = value
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return the internal data dictionary"""
         return self._data.copy()
 
-    def serialize_to_data(self) -> Dict[str, Any]:
+    def serialize_to_data(self) -> dict[str, Any]:
         """Serialize the object using the schema's dump method"""
         return self._record_schema.dump(self._data)
 
     @staticmethod
-    def from_dict(data: Dict[str, Any]) -> 'AdverseAction':
+    def from_dict(data: dict[str, Any]) -> 'AdverseAction':
         """Update the internal data from a dictionary using schema's load method"""
         instance = AdverseAction()
         instance._data = instance._record_schema.load(data)
         return instance
 
-    def to_public_response(self) -> Dict[str, Any]:
+    def to_public_response(self) -> dict[str, Any]:
         """
         Return the data formatted for public API response
         """
         schema = AdverseActionPublicResponseSchema()
         return schema.load(self._data)
 
-    def to_general_response(self) -> Dict[str, Any]:
+    def to_general_response(self) -> dict[str, Any]:
         """
         Return the data formatted for general API response
         """
