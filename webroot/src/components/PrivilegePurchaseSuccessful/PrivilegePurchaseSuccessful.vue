@@ -16,12 +16,14 @@
             </div>
         </div>
         <div class="button-row">
-            <InputButton
-                :label="finishText"
-                aria-label="finish"
-                class="finish-button"
-                @click="handleFinishClicked"
-            />
+            <div class="form-nav-buttons">
+                <InputButton
+                    :label="finishText"
+                    aria-label="finish"
+                    class="form-nav-button finish-button"
+                    @click="handleFinishClicked"
+                />
+            </div>
         </div>
     </div>
 </template>

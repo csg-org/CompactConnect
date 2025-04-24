@@ -111,25 +111,28 @@
             </div>
             <div v-if="formErrorMessage" class="form-error-message">{{formErrorMessage}}</div>
             <div class="button-row">
-                <InputButton
-                    :label="cancelText"
-                    :isTextLike="true"
-                    aria-label="close modal"
-                    class="cancel-button"
-                    @click="handleCancelClicked"
-                />
-                <div class="right-cell">
+                <div class="form-nav-buttons">
+                    <InputSubmit
+                        :formInput="formData.submit"
+                        class="form-nav-button"
+                        :label="submitLabel"
+                        :isEnabled="!isFormLoading && isSubmitEnabled"
+                    />
                     <InputButton
                         :label="backText"
                         :isTransparent="true"
                         aria-label="close modal"
-                        class="back-button"
+                        class="form-nav-button back-button"
                         @click="handleBackClicked"
                     />
-                    <InputSubmit
-                        :formInput="formData.submit"
-                        :label="submitLabel"
-                        :isEnabled="!isFormLoading && isSubmitEnabled"
+                </div>
+                <div class="form-override-buttons">
+                    <InputButton
+                        :label="cancelText"
+                        :isTextLike="true"
+                        aria-label="close modal"
+                        class="form-override-button cancel-button"
+                        @click="handleCancelClicked"
                     />
                 </div>
             </div>

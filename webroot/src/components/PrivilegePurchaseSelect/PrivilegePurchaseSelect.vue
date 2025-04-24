@@ -85,25 +85,28 @@
                     </div>
                 </div>
                 <div class="button-row">
-                    <InputButton
-                        :label="cancelText"
-                        :isTextLike="true"
-                        :aria-label="cancelText"
-                        class="icon icon-close-modal"
-                        @click="handleCancelClicked"
-                    />
-                    <div class="right-cell">
+                    <div class="form-nav-buttons">
+                        <InputSubmit
+                            :formInput="formData.submit"
+                            class="form-nav-button"
+                            :label="submitLabel"
+                            :isEnabled="!isFormLoading && isAtLeastOnePrivilegeChosen && areAllAttesationsConfirmed"
+                        />
                         <InputButton
                             :label="backText"
                             :aria-label="backText"
-                            class="back-button"
+                            class="form-nav-button back-button"
                             :isTransparent="true"
                             @click="handleBackClicked"
                         />
-                        <InputSubmit
-                            :formInput="formData.submit"
-                            :label="submitLabel"
-                            :isEnabled="!isFormLoading && isAtLeastOnePrivilegeChosen && areAllAttesationsConfirmed"
+                    </div>
+                    <div class="form-override-buttons">
+                        <InputButton
+                            :label="cancelText"
+                            :isTextLike="true"
+                            :aria-label="cancelText"
+                            class="form-override-button icon icon-close-modal"
+                            @click="handleCancelClicked"
                         />
                     </div>
                 </div>
