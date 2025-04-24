@@ -8,8 +8,13 @@
     width: 30rem;
     padding: 2rem 2rem 1.6rem 2rem;
     border-radius: 2rem;
-    color: #2d2d2d;
-    background-color: @lightBlue;
+    color: @white;
+    background-color: darken(@darkGrey, 5%);
+
+    &.active {
+        color: #2d2d2d;
+        background-color: @lightBlue;
+    }
 
     .error {
         color: @midRed;
@@ -43,7 +48,11 @@
                 }
 
                 .icon-license {
-                    fill: @black;
+                    fill: @white;
+
+                    &.active {
+                        fill: @black;
+                    }
                 }
             }
         }
@@ -52,11 +61,13 @@
             max-height: 2.4rem;
             margin-left: auto;
             padding: 0.2rem 1rem;
+            border: 1px solid rgba(@white, 0.2);
             border-radius: @borderRadiusPillShape;
             font-weight: @fontWeightBold;
             background-color: rgba(@white, 0.04);
 
             &.active {
+                border: 0;
                 background-color: rgba(@white, 0.5);
             }
         }

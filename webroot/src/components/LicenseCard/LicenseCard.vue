@@ -6,12 +6,12 @@
 -->
 
 <template>
-    <div class="license-card-container">
+    <div class="license-card-container" :class="{ 'active': isActive }">
         <div class="license-heading-row">
             <div class="state-title">
                 <div v-if="shouldIncludeLogo" class="license-icon-container">
-                    <LicenseHomeIcon v-if="isHomeState" class="icon-license" />
-                    <LicenseIcon v-else class="icon-license" />
+                    <LicenseHomeIcon v-if="isHomeState && isActive" class="icon-license active" />
+                    <LicenseIcon v-else class="icon-license" :class="{ 'active': isActive }" />
                 </div>
                 {{stateContent}}
             </div>
