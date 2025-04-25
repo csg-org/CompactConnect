@@ -19,7 +19,7 @@
         </div>
         <div class="license-heading-row">
             <div class="license-type-abbrev">{{licenseTypeDisplay}}</div>
-            <div class="license-status-description">{{statusDescriptionDisplay}}</div>
+            <div class="license-status-description" ref="statusDescription">{{statusDescriptionDisplay}}</div>
         </div>
         <div class="license-info-grid">
             <div class="info-item-container">
@@ -28,7 +28,7 @@
             </div>
            <div class="info-item-container">
                 <div class="info-item-title">{{expiresTitle}}</div>
-                <div class="info-item" :class="{ 'error': isExpired }">{{expiresContent}}</div>
+                <div class="info-item">{{expiresContent}}</div>
             </div>
             <div class="info-item-container">
                 <div class="info-item-title">{{$t('licensing.licenseNumSymbol')}}</div>

@@ -77,9 +77,14 @@
         }
 
         .license-status-description {
+            max-width: 160px;
+            max-height: @fontSize;
             margin-left: auto;
+            overflow: hidden;
             font-size: 1.4rem;
             font-style: italic;
+            white-space: nowrap;
+            text-overflow: ellipsis;
         }
     }
 

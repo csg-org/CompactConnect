@@ -32,6 +32,13 @@ class LicenseCard extends Vue {
     @Prop({ default: false }) shouldIncludeLogo?: boolean;
 
     //
+    // Lifecycle
+    //
+    mounted() {
+        this.addStatusDescriptionExpansion();
+    }
+
+    //
     // Computed
     //
     get statusDisplay(): string {
@@ -102,6 +109,25 @@ class LicenseCard extends Vue {
 
     get isCompactEligible(): boolean {
         return Boolean(this.license?.isCompactEligible());
+    }
+
+    //
+    // Methods
+    //
+    addStatusDescriptionExpansion(): void {
+        // Simple desktop hover for overflowed status descriptions; mvp while we test how states will use this field.
+        const statusDescriptionElement = this.$refs.statusDescription as HTMLElement;
+        const addExpansion = (event) => {
+            const element = event.target;
+
+            if (!element.title && element.scrollWidth > element.clientWidth) {
+                element.title = element.innerText;
+            }
+        };
+
+        if (statusDescriptionElement) {
+            statusDescriptionElement.addEventListener('mouseenter', addExpansion);
+        }
     }
 }
 

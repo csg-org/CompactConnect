@@ -1032,7 +1032,9 @@ export const licensees = {
                     homeAddressCity: 'Riverside',
                     middleName: '',
                     dateOfUpdate: '2024-08-29',
-                    status: 'active'
+                    licenseStatus: 'active',
+                    licenseStatusName: 'Active in renewal',
+                    compactEligibility: 'eligible',
                 },
                 {
                     compact: 'octp',
@@ -1056,7 +1058,9 @@ export const licensees = {
                     homeAddressCity: 'Riverside',
                     middleName: '',
                     dateOfUpdate: '2023-08-29',
-                    status: 'active'
+                    licenseStatus: 'active',
+                    licenseStatusName: 'Custom text with longer content provided by the state that may not fit completely in the default area of the UI and could overflow',
+                    compactEligibility: 'ineligible',
                 },
                 {
                     compact: 'octp',
@@ -1080,7 +1084,9 @@ export const licensees = {
                     homeAddressCity: 'Riverside',
                     middleName: '',
                     dateOfUpdate: '2024-08-29',
-                    status: 'inactive'
+                    licenseStatus: 'inactive',
+                    licenseStatusName: 'Under review',
+                    compactEligibility: 'ineligible',
                 },
                 {
                     compact: 'octp',
@@ -1104,7 +1110,9 @@ export const licensees = {
                     homeAddressCity: 'Riverside',
                     middleName: '',
                     dateOfUpdate: '2024-08-29',
-                    status: 'inactive'
+                    licenseStatus: 'inactive',
+                    licenseStatusName: '',
+                    compactEligibility: 'ineligible',
                 },
                 {
                     compact: 'octp',
@@ -1128,7 +1136,9 @@ export const licensees = {
                     homeAddressCity: 'Riverside',
                     middleName: '',
                     dateOfUpdate: '2023-08-29',
-                    status: 'inactive'
+                    licenseStatus: 'inactive',
+                    licenseStatusName: '',
+                    compactEligibility: 'ineligible',
                 }
             ],
             dateOfExpiration: '2024-08-29',
@@ -1199,7 +1209,9 @@ export const licensees = {
                     homeAddressCity: 'Boulder',
                     middleName: '',
                     dateOfUpdate: '2024-08-29',
-                    status: 'inactive'
+                    licenseStatus: 'inactive',
+                    licenseStatusName: 'Custom text with longer content provided by the state that may not fit completely in the default area of the UI and could overflow',
+                    compactEligibility: 'eligible',
                 }
             ],
             dateOfExpiration: '2024-08-29',
@@ -1272,7 +1284,9 @@ export const licensees = {
                     homeAddressCity: 'Boulder',
                     middleName: '',
                     dateOfUpdate: '2024-08-29',
-                    status: 'active'
+                    licenseStatus: 'active',
+                    licenseStatusName: 'text from state',
+                    compactEligibility: 'eligible',
                 }
             ],
             dateOfExpiration: '2024-08-29',
@@ -1363,7 +1377,9 @@ export const licensees = {
                     homeAddressCity: 'Riverside',
                     middleName: '',
                     dateOfUpdate: '2024-08-29',
-                    status: 'active'
+                    licenseStatus: 'active',
+                    licenseStatusName: '',
+                    compactEligibility: 'ineligible',
                 }
             ],
             dateOfExpiration: '2024-08-29',
