@@ -1,5 +1,5 @@
 import json
-from datetime import date, datetime
+from datetime import datetime
 from unittest.mock import patch
 
 from boto3.dynamodb.conditions import Key
@@ -59,7 +59,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
     def _when_testing_valid_privilege_encumbrance(self):
         test_privilege_record = self.test_data_generator.put_default_privilege_record_in_provider_table()
 
-        event = generate_test_event(
+        return generate_test_event(
             'POST',
             PRIVILEGE_ENCUMBRANCE_ENDPOINT_RESOURCE,
             {
@@ -72,7 +72,6 @@ class TestPostPrivilegeEncumbrance(TstFunction):
             },
             _generate_test_body(),
         )
-        return event
 
     def test_privilege_encumbrance_handler_returns_ok_message_with_valid_body(self):
         from handlers.encumbrance import encumbrance_handler
@@ -130,7 +129,7 @@ class TestPostLicenseEncumbrance(TstFunction):
     def _when_testing_valid_license_encumbrance(self):
         test_license_record = self.test_data_generator.put_default_license_record_in_provider_table()
 
-        event = generate_test_event(
+        return generate_test_event(
             'POST',
             LICENSE_ENCUMBRANCE_ENDPOINT_RESOURCE,
             {
@@ -143,7 +142,6 @@ class TestPostLicenseEncumbrance(TstFunction):
             },
             _generate_test_body(),
         )
-        return event
 
     def test_license_encumbrance_handler_returns_ok_message_with_valid_body(self):
         from handlers.encumbrance import encumbrance_handler

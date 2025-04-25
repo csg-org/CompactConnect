@@ -1,5 +1,4 @@
 from collections import UserDict
-from typing import List
 
 
 class MilitaryAffiliation(UserDict):
@@ -36,22 +35,22 @@ class MilitaryAffiliation(UserDict):
         self.data['type'] = value
 
     @property
-    def document_keys(self) -> List[str]:
+    def document_keys(self) -> list[str]:
         """Get document keys"""
         return self.data['documentKeys']
 
     @document_keys.setter
-    def document_keys(self, value: List[str]):
+    def document_keys(self, value: list[str]):
         """Set document keys"""
         self.data['documentKeys'] = value
 
     @property
-    def file_names(self) -> List[str]:
+    def file_names(self) -> list[str]:
         """Get file names"""
         return self.data['fileNames']
 
     @file_names.setter
-    def file_names(self, value: List[str]):
+    def file_names(self, value: list[str]):
         """Set file names"""
         self.data['fileNames'] = value
 

@@ -1,5 +1,4 @@
 from collections import UserDict
-from typing import Dict, List, Optional
 
 
 class ProviderDetailResponse(UserDict):
@@ -46,12 +45,12 @@ class ProviderDetailResponse(UserDict):
         self.data['licenseJurisdiction'] = value
 
     @property
-    def privilege_jurisdictions(self) -> List[str]:
+    def privilege_jurisdictions(self) -> list[str]:
         """Get privilege jurisdictions"""
         return self.data.get('privilegeJurisdictions', [])
 
     @privilege_jurisdictions.setter
-    def privilege_jurisdictions(self, value: List[str]):
+    def privilege_jurisdictions(self, value: list[str]):
         """Set privilege jurisdictions"""
         self.data['privilegeJurisdictions'] = value
 
@@ -116,12 +115,12 @@ class ProviderDetailResponse(UserDict):
         self.data['ssnLastFour'] = value
 
     @property
-    def npi(self) -> Optional[str]:
+    def npi(self) -> str | None:
         """Get NPI"""
         return self.data.get('npi')
 
     @npi.setter
-    def npi(self, value: Optional[str]):
+    def npi(self, value: str | None):
         """Set NPI"""
         self.data['npi'] = value
 
@@ -136,12 +135,12 @@ class ProviderDetailResponse(UserDict):
         self.data['givenName'] = value
 
     @property
-    def middle_name(self) -> Optional[str]:
+    def middle_name(self) -> str | None:
         """Get middle name"""
         return self.data.get('middleName')
 
     @middle_name.setter
-    def middle_name(self, value: Optional[str]):
+    def middle_name(self, value: str | None):
         """Set middle name"""
         self.data['middleName'] = value
 
@@ -186,12 +185,12 @@ class ProviderDetailResponse(UserDict):
         self.data['homeAddressStreet1'] = value
 
     @property
-    def home_address_street2(self) -> Optional[str]:
+    def home_address_street2(self) -> str | None:
         """Get home address street 2"""
         return self.data.get('homeAddressStreet2')
 
     @home_address_street2.setter
-    def home_address_street2(self, value: Optional[str]):
+    def home_address_street2(self, value: str | None):
         """Set home address street 2"""
         self.data['homeAddressStreet2'] = value
 
@@ -226,52 +225,52 @@ class ProviderDetailResponse(UserDict):
         self.data['homeAddressPostalCode'] = value
 
     @property
-    def email_address(self) -> Optional[str]:
+    def email_address(self) -> str | None:
         """Get email address"""
         return self.data.get('emailAddress')
 
     @email_address.setter
-    def email_address(self, value: Optional[str]):
+    def email_address(self, value: str | None):
         """Set email address"""
         self.data['emailAddress'] = value
 
     @property
-    def phone_number(self) -> Optional[str]:
+    def phone_number(self) -> str | None:
         """Get phone number"""
         return self.data.get('phoneNumber')
 
     @phone_number.setter
-    def phone_number(self, value: Optional[str]):
+    def phone_number(self, value: str | None):
         """Set phone number"""
         self.data['phoneNumber'] = value
 
     @property
-    def compact_connect_registered_email_address(self) -> Optional[str]:
+    def compact_connect_registered_email_address(self) -> str | None:
         """Get compact connect registered email address"""
         return self.data.get('compactConnectRegisteredEmailAddress')
 
     @compact_connect_registered_email_address.setter
-    def compact_connect_registered_email_address(self, value: Optional[str]):
+    def compact_connect_registered_email_address(self, value: str | None):
         """Set compact connect registered email address"""
         self.data['compactConnectRegisteredEmailAddress'] = value
 
     @property
-    def cognito_sub(self) -> Optional[str]:
+    def cognito_sub(self) -> str | None:
         """Get cognito sub"""
         return self.data.get('cognitoSub')
 
     @cognito_sub.setter
-    def cognito_sub(self, value: Optional[str]):
+    def cognito_sub(self, value: str | None):
         """Set cognito sub"""
         self.data['cognitoSub'] = value
 
     @property
-    def birth_month_day(self) -> Optional[str]:
+    def birth_month_day(self) -> str | None:
         """Get birth month day"""
         return self.data.get('birthMonthDay')
 
     @birth_month_day.setter
-    def birth_month_day(self, value: Optional[str]):
+    def birth_month_day(self, value: str | None):
         """Set birth month day"""
         self.data['birthMonthDay'] = value
 
@@ -286,41 +285,41 @@ class ProviderDetailResponse(UserDict):
         self.data['dateOfUpdate'] = value
 
     @property
-    def licenses(self) -> List[Dict]:
+    def licenses(self) -> list[dict]:
         """Get licenses"""
         return self.data.get('licenses', [])
 
     @licenses.setter
-    def licenses(self, value: List[Dict]):
+    def licenses(self, value: list[dict]):
         """Set licenses"""
         self.data['licenses'] = value
 
     @property
-    def privileges(self) -> List[Dict]:
+    def privileges(self) -> list[dict]:
         """Get privileges"""
         return self.data.get('privileges', [])
 
     @privileges.setter
-    def privileges(self, value: List[Dict]):
+    def privileges(self, value: list[dict]):
         """Set privileges"""
         self.data['privileges'] = value
 
     @property
-    def military_affiliations(self) -> List[Dict]:
+    def military_affiliations(self) -> list[dict]:
         """Get military affiliations"""
         return self.data.get('militaryAffiliations', [])
 
     @military_affiliations.setter
-    def military_affiliations(self, value: List[Dict]):
+    def military_affiliations(self, value: list[dict]):
         """Set military affiliations"""
         self.data['militaryAffiliations'] = value
 
     @property
-    def home_jurisdiction_selection(self) -> Dict:
+    def home_jurisdiction_selection(self) -> dict:
         """Get home jurisdiction selection"""
         return self.data.get('homeJurisdictionSelection', {})
 
     @home_jurisdiction_selection.setter
-    def home_jurisdiction_selection(self, value: Dict):
+    def home_jurisdiction_selection(self, value: dict):
         """Set home jurisdiction selection"""
         self.data['homeJurisdictionSelection'] = value

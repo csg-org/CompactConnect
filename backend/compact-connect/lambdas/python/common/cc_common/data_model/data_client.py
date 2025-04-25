@@ -10,12 +10,12 @@ from botocore.exceptions import ClientError
 
 from cc_common.config import _Config, config, logger, metrics
 from cc_common.data_model.query_paginator import paginated_query
-from cc_common.data_model.schema import LicenseRecordSchema, PrivilegeRecordSchema
+from cc_common.data_model.schema import PrivilegeRecordSchema
 from cc_common.data_model.schema.adverse_action import AdverseActionData
 from cc_common.data_model.schema.base_record import SSNIndexRecordSchema
 from cc_common.data_model.schema.common import ActiveInactiveStatus, CompactEligibilityStatus
 from cc_common.data_model.schema.home_jurisdiction.record import ProviderHomeJurisdictionSelectionRecordSchema
-from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData, LicenseUpdateRecordSchema
+from cc_common.data_model.schema.license import LicenseData, LicenseUpdateRecordSchema
 from cc_common.data_model.schema.military_affiliation import (
     MilitaryAffiliationStatus,
     MilitaryAffiliationType,

@@ -24,10 +24,11 @@ class CCDataClass:
     1. From a database record using the load_from_database_record method, which will be loaded through the schema.
     2. From passing a dictionary into the constructor, which can be used to create a new data object
     that does not yet exist in the database.
-    3. Without any data, in which case the data can be set using the associated setter methods
+    3. Without any data, in which case the data can be set using the associated setter methods as provided by the
+    subclass
 
-    When putting records into the database, call the serialize_to_data method to convert the data class to a dictionary using
-    the recordschema's dump method.
+    When putting records into the database, call the serialize_to_data method to convert the data class to a
+    dictionary using the record schema's dump method.
     """
 
     def __init__(self, record_schema: Schema, data: dict[str, Any] = None):

@@ -1,4 +1,4 @@
-# ruff: noqa: F405 star import of test constants file
+# ruff: noqa: F403, F405 star import of test constants file
 from cc_common.data_model.schema.adverse_action import AdverseActionData
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
 from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData

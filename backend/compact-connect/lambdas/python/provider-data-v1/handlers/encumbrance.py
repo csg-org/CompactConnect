@@ -30,7 +30,7 @@ def encumbrance_handler(event: dict, context: LambdaContext) -> dict:
 
     if event['httpMethod'] == 'POST' and event['resource'] == PRIVILEGE_ENCUMBRANCE_ENDPOINT_RESOURCE:
         return handle_privilege_encumbrance(event)
-    elif event['httpMethod'] == 'POST' and event['resource'] == LICENSE_ENCUMBRANCE_ENDPOINT_RESOURCE:
+    if event['httpMethod'] == 'POST' and event['resource'] == LICENSE_ENCUMBRANCE_ENDPOINT_RESOURCE:
         return handle_license_encumbrance(event)
 
     raise CCInvalidRequestException('Invalid endpoint requested')
