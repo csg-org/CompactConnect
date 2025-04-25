@@ -388,9 +388,9 @@ class ApiModel:
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
                 additional_properties=False,
-                required=['encumberanceEffectiveDate', 'clinicalPrivilegeActionCategory', 'blocksFuturePrivileges'],
+                required=['encumbranceEffectiveDate', 'clinicalPrivilegeActionCategory', 'blocksFuturePrivileges'],
                 properties={
-                    'encumberanceEffectiveDate': JsonSchema(
+                    'encumbranceEffectiveDate': JsonSchema(
                         type=JsonSchemaType.STRING,
                         description='The effective date of the encumbrance',
                     ),
@@ -419,9 +419,9 @@ class ApiModel:
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
                 additional_properties=False,
-                required=['encumberanceEffectiveDate', 'clinicalPrivilegeActionCategory', 'blocksFuturePrivileges'],
+                required=['encumbranceEffectiveDate', 'clinicalPrivilegeActionCategory', 'blocksFuturePrivileges'],
                 properties={
-                    'encumberanceEffectiveDate': JsonSchema(
+                    'encumbranceEffectiveDate': JsonSchema(
                         type=JsonSchemaType.STRING,
                         description='The effective date of the encumbrance',
                     ),

@@ -1,7 +1,7 @@
 {
   "additionalProperties": false,
   "properties": {
-    "encumberanceEffectiveDate": {
+    "encumbranceEffectiveDate": {
       "description": "The effective date of the encumbrance",
       "type": "string"
     },
@@ -15,7 +15,7 @@
     }
   },
   "required": [
-    "encumberanceEffectiveDate",
+    "encumbranceEffectiveDate",
     "clinicalPrivilegeActionCategory",
     "blocksFuturePrivileges"
   ],
