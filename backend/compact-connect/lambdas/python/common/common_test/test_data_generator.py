@@ -144,27 +144,29 @@ class TestDataGenerator:
         )
 
     @staticmethod
-    def generate_default_privilege() -> PrivilegeData:
+    def generate_default_privilege(value_overrides: dict | None = None) -> PrivilegeData:
         """Generate a default privilege"""
-        return PrivilegeData(
-            {
-                'providerId': DEFAULT_PROVIDER_ID,
-                'compact': DEFAULT_COMPACT,
-                'type': PRIVILEGE_RECORD_TYPE,
-                'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
-                'licenseJurisdiction': DEFAULT_LICENSE_JURISDICTION,
-                'licenseType': DEFAULT_LICENSE_TYPE,
-                'dateOfIssuance': DEFAULT_PRIVILEGE_ISSUANCE_DATE,
-                'dateOfRenewal': DEFAULT_PRIVILEGE_RENEWAL_DATE,
-                'dateOfExpiration': DEFAULT_PRIVILEGE_EXPIRATION_DATE,
-                'compactTransactionId': DEFAULT_COMPACT_TRANSACTION_ID,
-                'attestations': DEFAULT_ATTESTATIONS,
-                'privilegeId': DEFAULT_PRIVILEGE_ID,
-                'administratorSetStatus': DEFAULT_ADMINISTRATOR_SET_STATUS,
-                'dateOfUpdate': DEFAULT_PRIVILEGE_UPDATE_DATE,
-                'compactTransactionIdGSIPK': f'COMPACT#{DEFAULT_COMPACT}#TX#{DEFAULT_COMPACT_TRANSACTION_ID}#',
-            }
-        )
+        default_privilege = {
+            'providerId': DEFAULT_PROVIDER_ID,
+            'compact': DEFAULT_COMPACT,
+            'type': PRIVILEGE_RECORD_TYPE,
+            'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
+            'licenseJurisdiction': DEFAULT_LICENSE_JURISDICTION,
+            'licenseType': DEFAULT_LICENSE_TYPE,
+            'dateOfIssuance': DEFAULT_PRIVILEGE_ISSUANCE_DATE,
+            'dateOfRenewal': DEFAULT_PRIVILEGE_RENEWAL_DATE,
+            'dateOfExpiration': DEFAULT_PRIVILEGE_EXPIRATION_DATE,
+            'compactTransactionId': DEFAULT_COMPACT_TRANSACTION_ID,
+            'attestations': DEFAULT_ATTESTATIONS,
+            'privilegeId': DEFAULT_PRIVILEGE_ID,
+            'administratorSetStatus': DEFAULT_ADMINISTRATOR_SET_STATUS,
+            'dateOfUpdate': DEFAULT_PRIVILEGE_UPDATE_DATE,
+            'compactTransactionIdGSIPK': f'COMPACT#{DEFAULT_COMPACT}#TX#{DEFAULT_COMPACT_TRANSACTION_ID}#',
+        }
+        if value_overrides:
+            default_privilege.update(value_overrides)
+
+        return PrivilegeData(default_privilege)
 
     @staticmethod
     def store_record_in_provider_table(record: dict) -> None:
@@ -190,27 +192,32 @@ class TestDataGenerator:
         return config.license_type_abbreviations[compact][license_type]
 
     @staticmethod
-    def generate_default_privilege_update() -> PrivilegeUpdateData:
+    def generate_default_privilege_update(
+        value_overrides: dict | None = None, previous_privilege: PrivilegeData | None = None
+    ) -> PrivilegeUpdateData:
         """Generate a default privilege update"""
-        previous_privilege = TestDataGenerator.generate_default_privilege()
-        previous_dict = dict(previous_privilege.data)
+        if previous_privilege is None:
+            previous_privilege = TestDataGenerator.generate_default_privilege()
 
-        # Remove type and status from previous, as they're not part of the previous schema
-        previous_dict.pop('type', None)
-        previous_dict.pop('status', None)
+        privilege_update = {
+            'updateType': DEFAULT_PRIVILEGE_UPDATE_TYPE,
+            'providerId': DEFAULT_PROVIDER_ID,
+            'compact': DEFAULT_COMPACT,
+            'type': PRIVILEGE_UPDATE_RECORD_TYPE,
+            'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
+            'licenseType': DEFAULT_LICENSE_TYPE,
+            'previous': previous_privilege.serialize_to_database_record(),
+            'updatedValues': {
+                'dateOfRenewal': DEFAULT_PRIVILEGE_RENEWAL_DATE,
+                'dateOfExpiration': DEFAULT_PRIVILEGE_EXPIRATION_DATE,
+                'compactTransactionId': DEFAULT_COMPACT_TRANSACTION_ID,
+            },
+            'dateOfUpdate': DEFAULT_PRIVILEGE_UPDATE_DATE_OF_UPDATE
+        }
+        if value_overrides:
+            privilege_update.update(value_overrides)
 
-        return PrivilegeUpdateData(
-            {
-                'updateType': PRIVILEGE_UPDATE_RECORD_TYPE,
-                'providerId': DEFAULT_PROVIDER_ID,
-                'compact': DEFAULT_COMPACT,
-                'type': PRIVILEGE_UPDATE_RECORD_TYPE,
-                'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
-                'licenseType': DEFAULT_LICENSE_TYPE,
-                'previous': previous_dict,
-                'updatedValues': {'dateOfExpiration': '2027-04-04', 'dateOfUpdate': DEFAULT_PRIVILEGE_UPDATE_DATE},
-            }
-        )
+        return PrivilegeUpdateData(privilege_update)
 
     @staticmethod
     def generate_default_provider() -> Provider:

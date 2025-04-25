@@ -16,18 +16,21 @@ class CCDataClass:
     Base class for Compact Connect data classes
 
     These data classes provide an abstraction layer between the data model and the database schema.
-    They also provide a simple interface to validate data and convert it to and from a dictionary representation.
+    They also provide a simple interface to validate data and get specific properties. They also have utility methods
+    to serialize and deserialize database records.
 
-    Whenever possible, data classes should be used to interact with the data model from lambda functions.
+    Whenever possible, data classes should be used to interact with the data model from lambda functions, rather than
+    referencing the schemas directly.
 
     Data classes can be instantiated in three ways:
-    1. From a database record using the load_from_database_record method, which will be loaded through the schema.
+    1. From a database record using the load_from_database_record method, which will be loaded through the respective
+    schema.
     2. From passing a dictionary into the constructor, which can be used to create a new data object
     that does not yet exist in the database.
     3. Without any data, in which case the data can be set using the associated setter methods as provided by the
-    subclass
+    subclass.
 
-    When putting records into the database, call the serialize_to_data method to convert the data class to a
+    When putting records into the database, call the serialize_to_database_record method to convert the data class to a
     dictionary using the record schema's dump method.
     """
 
@@ -37,8 +40,8 @@ class CCDataClass:
         if data:
             # The base record schema expects pk and sk to be present in the data
             # but we want to be able to instantiate data classes for records that
-            # haven't been stored yet, so we first set the pk and sk to temporary values
-            # since these will be stripped out by the schema
+            # haven't been stored yet, so we set the pk and sk to temporary values here
+            # since these will be stripped out by the schema when loaded
             data['pk'] = 'tempPk'
             data['sk'] = 'tempSk'
             self._data = self._record_schema.load(data)
@@ -51,7 +54,14 @@ class CCDataClass:
         return self
 
     def to_dict(self) -> dict[str, Any]:
-        """Return the internal data dictionary"""
+        """Return the internal data dictionary
+
+        The main purpose of this method is for ejecting the data into a form that is easy to make assertions on in
+        our testing, but may be used in other areas of the code which expect dictionary arguments for whatever reason.
+
+        DO NOT use this method for generating database records. When you want to serialize the data for storage in the
+        DB, call the serialize_to_database_record method.
+        """
         return self._data.copy()
 
     def serialize_to_database_record(self) -> dict[str, Any]:
@@ -141,6 +151,7 @@ class UpdateCategory(CCEnum):
     ISSUANCE = 'issuance'
     OTHER = 'other'
     RENEWAL = 'renewal'
+    ENCUMBRANCE = 'encumbrance'
 
 
 class ActiveInactiveStatus(CCEnum):

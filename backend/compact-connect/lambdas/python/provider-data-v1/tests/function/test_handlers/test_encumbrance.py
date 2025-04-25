@@ -6,7 +6,6 @@ from boto3.dynamodb.conditions import Key
 from common_test.test_constants import (
     DEFAULT_AA_SUBMITTING_USER_ID,
     DEFAULT_PRIVILEGE_JURISDICTION,
-    DEFAULT_PROVIDER_PK,
     TEST_DATE_OF_UPDATE_TIMESTAMP,
 )
 from moto import mock_aws
@@ -59,6 +58,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
     def _when_testing_valid_privilege_encumbrance(self):
         test_privilege_record = self.test_data_generator.put_default_privilege_record_in_provider_table()
 
+        # return both the test event and the test privilege record
         return generate_test_event(
             'POST',
             PRIVILEGE_ENCUMBRANCE_ENDPOINT_RESOURCE,
@@ -71,12 +71,12 @@ class TestPostPrivilegeEncumbrance(TstFunction):
                 ),
             },
             _generate_test_body(),
-        )
+        ), test_privilege_record
 
     def test_privilege_encumbrance_handler_returns_ok_message_with_valid_body(self):
         from handlers.encumbrance import encumbrance_handler
 
-        event = self._when_testing_valid_privilege_encumbrance()
+        event = self._when_testing_valid_privilege_encumbrance()[0]
 
         response = encumbrance_handler(event, self.mock_context)
         self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
@@ -91,7 +91,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
         from cc_common.data_model.schema.adverse_action import AdverseActionData
         from handlers.encumbrance import encumbrance_handler
 
-        event = self._when_testing_valid_privilege_encumbrance()
+        event, test_privilege_record = self._when_testing_valid_privilege_encumbrance()
 
         response = encumbrance_handler(event, self.mock_context)
         self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
@@ -100,8 +100,9 @@ class TestPostPrivilegeEncumbrance(TstFunction):
         # Perform a query to list all encumbrances for the provider using the starts_with key condition
         adverse_action_encumbrances = self._provider_table.query(
             Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(DEFAULT_PROVIDER_PK)
-            & Key('sk').begins_with('aslp#PROVIDER#privilege/ne/slp#ADVERSE_ACTION'),
+            KeyConditionExpression=Key('pk').eq(test_privilege_record.serialize_to_database_record()['pk'])
+            & Key('sk').begins_with(
+                f'{test_privilege_record.compact}#PROVIDER#privilege/{test_privilege_record.jurisdiction}/slp#ADVERSE_ACTION'),
         )
         self.assertEqual(1, len(adverse_action_encumbrances['Items']))
         item = adverse_action_encumbrances['Items'][0]
@@ -119,6 +120,71 @@ class TestPostPrivilegeEncumbrance(TstFunction):
         self.assertEqual(
             default_adverse_action_encumbrance.to_dict(),
             loaded_adverse_action.to_dict(),
+        )
+
+    def test_privilege_encumbrance_handler_adds_privilege_update_record_in_provider_data_table(self):
+        from cc_common.data_model.schema.privilege import PrivilegeUpdateData
+        from handlers.encumbrance import encumbrance_handler
+
+        event, test_privilege_record = self._when_testing_valid_privilege_encumbrance()
+
+        response = encumbrance_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+
+        # Verify that the encumbrance record was added to the provider data table
+        # Perform a query to list all encumbrances for the provider using the starts_with key condition
+        privilege_update_records = self._provider_table.query(
+            Select='ALL_ATTRIBUTES',
+            KeyConditionExpression=Key('pk').eq(test_privilege_record.serialize_to_database_record()['pk'])
+            & Key('sk').begins_with(
+                f'{test_privilege_record.compact}#PROVIDER#privilege/{test_privilege_record.jurisdiction}/slp#UPDATE'),
+        )
+        self.assertEqual(1, len(privilege_update_records['Items']))
+        item = privilege_update_records['Items'][0]
+
+        expected_privilege_update_data = self.test_data_generator.generate_default_privilege_update(value_overrides={
+            'dateOfUpdate': TEST_DATE_OF_UPDATE_TIMESTAMP,
+            'updateType': 'encumbrance',
+            'updatedValues': {'administratorSetStatus': 'inactive'}
+        })
+        loaded_privilege_update_data = PrivilegeUpdateData()
+        loaded_privilege_update_data.load_from_database_record(data=item)
+
+        self.assertEqual(
+            expected_privilege_update_data.to_dict(),
+            loaded_privilege_update_data.to_dict(),
+        )
+
+    def test_privilege_encumbrance_handler_sets_privilege_record_to_inactive_in_provider_data_table(self):
+        from cc_common.data_model.schema.privilege import PrivilegeData
+        from handlers.encumbrance import encumbrance_handler
+
+        event, test_privilege_record = self._when_testing_valid_privilege_encumbrance()
+
+        response = encumbrance_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+
+        # Verify that the encumbrance record was added to the provider data table
+        # Perform a query to list all encumbrances for the provider using the starts_with key condition
+        privilege_serialized_record = test_privilege_record.serialize_to_database_record()
+        privilege_records = self._provider_table.query(
+            Select='ALL_ATTRIBUTES',
+            KeyConditionExpression=Key('pk').eq(privilege_serialized_record['pk'])
+            & Key('sk').eq(privilege_serialized_record['sk']),
+        )
+        self.assertEqual(1, len(privilege_records['Items']))
+        item = privilege_records['Items'][0]
+
+        expected_privilege_data = self.test_data_generator.generate_default_privilege(value_overrides={
+            'dateOfUpdate': TEST_DATE_OF_UPDATE_TIMESTAMP,
+            'administratorSetStatus': 'inactive'
+        })
+        loaded_privilege_data = PrivilegeData()
+        loaded_privilege_data.load_from_database_record(data=item)
+
+        self.assertEqual(
+            expected_privilege_data.to_dict(),
+            loaded_privilege_data.to_dict(),
         )
 
 
