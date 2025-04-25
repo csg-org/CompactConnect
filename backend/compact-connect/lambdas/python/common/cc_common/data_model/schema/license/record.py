@@ -21,7 +21,7 @@ from cc_common.data_model.schema.fields import (
     NationalProviderIdentifier,
     UpdateType,
 )
-from cc_common.data_model.schema.license import LicenseCommonSchema
+from cc_common.data_model.schema.license.common import LicenseCommonSchema
 
 
 @BaseRecordSchema.register_schema('license')

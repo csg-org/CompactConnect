@@ -4,14 +4,16 @@ from marshmallow import ValidationError
 
 from tests import TstLambdas
 
-
 class TestAdverseActionRecordSchema(TstLambdas):
+    def setUp(self):
+        from common_test.test_data_generator import TestDataGenerator
+        self.test_data_generator = TestDataGenerator
+
     def test_serde(self):
         """Test round-trip deserialization/serialization"""
         from cc_common.data_model.schema.adverse_action.record import AdverseActionRecordSchema
 
-        with open('tests/resources/dynamo/adverse-action-license.json') as f:
-            expected_adverse_action = json.load(f)
+        expected_adverse_action = self.test_data_generator.generate_default_adverse_action().serialize_to_database_record()
 
         schema = AdverseActionRecordSchema()
         loaded_schema = schema.load(expected_adverse_action.copy())
@@ -27,68 +29,53 @@ class TestAdverseActionRecordSchema(TstLambdas):
     def test_invalid(self):
         from cc_common.data_model.schema.adverse_action.record import AdverseActionRecordSchema
 
-        with open('tests/resources/dynamo/adverse-action-license.json') as f:
-            adverse_action_data = json.load(f)
+        adverse_action_data = self.test_data_generator.generate_default_adverse_action().to_dict()
         adverse_action_data.pop('providerId')
 
         with self.assertRaises(ValidationError):
             AdverseActionRecordSchema().load(adverse_action_data)
 
     def test_invalid_action_against(self):
-        from cc_common.data_model.schema.adverse_action import AdverseAction
+        from cc_common.data_model.schema.adverse_action import AdverseActionData
+        from cc_common.data_model.schema.common import CompactEligibilityStatus
 
-        with open('tests/resources/dynamo/adverse-action-license.json') as f:
-            adverse_action_data = json.load(f)
+        adverse_action_data = self.test_data_generator.generate_default_adverse_action()
 
-        test_invalid_adverse_action = AdverseAction.from_dict(adverse_action_data)
-        test_invalid_adverse_action.action_against = 'invalid'
+        # setting to an invalid value from another enum
+        adverse_action_data.action_against = CompactEligibilityStatus.ELIGIBLE
 
         with self.assertRaises(ValidationError):
-            AdverseAction.from_dict(test_invalid_adverse_action.serialize_to_data())
+            AdverseActionData().load_from_database_record(adverse_action_data.serialize_to_database_record())
 
     def test_adverse_action_id_is_generated_if_not_provided(self):
         """Test that an adverseActionId is generated if not provided during dump()"""
         from cc_common.data_model.schema.adverse_action.record import AdverseActionRecordSchema
 
-        with open('tests/resources/dynamo/adverse-action-license.json') as f:
-            adverse_action_data = json.load(f)
+        adverse_action_data = self.test_data_generator.generate_default_adverse_action().to_dict()
 
-        loaded_record = AdverseActionRecordSchema().load(adverse_action_data)
         #  adverseActionId is not in the loaded data
-        loaded_record.pop('adverseActionId')
+        adverse_action_data.pop('adverseActionId')
 
         # Dump the data and verify adverseActionId is generated
-        dumped_data = AdverseActionRecordSchema().dump(loaded_record)
+        dumped_data = AdverseActionRecordSchema().dump(adverse_action_data)
         self.assertIn('adverseActionId', dumped_data)
         self.assertIsInstance(dumped_data['adverseActionId'], str)
 
 
 class TestAdverseActionDataClass(TstLambdas):
-    def test_adverse_action_data_class_serde_round_trip(self):
-        from cc_common.data_model.schema.adverse_action import AdverseAction
-
-        with open('tests/resources/dynamo/adverse-action-license.json') as f:
-            adverse_action_data = json.load(f)
-
-        adverse_action = AdverseAction.from_dict(adverse_action_data)
-        self.assertIsInstance(adverse_action, AdverseAction)
-
-        dumped_data = adverse_action.serialize_to_data()
-        # Drop dynamic fields
-        del adverse_action_data['dateOfUpdate']
-        del dumped_data['dateOfUpdate']
-        self.assertEqual(adverse_action_data, dumped_data)
+    def setUp(self):
+        from common_test.test_data_generator import TestDataGenerator
+        self.test_data_generator = TestDataGenerator
 
     def test_adverse_action_data_class_getters_return_expected_values(self):
-        from cc_common.data_model.schema.adverse_action import AdverseAction
+        from cc_common.data_model.schema.adverse_action import AdverseActionData
 
-        with open('tests/resources/dynamo/adverse-action-license.json') as f:
-            adverse_action_data = json.load(f)
+        adverse_action_data = self.test_data_generator.generate_default_adverse_action().serialize_to_database_record()
 
-        adverse_action = AdverseAction.from_dict(adverse_action_data)
+        adverse_action = AdverseActionData().load_from_database_record(adverse_action_data)
         self.assertEqual(str(adverse_action.provider_id), adverse_action_data['providerId'])
         self.assertEqual(adverse_action.jurisdiction, adverse_action_data['jurisdiction'])
-        self.assertEqual(adverse_action.license_type, adverse_action_data['licenseType'])
+        self.assertEqual(adverse_action.license_type_abbreviation, adverse_action_data['licenseTypeAbbreviation'])
         self.assertEqual(adverse_action.action_against, adverse_action_data['actionAgainst'])
         self.assertEqual(adverse_action.blocks_future_privileges, adverse_action_data['blocksFuturePrivileges'])
         self.assertEqual(
@@ -116,7 +103,7 @@ class TestAdverseActionPostRequestSchema(TstLambdas):
 
         with open('tests/resources/api/adverse-action-post.json') as f:
             adverse_action_data = json.load(f)
-        adverse_action_data.pop('encumberanceEffectiveDate')
+        adverse_action_data.pop('encumbranceEffectiveDate')
 
         with self.assertRaises(ValidationError):
             AdverseActionPostRequestSchema().load(adverse_action_data)

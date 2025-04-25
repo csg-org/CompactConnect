@@ -7,21 +7,17 @@ from cc_common.data_model.schema.adverse_action.api import (
     AdverseActionPublicResponseSchema,
 )
 from cc_common.data_model.schema.adverse_action.record import AdverseActionRecordSchema
+from cc_common.data_model.schema.common import AdverseActionAgainstEnum, CCDataClass, ClinicalPrivilegeActionCategory
 
 
-class AdverseAction:
+class AdverseActionData(CCDataClass):
     """
     Class representing an Adverse Action with getters and setters for all properties.
     Takes a dict as an argument to the constructor to avoid primitive obsession.
     """
 
     def __init__(self, data: dict[str, Any] = None):
-        self._record_schema = AdverseActionRecordSchema()
-        if data:
-            # Deserialize input data through the schema if provided
-            self._data = self._record_schema.load(data)
-        else:
-            self._data = {}
+        super().__init__(AdverseActionRecordSchema(), data)
 
     @property
     def compact(self) -> str:
@@ -48,20 +44,20 @@ class AdverseAction:
         self._data['jurisdiction'] = value
 
     @property
-    def license_type(self) -> str:
-        return self._data.get('licenseType')
+    def license_type_abbreviation(self) -> str:
+        return self._data['licenseTypeAbbreviation']
 
-    @license_type.setter
-    def license_type(self, value: str) -> None:
-        self._data['licenseType'] = value
+    @license_type_abbreviation.setter
+    def license_type_abbreviation(self, value: str) -> None:
+        self._data['licenseTypeAbbreviation'] = value
 
     @property
     def action_against(self) -> str:
         return self._data.get('actionAgainst')
 
     @action_against.setter
-    def action_against(self, value: str) -> None:
-        self._data['actionAgainst'] = value
+    def action_against(self, action_against_enum: AdverseActionAgainstEnum) -> None:
+        self._data['actionAgainst'] = action_against_enum.value
 
     @property
     def blocks_future_privileges(self) -> bool:
@@ -76,8 +72,10 @@ class AdverseAction:
         return self._data.get('clinicalPrivilegeActionCategory')
 
     @clinical_privilege_action_category.setter
-    def clinical_privilege_action_category(self, value: str) -> None:
-        self._data['clinicalPrivilegeActionCategory'] = value
+    def clinical_privilege_action_category(self,
+                                           clinical_privilege_action_category_enum:
+                                           ClinicalPrivilegeActionCategory) -> None:
+        self._data['clinicalPrivilegeActionCategory'] = clinical_privilege_action_category_enum.value
 
     @property
     def creation_effective_date(self) -> date:
@@ -107,10 +105,6 @@ class AdverseAction:
     def adverse_action_id(self) -> UUID:
         return self._data.get('adverseActionId')
 
-    @adverse_action_id.setter
-    def adverse_action_id(self, value: UUID) -> None:
-        self._data['adverseActionId'] = value
-
     @property
     def effective_lift_date(self) -> date | None:
         return self._data.get('effectiveLiftDate')
@@ -126,21 +120,7 @@ class AdverseAction:
     @lifting_user.setter
     def lifting_user(self, value: UUID) -> None:
         self._data['liftingUser'] = value
-
-    def to_dict(self) -> dict[str, Any]:
-        """Return the internal data dictionary"""
-        return self._data.copy()
-
-    def serialize_to_data(self) -> dict[str, Any]:
-        """Serialize the object using the schema's dump method"""
-        return self._record_schema.dump(self._data)
-
-    @staticmethod
-    def from_dict(data: dict[str, Any]) -> 'AdverseAction':
-        """Update the internal data from a dictionary using schema's load method"""
-        instance = AdverseAction()
-        instance._data = instance._record_schema.load(data)
-        return instance
+        
 
     def to_public_response(self) -> dict[str, Any]:
         """

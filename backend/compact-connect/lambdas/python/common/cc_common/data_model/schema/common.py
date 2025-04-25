@@ -3,11 +3,58 @@ import json
 from datetime import UTC, datetime
 from enum import StrEnum
 from hashlib import md5
+from typing import Any
 
+from cc_common.config import config
 from marshmallow import Schema, ValidationError, validates_schema
 from marshmallow.fields import Dict, String, Url
 
-from cc_common.config import config
+
+class CCDataClass:
+    """
+    Base class for Compact Connect data classes
+
+    These data classes provide an abstraction layer between the data model and the database schema.
+    They also provide a simple interface to validate data and convert it to and from a dictionary representation.
+
+    Whenever possible, data classes should be used to interact with the data model from lambda functions.
+
+    Data classes can be instantiated in three ways:
+    1. From a database record using the load_from_database_record method, which will be loaded through the schema.
+    2. From passing a dictionary into the constructor, which can be used to create a new data object
+    that does not yet exist in the database.
+    3. Without any data, in which case the data can be set using the associated setter methods
+
+    When putting records into the database, call the serialize_to_data method to convert the data class to a dictionary using
+    the recordschema's dump method.
+    """
+
+    def __init__(self, record_schema: Schema, data: dict[str, Any] = None):
+        self._record_schema = record_schema
+        # If the data is provided, validate it through the schema
+        if data:
+            # The base record schema expects pk and sk to be present in the data
+            # but we want to be able to instantiate data classes for records that
+            # haven't been stored yet, so we first set the pk and sk to temporary values
+            # since these will be stripped out by the schema
+            data['pk'] = "tempPk"
+            data['sk'] = "tempSk"
+            self._data = self._record_schema.load(data)
+        else:
+            self._data = {}
+
+    def load_from_database_record(self, data: dict[str, Any]) -> 'CCDataClass':
+        """Update the internal data from a database record using the schema's load method"""
+        self._data = self._record_schema.load(data)
+        return self
+
+    def to_dict(self) -> dict[str, Any]:
+        """Return the internal data dictionary"""
+        return self._data.copy()
+
+    def serialize_to_database_record(self) -> dict[str, Any]:
+        """Serialize the object using the schema's dump method"""
+        return self._record_schema.dump(self._data)
 
 
 class CCEnum(StrEnum):
@@ -75,6 +122,14 @@ def ensure_value_is_datetime(value: str):
 
     # Not a date string, return the original
     return value
+
+
+class AdverseActionAgainstEnum(StrEnum):
+    """
+    Enum for possible records that adverse actions can be made against
+    """
+    PRIVILEGE = 'privilege'
+    LICENSE = 'license'
 
 
 class UpdateCategory(CCEnum):

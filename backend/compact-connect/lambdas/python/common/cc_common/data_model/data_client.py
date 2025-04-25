@@ -7,18 +7,20 @@ from aws_lambda_powertools.metrics import MetricUnit
 from boto3.dynamodb.conditions import Attr, Key
 from boto3.dynamodb.types import TypeDeserializer, TypeSerializer
 from botocore.exceptions import ClientError
-
 from cc_common.config import _Config, config, logger, metrics
 from cc_common.data_model.query_paginator import paginated_query
-from cc_common.data_model.schema import PrivilegeRecordSchema
+from cc_common.data_model.schema import LicenseRecordSchema, PrivilegeRecordSchema
+from cc_common.data_model.schema.adverse_action import AdverseActionData
 from cc_common.data_model.schema.base_record import SSNIndexRecordSchema
-from cc_common.data_model.schema.common import ActiveInactiveStatus
+from cc_common.data_model.schema.common import ActiveInactiveStatus, CompactEligibilityStatus
 from cc_common.data_model.schema.home_jurisdiction.record import ProviderHomeJurisdictionSelectionRecordSchema
+from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData, LicenseUpdateRecordSchema
 from cc_common.data_model.schema.military_affiliation import (
     MilitaryAffiliationStatus,
     MilitaryAffiliationType,
 )
 from cc_common.data_model.schema.military_affiliation.record import MilitaryAffiliationRecordSchema
+from cc_common.data_model.schema.privilege import PrivilegeData
 from cc_common.data_model.schema.privilege.record import PrivilegeUpdateRecordSchema
 from cc_common.exceptions import (
     CCAwsServiceException,
@@ -917,3 +919,238 @@ class DataClient:
         )
 
         return privilege_record
+
+    def _generate_set_administrator_set_status_item(self, compact: str,
+                                                    provider_id: str,
+                                                    jurisdiction: str,
+                                                    license_type_abbreviation: str,
+                                                    status_to_set: ActiveInactiveStatus):
+        return {
+                    'Update': {
+                        'TableName': self.config.provider_table.name,
+                        'Key': {
+                            'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
+                            'sk': {'S': f'{compact}#PROVIDER#privilege/{jurisdiction}/{license_type_abbreviation}#'},
+                        },
+                        'UpdateExpression': 'SET administratorSetStatus = :status, dateOfUpdate = :dateOfUpdate',
+                        'ExpressionAttributeValues': {
+                            ':status': {'S': status_to_set},
+                            ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
+                        },
+                    },
+                }
+
+    def _generate_set_license_compact_eligibility_status_item(self, compact: str,
+                                                              provider_id: str,
+                                                              jurisdiction: str,
+                                                              license_type_abbreviation: str,
+                                                              compact_eligibility_status: CompactEligibilityStatus):
+        return {
+                    'Update': {
+                        'TableName': self.config.provider_table.name,
+                        'Key': {
+                            'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
+                            'sk': {'S': f'{compact}#PROVIDER#license/{jurisdiction}/{license_type_abbreviation}#'},
+                        },
+                        'UpdateExpression': 'SET compactEligibility = :status, dateOfUpdate = :dateOfUpdate',
+                        'ExpressionAttributeValues': {
+                            ':status': {'S': compact_eligibility_status},
+                            ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
+                        },
+                    },
+                }
+
+    def _generate_put_adverse_action_item(self, adverse_action: AdverseActionData):
+        return {
+            'Put': {
+                'TableName': self.config.provider_table.name,
+                'Item': TypeSerializer().serialize(adverse_action.serialize_to_database_record())['M'],
+            },
+        }
+
+    def _generate_put_item_transaction(self, item: dict):
+        return {
+                'Put': {
+                    'TableName': self.config.provider_table.name,
+                    'Item': TypeSerializer().serialize(item)['M'],
+                },
+            }
+
+    def encumber_privilege(
+        self, adverse_action: AdverseActionData
+    ) -> None:
+        """
+        Adds an adverse action record for a privilege for a provider in a jurisdiction.
+
+        This will update the privilege record to have a administratorSetStatus of 'inactive'.
+
+        :param AdverseActionData adverse_action: The details of the adverse action to be added to the records
+        :raises CCNotFoundException: If the privilege record is not found
+        """
+        with logger.append_context_keys(
+            compact=adverse_action.compact,
+            provider_id=adverse_action.provider_id,
+            jurisdiction=adverse_action.jurisdiction,
+            license_type_abbreviation=adverse_action.license_type_abbreviation
+        ):
+            # Get the privilege record
+            try:
+                privilege_record = self.config.provider_table.get_item(
+                    Key={
+                        'pk': f'{adverse_action.compact}#PROVIDER#{adverse_action.provider_id}',
+                        'sk': f'{adverse_action.compact}#PROVIDER#privilege/'
+                              f'{adverse_action.jurisdiction}/{adverse_action.license_type_abbreviation}#',
+                    },
+                )['Item']
+            except KeyError as e:
+                message = 'Privilege not found for jurisdiction'
+                logger.info(message)
+                raise CCNotFoundException(f'Privilege not found for jurisdiction {adverse_action.jurisdiction}') from e
+
+            # Find the main privilege record (not history records)
+            privilege_data = PrivilegeData()
+            privilege_data.load_from_database_record(privilege_record)
+
+            need_to_set_privilege_to_inactive = True
+            # If already inactive, do nothing
+            if privilege_data.administrator_set_status == ActiveInactiveStatus.INACTIVE:
+                logger.info('Privilege already inactive. Not updating "administratorSetStatus" field')
+                need_to_set_privilege_to_inactive = False
+            else:
+                logger.info('Privilege is currently active. Setting privilege into an inactive state as part of update.')
+
+            # Create the update record
+            # Use the schema to generate the update record with proper pk/sk
+            privilege_update_record = PrivilegeUpdateRecordSchema().dump(
+                {
+                    'type': 'privilegeUpdate',
+                    'updateType': 'encumbrance',
+                    'providerId': adverse_action.provider_id,
+                    'compact': adverse_action.compact,
+                    'jurisdiction': adverse_action.jurisdiction,
+                    'licenseType': privilege_data.license_type,
+                    'previous': {
+                        # We're relying on the schema to trim out unneeded fields
+                        **privilege_data.to_dict(),
+                    },
+                    'updatedValues': {
+                        'administratorSetStatus': ActiveInactiveStatus.INACTIVE,
+                    } if need_to_set_privilege_to_inactive else {},
+                }
+            )
+
+            # Update the privilege record and create history record
+            logger.info('Encumbering privilege')
+            # we add the adverse action record for the privilege,
+            # the privilege update record, and update the privilege record to inactive if it is not already inactive
+            transact_items = [
+                # Create a history record, reflecting this change
+                self._generate_put_item_transaction(privilege_update_record),
+                # Add the adverse action record for the privilege
+                self._generate_put_item_transaction(adverse_action.serialize_to_database_record())
+            ]
+
+            if need_to_set_privilege_to_inactive:
+                # Set the privilege record's administratorSetStatus to inactive and update the dateOfUpdate
+                transact_items.append(
+                    self._generate_set_administrator_set_status_item(
+                        adverse_action.compact,
+                        adverse_action.provider_id,
+                        adverse_action.jurisdiction,
+                        adverse_action.license_type_abbreviation,
+                        ActiveInactiveStatus.INACTIVE
+                    )
+                )
+            self.config.dynamodb_client.transact_write_items(
+                TransactItems=transact_items,
+            )
+
+            return privilege_record
+
+    def encumber_license(
+        self, adverse_action: AdverseActionData
+    ) -> LicenseData:
+        """
+        Adds an adverse action record for a privilege for a provider in a jurisdiction.
+
+        This will update the privilege record to have a administratorSetStatus of 'inactive'.
+
+        :param AdverseActionData adverse_action: The details of the adverse action to be added to the records
+        :raises CCNotFoundException: If the privilege record is not found
+        """
+        with (logger.append_context_keys(
+            compact=adverse_action.compact,
+            provider_id=adverse_action.provider_id,
+            jurisdiction=adverse_action.jurisdiction,
+            license_type_abbreviation=adverse_action.license_type_abbreviation
+        )):
+            # Get the privilege record
+            try:
+                license_record = self.config.provider_table.get_item(
+                    Key={
+                        'pk': f'{adverse_action.compact}#PROVIDER#{adverse_action.provider_id}',
+                        'sk': f'{adverse_action.compact}#PROVIDER#license/'
+                              f'{adverse_action.jurisdiction}/{adverse_action.license_type_abbreviation}#',
+                    },
+                )['Item']
+            except KeyError as e:
+                message = 'License not found for jurisdiction'
+                logger.info(message)
+                raise CCNotFoundException(f'License not found for jurisdiction {adverse_action.jurisdiction}') from e
+
+            # Find the main privilege record (not history records)
+            license_data = LicenseData()
+            license_data.load_from_database_record(license_record)
+
+            need_to_set_license_to_ineligible = True
+            # If already inactive, do nothing
+            if license_data.compact_eligibility == CompactEligibilityStatus.INELIGIBLE:
+                logger.info('License already ineligible. Not updating license compact eligibility status')
+                need_to_set_license_to_ineligible = False
+            else:
+                logger.info('License is currently eligible. Setting license into an ineligible state as part of update.')
+
+            # Create the update record
+            # Use the schema to generate the update record with proper pk/sk
+            license_update_record =  LicenseUpdateRecordSchema().dump({
+                    'type': 'licenseUpdate',
+                    'updateType': 'encumbrance',
+                    'providerId': adverse_action.provider_id,
+                    'compact': adverse_action.compact,
+                    'jurisdiction': adverse_action.jurisdiction,
+                    'licenseType': license_data.license_type,
+                    'previous': {
+                        # We're relying on the schema to trim out unneeded fields
+                        **license_data.to_dict(),
+                    },
+                    'updatedValues': {
+                        'compactEligibility': CompactEligibilityStatus.INELIGIBLE,
+                    } if need_to_set_license_to_ineligible else {},
+            })
+            # Update the privilege record and create history record
+            logger.info('Encumbering license')
+            # we add the adverse action record for the privilege,
+            # the privilege update record, and update the privilege record to inactive if it is not already inactive
+            transact_items = [
+                # Create a history record, reflecting this change
+                self._generate_put_item_transaction(license_update_record),
+                # Add the adverse action record for the privilege
+                self._generate_put_item_transaction(adverse_action.serialize_to_database_record())
+            ]
+
+            if need_to_set_license_to_ineligible:
+                # Set the privilege record's administratorSetStatus to inactive and update the dateOfUpdate
+                transact_items.append(
+                    self._generate_set_license_compact_eligibility_status_item(
+                        adverse_action.compact,
+                        adverse_action.provider_id,
+                        adverse_action.jurisdiction,
+                        adverse_action.license_type_abbreviation,
+                        CompactEligibilityStatus.INELIGIBLE
+                    )
+                )
+            self.config.dynamodb_client.transact_write_items(
+                TransactItems=transact_items,
+            )
+
+            return license_data

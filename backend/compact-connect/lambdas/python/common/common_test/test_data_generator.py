@@ -1,11 +1,8 @@
-from typing import List, Optional, Union
-from datetime import datetime, timedelta
-
+from cc_common.data_model.schema.adverse_action import AdverseActionData
+from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
+from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
 from common_test.data_model.home_jurisdiction import HomeJurisdictionSelection
-from common_test.data_model.adverse_action import AdverseAction
 from common_test.data_model.military_affiliation import MilitaryAffiliation
-from common_test.data_model.license import License, LicenseUpdate
-from common_test.data_model.privilege import Privilege, PrivilegeUpdate
 from common_test.data_model.provider import Provider
 from common_test.data_model.provider_detail_response import ProviderDetailResponse
 from common_test.test_constants import *
@@ -30,22 +27,27 @@ class TestDataGenerator:
         })
     
     @staticmethod
-    def generate_default_adverse_action() -> AdverseAction:
+    def generate_default_adverse_action(value_overrides: dict | None = None) -> AdverseActionData:
         """Generate a default adverse action"""
-        return AdverseAction({
+        default_adverse_actions = {
             "providerId": DEFAULT_PROVIDER_ID,
             "compact": DEFAULT_COMPACT,
             "type": ADVERSE_ACTION_RECORD_TYPE,
             "jurisdiction": DEFAULT_JURISDICTION,
-            "licenseType": DEFAULT_LICENSE_TYPE,
+            "licenseTypeAbbreviation": DEFAULT_LICENSE_TYPE_ABBREVIATION,
             "actionAgainst": DEFAULT_ACTION_AGAINST,
             "blocksFuturePrivileges": DEFAULT_BLOCKS_FUTURE_PRIVILEGES,
             "clinicalPrivilegeActionCategory": DEFAULT_CLINICAL_PRIVILEGE_ACTION_CATEGORY,
             "creationEffectiveDate": DEFAULT_CREATION_EFFECTIVE_DATE,
-            "submittingUser": DEFAULT_SUBMITTING_USER,
-            "creationDate": DEFAULT_CREATION_DATE,
-            "adverseActionId": DEFAULT_ADVERSE_ACTION_ID
-        })
+            "submittingUser": DEFAULT_AA_SUBMITTING_USER_ID,
+            "creationDate": TEST_DATE_OF_UPDATE_TIMESTAMP,
+            "adverseActionId": DEFAULT_ADVERSE_ACTION_ID,
+            "dateOfUpdate": TEST_DATE_OF_UPDATE_TIMESTAMP
+        }
+        if value_overrides:
+            default_adverse_actions.update(value_overrides)
+
+        return AdverseActionData(default_adverse_actions)
     
     @staticmethod
     def generate_default_military_affiliation() -> MilitaryAffiliation:
@@ -63,9 +65,9 @@ class TestDataGenerator:
         })
     
     @staticmethod
-    def generate_default_license() -> License:
+    def generate_default_license(value_overrides: dict | None = None) -> LicenseData:
         """Generate a default license"""
-        return License({
+        default_license = {
             "providerId": DEFAULT_PROVIDER_ID,
             "compact": DEFAULT_COMPACT,
             "type": LICENSE_RECORD_TYPE,
@@ -93,16 +95,31 @@ class TestDataGenerator:
             "jurisdictionUploadedLicenseStatus": DEFAULT_LICENSE_STATUS,
             "jurisdictionUploadedCompactEligibility": DEFAULT_COMPACT_ELIGIBILITY,
             "compactEligibility": DEFAULT_COMPACT_ELIGIBILITY
-        })
+        }
+        if value_overrides:
+            default_license.update(value_overrides)
+
+        return LicenseData(default_license)
+
+    @staticmethod
+    def put_default_license_record_in_provider_table(value_overrides: dict | None = None) -> LicenseData:
+        license_data = TestDataGenerator.generate_default_license(value_overrides)
+        license_record = license_data.serialize_to_database_record()
+        if value_overrides:
+            license_record.update(value_overrides)
+
+        TestDataGenerator.store_record_in_provider_table(license_record)
+
+        return license_data
     
     @staticmethod
-    def generate_default_license_update() -> LicenseUpdate:
+    def generate_default_license_update() -> LicenseUpdateData:
         """Generate a default license update"""
         previous_license = TestDataGenerator.generate_default_license()
         previous_dict = dict(previous_license.data)
         
-        return LicenseUpdate({
-            "updateType": DEFAULT_UPDATE_TYPE,
+        return LicenseUpdateData({
+            "updateType": LICENSE_UPDATE_RECORD_TYPE,
             "providerId": DEFAULT_PROVIDER_ID,
             "compact": DEFAULT_COMPACT,
             "type": LICENSE_UPDATE_RECORD_TYPE,
@@ -117,9 +134,9 @@ class TestDataGenerator:
         })
     
     @staticmethod
-    def generate_default_privilege() -> Privilege:
+    def generate_default_privilege() -> PrivilegeData:
         """Generate a default privilege"""
-        return Privilege({
+        return PrivilegeData({
             "providerId": DEFAULT_PROVIDER_ID,
             "compact": DEFAULT_COMPACT,
             "type": PRIVILEGE_RECORD_TYPE,
@@ -133,11 +150,34 @@ class TestDataGenerator:
             "attestations": DEFAULT_ATTESTATIONS,
             "privilegeId": DEFAULT_PRIVILEGE_ID,
             "administratorSetStatus": DEFAULT_ADMINISTRATOR_SET_STATUS,
-            "status": DEFAULT_LICENSE_STATUS
+            "dateOfUpdate": DEFAULT_PRIVILEGE_UPDATE_DATE,
+            "compactTransactionIdGSIPK": f"COMPACT#{DEFAULT_COMPACT}#TX#{DEFAULT_COMPACT_TRANSACTION_ID}#"
         })
+
+    @staticmethod
+    def store_record_in_provider_table(record: dict) -> None:
+        from cc_common.config import config
+        config.provider_table.put_item(Item=record)
+
+    @staticmethod
+    def put_default_privilege_record_in_provider_table(value_overrides: dict | None = None) -> PrivilegeData:
+        privilege = TestDataGenerator.generate_default_privilege()
+        privilege_record = privilege.serialize_to_database_record()
+        if value_overrides:
+            privilege_record.update(value_overrides)
+
+        TestDataGenerator.store_record_in_provider_table(privilege_record)
+
+        return privilege
+
+    @staticmethod
+    def get_license_type_abbr_for_license_type(compact: str, license_type: str) -> str:
+        from cc_common.config import config
+        return config.license_type_abbreviations[compact][license_type]
+
     
     @staticmethod
-    def generate_default_privilege_update() -> PrivilegeUpdate:
+    def generate_default_privilege_update() -> PrivilegeUpdateData:
         """Generate a default privilege update"""
         previous_privilege = TestDataGenerator.generate_default_privilege()
         previous_dict = dict(previous_privilege.data)
@@ -146,8 +186,8 @@ class TestDataGenerator:
         previous_dict.pop("type", None)
         previous_dict.pop("status", None)
         
-        return PrivilegeUpdate({
-            "updateType": DEFAULT_UPDATE_TYPE,
+        return PrivilegeUpdateData({
+            "updateType": PRIVILEGE_UPDATE_RECORD_TYPE,
             "providerId": DEFAULT_PROVIDER_ID,
             "compact": DEFAULT_COMPACT,
             "type": PRIVILEGE_UPDATE_RECORD_TYPE,

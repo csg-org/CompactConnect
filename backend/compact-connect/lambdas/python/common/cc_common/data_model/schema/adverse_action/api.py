@@ -16,7 +16,7 @@ class AdverseActionPostRequestSchema(ForgivingSchema):
     API -> load() -> Python
     """
 
-    encumberanceEffectiveDate = Date(required=True, allow_none=False)
+    encumbranceEffectiveDate = Date(required=True, allow_none=False)
     clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategoryField(required=True, allow_none=False)
     blocksFuturePrivileges = Boolean(required=True, allow_none=False)
 
@@ -33,7 +33,7 @@ class AdverseActionPublicResponseSchema(ForgivingSchema):
     compact = Compact(required=True, allow_none=False)
     providerId = Raw(required=True, allow_none=False)
     jurisdiction = Jurisdiction(required=True, allow_none=False)
-    licenseType = String(required=True, allow_none=False)
+    licenseTypeAbbreviation = String(required=True, allow_none=False)
     actionAgainst = String(required=True, allow_none=False, validate=OneOf(['privilege', 'license']))
 
     # Populated on creation

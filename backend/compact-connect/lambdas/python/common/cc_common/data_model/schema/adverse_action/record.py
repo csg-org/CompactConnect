@@ -5,8 +5,8 @@ from marshmallow import pre_dump
 from marshmallow.fields import UUID, Boolean, Date, DateTime, String
 from marshmallow.validate import OneOf
 
-from cc_common.config import config
 from cc_common.data_model.schema.base_record import BaseRecordSchema
+from cc_common.data_model.schema.common import AdverseActionAgainstEnum
 from cc_common.data_model.schema.fields import ClinicalPrivilegeActionCategoryField, Compact, Jurisdiction
 
 
@@ -24,8 +24,8 @@ class AdverseActionRecordSchema(BaseRecordSchema):
     compact = Compact(required=True, allow_none=False)
     providerId = UUID(required=True, allow_none=False)
     jurisdiction = Jurisdiction(required=True, allow_none=False)
-    licenseType = String(required=True, allow_none=False)
-    actionAgainst = String(required=True, allow_none=False, validate=OneOf(['privilege', 'license']))
+    licenseTypeAbbreviation = String(required=True, allow_none=False)
+    actionAgainst = String(required=True, allow_none=False, validate=OneOf([e.value for e in AdverseActionAgainstEnum]))
 
     # Populated on creation
     blocksFuturePrivileges = Boolean(required=True, allow_none=False)
@@ -43,7 +43,8 @@ class AdverseActionRecordSchema(BaseRecordSchema):
     def generate_pk_sk(self, in_data, **_kwargs):  # noqa: ARG001 unused-argument
         in_data = self._populate_adverse_action_id(in_data)
         in_data['pk'] = f'{in_data["compact"]}#PROVIDER#{in_data["providerId"]}'
-        license_type_abbr = config.license_type_abbreviations[in_data['compact']][in_data['licenseType']]
+        # ensure this is passed in lowercase
+        license_type_abbr = in_data['licenseTypeAbbreviation'].lower()
         in_data['sk'] = (
             f'{in_data["compact"]}#PROVIDER#{in_data["actionAgainst"]}/{in_data["jurisdiction"]}/{license_type_abbr}#ADVERSE_ACTION#{in_data["adverseActionId"]}'
         )
