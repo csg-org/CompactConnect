@@ -14,14 +14,12 @@ class LicenseData(CCDataClass):
     license records are only upserted during ingestion, so we can pass the entire record
     from the ingestion process into the constructor.
     """
+
     def __init__(self, data: dict[str, Any] = None):
         if data:
             # We add the GSI values here with dummy values to pass validation
             # since these will be stripped when loaded
-            data.update({
-                'licenseGSIPK': 'tempPKValue',
-                'licenseGSISK': 'tempSKValue'
-            })
+            data.update({'licenseGSIPK': 'tempPKValue', 'licenseGSISK': 'tempSKValue'})
         super().__init__(LicenseRecordSchema(), data)
 
     @property
@@ -138,6 +136,7 @@ class LicenseUpdateData(CCDataClass):
     Class representing a License Update with getters and setters for all properties.
     Takes a dict as an argument to the constructor to avoid primitive obsession.
     """
+
     def __init__(self, data: dict[str, Any] = None):
         super().__init__(LicenseUpdateRecordSchema(), data)
 

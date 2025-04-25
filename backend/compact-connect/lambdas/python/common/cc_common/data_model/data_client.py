@@ -7,6 +7,7 @@ from aws_lambda_powertools.metrics import MetricUnit
 from boto3.dynamodb.conditions import Attr, Key
 from boto3.dynamodb.types import TypeDeserializer, TypeSerializer
 from botocore.exceptions import ClientError
+
 from cc_common.config import _Config, config, logger, metrics
 from cc_common.data_model.query_paginator import paginated_query
 from cc_common.data_model.schema import LicenseRecordSchema, PrivilegeRecordSchema
@@ -920,45 +921,51 @@ class DataClient:
 
         return privilege_record
 
-    def _generate_set_administrator_set_status_item(self, compact: str,
-                                                    provider_id: str,
-                                                    jurisdiction: str,
-                                                    license_type_abbreviation: str,
-                                                    status_to_set: ActiveInactiveStatus):
+    def _generate_set_administrator_set_status_item(
+        self,
+        compact: str,
+        provider_id: str,
+        jurisdiction: str,
+        license_type_abbreviation: str,
+        status_to_set: ActiveInactiveStatus,
+    ):
         return {
-                    'Update': {
-                        'TableName': self.config.provider_table.name,
-                        'Key': {
-                            'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
-                            'sk': {'S': f'{compact}#PROVIDER#privilege/{jurisdiction}/{license_type_abbreviation}#'},
-                        },
-                        'UpdateExpression': 'SET administratorSetStatus = :status, dateOfUpdate = :dateOfUpdate',
-                        'ExpressionAttributeValues': {
-                            ':status': {'S': status_to_set},
-                            ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
-                        },
-                    },
-                }
+            'Update': {
+                'TableName': self.config.provider_table.name,
+                'Key': {
+                    'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
+                    'sk': {'S': f'{compact}#PROVIDER#privilege/{jurisdiction}/{license_type_abbreviation}#'},
+                },
+                'UpdateExpression': 'SET administratorSetStatus = :status, dateOfUpdate = :dateOfUpdate',
+                'ExpressionAttributeValues': {
+                    ':status': {'S': status_to_set},
+                    ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
+                },
+            },
+        }
 
-    def _generate_set_license_compact_eligibility_status_item(self, compact: str,
-                                                              provider_id: str,
-                                                              jurisdiction: str,
-                                                              license_type_abbreviation: str,
-                                                              compact_eligibility_status: CompactEligibilityStatus):
+    def _generate_set_license_compact_eligibility_status_item(
+        self,
+        compact: str,
+        provider_id: str,
+        jurisdiction: str,
+        license_type_abbreviation: str,
+        compact_eligibility_status: CompactEligibilityStatus,
+    ):
         return {
-                    'Update': {
-                        'TableName': self.config.provider_table.name,
-                        'Key': {
-                            'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
-                            'sk': {'S': f'{compact}#PROVIDER#license/{jurisdiction}/{license_type_abbreviation}#'},
-                        },
-                        'UpdateExpression': 'SET compactEligibility = :status, dateOfUpdate = :dateOfUpdate',
-                        'ExpressionAttributeValues': {
-                            ':status': {'S': compact_eligibility_status},
-                            ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
-                        },
-                    },
-                }
+            'Update': {
+                'TableName': self.config.provider_table.name,
+                'Key': {
+                    'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
+                    'sk': {'S': f'{compact}#PROVIDER#license/{jurisdiction}/{license_type_abbreviation}#'},
+                },
+                'UpdateExpression': 'SET compactEligibility = :status, dateOfUpdate = :dateOfUpdate',
+                'ExpressionAttributeValues': {
+                    ':status': {'S': compact_eligibility_status},
+                    ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
+                },
+            },
+        }
 
     def _generate_put_adverse_action_item(self, adverse_action: AdverseActionData):
         return {
@@ -970,15 +977,13 @@ class DataClient:
 
     def _generate_put_item_transaction(self, item: dict):
         return {
-                'Put': {
-                    'TableName': self.config.provider_table.name,
-                    'Item': TypeSerializer().serialize(item)['M'],
-                },
-            }
+            'Put': {
+                'TableName': self.config.provider_table.name,
+                'Item': TypeSerializer().serialize(item)['M'],
+            },
+        }
 
-    def encumber_privilege(
-        self, adverse_action: AdverseActionData
-    ) -> None:
+    def encumber_privilege(self, adverse_action: AdverseActionData) -> None:
         """
         Adds an adverse action record for a privilege for a provider in a jurisdiction.
 
@@ -991,7 +996,7 @@ class DataClient:
             compact=adverse_action.compact,
             provider_id=adverse_action.provider_id,
             jurisdiction=adverse_action.jurisdiction,
-            license_type_abbreviation=adverse_action.license_type_abbreviation
+            license_type_abbreviation=adverse_action.license_type_abbreviation,
         ):
             # Get the privilege record
             try:
@@ -999,7 +1004,7 @@ class DataClient:
                     Key={
                         'pk': f'{adverse_action.compact}#PROVIDER#{adverse_action.provider_id}',
                         'sk': f'{adverse_action.compact}#PROVIDER#privilege/'
-                              f'{adverse_action.jurisdiction}/{adverse_action.license_type_abbreviation}#',
+                        f'{adverse_action.jurisdiction}/{adverse_action.license_type_abbreviation}#',
                     },
                 )['Item']
             except KeyError as e:
@@ -1017,7 +1022,9 @@ class DataClient:
                 logger.info('Privilege already inactive. Not updating "administratorSetStatus" field')
                 need_to_set_privilege_to_inactive = False
             else:
-                logger.info('Privilege is currently active. Setting privilege into an inactive state as part of update.')
+                logger.info(
+                    'Privilege is currently active. Setting privilege into an inactive state as part of update.'
+                )
 
             # Create the update record
             # Use the schema to generate the update record with proper pk/sk
@@ -1035,7 +1042,9 @@ class DataClient:
                     },
                     'updatedValues': {
                         'administratorSetStatus': ActiveInactiveStatus.INACTIVE,
-                    } if need_to_set_privilege_to_inactive else {},
+                    }
+                    if need_to_set_privilege_to_inactive
+                    else {},
                 }
             )
 
@@ -1047,7 +1056,7 @@ class DataClient:
                 # Create a history record, reflecting this change
                 self._generate_put_item_transaction(privilege_update_record),
                 # Add the adverse action record for the privilege
-                self._generate_put_item_transaction(adverse_action.serialize_to_database_record())
+                self._generate_put_item_transaction(adverse_action.serialize_to_database_record()),
             ]
 
             if need_to_set_privilege_to_inactive:
@@ -1058,7 +1067,7 @@ class DataClient:
                         adverse_action.provider_id,
                         adverse_action.jurisdiction,
                         adverse_action.license_type_abbreviation,
-                        ActiveInactiveStatus.INACTIVE
+                        ActiveInactiveStatus.INACTIVE,
                     )
                 )
             self.config.dynamodb_client.transact_write_items(
@@ -1067,9 +1076,7 @@ class DataClient:
 
             return privilege_record
 
-    def encumber_license(
-        self, adverse_action: AdverseActionData
-    ) -> LicenseData:
+    def encumber_license(self, adverse_action: AdverseActionData) -> LicenseData:
         """
         Adds an adverse action record for a privilege for a provider in a jurisdiction.
 
@@ -1078,19 +1085,19 @@ class DataClient:
         :param AdverseActionData adverse_action: The details of the adverse action to be added to the records
         :raises CCNotFoundException: If the privilege record is not found
         """
-        with (logger.append_context_keys(
+        with logger.append_context_keys(
             compact=adverse_action.compact,
             provider_id=adverse_action.provider_id,
             jurisdiction=adverse_action.jurisdiction,
-            license_type_abbreviation=adverse_action.license_type_abbreviation
-        )):
+            license_type_abbreviation=adverse_action.license_type_abbreviation,
+        ):
             # Get the privilege record
             try:
                 license_record = self.config.provider_table.get_item(
                     Key={
                         'pk': f'{adverse_action.compact}#PROVIDER#{adverse_action.provider_id}',
                         'sk': f'{adverse_action.compact}#PROVIDER#license/'
-                              f'{adverse_action.jurisdiction}/{adverse_action.license_type_abbreviation}#',
+                        f'{adverse_action.jurisdiction}/{adverse_action.license_type_abbreviation}#',
                     },
                 )['Item']
             except KeyError as e:
@@ -1108,11 +1115,14 @@ class DataClient:
                 logger.info('License already ineligible. Not updating license compact eligibility status')
                 need_to_set_license_to_ineligible = False
             else:
-                logger.info('License is currently eligible. Setting license into an ineligible state as part of update.')
+                logger.info(
+                    'License is currently eligible. Setting license into an ineligible state as part of update.'
+                )
 
             # Create the update record
             # Use the schema to generate the update record with proper pk/sk
-            license_update_record =  LicenseUpdateRecordSchema().dump({
+            license_update_record = LicenseUpdateRecordSchema().dump(
+                {
                     'type': 'licenseUpdate',
                     'updateType': 'encumbrance',
                     'providerId': adverse_action.provider_id,
@@ -1125,8 +1135,11 @@ class DataClient:
                     },
                     'updatedValues': {
                         'compactEligibility': CompactEligibilityStatus.INELIGIBLE,
-                    } if need_to_set_license_to_ineligible else {},
-            })
+                    }
+                    if need_to_set_license_to_ineligible
+                    else {},
+                }
+            )
             # Update the privilege record and create history record
             logger.info('Encumbering license')
             # we add the adverse action record for the privilege,
@@ -1135,7 +1148,7 @@ class DataClient:
                 # Create a history record, reflecting this change
                 self._generate_put_item_transaction(license_update_record),
                 # Add the adverse action record for the privilege
-                self._generate_put_item_transaction(adverse_action.serialize_to_database_record())
+                self._generate_put_item_transaction(adverse_action.serialize_to_database_record()),
             ]
 
             if need_to_set_license_to_ineligible:
@@ -1146,7 +1159,7 @@ class DataClient:
                         adverse_action.provider_id,
                         adverse_action.jurisdiction,
                         adverse_action.license_type_abbreviation,
-                        CompactEligibilityStatus.INELIGIBLE
+                        CompactEligibilityStatus.INELIGIBLE,
                     )
                 )
             self.config.dynamodb_client.transact_write_items(

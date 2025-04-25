@@ -72,9 +72,9 @@ class AdverseActionData(CCDataClass):
         return self._data.get('clinicalPrivilegeActionCategory')
 
     @clinical_privilege_action_category.setter
-    def clinical_privilege_action_category(self,
-                                           clinical_privilege_action_category_enum:
-                                           ClinicalPrivilegeActionCategory) -> None:
+    def clinical_privilege_action_category(
+        self, clinical_privilege_action_category_enum: ClinicalPrivilegeActionCategory
+    ) -> None:
         self._data['clinicalPrivilegeActionCategory'] = clinical_privilege_action_category_enum.value
 
     @property
@@ -120,7 +120,6 @@ class AdverseActionData(CCDataClass):
     @lifting_user.setter
     def lifting_user(self, value: UUID) -> None:
         self._data['liftingUser'] = value
-        
 
     def to_public_response(self) -> dict[str, Any]:
         """

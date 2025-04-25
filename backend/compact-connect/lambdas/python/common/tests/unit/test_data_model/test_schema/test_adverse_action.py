@@ -4,16 +4,20 @@ from marshmallow import ValidationError
 
 from tests import TstLambdas
 
+
 class TestAdverseActionRecordSchema(TstLambdas):
     def setUp(self):
         from common_test.test_data_generator import TestDataGenerator
+
         self.test_data_generator = TestDataGenerator
 
     def test_serde(self):
         """Test round-trip deserialization/serialization"""
         from cc_common.data_model.schema.adverse_action.record import AdverseActionRecordSchema
 
-        expected_adverse_action = self.test_data_generator.generate_default_adverse_action().serialize_to_database_record()
+        expected_adverse_action = (
+            self.test_data_generator.generate_default_adverse_action().serialize_to_database_record()
+        )
 
         schema = AdverseActionRecordSchema()
         loaded_schema = schema.load(expected_adverse_action.copy())
@@ -65,6 +69,7 @@ class TestAdverseActionRecordSchema(TstLambdas):
 class TestAdverseActionDataClass(TstLambdas):
     def setUp(self):
         from common_test.test_data_generator import TestDataGenerator
+
         self.test_data_generator = TestDataGenerator
 
     def test_adverse_action_data_class_getters_return_expected_values(self):

@@ -5,9 +5,10 @@ from enum import StrEnum
 from hashlib import md5
 from typing import Any
 
-from cc_common.config import config
 from marshmallow import Schema, ValidationError, validates_schema
 from marshmallow.fields import Dict, String, Url
+
+from cc_common.config import config
 
 
 class CCDataClass:
@@ -37,8 +38,8 @@ class CCDataClass:
             # but we want to be able to instantiate data classes for records that
             # haven't been stored yet, so we first set the pk and sk to temporary values
             # since these will be stripped out by the schema
-            data['pk'] = "tempPk"
-            data['sk'] = "tempSk"
+            data['pk'] = 'tempPk'
+            data['sk'] = 'tempSk'
             self._data = self._record_schema.load(data)
         else:
             self._data = {}
@@ -128,6 +129,7 @@ class AdverseActionAgainstEnum(StrEnum):
     """
     Enum for possible records that adverse actions can be made against
     """
+
     PRIVILEGE = 'privilege'
     LICENSE = 'license'
 

@@ -2,7 +2,7 @@ from datetime import date, datetime
 from typing import Any
 from uuid import UUID
 
-from cc_common.data_model.schema.common import CCDataClass, ActiveInactiveStatus
+from cc_common.data_model.schema.common import ActiveInactiveStatus, CCDataClass
 from cc_common.data_model.schema.privilege.record import (
     PrivilegeRecordSchema,
     PrivilegeUpdateRecordSchema,
@@ -13,6 +13,7 @@ class PrivilegeData(CCDataClass):
     """
     Class representing a Privilege with getters and setters for all properties.
     """
+
     def __init__(self, data: dict[str, Any] = None):
         super().__init__(PrivilegeRecordSchema(), data)
 
@@ -121,6 +122,7 @@ class PrivilegeUpdateData(CCDataClass):
     """
     Class representing a Privilege Update with getters and setters for all properties.
     """
+
     def __init__(self, data: dict[str, Any] = None):
         super().__init__(PrivilegeUpdateRecordSchema(), data)
 

@@ -9,7 +9,6 @@ from tests import TstLambdas
 
 
 class TestLicensePostSchema(TstLambdas):
-
     def test_validate_post(self):
         from cc_common.data_model.schema.license.api import LicensePostRequestSchema
 

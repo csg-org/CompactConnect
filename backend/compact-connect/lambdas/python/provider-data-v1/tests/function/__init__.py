@@ -36,7 +36,6 @@ class TstFunction(TstLambdas):
         self.config = cc_common.config.config
         self.test_data_generator = TestDataGenerator
 
-
         self.addCleanup(self.delete_resources)
 
     def build_resources(self):

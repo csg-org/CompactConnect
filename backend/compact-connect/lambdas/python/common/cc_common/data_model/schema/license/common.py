@@ -1,5 +1,8 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 
+from marshmallow.fields import Date, Email, String
+from marshmallow.validate import Length
+
 from cc_common.data_model.schema.base_record import ForgivingSchema
 from cc_common.data_model.schema.common import ValidatesLicenseTypeMixin
 from cc_common.data_model.schema.fields import (
@@ -7,8 +10,6 @@ from cc_common.data_model.schema.fields import (
     ITUTE164PhoneNumber,
     Jurisdiction,
 )
-from marshmallow.fields import Date, Email, String
-from marshmallow.validate import Length
 
 
 class LicenseCommonSchema(ForgivingSchema, ValidatesLicenseTypeMixin):

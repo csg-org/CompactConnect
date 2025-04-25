@@ -1,19 +1,28 @@
 import json
-from datetime import datetime, date
-from boto3.dynamodb.conditions import Key
+from datetime import date, datetime
 from unittest.mock import patch
+
+from boto3.dynamodb.conditions import Key
+from common_test.test_constants import (
+    DEFAULT_AA_SUBMITTING_USER_ID,
+    DEFAULT_PRIVILEGE_JURISDICTION,
+    DEFAULT_PROVIDER_PK,
+    TEST_DATE_OF_UPDATE_TIMESTAMP,
+)
 from moto import mock_aws
 
 from .. import TstFunction
-from common_test.test_constants import DEFAULT_PROVIDER_PK, DEFAULT_AA_SUBMITTING_USER_ID, \
-    TEST_DATE_OF_UPDATE_TIMESTAMP, DEFAULT_PRIVILEGE_JURISDICTION
 
-PRIVILEGE_ENCUMBRANCE_ENDPOINT_RESOURCE = ('/v1/compacts/{compact}/providers/{providerId}/privileges/'
-                                           'jurisdiction/{jurisdiction}/licenseType/{licenseType}/encumbrance')
-LICENSE_ENCUMBRANCE_ENDPOINT_RESOURCE = ('/v1/compacts/{compact}/providers/{providerId}/licenses/'
-                                        'jurisdiction/{jurisdiction}/licenseType/{licenseType}/encumbrance')
+PRIVILEGE_ENCUMBRANCE_ENDPOINT_RESOURCE = (
+    '/v1/compacts/{compact}/providers/{providerId}/privileges/'
+    'jurisdiction/{jurisdiction}/licenseType/{licenseType}/encumbrance'
+)
+LICENSE_ENCUMBRANCE_ENDPOINT_RESOURCE = (
+    '/v1/compacts/{compact}/providers/{providerId}/licenses/'
+    'jurisdiction/{jurisdiction}/licenseType/{licenseType}/encumbrance'
+)
 
-TEST_ENCUMBRANCE_EFFECTIVE_DATE = "2023-01-15"
+TEST_ENCUMBRANCE_EFFECTIVE_DATE = '2023-01-15'
 
 
 def generate_test_event(method: str, resource: str, path_parameters: dict, body: dict) -> dict:
@@ -25,18 +34,22 @@ def generate_test_event(method: str, resource: str, path_parameters: dict, body:
         event['body'] = json.dumps(body)
         # set permission to state admin for same state as path parameter
         event['requestContext']['authorizer']['claims']['sub'] = DEFAULT_AA_SUBMITTING_USER_ID
-        event['requestContext']['authorizer']['claims']['scope'] = f'openid email {path_parameters['jurisdiction']}/aslp.admin'
+        event['requestContext']['authorizer']['claims']['scope'] = (
+            f'openid email {path_parameters["jurisdiction"]}/aslp.admin'
+        )
 
     return event
+
 
 def _generate_test_body():
     from cc_common.data_model.schema.common import ClinicalPrivilegeActionCategory
 
     return {
-      "encumbranceEffectiveDate": TEST_ENCUMBRANCE_EFFECTIVE_DATE,
-      "clinicalPrivilegeActionCategory": ClinicalPrivilegeActionCategory.UNSAFE_PRACTICE,
-      "blocksFuturePrivileges": True
+        'encumbranceEffectiveDate': TEST_ENCUMBRANCE_EFFECTIVE_DATE,
+        'clinicalPrivilegeActionCategory': ClinicalPrivilegeActionCategory.UNSAFE_PRACTICE,
+        'blocksFuturePrivileges': True,
     }
+
 
 @mock_aws
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(TEST_DATE_OF_UPDATE_TIMESTAMP))
@@ -46,21 +59,24 @@ class TestPostPrivilegeEncumbrance(TstFunction):
     def _when_testing_valid_privilege_encumbrance(self):
         test_privilege_record = self.test_data_generator.put_default_privilege_record_in_provider_table()
 
-        event = generate_test_event('POST', PRIVILEGE_ENCUMBRANCE_ENDPOINT_RESOURCE,
-                                    {
-                                        'compact': test_privilege_record.compact,
-                                        'providerId': test_privilege_record.provider_id,
-                                        'jurisdiction': test_privilege_record.jurisdiction,
-                                        'licenseType': self.test_data_generator.get_license_type_abbr_for_license_type(
-                                            compact=test_privilege_record.compact,
-                                            license_type=test_privilege_record.license_type
-                                        )
-                                    },
-                                    _generate_test_body())
+        event = generate_test_event(
+            'POST',
+            PRIVILEGE_ENCUMBRANCE_ENDPOINT_RESOURCE,
+            {
+                'compact': test_privilege_record.compact,
+                'providerId': test_privilege_record.provider_id,
+                'jurisdiction': test_privilege_record.jurisdiction,
+                'licenseType': self.test_data_generator.get_license_type_abbr_for_license_type(
+                    compact=test_privilege_record.compact, license_type=test_privilege_record.license_type
+                ),
+            },
+            _generate_test_body(),
+        )
         return event
 
     def test_privilege_encumbrance_handler_returns_ok_message_with_valid_body(self):
         from handlers.encumbrance import encumbrance_handler
+
         event = self._when_testing_valid_privilege_encumbrance()
 
         response = encumbrance_handler(event, self.mock_context)
@@ -72,16 +88,15 @@ class TestPostPrivilegeEncumbrance(TstFunction):
             response_body,
         )
 
-
     def test_privilege_encumbrance_handler_adds_encumbrance_record_in_provider_data_table(self):
-        from handlers.encumbrance import encumbrance_handler
         from cc_common.data_model.schema.adverse_action import AdverseActionData
+        from handlers.encumbrance import encumbrance_handler
 
         event = self._when_testing_valid_privilege_encumbrance()
 
         response = encumbrance_handler(event, self.mock_context)
         self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
-        
+
         # Verify that the encumbrance record was added to the provider data table
         # Perform a query to list all encumbrances for the provider using the starts_with key condition
         adverse_action_encumbrances = self._provider_table.query(
@@ -92,11 +107,13 @@ class TestPostPrivilegeEncumbrance(TstFunction):
         self.assertEqual(1, len(adverse_action_encumbrances['Items']))
         item = adverse_action_encumbrances['Items'][0]
 
-        default_adverse_action_encumbrance = self.test_data_generator.generate_default_adverse_action(value_overrides={
-            'adverseActionId': item['adverseActionId'],
-            'creationEffectiveDate': TEST_ENCUMBRANCE_EFFECTIVE_DATE,
-            'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION
-        })
+        default_adverse_action_encumbrance = self.test_data_generator.generate_default_adverse_action(
+            value_overrides={
+                'adverseActionId': item['adverseActionId'],
+                'creationEffectiveDate': TEST_ENCUMBRANCE_EFFECTIVE_DATE,
+                'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
+            }
+        )
         loaded_adverse_action = AdverseActionData()
         loaded_adverse_action.load_from_database_record(data=item)
 
@@ -105,6 +122,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
             loaded_adverse_action.to_dict(),
         )
 
+
 @mock_aws
 class TestPostLicenseEncumbrance(TstFunction):
     """Test suite for license encumbrance endpoints."""
@@ -112,17 +130,19 @@ class TestPostLicenseEncumbrance(TstFunction):
     def _when_testing_valid_license_encumbrance(self):
         test_license_record = self.test_data_generator.put_default_license_record_in_provider_table()
 
-        event = generate_test_event('POST', LICENSE_ENCUMBRANCE_ENDPOINT_RESOURCE,
-                                    {
-                                        'compact': test_license_record.compact,
-                                        'providerId': test_license_record.provider_id,
-                                        'jurisdiction': test_license_record.jurisdiction,
-                                        'licenseType': self.test_data_generator.get_license_type_abbr_for_license_type(
-                                            compact=test_license_record.compact,
-                                            license_type=test_license_record.license_type
-                                        )
-                                    },
-                                    _generate_test_body())
+        event = generate_test_event(
+            'POST',
+            LICENSE_ENCUMBRANCE_ENDPOINT_RESOURCE,
+            {
+                'compact': test_license_record.compact,
+                'providerId': test_license_record.provider_id,
+                'jurisdiction': test_license_record.jurisdiction,
+                'licenseType': self.test_data_generator.get_license_type_abbr_for_license_type(
+                    compact=test_license_record.compact, license_type=test_license_record.license_type
+                ),
+            },
+            _generate_test_body(),
+        )
         return event
 
     def test_license_encumbrance_handler_returns_ok_message_with_valid_body(self):
