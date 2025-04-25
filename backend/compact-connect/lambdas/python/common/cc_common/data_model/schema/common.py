@@ -5,10 +5,9 @@ from enum import StrEnum
 from hashlib import md5
 from typing import Any
 
+from cc_common.config import config
 from marshmallow import Schema, ValidationError, validates_schema
 from marshmallow.fields import Dict, String, Url
-
-from cc_common.config import config
 
 
 class CCDataClass:
@@ -47,6 +46,21 @@ class CCDataClass:
             self._data = self._record_schema.load(data)
         else:
             self._data = {}
+
+    @property
+    def type(self) -> str:
+        """
+        The type of the record, which is the record type of the schema.
+        """
+        return self._data['type']
+
+    @property
+    def date_of_update(self) -> datetime:
+        """
+        The date of the latest update for the record.
+        """
+        return self._data['dateOfUpdate']
+
 
     def load_from_database_record(self, data: dict[str, Any]) -> 'CCDataClass':
         """Update the internal data from a database record using the schema's load method"""

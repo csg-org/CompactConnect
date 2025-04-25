@@ -6,7 +6,7 @@ from boto3.dynamodb.conditions import Key
 from common_test.test_constants import (
     DEFAULT_AA_SUBMITTING_USER_ID,
     DEFAULT_PRIVILEGE_JURISDICTION,
-    TEST_DATE_OF_UPDATE_TIMESTAMP,
+    DEFAULT_DATE_OF_UPDATE_TIMESTAMP, DEFAULT_LICENSE_JURISDICTION,
 )
 from moto import mock_aws
 
@@ -51,7 +51,7 @@ def _generate_test_body():
 
 
 @mock_aws
-@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(TEST_DATE_OF_UPDATE_TIMESTAMP))
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP))
 class TestPostPrivilegeEncumbrance(TstFunction):
     """Test suite for privilege encumbrance endpoints."""
 
@@ -87,7 +87,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
             response_body,
         )
 
-    def test_privilege_encumbrance_handler_adds_encumbrance_record_in_provider_data_table(self):
+    def test_privilege_encumbrance_handler_adds_adverse_action_record_in_provider_data_table(self):
         from cc_common.data_model.schema.adverse_action import AdverseActionData
         from handlers.encumbrance import encumbrance_handler
 
@@ -143,7 +143,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
         item = privilege_update_records['Items'][0]
 
         expected_privilege_update_data = self.test_data_generator.generate_default_privilege_update(value_overrides={
-            'dateOfUpdate': TEST_DATE_OF_UPDATE_TIMESTAMP,
+            'dateOfUpdate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
             'updateType': 'encumbrance',
             'updatedValues': {'administratorSetStatus': 'inactive'}
         })
@@ -176,7 +176,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
         item = privilege_records['Items'][0]
 
         expected_privilege_data = self.test_data_generator.generate_default_privilege(value_overrides={
-            'dateOfUpdate': TEST_DATE_OF_UPDATE_TIMESTAMP,
+            'dateOfUpdate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
             'administratorSetStatus': 'inactive'
         })
         loaded_privilege_data = PrivilegeData()
@@ -189,12 +189,14 @@ class TestPostPrivilegeEncumbrance(TstFunction):
 
 
 @mock_aws
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP))
 class TestPostLicenseEncumbrance(TstFunction):
     """Test suite for license encumbrance endpoints."""
 
     def _when_testing_valid_license_encumbrance(self):
         test_license_record = self.test_data_generator.put_default_license_record_in_provider_table()
 
+        # return both the event and test license record
         return generate_test_event(
             'POST',
             LICENSE_ENCUMBRANCE_ENDPOINT_RESOURCE,
@@ -207,12 +209,12 @@ class TestPostLicenseEncumbrance(TstFunction):
                 ),
             },
             _generate_test_body(),
-        )
+        ), test_license_record
 
     def test_license_encumbrance_handler_returns_ok_message_with_valid_body(self):
         from handlers.encumbrance import encumbrance_handler
 
-        event = self._when_testing_valid_license_encumbrance()
+        event = self._when_testing_valid_license_encumbrance()[0]
 
         response = encumbrance_handler(event, self.mock_context)
         self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
@@ -221,4 +223,106 @@ class TestPostLicenseEncumbrance(TstFunction):
         self.assertEqual(
             {'message': 'OK'},
             response_body,
+        )
+
+    def test_license_encumbrance_handler_adds_adverse_action_record_in_provider_data_table(self):
+        from cc_common.data_model.schema.adverse_action import AdverseActionData
+        from handlers.encumbrance import encumbrance_handler
+
+        event, test_license_record = self._when_testing_valid_license_encumbrance()
+
+        response = encumbrance_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+
+        # Verify that the encumbrance record was added to the provider data table
+        # Perform a query to list all encumbrances for the provider using the starts_with key condition
+        adverse_action_encumbrances = self._provider_table.query(
+            Select='ALL_ATTRIBUTES',
+            KeyConditionExpression=Key('pk').eq(test_license_record.serialize_to_database_record()['pk'])
+            & Key('sk').begins_with(
+                f'{test_license_record.compact}#PROVIDER#license/{test_license_record.jurisdiction}/slp#ADVERSE_ACTION'),
+        )
+        self.assertEqual(1, len(adverse_action_encumbrances['Items']))
+        item = adverse_action_encumbrances['Items'][0]
+
+        default_adverse_action_encumbrance = self.test_data_generator.generate_default_adverse_action(
+            value_overrides={
+                'actionAgainst': 'license',
+                'adverseActionId': item['adverseActionId'],
+                'creationEffectiveDate': TEST_ENCUMBRANCE_EFFECTIVE_DATE,
+                'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+            }
+        )
+        loaded_adverse_action = AdverseActionData()
+        loaded_adverse_action.load_from_database_record(data=item)
+
+        self.assertEqual(
+            default_adverse_action_encumbrance.to_dict(),
+            loaded_adverse_action.to_dict(),
+        )
+
+    def test_license_encumbrance_handler_adds_license_update_record_in_provider_data_table(self):
+        from cc_common.data_model.schema.license import LicenseUpdateData
+        from handlers.encumbrance import encumbrance_handler
+
+        event, test_license_record = self._when_testing_valid_license_encumbrance()
+
+        response = encumbrance_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+
+        # Verify that the encumbrance record was added to the provider data table
+        # Perform a query to list all encumbrances for the provider using the starts_with key condition
+        license_update_records = self._provider_table.query(
+            Select='ALL_ATTRIBUTES',
+            KeyConditionExpression=Key('pk').eq(test_license_record.serialize_to_database_record()['pk'])
+            & Key('sk').begins_with(
+                f'{test_license_record.compact}#PROVIDER#license/{test_license_record.jurisdiction}/slp#UPDATE'),
+        )
+        self.assertEqual(1, len(license_update_records['Items']))
+        item = license_update_records['Items'][0]
+
+        expected_license_update_data = self.test_data_generator.generate_default_license_update(value_overrides={
+            'dateOfUpdate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
+            'updateType': 'encumbrance',
+            'updatedValues': {'compactEligibility': 'ineligible'}
+        })
+        loaded_license_update_data = LicenseUpdateData()
+        loaded_license_update_data.load_from_database_record(data=item)
+
+        self.assertEqual(
+            expected_license_update_data.to_dict(),
+            loaded_license_update_data.to_dict(),
+        )
+
+    def test_license_encumbrance_handler_sets_privilege_record_to_inactive_in_provider_data_table(self):
+        from cc_common.data_model.schema.license import LicenseData
+        from handlers.encumbrance import encumbrance_handler
+
+        event, test_license_record = self._when_testing_valid_license_encumbrance()
+
+        response = encumbrance_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+
+        # Verify that the encumbrance record was added to the provider data table
+        # Perform a query to list all encumbrances for the provider using the starts_with key condition
+        license_serialized_record = test_license_record.serialize_to_database_record()
+        license_records = self._provider_table.query(
+            Select='ALL_ATTRIBUTES',
+            KeyConditionExpression=Key('pk').eq(license_serialized_record['pk'])
+            & Key('sk').eq(license_serialized_record['sk']),
+        )
+        self.assertEqual(1, len(license_records['Items']))
+        item = license_records['Items'][0]
+
+        license_privilege_data = self.test_data_generator.generate_default_license(
+            value_overrides={
+            'dateOfUpdate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
+            'compactEligibility': 'ineligible'
+        })
+        loaded_privilege_data = LicenseData()
+        loaded_privilege_data.load_from_database_record(data=item)
+
+        self.assertEqual(
+            license_privilege_data.to_dict(),
+            loaded_privilege_data.to_dict(),
         )

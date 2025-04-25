@@ -19,7 +19,7 @@ class PrivilegeData(CCDataClass):
 
     @property
     def provider_id(self) -> UUID:
-        return self._data.get('providerId')
+        return self._data['providerId']
 
     @provider_id.setter
     def provider_id(self, value: UUID) -> None:
@@ -27,7 +27,7 @@ class PrivilegeData(CCDataClass):
 
     @property
     def compact(self) -> str:
-        return self._data.get('compact')
+        return self._data['compact']
 
     @compact.setter
     def compact(self, value: str) -> None:
@@ -35,7 +35,7 @@ class PrivilegeData(CCDataClass):
 
     @property
     def jurisdiction(self) -> str:
-        return self._data.get('jurisdiction')
+        return self._data['jurisdiction']
 
     @jurisdiction.setter
     def jurisdiction(self, value: str) -> None:
@@ -43,7 +43,7 @@ class PrivilegeData(CCDataClass):
 
     @property
     def license_jurisdiction(self) -> str:
-        return self._data.get('licenseJurisdiction')
+        return self._data['licenseJurisdiction']
 
     @license_jurisdiction.setter
     def license_jurisdiction(self, value: str) -> None:
@@ -51,7 +51,7 @@ class PrivilegeData(CCDataClass):
 
     @property
     def license_type(self) -> str:
-        return self._data.get('licenseType')
+        return self._data['licenseType']
 
     @license_type.setter
     def license_type(self, value: str) -> None:
@@ -59,7 +59,7 @@ class PrivilegeData(CCDataClass):
 
     @property
     def date_of_issuance(self) -> datetime:
-        return self._data.get('dateOfIssuance')
+        return self._data['dateOfIssuance']
 
     @date_of_issuance.setter
     def date_of_issuance(self, value: datetime) -> None:
@@ -67,7 +67,7 @@ class PrivilegeData(CCDataClass):
 
     @property
     def date_of_renewal(self) -> datetime:
-        return self._data.get('dateOfRenewal')
+        return self._data['dateOfRenewal']
 
     @date_of_renewal.setter
     def date_of_renewal(self, value: datetime) -> None:
@@ -75,7 +75,7 @@ class PrivilegeData(CCDataClass):
 
     @property
     def date_of_expiration(self) -> date:
-        return self._data.get('dateOfExpiration')
+        return self._data['dateOfExpiration']
 
     @date_of_expiration.setter
     def date_of_expiration(self, value: date) -> None:
@@ -83,7 +83,7 @@ class PrivilegeData(CCDataClass):
 
     @property
     def compact_transaction_id(self) -> str:
-        return self._data.get('compactTransactionId')
+        return self._data['compactTransactionId']
 
     @compact_transaction_id.setter
     def compact_transaction_id(self, value: str) -> None:
@@ -91,7 +91,7 @@ class PrivilegeData(CCDataClass):
 
     @property
     def attestations(self) -> list[dict]:
-        return self._data.get('attestations')
+        return self._data['attestations']
 
     @attestations.setter
     def attestations(self, value: list[dict]) -> None:
@@ -99,7 +99,7 @@ class PrivilegeData(CCDataClass):
 
     @property
     def privilege_id(self) -> str:
-        return self._data.get('privilegeId')
+        return self._data['privilegeId']
 
     @privilege_id.setter
     def privilege_id(self, value: str) -> None:
@@ -115,7 +115,10 @@ class PrivilegeData(CCDataClass):
 
     @property
     def status(self) -> str:
-        return self._data.get('status')
+        """
+        Read-only property that returns the active/inactive status of the privilege.
+        """
+        return self._data['status']
 
 
 class PrivilegeUpdateData(CCDataClass):
@@ -132,7 +135,7 @@ class PrivilegeUpdateData(CCDataClass):
 
     @property
     def update_type(self) -> str:
-        return self._data.get('updateType')
+        return self._data['updateType']
 
     @update_type.setter
     def update_type(self, value: str) -> None:
@@ -140,7 +143,7 @@ class PrivilegeUpdateData(CCDataClass):
 
     @property
     def provider_id(self) -> UUID:
-        return self._data.get('providerId')
+        return self._data['providerId']
 
     @provider_id.setter
     def provider_id(self, value: UUID) -> None:
@@ -148,7 +151,7 @@ class PrivilegeUpdateData(CCDataClass):
 
     @property
     def compact(self) -> str:
-        return self._data.get('compact')
+        return self._data['compact']
 
     @compact.setter
     def compact(self, value: str) -> None:
@@ -156,7 +159,7 @@ class PrivilegeUpdateData(CCDataClass):
 
     @property
     def jurisdiction(self) -> str:
-        return self._data.get('jurisdiction')
+        return self._data['jurisdiction']
 
     @jurisdiction.setter
     def jurisdiction(self, value: str) -> None:
@@ -164,7 +167,7 @@ class PrivilegeUpdateData(CCDataClass):
 
     @property
     def license_type(self) -> str:
-        return self._data.get('licenseType')
+        return self._data['licenseType']
 
     @license_type.setter
     def license_type(self, value: str) -> None:
@@ -172,7 +175,7 @@ class PrivilegeUpdateData(CCDataClass):
 
     @property
     def previous(self) -> dict:
-        return self._data.get('previous')
+        return self._data['previous']
 
     @previous.setter
     def previous(self, value: dict) -> None:
@@ -180,14 +183,17 @@ class PrivilegeUpdateData(CCDataClass):
 
     @property
     def updated_values(self) -> dict:
-        return self._data.get('updatedValues')
+        return self._data['updatedValues']
 
     @updated_values.setter
     def updated_values(self, value: dict) -> None:
         self._data['updatedValues'] = value
 
     @property
-    def deactivation_details(self) -> dict:
+    def deactivation_details(self) -> dict | None:
+        """
+        This property is only present if the update type is a deactivation.
+        """
         return self._data.get('deactivationDetails')
 
     @deactivation_details.setter

@@ -44,9 +44,9 @@ class TestDataGenerator:
             'clinicalPrivilegeActionCategory': DEFAULT_CLINICAL_PRIVILEGE_ACTION_CATEGORY,
             'creationEffectiveDate': DEFAULT_CREATION_EFFECTIVE_DATE,
             'submittingUser': DEFAULT_AA_SUBMITTING_USER_ID,
-            'creationDate': TEST_DATE_OF_UPDATE_TIMESTAMP,
+            'creationDate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
             'adverseActionId': DEFAULT_ADVERSE_ACTION_ID,
-            'dateOfUpdate': TEST_DATE_OF_UPDATE_TIMESTAMP,
+            'dateOfUpdate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
         }
         if value_overrides:
             default_adverse_actions.update(value_overrides)
@@ -121,27 +121,30 @@ class TestDataGenerator:
         return license_data
 
     @staticmethod
-    def generate_default_license_update() -> LicenseUpdateData:
+    def generate_default_license_update(value_overrides: dict | None = None,
+                                        previous_license: LicenseData | None = None) -> LicenseUpdateData:
         """Generate a default license update"""
-        previous_license = TestDataGenerator.generate_default_license()
-        previous_dict = dict(previous_license.data)
+        if previous_license is None:
+            previous_license = TestDataGenerator.generate_default_license()
 
-        return LicenseUpdateData(
-            {
-                'updateType': LICENSE_UPDATE_RECORD_TYPE,
-                'providerId': DEFAULT_PROVIDER_ID,
-                'compact': DEFAULT_COMPACT,
-                'type': LICENSE_UPDATE_RECORD_TYPE,
-                'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
-                'licenseType': DEFAULT_LICENSE_TYPE,
-                'previous': previous_dict,
-                'updatedValues': {
-                    'emailAddress': 'new.email@example.com',
-                    'phoneNumber': '+16145551234',
-                    'dateOfUpdate': DEFAULT_PROVIDER_UPDATE_DATE,
-                },
-            }
-        )
+        license_update = {
+            'updateType': LICENSE_UPDATE_RECORD_TYPE,
+            'providerId': DEFAULT_PROVIDER_ID,
+            'compact': DEFAULT_COMPACT,
+            'type': LICENSE_UPDATE_RECORD_TYPE,
+            'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+            'licenseType': DEFAULT_LICENSE_TYPE,
+            'previous': previous_license.serialize_to_database_record(),
+            'updatedValues': {
+                'dateOfRenewal': DEFAULT_LICENSE_RENEWAL_DATE,
+                'dateOfExpiration': DEFAULT_LICENSE_EXPIRATION_DATE
+            },
+            'dateOfUpdate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
+        }
+        if value_overrides:
+            license_update.update(value_overrides)
+
+        return LicenseUpdateData(license_update)
 
     @staticmethod
     def generate_default_privilege(value_overrides: dict | None = None) -> PrivilegeData:
