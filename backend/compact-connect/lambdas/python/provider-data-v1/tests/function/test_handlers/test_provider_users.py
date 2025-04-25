@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 from boto3.dynamodb.conditions import Key
 from cc_common.exceptions import CCInternalException
+from common_test.test_constants import DEFAULT_DATE_OF_UPDATE_TIMESTAMP
 from moto import mock_aws
 
 from .. import TstFunction
@@ -14,20 +15,15 @@ MOCK_MILITARY_AFFILIATION_FILE_NAME = 'military_affiliation.pdf'
 
 
 @mock_aws
-@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP))
 class TestGetProvider(TstFunction):
-    def _create_test_provider(self):
-        from cc_common.config import config
-
-        return config.data_client.get_or_create_provider_id(compact=TEST_COMPACT, ssn=MOCK_SSN)
-
     def _when_testing_provider_user_event_with_custom_claims(self):
         self._load_provider_data()
-        provider_id = self._create_test_provider()
+        test_provider = self.test_data_generator.put_default_provider_record_in_provider_table()
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
-            event['requestContext']['authorizer']['claims']['custom:providerId'] = provider_id
-            event['requestContext']['authorizer']['claims']['custom:compact'] = TEST_COMPACT
+            event['requestContext']['authorizer']['claims']['custom:providerId'] = test_provider.provider_id
+            event['requestContext']['authorizer']['claims']['custom:compact'] = test_provider.compact
 
         return event
 
@@ -41,8 +37,7 @@ class TestGetProvider(TstFunction):
         self.assertEqual(200, resp['statusCode'])
         provider_data = json.loads(resp['body'])
 
-        with open('../common/tests/resources/api/provider-detail-response.json') as f:
-            expected_provider = json.load(f)
+        expected_provider = self.test_data_generator.generate_default_provider_detail_response()
 
         self.assertEqual(expected_provider, provider_data)
 
@@ -63,10 +58,8 @@ class TestGetProvider(TstFunction):
         self.assertEqual(200, resp['statusCode'])
         provider_data = json.loads(resp['body'])
 
-        with open('../common/tests/resources/api/provider-detail-response.json') as f:
-            expected_provider = json.load(f)
-            # remove the homeJurisdictionSelection key from the expected provider data
-            del expected_provider['homeJurisdictionSelection']
+        expected_provider = self.test_data_generator.generate_default_provider_detail_response()
+        del expected_provider['homeJurisdictionSelection']
 
         self.assertEqual(expected_provider, provider_data)
 
@@ -93,15 +86,40 @@ class TestGetProvider(TstFunction):
         with self.assertRaises(CCInternalException):
             get_provider_user_me(event, self.mock_context)
 
+    # TODO - finish this test to include adverse actions in the response
+    def test_get_provider_returns_adverse_actions_if_present(self):
+        from cc_common.data_model.schema.common import AdverseActionAgainstEnum
+        from handlers.provider_users import get_provider_user_me
+
+        test_provider_record = self.test_data_generator.put_default_provider_record_in_provider_table()
+        test_license_record = self.test_data_generator.put_default_license_record_in_provider_table()
+        test_adverse_action = self.test_data_generator.generate_default_adverse_action()
+        test_adverse_action.action_against = AdverseActionAgainstEnum.LICENSE
+        test_adverse_action.jurisdiction = test_license_record.jurisdiction
+        self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+            value_overrides=test_adverse_action.to_dict()
+        )
+
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+            event['requestContext']['authorizer']['claims']['custom:providerId'] = test_provider_record.provider_id
+            event['requestContext']['authorizer']['claims']['custom:compact'] = test_provider_record.compact
+
+        resp = get_provider_user_me(event, self.mock_context)
+
+        self.assertEqual(200, resp['statusCode'])
+        provider_data = json.loads(resp['body'])
+
+        expected_provider = self.test_data_generator.generate_default_provider_detail_response(
+            provider_record_items=[test_provider_record, test_license_record, test_adverse_action]
+        )
+
+        self.assertEqual(expected_provider, provider_data)
+
 
 @mock_aws
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
 class TestPostProviderMilitaryAffiliation(TstFunction):
-    def _create_test_provider(self):
-        from cc_common.config import config
-
-        return config.data_client.get_or_create_provider_id(compact=TEST_COMPACT, ssn=MOCK_SSN)
-
     def _get_military_affiliation_records(self, event):
         provider_id = event['requestContext']['authorizer']['claims']['custom:providerId']
         return self.config.provider_table.query(
@@ -113,12 +131,12 @@ class TestPostProviderMilitaryAffiliation(TstFunction):
 
     def _when_testing_post_provider_user_military_affiliation_event_with_custom_claims(self):
         self._load_provider_data()
-        provider_id = self._create_test_provider()
+        test_provider = self.test_data_generator.put_default_provider_record_in_provider_table()
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
             event['httpMethod'] = 'POST'
-            event['requestContext']['authorizer']['claims']['custom:providerId'] = provider_id
-            event['requestContext']['authorizer']['claims']['custom:compact'] = TEST_COMPACT
+            event['requestContext']['authorizer']['claims']['custom:providerId'] = test_provider.provider_id
+            event['requestContext']['authorizer']['claims']['custom:compact'] = test_provider.compact
             event['body'] = json.dumps(
                 {
                     'fileNames': [MOCK_MILITARY_AFFILIATION_FILE_NAME],
@@ -260,19 +278,14 @@ class TestPostProviderMilitaryAffiliation(TstFunction):
 @mock_aws
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
 class TestPatchProviderMilitaryAffiliation(TstFunction):
-    def _create_test_provider(self):
-        from cc_common.config import config
-
-        return config.data_client.get_or_create_provider_id(compact=TEST_COMPACT, ssn=MOCK_SSN)
-
     def _when_testing_patch_provider_user_military_affiliation_event_with_custom_claims(self):
         self._load_provider_data()
-        provider_id = self._create_test_provider()
+        test_provider = self.test_data_generator.put_default_provider_record_in_provider_table()
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
             event['httpMethod'] = 'PATCH'
-            event['requestContext']['authorizer']['claims']['custom:providerId'] = provider_id
-            event['requestContext']['authorizer']['claims']['custom:compact'] = TEST_COMPACT
+            event['requestContext']['authorizer']['claims']['custom:providerId'] = test_provider.provider_id
+            event['requestContext']['authorizer']['claims']['custom:compact'] = test_provider.compact
             event['body'] = json.dumps({'status': 'inactive'})
 
         return event

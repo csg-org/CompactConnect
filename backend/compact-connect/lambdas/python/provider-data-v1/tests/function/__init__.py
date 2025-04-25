@@ -25,6 +25,9 @@ class TstFunction(TstLambdas):
     def setUp(self):  # noqa: N801 invalid-name
         super().setUp()
 
+        # we want to see any diffs in failed tests, regardless of how large the object is
+        self.maxDiff = None
+
         self.build_resources()
 
         # these must be imported within the tests, since they import modules which require

@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, date
+from datetime import date, datetime
 from unittest.mock import patch
 
 from boto3.dynamodb.conditions import Key

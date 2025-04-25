@@ -1,5 +1,6 @@
 # ruff: noqa: N815 invalid-name
 import json
+from copy import deepcopy
 from datetime import UTC, datetime
 from enum import StrEnum
 from hashlib import md5
@@ -73,14 +74,17 @@ class CCDataClass:
         The main purpose of this method is for ejecting the data into a form that is easy to make assertions on in
         our testing, but may be used in other areas of the code which expect dictionary arguments for whatever reason.
 
+        Note we return a deepcopy, to avoid mutations to nested objects causing the original data object to be modified.
+
         DO NOT use this method for generating database records. When you want to serialize the data for storage in the
         DB, call the serialize_to_database_record method.
         """
-        return self._data.copy()
+        return deepcopy(self._data)
 
     def serialize_to_database_record(self) -> dict[str, Any]:
         """Serialize the object using the schema's dump method"""
-        return self._record_schema.dump(self._data)
+        # we set a deepcopy here so that the GSIs and DB keys do not get added to the underlying data dictionary
+        return self._record_schema.dump(deepcopy(self._data))
 
 
 class CCEnum(StrEnum):
