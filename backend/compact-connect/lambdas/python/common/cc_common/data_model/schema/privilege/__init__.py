@@ -127,10 +127,6 @@ class PrivilegeUpdateData(CCDataClass):
     """
 
     def __init__(self, data: dict[str, Any] = None):
-        if data:
-            # We add the GSI values here with dummy values since these fields will be stripped when loaded.
-            # This allows new objects without generated GSI values to utilize this class and pass validation.
-            data.update({'compactTransactionIdGSIPK': 'tempPKValue'})
         super().__init__(PrivilegeUpdateRecordSchema(), data)
 
     @property

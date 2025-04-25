@@ -1,11 +1,12 @@
 # ruff: noqa: F403, F405 star import of test constants file
+from datetime import date, datetime
+
 from cc_common.data_model.schema.adverse_action import AdverseActionData
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
 from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
-
+from cc_common.data_model.schema.provider import ProviderData
 from common_test.data_model.home_jurisdiction import HomeJurisdictionSelection
 from common_test.data_model.military_affiliation import MilitaryAffiliation
-from common_test.data_model.provider import Provider
 from common_test.data_model.provider_detail_response import ProviderDetailResponse
 from common_test.test_constants import *
 
@@ -24,7 +25,7 @@ class TestDataGenerator:
                 'providerId': DEFAULT_PROVIDER_ID,
                 'compact': DEFAULT_COMPACT,
                 'type': HOME_JURISDICTION_RECORD_TYPE,
-                'jurisdiction': DEFAULT_JURISDICTION,
+                'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
                 'dateOfSelection': DEFAULT_HOME_SELECTION_DATE,
                 'dateOfUpdate': DEFAULT_HOME_UPDATE_DATE,
             }
@@ -37,21 +38,27 @@ class TestDataGenerator:
             'providerId': DEFAULT_PROVIDER_ID,
             'compact': DEFAULT_COMPACT,
             'type': ADVERSE_ACTION_RECORD_TYPE,
-            'jurisdiction': DEFAULT_JURISDICTION,
+            'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
             'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
-            'actionAgainst': DEFAULT_ACTION_AGAINST,
+            'actionAgainst': DEFAULT_ACTION_AGAINST_PRIVILEGE,
             'blocksFuturePrivileges': DEFAULT_BLOCKS_FUTURE_PRIVILEGES,
             'clinicalPrivilegeActionCategory': DEFAULT_CLINICAL_PRIVILEGE_ACTION_CATEGORY,
-            'creationEffectiveDate': DEFAULT_CREATION_EFFECTIVE_DATE,
+            'creationEffectiveDate': date.fromisoformat(DEFAULT_CREATION_EFFECTIVE_DATE),
             'submittingUser': DEFAULT_AA_SUBMITTING_USER_ID,
-            'creationDate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
-            'adverseActionId': DEFAULT_ADVERSE_ACTION_ID,
-            'dateOfUpdate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
+            'creationDate': datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP),
+            'adverseActionId': DEFAULT_ADVERSE_ACTION_ID
         }
         if value_overrides:
             default_adverse_actions.update(value_overrides)
 
         return AdverseActionData(default_adverse_actions)
+    
+    @staticmethod
+    def put_default_adverse_action_record_in_provider_table(value_overrides: dict | None = None) -> AdverseActionData:
+        adverse_action = TestDataGenerator.generate_default_adverse_action(value_overrides)
+        adverse_action_record = adverse_action.serialize_to_database_record()
+
+        TestDataGenerator.store_record_in_provider_table(adverse_action_record)
 
     @staticmethod
     def generate_default_military_affiliation() -> MilitaryAffiliation:
@@ -62,7 +69,7 @@ class TestDataGenerator:
                 'compact': DEFAULT_COMPACT,
                 'type': MILITARY_AFFILIATION_RECORD_TYPE,
                 'documentKeys': [
-                    f'/provider/{DEFAULT_PROVIDER_ID}/document-type/military-affiliations/{DEFAULT_PROVIDER_UPDATE_DATE.split("T")[0]}/1234#military-waiver.pdf'
+                    f'/provider/{DEFAULT_PROVIDER_ID}/document-type/military-affiliations/{DEFAULT_PROVIDER_UPDATE_DATETIME.split("T")[0]}/1234#military-waiver.pdf'
                 ],
                 'fileNames': ['military-waiver.pdf'],
                 'affiliationType': DEFAULT_MILITARY_AFFILIATION_TYPE,
@@ -87,11 +94,11 @@ class TestDataGenerator:
             'givenName': DEFAULT_GIVEN_NAME,
             'middleName': DEFAULT_MIDDLE_NAME,
             'familyName': DEFAULT_FAMILY_NAME,
-            'dateOfUpdate': DEFAULT_LICENSE_UPDATE_DATE,
-            'dateOfIssuance': DEFAULT_LICENSE_ISSUANCE_DATE,
-            'dateOfRenewal': DEFAULT_LICENSE_RENEWAL_DATE,
-            'dateOfExpiration': DEFAULT_LICENSE_EXPIRATION_DATE,
-            'dateOfBirth': DEFAULT_DATE_OF_BIRTH,
+            'dateOfUpdate': datetime.fromisoformat(DEFAULT_LICENSE_UPDATE_DATETIME),
+            'dateOfIssuance': date.fromisoformat(DEFAULT_LICENSE_ISSUANCE_DATE),
+            'dateOfRenewal': date.fromisoformat(DEFAULT_LICENSE_RENEWAL_DATE),
+            'dateOfExpiration': date.fromisoformat(DEFAULT_LICENSE_EXPIRATION_DATE),
+            'dateOfBirth': date.fromisoformat(DEFAULT_DATE_OF_BIRTH),
             'homeAddressStreet1': DEFAULT_HOME_ADDRESS_STREET1,
             'homeAddressStreet2': DEFAULT_HOME_ADDRESS_STREET2,
             'homeAddressCity': DEFAULT_HOME_ADDRESS_CITY,
@@ -113,8 +120,6 @@ class TestDataGenerator:
     def put_default_license_record_in_provider_table(value_overrides: dict | None = None) -> LicenseData:
         license_data = TestDataGenerator.generate_default_license(value_overrides)
         license_record = license_data.serialize_to_database_record()
-        if value_overrides:
-            license_record.update(value_overrides)
 
         TestDataGenerator.store_record_in_provider_table(license_record)
 
@@ -135,12 +140,11 @@ class TestDataGenerator:
             'type': LICENSE_UPDATE_RECORD_TYPE,
             'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
             'licenseType': DEFAULT_LICENSE_TYPE,
-            'previous': previous_license.serialize_to_database_record(),
+            'previous': previous_license.to_dict(),
             'updatedValues': {
-                'dateOfRenewal': DEFAULT_LICENSE_RENEWAL_DATE,
-                'dateOfExpiration': DEFAULT_LICENSE_EXPIRATION_DATE,
+                'dateOfRenewal': date.fromisoformat(DEFAULT_LICENSE_RENEWAL_DATE),
+                'dateOfExpiration': date.fromisoformat(DEFAULT_LICENSE_EXPIRATION_DATE),
             },
-            'dateOfUpdate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
         }
         if value_overrides:
             license_update.update(value_overrides)
@@ -157,14 +161,14 @@ class TestDataGenerator:
             'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
             'licenseJurisdiction': DEFAULT_LICENSE_JURISDICTION,
             'licenseType': DEFAULT_LICENSE_TYPE,
-            'dateOfIssuance': DEFAULT_PRIVILEGE_ISSUANCE_DATE,
-            'dateOfRenewal': DEFAULT_PRIVILEGE_RENEWAL_DATE,
-            'dateOfExpiration': DEFAULT_PRIVILEGE_EXPIRATION_DATE,
+            'dateOfIssuance': datetime.fromisoformat(DEFAULT_PRIVILEGE_ISSUANCE_DATETIME),
+            'dateOfRenewal': datetime.fromisoformat(DEFAULT_PRIVILEGE_RENEWAL_DATETIME),
+            'dateOfExpiration': date.fromisoformat(DEFAULT_PRIVILEGE_EXPIRATION_DATE),
             'compactTransactionId': DEFAULT_COMPACT_TRANSACTION_ID,
             'attestations': DEFAULT_ATTESTATIONS,
             'privilegeId': DEFAULT_PRIVILEGE_ID,
             'administratorSetStatus': DEFAULT_ADMINISTRATOR_SET_STATUS,
-            'dateOfUpdate': DEFAULT_PRIVILEGE_UPDATE_DATE,
+            'dateOfUpdate': DEFAULT_PRIVILEGE_UPDATE_DATETIME,
             'compactTransactionIdGSIPK': f'COMPACT#{DEFAULT_COMPACT}#TX#{DEFAULT_COMPACT_TRANSACTION_ID}#',
         }
         if value_overrides:
@@ -180,10 +184,8 @@ class TestDataGenerator:
 
     @staticmethod
     def put_default_privilege_record_in_provider_table(value_overrides: dict | None = None) -> PrivilegeData:
-        privilege = TestDataGenerator.generate_default_privilege()
+        privilege = TestDataGenerator.generate_default_privilege(value_overrides)
         privilege_record = privilege.serialize_to_database_record()
-        if value_overrides:
-            privilege_record.update(value_overrides)
 
         TestDataGenerator.store_record_in_provider_table(privilege_record)
 
@@ -210,13 +212,13 @@ class TestDataGenerator:
             'type': PRIVILEGE_UPDATE_RECORD_TYPE,
             'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
             'licenseType': DEFAULT_LICENSE_TYPE,
-            'previous': previous_privilege.serialize_to_database_record(),
+            'previous': previous_privilege.to_dict(),
             'updatedValues': {
-                'dateOfRenewal': DEFAULT_PRIVILEGE_RENEWAL_DATE,
-                'dateOfExpiration': DEFAULT_PRIVILEGE_EXPIRATION_DATE,
+                'dateOfRenewal': datetime.fromisoformat(DEFAULT_PRIVILEGE_RENEWAL_DATETIME),
+                'dateOfExpiration': date.fromisoformat(DEFAULT_PRIVILEGE_EXPIRATION_DATE),
                 'compactTransactionId': DEFAULT_COMPACT_TRANSACTION_ID,
             },
-            'dateOfUpdate': DEFAULT_PRIVILEGE_UPDATE_DATE_OF_UPDATE,
+            'dateOfUpdate': datetime.fromisoformat(DEFAULT_PRIVILEGE_UPDATE_DATE_OF_UPDATE),
         }
         if value_overrides:
             privilege_update.update(value_overrides)
@@ -224,45 +226,62 @@ class TestDataGenerator:
         return PrivilegeUpdateData(privilege_update)
 
     @staticmethod
-    def generate_default_provider() -> Provider:
+    def generate_default_provider(value_overrides: dict | None = None) -> ProviderData:
         """Generate a default provider"""
-        return Provider(
-            {
-                'providerId': DEFAULT_PROVIDER_ID,
-                'compact': DEFAULT_COMPACT,
-                'type': PROVIDER_RECORD_TYPE,
-                'licenseJurisdiction': DEFAULT_LICENSE_JURISDICTION,
-                'privilegeJurisdictions': [DEFAULT_PRIVILEGE_JURISDICTION],
-                'jurisdictionUploadedLicenseStatus': DEFAULT_LICENSE_STATUS,
-                'jurisdictionUploadedCompactEligibility': DEFAULT_COMPACT_ELIGIBILITY,
-                'ssnLastFour': DEFAULT_SSN_LAST_FOUR,
-                'npi': DEFAULT_NPI,
-                'givenName': DEFAULT_GIVEN_NAME,
-                'middleName': DEFAULT_MIDDLE_NAME,
-                'familyName': DEFAULT_FAMILY_NAME,
-                'dateOfExpiration': DEFAULT_LICENSE_EXPIRATION_DATE,
-                'dateOfBirth': DEFAULT_DATE_OF_BIRTH,
-                'homeAddressStreet1': DEFAULT_HOME_ADDRESS_STREET1,
-                'homeAddressStreet2': DEFAULT_HOME_ADDRESS_STREET2,
-                'homeAddressCity': DEFAULT_HOME_ADDRESS_CITY,
-                'homeAddressState': DEFAULT_HOME_ADDRESS_STATE,
-                'homeAddressPostalCode': DEFAULT_HOME_ADDRESS_POSTAL_CODE,
-                'emailAddress': DEFAULT_EMAIL_ADDRESS,
-                'phoneNumber': DEFAULT_PHONE_NUMBER,
-                'compactConnectRegisteredEmailAddress': DEFAULT_REGISTERED_EMAIL_ADDRESS,
-                'cognitoSub': DEFAULT_COGNITO_SUB,
-                'birthMonthDay': DEFAULT_DATE_OF_BIRTH.split('-')[1] + '-' + DEFAULT_DATE_OF_BIRTH.split('-')[2],
-                'providerDateOfUpdate': DEFAULT_PROVIDER_UPDATE_DATE,
-                'dateOfUpdate': DEFAULT_PROVIDER_UPDATE_DATE,
-            }
-        )
+        default_provider = {
+            'providerId': DEFAULT_PROVIDER_ID,
+            'compact': DEFAULT_COMPACT,
+            'type': PROVIDER_RECORD_TYPE,
+            'licenseJurisdiction': DEFAULT_LICENSE_JURISDICTION,
+            'privilegeJurisdictions': {DEFAULT_PRIVILEGE_JURISDICTION},
+            'jurisdictionUploadedLicenseStatus': DEFAULT_LICENSE_STATUS,
+            'jurisdictionUploadedCompactEligibility': DEFAULT_COMPACT_ELIGIBILITY,
+            'ssnLastFour': DEFAULT_SSN_LAST_FOUR,
+            'npi': DEFAULT_NPI,
+            'givenName': DEFAULT_GIVEN_NAME,
+            'middleName': DEFAULT_MIDDLE_NAME,
+            'familyName': DEFAULT_FAMILY_NAME,
+            'dateOfExpiration': DEFAULT_LICENSE_EXPIRATION_DATE,
+            'dateOfBirth': DEFAULT_DATE_OF_BIRTH,
+            'homeAddressStreet1': DEFAULT_HOME_ADDRESS_STREET1,
+            'homeAddressStreet2': DEFAULT_HOME_ADDRESS_STREET2,
+            'homeAddressCity': DEFAULT_HOME_ADDRESS_CITY,
+            'homeAddressState': DEFAULT_HOME_ADDRESS_STATE,
+            'homeAddressPostalCode': DEFAULT_HOME_ADDRESS_POSTAL_CODE,
+            'emailAddress': DEFAULT_EMAIL_ADDRESS,
+            'phoneNumber': DEFAULT_PHONE_NUMBER,
+            'compactConnectRegisteredEmailAddress': DEFAULT_REGISTERED_EMAIL_ADDRESS,
+            'cognitoSub': DEFAULT_COGNITO_SUB,
+            'birthMonthDay': DEFAULT_DATE_OF_BIRTH.split('-')[1] + '-' + DEFAULT_DATE_OF_BIRTH.split('-')[2],
+            'dateOfUpdate': DEFAULT_PROVIDER_UPDATE_DATETIME,
+        }
+        
+        if value_overrides:
+            default_provider.update(value_overrides)
+            
+        return ProviderData(default_provider)
+
+    @staticmethod
+    def put_default_provider_record_in_provider_table(value_overrides: dict | None = None) -> ProviderData:
+        """
+        Creates a default provider record and stores it in the provider table.
+        
+        :param value_overrides: Optional dictionary to override default values
+        :return: The ProviderData instance that was stored
+        """
+        provider_data = TestDataGenerator.generate_default_provider(value_overrides)
+        provider_record = provider_data.serialize_to_database_record()
+            
+        TestDataGenerator.store_record_in_provider_table(provider_record)
+        
+        return provider_data
 
     @staticmethod
     def generate_default_provider_detail_response() -> ProviderDetailResponse:
         """Generate a default provider detail response with all nested objects"""
-        # Create the provider
-        provider = TestDataGenerator.generate_default_provider()
-        provider_data = dict(provider.data)
+        # Create the provider from our provider data class
+        provider_data_obj = TestDataGenerator.generate_default_provider()
+        provider_data = provider_data_obj.to_dict()
 
         # Add additional fields required for the provider detail response
         provider_data.update(
@@ -274,7 +293,7 @@ class TestDataGenerator:
         )
 
         # Generate default license with history and adverse actions
-        license_data = dict(TestDataGenerator.generate_default_license().data)
+        license_data = dict(TestDataGenerator.generate_default_license().to_dict())
 
         # Add license status fields
         license_data.update({'licenseStatus': DEFAULT_LICENSE_STATUS, 'status': DEFAULT_LICENSE_STATUS})
@@ -376,7 +395,7 @@ class TestDataGenerator:
         license_data['adverseActions'] = license_adverse_actions
 
         # Generate default privilege with history and adverse actions
-        privilege_data = dict(TestDataGenerator.generate_default_privilege().data)
+        privilege_data = dict(TestDataGenerator.generate_default_privilege().to_dict())
 
         # Create privilege history
         privilege_history = [
@@ -387,12 +406,12 @@ class TestDataGenerator:
                 'compact': DEFAULT_COMPACT,
                 'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
                 'licenseType': DEFAULT_LICENSE_TYPE,
-                'dateOfUpdate': DEFAULT_PRIVILEGE_UPDATE_DATE,
+                'dateOfUpdate': DEFAULT_PRIVILEGE_UPDATE_DATETIME,
                 'previous': {
-                    'dateOfIssuance': DEFAULT_PRIVILEGE_ISSUANCE_DATE,
-                    'dateOfRenewal': DEFAULT_PRIVILEGE_ISSUANCE_DATE,
+                    'dateOfIssuance': DEFAULT_PRIVILEGE_ISSUANCE_DATETIME,
+                    'dateOfRenewal': DEFAULT_PRIVILEGE_ISSUANCE_DATETIME,
                     'dateOfExpiration': '2020-06-06',
-                    'dateOfUpdate': DEFAULT_PRIVILEGE_ISSUANCE_DATE,
+                    'dateOfUpdate': DEFAULT_PRIVILEGE_ISSUANCE_DATETIME,
                     'licenseJurisdiction': DEFAULT_LICENSE_JURISDICTION,
                     'compactTransactionId': '0123456789',
                     'administratorSetStatus': DEFAULT_ADMINISTRATOR_SET_STATUS,
@@ -400,7 +419,7 @@ class TestDataGenerator:
                     'attestations': DEFAULT_ATTESTATIONS,
                 },
                 'updatedValues': {
-                    'dateOfRenewal': DEFAULT_PRIVILEGE_RENEWAL_DATE,
+                    'dateOfRenewal': DEFAULT_PRIVILEGE_RENEWAL_DATETIME,
                     'dateOfExpiration': DEFAULT_PRIVILEGE_EXPIRATION_DATE,
                     'compactTransactionId': DEFAULT_COMPACT_TRANSACTION_ID,
                 },

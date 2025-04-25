@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import datetime, date
 from unittest.mock import patch
 
 from boto3.dynamodb.conditions import Key
@@ -112,7 +112,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
         default_adverse_action_encumbrance = self.test_data_generator.generate_default_adverse_action(
             value_overrides={
                 'adverseActionId': item['adverseActionId'],
-                'creationEffectiveDate': TEST_ENCUMBRANCE_EFFECTIVE_DATE,
+                'creationEffectiveDate': date.fromisoformat(TEST_ENCUMBRANCE_EFFECTIVE_DATE),
                 'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
             }
         )
@@ -147,7 +147,6 @@ class TestPostPrivilegeEncumbrance(TstFunction):
 
         expected_privilege_update_data = self.test_data_generator.generate_default_privilege_update(
             value_overrides={
-                'dateOfUpdate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
                 'updateType': 'encumbrance',
                 'updatedValues': {'administratorSetStatus': 'inactive'},
             }
@@ -254,7 +253,7 @@ class TestPostLicenseEncumbrance(TstFunction):
             value_overrides={
                 'actionAgainst': 'license',
                 'adverseActionId': item['adverseActionId'],
-                'creationEffectiveDate': TEST_ENCUMBRANCE_EFFECTIVE_DATE,
+                'creationEffectiveDate': date.fromisoformat(TEST_ENCUMBRANCE_EFFECTIVE_DATE),
                 'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
             }
         )
@@ -289,7 +288,6 @@ class TestPostLicenseEncumbrance(TstFunction):
 
         expected_license_update_data = self.test_data_generator.generate_default_license_update(
             value_overrides={
-                'dateOfUpdate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
                 'updateType': 'encumbrance',
                 'updatedValues': {'compactEligibility': 'ineligible'},
             }

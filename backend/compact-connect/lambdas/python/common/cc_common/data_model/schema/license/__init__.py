@@ -16,10 +16,6 @@ class LicenseData(CCDataClass):
     """
 
     def __init__(self, data: dict[str, Any] = None):
-        if data:
-            # We add the GSI values here with dummy values to pass validation
-            # since these will be stripped when loaded
-            data.update({'licenseGSIPK': 'tempPKValue', 'licenseGSISK': 'tempSKValue'})
         super().__init__(LicenseRecordSchema(), data)
 
     @property

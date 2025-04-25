@@ -38,13 +38,13 @@ class CCDataClass:
         self._record_schema = record_schema
         # If the data is provided, validate it through the schema
         if data:
-            # The base record schema expects pk and sk to be present in the data
-            # but we want to be able to instantiate data classes for records that
-            # haven't been stored yet, so we set the pk and sk to temporary values here
-            # since these will be stripped out by the schema when loaded
-            data['pk'] = 'tempPk'
-            data['sk'] = 'tempSk'
-            self._data = self._record_schema.load(data)
+            # If data is passed through the constructor, it must be a new object
+            # not previously stored in the database, which means it does not have
+            # GSIs generated for it yet.
+            # We first serialize the object to populate any GSIs, then load it
+            # for a full round trip of serialization/deserialization
+            serialized_object = self._record_schema.dump(data)
+            self._data = self._record_schema.load(serialized_object)
         else:
             self._data = {}
 
