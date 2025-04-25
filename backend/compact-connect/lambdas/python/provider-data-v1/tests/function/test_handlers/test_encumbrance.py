@@ -5,8 +5,9 @@ from unittest.mock import patch
 from boto3.dynamodb.conditions import Key
 from common_test.test_constants import (
     DEFAULT_AA_SUBMITTING_USER_ID,
+    DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
+    DEFAULT_LICENSE_JURISDICTION,
     DEFAULT_PRIVILEGE_JURISDICTION,
-    DEFAULT_DATE_OF_UPDATE_TIMESTAMP, DEFAULT_LICENSE_JURISDICTION,
 )
 from moto import mock_aws
 
@@ -102,7 +103,8 @@ class TestPostPrivilegeEncumbrance(TstFunction):
             Select='ALL_ATTRIBUTES',
             KeyConditionExpression=Key('pk').eq(test_privilege_record.serialize_to_database_record()['pk'])
             & Key('sk').begins_with(
-                f'{test_privilege_record.compact}#PROVIDER#privilege/{test_privilege_record.jurisdiction}/slp#ADVERSE_ACTION'),
+                f'{test_privilege_record.compact}#PROVIDER#privilege/{test_privilege_record.jurisdiction}/slp#ADVERSE_ACTION'
+            ),
         )
         self.assertEqual(1, len(adverse_action_encumbrances['Items']))
         item = adverse_action_encumbrances['Items'][0]
@@ -137,16 +139,19 @@ class TestPostPrivilegeEncumbrance(TstFunction):
             Select='ALL_ATTRIBUTES',
             KeyConditionExpression=Key('pk').eq(test_privilege_record.serialize_to_database_record()['pk'])
             & Key('sk').begins_with(
-                f'{test_privilege_record.compact}#PROVIDER#privilege/{test_privilege_record.jurisdiction}/slp#UPDATE'),
+                f'{test_privilege_record.compact}#PROVIDER#privilege/{test_privilege_record.jurisdiction}/slp#UPDATE'
+            ),
         )
         self.assertEqual(1, len(privilege_update_records['Items']))
         item = privilege_update_records['Items'][0]
 
-        expected_privilege_update_data = self.test_data_generator.generate_default_privilege_update(value_overrides={
-            'dateOfUpdate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
-            'updateType': 'encumbrance',
-            'updatedValues': {'administratorSetStatus': 'inactive'}
-        })
+        expected_privilege_update_data = self.test_data_generator.generate_default_privilege_update(
+            value_overrides={
+                'dateOfUpdate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
+                'updateType': 'encumbrance',
+                'updatedValues': {'administratorSetStatus': 'inactive'},
+            }
+        )
         loaded_privilege_update_data = PrivilegeUpdateData()
         loaded_privilege_update_data.load_from_database_record(data=item)
 
@@ -175,10 +180,9 @@ class TestPostPrivilegeEncumbrance(TstFunction):
         self.assertEqual(1, len(privilege_records['Items']))
         item = privilege_records['Items'][0]
 
-        expected_privilege_data = self.test_data_generator.generate_default_privilege(value_overrides={
-            'dateOfUpdate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
-            'administratorSetStatus': 'inactive'
-        })
+        expected_privilege_data = self.test_data_generator.generate_default_privilege(
+            value_overrides={'dateOfUpdate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP, 'administratorSetStatus': 'inactive'}
+        )
         loaded_privilege_data = PrivilegeData()
         loaded_privilege_data.load_from_database_record(data=item)
 
@@ -240,7 +244,8 @@ class TestPostLicenseEncumbrance(TstFunction):
             Select='ALL_ATTRIBUTES',
             KeyConditionExpression=Key('pk').eq(test_license_record.serialize_to_database_record()['pk'])
             & Key('sk').begins_with(
-                f'{test_license_record.compact}#PROVIDER#license/{test_license_record.jurisdiction}/slp#ADVERSE_ACTION'),
+                f'{test_license_record.compact}#PROVIDER#license/{test_license_record.jurisdiction}/slp#ADVERSE_ACTION'
+            ),
         )
         self.assertEqual(1, len(adverse_action_encumbrances['Items']))
         item = adverse_action_encumbrances['Items'][0]
@@ -276,16 +281,19 @@ class TestPostLicenseEncumbrance(TstFunction):
             Select='ALL_ATTRIBUTES',
             KeyConditionExpression=Key('pk').eq(test_license_record.serialize_to_database_record()['pk'])
             & Key('sk').begins_with(
-                f'{test_license_record.compact}#PROVIDER#license/{test_license_record.jurisdiction}/slp#UPDATE'),
+                f'{test_license_record.compact}#PROVIDER#license/{test_license_record.jurisdiction}/slp#UPDATE'
+            ),
         )
         self.assertEqual(1, len(license_update_records['Items']))
         item = license_update_records['Items'][0]
 
-        expected_license_update_data = self.test_data_generator.generate_default_license_update(value_overrides={
-            'dateOfUpdate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
-            'updateType': 'encumbrance',
-            'updatedValues': {'compactEligibility': 'ineligible'}
-        })
+        expected_license_update_data = self.test_data_generator.generate_default_license_update(
+            value_overrides={
+                'dateOfUpdate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
+                'updateType': 'encumbrance',
+                'updatedValues': {'compactEligibility': 'ineligible'},
+            }
+        )
         loaded_license_update_data = LicenseUpdateData()
         loaded_license_update_data.load_from_database_record(data=item)
 
@@ -315,10 +323,8 @@ class TestPostLicenseEncumbrance(TstFunction):
         item = license_records['Items'][0]
 
         license_privilege_data = self.test_data_generator.generate_default_license(
-            value_overrides={
-            'dateOfUpdate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
-            'compactEligibility': 'ineligible'
-        })
+            value_overrides={'dateOfUpdate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP, 'compactEligibility': 'ineligible'}
+        )
         loaded_privilege_data = LicenseData()
         loaded_privilege_data.load_from_database_record(data=item)
 

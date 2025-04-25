@@ -121,8 +121,9 @@ class TestDataGenerator:
         return license_data
 
     @staticmethod
-    def generate_default_license_update(value_overrides: dict | None = None,
-                                        previous_license: LicenseData | None = None) -> LicenseUpdateData:
+    def generate_default_license_update(
+        value_overrides: dict | None = None, previous_license: LicenseData | None = None
+    ) -> LicenseUpdateData:
         """Generate a default license update"""
         if previous_license is None:
             previous_license = TestDataGenerator.generate_default_license()
@@ -137,7 +138,7 @@ class TestDataGenerator:
             'previous': previous_license.serialize_to_database_record(),
             'updatedValues': {
                 'dateOfRenewal': DEFAULT_LICENSE_RENEWAL_DATE,
-                'dateOfExpiration': DEFAULT_LICENSE_EXPIRATION_DATE
+                'dateOfExpiration': DEFAULT_LICENSE_EXPIRATION_DATE,
             },
             'dateOfUpdate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
         }
@@ -215,7 +216,7 @@ class TestDataGenerator:
                 'dateOfExpiration': DEFAULT_PRIVILEGE_EXPIRATION_DATE,
                 'compactTransactionId': DEFAULT_COMPACT_TRANSACTION_ID,
             },
-            'dateOfUpdate': DEFAULT_PRIVILEGE_UPDATE_DATE_OF_UPDATE
+            'dateOfUpdate': DEFAULT_PRIVILEGE_UPDATE_DATE_OF_UPDATE,
         }
         if value_overrides:
             privilege_update.update(value_overrides)

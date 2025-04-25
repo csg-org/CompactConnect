@@ -27,13 +27,13 @@ LICENSE_ENCUMBRANCE_ENDPOINT_RESOURCE = (
 @authorize_compact(action=CCPermissionsAction.ADMIN)
 def encumbrance_handler(event: dict, context: LambdaContext) -> dict:
     """Encumbrance handler"""
+    with logger.append_context_keys(aws_request=context.aws_request_id):
+        if event['httpMethod'] == 'POST' and event['resource'] == PRIVILEGE_ENCUMBRANCE_ENDPOINT_RESOURCE:
+            return handle_privilege_encumbrance(event)
+        if event['httpMethod'] == 'POST' and event['resource'] == LICENSE_ENCUMBRANCE_ENDPOINT_RESOURCE:
+            return handle_license_encumbrance(event)
 
-    if event['httpMethod'] == 'POST' and event['resource'] == PRIVILEGE_ENCUMBRANCE_ENDPOINT_RESOURCE:
-        return handle_privilege_encumbrance(event)
-    if event['httpMethod'] == 'POST' and event['resource'] == LICENSE_ENCUMBRANCE_ENDPOINT_RESOURCE:
-        return handle_license_encumbrance(event)
-
-    raise CCInvalidRequestException('Invalid endpoint requested')
+        raise CCInvalidRequestException('Invalid endpoint requested')
 
 
 def _get_submitting_user_id(event: dict):
@@ -83,7 +83,6 @@ def handle_privilege_encumbrance(event: dict) -> dict:
     logger.info('Processing adverse action updates for privilege record')
     config.data_client.encumber_privilege(adverse_action)
 
-    # TODO - add event bridge event
     return {'message': 'OK'}
 
 
@@ -94,5 +93,4 @@ def handle_license_encumbrance(event: dict) -> dict:
     logger.info('Processing adverse action updates for license record')
     config.data_client.encumber_license(adverse_action)
 
-    # TODO - add event bridge event
     return {'message': 'OK'}
