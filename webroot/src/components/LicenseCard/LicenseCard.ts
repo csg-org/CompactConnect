@@ -34,8 +34,12 @@ class LicenseCard extends Vue {
     //
     // Lifecycle
     //
-    mounted() {
+    mounted(): void {
         this.addStatusDescriptionExpansion();
+    }
+
+    beforeUnmount(): void {
+        this.removeStatusDescriptionExpansion();
     }
 
     //
@@ -115,18 +119,27 @@ class LicenseCard extends Vue {
     // Methods
     //
     addStatusDescriptionExpansion(): void {
-        // Simple desktop hover for overflowed status descriptions; mvp while we test how states will use this field.
         const statusDescriptionElement = this.$refs.statusDescription as HTMLElement;
-        const addExpansion = (event) => {
-            const element = event.target;
-
-            if (!element.title && element.scrollWidth > element.clientWidth) {
-                element.title = element.innerText;
-            }
-        };
 
         if (statusDescriptionElement) {
-            statusDescriptionElement.addEventListener('mouseenter', addExpansion);
+            statusDescriptionElement.addEventListener('mouseenter', this.statusDescriptionExpansionEvent);
+        }
+    }
+
+    removeStatusDescriptionExpansion(): void {
+        const statusDescriptionElement = this.$refs.statusDescription as HTMLElement;
+
+        if (statusDescriptionElement) {
+            statusDescriptionElement.removeEventListener('mouseenter', this.statusDescriptionExpansionEvent);
+        }
+    }
+
+    statusDescriptionExpansionEvent(event: Event): void {
+        // Simple desktop hover for overflowed status descriptions; mvp while we test how states will use this field.
+        const element = event.target as HTMLElement;
+
+        if (!element.title && element.scrollWidth > element.clientWidth) {
+            element.title = element.innerText;
         }
     }
 }
