@@ -41,6 +41,21 @@ class JurisdictionJurisprudenceRequirements(UserDict):
         return self['required']
 
 
+class JurisdictionPrivilegeFee(UserDict):
+    """
+    Jurisdiction license fee data model. Used to access variables without needing to know
+    the underlying key structure.
+    """
+
+    @property
+    def license_type_abbreviation(self) -> str:
+        return self['licenseTypeAbbreviation']
+
+    @property
+    def amount(self) -> Decimal:
+        return self['amount']
+
+
 class Jurisdiction(UserDict):
     """
     Jurisdiction configuration data model. Used to access variables without needing to know
@@ -59,9 +74,15 @@ class Jurisdiction(UserDict):
     def compact(self) -> str:
         return self['compact']
 
+    # Deprecated - will be removed as part of https://github.com/csg-org/CompactConnect/issues/636
+    # use privilege_fees instead
     @property
     def jurisdiction_fee(self) -> Decimal:
         return self['jurisdictionFee']
+
+    @property
+    def privilege_fees(self) -> list[JurisdictionPrivilegeFee]:
+        return [JurisdictionPrivilegeFee(fee) for fee in self.data['privilegeFees']]
 
     @property
     def military_discount(self) -> JurisdictionMilitaryDiscount | None:

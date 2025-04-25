@@ -33,24 +33,28 @@
                 </div>
             </div>
             <div v-if="areFormInputsSet" class="button-row">
-                <InputButton
-                    :isTextLike="true"
-                    :label="$t('common.cancel')"
-                    :aria-label="$t('common.cancel')"
-                    class="cancel"
-                    @click="handleCancelClicked"
-                />
-                <div class="right-cell">
+                <div class="form-nav-buttons">
+                    <InputSubmit
+                        :formInput="formData.submit"
+                        class="form-nav-button"
+                        :label="submitLabel"
+                        :isEnabled="!isFormLoading"
+                    />
                     <InputButton
                         :label="$t('common.back')"
                         :aria-label="$t('common.back')"
-                        class="back"
+                        class="form-nav-button back"
+                        :isTransparent="true"
                         @click="handleBackClicked"
                     />
-                    <InputSubmit
-                        :formInput="formData.submit"
-                        :label="submitLabel"
-                        :isEnabled="!isFormLoading"
+                </div>
+                <div class="form-override-buttons">
+                    <InputButton
+                        :isTextLike="true"
+                        :label="$t('common.cancel')"
+                        :aria-label="$t('common.cancel')"
+                        class="form-override-button cancel"
+                        @click="handleCancelClicked"
                     />
                 </div>
             </div>

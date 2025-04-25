@@ -1,6 +1,6 @@
 # ruff: noqa: N801, N815, ARG002 invalid-name unused-kwargs
 from marshmallow import Schema
-from marshmallow.fields import Boolean, Decimal, Nested, String
+from marshmallow.fields import Boolean, Decimal, List, Nested, String
 from marshmallow.validate import OneOf
 
 from cc_common.config import config
@@ -20,6 +20,11 @@ class JurisdictionJurisprudenceRequirementsResponseSchema(Schema):
     required = Boolean(required=True, allow_none=False)
 
 
+class JurisdictionPrivilegeFeeResponseSchema(Schema):
+    licenseTypeAbbreviation = String(required=True, allow_none=False)
+    amount = Decimal(required=True, allow_none=False)
+
+
 class JurisdictionOptionsResponseSchema(ForgivingSchema):
     """
     Used to enforce which fields are returned in jurisdiction objects for the
@@ -30,11 +35,13 @@ class JurisdictionOptionsResponseSchema(ForgivingSchema):
     jurisdictionName = String(required=True, allow_none=False)
     postalAbbreviation = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
     compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
-    jurisdictionFee = Decimal(required=True, allow_none=False)
+    privilegeFees = List(Nested(JurisdictionPrivilegeFeeResponseSchema()), required=True, allow_none=False)
     militaryDiscount = Nested(JurisdictionMilitaryDiscountResponseSchema(), required=False, allow_none=False)
     jurisprudenceRequirements = Nested(
         JurisdictionJurisprudenceRequirementsResponseSchema(), required=True, allow_none=False
     )
+    # deprecated - will be removed as part of https://github.com/csg-org/CompactConnect/issues/636
+    jurisdictionFee = Decimal(required=False, allow_none=False)
 
 
 class CompactJurisdictionsStaffUsersResponseSchema(ForgivingSchema):

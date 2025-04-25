@@ -63,7 +63,13 @@ def test_purchase_privilege_options():
         'jurisdictionName': 'Kentucky',
         'postalAbbreviation': 'ky',
         'compact': 'aslp',
+        # deprecated - will be removed as part of https://github.com/csg-org/CompactConnect/issues/636
         'jurisdictionFee': 100,
+        # Note: if these values are ever updated in the compact configuration, the test will need to be updated
+        'privilegeFees': [
+            {'licenseTypeAbbreviation': 'aud', 'amount': 100},
+            {'licenseTypeAbbreviation': 'slp', 'amount': 100},
+        ],
         'militaryDiscount': {'active': True, 'discountType': 'FLAT_RATE', 'discountAmount': 10},
         'jurisprudenceRequirements': {'required': True},
     }

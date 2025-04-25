@@ -1,7 +1,13 @@
 # PLACEHOLDER DATA, NOT FINAL CONFIGURATION.
 jurisdictionName: "Ohio"
 postalAbbreviation: "oh"
+# deprecated - will be removed as part of https://github.com/csg-org/CompactConnect/issues/636
 jurisdictionFee: 25
+privilegeFees:
+  - licenseTypeAbbreviation: "aud"
+    amount: 25
+  - licenseTypeAbbreviation: "slp"
+    amount: 25
 jurisdictionOperationsTeamEmails:
     - "gregg.thornton@shp.ohio.gov"
 jurisdictionAdverseActionsNotificationEmails: ["gregg.thornton@shp.ohio.gov"]
