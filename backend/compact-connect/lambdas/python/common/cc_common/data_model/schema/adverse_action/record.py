@@ -1,7 +1,7 @@
 # ruff: noqa: N801, N815  invalid-name
 from uuid import uuid4
 
-from marshmallow import pre_dump
+from marshmallow import ValidationError, pre_dump, validates_schema
 from marshmallow.fields import UUID, Boolean, Date, DateTime, String
 from marshmallow.validate import OneOf
 
@@ -25,10 +25,8 @@ class AdverseActionRecordSchema(BaseRecordSchema):
     compact = Compact(required=True, allow_none=False)
     providerId = UUID(required=True, allow_none=False)
     jurisdiction = Jurisdiction(required=True, allow_none=False)
-    licenseTypeAbbreviation = String(
-        required=True, allow_none=False, validate=OneOf(config.all_license_type_abbreviations)
-    )
-    licenseType = String(required=True, allow_none=False, validate=OneOf(config.all_license_type_names))
+    licenseTypeAbbreviation = String(required=True, allow_none=False)
+    licenseType = String(required=True, allow_none=False)
     actionAgainst = String(required=True, allow_none=False, validate=OneOf([e.value for e in AdverseActionAgainstEnum]))
 
     # Populated on creation
@@ -60,3 +58,21 @@ class AdverseActionRecordSchema(BaseRecordSchema):
         """
         in_data.setdefault('adverseActionId', uuid4())
         return in_data
+
+    @validates_schema
+    def validate_license_type(self, data, **kwargs):  # noqa: ARG001 unused-argument
+        compact = data['compact']
+        license_types = config.license_types_for_compact(compact)
+        if data['licenseType'] not in license_types:
+            raise ValidationError({'licenseType': [f'Must be one of: {", ".join(license_types)}.']})
+        license_abbreviations = config.license_type_abbreviations_for_compact(compact)
+        if license_abbreviations[data['licenseType']] != data['licenseTypeAbbreviation']:
+            raise ValidationError(
+                {
+                    'licenseTypeAbbreviation': [
+                        f'License type abbreviation must match license type: '
+                        f'licenseType={license_abbreviations[data["licenseType"]]} '
+                        f'matching licenseTypeAbbreviation={license_abbreviations[data["licenseType"]]}.'
+                    ]
+                }
+            )
