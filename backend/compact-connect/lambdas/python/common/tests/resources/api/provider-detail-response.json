@@ -58,6 +58,7 @@
       "homeAddressPostalCode": "43004",
       "emailAddress": "björk@example.com",
       "phoneNumber": "+13213214321",
+      "adverseActions": [],
       "history": [
         {
           "type": "licenseUpdate",
@@ -114,6 +115,7 @@
       "compactTransactionId": "1234567890",
       "privilegeId": "SLP-NE-1",
       "administratorSetStatus": "active",
+      "adverseActions": [],
       "history": [
         {
           "type": "privilegeUpdate",

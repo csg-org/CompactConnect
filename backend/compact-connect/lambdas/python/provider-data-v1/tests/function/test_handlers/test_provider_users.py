@@ -86,8 +86,7 @@ class TestGetProvider(TstFunction):
         with self.assertRaises(CCInternalException):
             get_provider_user_me(event, self.mock_context)
 
-    # TODO - finish this test to include adverse actions in the response
-    def test_get_provider_returns_adverse_actions_if_present(self):
+    def test_get_provider_returns_license_adverse_actions_if_present(self):
         from cc_common.data_model.schema.common import AdverseActionAgainstEnum
         from handlers.provider_users import get_provider_user_me
 
@@ -110,11 +109,40 @@ class TestGetProvider(TstFunction):
         self.assertEqual(200, resp['statusCode'])
         provider_data = json.loads(resp['body'])
 
-        expected_provider = self.test_data_generator.generate_default_provider_detail_response(
-            provider_record_items=[test_provider_record, test_license_record, test_adverse_action]
+        license_adverse_actions = provider_data['licenses'][0]['adverseActions']
+        self.assertEqual(1, len(license_adverse_actions))
+
+        self.assertEqual([self.test_data_generator.convert_data_to_api_response_formatted_dict(test_adverse_action)],
+                         license_adverse_actions)
+
+    def test_get_provider_returns_privilege_adverse_actions_if_present(self):
+        from cc_common.data_model.schema.common import AdverseActionAgainstEnum
+        from handlers.provider_users import get_provider_user_me
+
+        test_provider_record = self.test_data_generator.put_default_provider_record_in_provider_table()
+        test_privilege_record = self.test_data_generator.put_default_privilege_record_in_provider_table()
+        test_adverse_action = self.test_data_generator.generate_default_adverse_action()
+        test_adverse_action.action_against = AdverseActionAgainstEnum.PRIVILEGE
+        test_adverse_action.jurisdiction = test_privilege_record.jurisdiction
+        self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+            value_overrides=test_adverse_action.to_dict()
         )
 
-        self.assertEqual(expected_provider, provider_data)
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+            event['requestContext']['authorizer']['claims']['custom:providerId'] = test_provider_record.provider_id
+            event['requestContext']['authorizer']['claims']['custom:compact'] = test_provider_record.compact
+
+        resp = get_provider_user_me(event, self.mock_context)
+
+        self.assertEqual(200, resp['statusCode'])
+        provider_data = json.loads(resp['body'])
+
+        privileges_adverse_actions = provider_data['privileges'][0]['adverseActions']
+        self.assertEqual(1, len(privileges_adverse_actions))
+
+        self.assertEqual([self.test_data_generator.convert_data_to_api_response_formatted_dict(test_adverse_action)],
+                         privileges_adverse_actions)
 
 
 @mock_aws

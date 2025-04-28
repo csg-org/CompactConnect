@@ -34,6 +34,7 @@ class AdverseActionPublicResponseSchema(ForgivingSchema):
     providerId = Raw(required=True, allow_none=False)
     jurisdiction = Jurisdiction(required=True, allow_none=False)
     licenseTypeAbbreviation = String(required=True, allow_none=False)
+    licenseType = String(required=True, allow_none=False)
     actionAgainst = String(required=True, allow_none=False, validate=OneOf(['privilege', 'license']))
 
     # Populated on creation

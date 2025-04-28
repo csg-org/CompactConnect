@@ -113,6 +113,7 @@ class ProviderPublicResponseSchema(ForgivingSchema):
     # Unlike the internal provider search endpoints used by staff users, which return license data in addition to
     # privilege data for a provider, we only return privilege data for a provider from the public GET provider endpoint
     privileges = List(Nested(PrivilegePublicResponseSchema(), required=False, allow_none=False))
+    # Note the lack of `licenses` here: we do not return license data for public endpoints
 
 
 class ProviderRegistrationRequestSchema(ForgivingSchema):

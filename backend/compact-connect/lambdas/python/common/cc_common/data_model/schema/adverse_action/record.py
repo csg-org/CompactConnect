@@ -5,6 +5,7 @@ from marshmallow import pre_dump
 from marshmallow.fields import UUID, Boolean, Date, DateTime, String
 from marshmallow.validate import OneOf
 
+from cc_common.config import config
 from cc_common.data_model.schema.base_record import BaseRecordSchema
 from cc_common.data_model.schema.common import AdverseActionAgainstEnum
 from cc_common.data_model.schema.fields import ClinicalPrivilegeActionCategoryField, Compact, Jurisdiction
@@ -24,7 +25,8 @@ class AdverseActionRecordSchema(BaseRecordSchema):
     compact = Compact(required=True, allow_none=False)
     providerId = UUID(required=True, allow_none=False)
     jurisdiction = Jurisdiction(required=True, allow_none=False)
-    licenseTypeAbbreviation = String(required=True, allow_none=False)
+    licenseTypeAbbreviation = String(required=True, allow_none=False, validate=OneOf(config.all_license_type_abbreviations))
+    licenseType = String(required=True, allow_none=False, validate=OneOf(config.all_license_type_names))
     actionAgainst = String(required=True, allow_none=False, validate=OneOf([e.value for e in AdverseActionAgainstEnum]))
 
     # Populated on creation

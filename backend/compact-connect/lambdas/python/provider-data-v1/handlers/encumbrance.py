@@ -39,7 +39,6 @@ def encumbrance_handler(event: dict, context: LambdaContext) -> dict:
 def _get_submitting_user_id(event: dict):
     return event['requestContext']['authorizer']['claims']['sub']
 
-
 def _generate_adverse_action_for_record_type(
     event: dict, adverse_action_against_record_type: AdverseActionAgainstEnum
 ) -> AdverseActionData:
@@ -48,7 +47,7 @@ def _generate_adverse_action_for_record_type(
     provider_id = event['pathParameters']['providerId']
     jurisdiction = event['pathParameters']['jurisdiction']
     # the path parameter says licenseType, but it's actually the license type abbreviation
-    license_type_abbreviation = event['pathParameters']['licenseType']
+    license_type_abbreviation_from_path_parameter = event['pathParameters']['licenseType'].lower()
 
     body = json.loads(event['body'])
     # validate the request body
@@ -63,7 +62,26 @@ def _generate_adverse_action_for_record_type(
     adverse_action.compact = compact
     adverse_action.provider_id = provider_id
     adverse_action.jurisdiction = jurisdiction
-    adverse_action.license_type_abbreviation = license_type_abbreviation
+    try:
+        all_license_types = config.license_type_abbreviations
+        compact_license_types = all_license_types[compact]
+    except KeyError:
+        raise CCInvalidRequestException(f'Could not find license types for provided compact {compact}')
+
+    adverse_action_license_type = None
+    adverse_action_license_type_abbreviation = None
+
+    for license_type_name, license_type_abbreviation in compact_license_types.items():
+        if license_type_abbreviation_from_path_parameter == license_type_abbreviation.lower():
+            adverse_action_license_type = license_type_name
+            adverse_action_license_type_abbreviation = license_type_abbreviation
+
+    if not adverse_action_license_type or not adverse_action_license_type_abbreviation:
+        raise CCInvalidRequestException(f"Could not find license type information based on provided parameter "
+                                        f"'{license_type_abbreviation_from_path_parameter}'")
+
+    adverse_action.license_type_abbreviation = adverse_action_license_type_abbreviation
+    adverse_action.license_type = adverse_action_license_type
     adverse_action.action_against = adverse_action_against_record_type
     adverse_action.blocks_future_privileges = adverse_action_request['blocksFuturePrivileges']
     adverse_action.clinical_privilege_action_category = ClinicalPrivilegeActionCategory(

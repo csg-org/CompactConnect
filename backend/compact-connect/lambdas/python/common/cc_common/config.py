@@ -126,6 +126,27 @@ class _Config:
         return {compact: [lt['name'] for lt in license_types] for compact, license_types in raw_license_types.items()}
 
     @property
+    def all_license_type_names(self):
+        """
+        returns a flat list of all possible license type names
+        The returned format is:
+        ["audiologist", "speech-language pathologist", "occupational therapist", "occupational therapy assistant",
+        "licensed professional counselor"]
+        """
+        raw_license_types = json.loads(os.environ['LICENSE_TYPES'])
+        return [lt['name'] for license_types in raw_license_types.values() for lt in license_types]
+    
+    @property
+    def all_license_type_abbreviations(self):
+        """
+        returns a flat list of all possible license type abbreviations
+        The returned format is:
+        ["aud", "slp", "ot", "ota", "lpc"]
+        """
+        raw_license_types = json.loads(os.environ['LICENSE_TYPES'])
+        return [lt['abbreviation'] for license_types in raw_license_types.values() for lt in license_types]
+
+    @property
     def license_type_abbreviations(self):
         """
         Creates a lookup dictionary for license type abbreviations based on compact and full name.

@@ -2,10 +2,6 @@ from datetime import date, datetime
 from typing import Any
 from uuid import UUID
 
-from cc_common.data_model.schema.adverse_action.api import (
-    AdverseActionGeneralResponseSchema,
-    AdverseActionPublicResponseSchema,
-)
 from cc_common.data_model.schema.adverse_action.record import AdverseActionRecordSchema
 from cc_common.data_model.schema.common import AdverseActionAgainstEnum, CCDataClass, ClinicalPrivilegeActionCategory
 
@@ -50,6 +46,14 @@ class AdverseActionData(CCDataClass):
     @license_type_abbreviation.setter
     def license_type_abbreviation(self, value: str) -> None:
         self._data['licenseTypeAbbreviation'] = value
+
+    @property
+    def license_type(self) -> str:
+        return self._data['licenseType']
+
+    @license_type.setter
+    def license_type(self, value: str) -> None:
+        self._data['licenseType'] = value
 
     @property
     def action_against(self) -> str:
@@ -120,17 +124,3 @@ class AdverseActionData(CCDataClass):
     @lifting_user.setter
     def lifting_user(self, value: UUID) -> None:
         self._data['liftingUser'] = value
-
-    def to_public_response(self) -> dict[str, Any]:
-        """
-        Return the data formatted for public API response
-        """
-        schema = AdverseActionPublicResponseSchema()
-        return schema.load(self._data)
-
-    def to_general_response(self) -> dict[str, Any]:
-        """
-        Return the data formatted for general API response
-        """
-        schema = AdverseActionGeneralResponseSchema()
-        return schema.load(self._data)

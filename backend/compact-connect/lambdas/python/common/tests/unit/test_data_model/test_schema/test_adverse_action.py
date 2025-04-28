@@ -51,6 +51,30 @@ class TestAdverseActionRecordSchema(TstLambdas):
         with self.assertRaises(ValidationError):
             AdverseActionData().load_from_database_record(adverse_action_data.serialize_to_database_record())
 
+    def test_invalid_license_type(self):
+        from cc_common.data_model.schema.adverse_action import AdverseActionData
+
+        adverse_action_data = self.test_data_generator.generate_default_adverse_action()
+
+        # setting to an invalid value from another enum
+        adverse_action_data.license_type = "foobar"
+        adverse_action_data.license_abbreviation = "slp"
+
+        with self.assertRaises(ValidationError):
+            AdverseActionData().load_from_database_record(adverse_action_data.serialize_to_database_record())
+
+    def test_invalid_license_type_abbreviation(self):
+        from cc_common.data_model.schema.adverse_action import AdverseActionData
+
+        adverse_action_data = self.test_data_generator.generate_default_adverse_action()
+
+        # setting to an invalid value from another enum
+        adverse_action_data.license_type = "speech-language pathologist"
+        adverse_action_data.license_type_abbreviation = "foo"
+
+        with self.assertRaises(ValidationError):
+            AdverseActionData().load_from_database_record(adverse_action_data.serialize_to_database_record())
+
     def test_adverse_action_id_is_generated_if_not_provided(self):
         """Test that an adverseActionId is generated if not provided during dump()"""
         from cc_common.data_model.schema.adverse_action.record import AdverseActionRecordSchema

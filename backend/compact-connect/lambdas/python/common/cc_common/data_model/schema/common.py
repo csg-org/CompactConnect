@@ -26,8 +26,8 @@ class CCDataClass:
     Data classes can be instantiated in three ways:
     1. From a database record using the load_from_database_record method, which will be loaded through the respective
     schema.
-    2. From passing a dictionary into the constructor, which can be used to create a new data object
-    that does not yet exist in the database.
+    2. If creating a new record that does not yet exist in the database, pass in a dictionary into the constructor,
+    which can be used to create a new data object.
     3. Without any data, in which case the data can be set using the associated setter methods as provided by the
     subclass.
 
@@ -44,6 +44,9 @@ class CCDataClass:
             # GSIs generated for it yet.
             # We first serialize the object to populate any GSIs, then load it
             # for a full round trip of serialization/deserialization
+            if data.get('pk') or data.get('sk'):
+                raise ValueError('Invalid use of data class constructor. Database records must be loaded using the'
+                                 'load_from_database_record method.')
             serialized_object = self._record_schema.dump(data)
             self._data = self._record_schema.load(serialized_object)
         else:

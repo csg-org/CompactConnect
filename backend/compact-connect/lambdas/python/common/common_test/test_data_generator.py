@@ -22,6 +22,11 @@ class TestDataGenerator:
     """
 
     @staticmethod
+    def convert_data_to_api_response_formatted_dict(data_class: CCDataClass) -> HomeJurisdictionSelection:
+        """Helper method used to convert data class data into a format that matches response formats from the API."""
+        return json.loads(json.dumps(data_class.to_dict(), cls=ResponseEncoder))
+
+    @staticmethod
     def generate_default_home_jurisdiction_selection() -> HomeJurisdictionSelection:
         """Generate a default home jurisdiction selection"""
         return HomeJurisdictionSelection(
@@ -44,6 +49,7 @@ class TestDataGenerator:
             'type': ADVERSE_ACTION_RECORD_TYPE,
             'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
             'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
+            'licenseType': DEFAULT_LICENSE_TYPE,
             'actionAgainst': DEFAULT_ACTION_AGAINST_PRIVILEGE,
             'blocksFuturePrivileges': DEFAULT_BLOCKS_FUTURE_PRIVILEGES,
             'clinicalPrivilegeActionCategory': DEFAULT_CLINICAL_PRIVILEGE_ACTION_CATEGORY,
