@@ -1,20 +1,46 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 
-from cc_common.data_model.schema.common import CCEnum
+from datetime import datetime
+from typing import Any
+from uuid import UUID
+
+from cc_common.data_model.schema.common import CCDataClass
+from cc_common.data_model.schema.military_affiliation.record import MilitaryAffiliationRecordSchema
 
 
-class MilitaryAffiliationStatus(CCEnum):
-    INITIALIZING = 'initializing'
-    ACTIVE = 'active'
-    INACTIVE = 'inactive'
+class MilitaryAffiliationData(CCDataClass):
+    """
+    Class representing a Military Affiliation with read-only properties.
+    Takes a dict as an argument to the constructor to avoid primitive obsession.
+    """
 
+    def __init__(self, data: dict[str, Any] = None):
+        super().__init__(MilitaryAffiliationRecordSchema(), data)
 
-class MilitaryAffiliationType(CCEnum):
-    MILITARY_MEMBER = 'militaryMember'
-    MILITARY_MEMBER_SPOUSE = 'militaryMemberSpouse'
+    @property
+    def provider_id(self) -> UUID:
+        return self._data.get('providerId')
 
-
-SUPPORTED_MILITARY_AFFILIATION_FILE_EXTENSIONS = ('pdf', 'jpg', 'jpeg', 'png', 'docx')
-MILITARY_AFFILIATIONS_DOCUMENT_TYPE_KEY_NAME = 'military-affiliations'
-
-MILITARY_AFFILIATION_RECORD_TYPE = 'militaryAffiliation'
+    @property
+    def compact(self) -> str:
+        return self._data.get('compact')
+    
+    @property
+    def document_keys(self) -> list[str]:
+        return self._data.get('documentKeys', [])
+    
+    @property
+    def file_names(self) -> list[str]:
+        return self._data.get('fileNames', [])
+    
+    @property
+    def affiliation_type(self) -> str:
+        return self._data.get('affiliationType')
+    
+    @property
+    def date_of_upload(self) -> datetime:
+        return self._data.get('dateOfUpload')
+    
+    @property
+    def status(self) -> str:
+        return self._data.get('status')

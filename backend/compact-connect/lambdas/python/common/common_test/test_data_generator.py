@@ -6,12 +6,11 @@ from cc_common.data_model.provider_record_util import ProviderRecordUtility
 from cc_common.data_model.schema.adverse_action import AdverseActionData
 from cc_common.data_model.schema.common import CCDataClass
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
+from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationData
 from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
 from cc_common.data_model.schema.provider import ProviderData
 from cc_common.utils import ResponseEncoder
-
 from common_test.data_model.home_jurisdiction import HomeJurisdictionSelection
-from common_test.data_model.military_affiliation import MilitaryAffiliation
 from common_test.test_constants import *
 
 
@@ -71,23 +70,41 @@ class TestDataGenerator:
         TestDataGenerator.store_record_in_provider_table(adverse_action_record)
 
     @staticmethod
-    def generate_default_military_affiliation() -> MilitaryAffiliation:
+    def generate_default_military_affiliation(value_overrides: dict | None = None) -> MilitaryAffiliationData:
         """Generate a default military affiliation"""
-        return MilitaryAffiliation(
-            {
-                'providerId': DEFAULT_PROVIDER_ID,
-                'compact': DEFAULT_COMPACT,
-                'type': MILITARY_AFFILIATION_RECORD_TYPE,
-                'documentKeys': [
-                    f'/provider/{DEFAULT_PROVIDER_ID}/document-type/military-affiliations/{DEFAULT_PROVIDER_UPDATE_DATETIME.split("T")[0]}/1234#military-waiver.pdf'
-                ],
-                'fileNames': ['military-waiver.pdf'],
-                'affiliationType': DEFAULT_MILITARY_AFFILIATION_TYPE,
-                'dateOfUpload': DEFAULT_MILITARY_UPLOAD_DATE,
-                'status': DEFAULT_MILITARY_STATUS,
-                'dateOfUpdate': DEFAULT_MILITARY_UPDATE_DATE,
-            }
-        )
+        default_military_affiliation = {
+            'providerId': DEFAULT_PROVIDER_ID,
+            'compact': DEFAULT_COMPACT,
+            'type': MILITARY_AFFILIATION_RECORD_TYPE,
+            'documentKeys': [
+                f'/provider/{DEFAULT_PROVIDER_ID}/document-type/military-affiliations/{DEFAULT_PROVIDER_UPDATE_DATETIME.split("T")[0]}/1234#military-waiver.pdf'
+            ],
+            'fileNames': ['military-waiver.pdf'],
+            'affiliationType': DEFAULT_MILITARY_AFFILIATION_TYPE,
+            'dateOfUpload': datetime.fromisoformat(DEFAULT_MILITARY_UPLOAD_DATE),
+            'status': DEFAULT_MILITARY_STATUS,
+            'dateOfUpdate': datetime.fromisoformat(DEFAULT_MILITARY_UPDATE_DATE),
+        }
+
+        if value_overrides:
+            default_military_affiliation.update(value_overrides)
+
+        return MilitaryAffiliationData(default_military_affiliation)
+
+    @staticmethod
+    def put_default_military_affiliation_in_provider_table(value_overrides: dict | None = None) -> MilitaryAffiliationData:
+        """
+        Creates a default military affiliation record and stores it in the provider table.
+
+        :param value_overrides: Optional dictionary to override default values
+        :return: The MilitaryAffiliationData instance that was stored
+        """
+        military_affiliation = TestDataGenerator.generate_default_military_affiliation(value_overrides)
+        military_affiliation_record = military_affiliation.serialize_to_database_record()
+
+        TestDataGenerator.store_record_in_provider_table(military_affiliation_record)
+
+        return military_affiliation
 
     @staticmethod
     def generate_default_license(value_overrides: dict | None = None) -> LicenseData:
@@ -344,14 +361,19 @@ class TestDataGenerator:
                 default_privilege_update_record, datetime.fromisoformat(DEFAULT_PRIVILEGE_UPDATE_DATE_OF_UPDATE)
             )
 
+            default_military_affiliation = TestDataGenerator.generate_default_military_affiliation()
+            TestDataGenerator._override_date_of_update_for_record(
+                default_military_affiliation, datetime.fromisoformat(DEFAULT_MILITARY_UPDATE_DATE)
+            )
+
             items = [
                 TestDataGenerator.generate_default_provider().to_dict(),
                 default_license_record.to_dict(),
                 default_license_update_record.to_dict(),
                 default_privilege_record.to_dict(),
                 default_privilege_update_record.to_dict(),
-                # TODO - convert these last two classes to data classes and remove the test classes
-                TestDataGenerator.generate_default_military_affiliation().data,
+                default_military_affiliation.to_dict(),
+                # TODO - convert home jurisdiction selection to a data class and remove the test class
                 TestDataGenerator.generate_default_home_jurisdiction_selection().data,
             ]
         else:

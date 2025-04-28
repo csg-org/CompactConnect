@@ -16,7 +16,7 @@ from cc_common.data_model.schema.base_record import SSNIndexRecordSchema
 from cc_common.data_model.schema.common import ActiveInactiveStatus, CompactEligibilityStatus
 from cc_common.data_model.schema.home_jurisdiction.record import ProviderHomeJurisdictionSelectionRecordSchema
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateRecordSchema
-from cc_common.data_model.schema.military_affiliation import (
+from cc_common.data_model.schema.military_affiliation.common import (
     MilitaryAffiliationStatus,
     MilitaryAffiliationType,
 )

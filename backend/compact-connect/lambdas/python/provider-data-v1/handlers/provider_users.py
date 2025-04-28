@@ -3,7 +3,7 @@ import uuid
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
-from cc_common.data_model.schema.military_affiliation import (
+from cc_common.data_model.schema.military_affiliation.common import (
     MILITARY_AFFILIATIONS_DOCUMENT_TYPE_KEY_NAME,
     SUPPORTED_MILITARY_AFFILIATION_FILE_EXTENSIONS,
     MilitaryAffiliationType,

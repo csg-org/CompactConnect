@@ -84,7 +84,7 @@ class CCDataClass:
         """
         return deepcopy(self._data)
 
-    def serialize_to_database_record(self) -> dict[str, Any]:
+    def serialize_to_database_record(self, date_of_update_override: datetime | None = None) -> dict[str, Any]:
         """Serialize the object using the schema's dump method"""
         # we set a deepcopy here so that the GSIs and DB keys do not get added to the underlying data dictionary
         return self._record_schema.dump(deepcopy(self._data))

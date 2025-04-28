@@ -4,7 +4,7 @@ from enum import StrEnum
 from cc_common.config import logger
 from cc_common.data_model.schema.common import ActiveInactiveStatus, CompactEligibilityStatus
 from cc_common.data_model.schema.license.api import LicenseUpdatePreviousResponseSchema
-from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationStatus
+from cc_common.data_model.schema.military_affiliation.common import MilitaryAffiliationStatus
 from cc_common.data_model.schema.privilege.api import PrivilegeUpdatePreviousGeneralResponseSchema
 from cc_common.data_model.schema.provider.record import ProviderRecordSchema
 from cc_common.exceptions import CCInternalException, CCInvalidRequestException
