@@ -25,7 +25,9 @@ class AdverseActionRecordSchema(BaseRecordSchema):
     compact = Compact(required=True, allow_none=False)
     providerId = UUID(required=True, allow_none=False)
     jurisdiction = Jurisdiction(required=True, allow_none=False)
-    licenseTypeAbbreviation = String(required=True, allow_none=False, validate=OneOf(config.all_license_type_abbreviations))
+    licenseTypeAbbreviation = String(
+        required=True, allow_none=False, validate=OneOf(config.all_license_type_abbreviations)
+    )
     licenseType = String(required=True, allow_none=False, validate=OneOf(config.all_license_type_names))
     actionAgainst = String(required=True, allow_none=False, validate=OneOf([e.value for e in AdverseActionAgainstEnum]))
 

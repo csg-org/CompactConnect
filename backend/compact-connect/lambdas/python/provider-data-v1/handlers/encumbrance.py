@@ -39,6 +39,7 @@ def encumbrance_handler(event: dict, context: LambdaContext) -> dict:
 def _get_submitting_user_id(event: dict):
     return event['requestContext']['authorizer']['claims']['sub']
 
+
 def _generate_adverse_action_for_record_type(
     event: dict, adverse_action_against_record_type: AdverseActionAgainstEnum
 ) -> AdverseActionData:
@@ -65,8 +66,8 @@ def _generate_adverse_action_for_record_type(
     try:
         all_license_types = config.license_type_abbreviations
         compact_license_types = all_license_types[compact]
-    except KeyError:
-        raise CCInvalidRequestException(f'Could not find license types for provided compact {compact}')
+    except KeyError as e:
+        raise CCInvalidRequestException(f'Could not find license types for provided compact {compact}') from e
 
     adverse_action_license_type = None
     adverse_action_license_type_abbreviation = None
@@ -77,8 +78,10 @@ def _generate_adverse_action_for_record_type(
             adverse_action_license_type_abbreviation = license_type_abbreviation
 
     if not adverse_action_license_type or not adverse_action_license_type_abbreviation:
-        raise CCInvalidRequestException(f"Could not find license type information based on provided parameter "
-                                        f"'{license_type_abbreviation_from_path_parameter}'")
+        raise CCInvalidRequestException(
+            f'Could not find license type information based on provided parameter '
+            f"'{license_type_abbreviation_from_path_parameter}'"
+        )
 
     adverse_action.license_type_abbreviation = adverse_action_license_type_abbreviation
     adverse_action.license_type = adverse_action_license_type

@@ -11,6 +11,7 @@ from cc_common.data_model.schema.military_affiliation import MilitaryAffiliation
 from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
 from cc_common.data_model.schema.provider import ProviderData
 from cc_common.utils import ResponseEncoder
+
 from common_test.test_constants import *
 
 
@@ -26,7 +27,9 @@ class TestDataGenerator:
         return json.loads(json.dumps(data_class.to_dict(), cls=ResponseEncoder))
 
     @staticmethod
-    def generate_default_home_jurisdiction_selection(value_overrides: dict | None = None) -> HomeJurisdictionSelectionData:
+    def generate_default_home_jurisdiction_selection(
+        value_overrides: dict | None = None,
+    ) -> HomeJurisdictionSelectionData:
         """Generate a default home jurisdiction selection"""
         default_home_jurisdiction = {
             'providerId': DEFAULT_PROVIDER_ID,
@@ -94,7 +97,9 @@ class TestDataGenerator:
         return MilitaryAffiliationData(default_military_affiliation)
 
     @staticmethod
-    def put_default_military_affiliation_in_provider_table(value_overrides: dict | None = None) -> MilitaryAffiliationData:
+    def put_default_military_affiliation_in_provider_table(
+        value_overrides: dict | None = None,
+    ) -> MilitaryAffiliationData:
         """
         Creates a default military affiliation record and stores it in the provider table.
 
@@ -367,7 +372,7 @@ class TestDataGenerator:
             TestDataGenerator._override_date_of_update_for_record(
                 default_military_affiliation, datetime.fromisoformat(DEFAULT_MILITARY_UPDATE_DATE)
             )
-            
+
             default_home_jurisdiction = TestDataGenerator.generate_default_home_jurisdiction_selection()
             TestDataGenerator._override_date_of_update_for_record(
                 default_home_jurisdiction, datetime.fromisoformat(DEFAULT_HOME_UPDATE_DATE)

@@ -112,8 +112,10 @@ class TestGetProvider(TstFunction):
         license_adverse_actions = provider_data['licenses'][0]['adverseActions']
         self.assertEqual(1, len(license_adverse_actions))
 
-        self.assertEqual([self.test_data_generator.convert_data_to_api_response_formatted_dict(test_adverse_action)],
-                         license_adverse_actions)
+        self.assertEqual(
+            [self.test_data_generator.convert_data_to_api_response_formatted_dict(test_adverse_action)],
+            license_adverse_actions,
+        )
 
     def test_get_provider_returns_privilege_adverse_actions_if_present(self):
         from cc_common.data_model.schema.common import AdverseActionAgainstEnum
@@ -141,8 +143,10 @@ class TestGetProvider(TstFunction):
         privileges_adverse_actions = provider_data['privileges'][0]['adverseActions']
         self.assertEqual(1, len(privileges_adverse_actions))
 
-        self.assertEqual([self.test_data_generator.convert_data_to_api_response_formatted_dict(test_adverse_action)],
-                         privileges_adverse_actions)
+        self.assertEqual(
+            [self.test_data_generator.convert_data_to_api_response_formatted_dict(test_adverse_action)],
+            privileges_adverse_actions,
+        )
 
 
 @mock_aws

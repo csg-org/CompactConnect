@@ -135,7 +135,7 @@ class _Config:
         """
         raw_license_types = json.loads(os.environ['LICENSE_TYPES'])
         return [lt['name'] for license_types in raw_license_types.values() for lt in license_types]
-    
+
     @property
     def all_license_type_abbreviations(self):
         """

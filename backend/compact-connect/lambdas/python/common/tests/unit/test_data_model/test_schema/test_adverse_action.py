@@ -57,8 +57,8 @@ class TestAdverseActionRecordSchema(TstLambdas):
         adverse_action_data = self.test_data_generator.generate_default_adverse_action()
 
         # setting to an invalid value from another enum
-        adverse_action_data.license_type = "foobar"
-        adverse_action_data.license_abbreviation = "slp"
+        adverse_action_data.license_type = 'foobar'
+        adverse_action_data.license_abbreviation = 'slp'
 
         with self.assertRaises(ValidationError):
             AdverseActionData().load_from_database_record(adverse_action_data.serialize_to_database_record())
@@ -69,8 +69,8 @@ class TestAdverseActionRecordSchema(TstLambdas):
         adverse_action_data = self.test_data_generator.generate_default_adverse_action()
 
         # setting to an invalid value from another enum
-        adverse_action_data.license_type = "speech-language pathologist"
-        adverse_action_data.license_type_abbreviation = "foo"
+        adverse_action_data.license_type = 'speech-language pathologist'
+        adverse_action_data.license_type_abbreviation = 'foo'
 
         with self.assertRaises(ValidationError):
             AdverseActionData().load_from_database_record(adverse_action_data.serialize_to_database_record())
@@ -123,22 +123,26 @@ class TestAdverseActionDataClass(TstLambdas):
         # remove dynamic field
         del adverse_action_data['dateOfUpdate']
 
-        self.assertEqual({'actionAgainst': 'privilege',
-                             'adverseActionId': '98765432-9876-9876-9876-987654321098',
-                             'blocksFuturePrivileges': True,
-                             'clinicalPrivilegeActionCategory': 'Unsafe Practice or Substandard Care',
-                             'compact': 'aslp',
-                             'creationDate': '2024-11-08T23:59:59+00:00',
-                             'creationEffectiveDate': '2024-02-15',
-                             'jurisdiction': 'ne',
-                             'licenseType': 'speech-language pathologist',
-                             'licenseTypeAbbreviation': 'slp',
-                             'pk': 'aslp#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570',
-                             'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
-                             'sk': 'aslp#PROVIDER#privilege/ne/slp#ADVERSE_ACTION#98765432-9876-9876-9876-987654321098',
-                             'submittingUser': '12a6377e-c3a5-40e5-bca5-317ec854c556',
-                             'type': 'adverseAction'
-                          }, adverse_action_data)
+        self.assertEqual(
+            {
+                'actionAgainst': 'privilege',
+                'adverseActionId': '98765432-9876-9876-9876-987654321098',
+                'blocksFuturePrivileges': True,
+                'clinicalPrivilegeActionCategory': 'Unsafe Practice or Substandard Care',
+                'compact': 'aslp',
+                'creationDate': '2024-11-08T23:59:59+00:00',
+                'creationEffectiveDate': '2024-02-15',
+                'jurisdiction': 'ne',
+                'licenseType': 'speech-language pathologist',
+                'licenseTypeAbbreviation': 'slp',
+                'pk': 'aslp#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570',
+                'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
+                'sk': 'aslp#PROVIDER#privilege/ne/slp#ADVERSE_ACTION#98765432-9876-9876-9876-987654321098',
+                'submittingUser': '12a6377e-c3a5-40e5-bca5-317ec854c556',
+                'type': 'adverseAction',
+            },
+            adverse_action_data,
+        )
 
 
 class TestAdverseActionPostRequestSchema(TstLambdas):

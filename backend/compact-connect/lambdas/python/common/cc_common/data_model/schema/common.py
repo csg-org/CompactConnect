@@ -45,8 +45,10 @@ class CCDataClass:
             # We first serialize the object to populate any GSIs, then load it
             # for a full round trip of serialization/deserialization
             if data.get('pk') or data.get('sk'):
-                raise ValueError('Invalid use of data class constructor. Database records must be loaded using the'
-                                 'load_from_database_record method.')
+                raise ValueError(
+                    'Invalid use of data class constructor. Database records must be loaded using the'
+                    'load_from_database_record method.'
+                )
             serialized_object = self._record_schema.dump(data)
             self._data = self._record_schema.load(serialized_object)
         else:
@@ -84,7 +86,7 @@ class CCDataClass:
         """
         return deepcopy(self._data)
 
-    def serialize_to_database_record(self, date_of_update_override: datetime | None = None) -> dict[str, Any]:
+    def serialize_to_database_record(self) -> dict[str, Any]:
         """Serialize the object using the schema's dump method"""
         # we set a deepcopy here so that the GSIs and DB keys do not get added to the underlying data dictionary
         return self._record_schema.dump(deepcopy(self._data))

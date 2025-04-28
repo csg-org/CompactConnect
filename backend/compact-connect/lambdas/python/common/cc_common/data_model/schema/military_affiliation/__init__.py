@@ -24,23 +24,23 @@ class MilitaryAffiliationData(CCDataClass):
     @property
     def compact(self) -> str:
         return self._data.get('compact')
-    
+
     @property
     def document_keys(self) -> list[str]:
         return self._data.get('documentKeys', [])
-    
+
     @property
     def file_names(self) -> list[str]:
         return self._data.get('fileNames', [])
-    
+
     @property
     def affiliation_type(self) -> str:
         return self._data.get('affiliationType')
-    
+
     @property
     def date_of_upload(self) -> datetime:
         return self._data.get('dateOfUpload')
-    
+
     @property
     def status(self) -> str:
         return self._data.get('status')
