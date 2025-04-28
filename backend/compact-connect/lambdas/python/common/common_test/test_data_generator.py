@@ -5,12 +5,12 @@ from datetime import date, datetime
 from cc_common.data_model.provider_record_util import ProviderRecordUtility
 from cc_common.data_model.schema.adverse_action import AdverseActionData
 from cc_common.data_model.schema.common import CCDataClass
+from cc_common.data_model.schema.home_jurisdiction import HomeJurisdictionSelectionData
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
 from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationData
 from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
 from cc_common.data_model.schema.provider import ProviderData
 from cc_common.utils import ResponseEncoder
-from common_test.data_model.home_jurisdiction import HomeJurisdictionSelection
 from common_test.test_constants import *
 
 
@@ -21,23 +21,25 @@ class TestDataGenerator:
     """
 
     @staticmethod
-    def convert_data_to_api_response_formatted_dict(data_class: CCDataClass) -> HomeJurisdictionSelection:
+    def convert_data_to_api_response_formatted_dict(data_class: CCDataClass) -> dict:
         """Helper method used to convert data class data into a format that matches response formats from the API."""
         return json.loads(json.dumps(data_class.to_dict(), cls=ResponseEncoder))
 
     @staticmethod
-    def generate_default_home_jurisdiction_selection() -> HomeJurisdictionSelection:
+    def generate_default_home_jurisdiction_selection(value_overrides: dict | None = None) -> HomeJurisdictionSelectionData:
         """Generate a default home jurisdiction selection"""
-        return HomeJurisdictionSelection(
-            {
-                'providerId': DEFAULT_PROVIDER_ID,
-                'compact': DEFAULT_COMPACT,
-                'type': HOME_JURISDICTION_RECORD_TYPE,
-                'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
-                'dateOfSelection': DEFAULT_HOME_SELECTION_DATE,
-                'dateOfUpdate': DEFAULT_HOME_UPDATE_DATE,
-            }
-        )
+        default_home_jurisdiction = {
+            'providerId': DEFAULT_PROVIDER_ID,
+            'compact': DEFAULT_COMPACT,
+            'type': HOME_JURISDICTION_RECORD_TYPE,
+            'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+            'dateOfSelection': datetime.fromisoformat(DEFAULT_HOME_SELECTION_DATE),
+            'dateOfUpdate': datetime.fromisoformat(DEFAULT_HOME_UPDATE_DATE),
+        }
+        if value_overrides:
+            default_home_jurisdiction.update(value_overrides)
+
+        return HomeJurisdictionSelectionData(default_home_jurisdiction)
 
     @staticmethod
     def generate_default_adverse_action(value_overrides: dict | None = None) -> AdverseActionData:
@@ -365,6 +367,11 @@ class TestDataGenerator:
             TestDataGenerator._override_date_of_update_for_record(
                 default_military_affiliation, datetime.fromisoformat(DEFAULT_MILITARY_UPDATE_DATE)
             )
+            
+            default_home_jurisdiction = TestDataGenerator.generate_default_home_jurisdiction_selection()
+            TestDataGenerator._override_date_of_update_for_record(
+                default_home_jurisdiction, datetime.fromisoformat(DEFAULT_HOME_UPDATE_DATE)
+            )
 
             items = [
                 TestDataGenerator.generate_default_provider().to_dict(),
@@ -373,8 +380,7 @@ class TestDataGenerator:
                 default_privilege_record.to_dict(),
                 default_privilege_update_record.to_dict(),
                 default_military_affiliation.to_dict(),
-                # TODO - convert home jurisdiction selection to a data class and remove the test class
-                TestDataGenerator.generate_default_home_jurisdiction_selection().data,
+                default_home_jurisdiction.to_dict(),
             ]
         else:
             # convert each item into a dictionary
