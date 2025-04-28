@@ -60,7 +60,7 @@ class AdverseActionRecordSchema(BaseRecordSchema):
         return in_data
 
     @validates_schema
-    def validate_license_type(self, data, **kwargs):  # noqa: ARG001 unused-argument
+    def validate_license_type(self, data, **_kwargs):  # noqa: ARG001 unused-argument
         compact = data['compact']
         license_types = config.license_types_for_compact(compact)
         if data['licenseType'] not in license_types:
