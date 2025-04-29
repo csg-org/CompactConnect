@@ -107,7 +107,7 @@ class PrivilegeData(CCDataClass):
         self._data['privilegeId'] = value
 
     @property
-    def administrator_set_status(self) -> str:
+    def administrator_set_status(self) -> ActiveInactiveStatus:
         return self._data['administratorSetStatus']
 
     @administrator_set_status.setter
@@ -125,9 +125,6 @@ class PrivilegeData(CCDataClass):
 class PrivilegeUpdateData(CCDataClass):
     """
     Class representing a Privilege Update with getters and setters for all properties.
-
-    Note: This class requires valid data when created - it cannot be instantiated empty
-    and populated later.
     """
 
     # Define the record schema at the class level

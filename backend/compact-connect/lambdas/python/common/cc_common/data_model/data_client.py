@@ -1013,7 +1013,6 @@ class DataClient:
                 logger.info(message)
                 raise CCNotFoundException(f'Privilege not found for jurisdiction {adverse_action.jurisdiction}') from e
 
-            # Find the main privilege record (not history records)
             privilege_data = PrivilegeData.from_database_record(privilege_record)
 
             need_to_set_privilege_to_inactive = True
@@ -1078,13 +1077,13 @@ class DataClient:
 
     def encumber_license(self, adverse_action: AdverseActionData) -> None:
         """
-        Adds an adverse action record for a privilege for a provider in a jurisdiction.
+        Adds an adverse action record for a license for a provider in a jurisdiction.
 
         This will update the license record to have a compactEligibility of 'ineligible', and add a license update
         record to show the encumbrance event.
 
         :param AdverseActionData adverse_action: The details of the adverse action to be added to the records
-        :raises CCNotFoundException: If the privilege record is not found
+        :raises CCNotFoundException: If the license record is not found
         """
         with logger.append_context_keys(
             compact=adverse_action.compact,
@@ -1092,7 +1091,7 @@ class DataClient:
             jurisdiction=adverse_action.jurisdiction,
             license_type_abbreviation=adverse_action.license_type_abbreviation,
         ):
-            # Get the privilege record
+            # Get the license record
             try:
                 license_record = self.config.provider_table.get_item(
                     Key={
@@ -1104,13 +1103,12 @@ class DataClient:
             except KeyError as e:
                 message = 'License not found for jurisdiction'
                 logger.info(message)
-                raise CCNotFoundException(f'License not found for jurisdiction {adverse_action.jurisdiction}') from e
+                raise CCNotFoundException(f'{message} {adverse_action.jurisdiction}') from e
 
-            # Find the main privilege record (not history records)
             license_data = LicenseData.from_database_record(license_record)
 
             need_to_set_license_to_ineligible = True
-            # If already inactive, do nothing
+            # If already ineligible, do nothing
             if license_data.compact_eligibility == CompactEligibilityStatus.INELIGIBLE:
                 logger.info('License already ineligible. Not updating license compact eligibility status')
                 need_to_set_license_to_ineligible = False
@@ -1142,8 +1140,8 @@ class DataClient:
             )
             # Update the privilege record and create history record
             logger.info('Encumbering license')
-            # we add the adverse action record for the privilege,
-            # the privilege update record, and update the privilege record to inactive if it is not already inactive
+            # we add the adverse action record for the license,
+            # the license update record, and update the license record to ineligible if it is not already ineligible
             transact_items = [
                 # Create a history record, reflecting this change
                 self._generate_put_item_transaction(license_update_record),
