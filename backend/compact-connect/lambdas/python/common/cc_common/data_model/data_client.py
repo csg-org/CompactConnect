@@ -15,13 +15,13 @@ from cc_common.data_model.schema.adverse_action import AdverseActionData
 from cc_common.data_model.schema.base_record import SSNIndexRecordSchema
 from cc_common.data_model.schema.common import ActiveInactiveStatus, CompactEligibilityStatus
 from cc_common.data_model.schema.home_jurisdiction.record import ProviderHomeJurisdictionSelectionRecordSchema
-from cc_common.data_model.schema.license import LicenseData, LicenseUpdateRecordSchema
+from cc_common.data_model.schema.license import LicenseData, LicenseUpdateRecordSchema, LicenseUpdateData
 from cc_common.data_model.schema.military_affiliation.common import (
     MilitaryAffiliationStatus,
     MilitaryAffiliationType,
 )
 from cc_common.data_model.schema.military_affiliation.record import MilitaryAffiliationRecordSchema
-from cc_common.data_model.schema.privilege import PrivilegeData
+from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
 from cc_common.data_model.schema.privilege.record import PrivilegeUpdateRecordSchema
 from cc_common.exceptions import (
     CCAwsServiceException,
@@ -1015,7 +1015,7 @@ class DataClient:
 
             # Create the update record
             # Use the schema to generate the update record with proper pk/sk
-            privilege_update_record = PrivilegeUpdateRecordSchema().dump(
+            privilege_update_record = PrivilegeUpdateData.create_new(
                 {
                     'type': 'privilegeUpdate',
                     'updateType': 'encumbrance',
@@ -1033,7 +1033,7 @@ class DataClient:
                     if need_to_set_privilege_to_inactive
                     else {},
                 }
-            )
+            ).serialize_to_database_record()
 
             # Update the privilege record and create history record
             logger.info('Encumbering privilege')
@@ -1104,7 +1104,7 @@ class DataClient:
 
             # Create the update record
             # Use the schema to generate the update record with proper pk/sk
-            license_update_record = LicenseUpdateRecordSchema().dump(
+            license_update_record = LicenseUpdateData.create_new(
                 {
                     'type': 'licenseUpdate',
                     'updateType': 'encumbrance',
@@ -1122,7 +1122,7 @@ class DataClient:
                     if need_to_set_license_to_ineligible
                     else {},
                 }
-            )
+            ).serialize_to_database_record()
             # Update the privilege record and create history record
             logger.info('Encumbering license')
             # we add the adverse action record for the license,
