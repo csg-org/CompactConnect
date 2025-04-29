@@ -26,6 +26,22 @@
     "Name": "ar",
     "Scopes": [
       {
+        "ScopeDescription": "Admin access for the coun compact within the jurisdiction",
+        "ScopeName": "coun.admin"
+      },
+      {
+        "ScopeDescription": "Read access for SSNs in the coun compact within the jurisdiction",
+        "ScopeName": "coun.readPrivate"
+      },
+      {
+        "ScopeDescription": "Read access for SSNs in the coun compact within the jurisdiction",
+        "ScopeName": "coun.readSSN"
+      },
+      {
+        "ScopeDescription": "Write access for the coun compact within the jurisdiction",
+        "ScopeName": "coun.write"
+      },
+      {
         "ScopeDescription": "Admin access for the octp compact within the jurisdiction",
         "ScopeName": "octp.admin"
       },
