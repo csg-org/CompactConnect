@@ -23,36 +23,89 @@ class CCDataClass:
     Whenever possible, data classes should be used to interact with the data model from lambda functions, rather than
     referencing the schemas directly.
 
-    Data classes can be instantiated in three ways:
-    1. From a database record using the load_from_database_record method, which will be loaded through the respective
-    schema.
-    2. If creating a new record that does not yet exist in the database, pass in a dictionary into the constructor,
-    which can be used to create a new data object.
-    3. Without any data, in which case the data can be set using the associated setter methods as provided by the
-    subclass.
+    Data classes must be instantiated using one of the class factory methods:
+    1. create_new(): For creating a new record that doesn't exist in the database yet
+    2. from_database_record(): For loading an existing record from the database
 
     When putting records into the database, call the serialize_to_database_record method to convert the data class to a
     dictionary using the record schema's dump method.
+
+    Subclasses must define a class-level _record_schema attribute specifying the schema to use.
+
+    Subclasses can also set _requires_data_at_construction = True to prevent empty initialization.
     """
 
-    def __init__(self, record_schema: Schema, data: dict[str, Any] = None):
-        self._record_schema = record_schema
-        # If the data is provided, validate it through the schema
-        if data:
-            # If data is passed through the constructor, it must be a new object
-            # not previously stored in the database, which means it does not have
-            # GSIs generated for it yet.
-            # We first serialize the object to populate any GSIs, then load it
-            # for a full round trip of serialization/deserialization
-            if 'pk' in data or 'sk' in data:
-                raise ValueError(
-                    'Invalid use of data class constructor. Database records must be loaded using the'
-                    'load_from_database_record method.'
-                )
-            serialized_object = self._record_schema.dump(data)
-            self._data = self._record_schema.load(serialized_object)
-        else:
-            self._data = {}
+    # Subclasses must override this with their specific schema
+    _record_schema = None
+
+    # Subclasses can set this to True to prevent empty initialization
+    _requires_data_at_construction = False
+
+    def __init__(self, data: dict[str, Any], _is_from_factory: bool = False):
+        """
+        Initialize a data class instance.
+
+        This constructor should not be called directly. Use the create_new() or
+        from_database_record() class methods instead.
+
+        :param data: Data to initialize the instance with
+        :param _is_from_factory: Internal flag to ensure factory methods are used
+        """
+        if not _is_from_factory:
+            raise ValueError(
+                'Direct construction not allowed. Use create_new() or from_database_record() class methods instead.'
+            )
+
+        if self.__class__._record_schema is None:  # noqa: SLF001 This access allows the base class to manage this logic
+            raise NotImplementedError(f'Class {self.__class__.__name__} must define a _record_schema class attribute.')
+
+        self._data = data
+
+    @classmethod
+    def create_new(cls, data: dict[str, Any] = None) -> 'CCDataClass':
+        """
+        Create a new instance using the provided data.
+
+        This method should be used for creating objects that don't yet exist in the database.
+        The data will be processed through a full serialization/deserialization cycle to populate
+        any required fields and validate the data.
+
+        :param data: Data to initialize with (without 'pk'/'sk' keys)
+        :return: New instance of the data class
+        """
+        if cls._requires_data_at_construction and not data:
+            raise ValueError(f'{cls.__name__} requires valid data and cannot be instantiated empty.')
+
+        if data is None:
+            return cls({}, _is_from_factory=True)
+
+        if 'pk' in data or 'sk' in data:
+            raise ValueError(
+                "Data contains database keys ('pk'/'sk'). Use from_database_record() for loading database records."
+            )
+
+        # Serialize and deserialize to populate GSIs and validate the data
+        serialized_object = cls._record_schema.dump(data)
+        loaded_data = cls._record_schema.load(serialized_object)
+        return cls(loaded_data, _is_from_factory=True)
+
+    @classmethod
+    def from_database_record(cls, data: dict[str, Any]) -> 'CCDataClass':
+        """
+        Create a new instance from a database record.
+
+        This method should be used for loading objects that already exist in the database.
+        The data will be loaded directly through the schema without generating new GSIs.
+
+        :param data: Database record data (containing 'pk'/'sk' keys)
+        :return: New instance of the data class
+        """
+        if not data:
+            raise ValueError('Database record cannot be None or empty')
+
+        # Load directly through the schema
+        loaded_data = cls._record_schema.load(data)
+        return cls(loaded_data, _is_from_factory=True)
 
     @property
     def type(self) -> str:
@@ -67,11 +120,6 @@ class CCDataClass:
         The date of the latest update for the record.
         """
         return self._data['dateOfUpdate']
-
-    def load_from_database_record(self, data: dict[str, Any]) -> 'CCDataClass':
-        """Update the internal data from a database record using the schema's load method"""
-        self._data = self._record_schema.load(data)
-        return self
 
     def to_dict(self) -> dict[str, Any]:
         """Return the internal data dictionary
@@ -89,7 +137,7 @@ class CCDataClass:
     def serialize_to_database_record(self) -> dict[str, Any]:
         """Serialize the object using the schema's dump method"""
         # we set a deepcopy here so that the GSIs and DB keys do not get added to the underlying data dictionary
-        return self._record_schema.dump(deepcopy(self._data))
+        return self.__class__._record_schema.dump(deepcopy(self._data))  # noqa: SLF001 this allows the base class to manage serialization logic
 
 
 class CCEnum(StrEnum):

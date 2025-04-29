@@ -105,8 +105,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
                 'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
             }
         )
-        loaded_adverse_action = AdverseActionData()
-        loaded_adverse_action.load_from_database_record(data=item)
+        loaded_adverse_action = AdverseActionData.from_database_record(item)
 
         self.assertEqual(
             default_adverse_action_encumbrance.to_dict(),
@@ -140,8 +139,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
                 'updatedValues': {'administratorSetStatus': 'inactive'},
             }
         )
-        loaded_privilege_update_data = PrivilegeUpdateData()
-        loaded_privilege_update_data.load_from_database_record(data=item)
+        loaded_privilege_update_data = PrivilegeUpdateData.from_database_record(item)
 
         self.assertEqual(
             expected_privilege_update_data.to_dict(),
@@ -171,8 +169,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
         expected_privilege_data = self.test_data_generator.generate_default_privilege(
             value_overrides={'dateOfUpdate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP, 'administratorSetStatus': 'inactive'}
         )
-        loaded_privilege_data = PrivilegeData()
-        loaded_privilege_data.load_from_database_record(data=item)
+        loaded_privilege_data = PrivilegeData.from_database_record(item)
 
         self.assertEqual(
             expected_privilege_data.to_dict(),
@@ -244,7 +241,7 @@ class TestPostLicenseEncumbrance(TstFunction):
         self.assertEqual(1, len(adverse_action_encumbrances['Items']))
         item = adverse_action_encumbrances['Items'][0]
 
-        default_adverse_action_encumbrance = self.test_data_generator.generate_default_adverse_action(
+        expected_adverse_action_encumbrance = self.test_data_generator.generate_default_adverse_action(
             value_overrides={
                 'actionAgainst': 'license',
                 'adverseActionId': item['adverseActionId'],
@@ -252,11 +249,10 @@ class TestPostLicenseEncumbrance(TstFunction):
                 'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
             }
         )
-        loaded_adverse_action = AdverseActionData()
-        loaded_adverse_action.load_from_database_record(data=item)
+        loaded_adverse_action = AdverseActionData.from_database_record(item)
 
         self.assertEqual(
-            default_adverse_action_encumbrance.to_dict(),
+            expected_adverse_action_encumbrance.to_dict(),
             loaded_adverse_action.to_dict(),
         )
 
@@ -287,8 +283,7 @@ class TestPostLicenseEncumbrance(TstFunction):
                 'updatedValues': {'compactEligibility': 'ineligible'},
             }
         )
-        loaded_license_update_data = LicenseUpdateData()
-        loaded_license_update_data.load_from_database_record(data=item)
+        loaded_license_update_data = LicenseUpdateData.from_database_record(item)
 
         self.assertEqual(
             expected_license_update_data.to_dict(),
@@ -315,13 +310,12 @@ class TestPostLicenseEncumbrance(TstFunction):
         self.assertEqual(1, len(license_records['Items']))
         item = license_records['Items'][0]
 
-        license_privilege_data = self.test_data_generator.generate_default_license(
+        expected_license_data = self.test_data_generator.generate_default_license(
             value_overrides={'dateOfUpdate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP, 'compactEligibility': 'ineligible'}
         )
-        loaded_privilege_data = LicenseData()
-        loaded_privilege_data.load_from_database_record(data=item)
+        loaded_privilege_data = LicenseData.from_database_record(item)
 
         self.assertEqual(
-            license_privilege_data.to_dict(),
+            expected_license_data.to_dict(),
             loaded_privilege_data.to_dict(),
         )

@@ -1,5 +1,4 @@
 from datetime import date, datetime
-from typing import Any
 from uuid import UUID
 
 from cc_common.data_model.schema.common import ActiveInactiveStatus, CCDataClass
@@ -14,8 +13,10 @@ class PrivilegeData(CCDataClass):
     Class representing a Privilege with getters and setters for all properties.
     """
 
-    def __init__(self, data: dict[str, Any] = None):
-        super().__init__(PrivilegeRecordSchema(), data)
+    # Define the record schema at the class level
+    _record_schema = PrivilegeRecordSchema()
+
+    _requires_data_at_construction = False
 
     @property
     def provider_id(self) -> UUID:
@@ -124,10 +125,13 @@ class PrivilegeData(CCDataClass):
 class PrivilegeUpdateData(CCDataClass):
     """
     Class representing a Privilege Update with getters and setters for all properties.
+
+    Note: This class requires valid data when created - it cannot be instantiated empty
+    and populated later.
     """
 
-    def __init__(self, data: dict[str, Any] = None):
-        super().__init__(PrivilegeUpdateRecordSchema(), data)
+    # Define the record schema at the class level
+    _record_schema = PrivilegeUpdateRecordSchema()
 
     @property
     def update_type(self) -> str:

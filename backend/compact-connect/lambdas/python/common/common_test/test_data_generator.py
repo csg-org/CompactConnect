@@ -73,7 +73,7 @@ class TestDataGenerator:
         if value_overrides:
             default_home_jurisdiction.update(value_overrides)
 
-        return HomeJurisdictionSelectionData(default_home_jurisdiction)
+        return HomeJurisdictionSelectionData.create_new(default_home_jurisdiction)
 
     @staticmethod
     def generate_default_adverse_action(value_overrides: dict | None = None) -> AdverseActionData:
@@ -96,7 +96,7 @@ class TestDataGenerator:
         if value_overrides:
             default_adverse_actions.update(value_overrides)
 
-        return AdverseActionData(default_adverse_actions)
+        return AdverseActionData.create_new(default_adverse_actions)
 
     @staticmethod
     def put_default_adverse_action_record_in_provider_table(value_overrides: dict | None = None) -> AdverseActionData:
@@ -127,7 +127,7 @@ class TestDataGenerator:
         if value_overrides:
             default_military_affiliation.update(value_overrides)
 
-        return MilitaryAffiliationData(default_military_affiliation)
+        return MilitaryAffiliationData.create_new(default_military_affiliation)
 
     @staticmethod
     def put_default_military_affiliation_in_provider_table(
@@ -181,7 +181,7 @@ class TestDataGenerator:
         if value_overrides:
             default_license.update(value_overrides)
 
-        return LicenseData(default_license)
+        return LicenseData.create_new(default_license)
 
     @staticmethod
     def put_default_license_record_in_provider_table(value_overrides: dict | None = None) -> LicenseData:
@@ -216,7 +216,7 @@ class TestDataGenerator:
         if value_overrides:
             license_update.update(value_overrides)
 
-        return LicenseUpdateData(license_update)
+        return LicenseUpdateData.create_new(license_update)
 
     @staticmethod
     def generate_default_privilege(value_overrides: dict | None = None) -> PrivilegeData:
@@ -241,7 +241,7 @@ class TestDataGenerator:
         if value_overrides:
             default_privilege.update(value_overrides)
 
-        return PrivilegeData(default_privilege)
+        return PrivilegeData.create_new(default_privilege)
 
     @staticmethod
     def store_record_in_provider_table(record: dict) -> None:
@@ -290,7 +290,7 @@ class TestDataGenerator:
         if value_overrides:
             privilege_update.update(value_overrides)
 
-        return PrivilegeUpdateData(privilege_update)
+        return PrivilegeUpdateData.create_new(privilege_update)
 
     @staticmethod
     def generate_default_provider(value_overrides: dict | None = None) -> ProviderData:
@@ -324,7 +324,7 @@ class TestDataGenerator:
         if value_overrides:
             default_provider.update(value_overrides)
 
-        return ProviderData(default_provider)
+        return ProviderData.create_new(default_provider)
 
     @staticmethod
     def put_default_provider_record_in_provider_table(value_overrides: dict | None = None) -> ProviderData:

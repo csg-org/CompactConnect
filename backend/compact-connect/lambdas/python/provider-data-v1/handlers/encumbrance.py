@@ -59,7 +59,7 @@ def _generate_adverse_action_for_record_type(
         raise CCInvalidRequestException('Invalid request body') from e
 
     # populate the adverse action data to be stored in the database
-    adverse_action = AdverseActionData()
+    adverse_action = AdverseActionData.create_new()
     adverse_action.compact = compact
     adverse_action.provider_id = provider_id
     adverse_action.jurisdiction = jurisdiction

@@ -1,21 +1,22 @@
 from datetime import date
-from typing import Any
 from uuid import UUID
 
 from cc_common.data_model.schema.common import CCDataClass
-from cc_common.data_model.schema.provider.record import ProviderRecordSchema
+from cc_common.data_model.schema.provider.record import (
+    ProviderRecordSchema,
+)
 
 
 class ProviderData(CCDataClass):
     """
-    Data class for provider records with read-only properties.
-
-    These values are populated from jurisdiction provided data that is not updated by the provider.
-    Currently, the latest active license available from jurisdiction provided data is used.
+    Class representing a Provider with getters and setters for all properties.
     """
 
-    def __init__(self, data: dict[str, Any] = None):
-        super().__init__(record_schema=ProviderRecordSchema(), data=data)
+    # Define record schema at the class level
+    _record_schema = ProviderRecordSchema()
+
+    # Require valid data when creating instances
+    _requires_data_at_construction = True
 
     @property
     def provider_id(self) -> UUID:

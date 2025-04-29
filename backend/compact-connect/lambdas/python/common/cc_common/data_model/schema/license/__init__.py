@@ -1,5 +1,4 @@
 from datetime import date
-from typing import Any
 from uuid import UUID
 
 from cc_common.data_model.schema.common import CCDataClass
@@ -8,15 +7,21 @@ from cc_common.data_model.schema.license.record import LicenseRecordSchema, Lice
 
 class LicenseData(CCDataClass):
     """
-    Class representing a License with getters and setters for all properties.
+    Class representing a License with read-only properties.
 
     Unlike several other CCDataClass subclasses, this one does not include setters. This is because
     license records are only upserted during ingestion, so we can pass the entire record
     from the ingestion process into the constructor.
+
+    Note: This class requires valid data when created - it cannot be instantiated empty
+    and populated later.
     """
 
-    def __init__(self, data: dict[str, Any] = None):
-        super().__init__(LicenseRecordSchema(), data)
+    # Define the record schema at the class level
+    _record_schema = LicenseRecordSchema()
+
+    # Require valid data when creating instances
+    _requires_data_at_construction = True
 
     @property
     def provider_id(self) -> UUID:
@@ -131,10 +136,16 @@ class LicenseUpdateData(CCDataClass):
     """
     Class representing a License Update with getters and setters for all properties.
     Takes a dict as an argument to the constructor to avoid primitive obsession.
+
+    Note: This class requires valid data when created - it cannot be instantiated empty
+    and populated later.
     """
 
-    def __init__(self, data: dict[str, Any] = None):
-        super().__init__(LicenseUpdateRecordSchema(), data)
+    # Define the record schema at the class level
+    _record_schema = LicenseUpdateRecordSchema()
+
+    # Require valid data when creating instances
+    _requires_data_at_construction = True
 
     @property
     def update_type(self) -> str:

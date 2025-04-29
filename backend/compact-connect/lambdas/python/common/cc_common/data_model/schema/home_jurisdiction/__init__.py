@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Any
 from uuid import UUID
 
 from cc_common.data_model.schema.common import CCDataClass
@@ -11,8 +10,11 @@ class HomeJurisdictionSelectionData(CCDataClass):
     Class representing a Home Jurisdiction Selection with properties and setters.
     """
 
-    def __init__(self, data: dict[str, Any] = None):
-        super().__init__(ProviderHomeJurisdictionSelectionRecordSchema(), data)
+    # Define record schema at the class level
+    _record_schema = ProviderHomeJurisdictionSelectionRecordSchema()
+
+    # Require valid data when creating instances
+    _requires_data_at_construction = True
 
     @property
     def provider_id(self) -> UUID:

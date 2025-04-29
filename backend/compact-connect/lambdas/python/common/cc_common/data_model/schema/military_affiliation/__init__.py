@@ -1,7 +1,6 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 
 from datetime import datetime
-from typing import Any
 from uuid import UUID
 
 from cc_common.data_model.schema.common import CCDataClass
@@ -12,10 +11,16 @@ class MilitaryAffiliationData(CCDataClass):
     """
     Class representing a Military Affiliation with read-only properties.
     Takes a dict as an argument to the constructor to avoid primitive obsession.
+
+    Note: This class requires valid data when created - it cannot be instantiated empty
+    and populated later.
     """
 
-    def __init__(self, data: dict[str, Any] = None):
-        super().__init__(MilitaryAffiliationRecordSchema(), data)
+    # Define the record schema at the class level
+    _record_schema = MilitaryAffiliationRecordSchema()
+
+    # Require valid data when creating instances
+    _requires_data_at_construction = True
 
     @property
     def provider_id(self) -> UUID:

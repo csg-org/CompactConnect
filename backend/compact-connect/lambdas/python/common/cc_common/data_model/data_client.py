@@ -1014,8 +1014,7 @@ class DataClient:
                 raise CCNotFoundException(f'Privilege not found for jurisdiction {adverse_action.jurisdiction}') from e
 
             # Find the main privilege record (not history records)
-            privilege_data = PrivilegeData()
-            privilege_data.load_from_database_record(privilege_record)
+            privilege_data = PrivilegeData.from_database_record(privilege_record)
 
             need_to_set_privilege_to_inactive = True
             # If already inactive, do nothing
@@ -1108,8 +1107,7 @@ class DataClient:
                 raise CCNotFoundException(f'License not found for jurisdiction {adverse_action.jurisdiction}') from e
 
             # Find the main privilege record (not history records)
-            license_data = LicenseData()
-            license_data.load_from_database_record(license_record)
+            license_data = LicenseData.from_database_record(license_record)
 
             need_to_set_license_to_ineligible = True
             # If already inactive, do nothing

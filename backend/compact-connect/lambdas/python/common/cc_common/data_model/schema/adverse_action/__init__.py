@@ -1,5 +1,4 @@
 from datetime import date, datetime
-from typing import Any
 from uuid import UUID
 
 from cc_common.data_model.schema.adverse_action.record import AdverseActionRecordSchema
@@ -12,8 +11,11 @@ class AdverseActionData(CCDataClass):
     Takes a dict as an argument to the constructor to avoid primitive obsession.
     """
 
-    def __init__(self, data: dict[str, Any] = None):
-        super().__init__(AdverseActionRecordSchema(), data)
+    # Define record schema at the class level
+    _record_schema = AdverseActionRecordSchema()
+
+    # Can use setters to set field data
+    _requires_data_at_construction = False
 
     @property
     def compact(self) -> str:
