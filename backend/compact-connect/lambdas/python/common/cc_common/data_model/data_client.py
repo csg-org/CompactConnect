@@ -1135,7 +1135,7 @@ class DataClient:
             ]
 
             if need_to_set_license_to_ineligible:
-                # Set the privilege record's administratorSetStatus to inactive and update the dateOfUpdate
+                # Set the license record's compactEligibility to ineligible and update the dateOfUpdate
                 transact_items.append(
                     self._generate_set_license_compact_eligibility_status_item(
                         license_data=license_data,
