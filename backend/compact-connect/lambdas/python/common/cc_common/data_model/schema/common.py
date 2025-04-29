@@ -44,7 +44,7 @@ class CCDataClass:
             # GSIs generated for it yet.
             # We first serialize the object to populate any GSIs, then load it
             # for a full round trip of serialization/deserialization
-            if data.get('pk') or data.get('sk'):
+            if 'pk' in data or 'sk' in data:
                 raise ValueError(
                     'Invalid use of data class constructor. Database records must be loaded using the'
                     'load_from_database_record method.'

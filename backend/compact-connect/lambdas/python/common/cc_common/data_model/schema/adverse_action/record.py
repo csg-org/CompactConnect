@@ -63,10 +63,11 @@ class AdverseActionRecordSchema(BaseRecordSchema):
     def validate_license_type(self, data, **_kwargs):  # noqa: ARG001 unused-argument
         compact = data['compact']
         license_types = config.license_types_for_compact(compact)
-        if data['licenseType'] not in license_types:
+        if data.get('licenseType') not in license_types:
             raise ValidationError({'licenseType': [f'Must be one of: {", ".join(license_types)}.']})
+        # We have verified the license type name is valid, now verify the abbreviation matches
         license_abbreviations = config.license_type_abbreviations_for_compact(compact)
-        if license_abbreviations[data['licenseType']] != data['licenseTypeAbbreviation']:
+        if license_abbreviations.get(data['licenseType']) != data.get('licenseTypeAbbreviation'):
             raise ValidationError(
                 {
                     'licenseTypeAbbreviation': [

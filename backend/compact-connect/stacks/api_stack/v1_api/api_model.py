@@ -393,6 +393,8 @@ class ApiModel:
                     'encumbranceEffectiveDate': JsonSchema(
                         type=JsonSchemaType.STRING,
                         description='The effective date of the encumbrance',
+                        format='date',
+                        pattern=cc_api.YMD_FORMAT,
                     ),
                     'clinicalPrivilegeActionCategory': JsonSchema(
                         type=JsonSchemaType.STRING,
@@ -424,6 +426,8 @@ class ApiModel:
                     'encumbranceEffectiveDate': JsonSchema(
                         type=JsonSchemaType.STRING,
                         description='The effective date of the encumbrance',
+                        format='date',
+                        pattern=cc_api.YMD_FORMAT,
                     ),
                     'clinicalPrivilegeActionCategory': JsonSchema(
                         type=JsonSchemaType.STRING,
@@ -904,7 +908,7 @@ class ApiModel:
                                     'licenseTypeAbbreviation': JsonSchema(type=JsonSchemaType.STRING),
                                     'amount': JsonSchema(type=JsonSchemaType.NUMBER),
                                 },
-                            )
+                            ),
                         ),
                         'militaryDiscount': JsonSchema(
                             type=JsonSchemaType.OBJECT,

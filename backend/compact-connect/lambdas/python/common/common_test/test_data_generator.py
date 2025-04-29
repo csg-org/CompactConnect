@@ -27,6 +27,37 @@ class TestDataGenerator:
         return json.loads(json.dumps(data_class.to_dict(), cls=ResponseEncoder))
 
     @staticmethod
+    def generate_test_api_event(
+        sub_override: str | None = None, scope_override: str | None = None, value_overrides: dict | None = None
+    ) -> dict:
+        """Generate a test API event
+
+        We separate the sub and scope overrides from the value overrides to avoid having to pass in the entire
+        request context for every test.
+
+        :param sub_override: Optional override for the cognito sub
+        :param scope_override: Optional override for the cognito scopes
+        :param value_overrides: Optional overrides for the API event
+        :return: A test API event
+        """
+        from pathlib import Path
+
+        fixture_path = Path(__file__).parent.parent / 'tests' / 'resources' / 'api-event.json'
+        with open(fixture_path) as f:
+            api_event = json.load(f)
+
+        if value_overrides:
+            api_event.update(value_overrides)
+
+        if sub_override:
+            api_event['requestContext']['authorizer']['claims']['sub'] = sub_override
+
+        if scope_override:
+            api_event['requestContext']['authorizer']['claims']['scope'] = scope_override
+
+        return api_event
+
+    @staticmethod
     def generate_default_home_jurisdiction_selection(
         value_overrides: dict | None = None,
     ) -> HomeJurisdictionSelectionData:
@@ -73,6 +104,8 @@ class TestDataGenerator:
         adverse_action_record = adverse_action.serialize_to_database_record()
 
         TestDataGenerator.store_record_in_provider_table(adverse_action_record)
+
+        return adverse_action
 
     @staticmethod
     def generate_default_military_affiliation(value_overrides: dict | None = None) -> MilitaryAffiliationData:

@@ -22,6 +22,7 @@ class ProviderRecordType(StrEnum):
     PRIVILEGE_UPDATE = 'privilegeUpdate'
     HOME_JURISDICTION_SELECTION = 'homeJurisdictionSelection'
     MILITARY_AFFILIATION = 'militaryAffiliation'
+    ADVERSE_ACTION = 'adverseAction'
 
 
 class ProviderRecordUtility:

@@ -64,8 +64,7 @@ def _generate_adverse_action_for_record_type(
     adverse_action.provider_id = provider_id
     adverse_action.jurisdiction = jurisdiction
     try:
-        all_license_types = config.license_type_abbreviations
-        compact_license_types = all_license_types[compact]
+        compact_license_types = config.license_type_abbreviations_for_compact(compact=compact)
     except KeyError as e:
         raise CCInvalidRequestException(f'Could not find license types for provided compact {compact}') from e
 

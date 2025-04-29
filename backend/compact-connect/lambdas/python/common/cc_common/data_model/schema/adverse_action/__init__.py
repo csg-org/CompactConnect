@@ -17,7 +17,7 @@ class AdverseActionData(CCDataClass):
 
     @property
     def compact(self) -> str:
-        return self._data.get('compact')
+        return self._data['compact']
 
     @compact.setter
     def compact(self, value: str) -> None:
@@ -25,7 +25,7 @@ class AdverseActionData(CCDataClass):
 
     @property
     def provider_id(self) -> UUID:
-        return self._data.get('providerId')
+        return self._data['providerId']
 
     @provider_id.setter
     def provider_id(self, value: UUID) -> None:
@@ -33,7 +33,7 @@ class AdverseActionData(CCDataClass):
 
     @property
     def jurisdiction(self) -> str:
-        return self._data.get('jurisdiction')
+        return self._data['jurisdiction']
 
     @jurisdiction.setter
     def jurisdiction(self, value: str) -> None:
@@ -57,7 +57,7 @@ class AdverseActionData(CCDataClass):
 
     @property
     def action_against(self) -> str:
-        return self._data.get('actionAgainst')
+        return self._data['actionAgainst']
 
     @action_against.setter
     def action_against(self, action_against_enum: AdverseActionAgainstEnum) -> None:
@@ -65,7 +65,7 @@ class AdverseActionData(CCDataClass):
 
     @property
     def blocks_future_privileges(self) -> bool:
-        return self._data.get('blocksFuturePrivileges')
+        return self._data['blocksFuturePrivileges']
 
     @blocks_future_privileges.setter
     def blocks_future_privileges(self, value: bool) -> None:
@@ -73,7 +73,7 @@ class AdverseActionData(CCDataClass):
 
     @property
     def clinical_privilege_action_category(self) -> str:
-        return self._data.get('clinicalPrivilegeActionCategory')
+        return self._data['clinicalPrivilegeActionCategory']
 
     @clinical_privilege_action_category.setter
     def clinical_privilege_action_category(
@@ -83,7 +83,7 @@ class AdverseActionData(CCDataClass):
 
     @property
     def creation_effective_date(self) -> date:
-        return self._data.get('creationEffectiveDate')
+        return self._data['creationEffectiveDate']
 
     @creation_effective_date.setter
     def creation_effective_date(self, value: date) -> None:
@@ -91,7 +91,7 @@ class AdverseActionData(CCDataClass):
 
     @property
     def submitting_user(self) -> UUID:
-        return self._data.get('submittingUser')
+        return self._data['submittingUser']
 
     @submitting_user.setter
     def submitting_user(self, value: UUID) -> None:
@@ -99,7 +99,7 @@ class AdverseActionData(CCDataClass):
 
     @property
     def creation_date(self) -> datetime:
-        return self._data.get('creationDate')
+        return self._data['creationDate']
 
     @creation_date.setter
     def creation_date(self, value: datetime) -> None:
@@ -107,7 +107,7 @@ class AdverseActionData(CCDataClass):
 
     @property
     def adverse_action_id(self) -> UUID:
-        return self._data.get('adverseActionId')
+        return self._data['adverseActionId']
 
     @property
     def effective_lift_date(self) -> date | None:

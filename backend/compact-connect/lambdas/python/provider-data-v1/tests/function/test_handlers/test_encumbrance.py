@@ -25,22 +25,6 @@ LICENSE_ENCUMBRANCE_ENDPOINT_RESOURCE = (
 TEST_ENCUMBRANCE_EFFECTIVE_DATE = '2023-01-15'
 
 
-def generate_test_event(method: str, resource: str, path_parameters: dict, body: dict) -> dict:
-    with open('../common/tests/resources/api-event.json') as f:
-        event = json.load(f)
-        event['httpMethod'] = method
-        event['resource'] = resource
-        event['pathParameters'] = path_parameters
-        event['body'] = json.dumps(body)
-        # set permission to state admin for same state as path parameter
-        event['requestContext']['authorizer']['claims']['sub'] = DEFAULT_AA_SUBMITTING_USER_ID
-        event['requestContext']['authorizer']['claims']['scope'] = (
-            f'openid email {path_parameters["jurisdiction"]}/aslp.admin'
-        )
-
-    return event
-
-
 def _generate_test_body():
     from cc_common.data_model.schema.common import ClinicalPrivilegeActionCategory
 
@@ -59,20 +43,25 @@ class TestPostPrivilegeEncumbrance(TstFunction):
     def _when_testing_valid_privilege_encumbrance(self):
         test_privilege_record = self.test_data_generator.put_default_privilege_record_in_provider_table()
 
-        # return both the test event and the test privilege record
-        return generate_test_event(
-            'POST',
-            PRIVILEGE_ENCUMBRANCE_ENDPOINT_RESOURCE,
-            {
-                'compact': test_privilege_record.compact,
-                'providerId': test_privilege_record.provider_id,
-                'jurisdiction': test_privilege_record.jurisdiction,
-                'licenseType': self.test_data_generator.get_license_type_abbr_for_license_type(
-                    compact=test_privilege_record.compact, license_type=test_privilege_record.license_type
-                ),
+        test_event = self.test_data_generator.generate_test_api_event(
+            sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
+            scope_override=f'openid email {test_privilege_record.jurisdiction}/aslp.admin',
+            value_overrides={
+                'httpMethod': 'POST',
+                'resource': PRIVILEGE_ENCUMBRANCE_ENDPOINT_RESOURCE,
+                'pathParameters': {
+                    'compact': test_privilege_record.compact,
+                    'providerId': test_privilege_record.provider_id,
+                    'jurisdiction': test_privilege_record.jurisdiction,
+                    'licenseType': self.test_data_generator.get_license_type_abbr_for_license_type(
+                        compact=test_privilege_record.compact, license_type=test_privilege_record.license_type
+                    ),
+                },
+                'body': json.dumps(_generate_test_body()),
             },
-            _generate_test_body(),
-        ), test_privilege_record
+        )
+        # return both the test event and the test privilege record
+        return test_event, test_privilege_record
 
     def test_privilege_encumbrance_handler_returns_ok_message_with_valid_body(self):
         from handlers.encumbrance import encumbrance_handler
@@ -199,20 +188,26 @@ class TestPostLicenseEncumbrance(TstFunction):
     def _when_testing_valid_license_encumbrance(self):
         test_license_record = self.test_data_generator.put_default_license_record_in_provider_table()
 
-        # return both the event and test license record
-        return generate_test_event(
-            'POST',
-            LICENSE_ENCUMBRANCE_ENDPOINT_RESOURCE,
-            {
-                'compact': test_license_record.compact,
-                'providerId': test_license_record.provider_id,
-                'jurisdiction': test_license_record.jurisdiction,
-                'licenseType': self.test_data_generator.get_license_type_abbr_for_license_type(
-                    compact=test_license_record.compact, license_type=test_license_record.license_type
-                ),
+        test_event = self.test_data_generator.generate_test_api_event(
+            sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
+            scope_override=f'openid email {test_license_record.jurisdiction}/aslp.admin',
+            value_overrides={
+                'httpMethod': 'POST',
+                'resource': LICENSE_ENCUMBRANCE_ENDPOINT_RESOURCE,
+                'pathParameters': {
+                    'compact': test_license_record.compact,
+                    'providerId': test_license_record.provider_id,
+                    'jurisdiction': test_license_record.jurisdiction,
+                    'licenseType': self.test_data_generator.get_license_type_abbr_for_license_type(
+                        compact=test_license_record.compact, license_type=test_license_record.license_type
+                    ),
+                },
+                'body': json.dumps(_generate_test_body()),
             },
-            _generate_test_body(),
-        ), test_license_record
+        )
+
+        # return both the event and test license record
+        return test_event, test_license_record
 
     def test_license_encumbrance_handler_returns_ok_message_with_valid_body(self):
         from handlers.encumbrance import encumbrance_handler
