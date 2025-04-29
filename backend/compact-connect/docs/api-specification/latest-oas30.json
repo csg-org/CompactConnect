@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "LicenseApi",
-    "version": "2025-04-21T18:51:13Z"
+    "version": "2025-04-28T20:50:55Z"
   },
   "servers": [
     {
@@ -411,6 +411,97 @@
         ]
       }
     },
+    "/v1/compacts/{compact}/providers/{providerId}/licenses/jurisdiction/{jurisdiction}/licenseType/{licenseType}/encumbrance": {
+      "post": {
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "compact",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "providerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "jurisdiction",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "licenseType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SandboLicen62Uj6JPFczem"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SandboLicen2XGMfkiyQuog"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
+              "aslp/admin",
+              "ne/aslp.admin",
+              "oh/aslp.admin",
+              "ky/aslp.admin",
+              "octp/admin",
+              "ne/octp.admin",
+              "oh/octp.admin",
+              "ar/octp.admin",
+              "ms/octp.admin",
+              "la/octp.admin",
+              "al/octp.admin",
+              "ky/octp.admin",
+              "coun/admin",
+              "fl/coun.admin",
+              "ne/coun.admin",
+              "oh/coun.admin",
+              "ky/coun.admin"
+            ]
+          }
+        ]
+      }
+    },
     "/v1/compacts/{compact}/providers/{providerId}/privileges/jurisdiction/{jurisdiction}/licenseType/{licenseType}/deactivate": {
       "post": {
         "parameters": [
@@ -460,6 +551,97 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/SandboLiceno4bc0FEXEiqd"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SandboLicen2XGMfkiyQuog"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
+              "aslp/admin",
+              "ne/aslp.admin",
+              "oh/aslp.admin",
+              "ky/aslp.admin",
+              "octp/admin",
+              "ne/octp.admin",
+              "oh/octp.admin",
+              "ar/octp.admin",
+              "ms/octp.admin",
+              "la/octp.admin",
+              "al/octp.admin",
+              "ky/octp.admin",
+              "coun/admin",
+              "fl/coun.admin",
+              "ne/coun.admin",
+              "oh/coun.admin",
+              "ky/coun.admin"
+            ]
+          }
+        ]
+      }
+    },
+    "/v1/compacts/{compact}/providers/{providerId}/privileges/jurisdiction/{jurisdiction}/licenseType/{licenseType}/encumbrance": {
+      "post": {
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "compact",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "providerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "jurisdiction",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "licenseType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SandboLicenFzKiEdNIK5oF"
               }
             }
           },
@@ -1718,6 +1900,9 @@
         }
       },
       "SandboLiceno4bc0FEXEiqd": {
+        "required": [
+          "deactivationNote"
+        ],
         "type": "object",
         "properties": {
           "deactivationNote": {
@@ -4066,6 +4251,29 @@
           }
         }
       },
+      "SandboLicen62Uj6JPFczem": {
+        "required": [
+          "blocksFuturePrivileges",
+          "clinicalPrivilegeActionCategory",
+          "encumbranceEffectiveDate"
+        ],
+        "type": "object",
+        "properties": {
+          "encumbranceEffectiveDate": {
+            "type": "string",
+            "description": "The effective date of the encumbrance"
+          },
+          "blocksFuturePrivileges": {
+            "type": "boolean",
+            "description": "Whether this encumbrance blocks future privileges"
+          },
+          "clinicalPrivilegeActionCategory": {
+            "type": "string",
+            "description": "The category of clinical privilege action"
+          }
+        },
+        "additionalProperties": false
+      },
       "SandboLicen5sjWzLjzC0Me": {
         "required": [
           "affiliationType",
@@ -4414,30 +4622,10 @@
                     "jurisdictionName",
                     "jurisprudenceRequirements",
                     "postalAbbreviation",
-                    "privilegeFees",
                     "type"
                   ],
                   "type": "object",
                   "properties": {
-                    "privilegeFees": {
-                      "type": "array",
-                      "description": "The fees for the privileges",
-                      "items": {
-                        "required": [
-                          "amount",
-                          "licenseTypeAbbreviation"
-                        ],
-                        "type": "object",
-                        "properties": {
-                          "amount": {
-                            "type": "number"
-                          },
-                          "licenseTypeAbbreviation": {
-                            "type": "string"
-                          }
-                        }
-                      }
-                    },
                     "militaryDiscount": {
                       "required": [
                         "active",
@@ -5085,6 +5273,29 @@
               },
               "additionalProperties": false
             }
+          }
+        },
+        "additionalProperties": false
+      },
+      "SandboLicenFzKiEdNIK5oF": {
+        "required": [
+          "blocksFuturePrivileges",
+          "clinicalPrivilegeActionCategory",
+          "encumbranceEffectiveDate"
+        ],
+        "type": "object",
+        "properties": {
+          "encumbranceEffectiveDate": {
+            "type": "string",
+            "description": "The effective date of the encumbrance"
+          },
+          "blocksFuturePrivileges": {
+            "type": "boolean",
+            "description": "Whether this encumbrance blocks future privileges"
+          },
+          "clinicalPrivilegeActionCategory": {
+            "type": "string",
+            "description": "The category of clinical privilege action"
           }
         },
         "additionalProperties": false
