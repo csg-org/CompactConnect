@@ -91,9 +91,9 @@ class TestBackendPipeline(TstAppABC, TestCase):
                 msg=f'Expected scopes for compact {compact} not found',
             )
 
-    def test_synth_generates_compact_resource_servers_with_expected_scopes_for_staff_users_test_stage(self):
-        persistent_stack = self.app.test_backend_pipeline_stack.test_stage.persistent_stack
-        self._when_testing_compact_resource_servers(persistent_stack, environment_name='test')
+    def test_synth_generates_compact_resource_servers_with_expected_scopes_for_staff_users_beta_stage(self):
+        persistent_stack = self.app.beta_backend_pipeline_stack.beta_backend_stage.persistent_stack
+        self._when_testing_compact_resource_servers(persistent_stack, environment_name='beta')
 
     def test_synth_generates_compact_resource_servers_with_expected_scopes_for_staff_users_prod_stage(self):
         persistent_stack = self.app.prod_backend_pipeline_stack.prod_stage.persistent_stack
