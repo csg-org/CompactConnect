@@ -963,15 +963,7 @@ class DataClient:
             },
         }
 
-    def _generate_put_adverse_action_item(self, adverse_action: AdverseActionData):
-        return {
-            'Put': {
-                'TableName': self.config.provider_table.name,
-                'Item': TypeSerializer().serialize(adverse_action.serialize_to_database_record())['M'],
-            },
-        }
-
-    def _generate_put_item_transaction(self, item: dict):
+    def _generate_put_transaction_item(self, item: dict):
         return {
             'Put': {
                 'TableName': self.config.provider_table.name,
@@ -1049,9 +1041,9 @@ class DataClient:
             # the privilege update record, and update the privilege record to inactive if it is not already inactive
             transact_items = [
                 # Create a history record, reflecting this change
-                self._generate_put_item_transaction(privilege_update_record),
+                self._generate_put_transaction_item(privilege_update_record),
                 # Add the adverse action record for the privilege
-                self._generate_put_item_transaction(adverse_action.serialize_to_database_record()),
+                self._generate_put_transaction_item(adverse_action.serialize_to_database_record()),
             ]
 
             if need_to_set_privilege_to_inactive:
@@ -1137,9 +1129,9 @@ class DataClient:
             # the license update record, and update the license record to ineligible if it is not already ineligible
             transact_items = [
                 # Create a history record, reflecting this change
-                self._generate_put_item_transaction(license_update_record),
+                self._generate_put_transaction_item(license_update_record),
                 # Add the adverse action record for the privilege
-                self._generate_put_item_transaction(adverse_action.serialize_to_database_record()),
+                self._generate_put_transaction_item(adverse_action.serialize_to_database_record()),
             ]
 
             if need_to_set_license_to_ineligible:
