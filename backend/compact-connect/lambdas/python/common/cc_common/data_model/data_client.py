@@ -987,7 +987,8 @@ class DataClient:
         """
         Adds an adverse action record for a privilege for a provider in a jurisdiction.
 
-        This will update the privilege record to have a administratorSetStatus of 'inactive'.
+        This will update the privilege record to have a administratorSetStatus of 'inactive', and add a privilege update
+        record to show the encumbrance event.
 
         :param AdverseActionData adverse_action: The details of the adverse action to be added to the records
         :raises CCNotFoundException: If the privilege record is not found
@@ -1080,7 +1081,8 @@ class DataClient:
         """
         Adds an adverse action record for a privilege for a provider in a jurisdiction.
 
-        This will update the privilege record to have a administratorSetStatus of 'inactive'.
+        This will update the license record to have a compactEligibility of 'ineligible', and add a license update
+        record to show the encumbrance event.
 
         :param AdverseActionData adverse_action: The details of the adverse action to be added to the records
         :raises CCNotFoundException: If the privilege record is not found
