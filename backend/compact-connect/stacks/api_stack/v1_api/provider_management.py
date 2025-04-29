@@ -577,7 +577,7 @@ class ProviderManagement:
         event_bus: EventBus,
         lambda_environment: dict,
     ) -> PythonFunction:
-        """Create and configure the Lambda handler for deactivating a provider's privilege."""
+        """Create and configure the Lambda handler for encumbering a provider's privilege or license."""
         encumbrance_handler = PythonFunction(
             self.resource,
             'ProviderEncumbranceHandler',

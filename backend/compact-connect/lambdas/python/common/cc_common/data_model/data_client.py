@@ -1074,9 +1074,9 @@ class DataClient:
                 TransactItems=transact_items,
             )
 
-            return privilege_record
+            logger.info('Set encumbrance for privilege record')
 
-    def encumber_license(self, adverse_action: AdverseActionData) -> LicenseData:
+    def encumber_license(self, adverse_action: AdverseActionData) -> None:
         """
         Adds an adverse action record for a privilege for a provider in a jurisdiction.
 
@@ -1166,4 +1166,4 @@ class DataClient:
                 TransactItems=transact_items,
             )
 
-            return license_data
+            logger.info('Set encumbrance for license record')
