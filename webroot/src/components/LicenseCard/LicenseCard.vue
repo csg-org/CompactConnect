@@ -45,7 +45,7 @@
             </div>
             {{ $t('licensing.compactEligible') }}
         </div>
-        <div v-else class="license-eligibility-container">
+        <div v-else class="license-eligibility-container" :class="{ 'inactive': !isActive }">
             <div class="eligibility-icon-container not-eligible">
                 <CloseXIcon class="eligibility-icon" />
             </div>

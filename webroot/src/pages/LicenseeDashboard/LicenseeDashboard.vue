@@ -42,9 +42,6 @@
                     :homeState="homeJurisdiction"
                     :shouldIncludeLogo="true"
                 />
-                <div v-if="!isLicenseActive(license)" class="license-expired-message">
-                    {{licenseExpiredMessage}}
-                </div>
             </div>
         </div>
         <div class="privilege-section">

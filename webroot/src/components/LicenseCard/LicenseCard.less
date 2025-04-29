@@ -121,6 +121,10 @@
         padding: @spacing 0 1.2rem;
         border-top: 1px solid rgba(@darkGrey, 0.15);
 
+        &.inactive {
+            border-color: lighten(@darkGrey, 5%);
+        }
+
         .eligibility-icon-container {
             width: @iconSize;
             height: @iconSize;
