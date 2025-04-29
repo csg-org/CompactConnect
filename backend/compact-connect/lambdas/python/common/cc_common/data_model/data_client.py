@@ -923,18 +923,16 @@ class DataClient:
 
     def _generate_set_administrator_set_status_item(
         self,
-        compact: str,
-        provider_id: str,
-        jurisdiction: str,
-        license_type_abbreviation: str,
+        privilege_data: PrivilegeData,
         status_to_set: ActiveInactiveStatus,
     ):
+        privilege_data_record = privilege_data.serialize_to_database_record()
         return {
             'Update': {
                 'TableName': self.config.provider_table.name,
                 'Key': {
-                    'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
-                    'sk': {'S': f'{compact}#PROVIDER#privilege/{jurisdiction}/{license_type_abbreviation}#'},
+                    'pk': {'S': privilege_data_record['pk']},
+                    'sk': {'S': privilege_data_record['sk']},
                 },
                 'UpdateExpression': 'SET administratorSetStatus = :status, dateOfUpdate = :dateOfUpdate',
                 'ExpressionAttributeValues': {
@@ -946,18 +944,16 @@ class DataClient:
 
     def _generate_set_license_compact_eligibility_status_item(
         self,
-        compact: str,
-        provider_id: str,
-        jurisdiction: str,
-        license_type_abbreviation: str,
+        license_data: LicenseData,
         compact_eligibility_status: CompactEligibilityStatus,
     ):
+        license_data_record = license_data.serialize_to_database_record()
         return {
             'Update': {
                 'TableName': self.config.provider_table.name,
                 'Key': {
-                    'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
-                    'sk': {'S': f'{compact}#PROVIDER#license/{jurisdiction}/{license_type_abbreviation}#'},
+                    'pk': {'S': license_data_record['pk']},
+                    'sk': {'S': license_data_record['sk']},
                 },
                 'UpdateExpression': 'SET compactEligibility = :status, dateOfUpdate = :dateOfUpdate',
                 'ExpressionAttributeValues': {
@@ -1062,11 +1058,8 @@ class DataClient:
                 # Set the privilege record's administratorSetStatus to inactive and update the dateOfUpdate
                 transact_items.append(
                     self._generate_set_administrator_set_status_item(
-                        adverse_action.compact,
-                        adverse_action.provider_id,
-                        adverse_action.jurisdiction,
-                        adverse_action.license_type_abbreviation,
-                        ActiveInactiveStatus.INACTIVE,
+                        privilege_data=privilege_data,
+                        status_to_set=ActiveInactiveStatus.INACTIVE,
                     )
                 )
             self.config.dynamodb_client.transact_write_items(
@@ -1153,11 +1146,8 @@ class DataClient:
                 # Set the privilege record's administratorSetStatus to inactive and update the dateOfUpdate
                 transact_items.append(
                     self._generate_set_license_compact_eligibility_status_item(
-                        adverse_action.compact,
-                        adverse_action.provider_id,
-                        adverse_action.jurisdiction,
-                        adverse_action.license_type_abbreviation,
-                        CompactEligibilityStatus.INELIGIBLE,
+                        license_data=license_data,
+                        compact_eligibility_status=CompactEligibilityStatus.INELIGIBLE,
                     )
                 )
             self.config.dynamodb_client.transact_write_items(
