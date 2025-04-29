@@ -114,9 +114,7 @@ class PrivilegeData(CCDataClass):
     def administrator_set_status(self, value: ActiveInactiveStatus) -> None:
         # Store the string value rather than the enum object
         # since the schema loads this value as a string.
-        self._data['administratorSetStatus'] = (
-            value.value if isinstance(value, ActiveInactiveStatus) else value
-        )
+        self._data['administratorSetStatus'] = value.value if isinstance(value, ActiveInactiveStatus) else value
 
     @property
     def status(self) -> str:
