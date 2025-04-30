@@ -6,6 +6,8 @@ from cc_common.data_model.schema.common import (
     ActiveInactiveStatus,
     ClinicalPrivilegeActionCategory,
     CompactEligibilityStatus,
+    LicenseEncumberedStatusEnum,
+    PrivilegeEncumberedStatusEnum,
     UpdateCategory,
 )
 
@@ -55,6 +57,16 @@ class CompactEligibility(String):
 class UpdateType(String):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, validate=OneOf([entry.value for entry in UpdateCategory]), **kwargs)
+
+
+class LicenseEncumberedStatusField(String):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, validate=OneOf([entry.value for entry in LicenseEncumberedStatusEnum]), **kwargs)
+
+
+class PrivilegeEncumberedStatusField(String):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, validate=OneOf([entry.value for entry in PrivilegeEncumberedStatusEnum]), **kwargs)
 
 
 class ITUTE164PhoneNumber(String):

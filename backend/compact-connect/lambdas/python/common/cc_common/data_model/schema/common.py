@@ -235,6 +235,22 @@ class CompactEligibilityStatus(CCEnum):
     INELIGIBLE = 'ineligible'
 
 
+class LicenseEncumberedStatusEnum(CCEnum):
+    ENCUMBERED = 'encumbered'
+    UNENCUMBERED = 'unencumbered'
+    # the following status is set whenever a provider has an associated license that is encumbered
+    # all other licenses for this provider, while not encumbered, will have this status to indicate
+    # that the provider has at least one encumbered license
+    PROVIDER_ENCUMBERED = 'providerEncumbered'
+
+
+class PrivilegeEncumberedStatusEnum(CCEnum):
+    ENCUMBERED = 'encumbered'
+    UNENCUMBERED = 'unencumbered'
+    # the following status is set whenever the license this privilege is associated with is encumbered
+    LICENSE_ENCUMBERED = 'licenseEncumbered'
+
+
 class StaffUserStatus(CCEnum):
     ACTIVE = 'active'
     INACTIVE = 'inactive'

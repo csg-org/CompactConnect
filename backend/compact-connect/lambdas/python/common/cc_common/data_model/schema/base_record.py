@@ -8,7 +8,11 @@ from marshmallow import EXCLUDE, RAISE, Schema, post_load, pre_dump, pre_load
 from marshmallow.fields import UUID, DateTime, String
 
 from cc_common.config import config
-from cc_common.data_model.schema.common import ActiveInactiveStatus, CompactEligibilityStatus
+from cc_common.data_model.schema.common import (
+    ActiveInactiveStatus,
+    CompactEligibilityStatus,
+    LicenseEncumberedStatusEnum,
+)
 from cc_common.data_model.schema.fields import ActiveInactive, Compact, CompactEligibility, SocialSecurityNumber
 from cc_common.exceptions import CCInternalException
 
@@ -131,14 +135,16 @@ class CalculatedStatusRecordSchema(BaseRecordSchema):
 
     def _calculate_compact_eligibility(self, in_data, **_kwargs):
         """
-        Providers are only eligible for the compact if their home jurisdiction says they are and
-        if their license is active.
+        Providers are only eligible for the compact if their home jurisdiction says they are, none of their licenses
+        are encumbered, and their license is active.
         """
         in_data['compactEligibility'] = (
             CompactEligibilityStatus.ELIGIBLE
             if (
                 in_data['jurisdictionUploadedCompactEligibility'] == CompactEligibilityStatus.ELIGIBLE
                 and in_data['licenseStatus'] == ActiveInactiveStatus.ACTIVE
+                and in_data.get('encumberedStatus', LicenseEncumberedStatusEnum.UNENCUMBERED)
+                == LicenseEncumberedStatusEnum.UNENCUMBERED
             )
             else CompactEligibilityStatus.INELIGIBLE
         )

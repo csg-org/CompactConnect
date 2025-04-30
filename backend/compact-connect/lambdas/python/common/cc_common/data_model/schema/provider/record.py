@@ -12,6 +12,7 @@ from cc_common.data_model.schema.fields import (
     CompactEligibility,
     ITUTE164PhoneNumber,
     Jurisdiction,
+    LicenseEncumberedStatusField,
     NationalProviderIdentifier,
     Set,
 )
@@ -36,6 +37,9 @@ class ProviderRecordSchema(CalculatedStatusRecordSchema):
 
     jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
     jurisdictionUploadedCompactEligibility = CompactEligibility(required=True, allow_none=False)
+
+    # optional field for setting encumbrance status
+    encumberedStatus = LicenseEncumberedStatusField(required=False, allow_none=False)
 
     ssnLastFour = String(required=True, allow_none=False)
     npi = NationalProviderIdentifier(required=False, allow_none=False)

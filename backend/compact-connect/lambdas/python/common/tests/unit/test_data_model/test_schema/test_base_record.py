@@ -32,3 +32,30 @@ class TestRegistration(TstLambdas):
 
         with self.assertRaises(CCInternalException):
             BaseRecordSchema.get_schema_by_type('some-unsupported-type')
+
+
+class TestCalculatedStatusRecordSchema(TstLambdas):
+    def test_compact_eligibility_set_to_ineligible_if_license_encumbered(self):
+        from cc_common.data_model.schema.base_record import CalculatedStatusRecordSchema
+        from cc_common.data_model.schema.common import (
+            ActiveInactiveStatus,
+            CompactEligibilityStatus,
+            LicenseEncumberedStatusEnum,
+        )
+
+        schema = CalculatedStatusRecordSchema()
+
+        # test a provider with no licenses
+        provider = {
+            'jurisdictionUploadedLicenseStatus': ActiveInactiveStatus.ACTIVE,
+            'jurisdictionUploadedCompactEligibility': CompactEligibilityStatus.ELIGIBLE,
+            'encumberedStatus': LicenseEncumberedStatusEnum.PROVIDER_ENCUMBERED,
+            'dateOfExpiration': '2050-01-01',
+            'pk': 'COMPACT#AZ#PROVIDER#1234567890',
+            'sk': 'COMPACT#AZ#PROVIDER#1234567890',
+            'type': 'provider',
+            'dateOfUpdate': '2025-01-01T00:00:00Z',
+        }
+
+        result = schema.load(provider)
+        self.assertEqual(CompactEligibilityStatus.INELIGIBLE.value, result['compactEligibility'])
