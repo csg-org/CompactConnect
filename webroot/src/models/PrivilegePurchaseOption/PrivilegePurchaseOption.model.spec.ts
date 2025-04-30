@@ -4,8 +4,6 @@
 //
 //  Created by InspiringApps on 7/8/2024.
 //
-
-import { expect } from 'chai';
 import { FeeTypes } from '@/app.config';
 import {
     PrivilegePurchaseOption,
