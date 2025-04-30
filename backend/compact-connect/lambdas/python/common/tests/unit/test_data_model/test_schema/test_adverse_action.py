@@ -106,7 +106,6 @@ class TestAdverseActionDataClass(TstLambdas):
         self.assertEqual(adverse_action.jurisdiction, adverse_action_data['jurisdiction'])
         self.assertEqual(adverse_action.license_type_abbreviation, adverse_action_data['licenseTypeAbbreviation'])
         self.assertEqual(adverse_action.action_against, adverse_action_data['actionAgainst'])
-        self.assertEqual(adverse_action.blocks_future_privileges, adverse_action_data['blocksFuturePrivileges'])
         self.assertEqual(
             adverse_action.clinical_privilege_action_category, adverse_action_data['clinicalPrivilegeActionCategory']
         )

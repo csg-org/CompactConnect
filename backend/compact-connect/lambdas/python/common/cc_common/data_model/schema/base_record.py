@@ -47,20 +47,20 @@ class BaseRecordSchema(ForgivingSchema, ABC):
     type = String(required=True, allow_none=False)
 
     @post_load
-    def drop_base_gen_fields(self, in_data, **_kwargs):  # noqa: ARG001 unused-argument
+    def drop_base_gen_fields(self, in_data, **_kwargs):
         """Drop the db-specific pk and sk fields before returning loaded data"""
         del in_data['pk']
         del in_data['sk']
         return in_data
 
     @pre_dump
-    def populate_type(self, in_data, **_kwargs):  # noqa: ARG001 unused-argument
+    def populate_type(self, in_data, **_kwargs):
         """Populate db-specific fields before dumping to the database"""
         in_data['type'] = self._record_type
         return in_data
 
     @pre_dump
-    def populate_date_of_update(self, in_data, **_kwargs):  # noqa: ARG001 unused-argument
+    def populate_date_of_update(self, in_data, **_kwargs):
         """Populate db-specific fields before dumping to the database"""
         # set the dateOfUpdate field to the current UTC time
         in_data['dateOfUpdate'] = config.current_standard_datetime

@@ -66,14 +66,6 @@ class AdverseActionData(CCDataClass):
         self._data['actionAgainst'] = action_against_enum.value
 
     @property
-    def blocks_future_privileges(self) -> bool:
-        return self._data['blocksFuturePrivileges']
-
-    @blocks_future_privileges.setter
-    def blocks_future_privileges(self, value: bool) -> None:
-        self._data['blocksFuturePrivileges'] = value
-
-    @property
     def clinical_privilege_action_category(self) -> str:
         return self._data['clinicalPrivilegeActionCategory']
 

@@ -1,8 +1,9 @@
 # ruff: noqa: N801, N815  invalid-name
-from marshmallow.fields import Boolean, Date, Raw, String
+from marshmallow.fields import Date, Raw, String
 from marshmallow.validate import OneOf
 
 from cc_common.data_model.schema.base_record import ForgivingSchema
+from cc_common.data_model.schema.common import AdverseActionAgainstEnum
 from cc_common.data_model.schema.fields import ClinicalPrivilegeActionCategoryField, Compact, Jurisdiction
 
 
@@ -18,7 +19,6 @@ class AdverseActionPostRequestSchema(ForgivingSchema):
 
     encumbranceEffectiveDate = Date(required=True, allow_none=False)
     clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategoryField(required=True, allow_none=False)
-    blocksFuturePrivileges = Boolean(required=True, allow_none=False)
 
 
 class AdverseActionPublicResponseSchema(ForgivingSchema):
@@ -35,10 +35,9 @@ class AdverseActionPublicResponseSchema(ForgivingSchema):
     jurisdiction = Jurisdiction(required=True, allow_none=False)
     licenseTypeAbbreviation = String(required=True, allow_none=False)
     licenseType = String(required=True, allow_none=False)
-    actionAgainst = String(required=True, allow_none=False, validate=OneOf(['privilege', 'license']))
+    actionAgainst = String(required=True, allow_none=False, validate=OneOf([e for e in AdverseActionAgainstEnum]))
 
     # Populated on creation
-    blocksFuturePrivileges = Boolean(required=True, allow_none=False)
     creationEffectiveDate = Raw(required=True, allow_none=False)
     creationDate = Raw(required=True, allow_none=False)
     adverseActionId = Raw(required=True, allow_none=False)

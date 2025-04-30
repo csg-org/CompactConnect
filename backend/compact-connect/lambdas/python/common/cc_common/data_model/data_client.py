@@ -13,7 +13,7 @@ from cc_common.data_model.query_paginator import paginated_query
 from cc_common.data_model.schema import PrivilegeRecordSchema
 from cc_common.data_model.schema.adverse_action import AdverseActionData
 from cc_common.data_model.schema.base_record import SSNIndexRecordSchema
-from cc_common.data_model.schema.common import ActiveInactiveStatus, CompactEligibilityStatus
+from cc_common.data_model.schema.common import ActiveInactiveStatus, CompactEligibilityStatus, UpdateCategory
 from cc_common.data_model.schema.home_jurisdiction.record import ProviderHomeJurisdictionSelectionRecordSchema
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
 from cc_common.data_model.schema.military_affiliation.common import (
@@ -1018,7 +1018,7 @@ class DataClient:
             privilege_update_record = PrivilegeUpdateData.create_new(
                 {
                     'type': 'privilegeUpdate',
-                    'updateType': 'encumbrance',
+                    'updateType': UpdateCategory.ENCUMBRANCE,
                     'providerId': adverse_action.provider_id,
                     'compact': adverse_action.compact,
                     'jurisdiction': adverse_action.jurisdiction,

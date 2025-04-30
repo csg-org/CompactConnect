@@ -30,7 +30,7 @@ class AdverseActionRecordSchema(BaseRecordSchema):
     actionAgainst = String(required=True, allow_none=False, validate=OneOf([e.value for e in AdverseActionAgainstEnum]))
 
     # Populated on creation
-    blocksFuturePrivileges = Boolean(required=True, allow_none=False)
+    blocksFuturePrivileges = Boolean(required=True, allow_none=False, default=True)
     clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategoryField(required=True, allow_none=False)
     creationEffectiveDate = Date(required=True, allow_none=False)
     submittingUser = UUID(required=True, allow_none=False)
@@ -42,7 +42,7 @@ class AdverseActionRecordSchema(BaseRecordSchema):
     liftingUser = UUID(required=False, allow_none=False)
 
     @pre_dump
-    def generate_pk_sk(self, in_data, **_kwargs):  # noqa: ARG001 unused-argument
+    def generate_pk_sk(self, in_data, **_kwargs):
         in_data = self._populate_adverse_action_id(in_data)
         in_data['pk'] = f'{in_data["compact"]}#PROVIDER#{in_data["providerId"]}'
         # ensure this is passed in lowercase

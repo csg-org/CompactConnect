@@ -31,7 +31,6 @@ def _generate_test_body():
     return {
         'encumbranceEffectiveDate': TEST_ENCUMBRANCE_EFFECTIVE_DATE,
         'clinicalPrivilegeActionCategory': ClinicalPrivilegeActionCategory.UNSAFE_PRACTICE,
-        'blocksFuturePrivileges': True,
     }
 
 

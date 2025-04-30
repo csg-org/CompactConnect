@@ -388,7 +388,7 @@ class ApiModel:
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
                 additional_properties=False,
-                required=['encumbranceEffectiveDate', 'clinicalPrivilegeActionCategory', 'blocksFuturePrivileges'],
+                required=['encumbranceEffectiveDate', 'clinicalPrivilegeActionCategory'],
                 properties={
                     'encumbranceEffectiveDate': JsonSchema(
                         type=JsonSchemaType.STRING,
@@ -399,10 +399,6 @@ class ApiModel:
                     'clinicalPrivilegeActionCategory': JsonSchema(
                         type=JsonSchemaType.STRING,
                         description='The category of clinical privilege action',
-                    ),
-                    'blocksFuturePrivileges': JsonSchema(
-                        type=JsonSchemaType.BOOLEAN,
-                        description='Whether this encumbrance blocks future privileges',
                     ),
                 },
             ),
@@ -421,7 +417,7 @@ class ApiModel:
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
                 additional_properties=False,
-                required=['encumbranceEffectiveDate', 'clinicalPrivilegeActionCategory', 'blocksFuturePrivileges'],
+                required=['encumbranceEffectiveDate', 'clinicalPrivilegeActionCategory'],
                 properties={
                     'encumbranceEffectiveDate': JsonSchema(
                         type=JsonSchemaType.STRING,
@@ -432,10 +428,6 @@ class ApiModel:
                     'clinicalPrivilegeActionCategory': JsonSchema(
                         type=JsonSchemaType.STRING,
                         description='The category of clinical privilege action',
-                    ),
-                    'blocksFuturePrivileges': JsonSchema(
-                        type=JsonSchemaType.BOOLEAN,
-                        description='Whether this encumbrance blocks future privileges',
                     ),
                 },
             ),

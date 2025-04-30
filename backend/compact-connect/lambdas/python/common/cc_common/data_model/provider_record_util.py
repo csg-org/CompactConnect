@@ -2,7 +2,7 @@ from collections.abc import Callable, Iterable
 from enum import StrEnum
 
 from cc_common.config import logger
-from cc_common.data_model.schema.common import ActiveInactiveStatus, CompactEligibilityStatus
+from cc_common.data_model.schema.common import ActiveInactiveStatus, AdverseActionAgainstEnum, CompactEligibilityStatus
 from cc_common.data_model.schema.license.api import LicenseUpdatePreviousResponseSchema
 from cc_common.data_model.schema.military_affiliation.common import MilitaryAffiliationStatus
 from cc_common.data_model.schema.privilege.api import PrivilegeUpdatePreviousGeneralResponseSchema
@@ -146,8 +146,8 @@ class ProviderRecordUtility:
             }
         )
 
-    @classmethod
-    def assemble_provider_records_into_object(cls, provider_records: list[dict]) -> dict:
+    @staticmethod
+    def assemble_provider_records_into_object(provider_records: list[dict]) -> dict:
         """
         Assemble a list of provider records into a single object.
 
@@ -193,9 +193,9 @@ class ProviderRecordUtility:
                     privileges[f'{record["jurisdiction"]}-{record["licenseType"]}']['history'].append(record)
                 case 'adverseAction':
                     logger.debug('Identified adverse action record')
-                    if record['actionAgainst'] == 'privilege':
+                    if record['actionAgainst'] == AdverseActionAgainstEnum.PRIVILEGE:
                         privileges[f'{record["jurisdiction"]}-{record["licenseType"]}']['adverseActions'].append(record)
-                    elif record['actionAgainst'] == 'license':
+                    elif record['actionAgainst'] == AdverseActionAgainstEnum.LICENSE:
                         licenses[f'{record["jurisdiction"]}-{record["licenseType"]}']['adverseActions'].append(record)
 
         if provider is None:

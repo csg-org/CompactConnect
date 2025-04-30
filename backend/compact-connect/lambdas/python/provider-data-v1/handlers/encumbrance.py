@@ -85,7 +85,6 @@ def _generate_adverse_action_for_record_type(
     adverse_action.license_type_abbreviation = adverse_action_license_type_abbreviation
     adverse_action.license_type = adverse_action_license_type
     adverse_action.action_against = adverse_action_against_record_type
-    adverse_action.blocks_future_privileges = adverse_action_request['blocksFuturePrivileges']
     adverse_action.clinical_privilege_action_category = ClinicalPrivilegeActionCategory(
         adverse_action_request['clinicalPrivilegeActionCategory']
     )
