@@ -84,7 +84,7 @@ describe('Licensee model', () => {
         expect(licensee.homeJurisdictionDisplay()).to.equal('Unknown');
         expect(licensee.bestHomeJurisdictionLicense()).to.be.an.instanceof(License);
         expect(licensee.bestHomeJurisdictionLicenseMailingAddress()).to.be.an.instanceof(Address);
-        expect(licensee.eligibleLicenses()).to.matchPattern([]);
+        expect(licensee.purchaseEligibleLicenses()).to.matchPattern([]);
         expect(licensee.canPurchasePrivileges()).to.equal(false);
     });
     it('should create a Licensee with specific values', () => {
@@ -189,7 +189,7 @@ describe('Licensee model', () => {
         expect(licensee.bestHomeJurisdictionLicense()).to.be.an.instanceof(License);
         expect(licensee.bestHomeJurisdictionLicense().licenseNumber).to.equal(null);
         expect(licensee.bestHomeJurisdictionLicenseMailingAddress()).to.be.an.instanceof(Address);
-        expect(licensee.eligibleLicenses()).to.matchPattern([]);
+        expect(licensee.purchaseEligibleLicenses()).to.matchPattern([]);
         expect(licensee.canPurchasePrivileges()).to.equal(false);
     });
     it('should create a Licensee with specific values (null address fallbacks)', () => {
@@ -358,6 +358,26 @@ describe('Licensee model', () => {
                     licenseStatusName: 'test-status-name',
                     compactEligibility: EligibilityStatus.INELIGIBLE,
                 },
+                {
+                    id: 'test-id',
+                    licenseNumber: '3',
+                    providerId: 'providerId1',
+                    compact: CompactType.ASLP,
+                    type: 'license-home',
+                    jurisdiction: 'ma',
+                    homeAddressStreet1: 'test-street1',
+                    homeAddressStreet2: 'test-street2',
+                    homeAddressCity: 'test-city',
+                    homeAddressState: 'co',
+                    homeAddressPostalCode: 'test-zip',
+                    dateOfIssuance: moment().format(serverDateFormat),
+                    renewalDate: moment().format(serverDateFormat),
+                    expireDate: moment().subtract(1, 'day').format(serverDateFormat),
+                    licenseType: LicenseType.AUDIOLOGIST,
+                    status: LicenseStatus.ACTIVE,
+                    licenseStatusName: 'test-status-name',
+                    compactEligibility: EligibilityStatus.ELIGIBLE,
+                },
             ],
             privilegeJurisdictions: ['co'],
             privileges: [
@@ -392,7 +412,7 @@ describe('Licensee model', () => {
         expect(licensee.homeJurisdictionLicenseAddress).to.be.an.instanceof(Address);
         expect(licensee.licenseStates).to.be.an('array').with.length(1);
         expect(licensee.licenseStates[0]).to.be.an.instanceof(State);
-        expect(licensee.licenses).to.be.an('array').with.length(2);
+        expect(licensee.licenses).to.be.an('array').with.length(3);
         expect(licensee.licenses[0]).to.be.an.instanceof(License);
         expect(licensee.privilegeStates).to.be.an('array').with.length(1);
         expect(licensee.privilegeStates[0]).to.be.an.instanceof(State);
@@ -413,7 +433,7 @@ describe('Licensee model', () => {
         );
         expect(licensee.lastUpdatedDisplayRelative()).to.be.a('string').that.is.not.empty;
         expect(licensee.getStateListDisplay([])).to.equal('');
-        expect(licensee.licenseStatesDisplay()).to.equal('Colorado, Colorado');
+        expect(licensee.licenseStatesDisplay()).to.equal('Colorado, Colorado +');
         expect(licensee.privilegeStatesAllDisplay()).to.equal('Colorado');
         expect(licensee.privilegeStatesDisplay()).to.equal('Colorado');
         expect(licensee.licenseTypeName()).to.equal('Audiologist');
@@ -455,7 +475,7 @@ describe('Licensee model', () => {
         expect(licensee.bestHomeJurisdictionLicense()).to.be.an.instanceof(License);
         expect(licensee.bestHomeJurisdictionLicense().licenseNumber).to.equal('1');
         expect(licensee.bestHomeJurisdictionLicenseMailingAddress()).to.be.an.instanceof(Address);
-        expect(licensee.eligibleLicenses()).to.matchPattern([
+        expect(licensee.purchaseEligibleLicenses()).to.matchPattern([
             {
                 id: 'providerId1-co-audiologist',
                 '...': '',
@@ -596,7 +616,7 @@ describe('Licensee model', () => {
         expect(licensee.bestHomeJurisdictionLicense()).to.be.an.instanceof(License);
         expect(licensee.bestHomeJurisdictionLicense().licenseNumber).to.equal('2');
         expect(licensee.bestHomeJurisdictionLicenseMailingAddress()).to.be.an.instanceof(Address);
-        expect(licensee.eligibleLicenses()).to.matchPattern([]);
+        expect(licensee.purchaseEligibleLicenses()).to.matchPattern([]);
         expect(licensee.canPurchasePrivileges()).to.equal(false);
     });
     it('should serialize a Licensee for transmission to server', () => {

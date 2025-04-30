@@ -66,8 +66,8 @@ class PrivilegePurchaseLicense extends mixins(MixinForm) {
         return this.user?.licensee || null;
     }
 
-    get eligibleLicenses(): Array<License> {
-        return this.licensee?.eligibleLicenses() || [];
+    get purchaseEligibleLicenses(): Array<License> {
+        return this.licensee?.purchaseEligibleLicenses() || [];
     }
 
     get currentCompact(): Compact | null {
@@ -83,16 +83,16 @@ class PrivilegePurchaseLicense extends mixins(MixinForm) {
     }
 
     get licenseOptions(): Array<any> {
-        const licenseOptions: Array<any> = [{ value: '', name: `- ${this.$t('common.select')} -` }];
+        const options: Array<any> = [{ value: '', name: `- ${this.$t('common.select')} -` }];
 
-        this.eligibleLicenses.forEach((license: License) => {
-            licenseOptions.push({
+        this.purchaseEligibleLicenses.forEach((license: License) => {
+            options.push({
                 value: license.id,
                 name: license.displayName()
             });
         });
 
-        return licenseOptions;
+        return options;
     }
 
     get backText(): string {
@@ -133,10 +133,10 @@ class PrivilegePurchaseLicense extends mixins(MixinForm) {
     }
 
     initPage() {
-        if (this.eligibleLicenses.length === 1) {
+        if (this.purchaseEligibleLicenses.length === 1) {
             this.$store.dispatch('user/saveFlowStep', new PurchaseFlowStep({
                 stepNum: this.flowStep,
-                licenseSelected: this.eligibleLicenses[0].id
+                licenseSelected: this.purchaseEligibleLicenses[0].id
             }));
 
             this.$router.push({

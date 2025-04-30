@@ -255,12 +255,13 @@ export class Licensee implements InterfaceLicensee {
         return this.bestHomeJurisdictionLicense().mailingAddress || new Address();
     }
 
-    public eligibleLicenses(): Array<License> {
-        return this.licenses?.filter((license: License) => (license.eligibility === EligibilityStatus.ELIGIBLE)) || [];
+    public purchaseEligibleLicenses(): Array<License> {
+        return this.activeHomeJurisdictionLicenses()
+            .filter((license: License) => (license.eligibility === EligibilityStatus.ELIGIBLE));
     }
 
     public canPurchasePrivileges(): boolean {
-        return !!this.eligibleLicenses().length;
+        return !!this.purchaseEligibleLicenses().length;
     }
 }
 
