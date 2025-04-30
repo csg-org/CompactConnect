@@ -230,14 +230,16 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
     }
 
     get selectedStatePurchaseDisplayDataList(): Array<object> {
+        const licenseTypeKey = this.licenseTypeSelected.toLowerCase();
+
         return this.selectedStatePurchaseDataList.map((state) => {
             const stateFeeText = `${state?.jurisdiction?.name()} ${this.compactPrivilegeStateFeeText}`;
             const stateMilitaryPurchaseText = `${state?.jurisdiction?.name()} ${this.militaryDiscountText}`;
             let stateFeeDisplay = '';
             let stateMilitaryDiscountAmountDisplay = '';
 
-            if (state?.fee) {
-                stateFeeDisplay = state.fee.toFixed(2);
+            if (state?.fees?.[licenseTypeKey]) {
+                stateFeeDisplay = state.fees[licenseTypeKey]?.toFixed(2);
             }
 
             if (state?.militaryDiscountAmount) {
@@ -291,9 +293,11 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
     get totalPurchasePrice(): number {
         let total = this.totalCompactCommissionFee + this.creditCardFeesTotal;
 
+        const licenseTypeKey = this.licenseTypeSelected.toLowerCase();
+
         this.selectedStatePurchaseDataList.forEach((stateSelected) => {
-            if (stateSelected?.fee) {
-                total += stateSelected.fee;
+            if (stateSelected?.fees?.[licenseTypeKey]) {
+                total += stateSelected.fees[licenseTypeKey];
             }
 
             if (stateSelected?.isMilitaryDiscountActive && stateSelected?.militaryDiscountAmount) {
@@ -371,6 +375,10 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
     get licenseTypeSelected(): string {
         return this.selectedPurchaseLicense?.licenseTypeAbbreviation() || '';
     }
+
+    // get feeDisplay(): string {
+    //     return this.selectedStatePurchaseData?.fees?.[this.selectedLicenseTypeAbbrev]?.toFixed(2) || '';
+    // }
 
     get selectionText(): string {
         return `${this.licenseTypeSelected} ${this.$t('licensing.privilege')} ${this.$t('common.selection')}`;
