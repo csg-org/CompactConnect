@@ -1,3 +1,5 @@
+# ruff: noqa: N802 we use camelCase to match the marshmallow schema definition
+
 from datetime import date
 from uuid import UUID
 
@@ -24,7 +26,7 @@ class LicenseData(CCDataClass):
     _requires_data_at_construction = True
 
     @property
-    def provider_id(self) -> UUID:
+    def providerId(self) -> UUID:
         return self._data['providerId']
 
     @property
@@ -36,7 +38,7 @@ class LicenseData(CCDataClass):
         return self._data['jurisdiction']
 
     @property
-    def license_type(self) -> str:
+    def licenseType(self) -> str:
         return self._data['licenseType']
 
     @property
@@ -44,27 +46,23 @@ class LicenseData(CCDataClass):
         return self._data.get('npi')
 
     @property
-    def license_number(self) -> str | None:
+    def licenseNumber(self) -> str | None:
         return self._data.get('licenseNumber')
 
     @property
-    def ssn_last_four(self) -> str:
+    def ssnLastFour(self) -> str:
         return self._data['ssnLastFour']
 
     @property
-    def given_name(self) -> str:
+    def givenName(self) -> str:
         return self._data['givenName']
 
-    @given_name.setter
-    def given_name(self, value: str) -> None:
-        self._data['givenName'] = value
-
     @property
-    def middle_name(self) -> str | None:
+    def middleName(self) -> str | None:
         return self._data.get('middleName')
 
     @property
-    def family_name(self) -> str:
+    def familyName(self) -> str:
         return self._data['familyName']
 
     @property
@@ -72,63 +70,63 @@ class LicenseData(CCDataClass):
         return self._data.get('suffix')
 
     @property
-    def date_of_issuance(self) -> date:
+    def dateOfIssuance(self) -> date:
         return self._data['dateOfIssuance']
 
     @property
-    def date_of_renewal(self) -> date:
+    def dateOfRenewal(self) -> date:
         return self._data['dateOfRenewal']
 
     @property
-    def date_of_expiration(self) -> date:
+    def dateOfExpiration(self) -> date:
         return self._data['dateOfExpiration']
 
     @property
-    def date_of_birth(self) -> date:
+    def dateOfBirth(self) -> date:
         return self._data['dateOfBirth']
 
     @property
-    def home_address_street1(self) -> str:
+    def homeAddressStreet1(self) -> str:
         return self._data['homeAddressStreet1']
 
     @property
-    def home_address_street2(self) -> str | None:
+    def homeAddressStreet2(self) -> str | None:
         return self._data.get('homeAddressStreet2')
 
     @property
-    def home_address_city(self) -> str:
+    def homeAddressCity(self) -> str:
         return self._data['homeAddressCity']
 
     @property
-    def home_address_state(self) -> str:
+    def homeAddressState(self) -> str:
         return self._data['homeAddressState']
 
     @property
-    def home_address_postal_code(self) -> str:
+    def homeAddressPostalCode(self) -> str:
         return self._data['homeAddressPostalCode']
 
     @property
-    def email_address(self) -> str | None:
+    def emailAddress(self) -> str | None:
         return self._data.get('emailAddress')
 
     @property
-    def phone_number(self) -> str | None:
+    def phoneNumber(self) -> str | None:
         return self._data.get('phoneNumber')
 
     @property
-    def license_status_name(self) -> str | None:
+    def licenseStatusName(self) -> str | None:
         return self._data.get('licenseStatusName')
 
     @property
-    def jurisdiction_uploaded_license_status(self) -> str:
+    def jurisdictionUploadedLicenseStatus(self) -> str:
         return self._data['jurisdictionUploadedLicenseStatus']
 
     @property
-    def jurisdiction_uploaded_compact_eligibility(self) -> str:
+    def jurisdictionUploadedCompactEligibility(self) -> str:
         return self._data['jurisdictionUploadedCompactEligibility']
 
     @property
-    def compact_eligibility(self) -> str:
+    def compactEligibility(self) -> str:
         return self._data['compactEligibility']
 
 
@@ -148,11 +146,11 @@ class LicenseUpdateData(CCDataClass):
     _requires_data_at_construction = True
 
     @property
-    def update_type(self) -> str:
+    def updateType(self) -> str:
         return self._data['updateType']
 
     @property
-    def provider_id(self) -> UUID:
+    def providerId(self) -> UUID:
         return self._data['providerId']
 
     @property
@@ -164,7 +162,7 @@ class LicenseUpdateData(CCDataClass):
         return self._data['jurisdiction']
 
     @property
-    def license_type(self) -> str:
+    def licenseType(self) -> str:
         return self._data['licenseType']
 
     @property
@@ -172,9 +170,9 @@ class LicenseUpdateData(CCDataClass):
         return self._data['previous']
 
     @property
-    def updated_values(self) -> dict:
+    def updatedValues(self) -> dict:
         return self._data['updatedValues']
 
     @property
-    def removed_values(self) -> list[str] | None:
+    def removedValues(self) -> list[str] | None:
         return self._data.get('removedValues')

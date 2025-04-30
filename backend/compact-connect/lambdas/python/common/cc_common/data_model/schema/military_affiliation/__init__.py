@@ -1,4 +1,4 @@
-# ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
+# ruff: noqa: N802 we use camelCase to match the marshmallow schema definition
 
 from datetime import datetime
 from uuid import UUID
@@ -23,7 +23,7 @@ class MilitaryAffiliationData(CCDataClass):
     _requires_data_at_construction = True
 
     @property
-    def provider_id(self) -> UUID:
+    def providerId(self) -> UUID:
         return self._data.get('providerId')
 
     @property
@@ -31,19 +31,19 @@ class MilitaryAffiliationData(CCDataClass):
         return self._data.get('compact')
 
     @property
-    def document_keys(self) -> list[str]:
+    def documentKeys(self) -> list[str]:
         return self._data.get('documentKeys', [])
 
     @property
-    def file_names(self) -> list[str]:
+    def fileNames(self) -> list[str]:
         return self._data.get('fileNames', [])
 
     @property
-    def affiliation_type(self) -> str:
+    def affiliationType(self) -> str:
         return self._data.get('affiliationType')
 
     @property
-    def date_of_upload(self) -> datetime:
+    def dateOfUpload(self) -> datetime:
         return self._data.get('dateOfUpload')
 
     @property

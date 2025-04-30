@@ -983,17 +983,17 @@ class DataClient:
         """
         with logger.append_context_keys(
             compact=adverse_action.compact,
-            provider_id=adverse_action.provider_id,
+            provider_id=adverse_action.providerId,
             jurisdiction=adverse_action.jurisdiction,
-            license_type_abbreviation=adverse_action.license_type_abbreviation,
+            license_type_abbreviation=adverse_action.licenseTypeAbbreviation,
         ):
             # Get the privilege record
             try:
                 privilege_record = self.config.provider_table.get_item(
                     Key={
-                        'pk': f'{adverse_action.compact}#PROVIDER#{adverse_action.provider_id}',
+                        'pk': f'{adverse_action.compact}#PROVIDER#{adverse_action.providerId}',
                         'sk': f'{adverse_action.compact}#PROVIDER#privilege/'
-                        f'{adverse_action.jurisdiction}/{adverse_action.license_type_abbreviation}#',
+                        f'{adverse_action.jurisdiction}/{adverse_action.licenseTypeAbbreviation}#',
                     },
                 )['Item']
             except KeyError as e:
@@ -1005,7 +1005,7 @@ class DataClient:
 
             need_to_set_privilege_to_inactive = True
             # If already inactive, do nothing
-            if privilege_data.administrator_set_status == ActiveInactiveStatus.INACTIVE:
+            if privilege_data.administratorSetStatus == ActiveInactiveStatus.INACTIVE:
                 logger.info('Privilege already inactive. Not updating "administratorSetStatus" field')
                 need_to_set_privilege_to_inactive = False
             else:
@@ -1019,10 +1019,10 @@ class DataClient:
                 {
                     'type': 'privilegeUpdate',
                     'updateType': UpdateCategory.ENCUMBRANCE,
-                    'providerId': adverse_action.provider_id,
+                    'providerId': adverse_action.providerId,
                     'compact': adverse_action.compact,
                     'jurisdiction': adverse_action.jurisdiction,
-                    'licenseType': privilege_data.license_type,
+                    'licenseType': privilege_data.licenseType,
                     'previous': {
                         # We're relying on the schema to trim out unneeded fields
                         **privilege_data.to_dict(),
@@ -1072,17 +1072,17 @@ class DataClient:
         """
         with logger.append_context_keys(
             compact=adverse_action.compact,
-            provider_id=adverse_action.provider_id,
+            provider_id=adverse_action.providerId,
             jurisdiction=adverse_action.jurisdiction,
-            license_type_abbreviation=adverse_action.license_type_abbreviation,
+            license_type_abbreviation=adverse_action.licenseTypeAbbreviation,
         ):
             # Get the license record
             try:
                 license_record = self.config.provider_table.get_item(
                     Key={
-                        'pk': f'{adverse_action.compact}#PROVIDER#{adverse_action.provider_id}',
+                        'pk': f'{adverse_action.compact}#PROVIDER#{adverse_action.providerId}',
                         'sk': f'{adverse_action.compact}#PROVIDER#license/'
-                        f'{adverse_action.jurisdiction}/{adverse_action.license_type_abbreviation}#',
+                        f'{adverse_action.jurisdiction}/{adverse_action.licenseTypeAbbreviation}#',
                     },
                 )['Item']
             except KeyError as e:
@@ -1094,7 +1094,7 @@ class DataClient:
 
             need_to_set_license_to_ineligible = True
             # If already ineligible, do nothing
-            if license_data.compact_eligibility == CompactEligibilityStatus.INELIGIBLE:
+            if license_data.compactEligibility == CompactEligibilityStatus.INELIGIBLE:
                 logger.info('License already ineligible. Not updating license compact eligibility status')
                 need_to_set_license_to_ineligible = False
             else:
@@ -1108,10 +1108,10 @@ class DataClient:
                 {
                     'type': 'licenseUpdate',
                     'updateType': 'encumbrance',
-                    'providerId': adverse_action.provider_id,
+                    'providerId': adverse_action.providerId,
                     'compact': adverse_action.compact,
                     'jurisdiction': adverse_action.jurisdiction,
-                    'licenseType': license_data.license_type,
+                    'licenseType': license_data.licenseType,
                     'previous': {
                         # We're relying on the schema to trim out unneeded fields
                         **license_data.to_dict(),

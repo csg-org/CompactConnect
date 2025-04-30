@@ -1,3 +1,5 @@
+# ruff: noqa: N802 we use camelCase to match the marshmallow schema definition
+
 from datetime import date
 from uuid import UUID
 
@@ -19,7 +21,7 @@ class ProviderData(CCDataClass):
     _requires_data_at_construction = True
 
     @property
-    def provider_id(self) -> UUID:
+    def providerId(self) -> UUID:
         return self._data['providerId']
 
     @property
@@ -27,19 +29,19 @@ class ProviderData(CCDataClass):
         return self._data['compact']
 
     @property
-    def license_jurisdiction(self) -> str:
+    def licenseJurisdiction(self) -> str:
         return self._data['licenseJurisdiction']
 
     @property
-    def jurisdiction_uploaded_license_status(self) -> str:
+    def jurisdictionUploadedLicenseStatus(self) -> str:
         return self._data['jurisdictionUploadedLicenseStatus']
 
     @property
-    def jurisdiction_uploaded_compact_eligibility(self) -> str:
+    def jurisdictionUploadedCompactEligibility(self) -> str:
         return self._data['jurisdictionUploadedCompactEligibility']
 
     @property
-    def ssn_last_four(self) -> str:
+    def ssnLastFour(self) -> str:
         return self._data['ssnLastFour']
 
     @property
@@ -47,15 +49,15 @@ class ProviderData(CCDataClass):
         return self._data.get('npi')
 
     @property
-    def given_name(self) -> str:
+    def givenName(self) -> str:
         return self._data['givenName']
 
     @property
-    def middle_name(self) -> str | None:
+    def middleName(self) -> str | None:
         return self._data.get('middleName')
 
     @property
-    def family_name(self) -> str:
+    def familyName(self) -> str:
         return self._data['familyName']
 
     @property
@@ -63,43 +65,43 @@ class ProviderData(CCDataClass):
         return self._data.get('suffix')
 
     @property
-    def date_of_expiration(self) -> date:
+    def dateOfExpiration(self) -> date:
         return self._data['dateOfExpiration']
 
     @property
-    def date_of_birth(self) -> date:
+    def dateOfBirth(self) -> date:
         return self._data['dateOfBirth']
 
     @property
-    def home_address_street1(self) -> str:
+    def homeAddressStreet1(self) -> str:
         return self._data['homeAddressStreet1']
 
     @property
-    def home_address_street2(self) -> str | None:
+    def homeAddressStreet2(self) -> str | None:
         return self._data.get('homeAddressStreet2')
 
     @property
-    def home_address_city(self) -> str:
+    def homeAddressCity(self) -> str:
         return self._data['homeAddressCity']
 
     @property
-    def home_address_state(self) -> str:
+    def homeAddressState(self) -> str:
         return self._data['homeAddressState']
 
     @property
-    def home_address_postal_code(self) -> str:
+    def homeAddressPostalCode(self) -> str:
         return self._data['homeAddressPostalCode']
 
     @property
-    def email_address(self) -> str | None:
+    def emailAddress(self) -> str | None:
         return self._data.get('emailAddress')
 
     @property
-    def phone_number(self) -> str | None:
+    def phoneNumber(self) -> str | None:
         return self._data.get('phoneNumber')
 
     @property
-    def compact_connect_registered_email_address(self) -> str | None:
+    def compactConnectRegisteredEmailAddress(self) -> str | None:
         """
         The email address for the provider that was used to register with Compact Connect.
 
@@ -108,7 +110,7 @@ class ProviderData(CCDataClass):
         return self._data.get('compactConnectRegisteredEmailAddress')
 
     @property
-    def cognito_sub(self) -> str | None:
+    def cognitoSub(self) -> str | None:
         """
         The cognito sub value for the provider.
 
@@ -117,9 +119,9 @@ class ProviderData(CCDataClass):
         return self._data.get('cognitoSub')
 
     @property
-    def birth_month_day(self) -> str | None:
+    def birthMonthDay(self) -> str | None:
         return self._data.get('birthMonthDay')
 
     @property
-    def privilege_jurisdictions(self) -> set[str]:
+    def privilegeJurisdictions(self) -> set[str]:
         return self._data.get('privilegeJurisdictions', set())

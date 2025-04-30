@@ -46,7 +46,7 @@ class TestAdverseActionRecordSchema(TstLambdas):
         adverse_action_data = self.test_data_generator.generate_default_adverse_action()
 
         # setting to an invalid value from another enum
-        adverse_action_data.action_against = CompactEligibilityStatus.ELIGIBLE
+        adverse_action_data.actionAgainst = CompactEligibilityStatus.ELIGIBLE
 
         with self.assertRaises(ValidationError):
             AdverseActionData.from_database_record(adverse_action_data.serialize_to_database_record())
@@ -57,7 +57,7 @@ class TestAdverseActionRecordSchema(TstLambdas):
         adverse_action_data = self.test_data_generator.generate_default_adverse_action()
 
         # setting to an invalid value from another enum
-        adverse_action_data.license_type = 'foobar'
+        adverse_action_data.licenseType = 'foobar'
         adverse_action_data.license_abbreviation = 'slp'
 
         with self.assertRaises(ValidationError):
@@ -69,8 +69,8 @@ class TestAdverseActionRecordSchema(TstLambdas):
         adverse_action_data = self.test_data_generator.generate_default_adverse_action()
 
         # setting to an invalid value from another enum
-        adverse_action_data.license_type = 'speech-language pathologist'
-        adverse_action_data.license_type_abbreviation = 'foo'
+        adverse_action_data.licenseType = 'speech-language pathologist'
+        adverse_action_data.licenseTypeAbbreviation = 'foo'
 
         with self.assertRaises(ValidationError):
             AdverseActionData.from_database_record(adverse_action_data.serialize_to_database_record())
@@ -102,19 +102,17 @@ class TestAdverseActionDataClass(TstLambdas):
         adverse_action_data = self.test_data_generator.generate_default_adverse_action().serialize_to_database_record()
 
         adverse_action = AdverseActionData.from_database_record(adverse_action_data)
-        self.assertEqual(str(adverse_action.provider_id), adverse_action_data['providerId'])
+        self.assertEqual(str(adverse_action.providerId), adverse_action_data['providerId'])
         self.assertEqual(adverse_action.jurisdiction, adverse_action_data['jurisdiction'])
-        self.assertEqual(adverse_action.license_type_abbreviation, adverse_action_data['licenseTypeAbbreviation'])
-        self.assertEqual(adverse_action.action_against, adverse_action_data['actionAgainst'])
+        self.assertEqual(adverse_action.licenseTypeAbbreviation, adverse_action_data['licenseTypeAbbreviation'])
+        self.assertEqual(adverse_action.actionAgainst, adverse_action_data['actionAgainst'])
         self.assertEqual(
-            adverse_action.clinical_privilege_action_category, adverse_action_data['clinicalPrivilegeActionCategory']
+            adverse_action.clinicalPrivilegeActionCategory, adverse_action_data['clinicalPrivilegeActionCategory']
         )
-        self.assertEqual(
-            adverse_action.creation_effective_date.isoformat(), adverse_action_data['creationEffectiveDate']
-        )
-        self.assertEqual(str(adverse_action.submitting_user), adverse_action_data['submittingUser'])
-        self.assertEqual(adverse_action.creation_date.isoformat(), adverse_action_data['creationDate'])
-        self.assertEqual(str(adverse_action.adverse_action_id), adverse_action_data['adverseActionId'])
+        self.assertEqual(adverse_action.creationEffectiveDate.isoformat(), adverse_action_data['creationEffectiveDate'])
+        self.assertEqual(str(adverse_action.submittingUser), adverse_action_data['submittingUser'])
+        self.assertEqual(adverse_action.creationDate.isoformat(), adverse_action_data['creationDate'])
+        self.assertEqual(str(adverse_action.adverseActionId), adverse_action_data['adverseActionId'])
 
     def test_adverse_action_data_class_outputs_expected_database_object(self):
         # check final snapshot of expected data

@@ -1,3 +1,5 @@
+# ruff: noqa: N802 we use camelCase to match the marshmallow schema definition
+
 from datetime import date, datetime
 from uuid import UUID
 
@@ -19,11 +21,11 @@ class PrivilegeData(CCDataClass):
     _requires_data_at_construction = False
 
     @property
-    def provider_id(self) -> UUID:
+    def providerId(self) -> UUID:
         return self._data['providerId']
 
-    @provider_id.setter
-    def provider_id(self, value: UUID) -> None:
+    @providerId.setter
+    def providerId(self, value: UUID) -> None:
         self._data['providerId'] = value
 
     @property
@@ -43,51 +45,51 @@ class PrivilegeData(CCDataClass):
         self._data['jurisdiction'] = value
 
     @property
-    def license_jurisdiction(self) -> str:
+    def licenseJurisdiction(self) -> str:
         return self._data['licenseJurisdiction']
 
-    @license_jurisdiction.setter
-    def license_jurisdiction(self, value: str) -> None:
+    @licenseJurisdiction.setter
+    def licenseJurisdiction(self, value: str) -> None:
         self._data['licenseJurisdiction'] = value
 
     @property
-    def license_type(self) -> str:
+    def licenseType(self) -> str:
         return self._data['licenseType']
 
-    @license_type.setter
-    def license_type(self, value: str) -> None:
+    @licenseType.setter
+    def licenseType(self, value: str) -> None:
         self._data['licenseType'] = value
 
     @property
-    def date_of_issuance(self) -> datetime:
+    def dateOfIssuance(self) -> datetime:
         return self._data['dateOfIssuance']
 
-    @date_of_issuance.setter
-    def date_of_issuance(self, value: datetime) -> None:
+    @dateOfIssuance.setter
+    def dateOfIssuance(self, value: datetime) -> None:
         self._data['dateOfIssuance'] = value
 
     @property
-    def date_of_renewal(self) -> datetime:
+    def dateOfRenewal(self) -> datetime:
         return self._data['dateOfRenewal']
 
-    @date_of_renewal.setter
-    def date_of_renewal(self, value: datetime) -> None:
+    @dateOfRenewal.setter
+    def dateOfRenewal(self, value: datetime) -> None:
         self._data['dateOfRenewal'] = value
 
     @property
-    def date_of_expiration(self) -> date:
+    def dateOfExpiration(self) -> date:
         return self._data['dateOfExpiration']
 
-    @date_of_expiration.setter
-    def date_of_expiration(self, value: date) -> None:
+    @dateOfExpiration.setter
+    def dateOfExpiration(self, value: date) -> None:
         self._data['dateOfExpiration'] = value
 
     @property
-    def compact_transaction_id(self) -> str:
+    def compactTransactionId(self) -> str:
         return self._data['compactTransactionId']
 
-    @compact_transaction_id.setter
-    def compact_transaction_id(self, value: str) -> None:
+    @compactTransactionId.setter
+    def compactTransactionId(self, value: str) -> None:
         self._data['compactTransactionId'] = value
 
     @property
@@ -99,19 +101,19 @@ class PrivilegeData(CCDataClass):
         self._data['attestations'] = value
 
     @property
-    def privilege_id(self) -> str:
+    def privilegeId(self) -> str:
         return self._data['privilegeId']
 
-    @privilege_id.setter
-    def privilege_id(self, value: str) -> None:
+    @privilegeId.setter
+    def privilegeId(self, value: str) -> None:
         self._data['privilegeId'] = value
 
     @property
-    def administrator_set_status(self) -> str:
+    def administratorSetStatus(self) -> str:
         return self._data['administratorSetStatus']
 
-    @administrator_set_status.setter
-    def administrator_set_status(self, value: ActiveInactiveStatus) -> None:
+    @administratorSetStatus.setter
+    def administratorSetStatus(self, value: ActiveInactiveStatus) -> None:
         # Store the string value rather than the enum object
         # since the schema loads this value as a string.
         self._data['administratorSetStatus'] = value.value if isinstance(value, ActiveInactiveStatus) else value
@@ -133,19 +135,19 @@ class PrivilegeUpdateData(CCDataClass):
     _record_schema = PrivilegeUpdateRecordSchema()
 
     @property
-    def update_type(self) -> str:
+    def updateType(self) -> str:
         return self._data['updateType']
 
-    @update_type.setter
-    def update_type(self, value: str) -> None:
+    @updateType.setter
+    def updateType(self, value: str) -> None:
         self._data['updateType'] = value
 
     @property
-    def provider_id(self) -> UUID:
+    def providerId(self) -> UUID:
         return self._data['providerId']
 
-    @provider_id.setter
-    def provider_id(self, value: UUID) -> None:
+    @providerId.setter
+    def providerId(self, value: UUID) -> None:
         self._data['providerId'] = value
 
     @property
@@ -165,11 +167,11 @@ class PrivilegeUpdateData(CCDataClass):
         self._data['jurisdiction'] = value
 
     @property
-    def license_type(self) -> str:
+    def licenseType(self) -> str:
         return self._data['licenseType']
 
-    @license_type.setter
-    def license_type(self, value: str) -> None:
+    @licenseType.setter
+    def licenseType(self, value: str) -> None:
         self._data['licenseType'] = value
 
     @property
@@ -181,20 +183,20 @@ class PrivilegeUpdateData(CCDataClass):
         self._data['previous'] = value
 
     @property
-    def updated_values(self) -> dict:
+    def updatedValues(self) -> dict:
         return self._data['updatedValues']
 
-    @updated_values.setter
-    def updated_values(self, value: dict) -> None:
+    @updatedValues.setter
+    def updatedValues(self, value: dict) -> None:
         self._data['updatedValues'] = value
 
     @property
-    def deactivation_details(self) -> dict | None:
+    def deactivationDetails(self) -> dict | None:
         """
         This property is only present if the update type is a deactivation.
         """
         return self._data.get('deactivationDetails')
 
-    @deactivation_details.setter
-    def deactivation_details(self, value: dict) -> None:
+    @deactivationDetails.setter
+    def deactivationDetails(self, value: dict) -> None:
         self._data['deactivationDetails'] = value

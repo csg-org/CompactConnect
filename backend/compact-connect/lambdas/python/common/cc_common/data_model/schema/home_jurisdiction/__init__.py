@@ -1,3 +1,4 @@
+# ruff: noqa: N802 we use camelCase to match the marshmallow schema definition
 from datetime import datetime
 from uuid import UUID
 
@@ -17,7 +18,7 @@ class HomeJurisdictionSelectionData(CCDataClass):
     _requires_data_at_construction = True
 
     @property
-    def provider_id(self) -> UUID:
+    def providerId(self) -> UUID:
         return self._data.get('providerId')
 
     @property
@@ -29,5 +30,5 @@ class HomeJurisdictionSelectionData(CCDataClass):
         return self._data.get('jurisdiction')
 
     @property
-    def date_of_selection(self) -> datetime:
+    def dateOfSelection(self) -> datetime:
         return self._data.get('dateOfSelection')

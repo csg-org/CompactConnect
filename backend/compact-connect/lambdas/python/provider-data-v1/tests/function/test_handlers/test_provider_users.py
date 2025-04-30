@@ -22,7 +22,7 @@ class TestGetProvider(TstFunction):
         test_provider = self.test_data_generator.put_default_provider_record_in_provider_table()
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
-            event['requestContext']['authorizer']['claims']['custom:providerId'] = test_provider.provider_id
+            event['requestContext']['authorizer']['claims']['custom:providerId'] = test_provider.providerId
             event['requestContext']['authorizer']['claims']['custom:compact'] = test_provider.compact
 
         return event
@@ -93,7 +93,7 @@ class TestGetProvider(TstFunction):
         test_provider_record = self.test_data_generator.put_default_provider_record_in_provider_table()
         test_license_record = self.test_data_generator.put_default_license_record_in_provider_table()
         test_adverse_action = self.test_data_generator.generate_default_adverse_action()
-        test_adverse_action.action_against = AdverseActionAgainstEnum.LICENSE
+        test_adverse_action.actionAgainst = AdverseActionAgainstEnum.LICENSE
         test_adverse_action.jurisdiction = test_license_record.jurisdiction
         self.test_data_generator.put_default_adverse_action_record_in_provider_table(
             value_overrides=test_adverse_action.to_dict()
@@ -101,7 +101,7 @@ class TestGetProvider(TstFunction):
 
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
-            event['requestContext']['authorizer']['claims']['custom:providerId'] = test_provider_record.provider_id
+            event['requestContext']['authorizer']['claims']['custom:providerId'] = test_provider_record.providerId
             event['requestContext']['authorizer']['claims']['custom:compact'] = test_provider_record.compact
 
         resp = get_provider_user_me(event, self.mock_context)
@@ -124,7 +124,7 @@ class TestGetProvider(TstFunction):
         test_provider_record = self.test_data_generator.put_default_provider_record_in_provider_table()
         test_privilege_record = self.test_data_generator.put_default_privilege_record_in_provider_table()
         test_adverse_action = self.test_data_generator.generate_default_adverse_action()
-        test_adverse_action.action_against = AdverseActionAgainstEnum.PRIVILEGE
+        test_adverse_action.actionAgainst = AdverseActionAgainstEnum.PRIVILEGE
         test_adverse_action.jurisdiction = test_privilege_record.jurisdiction
         self.test_data_generator.put_default_adverse_action_record_in_provider_table(
             value_overrides=test_adverse_action.to_dict()
@@ -132,7 +132,7 @@ class TestGetProvider(TstFunction):
 
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
-            event['requestContext']['authorizer']['claims']['custom:providerId'] = test_provider_record.provider_id
+            event['requestContext']['authorizer']['claims']['custom:providerId'] = test_provider_record.providerId
             event['requestContext']['authorizer']['claims']['custom:compact'] = test_provider_record.compact
 
         resp = get_provider_user_me(event, self.mock_context)
@@ -167,7 +167,7 @@ class TestPostProviderMilitaryAffiliation(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
             event['httpMethod'] = 'POST'
-            event['requestContext']['authorizer']['claims']['custom:providerId'] = test_provider.provider_id
+            event['requestContext']['authorizer']['claims']['custom:providerId'] = test_provider.providerId
             event['requestContext']['authorizer']['claims']['custom:compact'] = test_provider.compact
             event['body'] = json.dumps(
                 {
@@ -316,7 +316,7 @@ class TestPatchProviderMilitaryAffiliation(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
             event['httpMethod'] = 'PATCH'
-            event['requestContext']['authorizer']['claims']['custom:providerId'] = test_provider.provider_id
+            event['requestContext']['authorizer']['claims']['custom:providerId'] = test_provider.providerId
             event['requestContext']['authorizer']['claims']['custom:compact'] = test_provider.compact
             event['body'] = json.dumps({'status': 'inactive'})
 

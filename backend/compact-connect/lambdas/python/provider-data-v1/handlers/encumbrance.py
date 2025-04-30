@@ -61,7 +61,7 @@ def _generate_adverse_action_for_record_type(
     # populate the adverse action data to be stored in the database
     adverse_action = AdverseActionData.create_new()
     adverse_action.compact = compact
-    adverse_action.provider_id = provider_id
+    adverse_action.providerId = provider_id
     adverse_action.jurisdiction = jurisdiction
     try:
         compact_license_types = config.license_type_abbreviations_for_compact(compact=compact)
@@ -82,15 +82,15 @@ def _generate_adverse_action_for_record_type(
             f"'{license_type_abbreviation_from_path_parameter}'"
         )
 
-    adverse_action.license_type_abbreviation = adverse_action_license_type_abbreviation
-    adverse_action.license_type = adverse_action_license_type
-    adverse_action.action_against = adverse_action_against_record_type
-    adverse_action.clinical_privilege_action_category = ClinicalPrivilegeActionCategory(
+    adverse_action.licenseTypeAbbreviation = adverse_action_license_type_abbreviation
+    adverse_action.licenseType = adverse_action_license_type
+    adverse_action.actionAgainst = adverse_action_against_record_type
+    adverse_action.clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategory(
         adverse_action_request['clinicalPrivilegeActionCategory']
     )
-    adverse_action.creation_effective_date = adverse_action_request['encumbranceEffectiveDate']
-    adverse_action.submitting_user = _get_submitting_user_id(event)
-    adverse_action.creation_date = config.current_standard_datetime
+    adverse_action.creationEffectiveDate = adverse_action_request['encumbranceEffectiveDate']
+    adverse_action.submittingUser = _get_submitting_user_id(event)
+    adverse_action.creationDate = config.current_standard_datetime
 
     return adverse_action
 

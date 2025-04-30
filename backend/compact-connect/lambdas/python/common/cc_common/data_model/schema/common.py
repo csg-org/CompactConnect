@@ -1,4 +1,4 @@
-# ruff: noqa: N815 invalid-name
+# ruff: noqa: N802, N815 invalid-name
 import json
 from copy import deepcopy
 from datetime import UTC, datetime
@@ -115,7 +115,7 @@ class CCDataClass:
         return self._data['type']
 
     @property
-    def date_of_update(self) -> datetime:
+    def dateOfUpdate(self) -> datetime:
         """
         The date of the latest update for the record.
         """
