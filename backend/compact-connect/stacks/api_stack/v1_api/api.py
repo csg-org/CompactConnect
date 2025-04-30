@@ -164,7 +164,7 @@ class V1Api:
         # POST /v1/compacts/{compact}/jurisdictions/{jurisdiction}/licenses
         # GET  /v1/compacts/{compact}/jurisdictions/{jurisdiction}/licenses/bulk-upload
         licenses_resource = self.jurisdiction_resource.add_resource('licenses')
-        PostLicenses(
+        self.post_licenses = PostLicenses(
             resource=licenses_resource,
             method_options=write_auth_method_options,
             persistent_stack=persistent_stack,

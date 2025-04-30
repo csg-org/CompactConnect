@@ -155,6 +155,11 @@ class ApiModel:
                     additional_properties=False,
                     properties={
                         'licenseType': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.license_type_names),
+                        'ssn': JsonSchema(
+                            type=JsonSchemaType.STRING,
+                            description="The provider's social security number",
+                            pattern=cc_api.SSN_FORMAT,
+                        ),
                         **self._common_license_properties,
                     },
                 ),
@@ -844,7 +849,7 @@ class ApiModel:
                                     'licenseTypeAbbreviation': JsonSchema(type=JsonSchemaType.STRING),
                                     'amount': JsonSchema(type=JsonSchemaType.NUMBER),
                                 },
-                            )
+                            ),
                         ),
                         'militaryDiscount': JsonSchema(
                             type=JsonSchemaType.OBJECT,
