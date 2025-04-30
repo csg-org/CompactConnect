@@ -69,7 +69,7 @@ class TestPostLicenseApi(TestApi):
         self.compare_snapshot(
             request_model['Schema'],
             'POST_LICENSES_REQUEST_SCHEMA',
-            overwrite_snapshot=True,
+            overwrite_snapshot=False,
         )
 
         # Verify response model schema
@@ -80,5 +80,5 @@ class TestPostLicenseApi(TestApi):
         self.compare_snapshot(
             response_model['Schema'],
             'POST_LICENSES_RESPONSE_SCHEMA',
-            overwrite_snapshot=True,
+            overwrite_snapshot=False,
         )

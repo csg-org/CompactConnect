@@ -39,8 +39,8 @@ If the link provided has already been used when you attempt to access the creden
 who sent the link to you as the credentials will need to be regenerated and sent using another link. 
 
 
-Likewise, if these credentials are ever accidentally shared or compromised please inform the CompactConnect team 
-as soon as possible so the credentials can be deactivated and regenerated to prevent abuse to the system.
+Likewise, if these credentials are ever accidentally shared or compromised, please inform the CompactConnect team
+as soon as possible, so the credentials can be deactivated and regenerated to prevent abuse of the system.
 
 
 The credentials should be sent to you in this format:
@@ -76,7 +76,6 @@ curl --location --request POST 'https://compact-connect-staff-beta.auth.us-east-
 
 
 Replace:
-* `<authUrl>` with the auth URL from your credentials
 * `<clientId>` with your client ID
 * `<clientSecret>` with your client secret
 * `<jurisdiction>` with your lower-cased two-letter state code (e.g., ky for Kentucky)

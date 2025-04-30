@@ -74,8 +74,7 @@ Add a new app client yaml file to `/app_clients` following the schema of the exa
    }
    ```
 
-   These credentials should be securely transmitted to the consuming team via an encrypted channel (ie a one time use link) in the following format:
-
+These credentials should be securely transmitted to the consuming team via an encrypted channel (i.e., a one-time use link) in the following format:
    ```json
    {
    "clientId": "<client id>",
@@ -84,8 +83,8 @@ Add a new app client yaml file to `/app_clients` following the schema of the exa
    ```
 
 
-   #### Email Instructions for consuming team
-   As part of the email message sent to the consuming team, be sure to attach [the onboarding instructions to the email]("./Compact Connect Automated License Upload Instructions.txt").
+#### Email Instructions for consuming team
+As part of the email message sent to the consuming team, be sure to attach the onboarding instructions document ("Compact Connect Automated License Upload Instructions.txt").
 
 ## Rotating App Client Credentials
 Unfortunately, AWS Cognito does not support rotating app client credentials for an existing app client. The only way to rotate credentials is to create a new app client with a new clientId and clientSecret and then delete the old one. The following process should be performed if credentials are accidentally exposed or in the event of a security breach where the old credentials are compromised.
