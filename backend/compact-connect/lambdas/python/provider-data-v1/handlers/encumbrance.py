@@ -88,7 +88,7 @@ def _generate_adverse_action_for_record_type(
     adverse_action.clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategory(
         adverse_action_request['clinicalPrivilegeActionCategory']
     )
-    adverse_action.creationEffectiveDate = adverse_action_request['encumbranceEffectiveDate']
+    adverse_action.effectiveStartDate = adverse_action_request['encumbranceEffectiveDate']
     adverse_action.submittingUser = _get_submitting_user_id(event)
     adverse_action.creationDate = config.current_standard_datetime
 

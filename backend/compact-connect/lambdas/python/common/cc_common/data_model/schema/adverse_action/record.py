@@ -31,7 +31,7 @@ class AdverseActionRecordSchema(BaseRecordSchema):
 
     # Populated on creation
     clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategoryField(required=True, allow_none=False)
-    creationEffectiveDate = Date(required=True, allow_none=False)
+    effectiveStartDate = Date(required=True, allow_none=False)
     submittingUser = UUID(required=True, allow_none=False)
     creationDate = DateTime(required=True, allow_none=False)
     adverseActionId = UUID(required=True, allow_none=False)

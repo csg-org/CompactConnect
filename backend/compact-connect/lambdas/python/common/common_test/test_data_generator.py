@@ -87,7 +87,7 @@ class TestDataGenerator:
             'licenseType': DEFAULT_LICENSE_TYPE,
             'actionAgainst': DEFAULT_ACTION_AGAINST_PRIVILEGE,
             'clinicalPrivilegeActionCategory': DEFAULT_CLINICAL_PRIVILEGE_ACTION_CATEGORY,
-            'creationEffectiveDate': date.fromisoformat(DEFAULT_CREATION_EFFECTIVE_DATE),
+            'effectiveStartDate': date.fromisoformat(DEFAULT_CREATION_EFFECTIVE_DATE),
             'submittingUser': DEFAULT_AA_SUBMITTING_USER_ID,
             'creationDate': datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP),
             'adverseActionId': DEFAULT_ADVERSE_ACTION_ID,

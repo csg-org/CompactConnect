@@ -100,7 +100,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
         default_adverse_action_encumbrance = self.test_data_generator.generate_default_adverse_action(
             value_overrides={
                 'adverseActionId': item['adverseActionId'],
-                'creationEffectiveDate': date.fromisoformat(TEST_ENCUMBRANCE_EFFECTIVE_DATE),
+                'effectiveStartDate': date.fromisoformat(TEST_ENCUMBRANCE_EFFECTIVE_DATE),
                 'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
             }
         )
@@ -244,7 +244,7 @@ class TestPostLicenseEncumbrance(TstFunction):
             value_overrides={
                 'actionAgainst': 'license',
                 'adverseActionId': item['adverseActionId'],
-                'creationEffectiveDate': date.fromisoformat(TEST_ENCUMBRANCE_EFFECTIVE_DATE),
+                'effectiveStartDate': date.fromisoformat(TEST_ENCUMBRANCE_EFFECTIVE_DATE),
                 'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
             }
         )

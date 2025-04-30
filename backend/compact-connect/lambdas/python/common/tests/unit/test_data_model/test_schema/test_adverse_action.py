@@ -109,7 +109,7 @@ class TestAdverseActionDataClass(TstLambdas):
         self.assertEqual(
             adverse_action.clinicalPrivilegeActionCategory, adverse_action_data['clinicalPrivilegeActionCategory']
         )
-        self.assertEqual(adverse_action.creationEffectiveDate.isoformat(), adverse_action_data['creationEffectiveDate'])
+        self.assertEqual(adverse_action.effectiveStartDate.isoformat(), adverse_action_data['effectiveStartDate'])
         self.assertEqual(str(adverse_action.submittingUser), adverse_action_data['submittingUser'])
         self.assertEqual(adverse_action.creationDate.isoformat(), adverse_action_data['creationDate'])
         self.assertEqual(str(adverse_action.adverseActionId), adverse_action_data['adverseActionId'])
@@ -127,7 +127,7 @@ class TestAdverseActionDataClass(TstLambdas):
                 'clinicalPrivilegeActionCategory': 'Unsafe Practice or Substandard Care',
                 'compact': 'aslp',
                 'creationDate': '2024-11-08T23:59:59+00:00',
-                'creationEffectiveDate': '2024-02-15',
+                'effectiveStartDate': '2024-02-15',
                 'jurisdiction': 'ne',
                 'licenseType': 'speech-language pathologist',
                 'licenseTypeAbbreviation': 'slp',

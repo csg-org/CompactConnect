@@ -77,12 +77,12 @@ class AdverseActionData(CCDataClass):
         self._data['clinicalPrivilegeActionCategory'] = clinical_privilege_action_category_enum.value
 
     @property
-    def creationEffectiveDate(self) -> date:
-        return self._data['creationEffectiveDate']
+    def effectiveStartDate(self) -> date:
+        return self._data['effectiveStartDate']
 
-    @creationEffectiveDate.setter
-    def creationEffectiveDate(self, value: date) -> None:
-        self._data['creationEffectiveDate'] = value
+    @effectiveStartDate.setter
+    def effectiveStartDate(self, value: date) -> None:
+        self._data['effectiveStartDate'] = value
 
     @property
     def submittingUser(self) -> UUID:

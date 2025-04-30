@@ -38,7 +38,7 @@ class AdverseActionPublicResponseSchema(ForgivingSchema):
     actionAgainst = String(required=True, allow_none=False, validate=OneOf([e for e in AdverseActionAgainstEnum]))
 
     # Populated on creation
-    creationEffectiveDate = Raw(required=True, allow_none=False)
+    effectiveStartDate = Raw(required=True, allow_none=False)
     creationDate = Raw(required=True, allow_none=False)
     adverseActionId = Raw(required=True, allow_none=False)
 
