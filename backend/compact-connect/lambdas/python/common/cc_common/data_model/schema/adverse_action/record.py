@@ -2,7 +2,7 @@
 from uuid import uuid4
 
 from marshmallow import ValidationError, pre_dump, validates_schema
-from marshmallow.fields import UUID, Boolean, Date, DateTime, String
+from marshmallow.fields import UUID, Date, DateTime, String
 from marshmallow.validate import OneOf
 
 from cc_common.config import config
