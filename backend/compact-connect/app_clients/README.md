@@ -59,7 +59,10 @@ Add a new app client yaml file to `/app_clients` following the schema of the exa
 
    This command creates an app client with the ability to generate access tokens that expire after 15 minutes. This expiration time can be adjusted according to the needs of the consuming team up to 1 day (see [AccessTokenValidity](https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_CreateUserPoolClient.html#CognitoUserPools-CreateUserPoolClient-request-AccessTokenValidity)), though it is strongly recommended to keep this value as short as possible to limit the amount of time an access token is valid for if it is compromised. The consuming team will need to implement logic to generate new access tokens before previous tokens expire.
 
-   If the consuming team plans to use both the test and production environments, you will need to create two separate app clients, one in each respective AWS accounts for those environments.
+   If the consuming team plans to use both the beta and production environments, you will need to create two separate app clients one in each respective AWS accounts for those environments.
+
+   The cognito token URL for the beta environment is `https://compact-connect-staff-beta.auth.us-east-1.amazoncognito.com/oauth2/token` 
+   The cognito token URL for the prod environment is `https://compact-connect-staff.auth.us-east-1.amazoncognito.com/oauth2/token`
 
 
 ### 4. **Send Credentials to Consuming Team**
