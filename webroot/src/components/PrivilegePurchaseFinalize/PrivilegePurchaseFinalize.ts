@@ -376,10 +376,6 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
         return this.selectedPurchaseLicense?.licenseTypeAbbreviation() || '';
     }
 
-    // get feeDisplay(): string {
-    //     return this.selectedStatePurchaseData?.fees?.[this.selectedLicenseTypeAbbrev]?.toFixed(2) || '';
-    // }
-
     get selectionText(): string {
         return `${this.licenseTypeSelected} ${this.$t('licensing.privilege')} ${this.$t('common.selection')}`;
     }
