@@ -79,17 +79,13 @@ Add a new app client yaml file to `/app_clients` following the schema of the exa
    ```json
    {
    "clientId": "<client id>",
-   "clientSecret": "<client secret>",
-   "authUrl": "<cognito auth domain url>"
+   "clientSecret": "<client secret>"
    }
    ```
-   
-   The authUrl for the beta environment is `https://compact-connect-staff-beta.auth.us-east-1.amazoncognito.com/oauth2/token` 
-   The authUrl for the prod environment is `https://compact-connect-staff.auth.us-east-1.amazoncognito.com/oauth2/token`
 
 
    #### Email Instructions for consuming team
-   As part of the email message sent to the consuming team, be sure to attach [the onboarding instructions to the email]("./Compact Connect Automated License Upload Instructions.pdf")
+   As part of the email message sent to the consuming team, be sure to attach [the onboarding instructions to the email]("./Compact Connect Automated License Upload Instructions.txt").
 
 ## Rotating App Client Credentials
 Unfortunately, AWS Cognito does not support rotating app client credentials for an existing app client. The only way to rotate credentials is to create a new app client with a new clientId and clientSecret and then delete the old one. The following process should be performed if credentials are accidentally exposed or in the event of a security breach where the old credentials are compromised.
