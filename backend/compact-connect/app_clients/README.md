@@ -20,7 +20,7 @@ Add a new app client yaml file to `/app_clients` following the schema of the exa
 
 ##### **Compact-Level Scopes:**
    These are the scopes that are scoped to a specific compact. Granting these scopes will allow the app client to perform actions across all jurisdictions within that compact.
-   Generally, the only scope that should be granted at the compact level is the `{compact}/readGeneral` scope.
+   Generally, the only scope that should be granted at the compact level is the `{compact}/readGeneral` scope if needed.
 
    The following scopes are available at the compact level:
    ```
@@ -89,7 +89,7 @@ Add a new app client yaml file to `/app_clients` following the schema of the exa
 
 
    #### Email Instructions for consuming team
-   As part of the email message sent to the consuming team, be sure to attach [the onboarding instructions to the email](./Compact Connect Automated License Upload Instructions.pdf)
+   As part of the email message sent to the consuming team, be sure to attach [the onboarding instructions to the email]("./Compact Connect Automated License Upload Instructions.pdf")
 
 ## Rotating App Client Credentials
 Unfortunately, AWS Cognito does not support rotating app client credentials for an existing app client. The only way to rotate credentials is to create a new app client with a new clientId and clientSecret and then delete the old one. The following process should be performed if credentials are accidentally exposed or in the event of a security breach where the old credentials are compromised.
