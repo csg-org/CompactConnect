@@ -86,7 +86,6 @@ class TestDataGenerator:
             'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
             'licenseType': DEFAULT_LICENSE_TYPE,
             'actionAgainst': DEFAULT_ACTION_AGAINST_PRIVILEGE,
-            'blocksFuturePrivileges': DEFAULT_BLOCKS_FUTURE_PRIVILEGES,
             'clinicalPrivilegeActionCategory': DEFAULT_CLINICAL_PRIVILEGE_ACTION_CATEGORY,
             'creationEffectiveDate': date.fromisoformat(DEFAULT_CREATION_EFFECTIVE_DATE),
             'submittingUser': DEFAULT_AA_SUBMITTING_USER_ID,

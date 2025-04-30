@@ -124,7 +124,6 @@ class TestAdverseActionDataClass(TstLambdas):
             {
                 'actionAgainst': 'privilege',
                 'adverseActionId': '98765432-9876-9876-9876-987654321098',
-                'blocksFuturePrivileges': True,
                 'clinicalPrivilegeActionCategory': 'Unsafe Practice or Substandard Care',
                 'compact': 'aslp',
                 'creationDate': '2024-11-08T23:59:59+00:00',

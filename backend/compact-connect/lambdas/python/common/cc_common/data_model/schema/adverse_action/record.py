@@ -30,7 +30,6 @@ class AdverseActionRecordSchema(BaseRecordSchema):
     actionAgainst = String(required=True, allow_none=False, validate=OneOf([e.value for e in AdverseActionAgainstEnum]))
 
     # Populated on creation
-    blocksFuturePrivileges = Boolean(required=True, allow_none=False, default=True)
     clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategoryField(required=True, allow_none=False)
     creationEffectiveDate = Date(required=True, allow_none=False)
     submittingUser = UUID(required=True, allow_none=False)
