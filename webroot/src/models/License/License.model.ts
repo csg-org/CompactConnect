@@ -214,7 +214,9 @@ export class LicenseSerializer {
             history: [] as Array<LicenseHistoryItem>,
             status: json.licenseStatus || json.status,
             statusDescription: json.licenseStatusName,
-            eligibility: (json.type?.startsWith('license')) ? json.compactEligibility : EligibilityStatus.NA,
+            eligibility: (json.type === 'license' || json.type === 'license-home')
+                ? json.compactEligibility
+                : EligibilityStatus.NA,
         };
 
         if (Array.isArray(json.history)) {
