@@ -24,6 +24,7 @@ import Joi from 'joi';
 interface SelectOption {
     value: string | number;
     name: string | ComputedRef<string>;
+    isDisabled?: boolean;
 }
 
 @Component({
@@ -61,7 +62,7 @@ class RegisterLicensee extends mixins(MixinForm) {
     // Computed
     //
     get stateOptions(): Array<SelectOption> {
-        const options = [{ value: '', name: this.$t('common.select') }];
+        const options = [{ value: '', name: `- ${this.$t('common.select')} -`, isDisabled: true }];
 
         stateList?.forEach((state) => {
             const stateObject = new State({ abbrev: state });
@@ -69,7 +70,7 @@ class RegisterLicensee extends mixins(MixinForm) {
             const name = stateObject?.name();
 
             if (name && value) {
-                options.push({ value, name });
+                options.push({ value, name, isDisabled: false });
             }
         });
 
@@ -77,13 +78,14 @@ class RegisterLicensee extends mixins(MixinForm) {
     }
 
     get licenseTypeOptions(): Array<SelectOption> {
-        const options = [{ value: '', name: this.$t('common.select') }];
+        const options = [{ value: '', name: `- ${this.$t('common.select')} -`, isDisabled: true }];
         const licenseTypes = this.$tm('licensing.licenseTypes') || [];
 
         licenseTypes.forEach((licenseType) => {
             options.push({
                 value: licenseType.key,
                 name: licenseType.name,
+                isDisabled: false,
             });
         });
 
@@ -121,16 +123,14 @@ class RegisterLicensee extends mixins(MixinForm) {
             firstName: new FormInput({
                 id: 'first-name',
                 name: 'first-name',
-                label: computed(() => this.$t('common.givenName')),
-                placeholder: computed(() => this.$t('common.givenName')),
+                label: computed(() => this.$t('common.firstName')),
                 autocomplete: 'given-name',
                 validation: Joi.string().required().messages(this.joiMessages.string),
             }),
             lastName: new FormInput({
                 id: 'last-name',
                 name: 'last-name',
-                label: computed(() => this.$t('common.familyName')),
-                placeholder: computed(() => this.$t('common.familyName')),
+                label: computed(() => this.$t('common.lastName')),
                 autocomplete: 'family-name',
                 validation: Joi.string().required().messages(this.joiMessages.string),
             }),
@@ -138,7 +138,6 @@ class RegisterLicensee extends mixins(MixinForm) {
                 id: 'email',
                 name: 'email',
                 label: computed(() => this.$t('common.emailAddress')),
-                placeholder: computed(() => this.$t('common.emailAddress')),
                 autocomplete: 'email',
                 validation: Joi.string().required().email({ tlds: false }).messages(this.joiMessages.string),
             }),
@@ -146,7 +145,6 @@ class RegisterLicensee extends mixins(MixinForm) {
                 id: 'ssn-last-four',
                 name: 'ssn-last-four',
                 label: computed(() => this.$t('licensing.ssnLastFour')),
-                placeholder: computed(() => this.$t('licensing.ssnLastFour')),
                 validation: Joi.string().length(4).required().messages(this.joiMessages.string),
             }),
             dob: new FormInput({
