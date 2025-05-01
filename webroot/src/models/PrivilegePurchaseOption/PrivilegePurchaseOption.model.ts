@@ -14,7 +14,7 @@ import { State } from '@models/State/State.model';
 export interface InterfacePrivilegePurchaseOption {
     jurisdiction?: State;
     compactType?: string | null;
-    fees?: object;
+    fees?: { [key: string]: number };
     isMilitaryDiscountActive?: boolean;
     militaryDiscountType?: FeeTypes | null;
     militaryDiscountAmount?: number;
@@ -52,27 +52,23 @@ export class PrivilegePurchaseOption implements InterfacePrivilegePurchaseOption
 // ========================================================
 export class PrivilegePurchaseOptionSerializer {
     static fromServer(json: any): PrivilegePurchaseOption {
-        const serializeFeesByLicenseType = (feeArray) => {
-            const feeObject = {};
-
-            feeArray.forEach((fee) => {
-                if (fee.licenseTypeAbbreviation && fee.amount) {
-                    feeObject[fee.licenseTypeAbbreviation] = fee.amount;
-                }
-            });
-
-            return feeObject;
-        };
-
         const purchaseOptionData = {
             jurisdiction: new State({ abbrev: json.postalAbbreviation }),
             compactType: json.compact,
-            fees: serializeFeesByLicenseType(json.privilegeFees),
+            fees: {},
             isMilitaryDiscountActive: json?.militaryDiscount?.active === true || false,
             militaryDiscountType: json?.militaryDiscount?.discountType || null,
             militaryDiscountAmount: json?.militaryDiscount?.discountAmount || null,
             isJurisprudenceRequired: json?.jurisprudenceRequirements?.required || false,
         };
+
+        if (Array.isArray(json.privilegeFees)) {
+            json.privilegeFees.forEach((fee) => {
+                if (fee.licenseTypeAbbreviation && fee.amount) {
+                    purchaseOptionData.fees[fee.licenseTypeAbbreviation] = fee.amount;
+                }
+            });
+        }
 
         return new PrivilegePurchaseOption(purchaseOptionData);
     }
