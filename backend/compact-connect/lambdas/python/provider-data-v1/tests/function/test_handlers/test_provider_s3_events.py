@@ -15,11 +15,12 @@ MOCK_MILITARY_AFFILIATION_FILE_NAME = 'military_affiliation.pdf'
 @mock_aws
 class TestProviderUserBucketS3Events(TstFunction):
     def _call_post_military_affiliation_endpoint(self):
-        from handlers.provider_users import provider_user_me_military_affiliation
+        from handlers.provider_users import provider_users_api_handler
 
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
             event['httpMethod'] = 'POST'
+            event['resource'] = '/v1/provider-users/me/military-affiliation'
             event['requestContext']['authorizer']['claims']['custom:providerId'] = TEST_PROVIDER_ID
             event['requestContext']['authorizer']['claims']['custom:compact'] = TEST_COMPACT
             event['body'] = json.dumps(
@@ -29,7 +30,7 @@ class TestProviderUserBucketS3Events(TstFunction):
                 }
             )
 
-        return provider_user_me_military_affiliation(event, self.mock_context)
+        return provider_users_api_handler(event, self.mock_context)
 
     def _when_testing_military_affiliation_s3_object_create_event(self):
         # make mock call to POST endpoint to create a military affiliation record in an initializing state

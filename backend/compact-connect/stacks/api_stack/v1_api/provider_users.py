@@ -58,34 +58,62 @@ class ProviderUsers:
 
         # /v1/provider-users/me
         self.provider_users_me_resource = self.provider_users_resource.add_resource('me')
-        self._add_get_provider_user_me(
+        
+        # Create a single shared lambda handler for all provider-users/me endpoints
+        self.provider_users_me_handler = self._create_provider_users_handler(
             data_encryption_key=persistent_stack.shared_encryption_key,
             provider_data_table=persistent_stack.provider_table,
+            persistent_stack=persistent_stack,
             lambda_environment=lambda_environment,
         )
-
+        
+        # Add the GET method for /v1/provider-users/me
+        self._add_get_provider_user_me()
+        
         # /v1/provider-users/me/military-affiliation
         self.provider_users_me_military_affiliation_resource = self.provider_users_me_resource.add_resource(
             'military-affiliation'
         )
+        
+        # Add the POST and PATCH methods for /v1/provider-users/me/military-affiliation
+        self._add_provider_user_me_military_affiliation()
+        
+        # /v1/provider-users/me/home-jurisdiction
+        self.provider_users_me_home_jurisdiction_resource = self.provider_users_me_resource.add_resource(
+            'home-jurisdiction'
+        )
+        
+        # Add the PUT method for /v1/provider-users/me/home-jurisdiction
+        self._add_provider_user_me_home_jurisdiction()
 
-        self.provider_users_me_military_affiliation_handler = PythonFunction(
+    def _create_provider_users_handler(
+        self,
+        data_encryption_key: IKey,
+        provider_data_table: ProviderTable,
+        persistent_stack: ps.PersistentStack,
+        lambda_environment: dict,
+    ) -> PythonFunction:
+        stack = Stack.of(self.provider_users_resource)
+        handler = PythonFunction(
             self.provider_users_resource,
-            'ProviderUserMeMilitaryAffiliationHandler',
-            description='Provider user military affiliation handler',
+            'ProviderUsersHandler',
+            description='Provider users API handler',
             lambda_dir='provider-data-v1',
             index=os.path.join('handlers', 'provider_users.py'),
-            handler='provider_user_me_military_affiliation',
+            handler='provider_users_api_handler',
             environment=lambda_environment,
             alarm_topic=self.api.alarm_topic,
         )
-        persistent_stack.shared_encryption_key.grant_decrypt(self.provider_users_me_military_affiliation_handler)
-        persistent_stack.provider_table.grant_read_write_data(self.provider_users_me_military_affiliation_handler)
-        persistent_stack.provider_users_bucket.grant_read_write(self.provider_users_me_military_affiliation_handler)
-        self.api.log_groups.append(self.provider_users_me_military_affiliation_handler.log_group)
+        
+        # Grant necessary permissions
+        data_encryption_key.grant_decrypt(handler)
+        provider_data_table.grant_read_write_data(handler)
+        persistent_stack.provider_users_bucket.grant_read_write(handler)
+        self.api.log_groups.append(handler.log_group)
+        
         NagSuppressions.add_resource_suppressions_by_path(
             stack,
-            path=f'{self.provider_users_me_military_affiliation_handler.node.path}/ServiceRole/DefaultPolicy/Resource',
+            path=f'{handler.node.path}/ServiceRole/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
@@ -94,7 +122,25 @@ class ProviderUsers:
                 },
             ],
         )
+        
+        return handler
 
+    def _add_get_provider_user_me(self):
+        self.provider_users_me_resource.add_method(
+            'GET',
+            request_validator=self.api.parameter_body_validator,
+            method_responses=[
+                MethodResponse(
+                    status_code='200',
+                    response_models={'application/json': self.api_model.provider_response_model},
+                ),
+            ],
+            integration=LambdaIntegration(self.provider_users_me_handler, timeout=Duration.seconds(29)),
+            request_parameters={'method.request.header.Authorization': True},
+            authorizer=self.api.provider_users_authorizer,
+        )
+
+    def _add_provider_user_me_military_affiliation(self):
         self.provider_users_me_military_affiliation_resource.add_method(
             'POST',
             request_validator=self.api.parameter_body_validator,
@@ -107,9 +153,7 @@ class ProviderUsers:
                     },
                 ),
             ],
-            integration=LambdaIntegration(
-                self.provider_users_me_military_affiliation_handler, timeout=Duration.seconds(29)
-            ),
+            integration=LambdaIntegration(self.provider_users_me_handler, timeout=Duration.seconds(29)),
             request_parameters={'method.request.header.Authorization': True},
             authorizer=self.api.provider_users_authorizer,
         )
@@ -124,72 +168,26 @@ class ProviderUsers:
                     response_models={'application/json': self.api_model.message_response_model},
                 ),
             ],
-            integration=LambdaIntegration(
-                self.provider_users_me_military_affiliation_handler, timeout=Duration.seconds(29)
-            ),
+            integration=LambdaIntegration(self.provider_users_me_handler, timeout=Duration.seconds(29)),
             request_parameters={'method.request.header.Authorization': True},
             authorizer=self.api.provider_users_authorizer,
         )
-
-    def _add_get_provider_user_me(
-        self,
-        data_encryption_key: IKey,
-        provider_data_table: ProviderTable,
-        lambda_environment: dict,
-    ):
-        self.get_provider_users_me_handler = self._get_provider_user_me_handler(
-            data_encryption_key=data_encryption_key,
-            provider_data_table=provider_data_table,
-            lambda_environment=lambda_environment,
-        )
-        self.api.log_groups.append(self.get_provider_users_me_handler.log_group)
-
-        self.provider_users_me_resource.add_method(
-            'GET',
+        
+    def _add_provider_user_me_home_jurisdiction(self):
+        self.provider_users_me_home_jurisdiction_resource.add_method(
+            'PUT',
             request_validator=self.api.parameter_body_validator,
+            request_models={'application/json': self.api_model.put_provider_home_jurisdiction_request_model},
             method_responses=[
                 MethodResponse(
                     status_code='200',
-                    response_models={'application/json': self.api_model.provider_response_model},
+                    response_models={'application/json': self.api_model.message_response_model},
                 ),
             ],
-            integration=LambdaIntegration(self.get_provider_users_me_handler, timeout=Duration.seconds(29)),
+            integration=LambdaIntegration(self.provider_users_me_handler, timeout=Duration.seconds(29)),
             request_parameters={'method.request.header.Authorization': True},
             authorizer=self.api.provider_users_authorizer,
         )
-
-    def _get_provider_user_me_handler(
-        self,
-        data_encryption_key: IKey,
-        provider_data_table: ProviderTable,
-        lambda_environment: dict,
-    ) -> PythonFunction:
-        stack = Stack.of(self.provider_users_resource)
-        handler = PythonFunction(
-            self.provider_users_resource,
-            'GetProviderUserMeHandler',
-            description='Get provider personal profile information handler',
-            lambda_dir='provider-data-v1',
-            index=os.path.join('handlers', 'provider_users.py'),
-            handler='get_provider_user_me',
-            environment=lambda_environment,
-            alarm_topic=self.api.alarm_topic,
-        )
-        data_encryption_key.grant_decrypt(handler)
-        provider_data_table.grant_read_data(handler)
-
-        NagSuppressions.add_resource_suppressions_by_path(
-            stack,
-            path=f'{handler.node.path}/ServiceRole/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': 'The actions in this policy are specifically what this lambda needs to read '
-                    'and is scoped to one table and encryption key.',
-                },
-            ],
-        )
-        return handler
 
     def _add_provider_registration(
         self,

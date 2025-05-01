@@ -39,6 +39,33 @@ class ApiModel:
         return self.api._v1_message_response_model
 
     @property
+    def put_provider_home_jurisdiction_request_model(self) -> Model:
+        """Return the PUT home jurisdiction request model, which should only be created once per API"""
+        if hasattr(self.api, '_v1_put_provider_home_jurisdiction_request_model'):
+            return self.api._v1_put_provider_home_jurisdiction_request_model
+        
+        # the user can set their home jurisdiction to any of the known jurisdictions, or 'other'
+        # in the case the provider has a home jurisdiction that is not listed
+        allowed_options = self.api.node.get_context('jurisdictions') + ['other']
+        self.api._v1_put_provider_home_jurisdiction_request_model = self.api.add_model(
+            'V1PutProviderHomeJurisdictionRequestModel',
+            description='PUT provider home jurisdiction request model',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                additional_properties=False,
+                required=['jurisdiction'],
+                properties={
+                    'jurisdiction': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='The jurisdiction postal abbreviation to set as home jurisdiction',
+                        enum=allowed_options,
+                    ),
+                },
+            ),
+        )
+        return self.api._v1_put_provider_home_jurisdiction_request_model
+
+    @property
     def query_providers_request_model(self) -> Model:
         """Return the query providers request model, which should only be created once per API"""
         if hasattr(self.api, '_v1_query_providers_request_model'):
