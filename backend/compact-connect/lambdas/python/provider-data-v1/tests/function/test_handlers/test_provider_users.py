@@ -22,17 +22,19 @@ class TestGetProvider(TstFunction):
         test_provider = self.test_data_generator.put_default_provider_record_in_provider_table()
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
+            event['httpMethod'] = 'GET'
+            event['resource'] = '/v1/provider-users/me'
             event['requestContext']['authorizer']['claims']['custom:providerId'] = test_provider.providerId
             event['requestContext']['authorizer']['claims']['custom:compact'] = test_provider.compact
 
         return event
 
     def test_get_provider_returns_provider_information(self):
-        from handlers.provider_users import get_provider_user_me
+        from handlers.provider_users import provider_users_api_handler
 
         event = self._when_testing_provider_user_event_with_custom_claims()
 
-        resp = get_provider_user_me(event, self.mock_context)
+        resp = provider_users_api_handler(event, self.mock_context)
 
         self.assertEqual(200, resp['statusCode'])
         provider_data = json.loads(resp['body'])
@@ -42,7 +44,7 @@ class TestGetProvider(TstFunction):
         self.assertEqual(expected_provider, provider_data)
 
     def test_get_provider_does_not_return_home_jurisdiction_selection_key_if_not_present(self):
-        from handlers.provider_users import get_provider_user_me
+        from handlers.provider_users import provider_users_api_handler
 
         event = self._when_testing_provider_user_event_with_custom_claims()
         # delete the homeJurisdictionSelection key from the provider dynamodb record
@@ -53,7 +55,7 @@ class TestGetProvider(TstFunction):
             },
         )
 
-        resp = get_provider_user_me(event, self.mock_context)
+        resp = provider_users_api_handler(event, self.mock_context)
 
         self.assertEqual(200, resp['statusCode'])
         provider_data = json.loads(resp['body'])
@@ -64,7 +66,7 @@ class TestGetProvider(TstFunction):
         self.assertEqual(expected_provider, provider_data)
 
     def test_get_provider_returns_400_if_api_call_made_without_proper_claims(self):
-        from handlers.provider_users import get_provider_user_me
+        from handlers.provider_users import provider_users_api_handler
 
         event = self._when_testing_provider_user_event_with_custom_claims()
 
@@ -72,19 +74,19 @@ class TestGetProvider(TstFunction):
         del event['requestContext']['authorizer']['claims']['custom:providerId']
         del event['requestContext']['authorizer']['claims']['custom:compact']
 
-        resp = get_provider_user_me(event, self.mock_context)
+        resp = provider_users_api_handler(event, self.mock_context)
 
         self.assertEqual(400, resp['statusCode'])
 
     def test_get_provider_raises_exception_if_user_claims_do_not_match_any_provider_in_database(self):
-        from handlers.provider_users import get_provider_user_me
+        from handlers.provider_users import provider_users_api_handler
 
         event = self._when_testing_provider_user_event_with_custom_claims()
         event['requestContext']['authorizer']['claims']['custom:providerId'] = 'some-provider-id'
 
         # calling get_provider without creating a provider first
         with self.assertRaises(CCInternalException):
-            get_provider_user_me(event, self.mock_context)
+            provider_users_api_handler(event, self.mock_context)
 
     def test_get_provider_returns_license_adverse_actions_if_present(self):
         from cc_common.data_model.schema.common import AdverseActionAgainstEnum
@@ -167,6 +169,7 @@ class TestPostProviderMilitaryAffiliation(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
             event['httpMethod'] = 'POST'
+            event['resource'] = '/v1/provider-users/me/military-affiliation'
             event['requestContext']['authorizer']['claims']['custom:providerId'] = test_provider.providerId
             event['requestContext']['authorizer']['claims']['custom:compact'] = test_provider.compact
             event['body'] = json.dumps(
@@ -180,13 +183,13 @@ class TestPostProviderMilitaryAffiliation(TstFunction):
 
     @patch('handlers.provider_users.uuid')
     def test_post_provider_military_affiliation_returns_affiliation_information(self, mock_uuid):
-        from handlers.provider_users import provider_user_me_military_affiliation
+        from handlers.provider_users import provider_users_api_handler
 
         mock_uuid.uuid4.return_value = '1234'
 
         event = self._when_testing_post_provider_user_military_affiliation_event_with_custom_claims()
 
-        resp = provider_user_me_military_affiliation(event, self.mock_context)
+        resp = provider_users_api_handler(event, self.mock_context)
 
         self.assertEqual(200, resp['statusCode'])
         military_affiliation_data = json.loads(resp['body'])
@@ -224,7 +227,7 @@ class TestPostProviderMilitaryAffiliation(TstFunction):
 
     @patch('handlers.provider_users.uuid')
     def test_post_provider_military_affiliation_handles_file_with_uppercase_extension(self, mock_uuid):
-        from handlers.provider_users import provider_user_me_military_affiliation
+        from handlers.provider_users import provider_users_api_handler
 
         mock_uuid.uuid4.return_value = '1234'
 
@@ -236,11 +239,11 @@ class TestPostProviderMilitaryAffiliation(TstFunction):
             }
         )
 
-        resp = provider_user_me_military_affiliation(event, self.mock_context)
+        resp = provider_users_api_handler(event, self.mock_context)
         self.assertEqual(200, resp['statusCode'])
 
     def test_post_provider_military_affiliation_sets_previous_record_status_to_inactive(self):
-        from handlers.provider_users import provider_user_me_military_affiliation
+        from handlers.provider_users import provider_users_api_handler
 
         event = self._when_testing_post_provider_user_military_affiliation_event_with_custom_claims()
 
@@ -249,7 +252,7 @@ class TestPostProviderMilitaryAffiliation(TstFunction):
         with patch(
             'cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-09T23:59:59+00:00')
         ):
-            resp = provider_user_me_military_affiliation(event, self.mock_context)
+            resp = provider_users_api_handler(event, self.mock_context)
 
         self.assertEqual(200, resp['statusCode'])
 
@@ -264,7 +267,7 @@ class TestPostProviderMilitaryAffiliation(TstFunction):
         self.assertEqual('initializing', affiliations_sorted_by_date[1]['status'])
 
     def test_post_provider_returns_400_if_api_call_made_without_proper_claims(self):
-        from handlers.provider_users import provider_user_me_military_affiliation
+        from handlers.provider_users import provider_users_api_handler
 
         event = self._when_testing_post_provider_user_military_affiliation_event_with_custom_claims()
 
@@ -272,12 +275,12 @@ class TestPostProviderMilitaryAffiliation(TstFunction):
         del event['requestContext']['authorizer']['claims']['custom:providerId']
         del event['requestContext']['authorizer']['claims']['custom:compact']
 
-        resp = provider_user_me_military_affiliation(event, self.mock_context)
+        resp = provider_users_api_handler(event, self.mock_context)
 
         self.assertEqual(400, resp['statusCode'])
 
     def _when_testing_file_names(self, file_names: list[str]):
-        from handlers.provider_users import provider_user_me_military_affiliation
+        from handlers.provider_users import provider_users_api_handler
 
         event = self._when_testing_post_provider_user_military_affiliation_event_with_custom_claims()
         event['body'] = json.dumps(
@@ -287,7 +290,7 @@ class TestPostProviderMilitaryAffiliation(TstFunction):
             }
         )
 
-        return provider_user_me_military_affiliation(event, self.mock_context)
+        return provider_users_api_handler(event, self.mock_context)
 
     def test_post_provider_returns_400_if_file_name_using_unsupported_file_extension(self):
         resp = self._when_testing_file_names(['military_affiliation.guff'])
@@ -316,6 +319,7 @@ class TestPatchProviderMilitaryAffiliation(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
             event['httpMethod'] = 'PATCH'
+            event['resource'] = '/v1/provider-users/me/military-affiliation'
             event['requestContext']['authorizer']['claims']['custom:providerId'] = test_provider.providerId
             event['requestContext']['authorizer']['claims']['custom:compact'] = test_provider.compact
             event['body'] = json.dumps({'status': 'inactive'})
@@ -332,11 +336,11 @@ class TestPatchProviderMilitaryAffiliation(TstFunction):
         )['Items']
 
     def test_patch_provider_military_affiliation_returns_message(self):
-        from handlers.provider_users import provider_user_me_military_affiliation
+        from handlers.provider_users import provider_users_api_handler
 
         event = self._when_testing_patch_provider_user_military_affiliation_event_with_custom_claims()
 
-        resp = provider_user_me_military_affiliation(event, self.mock_context)
+        resp = provider_users_api_handler(event, self.mock_context)
 
         self.assertEqual(200, resp['statusCode'])
         resp_body = json.loads(resp['body'])
@@ -344,13 +348,13 @@ class TestPatchProviderMilitaryAffiliation(TstFunction):
         self.assertEqual({'message': 'Military affiliation updated successfully'}, resp_body)
 
     def test_patch_provider_military_affiliation_returs_400_if_invalid_body(self):
-        from handlers.provider_users import provider_user_me_military_affiliation
+        from handlers.provider_users import provider_users_api_handler
 
         event = self._when_testing_patch_provider_user_military_affiliation_event_with_custom_claims()
 
         event['body'] = json.dumps({'status': 'active'})
 
-        resp = provider_user_me_military_affiliation(event, self.mock_context)
+        resp = provider_users_api_handler(event, self.mock_context)
 
         self.assertEqual(400, resp['statusCode'])
         message = json.loads(resp['body'])['message']
@@ -358,7 +362,7 @@ class TestPatchProviderMilitaryAffiliation(TstFunction):
         self.assertEqual('Invalid status value. Only "inactive" is allowed.', message)
 
     def test_patch_provider_military_affiliation_updates_status(self):
-        from handlers.provider_users import provider_user_me_military_affiliation
+        from handlers.provider_users import provider_users_api_handler
 
         event = self._when_testing_patch_provider_user_military_affiliation_event_with_custom_claims()
 
@@ -367,7 +371,7 @@ class TestPatchProviderMilitaryAffiliation(TstFunction):
         self.assertEqual(1, len(affiliation_record))
         self.assertEqual('active', affiliation_record[0]['status'])
 
-        resp = provider_user_me_military_affiliation(event, self.mock_context)
+        resp = provider_users_api_handler(event, self.mock_context)
 
         self.assertEqual(200, resp['statusCode'])
 
@@ -376,3 +380,50 @@ class TestPatchProviderMilitaryAffiliation(TstFunction):
 
         self.assertEqual(1, len(affiliation_record))
         self.assertEqual('inactive', affiliation_record[0]['status'])
+
+
+@mock_aws
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
+class TestPutProviderHomeJurisdiction(TstFunction):
+    def _create_test_provider(self):
+        from cc_common.config import config
+
+        return config.data_client.get_or_create_provider_id(compact=TEST_COMPACT, ssn=MOCK_SSN)
+
+    def _when_testing_put_provider_home_jurisdiction_event_with_custom_claims(self):
+        self._load_provider_data()
+        provider_id = self._create_test_provider()
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+            event['httpMethod'] = 'PUT'
+            event['resource'] = '/v1/provider-users/me/home-jurisdiction'
+            event['requestContext']['authorizer']['claims']['custom:providerId'] = provider_id
+            event['requestContext']['authorizer']['claims']['custom:compact'] = TEST_COMPACT
+            event['body'] = json.dumps({'jurisdiction': 'oh'})
+
+        return event
+
+    def test_put_provider_home_jurisdiction_returns_message(self):
+        from handlers.provider_users import provider_users_api_handler
+
+        event = self._when_testing_put_provider_home_jurisdiction_event_with_custom_claims()
+
+        resp = provider_users_api_handler(event, self.mock_context)
+
+        self.assertEqual(200, resp['statusCode'])
+        resp_body = json.loads(resp['body'])
+
+        self.assertEqual({'message': 'ok'}, resp_body)
+
+    def test_put_provider_home_jurisdiction_returns_400_if_api_call_made_without_proper_claims(self):
+        from handlers.provider_users import provider_users_api_handler
+
+        event = self._when_testing_put_provider_home_jurisdiction_event_with_custom_claims()
+
+        # remove custom attributes in the cognito claims
+        del event['requestContext']['authorizer']['claims']['custom:providerId']
+        del event['requestContext']['authorizer']['claims']['custom:compact']
+
+        resp = provider_users_api_handler(event, self.mock_context)
+
+        self.assertEqual(400, resp['statusCode'])
