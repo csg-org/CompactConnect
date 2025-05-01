@@ -175,6 +175,22 @@ class TestPostPrivilegeEncumbrance(TstFunction):
             loaded_privilege_data.to_dict(),
         )
 
+    def test_privilege_encumbrance_handler_returns_access_denied_if_compact_admin(self):
+        from handlers.encumbrance import encumbrance_handler
+
+        event, test_privilege_record = self._when_testing_valid_privilege_encumbrance()
+
+        event['requestContext']['authorizer']['claims']['scope'] = f'openid email {test_privilege_record.compact}/admin'
+
+        response = encumbrance_handler(event, self.mock_context)
+        self.assertEqual(403, response['statusCode'], msg=json.loads(response['body']))
+        response_body = json.loads(response['body'])
+
+        self.assertEqual(
+            {'message': 'Access denied'},
+            response_body,
+        )
+
 
 @mock_aws
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP))
@@ -318,3 +334,21 @@ class TestPostLicenseEncumbrance(TstFunction):
             expected_license_data.to_dict(),
             loaded_privilege_data.to_dict(),
         )
+
+    def test_license_encumbrance_handler_returns_access_denied_if_compact_admin(self):
+        """Verifying that only state admins are allowed to encumber licenses"""
+        from handlers.encumbrance import encumbrance_handler
+
+        event, test_license_record = self._when_testing_valid_license_encumbrance()
+
+        event['requestContext']['authorizer']['claims']['scope'] = f'openid email {test_license_record.compact}/admin'
+
+        response = encumbrance_handler(event, self.mock_context)
+        self.assertEqual(403, response['statusCode'], msg=json.loads(response['body']))
+        response_body = json.loads(response['body'])
+
+        self.assertEqual(
+            {'message': 'Access denied'},
+            response_body,
+        )
+

@@ -10,7 +10,7 @@ from cc_common.data_model.schema.common import (
     ClinicalPrivilegeActionCategory,
 )
 from cc_common.exceptions import CCInvalidRequestException
-from cc_common.utils import api_handler, authorize_compact
+from cc_common.utils import api_handler, authorize_state_level_only_action
 from marshmallow import ValidationError
 
 PRIVILEGE_ENCUMBRANCE_ENDPOINT_RESOURCE = (
@@ -24,7 +24,7 @@ LICENSE_ENCUMBRANCE_ENDPOINT_RESOURCE = (
 
 
 @api_handler
-@authorize_compact(action=CCPermissionsAction.ADMIN)
+@authorize_state_level_only_action(action=CCPermissionsAction.ADMIN)
 def encumbrance_handler(event: dict, context: LambdaContext) -> dict:
     """Encumbrance handler"""
     with logger.append_context_keys(aws_request=context.aws_request_id):
