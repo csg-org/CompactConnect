@@ -29,11 +29,9 @@ You have received a one-time use link to access your API credentials. After retr
 2. Do not share these credentials with unauthorized personnel
 3. Do not hardcode these credentials in source code repositories
 
-> **Important**: If the link provided has already been used when you attempt to access the credentials, please contact the individual
-> who sent the link to you as the credentials will need to be regenerated and sent using another link.
+> **Important**: If the link provided has already been used when you attempt to access the credentials, please contact the individual who sent the link to you as the credentials will need to be regenerated and sent using another link.
 
-Likewise, if these credentials are ever accidentally shared or compromised, please inform the CompactConnect team
-as soon as possible, so the credentials can be deactivated and regenerated to prevent abuse of the system.
+> Likewise, if these credentials are ever accidentally shared or compromised, please inform the CompactConnect team as soon as possible, so the credentials can be deactivated and regenerated to prevent abuse of the system.
 
 The credentials will be sent to you in this format:
 
@@ -51,8 +49,9 @@ Follow these steps to obtain an access token and make requests to the CompactCon
 ### Step 1: Generate an Access Token
 
 You must first obtain an access token to authenticate your API requests. The access token will be used in the 
-Authorization header of subsequent API calls. While the following curl command demonstrates how to generate a token, 
-you should implement this authentication flow in your application's programming language using appropriate OAuth/HTTP libraries:
+Authorization header of subsequent API calls. While the following curl command demonstrates how to generate a token for
+the **beta** environment, you should implement this authentication flow in your application's programming language using
+appropriate OAuth/HTTP libraries:
 
 > **Note**: When copying commands, be careful of line breaks. You may need to remove any extra spaces or 
 > line breaks that occur when pasting.
@@ -68,10 +67,10 @@ curl --location --request POST 'https://compact-connect-staff-beta.auth.us-east-
 ```
 
 Replace:
-* `<clientId>` with your client ID
-* `<clientSecret>` with your client secret
-* `<jurisdiction>` with your lower-cased two-letter state code (e.g., `ky` for Kentucky)
-* `<compact>` with the lower-cased compact abbreviation (`octp` for the 'Occupational Therapy' Compact,
+- `<clientId>` with your client ID
+- `<clientSecret>` with your client secret
+- `<jurisdiction>` with your lower-cased two-letter state code (e.g., `ky` for Kentucky)
+- `<compact>` with the lower-cased compact abbreviation (`octp` for the 'Occupational Therapy' Compact,
 `aslp` for 'Audiology and Speech Language Pathology' Compact, or `coun` for the 'Counseling' Compact)
 
 Example response:
@@ -87,15 +86,15 @@ For more information about this authentication process, please see the following
 AWS documentation: https://docs.aws.amazon.com/cognito/latest/developerguide/token-endpoint.html
 
 **Important Notes**:
-* For security reasons, the access token is valid for 15 minutes from the time it is generated (900 seconds)
-* Your application should request a new token before the current one expires
-* Store the `access_token` value for use in API requests
+- For security reasons, the access token is valid for 15 minutes from the time it is generated (900 seconds)
+- Your application should request a new token before the current one expires
+- Store the `access_token` value for use in API requests
 
 ### Step 2: Upload License Data to the Beta Environment
 
 The CompactConnect License API can be called through a POST REST endpoint which takes in a list of license record objects.
-The following curl command example demonstrates how to upload license data, but you should implement this 
-API call in your application's programming language using appropriate HTTP libraries. You will need to 
+The following curl command example demonstrates how to upload license data into the **beta** environment, but you should
+implement this API call in your application's programming language using appropriate HTTP libraries. You will need to 
 replace the example payload with valid license data that includes the correct license types for your 
 specific compact (you can send up to 100 license records per request):
 
@@ -107,10 +106,10 @@ curl --location --request POST 'https://api.beta.compactconnect.org/v1/compacts/
 ```
 
 Replace:
-* `<access_token>` with the access token from Step 1
-* `<compact>` with the lower-cased compact abbreviation (e.g., `aslp`, `octp`, or `coun`)
-* `<jurisdiction>` with your lower-cased two-letter state code (e.g., `ky`)
-* The example payload shown here with your test license data
+- `<access_token>` with the access token from Step 1
+- `<compact>` with the lower-cased compact abbreviation (e.g., `aslp`, `octp`, or `coun`)
+- `<jurisdiction>` with your lower-cased two-letter state code (e.g., `ky`)
+- The example payload shown here with your test license data
 
 ### Step 2 Alternative: Upload License Data via CSV File
 
@@ -126,9 +125,9 @@ For the latest information about the license data field requirements, along with
 https://github.com/csg-org/CompactConnect/tree/main/backend/compact-connect/docs#field-descriptions
 
 **Important Notes**:
-* If `licenseStatus` is "inactive", `compactEligibility` cannot be "eligible"
-* `licenseType` must match exactly with one of the valid types for the specified compact
-* All date fields must use the `YYYY-MM-DD` format
+- If `licenseStatus` is "inactive", `compactEligibility` cannot be "eligible"
+- `licenseType` must match exactly with one of the valid types for the specified compact
+- All date fields must use the `YYYY-MM-DD` format
 
 ## Verification that License Records are Uploaded
 
@@ -146,10 +145,10 @@ by the CompactConnect System. The response will return the following body:
 
 ### 2. Error Responses
 If you receive an error response, check the status code and message:
-* **400**: Bad Request - Your request data is invalid (check the response body for validation errors)
-* **401**: Unauthorized - Your access token is invalid or expired
-* **403**: Forbidden - Your app client doesn't have permission to upload to the specified jurisdiction/compact
-* **502**: Internal Server Error - There was a problem processing your request
+- **400**: Bad Request - Your request data is invalid (check the response body for validation errors)
+- **401**: Unauthorized - Your access token is invalid or expired
+- **403**: Forbidden - Your app client doesn't have permission to upload to the specified jurisdiction/compact
+- **502**: Internal Server Error - There was a problem processing your request
 
 ### 3. Validation Errors
 If your license data fails validation, the API will return a 400 status code with details about the 
@@ -161,18 +160,18 @@ validation errors in the response body.
 ## Troubleshooting Common Issues
 
 ### 1. "Unknown error parsing request body"
-* Ensure your JSON data is properly formatted with no trailing commas
-* Check that all quoted strings use double quotes, not single quotes
-* Verify that your payload is a valid JSON array, even for a single license record
+- Ensure your JSON data is properly formatted with no trailing commas
+- Check that all quoted strings use double quotes, not single quotes
+- Verify that your payload is a valid JSON array, even for a single license record
 
 ### 2. Authentication errors (401)
-* Your access token might have expired - generate a new one
-* Make sure you're including the "Bearer" prefix before the token in the Authorization header
+- Your access token might have expired - generate a new one
+- Make sure you're including the "Bearer" prefix before the token in the Authorization header
 
 ### 3. Validation errors (400)
-* Check the error response for specific validation issues
-* Ensure all required fields are present and formatted correctly
-* Verify that `licenseType` matches exactly one of the valid types for the compact
+- Check the error response for specific validation issues
+- Ensure all required fields are present and formatted correctly
+- Verify that `licenseType` matches exactly one of the valid types for the compact
 
 ## Implementation Recommendations
 
