@@ -135,7 +135,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
         expected_privilege_update_data = self.test_data_generator.generate_default_privilege_update(
             value_overrides={
                 'updateType': 'encumbrance',
-                'updatedValues': {'administratorSetStatus': 'inactive'},
+                'updatedValues': {'encumberedStatus': 'encumbered'},
             }
         )
         loaded_privilege_update_data = PrivilegeUpdateData.from_database_record(item)
@@ -146,6 +146,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
         )
 
     def test_privilege_encumbrance_handler_sets_privilege_record_to_inactive_in_provider_data_table(self):
+        from cc_common.data_model.schema.common import PrivilegeEncumberedStatusEnum
         from cc_common.data_model.schema.privilege import PrivilegeData
         from handlers.encumbrance import encumbrance_handler
 
@@ -166,9 +167,11 @@ class TestPostPrivilegeEncumbrance(TstFunction):
         item = privilege_records['Items'][0]
 
         expected_privilege_data = self.test_data_generator.generate_default_privilege(
-            value_overrides={'dateOfUpdate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP, 'administratorSetStatus': 'inactive'}
+            value_overrides={'dateOfUpdate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP, 'encumberedStatus': 'encumbered'}
         )
         loaded_privilege_data = PrivilegeData.from_database_record(item)
+
+        self.assertEqual(PrivilegeEncumberedStatusEnum.ENCUMBERED, loaded_privilege_data.encumberedStatus)
 
         self.assertEqual(
             expected_privilege_data.to_dict(),
@@ -198,6 +201,7 @@ class TestPostLicenseEncumbrance(TstFunction):
     """Test suite for license encumbrance endpoints."""
 
     def _when_testing_valid_license_encumbrance(self):
+        self.test_data_generator.put_default_provider_record_in_provider_table()
         test_license_record = self.test_data_generator.put_default_license_record_in_provider_table()
 
         test_event = self.test_data_generator.generate_test_api_event(
@@ -280,8 +284,7 @@ class TestPostLicenseEncumbrance(TstFunction):
         response = encumbrance_handler(event, self.mock_context)
         self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
 
-        # Verify that the encumbrance record was added to the provider data table
-        # Perform a query to list all encumbrances for the provider using the starts_with key condition
+        # Verify that the update record was added for the license
         license_update_records = self._provider_table.query(
             Select='ALL_ATTRIBUTES',
             KeyConditionExpression=Key('pk').eq(test_license_record.serialize_to_database_record()['pk'])
@@ -295,7 +298,7 @@ class TestPostLicenseEncumbrance(TstFunction):
         expected_license_update_data = self.test_data_generator.generate_default_license_update(
             value_overrides={
                 'updateType': 'encumbrance',
-                'updatedValues': {'compactEligibility': 'ineligible'},
+                'updatedValues': {'encumberedStatus': 'encumbered'},
             }
         )
         loaded_license_update_data = LicenseUpdateData.from_database_record(item)
@@ -305,7 +308,8 @@ class TestPostLicenseEncumbrance(TstFunction):
             loaded_license_update_data.to_dict(),
         )
 
-    def test_license_encumbrance_handler_sets_privilege_record_to_inactive_in_provider_data_table(self):
+    def test_license_encumbrance_handler_sets_license_record_to_encumbered_in_provider_data_table(self):
+        from cc_common.data_model.schema.common import LicenseEncumberedStatusEnum
         from cc_common.data_model.schema.license import LicenseData
         from handlers.encumbrance import encumbrance_handler
 
@@ -314,8 +318,7 @@ class TestPostLicenseEncumbrance(TstFunction):
         response = encumbrance_handler(event, self.mock_context)
         self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
 
-        # Verify that the encumbrance record was added to the provider data table
-        # Perform a query to list all encumbrances for the provider using the starts_with key condition
+        # Verify that the encumbrance status was added to the license record
         license_serialized_record = test_license_record.serialize_to_database_record()
         license_records = self._provider_table.query(
             Select='ALL_ATTRIBUTES',
@@ -326,13 +329,45 @@ class TestPostLicenseEncumbrance(TstFunction):
         item = license_records['Items'][0]
 
         expected_license_data = self.test_data_generator.generate_default_license(
-            value_overrides={'dateOfUpdate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP, 'compactEligibility': 'ineligible'}
+            value_overrides={'dateOfUpdate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP, 'encumberedStatus': 'encumbered'}
         )
-        loaded_privilege_data = LicenseData.from_database_record(item)
+        loaded_license_data = LicenseData.from_database_record(item)
+
+        self.assertEqual(LicenseEncumberedStatusEnum.ENCUMBERED, loaded_license_data.encumberedStatus)
 
         self.assertEqual(
             expected_license_data.to_dict(),
-            loaded_privilege_data.to_dict(),
+            loaded_license_data.to_dict(),
+        )
+
+    def test_license_encumbrance_handler_sets_provider_record_to_encumbered_in_provider_data_table(self):
+        from cc_common.data_model.schema.common import LicenseEncumberedStatusEnum
+        from cc_common.data_model.schema.provider import ProviderData
+        from handlers.encumbrance import encumbrance_handler
+
+        event, test_license_record = self._when_testing_valid_license_encumbrance()
+        test_provider_record = self.test_data_generator.generate_default_provider()
+
+        response = encumbrance_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+
+        # Verify that the encumbrance status was added to the provider record
+        provider_serialized_record = test_provider_record.serialize_to_database_record()
+        provider_records = self._provider_table.get_item(
+            Key={'pk': provider_serialized_record['pk'], 'sk': provider_serialized_record['sk']}
+        )
+        item = provider_records['Item']
+
+        expected_provider_data = self.test_data_generator.generate_default_provider(
+            value_overrides={'dateOfUpdate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP, 'encumberedStatus': 'encumbered'}
+        )
+        loaded_provider_data = ProviderData.from_database_record(item)
+
+        self.assertEqual(LicenseEncumberedStatusEnum.ENCUMBERED, loaded_provider_data.encumberedStatus)
+
+        self.assertEqual(
+            expected_provider_data.to_dict(),
+            loaded_provider_data.to_dict(),
         )
 
     def test_license_encumbrance_handler_returns_access_denied_if_compact_admin(self):
@@ -351,4 +386,3 @@ class TestPostLicenseEncumbrance(TstFunction):
             {'message': 'Access denied'},
             response_body,
         )
-

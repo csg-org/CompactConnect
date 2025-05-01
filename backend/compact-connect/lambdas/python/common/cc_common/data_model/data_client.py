@@ -13,7 +13,12 @@ from cc_common.data_model.query_paginator import paginated_query
 from cc_common.data_model.schema import PrivilegeRecordSchema
 from cc_common.data_model.schema.adverse_action import AdverseActionData
 from cc_common.data_model.schema.base_record import SSNIndexRecordSchema
-from cc_common.data_model.schema.common import ActiveInactiveStatus, CompactEligibilityStatus, UpdateCategory
+from cc_common.data_model.schema.common import (
+    ActiveInactiveStatus,
+    LicenseEncumberedStatusEnum,
+    PrivilegeEncumberedStatusEnum,
+    UpdateCategory,
+)
 from cc_common.data_model.schema.home_jurisdiction.record import ProviderHomeJurisdictionSelectionRecordSchema
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
 from cc_common.data_model.schema.military_affiliation.common import (
@@ -23,6 +28,7 @@ from cc_common.data_model.schema.military_affiliation.common import (
 from cc_common.data_model.schema.military_affiliation.record import MilitaryAffiliationRecordSchema
 from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
 from cc_common.data_model.schema.privilege.record import PrivilegeUpdateRecordSchema
+from cc_common.data_model.schema.provider import ProviderData
 from cc_common.exceptions import (
     CCAwsServiceException,
     CCInternalException,
@@ -921,10 +927,10 @@ class DataClient:
 
         return privilege_record
 
-    def _generate_set_administrator_set_status_item(
+    def _generate_set_privilege_encumbered_status_item(
         self,
         privilege_data: PrivilegeData,
-        status_to_set: ActiveInactiveStatus,
+        privilege_encumbered_status: PrivilegeEncumberedStatusEnum,
     ):
         privilege_data_record = privilege_data.serialize_to_database_record()
         return {
@@ -934,18 +940,18 @@ class DataClient:
                     'pk': {'S': privilege_data_record['pk']},
                     'sk': {'S': privilege_data_record['sk']},
                 },
-                'UpdateExpression': 'SET administratorSetStatus = :status, dateOfUpdate = :dateOfUpdate',
+                'UpdateExpression': 'SET encumberedStatus = :status, dateOfUpdate = :dateOfUpdate',
                 'ExpressionAttributeValues': {
-                    ':status': {'S': status_to_set},
+                    ':status': {'S': privilege_encumbered_status},
                     ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
                 },
             },
         }
 
-    def _generate_set_license_compact_eligibility_status_item(
+    def _generate_set_license_encumbered_status_item(
         self,
         license_data: LicenseData,
-        compact_eligibility_status: CompactEligibilityStatus,
+        license_encumbered_status: LicenseEncumberedStatusEnum,
     ):
         license_data_record = license_data.serialize_to_database_record()
         return {
@@ -955,9 +961,31 @@ class DataClient:
                     'pk': {'S': license_data_record['pk']},
                     'sk': {'S': license_data_record['sk']},
                 },
-                'UpdateExpression': 'SET compactEligibility = :status, dateOfUpdate = :dateOfUpdate',
+                'UpdateExpression': 'SET encumberedStatus = :status, dateOfUpdate = :dateOfUpdate',
                 'ExpressionAttributeValues': {
-                    ':status': {'S': compact_eligibility_status},
+                    ':status': {'S': license_encumbered_status},
+                    ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
+                },
+            },
+        }
+
+    def _generate_set_provider_encumbered_status_item(
+        self,
+        provider_data: ProviderData,
+        # licenses and providers share the same encumbered status enum
+        provider_encumbered_status: LicenseEncumberedStatusEnum,
+    ):
+        provider_data_record = provider_data.serialize_to_database_record()
+        return {
+            'Update': {
+                'TableName': self.config.provider_table.name,
+                'Key': {
+                    'pk': {'S': provider_data_record['pk']},
+                    'sk': {'S': provider_data_record['sk']},
+                },
+                'UpdateExpression': 'SET encumberedStatus = :status, dateOfUpdate = :dateOfUpdate',
+                'ExpressionAttributeValues': {
+                    ':status': {'S': provider_encumbered_status},
                     ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
                 },
             },
@@ -1003,14 +1031,14 @@ class DataClient:
 
             privilege_data = PrivilegeData.from_database_record(privilege_record)
 
-            need_to_set_privilege_to_inactive = True
-            # If already inactive, do nothing
-            if privilege_data.administratorSetStatus == ActiveInactiveStatus.INACTIVE:
-                logger.info('Privilege already inactive. Not updating "administratorSetStatus" field')
-                need_to_set_privilege_to_inactive = False
+            need_to_set_privilege_to_encumbered = True
+            # If already encumbered, do nothing
+            if privilege_data.encumberedStatus == PrivilegeEncumberedStatusEnum.ENCUMBERED:
+                logger.info('Privilege already encumbered. Not updating "encumberedStatus" field')
+                need_to_set_privilege_to_encumbered = False
             else:
                 logger.info(
-                    'Privilege is currently active. Setting privilege into an inactive state as part of update.'
+                    'Privilege is currently active. Setting privilege into an encumbered state as part of update.'
                 )
 
             # Create the update record
@@ -1028,9 +1056,9 @@ class DataClient:
                         **privilege_data.to_dict(),
                     },
                     'updatedValues': {
-                        'administratorSetStatus': ActiveInactiveStatus.INACTIVE,
+                        'encumberedStatus': PrivilegeEncumberedStatusEnum.ENCUMBERED,
                     }
-                    if need_to_set_privilege_to_inactive
+                    if need_to_set_privilege_to_encumbered
                     else {},
                 }
             ).serialize_to_database_record()
@@ -1046,12 +1074,12 @@ class DataClient:
                 self._generate_put_transaction_item(adverse_action.serialize_to_database_record()),
             ]
 
-            if need_to_set_privilege_to_inactive:
-                # Set the privilege record's administratorSetStatus to inactive and update the dateOfUpdate
+            if need_to_set_privilege_to_encumbered:
+                # Set the privilege record's encumberedStatus to encumbered and update the dateOfUpdate
                 transact_items.append(
-                    self._generate_set_administrator_set_status_item(
+                    self._generate_set_privilege_encumbered_status_item(
                         privilege_data=privilege_data,
-                        status_to_set=ActiveInactiveStatus.INACTIVE,
+                        privilege_encumbered_status=PrivilegeEncumberedStatusEnum.ENCUMBERED,
                     )
                 )
             self.config.dynamodb_client.transact_write_items(
@@ -1092,14 +1120,40 @@ class DataClient:
 
             license_data = LicenseData.from_database_record(license_record)
 
-            need_to_set_license_to_ineligible = True
-            # If already ineligible, do nothing
-            if license_data.compactEligibility == CompactEligibilityStatus.INELIGIBLE:
-                logger.info('License already ineligible. Not updating license compact eligibility status')
-                need_to_set_license_to_ineligible = False
+            need_to_set_license_to_encumbered = True
+            # If already encumbered, do nothing
+            if license_data.encumberedStatus == LicenseEncumberedStatusEnum.ENCUMBERED:
+                logger.info('License already encumbered. Not updating license compact eligibility status')
+                need_to_set_license_to_encumbered = False
             else:
                 logger.info(
-                    'License is currently eligible. Setting license into an ineligible state as part of update.'
+                    'License is currently unencumbered. Setting license into an encumbered state as part of update.'
+                )
+
+            # in the case of a license encumbrance, we need to update the provider record to encumbered
+            # as well as the license record to denote that the provider is encumbered as a result of the license
+            # encumbrance
+            try:
+                provider_record = self.config.provider_table.get_item(
+                    Key={
+                        'pk': f'{adverse_action.compact}#PROVIDER#{adverse_action.providerId}',
+                        'sk': f'{adverse_action.compact}#PROVIDER',
+                    },
+                )['Item']
+            except KeyError as e:
+                message = 'Provider not found'
+                logger.info(message)
+                raise CCNotFoundException(message) from e
+
+            provider_data = ProviderData.from_database_record(provider_record)
+
+            need_to_set_provider_to_encumbered = True
+            if provider_data.encumberedStatus == LicenseEncumberedStatusEnum.ENCUMBERED:
+                logger.info('Provider already encumbered. Not updating provider encumbered status')
+                need_to_set_provider_to_encumbered = False
+            else:
+                logger.info(
+                    'Provider is currently unencumbered. Setting provider into an encumbered state as part of update.'
                 )
 
             # Create the update record
@@ -1117,9 +1171,9 @@ class DataClient:
                         **license_data.to_dict(),
                     },
                     'updatedValues': {
-                        'compactEligibility': CompactEligibilityStatus.INELIGIBLE,
+                        'encumberedStatus': LicenseEncumberedStatusEnum.ENCUMBERED,
                     }
-                    if need_to_set_license_to_ineligible
+                    if need_to_set_license_to_encumbered
                     else {},
                 }
             ).serialize_to_database_record()
@@ -1134,14 +1188,24 @@ class DataClient:
                 self._generate_put_transaction_item(adverse_action.serialize_to_database_record()),
             ]
 
-            if need_to_set_license_to_ineligible:
-                # Set the license record's compactEligibility to ineligible and update the dateOfUpdate
+            if need_to_set_license_to_encumbered:
+                # Set the license record's encumberedStatus to encumbered
                 transact_items.append(
-                    self._generate_set_license_compact_eligibility_status_item(
+                    self._generate_set_license_encumbered_status_item(
                         license_data=license_data,
-                        compact_eligibility_status=CompactEligibilityStatus.INELIGIBLE,
+                        license_encumbered_status=LicenseEncumberedStatusEnum.ENCUMBERED,
                     )
                 )
+
+            if need_to_set_provider_to_encumbered:
+                # Set the provider record's encumberedStatus to encumbered
+                transact_items.append(
+                    self._generate_set_provider_encumbered_status_item(
+                        provider_data=provider_data,
+                        provider_encumbered_status=LicenseEncumberedStatusEnum.ENCUMBERED,
+                    )
+                )
+
             self.config.dynamodb_client.transact_write_items(
                 TransactItems=transact_items,
             )

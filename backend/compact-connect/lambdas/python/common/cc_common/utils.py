@@ -226,7 +226,7 @@ class authorize_compact_level_only_action:  # noqa: N801 invalid-name
             return fn(event, context)
 
         return authorized
-    
+
 
 class authorize_state_level_only_action:  # noqa: N801 invalid-name
     """Authorize endpoint by matching path parameter compact to the expected scope limited to state level

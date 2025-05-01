@@ -119,6 +119,14 @@ class PrivilegeData(CCDataClass):
         self._data['administratorSetStatus'] = value.value if isinstance(value, ActiveInactiveStatus) else value
 
     @property
+    def encumberedStatus(self) -> str | None:
+        return self._data.get('encumberedStatus')
+
+    @encumberedStatus.setter
+    def encumberedStatus(self, value: str) -> None:
+        self._data['encumberedStatus'] = value
+
+    @property
     def status(self) -> str:
         """
         Read-only property that returns the active/inactive status of the privilege.

@@ -129,6 +129,10 @@ class LicenseData(CCDataClass):
     def compactEligibility(self) -> str:
         return self._data['compactEligibility']
 
+    @property
+    def encumberedStatus(self) -> str | None:
+        return self._data.get('encumberedStatus')
+
 
 class LicenseUpdateData(CCDataClass):
     """
