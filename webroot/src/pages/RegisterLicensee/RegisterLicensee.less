@@ -38,7 +38,13 @@
     }
 
     .register-licensee-title {
+        margin-bottom: 1rem;
+    }
+
+    .register-licensee-subtext {
         margin-bottom: 1.8rem;
+        font-size: 1.4rem;
+        text-align: center;
     }
 
     .register-licensee-card {
@@ -47,6 +53,17 @@
 
     .register-licensee-form-container {
         width: 100%;
+    }
+
+    .input-email-component {
+        margin-bottom: 0.4rem;
+        padding-top: 1.8rem;
+        border-top: 1px solid @lightGrey;
+    }
+
+    .input-email-subtext {
+        color: darken(@darkGrey, 10%);
+        font-size: 1.2rem;
     }
 
     .input-submit:deep(.input-submit) {
@@ -80,6 +97,14 @@
         .register-licensee-success-subtext {
             margin-top: 1.2rem;
             text-align: center;
+        }
+
+        .nav-button {
+            .button-primary();
+
+            margin-top: 4rem;
+            padding-top: 1rem;
+            padding-bottom: 1rem;
         }
     }
 

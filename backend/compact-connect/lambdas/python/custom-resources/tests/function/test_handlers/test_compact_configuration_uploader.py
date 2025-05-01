@@ -53,8 +53,6 @@ def generate_single_jurisdiction_config(
     return {
         'jurisdictionName': jurisdiction_name,
         'postalAbbreviation': postal_abbreviation,
-        # deprecated - will be removed as part of https://github.com/csg-org/CompactConnect/issues/636
-        'jurisdictionFee': 100,
         'privilegeFees': privilege_fees,
         'militaryDiscount': {'active': True, 'discountType': 'FLAT_RATE', 'discountAmount': 10},
         'jurisdictionOperationsTeamEmails': ['cloud-team@example.com'],
@@ -137,8 +135,6 @@ class TestCompactConfigurationUploader(TstFunction):
                     'compact': ASLP_COMPACT_ABBREVIATION,
                     'dateOfUpdate': MOCK_CURRENT_TIMESTAMP,
                     'jurisdictionAdverseActionsNotificationEmails': [],
-                    # deprecated - will be removed as part of https://github.com/csg-org/CompactConnect/issues/636
-                    'jurisdictionFee': Decimal('100.00'),
                     'privilegeFees': [
                         {'licenseTypeAbbreviation': 'aud', 'amount': Decimal('100.00')},
                         {'licenseTypeAbbreviation': 'slp', 'amount': Decimal('100.00')},
@@ -162,8 +158,6 @@ class TestCompactConfigurationUploader(TstFunction):
                     'compact': ASLP_COMPACT_ABBREVIATION,
                     'dateOfUpdate': MOCK_CURRENT_TIMESTAMP,
                     'jurisdictionAdverseActionsNotificationEmails': [],
-                    # deprecated - will be removed as part of https://github.com/csg-org/CompactConnect/issues/636
-                    'jurisdictionFee': Decimal('100.00'),
                     'privilegeFees': [
                         {'licenseTypeAbbreviation': 'aud', 'amount': Decimal('100.00')},
                         {'licenseTypeAbbreviation': 'slp', 'amount': Decimal('100.00')},
@@ -199,8 +193,6 @@ class TestCompactConfigurationUploader(TstFunction):
                     'compact': OT_COMPACT_ABBREVIATION,
                     'dateOfUpdate': MOCK_CURRENT_TIMESTAMP,
                     'jurisdictionAdverseActionsNotificationEmails': [],
-                    # deprecated - will be removed as part of https://github.com/csg-org/CompactConnect/issues/636
-                    'jurisdictionFee': Decimal('100.00'),
                     'privilegeFees': [
                         {'licenseTypeAbbreviation': 'ot', 'amount': Decimal('100.00')},
                         {'licenseTypeAbbreviation': 'ota', 'amount': Decimal('100.00')},
@@ -224,8 +216,6 @@ class TestCompactConfigurationUploader(TstFunction):
                     'compact': OT_COMPACT_ABBREVIATION,
                     'dateOfUpdate': MOCK_CURRENT_TIMESTAMP,
                     'jurisdictionAdverseActionsNotificationEmails': [],
-                    # deprecated - will be removed as part of https://github.com/csg-org/CompactConnect/issues/636
-                    'jurisdictionFee': Decimal('100.00'),
                     'privilegeFees': [
                         {'licenseTypeAbbreviation': 'ot', 'amount': Decimal('100.00')},
                         {'licenseTypeAbbreviation': 'ota', 'amount': Decimal('100.00')},

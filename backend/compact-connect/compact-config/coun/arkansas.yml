@@ -1,20 +1,14 @@
 # PLACEHOLDER DATA, NOT FINAL CONFIGURATION.
-jurisdictionName: "Nebraska"
-postalAbbreviation: "ne"
+jurisdictionName: "Arkansas"
+postalAbbreviation: "ar"
 privilegeFees:
-  - licenseTypeAbbreviation: "ot"
-    amount: 100
-  - licenseTypeAbbreviation: "ota"
-    amount: 100
-militaryDiscount:
-    active: true
-    discountType: "FLAT_RATE"
-    discountAmount: 10
+  - licenseTypeAbbreviation: "lpc"
+    amount: 3
 jurisdictionOperationsTeamEmails:
     - "cloud-team-nonprod-alerts@inspiringapps.com"
 jurisdictionAdverseActionsNotificationEmails: []
 jurisdictionSummaryReportNotificationEmails: []
 jurisprudenceRequirements:
-    required: true
+    required: false
 licenseeRegistrationEnabledForEnvironments: ["test"]
-activeEnvironments: ["test"]
+activeEnvironments: ["test", "beta"]

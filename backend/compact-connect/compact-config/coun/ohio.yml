@@ -1,8 +1,6 @@
 # PLACEHOLDER DATA, NOT FINAL CONFIGURATION.
 jurisdictionName: "Ohio"
 postalAbbreviation: "oh"
-# deprecated - will be removed as part of https://github.com/csg-org/CompactConnect/issues/636
-jurisdictionFee: 100
 privilegeFees:
   - licenseTypeAbbreviation: "lpc"
     amount: 100
