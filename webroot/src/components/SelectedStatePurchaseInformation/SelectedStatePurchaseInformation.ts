@@ -147,7 +147,7 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
     }
 
     get feeDisplay(): string {
-        return this.basePurchasePrice.toFixed(2) || '';
+        return this.basePurchasePrice.toFixed(2);
     }
 
     get militaryDiscountAmountDisplay(): string {
