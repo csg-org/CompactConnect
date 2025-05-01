@@ -16,6 +16,34 @@ from cc_common.utils import api_handler
 from . import get_provider_information
 
 
+@api_handler
+def provider_users_api_handler(event: dict, context: LambdaContext):
+    """
+    Main entry point for provider users API.
+    Routes to the appropriate handler based on the HTTP method and resource path.
+    
+    :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
+    :param context: Lambda context
+    """
+    # Extract the HTTP method and resource path
+    http_method = event.get('httpMethod')
+    resource_path = event.get('resource')
+    
+    # Route to the appropriate handler
+    if http_method == 'GET' and resource_path == '/v1/provider-users/me':
+        return get_provider_user_me(event, context)
+    elif resource_path == '/v1/provider-users/me/military-affiliation':
+        if http_method == 'POST':
+            return _post_provider_military_affiliation(event, context)
+        elif http_method == 'PATCH':
+            return _patch_provider_military_affiliation(event, context)
+    elif http_method == 'PUT' and resource_path == '/v1/provider-users/me/home-jurisdiction':
+        return put_provider_home_jurisdiction(event, context)
+
+    # If we get here, the method/resource combination is not supported
+    raise CCInvalidRequestException(f'Unsupported method or resource: {http_method} {resource_path}')
+
+
 def _check_provider_user_attributes(event: dict) -> tuple[str, str]:
     try:
         # the two values for compact and providerId are stored as custom attributes in the user's cognito claims
@@ -30,7 +58,6 @@ def _check_provider_user_attributes(event: dict) -> tuple[str, str]:
     return compact, provider_id
 
 
-@api_handler
 def get_provider_user_me(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """Endpoint for a provider user to fetch their personal provider data.
 
@@ -47,19 +74,28 @@ def get_provider_user_me(event: dict, context: LambdaContext):  # noqa: ARG001 u
         raise CCInternalException(message) from e
 
 
-@api_handler
-def provider_user_me_military_affiliation(event: dict, context: LambdaContext):
+def put_provider_home_jurisdiction(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """
-    Endpoint for a provider user to update their military affiliation.
-    This handles both the POST and PATCH methods.
+    Handle the PUT method for updating a provider's home jurisdiction.
+    This is a placeholder implementation that will be expanded in a future update.
+    
+    :param event: API Gateway event
+    :param context: Lambda context
+    :return: Success message
     """
-    # handle POST method
-    if event['httpMethod'] == 'POST':
-        return _post_provider_military_affiliation(event, context)
-    if event['httpMethod'] == 'PATCH':
-        return _patch_provider_military_affiliation(event, context)
-
-    raise CCInvalidRequestException('Invalid HTTP method')
+    compact, provider_id = _check_provider_user_attributes(event)
+    
+    # Parse the request body
+    event_body = json.loads(event['body'])
+    
+    jurisdiction = event_body['jurisdiction']
+    
+    # Log the request
+    logger.info("Handling request to update provider home jurisdiction", 
+                compact=compact, provider_id=provider_id, jurisdiction=jurisdiction)
+    
+    # This is a placeholder implementation - we'll add the actual update logic in a follow-up
+    return {"message": "ok"}
 
 
 def _post_provider_military_affiliation(event, context):  # noqa: ARG001 unused-argument
