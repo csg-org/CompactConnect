@@ -106,66 +106,6 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
         return !this.$matches.tablet.min;
     }
 
-    get paymentTitleText(): string {
-        return this.$t('payment.payment');
-    }
-
-    get creditCardTitleText(): string {
-        return this.$t('payment.creditCardTitle');
-    }
-
-    get cardNumberLabel(): string {
-        return this.$t('payment.cardNumber');
-    }
-
-    get expirationDateText(): string {
-        return this.$t('payment.expirationDate');
-    }
-
-    get cvvLabel(): string {
-        return this.$t('payment.cvv');
-    }
-
-    get billingAddressTitleText(): string {
-        return this.$t('payment.billingAddressTitle');
-    }
-
-    get firstNameInputLabel(): string {
-        return this.$t('common.firstName');
-    }
-
-    get firstNamePlaceholderText(): string {
-        return this.$t('payment.enterFirstName');
-    }
-
-    get lastNameInputLabel(): string {
-        return this.$t('common.lastName');
-    }
-
-    get lastNamePlaceholderText(): string {
-        return this.$t('payment.enterLastName');
-    }
-
-    get streetAddress1Label(): string {
-        return this.$t('payment.streetAddress');
-    }
-
-    get streetAddress1PlaceHolderText(): string {
-        return this.$t('payment.enterStreetAddress');
-    }
-
-    get streetAddress2Label(): string {
-        return this.$t('payment.streetAddress2');
-    }
-
-    get streetAddress2PlaceHolderText(): string {
-        return this.$t('payment.apptUnitNumber');
-    }
-
-    get stateText(): string {
-        return this.$t('common.state');
-    }
-
     get stateOptions() {
         const stateOptions = [{ value: '', name: this.$t('common.select') }];
 
@@ -230,11 +170,11 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
     }
 
     get selectedStatePurchaseDisplayDataList(): Array<object> {
-        const licenseTypeKey = this.licenseTypeSelected.toLowerCase();
+        const licenseTypeKey = this.licenseTypeSelected;
 
         return this.selectedStatePurchaseDataList.map((state) => {
-            const stateFeeText = `${state?.jurisdiction?.name()} ${this.compactPrivilegeStateFeeText}`;
-            const stateMilitaryPurchaseText = `${state?.jurisdiction?.name()} ${this.militaryDiscountText}`;
+            const stateFeeText = `${state?.jurisdiction?.name()} ${this.$t('payment.compactPrivilegeStateFee')}`;
+            const stateMilitaryPurchaseText = `${state?.jurisdiction?.name()} ${this.$t('military.militaryDiscountText')}`;
             let stateFeeDisplay = '';
             let stateMilitaryDiscountAmountDisplay = '';
 
@@ -260,20 +200,12 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
         return this.currentCompact?.privilegePurchaseOptions || [];
     }
 
-    get compactPrivilegeStateFeeText(): string {
-        return this.$t('payment.compactPrivilegeStateFee');
-    }
-
     get compactCommissionFeeText(): string | null {
         return `${this.$t('payment.compactCommissionFee')} ($${this.currentCompactCommissionFee?.toFixed(2)} x ${this.privCount})`;
     }
 
     get privCount(): number {
         return this.selectedStatePurchaseDataList?.length || 0;
-    }
-
-    get totalTitle(): string {
-        return this.$t('common.total');
     }
 
     get totalCompactCommissionFee(): number {
@@ -286,14 +218,10 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
         return total;
     }
 
-    get militaryDiscountText(): string {
-        return this.$t('military.militaryDiscountText');
-    }
-
     get totalPurchasePrice(): number {
         let total = this.totalCompactCommissionFee + this.creditCardFeesTotal;
 
-        const licenseTypeKey = this.licenseTypeSelected.toLowerCase();
+        const licenseTypeKey = this.licenseTypeSelected;
 
         this.selectedStatePurchaseDataList.forEach((stateSelected) => {
             if (stateSelected?.fees?.[licenseTypeKey]) {
@@ -316,40 +244,12 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
         return this.totalPurchasePrice?.toFixed(2) || '';
     }
 
-    get noRefundsAcknowledgement(): string {
-        return this.$t('licensing.noRefundsMessage');
-    }
-
-    get cancelText(): string {
-        return this.$t('common.cancel');
-    }
-
-    get backText(): string {
-        return this.$t('common.back');
-    }
-
-    get submitLabel(): string {
-        return this.$t('payment.completePurchase');
-    }
-
     get isSubmitEnabled(): boolean {
         return this.isFormValid && this.formData.noRefunds.value && !this.isFormLoading;
     }
 
-    get formValidationErrorMessage(): string {
-        return this.$t('common.formValidationErrorMessage');
-    }
-
     get isMockPopulateEnabled(): boolean {
         return Boolean(this.$envConfig.isDevelopment);
-    }
-
-    get feesText(): string {
-        return this.$t('common.fees');
-    }
-
-    get creditCardFeesText(): string {
-        return this.$t('payment.ccTransactionFees');
     }
 
     get creditCardFeesTotal(): number {
@@ -373,11 +273,11 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
     }
 
     get licenseTypeSelected(): string {
-        return this.selectedPurchaseLicense?.licenseTypeAbbreviation() || '';
+        return this.selectedPurchaseLicense?.licenseTypeAbbreviation()?.toLowerCase() || '';
     }
 
     get selectionText(): string {
-        return `${this.licenseTypeSelected} ${this.$t('licensing.privilege')} ${this.$t('common.selection')}`;
+        return `${this.licenseTypeSelected.toLocaleUpperCase()} ${this.$t('licensing.privilege')} ${this.$t('common.selection')}`;
     }
 
     //
@@ -388,7 +288,7 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
             creditCard: new FormInput({
                 id: 'card',
                 name: 'card',
-                label: this.cardNumberLabel,
+                label: this.$t('payment.cardNumber'),
                 shouldHideLabel: false,
                 shouldHideMargin: true,
                 placeholder: '0000 0000 0000 0000',
@@ -422,7 +322,7 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
             cvv: new FormInput({
                 id: 'cvv',
                 name: 'cvv',
-                label: this.cvvLabel,
+                label: this.$t('payment.cvv'),
                 shouldHideLabel: false,
                 shouldHideMargin: true,
                 placeholder: '000',
@@ -434,46 +334,46 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
             firstName: new FormInput({
                 id: 'first-name',
                 name: 'first-name',
-                label: this.firstNameInputLabel,
+                label: this.$t('common.firstName'),
                 shouldHideLabel: false,
                 shouldHideMargin: true,
                 autocomplete: 'given-name',
-                placeholder: this.firstNamePlaceholderText,
+                placeholder: this.$t('payment.enterFirstName'),
                 validation: Joi.string().required().messages(this.joiMessages.string),
             }),
             lastName: new FormInput({
                 id: 'last-name',
                 name: 'last-name',
-                label: this.lastNameInputLabel,
+                label: this.$t('common.lastName'),
                 shouldHideLabel: false,
                 shouldHideMargin: true,
                 autocomplete: 'family-name',
-                placeholder: this.lastNamePlaceholderText,
+                placeholder: this.$t('payment.enterLastName'),
                 validation: Joi.string().required().messages(this.joiMessages.string),
             }),
             streetAddress1: new FormInput({
                 id: 'street-address-1',
                 name: 'street-address-1',
-                label: this.streetAddress1Label,
+                label: this.$t('payment.streetAddress'),
                 shouldHideLabel: false,
                 shouldHideMargin: true,
                 autocomplete: 'address-line1',
                 validation: Joi.string().required().messages(this.joiMessages.string),
-                placeholder: this.streetAddress1PlaceHolderText,
+                placeholder: this.$t('payment.enterStreetAddress'),
             }),
             streetAddress2: new FormInput({
                 id: 'street-address-2',
                 name: 'street-address-2',
-                label: this.streetAddress2Label,
+                label: this.$t('payment.streetAddress2'),
                 shouldHideLabel: false,
                 shouldHideMargin: true,
                 autocomplete: 'address-line2',
-                placeholder: this.streetAddress2PlaceHolderText
+                placeholder: this.$t('payment.apptUnitNumber')
             }),
             stateSelect: new FormInput({
                 id: 'state-select',
                 name: 'state-select',
-                label: this.stateText,
+                label: this.$t('common.state'),
                 shouldHideLabel: false,
                 shouldHideMargin: true,
                 placeholder: computed(() => this.$t('common.select')),
@@ -484,7 +384,7 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
             zip: new FormInput({
                 id: 'zip-code',
                 name: 'zip-code',
-                label: this.zipLabel,
+                label: this.$t('common.zipCode'),
                 shouldHideLabel: false,
                 shouldHideMargin: true,
                 placeholder: '00000',
@@ -495,7 +395,7 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
             noRefunds: new FormInput({
                 id: 'no-refunds-check',
                 name: 'no-refunds-check',
-                label: this.noRefundsAcknowledgement,
+                label: this.$t('licensing.noRefundsMessage'),
                 validation: Joi.boolean().required(),
                 value: false,
                 isDisabled: false
@@ -547,7 +447,7 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
             }
         } else {
             this.isFormError = true;
-            this.formErrorMessage = this.formValidationErrorMessage;
+            this.formErrorMessage = this.$t('common.formValidationErrorMessage');
         }
     }
 

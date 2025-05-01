@@ -64,8 +64,8 @@ export class PrivilegePurchaseOptionSerializer {
 
         if (Array.isArray(json.privilegeFees)) {
             json.privilegeFees.forEach((fee) => {
-                if (fee.licenseTypeAbbreviation && fee.amount) {
-                    purchaseOptionData.fees[fee.licenseTypeAbbreviation] = fee.amount;
+                if (fee.licenseTypeAbbreviation) {
+                    purchaseOptionData.fees[fee.licenseTypeAbbreviation] = fee.amount || 0;
                 }
             });
         }

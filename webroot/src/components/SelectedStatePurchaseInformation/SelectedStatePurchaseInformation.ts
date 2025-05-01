@@ -158,12 +158,12 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
         return this.userStore?.currentCompact || null;
     }
 
-    get currentCompactCommissionFee(): number | null {
-        return this.currentCompact?.fees?.compactCommissionFee || null;
+    get currentCompactCommissionFee(): number {
+        return this.currentCompact?.fees?.compactCommissionFee || 0;
     }
 
     get currentCompactCommissionFeeDisplay(): string {
-        return this.currentCompactCommissionFee?.toFixed(2) || '0.00';
+        return this.currentCompactCommissionFee.toFixed(2);
     }
 
     get isMilitaryDiscountActive(): boolean {
@@ -177,11 +177,13 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
     get subTotal(): string {
         const militaryDiscount = this.shouldApplyMilitaryDiscount
             && this.selectedStatePurchaseData?.militaryDiscountAmount
-            ? this.selectedStatePurchaseData?.militaryDiscountAmount : 0;
+            ? this.selectedStatePurchaseData.militaryDiscountAmount : 0;
 
-        const total = ((this.basePurchasePrice)
-            + (this.currentCompactCommissionFee || 0)
-            - (militaryDiscount || 0));
+        const total = (
+            (this.basePurchasePrice)
+            + (this.currentCompactCommissionFee)
+            - (militaryDiscount)
+        );
 
         return total.toFixed(2);
     }
