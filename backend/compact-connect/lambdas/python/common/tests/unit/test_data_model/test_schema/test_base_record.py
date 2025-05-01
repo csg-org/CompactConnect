@@ -49,7 +49,7 @@ class TestCalculatedStatusRecordSchema(TstLambdas):
         provider = {
             'jurisdictionUploadedLicenseStatus': ActiveInactiveStatus.ACTIVE,
             'jurisdictionUploadedCompactEligibility': CompactEligibilityStatus.ELIGIBLE,
-            'encumberedStatus': LicenseEncumberedStatusEnum.PROVIDER_ENCUMBERED,
+            'encumberedStatus': LicenseEncumberedStatusEnum.ENCUMBERED,
             'dateOfExpiration': '2050-01-01',
             'pk': 'COMPACT#AZ#PROVIDER#1234567890',
             'sk': 'COMPACT#AZ#PROVIDER#1234567890',
