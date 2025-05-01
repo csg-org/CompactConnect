@@ -27,12 +27,11 @@
             </div>
         </div>
         <div class="license-section">
-            <div v-if="homeJurisdiction" class="home-state-section">
-                <HomeStateBlock
-                    :state="homeJurisdiction"
-                    class="no-touch-item"
-                />
-            </div>
+            <HomeStateBlock
+                v-if="homeJurisdiction"
+                :state="homeJurisdiction"
+                class="no-touch-item"
+            />
             <div
                 v-for="(license, index) in licenseeLicenses"
                 :key="'license'+index"
@@ -40,11 +39,9 @@
             >
                 <LicenseCard
                     :license="license"
+                    :homeState="homeJurisdiction"
                     :shouldIncludeLogo="true"
                 />
-                <div v-if="!isLicenseActive(license)" class="license-expired-message">
-                    {{licenseExpiredMessage}}
-                </div>
             </div>
         </div>
         <div class="privilege-section">

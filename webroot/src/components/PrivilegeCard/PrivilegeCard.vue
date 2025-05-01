@@ -7,14 +7,15 @@
 
 <template>
     <div class="privilege-card-container">
-        <div class="privilege-title-row" :class="{ 'has-actions': isCurrentUserPrivilegeAdmin }">
+        <div class="privilege-title-row" :class="{
+            'active': isActive,
+            'has-actions': isCurrentUserPrivilegeAdmin
+        }">
             <div class="privilege-title-section">
                 <div class="privilege-title">{{stateContent}}</div>
                 <div class="license-type-abbrev">{{privilegeTypeAbbrev}}</div>
             </div>
-            <div class="privilege-status" :class="{ 'italics': !isActive, 'bold': isActive }">
-                {{statusDisplay}}
-            </div>
+            <div class="privilege-status" :class="{ 'active': isActive }">{{statusDisplay}}</div>
             <div v-if="isCurrentUserPrivilegeAdmin" class="privilege-actions">
                 <div
                     class="privilege-actions-menu-toggle"

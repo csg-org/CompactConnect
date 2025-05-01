@@ -71,7 +71,7 @@
                     <div class="vitals-container">
                         <div class="info-item-container">
                             <div class="info-item-title">{{$t('licensing.homeState')}}</div>
-                            <div class="info-item">{{homeState}}</div>
+                            <div class="info-item">{{homeStateName}}</div>
                         </div>
                         <div class="info-item-container">
                             <div class="info-item-title">{{$t('common.address')}}</div>
@@ -150,6 +150,7 @@
                     >
                         <LicenseCard
                             :license="license"
+                            :homeState="homeState"
                         />
                         <div v-if="!isLicenseActive(license)" class="license-expired-message">
                             {{licenseExpiredMessage}}

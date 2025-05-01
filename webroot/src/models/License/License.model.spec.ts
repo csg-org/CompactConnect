@@ -11,6 +11,7 @@ import {
     License,
     LicenseType,
     LicenseStatus,
+    EligibilityStatus,
     LicenseSerializer
 } from '@models/License/License.model';
 import { Compact, CompactType } from '@models/Compact/Compact.model';
@@ -58,14 +59,24 @@ describe('License model', () => {
         expect(license.licenseType).to.equal(null);
         expect(license.history).to.matchPattern([]);
         expect(license.status).to.equal(LicenseStatus.INACTIVE);
+        expect(license.statusDescription).to.equal(null);
+        expect(license.eligibility).to.equal(EligibilityStatus.INELIGIBLE);
 
         // Test methods
         expect(license.issueDateDisplay()).to.equal('');
         expect(license.renewalDateDisplay()).to.equal('');
         expect(license.expireDateDisplay()).to.equal('');
         expect(license.isExpired()).to.equal(false);
+        expect(license.isDeactivated()).to.equal(false);
+        expect(license.isCompactEligible()).to.equal(false);
         expect(license.licenseTypeAbbreviation()).to.equal('');
         expect(license.displayName()).to.equal('Unknown');
+        expect(license.historyWithFabricatedEvents()).to.matchPattern([{
+            type: 'fabricatedEvent',
+            updateType: 'purchased',
+            dateOfUpdate: null,
+            '...': '',
+        }]);
     });
     it('should create a License with specific values', () => {
         const data = {
@@ -83,8 +94,10 @@ describe('License model', () => {
             mailingAddress: new Address(),
             npi: 'test-npi',
             licenseType: LicenseType.AUDIOLOGIST,
+            history: [new LicenseHistoryItem()],
             status: LicenseStatus.ACTIVE,
-            history: [new LicenseHistoryItem()]
+            statusDescription: 'test-status-desc',
+            eligibility: EligibilityStatus.ELIGIBLE,
         };
         const license = new License(data);
 
@@ -103,22 +116,39 @@ describe('License model', () => {
         expect(license.licenseNumber).to.equal(data.licenseNumber);
         expect(license.privilegeId).to.equal(data.privilegeId);
         expect(license.licenseType).to.equal(data.licenseType);
-        expect(license.status).to.equal(data.status);
         expect(license.history[0]).to.be.an.instanceof(LicenseHistoryItem);
+        expect(license.status).to.equal(data.status);
+        expect(license.statusDescription).to.equal(data.statusDescription);
+        expect(license.eligibility).to.equal(data.eligibility);
 
         // Test methods
         expect(license.issueDateDisplay()).to.equal('Invalid date');
         expect(license.renewalDateDisplay()).to.equal('Invalid date');
         expect(license.expireDateDisplay()).to.equal('Invalid date');
         expect(license.isExpired()).to.equal(false);
+        expect(license.isDeactivated()).to.equal(false);
+        expect(license.isCompactEligible()).to.equal(true);
         expect(license.licenseTypeAbbreviation()).to.equal('AUD');
         expect(license.displayName()).to.equal('Unknown - AUD');
-        expect(license.isDeactivated()).to.equal(false);
+        expect(license.historyWithFabricatedEvents()).to.matchPattern([
+            {
+                type: 'fabricatedEvent',
+                updateType: 'purchased',
+                dateOfUpdate: data.issueDate,
+                '...': '',
+            },
+            {
+                type: null,
+                updateType: '',
+                dateOfUpdate: null,
+                '...': '',
+            },
+        ]);
     });
     it('should create a License with specific values through serializer', () => {
         const data = {
             compact: CompactType.ASLP,
-            type: 'License',
+            type: 'license',
             providerId: 'test-provider-id',
             jurisdiction: 'al',
             dateOfIssuance: moment().format(serverDateFormat),
@@ -132,8 +162,10 @@ describe('License model', () => {
             homeAddressState: 'co',
             homeAddressPostalCode: 'test-zip',
             licenseType: LicenseType.AUDIOLOGIST,
-            status: LicenseStatus.ACTIVE,
-            history: []
+            history: [],
+            licenseStatus: LicenseStatus.ACTIVE,
+            licenseStatusName: 'test-status-desc',
+            compactEligibility: EligibilityStatus.ELIGIBLE,
         };
         const license = LicenseSerializer.fromServer(data);
 
@@ -150,9 +182,9 @@ describe('License model', () => {
         expect(license.renewalDate).to.equal(data.dateOfRenewal);
         expect(license.expireDate).to.equal(data.dateOfExpiration);
         expect(license.licenseType).to.equal(data.licenseType);
-        expect(license.status).to.equal(data.status);
-        expect(license.displayName()).to.equal('Alabama - AUD');
-        expect(license.status).to.equal(data.status);
+        expect(license.status).to.equal(data.licenseStatus);
+        expect(license.statusDescription).to.equal(data.licenseStatusName);
+        expect(license.eligibility).to.equal(data.compactEligibility);
 
         // Test methods
         expect(license.issueDateDisplay()).to.equal(
@@ -165,7 +197,24 @@ describe('License model', () => {
             moment(data.dateOfExpiration, serverDateFormat).format(displayDateFormat)
         );
         expect(license.isExpired()).to.equal(true);
+        expect(license.isDeactivated()).to.equal(false);
+        expect(license.isCompactEligible()).to.equal(true);
+        expect(license.displayName()).to.equal('Alabama - AUD');
         expect(license.licenseTypeAbbreviation()).to.equal('AUD');
+        expect(license.historyWithFabricatedEvents()).to.matchPattern([
+            {
+                type: 'fabricatedEvent',
+                updateType: 'purchased',
+                dateOfUpdate: license.issueDate,
+                '...': '',
+            },
+            {
+                type: 'fabricatedEvent',
+                updateType: 'expired',
+                dateOfUpdate: license.expireDate,
+                '...': '',
+            },
+        ]);
     });
     it('should create a privilege with specific values through serializer', () => {
         const data = {
@@ -473,16 +522,16 @@ describe('License model', () => {
         expect(license.licenseeId).to.equal(data.providerId);
         expect(license.issueState).to.be.an.instanceof(State);
         expect(license.mailingAddress).to.be.an.instanceof(Address);
-        expect(license.history[0]).to.be.an.instanceof(LicenseHistoryItem);
         expect(license.issueState.abbrev).to.equal(data.jurisdiction);
         expect(license.issueDate).to.equal(data.dateOfIssuance);
         expect(license.renewalDate).to.equal(data.dateOfRenewal);
         expect(license.expireDate).to.equal(data.dateOfExpiration);
         expect(license.licenseType).to.equal(data.licenseType);
-        expect(license.status).to.equal(data.status);
         expect(license.privilegeId).to.equal(data.privilegeId);
-        expect(license.displayName()).to.equal('Nebraska - OTA');
+        expect(license.history[0]).to.be.an.instanceof(LicenseHistoryItem);
         expect(license.status).to.equal(data.status);
+        expect(license.statusDescription).to.equal(null);
+        expect(license.eligibility).to.equal(EligibilityStatus.NA);
 
         // Test methods
         expect(license.issueDateDisplay()).to.equal(
@@ -495,6 +544,9 @@ describe('License model', () => {
             moment(data.dateOfExpiration, serverDateFormat).format(displayDateFormat)
         );
         expect(license.isExpired()).to.equal(true);
+        expect(license.isDeactivated()).to.equal(false);
+        expect(license.isCompactEligible()).to.equal(false);
+        expect(license.displayName()).to.equal('Nebraska - OTA');
         expect(license.licenseTypeAbbreviation()).to.equal('OTA');
         expect(license.historyWithFabricatedEvents().length).to.equal(6);
         expect(license.historyWithFabricatedEvents()[0].updateType).to.equal('purchased');
@@ -503,9 +555,8 @@ describe('License model', () => {
         expect(license.historyWithFabricatedEvents()[3].updateType).to.equal('expired');
         expect(license.historyWithFabricatedEvents()[4].updateType).to.equal('renewal');
         expect(license.historyWithFabricatedEvents()[5].updateType).to.equal('expired');
-        expect(license.isDeactivated()).to.equal(false);
     });
-    it('should create a privilege with specific values through serializer(deactivated)', () => {
+    it('should create a privilege with specific values through serializer (deactivated)', () => {
         const data = {
             dateOfUpdate: '2025-03-26T16:19:09+00:00',
             type: 'privilege',

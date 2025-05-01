@@ -636,7 +636,9 @@
         "privilegePurchaseTitle": "Compra privada",
         "personalInfoTitle": "Información personal",
         "eventNodeLabel": "Evento: {eventNameDisplay} en {eventDate}",
-        "statusBlockLabel": "{status} bloque de estado"
+        "statusBlockLabel": "{status} bloque de estado",
+        "compactEligible": "Elegible Compacto",
+        "notCompactEligible": "No Compacto Elegible"
     },
     "military": {
         "militaryStatusTitle": "Estado militar",
