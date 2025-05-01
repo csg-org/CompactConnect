@@ -1003,8 +1003,8 @@ class DataClient:
         """
         Adds an adverse action record for a privilege for a provider in a jurisdiction.
 
-        This will also update the privilege record to have a encumberedStatus of 'encumbered', and add a privilege update
-        record to show the encumbrance event.
+        This will also update the privilege record to have a encumberedStatus of 'encumbered', and add a privilege
+        update record to show the encumbrance event.
 
         :param AdverseActionData adverse_action: The details of the adverse action to be added to the records
         :raises CCNotFoundException: If the privilege record is not found
