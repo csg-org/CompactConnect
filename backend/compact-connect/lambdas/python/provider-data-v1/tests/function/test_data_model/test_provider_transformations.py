@@ -116,7 +116,7 @@ class TestTransformations(TstFunction):
             attestations=[{'attestationId': 'jurisprudence-confirmation', 'version': '1'}],
         )
 
-        from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationType
+        from cc_common.data_model.schema.military_affiliation.common import MilitaryAffiliationType
 
         # Add a military affiliation
         client.create_military_affiliation(

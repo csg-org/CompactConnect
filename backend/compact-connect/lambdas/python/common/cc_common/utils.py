@@ -250,6 +250,46 @@ class authorize_compact_level_only_action:  # noqa: N801 invalid-name
         return authorized
 
 
+class authorize_state_level_only_action:  # noqa: N801 invalid-name
+    """Authorize endpoint by matching path parameter compact to the expected scope limited to state level
+    (i.e. oh/{compact}.admin).
+
+    This wrapper should be used when we want to explicitly restrict access to callers with permission scopes
+    at the state level.
+    """
+
+    def __init__(self, action: str):
+        super().__init__()
+        self.action = action
+
+    def __call__(self, fn: Callable):
+        @wraps(fn)
+        @logger.inject_lambda_context
+        def authorized(event: dict, context: LambdaContext):
+            try:
+                compact = event['pathParameters']['compact']
+                jurisdiction = event['pathParameters']['jurisdiction']
+            except KeyError as e:
+                logger.error('Access attempt with missing path parameter!')
+                raise CCInvalidRequestException('Missing path parameter!') from e
+
+            logger.debug('Checking authorizer context', request_context=event['requestContext'])
+            try:
+                scopes = event['requestContext']['authorizer']['claims']['scope'].split(' ')
+            except KeyError as e:
+                logger.error('Unauthorized access attempt!', exc_info=e)
+                raise CCUnauthorizedException('Unauthorized access attempt!') from e
+
+            required_scope = f'{jurisdiction}/{compact}.{self.action}'
+            if required_scope not in scopes:
+                logger.warning('Forbidden access attempt!')
+                raise CCAccessDeniedException('Forbidden access attempt!')
+
+            return fn(event, context)
+
+        return authorized
+
+
 class authorize_compact:  # noqa: N801 invalid-name
     """Authorize endpoint by matching path parameter compact to the expected scope
 

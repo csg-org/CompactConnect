@@ -97,6 +97,42 @@ class TestPrivilegeRecordSchema(TstLambdas):
 
         self.assertEqual(result['status'], 'inactive')
 
+    def test_status_is_set_to_inactive_when_privilege_is_encumbered(self):
+        from cc_common.data_model.schema.privilege.record import PrivilegeRecordSchema
+
+        with open('tests/resources/dynamo/privilege.json') as f:
+            privilege_data = json.load(f)
+            privilege_data['dateOfExpiration'] = '2050-11-08'
+            privilege_data['encumberedStatus'] = 'encumbered'
+
+        result = PrivilegeRecordSchema().load(privilege_data)
+
+        self.assertEqual(result['status'], 'inactive')
+
+    def test_status_is_set_to_active_if_privilege_is_unencumbered(self):
+        from cc_common.data_model.schema.privilege.record import PrivilegeRecordSchema
+
+        with open('tests/resources/dynamo/privilege.json') as f:
+            privilege_data = json.load(f)
+            privilege_data['dateOfExpiration'] = '2050-11-08'
+            privilege_data['encumberedStatus'] = 'unencumbered'
+
+        result = PrivilegeRecordSchema().load(privilege_data)
+
+        self.assertEqual(result['status'], 'active')
+
+    def test_status_is_set_to_active_if_privilege_encumbrance_status_not_present(self):
+        from cc_common.data_model.schema.privilege.record import PrivilegeRecordSchema
+
+        with open('tests/resources/dynamo/privilege.json') as f:
+            privilege_data = json.load(f)
+            privilege_data['dateOfExpiration'] = '2050-11-08'
+            privilege_data.pop('encumberedStatus', None)
+
+        result = PrivilegeRecordSchema().load(privilege_data)
+
+        self.assertEqual(result['status'], 'active')
+
 
 class TestPrivilegeUpdateRecordSchema(TstLambdas):
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))

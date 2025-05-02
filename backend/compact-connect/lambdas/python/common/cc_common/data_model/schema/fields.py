@@ -2,7 +2,14 @@ from marshmallow.fields import List, String
 from marshmallow.validate import OneOf, Regexp
 
 from cc_common.config import config
-from cc_common.data_model.schema.common import ActiveInactiveStatus, CompactEligibilityStatus, UpdateCategory
+from cc_common.data_model.schema.common import (
+    ActiveInactiveStatus,
+    ClinicalPrivilegeActionCategory,
+    CompactEligibilityStatus,
+    LicenseEncumberedStatusEnum,
+    PrivilegeEncumberedStatusEnum,
+    UpdateCategory,
+)
 
 
 class SocialSecurityNumber(String):
@@ -52,6 +59,16 @@ class UpdateType(String):
         super().__init__(*args, validate=OneOf([entry.value for entry in UpdateCategory]), **kwargs)
 
 
+class LicenseEncumberedStatusField(String):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, validate=OneOf([entry.value for entry in LicenseEncumberedStatusEnum]), **kwargs)
+
+
+class PrivilegeEncumberedStatusField(String):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, validate=OneOf([entry.value for entry in PrivilegeEncumberedStatusEnum]), **kwargs)
+
+
 class ITUTE164PhoneNumber(String):
     """Phone number format consistent with ITU-T E.164:
     https://www.itu.int/rec/T-REC-E.164-201011-I/en
@@ -59,3 +76,8 @@ class ITUTE164PhoneNumber(String):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, validate=Regexp(r'^\+[0-9]{8,15}$'), **kwargs)
+
+
+class ClinicalPrivilegeActionCategoryField(String):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, validate=OneOf([entry.value for entry in ClinicalPrivilegeActionCategory]), **kwargs)

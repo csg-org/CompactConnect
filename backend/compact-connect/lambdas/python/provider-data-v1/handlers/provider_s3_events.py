@@ -1,6 +1,6 @@
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
-from cc_common.data_model.schema.military_affiliation import MILITARY_AFFILIATIONS_DOCUMENT_TYPE_KEY_NAME
+from cc_common.data_model.schema.military_affiliation.common import MILITARY_AFFILIATIONS_DOCUMENT_TYPE_KEY_NAME
 
 
 @logger.inject_lambda_context

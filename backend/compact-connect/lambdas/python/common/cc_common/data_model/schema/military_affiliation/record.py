@@ -5,7 +5,7 @@ from marshmallow.validate import Length, OneOf
 
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import BaseRecordSchema
-from cc_common.data_model.schema.military_affiliation import (
+from cc_common.data_model.schema.military_affiliation.common import (
     MILITARY_AFFILIATION_RECORD_TYPE,
     MilitaryAffiliationStatus,
     MilitaryAffiliationType,
