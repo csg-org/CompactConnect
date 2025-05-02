@@ -74,12 +74,6 @@ class Jurisdiction(UserDict):
     def compact(self) -> str:
         return self['compact']
 
-    # Deprecated - will be removed as part of https://github.com/csg-org/CompactConnect/issues/636
-    # use privilege_fees instead
-    @property
-    def jurisdiction_fee(self) -> Decimal:
-        return self['jurisdictionFee']
-
     @property
     def privilege_fees(self) -> list[JurisdictionPrivilegeFee]:
         return [JurisdictionPrivilegeFee(fee) for fee in self.data['privilegeFees']]

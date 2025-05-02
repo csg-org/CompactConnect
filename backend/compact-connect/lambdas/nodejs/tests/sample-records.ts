@@ -245,10 +245,6 @@ export const SAMPLE_JURISDICTION_CONFIGURATION = {
     'jurisdictionAdverseActionsNotificationEmails': {
         'L': []
     },
-    // deprecated - to be removed as part of https://github.com/csg-org/CompactConnect/issues/636
-    'jurisdictionFee': {
-        'N': '100'
-    },
     'privilegeFees': {
         'L': [
             {
@@ -320,8 +316,6 @@ export const SAMPLE_UNMARSHALLED_JURISDICTION_CONFIGURATION = {
     'compact': 'aslp',
     'dateOfUpdate': '2024-11-14',
     'jurisdictionAdverseActionsNotificationEmails': [],
-    // deprecated - to be removed as part of https://github.com/csg-org/CompactConnect/issues/636
-    'jurisdictionFee': '100',
     'privilegeFees': [
         {
             'licenseTypeAbbreviation': 'aud',

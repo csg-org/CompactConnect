@@ -4410,7 +4410,6 @@
                 },
                 {
                   "required": [
-                    "jurisdictionFee",
                     "jurisdictionName",
                     "jurisprudenceRequirements",
                     "postalAbbreviation",
@@ -4482,10 +4481,6 @@
                     "jurisdictionName": {
                       "type": "string",
                       "description": "The name of the jurisdiction"
-                    },
-                    "jurisdictionFee": {
-                      "type": "number",
-                      "description": "The fee for the jurisdiction"
                     },
                     "type": {
                       "type": "string",

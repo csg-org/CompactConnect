@@ -156,7 +156,16 @@ export const privilegePurchaseOptionsResponse = {
             jurisdictionName: 'kentucky',
             postalAbbreviation: 'ky',
             compact: 'octp',
-            jurisdictionFee: 100,
+            privilegeFees: [
+                {
+                    licenseTypeAbbreviation: 'ot',
+                    amount: 200
+                },
+                {
+                    licenseTypeAbbreviation: 'ota',
+                    amount: 100
+                }
+            ],
             militaryDiscount: {
                 active: true,
                 discountType: 'FLAT_RATE',
@@ -171,7 +180,16 @@ export const privilegePurchaseOptionsResponse = {
             jurisdictionName: 'nebraska',
             postalAbbreviation: 'ne',
             compact: 'octp',
-            jurisdictionFee: 100,
+            privilegeFees: [
+                {
+                    licenseTypeAbbreviation: 'ot',
+                    amount: 200
+                },
+                {
+                    licenseTypeAbbreviation: 'ota',
+                    amount: 100
+                }
+            ],
             militaryDiscount: {
                 active: true,
                 discountType: 'FLAT_RATE',
@@ -186,7 +204,16 @@ export const privilegePurchaseOptionsResponse = {
             jurisdictionName: 'ohio',
             postalAbbreviation: 'oh',
             compact: 'octp',
-            jurisdictionFee: 100,
+            privilegeFees: [
+                {
+                    licenseTypeAbbreviation: 'ot',
+                    amount: 200
+                },
+                {
+                    licenseTypeAbbreviation: 'ota',
+                    amount: 100
+                }
+            ],
             militaryDiscount: {
                 active: true,
                 discountType: 'FLAT_RATE',
@@ -201,7 +228,16 @@ export const privilegePurchaseOptionsResponse = {
             jurisdictionName: 'massachusetts',
             postalAbbreviation: 'ma',
             compact: 'octp',
-            jurisdictionFee: 100,
+            privilegeFees: [
+                {
+                    licenseTypeAbbreviation: 'ot',
+                    amount: 200
+                },
+                {
+                    licenseTypeAbbreviation: 'ota',
+                    amount: 100
+                }
+            ],
             militaryDiscount: {
                 active: false,
                 discountType: 'FLAT_RATE',
@@ -216,7 +252,16 @@ export const privilegePurchaseOptionsResponse = {
             jurisdictionName: 'vermont',
             postalAbbreviation: 'vt',
             compact: 'octp',
-            jurisdictionFee: 100,
+            privilegeFees: [
+                {
+                    licenseTypeAbbreviation: 'ot',
+                    amount: 200
+                },
+                {
+                    licenseTypeAbbreviation: 'ota',
+                    amount: 100
+                }
+            ],
             militaryDiscount: {
                 active: false,
                 discountType: 'FLAT_RATE',
@@ -231,7 +276,16 @@ export const privilegePurchaseOptionsResponse = {
             jurisdictionName: 'virginia',
             postalAbbreviation: 'va',
             compact: 'octp',
-            jurisdictionFee: 100,
+            privilegeFees: [
+                {
+                    licenseTypeAbbreviation: 'ot',
+                    amount: 200
+                },
+                {
+                    licenseTypeAbbreviation: 'ota',
+                    amount: 100
+                }
+            ],
             militaryDiscount: {
                 active: false,
                 discountType: 'FLAT_RATE',
@@ -246,7 +300,16 @@ export const privilegePurchaseOptionsResponse = {
             jurisdictionName: 'colorado',
             postalAbbreviation: 'co',
             compact: 'octp',
-            jurisdictionFee: 100,
+            privilegeFees: [
+                {
+                    licenseTypeAbbreviation: 'ot',
+                    amount: 200
+                },
+                {
+                    licenseTypeAbbreviation: 'ota',
+                    amount: 100
+                }
+            ],
             militaryDiscount: {
                 active: false,
                 discountType: 'FLAT_RATE',
@@ -261,7 +324,16 @@ export const privilegePurchaseOptionsResponse = {
             jurisdictionName: 'maine',
             postalAbbreviation: 'me',
             compact: 'octp',
-            jurisdictionFee: 100,
+            privilegeFees: [
+                {
+                    licenseTypeAbbreviation: 'ot',
+                    amount: 250
+                },
+                {
+                    licenseTypeAbbreviation: 'ota',
+                    amount: 100
+                }
+            ],
             militaryDiscount: {
                 active: false,
                 discountType: 'FLAT_RATE',
@@ -276,7 +348,16 @@ export const privilegePurchaseOptionsResponse = {
             jurisdictionName: 'connecticut',
             postalAbbreviation: 'ct',
             compact: 'octp',
-            jurisdictionFee: 100,
+            privilegeFees: [
+                {
+                    licenseTypeAbbreviation: 'ot',
+                    amount: 200
+                },
+                {
+                    licenseTypeAbbreviation: 'ota',
+                    amount: 110
+                }
+            ],
             militaryDiscount: {
                 active: false,
                 discountType: 'FLAT_RATE',
@@ -291,7 +372,16 @@ export const privilegePurchaseOptionsResponse = {
             jurisdictionName: 'rhode island',
             postalAbbreviation: 'ri',
             compact: 'octp',
-            jurisdictionFee: 100,
+            privilegeFees: [
+                {
+                    licenseTypeAbbreviation: 'ot',
+                    amount: 200
+                },
+                {
+                    licenseTypeAbbreviation: 'ota',
+                    amount: 100
+                }
+            ],
             militaryDiscount: {
                 active: false,
                 discountType: 'FLAT_RATE',
@@ -306,7 +396,16 @@ export const privilegePurchaseOptionsResponse = {
             jurisdictionName: 'nevada',
             postalAbbreviation: 'nv',
             compact: 'octp',
-            jurisdictionFee: 100,
+            privilegeFees: [
+                {
+                    licenseTypeAbbreviation: 'ot',
+                    amount: 200
+                },
+                {
+                    licenseTypeAbbreviation: 'ota',
+                    amount: 100
+                }
+            ],
             militaryDiscount: {
                 active: false,
                 discountType: 'FLAT_RATE',
@@ -321,7 +420,16 @@ export const privilegePurchaseOptionsResponse = {
             jurisdictionName: 'kansas',
             postalAbbreviation: 'ks',
             compact: 'octp',
-            jurisdictionFee: 100,
+            privilegeFees: [
+                {
+                    licenseTypeAbbreviation: 'ot',
+                    amount: 150
+                },
+                {
+                    licenseTypeAbbreviation: 'ota',
+                    amount: 100
+                }
+            ],
             militaryDiscount: {
                 active: false,
                 discountType: 'FLAT_RATE',
@@ -336,7 +444,16 @@ export const privilegePurchaseOptionsResponse = {
             jurisdictionName: 'alaska',
             postalAbbreviation: 'ak',
             compact: 'octp',
-            jurisdictionFee: 100,
+            privilegeFees: [
+                {
+                    licenseTypeAbbreviation: 'ot',
+                    amount: 100
+                },
+                {
+                    licenseTypeAbbreviation: 'ota',
+                    amount: 100
+                }
+            ],
             militaryDiscount: {
                 active: false,
                 discountType: 'FLAT_RATE',
@@ -351,7 +468,16 @@ export const privilegePurchaseOptionsResponse = {
             jurisdictionName: 'arkansas',
             postalAbbreviation: 'ar',
             compact: 'octp',
-            jurisdictionFee: 100,
+            privilegeFees: [
+                {
+                    licenseTypeAbbreviation: 'ot',
+                    amount: 200
+                },
+                {
+                    licenseTypeAbbreviation: 'ota',
+                    amount: 100
+                }
+            ],
             militaryDiscount: {
                 active: false,
                 discountType: 'FLAT_RATE',

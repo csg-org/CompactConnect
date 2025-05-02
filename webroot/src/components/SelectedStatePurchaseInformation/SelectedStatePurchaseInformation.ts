@@ -21,7 +21,7 @@ import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import Modal from '@components/Modal/Modal.vue';
 import { Compact } from '@models/Compact/Compact.model';
 import { FormInput } from '@/models/FormInput/FormInput.model';
-import { License, LicenseStatus } from '@/models/License/License.model';
+import { License } from '@/models/License/License.model';
 import { Licensee } from '@models/Licensee/Licensee.model';
 import { LicenseeUser } from '@/models/LicenseeUser/LicenseeUser.model';
 import { PrivilegePurchaseOption } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
@@ -64,12 +64,12 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
     //
     // Computed
     //
-    get activeLicense(): License | null {
-        return this.licenseList?.find((license) => license.status === LicenseStatus.ACTIVE) || null;
+    get selectedLicense(): License | null {
+        return this.$store.getters['user/getLicenseSelected']();
     }
 
-    get licenseList(): Array<License> {
-        return this.licensee?.licenses || [];
+    get selectedLicenseTypeAbbrev(): string {
+        return this.selectedLicense?.licenseTypeAbbreviation().toLowerCase() || '';
     }
 
     get user(): LicenseeUser | null {
@@ -84,11 +84,11 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
         return this.user?.licensee || null;
     }
 
-    get activeLicenseExpirationDate(): string {
+    get selectedLicenseExpirationDate(): string {
         let date = '';
 
-        if (this.activeLicense) {
-            const { expireDate } = this.activeLicense;
+        if (this.selectedLicense) {
+            const { expireDate } = this.selectedLicense;
 
             if (expireDate) {
                 date = moment(expireDate).format(displayDateFormat);
@@ -142,8 +142,12 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
         return this.$t('licensing.iUnderstand');
     }
 
+    get basePurchasePrice(): number {
+        return this.selectedStatePurchaseData?.fees?.[this.selectedLicenseTypeAbbrev] || 0;
+    }
+
     get feeDisplay(): string {
-        return this.selectedStatePurchaseData?.fee?.toFixed(2) || '';
+        return this.basePurchasePrice.toFixed(2);
     }
 
     get militaryDiscountAmountDisplay(): string {
@@ -154,12 +158,12 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
         return this.userStore?.currentCompact || null;
     }
 
-    get currentCompactCommissionFee(): number | null {
-        return this.currentCompact?.fees?.compactCommissionFee || null;
+    get currentCompactCommissionFee(): number {
+        return this.currentCompact?.fees?.compactCommissionFee || 0;
     }
 
     get currentCompactCommissionFeeDisplay(): string {
-        return this.currentCompactCommissionFee?.toFixed(2) || '0.00';
+        return this.currentCompactCommissionFee.toFixed(2);
     }
 
     get isMilitaryDiscountActive(): boolean {
@@ -173,11 +177,13 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
     get subTotal(): string {
         const militaryDiscount = this.shouldApplyMilitaryDiscount
             && this.selectedStatePurchaseData?.militaryDiscountAmount
-            ? this.selectedStatePurchaseData?.militaryDiscountAmount : 0;
+            ? this.selectedStatePurchaseData.militaryDiscountAmount : 0;
 
-        const total = ((this.selectedStatePurchaseData?.fee || 0)
-            + (this.currentCompactCommissionFee || 0)
-            - (militaryDiscount || 0));
+        const total = (
+            (this.basePurchasePrice)
+            + (this.currentCompactCommissionFee)
+            - (militaryDiscount)
+        );
 
         return total.toFixed(2);
     }

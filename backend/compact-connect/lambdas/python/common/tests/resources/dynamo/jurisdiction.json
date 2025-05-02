@@ -5,7 +5,6 @@
   "compact": "aslp",
   "jurisdictionName": "ohio",
   "postalAbbreviation": "oh",
-  "jurisdictionFee": 100,
   "privilegeFees": [
     {
       "licenseTypeAbbreviation": "aud",

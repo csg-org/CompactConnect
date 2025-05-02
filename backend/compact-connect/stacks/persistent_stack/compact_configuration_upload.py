@@ -237,7 +237,7 @@ class CompactConfigurationUpload(Construct):
                     f'defines fees for unknown license types: {", ".join(unknown_license_types)}'
                 )
         else:
-            # Neither privilegeFees nor jurisdictionFee is defined
+            # privilegeFees is not defined
             raise ValueError(
                 f'Jurisdiction {jurisdiction["postalAbbreviation"]} in compact {compact_abbr} must define privilegeFees'
             )

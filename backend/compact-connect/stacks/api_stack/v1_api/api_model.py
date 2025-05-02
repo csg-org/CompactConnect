@@ -834,11 +834,6 @@ class ApiModel:
                             type=JsonSchemaType.STRING,
                             description='The postal abbreviation of the jurisdiction',
                         ),
-                        # deprecated - to be removed as part of https://github.com/csg-org/CompactConnect/issues/636
-                        'jurisdictionFee': JsonSchema(
-                            type=JsonSchemaType.NUMBER,
-                            description='The fee for the jurisdiction',
-                        ),
                         'privilegeFees': JsonSchema(
                             type=JsonSchemaType.ARRAY,
                             description='The fees for the privileges',
