@@ -40,6 +40,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
     """Test suite for privilege encumbrance endpoints."""
 
     def _when_testing_valid_privilege_encumbrance(self):
+        self.test_data_generator.put_default_provider_record_in_provider_table()
         test_privilege_record = self.test_data_generator.put_default_privilege_record_in_provider_table()
 
         test_event = self.test_data_generator.generate_test_api_event(
@@ -176,6 +177,36 @@ class TestPostPrivilegeEncumbrance(TstFunction):
         self.assertEqual(
             expected_privilege_data.to_dict(),
             loaded_privilege_data.to_dict(),
+        )
+
+    def test_privilege_encumbrance_handler_sets_provider_record_to_encumbered_in_provider_data_table(self):
+        from cc_common.data_model.schema.common import LicenseEncumberedStatusEnum
+        from cc_common.data_model.schema.provider import ProviderData
+        from handlers.encumbrance import encumbrance_handler
+
+        event, test_license_record = self._when_testing_valid_privilege_encumbrance()
+        test_provider_record = self.test_data_generator.generate_default_provider()
+
+        response = encumbrance_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+
+        # Verify that the encumbrance status was added to the provider record
+        provider_serialized_record = test_provider_record.serialize_to_database_record()
+        provider_records = self._provider_table.get_item(
+            Key={'pk': provider_serialized_record['pk'], 'sk': provider_serialized_record['sk']}
+        )
+        item = provider_records['Item']
+
+        expected_provider_data = self.test_data_generator.generate_default_provider(
+            value_overrides={'dateOfUpdate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP, 'encumberedStatus': 'encumbered'}
+        )
+        loaded_provider_data = ProviderData.from_database_record(item)
+
+        self.assertEqual(LicenseEncumberedStatusEnum.ENCUMBERED, loaded_provider_data.encumberedStatus)
+
+        self.assertEqual(
+            expected_provider_data.to_dict(),
+            loaded_provider_data.to_dict(),
         )
 
     def test_privilege_encumbrance_handler_returns_access_denied_if_compact_admin(self):

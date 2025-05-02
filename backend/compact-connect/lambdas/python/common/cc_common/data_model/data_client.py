@@ -15,6 +15,7 @@ from cc_common.data_model.schema.adverse_action import AdverseActionData
 from cc_common.data_model.schema.base_record import SSNIndexRecordSchema
 from cc_common.data_model.schema.common import (
     ActiveInactiveStatus,
+    CCDataClass,
     LicenseEncumberedStatusEnum,
     PrivilegeEncumberedStatusEnum,
     UpdateCategory,
@@ -927,47 +928,44 @@ class DataClient:
 
         return privilege_record
 
+    def _generate_encumbered_status_update_item(
+        self,
+        data: CCDataClass,
+        encumbered_status: LicenseEncumberedStatusEnum | PrivilegeEncumberedStatusEnum,
+    ):
+        data_record = data.serialize_to_database_record()
+
+        return {
+            'Update': {
+                'TableName': self.config.provider_table.name,
+                'Key': {'pk': {'S': data_record['pk']}, 'sk': {'S': data_record['sk']}},
+                'UpdateExpression': 'SET encumberedStatus = :status, dateOfUpdate = :dateOfUpdate',
+                'ExpressionAttributeValues': {
+                    ':status': {'S': encumbered_status},
+                    ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
+                },
+            },
+        }
+
     def _generate_set_privilege_encumbered_status_item(
         self,
         privilege_data: PrivilegeData,
         privilege_encumbered_status: PrivilegeEncumberedStatusEnum,
     ):
-        privilege_data_record = privilege_data.serialize_to_database_record()
-        return {
-            'Update': {
-                'TableName': self.config.provider_table.name,
-                'Key': {
-                    'pk': {'S': privilege_data_record['pk']},
-                    'sk': {'S': privilege_data_record['sk']},
-                },
-                'UpdateExpression': 'SET encumberedStatus = :status, dateOfUpdate = :dateOfUpdate',
-                'ExpressionAttributeValues': {
-                    ':status': {'S': privilege_encumbered_status},
-                    ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
-                },
-            },
-        }
+        return self._generate_encumbered_status_update_item(
+            data=privilege_data,
+            encumbered_status=privilege_encumbered_status,
+        )
 
     def _generate_set_license_encumbered_status_item(
         self,
         license_data: LicenseData,
         license_encumbered_status: LicenseEncumberedStatusEnum,
     ):
-        license_data_record = license_data.serialize_to_database_record()
-        return {
-            'Update': {
-                'TableName': self.config.provider_table.name,
-                'Key': {
-                    'pk': {'S': license_data_record['pk']},
-                    'sk': {'S': license_data_record['sk']},
-                },
-                'UpdateExpression': 'SET encumberedStatus = :status, dateOfUpdate = :dateOfUpdate',
-                'ExpressionAttributeValues': {
-                    ':status': {'S': license_encumbered_status},
-                    ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
-                },
-            },
-        }
+        return self._generate_encumbered_status_update_item(
+            data=license_data,
+            encumbered_status=license_encumbered_status,
+        )
 
     def _generate_set_provider_encumbered_status_item(
         self,
@@ -975,21 +973,10 @@ class DataClient:
         # licenses and providers share the same encumbered status enum
         provider_encumbered_status: LicenseEncumberedStatusEnum,
     ):
-        provider_data_record = provider_data.serialize_to_database_record()
-        return {
-            'Update': {
-                'TableName': self.config.provider_table.name,
-                'Key': {
-                    'pk': {'S': provider_data_record['pk']},
-                    'sk': {'S': provider_data_record['sk']},
-                },
-                'UpdateExpression': 'SET encumberedStatus = :status, dateOfUpdate = :dateOfUpdate',
-                'ExpressionAttributeValues': {
-                    ':status': {'S': provider_encumbered_status},
-                    ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
-                },
-            },
-        }
+        return self._generate_encumbered_status_update_item(
+            data=provider_data,
+            encumbered_status=provider_encumbered_status,
+        )
 
     def _generate_put_transaction_item(self, item: dict):
         return {
@@ -999,12 +986,62 @@ class DataClient:
             },
         }
 
+    def _generate_provider_encumbered_status_update_item_if_not_already_encumbered(
+        self, adverse_action: AdverseActionData, transaction_items: list[dict]
+    ) -> list[dict]:
+        """
+        Adds a transaction item to the provided list which updates the provider encumberedStatus to encumbered if the
+        provider is not already encumbered.
+
+        If the provider is already encumbered, we do not add a transaction item to the list and return
+        it unchanged.
+
+        We set this status at the provider level to show they are not able to purchase privileges within the compact.
+
+        :param AdverseActionData adverse_action: The adverse action data
+        :param list[dict] transaction_items: The list of transaction items to update
+        :return: The list of transaction items
+        """
+        try:
+            provider_record = self.config.provider_table.get_item(
+                Key={
+                    'pk': f'{adverse_action.compact}#PROVIDER#{adverse_action.providerId}',
+                    'sk': f'{adverse_action.compact}#PROVIDER',
+                },
+            )['Item']
+        except KeyError as e:
+            message = 'Provider not found'
+            logger.info(message)
+            raise CCNotFoundException(message) from e
+
+        provider_data = ProviderData.from_database_record(provider_record)
+
+        need_to_set_provider_to_encumbered = True
+        if provider_data.encumberedStatus == LicenseEncumberedStatusEnum.ENCUMBERED:
+            logger.info('Provider already encumbered. Not updating provider encumbered status')
+            need_to_set_provider_to_encumbered = False
+        else:
+            logger.info(
+                'Provider is currently unencumbered. Setting provider into an encumbered state as part of update.'
+            )
+
+        if need_to_set_provider_to_encumbered:
+            # Set the provider record's encumberedStatus to encumbered
+            transaction_items.append(
+                self._generate_set_provider_encumbered_status_item(
+                    provider_data=provider_data,
+                    provider_encumbered_status=LicenseEncumberedStatusEnum.ENCUMBERED,
+                )
+            )
+
+        return transaction_items
+
     def encumber_privilege(self, adverse_action: AdverseActionData) -> None:
         """
         Adds an adverse action record for a privilege for a provider in a jurisdiction.
 
-        This will also update the privilege record to have a encumberedStatus of 'encumbered', and add a privilege
-        update record to show the encumbrance event.
+        This will also update the privilege record to have a encumberedStatus of 'encumbered', add a privilege update
+        record to show the encumbrance event, and update the provider record to have a encumberedStatus of 'encumbered'.
 
         :param AdverseActionData adverse_action: The details of the adverse action to be added to the records
         :raises CCNotFoundException: If the privilege record is not found
@@ -1082,6 +1119,13 @@ class DataClient:
                         privilege_encumbered_status=PrivilegeEncumberedStatusEnum.ENCUMBERED,
                     )
                 )
+
+            # If the provider is not already encumbered, we need to update the provider record to encumbered
+            transact_items = self._generate_provider_encumbered_status_update_item_if_not_already_encumbered(
+                adverse_action=adverse_action,
+                transaction_items=transact_items,
+            )
+
             self.config.dynamodb_client.transact_write_items(
                 TransactItems=transact_items,
             )
@@ -1130,32 +1174,6 @@ class DataClient:
                     'License is currently unencumbered. Setting license into an encumbered state as part of update.'
                 )
 
-            # in the case of a license encumbrance, we need to update the provider record to encumbered
-            # as well as the license record to denote that the provider is encumbered as a result of the license
-            # encumbrance
-            try:
-                provider_record = self.config.provider_table.get_item(
-                    Key={
-                        'pk': f'{adverse_action.compact}#PROVIDER#{adverse_action.providerId}',
-                        'sk': f'{adverse_action.compact}#PROVIDER',
-                    },
-                )['Item']
-            except KeyError as e:
-                message = 'Provider not found'
-                logger.info(message)
-                raise CCNotFoundException(message) from e
-
-            provider_data = ProviderData.from_database_record(provider_record)
-
-            need_to_set_provider_to_encumbered = True
-            if provider_data.encumberedStatus == LicenseEncumberedStatusEnum.ENCUMBERED:
-                logger.info('Provider already encumbered. Not updating provider encumbered status')
-                need_to_set_provider_to_encumbered = False
-            else:
-                logger.info(
-                    'Provider is currently unencumbered. Setting provider into an encumbered state as part of update.'
-                )
-
             # Create the update record
             # Use the schema to generate the update record with proper pk/sk
             license_update_record = LicenseUpdateData.create_new(
@@ -1197,14 +1215,10 @@ class DataClient:
                     )
                 )
 
-            if need_to_set_provider_to_encumbered:
-                # Set the provider record's encumberedStatus to encumbered
-                transact_items.append(
-                    self._generate_set_provider_encumbered_status_item(
-                        provider_data=provider_data,
-                        provider_encumbered_status=LicenseEncumberedStatusEnum.ENCUMBERED,
-                    )
-                )
+            transact_items = self._generate_provider_encumbered_status_update_item_if_not_already_encumbered(
+                adverse_action=adverse_action,
+                transaction_items=transact_items,
+            )
 
             self.config.dynamodb_client.transact_write_items(
                 TransactItems=transact_items,
