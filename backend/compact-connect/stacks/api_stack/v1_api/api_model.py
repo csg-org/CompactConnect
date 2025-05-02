@@ -43,7 +43,7 @@ class ApiModel:
         """Return the PUT home jurisdiction request model, which should only be created once per API"""
         if hasattr(self.api, '_v1_put_provider_home_jurisdiction_request_model'):
             return self.api._v1_put_provider_home_jurisdiction_request_model
-        
+
         # the user can set their home jurisdiction to any of the known jurisdictions, or 'other'
         # in the case the provider has a home jurisdiction that is not listed
         allowed_options = self.api.node.get_context('jurisdictions') + ['other']

@@ -90,7 +90,7 @@ class TestGetProvider(TstFunction):
 
     def test_get_provider_returns_license_adverse_actions_if_present(self):
         from cc_common.data_model.schema.common import AdverseActionAgainstEnum
-        from handlers.provider_users import get_provider_user_me
+        from handlers.provider_users import provider_users_api_handler
 
         test_provider_record = self.test_data_generator.put_default_provider_record_in_provider_table()
         test_license_record = self.test_data_generator.put_default_license_record_in_provider_table()
@@ -103,10 +103,12 @@ class TestGetProvider(TstFunction):
 
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
+            event['httpMethod'] = 'GET'
+            event['resource'] = '/v1/provider-users/me'
             event['requestContext']['authorizer']['claims']['custom:providerId'] = test_provider_record.providerId
             event['requestContext']['authorizer']['claims']['custom:compact'] = test_provider_record.compact
 
-        resp = get_provider_user_me(event, self.mock_context)
+        resp = provider_users_api_handler(event, self.mock_context)
 
         self.assertEqual(200, resp['statusCode'])
         provider_data = json.loads(resp['body'])
@@ -121,7 +123,7 @@ class TestGetProvider(TstFunction):
 
     def test_get_provider_returns_privilege_adverse_actions_if_present(self):
         from cc_common.data_model.schema.common import AdverseActionAgainstEnum
-        from handlers.provider_users import get_provider_user_me
+        from handlers.provider_users import provider_users_api_handler
 
         test_provider_record = self.test_data_generator.put_default_provider_record_in_provider_table()
         test_privilege_record = self.test_data_generator.put_default_privilege_record_in_provider_table()
@@ -134,10 +136,12 @@ class TestGetProvider(TstFunction):
 
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
+            event['httpMethod'] = 'GET'
+            event['resource'] = '/v1/provider-users/me'
             event['requestContext']['authorizer']['claims']['custom:providerId'] = test_provider_record.providerId
             event['requestContext']['authorizer']['claims']['custom:compact'] = test_provider_record.compact
 
-        resp = get_provider_user_me(event, self.mock_context)
+        resp = provider_users_api_handler(event, self.mock_context)
 
         self.assertEqual(200, resp['statusCode'])
         provider_data = json.loads(resp['body'])
