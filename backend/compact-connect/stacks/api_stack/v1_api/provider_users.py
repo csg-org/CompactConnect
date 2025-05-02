@@ -58,7 +58,7 @@ class ProviderUsers:
 
         # /v1/provider-users/me
         self.provider_users_me_resource = self.provider_users_resource.add_resource('me')
-        
+
         # Create a single shared lambda handler for all provider-users/me endpoints
         self.provider_users_me_handler = self._create_provider_users_handler(
             data_encryption_key=persistent_stack.shared_encryption_key,
@@ -66,23 +66,23 @@ class ProviderUsers:
             persistent_stack=persistent_stack,
             lambda_environment=lambda_environment,
         )
-        
+
         # Add the GET method for /v1/provider-users/me
         self._add_get_provider_user_me()
-        
+
         # /v1/provider-users/me/military-affiliation
         self.provider_users_me_military_affiliation_resource = self.provider_users_me_resource.add_resource(
             'military-affiliation'
         )
-        
+
         # Add the POST and PATCH methods for /v1/provider-users/me/military-affiliation
         self._add_provider_user_me_military_affiliation()
-        
+
         # /v1/provider-users/me/home-jurisdiction
         self.provider_users_me_home_jurisdiction_resource = self.provider_users_me_resource.add_resource(
             'home-jurisdiction'
         )
-        
+
         # Add the PUT method for /v1/provider-users/me/home-jurisdiction
         self._add_provider_user_me_home_jurisdiction()
 
@@ -104,13 +104,13 @@ class ProviderUsers:
             environment=lambda_environment,
             alarm_topic=self.api.alarm_topic,
         )
-        
+
         # Grant necessary permissions
         data_encryption_key.grant_decrypt(handler)
         provider_data_table.grant_read_write_data(handler)
         persistent_stack.provider_users_bucket.grant_read_write(handler)
         self.api.log_groups.append(handler.log_group)
-        
+
         NagSuppressions.add_resource_suppressions_by_path(
             stack,
             path=f'{handler.node.path}/ServiceRole/DefaultPolicy/Resource',
@@ -122,7 +122,7 @@ class ProviderUsers:
                 },
             ],
         )
-        
+
         return handler
 
     def _add_get_provider_user_me(self):
@@ -172,7 +172,7 @@ class ProviderUsers:
             request_parameters={'method.request.header.Authorization': True},
             authorizer=self.api.provider_users_authorizer,
         )
-        
+
     def _add_provider_user_me_home_jurisdiction(self):
         self.provider_users_me_home_jurisdiction_resource.add_method(
             'PUT',

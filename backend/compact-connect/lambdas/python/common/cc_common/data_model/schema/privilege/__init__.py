@@ -3,7 +3,11 @@
 from datetime import date, datetime
 from uuid import UUID
 
-from cc_common.data_model.schema.common import ActiveInactiveStatus, CCDataClass
+from cc_common.data_model.schema.common import (
+    ActiveInactiveStatus,
+    CCDataClass,
+    HomeJurisdictionChangeDeactivationStatusEnum,
+)
 from cc_common.data_model.schema.privilege.record import (
     PrivilegeRecordSchema,
     PrivilegeUpdateRecordSchema,
@@ -125,6 +129,14 @@ class PrivilegeData(CCDataClass):
     @encumberedStatus.setter
     def encumberedStatus(self, value: str) -> None:
         self._data['encumberedStatus'] = value
+
+    @property
+    def homeJurisdictionChangeDeactivationStatus(self) -> str | None:
+        return self._data.get('homeJurisdictionChangeDeactivationStatus')
+
+    @homeJurisdictionChangeDeactivationStatus.setter
+    def homeJurisdictionChangeDeactivationStatus(self, value: HomeJurisdictionChangeDeactivationStatusEnum) -> None:
+        self._data['homeJurisdictionChangeDeactivationStatus'] = value
 
     @property
     def status(self) -> str:
