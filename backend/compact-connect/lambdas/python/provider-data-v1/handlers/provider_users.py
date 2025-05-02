@@ -21,21 +21,21 @@ def provider_users_api_handler(event: dict, context: LambdaContext):
     """
     Main entry point for provider users API.
     Routes to the appropriate handler based on the HTTP method and resource path.
-    
+
     :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
     :param context: Lambda context
     """
     # Extract the HTTP method and resource path
     http_method = event.get('httpMethod')
     resource_path = event.get('resource')
-    
+
     # Route to the appropriate handler
     if http_method == 'GET' and resource_path == '/v1/provider-users/me':
         return get_provider_user_me(event, context)
-    elif resource_path == '/v1/provider-users/me/military-affiliation':
+    if resource_path == '/v1/provider-users/me/military-affiliation':
         if http_method == 'POST':
             return _post_provider_military_affiliation(event, context)
-        elif http_method == 'PATCH':
+        if http_method == 'PATCH':
             return _patch_provider_military_affiliation(event, context)
     elif http_method == 'PUT' and resource_path == '/v1/provider-users/me/home-jurisdiction':
         return put_provider_home_jurisdiction(event, context)
@@ -78,24 +78,42 @@ def put_provider_home_jurisdiction(event: dict, context: LambdaContext):  # noqa
     """
     Handle the PUT method for updating a provider's home jurisdiction.
     This is a placeholder implementation that will be expanded in a future update.
-    
+
     :param event: API Gateway event
     :param context: Lambda context
     :return: Success message
     """
     compact, provider_id = _check_provider_user_attributes(event)
-    
+
     # Parse the request body
     event_body = json.loads(event['body'])
-    
+
     jurisdiction = event_body['jurisdiction']
-    
+
+    # provider_data = get_provider_information(compact=compact, provider_id=provider_id)
+
+    # Based on the following rules, we will update the provider's privileges with the new jurisdiction
+    # 1. If the jurisdiction is not a member of the compact, all of the provider's existing privileges will have
+    # their 'privilegeHomeJurisdictionChangeDeactivationStatus' set to 'nonMemberJurisdiction'
+    # 2. If the jurisdiction is a member of the compact, but the provider does not have a license for the jurisdiction,
+    # all of their existing privileges will be set to inactive.
+    # 3. If any privileges have an 'encumberedStatus' that is not equal to 'unencumbered', they will not be moved over
+    # to the new jurisdiction.
+    # 4. If any license in the new jurisdiction has a 'compactEligiblity' status of 'ineligible', the associated
+    # privileges for the current license will be moved over to the new jurisdiction, but will be set to inactive.
+    # 5. If none of the above conditions are met, the provider's privileges will be moved over to the new jurisdiction
+    # and the expiration date will be updated to the expiration date of the license in the new jurisdiction.
+
     # Log the request
-    logger.info("Handling request to update provider home jurisdiction", 
-                compact=compact, provider_id=provider_id, jurisdiction=jurisdiction)
-    
+    logger.info(
+        'Handling request to update provider home jurisdiction',
+        compact=compact,
+        provider_id=provider_id,
+        jurisdiction=jurisdiction,
+    )
+
     # This is a placeholder implementation - we'll add the actual update logic in a follow-up
-    return {"message": "ok"}
+    return {'message': 'ok'}
 
 
 def _post_provider_military_affiliation(event, context):  # noqa: ARG001 unused-argument

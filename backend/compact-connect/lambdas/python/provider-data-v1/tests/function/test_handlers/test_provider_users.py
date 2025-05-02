@@ -3,6 +3,7 @@ from datetime import datetime
 from unittest.mock import patch
 
 from boto3.dynamodb.conditions import Key
+
 from cc_common.exceptions import CCInternalException
 from common_test.test_constants import DEFAULT_DATE_OF_UPDATE_TIMESTAMP
 from moto import mock_aws
@@ -385,32 +386,65 @@ class TestPatchProviderMilitaryAffiliation(TstFunction):
         self.assertEqual(1, len(affiliation_record))
         self.assertEqual('inactive', affiliation_record[0]['status'])
 
+# constants for home jurisdiction update tests
+CURRENT_JURISDICTION = 'oh'
+PRIVILEGE_JURISDICTION = 'ky'
+TEST_LICENSE_TYPE = 'audiologist'
+NEW_JURISDICTION = 'ne'
 
 @mock_aws
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
 class TestPutProviderHomeJurisdiction(TstFunction):
-    def _create_test_provider(self):
-        from cc_common.config import config
 
-        return config.data_client.get_or_create_provider_id(compact=TEST_COMPACT, ssn=MOCK_SSN)
+    def _when_provider_has_no_license_in_new_selected_jurisdiction(self):
+        """
+        In this setup, we have a provider which starts in Ohio, where they have a license, and they move to Nebraska,
+        where they don't have a license. They also have one privilege for this license
+        """
+        test_provider_record = self.test_data_generator.put_default_provider_record_in_provider_table(
+            value_overrides={
+                'licenseJurisdiction': CURRENT_JURISDICTION,
+                'compact': TEST_COMPACT,
+            }
+        )
+        test_current_license_record = self.test_data_generator.put_default_license_record_in_provider_table(
+            value_overrides={
+                'jurisdiction': CURRENT_JURISDICTION,
+                'compact': TEST_COMPACT,
+                'licenseType': TEST_LICENSE_TYPE,
+            }
+        )
 
-    def _when_testing_put_provider_home_jurisdiction_event_with_custom_claims(self):
-        self._load_provider_data()
-        provider_id = self._create_test_provider()
+        # add privilege in Kentucky for the current license
+        test_privilege_record = self.test_data_generator.put_default_privilege_record_in_provider_table(
+            value_overrides={
+                'compact': TEST_COMPACT,
+                'jurisdiction': PRIVILEGE_JURISDICTION,
+                'licenseJurisdiction': test_current_license_record.jurisdiction,
+                'licenseType': TEST_LICENSE_TYPE,
+            }
+        )
+
+        event = self._when_testing_put_provider_home_jurisdiction(NEW_JURISDICTION, test_provider_record)
+
+        return event, test_provider_record, test_current_license_record, test_privilege_record
+
+
+    def _when_testing_put_provider_home_jurisdiction(self, new_jurisdiction: str, provider_data):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
             event['httpMethod'] = 'PUT'
             event['resource'] = '/v1/provider-users/me/home-jurisdiction'
-            event['requestContext']['authorizer']['claims']['custom:providerId'] = provider_id
-            event['requestContext']['authorizer']['claims']['custom:compact'] = TEST_COMPACT
-            event['body'] = json.dumps({'jurisdiction': 'oh'})
+            event['requestContext']['authorizer']['claims']['custom:providerId'] = provider_data.providerId
+            event['requestContext']['authorizer']['claims']['custom:compact'] = provider_data.compact
+            event['body'] = json.dumps({'jurisdiction': new_jurisdiction})
 
         return event
 
     def test_put_provider_home_jurisdiction_returns_message(self):
         from handlers.provider_users import provider_users_api_handler
 
-        event = self._when_testing_put_provider_home_jurisdiction_event_with_custom_claims()
+        event = self._when_testing_put_provider_home_jurisdiction()
 
         resp = provider_users_api_handler(event, self.mock_context)
 
@@ -422,7 +456,7 @@ class TestPutProviderHomeJurisdiction(TstFunction):
     def test_put_provider_home_jurisdiction_returns_400_if_api_call_made_without_proper_claims(self):
         from handlers.provider_users import provider_users_api_handler
 
-        event = self._when_testing_put_provider_home_jurisdiction_event_with_custom_claims()
+        event = self._when_testing_put_provider_home_jurisdiction()
 
         # remove custom attributes in the cognito claims
         del event['requestContext']['authorizer']['claims']['custom:providerId']
@@ -431,3 +465,24 @@ class TestPutProviderHomeJurisdiction(TstFunction):
         resp = provider_users_api_handler(event, self.mock_context)
 
         self.assertEqual(400, resp['statusCode'])
+
+    def test_put_provider_home_jurisdiction_deactivates_privileges_if_no_license_in_new_jurisdiction(self):
+        from handlers.provider_users import provider_users_api_handler
+        from cc_common.data_model.schema.privilege import PrivilegeData
+
+        (event,
+         test_provider_record,
+         test_current_license_record,
+         test_privilege_record
+         ) = self._when_provider_has_no_license_in_new_selected_jurisdiction()
+
+        resp = provider_users_api_handler(event, self.mock_context)
+
+        self.assertEqual(200, resp['statusCode'])
+
+        # the privilege should be deactivated because there is no license in the new jurisdiction
+        stored_privilege_data = PrivilegeData.from_database_record(
+            self.test_data_generator.load_provider_data_record_from_database(test_privilege_record)
+        )
+        self.assertEqual('inactive', stored_privilege_data.status)
+        self.assertEqual('noLicenseInJurisdiction', stored_privilege_data.homeJurisdictionChangeDeactivationStatus)
