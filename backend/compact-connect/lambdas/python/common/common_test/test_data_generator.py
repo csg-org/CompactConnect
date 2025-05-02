@@ -58,6 +58,24 @@ class TestDataGenerator:
         return api_event
 
     @staticmethod
+    def load_provider_data_record_from_database(data_class: CCDataClass) -> dict:
+        """
+        Helper method to load a data record from the database using the provider data class instance.
+
+        This leverages the fact that your expected object should have the same pk/sk values as the actual record that
+        is stored in the database as a result of your test run.
+        """
+        from cc_common.config import config
+
+        serialized_record = data_class.serialize_to_database_record()
+
+        try:
+            return config.provider_table.get_item(Key={'pk': serialized_record['pk'], 'sk': serialized_record['sk']})['Item']
+        except KeyError as e:
+            raise Exception(f'Error loading test provider record from database: {e}')
+
+
+    @staticmethod
     def generate_default_home_jurisdiction_selection(
         value_overrides: dict | None = None,
     ) -> HomeJurisdictionSelectionData:
