@@ -1,7 +1,6 @@
 # following timestamp can be used for consistent mocking of dateOfUpdate timestamps
 DEFAULT_DATE_OF_UPDATE_TIMESTAMP = '2024-11-08T23:59:59+00:00'
 
-
 # Default values used throughout tests
 DEFAULT_PROVIDER_ID = '89a6377e-c3a5-40e5-bca5-317ec854c570'
 DEFAULT_NPI = '0608337260'
@@ -82,8 +81,6 @@ DEFAULT_CREATION_EFFECTIVE_DATE = '2024-02-15'
 DEFAULT_CREATION_DATE = '2024-02-15T10:30:00+00:00'
 DEFAULT_AA_SUBMITTING_USER_ID = '12a6377e-c3a5-40e5-bca5-317ec854c556'
 DEFAULT_ADVERSE_ACTION_ID = '98765432-9876-9876-9876-987654321098'
-
-# Default values for updates
 
 # Default attestation values
 DEFAULT_ATTESTATIONS = [{'attestationId': 'jurisprudence-confirmation', 'version': '1'}]

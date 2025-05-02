@@ -157,7 +157,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
         self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
 
         # Verify that the encumbrance record was added to the provider data table
-        # Perform a query to list all encumbrances for the provider using the starts_with key condition
+        # Perform a query to get the privilege that matches the expected pk/sk
         privilege_serialized_record = test_privilege_record.serialize_to_database_record()
         privilege_records = self._provider_table.query(
             Select='ALL_ATTRIBUTES',

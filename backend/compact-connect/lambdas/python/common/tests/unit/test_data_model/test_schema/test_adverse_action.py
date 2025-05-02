@@ -56,7 +56,7 @@ class TestAdverseActionRecordSchema(TstLambdas):
 
         adverse_action_data = self.test_data_generator.generate_default_adverse_action()
 
-        # setting to an invalid value from another enum
+        # setting to an invalid license type name, with a valid abbreviation
         adverse_action_data.licenseType = 'foobar'
         adverse_action_data.license_abbreviation = 'slp'
 
@@ -68,7 +68,7 @@ class TestAdverseActionRecordSchema(TstLambdas):
 
         adverse_action_data = self.test_data_generator.generate_default_adverse_action()
 
-        # setting to an invalid value from another enum
+        # setting to a valid license type name, and an invalid abbreviation
         adverse_action_data.licenseType = 'speech-language pathologist'
         adverse_action_data.licenseTypeAbbreviation = 'foo'
 

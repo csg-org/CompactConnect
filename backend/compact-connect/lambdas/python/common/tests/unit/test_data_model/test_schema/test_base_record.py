@@ -45,17 +45,18 @@ class TestCalculatedStatusRecordSchema(TstLambdas):
 
         schema = CalculatedStatusRecordSchema()
 
-        # test a provider with no licenses
-        provider = {
+        # test a provider which has an encumbered status
+        # this should force the compactEligibility field to calculate as ineligible
+        test_record = {
             'jurisdictionUploadedLicenseStatus': ActiveInactiveStatus.ACTIVE,
             'jurisdictionUploadedCompactEligibility': CompactEligibilityStatus.ELIGIBLE,
             'encumberedStatus': LicenseEncumberedStatusEnum.ENCUMBERED,
             'dateOfExpiration': '2050-01-01',
-            'pk': 'COMPACT#AZ#PROVIDER#1234567890',
-            'sk': 'COMPACT#AZ#PROVIDER#1234567890',
+            'pk': 'alsp#PROVIDER#1234567890',
+            'sk': 'alsp#PROVIDER',
             'type': 'provider',
             'dateOfUpdate': '2025-01-01T00:00:00Z',
         }
 
-        result = schema.load(provider)
+        result = schema.load(test_record)
         self.assertEqual(CompactEligibilityStatus.INELIGIBLE.value, result['compactEligibility'])

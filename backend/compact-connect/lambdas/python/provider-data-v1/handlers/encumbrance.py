@@ -10,6 +10,7 @@ from cc_common.data_model.schema.common import (
     ClinicalPrivilegeActionCategory,
 )
 from cc_common.exceptions import CCInvalidRequestException
+from cc_common.license_util import LicenseUtility
 from cc_common.utils import api_handler, authorize_state_level_only_action
 from marshmallow import ValidationError
 
@@ -63,27 +64,19 @@ def _generate_adverse_action_for_record_type(
     adverse_action.compact = compact
     adverse_action.providerId = provider_id
     adverse_action.jurisdiction = jurisdiction
-    try:
-        compact_license_types = config.license_type_abbreviations_for_compact(compact=compact)
-    except KeyError as e:
-        raise CCInvalidRequestException(f'Could not find license types for provided compact {compact}') from e
 
-    adverse_action_license_type = None
-    adverse_action_license_type_abbreviation = None
+    license_type = LicenseUtility.get_license_type_by_abbreviation(
+        compact=compact, abbreviation=license_type_abbreviation_from_path_parameter
+    )
 
-    for license_type_name, license_type_abbreviation in compact_license_types.items():
-        if license_type_abbreviation_from_path_parameter == license_type_abbreviation.lower():
-            adverse_action_license_type = license_type_name
-            adverse_action_license_type_abbreviation = license_type_abbreviation
-
-    if not adverse_action_license_type or not adverse_action_license_type_abbreviation:
+    if not license_type:
         raise CCInvalidRequestException(
-            f'Could not find license type information based on provided parameter '
-            f"'{license_type_abbreviation_from_path_parameter}'"
+            f'Could not find license type information based on provided parameters '
+            f"compact: '{compact}' licenseType: '{license_type_abbreviation_from_path_parameter}'"
         )
 
-    adverse_action.licenseTypeAbbreviation = adverse_action_license_type_abbreviation
-    adverse_action.licenseType = adverse_action_license_type
+    adverse_action.licenseTypeAbbreviation = license_type.abbreviation
+    adverse_action.licenseType = license_type.name
     adverse_action.actionAgainst = adverse_action_against_record_type
     adverse_action.clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategory(
         adverse_action_request['clinicalPrivilegeActionCategory']
