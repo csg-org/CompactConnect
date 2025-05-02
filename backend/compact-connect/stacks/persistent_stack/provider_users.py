@@ -57,6 +57,9 @@ class ProviderUsers(UserPool):
         )
         stack: ps.PersistentStack = ps.PersistentStack.of(self)
 
+        # branding_settings = getBrandingSettings
+        # branding_assests = getBrandingAssets
+
         # Create an app client to allow the front-end to authenticate.
         self.ui_client = self.add_ui_client(
             ui_domain_name=stack.ui_domain_name,
