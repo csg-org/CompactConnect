@@ -179,7 +179,7 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
             let stateMilitaryDiscountAmountDisplay = '';
 
             if (state?.fees?.[licenseTypeKey]) {
-                stateFeeDisplay = state.fees[licenseTypeKey]?.toFixed(2);
+                stateFeeDisplay = state.fees[licenseTypeKey].toFixed(2);
             }
 
             if (state?.militaryDiscountAmount) {
