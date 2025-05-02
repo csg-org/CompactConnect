@@ -126,6 +126,8 @@ class CalculatedStatusRecordSchema(BaseRecordSchema):
             if (
                 in_data['jurisdictionUploadedLicenseStatus'] == ActiveInactiveStatus.ACTIVE
                 and date.fromisoformat(in_data['dateOfExpiration']) >= config.expiration_resolution_date
+                and in_data.get('encumberedStatus', LicenseEncumberedStatusEnum.UNENCUMBERED)
+                == LicenseEncumberedStatusEnum.UNENCUMBERED
             )
             else ActiveInactiveStatus.INACTIVE
         )

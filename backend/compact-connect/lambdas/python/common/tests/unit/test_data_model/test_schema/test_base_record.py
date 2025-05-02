@@ -45,7 +45,7 @@ class TestCalculatedStatusRecordSchema(TstLambdas):
 
         schema = CalculatedStatusRecordSchema()
 
-        # test a provider which has an encumbered status
+        # test a provider which has an encumbered status as a result of their license being encumbered
         # this should force the compactEligibility field to calculate as ineligible
         test_record = {
             'jurisdictionUploadedLicenseStatus': ActiveInactiveStatus.ACTIVE,
@@ -60,3 +60,29 @@ class TestCalculatedStatusRecordSchema(TstLambdas):
 
         result = schema.load(test_record)
         self.assertEqual(CompactEligibilityStatus.INELIGIBLE.value, result['compactEligibility'])
+
+    def test_license_status_set_to_inactive_if_license_encumbered(self):
+        from cc_common.data_model.schema.base_record import CalculatedStatusRecordSchema
+        from cc_common.data_model.schema.common import (
+            ActiveInactiveStatus,
+            CompactEligibilityStatus,
+            LicenseEncumberedStatusEnum,
+        )
+
+        schema = CalculatedStatusRecordSchema()
+
+        # test a provider which has an encumbered status as a result of their license being encumbered
+        # this should force the licenseStatus field to calculate as ineligible
+        test_record = {
+            'jurisdictionUploadedLicenseStatus': ActiveInactiveStatus.ACTIVE,
+            'jurisdictionUploadedCompactEligibility': CompactEligibilityStatus.ELIGIBLE,
+            'encumberedStatus': LicenseEncumberedStatusEnum.ENCUMBERED,
+            'dateOfExpiration': '2050-01-01',
+            'pk': 'alsp#PROVIDER#1234567890',
+            'sk': 'alsp#PROVIDER',
+            'type': 'provider',
+            'dateOfUpdate': '2025-01-01T00:00:00Z',
+        }
+
+        result = schema.load(test_record)
+        self.assertEqual(ActiveInactiveStatus.INACTIVE.value, result['licenseStatus'])
