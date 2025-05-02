@@ -23,6 +23,7 @@ from cc_common.exceptions import (
     CCNotFoundException,
     CCRateLimitingException,
     CCUnauthorizedException,
+    CCUnsupportedMediaTypeException,
 )
 
 
@@ -101,11 +102,14 @@ def api_handler(fn: Callable):
         else:
             cors_origin = config.allowed_origins[0]
 
+        content_type = headers.get('Content-Type')
+
         # Propagate these keys to all log messages in this with block
         with logger.append_context_keys(
             method=event['httpMethod'],
             origin=origin,
             path=event['requestContext']['resourcePath'],
+            content_type=content_type,
             identity={'user': event['requestContext'].get('authorizer', {}).get('claims', {}).get('sub')},
             query_params=event['queryStringParameters'],
             username=event['requestContext'].get('authorizer', {}).get('claims', {}).get('cognito:username'),
@@ -113,6 +117,10 @@ def api_handler(fn: Callable):
             logger.info('Incoming request')
 
             try:
+                # We'll enforce json-only content for the whole API, right here.
+                if event.get('body') is not None and content_type != 'application/json':
+                    raise CCUnsupportedMediaTypeException(f'Unsupported media type: {content_type}')
+
                 return {
                     'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
                     'statusCode': 200,
@@ -138,6 +146,13 @@ def api_handler(fn: Callable):
                     'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
                     'statusCode': 404,
                     'body': json.dumps({'message': f'{e.message}'}),
+                }
+            except CCUnsupportedMediaTypeException as e:
+                logger.info('Unsupported media type', exc_info=e)
+                return {
+                    'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
+                    'statusCode': 415,
+                    'body': json.dumps({'message': 'Unsupported media type'}),
                 }
             except CCRateLimitingException as e:
                 logger.info('Rate limiting request', exc_info=e)
