@@ -120,6 +120,13 @@ export default class LicenseeDashboard extends Vue {
         });
     }
 
+    viewLicenseeProof() {
+        this.$router.push({
+            name: 'LicenseeVerification',
+            params: { compact: this.currentCompactType }
+        });
+    }
+
     isLicenseActive(license: License): boolean {
         return license && license.status === LicenseStatus.ACTIVE;
     }

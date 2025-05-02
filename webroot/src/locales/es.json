@@ -545,6 +545,8 @@
         "licenseNumber": "Número de licencia",
         "licenseExpirationDate": "Fecha de vencimiento de la licencia",
         "licenseExpiredMessage": "Su licencia ha caducado.",
+        "generateVerification": "Generar documento de verificación",
+        "generateVerificationSubtext": "Vista para imprimir",
         "obtainPrivileges": "Obtener privilegios",
         "expired": "Caducada",
         "issued": "Emitida",

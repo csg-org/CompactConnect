@@ -514,6 +514,8 @@
         "licenseNumber": "License number",
         "licenseExpirationDate": "License expiration date",
         "residenceLocation": "Residence location",
+        "generateVerification": "Generate verification doc",
+        "generateVerificationSubtext": "Printer-friendly view",
         "obtainPrivileges": "Obtain Privileges",
         "privileges": "Privileges",
         "privilege": "Privilege",
