@@ -20,6 +20,10 @@ class CCNotFoundException(CCInvalidRequestException):
     """Requested resource is not found, corresponds to a 404 response"""
 
 
+class CCUnsupportedMediaTypeException(CCInvalidRequestException):
+    """Unsupported media type, corresponds to a 415 response"""
+
+
 class CCRateLimitingException(CCInvalidRequestException):
     """Client is rate limited, corresponds to a 429 response"""
 
