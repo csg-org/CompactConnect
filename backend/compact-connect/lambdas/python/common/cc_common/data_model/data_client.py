@@ -1179,7 +1179,7 @@ class DataClient:
             license_update_record = LicenseUpdateData.create_new(
                 {
                     'type': 'licenseUpdate',
-                    'updateType': 'encumbrance',
+                    'updateType': UpdateCategory.ENCUMBRANCE,
                     'providerId': adverse_action.providerId,
                     'compact': adverse_action.compact,
                     'jurisdiction': adverse_action.jurisdiction,
