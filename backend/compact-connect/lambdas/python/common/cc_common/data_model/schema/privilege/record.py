@@ -18,6 +18,7 @@ from cc_common.data_model.schema.common import (
 from cc_common.data_model.schema.fields import (
     ActiveInactive,
     Compact,
+    HomeJurisdictionChangeDeactivationStatusField,
     Jurisdiction,
     PrivilegeEncumberedStatusField,
     UpdateType,
@@ -82,6 +83,13 @@ class PrivilegeRecordSchema(BaseRecordSchema, ValidatesLicenseTypeMixin):
     # this field is only set if the privilege or the associated license is encumbered
     encumberedStatus = PrivilegeEncumberedStatusField(required=False, allow_none=False)
 
+    # This field is only set if a privilege is deactivated as a result of a provider changing their home jurisdiction
+    # It is removed in the event that the provider is able to repurchase the privilege in the new jurisdiction after
+    # the license in the new jurisdiction is compact eligible.
+    homeJurisdictionChangeDeactivationStatus = HomeJurisdictionChangeDeactivationStatusField(
+        required=False, allow_none=False
+    )
+
     # This field is the actual status referenced by the system, which is determined by the expiration date
     # in addition to the administratorSetStatus. This should never be written to the DB. It is calculated
     # whenever the record is loaded.
@@ -129,6 +137,7 @@ class PrivilegeRecordSchema(BaseRecordSchema, ValidatesLicenseTypeMixin):
                 and date.fromisoformat(in_data['dateOfExpiration']) >= config.expiration_resolution_date
                 and in_data.get('encumberedStatus', PrivilegeEncumberedStatusEnum.UNENCUMBERED)
                 == PrivilegeEncumberedStatusEnum.UNENCUMBERED
+                and in_data.get('homeJurisdictionChangeDeactivationStatus', None) is None
             )
             else ActiveInactiveStatus.INACTIVE
         )

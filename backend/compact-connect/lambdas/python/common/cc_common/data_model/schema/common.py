@@ -223,6 +223,7 @@ class UpdateCategory(CCEnum):
     OTHER = 'other'
     RENEWAL = 'renewal'
     ENCUMBRANCE = 'encumbrance'
+    HOME_JURISDICTION_CHANGE = 'homeJurisdictionChange'
 
 
 class ActiveInactiveStatus(CCEnum):
@@ -245,6 +246,23 @@ class PrivilegeEncumberedStatusEnum(CCEnum):
     UNENCUMBERED = 'unencumbered'
     # the following status is set whenever the license this privilege is associated with is encumbered
     LICENSE_ENCUMBERED = 'licenseEncumbered'
+
+
+class HomeJurisdictionChangeDeactivationStatusEnum(CCEnum):
+    """
+    This is only used if the provider has existing privileges when they change their home jurisdiction,
+    and that change results in the privilege becoming inactive.
+    """
+
+    # This condition occurs when a provider with existing privileges changes their home jurisdiction
+    # to a jurisdiction that does not have a license for the provider.
+    NO_LICENSE_IN_JURISDICTION = 'noLicenseInJurisdiction'
+    # This condition occurs when a provider with existing privileges moves to a jurisdiction
+    # and the license in the new jurisdiction is not compact eligible.
+    LICENSE_COMPACT_INELIGIBLE = 'licenseCompactIneligible'
+    # This condition occurs when a provider with existing privileges moves to a jurisdiction
+    # that is a member of the compact and has a license for the provider.
+    NON_MEMBER_JURISDICTION = 'nonMemberJurisdiction'
 
 
 class StaffUserStatus(CCEnum):
