@@ -60,8 +60,7 @@ class StaffUsers(UserPool):
         self._add_scope_customization(stack=stack)
         self._add_custom_message_lambda(stack=stack)
 
-        # branding_settings = getBrandingSettings
-        # branding_assests = getBrandingAssets
+
 
         # Do not allow resource server scopes via the client - they are assigned via token customization
         # to allow for user attribute-based access
@@ -72,6 +71,15 @@ class StaffUsers(UserPool):
             write_attributes=ClientAttributes().with_standard_attributes(email=True),
             # We want to limit the attributes that this app can read and write so only email is visible.
             read_attributes=ClientAttributes().with_standard_attributes(email=True),
+        )
+
+        with open('resources/managed_login_style_settings.json') as f:
+            branding_settings = json.load(f)
+
+        self.add_managed_login_styles(
+            user_pool_client=self.ui_client,
+            branding_assets=[], # todo
+            branding_settings=branding_settings,
         )
 
     def _generate_resource_server_scopes_list_for_compact(self, compact: str):

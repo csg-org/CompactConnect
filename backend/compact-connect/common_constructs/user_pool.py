@@ -21,6 +21,7 @@ from aws_cdk.aws_cognito import (
     PasswordPolicy,
     SignInAliases,
     StandardAttributes,
+    UserPoolClient,
     UserPoolEmail
 )
 from aws_cdk.aws_cognito import UserPool as CdkUserPool
@@ -125,9 +126,7 @@ class UserPool(CdkUserPool):
         environment_context: dict,
         read_attributes: ClientAttributes,
         write_attributes: ClientAttributes,
-        ui_scopes: list[OAuthScope] = None,
-        branding_assets: list[any] = None,
-        branding_settings: dict = None,
+        ui_scopes: list[OAuthScope] = None
     ):
         """
         Creates an app client for the UI to authenticate with the user pool.
@@ -170,7 +169,7 @@ class UserPool(CdkUserPool):
                 "'allow_local_ui' to true in this environment's context."
             )
 
-        user_pool_client = self.add_client(
+        return self.add_client(
             'UIClient',
             auth_flows=AuthFlow(
                 # we allow this in test environments for automated testing
@@ -193,22 +192,6 @@ class UserPool(CdkUserPool):
             write_attributes=write_attributes,
             read_attributes=read_attributes,
         )
-
-        # Handle custom styles
-        login_branding = CfnManagedLoginBranding(self, "MyCfnManagedLoginBranding",
-            user_pool_id=self.user_pool_id,
-            assets=branding_assets,
-            client_id=user_pool_client.user_pool_client_id,
-            return_merged_resources=False,
-            settings=branding_settings,
-            use_cognito_provided_values=False
-        )
-
-        login_branding.add_dependency(user_pool_client)
-
-        return user_pool_client
-
-
 
     def _add_risk_configuration(self, security_profile: SecurityProfile):
         CfnUserPoolRiskConfigurationAttachment(
@@ -241,3 +224,21 @@ class UserPool(CdkUserPool):
                 )
             ),
         )
+
+    def add_managed_login_styles(
+        self,
+        user_pool_client: UserPoolClient,
+        branding_assets: list[any] = None,
+        branding_settings: dict = None,
+    ):
+                # Handle custom styles
+        login_branding = CfnManagedLoginBranding(self, 'MyCfnManagedLoginBranding',
+            user_pool_id=self.user_pool_id,
+            assets=branding_assets,
+            client_id=user_pool_client.user_pool_client_id,
+            return_merged_resources=False,
+            settings=branding_settings,
+            use_cognito_provided_values=False
+        )
+
+        login_branding.add_dependency(user_pool_client)
