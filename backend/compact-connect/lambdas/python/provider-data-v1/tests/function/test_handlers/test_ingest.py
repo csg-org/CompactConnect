@@ -18,6 +18,7 @@ class TestIngest(TstFunction):
         expected_provider['privileges'] = []
         expected_provider['militaryAffiliations'] = []
         del expected_provider['homeJurisdictionSelection']
+        expected_provider['currentHomeJurisdiction'] = 'unknown'
 
         # in these test cases, the provider user has not registered in the system, so these values will not be
         # present
