@@ -231,7 +231,7 @@ class UserPool(CdkUserPool):
         branding_assets: list[any] = None,
         branding_settings: dict = None,
     ):
-                # Handle custom styles
+        # Handle custom styles
         login_branding = CfnManagedLoginBranding(self, 'MyCfnManagedLoginBranding',
             user_pool_id=self.user_pool_id,
             assets=branding_assets,
@@ -242,3 +242,23 @@ class UserPool(CdkUserPool):
         )
 
         login_branding.add_dependency(user_pool_client)
+
+
+    def prepare_assets_for_managed_login_ui():
+        base_64_favicon = 'l'
+        favicon = CfnManagedLoginBranding.AssetTypeProperty(
+            category='FAVICON_ICO',
+            color_mode='LIGHT',
+            extension='ICO',
+            bytes=base_64_favicon
+        )
+
+        base_64_logo = 'l'
+        logo = CfnManagedLoginBranding.AssetTypeProperty(
+            category='FORM_LOGO',
+            color_mode='LIGHT',
+            extension='PNG',
+            bytes=base_64_logo
+        )
+
+        assets = [favicon, logo]

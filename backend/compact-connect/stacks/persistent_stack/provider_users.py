@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 from aws_cdk import Duration
 from aws_cdk.aws_cognito import (
     ClientAttributes,
@@ -73,6 +75,15 @@ class ProviderUsers(UserPool):
             write_attributes=ClientAttributes().with_standard_attributes(email=True, given_name=True, family_name=True),
         )
         self._add_custom_message_lambda(stack=stack, environment_name=environment_name)
+
+        with open('resources/managed_login_style_settings.json') as f:
+            branding_settings = json.load(f)
+
+        self.add_managed_login_styles(
+            user_pool_client=self.ui_client,
+            branding_assets=[], # todo
+            branding_settings=branding_settings,
+        )
 
     @staticmethod
     def _configure_user_pool_standard_attributes() -> StandardAttributes:

@@ -60,8 +60,6 @@ class StaffUsers(UserPool):
         self._add_scope_customization(stack=stack)
         self._add_custom_message_lambda(stack=stack)
 
-
-
         # Do not allow resource server scopes via the client - they are assigned via token customization
         # to allow for user attribute-based access
         self.ui_client = self.add_ui_client(
