@@ -74,9 +74,14 @@ class StaffUsers(UserPool):
         with open('resources/managed_login_style_settings.json') as f:
             branding_settings = json.load(f)
 
+        branding_assests = self.prepare_assets_for_managed_login_ui(
+            ico_filepath='resources/assets/favicon.ico',
+            logo_filepath='resources/assets/compact-connect-logo.png'
+        )
+
         self.add_managed_login_styles(
             user_pool_client=self.ui_client,
-            branding_assets=[], # todo
+            branding_assets=branding_assests,
             branding_settings=branding_settings,
         )
 

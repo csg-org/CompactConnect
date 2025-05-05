@@ -1,5 +1,7 @@
 from collections.abc import Mapping
 
+import base64
+
 from aws_cdk import CfnOutput, Duration, RemovalPolicy
 from aws_cdk.aws_cognito import (
     AccountRecovery,
@@ -244,8 +246,12 @@ class UserPool(CdkUserPool):
         login_branding.add_dependency(user_pool_client)
 
 
-    def prepare_assets_for_managed_login_ui():
-        base_64_favicon = 'l'
+    def prepare_assets_for_managed_login_ui(
+        self,
+        ico_filepath: str,
+        logo_filepath: str
+    ):
+        base_64_favicon = self.convert_img_to_base_64(ico_filepath)
         favicon = CfnManagedLoginBranding.AssetTypeProperty(
             category='FAVICON_ICO',
             color_mode='LIGHT',
@@ -253,7 +259,7 @@ class UserPool(CdkUserPool):
             bytes=base_64_favicon
         )
 
-        base_64_logo = 'l'
+        base_64_logo = self.convert_img_to_base_64(logo_filepath)
         logo = CfnManagedLoginBranding.AssetTypeProperty(
             category='FORM_LOGO',
             color_mode='LIGHT',
@@ -262,3 +268,13 @@ class UserPool(CdkUserPool):
         )
 
         assets = [favicon, logo]
+
+        return assets
+
+    def convert_img_to_base_64(filePath: str):
+        with open(filePath, 'rb') as binary_file:
+            binary_file_data = binary_file.read()
+            base64_encoded_data = base64.b64encode(binary_file_data)
+            base64_output = base64_encoded_data.decode('utf-8')
+
+        return base64_output
