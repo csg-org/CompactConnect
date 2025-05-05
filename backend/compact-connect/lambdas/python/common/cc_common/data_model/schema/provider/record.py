@@ -14,7 +14,7 @@ from cc_common.data_model.schema.fields import (
     Jurisdiction,
     LicenseEncumberedStatusField,
     NationalProviderIdentifier,
-    Set,
+    Set, HomeJurisdictionChangeDeactivationStatusField,
 )
 
 
@@ -66,6 +66,14 @@ class ProviderRecordSchema(CalculatedStatusRecordSchema):
     privilegeJurisdictions = Set(String, required=False, allow_none=False, load_default=set())
     providerFamGivMid = String(required=False, allow_none=False, validate=Length(2, 400))
     providerDateOfUpdate = DateTime(required=True, allow_none=False)
+
+    # This field is only set if a provider changes their home jurisdiction and there is not a valid license on record
+    # for that jurisdiction.
+    # It is removed in the event that a valid license record is uploaded into the system for the provider for their
+    # new jurisdiction.
+    homeJurisdictionChangeDeactivationStatus = HomeJurisdictionChangeDeactivationStatusField(
+        required=False, allow_none=False
+    )
 
     @pre_dump
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument

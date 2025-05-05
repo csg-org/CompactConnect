@@ -616,6 +616,29 @@ class TestPutProviderHomeJurisdiction(TstFunction):
         self.assertEqual('inactive', stored_privilege_data.status)
         self.assertEqual('noLicenseInJurisdiction', stored_privilege_data.homeJurisdictionChangeDeactivationStatus)
 
+    def test_put_provider_home_jurisdiction_sets_deactivation_status_on_provider_record_if_no_license_in_new_jurisdiction(self):
+        from handlers.provider_users import provider_users_api_handler
+        from cc_common.data_model.schema.provider import ProviderData
+
+        (
+         event,
+         test_provider_record,
+         test_current_license_record,
+         test_privilege_record
+         ) = self._when_provider_has_no_license_in_new_selected_jurisdiction()
+
+        resp = provider_users_api_handler(event, self.mock_context)
+
+        self.assertEqual(200, resp['statusCode'])
+
+        # the provider record should show provider is in a jurisdiction that is not a member of the compact
+        stored_provider_data = ProviderData.from_database_record(
+            self.test_data_generator.load_provider_data_record_from_database(test_provider_record)
+        )
+        self.assertEqual('inactive', stored_provider_data.licenseStatus)
+        self.assertEqual('ineligible', stored_provider_data.compactEligibility)
+        self.assertEqual('noLicenseInJurisdiction', stored_provider_data.homeJurisdictionChangeDeactivationStatus)
+
     def test_put_provider_home_jurisdiction_deactivates_privileges_if_new_jurisdiction_non_member(self):
         from handlers.provider_users import provider_users_api_handler
         from cc_common.data_model.schema.privilege import PrivilegeData
@@ -638,7 +661,7 @@ class TestPutProviderHomeJurisdiction(TstFunction):
         self.assertEqual('inactive', stored_privilege_data.status)
         self.assertEqual('nonMemberJurisdiction', stored_privilege_data.homeJurisdictionChangeDeactivationStatus)
 
-    def test_put_provider_home_jurisdiction_sets_non_member_flag_on_provider_record_if_new_jurisdiction_non_member(self):
+    def test_put_provider_home_jurisdiction_sets_deactivation_status_on_provider_record_if_new_jurisdiction_non_member(self):
         from handlers.provider_users import provider_users_api_handler
         from cc_common.data_model.schema.provider import ProviderData
 
@@ -657,7 +680,9 @@ class TestPutProviderHomeJurisdiction(TstFunction):
         stored_provider_data = ProviderData.from_database_record(
             self.test_data_generator.load_provider_data_record_from_database(test_provider_record)
         )
-        # TODO - finish test once design detail complete
+        self.assertEqual('inactive', stored_provider_data.licenseStatus)
+        self.assertEqual('ineligible', stored_provider_data.compactEligibility)
+        self.assertEqual('nonMemberJurisdiction', stored_provider_data.homeJurisdictionChangeDeactivationStatus)
 
     def test_put_provider_home_jurisdiction_does_not_update_privileges_if_starting_home_state_license_is_encumbered(self):
         from handlers.provider_users import provider_users_api_handler
@@ -845,3 +870,30 @@ class TestPutProviderHomeJurisdiction(TstFunction):
         self.assertEqual(test_current_license_record.dateOfExpiration, stored_encumbered_privilege_data.dateOfExpiration)
         self.assertEqual(test_current_license_record.jurisdiction, stored_encumbered_privilege_data.licenseJurisdiction)
 
+    def test_put_provider_home_jurisdiction_updates_provider_record_with_new_license_information(self):
+        from handlers.provider_users import provider_users_api_handler
+        from cc_common.data_model.schema.provider import ProviderData
+
+        (
+         test_provider_record,
+         test_current_license_record,
+         test_privilege_record
+         ) = self._when_provider_has_one_license_and_privilege()
+        new_license_record = self._when_provider_has_license_in_new_home_state()
+        event = self._when_testing_put_provider_home_jurisdiction(NEW_JURISDICTION, test_provider_record)
+
+        resp = provider_users_api_handler(event, self.mock_context)
+
+        self.assertEqual(200, resp['statusCode'])
+
+        stored_provider_data = ProviderData.from_database_record(
+            self.test_data_generator.load_provider_data_record_from_database(test_provider_record)
+        )
+        self.assertEqual('active', stored_provider_data.licenseStatus)
+        self.assertEqual('eligible', stored_provider_data.compactEligibility)
+        # this field should not be added, since the provider has a valid license in the new state
+        self.assertNotIn('homeJurisdictionChangeDeactivationStatus', stored_provider_data.to_dict())
+
+        # verify these match on the new license and privilege record
+        self.assertEqual(new_license_record.dateOfExpiration, stored_provider_data.dateOfExpiration)
+        self.assertEqual(new_license_record.jurisdiction, stored_provider_data.licenseJurisdiction)
