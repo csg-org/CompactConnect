@@ -129,3 +129,15 @@ class ProviderData(CCDataClass):
     @property
     def encumberedStatus(self) -> str | None:
         return self._data.get('encumberedStatus')
+
+    @property
+    def compactEligibility(self) -> str:
+        return self._data['compactEligibility']
+
+    @property
+    def licenseStatus(self) -> str | None:
+        return self._data.get('licenseStatus')
+
+    @property
+    def homeJurisdictionChangeDeactivationStatus(self) -> str | None:
+        return self._data.get('homeJurisdictionChangeDeactivationStatus')
