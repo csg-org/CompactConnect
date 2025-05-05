@@ -11,7 +11,7 @@ from cc_common.data_model.schema.fields import (
     ITUTE164PhoneNumber,
     Jurisdiction,
     NationalProviderIdentifier,
-    Set,
+    Set, CurrentHomeJurisdictionField,
 )
 from cc_common.data_model.schema.home_jurisdiction.api import ProviderHomeJurisdictionSelectionGeneralResponseSchema
 from cc_common.data_model.schema.license.api import LicenseGeneralResponseSchema
@@ -39,6 +39,7 @@ class ProviderGeneralResponseSchema(ForgivingSchema):
     dateOfUpdate = Raw(required=True, allow_none=False)
     compact = Compact(required=True, allow_none=False)
     licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
+    currentHomeJurisdiction = CurrentHomeJurisdictionField(required=False, allow_none=False)
     licenseStatus = ActiveInactive(required=True, allow_none=False)
     compactEligibility = CompactEligibility(required=True, allow_none=False)
 
@@ -98,6 +99,7 @@ class ProviderPublicResponseSchema(ForgivingSchema):
     dateOfUpdate = Raw(required=True, allow_none=False)
     compact = Compact(required=True, allow_none=False)
     licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
+    currentHomeJurisdiction = CurrentHomeJurisdictionField(required=False, allow_none=False)
     licenseStatus = ActiveInactive(required=True, allow_none=False)
     compactEligibility = CompactEligibility(required=True, allow_none=False)
     npi = NationalProviderIdentifier(required=False, allow_none=False)

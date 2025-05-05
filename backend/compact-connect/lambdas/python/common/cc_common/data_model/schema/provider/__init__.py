@@ -141,3 +141,7 @@ class ProviderData(CCDataClass):
     @property
     def homeJurisdictionChangeDeactivationStatus(self) -> str | None:
         return self._data.get('homeJurisdictionChangeDeactivationStatus')
+
+    @property
+    def currentHomeJurisdiction(self) -> str | None:
+        return self._data.get('currentHomeJurisdiction')

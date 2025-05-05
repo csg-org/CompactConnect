@@ -92,6 +92,8 @@ class TestTransformations(TstFunction):
         # Expected representation of each record in the database
         with open('../common/tests/resources/dynamo/provider.json') as f:
             expected_provider = json.load(f)
+            # TODO - this will be set to an actual jurisdiction when ingest logic is updated.
+            expected_provider['currentHomeJurisdiction'] = 'unknown'
 
         # register the provider in the system
         client.process_registration_values(
@@ -201,6 +203,8 @@ class TestTransformations(TstFunction):
             # in this case, the military affiliation status will be initializing, since it is not set to active until
             # the military affiliation document is uploaded to s3
             expected_provider['militaryAffiliations'][0]['status'] = 'initializing'
+            # TODO - this will be set to an actual jurisdiction when ingest logic is updated.
+            expected_provider['currentHomeJurisdiction'] = 'unknown'
 
         # Force the provider id to match
         expected_provider['providerId'] = provider_id
