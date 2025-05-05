@@ -267,14 +267,10 @@ class UserPool(CdkUserPool):
             bytes=base_64_logo
         )
 
-        assets = [favicon, logo]
+        return [favicon, logo]
 
-        return assets
-
-    def convert_img_to_base_64(filePath: str):
-        with open(filePath, 'rb') as binary_file:
+    def convert_img_to_base_64(self, file_path: str):
+        with open(file_path, 'rb') as binary_file:
             binary_file_data = binary_file.read()
             base64_encoded_data = base64.b64encode(binary_file_data)
-            base64_output = base64_encoded_data.decode('utf-8')
-
-        return base64_output
+            return base64_encoded_data.decode('utf-8')
