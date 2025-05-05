@@ -1000,7 +1000,6 @@ class ApiModel:
                 'givenName',
                 'familyName',
                 'licenseType',
-                'status',
                 'compact',
                 'licenseJurisdiction',
                 'privilegeJurisdictions',
@@ -1355,7 +1354,6 @@ class ApiModel:
             'licenseJurisdiction': JsonSchema(
                 type=JsonSchemaType.STRING, enum=self.stack.node.get_context('jurisdictions')
             ),
-            'status': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
             'privilegeJurisdictions': JsonSchema(
                 type=JsonSchemaType.ARRAY,
                 items=JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.node.get_context('jurisdictions')),
@@ -1608,7 +1606,6 @@ class ApiModel:
                 'licenseJurisdiction',
                 'givenName',
                 'familyName',
-                'status',
                 'privilegeJurisdictions',
             ],
             properties={
@@ -1745,7 +1742,6 @@ class ApiModel:
                 'providerId',
                 'givenName',
                 'familyName',
-                'status',
                 'compact',
                 'licenseJurisdiction',
                 'privilegeJurisdictions',
@@ -1765,7 +1761,6 @@ class ApiModel:
             'middleName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
             'familyName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
             'suffix': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
-            'status': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
             'compact': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')),
             'licenseJurisdiction': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')),
             'privilegeJurisdictions': JsonSchema(
