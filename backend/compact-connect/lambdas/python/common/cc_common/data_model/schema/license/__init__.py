@@ -114,6 +114,10 @@ class LicenseData(CCDataClass):
         return self._data.get('phoneNumber')
 
     @property
+    def licenseStatus(self) -> str | None:
+        return self._data.get('licenseStatus')
+
+    @property
     def licenseStatusName(self) -> str | None:
         return self._data.get('licenseStatusName')
 
