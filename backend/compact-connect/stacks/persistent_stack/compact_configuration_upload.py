@@ -162,6 +162,8 @@ class CompactConfigurationUpload(Construct):
                         environment_name,
                         formatted_compact['activeEnvironments'],
                     ):
+                        # Validate compact-level fee configurations
+                        self._validate_compact_configuration(formatted_compact)
                         uploader_input['compacts'].append(formatted_compact)
 
         # Read all jurisdiction configuration YAML files from each active compact directory
@@ -196,6 +198,30 @@ class CompactConfigurationUpload(Construct):
 
         return json.dumps(uploader_input)
 
+    def _validate_compact_configuration(self, compact: dict):
+        """Validate compact-level fee configurations to catch negative values early"""
+        compact_abbr = compact.get('compactAbbr', 'unknown')
+        
+        # Check compactCommissionFee
+        if 'compactCommissionFee' in compact and 'feeAmount' in compact['compactCommissionFee']:
+            if compact['compactCommissionFee']['feeAmount'] < 0:
+                raise ValueError(
+                    f'Compact {compact_abbr} has a negative compactCommissionFee amount: '
+                    f'{compact["compactCommissionFee"]["feeAmount"]}'
+                )
+        
+        # Check transactionFeeConfiguration.licenseeCharges.chargeAmount
+        if (
+            'transactionFeeConfiguration' in compact
+            and 'licenseeCharges' in compact['transactionFeeConfiguration']
+            and 'chargeAmount' in compact['transactionFeeConfiguration']['licenseeCharges']
+        ):
+            charge_amount = compact['transactionFeeConfiguration']['licenseeCharges']['chargeAmount']
+            if charge_amount < 0:
+                raise ValueError(
+                    f'Compact {compact_abbr} has a negative transaction fee charge amount: {charge_amount}'
+                )
+
     def _apply_jurisdiction_configuration_overrides(self, jurisdiction: dict, environment_context: dict) -> dict:
         """Apply overrides to the jurisdiction configuration, based on any overrides set in environment context"""
         if 'jurisdiction_configuration_overrides' in environment_context.keys():
@@ -211,11 +237,32 @@ class CompactConfigurationUpload(Construct):
                 f'jurisdictionOperationsTeamEmails is required for jurisdiction {jurisdiction["postalAbbreviation"]}'
             )
 
+        # Check for negative military discount amount
+        if (
+            'militaryDiscount' in jurisdiction
+            and jurisdiction['militaryDiscount'].get('active', False)
+            and 'discountAmount' in jurisdiction['militaryDiscount']
+        ):
+            if jurisdiction['militaryDiscount']['discountAmount'] < 0:
+                raise ValueError(
+                    f'Jurisdiction {jurisdiction["postalAbbreviation"]} in Compact {compact_abbr} '
+                    f'has a negative military discount amount: {jurisdiction["militaryDiscount"]["discountAmount"]}'
+                )
+
         # Ensure all license types are covered
         if jurisdiction.get('privilegeFees'):
             defined_license_types_list = [fee['licenseTypeAbbreviation'] for fee in jurisdiction['privilegeFees']]
             defined_license_types_set = set(defined_license_types_list)
             compact_license_type_abbreviations = set([lt['abbreviation'] for lt in license_types_for_compact])
+
+            # Check for negative fee amounts
+            negative_fees = [fee for fee in jurisdiction['privilegeFees'] if fee.get('amount', 0) < 0]
+            if negative_fees:
+                negative_fee_types = [fee['licenseTypeAbbreviation'] for fee in negative_fees]
+                raise ValueError(
+                    f'Jurisdiction {jurisdiction["postalAbbreviation"]} in Compact {compact_abbr} '
+                    f'has negative fee amounts for license types: {", ".join(negative_fee_types)}'
+                )
 
             missing_license_types = compact_license_type_abbreviations - defined_license_types_set
             if missing_license_types:
