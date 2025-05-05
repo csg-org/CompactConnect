@@ -166,13 +166,6 @@
       "minLength": 1,
       "type": "string"
     },
-    "status": {
-      "enum": [
-        "active",
-        "inactive"
-      ],
-      "type": "string"
-    },
     "compact": {
       "enum": [
         "aslp",
@@ -314,7 +307,6 @@
     "licenseJurisdiction",
     "givenName",
     "familyName",
-    "status",
     "privilegeJurisdictions"
   ],
   "type": "object",

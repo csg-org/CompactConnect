@@ -40,8 +40,6 @@ class ProviderGeneralResponseSchema(ForgivingSchema):
     compact = Compact(required=True, allow_none=False)
     licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
     licenseStatus = ActiveInactive(required=True, allow_none=False)
-    # TODO: remove this once the UI is updated to use licenseStatus  # noqa: FIX002
-    status = ActiveInactive(required=True, allow_none=False)
     compactEligibility = CompactEligibility(required=True, allow_none=False)
 
     npi = NationalProviderIdentifier(required=False, allow_none=False)
@@ -101,8 +99,6 @@ class ProviderPublicResponseSchema(ForgivingSchema):
     compact = Compact(required=True, allow_none=False)
     licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
     licenseStatus = ActiveInactive(required=True, allow_none=False)
-    # TODO: remove this once the UI is updated to use licenseStatus  # noqa: FIX002
-    status = ActiveInactive(required=True, allow_none=False)
     compactEligibility = CompactEligibility(required=True, allow_none=False)
     npi = NationalProviderIdentifier(required=False, allow_none=False)
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))

@@ -185,13 +185,6 @@
             ],
             "type": "string"
           },
-          "status": {
-            "enum": [
-              "active",
-              "inactive"
-            ],
-            "type": "string"
-          },
           "privilegeJurisdictions": {
             "items": {
               "enum": [

@@ -1717,13 +1717,6 @@
       ],
       "type": "string"
     },
-    "status": {
-      "enum": [
-        "active",
-        "inactive"
-      ],
-      "type": "string"
-    },
     "privilegeJurisdictions": {
       "items": {
         "enum": [
@@ -1806,7 +1799,6 @@
     "givenName",
     "familyName",
     "licenseType",
-    "status",
     "compact",
     "licenseJurisdiction",
     "privilegeJurisdictions",

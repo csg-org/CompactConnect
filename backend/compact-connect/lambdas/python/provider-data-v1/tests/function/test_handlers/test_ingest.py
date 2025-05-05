@@ -254,9 +254,7 @@ class TestIngest(TstFunction):
         expected_provider['licenses'][0]['jurisdictionUploadedCompactEligibility'] = 'ineligible'
         # these should be calculated as inactive at record load time
         expected_provider['licenseStatus'] = 'inactive'
-        expected_provider['status'] = 'inactive'
         expected_provider['licenses'][0]['licenseStatus'] = 'inactive'
-        expected_provider['licenses'][0]['status'] = 'inactive'
         expected_provider['compactEligibility'] = 'ineligible'
         expected_provider['licenses'][0]['compactEligibility'] = 'ineligible'
         # ensure the privilege record is also set to inactive
