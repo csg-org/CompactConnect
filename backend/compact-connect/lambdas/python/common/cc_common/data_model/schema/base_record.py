@@ -101,8 +101,6 @@ class CalculatedStatusRecordSchema(BaseRecordSchema):
     # in addition to the jurisdictionUploadedStatus. This should never be written to the DB. It is calculated
     # whenever the record is loaded.
     licenseStatus = ActiveInactive(required=True, allow_none=False)
-    # TODO: remove this once the UI is updated to use licenseStatus  # noqa: FIX002
-    status = ActiveInactive(required=True, allow_none=False)
     compactEligibility = CompactEligibility(required=True, allow_none=False)
 
     @pre_dump
@@ -131,8 +129,6 @@ class CalculatedStatusRecordSchema(BaseRecordSchema):
             )
             else ActiveInactiveStatus.INACTIVE
         )
-        # TODO: Remove `status` once the UI is updated to use the new `licenseStatus` field  # noqa: FIX002
-        in_data['status'] = in_data['licenseStatus']
         return in_data
 
     def _calculate_compact_eligibility(self, in_data, **_kwargs):
