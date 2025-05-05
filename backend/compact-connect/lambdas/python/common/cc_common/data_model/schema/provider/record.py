@@ -14,7 +14,7 @@ from cc_common.data_model.schema.fields import (
     Jurisdiction,
     LicenseEncumberedStatusField,
     NationalProviderIdentifier,
-    Set, HomeJurisdictionChangeDeactivationStatusField,
+    Set, HomeJurisdictionChangeDeactivationStatusField, CurrentHomeJurisdictionField, UNKNOWN_JURISDICTION
 )
 
 
@@ -74,6 +74,8 @@ class ProviderRecordSchema(CalculatedStatusRecordSchema):
     homeJurisdictionChangeDeactivationStatus = HomeJurisdictionChangeDeactivationStatusField(
         required=False, allow_none=False
     )
+    # This field is set whenever the provider registers with the compact connect system, or updates their home jurisdiction.
+    currentHomeJurisdiction = CurrentHomeJurisdictionField(required=True, allow_none=False, default=UNKNOWN_JURISDICTION)
 
     @pre_dump
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument

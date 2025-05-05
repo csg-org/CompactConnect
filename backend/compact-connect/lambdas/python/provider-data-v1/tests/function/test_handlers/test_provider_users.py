@@ -765,6 +765,7 @@ class TestPutProviderHomeJurisdiction(TstFunction):
         self.assertEqual('inactive', stored_provider_data.licenseStatus)
         self.assertEqual('ineligible', stored_provider_data.compactEligibility)
         self.assertEqual('noLicenseInJurisdiction', stored_provider_data.homeJurisdictionChangeDeactivationStatus)
+        self.assertEqual(NEW_JURISDICTION, stored_provider_data.currentHomeJurisdiction)
 
     def test_put_provider_home_jurisdiction_deactivates_privileges_if_new_jurisdiction_non_member(self):
         from handlers.provider_users import provider_users_api_handler
@@ -810,6 +811,8 @@ class TestPutProviderHomeJurisdiction(TstFunction):
         self.assertEqual('inactive', stored_provider_data.licenseStatus)
         self.assertEqual('ineligible', stored_provider_data.compactEligibility)
         self.assertEqual('nonMemberJurisdiction', stored_provider_data.homeJurisdictionChangeDeactivationStatus)
+        # this value must be set to show the provider is in a non-member jurisdiction
+        self.assertEqual('other', stored_provider_data.currentHomeJurisdiction)
 
     def test_put_provider_home_jurisdiction_does_not_update_privileges_if_starting_home_state_license_is_encumbered(self):
         from handlers.provider_users import provider_users_api_handler
@@ -1024,3 +1027,33 @@ class TestPutProviderHomeJurisdiction(TstFunction):
         # verify these match on the new license and privilege record
         self.assertEqual(new_license_record.dateOfExpiration, stored_provider_data.dateOfExpiration)
         self.assertEqual(new_license_record.jurisdiction, stored_provider_data.licenseJurisdiction)
+        # verify the new home jurisdiction selection is set on the provider record
+        self.assertEqual(NEW_JURISDICTION, stored_provider_data.currentHomeJurisdiction)
+
+    def test_put_provider_home_jurisdiction_add_privilege_update_record(self):
+        from handlers.provider_users import provider_users_api_handler
+        from cc_common.data_model.schema.privilege import PrivilegeUpdateData
+
+        (
+         test_provider_record,
+         test_current_license_record,
+         test_privilege_record
+         ) = self._when_provider_has_one_license_and_privilege()
+        new_license_record = self._when_provider_has_license_in_new_home_state()
+        event = self._when_testing_put_provider_home_jurisdiction(NEW_JURISDICTION, test_provider_record)
+
+        resp = provider_users_api_handler(event, self.mock_context)
+
+        self.assertEqual(200, resp['statusCode'])
+
+        # now get all the update records for the privilege record
+        stored_provider_update_records = self.test_data_generator.query_update_records_for_given_record_from_database(
+            test_privilege_record)
+        self.assertEqual(1, len(stored_provider_update_records))
+        
+        update_data = PrivilegeUpdateData.from_database_record(stored_provider_update_records[0])
+        # the updateType should be homeJurisdictionUpdate
+        self.assertEqual('homeJurisdictionChange', update_data.updateType)
+        # the updateData should be the new home jurisdiction
+        self.assertEqual(new_license_record.jurisdiction, update_data.updatedValues['licenseJurisdiction'])
+        self.assertEqual(new_license_record.dateOfExpiration, update_data.updatedValues['dateOfExpiration'])
