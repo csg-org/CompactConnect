@@ -93,13 +93,14 @@ def put_provider_home_jurisdiction(event: dict, context: LambdaContext):  # noqa
     # provider_data = get_provider_information(compact=compact, provider_id=provider_id)
 
     # Based on the following rules, we will update the provider's privileges with the new jurisdiction
-    # 1. If the jurisdiction is not a member of the compact, all of the provider's existing privileges will have
-    # their 'privilegeHomeJurisdictionChangeDeactivationStatus' set to 'nonMemberJurisdiction'
-    # 2. If the jurisdiction is a member of the compact, but the provider does not have a license for the jurisdiction,
-    # all of their existing privileges will be set to inactive.
+    # 1. If the jurisdiction is not a member of the compact, all the provider's existing privileges, and the provider
+    # record itself, will have their 'homeJurisdictionChangeDeactivationStatus' set to 'nonMemberJurisdiction'
+    # 2. If the jurisdiction is a member of the compact, but the provider does not have any license in the jurisdiction,
+    # all of their existing privileges, and the provider record itself, will have their
+    # 'homeJurisdictionChangeDeactivationStatus' set to 'noLicenseInJurisdiction'
     # 3. If any privileges have an 'encumberedStatus' that is not equal to 'unencumbered', they will not be moved over
     # to the new jurisdiction.
-    # 4. If any license in the new jurisdiction has a 'compactEligiblity' status of 'ineligible', the associated
+    # 4. If the license in the new jurisdiction has a 'compactEligiblity' status of 'ineligible', the associated
     # privileges for the current license will be moved over to the new jurisdiction, but will be set to inactive.
     # 5. If none of the above conditions are met, the provider's privileges will be moved over to the new jurisdiction
     # and the expiration date will be updated to the expiration date of the license in the new jurisdiction.
