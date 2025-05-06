@@ -1,23 +1,25 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 from urllib.parse import quote
 
-from marshmallow import post_load, pre_dump, post_dump, validates_schema, ValidationError
-from marshmallow.fields import UUID, Date, DateTime, Email, String, Nested, List
-from marshmallow.validate import Length, Regexp
-
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import BaseRecordSchema, CalculatedStatusRecordSchema, ForgivingSchema
+from cc_common.data_model.schema.common import ChangeHashMixin
 from cc_common.data_model.schema.fields import (
+    UNKNOWN_JURISDICTION,
     ActiveInactive,
     Compact,
     CompactEligibility,
+    CurrentHomeJurisdictionField,
+    HomeJurisdictionChangeDeactivationStatusField,
     Jurisdiction,
     LicenseEncumberedStatusField,
     NationalProviderIdentifier,
-    Set, HomeJurisdictionChangeDeactivationStatusField, CurrentHomeJurisdictionField, UNKNOWN_JURISDICTION,
+    Set,
     UpdateType,
 )
-from cc_common.data_model.schema.common import ChangeHashMixin
+from marshmallow import post_dump, post_load, pre_dump
+from marshmallow.fields import UUID, Date, DateTime, Email, List, Nested, String
+from marshmallow.validate import Length, Regexp
 
 
 @BaseRecordSchema.register_schema('provider')
@@ -69,8 +71,13 @@ class ProviderRecordSchema(CalculatedStatusRecordSchema):
     homeJurisdictionChangeDeactivationStatus = HomeJurisdictionChangeDeactivationStatusField(
         required=False, allow_none=False
     )
-    # This field is set whenever the provider registers with the compact connect system, or updates their home jurisdiction.
-    currentHomeJurisdiction = CurrentHomeJurisdictionField(required=True, allow_none=False, default=UNKNOWN_JURISDICTION)
+    # This field is set whenever the provider registers with the compact connect system,
+    # or updates their home jurisdiction.
+    currentHomeJurisdiction = CurrentHomeJurisdictionField(
+        required=False,
+        allow_none=False,
+        default=UNKNOWN_JURISDICTION
+    )
 
     @pre_dump
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
