@@ -6,6 +6,7 @@ from uuid import UUID
 from cc_common.data_model.schema.common import CCDataClass
 from cc_common.data_model.schema.provider.record import (
     ProviderRecordSchema,
+    ProviderUpdateRecordSchema,
 )
 
 
@@ -145,3 +146,43 @@ class ProviderData(CCDataClass):
     @property
     def currentHomeJurisdiction(self) -> str | None:
         return self._data.get('currentHomeJurisdiction')
+
+
+class ProviderUpdateData(CCDataClass):
+    """
+    Class representing a Provider Update with getters and setters for all properties.
+    Takes a dict as an argument to the constructor to avoid primitive obsession.
+
+    Note: This class requires valid data when created - it cannot be instantiated empty
+    and populated later.
+    """
+
+    # Define the record schema at the class level
+    _record_schema = ProviderUpdateRecordSchema()
+
+    # Require valid data when creating instances
+    _requires_data_at_construction = True
+
+    @property
+    def updateType(self) -> str:
+        return self._data['updateType']
+
+    @property
+    def providerId(self) -> UUID:
+        return self._data['providerId']
+
+    @property
+    def compact(self) -> str:
+        return self._data['compact']
+
+    @property
+    def previous(self) -> dict:
+        return self._data['previous']
+
+    @property
+    def updatedValues(self) -> dict:
+        return self._data['updatedValues']
+
+    @property
+    def removedValues(self) -> list[str] | None:
+        return self._data.get('removedValues')
