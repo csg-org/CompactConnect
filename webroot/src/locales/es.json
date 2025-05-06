@@ -11,6 +11,7 @@
         "cancel": "Cancelar",
         "close": "Cerrar",
         "skip": "Saltear",
+        "print": "Imprimir",
         "fees": "Tarifas",
         "choose": "Elige",
         "chooseOne": "Elige uno",
@@ -640,7 +641,12 @@
         "eventNodeLabel": "Evento: {eventNameDisplay} en {eventDate}",
         "statusBlockLabel": "{status} bloque de estado",
         "compactEligible": "Elegible Compacto",
-        "notCompactEligible": "No Compacto Elegible"
+        "notCompactEligible": "No Compacto Elegible",
+        "privilegeVerification": "Verificación de privilegios",
+        "practitionerInformation": "Información para profesionales",
+        "homeStateLicenses": "Licencias del estado de origen",
+        "activeDate": "Fecha activa",
+        "privilegeProofFooter": "Este documento es generado oficialmente por Compact Connect y sirve como prueba de las licencias y privilegios actuales del profesional."
     },
     "military": {
         "militaryStatusTitle": "Estado militar",

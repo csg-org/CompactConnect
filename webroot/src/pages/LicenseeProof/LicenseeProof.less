@@ -6,32 +6,164 @@
 //
 
 .licensee-verification-container {
+    @pageHorizontalSpacing: 4.8rem;
+    @lightText: darken(@darkGrey, 10%);
+    @printBackgroundHighlight: #ebf7fd;
+    .preserve-print-background-graphics() {
+        -webkit-print-color-adjust: exact;
+        color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
     display: flex;
     flex-direction: column;
-    padding: 3.2rem 4.8rem;
+    margin-bottom: 6rem;
+    padding: 0.4rem @pageHorizontalSpacing 6.4rem @pageHorizontalSpacing;
+    background-color: @white;
 
     .print-header {
         display: flex;
 
+        .app-logo-container {
+            width: 20rem;
+
+            @supports (font: -apple-system-body) {
+                @media print {
+                    width: 10rem;
+                }
+            }
+
+            .app-logo {
+                display: inline-block;
+                width: 100%;
+            }
+        }
+
         .current-date {
             margin-left: auto;
+            color: @lightText;
+        }
+
+        .page-nav {
+            display: flex;
+            align-items: center;
+            margin-left: 2rem;
+
+            @media print {
+                display: none;
+            }
+
+            .nav-item {
+                font-weight: @fontWeightBold;
+                font-size: 2rem;
+
+                &:not(:first-child) {
+                    margin-left: 2.4rem;
+                }
+
+                &:hover {
+                    text-decoration: underline;
+                }
+            }
         }
     }
 
     .page-title {
-        margin: 2.4rem 0;
+        margin-top: 2.4rem;
         font-size: @h1FontSize;
         text-align: center;
     }
 
-    .icon {
-        width: 40px;
-        fill: @primaryColor;
+    .section-container {
+        .section-title-container {
+            display: flex;
+            align-items: flex-end;
+            margin-top: 3.2rem;
+            margin-bottom: 1rem;
+            font-weight: 400;
+            font-size: @h3FontSize;
+            page-break-inside: avoid;
+            break-inside: avoid;
 
-        &.stroke-fill-type {
-            width: 32px;
-            fill: transparent;
-            stroke: @primaryColor;
+            .icon {
+                width: 2.8rem;
+                margin-right: 1rem;
+                fill: @primaryColor;
+
+                &.stroke-fill-type {
+                    fill: transparent;
+                    stroke: @primaryColor;
+                }
+
+                &.licenses-icon {
+                    width: 4rem;
+                }
+            }
+        }
+
+        .row {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 1rem;
+            padding: 2rem 2.4rem;
+            border-radius: 8px;
+            page-break-inside: avoid;
+            break-inside: avoid;
+            background-color: @veryLightGrey;
+            .preserve-print-background-graphics();
+
+            &.highlight {
+                background-color: @printBackgroundHighlight;
+            }
+
+            .cell {
+                display: flex;
+                flex-direction: column;
+                margin-right: 3.2rem;
+                font-weight: @fontWeightBold;
+                font-size: @fontSizeLarge;
+
+                &.max-gap {
+                    margin-left: auto;
+                }
+
+                .cell-title {
+                    color: @lightText;
+                    font-weight: @fontWeight;
+                    font-size: 1.4rem;
+                }
+
+                .date-text {
+                    font-size: @fontSize;
+                }
+            }
+        }
+    }
+
+    .print-footer {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+        padding: 1.2rem 2.4rem;
+        border-radius: 8px;
+        color: @white;
+        text-align: center;
+        page-break-inside: avoid;
+        break-inside: avoid;
+        background-color: @primaryColor;
+        .preserve-print-background-graphics();
+
+        @media print {
+            position: fixed;
+            bottom: 0;
+            width: ~"calc(100% - (@{pageHorizontalSpacing} * 2))";
+
+            @supports (font: -apple-system-body) {
+                position: relative;
+                bottom: unset;
+                width: 100%;
+            }
         }
     }
 }

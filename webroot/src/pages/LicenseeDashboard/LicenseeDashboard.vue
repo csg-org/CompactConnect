@@ -8,7 +8,7 @@
 <template>
     <div class="licensee-dashboard-container">
         <div class="top-block">
-            <div class="welcome-user">{{welcomeText}}, {{ userFullName }}</div>
+            <div class="welcome-user">{{ $t('common.welcome') }}, {{ userFullName }}</div>
             <div class="button-block">
                 <div class="btn-container">
                     <InputButton
@@ -16,6 +16,7 @@
                         :aria-label="$t('licensing.generateVerification')"
                         :isTransparent="true"
                         class="btn view-military-btn"
+                        :isEnabled="isGenerateProofEnabled"
                         @click="viewLicenseeProof"
                     />
                     <div class="btn-subtext">{{ $t('licensing.generateVerificationSubtext') }}</div>
@@ -31,7 +32,7 @@
                 </div>
                 <div class="btn-container">
                     <InputButton
-                        :label="obtainPrivButtonLabel"
+                        :label="`+ ${this.$t('licensing.obtainPrivileges')}`"
                         :aria-label="$t('licensing.obtainPrivileges')"
                         class="btn obtain-priv-btn"
                         :isEnabled="isPrivilegePurchaseEnabled"
@@ -68,9 +69,7 @@
                             :alt="$t('licensing.privilegeIcon')"
                         />
                     </div>
-                    <div class="title-text">
-                        {{privilegeTitle}}
-                    </div>
+                    <div class="title-text">{{ $t('licensing.privileges') }}</div>
                 </div>
                 <CollapseCaretButton
                     @toggleCollapse="togglePrivsCollapsed"

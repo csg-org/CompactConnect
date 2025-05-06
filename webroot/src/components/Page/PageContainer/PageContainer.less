@@ -13,6 +13,17 @@
     padding-top: @appHeaderHeight;
     background-color: @ambientGrey;
 
+    @media print {
+        @page {
+            size: 330mm 427mm;
+            margin: 14mm;
+        }
+
+        width: @desktopWidth;
+        min-height: auto;
+        background-color: @white;
+    }
+
     &.no-top-pad {
         @media @tabletWidth {
             padding-top: unset;
@@ -36,7 +47,7 @@
         flex-shrink: 0;
 
         @media @tabletWidth {
-            .include-nav {
+            &.include-nav {
                 padding-left: @navPartialExpandWidth;
             }
         }

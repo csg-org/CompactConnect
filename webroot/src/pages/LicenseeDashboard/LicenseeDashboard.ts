@@ -41,28 +41,16 @@ export default class LicenseeDashboard extends Vue {
         return this.$store.state.user;
     }
 
-    get user(): LicenseeUser | null {
-        return this.userStore.model;
-    }
-
-    get licensee(): Licensee {
-        return this.user?.licensee || new Licensee();
-    }
-
-    get licenseePrivileges(): Array<License> {
-        return this.licensee.privileges || [];
-    }
-
-    get licenseeLicenses(): Array<License> {
-        return this.licensee.licenses || [];
-    }
-
     get currentCompact(): Compact | null {
         return this.userStore?.currentCompact || null;
     }
 
     get currentCompactType(): string | null {
         return this.currentCompact?.type || null;
+    }
+
+    get user(): LicenseeUser | null {
+        return this.userStore.model;
     }
 
     get userFullName(): string {
@@ -75,32 +63,29 @@ export default class LicenseeDashboard extends Vue {
         return name;
     }
 
+    get licensee(): Licensee {
+        return this.user?.licensee || new Licensee();
+    }
+
+    get licenseeLicenses(): Array<License> {
+        return this.licensee.licenses || [];
+    }
+
+    get licenseePrivileges(): Array<License> {
+        return this.licensee.privileges || [];
+    }
+
     get homeJurisdiction(): State | null {
         return this.licensee?.homeJurisdiction || null;
     }
 
-    get obtainPrivButtonLabel(): string {
-        return `+ ${this.$t('licensing.obtainPrivileges')}`;
-    }
-
-    get privilegeTitle(): string {
-        return this.$t('licensing.privileges');
-    }
-
-    get welcomeText(): string {
-        return this.$t('common.welcome');
+    get isGenerateProofEnabled(): boolean {
+        return this.licenseePrivileges.filter((privilege: License) =>
+            privilege.status === LicenseStatus.ACTIVE).length > 0;
     }
 
     get isPrivilegePurchaseEnabled(): boolean {
         return this.licensee?.canPurchasePrivileges() || false;
-    }
-
-    get twoHomeStateErrorText(): string {
-        return this.$t('licensing.twoHomeStateErrorMessage');
-    }
-
-    get licenseExpiredMessage(): string {
-        return this.$t('licensing.licenseExpiredMessage');
     }
 
     //
