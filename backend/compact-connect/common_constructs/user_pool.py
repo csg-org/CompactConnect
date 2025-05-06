@@ -1,6 +1,5 @@
-from collections.abc import Mapping
-
 import base64
+from collections.abc import Mapping
 
 from aws_cdk import CfnOutput, Duration, RemovalPolicy
 from aws_cdk.aws_cognito import (
@@ -24,7 +23,7 @@ from aws_cdk.aws_cognito import (
     SignInAliases,
     StandardAttributes,
     UserPoolClient,
-    UserPoolEmail
+    UserPoolEmail,
 )
 from aws_cdk.aws_cognito import UserPool as CdkUserPool
 from aws_cdk.aws_kms import IKey
