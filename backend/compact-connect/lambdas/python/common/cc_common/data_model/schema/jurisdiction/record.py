@@ -18,6 +18,7 @@ class JurisdictionMilitaryDiscountRecordSchema(Schema):
 
 class JurisdictionJurisprudenceRequirementsRecordSchema(Schema):
     required = Boolean(required=True, allow_none=False)
+    linkToDocumentation = String(required=False, allow_none=False)
 
 
 class JurisdictionPrivilegeFeeRecordSchema(Schema):
@@ -50,11 +51,7 @@ class JurisdictionRecordSchema(BaseRecordSchema):
         required=True,
         allow_none=False,
     )
-    licenseeRegistrationEnabledForEnvironments = List(
-        String(required=True, allow_none=False, validate=OneOf(['test', 'prod', config.environment_name])),
-        required=True,
-        allow_none=False,
-    )
+    licenseeRegistrationEnabled = Boolean(required=True, allow_none=False)
     jurisprudenceRequirements = Nested(
         JurisdictionJurisprudenceRequirementsRecordSchema(), required=True, allow_none=False
     )

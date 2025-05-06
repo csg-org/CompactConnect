@@ -109,5 +109,5 @@ class Compact(UserDict):
         return self.get('compactSummaryReportNotificationEmails')
 
     @property
-    def licensee_registration_enabled_for_environments(self) -> list[str] | None:
-        return self.get('licenseeRegistrationEnabledForEnvironments', [])
+    def licensee_registration_enabled(self):
+        return self.get('licenseeRegistrationEnabled', False)
