@@ -1030,7 +1030,7 @@ class TestPutProviderHomeJurisdiction(TstFunction):
         # verify the new home jurisdiction selection is set on the provider record
         self.assertEqual(NEW_JURISDICTION, stored_provider_data.currentHomeJurisdiction)
 
-    def test_put_provider_home_jurisdiction_add_privilege_update_record(self):
+    def test_put_provider_home_jurisdiction_adds_privilege_update_record(self):
         from handlers.provider_users import provider_users_api_handler
         from cc_common.data_model.schema.privilege import PrivilegeUpdateData
 
@@ -1047,13 +1047,72 @@ class TestPutProviderHomeJurisdiction(TstFunction):
         self.assertEqual(200, resp['statusCode'])
 
         # now get all the update records for the privilege record
-        stored_provider_update_records = self.test_data_generator.query_update_records_for_given_record_from_database(
+        stored_privilege_update_records = self.test_data_generator.query_update_records_for_given_record_from_database(
             test_privilege_record)
-        self.assertEqual(1, len(stored_provider_update_records))
+        self.assertEqual(1, len(stored_privilege_update_records))
         
-        update_data = PrivilegeUpdateData.from_database_record(stored_provider_update_records[0])
+        update_data = PrivilegeUpdateData.from_database_record(stored_privilege_update_records[0])
         # the updateType should be homeJurisdictionUpdate
         self.assertEqual('homeJurisdictionChange', update_data.updateType)
         # the updateData should be the new home jurisdiction
         self.assertEqual(new_license_record.jurisdiction, update_data.updatedValues['licenseJurisdiction'])
         self.assertEqual(new_license_record.dateOfExpiration, update_data.updatedValues['dateOfExpiration'])
+
+    def test_put_provider_home_jurisdiction_adds_provider_update_record_when_valid_member_jurisdiction(self):
+        from handlers.provider_users import provider_users_api_handler
+        from cc_common.data_model.schema.provider import ProviderUpdateData
+
+        (
+            test_provider_record,
+            test_current_license_record,
+            test_privilege_record
+        ) = self._when_provider_has_one_license_and_privilege()
+        new_license_record = self._when_provider_has_license_in_new_home_state()
+        event = self._when_testing_put_provider_home_jurisdiction(NEW_JURISDICTION, test_provider_record)
+
+        resp = provider_users_api_handler(event, self.mock_context)
+
+        self.assertEqual(200, resp['statusCode'])
+
+        # now get all the update records for the provider
+        stored_provider_update_records = self.test_data_generator.query_update_records_for_given_record_from_database(
+            test_provider_record)
+        self.assertEqual(1, len(stored_provider_update_records))
+
+        update_data = ProviderUpdateData.from_database_record(stored_provider_update_records[0])
+        # the updateType should be homeJurisdictionUpdate
+        self.assertEqual('homeJurisdictionChange', update_data.updateType)
+        # the updateData should be the new home jurisdiction
+        self.assertEqual(new_license_record.jurisdiction, update_data.updatedValues['licenseJurisdiction'])
+        self.assertEqual(new_license_record.dateOfExpiration, update_data.updatedValues['dateOfExpiration'])
+        self.assertEqual(NEW_JURISDICTION, update_data.updatedValues['currentHomeJurisdiction'])
+
+
+    def test_put_provider_home_jurisdiction_adds_provider_update_record_when_non_member_jurisdiction(self):
+        from handlers.provider_users import provider_users_api_handler
+        from cc_common.data_model.schema.provider import ProviderUpdateData
+
+        (
+            test_provider_record,
+            test_current_license_record,
+            test_privilege_record
+        ) = self._when_provider_has_one_license_and_privilege()
+        event = self._when_testing_put_provider_home_jurisdiction(OTHER_NON_MEMBER_JURISDICTION, test_provider_record)
+
+        resp = provider_users_api_handler(event, self.mock_context)
+
+        self.assertEqual(200, resp['statusCode'])
+
+        # now get all the update records for the provider
+        stored_provider_update_records = self.test_data_generator.query_update_records_for_given_record_from_database(
+            test_provider_record)
+        self.assertEqual(1, len(stored_provider_update_records))
+
+        update_data = ProviderUpdateData.from_database_record(stored_provider_update_records[0])
+        # the updateType should be homeJurisdictionUpdate
+        self.assertEqual('homeJurisdictionChange', update_data.updateType)
+        # In this case, the license information should stay the same as before, and the currentHomeJurisdiction
+        # should be set to 'other'
+        self.assertEqual(test_current_license_record.jurisdiction, update_data.updatedValues['licenseJurisdiction'])
+        self.assertEqual(test_current_license_record.dateOfExpiration, update_data.updatedValues['dateOfExpiration'])
+        self.assertEqual('other', update_data.updatedValues['currentHomeJurisdiction'])
