@@ -31,13 +31,6 @@ class TestPublicQueryProviders(TstFunction):
         with open('../common/tests/resources/api/provider-response.json') as f:
             expected_provider = json.load(f)
             # we do not return the following fields for the public endpoint
-            expected_provider.pop('homeAddressStreet1')
-            expected_provider.pop('homeAddressStreet2')
-            expected_provider.pop('homeAddressCity')
-            expected_provider.pop('homeAddressState')
-            expected_provider.pop('homeAddressPostalCode')
-            expected_provider.pop('emailAddress')
-            expected_provider.pop('phoneNumber')
             expected_provider.pop('cognitoSub')
             expected_provider.pop('birthMonthDay')
             expected_provider.pop('compactConnectRegisteredEmailAddress')
@@ -345,13 +338,6 @@ class TestPublicGetProvider(TstFunction):
             # we do not return the following fields from the public endpoint
             expected_provider.pop('ssnLastFour')
             expected_provider.pop('dateOfBirth')
-            expected_provider.pop('homeAddressStreet1')
-            expected_provider.pop('homeAddressStreet2')
-            expected_provider.pop('homeAddressCity')
-            expected_provider.pop('homeAddressState')
-            expected_provider.pop('homeAddressPostalCode')
-            expected_provider.pop('emailAddress')
-            expected_provider.pop('phoneNumber')
             expected_provider.pop('cognitoSub')
             expected_provider.pop('birthMonthDay')
             expected_provider.pop('compactConnectRegisteredEmailAddress')

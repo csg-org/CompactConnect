@@ -1,22 +1,22 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 from marshmallow import Schema
-from marshmallow.fields import Date, Email, List, Nested, Raw, String
-from marshmallow.validate import Length, Regexp
 
 from cc_common.data_model.schema.base_record import ForgivingSchema
 from cc_common.data_model.schema.fields import (
     ActiveInactive,
     Compact,
     CompactEligibility,
-    ITUTE164PhoneNumber,
+    CurrentHomeJurisdictionField,
     Jurisdiction,
     NationalProviderIdentifier,
-    Set, CurrentHomeJurisdictionField,
+    Set,
 )
 from cc_common.data_model.schema.home_jurisdiction.api import ProviderHomeJurisdictionSelectionGeneralResponseSchema
 from cc_common.data_model.schema.license.api import LicenseGeneralResponseSchema
 from cc_common.data_model.schema.military_affiliation.api import MilitaryAffiliationGeneralResponseSchema
 from cc_common.data_model.schema.privilege.api import PrivilegeGeneralResponseSchema, PrivilegePublicResponseSchema
+from marshmallow.fields import Date, Email, List, Nested, Raw, String
+from marshmallow.validate import Length, Regexp
 
 
 class ProviderGeneralResponseSchema(ForgivingSchema):
@@ -51,13 +51,6 @@ class ProviderGeneralResponseSchema(ForgivingSchema):
     # This date is determined by the license records uploaded by a state
     # they do not include a timestamp, so we use the Date field type
     dateOfExpiration = Raw(required=True, allow_none=False)
-    homeAddressStreet1 = String(required=True, allow_none=False, validate=Length(2, 100))
-    homeAddressStreet2 = String(required=False, allow_none=False, validate=Length(1, 100))
-    homeAddressCity = String(required=True, allow_none=False, validate=Length(2, 100))
-    homeAddressState = String(required=True, allow_none=False, validate=Length(2, 100))
-    homeAddressPostalCode = String(required=True, allow_none=False, validate=Length(5, 7))
-    emailAddress = Email(required=False, allow_none=False)
-    phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
     compactConnectRegisteredEmailAddress = Email(required=False, allow_none=False)
     cognitoSub = String(required=False, allow_none=False)
 
@@ -74,6 +67,8 @@ class ProviderGeneralResponseSchema(ForgivingSchema):
     licenses = List(Nested(LicenseGeneralResponseSchema(), required=False, allow_none=False))
     privileges = List(Nested(PrivilegeGeneralResponseSchema(), required=False, allow_none=False))
     militaryAffiliations = List(Nested(MilitaryAffiliationGeneralResponseSchema(), required=False, allow_none=False))
+    # TODO deprecated - to be removed after frontend has been update to only   # noqa: FIX002
+    #  reference 'currentHomeJurisdiction' field in https://github.com/csg-org/CompactConnect/issues/763
     homeJurisdictionSelection = Nested(
         ProviderHomeJurisdictionSelectionGeneralResponseSchema(), required=False, allow_none=False
     )

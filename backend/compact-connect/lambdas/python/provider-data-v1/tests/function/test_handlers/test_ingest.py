@@ -569,9 +569,6 @@ class TestIngest(TstFunction):
         # Reset the expected data to match the canned response
         expected_provider = self._set_provider_data_to_empty_values(expected_provider)
 
-        # Removing the field we just removed from the license
-        del expected_provider['emailAddress']
-
         for license_data in expected_provider['licenses']:
             # We uploaded a license with no email by just deleting emailAddress
             # This should show up in the license history

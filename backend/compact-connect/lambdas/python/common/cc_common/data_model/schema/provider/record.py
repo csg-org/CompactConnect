@@ -11,7 +11,6 @@ from cc_common.data_model.schema.fields import (
     ActiveInactive,
     Compact,
     CompactEligibility,
-    ITUTE164PhoneNumber,
     Jurisdiction,
     LicenseEncumberedStatusField,
     NationalProviderIdentifier,
@@ -54,13 +53,6 @@ class ProviderRecordSchema(CalculatedStatusRecordSchema):
     # they do not include a timestamp, so we use the Date field type
     dateOfExpiration = Date(required=True, allow_none=False)
     dateOfBirth = Date(required=True, allow_none=False)
-    homeAddressStreet1 = String(required=True, allow_none=False, validate=Length(2, 100))
-    homeAddressStreet2 = String(required=False, allow_none=False, validate=Length(1, 100))
-    homeAddressCity = String(required=True, allow_none=False, validate=Length(2, 100))
-    homeAddressState = String(required=True, allow_none=False, validate=Length(2, 100))
-    homeAddressPostalCode = String(required=True, allow_none=False, validate=Length(5, 7))
-    emailAddress = Email(required=False, allow_none=False)
-    phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
     compactConnectRegisteredEmailAddress = Email(required=False, allow_none=False)
     cognitoSub = String(required=False, allow_none=False)
 
@@ -141,13 +133,6 @@ class ProviderUpdatePreviousRecordSchema(ForgivingSchema):
     suffix = String(required=False, allow_none=False, validate=Length(1, 100))
     dateOfExpiration = Date(required=True, allow_none=False)
     dateOfBirth = Date(required=True, allow_none=False)
-    homeAddressStreet1 = String(required=True, allow_none=False, validate=Length(2, 100))
-    homeAddressStreet2 = String(required=False, allow_none=False, validate=Length(1, 100))
-    homeAddressCity = String(required=True, allow_none=False, validate=Length(2, 100))
-    homeAddressState = String(required=True, allow_none=False, validate=Length(2, 100))
-    homeAddressPostalCode = String(required=True, allow_none=False, validate=Length(5, 7))
-    emailAddress = Email(required=False, allow_none=False)
-    phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
     compactConnectRegisteredEmailAddress = Email(required=False, allow_none=False)
     cognitoSub = String(required=False, allow_none=False)
     currentHomeJurisdiction = CurrentHomeJurisdictionField(required=False, allow_none=False)
