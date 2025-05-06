@@ -243,8 +243,7 @@ class UserPool(CdkUserPool):
             use_cognito_provided_values=False
         )
 
-        login_branding.add_dependency(user_pool_client)
-
+        login_branding.add_dependency(user_pool_client.node.default_child)
 
     def prepare_assets_for_managed_login_ui(
         self,
