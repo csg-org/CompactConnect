@@ -54,19 +54,3 @@ class TestCompactRecordSchema(TstLambdas):
 
         with self.assertRaises(ValidationError):
             CompactRecordSchema().load(expected_compact.copy())
-
-    def test_compact_config_accepts_sandbox_environment_names(self):
-        with open('tests/resources/dynamo/compact.json') as f:
-            expected_compact = json.load(f, parse_float=Decimal)
-            expected_compact['licenseeRegistrationEnabledForEnvironments'] = ['sandbox']
-
-        with patch.dict(os.environ, {'ENVIRONMENT_NAME': 'sandbox'}):
-            # Need to reload the schema module to pick up the new environment name
-            import importlib
-
-            import cc_common.data_model.schema.compact.record
-
-            importlib.reload(cc_common.data_model.schema.compact.record)
-            from cc_common.data_model.schema.compact.record import CompactRecordSchema
-
-            CompactRecordSchema().load(expected_compact.copy())

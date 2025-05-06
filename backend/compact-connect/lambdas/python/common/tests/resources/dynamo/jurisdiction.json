@@ -23,7 +23,7 @@
   "jurisdictionOperationsTeamEmails": ["some-operations-team@test.com"],
   "jurisdictionAdverseActionsNotificationEmails": ["some-adverse-actions-notification-team@test.com"],
   "jurisdictionSummaryReportNotificationEmails": ["some-summary-report-notification-team@test.com"],
-  "licenseeRegistrationEnabledForEnvironments": ["test"],
+  "licenseeRegistrationEnabled": true,
   "jurisprudenceRequirements": {
     "required": true
   },

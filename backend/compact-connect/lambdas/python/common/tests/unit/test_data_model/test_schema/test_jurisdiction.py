@@ -54,19 +54,3 @@ class TestJurisdictionRecordSchema(TstLambdas):
 
         with self.assertRaises(ValidationError):
             JurisdictionRecordSchema().load(expected_jurisdiction_config.copy())
-
-    def test_jurisdiction_config_accepts_sandbox_environment_names(self):
-        with open('tests/resources/dynamo/jurisdiction.json') as f:
-            expected_jurisdiction_config = json.load(f, parse_float=Decimal)
-            expected_jurisdiction_config['licenseeRegistrationEnabledForEnvironments'] = ['sandbox']
-
-        with patch.dict(os.environ, {'ENVIRONMENT_NAME': 'sandbox'}):
-            # Need to reload the schema module to pick up the new environment name
-            import importlib
-
-            import cc_common.data_model.schema.jurisdiction.record
-
-            importlib.reload(cc_common.data_model.schema.jurisdiction.record)
-            from cc_common.data_model.schema.jurisdiction.record import JurisdictionRecordSchema
-
-            JurisdictionRecordSchema().load(expected_jurisdiction_config.copy())

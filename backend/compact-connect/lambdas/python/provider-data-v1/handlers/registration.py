@@ -163,9 +163,9 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
             'Registration is not currently available for the specified license type.'
         ) from e
 
-    # Check if registration is enabled for both compact and jurisdiction in the current environment
+    # Check if registration is enabled for both compact and jurisdiction
     # If registration is not enabled for either the compact or jurisdiction, return an error
-    if config.environment_name not in compact_config.licensee_registration_enabled_for_environments:
+    if not compact_config.licensee_registration_enabled:
         logger.info(
             'Registration is not enabled for this compact', compact=body['compact'], environment=config.environment_name
         )
@@ -187,7 +187,7 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
         )
         raise CCInvalidRequestException('Registration is not currently available for the specified state.') from e
 
-    if config.environment_name not in jurisdiction_config.licensee_registration_enabled_for_environments:
+    if not jurisdiction_config.licensee_registration_enabled:
         logger.info(
             'Registration is not enabled for this jurisdiction',
             compact=body['compact'],
