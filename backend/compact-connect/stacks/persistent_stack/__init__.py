@@ -590,28 +590,11 @@ class PersistentStack(AppStack):
         """Check if the compact configuration is active in the given environment."""
         return environment_name in active_environments or self.node.try_get_context('sandbox') is True
 
-    def get_list_of_active_compacts_for_environment(self, environment_name: str) -> list[str]:
+    def get_list_of_compact_abbreviations(self) -> list[str]:
         """
-        Currently, all configuration for compacts and jurisdictions is hardcoded in the compact-config directory.
-        This reads the YAML configuration files and returns the list of compacts that are marked as
-        active for the environment.
+        Get the list of all compact abbreviations for compacts configured in the cdk.json file
         """
-
-        active_compacts = []
-        # Read all compact configuration YAML files from top level compact-config directory
-        for compact_config_file in os.listdir('compact-config'):
-            if compact_config_file.endswith('.yml'):
-                with open(os.path.join('compact-config', compact_config_file)) as f:
-                    # convert YAML to JSON
-                    formatted_compact = yaml.safe_load(f)
-                    # only include the compact configuration if it is active in the environment
-                    if self._configuration_is_active_for_environment(
-                        environment_name,
-                        formatted_compact['activeEnvironments'],
-                    ):
-                        active_compacts.append(formatted_compact['compactAbbr'])
-
-        return active_compacts
+        return self.node.get_context('compacts')
 
     def get_list_of_active_jurisdictions_for_compact_environment(
         self, compact: str, environment_name: str
