@@ -27,9 +27,7 @@ class V1Api:
         self.resource = root.add_resource('v1')
         self.api: cc_api.CCApi = root.api
         self.api_model = ApiModel(api=self.api)
-        _active_compacts = persistent_stack.get_list_of_active_compacts_for_environment(
-            environment_name=self.api.environment_name
-        )
+        _active_compacts = persistent_stack.get_list_of_compact_abbreviations()
 
         read_scopes = []
         write_scopes = []
@@ -153,6 +151,7 @@ class V1Api:
 
         self.compact_configuration_api = CompactConfigurationApi(
             api=self.api,
+            compact_resource=self.compact_resource,
             jurisdictions_resource=self.jurisdictions_resource,
             public_jurisdictions_resource=self.public_compacts_compact_jurisdictions_resource,
             general_read_method_options=read_auth_method_options,

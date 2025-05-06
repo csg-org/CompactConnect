@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
 import json
-from decimal import Decimal
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
 from cc_common.data_model.schema.attestation import AttestationRecordSchema
-from cc_common.data_model.schema.compact.record import CompactRecordSchema
-from cc_common.data_model.schema.jurisdiction.record import JurisdictionRecordSchema
 from cc_common.exceptions import CCNotFoundException
 
 
@@ -14,17 +11,17 @@ def on_event(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argume
     """CloudFormation event handler using the CDK provider framework.
     See: https://docs.aws.amazon.com/cdk/api/v2/python/aws_cdk.custom_resources/README.html
 
-    This custom resource uploads all the compact and jurisdiction configuration files into the provider DynamoDB table,
-    The configuration files are defined in the 'compact-config' directory under the 'compact-connect' directory.
+    This custom resource uploads attestation configurations into the compact configuration DynamoDB table,
+    The attestation configuration is passed in the event properties as a JSON string.
 
     This custom resource is defined in the CDK app within the 'CompactConfigurationUpload' construct of the
     persistent stack.
 
-    :param event: The lambda event with the compact configuration in a JSON formatted string.
+    :param event: The lambda event with the compact list and attestations data
     :param context:
     :return: None - no infrastructure resources are created
     """
-    logger.info('Entering compact configuration uploader')
+    logger.info('Entering attestation configuration uploader')
     properties = event['ResourceProperties']
     request_type = event['RequestType']
     match request_type:
@@ -39,121 +36,76 @@ def on_event(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argume
 
 
 def upload_configuration(properties: dict):
-    compact_configuration = json.loads(properties['compact_configuration'], parse_float=Decimal)
-    logger.info('Uploading compact configuration')
+    """Upload the attestation configuration for all active compacts"""
+    compact_list = json.loads(properties['compact_list'])
+    attestations_list = json.loads(properties['attestations'])
 
-    # upload attestations for each compact
-    _upload_attestation_configuration(compact_configuration)
+    logger.info('Processing attestations data')
 
-    # upload the root compact configuration
-    _upload_compact_root_configuration(compact_configuration)
+    # Upload attestations for each compact
+    for compact in compact_list:
+        logger.info('Uploading attestations for compact', compact=compact)
+        _upload_attestation_configuration(compact, attestations_list)
 
-    # now store active jurisdictions for each compact
-    _upload_jurisdiction_configuration(compact_configuration)
-
-    logger.info('Configuration upload successful')
+    logger.info('Attestation configuration upload successful')
 
 
-def _upload_attestation_configuration(compact_configuration: dict) -> None:
-    """Upload attestation configurations to the provider table.
-    :param compact_configuration: The compact configuration
+def _upload_attestation_configuration(compact_abbr: str, attestations: list) -> None:
+    """Upload attestation configurations to the provider table for a specific compact.
+    :param compact_abbr: The compact abbreviation
+    :param attestations: List of attestation configurations
     """
     attestation_record_schema = AttestationRecordSchema()
-    for compact in compact_configuration['compacts']:
-        compact_abbr = compact['compactAbbr']
 
-        logger.info('Loading attestations', compact=compact_abbr)
-        for attestation in compact['attestations']:
-            attestation['compact'] = compact_abbr
-            attestation['type'] = 'attestation'
-            # set the dateCreated to the current date
-            attestation['dateCreated'] = config.current_standard_datetime.isoformat()
+    logger.info('Loading attestations', compact=compact_abbr)
+    for attestation in attestations:
+        attestation_copy = attestation.copy()
+        attestation_copy['compact'] = compact_abbr
+        attestation_copy['type'] = 'attestation'
+        # set the dateCreated to the current date
+        attestation_copy['dateCreated'] = config.current_standard_datetime.isoformat()
 
-            # Try to get the latest version of this attestation
-            try:
-                latest_attestation = config.compact_configuration_client.get_attestation(
-                    compact=compact_abbr,
-                    attestation_id=attestation['attestationId'],
-                    locale=attestation['locale'],
-                )
-                # Check if any content fields have changed
-                content_changed = (
-                    any(
-                        # Compare stripped values to ignore leading and trailing whitespace changes
-                        latest_attestation[field].strip() != attestation[field].strip()
-                        for field in ['displayName', 'description', 'text']
-                    )
-                    or latest_attestation['required'] != attestation['required']
-                )
-                if content_changed:
-                    # Increment version if content changed
-                    attestation['version'] = str(int(latest_attestation['version']) + 1)
-                    logger.info(
-                        'Content changed, incrementing version',
-                        attestation_id=attestation['attestationId'],
-                        new_version=attestation['version'],
-                    )
-                else:
-                    # No changes, skip upload
-                    logger.info(
-                        'No content changes detected, skipping upload',
-                        attestation_id=attestation['attestationId'],
-                    )
-                    continue
-            except CCNotFoundException:
-                # No existing attestation, use version 1
-                attestation['version'] = '1'
-                logger.info(
-                    'No existing attestation found, inserting attestation using version 1',
-                    attestation_id=attestation['attestationId'],
-                )
-
-            serialized_attestation = attestation_record_schema.dump(attestation)
-            # Force validation before uploading
-            attestation_record_schema.load(serialized_attestation)
-
-            config.compact_configuration_table.put_item(Item=serialized_attestation)
-
-
-def _upload_compact_root_configuration(compact_configuration: dict) -> None:
-    """Upload the root compact configuration to the provider table.
-    :param compact_configuration: The compact configuration
-    """
-    schema = CompactRecordSchema()
-    for compact in compact_configuration['compacts']:
-        compact_abbr = compact['compactAbbr']
-        logger.info('Loading active compact', compact=compact_abbr)
-        compact['type'] = 'compact'
-        # remove the activeEnvironments field as it's an implementation detail
-        compact.pop('activeEnvironments')
-        # remove attestations as they are handled separately
-        compact.pop('attestations', None)
-
-        serialized_compact = schema.dump(compact)
-
-        config.compact_configuration_table.put_item(Item=serialized_compact)
-
-
-def _upload_jurisdiction_configuration(compact_configuration: dict) -> None:
-    """Upload the jurisdiction configuration to the provider table.
-    :param compact_configuration: The compact configuration
-    """
-    jurisdiction_schema = JurisdictionRecordSchema()
-    for compact_abbr, jurisdictions in compact_configuration['jurisdictions'].items():
-        for jurisdiction in jurisdictions:
-            jurisdiction_postal_abbreviation = jurisdiction['postalAbbreviation']
-            logger.info(
-                'Loading active jurisdiction',
+        # Try to get the latest version of this attestation
+        try:
+            latest_attestation = config.compact_configuration_client.get_attestation(
                 compact=compact_abbr,
-                jurisdiction=jurisdiction_postal_abbreviation,
+                attestation_id=attestation_copy['attestationId'],
+                locale=attestation_copy['locale'],
             )
-            jurisdiction['compact'] = compact_abbr
-            # remove the activeEnvironments field as it's an implementation detail
-            jurisdiction.pop('activeEnvironments')
+            # Check if any content fields have changed
+            content_changed = (
+                any(
+                    # Compare stripped values to ignore leading and trailing whitespace changes
+                    latest_attestation[field].strip() != attestation_copy[field].strip()
+                    for field in ['displayName', 'description', 'text']
+                )
+                or latest_attestation['required'] != attestation_copy['required']
+            )
+            if content_changed:
+                # Increment version if content changed
+                attestation_copy['version'] = str(int(latest_attestation['version']) + 1)
+                logger.info(
+                    'Content changed, incrementing version',
+                    attestation_id=attestation_copy['attestationId'],
+                    new_version=attestation_copy['version'],
+                )
+            else:
+                # No changes, skip upload
+                logger.info(
+                    'No content changes detected, skipping upload',
+                    attestation_id=attestation_copy['attestationId'],
+                )
+                continue
+        except CCNotFoundException:
+            # No existing attestation, use version 1
+            attestation_copy['version'] = '1'
+            logger.info(
+                'No existing attestation found, inserting attestation using version 1',
+                attestation_id=attestation_copy['attestationId'],
+            )
 
-            dumped_jurisdiction = jurisdiction_schema.dump(jurisdiction)
+        serialized_attestation = attestation_record_schema.dump(attestation_copy)
+        # Force validation before uploading
+        attestation_record_schema.load(serialized_attestation)
 
-            # Force an exception on validation failure
-            jurisdiction_schema.load(dumped_jurisdiction)
-
-            config.compact_configuration_table.put_item(Item=jurisdiction_schema.dump(jurisdiction))
+        config.compact_configuration_table.put_item(Item=serialized_attestation)

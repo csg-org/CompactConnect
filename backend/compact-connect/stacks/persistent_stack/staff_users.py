@@ -118,7 +118,7 @@ class StaffUsers(UserPool):
             scope_description='Read access for SSNs in the compact',
         )
 
-        active_compacts = stack.get_list_of_active_compacts_for_environment(environment_name)
+        active_compacts = stack.get_list_of_compact_abbreviations()
         self.compact_resource_servers = {}
         self.jurisdiction_resource_servers: dict[str, UserPoolResourceServer] = {}
         _jurisdiction_compact_scope_mapping: dict[str, list] = {}

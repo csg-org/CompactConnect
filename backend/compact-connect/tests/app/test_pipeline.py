@@ -67,7 +67,7 @@ class TestBackendPipeline(TstAppABC, TestCase):
             self.app.prod_backend_pipeline_stack.prod_stage.persistent_stack, domain_name='app.compactconnect.org'
         )
 
-    def _when_testing_compact_resource_servers(self, persistent_stack, environment_name):
+    def _when_testing_compact_resource_servers(self, persistent_stack):
         persistent_stack_template = Template.from_stack(persistent_stack)
 
         # Get the resource servers created in the persistent stack
@@ -75,7 +75,7 @@ class TestBackendPipeline(TstAppABC, TestCase):
         # We must confirm that these scopes are being explicitly created for each compact marked as active in the
         # environment, which are absolutely critical for the system to function as expected.
         self.assertEqual(
-            sorted(persistent_stack.get_list_of_active_compacts_for_environment(environment_name)),
+            sorted(persistent_stack.get_list_of_compact_abbreviations()),
             sorted(list(resource_servers.keys())),
         )
 
@@ -93,11 +93,11 @@ class TestBackendPipeline(TstAppABC, TestCase):
 
     def test_synth_generates_compact_resource_servers_with_expected_scopes_for_staff_users_beta_stage(self):
         persistent_stack = self.app.beta_backend_pipeline_stack.beta_backend_stage.persistent_stack
-        self._when_testing_compact_resource_servers(persistent_stack, environment_name='beta')
+        self._when_testing_compact_resource_servers(persistent_stack)
 
     def test_synth_generates_compact_resource_servers_with_expected_scopes_for_staff_users_prod_stage(self):
         persistent_stack = self.app.prod_backend_pipeline_stack.prod_stage.persistent_stack
-        self._when_testing_compact_resource_servers(persistent_stack, environment_name='prod')
+        self._when_testing_compact_resource_servers(persistent_stack)
 
     def _when_testing_jurisdiction_resource_servers(self, persistent_stack, snapshot_name, overwrite_snapshot):
         persistent_stack_template = Template.from_stack(persistent_stack)
