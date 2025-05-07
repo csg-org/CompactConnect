@@ -11,6 +11,11 @@ class ManagedLoginStack(AppStack):
     
     This stack isolates the base64-encoded assets from the persistent stack
     to avoid hitting CloudFormation template size limits.
+
+    The style settings json data can be obtained by styling the user pool in the
+    console and then running the following CLI command:
+    aws cognito-idp describe-managed-login-branding --managed-login-branding-id
+    "<style-id>" --user-pool-id "<user-pool-id>" --region <region>
     """
 
     def __init__(
@@ -19,15 +24,13 @@ class ManagedLoginStack(AppStack):
         construct_id: str,
         *,
         persistent_stack: PersistentStack,
-        environment_name: str,
-        environment_context: dict,
         **kwargs,
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
         # Create managed login branding for staff users
         self._create_managed_login_for_staff_users(persistent_stack)
-        
+
         # Create managed login branding for provider users
         self._create_managed_login_for_provider_users(persistent_stack)
 
@@ -36,17 +39,17 @@ class ManagedLoginStack(AppStack):
         # Load the style settings
         with open('resources/staff_managed_login_style_settings.json') as f:
             branding_settings = json.load(f)
-            
+
         # Prepare the assets
         branding_assets = persistent_stack.staff_users.prepare_assets_for_managed_login_ui(
             ico_filepath='resources/assets/favicon.ico',
             logo_filepath='resources/assets/compact-connect-logo.png',
             background_file_path='resources/assets/staff-background.png'
         )
-        
+
         # Create the managed login branding
         staff_login_branding = CfnManagedLoginBranding(
-            self, 
+            self,
             'StaffManagedLoginBranding',
             user_pool_id=persistent_stack.staff_users.user_pool_id,
             assets=branding_assets,
@@ -55,25 +58,22 @@ class ManagedLoginStack(AppStack):
             settings=branding_settings,
             use_cognito_provided_values=False
         )
-        
-        # Add dependency on the UI client
-        staff_login_branding.add_dependency(persistent_stack.staff_users.ui_client.node.default_child)
 
     def _create_managed_login_for_provider_users(self, persistent_stack: PersistentStack):
         """Create managed login branding for provider users"""
         # Load the style settings
         with open('resources/provider_managed_login_style_settings.json') as f:
             branding_settings = json.load(f)
-            
+
         # Prepare the assets
         branding_assets = persistent_stack.provider_users.prepare_assets_for_managed_login_ui(
             ico_filepath='resources/assets/favicon.ico',
             logo_filepath='resources/assets/compact-connect-logo.png'
         )
-        
+
         # Create the managed login branding
         provider_login_branding = CfnManagedLoginBranding(
-            self, 
+            self,
             'ProviderManagedLoginBranding',
             user_pool_id=persistent_stack.provider_users.user_pool_id,
             assets=branding_assets,
@@ -82,6 +82,3 @@ class ManagedLoginStack(AppStack):
             settings=branding_settings,
             use_cognito_provided_values=False
         )
-        
-        # Add dependency on the UI client
-        provider_login_branding.add_dependency(persistent_stack.provider_users.ui_client.node.default_child)
