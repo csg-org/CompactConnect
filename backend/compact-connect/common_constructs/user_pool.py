@@ -87,9 +87,9 @@ class UserPool(CdkUserPool):
 
         if cognito_domain_prefix:
             self.user_pool_domain = self.add_domain(
-            f'{construct_id}Domain',
+                f'{construct_id}Domain',
                 cognito_domain=CognitoDomainOptions(domain_prefix=cognito_domain_prefix),
-                managed_login_version=ManagedLoginVersion.NEWER_MANAGED_LOGIN
+                managed_login_version=ManagedLoginVersion.NEWER_MANAGED_LOGIN,
             )
 
             CfnOutput(self, f'{construct_id}UsersDomain', value=self.user_pool_domain.domain_name)
@@ -130,7 +130,7 @@ class UserPool(CdkUserPool):
         environment_context: dict,
         read_attributes: ClientAttributes,
         write_attributes: ClientAttributes,
-        ui_scopes: list[OAuthScope] = None
+        ui_scopes: list[OAuthScope] = None,
     ):
         """
         Creates an app client for the UI to authenticate with the user pool.
@@ -236,50 +236,45 @@ class UserPool(CdkUserPool):
         branding_settings: dict = None,
     ):
         # Handle custom styles
-        login_branding = CfnManagedLoginBranding(self, 'MyCfnManagedLoginBranding',
+        login_branding = CfnManagedLoginBranding(
+            self,
+            'MyCfnManagedLoginBranding',
             user_pool_id=self.user_pool_id,
             assets=branding_assets,
             client_id=user_pool_client.user_pool_client_id,
             return_merged_resources=False,
             settings=branding_settings,
-            use_cognito_provided_values=False
+            use_cognito_provided_values=False,
         )
 
         login_branding.add_dependency(user_pool_client.node.default_child)
 
     def prepare_assets_for_managed_login_ui(
-        self,
-        ico_filepath: str,
-        logo_filepath: str,
-        background_file_path: str | None = None
+        self, ico_filepath: str, logo_filepath: str, background_file_path: str | None = None
     ):
-
         # options found: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cognito-managedloginbranding-assettype.html#cfn-cognito-managedloginbranding-assettype-category
         assets = []
         base_64_favicon = self.convert_img_to_base_64(ico_filepath)
-        assets.append(CfnManagedLoginBranding.AssetTypeProperty(
-            category='FAVICON_ICO',
-            color_mode='LIGHT',
-            extension='ICO',
-            bytes=base_64_favicon
-        ))
+        assets.append(
+            CfnManagedLoginBranding.AssetTypeProperty(
+                category='FAVICON_ICO', color_mode='LIGHT', extension='ICO', bytes=base_64_favicon
+            )
+        )
 
         base_64_logo = self.convert_img_to_base_64(logo_filepath)
-        assets.append(CfnManagedLoginBranding.AssetTypeProperty(
-            category='FORM_LOGO',
-            color_mode='LIGHT',
-            extension='PNG',
-            bytes=base_64_logo
-        ))
+        assets.append(
+            CfnManagedLoginBranding.AssetTypeProperty(
+                category='FORM_LOGO', color_mode='LIGHT', extension='PNG', bytes=base_64_logo
+            )
+        )
 
         if background_file_path:
             base_64_background = self.convert_img_to_base_64(background_file_path)
-            assets.append(CfnManagedLoginBranding.AssetTypeProperty(
-                category='PAGE_BACKGROUND',
-                color_mode='LIGHT',
-                extension='PNG',
-                bytes=base_64_background
-            ))
+            assets.append(
+                CfnManagedLoginBranding.AssetTypeProperty(
+                    category='PAGE_BACKGROUND', color_mode='LIGHT', extension='PNG', bytes=base_64_background
+                )
+            )
 
         return assets
 

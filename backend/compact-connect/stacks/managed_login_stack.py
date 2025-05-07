@@ -1,14 +1,16 @@
 import json
-from constructs import Construct
+
 from aws_cdk.aws_cognito import CfnManagedLoginBranding
 from common_constructs.stack import AppStack
+from constructs import Construct
+
 from stacks.persistent_stack import PersistentStack
 
 
 class ManagedLoginStack(AppStack):
     """
     Stack for managing Cognito managed login branding assets.
-    
+
     This stack isolates the base64-encoded assets from the persistent stack
     to avoid hitting CloudFormation template size limits.
 
@@ -44,7 +46,7 @@ class ManagedLoginStack(AppStack):
         branding_assets = persistent_stack.staff_users.prepare_assets_for_managed_login_ui(
             ico_filepath='resources/assets/favicon.ico',
             logo_filepath='resources/assets/compact-connect-logo.png',
-            background_file_path='resources/assets/staff-background.png'
+            background_file_path='resources/assets/staff-background.png',
         )
 
         # Create the managed login branding
@@ -56,7 +58,7 @@ class ManagedLoginStack(AppStack):
             client_id=persistent_stack.staff_users.ui_client.user_pool_client_id,
             return_merged_resources=False,
             settings=branding_settings,
-            use_cognito_provided_values=False
+            use_cognito_provided_values=False,
         )
 
     def _create_managed_login_for_provider_users(self, persistent_stack: PersistentStack):
@@ -67,8 +69,7 @@ class ManagedLoginStack(AppStack):
 
         # Prepare the assets
         branding_assets = persistent_stack.provider_users.prepare_assets_for_managed_login_ui(
-            ico_filepath='resources/assets/favicon.ico',
-            logo_filepath='resources/assets/compact-connect-logo.png'
+            ico_filepath='resources/assets/favicon.ico', logo_filepath='resources/assets/compact-connect-logo.png'
         )
 
         # Create the managed login branding
@@ -80,5 +81,5 @@ class ManagedLoginStack(AppStack):
             client_id=persistent_stack.provider_users.ui_client.user_pool_client_id,
             return_merged_resources=False,
             settings=branding_settings,
-            use_cognito_provided_values=False
+            use_cognito_provided_values=False,
         )

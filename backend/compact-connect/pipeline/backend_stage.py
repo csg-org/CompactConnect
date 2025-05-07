@@ -3,10 +3,10 @@ from common_constructs.stack import StandardTags
 from constructs import Construct
 from stacks.api_stack import ApiStack
 from stacks.ingest_stack import IngestStack
+from stacks.managed_login_stack import ManagedLoginStack
 from stacks.persistent_stack import PersistentStack
 from stacks.reporting_stack import ReportingStack
 from stacks.transaction_monitoring_stack import TransactionMonitoringStack
-from stacks.managed_login_stack import ManagedLoginStack
 
 
 class BackendStage(Stage):

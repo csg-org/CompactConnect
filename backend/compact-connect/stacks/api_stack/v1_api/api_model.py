@@ -844,7 +844,7 @@ class ApiModel:
                                     'licenseTypeAbbreviation': JsonSchema(type=JsonSchemaType.STRING),
                                     'amount': JsonSchema(type=JsonSchemaType.NUMBER),
                                 },
-                            )
+                            ),
                         ),
                         'militaryDiscount': JsonSchema(
                             type=JsonSchemaType.OBJECT,
