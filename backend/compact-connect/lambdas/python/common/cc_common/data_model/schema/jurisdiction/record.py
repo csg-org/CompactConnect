@@ -5,7 +5,7 @@ from marshmallow.validate import Length, OneOf
 
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import BaseRecordSchema
-from cc_common.data_model.schema.jurisdiction import JURISDICTION_TYPE, JurisdictionMilitaryDiscountType
+from cc_common.data_model.schema.jurisdiction.common import JURISDICTION_TYPE, JurisdictionMilitaryDiscountType
 
 
 class JurisdictionMilitaryDiscountRecordSchema(Schema):

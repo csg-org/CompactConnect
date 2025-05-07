@@ -5,7 +5,7 @@ from marshmallow.validate import OneOf
 
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import ForgivingSchema
-from cc_common.data_model.schema.jurisdiction import JURISDICTION_TYPE, JurisdictionMilitaryDiscountType
+from cc_common.data_model.schema.jurisdiction.common import JURISDICTION_TYPE, JurisdictionMilitaryDiscountType
 
 
 class JurisdictionMilitaryDiscountResponseSchema(Schema):
@@ -18,6 +18,7 @@ class JurisdictionMilitaryDiscountResponseSchema(Schema):
 
 class JurisdictionJurisprudenceRequirementsResponseSchema(Schema):
     required = Boolean(required=True, allow_none=False)
+    linkToDocumentation = String(required=False, allow_none=False)
 
 
 class JurisdictionPrivilegeFeeResponseSchema(Schema):
@@ -41,6 +42,7 @@ class JurisdictionOptionsResponseSchema(ForgivingSchema):
         JurisdictionJurisprudenceRequirementsResponseSchema(), required=True, allow_none=False
     )
 
+
 class CompactJurisdictionsStaffUsersResponseSchema(ForgivingSchema):
     """
     Used to enforce which fields are returned in jurisdiction objects for the
@@ -61,3 +63,36 @@ class CompactJurisdictionsPublicResponseSchema(ForgivingSchema):
     jurisdictionName = String(required=True, allow_none=False)
     postalAbbreviation = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
     compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
+
+
+class CompactJurisdictionConfigurationResponseSchema(ForgivingSchema):
+    """
+    Used to enforce which fields are returned in jurisdiction objects for the
+    GET /compacts/{compact}/jurisdictions/{jurisdiction} endpoint
+    """
+
+    jurisdictionName = String(required=True, allow_none=False)
+    postalAbbreviation = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
+    compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
+    privilegeFees = List(Nested(JurisdictionPrivilegeFeeResponseSchema()), required=True, allow_none=False)
+    militaryDiscount = Nested(JurisdictionMilitaryDiscountResponseSchema(), required=False, allow_none=False)
+    jurisprudenceRequirements = Nested(
+        JurisdictionJurisprudenceRequirementsResponseSchema(), required=True, allow_none=False
+    )
+
+
+class CompactJurisdictionConfigurationRequestSchema(ForgivingSchema):
+    """
+    Used to enforce which fields are posted in jurisdiction objects for the
+    POST /compacts/{compact}/jurisdictions/{jurisdiction} endpoint
+    """
+
+    compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
+    jurisdictionName = String(required=True, allow_none=False)
+    postalAbbreviation = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
+    licenseeRegistrationEnabled = Boolean(required=True, allow_none=False)
+    privilegeFees = List(Nested(JurisdictionPrivilegeFeeResponseSchema()), required=True, allow_none=False)
+    militaryDiscount = Nested(JurisdictionMilitaryDiscountResponseSchema(), required=False, allow_none=False)
+    jurisprudenceRequirements = Nested(
+        JurisdictionJurisprudenceRequirementsResponseSchema(), required=True, allow_none=False
+    )

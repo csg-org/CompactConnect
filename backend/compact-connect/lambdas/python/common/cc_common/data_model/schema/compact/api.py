@@ -1,10 +1,11 @@
 # ruff: noqa: N801, N815, ARG002 invalid-name unused-kwargs
-from marshmallow.fields import Nested, String
+from marshmallow import Schema
+from marshmallow.fields import Boolean, Email, List, Nested, String
 from marshmallow.validate import OneOf
 
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import ForgivingSchema
-from cc_common.data_model.schema.compact import (
+from cc_common.data_model.schema.compact.common import (
     COMPACT_TYPE,
     CompactCommissionFeeSchema,
     LicenseeChargesSchema,
@@ -25,3 +26,43 @@ class CompactOptionsResponseSchema(ForgivingSchema):
     compactCommissionFee = Nested(CompactCommissionFeeSchema(), required=True, allow_none=False)
     transactionFeeConfiguration = Nested(TransactionFeeConfigurationResponseSchema(), required=False, allow_none=False)
     type = String(required=True, allow_none=False, validate=OneOf([COMPACT_TYPE]))
+
+
+class CompactConfigurationResponseSchema(ForgivingSchema):
+    """Schema for API responses from GET /v1/compacts/{compact}"""
+
+    compactAbbr = String(required=True, allow_none=False)
+    compactName = String(required=True, allow_none=False)
+    compactCommissionFee = Nested(CompactCommissionFeeSchema(), required=True, allow_none=False)
+    transactionFeeConfiguration = Nested(TransactionFeeConfigurationResponseSchema(), required=False, allow_none=False)
+    compactOperationsTeamEmails = List(String(required=True, allow_none=False), required=True, allow_none=False)
+    compactAdverseActionsNotificationEmails = List(
+        String(required=True, allow_none=False),
+        required=True,
+        allow_none=False,
+    )
+    compactSummaryReportNotificationEmails = List(
+        String(required=True, allow_none=False),
+        required=True,
+        allow_none=False,
+    )
+    licenseeRegistrationEnabled = Boolean(required=True, allow_none=False)
+
+
+class PostCompactConfigurationRequestSchema(Schema):
+    """Schema for the POST /v1/compacts/{compact} request body"""
+
+    compactCommissionFee = Nested(CompactCommissionFeeSchema(), required=True, allow_none=False)
+    transactionFeeConfiguration = Nested(TransactionFeeConfigurationResponseSchema(), required=False, allow_none=False)
+    compactOperationsTeamEmails = List(Email(required=True, allow_none=False), required=True, allow_none=False)
+    compactAdverseActionsNotificationEmails = List(
+        String(required=True, allow_none=False),
+        required=True,
+        allow_none=False,
+    )
+    compactSummaryReportNotificationEmails = List(
+        String(required=True, allow_none=False),
+        required=True,
+        allow_none=False,
+    )
+    licenseeRegistrationEnabled = Boolean(required=True, allow_none=False)
