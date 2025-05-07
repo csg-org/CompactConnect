@@ -18,6 +18,10 @@
     color: @white;
     background-color: @primaryColor;
 
+    @media print {
+        display: none;
+    }
+
     @media @tabletWidth {
         background-color: transparent;
     }

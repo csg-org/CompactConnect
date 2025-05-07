@@ -95,6 +95,13 @@
                 fill: @buttonTransparentHoverTextColor;
             }
         }
+
+        &:disabled {
+            border-color: @buttonDisabledBGColor;
+            color: @buttonDisabledTextColor;
+            background-color: @buttonDisabledBGColor;
+            cursor: default;
+        }
     }
 
     &.text-like {

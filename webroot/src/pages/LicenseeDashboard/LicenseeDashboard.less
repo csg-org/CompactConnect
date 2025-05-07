@@ -24,13 +24,16 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
+        width: 100%;
+        padding: 0 4rem;
 
-        @media @tabletWidth {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
+        @media @desktopWidth {
+            align-items: flex-start;
             justify-content: space-between;
-            width: 100%;
+        }
+
+        @media @largeDesktopWidth {
+            flex-direction: row;
         }
 
         .welcome-user {
@@ -41,38 +44,56 @@
 
         .button-block {
             display: flex;
-            flex-direction: row;
+            flex-direction: column;
+            align-items: flex-start;
+            width: 100%;
             margin-top: 2rem;
 
-            .view-military-btn {
-                margin-right: 1rem;
-
-                &:deep(input) {
-                    padding-right: 1rem;
-                    padding-left: 1rem;
-                }
-
-                @media @tabletWidth {
-                    margin-right: 2rem;
-
-                    &:deep(input) {
-                        padding-right: 2.4rem;
-                        padding-left: 2.4rem;
-                    }
-                }
+            @media @desktopWidth {
+                flex-direction: row;
             }
 
-            .obtain-priv-btn {
-                &:deep(input) {
-                    padding-right: 1rem;
-                    padding-left: 1rem;
+            @media @largeDesktopWidth {
+                width: auto;
+                margin-top: 0;
+                margin-left: auto;
+            }
+
+            .btn-container {
+                display: flex;
+                flex-direction: column;
+                width: 100%;
+                margin-bottom: 1.2rem;
+
+                @media @desktopWidth {
+                    width: 100%;
+
+                    &:not(:first-child) {
+                        margin-left: 1.8rem;
+                    }
                 }
 
-                @media @tabletWidth {
-                    &:deep(input) {
-                        padding-right: 2.4rem;
-                        padding-left: 2.4rem;
+                @media @largeDesktopWidth {
+                    width: auto;
+                }
+
+                .btn {
+                    width: 100%;
+                    margin-bottom: 0.4rem;
+
+                    @media @largeDesktopWidth {
+                        width: auto;
                     }
+
+                    &:deep(input) {
+                        width: 100%;
+                    }
+                }
+
+                .btn-subtext {
+                    color: darken(@darkGrey, 10%);
+                    font-size: 1.2rem;
+                    text-align: right;
                 }
             }
         }

@@ -123,6 +123,12 @@ const routes: Array<RouteConfig> = [
         meta: { requiresAuth: true, licenseeAccess: true, },
     },
     {
+        path: '/:compact/LicenseeVerification',
+        name: 'LicenseeVerification',
+        component: () => import(/* webpackChunkName: "licenseeDashboard" */ '@pages/LicenseeProof/LicenseeProof.vue'),
+        meta: { requiresAuth: true, licenseeAccess: true, },
+    },
+    {
         path: '/:compact/Privileges',
         name: 'PrivilegePurchase',
         component: () => import(/* webpackChunkName: "privilegePurchase" */ '@pages/PrivilegePurchase/PrivilegePurchase.vue'),

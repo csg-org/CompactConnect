@@ -56,9 +56,18 @@ class PageContainer extends Vue {
         const nonPadTopRouteNames: Array<string> = [
             'LicensingDetail',
             'LicenseeDetailPublic',
+            'LicenseeVerification',
         ];
 
         return !nonPadTopRouteNames.includes(this.currentRouteName);
+    }
+
+    get includeMainNav(): boolean {
+        const nonMainNavRouteNames: Array<string> = [
+            'LicenseeVerification',
+        ];
+
+        return !nonMainNavRouteNames.includes(this.currentRouteName);
     }
 
     get includePageFooter(): boolean {
