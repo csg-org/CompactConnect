@@ -35,8 +35,9 @@ class TestCompactConfigurationApi(TestApi):
         )
 
         # Get the jurisdictions resource
-        jurisdictions_resource_id = api_stack.get_logical_id(api_stack.api.v1_api.jurisdictions_resource.node.default_child)
-
+        jurisdictions_resource_id = api_stack.get_logical_id(
+            api_stack.api.v1_api.jurisdictions_resource.node.default_child
+        )
 
         # Ensure the lambda is created with expected code path
         compact_configuration_api_handler = TestApi.get_resource_properties_by_logical_id(
@@ -260,7 +261,9 @@ class TestCompactConfigurationApi(TestApi):
         api_stack_template = Template.from_stack(api_stack)
 
         # Get the jurisdiction resource
-        jurisdiction_resource_id = api_stack.get_logical_id(api_stack.api.v1_api.jurisdiction_resource.node.default_child)
+        jurisdiction_resource_id = api_stack.get_logical_id(
+            api_stack.api.v1_api.jurisdiction_resource.node.default_child
+        )
 
         # Ensure the GET method is configured with the lambda integration
         method_model_logical_id_capture = Capture()
@@ -308,7 +311,9 @@ class TestCompactConfigurationApi(TestApi):
         api_stack_template = Template.from_stack(api_stack)
 
         # Get the jurisdiction resource
-        jurisdiction_resource_id = api_stack.get_logical_id(api_stack.api.v1_api.jurisdiction_resource.node.default_child)
+        jurisdiction_resource_id = api_stack.get_logical_id(
+            api_stack.api.v1_api.jurisdiction_resource.node.default_child
+        )
 
         request_model_logical_id_capture = Capture()
         response_model_logical_id_capture = Capture()

@@ -144,6 +144,8 @@ class V1Api:
         )
         # GET  /v1/compacts/{compact}/jurisdictions
         self.jurisdictions_resource = self.compact_resource.add_resource('jurisdictions')
+        # GET  /v1/compacts/{compact}/jurisdictions/{jurisdiction}
+        self.jurisdiction_resource = self.jurisdictions_resource.add_resource('{jurisdiction}')
         # GET  /v1/public/compacts/{compact}/jurisdictions
         self.public_compacts_compact_jurisdictions_resource = self.public_compacts_compact_resource.add_resource(
             'jurisdictions'
@@ -154,12 +156,13 @@ class V1Api:
             compact_resource=self.compact_resource,
             jurisdictions_resource=self.jurisdictions_resource,
             public_jurisdictions_resource=self.public_compacts_compact_jurisdictions_resource,
+            jurisdiction_resource=self.jurisdiction_resource,
             general_read_method_options=read_auth_method_options,
+            admin_method_options=admin_auth_method_options,
             persistent_stack=persistent_stack,
             api_model=self.api_model,
         )
 
-        self.jurisdiction_resource = self.jurisdictions_resource.add_resource('{jurisdiction}')
         # POST /v1/compacts/{compact}/jurisdictions/{jurisdiction}/licenses
         # GET  /v1/compacts/{compact}/jurisdictions/{jurisdiction}/licenses/bulk-upload
         licenses_resource = self.jurisdiction_resource.add_resource('licenses')
