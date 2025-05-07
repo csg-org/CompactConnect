@@ -16,6 +16,7 @@
                 />
                 <div class="page-nav">
                     <router-link
+                        v-if="currentCompactType"
                         :to="{ name: 'LicenseeDashboard', params: { compact: currentCompactType }}"
                         class="nav-item text-like"
                     >

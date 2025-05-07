@@ -10,7 +10,7 @@
     @lightText: darken(@darkGrey, 10%);
     @printBackgroundHighlight: #ebf7fd;
     .preserve-print-background-graphics() {
-        -webkit-print-color-adjust: exact;
+        -webkit-print-color-adjust: exact; // Chromium <136
         color-adjust: exact;
         print-color-adjust: exact;
     }
