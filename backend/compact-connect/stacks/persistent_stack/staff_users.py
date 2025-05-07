@@ -71,9 +71,6 @@ class StaffUsers(UserPool):
             read_attributes=ClientAttributes().with_standard_attributes(email=True),
         )
 
-        # The managed login styling is now handled in the ManagedLoginStack
-        # to reduce the size of this stack's CloudFormation template
-
     def _generate_resource_server_scopes_list_for_compact(self, compact: str):
         return [
             ResourceServerScope(

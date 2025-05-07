@@ -71,9 +71,6 @@ class ProviderUsers(UserPool):
         )
         self._add_custom_message_lambda(stack=stack, environment_name=environment_name)
 
-        # The managed login styling is now handled in the ManagedLoginStack
-        # to reduce the size of this stack's CloudFormation template
-
     @staticmethod
     def _configure_user_pool_standard_attributes() -> StandardAttributes:
         """
