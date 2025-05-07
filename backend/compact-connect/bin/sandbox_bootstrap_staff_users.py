@@ -36,7 +36,7 @@ def bootstrap_compact_ed_user(compact: str, email_username: str, email_domain: s
         email=email,
         compact=compact,
         user_attributes=_user_attributes,
-        permanent_password=SANDBOX_USER_PASSWORD,  # noqa: S106 this is a test password
+        permanent_password=SANDBOX_USER_PASSWORD,
     )
 
 
