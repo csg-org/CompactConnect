@@ -14,6 +14,7 @@ from aws_cdk.aws_cognito import (
     DeviceTracking,
     FeaturePlan,
     ICustomAttribute,
+    ManagedLoginVersion,
     Mfa,
     MfaSecondFactor,
     OAuthFlows,
@@ -86,7 +87,9 @@ class UserPool(CdkUserPool):
 
         if cognito_domain_prefix:
             self.user_pool_domain = self.add_domain(
-                f'{construct_id}Domain', cognito_domain=CognitoDomainOptions(domain_prefix=cognito_domain_prefix)
+            f'{construct_id}Domain',
+                cognito_domain=CognitoDomainOptions(domain_prefix=cognito_domain_prefix),
+                managed_login_version=ManagedLoginVersion.NEWER_MANAGED_LOGIN
             )
 
             CfnOutput(self, f'{construct_id}UsersDomain', value=self.user_pool_domain.domain_name)
