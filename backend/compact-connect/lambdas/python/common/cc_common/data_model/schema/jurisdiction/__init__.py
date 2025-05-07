@@ -2,13 +2,9 @@
 from collections import UserDict
 from decimal import Decimal
 
-from cc_common.data_model.schema.common import CCEnum
-
-JURISDICTION_TYPE = 'jurisdiction'
-
-
-class JurisdictionMilitaryDiscountType(CCEnum):
-    FLAT_RATE = 'FLAT_RATE'
+from cc_common.data_model.schema.common import CCDataClass
+from cc_common.data_model.schema.jurisdiction.common import JurisdictionMilitaryDiscountType
+from cc_common.data_model.schema.jurisdiction.record import JurisdictionRecordSchema
 
 
 class JurisdictionMilitaryDiscount(UserDict):
@@ -60,6 +56,9 @@ class Jurisdiction(UserDict):
     """
     Jurisdiction configuration data model. Used to access variables without needing to know
     the underlying key structure.
+
+    Deprecated: This is a legacy class maintained for backward compatibility. For new code, prefer using
+    JurisdictionConfigurationData instead.
     """
 
     @property
@@ -103,3 +102,97 @@ class Jurisdiction(UserDict):
     @property
     def licensee_registration_enabled(self):
         return self.get('licenseeRegistrationEnabled', False)
+
+
+# data class-based implementation
+class JurisdictionConfigurationData(CCDataClass):
+    """
+    Class representing a Jurisdiction Configuration with getters and setters for all properties.
+    This is the preferred way to work with jurisdiction configuration data.
+    """
+
+    # Define the record schema at the class level
+    _record_schema = JurisdictionRecordSchema()
+
+    # Can use setters to set field data
+    _requires_data_at_construction = False
+
+    @property
+    def jurisdictionName(self) -> str:
+        return self._data['jurisdictionName']
+
+    @jurisdictionName.setter
+    def jurisdictionName(self, value: str) -> None:
+        self._data['jurisdictionName'] = value
+
+    @property
+    def postalAbbreviation(self) -> str:
+        return self._data['postalAbbreviation']
+
+    @postalAbbreviation.setter
+    def postalAbbreviation(self, value: str) -> None:
+        self._data['postalAbbreviation'] = value
+
+    @property
+    def compact(self) -> str:
+        return self._data['compact']
+
+    @compact.setter
+    def compact(self, value: str) -> None:
+        self._data['compact'] = value
+
+    @property
+    def privilegeFees(self) -> list[dict]:
+        return self._data['privilegeFees']
+
+    @privilegeFees.setter
+    def privilegeFees(self, value: list[dict]) -> None:
+        self._data['privilegeFees'] = value
+
+    @property
+    def militaryDiscount(self) -> dict:
+        return self._data.get('militaryDiscount')
+
+    @militaryDiscount.setter
+    def militaryDiscount(self, value: dict) -> None:
+        self._data['militaryDiscount'] = value
+
+    @property
+    def jurisprudenceRequirements(self) -> dict:
+        return self._data['jurisprudenceRequirements']
+
+    @jurisprudenceRequirements.setter
+    def jurisprudenceRequirements(self, value: dict) -> None:
+        self._data['jurisprudenceRequirements'] = value
+
+    @property
+    def jurisdictionOperationsTeamEmails(self) -> list[str]:
+        return self._data.get('jurisdictionOperationsTeamEmails', [])
+
+    @jurisdictionOperationsTeamEmails.setter
+    def jurisdictionOperationsTeamEmails(self, value: list[str]) -> None:
+        self._data['jurisdictionOperationsTeamEmails'] = value
+
+    @property
+    def jurisdictionAdverseActionsNotificationEmails(self) -> list[str]:
+        return self._data.get('jurisdictionAdverseActionsNotificationEmails', [])
+
+    @jurisdictionAdverseActionsNotificationEmails.setter
+    def jurisdictionAdverseActionsNotificationEmails(self, value: list[str]) -> None:
+        self._data['jurisdictionAdverseActionsNotificationEmails'] = value
+
+    @property
+    def jurisdictionSummaryReportNotificationEmails(self) -> list[str]:
+        return self._data.get('jurisdictionSummaryReportNotificationEmails', [])
+
+    @jurisdictionSummaryReportNotificationEmails.setter
+    def jurisdictionSummaryReportNotificationEmails(self, value: list[str]) -> None:
+        self._data['jurisdictionSummaryReportNotificationEmails'] = value
+
+    @property
+    def licenseeRegistrationEnabled(self) -> bool:
+        return self._data.get('licenseeRegistrationEnabled', False)
+
+    @licenseeRegistrationEnabled.setter
+    def licenseeRegistrationEnabled(self, value: bool) -> None:
+        self._data['licenseeRegistrationEnabled'] = value
