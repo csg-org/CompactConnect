@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import json
-
 from aws_cdk import Duration
 from aws_cdk.aws_cognito import (
     ClientAttributes,
