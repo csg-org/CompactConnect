@@ -1,0 +1,112 @@
+{
+  "properties": {
+    "jurisdictionName": {
+      "description": "The name of the jurisdiction",
+      "type": "string"
+    },
+    "postalAbbreviation": {
+      "description": "The postal abbreviation of the jurisdiction",
+      "type": "string"
+    },
+    "privilegeFees": {
+      "description": "The fees for the privileges by license type",
+      "items": {
+        "properties": {
+          "licenseTypeAbbreviation": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "licenseTypeAbbreviation",
+          "amount"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "jurisdictionOperationsTeamEmails": {
+      "description": "List of email addresses for operations team notifications",
+      "items": {
+        "format": "email",
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "jurisdictionAdverseActionsNotificationEmails": {
+      "description": "List of email addresses for adverse actions notifications",
+      "items": {
+        "format": "email",
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "jurisdictionSummaryReportNotificationEmails": {
+      "description": "List of email addresses for summary report notifications",
+      "items": {
+        "format": "email",
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "jurisprudenceRequirements": {
+      "properties": {
+        "required": {
+          "description": "Whether jurisprudence requirements exist",
+          "type": "boolean"
+        },
+        "linkToDocumentation": {
+          "description": "Optional link to jurisprudence documentation",
+          "type": "string"
+        }
+      },
+      "required": [
+        "required"
+      ],
+      "type": "object"
+    },
+    "militaryDiscount": {
+      "properties": {
+        "active": {
+          "description": "Whether the military discount is active",
+          "type": "boolean"
+        },
+        "discountType": {
+          "description": "The type of discount",
+          "enum": [
+            "FLAT_RATE"
+          ],
+          "type": "string"
+        },
+        "discountAmount": {
+          "description": "The amount of the discount",
+          "type": "number"
+        }
+      },
+      "required": [
+        "active",
+        "discountType",
+        "discountAmount"
+      ],
+      "type": "object"
+    },
+    "licenseeRegistrationEnabled": {
+      "description": "Denotes whether licensee registration is enabled",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "jurisdictionName",
+    "postalAbbreviation",
+    "privilegeFees",
+    "jurisdictionOperationsTeamEmails",
+    "jurisdictionAdverseActionsNotificationEmails",
+    "jurisdictionSummaryReportNotificationEmails",
+    "jurisprudenceRequirements",
+    "licenseeRegistrationEnabled"
+  ],
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-04/schema#"
+}
