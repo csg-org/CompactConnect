@@ -2,6 +2,8 @@
 import json
 from datetime import date, datetime
 
+from boto3.dynamodb.conditions import Key
+
 from cc_common.data_model.provider_record_util import ProviderRecordUtility
 from cc_common.data_model.schema.adverse_action import AdverseActionData
 from cc_common.data_model.schema.common import CCDataClass
@@ -56,6 +58,44 @@ class TestDataGenerator:
             api_event['requestContext']['authorizer']['claims']['scope'] = scope_override
 
         return api_event
+
+    @staticmethod
+    def load_provider_data_record_from_database(data_class: CCDataClass) -> dict:
+        """
+        Helper method to load a data record from the database using the provider data class instance.
+
+        This leverages the fact that your expected object should have the same pk/sk values as the actual record that
+        is stored in the database as a result of your test run.
+        """
+        from cc_common.config import config
+
+        serialized_record = data_class.serialize_to_database_record()
+
+        try:
+            return config.provider_table.get_item(Key={'pk': serialized_record['pk'], 'sk': serialized_record['sk']})['Item']
+        except KeyError as e:
+            raise Exception('Error loading test provider record from database') from e
+
+    @staticmethod
+    def query_update_records_for_given_record_from_database(data_class: CCDataClass) -> list[dict]:
+        """
+        Helper method to query update records from the database using the provider data class instance.
+
+        All of our update records use the same pk as the actual record that is being updated. The sk of the actual
+        record is the prefix for all the update records. Using this pattern, we can query for all of the update records
+        that have been written for the given record.
+        """
+        from cc_common.config import config
+
+        serialized_record = data_class.serialize_to_database_record()
+
+        try:
+            return config.provider_table.query(
+                KeyConditionExpression=Key('pk').eq(serialized_record['pk'])
+                                       & Key('sk').begins_with(serialized_record['sk'])
+            )['Items']
+        except KeyError as e:
+            raise Exception('Error querying update records from database') from e
 
     @staticmethod
     def generate_default_home_jurisdiction_selection(
