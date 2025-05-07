@@ -83,7 +83,10 @@ def create_board_ed_user(
 
 def create_cognito_user(*, email: str, permanent_password: str | None):
     """Create a Cognito user with the given email address and password.
-    Note that the password should only be provided in testing environments."""
+
+    If provided, sets the password as the user's permanent password. Since this circumvents default password policies
+    (i.e., password reset), this should only be used in testing/sandbox environments.
+    """
 
     def get_sub_from_attributes(user_attributes: list):
         for attribute in user_attributes:
@@ -116,10 +119,10 @@ def create_cognito_user(*, email: str, permanent_password: str | None):
             user_data = cognito_client.admin_get_user(UserPoolId=USER_POOL_ID, Username=email)
             return get_sub_from_attributes(user_data['UserAttributes'])
         if e.response['Error']['Code'] == 'InvalidPasswordException':
-            sys.stdout.write(f'Invalid password: {e.response["Error"]["Message"]}')
+            sys.stderr.write(f'Invalid password: {e.response["Error"]["Message"]}')
             sys.exit(2)
         else:
-            sys.stdout.write(f'Failed to create user: {e.response["Error"]["Message"]}')
+            sys.stderr.write(f'Failed to create user: {e.response["Error"]["Message"]}')
             sys.exit(2)
 
 
