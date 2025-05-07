@@ -98,6 +98,19 @@ class CompactConfigurationClient:
         compact_data = self.compact_schema.load(item)
         return Compact(compact_data)
 
+    def save_compact_configuration(self, compact: dict) -> None:
+        """
+        Save the compact configuration.
+
+        :param compact: The compact configuration model
+        """
+        logger.info('Saving compact configuration', compactAbbr=compact['compactAbbr'])
+
+        schema = CompactRecordSchema()
+        serialized_compact = schema.dump(compact)
+
+        self.config.compact_configuration_table.put_item(Item=serialized_compact)
+
     def get_compact_jurisdictions(self, compact: str) -> list[dict]:
         """
         Get the jurisdictions for a specific compact.
@@ -143,6 +156,19 @@ class CompactConfigurationClient:
         # Load through schema and convert to Jurisdiction model
         jurisdiction_data = self.jurisdiction_schema.load(item)
         return Jurisdiction(jurisdiction_data)
+
+    def save_jurisdiction_configuration(self, jurisdiction_config: dict) -> None:
+        """
+        Save the jurisdiction configuration.
+
+        :param jurisdiction_config: The jurisdiction configuration model
+        """
+        logger.info('Saving jurisdiction configuration', jurisdiction=jurisdiction_config['postalAbbreviation'])
+
+        schema = JurisdictionRecordSchema()
+        serialized_jurisdiction = schema.dump(jurisdiction_config)
+
+        self.config.compact_configuration_table.put_item(Item=serialized_jurisdiction)
 
     @paginated_query
     @logger_inject_kwargs(logger, 'compact')

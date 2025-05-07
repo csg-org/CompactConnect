@@ -13,8 +13,10 @@ from authorizenet.apicontrollers import (
 )
 from authorizenet.constants import constants
 from cc_common.config import config, logger
-from cc_common.data_model.schema.compact import Compact, CompactFeeType, TransactionFeeChargeType
-from cc_common.data_model.schema.jurisdiction import Jurisdiction, JurisdictionMilitaryDiscountType
+from cc_common.data_model.schema.compact import Compact
+from cc_common.data_model.schema.compact.common import CompactFeeType, TransactionFeeChargeType
+from cc_common.data_model.schema.jurisdiction import Jurisdiction
+from cc_common.data_model.schema.jurisdiction.common import JurisdictionMilitaryDiscountType
 from cc_common.exceptions import (
     CCFailedTransactionException,
     CCInternalException,
