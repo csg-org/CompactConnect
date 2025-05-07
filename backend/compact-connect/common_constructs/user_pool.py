@@ -247,25 +247,38 @@ class UserPool(CdkUserPool):
     def prepare_assets_for_managed_login_ui(
         self,
         ico_filepath: str,
-        logo_filepath: str
+        logo_filepath: str,
+        background_file_path: str | None = None
     ):
+
+        # options found: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cognito-managedloginbranding-assettype.html#cfn-cognito-managedloginbranding-assettype-category
+        assets = []
         base_64_favicon = self.convert_img_to_base_64(ico_filepath)
-        favicon = CfnManagedLoginBranding.AssetTypeProperty(
+        assets.append(CfnManagedLoginBranding.AssetTypeProperty(
             category='FAVICON_ICO',
             color_mode='LIGHT',
             extension='ICO',
             bytes=base_64_favicon
-        )
+        ))
 
         base_64_logo = self.convert_img_to_base_64(logo_filepath)
-        logo = CfnManagedLoginBranding.AssetTypeProperty(
+        assets.append(CfnManagedLoginBranding.AssetTypeProperty(
             category='FORM_LOGO',
             color_mode='LIGHT',
             extension='PNG',
             bytes=base_64_logo
-        )
+        ))
 
-        return [favicon, logo]
+        if background_file_path:
+            base_64_background = self.convert_img_to_base_64(background_file_path)
+            assets.append(CfnManagedLoginBranding.AssetTypeProperty(
+                category='PAGE_BACKGROUND',
+                color_mode='LIGHT',
+                extension='PNG',
+                bytes=base_64_background
+            ))
+
+        return assets
 
     def convert_img_to_base_64(self, file_path: str):
         with open(file_path, 'rb') as binary_file:

@@ -49,7 +49,7 @@
                 "location": "CENTER",
                 "position": "TOP",
                 "enabled": true,
-                "formInclusion": "OUT"
+                "formInclusion": "IN"
             },
             "darkMode": {
                 "backgroundColor": "0f1b2aff",
@@ -91,7 +91,7 @@
             "lightMode": {
                 "bodyColor": "414d5cff",
                 "headingColor": "000716ff",
-                "descriptionColor": "414d5cff"
+                "descriptionColor": "414d5c00"
             },
             "darkMode": {
                 "bodyColor": "b6bec9ff",

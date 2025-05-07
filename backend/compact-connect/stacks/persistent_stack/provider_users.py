@@ -59,9 +59,6 @@ class ProviderUsers(UserPool):
         )
         stack: ps.PersistentStack = ps.PersistentStack.of(self)
 
-        # branding_settings = getBrandingSettings
-        # branding_assests = getBrandingAssets
-
         # Create an app client to allow the front-end to authenticate.
         self.ui_client = self.add_ui_client(
             ui_domain_name=stack.ui_domain_name,
@@ -76,17 +73,17 @@ class ProviderUsers(UserPool):
         )
         self._add_custom_message_lambda(stack=stack, environment_name=environment_name)
 
-        with open('resources/managed_login_style_settings.json') as f:
+        with open('resources/provider_managed_login_style_settings.json') as f:
             branding_settings = json.load(f)
 
-        branding_assests = self.prepare_assets_for_managed_login_ui(
+        branding_assets = self.prepare_assets_for_managed_login_ui(
             ico_filepath='resources/assets/favicon.ico',
             logo_filepath='resources/assets/compact-connect-logo.png'
         )
 
         self.add_managed_login_styles(
             user_pool_client=self.ui_client,
-            branding_assets=branding_assests,
+            branding_assets=branding_assets,
             branding_settings=branding_settings,
         )
 
