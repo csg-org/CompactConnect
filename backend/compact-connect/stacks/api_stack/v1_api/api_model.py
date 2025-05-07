@@ -1483,6 +1483,378 @@ class ApiModel:
         return self.api._v1_get_compact_jurisdictions_response_model
 
     @property
+    def get_compact_configuration_response_model(self) -> Model:
+        """Return the compact configuration response model for GET /v1/compacts/{compact}"""
+        if hasattr(self.api, '_v1_get_compact_configuration_response_model'):
+            return self.api._v1_get_compact_configuration_response_model
+
+        self.api._v1_get_compact_configuration_response_model = self.api.add_model(
+            'V1GetCompactConfigurationResponseModel',
+            description='Get compact configuration response model',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                required=[
+                    'compactAbbr',
+                    'compactName',
+                    'compactCommissionFee',
+                    'compactOperationsTeamEmails',
+                    'compactAdverseActionsNotificationEmails',
+                    'compactSummaryReportNotificationEmails',
+                    'licenseeRegistrationEnabled',
+                ],
+                properties={
+                    'compactAbbr': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='The abbreviation of the compact'
+                    ),
+                    'compactName': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='The full name of the compact'
+                    ),
+                    'compactCommissionFee': JsonSchema(
+                        type=JsonSchemaType.OBJECT,
+                        required=['feeType', 'feeAmount'],
+                        properties={
+                            'feeType': JsonSchema(type=JsonSchemaType.STRING, enum=['FLAT_RATE']),
+                            'feeAmount': JsonSchema(type=JsonSchemaType.NUMBER),
+                        },
+                    ),
+                    'compactOperationsTeamEmails': JsonSchema(
+                        type=JsonSchemaType.ARRAY,
+                        description='List of email addresses for operations team notifications',
+                        items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
+                    ),
+                    'compactAdverseActionsNotificationEmails': JsonSchema(
+                        type=JsonSchemaType.ARRAY,
+                        description='List of email addresses for adverse actions notifications',
+                        items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
+                    ),
+                    'compactSummaryReportNotificationEmails': JsonSchema(
+                        type=JsonSchemaType.ARRAY,
+                        description='List of email addresses for summary report notifications',
+                        items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
+                    ),
+                    'licenseeRegistrationEnabled': JsonSchema(
+                        type=JsonSchemaType.BOOLEAN,
+                        description='Denotes whether licensee registration is enabled',
+                    ),
+                    'transactionFeeConfiguration': JsonSchema(
+                        type=JsonSchemaType.OBJECT,
+                        properties={
+                            'licenseeCharges': JsonSchema(
+                                type=JsonSchemaType.OBJECT,
+                                required=['active', 'chargeType', 'chargeAmount'],
+                                properties={
+                                    'active': JsonSchema(
+                                        type=JsonSchemaType.BOOLEAN,
+                                        description='Whether the compact is charging licensees transaction fees',
+                                    ),
+                                    'chargeType': JsonSchema(
+                                        type=JsonSchemaType.STRING,
+                                        enum=['FLAT_FEE_PER_PRIVILEGE'],
+                                        description='The type of transaction fee charge',
+                                    ),
+                                    'chargeAmount': JsonSchema(
+                                        type=JsonSchemaType.NUMBER,
+                                        description='The amount to charge per privilege purchased',
+                                    ),
+                                },
+                            ),
+                        },
+                    ),
+                },
+            ),
+        )
+        return self.api._v1_get_compact_configuration_response_model
+
+    @property
+    def post_compact_request_model(self) -> Model:
+        """Return the compact configuration request model for POST /v1/compacts/{compact}"""
+        if hasattr(self.api, '_v1_post_compact_request_model'):
+            return self.api._v1_post_compact_request_model
+
+        self.api._v1_post_compact_request_model = self.api.add_model(
+            'V1PostCompactRequestModel',
+            description='Post compact configuration request model',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                required=[
+                    'compactAbbr',
+                    'compactName',
+                    'compactCommissionFee',
+                    'compactOperationsTeamEmails',
+                    'compactAdverseActionsNotificationEmails',
+                    'compactSummaryReportNotificationEmails',
+                    'licenseeRegistrationEnabled'
+                ],
+                properties={
+                    'compactAbbr': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='The abbreviation of the compact'
+                    ),
+                    'compactName': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='The full name of the compact'
+                    ),
+                    'compactCommissionFee': JsonSchema(
+                        type=JsonSchemaType.OBJECT,
+                        required=['feeType', 'feeAmount'],
+                        properties={
+                            'feeType': JsonSchema(type=JsonSchemaType.STRING, enum=['FLAT_RATE']),
+                            'feeAmount': JsonSchema(type=JsonSchemaType.NUMBER),
+                        },
+                    ),
+                    'compactOperationsTeamEmails': JsonSchema(
+                        type=JsonSchemaType.ARRAY,
+                        description='List of email addresses for operations team notifications',
+                        items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
+                    ),
+                    'compactAdverseActionsNotificationEmails': JsonSchema(
+                        type=JsonSchemaType.ARRAY,
+                        description='List of email addresses for adverse actions notifications',
+                        items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
+                    ),
+                    'compactSummaryReportNotificationEmails': JsonSchema(
+                        type=JsonSchemaType.ARRAY,
+                        description='List of email addresses for summary report notifications',
+                        items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
+                    ),
+                    'licenseeRegistrationEnabled': JsonSchema(
+                        type=JsonSchemaType.BOOLEAN,
+                        description='Denotes whether licensee registration is enabled',
+                    ),
+                    'transactionFeeConfiguration': JsonSchema(
+                        type=JsonSchemaType.OBJECT,
+                        properties={
+                            'licenseeCharges': JsonSchema(
+                                type=JsonSchemaType.OBJECT,
+                                required=['active', 'chargeType', 'chargeAmount'],
+                                properties={
+                                    'active': JsonSchema(
+                                        type=JsonSchemaType.BOOLEAN,
+                                        description='Whether the compact is charging licensees transaction fees',
+                                    ),
+                                    'chargeType': JsonSchema(
+                                        type=JsonSchemaType.STRING,
+                                        enum=['FLAT_FEE_PER_PRIVILEGE'],
+                                        description='The type of transaction fee charge',
+                                    ),
+                                    'chargeAmount': JsonSchema(
+                                        type=JsonSchemaType.NUMBER,
+                                        description='The amount to charge per privilege purchased',
+                                    ),
+                                },
+                            ),
+                        },
+                    ),
+                },
+            ),
+        )
+        return self.api._v1_post_compact_request_model
+
+    @property
+    def get_jurisdiction_response_model(self) -> Model:
+        """Return the jurisdiction configuration response model for
+        GET /v1/compacts/{compact}/jurisdictions/{jurisdiction}
+        """
+        if hasattr(self.api, '_v1_get_jurisdiction_response_model'):
+            return self.api._v1_get_jurisdiction_response_model
+
+        self.api._v1_get_jurisdiction_response_model = self.api.add_model(
+            'V1GetJurisdictionResponseModel',
+            description='Get jurisdiction configuration response model',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                required=[
+                    'jurisdictionName',
+                    'postalAbbreviation',
+                    'privilegeFees',
+                    'jurisdictionOperationsTeamEmails',
+                    'jurisdictionAdverseActionsNotificationEmails',
+                    'jurisdictionSummaryReportNotificationEmails',
+                    'jurisprudenceRequirements',
+                    'licenseeRegistrationEnabled'
+                ],
+                properties={
+                    'jurisdictionName': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='The name of the jurisdiction',
+                    ),
+                    'postalAbbreviation': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='The postal abbreviation of the jurisdiction',
+                    ),
+                    'privilegeFees': JsonSchema(
+                        type=JsonSchemaType.ARRAY,
+                        description='The fees for the privileges by license type',
+                        items=JsonSchema(
+                            type=JsonSchemaType.OBJECT,
+                            required=['licenseTypeAbbreviation', 'amount'],
+                            properties={
+                                'licenseTypeAbbreviation': JsonSchema(type=JsonSchemaType.STRING),
+                                'amount': JsonSchema(type=JsonSchemaType.NUMBER),
+                            },
+                        ),
+                    ),
+                    'jurisdictionOperationsTeamEmails': JsonSchema(
+                        type=JsonSchemaType.ARRAY,
+                        description='List of email addresses for operations team notifications',
+                        items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
+                    ),
+                    'jurisdictionAdverseActionsNotificationEmails': JsonSchema(
+                        type=JsonSchemaType.ARRAY,
+                        description='List of email addresses for adverse actions notifications',
+                        items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
+                    ),
+                    'jurisdictionSummaryReportNotificationEmails': JsonSchema(
+                        type=JsonSchemaType.ARRAY,
+                        description='List of email addresses for summary report notifications',
+                        items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
+                    ),
+                    'jurisprudenceRequirements': JsonSchema(
+                        type=JsonSchemaType.OBJECT,
+                        required=['required'],
+                        properties={
+                            'required': JsonSchema(
+                                type=JsonSchemaType.BOOLEAN,
+                                description='Whether jurisprudence requirements exist',
+                            ),
+                            'linkToDocumentation': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                description='Optional link to jurisprudence documentation',
+                            ),
+                        },
+                    ),
+                    'militaryDiscount': JsonSchema(
+                        type=JsonSchemaType.OBJECT,
+                        required=['active', 'discountType', 'discountAmount'],
+                        properties={
+                            'active': JsonSchema(
+                                type=JsonSchemaType.BOOLEAN,
+                                description='Whether the military discount is active',
+                            ),
+                            'discountType': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                enum=['FLAT_RATE'],
+                                description='The type of discount',
+                            ),
+                            'discountAmount': JsonSchema(
+                                type=JsonSchemaType.NUMBER,
+                                description='The amount of the discount',
+                            ),
+                        },
+                    ),
+                    'licenseeRegistrationEnabled': JsonSchema(
+                        type=JsonSchemaType.BOOLEAN,
+                        description='Denotes whether licensee registration is enabled',
+                    ),
+                },
+            ),
+        )
+        return self.api._v1_get_jurisdiction_response_model
+
+    @property
+    def post_jurisdiction_request_model(self) -> Model:
+        """Return the jurisdiction configuration request model for
+        POST /v1/compacts/{compact}/jurisdictions/{jurisdiction}
+        """
+        if hasattr(self.api, '_v1_post_jurisdiction_request_model'):
+            return self.api._v1_post_jurisdiction_request_model
+
+        self.api._v1_post_jurisdiction_request_model = self.api.add_model(
+            'V1PostJurisdictionRequestModel',
+            description='Post jurisdiction configuration request model',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                required=[
+                    'jurisdictionName',
+                    'postalAbbreviation',
+                    'privilegeFees',
+                    'jurisdictionOperationsTeamEmails',
+                    'jurisdictionAdverseActionsNotificationEmails',
+                    'jurisdictionSummaryReportNotificationEmails',
+                    'jurisprudenceRequirements',
+                    'licenseeRegistrationEnabled'
+                ],
+                properties={
+                    'jurisdictionName': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='The name of the jurisdiction',
+                    ),
+                    'postalAbbreviation': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='The postal abbreviation of the jurisdiction',
+                    ),
+                    'privilegeFees': JsonSchema(
+                        type=JsonSchemaType.ARRAY,
+                        description='The fees for the privileges by license type',
+                        items=JsonSchema(
+                            type=JsonSchemaType.OBJECT,
+                            required=['licenseTypeAbbreviation', 'amount'],
+                            properties={
+                                'licenseTypeAbbreviation': JsonSchema(type=JsonSchemaType.STRING),
+                                'amount': JsonSchema(type=JsonSchemaType.NUMBER),
+                            },
+                        ),
+                    ),
+                    'jurisdictionOperationsTeamEmails': JsonSchema(
+                        type=JsonSchemaType.ARRAY,
+                        description='List of email addresses for operations team notifications',
+                        items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
+                    ),
+                    'jurisdictionAdverseActionsNotificationEmails': JsonSchema(
+                        type=JsonSchemaType.ARRAY,
+                        description='List of email addresses for adverse actions notifications',
+                        items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
+                    ),
+                    'jurisdictionSummaryReportNotificationEmails': JsonSchema(
+                        type=JsonSchemaType.ARRAY,
+                        description='List of email addresses for summary report notifications',
+                        items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
+                    ),
+                    'jurisprudenceRequirements': JsonSchema(
+                        type=JsonSchemaType.OBJECT,
+                        required=['required'],
+                        properties={
+                            'required': JsonSchema(
+                                type=JsonSchemaType.BOOLEAN,
+                                description='Whether jurisprudence requirements exist',
+                            ),
+                            'linkToDocumentation': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                description='Optional link to jurisprudence documentation',
+                            ),
+                        },
+                    ),
+                    'militaryDiscount': JsonSchema(
+                        type=JsonSchemaType.OBJECT,
+                        required=['active', 'discountType', 'discountAmount'],
+                        properties={
+                            'active': JsonSchema(
+                                type=JsonSchemaType.BOOLEAN,
+                                description='Whether the military discount is active',
+                            ),
+                            'discountType': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                enum=['FLAT_RATE'],
+                                description='The type of discount',
+                            ),
+                            'discountAmount': JsonSchema(
+                                type=JsonSchemaType.NUMBER,
+                                description='The amount of the discount',
+                            ),
+                        },
+                    ),
+                    'licenseeRegistrationEnabled': JsonSchema(
+                        type=JsonSchemaType.BOOLEAN,
+                        description='Denotes whether licensee registration is enabled',
+                    )
+                },
+            ),
+        )
+        return self.api._v1_post_jurisdiction_request_model
+
+    @property
     def get_provider_ssn_response_model(self) -> Model:
         """Return the provider SSN response model, which should only be created once per API"""
         if hasattr(self.api, '_v1_get_provider_ssn_response_model'):
