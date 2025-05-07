@@ -1504,13 +1504,9 @@ class ApiModel:
                 ],
                 properties={
                     'compactAbbr': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='The abbreviation of the compact'
+                        type=JsonSchemaType.STRING, description='The abbreviation of the compact'
                     ),
-                    'compactName': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='The full name of the compact'
-                    ),
+                    'compactName': JsonSchema(type=JsonSchemaType.STRING, description='The full name of the compact'),
                     'compactCommissionFee': JsonSchema(
                         type=JsonSchemaType.OBJECT,
                         required=['feeType', 'feeAmount'],
@@ -1585,17 +1581,13 @@ class ApiModel:
                     'compactOperationsTeamEmails',
                     'compactAdverseActionsNotificationEmails',
                     'compactSummaryReportNotificationEmails',
-                    'licenseeRegistrationEnabled'
+                    'licenseeRegistrationEnabled',
                 ],
                 properties={
                     'compactAbbr': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='The abbreviation of the compact'
+                        type=JsonSchemaType.STRING, description='The abbreviation of the compact'
                     ),
-                    'compactName': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='The full name of the compact'
-                    ),
+                    'compactName': JsonSchema(type=JsonSchemaType.STRING, description='The full name of the compact'),
                     'compactCommissionFee': JsonSchema(
                         type=JsonSchemaType.OBJECT,
                         required=['feeType', 'feeAmount'],
@@ -1673,7 +1665,7 @@ class ApiModel:
                     'jurisdictionAdverseActionsNotificationEmails',
                     'jurisdictionSummaryReportNotificationEmails',
                     'jurisprudenceRequirements',
-                    'licenseeRegistrationEnabled'
+                    'licenseeRegistrationEnabled',
                 ],
                 properties={
                     'jurisdictionName': JsonSchema(
@@ -1774,7 +1766,7 @@ class ApiModel:
                     'jurisdictionAdverseActionsNotificationEmails',
                     'jurisdictionSummaryReportNotificationEmails',
                     'jurisprudenceRequirements',
-                    'licenseeRegistrationEnabled'
+                    'licenseeRegistrationEnabled',
                 ],
                 properties={
                     'jurisdictionName': JsonSchema(
@@ -1848,7 +1840,7 @@ class ApiModel:
                     'licenseeRegistrationEnabled': JsonSchema(
                         type=JsonSchemaType.BOOLEAN,
                         description='Denotes whether licensee registration is enabled',
-                    )
+                    ),
                 },
             ),
         )

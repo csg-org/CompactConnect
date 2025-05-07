@@ -122,8 +122,10 @@ class CompactConfigurationUpload(Construct):
             'CompactConfigurationUploadCustomResource',
             resource_type='Custom::CompactConfigurationUpload',
             service_token=self.compact_configuration_upload_provider.service_token,
-            properties={'compact_list': json.dumps(self.node.get_context('compacts')),
-                        'attestations': json.dumps(attestations_list)},
+            properties={
+                'compact_list': json.dumps(self.node.get_context('compacts')),
+                'attestations': json.dumps(attestations_list),
+            },
         )
 
     def _read_attestations_file(self) -> list:
