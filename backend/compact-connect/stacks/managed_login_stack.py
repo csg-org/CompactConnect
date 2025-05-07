@@ -50,7 +50,7 @@ class ManagedLoginStack(AppStack):
         )
 
         # Create the managed login branding
-        staff_login_branding = CfnManagedLoginBranding(
+        CfnManagedLoginBranding(
             self,
             'StaffManagedLoginBranding',
             user_pool_id=persistent_stack.staff_users.user_pool_id,
@@ -73,7 +73,7 @@ class ManagedLoginStack(AppStack):
         )
 
         # Create the managed login branding
-        provider_login_branding = CfnManagedLoginBranding(
+        CfnManagedLoginBranding(
             self,
             'ProviderManagedLoginBranding',
             user_pool_id=persistent_stack.provider_users.user_pool_id,
