@@ -14,7 +14,7 @@ import { State } from '@models/State/State.model';
 export interface InterfacePrivilegePurchaseOption {
     jurisdiction?: State;
     compactType?: string | null;
-    fee?: number;
+    fees?: { [key: string]: number };
     isMilitaryDiscountActive?: boolean;
     militaryDiscountType?: FeeTypes | null;
     militaryDiscountAmount?: number;
@@ -28,7 +28,7 @@ export class PrivilegePurchaseOption implements InterfacePrivilegePurchaseOption
     public $tm?: any = () => [];
     public jurisdiction? = new State();
     public compactType? = null;
-    public fee? = 0;
+    public fees? = {};
     public isMilitaryDiscountActive? = false;
     public militaryDiscountType? = null;
     public militaryDiscountAmount? = 0;
@@ -55,12 +55,20 @@ export class PrivilegePurchaseOptionSerializer {
         const purchaseOptionData = {
             jurisdiction: new State({ abbrev: json.postalAbbreviation }),
             compactType: json.compact,
-            fee: json.jurisdictionFee,
+            fees: {},
             isMilitaryDiscountActive: json?.militaryDiscount?.active === true || false,
             militaryDiscountType: json?.militaryDiscount?.discountType || null,
             militaryDiscountAmount: json?.militaryDiscount?.discountAmount || null,
             isJurisprudenceRequired: json?.jurisprudenceRequirements?.required || false,
         };
+
+        if (Array.isArray(json.privilegeFees)) {
+            json.privilegeFees.forEach((fee) => {
+                if (fee.licenseTypeAbbreviation) {
+                    purchaseOptionData.fees[fee.licenseTypeAbbreviation] = fee.amount || 0;
+                }
+            });
+        }
 
         return new PrivilegePurchaseOption(purchaseOptionData);
     }

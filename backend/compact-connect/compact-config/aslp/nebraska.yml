@@ -1,8 +1,6 @@
 # PLACEHOLDER DATA, NOT FINAL CONFIGURATION.
 jurisdictionName: "Nebraska"
 postalAbbreviation: "ne"
-# deprecated - will be removed as part of https://github.com/csg-org/CompactConnect/issues/636
-jurisdictionFee: 100
 privilegeFees:
   - licenseTypeAbbreviation: "aud"
     amount: 100

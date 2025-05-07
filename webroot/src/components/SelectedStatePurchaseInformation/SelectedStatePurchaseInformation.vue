@@ -20,7 +20,7 @@
         <div v-if="!isPriceCollapsed">
             <div class="info-row sub-row">
                 <div class="info-row-label">{{expirationDateText}}</div>
-                <div class="expire-date-value">{{activeLicenseExpirationDate}}</div>
+                <div class="expire-date-value">{{selectedLicenseExpirationDate}}</div>
             </div>
             <div class="info-row sub-row">
                 <div class="info-row-label">{{jurisdictionFeeText}}</div>

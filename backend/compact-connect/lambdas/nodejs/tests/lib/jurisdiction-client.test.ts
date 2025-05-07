@@ -23,10 +23,6 @@ const SAMPLE_JURISDICTION_ITEMS = [
         'jurisdictionAdverseActionsNotificationEmails': {
             'L': []
         },
-        // deprecated - to be removed as part of https://github.com/csg-org/CompactConnect/issues/636
-        'jurisdictionFee': {
-            'N': '100'
-        },
         'privilegeFees': {
             'L': [
                 {
@@ -106,10 +102,6 @@ const SAMPLE_JURISDICTION_ITEMS = [
         },
         'jurisdictionAdverseActionsNotificationEmails': {
             'L': []
-        },
-        // deprecated - to be removed as part of https://github.com/csg-org/CompactConnect/issues/636
-        'jurisdictionFee': {
-            'N': '100'
         },
         'privilegeFees': {
             'L': [

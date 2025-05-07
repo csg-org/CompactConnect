@@ -347,7 +347,10 @@ class ProviderUsers:
                     response_models={'application/json': self.api_model.message_response_model},
                 ),
             ],
-            integration=LambdaIntegration(self.provider_registration_handler, timeout=Duration.seconds(29)),
+            integration=LambdaIntegration(
+                self.provider_registration_handler,
+                timeout=Duration.seconds(29),
+            ),
         )
 
         NagSuppressions.add_resource_suppressions_by_path(

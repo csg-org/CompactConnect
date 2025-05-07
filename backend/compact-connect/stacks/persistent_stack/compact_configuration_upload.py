@@ -226,8 +226,10 @@ class CompactConfigurationUpload(Construct):
 
             # Check for duplicate license types
             if len(defined_license_types_list) != len(defined_license_types_set):
-                raise ValueError(f'Jurisdiction {jurisdiction["postalAbbreviation"]} in Compact {compact_abbr} '
-                                 f'has duplicate license type fees')
+                raise ValueError(
+                    f'Jurisdiction {jurisdiction["postalAbbreviation"]} in Compact {compact_abbr} '
+                    f'has duplicate license type fees'
+                )
 
             # Check for unknown license types
             unknown_license_types = defined_license_types_set - compact_license_type_abbreviations
@@ -237,7 +239,7 @@ class CompactConfigurationUpload(Construct):
                     f'defines fees for unknown license types: {", ".join(unknown_license_types)}'
                 )
         else:
-            # Neither privilegeFees nor jurisdictionFee is defined
+            # privilegeFees is not defined
             raise ValueError(
                 f'Jurisdiction {jurisdiction["postalAbbreviation"]} in compact {compact_abbr} must define privilegeFees'
             )
