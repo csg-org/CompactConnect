@@ -115,28 +115,20 @@
                 },
                 "type": "array"
               },
-              "militaryDiscount": {
+              "militaryRate": {
                 "properties": {
                   "active": {
-                    "description": "Whether the military discount is active",
+                    "description": "Whether the military rate is active",
                     "type": "boolean"
                   },
-                  "discountType": {
-                    "description": "The type of discount",
-                    "enum": [
-                      "FLAT_RATE"
-                    ],
-                    "type": "string"
-                  },
-                  "discountAmount": {
-                    "description": "The amount of the discount",
+                  "amount": {
+                    "description": "The fixed rate amount for military users",
                     "type": "number"
                   }
                 },
                 "required": [
                   "active",
-                  "discountType",
-                  "discountAmount"
+                  "amount"
                 ],
                 "type": "object"
               },
