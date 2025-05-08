@@ -3,9 +3,9 @@ from boto3.dynamodb.conditions import Key
 from cc_common.config import _Config, logger
 from cc_common.data_model.query_paginator import paginated_query
 from cc_common.data_model.schema.attestation import AttestationRecordSchema
-from cc_common.data_model.schema.compact import Compact
+from cc_common.data_model.schema.compact import Compact, CompactConfigurationData
 from cc_common.data_model.schema.compact.record import CompactRecordSchema
-from cc_common.data_model.schema.jurisdiction import Jurisdiction
+from cc_common.data_model.schema.jurisdiction import Jurisdiction, JurisdictionConfigurationData
 from cc_common.data_model.schema.jurisdiction.record import JurisdictionRecordSchema
 from cc_common.exceptions import CCNotFoundException
 from cc_common.utils import logger_inject_kwargs
@@ -98,16 +98,15 @@ class CompactConfigurationClient:
         compact_data = self.compact_schema.load(item)
         return Compact(compact_data)
 
-    def save_compact_configuration(self, compact: dict) -> None:
+    def save_compact_configuration(self, compact_configuration: CompactConfigurationData) -> None:
         """
         Save the compact configuration.
 
-        :param compact: The compact configuration model
+        :param compact_configuration: The compact configuration data
         """
-        logger.info('Saving compact configuration', compactAbbr=compact['compactAbbr'])
+        logger.info('Saving compact configuration', compactAbbr=compact_configuration.compactAbbr)
 
-        schema = CompactRecordSchema()
-        serialized_compact = schema.dump(compact)
+        serialized_compact = compact_configuration.serialize_to_database_record()
 
         self.config.compact_configuration_table.put_item(Item=serialized_compact)
 
@@ -157,16 +156,15 @@ class CompactConfigurationClient:
         jurisdiction_data = self.jurisdiction_schema.load(item)
         return Jurisdiction(jurisdiction_data)
 
-    def save_jurisdiction_configuration(self, jurisdiction_config: dict) -> None:
+    def save_jurisdiction_configuration(self, jurisdiction_config: JurisdictionConfigurationData) -> None:
         """
         Save the jurisdiction configuration.
 
         :param jurisdiction_config: The jurisdiction configuration model
         """
-        logger.info('Saving jurisdiction configuration', jurisdiction=jurisdiction_config['postalAbbreviation'])
+        logger.info('Saving jurisdiction configuration', jurisdiction=jurisdiction_config.postalAbbreviation)
 
-        schema = JurisdictionRecordSchema()
-        serialized_jurisdiction = schema.dump(jurisdiction_config)
+        serialized_jurisdiction = jurisdiction_config.serialize_to_database_record()
 
         self.config.compact_configuration_table.put_item(Item=serialized_jurisdiction)
 

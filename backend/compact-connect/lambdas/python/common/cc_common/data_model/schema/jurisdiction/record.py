@@ -39,15 +39,15 @@ class JurisdictionRecordSchema(BaseRecordSchema):
     privilegeFees = List(Nested(JurisdictionPrivilegeFeeRecordSchema()), required=True, allow_none=False)
     militaryDiscount = Nested(JurisdictionMilitaryDiscountRecordSchema(), required=False, allow_none=False)
     jurisdictionOperationsTeamEmails = List(
-        Email(required=True, allow_none=False), required=True, allow_none=False, validate=Length(min=1)
+        Email(required=True, allow_none=False), required=True, allow_none=False
     )
     jurisdictionAdverseActionsNotificationEmails = List(
-        String(required=True, allow_none=False),
+        Email(required=True, allow_none=False),
         required=True,
         allow_none=False,
     )
     jurisdictionSummaryReportNotificationEmails = List(
-        String(required=True, allow_none=False),
+        Email(required=True, allow_none=False),
         required=True,
         allow_none=False,
     )

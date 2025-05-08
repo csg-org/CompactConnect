@@ -195,22 +195,24 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         event['pathParameters']['compact'] = compact_config['compactAbbr']
         return event, compact_config
 
-    def _when_testing_post_compact_configuration_with_existing_compact_configuration(self):
+    def _when_testing_post_compact_configuration(self):
+        from cc_common.utils import ResponseEncoder
         compact_config = self.test_data_generator.generate_default_compact_configuration()
         event = generate_test_event('POST', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE)
         event['pathParameters']['compact'] = compact_config.compactAbbr
         # add compact admin scope to the event
-        event['requestContext']['authorizer']['scopes'] = f'{compact_config.compactAbbr}/admin'
+        event['requestContext']['authorizer']['claims']['scope'] = f'{compact_config.compactAbbr}/admin'
+        event['requestContext']['authorizer']['claims']['sub'] = 'some-admin-id'
 
         # we only allow the following values in the body
-        event['body'] = {
+        event['body'] = json.dumps({
             'compactCommissionFee': compact_config.compactCommissionFee,
             'licenseeRegistrationEnabled': compact_config.licenseeRegistrationEnabled,
-            'operationsTeamEmails': compact_config.operationsTeamEmails,
-            'adverseActionsNotificationEmails': compact_config.adverseActionsNotificationEmails,
-            'summaryReportNotificationEmails': compact_config.summaryReportNotificationEmails,
+            'compactOperationsTeamEmails': compact_config.compactOperationsTeamEmails,
+            'compactAdverseActionsNotificationEmails': compact_config.compactAdverseActionsNotificationEmails,
+            'compactSummaryReportNotificationEmails': compact_config.compactSummaryReportNotificationEmails,
             'transactionFeeConfiguration': compact_config.transactionFeeConfiguration,
-        }
+        }, cls=ResponseEncoder)
         return event, compact_config
 
     def test_get_compact_configuration_returns_invalid_exception_if_invalid_http_method(self):
@@ -264,10 +266,57 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         self.assertEqual(403, response['statusCode'])
         self.assertIn('Access denied', json.loads(response['body'])['message'])
 
+    def test_post_compact_configuration_stores_compact_configuration(self):
+        """Test posting a compact configuration stores the compact configuration."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+        from cc_common.data_model.schema.compact import CompactConfigurationData
+
+        event, compact_config = self._when_testing_post_compact_configuration()
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+
+        # load the record from the configuration table
+        serialized_compact_config = compact_config.serialize_to_database_record()
+        response = self.config.compact_configuration_table.get_item(Key={
+            'pk': serialized_compact_config['pk'],
+            'sk': serialized_compact_config['sk']
+            }
+        )
+
+        stored_compact_data = CompactConfigurationData.from_database_record(response['Item'])
+
+        self.assertEqual(compact_config.to_dict(), stored_compact_data.to_dict())
+
+
 
 @mock_aws
 class TestStaffUsersJurisdictionConfiguration(TstFunction):
     """Test suite for managing jurisdiction configurations."""
+
+    def _when_testing_post_jurisdiction_configuration(self):
+        from cc_common.utils import ResponseEncoder
+
+        jurisdiction_config = self.test_data_generator.generate_default_jurisdiction_configuration()
+        event = generate_test_event('POST', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE)
+        event['pathParameters']['jurisdiction'] = jurisdiction_config.postalAbbreviation
+        # add compact admin scope to the event
+        event['requestContext']['authorizer']['claims']['scope'] = f'{jurisdiction_config.postalAbbreviation}/{jurisdiction_config.compact}.admin'
+        event['requestContext']['authorizer']['claims']['sub'] = 'some-admin-id'
+
+        event['body'] = json.dumps(
+            {
+                'jurisdictionOperationsTeamEmails': jurisdiction_config.jurisdictionOperationsTeamEmails,
+                'jurisdictionAdverseActionsNotificationEmails': jurisdiction_config.jurisdictionAdverseActionsNotificationEmails,
+                'jurisdictionSummaryReportNotificationEmails': jurisdiction_config.jurisdictionSummaryReportNotificationEmails,
+                'licenseeRegistrationEnabled': jurisdiction_config.licenseeRegistrationEnabled,
+                'jurisprudenceRequirements': jurisdiction_config.jurisprudenceRequirements,
+                'militaryDiscount': jurisdiction_config.militaryDiscount,
+                'privilegeFees': jurisdiction_config.privilegeFees,
+            }, cls=ResponseEncoder
+        )
+
+        return event, jurisdiction_config
 
     def test_get_jurisdiction_configuration_returns_invalid_exception_if_invalid_http_method(self):
         """Test getting a jurisdiction configuration returns an invalid exception if the HTTP method is invalid."""
@@ -312,18 +361,6 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
             response_body,
         )
 
-    def test_post_jurisdiction_configuration_rejects_invalid_jurisdiction_with_auth_error(self):
-        """Test posting a jurisdiction configuration rejects an invalid jurisdiction abbreviation."""
-        from handlers.compact_configuration import compact_configuration_api_handler
-
-        event = generate_test_event('POST', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE)
-        # Set the jurisdiction to an invalid one
-        event['pathParameters']['jurisdiction'] = 'invalid_jurisdiction'
-
-        response = compact_configuration_api_handler(event, self.mock_context)
-        self.assertEqual(403, response['statusCode'])
-        self.assertIn('Access denied', json.loads(response['body'])['message'])
-
     def test_get_jurisdiction_configuration_returns_configuration_if_exists(self):
         """Test getting a jurisdiction configuration returns the existing configuration."""
         from handlers.compact_configuration import compact_configuration_api_handler
@@ -352,3 +389,55 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
             },
             response_body,
         )
+
+    def test_post_jurisdiction_configuration_rejects_invalid_jurisdiction_with_auth_error(self):
+        """Test posting a jurisdiction configuration rejects an invalid jurisdiction abbreviation."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        event = generate_test_event('POST', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE)
+        # Set the jurisdiction to an invalid one
+        event['pathParameters']['jurisdiction'] = 'invalid_jurisdiction'
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(403, response['statusCode'])
+        self.assertIn('Access denied', json.loads(response['body'])['message'])
+
+
+    def test_post_jurisdiction_configuration_returns_invalid_jurisdiction_with_auth_error(self):
+        """Test posting a jurisdiction configuration rejects an invalid jurisdiction abbreviation."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        event = generate_test_event('POST', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE)
+        # Set the jurisdiction to an invalid one
+        event['pathParameters']['jurisdiction'] = 'invalid_jurisdiction'
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(403, response['statusCode'])
+        self.assertIn('Access denied', json.loads(response['body'])['message'])
+
+    def test_post_jurisdiction_configuration_stores_jurisdiction_configuration(self):
+        """Test posting a jurisdiction configuration stores the jurisdiction configuration."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+        from cc_common.data_model.schema.jurisdiction import JurisdictionConfigurationData
+
+        event, jurisdiction_config = self._when_testing_post_jurisdiction_configuration()
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+
+        # load the record from the configuration table
+        serialized_jurisdiction_config = jurisdiction_config.serialize_to_database_record()
+        response = self.config.compact_configuration_table.get_item(Key={
+            'pk': serialized_jurisdiction_config['pk'],
+            'sk': serialized_jurisdiction_config['sk']
+            }
+        )
+
+        stored_jurisdiction_data = JurisdictionConfigurationData.from_database_record(response['Item'])
+
+        self.assertEqual(jurisdiction_config.to_dict(), stored_jurisdiction_data.to_dict())
+
+
+
+
+
