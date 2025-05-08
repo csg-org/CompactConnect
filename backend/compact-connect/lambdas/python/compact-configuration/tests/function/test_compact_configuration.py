@@ -386,6 +386,10 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
                 'militaryRate': test_jurisdiction_config.militaryRate,
                 'postalAbbreviation': test_jurisdiction_config.postalAbbreviation,
                 'privilegeFees': test_jurisdiction_config.privilegeFees,
+                'jurisdictionOperationsTeamEmails': test_jurisdiction_config.jurisdictionOperationsTeamEmails,
+                'jurisdictionAdverseActionsNotificationEmails': test_jurisdiction_config.jurisdictionAdverseActionsNotificationEmails,
+                'jurisdictionSummaryReportNotificationEmails': test_jurisdiction_config.jurisdictionSummaryReportNotificationEmails,
+                'licenseeRegistrationEnabled': test_jurisdiction_config.licenseeRegistrationEnabled,
             },
             response_body,
         )
