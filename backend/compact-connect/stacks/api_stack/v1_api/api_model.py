@@ -902,22 +902,17 @@ class ApiModel:
                                 },
                             ),
                         ),
-                        'militaryDiscount': JsonSchema(
+                        'militaryRate': JsonSchema(
                             type=JsonSchemaType.OBJECT,
-                            required=['active', 'discountType', 'discountAmount'],
+                            required=['active', 'amount'],
                             properties={
                                 'active': JsonSchema(
                                     type=JsonSchemaType.BOOLEAN,
-                                    description='Whether the military discount is active',
+                                    description='Whether the military rate is active',
                                 ),
-                                'discountType': JsonSchema(
-                                    type=JsonSchemaType.STRING,
-                                    enum=['FLAT_RATE'],
-                                    description='The type of discount',
-                                ),
-                                'discountAmount': JsonSchema(
+                                'amount': JsonSchema(
                                     type=JsonSchemaType.NUMBER,
-                                    description='The amount of the discount',
+                                    description='The fixed rate amount for military users',
                                 ),
                             },
                         ),
@@ -1575,8 +1570,6 @@ class ApiModel:
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
                 required=[
-                    'compactAbbr',
-                    'compactName',
                     'compactCommissionFee',
                     'compactOperationsTeamEmails',
                     'compactAdverseActionsNotificationEmails',
@@ -1584,10 +1577,6 @@ class ApiModel:
                     'licenseeRegistrationEnabled',
                 ],
                 properties={
-                    'compactAbbr': JsonSchema(
-                        type=JsonSchemaType.STRING, description='The abbreviation of the compact'
-                    ),
-                    'compactName': JsonSchema(type=JsonSchemaType.STRING, description='The full name of the compact'),
                     'compactCommissionFee': JsonSchema(
                         type=JsonSchemaType.OBJECT,
                         required=['feeType', 'feeAmount'],
@@ -1658,6 +1647,7 @@ class ApiModel:
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
                 required=[
+                    'compact',
                     'jurisdictionName',
                     'postalAbbreviation',
                     'privilegeFees',
@@ -1668,6 +1658,9 @@ class ApiModel:
                     'licenseeRegistrationEnabled',
                 ],
                 properties={
+                    'compact': JsonSchema(type=JsonSchemaType.STRING, 
+                                          description='The compact this jurisdiction configuration belongs to', 
+                                          enum=self.stack.node.get_context('compacts')),
                     'jurisdictionName': JsonSchema(
                         type=JsonSchemaType.STRING,
                         description='The name of the jurisdiction',
@@ -1717,22 +1710,17 @@ class ApiModel:
                             ),
                         },
                     ),
-                    'militaryDiscount': JsonSchema(
+                    'militaryRate': JsonSchema(
                         type=JsonSchemaType.OBJECT,
-                        required=['active', 'discountType', 'discountAmount'],
+                        required=['active', 'amount'],
                         properties={
                             'active': JsonSchema(
                                 type=JsonSchemaType.BOOLEAN,
-                                description='Whether the military discount is active',
+                                description='Whether the military rate is active',
                             ),
-                            'discountType': JsonSchema(
-                                type=JsonSchemaType.STRING,
-                                enum=['FLAT_RATE'],
-                                description='The type of discount',
-                            ),
-                            'discountAmount': JsonSchema(
+                            'amount': JsonSchema(
                                 type=JsonSchemaType.NUMBER,
-                                description='The amount of the discount',
+                                description='The fixed rate amount for military users',
                             ),
                         },
                     ),
@@ -1759,8 +1747,6 @@ class ApiModel:
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
                 required=[
-                    'jurisdictionName',
-                    'postalAbbreviation',
                     'privilegeFees',
                     'jurisdictionOperationsTeamEmails',
                     'jurisdictionAdverseActionsNotificationEmails',
@@ -1769,14 +1755,6 @@ class ApiModel:
                     'licenseeRegistrationEnabled',
                 ],
                 properties={
-                    'jurisdictionName': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='The name of the jurisdiction',
-                    ),
-                    'postalAbbreviation': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='The postal abbreviation of the jurisdiction',
-                    ),
                     'privilegeFees': JsonSchema(
                         type=JsonSchemaType.ARRAY,
                         description='The fees for the privileges by license type',
@@ -1818,22 +1796,17 @@ class ApiModel:
                             ),
                         },
                     ),
-                    'militaryDiscount': JsonSchema(
+                    'militaryRate': JsonSchema(
                         type=JsonSchemaType.OBJECT,
-                        required=['active', 'discountType', 'discountAmount'],
+                        required=['active', 'amount'],
                         properties={
                             'active': JsonSchema(
                                 type=JsonSchemaType.BOOLEAN,
-                                description='Whether the military discount is active',
+                                description='Whether the military rate is active',
                             ),
-                            'discountType': JsonSchema(
-                                type=JsonSchemaType.STRING,
-                                enum=['FLAT_RATE'],
-                                description='The type of discount',
-                            ),
-                            'discountAmount': JsonSchema(
+                            'amount': JsonSchema(
                                 type=JsonSchemaType.NUMBER,
-                                description='The amount of the discount',
+                                description='The fixed rate amount for military users',
                             ),
                         },
                     ),

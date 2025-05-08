@@ -1,13 +1,5 @@
 {
   "properties": {
-    "compactAbbr": {
-      "description": "The abbreviation of the compact",
-      "type": "string"
-    },
-    "compactName": {
-      "description": "The full name of the compact",
-      "type": "string"
-    },
     "compactCommissionFee": {
       "properties": {
         "feeType": {
@@ -86,8 +78,6 @@
     }
   },
   "required": [
-    "compactAbbr",
-    "compactName",
     "compactCommissionFee",
     "compactOperationsTeamEmails",
     "compactAdverseActionsNotificationEmails",
