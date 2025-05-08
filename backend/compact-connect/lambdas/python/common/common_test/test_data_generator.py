@@ -178,7 +178,6 @@ class TestDataGenerator:
             'licenseStatusName': DEFAULT_LICENSE_STATUS_NAME,
             'jurisdictionUploadedLicenseStatus': DEFAULT_LICENSE_STATUS,
             'jurisdictionUploadedCompactEligibility': DEFAULT_COMPACT_ELIGIBILITY,
-            'compactEligibility': DEFAULT_COMPACT_ELIGIBILITY,
         }
         if value_overrides:
             default_license.update(value_overrides)
