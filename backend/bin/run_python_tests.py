@@ -22,15 +22,15 @@ BACKEND_DIR = Path(__file__).parent.parent.absolute()
 
 # Define the test directories to include
 TEST_DIRS = (
+    'compact-connect/lambdas/python/common',
     'compact-connect/lambdas/python/compact-configuration',
+    'compact-connect/lambdas/python/provider-data-v1',
+    'compact-connect/lambdas/python/purchases',
+    'compact-connect/lambdas/python/staff-users',
+    'compact-connect/lambdas/python/staff-user-pre-token',
     'compact-connect/lambdas/python/custom-resources',
     'compact-connect/lambdas/python/data-events',
     'compact-connect/lambdas/python/migration',
-    'compact-connect/lambdas/python/provider-data-v1',
-    'compact-connect/lambdas/python/purchases',
-    'compact-connect/lambdas/python/staff-user-pre-token',
-    'compact-connect/lambdas/python/staff-users',
-    'compact-connect/lambdas/python/common',
     'compact-connect',  # CDK tests
     'multi-account/control-tower',
     'multi-account/log-aggregation',
@@ -44,6 +44,20 @@ def get_coverage():
         # Coverage data in memory
         data_file=None,
     )
+
+
+def clean_modules():
+    """
+    Clean up modules between test runs to prevent cross-contamination.
+    This is especially important for modules like config that maintain state.
+    """
+    # List of module prefixes to clean up
+    modules_to_clean = ['cc_common', 'common_test', 'handlers', 'tests']
+
+    for module_name in list(sys.modules.keys()):
+        for prefix in modules_to_clean:
+            if module_name == prefix or module_name.startswith(f"{prefix}."):
+                del sys.modules[module_name]
 
 
 def run_tests(cov: Coverage, args):
@@ -88,6 +102,9 @@ def run_tests(cov: Coverage, args):
                     if str(common_path) not in sys.path:
                         sys.path.insert(0, str(common_path))
 
+                # Clean up modules before running tests
+                clean_modules()
+
                 # Run pytest for this directory
                 test_result = pytest.main(pytest_args)
 
@@ -98,14 +115,8 @@ def run_tests(cov: Coverage, args):
                 # Restore the original environment
                 os.environ = original_env  # noqa: B003
 
-                # Delete local modules after each run so we don't use cached modules and hit name clashes between tests
-                for local_dir in ['cc_common', *os.listdir()]:
-                    # Remove the .py extension from the local file name
-                    local_dir = local_dir.split('.py', 1)[0]
-                    if local_dir.isidentifier():
-                        for m in sorted(sys.modules.keys()):
-                            if m.startswith(local_dir):
-                                del sys.modules[m]
+                # Thorough module cleanup after each test suite
+                clean_modules()
 
             finally:
                 # Restore the original working directory
