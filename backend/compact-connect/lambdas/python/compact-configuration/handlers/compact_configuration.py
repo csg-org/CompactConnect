@@ -2,10 +2,12 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
 from cc_common.data_model.compact_configuration_utils import CompactConfigUtility
 from cc_common.data_model.schema.common import CCPermissionsAction
+from cc_common.data_model.schema.compact import CompactConfigurationData
 from cc_common.data_model.schema.compact.api import (
     CompactConfigurationResponseSchema,
     PostCompactConfigurationRequestSchema,
 )
+from cc_common.data_model.schema.jurisdiction import JurisdictionConfigurationData
 from cc_common.data_model.schema.jurisdiction.api import (
     CompactJurisdictionConfigurationRequestSchema,
     CompactJurisdictionConfigurationResponseSchema,
@@ -119,13 +121,12 @@ def _post_compact_configuration(event: dict, context: LambdaContext):  # noqa: A
     :return: The updated compact configuration
     """
     compact = event['pathParameters']['compact']
-    body = event.get('body', {})
-    submitting_user_id = event['requestContext']['authorizer']['sub']
+    submitting_user_id = event['requestContext']['authorizer']['claims']['sub']
 
     logger.info('Updating compact configuration', compact=compact, submitting_user_id=submitting_user_id)
 
     # Validate the request body
-    validated_data = PostCompactConfigurationRequestSchema().load(body)
+    validated_data = PostCompactConfigurationRequestSchema().loads(event['body'])
 
     # Add compact abbreviation and name from path parameter
     validated_data['compactAbbr'] = compact
@@ -134,8 +135,9 @@ def _post_compact_configuration(event: dict, context: LambdaContext):  # noqa: A
         raise CCInvalidRequestException(f'Invalid compact abbreviation: {compact}')
     validated_data['compactName'] = compact_name
 
+    compact_configuration = CompactConfigurationData.create_new(validated_data)
     # Save the compact configuration
-    config.compact_configuration_client.save_compact_configuration(validated_data)
+    config.compact_configuration_client.save_compact_configuration(compact_configuration)
 
     # Return the saved configuration
     return {'message': 'ok'}
@@ -193,9 +195,7 @@ def _post_jurisdiction_configuration(event: dict, context: LambdaContext):  # no
     """
     compact = event['pathParameters']['compact']
     jurisdiction = event['pathParameters']['jurisdiction']
-    body = event.get('body', {})
-
-    submitting_user_id = event['requestContext']['authorizer']['sub']
+    submitting_user_id = event['requestContext']['authorizer']['claims']['sub']
 
     logger.info(
         'Updating jurisdiction configuration',
@@ -205,7 +205,7 @@ def _post_jurisdiction_configuration(event: dict, context: LambdaContext):  # no
     )
 
     # Validate the request body
-    validated_data = CompactJurisdictionConfigurationRequestSchema().load(body)
+    validated_data = CompactJurisdictionConfigurationRequestSchema().loads(event['body'])
 
     # Add compact and jurisdiction details from path parameters
     validated_data['compact'] = compact
@@ -217,7 +217,8 @@ def _post_jurisdiction_configuration(event: dict, context: LambdaContext):  # no
         raise CCInvalidRequestException(f'Invalid jurisdiction postal abbreviation: {jurisdiction}')
     validated_data['jurisdictionName'] = jurisdiction_name
 
+    jurisdiction_data = JurisdictionConfigurationData.create_new(validated_data)
     # Save the jurisdiction configuration
-    config.compact_configuration_client.save_jurisdiction_configuration(validated_data)
+    config.compact_configuration_client.save_jurisdiction_configuration(jurisdiction_data)
 
     return {'message': 'ok'}

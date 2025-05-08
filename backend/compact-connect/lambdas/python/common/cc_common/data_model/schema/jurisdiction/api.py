@@ -1,6 +1,6 @@
 # ruff: noqa: N801, N815, ARG002 invalid-name unused-kwargs
 from marshmallow import Schema
-from marshmallow.fields import Boolean, Decimal, List, Nested, String
+from marshmallow.fields import Boolean, Decimal, Email, List, Nested, String
 from marshmallow.validate import OneOf
 
 from cc_common.config import config
@@ -87,12 +87,22 @@ class CompactJurisdictionConfigurationRequestSchema(ForgivingSchema):
     POST /compacts/{compact}/jurisdictions/{jurisdiction} endpoint
     """
 
-    compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
-    jurisdictionName = String(required=True, allow_none=False)
-    postalAbbreviation = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
     licenseeRegistrationEnabled = Boolean(required=True, allow_none=False)
     privilegeFees = List(Nested(JurisdictionPrivilegeFeeResponseSchema()), required=True, allow_none=False)
     militaryDiscount = Nested(JurisdictionMilitaryDiscountResponseSchema(), required=False, allow_none=False)
     jurisprudenceRequirements = Nested(
         JurisdictionJurisprudenceRequirementsResponseSchema(), required=True, allow_none=False
+    )
+    jurisdictionOperationsTeamEmails = List(
+        Email(required=True, allow_none=False), required=True, allow_none=False
+    )
+    jurisdictionAdverseActionsNotificationEmails = List(
+        Email(required=True, allow_none=False),
+        required=True,
+        allow_none=False,
+    )
+    jurisdictionSummaryReportNotificationEmails = List(
+        Email(required=True, allow_none=False),
+        required=True,
+        allow_none=False,
     )

@@ -446,6 +446,13 @@ class TestDataGenerator:
             'compactAdverseActionsNotificationEmails': ['adverse@example.com'],
             'compactSummaryReportNotificationEmails': ['summary@example.com'],
             'licenseeRegistrationEnabled': True,
+            'transactionFeeConfiguration': {
+                'licenseeCharges': {
+                    'active': True,
+                    'chargeAmount': Decimal('10.00'),
+                    'chargeType': 'FLAT_FEE_PER_PRIVILEGE',
+                },
+            },
         }
         if value_overrides:
             default_compact_config.update(value_overrides)
@@ -478,7 +485,7 @@ class TestDataGenerator:
         """Generate a default jurisdiction configuration"""
         default_jurisdiction_config = {
             'compact': DEFAULT_COMPACT,
-            'postalAbbreviation': DEFAULT_LICENSE_JURISDICTION,
+            'postalAbbreviation': 'ky',
             'jurisdictionName': 'Kentucky',
             'privilegeFees': [
                 {
