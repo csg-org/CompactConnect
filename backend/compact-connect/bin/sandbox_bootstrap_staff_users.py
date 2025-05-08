@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Script to bootstrap staff users for a sandbox environment. Run from `backend/compact-connect`.
+"""Script to bootstrap staff users in a sandbox environment with predefined credentials to simplify testing.
+Run this script from `backend/compact-connect`.
 
-The CLI must also be configured with AWS credentials that have appropriate access to Cognito and DynamoDB
+The AWS CLI must be configured with AWS credentials that have appropriate access to Cognito and DynamoDB.
 """
 
 import os
