@@ -1,3 +1,4 @@
+# ruff: noqa: E501 line-too-long
 import json
 from decimal import Decimal
 
@@ -197,6 +198,7 @@ class TestStaffUsersCompactConfiguration(TstFunction):
 
     def _when_testing_post_compact_configuration(self):
         from cc_common.utils import ResponseEncoder
+
         compact_config = self.test_data_generator.generate_default_compact_configuration()
         event = generate_test_event('POST', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE)
         event['pathParameters']['compact'] = compact_config.compactAbbr
@@ -205,14 +207,17 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         event['requestContext']['authorizer']['claims']['sub'] = 'some-admin-id'
 
         # we only allow the following values in the body
-        event['body'] = json.dumps({
-            'compactCommissionFee': compact_config.compactCommissionFee,
-            'licenseeRegistrationEnabled': compact_config.licenseeRegistrationEnabled,
-            'compactOperationsTeamEmails': compact_config.compactOperationsTeamEmails,
-            'compactAdverseActionsNotificationEmails': compact_config.compactAdverseActionsNotificationEmails,
-            'compactSummaryReportNotificationEmails': compact_config.compactSummaryReportNotificationEmails,
-            'transactionFeeConfiguration': compact_config.transactionFeeConfiguration,
-        }, cls=ResponseEncoder)
+        event['body'] = json.dumps(
+            {
+                'compactCommissionFee': compact_config.compactCommissionFee,
+                'licenseeRegistrationEnabled': compact_config.licenseeRegistrationEnabled,
+                'compactOperationsTeamEmails': compact_config.compactOperationsTeamEmails,
+                'compactAdverseActionsNotificationEmails': compact_config.compactAdverseActionsNotificationEmails,
+                'compactSummaryReportNotificationEmails': compact_config.compactSummaryReportNotificationEmails,
+                'transactionFeeConfiguration': compact_config.transactionFeeConfiguration,
+            },
+            cls=ResponseEncoder,
+        )
         return event, compact_config
 
     def test_get_compact_configuration_returns_invalid_exception_if_invalid_http_method(self):
@@ -260,7 +265,7 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         event = generate_test_event('POST', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE)
         event['pathParameters']['compact'] = 'foo'
         # add compact admin scope to the event
-        event['requestContext']['authorizer']['scopes'] = f'aslp/admin'
+        event['requestContext']['authorizer']['scopes'] = 'aslp/admin'
 
         response = compact_configuration_api_handler(event, self.mock_context)
         self.assertEqual(403, response['statusCode'])
@@ -268,8 +273,8 @@ class TestStaffUsersCompactConfiguration(TstFunction):
 
     def test_post_compact_configuration_stores_compact_configuration(self):
         """Test posting a compact configuration stores the compact configuration."""
-        from handlers.compact_configuration import compact_configuration_api_handler
         from cc_common.data_model.schema.compact import CompactConfigurationData
+        from handlers.compact_configuration import compact_configuration_api_handler
 
         event, compact_config = self._when_testing_post_compact_configuration()
 
@@ -278,16 +283,16 @@ class TestStaffUsersCompactConfiguration(TstFunction):
 
         # load the record from the configuration table
         serialized_compact_config = compact_config.serialize_to_database_record()
-        response = self.config.compact_configuration_table.get_item(Key={
-            'pk': serialized_compact_config['pk'],
-            'sk': serialized_compact_config['sk']
-            }
+        response = self.config.compact_configuration_table.get_item(
+            Key={'pk': serialized_compact_config['pk'], 'sk': serialized_compact_config['sk']}
         )
 
         stored_compact_data = CompactConfigurationData.from_database_record(response['Item'])
 
         self.assertEqual(compact_config.to_dict(), stored_compact_data.to_dict())
 
+
+TEST_MILITARY_RATE = Decimal('40.00')
 
 
 @mock_aws
@@ -301,7 +306,9 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
         event = generate_test_event('POST', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE)
         event['pathParameters']['jurisdiction'] = jurisdiction_config.postalAbbreviation
         # add compact admin scope to the event
-        event['requestContext']['authorizer']['claims']['scope'] = f'{jurisdiction_config.postalAbbreviation}/{jurisdiction_config.compact}.admin'
+        event['requestContext']['authorizer']['claims']['scope'] = (
+            f'{jurisdiction_config.postalAbbreviation}/{jurisdiction_config.compact}.admin'
+        )
         event['requestContext']['authorizer']['claims']['sub'] = 'some-admin-id'
 
         event['body'] = json.dumps(
@@ -311,9 +318,10 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
                 'jurisdictionSummaryReportNotificationEmails': jurisdiction_config.jurisdictionSummaryReportNotificationEmails,
                 'licenseeRegistrationEnabled': jurisdiction_config.licenseeRegistrationEnabled,
                 'jurisprudenceRequirements': jurisdiction_config.jurisprudenceRequirements,
-                'militaryRate': jurisdiction_config.militaryRate,
+                'militaryRate': TEST_MILITARY_RATE,
                 'privilegeFees': jurisdiction_config.privilegeFees,
-            }, cls=ResponseEncoder
+            },
+            cls=ResponseEncoder,
         )
 
         return event, jurisdiction_config
@@ -383,7 +391,6 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
                 'compact': test_jurisdiction_config.compact,
                 'jurisdictionName': test_jurisdiction_config.jurisdictionName,
                 'jurisprudenceRequirements': test_jurisdiction_config.jurisprudenceRequirements,
-                'militaryRate': test_jurisdiction_config.militaryRate,
                 'postalAbbreviation': test_jurisdiction_config.postalAbbreviation,
                 'privilegeFees': test_jurisdiction_config.privilegeFees,
                 'jurisdictionOperationsTeamEmails': test_jurisdiction_config.jurisdictionOperationsTeamEmails,
@@ -406,7 +413,6 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
         self.assertEqual(403, response['statusCode'])
         self.assertIn('Access denied', json.loads(response['body'])['message'])
 
-
     def test_post_jurisdiction_configuration_returns_invalid_jurisdiction_with_auth_error(self):
         """Test posting a jurisdiction configuration rejects an invalid jurisdiction abbreviation."""
         from handlers.compact_configuration import compact_configuration_api_handler
@@ -421,8 +427,8 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
 
     def test_post_jurisdiction_configuration_stores_jurisdiction_configuration(self):
         """Test posting a jurisdiction configuration stores the jurisdiction configuration."""
-        from handlers.compact_configuration import compact_configuration_api_handler
         from cc_common.data_model.schema.jurisdiction import JurisdictionConfigurationData
+        from handlers.compact_configuration import compact_configuration_api_handler
 
         event, jurisdiction_config = self._when_testing_post_jurisdiction_configuration()
 
@@ -431,17 +437,13 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
 
         # load the record from the configuration table
         serialized_jurisdiction_config = jurisdiction_config.serialize_to_database_record()
-        response = self.config.compact_configuration_table.get_item(Key={
-            'pk': serialized_jurisdiction_config['pk'],
-            'sk': serialized_jurisdiction_config['sk']
-            }
+        response = self.config.compact_configuration_table.get_item(
+            Key={'pk': serialized_jurisdiction_config['pk'], 'sk': serialized_jurisdiction_config['sk']}
         )
 
         stored_jurisdiction_data = JurisdictionConfigurationData.from_database_record(response['Item'])
+        # we expect the military rate passed in at the API level to be injected to each privilege fee
+        for privilege_fee in jurisdiction_config.privilegeFees:
+            privilege_fee['militaryRate'] = TEST_MILITARY_RATE
 
         self.assertEqual(jurisdiction_config.to_dict(), stored_jurisdiction_data.to_dict())
-
-
-
-
-

@@ -3,9 +3,9 @@ from boto3.dynamodb.conditions import Key
 from cc_common.config import _Config, logger
 from cc_common.data_model.query_paginator import paginated_query
 from cc_common.data_model.schema.attestation import AttestationRecordSchema
-from cc_common.data_model.schema.compact import Compact, CompactConfigurationData
+from cc_common.data_model.schema.compact import CompactConfigurationData
 from cc_common.data_model.schema.compact.record import CompactRecordSchema
-from cc_common.data_model.schema.jurisdiction import Jurisdiction, JurisdictionConfigurationData
+from cc_common.data_model.schema.jurisdiction import JurisdictionConfigurationData
 from cc_common.data_model.schema.jurisdiction.record import JurisdictionRecordSchema
 from cc_common.exceptions import CCNotFoundException
 from cc_common.utils import logger_inject_kwargs

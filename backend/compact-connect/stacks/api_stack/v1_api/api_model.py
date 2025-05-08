@@ -1658,9 +1658,11 @@ class ApiModel:
                     'licenseeRegistrationEnabled',
                 ],
                 properties={
-                    'compact': JsonSchema(type=JsonSchemaType.STRING, 
-                                          description='The compact this jurisdiction configuration belongs to', 
-                                          enum=self.stack.node.get_context('compacts')),
+                    'compact': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='The compact this jurisdiction configuration belongs to',
+                        enum=self.stack.node.get_context('compacts'),
+                    ),
                     'jurisdictionName': JsonSchema(
                         type=JsonSchemaType.STRING,
                         description='The name of the jurisdiction',
@@ -1678,6 +1680,10 @@ class ApiModel:
                             properties={
                                 'licenseTypeAbbreviation': JsonSchema(type=JsonSchemaType.STRING),
                                 'amount': JsonSchema(type=JsonSchemaType.NUMBER),
+                                'militaryRate': JsonSchema(
+                                    type=JsonSchemaType.NUMBER,
+                                    description='Optional military rate for the privilege fee',
+                                ),
                             },
                         ),
                     ),
@@ -1707,20 +1713,6 @@ class ApiModel:
                             'linkToDocumentation': JsonSchema(
                                 type=JsonSchemaType.STRING,
                                 description='Optional link to jurisprudence documentation',
-                            ),
-                        },
-                    ),
-                    'militaryRate': JsonSchema(
-                        type=JsonSchemaType.OBJECT,
-                        required=['active', 'amount'],
-                        properties={
-                            'active': JsonSchema(
-                                type=JsonSchemaType.BOOLEAN,
-                                description='Whether the military rate is active',
-                            ),
-                            'amount': JsonSchema(
-                                type=JsonSchemaType.NUMBER,
-                                description='The fixed rate amount for military users',
                             ),
                         },
                     ),

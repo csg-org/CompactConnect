@@ -479,22 +479,18 @@ class TestDataGenerator:
         return compact_config
 
     @staticmethod
-    def generate_default_jurisdiction_configuration(value_overrides: dict | None = None) -> JurisdictionConfigurationData:
+    def generate_default_jurisdiction_configuration(
+        value_overrides: dict | None = None,
+    ) -> JurisdictionConfigurationData:
         """Generate a default jurisdiction configuration"""
         default_jurisdiction_config = {
-            'compact': DEFAULT_COMPACT,
+            'compact': 'aslp',
             'postalAbbreviation': 'ky',
             'jurisdictionName': 'Kentucky',
             'privilegeFees': [
-                {
-                    'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
-                    'amount': Decimal('50.00'),
-                }
+                {'licenseTypeAbbreviation': 'slp', 'amount': Decimal('50.00')},
+                {'licenseTypeAbbreviation': 'aud', 'amount': Decimal('50.00')},
             ],
-            'militaryRate': {
-                'active': True,
-                'amount': Decimal('40.00'),
-            },
             'jurisprudenceRequirements': {
                 'required': True,
                 'linkToDocumentation': 'https://example.com/jurisprudence',

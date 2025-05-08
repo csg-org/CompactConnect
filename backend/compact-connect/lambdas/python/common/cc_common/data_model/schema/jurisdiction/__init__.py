@@ -1,47 +1,9 @@
-# ruff: noqa: N801, N815, ARG002 invalid-name unused-kwargs
+# ruff: noqa: N801, N802, N815, ARG002 invalid-name unused-kwargs
 from collections import UserDict
 from decimal import Decimal
 
 from cc_common.data_model.schema.common import CCDataClass
-from cc_common.data_model.schema.jurisdiction.common import JurisdictionMilitaryDiscountType
 from cc_common.data_model.schema.jurisdiction.record import JurisdictionRecordSchema
-
-
-class JurisdictionMilitaryDiscount(UserDict):
-    """
-    Jurisdiction military discount data model. Used to access variables without needing to know
-    the underlying key structure.
-
-    Deprecated: This is a legacy class maintained for backward compatibility. 
-    For new code, prefer using JurisdictionMilitaryRate.
-    """
-
-    @property
-    def active(self) -> bool:
-        return self['active']
-
-    @property
-    def discount_type(self) -> 'JurisdictionMilitaryDiscountType':
-        return JurisdictionMilitaryDiscountType.from_str(self['discountType'])
-
-    @property
-    def discount_amount(self) -> Decimal:
-        return self['discountAmount']
-
-
-class JurisdictionMilitaryRate(UserDict):
-    """
-    Jurisdiction military rate data model. Used to access variables without needing to know
-    the underlying key structure.
-    """
-
-    @property
-    def active(self) -> bool:
-        return self['active']
-
-    @property
-    def amount(self) -> Decimal:
-        return self['amount']
 
 
 class JurisdictionJurisprudenceRequirements(UserDict):
@@ -69,6 +31,10 @@ class JurisdictionPrivilegeFee(UserDict):
     def amount(self) -> Decimal:
         return self['amount']
 
+    @property
+    def military_rate(self) -> Decimal | None:
+        return self.get('militaryRate')
+
 
 class Jurisdiction(UserDict):
     """
@@ -94,18 +60,6 @@ class Jurisdiction(UserDict):
     @property
     def privilege_fees(self) -> list[JurisdictionPrivilegeFee]:
         return [JurisdictionPrivilegeFee(fee) for fee in self.data['privilegeFees']]
-
-    @property
-    def military_discount(self) -> JurisdictionMilitaryDiscount | None:
-        if 'militaryDiscount' in self.data:
-            return JurisdictionMilitaryDiscount(self.data['militaryDiscount'])
-        return None
-
-    @property
-    def military_rate(self) -> JurisdictionMilitaryRate | None:
-        if 'militaryRate' in self.data:
-            return JurisdictionMilitaryRate(self.data['militaryRate'])
-        return None
 
     @property
     def jurisprudence_requirements(self) -> JurisdictionJurisprudenceRequirements:
@@ -172,22 +126,6 @@ class JurisdictionConfigurationData(CCDataClass):
     @privilegeFees.setter
     def privilegeFees(self, value: list[dict]) -> None:
         self._data['privilegeFees'] = value
-
-    @property
-    def militaryDiscount(self) -> dict:
-        return self._data.get('militaryDiscount')
-
-    @militaryDiscount.setter
-    def militaryDiscount(self, value: dict) -> None:
-        self._data['militaryDiscount'] = value
-
-    @property
-    def militaryRate(self) -> dict:
-        return self._data.get('militaryRate')
-
-    @militaryRate.setter
-    def militaryRate(self, value: dict) -> None:
-        self._data['militaryRate'] = value
 
     @property
     def jurisprudenceRequirements(self) -> dict:

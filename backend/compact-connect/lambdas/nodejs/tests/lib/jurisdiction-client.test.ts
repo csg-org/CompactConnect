@@ -67,19 +67,6 @@ const SAMPLE_JURISDICTION_ITEMS = [
                 }
             }
         },
-        'militaryDiscount': {
-            'M': {
-                'active': {
-                    'BOOL': true
-                },
-                'discountAmount': {
-                    'N': '10'
-                },
-                'discountType': {
-                    'S': 'FLAT_RATE'
-                }
-            }
-        },
         'postalAbbreviation': {
             'S': 'oh'
         },
@@ -144,19 +131,6 @@ const SAMPLE_JURISDICTION_ITEMS = [
             'M': {
                 'required': {
                     'BOOL': true
-                }
-            }
-        },
-        'militaryDiscount': {
-            'M': {
-                'active': {
-                    'BOOL': true
-                },
-                'discountAmount': {
-                    'N': '10'
-                },
-                'discountType': {
-                    'S': 'FLAT_RATE'
                 }
             }
         },
