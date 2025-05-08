@@ -82,12 +82,23 @@ class CompactJurisdictionConfigurationResponseSchema(ForgivingSchema):
     compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
     privilegeFees = List(Nested(JurisdictionPrivilegeFeeResponseSchema()), required=True, allow_none=False)
     militaryRate = Nested(JurisdictionMilitaryRateResponseSchema(), required=False, allow_none=False)
+    jurisdictionOperationsTeamEmails = List(
+        Email(required=True, allow_none=False), required=True, allow_none=False
+    )
+    jurisdictionAdverseActionsNotificationEmails = List(
+        Email(required=True, allow_none=False),
+        required=True,
+        allow_none=False,
+    )
+    jurisdictionSummaryReportNotificationEmails = List(
+        Email(required=True, allow_none=False),
+        required=True,
+        allow_none=False,
+    )
     jurisprudenceRequirements = Nested(
         JurisdictionJurisprudenceRequirementsResponseSchema(), required=True, allow_none=False
     )
-    # TODO: DEPRECATED remove this after the frontend is updated to use military rate
-    militaryDiscount = Nested(JurisdictionMilitaryDiscountResponseSchema(), required=False, allow_none=False)
-
+    licenseeRegistrationEnabled = Boolean(required=True, allow_none=False)
 
 class CompactJurisdictionConfigurationRequestSchema(ForgivingSchema):
     """

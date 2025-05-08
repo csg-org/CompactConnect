@@ -7,6 +7,7 @@ from cc_common.data_model.schema.compact.api import (
     CompactConfigurationResponseSchema,
     PostCompactConfigurationRequestSchema,
 )
+from cc_common.data_model.schema.fields import Compact
 from cc_common.data_model.schema.jurisdiction import JurisdictionConfigurationData
 from cc_common.data_model.schema.jurisdiction.api import (
     CompactJurisdictionConfigurationRequestSchema,
@@ -92,7 +93,7 @@ def _get_staff_users_compact_configuration(event: dict, context: LambdaContext):
 
     try:
         compact_config = config.compact_configuration_client.get_compact_configuration(compact=compact)
-        return CompactConfigurationResponseSchema().load(compact_config)
+        return CompactConfigurationResponseSchema().load(compact_config.to_dict())
     except CCNotFoundException:
         # in the case of a not found exception, we want to return an empty compact configuration with
         # null values
@@ -160,7 +161,7 @@ def _get_staff_users_jurisdiction_configuration(event: dict, context: LambdaCont
         jurisdiction_config = config.compact_configuration_client.get_jurisdiction_configuration(
             compact=compact, jurisdiction=jurisdiction
         )
-        return CompactJurisdictionConfigurationResponseSchema().load(jurisdiction_config)
+        return CompactJurisdictionConfigurationResponseSchema().load(jurisdiction_config.to_dict())
     except CCNotFoundException:
         logger.info(
             'Jurisdiction configuration not found. Returning empty jurisdiction configuration.',
