@@ -479,9 +479,7 @@ class TestDataGenerator:
         return compact_config
 
     @staticmethod
-    def generate_default_jurisdiction_configuration(
-        value_overrides: dict | None = None,
-    ) -> JurisdictionConfigurationData:
+    def generate_default_jurisdiction_configuration(value_overrides: dict | None = None) -> JurisdictionConfigurationData:
         """Generate a default jurisdiction configuration"""
         default_jurisdiction_config = {
             'compact': DEFAULT_COMPACT,
@@ -493,10 +491,9 @@ class TestDataGenerator:
                     'amount': Decimal('50.00'),
                 }
             ],
-            'militaryDiscount': {
+            'militaryRate': {
                 'active': True,
-                'discountType': 'FLAT_RATE',
-                'discountAmount': Decimal('10.00'),
+                'amount': Decimal('40.00'),
             },
             'jurisprudenceRequirements': {
                 'required': True,

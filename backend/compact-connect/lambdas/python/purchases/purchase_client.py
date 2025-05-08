@@ -56,7 +56,11 @@ def _calculate_jurisdiction_fee(
     :return: The calculated fee amount for the given license type and jurisdiction
     """
 
-    # If privilegeFees is defined, look up the fee for the given license type
+    # If user is active military and military rate is available and active, use that rate
+    if user_active_military and jurisdiction.military_rate and jurisdiction.military_rate.active:
+        return jurisdiction.military_rate.amount
+
+    # Otherwise use the standard fee
     license_fee = next(
         (fee for fee in jurisdiction.privilege_fees if fee.license_type_abbreviation == license_type_abbr), None
     )
@@ -71,18 +75,17 @@ def _calculate_jurisdiction_fee(
         )
         raise ValueError(f'No license fee found for license type: {license_type_abbr}')
 
-    # Apply military discount if applicable
+    # TODO: remove this after the frontend is updated to use military rate
+    # Apply military discount if applicable (legacy support)
     if user_active_military and jurisdiction.military_discount and jurisdiction.military_discount.active:
         if jurisdiction.military_discount.discount_type == JurisdictionMilitaryDiscountType.FLAT_RATE:
-            total_jurisdiction_fee = jurisdiction_fee - jurisdiction.military_discount.discount_amount
+            jurisdiction_fee = jurisdiction_fee - jurisdiction.military_discount.discount_amount
         else:
             raise ValueError(
                 f'Unsupported military discount type: {jurisdiction.military_discount.discount_type.value}'
             )
-    else:
-        total_jurisdiction_fee = jurisdiction_fee
 
-    return total_jurisdiction_fee
+    return jurisdiction_fee
 
 
 def _calculate_total_compact_fee(compact: Compact, selected_jurisdictions: list[Jurisdiction]) -> Decimal:
@@ -359,10 +362,19 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                 license_type_abbr=license_type_abbreviation,
                 user_active_military=user_active_military,
             )
-            if user_active_military and jurisdiction.military_discount.active:
-                privilege_line_item.description = (
-                    f'Compact Privilege for {jurisdiction_name_title_case} (Military Discount)'
-                )
+            
+            # Set the description based on what type of military pricing is used
+            if user_active_military:
+                if jurisdiction.military_rate and jurisdiction.military_rate.active:
+                    privilege_line_item.description = (
+                        f'Compact Privilege for {jurisdiction_name_title_case} (Military Rate)'
+                    )
+                elif jurisdiction.military_discount and jurisdiction.military_discount.active:
+                    privilege_line_item.description = (
+                        f'Compact Privilege for {jurisdiction_name_title_case} (Military Discount)'
+                    )
+                else:
+                    privilege_line_item.description = f'Compact Privilege for {jurisdiction_name_title_case}'
             else:
                 privilege_line_item.description = f'Compact Privilege for {jurisdiction_name_title_case}'
 

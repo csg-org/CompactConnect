@@ -11,6 +11,9 @@ class JurisdictionMilitaryDiscount(UserDict):
     """
     Jurisdiction military discount data model. Used to access variables without needing to know
     the underlying key structure.
+
+    Deprecated: This is a legacy class maintained for backward compatibility. 
+    For new code, prefer using JurisdictionMilitaryRate.
     """
 
     @property
@@ -24,6 +27,21 @@ class JurisdictionMilitaryDiscount(UserDict):
     @property
     def discount_amount(self) -> Decimal:
         return self['discountAmount']
+
+
+class JurisdictionMilitaryRate(UserDict):
+    """
+    Jurisdiction military rate data model. Used to access variables without needing to know
+    the underlying key structure.
+    """
+
+    @property
+    def active(self) -> bool:
+        return self['active']
+
+    @property
+    def amount(self) -> Decimal:
+        return self['amount']
 
 
 class JurisdictionJurisprudenceRequirements(UserDict):
@@ -81,6 +99,12 @@ class Jurisdiction(UserDict):
     def military_discount(self) -> JurisdictionMilitaryDiscount | None:
         if 'militaryDiscount' in self.data:
             return JurisdictionMilitaryDiscount(self.data['militaryDiscount'])
+        return None
+
+    @property
+    def military_rate(self) -> JurisdictionMilitaryRate | None:
+        if 'militaryRate' in self.data:
+            return JurisdictionMilitaryRate(self.data['militaryRate'])
         return None
 
     @property
@@ -156,6 +180,14 @@ class JurisdictionConfigurationData(CCDataClass):
     @militaryDiscount.setter
     def militaryDiscount(self, value: dict) -> None:
         self._data['militaryDiscount'] = value
+
+    @property
+    def militaryRate(self) -> dict:
+        return self._data.get('militaryRate')
+
+    @militaryRate.setter
+    def militaryRate(self, value: dict) -> None:
+        self._data['militaryRate'] = value
 
     @property
     def jurisprudenceRequirements(self) -> dict:

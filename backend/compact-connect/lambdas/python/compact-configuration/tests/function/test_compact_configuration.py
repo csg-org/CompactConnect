@@ -311,7 +311,7 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
                 'jurisdictionSummaryReportNotificationEmails': jurisdiction_config.jurisdictionSummaryReportNotificationEmails,
                 'licenseeRegistrationEnabled': jurisdiction_config.licenseeRegistrationEnabled,
                 'jurisprudenceRequirements': jurisdiction_config.jurisprudenceRequirements,
-                'militaryDiscount': jurisdiction_config.militaryDiscount,
+                'militaryRate': jurisdiction_config.militaryRate,
                 'privilegeFees': jurisdiction_config.privilegeFees,
             }, cls=ResponseEncoder
         )
@@ -383,7 +383,7 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
                 'compact': test_jurisdiction_config.compact,
                 'jurisdictionName': test_jurisdiction_config.jurisdictionName,
                 'jurisprudenceRequirements': test_jurisdiction_config.jurisprudenceRequirements,
-                'militaryDiscount': test_jurisdiction_config.militaryDiscount,
+                'militaryRate': test_jurisdiction_config.militaryRate,
                 'postalAbbreviation': test_jurisdiction_config.postalAbbreviation,
                 'privilegeFees': test_jurisdiction_config.privilegeFees,
             },

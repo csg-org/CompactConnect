@@ -25,6 +25,10 @@ class JurisdictionPrivilegeFeeResponseSchema(Schema):
     licenseTypeAbbreviation = String(required=True, allow_none=False)
     amount = Decimal(required=True, allow_none=False)
 
+class JurisdictionMilitaryRateResponseSchema(Schema):
+    active = Boolean(required=True, allow_none=False)
+    amount = Decimal(required=True, allow_none=False, places=2)
+
 
 class JurisdictionOptionsResponseSchema(ForgivingSchema):
     """
@@ -37,10 +41,12 @@ class JurisdictionOptionsResponseSchema(ForgivingSchema):
     postalAbbreviation = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
     compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
     privilegeFees = List(Nested(JurisdictionPrivilegeFeeResponseSchema()), required=True, allow_none=False)
-    militaryDiscount = Nested(JurisdictionMilitaryDiscountResponseSchema(), required=False, allow_none=False)
+    militaryRate = Nested(JurisdictionMilitaryRateResponseSchema(), required=False, allow_none=False)
     jurisprudenceRequirements = Nested(
         JurisdictionJurisprudenceRequirementsResponseSchema(), required=True, allow_none=False
     )
+    # TODO: DEPRECATED remove this after the frontend is updated to use military rate
+    militaryDiscount = Nested(JurisdictionMilitaryDiscountResponseSchema(), required=False, allow_none=False)
 
 
 class CompactJurisdictionsStaffUsersResponseSchema(ForgivingSchema):
@@ -75,10 +81,12 @@ class CompactJurisdictionConfigurationResponseSchema(ForgivingSchema):
     postalAbbreviation = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
     compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
     privilegeFees = List(Nested(JurisdictionPrivilegeFeeResponseSchema()), required=True, allow_none=False)
-    militaryDiscount = Nested(JurisdictionMilitaryDiscountResponseSchema(), required=False, allow_none=False)
+    militaryRate = Nested(JurisdictionMilitaryRateResponseSchema(), required=False, allow_none=False)
     jurisprudenceRequirements = Nested(
         JurisdictionJurisprudenceRequirementsResponseSchema(), required=True, allow_none=False
     )
+    # TODO: DEPRECATED remove this after the frontend is updated to use military rate
+    militaryDiscount = Nested(JurisdictionMilitaryDiscountResponseSchema(), required=False, allow_none=False)
 
 
 class CompactJurisdictionConfigurationRequestSchema(ForgivingSchema):
@@ -89,7 +97,7 @@ class CompactJurisdictionConfigurationRequestSchema(ForgivingSchema):
 
     licenseeRegistrationEnabled = Boolean(required=True, allow_none=False)
     privilegeFees = List(Nested(JurisdictionPrivilegeFeeResponseSchema()), required=True, allow_none=False)
-    militaryDiscount = Nested(JurisdictionMilitaryDiscountResponseSchema(), required=False, allow_none=False)
+    militaryRate = Nested(JurisdictionMilitaryRateResponseSchema(), required=False, allow_none=False)
     jurisprudenceRequirements = Nested(
         JurisdictionJurisprudenceRequirementsResponseSchema(), required=True, allow_none=False
     )
