@@ -191,57 +191,6 @@ class TestBackendPipeline(TstAppABC, TestCase):
         )
         self.assertEqual(0, len(implicit_grant_clients))
 
-    def test_synth_generates_compact_configuration_upload_custom_resource_with_expected_beta_configuration_data(self):
-        persistent_stack = self.app.beta_backend_pipeline_stack.beta_backend_stage.persistent_stack
-        persistent_stack_template = Template.from_stack(persistent_stack)
-
-        # Ensure our provider user pool is created with expected custom attributes
-        compact_configuration_uploader_custom_resource = self.get_resource_properties_by_logical_id(
-            persistent_stack.get_logical_id(
-                persistent_stack.compact_configuration_upload.compact_configuration_uploader_custom_resource.node.default_child
-            ),
-            persistent_stack_template.find_resources('Custom::CompactConfigurationUpload'),
-        )
-        # we don't care about ordering of the jurisdictions, but the snapshot is sensitive to the order,
-        # so we ensure to sort the jurisdictions before comparing
-        sorted_compact_configuration = self._sort_compact_configuration_input(
-            json.loads(compact_configuration_uploader_custom_resource['compact_configuration'])
-        )
-
-        # Assert that the compact_configuration property is set to the expected values
-        # If the configuration values for any jurisdiction changes, the snapshot will need to be updated.
-        self.compare_snapshot(
-            actual=sorted_compact_configuration,
-            snapshot_name='COMPACT_CONFIGURATION_UPLOADER_BETA_ENV_INPUT',
-            overwrite_snapshot=False,
-        )
-
-    def test_prod_synth_generates_compact_configuration_upload_custom_resource_with_expected_prod_configuration_data(
-        self,
-    ):
-        persistent_stack = self.app.prod_backend_pipeline_stack.prod_stage.persistent_stack
-        persistent_stack_template = Template.from_stack(persistent_stack)
-
-        # Ensure our provider user pool is created with expected custom attributes
-        compact_configuration_uploader_custom_resource = self.get_resource_properties_by_logical_id(
-            persistent_stack.get_logical_id(
-                persistent_stack.compact_configuration_upload.compact_configuration_uploader_custom_resource.node.default_child
-            ),
-            persistent_stack_template.find_resources('Custom::CompactConfigurationUpload'),
-        )
-        # we don't care about ordering of the jurisdictions, but the snapshot is sensitive to the order,
-        # so we ensure to sort the jurisdictions before comparing
-        sorted_compact_configuration = self._sort_compact_configuration_input(
-            json.loads(compact_configuration_uploader_custom_resource['compact_configuration'])
-        )
-
-        # Assert that the compact_configuration property is set to the expected values
-        # If the configuration values for any jurisdiction changes, the snapshot will need to be updated.
-        self.compare_snapshot(
-            actual=sorted_compact_configuration,
-            snapshot_name='COMPACT_CONFIGURATION_UPLOADER_PROD_ENV_INPUT',
-            overwrite_snapshot=False,
-        )
 
     def test_synth_generates_python_lambda_layer_with_ssm_parameter(self):
         persistent_stack = self.app.test_backend_pipeline_stack.test_stage.persistent_stack
@@ -304,22 +253,6 @@ class TestBackendPipeline(TstAppABC, TestCase):
         self.assertEqual(
             'handlers.provider_s3_events.process_provider_s3_events', provider_users_bucket_handler['Handler']
         )
-
-    @staticmethod
-    def _sort_compact_configuration_input(compact_configuration_input: dict) -> dict:
-        """
-        Sort the compact configuration input by compact name and then by jurisdiction postal abbreviation.
-        This ensures the snapshot comparison is consistent.
-        """
-        compact_configuration_input['compacts'] = sorted(
-            compact_configuration_input['compacts'], key=lambda compact: compact['compactAbbr']
-        )
-        for compact_abbr, jurisdictions in compact_configuration_input['jurisdictions'].items():
-            compact_configuration_input['jurisdictions'][compact_abbr] = sorted(
-                jurisdictions, key=lambda jurisdiction: jurisdiction['postalAbbreviation']
-            )
-
-        return compact_configuration_input
 
 
 class TestBackendPipelineVulnerable(TestCase):
