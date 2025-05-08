@@ -1,4 +1,4 @@
-# ruff: noqa: N801, N815, ARG002 invalid-name unused-kwargs
+# ruff: noqa: N801, N802, N815, ARG002 invalid-name unused-kwargs
 from collections import UserDict
 
 from marshmallow.fields import Decimal

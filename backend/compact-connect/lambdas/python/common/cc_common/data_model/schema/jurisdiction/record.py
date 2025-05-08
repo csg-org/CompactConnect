@@ -5,21 +5,7 @@ from marshmallow.validate import Length, OneOf
 
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import BaseRecordSchema
-from cc_common.data_model.schema.jurisdiction.common import JURISDICTION_TYPE, JurisdictionMilitaryDiscountType
-
-
-class JurisdictionMilitaryRateRecordSchema(Schema):
-    active = Boolean(required=True, allow_none=False)
-    amount = Decimal(required=True, allow_none=False, places=2)
-
-
-# Keep the old schema for backward compatibility
-class JurisdictionMilitaryDiscountRecordSchema(Schema):
-    active = Boolean(required=True, allow_none=False)
-    discountType = String(
-        required=True, allow_none=False, validate=OneOf([e.value for e in JurisdictionMilitaryDiscountType])
-    )
-    discountAmount = Decimal(required=True, allow_none=False, places=2)
+from cc_common.data_model.schema.jurisdiction.common import JURISDICTION_TYPE
 
 
 class JurisdictionJurisprudenceRequirementsRecordSchema(Schema):
@@ -30,6 +16,7 @@ class JurisdictionJurisprudenceRequirementsRecordSchema(Schema):
 class JurisdictionPrivilegeFeeRecordSchema(Schema):
     licenseTypeAbbreviation = String(required=True, allow_none=False)
     amount = Decimal(required=True, allow_none=False, places=2)
+    militaryRate = Decimal(required=False, allow_none=True, places=2)
 
 
 @BaseRecordSchema.register_schema(JURISDICTION_TYPE)
@@ -43,12 +30,7 @@ class JurisdictionRecordSchema(BaseRecordSchema):
     postalAbbreviation = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
     compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
     privilegeFees = List(Nested(JurisdictionPrivilegeFeeRecordSchema()), required=True, allow_none=False)
-    # TODO: DEPRECATED remove this after the frontend is updated to use military rate
-    militaryDiscount = Nested(JurisdictionMilitaryDiscountRecordSchema(), required=False, allow_none=True)
-    militaryRate = Nested(JurisdictionMilitaryRateRecordSchema(), required=False, allow_none=True)
-    jurisdictionOperationsTeamEmails = List(
-        Email(required=True, allow_none=False), required=True, allow_none=False
-    )
+    jurisdictionOperationsTeamEmails = List(Email(required=True, allow_none=False), required=True, allow_none=False)
     jurisdictionAdverseActionsNotificationEmails = List(
         Email(required=True, allow_none=False),
         required=True,

@@ -6,11 +6,11 @@ from cc_common.config import config, logger
 from cc_common.data_model.provider_record_util import ProviderRecordType, ProviderRecordUtility
 from cc_common.data_model.schema.common import ActiveInactiveStatus, CompactEligibilityStatus
 from cc_common.data_model.schema.compact import Compact
-from cc_common.data_model.schema.compact.common import COMPACT_TYPE
 from cc_common.data_model.schema.compact.api import CompactOptionsResponseSchema
+from cc_common.data_model.schema.compact.common import COMPACT_TYPE
 from cc_common.data_model.schema.jurisdiction import Jurisdiction
-from cc_common.data_model.schema.jurisdiction.common import JURISDICTION_TYPE
 from cc_common.data_model.schema.jurisdiction.api import JurisdictionOptionsResponseSchema
+from cc_common.data_model.schema.jurisdiction.common import JURISDICTION_TYPE
 from cc_common.exceptions import (
     CCAwsServiceException,
     CCFailedTransactionException,

@@ -119,20 +119,9 @@ def _generate_selected_jurisdictions(jurisdiction_items: list[dict] = None):
             for licensee_fee in jurisdiction['privilegeFees']:
                 # DynamoDB loads this as a decimal
                 licensee_fee['amount'] = Decimal(jurisdiction_test_item['privilegeFee'])
+                # Add military rate to each fee
+                licensee_fee['militaryRate'] = Decimal(40.00)
 
-            # set military discount to fixed amount for tests (legacy support)
-            jurisdiction['militaryDiscount'] = {
-                'discountAmount': Decimal(25.00),
-                'active': True,
-                'discountType': 'FLAT_RATE',
-            }
-            
-            # set new military rate
-            jurisdiction['militaryRate'] = {
-                'amount': Decimal(40.00),
-                'active': True,
-            }
-            
             jurisdiction['postalAbbreviation'] = jurisdiction_test_item['postalCode']
             jurisdiction['jurisdictionName'] = jurisdiction_test_item['jurisdictionName']
             jurisdiction_configurations.append(Jurisdiction(jurisdiction))
@@ -441,7 +430,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         self.assertEqual(f'LICENSEE#{MOCK_LICENSEE_ID}#', api_contract_v1_obj.transactionRequest.order.description)
 
     @patch('purchase_client.createTransactionController')
-    def test_purchase_client_sends_expected_line_items_when_purchasing_privileges_with_military_discount(
+    def test_purchase_client_sends_expected_line_items_when_purchasing_privileges_with_military_rate(
         self, mock_create_transaction_controller
     ):
         from purchase_client import PurchaseClient
@@ -480,43 +469,28 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         self.assertEqual(90.50, api_contract_v1_obj.transactionRequest.amount)
 
     @patch('purchase_client.createTransactionController')
-    def test_purchase_client_falls_back_to_military_discount_if_military_rate_not_present(
-        self, mock_create_transaction_controller
-    ):
-        from purchase_client import PurchaseClient
+    def test_standard_fee_used_when_military_rate_not_present(self, mock_create_transaction_controller):
         from cc_common.data_model.schema.jurisdiction import Jurisdiction
+        from purchase_client import PurchaseClient
 
         mock_secrets_manager_client = self._generate_mock_secrets_manager_client()
         self._when_authorize_dot_net_transaction_is_successful(
             mock_create_transaction_controller=mock_create_transaction_controller
         )
 
-        # Create jurisdictions with military discount but no military rate
-        jurisdiction_items = [
-            {'postalCode': 'oh', 'jurisdictionName': 'ohio', 'privilegeFee': 100.00},
-        ]
-    
+        # Create jurisdictions with no military rate
         jurisdiction_configurations = []
-        for jurisdiction_test_item in jurisdiction_items:
-            with open('../common/tests/resources/dynamo/jurisdiction.json') as f:
-                jurisdiction = json.load(f)
-                for licensee_fee in jurisdiction['privilegeFees']:
-                    licensee_fee['amount'] = Decimal(jurisdiction_test_item['privilegeFee'])
-                
-                # set military discount but not military rate
-                jurisdiction['militaryDiscount'] = {
-                    'discountAmount': Decimal(25.00),
-                    'active': True,
-                    'discountType': 'FLAT_RATE',
-                }
-                
-                # remove military rate if present
-                if 'militaryRate' in jurisdiction:
-                    del jurisdiction['militaryRate']
-                
-                jurisdiction['postalAbbreviation'] = jurisdiction_test_item['postalCode']
-                jurisdiction['jurisdictionName'] = jurisdiction_test_item['jurisdictionName']
-                jurisdiction_configurations.append(Jurisdiction(jurisdiction))
+        with open('../common/tests/resources/dynamo/jurisdiction.json') as f:
+            jurisdiction = json.load(f)
+            for licensee_fee in jurisdiction['privilegeFees']:
+                licensee_fee['amount'] = Decimal(100.00)
+                # Remove military rate if present
+                if 'militaryRate' in licensee_fee:
+                    del licensee_fee['militaryRate']
+
+            jurisdiction['postalAbbreviation'] = 'oh'
+            jurisdiction['jurisdictionName'] = 'ohio'
+            jurisdiction_configurations.append(Jurisdiction(jurisdiction))
 
         test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
 
@@ -531,18 +505,18 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
 
         call_args = mock_create_transaction_controller.call_args.args
         api_contract_v1_obj = call_args[0]
-        
-        # verify jurisdiction fee line item with military discount
+
+        # verify jurisdiction fee line item uses standard rate when no military rate present
         self.assertEqual('priv:aslp-oh-slp', api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].itemId)
         self.assertEqual('Ohio Compact Privilege', api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].name)
-        self.assertEqual(75.00, api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].unitPrice)
+        self.assertEqual(100.00, api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].unitPrice)
         self.assertEqual(
-            'Compact Privilege for Ohio (Military Discount)',
+            'Compact Privilege for Ohio',
             api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].description,
         )
 
-        # ensure the total amount is the sum of (fee - discount + compact fee)
-        self.assertEqual(125.50, api_contract_v1_obj.transactionRequest.amount)
+        # ensure the total amount is the sum of standard fee + compact fee
+        self.assertEqual(150.50, api_contract_v1_obj.transactionRequest.amount)
 
     @patch('purchase_client.createTransactionController')
     def test_purchase_client_raises_failed_transaction_exception_when_transaction_fails(

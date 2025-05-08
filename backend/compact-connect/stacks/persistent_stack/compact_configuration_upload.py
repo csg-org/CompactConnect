@@ -24,8 +24,6 @@ class CompactConfigurationUpload(Construct):
         *,
         table: CompactConfigurationTable,
         master_key: IKey,
-        environment_name: str,
-        environment_context: dict,
         **kwargs,
     ):
         super().__init__(scope, construct_id, **kwargs)
@@ -37,7 +35,7 @@ class CompactConfigurationUpload(Construct):
             lambda_dir='custom-resources',
             index=os.path.join('handlers', 'compact_config_uploader.py'),
             handler='on_event',
-            description='Uploads attestation configurations from attestations.yml to the compact configuration Dynamo table',
+            description='Uploads configurations to the compact configuration Dynamo table',
             timeout=Duration.minutes(5),
             log_retention=RetentionDays.THREE_MONTHS,
             environment={'COMPACT_CONFIGURATION_TABLE_NAME': table.table_name, **stack.common_env_vars},
