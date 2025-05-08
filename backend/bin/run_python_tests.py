@@ -56,7 +56,7 @@ def clean_modules():
 
     for module_name in list(sys.modules.keys()):
         for prefix in modules_to_clean:
-            if module_name == prefix or module_name.startswith(f"{prefix}."):
+            if module_name == prefix or module_name.startswith(f'{prefix}.'):
                 del sys.modules[module_name]
 
 
