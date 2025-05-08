@@ -1,13 +1,5 @@
 {
   "properties": {
-    "jurisdictionName": {
-      "description": "The name of the jurisdiction",
-      "type": "string"
-    },
-    "postalAbbreviation": {
-      "description": "The postal abbreviation of the jurisdiction",
-      "type": "string"
-    },
     "privilegeFees": {
       "description": "The fees for the privileges by license type",
       "items": {
@@ -67,28 +59,20 @@
       ],
       "type": "object"
     },
-    "militaryDiscount": {
+    "militaryRate": {
       "properties": {
         "active": {
-          "description": "Whether the military discount is active",
+          "description": "Whether the military rate is active",
           "type": "boolean"
         },
-        "discountType": {
-          "description": "The type of discount",
-          "enum": [
-            "FLAT_RATE"
-          ],
-          "type": "string"
-        },
-        "discountAmount": {
-          "description": "The amount of the discount",
+        "amount": {
+          "description": "The fixed rate amount for military users",
           "type": "number"
         }
       },
       "required": [
         "active",
-        "discountType",
-        "discountAmount"
+        "amount"
       ],
       "type": "object"
     },
@@ -98,8 +82,6 @@
     }
   },
   "required": [
-    "jurisdictionName",
-    "postalAbbreviation",
     "privilegeFees",
     "jurisdictionOperationsTeamEmails",
     "jurisdictionAdverseActionsNotificationEmails",
