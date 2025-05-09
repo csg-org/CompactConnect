@@ -17,6 +17,11 @@
         <h1 v-if="!isFinalError && !isFormSuccessful" class="register-licensee-title">
             {{ $t('account.requestAnAccount') }}
         </h1>
+        <div
+            class="register-licensee-subtext"
+            v-if="!isFinalError && !isFormSuccessful"
+            v-html="$t('account.requestAccountSubtext')"
+        />
         <Card class="register-licensee-card">
             <Transition name="fade" :mode="elementTransitionMode">
                 <div v-if="isFinalError" class="register-licensee-error-container">
@@ -37,7 +42,6 @@
                     <form @submit.prevent="handleSubmit" class="register-licensee-form">
                         <InputText :formInput="formData.firstName" />
                         <InputText :formInput="formData.lastName" />
-                        <InputText :formInput="formData.email" />
                         <InputText :formInput="formData.ssnLastFour" @input="formatSsn()" />
                         <InputDate
                             :formInput="formData.dob"
@@ -47,6 +51,8 @@
                         />
                         <InputSelect :formInput="formData.licenseState" />
                         <InputSelect :formInput="formData.licenseType" />
+                        <InputText :formInput="formData.email" class="input-email-component" />
+                        <div class="input-email-subtext" v-html="$t('account.requestAccountEmailSubtext')" />
                         <label ref="password">
                             {{ $t('common.password') }}
                             <input type="password" id="password" name="password" tabindex="-1" autocomplete="off" />
@@ -65,6 +71,9 @@
                     </div>
                     <div class="register-licensee-success-title">{{ $t('account.requestSuccessTitle') }}</div>
                     <div class="register-licensee-success-subtext">{{ $t('account.requestSuccessSubtext') }}</div>
+                    <router-link :to="{ name: 'DashboardPublic' }" class="nav-button">
+                        {{ $t('navigation.goToDashboard') }}
+                    </router-link>
                 </div>
             </Transition>
         </Card>

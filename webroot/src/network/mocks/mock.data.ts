@@ -156,7 +156,16 @@ export const privilegePurchaseOptionsResponse = {
             jurisdictionName: 'kentucky',
             postalAbbreviation: 'ky',
             compact: 'octp',
-            jurisdictionFee: 100,
+            privilegeFees: [
+                {
+                    licenseTypeAbbreviation: 'ot',
+                    amount: 200
+                },
+                {
+                    licenseTypeAbbreviation: 'ota',
+                    amount: 100
+                }
+            ],
             militaryDiscount: {
                 active: true,
                 discountType: 'FLAT_RATE',
@@ -171,7 +180,16 @@ export const privilegePurchaseOptionsResponse = {
             jurisdictionName: 'nebraska',
             postalAbbreviation: 'ne',
             compact: 'octp',
-            jurisdictionFee: 100,
+            privilegeFees: [
+                {
+                    licenseTypeAbbreviation: 'ot',
+                    amount: 200
+                },
+                {
+                    licenseTypeAbbreviation: 'ota',
+                    amount: 100
+                }
+            ],
             militaryDiscount: {
                 active: true,
                 discountType: 'FLAT_RATE',
@@ -186,7 +204,16 @@ export const privilegePurchaseOptionsResponse = {
             jurisdictionName: 'ohio',
             postalAbbreviation: 'oh',
             compact: 'octp',
-            jurisdictionFee: 100,
+            privilegeFees: [
+                {
+                    licenseTypeAbbreviation: 'ot',
+                    amount: 200
+                },
+                {
+                    licenseTypeAbbreviation: 'ota',
+                    amount: 100
+                }
+            ],
             militaryDiscount: {
                 active: true,
                 discountType: 'FLAT_RATE',
@@ -201,7 +228,16 @@ export const privilegePurchaseOptionsResponse = {
             jurisdictionName: 'massachusetts',
             postalAbbreviation: 'ma',
             compact: 'octp',
-            jurisdictionFee: 100,
+            privilegeFees: [
+                {
+                    licenseTypeAbbreviation: 'ot',
+                    amount: 200
+                },
+                {
+                    licenseTypeAbbreviation: 'ota',
+                    amount: 100
+                }
+            ],
             militaryDiscount: {
                 active: false,
                 discountType: 'FLAT_RATE',
@@ -216,7 +252,16 @@ export const privilegePurchaseOptionsResponse = {
             jurisdictionName: 'vermont',
             postalAbbreviation: 'vt',
             compact: 'octp',
-            jurisdictionFee: 100,
+            privilegeFees: [
+                {
+                    licenseTypeAbbreviation: 'ot',
+                    amount: 200
+                },
+                {
+                    licenseTypeAbbreviation: 'ota',
+                    amount: 100
+                }
+            ],
             militaryDiscount: {
                 active: false,
                 discountType: 'FLAT_RATE',
@@ -231,7 +276,16 @@ export const privilegePurchaseOptionsResponse = {
             jurisdictionName: 'virginia',
             postalAbbreviation: 'va',
             compact: 'octp',
-            jurisdictionFee: 100,
+            privilegeFees: [
+                {
+                    licenseTypeAbbreviation: 'ot',
+                    amount: 200
+                },
+                {
+                    licenseTypeAbbreviation: 'ota',
+                    amount: 100
+                }
+            ],
             militaryDiscount: {
                 active: false,
                 discountType: 'FLAT_RATE',
@@ -246,7 +300,16 @@ export const privilegePurchaseOptionsResponse = {
             jurisdictionName: 'colorado',
             postalAbbreviation: 'co',
             compact: 'octp',
-            jurisdictionFee: 100,
+            privilegeFees: [
+                {
+                    licenseTypeAbbreviation: 'ot',
+                    amount: 200
+                },
+                {
+                    licenseTypeAbbreviation: 'ota',
+                    amount: 100
+                }
+            ],
             militaryDiscount: {
                 active: false,
                 discountType: 'FLAT_RATE',
@@ -261,7 +324,16 @@ export const privilegePurchaseOptionsResponse = {
             jurisdictionName: 'maine',
             postalAbbreviation: 'me',
             compact: 'octp',
-            jurisdictionFee: 100,
+            privilegeFees: [
+                {
+                    licenseTypeAbbreviation: 'ot',
+                    amount: 250
+                },
+                {
+                    licenseTypeAbbreviation: 'ota',
+                    amount: 100
+                }
+            ],
             militaryDiscount: {
                 active: false,
                 discountType: 'FLAT_RATE',
@@ -276,7 +348,16 @@ export const privilegePurchaseOptionsResponse = {
             jurisdictionName: 'connecticut',
             postalAbbreviation: 'ct',
             compact: 'octp',
-            jurisdictionFee: 100,
+            privilegeFees: [
+                {
+                    licenseTypeAbbreviation: 'ot',
+                    amount: 200
+                },
+                {
+                    licenseTypeAbbreviation: 'ota',
+                    amount: 110
+                }
+            ],
             militaryDiscount: {
                 active: false,
                 discountType: 'FLAT_RATE',
@@ -291,7 +372,16 @@ export const privilegePurchaseOptionsResponse = {
             jurisdictionName: 'rhode island',
             postalAbbreviation: 'ri',
             compact: 'octp',
-            jurisdictionFee: 100,
+            privilegeFees: [
+                {
+                    licenseTypeAbbreviation: 'ot',
+                    amount: 200
+                },
+                {
+                    licenseTypeAbbreviation: 'ota',
+                    amount: 100
+                }
+            ],
             militaryDiscount: {
                 active: false,
                 discountType: 'FLAT_RATE',
@@ -306,7 +396,16 @@ export const privilegePurchaseOptionsResponse = {
             jurisdictionName: 'nevada',
             postalAbbreviation: 'nv',
             compact: 'octp',
-            jurisdictionFee: 100,
+            privilegeFees: [
+                {
+                    licenseTypeAbbreviation: 'ot',
+                    amount: 200
+                },
+                {
+                    licenseTypeAbbreviation: 'ota',
+                    amount: 100
+                }
+            ],
             militaryDiscount: {
                 active: false,
                 discountType: 'FLAT_RATE',
@@ -321,7 +420,16 @@ export const privilegePurchaseOptionsResponse = {
             jurisdictionName: 'kansas',
             postalAbbreviation: 'ks',
             compact: 'octp',
-            jurisdictionFee: 100,
+            privilegeFees: [
+                {
+                    licenseTypeAbbreviation: 'ot',
+                    amount: 150
+                },
+                {
+                    licenseTypeAbbreviation: 'ota',
+                    amount: 100
+                }
+            ],
             militaryDiscount: {
                 active: false,
                 discountType: 'FLAT_RATE',
@@ -336,7 +444,16 @@ export const privilegePurchaseOptionsResponse = {
             jurisdictionName: 'alaska',
             postalAbbreviation: 'ak',
             compact: 'octp',
-            jurisdictionFee: 100,
+            privilegeFees: [
+                {
+                    licenseTypeAbbreviation: 'ot',
+                    amount: 100
+                },
+                {
+                    licenseTypeAbbreviation: 'ota',
+                    amount: 100
+                }
+            ],
             militaryDiscount: {
                 active: false,
                 discountType: 'FLAT_RATE',
@@ -351,7 +468,16 @@ export const privilegePurchaseOptionsResponse = {
             jurisdictionName: 'arkansas',
             postalAbbreviation: 'ar',
             compact: 'octp',
-            jurisdictionFee: 100,
+            privilegeFees: [
+                {
+                    licenseTypeAbbreviation: 'ot',
+                    amount: 200
+                },
+                {
+                    licenseTypeAbbreviation: 'ota',
+                    amount: 100
+                }
+            ],
             militaryDiscount: {
                 active: false,
                 discountType: 'FLAT_RATE',
@@ -1032,7 +1158,9 @@ export const licensees = {
                     homeAddressCity: 'Riverside',
                     middleName: '',
                     dateOfUpdate: '2024-08-29',
-                    status: 'active'
+                    licenseStatus: 'active',
+                    licenseStatusName: 'Active in renewal',
+                    compactEligibility: 'eligible',
                 },
                 {
                     compact: 'octp',
@@ -1056,7 +1184,35 @@ export const licensees = {
                     homeAddressCity: 'Riverside',
                     middleName: '',
                     dateOfUpdate: '2023-08-29',
-                    status: 'active'
+                    licenseStatus: 'active',
+                    licenseStatusName: null,
+                    compactEligibility: 'eligible',
+                },
+                {
+                    compact: 'octp',
+                    homeAddressStreet2: '',
+                    npi: '6944447281',
+                    licenseNumber: 'A-944447281',
+                    homeAddressPostalCode: '',
+                    jurisdiction: 'co',
+                    givenName: 'Jane',
+                    homeAddressStreet1: '1640 Riverside Drive',
+                    dateOfBirth: '1990-08-29',
+                    type: 'license-home',
+                    dateOfIssuance: '2023-08-29',
+                    ssnLastFour: '1111',
+                    licenseType: 'occupational therapist',
+                    dateOfExpiration: '2026-08-29',
+                    homeAddressState: 'co',
+                    providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
+                    dateOfRenewal: '2023-08-29',
+                    familyName: 'Doe',
+                    homeAddressCity: 'Riverside',
+                    middleName: '',
+                    dateOfUpdate: '2023-08-29',
+                    licenseStatus: 'active',
+                    licenseStatusName: 'Custom text with longer content provided by the state that may not fit completely in the default area of the UI and could overflow',
+                    compactEligibility: 'ineligible',
                 },
                 {
                     compact: 'octp',
@@ -1080,7 +1236,9 @@ export const licensees = {
                     homeAddressCity: 'Riverside',
                     middleName: '',
                     dateOfUpdate: '2024-08-29',
-                    status: 'inactive'
+                    licenseStatus: 'inactive',
+                    licenseStatusName: 'Under review',
+                    compactEligibility: 'ineligible',
                 },
                 {
                     compact: 'octp',
@@ -1104,7 +1262,9 @@ export const licensees = {
                     homeAddressCity: 'Riverside',
                     middleName: '',
                     dateOfUpdate: '2024-08-29',
-                    status: 'inactive'
+                    licenseStatus: 'inactive',
+                    licenseStatusName: '',
+                    compactEligibility: 'ineligible',
                 },
                 {
                     compact: 'octp',
@@ -1128,7 +1288,9 @@ export const licensees = {
                     homeAddressCity: 'Riverside',
                     middleName: '',
                     dateOfUpdate: '2023-08-29',
-                    status: 'inactive'
+                    licenseStatus: 'inactive',
+                    licenseStatusName: '',
+                    compactEligibility: 'ineligible',
                 }
             ],
             dateOfExpiration: '2024-08-29',
@@ -1199,7 +1361,9 @@ export const licensees = {
                     homeAddressCity: 'Boulder',
                     middleName: '',
                     dateOfUpdate: '2024-08-29',
-                    status: 'inactive'
+                    licenseStatus: 'inactive',
+                    licenseStatusName: 'Custom text with longer content provided by the state that may not fit completely in the default area of the UI and could overflow',
+                    compactEligibility: 'eligible',
                 }
             ],
             dateOfExpiration: '2024-08-29',
@@ -1272,7 +1436,9 @@ export const licensees = {
                     homeAddressCity: 'Boulder',
                     middleName: '',
                     dateOfUpdate: '2024-08-29',
-                    status: 'active'
+                    licenseStatus: 'active',
+                    licenseStatusName: 'text from state',
+                    compactEligibility: 'eligible',
                 }
             ],
             dateOfExpiration: '2024-08-29',
@@ -1363,7 +1529,9 @@ export const licensees = {
                     homeAddressCity: 'Riverside',
                     middleName: '',
                     dateOfUpdate: '2024-08-29',
-                    status: 'active'
+                    licenseStatus: 'active',
+                    licenseStatusName: '',
+                    compactEligibility: 'ineligible',
                 }
             ],
             dateOfExpiration: '2024-08-29',

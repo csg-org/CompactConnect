@@ -8,44 +8,83 @@
     width: 30rem;
     padding: 2rem 2rem 1.6rem 2rem;
     border-radius: 2rem;
-    color: #2d2d2d;
-    background-color: @lightBlue;
+    color: @white;
+    background-color: darken(@darkGrey, 5%);
 
-    .license-title-row {
+    &.active {
+        color: #2d2d2d;
+        background-color: @lightBlue;
+    }
+
+    .error {
+        color: @midRed;
+    }
+
+    .license-heading-row {
         display: flex;
         flex-direction: row;
-        align-items: flex-start;
+        margin-bottom: 0.6rem;
 
         .license-title {
-            font-weight: @fontWeightBold;
+            margin-bottom: 0.4rem;
+            color: @primaryColor;
+            font-weight: @fontWeightExtraBold;
+            font-size: 1.4rem;
+            letter-spacing: 0.1rem;
+            text-transform: uppercase;
         }
-    }
-
-    .license-icon-container {
-        width: 3rem;
-
-        .license-logo {
-            width: 100%;
-        }
-
-        :deep(path) {
-            fill: @black;
-        }
-    }
-
-    .license-heading-text {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        margin-top: 0.4rem;
 
         .state-title {
+            display: flex;
             font-weight: @fontWeightBold;
             font-size: @fontSizeLarge;
+
+            .license-icon-container {
+                width: 3rem;
+                margin-right: 0.6rem;
+
+                .license-logo {
+                    width: 100%;
+                }
+
+                .icon-license {
+                    fill: @white;
+
+                    &.active {
+                        fill: @black;
+                    }
+                }
+            }
+        }
+
+        .license-status {
+            max-height: 2.4rem;
+            margin-left: auto;
+            padding: 0.2rem 1rem;
+            border: 1px solid rgba(@white, 0.2);
+            border-radius: @borderRadiusPillShape;
+            font-weight: @fontWeightBold;
+            background-color: rgba(@white, 0.04);
+
+            &.active {
+                border: 0;
+                background-color: rgba(@white, 0.5);
+            }
         }
 
         .license-type-abbrev {
-            font-size: @fontSizeSmall;
+            font-size: 1.4rem;
+        }
+
+        .license-status-description {
+            max-width: 160px;
+            max-height: @fontSize;
+            margin-left: auto;
+            overflow: hidden;
+            font-size: 1.4rem;
+            font-style: italic;
+            white-space: nowrap;
+            text-overflow: ellipsis;
         }
     }
 
@@ -72,29 +111,41 @@
         }
     }
 
-    .license-status {
-        position: absolute;
-        top: 2rem;
-        right: 2rem;
+    .license-eligibility-container {
+        @spacing: 2rem;
+        @iconSize: 2rem;
 
-        &.expired {
-            font-style: italic;
+        display: flex;
+        align-items: center;
+        margin-top: @spacing;
+        padding: @spacing 0 1.2rem;
+        border-top: 1px solid rgba(@darkGrey, 0.15);
+
+        &.inactive {
+            border-color: lighten(@darkGrey, 5%);
+        }
+
+        .eligibility-icon-container {
+            width: @iconSize;
+            height: @iconSize;
+            margin-right: 0.8rem;
+            border-radius: 50%;
+            background-color: @black;
+
+            &.eligible {
+                background-color: @midGreen;
+            }
+
+            &.not-eligible {
+                background-color: @midRed;
+            }
+
+            .eligibility-icon {
+                width: @iconSize;
+                height: @iconSize;
+                fill: @white;
+                stroke: @white;
+            }
         }
     }
-}
-
-.italics {
-    font-style: italic;
-}
-
-.bold {
-    font-weight: @fontWeightBold;
-}
-
-.error {
-    color: @midRed;
-}
-
-.left-marg {
-    margin-left: 1rem;
 }

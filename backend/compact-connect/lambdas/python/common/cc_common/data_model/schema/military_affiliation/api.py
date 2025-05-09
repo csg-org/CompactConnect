@@ -5,7 +5,7 @@ from marshmallow.validate import OneOf
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import ForgivingSchema
 from cc_common.data_model.schema.common import S3PresignedPostSchema
-from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationStatus, MilitaryAffiliationType
+from cc_common.data_model.schema.military_affiliation.common import MilitaryAffiliationStatus, MilitaryAffiliationType
 
 
 class PostMilitaryAffiliationResponseSchema(ForgivingSchema):

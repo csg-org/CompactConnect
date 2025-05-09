@@ -17,6 +17,7 @@ import { CompactType } from '@models/Compact/Compact.model';
 import { StaffUser } from '@models/StaffUser/StaffUser.model';
 import { Licensee } from '@models/Licensee/Licensee.model';
 import { License, LicenseStatus } from '@models/License/License.model';
+import { State } from '@models/State/State.model';
 import { dataApi } from '@network/data.api';
 
 @Component({
@@ -189,8 +190,12 @@ export default class LicensingDetail extends Vue {
         return this.$t('licensing.licenseExpired');
     }
 
-    get homeState(): string {
-        return this.licensee?.homeJurisdiction?.name() || '';
+    get homeState(): State | null {
+        return this.licensee?.homeJurisdiction || null;
+    }
+
+    get homeStateName(): string {
+        return this.homeState?.name() || '';
     }
 
     //

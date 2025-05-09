@@ -66,8 +66,8 @@ class PrivilegePurchaseLicense extends mixins(MixinForm) {
         return this.user?.licensee || null;
     }
 
-    get activeHomeJurisdictionLicenses(): Array<License> {
-        return this.licensee?.activeHomeJurisdictionLicenses() || [];
+    get purchaseEligibleLicenses(): Array<License> {
+        return this.licensee?.purchaseEligibleLicenses() || [];
     }
 
     get currentCompact(): Compact | null {
@@ -82,17 +82,17 @@ class PrivilegePurchaseLicense extends mixins(MixinForm) {
         return this.licensee?.licenses || [];
     }
 
-    get homeStateLicenseOptions(): Array<any> {
-        const homeStateLicenseOptions: Array<any> = [{ value: '', name: this.$t('common.select') }];
+    get licenseOptions(): Array<any> {
+        const options: Array<any> = [{ value: '', name: `- ${this.$t('common.select')} -` }];
 
-        this.activeHomeJurisdictionLicenses.forEach((license: License) => {
-            homeStateLicenseOptions.push({
+        this.purchaseEligibleLicenses.forEach((license: License) => {
+            options.push({
                 value: license.id,
                 name: license.displayName()
             });
         });
 
-        return homeStateLicenseOptions;
+        return options;
     }
 
     get backText(): string {
@@ -123,7 +123,7 @@ class PrivilegePurchaseLicense extends mixins(MixinForm) {
                 name: 'license',
                 label: computed(() => this.$t('licensing.license')),
                 validation: Joi.string().required().messages(this.joiMessages.string),
-                valueOptions: this.homeStateLicenseOptions,
+                valueOptions: this.licenseOptions,
             }),
             submit: new FormInput({
                 isSubmitInput: true,
@@ -133,10 +133,10 @@ class PrivilegePurchaseLicense extends mixins(MixinForm) {
     }
 
     initPage() {
-        if (this.activeHomeJurisdictionLicenses.length === 1) {
+        if (this.purchaseEligibleLicenses.length === 1) {
             this.$store.dispatch('user/saveFlowStep', new PurchaseFlowStep({
                 stepNum: this.flowStep,
-                licenseSelected: this.activeHomeJurisdictionLicenses[0].id
+                licenseSelected: this.purchaseEligibleLicenses[0].id
             }));
 
             this.$router.push({

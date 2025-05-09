@@ -2,8 +2,10 @@ from collections.abc import Callable, Iterable
 from enum import StrEnum
 
 from cc_common.config import logger
-from cc_common.data_model.schema.common import ActiveInactiveStatus, CompactEligibilityStatus
-from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationStatus
+from cc_common.data_model.schema.common import ActiveInactiveStatus, AdverseActionAgainstEnum, CompactEligibilityStatus
+from cc_common.data_model.schema.license.api import LicenseUpdatePreviousResponseSchema
+from cc_common.data_model.schema.military_affiliation.common import MilitaryAffiliationStatus
+from cc_common.data_model.schema.privilege.api import PrivilegeUpdatePreviousGeneralResponseSchema
 from cc_common.data_model.schema.provider.record import ProviderRecordSchema
 from cc_common.exceptions import CCInternalException, CCInvalidRequestException
 
@@ -20,12 +22,16 @@ class ProviderRecordType(StrEnum):
     PRIVILEGE_UPDATE = 'privilegeUpdate'
     HOME_JURISDICTION_SELECTION = 'homeJurisdictionSelection'
     MILITARY_AFFILIATION = 'militaryAffiliation'
+    ADVERSE_ACTION = 'adverseAction'
 
 
 class ProviderRecordUtility:
     """
     A class for housing official logic for how to handle provider records without making database queries.
     """
+
+    license_previous_update_schema = LicenseUpdatePreviousResponseSchema()
+    privilege_previous_update_schema = PrivilegeUpdatePreviousGeneralResponseSchema()
 
     @staticmethod
     def get_records_of_type(
@@ -163,10 +169,12 @@ class ProviderRecordUtility:
                     logger.debug('Identified license record')
                     licenses[f'{record["jurisdiction"]}-{record["licenseType"]}'] = record
                     licenses[f'{record["jurisdiction"]}-{record["licenseType"]}'].setdefault('history', [])
+                    licenses[f'{record["jurisdiction"]}-{record["licenseType"]}'].setdefault('adverseActions', [])
                 case 'privilege':
                     logger.debug('Identified privilege record')
                     privileges[f'{record["jurisdiction"]}-{record["licenseType"]}'] = record
                     privileges[f'{record["jurisdiction"]}-{record["licenseType"]}'].setdefault('history', [])
+                    privileges[f'{record["jurisdiction"]}-{record["licenseType"]}'].setdefault('adverseActions', [])
                 case 'militaryAffiliation':
                     logger.debug('Identified military affiliation record')
                     military_affiliations.append(record)
@@ -174,7 +182,7 @@ class ProviderRecordUtility:
                     logger.debug('Identified home jurisdiction selection record')
                     home_jurisdiction_selection = record
 
-        # Process update records after all base records have been identified
+        # Process update and adverse action records after all base records have been identified
         for record in provider_records:
             match record['type']:
                 case 'licenseUpdate':
@@ -183,6 +191,12 @@ class ProviderRecordUtility:
                 case 'privilegeUpdate':
                     logger.debug('Identified privilege update record')
                     privileges[f'{record["jurisdiction"]}-{record["licenseType"]}']['history'].append(record)
+                case 'adverseAction':
+                    logger.debug('Identified adverse action record')
+                    if record['actionAgainst'] == AdverseActionAgainstEnum.PRIVILEGE:
+                        privileges[f'{record["jurisdiction"]}-{record["licenseType"]}']['adverseActions'].append(record)
+                    elif record['actionAgainst'] == AdverseActionAgainstEnum.LICENSE:
+                        licenses[f'{record["jurisdiction"]}-{record["licenseType"]}']['adverseActions'].append(record)
 
         if provider is None:
             logger.error("Failed to find a provider's primary record!")
@@ -215,7 +229,7 @@ class ProviderRecordUtility:
             military_affiliation_records, key=lambda x: x['dateOfUpload'], reverse=True
         )[0]
 
-        if latest_military_affiliation['status'] == MilitaryAffiliationStatus.INITIALIZING.value:
+        if latest_military_affiliation['status'] == MilitaryAffiliationStatus.INITIALIZING:
             # this only occurs if the user's military document was not processed by S3 as expected
             raise CCInvalidRequestException(
                 'Your proof of military affiliation documentation was not successfully processed. '
@@ -223,4 +237,4 @@ class ProviderRecordUtility:
                 'documentation or end your military affiliation.'
             )
 
-        return latest_military_affiliation['status'] == MilitaryAffiliationStatus.ACTIVE.value
+        return latest_military_affiliation['status'] == MilitaryAffiliationStatus.ACTIVE

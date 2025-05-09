@@ -105,7 +105,13 @@ class FrontendPipeline(CdkCodePipeline):
             ),
             synth_code_build_defaults=CodeBuildOptions(
                 partial_build_spec=BuildSpec.from_object(
-                    {'phases': {'install': {'runtime-versions': {'python': '3.12'}}}},
+                    {
+                        'phases': {
+                            'install': {
+                                'runtime-versions': {'python': '3.12', 'nodejs': '22.x'},
+                            }
+                        }
+                    }
                 ),
             ),
             cross_account_keys=True,

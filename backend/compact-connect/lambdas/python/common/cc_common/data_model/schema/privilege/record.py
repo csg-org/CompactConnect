@@ -10,11 +10,18 @@ from cc_common.data_model.schema.base_record import BaseRecordSchema, ForgivingS
 from cc_common.data_model.schema.common import (
     ActiveInactiveStatus,
     ChangeHashMixin,
+    PrivilegeEncumberedStatusEnum,
     UpdateCategory,
     ValidatesLicenseTypeMixin,
     ensure_value_is_datetime,
 )
-from cc_common.data_model.schema.fields import ActiveInactive, Compact, Jurisdiction, UpdateType
+from cc_common.data_model.schema.fields import (
+    ActiveInactive,
+    Compact,
+    Jurisdiction,
+    PrivilegeEncumberedStatusField,
+    UpdateType,
+)
 
 
 class AttestationVersionRecordSchema(Schema):
@@ -72,6 +79,9 @@ class PrivilegeRecordSchema(BaseRecordSchema, ValidatesLicenseTypeMixin):
     # the persisted status of the privilege, which can be manually set to inactive
     administratorSetStatus = ActiveInactive(required=True, allow_none=False)
 
+    # this field is only set if the privilege or the associated license is encumbered
+    encumberedStatus = PrivilegeEncumberedStatusField(required=False, allow_none=False)
+
     # This field is the actual status referenced by the system, which is determined by the expiration date
     # in addition to the administratorSetStatus. This should never be written to the DB. It is calculated
     # whenever the record is loaded.
@@ -117,6 +127,8 @@ class PrivilegeRecordSchema(BaseRecordSchema, ValidatesLicenseTypeMixin):
             if (
                 in_data.get('administratorSetStatus', ActiveInactiveStatus.ACTIVE) == ActiveInactiveStatus.ACTIVE
                 and date.fromisoformat(in_data['dateOfExpiration']) >= config.expiration_resolution_date
+                and in_data.get('encumberedStatus', PrivilegeEncumberedStatusEnum.UNENCUMBERED)
+                == PrivilegeEncumberedStatusEnum.UNENCUMBERED
             )
             else ActiveInactiveStatus.INACTIVE
         )
@@ -139,15 +151,15 @@ class PrivilegeUpdatePreviousRecordSchema(ForgivingSchema):
     DB -> load() -> Python
     """
 
+    administratorSetStatus = ActiveInactive(required=False, allow_none=False)
+    attestations = List(Nested(AttestationVersionRecordSchema()), required=True, allow_none=False)
+    compactTransactionId = String(required=True, allow_none=False)
+    dateOfExpiration = Date(required=True, allow_none=False)
     dateOfIssuance = DateTime(required=True, allow_none=False)
     dateOfRenewal = DateTime(required=True, allow_none=False)
-    dateOfExpiration = Date(required=True, allow_none=False)
     dateOfUpdate = DateTime(required=True, allow_none=False)
-    privilegeId = String(required=True, allow_none=False)
-    compactTransactionId = String(required=True, allow_none=False)
-    attestations = List(Nested(AttestationVersionRecordSchema()), required=True, allow_none=False)
-    administratorSetStatus = ActiveInactive(required=False, allow_none=False)
     licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
+    privilegeId = String(required=True, allow_none=False)
 
 
 @BaseRecordSchema.register_schema('privilegeUpdate')

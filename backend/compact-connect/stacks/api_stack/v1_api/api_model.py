@@ -154,7 +154,12 @@ class ApiModel:
                     ],
                     additional_properties=False,
                     properties={
-                        'licenseType': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.license_types),
+                        'licenseType': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.license_type_names),
+                        'ssn': JsonSchema(
+                            type=JsonSchemaType.STRING,
+                            description="The provider's social security number",
+                            pattern=cc_api.SSN_FORMAT,
+                        ),
                         **self._common_license_properties,
                     },
                 ),
@@ -363,9 +368,7 @@ class ApiModel:
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
                 additional_properties=False,
-                # TODO - this 'deactivationNote' should be set to required after frontend has been # noqa: FIX002
-                #  updated to pass it in
-                # required=['deactivationNote'],
+                required=['deactivationNote'],
                 properties={
                     'deactivationNote': JsonSchema(
                         type=JsonSchemaType.STRING,
@@ -378,6 +381,64 @@ class ApiModel:
         )
 
         return self.api._v1_post_privilege_deactivation_request_model
+
+    @property
+    def post_privilege_encumbrance_request_model(self) -> Model:
+        """Return the post privilege encumbrance request model, which should only be created once per API"""
+        if hasattr(self.api, '_v1_post_privilege_encumbrance_request_model'):
+            return self.api._v1_post_privilege_encumbrance_request_model
+        self.api._v1_post_privilege_encumbrance_request_model = self.api.add_model(
+            'V1PostPrivilegeEncumbranceRequestModel',
+            description='Post privilege encumbrance request model',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                additional_properties=False,
+                required=['encumbranceEffectiveDate', 'clinicalPrivilegeActionCategory'],
+                properties={
+                    'encumbranceEffectiveDate': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='The effective date of the encumbrance',
+                        format='date',
+                        pattern=cc_api.YMD_FORMAT,
+                    ),
+                    'clinicalPrivilegeActionCategory': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='The category of clinical privilege action',
+                    ),
+                },
+            ),
+        )
+
+        return self.api._v1_post_privilege_encumbrance_request_model
+
+    @property
+    def post_license_encumbrance_request_model(self) -> Model:
+        """Return the post license encumbrance request model, which should only be created once per API"""
+        if hasattr(self.api, '_v1_post_license_encumbrance_request_model'):
+            return self.api._v1_post_license_encumbrance_request_model
+        self.api._v1_post_license_encumbrance_request_model = self.api.add_model(
+            'V1PostLicenseEncumbranceRequestModel',
+            description='Post license encumbrance request model',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                additional_properties=False,
+                required=['encumbranceEffectiveDate', 'clinicalPrivilegeActionCategory'],
+                properties={
+                    'encumbranceEffectiveDate': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='The effective date of the encumbrance',
+                        format='date',
+                        pattern=cc_api.YMD_FORMAT,
+                    ),
+                    'clinicalPrivilegeActionCategory': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='The category of clinical privilege action',
+                    ),
+                },
+            ),
+        )
+
+        return self.api._v1_post_license_encumbrance_request_model
 
     @property
     def post_provider_user_military_affiliation_request_model(self) -> Model:
@@ -525,7 +586,7 @@ class ApiModel:
                     'licenseType': JsonSchema(
                         type=JsonSchemaType.STRING,
                         description='The type of license the provider is purchasing a privilege for.',
-                        enum=self.stack.license_types,
+                        enum=self.stack.license_type_names,
                     ),
                     'selectedJurisdictions': JsonSchema(
                         type=JsonSchemaType.ARRAY,
@@ -816,7 +877,7 @@ class ApiModel:
                         'type',
                         'jurisdictionName',
                         'postalAbbreviation',
-                        'jurisdictionFee',
+                        'privilegeFees',
                         'jurisprudenceRequirements',
                     ],
                     properties={
@@ -829,9 +890,17 @@ class ApiModel:
                             type=JsonSchemaType.STRING,
                             description='The postal abbreviation of the jurisdiction',
                         ),
-                        'jurisdictionFee': JsonSchema(
-                            type=JsonSchemaType.NUMBER,
-                            description='The fee for the jurisdiction',
+                        'privilegeFees': JsonSchema(
+                            type=JsonSchemaType.ARRAY,
+                            description='The fees for the privileges',
+                            items=JsonSchema(
+                                type=JsonSchemaType.OBJECT,
+                                required=['licenseTypeAbbreviation', 'amount'],
+                                properties={
+                                    'licenseTypeAbbreviation': JsonSchema(type=JsonSchemaType.STRING),
+                                    'amount': JsonSchema(type=JsonSchemaType.NUMBER),
+                                },
+                            ),
                         ),
                         'militaryDiscount': JsonSchema(
                             type=JsonSchemaType.OBJECT,
@@ -959,7 +1028,7 @@ class ApiModel:
                                 type=JsonSchemaType.STRING,
                                 enum=self.stack.node.get_context('jurisdictions'),
                             ),
-                            'licenseType': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.license_types),
+                            'licenseType': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.license_type_names),
                             'dateOfUpdate': JsonSchema(
                                 type=JsonSchemaType.STRING,
                                 format='date',
@@ -1001,7 +1070,7 @@ class ApiModel:
                                             enum=self.stack.node.get_context('jurisdictions'),
                                         ),
                                         'licenseType': JsonSchema(
-                                            type=JsonSchemaType.STRING, enum=self.stack.license_types
+                                            type=JsonSchemaType.STRING, enum=self.stack.license_type_names
                                         ),
                                         'dateOfUpdate': JsonSchema(
                                             type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
@@ -1106,7 +1175,7 @@ class ApiModel:
                                             enum=self.stack.node.get_context('jurisdictions'),
                                         ),
                                         'licenseType': JsonSchema(
-                                            type=JsonSchemaType.STRING, enum=self.stack.license_types
+                                            type=JsonSchemaType.STRING, enum=self.stack.license_type_names
                                         ),
                                         'dateOfUpdate': JsonSchema(
                                             type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
@@ -1138,7 +1207,7 @@ class ApiModel:
                                     },
                                 ),
                             ),
-                            'licenseType': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.license_types),
+                            'licenseType': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.license_type_names),
                             **self._common_privilege_properties,
                         },
                     ),
@@ -1621,7 +1690,7 @@ class ApiModel:
                         type=JsonSchemaType.STRING,
                         description='Type of license',
                         max_length=500,
-                        enum=self.stack.license_types,
+                        enum=self.stack.license_type_names,
                     ),
                     'compact': JsonSchema(
                         type=JsonSchemaType.STRING,

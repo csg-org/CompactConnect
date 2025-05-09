@@ -12,6 +12,9 @@ from .. import TstFunction
 TEST_ENVIRONMENT_NAME = 'test'
 MOCK_CURRENT_TIMESTAMP = '2024-11-08T23:59:59+00:00'
 
+ASLP_COMPACT_ABBREVIATION = 'aslp'
+OT_COMPACT_ABBREVIATION = 'octp'
+
 
 def generate_mock_attestation():
     return {
@@ -38,11 +41,19 @@ def generate_single_root_compact_config(compact_abbr: str, active_environments: 
     }
 
 
-def generate_single_jurisdiction_config(jurisdiction_name: str, postal_abbreviation: str, active_environments: list):
+def generate_single_jurisdiction_config(
+    compact: str, jurisdiction_name: str, postal_abbreviation: str, active_environments: list
+):
+    privilege_fees = (
+        [{'licenseTypeAbbreviation': 'aud', 'amount': 100}, {'licenseTypeAbbreviation': 'slp', 'amount': 100}]
+        if compact == 'aslp'
+        else [{'licenseTypeAbbreviation': 'ot', 'amount': 100}, {'licenseTypeAbbreviation': 'ota', 'amount': 100}]
+    )
+
     return {
         'jurisdictionName': jurisdiction_name,
         'postalAbbreviation': postal_abbreviation,
-        'jurisdictionFee': 100,
+        'privilegeFees': privilege_fees,
         'militaryDiscount': {'active': True, 'discountType': 'FLAT_RATE', 'discountAmount': 10},
         'jurisdictionOperationsTeamEmails': ['cloud-team@example.com'],
         'jurisdictionAdverseActionsNotificationEmails': [],
@@ -56,17 +67,23 @@ def generate_single_jurisdiction_config(jurisdiction_name: str, postal_abbreviat
 def generate_mock_compact_configuration():
     return {
         'compacts': [
-            generate_single_root_compact_config('aslp', active_environments=[TEST_ENVIRONMENT_NAME]),
-            generate_single_root_compact_config('octp', active_environments=[]),
+            generate_single_root_compact_config(ASLP_COMPACT_ABBREVIATION, active_environments=[TEST_ENVIRONMENT_NAME]),
+            generate_single_root_compact_config(OT_COMPACT_ABBREVIATION, active_environments=[]),
         ],
         'jurisdictions': {
-            'aslp': [
-                generate_single_jurisdiction_config('nebraska', 'ne', active_environments=[TEST_ENVIRONMENT_NAME]),
-                generate_single_jurisdiction_config('ohio', 'oh', active_environments=[]),
+            ASLP_COMPACT_ABBREVIATION: [
+                generate_single_jurisdiction_config(
+                    ASLP_COMPACT_ABBREVIATION, 'nebraska', 'ne', active_environments=[TEST_ENVIRONMENT_NAME]
+                ),
+                generate_single_jurisdiction_config(ASLP_COMPACT_ABBREVIATION, 'ohio', 'oh', active_environments=[]),
             ],
-            'octp': [
-                generate_single_jurisdiction_config('nebraska', 'ne', active_environments=['sandbox']),
-                generate_single_jurisdiction_config('ohio', 'oh', active_environments=['sandbox']),
+            OT_COMPACT_ABBREVIATION: [
+                generate_single_jurisdiction_config(
+                    OT_COMPACT_ABBREVIATION, 'nebraska', 'ne', active_environments=['sandbox']
+                ),
+                generate_single_jurisdiction_config(
+                    OT_COMPACT_ABBREVIATION, 'ohio', 'oh', active_environments=['sandbox']
+                ),
             ],
         },
     }
@@ -104,8 +121,8 @@ class TestCompactConfigurationUploader(TstFunction):
             [
                 {
                     'compactAdverseActionsNotificationEmails': [],
-                    'compactCommissionFee': {'feeAmount': Decimal('3.5'), 'feeType': 'FLAT_RATE'},
-                    'compactAbbr': 'aslp',
+                    'compactCommissionFee': {'feeAmount': Decimal('3.50'), 'feeType': 'FLAT_RATE'},
+                    'compactAbbr': ASLP_COMPACT_ABBREVIATION,
                     'compactOperationsTeamEmails': [],
                     'compactSummaryReportNotificationEmails': [],
                     'dateOfUpdate': MOCK_CURRENT_TIMESTAMP,
@@ -115,15 +132,22 @@ class TestCompactConfigurationUploader(TstFunction):
                     'type': 'compact',
                 },
                 {
-                    'compact': 'aslp',
+                    'compact': ASLP_COMPACT_ABBREVIATION,
                     'dateOfUpdate': MOCK_CURRENT_TIMESTAMP,
                     'jurisdictionAdverseActionsNotificationEmails': [],
-                    'jurisdictionFee': Decimal('100'),
+                    'privilegeFees': [
+                        {'licenseTypeAbbreviation': 'aud', 'amount': Decimal('100.00')},
+                        {'licenseTypeAbbreviation': 'slp', 'amount': Decimal('100.00')},
+                    ],
                     'jurisdictionName': 'nebraska',
                     'jurisdictionOperationsTeamEmails': ['cloud-team@example.com'],
                     'jurisdictionSummaryReportNotificationEmails': [],
                     'jurisprudenceRequirements': {'required': True},
-                    'militaryDiscount': {'active': True, 'discountAmount': Decimal('10'), 'discountType': 'FLAT_RATE'},
+                    'militaryDiscount': {
+                        'active': True,
+                        'discountAmount': Decimal('10.00'),
+                        'discountType': 'FLAT_RATE',
+                    },
                     'pk': 'aslp#CONFIGURATION',
                     'postalAbbreviation': 'ne',
                     'sk': 'aslp#JURISDICTION#ne',
@@ -131,15 +155,22 @@ class TestCompactConfigurationUploader(TstFunction):
                     'licenseeRegistrationEnabledForEnvironments': [],
                 },
                 {
-                    'compact': 'aslp',
+                    'compact': ASLP_COMPACT_ABBREVIATION,
                     'dateOfUpdate': MOCK_CURRENT_TIMESTAMP,
                     'jurisdictionAdverseActionsNotificationEmails': [],
-                    'jurisdictionFee': Decimal('100'),
+                    'privilegeFees': [
+                        {'licenseTypeAbbreviation': 'aud', 'amount': Decimal('100.00')},
+                        {'licenseTypeAbbreviation': 'slp', 'amount': Decimal('100.00')},
+                    ],
                     'jurisdictionName': 'ohio',
                     'jurisdictionOperationsTeamEmails': ['cloud-team@example.com'],
                     'jurisdictionSummaryReportNotificationEmails': [],
                     'jurisprudenceRequirements': {'required': True},
-                    'militaryDiscount': {'active': True, 'discountAmount': Decimal('10'), 'discountType': 'FLAT_RATE'},
+                    'militaryDiscount': {
+                        'active': True,
+                        'discountAmount': Decimal('10.00'),
+                        'discountType': 'FLAT_RATE',
+                    },
                     'pk': 'aslp#CONFIGURATION',
                     'postalAbbreviation': 'oh',
                     'sk': 'aslp#JURISDICTION#oh',
@@ -148,8 +179,8 @@ class TestCompactConfigurationUploader(TstFunction):
                 },
                 {
                     'compactAdverseActionsNotificationEmails': [],
-                    'compactCommissionFee': {'feeAmount': Decimal('3.5'), 'feeType': 'FLAT_RATE'},
-                    'compactAbbr': 'octp',
+                    'compactCommissionFee': {'feeAmount': Decimal('3.50'), 'feeType': 'FLAT_RATE'},
+                    'compactAbbr': OT_COMPACT_ABBREVIATION,
                     'compactOperationsTeamEmails': [],
                     'compactSummaryReportNotificationEmails': [],
                     'dateOfUpdate': MOCK_CURRENT_TIMESTAMP,
@@ -159,15 +190,22 @@ class TestCompactConfigurationUploader(TstFunction):
                     'licenseeRegistrationEnabledForEnvironments': [],
                 },
                 {
-                    'compact': 'octp',
+                    'compact': OT_COMPACT_ABBREVIATION,
                     'dateOfUpdate': MOCK_CURRENT_TIMESTAMP,
                     'jurisdictionAdverseActionsNotificationEmails': [],
-                    'jurisdictionFee': Decimal('100'),
+                    'privilegeFees': [
+                        {'licenseTypeAbbreviation': 'ot', 'amount': Decimal('100.00')},
+                        {'licenseTypeAbbreviation': 'ota', 'amount': Decimal('100.00')},
+                    ],
                     'jurisdictionName': 'nebraska',
                     'jurisdictionOperationsTeamEmails': ['cloud-team@example.com'],
                     'jurisdictionSummaryReportNotificationEmails': [],
                     'jurisprudenceRequirements': {'required': True},
-                    'militaryDiscount': {'active': True, 'discountAmount': Decimal('10'), 'discountType': 'FLAT_RATE'},
+                    'militaryDiscount': {
+                        'active': True,
+                        'discountAmount': Decimal('10.00'),
+                        'discountType': 'FLAT_RATE',
+                    },
                     'pk': 'octp#CONFIGURATION',
                     'postalAbbreviation': 'ne',
                     'sk': 'octp#JURISDICTION#ne',
@@ -175,15 +213,22 @@ class TestCompactConfigurationUploader(TstFunction):
                     'licenseeRegistrationEnabledForEnvironments': [],
                 },
                 {
-                    'compact': 'octp',
+                    'compact': OT_COMPACT_ABBREVIATION,
                     'dateOfUpdate': MOCK_CURRENT_TIMESTAMP,
                     'jurisdictionAdverseActionsNotificationEmails': [],
-                    'jurisdictionFee': Decimal('100'),
+                    'privilegeFees': [
+                        {'licenseTypeAbbreviation': 'ot', 'amount': Decimal('100.00')},
+                        {'licenseTypeAbbreviation': 'ota', 'amount': Decimal('100.00')},
+                    ],
                     'jurisdictionName': 'ohio',
                     'jurisdictionOperationsTeamEmails': ['cloud-team@example.com'],
                     'jurisdictionSummaryReportNotificationEmails': [],
                     'jurisprudenceRequirements': {'required': True},
-                    'militaryDiscount': {'active': True, 'discountAmount': Decimal('10'), 'discountType': 'FLAT_RATE'},
+                    'militaryDiscount': {
+                        'active': True,
+                        'discountAmount': Decimal('10.00'),
+                        'discountType': 'FLAT_RATE',
+                    },
                     'pk': 'octp#CONFIGURATION',
                     'postalAbbreviation': 'oh',
                     'sk': 'octp#JURISDICTION#oh',
@@ -199,7 +244,7 @@ class TestCompactConfigurationUploader(TstFunction):
 
         mock_configuration = generate_mock_compact_configuration()
         # An empty ops team email is not allowed
-        mock_configuration['jurisdictions']['aslp'][0]['jurisdictionOperationsTeamEmails'] = []
+        mock_configuration['jurisdictions'][ASLP_COMPACT_ABBREVIATION][0]['jurisdictionOperationsTeamEmails'] = []
 
         event = {
             'RequestType': 'Create',
@@ -248,7 +293,7 @@ class TestCompactConfigurationUploader(TstFunction):
             'states you are purchasing privileges for.',
             'required': True,
             'locale': 'en',
-            'compact': 'aslp',
+            'compact': ASLP_COMPACT_ABBREVIATION,
         }
 
         self.assertEqual(expected_attestation, attestation)

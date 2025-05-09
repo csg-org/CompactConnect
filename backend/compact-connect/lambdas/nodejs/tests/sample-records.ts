@@ -245,8 +245,29 @@ export const SAMPLE_JURISDICTION_CONFIGURATION = {
     'jurisdictionAdverseActionsNotificationEmails': {
         'L': []
     },
-    'jurisdictionFee': {
-        'N': '100'
+    'privilegeFees': {
+        'L': [
+            {
+                'M': {
+                    'licenseTypeAbbreviation': {
+                        'S': 'aud'
+                    },
+                    'amount': {
+                        'N': '100'
+                    }
+                }
+            },
+            {
+                'M': {
+                    'licenseTypeAbbreviation': {
+                        'S': 'slp'
+                    },
+                    'amount': {
+                        'N': '100'
+                    }
+                }
+            }
+        ]
     },
     'jurisdictionName': {
         'S': 'ohio'
@@ -295,7 +316,16 @@ export const SAMPLE_UNMARSHALLED_JURISDICTION_CONFIGURATION = {
     'compact': 'aslp',
     'dateOfUpdate': '2024-11-14',
     'jurisdictionAdverseActionsNotificationEmails': [],
-    'jurisdictionFee': '100',
+    'privilegeFees': [
+        {
+            'licenseTypeAbbreviation': 'aud',
+            'amount': '100'
+        },
+        {
+            'licenseTypeAbbreviation': 'slp',
+            'amount': '100'
+        }
+    ],
     'jurisdictionName': 'ohio',
     'jurisdictionOperationsTeamEmails': [ 'justin@inspiringapps.com' ],
     'jurisdictionSummaryReportNotificationEmails': [],

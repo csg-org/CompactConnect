@@ -12,7 +12,7 @@ from cc_common.data_model.schema.fields import (
     Jurisdiction,
     NationalProviderIdentifier,
 )
-from cc_common.data_model.schema.license import LicenseCommonSchema
+from cc_common.data_model.schema.license.common import LicenseCommonSchema
 
 
 class LicenseIngestSchema(LicenseCommonSchema):

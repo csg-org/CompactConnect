@@ -1,7 +1,11 @@
 # PLACEHOLDER DATA, NOT FINAL CONFIGURATION.
 jurisdictionName: "Ohio"
 postalAbbreviation: "oh"
-jurisdictionFee: 25
+privilegeFees:
+  - licenseTypeAbbreviation: "aud"
+    amount: 25
+  - licenseTypeAbbreviation: "slp"
+    amount: 25
 jurisdictionOperationsTeamEmails:
     - "gregg.thornton@shp.ohio.gov"
 jurisdictionAdverseActionsNotificationEmails: ["gregg.thornton@shp.ohio.gov"]

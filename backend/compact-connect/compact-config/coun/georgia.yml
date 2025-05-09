@@ -1,0 +1,14 @@
+# PLACEHOLDER DATA, NOT FINAL CONFIGURATION.
+jurisdictionName: "Georgia"
+postalAbbreviation: "ga"
+privilegeFees:
+  - licenseTypeAbbreviation: "lpc"
+    amount: 15
+jurisdictionOperationsTeamEmails:
+    - "cloud-team-nonprod-alerts@inspiringapps.com"
+jurisdictionAdverseActionsNotificationEmails: []
+jurisdictionSummaryReportNotificationEmails: []
+jurisprudenceRequirements:
+    required: false
+licenseeRegistrationEnabledForEnvironments: ["test"]
+activeEnvironments: ["test"]

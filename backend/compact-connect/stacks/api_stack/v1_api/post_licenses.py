@@ -42,7 +42,12 @@ class PostLicenses:
     def _add_post_license(
         self, method_options: MethodOptions, license_preprocessing_queue: IQueue, license_upload_role: IRole
     ):
-        self.resource.add_method(
+        self.post_license_handler = self._post_licenses_handler(
+            license_preprocessing_queue=license_preprocessing_queue,
+            license_upload_role=license_upload_role,
+        )
+
+        self.post_license_endpoint = self.resource.add_method(
             'POST',
             request_validator=self.api.parameter_body_validator,
             request_models={'application/json': self.api_model.post_license_model},
@@ -52,9 +57,7 @@ class PostLicenses:
                 ),
             ],
             integration=LambdaIntegration(
-                handler=self._post_licenses_handler(
-                    license_preprocessing_queue=license_preprocessing_queue, license_upload_role=license_upload_role
-                ),
+                handler=self.post_license_handler,
                 timeout=Duration.seconds(29),
             ),
             request_parameters={'method.request.header.Authorization': True},

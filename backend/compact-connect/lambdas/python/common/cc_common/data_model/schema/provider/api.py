@@ -1,4 +1,5 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
+from marshmallow import Schema
 from marshmallow.fields import Date, Email, List, Nested, Raw, String
 from marshmallow.validate import Length, Regexp
 
@@ -113,9 +114,11 @@ class ProviderPublicResponseSchema(ForgivingSchema):
     # Unlike the internal provider search endpoints used by staff users, which return license data in addition to
     # privilege data for a provider, we only return privilege data for a provider from the public GET provider endpoint
     privileges = List(Nested(PrivilegePublicResponseSchema(), required=False, allow_none=False))
+    # Note the lack of `licenses` here: we do not return license data for public endpoints
 
 
-class ProviderRegistrationRequestSchema(ForgivingSchema):
+# We set this to a strict schema, to avoid extra values from entering the system.
+class ProviderRegistrationRequestSchema(Schema):
     """
     Schema for provider registration requests.
 

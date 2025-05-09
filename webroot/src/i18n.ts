@@ -6,6 +6,7 @@ import { defaultLanguage } from '@/app.config';
 const i18n = createI18n({
     locale: defaultLanguage,
     fallbackLocale: defaultLanguage,
+    warnHtmlInMessage: 'off',
     messages: {
         en,
         es,
