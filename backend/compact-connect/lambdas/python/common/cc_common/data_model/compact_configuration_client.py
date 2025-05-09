@@ -3,9 +3,9 @@ from boto3.dynamodb.conditions import Key
 from cc_common.config import _Config, logger
 from cc_common.data_model.query_paginator import paginated_query
 from cc_common.data_model.schema.attestation import AttestationRecordSchema
-from cc_common.data_model.schema.compact import Compact
+from cc_common.data_model.schema.compact import CompactConfigurationData
 from cc_common.data_model.schema.compact.record import CompactRecordSchema
-from cc_common.data_model.schema.jurisdiction import Jurisdiction
+from cc_common.data_model.schema.jurisdiction import JurisdictionConfigurationData
 from cc_common.data_model.schema.jurisdiction.record import JurisdictionRecordSchema
 from cc_common.exceptions import CCNotFoundException
 from cc_common.utils import logger_inject_kwargs
@@ -75,7 +75,7 @@ class CompactConfigurationClient:
 
         return attestations_by_id
 
-    def get_compact_configuration(self, compact: str) -> Compact:
+    def get_compact_configuration(self, compact: str) -> CompactConfigurationData:
         """
         Get the configuration for a specific compact.
 
@@ -95,8 +95,19 @@ class CompactConfigurationClient:
             raise CCNotFoundException(f'No configuration found for compact "{compact}"')
 
         # Load through schema and convert to Compact model
-        compact_data = self.compact_schema.load(item)
-        return Compact(compact_data)
+        return CompactConfigurationData.from_database_record(item)
+
+    def save_compact_configuration(self, compact_configuration: CompactConfigurationData) -> None:
+        """
+        Save the compact configuration.
+
+        :param compact_configuration: The compact configuration data
+        """
+        logger.info('Saving compact configuration', compactAbbr=compact_configuration.compactAbbr)
+
+        serialized_compact = compact_configuration.serialize_to_database_record()
+
+        self.config.compact_configuration_table.put_item(Item=serialized_compact)
 
     def get_compact_jurisdictions(self, compact: str) -> list[dict]:
         """
@@ -118,7 +129,7 @@ class CompactConfigurationClient:
 
         return self.jurisdiction_schema.load(response.get('Items', []), many=True)
 
-    def get_jurisdiction_configuration(self, compact: str, jurisdiction: str) -> Jurisdiction:
+    def get_jurisdiction_configuration(self, compact: str, jurisdiction: str) -> JurisdictionConfigurationData:
         """
         Get the configuration for a specific jurisdiction within a compact.
 
@@ -141,8 +152,19 @@ class CompactConfigurationClient:
             )
 
         # Load through schema and convert to Jurisdiction model
-        jurisdiction_data = self.jurisdiction_schema.load(item)
-        return Jurisdiction(jurisdiction_data)
+        return JurisdictionConfigurationData.from_database_record(item)
+
+    def save_jurisdiction_configuration(self, jurisdiction_config: JurisdictionConfigurationData) -> None:
+        """
+        Save the jurisdiction configuration.
+
+        :param jurisdiction_config: The jurisdiction configuration model
+        """
+        logger.info('Saving jurisdiction configuration', jurisdiction=jurisdiction_config.postalAbbreviation)
+
+        serialized_jurisdiction = jurisdiction_config.serialize_to_database_record()
+
+        self.config.compact_configuration_table.put_item(Item=serialized_jurisdiction)
 
     @paginated_query
     @logger_inject_kwargs(logger, 'compact')

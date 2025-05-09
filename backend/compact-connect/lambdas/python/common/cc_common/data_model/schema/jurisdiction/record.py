@@ -5,24 +5,18 @@ from marshmallow.validate import Length, OneOf
 
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import BaseRecordSchema
-from cc_common.data_model.schema.jurisdiction import JURISDICTION_TYPE, JurisdictionMilitaryDiscountType
-
-
-class JurisdictionMilitaryDiscountRecordSchema(Schema):
-    active = Boolean(required=True, allow_none=False)
-    discountType = String(
-        required=True, allow_none=False, validate=OneOf([e.value for e in JurisdictionMilitaryDiscountType])
-    )
-    discountAmount = Decimal(required=True, allow_none=False, places=2)
+from cc_common.data_model.schema.jurisdiction.common import JURISDICTION_TYPE
 
 
 class JurisdictionJurisprudenceRequirementsRecordSchema(Schema):
     required = Boolean(required=True, allow_none=False)
+    linkToDocumentation = String(required=False, allow_none=False)
 
 
 class JurisdictionPrivilegeFeeRecordSchema(Schema):
     licenseTypeAbbreviation = String(required=True, allow_none=False)
     amount = Decimal(required=True, allow_none=False, places=2)
+    militaryRate = Decimal(required=False, allow_none=True, places=2)
 
 
 @BaseRecordSchema.register_schema(JURISDICTION_TYPE)
@@ -36,25 +30,18 @@ class JurisdictionRecordSchema(BaseRecordSchema):
     postalAbbreviation = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
     compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
     privilegeFees = List(Nested(JurisdictionPrivilegeFeeRecordSchema()), required=True, allow_none=False)
-    militaryDiscount = Nested(JurisdictionMilitaryDiscountRecordSchema(), required=False, allow_none=False)
-    jurisdictionOperationsTeamEmails = List(
-        Email(required=True, allow_none=False), required=True, allow_none=False, validate=Length(min=1)
-    )
+    jurisdictionOperationsTeamEmails = List(Email(required=True, allow_none=False), required=True, allow_none=False)
     jurisdictionAdverseActionsNotificationEmails = List(
-        String(required=True, allow_none=False),
+        Email(required=True, allow_none=False),
         required=True,
         allow_none=False,
     )
     jurisdictionSummaryReportNotificationEmails = List(
-        String(required=True, allow_none=False),
+        Email(required=True, allow_none=False),
         required=True,
         allow_none=False,
     )
-    licenseeRegistrationEnabledForEnvironments = List(
-        String(required=True, allow_none=False, validate=OneOf(['test', 'prod', config.environment_name])),
-        required=True,
-        allow_none=False,
-    )
+    licenseeRegistrationEnabled = Boolean(required=True, allow_none=False)
     jurisprudenceRequirements = Nested(
         JurisdictionJurisprudenceRequirementsRecordSchema(), required=True, allow_none=False
     )

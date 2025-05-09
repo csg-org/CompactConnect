@@ -1,0 +1,94 @@
+{
+  "properties": {
+    "privilegeFees": {
+      "description": "The fees for the privileges by license type",
+      "items": {
+        "properties": {
+          "licenseTypeAbbreviation": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "licenseTypeAbbreviation",
+          "amount"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "jurisdictionOperationsTeamEmails": {
+      "description": "List of email addresses for operations team notifications",
+      "items": {
+        "format": "email",
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "jurisdictionAdverseActionsNotificationEmails": {
+      "description": "List of email addresses for adverse actions notifications",
+      "items": {
+        "format": "email",
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "jurisdictionSummaryReportNotificationEmails": {
+      "description": "List of email addresses for summary report notifications",
+      "items": {
+        "format": "email",
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "jurisprudenceRequirements": {
+      "properties": {
+        "required": {
+          "description": "Whether jurisprudence requirements exist",
+          "type": "boolean"
+        },
+        "linkToDocumentation": {
+          "description": "Optional link to jurisprudence documentation",
+          "type": "string"
+        }
+      },
+      "required": [
+        "required"
+      ],
+      "type": "object"
+    },
+    "militaryRate": {
+      "properties": {
+        "active": {
+          "description": "Whether the military rate is active",
+          "type": "boolean"
+        },
+        "amount": {
+          "description": "The fixed rate amount for military users",
+          "type": "number"
+        }
+      },
+      "required": [
+        "active",
+        "amount"
+      ],
+      "type": "object"
+    },
+    "licenseeRegistrationEnabled": {
+      "description": "Denotes whether licensee registration is enabled",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "privilegeFees",
+    "jurisdictionOperationsTeamEmails",
+    "jurisdictionAdverseActionsNotificationEmails",
+    "jurisdictionSummaryReportNotificationEmails",
+    "jurisprudenceRequirements",
+    "licenseeRegistrationEnabled"
+  ],
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-04/schema#"
+}

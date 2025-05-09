@@ -1,11 +1,21 @@
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
+from cc_common.data_model.compact_configuration_utils import CompactConfigUtility
+from cc_common.data_model.schema.common import CCPermissionsAction
+from cc_common.data_model.schema.compact import CompactConfigurationData
+from cc_common.data_model.schema.compact.api import (
+    CompactConfigurationResponseSchema,
+    PostCompactConfigurationRequestSchema,
+)
+from cc_common.data_model.schema.jurisdiction import JurisdictionConfigurationData
 from cc_common.data_model.schema.jurisdiction.api import (
+    CompactJurisdictionConfigurationRequestSchema,
+    CompactJurisdictionConfigurationResponseSchema,
     CompactJurisdictionsPublicResponseSchema,
     CompactJurisdictionsStaffUsersResponseSchema,
 )
-from cc_common.exceptions import CCInvalidRequestException
-from cc_common.utils import api_handler
+from cc_common.exceptions import CCInvalidRequestException, CCNotFoundException
+from cc_common.utils import api_handler, authorize_compact_level_only_action, authorize_state_level_only_action
 
 
 @api_handler
@@ -16,6 +26,14 @@ def compact_configuration_api_handler(event: dict, context: LambdaContext):  # n
         return _get_staff_users_compact_jurisdictions(event, context)
     if event['httpMethod'] == 'GET' and event['resource'] == '/v1/public/compacts/{compact}/jurisdictions':
         return _get_public_compact_jurisdictions(event, context)
+    if event['httpMethod'] == 'GET' and event['resource'] == '/v1/compacts/{compact}':
+        return _get_staff_users_compact_configuration(event, context)
+    if event['httpMethod'] == 'POST' and event['resource'] == '/v1/compacts/{compact}':
+        return _post_compact_configuration(event, context)
+    if event['httpMethod'] == 'GET' and event['resource'] == '/v1/compacts/{compact}/jurisdictions/{jurisdiction}':
+        return _get_staff_users_jurisdiction_configuration(event, context)
+    if event['httpMethod'] == 'POST' and event['resource'] == '/v1/compacts/{compact}/jurisdictions/{jurisdiction}':
+        return _post_jurisdiction_configuration(event, context)
 
     raise CCInvalidRequestException('Invalid HTTP method')
 
@@ -58,3 +76,158 @@ def _get_public_compact_jurisdictions(event: dict, context: LambdaContext):  # n
     compact_jurisdictions = config.compact_configuration_client.get_compact_jurisdictions(compact=compact)
 
     return CompactJurisdictionsPublicResponseSchema().load(compact_jurisdictions, many=True)
+
+
+def _get_staff_users_compact_configuration(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
+    """
+    Endpoint for staff users to get the compact configuration.
+
+    :param event: API Gateway event
+    :param context: Lambda context
+    :return: The compact configuration
+    """
+    compact = event['pathParameters']['compact']
+
+    logger.info('Getting compact configuration', compact=compact)
+
+    try:
+        compact_config = config.compact_configuration_client.get_compact_configuration(compact=compact)
+        return CompactConfigurationResponseSchema().load(compact_config.to_dict())
+    except CCNotFoundException:
+        # in the case of a not found exception, we want to return an empty compact configuration with
+        # null values
+        compact_name = CompactConfigUtility.get_compact_name(compact) or compact
+        return {
+            'compactAbbr': compact,
+            'licenseeRegistrationEnabled': False,
+            'operationsTeamEmails': [],
+            'adverseActionsNotificationEmails': [],
+            'summaryReportNotificationEmails': [],
+            'compactCommissionFee': {
+                'commissionFee': None,
+                'commissionFeeType': 'FLAT_RATE',
+            },
+            'compactName': compact_name,
+        }
+
+
+@authorize_compact_level_only_action(action=CCPermissionsAction.ADMIN)
+def _post_compact_configuration(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
+    """
+    Endpoint for staff users to upsert the compact configuration.
+
+    :param event: API Gateway event
+    :param context: Lambda context
+    :return: The updated compact configuration
+    """
+    compact = event['pathParameters']['compact']
+    submitting_user_id = event['requestContext']['authorizer']['claims']['sub']
+
+    logger.info('Updating compact configuration', compact=compact, submitting_user_id=submitting_user_id)
+
+    # Validate the request body
+    validated_data = PostCompactConfigurationRequestSchema().loads(event['body'])
+
+    # Add compact abbreviation and name from path parameter
+    validated_data['compactAbbr'] = compact
+    compact_name = CompactConfigUtility.get_compact_name(compact)
+    if not compact_name:
+        raise CCInvalidRequestException(f'Invalid compact abbreviation: {compact}')
+    validated_data['compactName'] = compact_name
+
+    compact_configuration = CompactConfigurationData.create_new(validated_data)
+    # Save the compact configuration
+    config.compact_configuration_client.save_compact_configuration(compact_configuration)
+
+    # Return the saved configuration
+    return {'message': 'ok'}
+
+
+def _get_staff_users_jurisdiction_configuration(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
+    """
+    Endpoint for staff users to get the jurisdiction configuration.
+
+    :param event: API Gateway event
+    :param context: Lambda context
+    :return: The jurisdiction configuration
+    """
+    compact = event['pathParameters']['compact']
+    jurisdiction = event['pathParameters']['jurisdiction']
+
+    logger.info('Getting jurisdiction configuration', compact=compact, jurisdiction=jurisdiction)
+
+    try:
+        jurisdiction_config = config.compact_configuration_client.get_jurisdiction_configuration(
+            compact=compact, jurisdiction=jurisdiction
+        )
+        return CompactJurisdictionConfigurationResponseSchema().load(jurisdiction_config.to_dict())
+    except CCNotFoundException:
+        logger.info(
+            'Jurisdiction configuration not found. Returning empty jurisdiction configuration.',
+            compact=compact,
+            jurisdiction=jurisdiction,
+        )
+        jurisdiction_name = CompactConfigUtility.get_jurisdiction_name(jurisdiction) or jurisdiction
+        return {
+            'compact': compact,
+            'jurisdictionName': jurisdiction_name,
+            'postalAbbreviation': jurisdiction,
+            'privilegeFees': [],
+            'jurisprudenceRequirements': {
+                'required': False,
+                'linkToDocumentation': None,
+            },
+            'jurisdictionOperationsTeamEmails': [],
+            'jurisdictionAdverseActionsNotificationEmails': [],
+            'jurisdictionSummaryReportNotificationEmails': [],
+            'licenseeRegistrationEnabled': False,
+        }
+
+
+@authorize_state_level_only_action(action=CCPermissionsAction.ADMIN)
+def _post_jurisdiction_configuration(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
+    """
+    Endpoint for staff users to upsert the jurisdiction configuration.
+
+    :param event: API Gateway event
+    :param context: Lambda context
+    :return: The updated jurisdiction configuration
+    """
+    compact = event['pathParameters']['compact']
+    jurisdiction = event['pathParameters']['jurisdiction']
+    submitting_user_id = event['requestContext']['authorizer']['claims']['sub']
+
+    logger.info(
+        'Updating jurisdiction configuration',
+        compact=compact,
+        jurisdiction=jurisdiction,
+        submitting_user_id=submitting_user_id,
+    )
+
+    # Validate the request body
+    validated_data = CompactJurisdictionConfigurationRequestSchema().loads(event['body'])
+
+    # Add compact and jurisdiction details from path parameters
+    validated_data['compact'] = compact
+    validated_data['postalAbbreviation'] = jurisdiction
+
+    # Set the jurisdiction name based on the postal abbreviation
+    jurisdiction_name = CompactConfigUtility.get_jurisdiction_name(jurisdiction)
+    if not jurisdiction_name:
+        raise CCInvalidRequestException(f'Invalid jurisdiction postal abbreviation: {jurisdiction}')
+    validated_data['jurisdictionName'] = jurisdiction_name
+
+    # If there's a militaryRate field in the request, add it to each privilege fee
+    if 'militaryRate' in validated_data and validated_data['militaryRate'] is not None:
+        military_rate = validated_data['militaryRate']
+        # Add the military rate to each privilege fee
+        for fee in validated_data['privilegeFees']:
+            fee['militaryRate'] = military_rate
+        # Remove the top-level militaryRate field as it's now part of each privilege fee
+        del validated_data['militaryRate']
+
+    jurisdiction_data = JurisdictionConfigurationData.create_new(validated_data)
+    # Save the jurisdiction configuration
+    config.compact_configuration_client.save_jurisdiction_configuration(jurisdiction_data)
+
+    return {'message': 'ok'}
