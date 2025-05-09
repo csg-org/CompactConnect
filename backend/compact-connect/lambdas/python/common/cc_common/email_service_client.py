@@ -183,3 +183,34 @@ class EmailServiceClient:
         }
 
         return self._invoke_lambda(payload)
+
+    def send_privilege_purchase_email(
+        self,
+        provider_email: str,
+        transaction_date: str,
+        privileges: list[dict],
+        total_cost: str,
+        cost_line_items: list[dict]
+    ) -> dict[str, str]:
+        """
+        Send a jurisdiction transaction report email.
+
+        :param privileges: privileges purchased
+        :param total_cost: Total cost of the transaction
+        :param cost_line_items: Line items (name, cost) of transaction
+        :return: Response from the email notification service
+        """
+
+        payload = {
+            'template': 'privilegePurchaseProviderNotification',
+            'specificEmails': [
+                provider_email,
+            ],
+            'templateVariables': {
+                'transaction_date': transaction_date,
+                'privileges': privileges,
+                'totalCost': total_cost,
+                'costLineItems': cost_line_items
+            },
+        }
+        return self._invoke_lambda(payload)

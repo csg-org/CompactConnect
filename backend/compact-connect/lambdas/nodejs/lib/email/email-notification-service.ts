@@ -265,4 +265,52 @@ export class EmailNotificationService extends BaseEmailService {
             ]
         });
     }
+    /**
+     * Sends an email notification to a provider when they purchase privilege(s)
+     * @param compact - The compact name for which the privilege was deactivated
+     * @param jurisdiction - The jurisdiction for which the privilege was deactivated
+     * @param privilegeId - The privilege ID
+     */
+    public async sendPrivilegePurchaseProviderNotificationEmail(
+        specificEmails: string[] | undefined,
+        transactionDate: string,
+        privileges: any[], // fix later
+        totalCost: string,
+        costLineItems: any[]
+    ): Promise<void> {
+        this.logger.info('Sending provider privilege purchase notification email', { providerEmail: specificEmails ? specificEmails[0] : 'none' });
+
+        const recipients = specificEmails || [];
+
+        if (recipients.length === 0) {
+            throw new Error(`No recipients found`);
+        }
+
+        const emailContent = this.getNewEmailTemplate();
+        const headerText = `Privilege Purchase Confirmation`;
+        const subject = `Compact Connect Privilege Purchase Confirmation`;
+        const bodyText = `This email is to confirm you successfully purchased the following privileges on ${transactionDate}`;
+
+        this.insertHeader(emailContent, headerText);
+        this.insertBody(emailContent, bodyText, 'center');
+
+        privileges.forEach((privilege) => {
+            const titleText = `${privilege.licenseTypeAbbrev} - ${privilege.jurisdiction}`;
+            const privilegeIdText = `Privilege Id: ${privilege.jurisdiction}`;
+    
+            this.insertTuple(emailContent, titleText, privilegeIdText);
+        });
+
+        this.insertTwoColumnTable(emailContent, 'Cost breakdown', costLineItems);
+
+        this.insertTwoColumnRow(emailContent, 'Total', totalCost, true);
+
+        this.insertFooter(emailContent);
+
+        console.log('template', emailContent);
+
+        const htmlContent = renderToStaticMarkup(emailContent, { rootBlockId: 'root' });
+
+        await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send provider privilege purchase notification email' });
+    }
 }
