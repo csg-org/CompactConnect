@@ -26,7 +26,6 @@ aws_region = boto3.session.Session().region_name
 STACK_NAMES = [
     'Sandbox-TransactionMonitoringStack',
     'Sandbox-APIStack',
-    'Sandbox-UIStack',
     'Sandbox-IngestStack',
     'Sandbox-PersistentStack',
 ]
