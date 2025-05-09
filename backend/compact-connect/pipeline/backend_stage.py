@@ -3,6 +3,7 @@ from common_constructs.stack import StandardTags
 from constructs import Construct
 from stacks.api_stack import ApiStack
 from stacks.ingest_stack import IngestStack
+from stacks.managed_login_stack import ManagedLoginStack
 from stacks.persistent_stack import PersistentStack
 from stacks.reporting_stack import ReportingStack
 from stacks.transaction_monitoring_stack import TransactionMonitoringStack
@@ -33,6 +34,16 @@ class BackendStage(Stage):
             standard_tags=standard_tags,
             app_name=app_name,
             environment_name=environment_name,
+        )
+
+        self.managed_login_stack = ManagedLoginStack(
+            self,
+            'ManagedLoginStack',
+            env=environment,
+            environment_context=environment_context,
+            environment_name=environment_name,
+            standard_tags=standard_tags,
+            persistent_stack=self.persistent_stack,
         )
 
         self.ingest_stack = IngestStack(
