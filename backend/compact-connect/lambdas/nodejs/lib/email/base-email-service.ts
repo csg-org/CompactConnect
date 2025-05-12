@@ -412,7 +412,7 @@ export abstract class BaseEmailService {
         report['root']['data']['childrenIds'].push(valueBlockId);
     }
 
-    protected insertTwoColumnTable(report: TReaderDocument, title: string, rows: any[]) {
+    protected insertTwoColumnTable(report: TReaderDocument, title: string, rows: { left: string, right: string }[]) {
         const titleBlockId = `block-${crypto.randomUUID()}`;
 
 

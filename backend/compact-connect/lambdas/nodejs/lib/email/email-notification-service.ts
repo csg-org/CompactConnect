@@ -295,19 +295,27 @@ export class EmailNotificationService extends BaseEmailService {
         this.insertBody(emailContent, bodyText, 'center');
 
         privileges.forEach((privilege) => {
-            const titleText = `${privilege.licenseTypeAbbrev.toUpperCase()} - ${privilege.jurisdiction.TODOtransformtoStatename}`; // TODO here: some state helper?
+            const titleText = `${privilege.licenseTypeAbbrev.toUpperCase()} - ${privilege.jurisdiction.toUpperCase()}`;
             const privilegeIdText = `Privilege Id: ${privilege.privilegeId}`;
     
             this.insertTuple(emailContent, titleText, privilegeIdText);
         });
 
-        this.insertTwoColumnTable(emailContent, 'Cost breakdown', costLineItems);
+        const rows = lineItems.map((lineItem) => {
+            const quantityText = lineItem.quantity > 1 ? `x ${lineItem.quantity}` : '';
+            const left = `${lineItem.name} ${quantityText}`;
+            const right = `$${(lineItem.unitPrice * lineItem.quantity).toFixed(2)}`;
 
-        this.insertTwoColumnRow(emailContent, 'Total', totalCost, true);
+            return { left, right }
+        });
+
+        const totalCostDisplay = `$${totalCost.toFixed(2)}`;
+
+        this.insertTwoColumnTable(emailContent, 'Cost breakdown', rows);
+
+        this.insertTwoColumnRow(emailContent, 'Total', totalCostDisplay, true);
 
         this.insertFooter(emailContent);
-
-        console.log('template', emailContent);
 
         const htmlContent = renderToStaticMarkup(emailContent, { rootBlockId: 'root' });
 

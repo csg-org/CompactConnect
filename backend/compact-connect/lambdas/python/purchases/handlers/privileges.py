@@ -309,8 +309,12 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
         transaction_date = datetime.now(tz=UTC).date()
 
         privileges = generated_privileges
-        total_cost = transaction_response['totalCost']
         cost_line_items = transaction_response['lineItems']
+
+        # calculate total cost of transaction
+        total_cost = 0
+        for line_item in cost_line_items:
+            total_cost = total_cost + line_item['unitPrice'] * line_item['quantity']
 
         EventBusClient.publish_privilege_purchase_event(
             source='post_purchase_privileges',
@@ -337,7 +341,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             EventBusClient.publish_privilege_issued_event(
                 source='post_purchase_privileges',
                 provider_email=provider_email,
-                transaction_date=transaction_date,
+                date=transaction_date,
                 privilege=privilege_jurisdiction_issued
             )
 
@@ -345,7 +349,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             EventBusClient.publish_privilege_renewed_event(
                 source='post_purchase_privileges',
                 provider_email=provider_email,
-                transaction_date=transaction_date,
+                date=transaction_date,
                 privilege=privilege_jurisdiction_renewed
             )
 
