@@ -109,25 +109,34 @@ class CompactConfigurationClient:
 
         self.config.compact_configuration_table.put_item(Item=serialized_compact)
 
-    def get_compact_jurisdictions(self, compact: str) -> list[dict]:
+    def get_active_compact_jurisdictions(self, compact: str) -> list[dict]:
         """
-        Get the jurisdictions for a specific compact.
+        Get the active member jurisdictions for a specific compact.
 
-        :param compact: The compact abbreviation
-        :return: List of configured jurisdictions for the compact
+        Note this is not the list of jurisdiction configurations defined within a compact. This is specifically the list
+        of jurisdictions that are currently reported as active member jurisdictions within the compact.
+
+        This configuration is defined in the 'active_compact_member_jurisdictions' field of the project's cdk.json file.
+        It is uploaded into the table by the compact configuration uploader custom resource which runs with every new
+        deployment.
+
+        :param compact: The compact abbreviation.
+        :return: List of active member jurisdictions for the compact, each object including the name,
+        postal abbreviation, and abbreviation of the compact the jurisdiction is associated with.
         """
-        logger.info('Getting compact configuration', compact=compact)
+        logger.info('Getting active member jurisdictions', compact=compact)
 
         pk = f'{compact}#CONFIGURATION'
-        sk_prefix = f'{compact}#JURISDICTION'
+        sk = f'{compact}#ACTIVE_MEMBER_JURISDICTIONS'
 
-        # Realistically, we should never have more than 50 jurisdictions, so we do not need to handle pagination
-        response = self.config.compact_configuration_table.query(
-            KeyConditionExpression=Key('pk').eq(pk) & Key('sk').begins_with(sk_prefix),
-            Limit=1000,
-        )
+        response = self.config.compact_configuration_table.get_item(Key={'pk': pk, 'sk': sk})
 
-        return self.jurisdiction_schema.load(response.get('Items', []), many=True)
+        item = response.get('Item')
+        if not item or not item.get('active_member_jurisdictions'):
+            raise CCNotFoundException(f'No active member jurisdiction data found for compact "{compact}"')
+
+        # Return the active_member_jurisdictions list from the item
+        return item['active_member_jurisdictions']
 
     def get_jurisdiction_configuration(self, compact: str, jurisdiction: str) -> JurisdictionConfigurationData:
         """

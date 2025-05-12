@@ -7,7 +7,7 @@ class TestCollectChanges(TstLambdas):
     """Testing that permissions changes are parsed correctly from the API"""
 
     def _when_testing_collect_and_authorize_changes_with_valid_jurisdiction(self, mock_compact_configuration_client):
-        mock_compact_configuration_client.get_compact_jurisdictions.return_value = [{'postalAbbreviation': 'OH'}]
+        mock_compact_configuration_client.get_active_compact_jurisdictions.return_value = [{'postalAbbreviation': 'OH'}]
 
     def test_compact_changes(self):
         from cc_common.utils import collect_and_authorize_changes

@@ -45,6 +45,11 @@
       "octp",
       "coun"
     ],
+    "active_compact_member_jurisdictions": {
+      "aslp": ["ky", "ne", "oh"],
+      "octp": ["ky", "ne", "oh"],
+      "coun": ["ky", "ne", "oh"]
+    },
     "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
     "@aws-cdk/core:checkSecretUsage": true,
     "@aws-cdk/core:target-partitions": [

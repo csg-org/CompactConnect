@@ -42,7 +42,9 @@ class TestCompactConfigurationUploader(TstFunction):
         event = {
             'RequestType': 'Create',
             'ResourceProperties': {
-                'compact_list': json.dumps([ASLP_COMPACT_ABBREVIATION, OT_COMPACT_ABBREVIATION]),
+                'active_compact_member_jurisdictions': json.dumps(
+                    {ASLP_COMPACT_ABBREVIATION: ['ky', 'oh', 'ne'], OT_COMPACT_ABBREVIATION: ['ky', 'oh', 'ne']}
+                ),
                 'attestations': json.dumps(generate_mock_attestations()),
             },
         }
@@ -89,7 +91,7 @@ class TestCompactConfigurationUploader(TstFunction):
         event = {
             'RequestType': 'Create',
             'ResourceProperties': {
-                'compact_list': json.dumps([ASLP_COMPACT_ABBREVIATION]),
+                'active_compact_member_jurisdictions': json.dumps({ASLP_COMPACT_ABBREVIATION: ['ky']}),
                 'attestations': json.dumps(mock_attestations),
             },
         }
@@ -105,7 +107,7 @@ class TestCompactConfigurationUploader(TstFunction):
         event = {
             'RequestType': 'Create',
             'ResourceProperties': {
-                'compact_list': json.dumps([ASLP_COMPACT_ABBREVIATION]),
+                'active_compact_member_jurisdictions': json.dumps({ASLP_COMPACT_ABBREVIATION: ['ky']}),
                 'attestations': json.dumps(generate_mock_attestations()),
             },
         }
@@ -118,7 +120,7 @@ class TestCompactConfigurationUploader(TstFunction):
         event = {
             'RequestType': 'Update',
             'ResourceProperties': {
-                'compact_list': json.dumps([ASLP_COMPACT_ABBREVIATION]),
+                'active_compact_member_jurisdictions': json.dumps({ASLP_COMPACT_ABBREVIATION: ['ky']}),
                 'attestations': json.dumps(mock_attestations),
             },
         }
@@ -169,7 +171,7 @@ class TestCompactConfigurationUploader(TstFunction):
         event = {
             'RequestType': 'Create',
             'ResourceProperties': {
-                'compact_list': json.dumps([ASLP_COMPACT_ABBREVIATION]),
+                'active_compact_member_jurisdictions': json.dumps({ASLP_COMPACT_ABBREVIATION: ['ky']}),
                 'attestations': json.dumps(generate_mock_attestations()),
             },
         }
@@ -179,7 +181,7 @@ class TestCompactConfigurationUploader(TstFunction):
         event = {
             'RequestType': 'Update',
             'ResourceProperties': {
-                'compact_list': json.dumps([ASLP_COMPACT_ABBREVIATION]),
+                'active_compact_member_jurisdictions': json.dumps({ASLP_COMPACT_ABBREVIATION: ['ky']}),
                 'attestations': json.dumps(generate_mock_attestations()),
             },
         }
@@ -195,3 +197,65 @@ class TestCompactConfigurationUploader(TstFunction):
         # Should still only have one version
         self.assertEqual(1, len(attestation_response['Items']))
         self.assertEqual('1', attestation_response['Items'][0]['version'])
+
+    def test_active_member_jurisdictions_are_stored_correctly(self):
+        """Test that active member jurisdictions are correctly stored in DynamoDB."""
+        from handlers.compact_config_uploader import on_event
+
+        member_jurisdictions = {
+            ASLP_COMPACT_ABBREVIATION: ['ky', 'oh', 'ne'],
+            OT_COMPACT_ABBREVIATION: ['ky', 'oh', 'ne', 'wi'],
+        }
+
+        event = {
+            'RequestType': 'Create',
+            'ResourceProperties': {
+                'active_compact_member_jurisdictions': json.dumps(member_jurisdictions),
+                'attestations': json.dumps(generate_mock_attestations()),
+            },
+        }
+
+        on_event(event, self.mock_context)
+
+        # Check active member jurisdictions for ASLP
+        active_member_response = self.config.compact_configuration_table.get_item(
+            Key={
+                'pk': f'{ASLP_COMPACT_ABBREVIATION}#CONFIGURATION',
+                'sk': f'{ASLP_COMPACT_ABBREVIATION}#ACTIVE_MEMBER_JURISDICTIONS',
+            }
+        )
+
+        self.assertIn('Item', active_member_response)
+        self.assertIn('active_member_jurisdictions', active_member_response['Item'])
+
+        active_members = active_member_response['Item']['active_member_jurisdictions']
+        self.assertEqual(3, len(active_members))
+
+        # Check that the expected jurisdictions are in the list with the correct structure
+        for jurisdiction in active_members:
+            self.assertIn('postalAbbreviation', jurisdiction)
+            self.assertIn('jurisdictionName', jurisdiction)
+            self.assertIn('compact', jurisdiction)
+            self.assertEqual(ASLP_COMPACT_ABBREVIATION, jurisdiction['compact'])
+            self.assertIn(jurisdiction['postalAbbreviation'], member_jurisdictions[ASLP_COMPACT_ABBREVIATION])
+
+        # Check active member jurisdictions for OT
+        active_member_response = self.config.compact_configuration_table.get_item(
+            Key={
+                'pk': f'{OT_COMPACT_ABBREVIATION}#CONFIGURATION',
+                'sk': f'{OT_COMPACT_ABBREVIATION}#ACTIVE_MEMBER_JURISDICTIONS',
+            }
+        )
+
+        self.assertIn('active_member_jurisdictions', active_member_response['Item'])
+
+        active_members = active_member_response['Item']['active_member_jurisdictions']
+        self.assertEqual(
+            [
+                {'compact': 'octp', 'jurisdictionName': 'Kentucky', 'postalAbbreviation': 'ky'},
+                {'compact': 'octp', 'jurisdictionName': 'Ohio', 'postalAbbreviation': 'oh'},
+                {'compact': 'octp', 'jurisdictionName': 'Nebraska', 'postalAbbreviation': 'ne'},
+                {'compact': 'octp', 'jurisdictionName': 'Wisconsin', 'postalAbbreviation': 'wi'},
+            ],
+            active_members,
+        )

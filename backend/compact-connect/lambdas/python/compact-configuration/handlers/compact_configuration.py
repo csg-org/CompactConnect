@@ -54,7 +54,11 @@ def _get_staff_users_compact_jurisdictions(event: dict, context: LambdaContext):
 
     logger.info('Getting active jurisdictions for compact', compact=compact)
 
-    compact_jurisdictions = config.compact_configuration_client.get_compact_jurisdictions(compact=compact)
+    try:
+        compact_jurisdictions = config.compact_configuration_client.get_active_compact_jurisdictions(compact=compact)
+    except CCNotFoundException:
+        logger.info('no member jurisdictions found for provided compact. Returning empty list', compact=compact)
+        return []
 
     return CompactJurisdictionsStaffUsersResponseSchema().load(compact_jurisdictions, many=True)
 
@@ -74,7 +78,11 @@ def _get_public_compact_jurisdictions(event: dict, context: LambdaContext):  # n
 
     logger.info('Getting active jurisdictions for compact', compact=compact)
 
-    compact_jurisdictions = config.compact_configuration_client.get_compact_jurisdictions(compact=compact)
+    try:
+        compact_jurisdictions = config.compact_configuration_client.get_active_compact_jurisdictions(compact=compact)
+    except CCNotFoundException:
+        logger.info('no member jurisdictions found for provided compact. Returning empty list', compact=compact)
+        return []
 
     return CompactJurisdictionsPublicResponseSchema().load(compact_jurisdictions, many=True)
 

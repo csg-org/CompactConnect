@@ -121,7 +121,9 @@ class CompactConfigurationUpload(Construct):
             resource_type='Custom::CompactConfigurationUpload',
             service_token=self.compact_configuration_upload_provider.service_token,
             properties={
-                'compact_list': json.dumps(self.node.get_context('compacts')),
+                'active_compact_member_jurisdictions': json.dumps(
+                    self.node.get_context('active_compact_member_jurisdictions')
+                ),
                 'attestations': json.dumps(attestations_list),
             },
         )

@@ -522,3 +522,40 @@ class TestDataGenerator:
         config.compact_configuration_table.put_item(Item=jurisdiction_config_record)
 
         return jurisdiction_config
+
+    @staticmethod
+    def put_compact_active_member_jurisdictions(
+        compact: str = DEFAULT_COMPACT, postal_abbreviations: list[str] = None
+    ) -> list[dict]:
+        """
+        Creates and stores active member jurisdictions for a compact in the configuration table.
+
+        :param compact: The compact abbreviation
+        :param postal_abbreviations: List of jurisdiction postal abbreviations
+        :return: The list of active member jurisdictions that was stored
+        """
+        from cc_common.config import config
+        from cc_common.data_model.compact_configuration_utils import CompactConfigUtility
+
+        if postal_abbreviations is None:
+            postal_abbreviations = ['ky', 'oh', 'ne']  # Default jurisdictions if none provided
+
+        # Format member jurisdictions into the expected shape
+        formatted_jurisdictions = []
+        for jurisdiction in postal_abbreviations:
+            jurisdiction_name = CompactConfigUtility.get_jurisdiction_name(postal_abbr=jurisdiction)
+            formatted_jurisdictions.append(
+                {'jurisdictionName': jurisdiction_name, 'postalAbbreviation': jurisdiction, 'compact': compact}
+            )
+
+        # Create the item to store
+        item = {
+            'pk': f'{compact}#CONFIGURATION',
+            'sk': f'{compact}#ACTIVE_MEMBER_JURISDICTIONS',
+            'active_member_jurisdictions': formatted_jurisdictions,
+        }
+
+        # Store in the table
+        config.compact_configuration_table.put_item(Item=item)
+
+        return formatted_jurisdictions

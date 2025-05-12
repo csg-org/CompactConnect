@@ -25,15 +25,13 @@ def generate_test_event(method: str, resource: str) -> dict:
     return event
 
 
-def load_test_jurisdiction(compact_configuration_table, jurisdiction_overrides: dict):
-    with open('../common/tests/resources/dynamo/jurisdiction.json') as f:
-        record = json.load(f, parse_float=Decimal)
+def load_compact_active_member_jurisdictions(postal_abbreviations: list[str], compact: str = 'aslp'):
+    """Load active member jurisdictions using the TestDataGenerator."""
+    from common_test.test_data_generator import TestDataGenerator
 
-    record.update(jurisdiction_overrides)
-    compact_configuration_table.put_item(Item=record)
-
-    # return record for optional usage in tests
-    return record
+    TestDataGenerator.put_compact_active_member_jurisdictions(
+        compact=compact, postal_abbreviations=postal_abbreviations
+    )
 
 
 @mock_aws
@@ -74,27 +72,8 @@ class TestGetStaffUsersCompactJurisdictions(TstFunction):
         """Test getting list of jurisdictions configured for a compact."""
         from handlers.compact_configuration import compact_configuration_api_handler
 
-        # load jurisdictions
-        load_test_jurisdiction(
-            self.config.compact_configuration_table,
-            {
-                'pk': 'aslp#CONFIGURATION',
-                'sk': 'aslp#JURISDICTION#ky',
-                'jurisdictionName': 'Kentucky',
-                'postalAbbreviation': 'ky',
-                'compact': 'aslp',
-            },
-        )
-        load_test_jurisdiction(
-            self.config.compact_configuration_table,
-            {
-                'pk': 'aslp#CONFIGURATION',
-                'sk': 'aslp#JURISDICTION#oh',
-                'jurisdictionName': 'Ohio',
-                'postalAbbreviation': 'oh',
-                'compact': 'aslp',
-            },
-        )
+        # Load jurisdictions and active member jurisdictions
+        load_compact_active_member_jurisdictions(postal_abbreviations=['ky', 'oh'])
 
         event = generate_test_event('GET', STAFF_USERS_COMPACT_JURISDICTION_ENDPOINT_RESOURCE)
 
@@ -102,12 +81,15 @@ class TestGetStaffUsersCompactJurisdictions(TstFunction):
         self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
         response_body = json.loads(response['body'])
 
+        # Sort to ensure consistent order for comparison
+        sorted_response = sorted(response_body, key=lambda x: x['postalAbbreviation'])
+
         self.assertEqual(
             [
                 {'compact': 'aslp', 'jurisdictionName': 'Kentucky', 'postalAbbreviation': 'ky'},
                 {'compact': 'aslp', 'jurisdictionName': 'Ohio', 'postalAbbreviation': 'oh'},
             ],
-            response_body,
+            sorted_response,
         )
 
 
@@ -149,27 +131,8 @@ class TestGetPublicCompactJurisdictions(TstFunction):
         """Test getting list of jurisdictions configured for a compact."""
         from handlers.compact_configuration import compact_configuration_api_handler
 
-        # load jurisdictions
-        load_test_jurisdiction(
-            self.config.compact_configuration_table,
-            {
-                'pk': 'aslp#CONFIGURATION',
-                'sk': 'aslp#JURISDICTION#ky',
-                'jurisdictionName': 'Kentucky',
-                'postalAbbreviation': 'ky',
-                'compact': 'aslp',
-            },
-        )
-        load_test_jurisdiction(
-            self.config.compact_configuration_table,
-            {
-                'pk': 'aslp#CONFIGURATION',
-                'sk': 'aslp#JURISDICTION#oh',
-                'jurisdictionName': 'Ohio',
-                'postalAbbreviation': 'oh',
-                'compact': 'aslp',
-            },
-        )
+        # Load jurisdictions and active member jurisdictions
+        load_compact_active_member_jurisdictions(postal_abbreviations=['ky', 'oh'])
 
         event = generate_test_event('GET', PUBLIC_COMPACT_JURISDICTION_ENDPOINT_RESOURCE)
 
@@ -177,12 +140,15 @@ class TestGetPublicCompactJurisdictions(TstFunction):
         self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
         response_body = json.loads(response['body'])
 
+        # Sort to ensure consistent order for comparison
+        sorted_response = sorted(response_body, key=lambda x: x['postalAbbreviation'])
+
         self.assertEqual(
             [
                 {'compact': 'aslp', 'jurisdictionName': 'Kentucky', 'postalAbbreviation': 'ky'},
                 {'compact': 'aslp', 'jurisdictionName': 'Ohio', 'postalAbbreviation': 'oh'},
             ],
-            response_body,
+            sorted_response,
         )
 
 
