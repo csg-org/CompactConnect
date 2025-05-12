@@ -5,11 +5,11 @@ from cc_common.data_model.schema.common import CCPermissionsAction
 from cc_common.data_model.schema.compact import CompactConfigurationData
 from cc_common.data_model.schema.compact.api import (
     CompactConfigurationResponseSchema,
-    PostCompactConfigurationRequestSchema,
+    PutCompactConfigurationRequestSchema,
 )
 from cc_common.data_model.schema.jurisdiction import JurisdictionConfigurationData
 from cc_common.data_model.schema.jurisdiction.api import (
-    CompactJurisdictionConfigurationRequestSchema,
+    PutCompactJurisdictionConfigurationRequestSchema,
     CompactJurisdictionConfigurationResponseSchema,
     CompactJurisdictionsPublicResponseSchema,
     CompactJurisdictionsStaffUsersResponseSchema,
@@ -126,7 +126,7 @@ def _put_compact_configuration(event: dict, context: LambdaContext):  # noqa: AR
     logger.info('Updating compact configuration', compact=compact, submitting_user_id=submitting_user_id)
 
     # Validate the request body
-    validated_data = PostCompactConfigurationRequestSchema().loads(event['body'])
+    validated_data = PutCompactConfigurationRequestSchema().loads(event['body'])
 
     # Add compact abbreviation and name from path parameter
     validated_data['compactAbbr'] = compact
@@ -134,6 +134,12 @@ def _put_compact_configuration(event: dict, context: LambdaContext):  # noqa: AR
     if not compact_name:
         raise CCInvalidRequestException(f'Invalid compact abbreviation: {compact}')
     validated_data['compactName'] = compact_name
+
+    # Handle special case for transaction fee of 0
+    if validated_data.get('transactionFeeConfiguration', {}).get('licenseeCharges', {}).get('chargeAmount') == 0:
+        # If transaction fee is 0, remove the entire transactionFeeConfiguration object
+        logger.info('Removed transaction fee configuration because transaction fee was 0', compact=compact)
+        del validated_data['transactionFeeConfiguration']
 
     compact_configuration = CompactConfigurationData.create_new(validated_data)
     # Save the compact configuration
@@ -205,7 +211,7 @@ def _put_jurisdiction_configuration(event: dict, context: LambdaContext):  # noq
     )
 
     # Validate the request body
-    validated_data = CompactJurisdictionConfigurationRequestSchema().loads(event['body'])
+    validated_data = PutCompactJurisdictionConfigurationRequestSchema().loads(event['body'])
 
     # Add compact and jurisdiction details from path parameters
     validated_data['compact'] = compact

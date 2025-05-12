@@ -49,8 +49,8 @@ class CompactConfigurationResponseSchema(ForgivingSchema):
     licenseeRegistrationEnabled = Boolean(required=True, allow_none=False)
 
 
-class PostCompactConfigurationRequestSchema(Schema):
-    """Schema for the POST /v1/compacts/{compact} request body"""
+class PutCompactConfigurationRequestSchema(Schema):
+    """Schema for the PUT /v1/compacts/{compact} request body"""
 
     compactCommissionFee = Nested(CompactCommissionFeeSchema(), required=True, allow_none=False)
     transactionFeeConfiguration = Nested(TransactionFeeConfigurationResponseSchema(), required=False, allow_none=False)

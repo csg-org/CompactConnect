@@ -196,7 +196,7 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         event['pathParameters']['compact'] = compact_config['compactAbbr']
         return event, compact_config
 
-    def _when_testing_put_compact_configuration(self):
+    def _when_testing_put_compact_configuration(self, transaction_fee_zero: bool = False):
         from cc_common.utils import ResponseEncoder
 
         compact_config = self.test_data_generator.generate_default_compact_configuration()
@@ -205,6 +205,15 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         # add compact admin scope to the event
         event['requestContext']['authorizer']['claims']['scope'] = f'{compact_config.compactAbbr}/admin'
         event['requestContext']['authorizer']['claims']['sub'] = 'some-admin-id'
+
+        if transaction_fee_zero:
+            compact_config.transactionFeeConfiguration = {
+            'licenseeCharges': {
+                'chargeAmount': 0.00,
+                'chargeType': 'FLAT_FEE_PER_PRIVILEGE',
+                'active': True
+            }
+        }
 
         # we only allow the following values in the body
         event['body'] = json.dumps(
@@ -290,6 +299,27 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         stored_compact_data = CompactConfigurationData.from_database_record(response['Item'])
 
         self.assertEqual(compact_config.to_dict(), stored_compact_data.to_dict())
+
+    def test_put_compact_configuration_removes_transaction_fee_when_zero(self):
+        """Test that when a transaction fee of 0 is provided, the transaction fee configuration is removed."""
+        from cc_common.data_model.schema.compact import CompactConfigurationData
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        event, expected_config = self._when_testing_put_compact_configuration(transaction_fee_zero=True)
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+
+        # load the record from the configuration table
+        serialized_compact_config = expected_config.serialize_to_database_record()
+        response = self.config.compact_configuration_table.get_item(
+            Key={'pk': serialized_compact_config['pk'], 'sk': serialized_compact_config['sk']}
+        )
+
+        stored_compact_data = CompactConfigurationData.from_database_record(response['Item'])
+        
+        # Verify the transaction fee configuration is not present
+        self.assertNotIn('transactionFeeConfiguration', stored_compact_data.to_dict())
 
 
 TEST_MILITARY_RATE = Decimal('40.00')

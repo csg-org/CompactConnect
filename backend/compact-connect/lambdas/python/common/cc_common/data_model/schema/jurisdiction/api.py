@@ -91,10 +91,10 @@ class CompactJurisdictionConfigurationResponseSchema(ForgivingSchema):
     licenseeRegistrationEnabled = Boolean(required=True, allow_none=False)
 
 
-class CompactJurisdictionConfigurationRequestSchema(ForgivingSchema):
+class PutCompactJurisdictionConfigurationRequestSchema(ForgivingSchema):
     """
     Used to enforce which fields are posted in jurisdiction objects for the
-    POST /compacts/{compact}/jurisdictions/{jurisdiction} endpoint
+    PUT /compacts/{compact}/jurisdictions/{jurisdiction} endpoint
     """
 
     licenseeRegistrationEnabled = Boolean(required=True, allow_none=False)
