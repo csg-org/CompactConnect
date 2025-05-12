@@ -208,12 +208,8 @@ class TestStaffUsersCompactConfiguration(TstFunction):
 
         if transaction_fee_zero:
             compact_config.transactionFeeConfiguration = {
-            'licenseeCharges': {
-                'chargeAmount': 0.00,
-                'chargeType': 'FLAT_FEE_PER_PRIVILEGE',
-                'active': True
+                'licenseeCharges': {'chargeAmount': 0.00, 'chargeType': 'FLAT_FEE_PER_PRIVILEGE', 'active': True}
             }
-        }
 
         # we only allow the following values in the body
         event['body'] = json.dumps(
@@ -317,7 +313,7 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         )
 
         stored_compact_data = CompactConfigurationData.from_database_record(response['Item'])
-        
+
         # Verify the transaction fee configuration is not present
         self.assertNotIn('transactionFeeConfiguration', stored_compact_data.to_dict())
 

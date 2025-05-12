@@ -9,10 +9,10 @@ from cc_common.data_model.schema.compact.api import (
 )
 from cc_common.data_model.schema.jurisdiction import JurisdictionConfigurationData
 from cc_common.data_model.schema.jurisdiction.api import (
-    PutCompactJurisdictionConfigurationRequestSchema,
     CompactJurisdictionConfigurationResponseSchema,
     CompactJurisdictionsPublicResponseSchema,
     CompactJurisdictionsStaffUsersResponseSchema,
+    PutCompactJurisdictionConfigurationRequestSchema,
 )
 from cc_common.exceptions import CCInvalidRequestException, CCNotFoundException
 from cc_common.utils import api_handler, authorize_compact_level_only_action, authorize_state_level_only_action

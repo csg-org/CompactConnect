@@ -191,7 +191,6 @@ class TestBackendPipeline(TstAppABC, TestCase):
         )
         self.assertEqual(0, len(implicit_grant_clients))
 
-
     def test_synth_generates_python_lambda_layer_with_ssm_parameter(self):
         persistent_stack = self.app.test_backend_pipeline_stack.test_stage.persistent_stack
         persistent_stack_template = Template.from_stack(persistent_stack)
