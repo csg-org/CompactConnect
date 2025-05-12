@@ -59,6 +59,15 @@ def clean_modules():
             if module_name == prefix or module_name.startswith(f'{prefix}.'):
                 del sys.modules[module_name]
 
+    # Delete local modules after each run so we don't use cached modules and hit name clashes between tests
+    for local_dir in [*os.listdir()]:
+        # Remove the .py extension from the local file name
+        local_dir = local_dir.split('.py', 1)[0]
+        if local_dir.isidentifier():
+            for m in sorted(sys.modules.keys()):
+                if m.startswith(local_dir):
+                    del sys.modules[m]
+
 
 def run_tests(cov: Coverage, args):
     cov.start()
