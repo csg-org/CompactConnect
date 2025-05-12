@@ -130,19 +130,17 @@ def test_compact_configuration():
         differences = []
         for key, expected_value in compact_config.items():
             if key not in config_response:
-                differences.append(f"Missing key in response: {key}")
+                differences.append(f'Missing key in response: {key}')
             elif config_response[key] != expected_value:
-                differences.append(f"Value mismatch for {key}: Expected {expected_value}, Got {config_response[key]}")
-        
+                differences.append(f'Value mismatch for {key}: Expected {expected_value}, Got {config_response[key]}')
+
         # Check for extra keys in the response
         for key in config_response:
             if key not in compact_config:
-                differences.append(f"Extra key in response: {key}")
-        
+                differences.append(f'Extra key in response: {key}')
+
         if differences:
-            raise SmokeTestFailureException(
-                f'Configuration mismatch:\n' + '\n'.join(differences)
-            )
+            raise SmokeTestFailureException('Configuration mismatch:\n' + '\n'.join(differences))
 
         print(f'Successfully verified compact configuration for {compact}')
 
@@ -251,19 +249,17 @@ def test_jurisdiction_configuration():
                     differences.append(
                         f"Value mismatch for '{key}': Expected: {jurisdiction_config[key]}, Got: {config_response[key]}"
                     )
-            
+
             raise SmokeTestFailureException(
-                f"Jurisdiction configuration mismatch for {jurisdiction} in {compact}. Differences: {', '.join(differences)}"
+                f'Jurisdiction configuration mismatch for {jurisdiction} in {compact}. '
+                f'Differences: {", ".join(differences)}'
             )
 
         print(f'Successfully verified jurisdiction configuration for {jurisdiction} in {compact}')
 
     finally:
         # Clean up the test user
-        try:
-            delete_test_staff_user(test_email, user_sub, compact)
-        except Exception as e:
-            print(f'Failed to delete test user: {e}')
+        delete_test_staff_user(test_email, user_sub, compact)
 
 
 if __name__ == '__main__':
