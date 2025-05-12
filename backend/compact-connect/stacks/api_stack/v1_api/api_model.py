@@ -1559,7 +1559,7 @@ class ApiModel:
         return self.api._v1_get_compact_configuration_response_model
 
     @property
-    def post_compact_request_model(self) -> Model:
+    def put_compact_request_model(self) -> Model:
         """Return the compact configuration request model for POST /v1/compacts/{compact}"""
         if hasattr(self.api, '_v1_post_compact_request_model'):
             return self.api._v1_post_compact_request_model
@@ -1588,16 +1588,19 @@ class ApiModel:
                     'compactOperationsTeamEmails': JsonSchema(
                         type=JsonSchemaType.ARRAY,
                         description='List of email addresses for operations team notifications',
+                        min_items=1,
                         items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
                     ),
                     'compactAdverseActionsNotificationEmails': JsonSchema(
                         type=JsonSchemaType.ARRAY,
                         description='List of email addresses for adverse actions notifications',
+                        min_items=1,
                         items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
                     ),
                     'compactSummaryReportNotificationEmails': JsonSchema(
                         type=JsonSchemaType.ARRAY,
                         description='List of email addresses for summary report notifications',
+                        min_items=1,
                         items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
                     ),
                     'licenseeRegistrationEnabled': JsonSchema(
@@ -1726,7 +1729,7 @@ class ApiModel:
         return self.api._v1_get_jurisdiction_response_model
 
     @property
-    def post_jurisdiction_request_model(self) -> Model:
+    def put_jurisdiction_request_model(self) -> Model:
         """Return the jurisdiction configuration request model for
         POST /v1/compacts/{compact}/jurisdictions/{jurisdiction}
         """
@@ -1756,22 +1759,29 @@ class ApiModel:
                             properties={
                                 'licenseTypeAbbreviation': JsonSchema(type=JsonSchemaType.STRING),
                                 'amount': JsonSchema(type=JsonSchemaType.NUMBER),
+                                'militaryRate': JsonSchema(
+                                    type=JsonSchemaType.NUMBER,
+                                    description='Optional military rate for the privilege fee',
+                                ),
                             },
                         ),
                     ),
                     'jurisdictionOperationsTeamEmails': JsonSchema(
                         type=JsonSchemaType.ARRAY,
                         description='List of email addresses for operations team notifications',
+                        min_items=1,
                         items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
                     ),
                     'jurisdictionAdverseActionsNotificationEmails': JsonSchema(
                         type=JsonSchemaType.ARRAY,
                         description='List of email addresses for adverse actions notifications',
+                        min_items=1,
                         items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
                     ),
                     'jurisdictionSummaryReportNotificationEmails': JsonSchema(
                         type=JsonSchemaType.ARRAY,
                         description='List of email addresses for summary report notifications',
+                        min_items=1,
                         items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
                     ),
                     'jurisprudenceRequirements': JsonSchema(
@@ -1785,20 +1795,6 @@ class ApiModel:
                             'linkToDocumentation': JsonSchema(
                                 type=JsonSchemaType.STRING,
                                 description='Optional link to jurisprudence documentation',
-                            ),
-                        },
-                    ),
-                    'militaryRate': JsonSchema(
-                        type=JsonSchemaType.OBJECT,
-                        required=['active', 'amount'],
-                        properties={
-                            'active': JsonSchema(
-                                type=JsonSchemaType.BOOLEAN,
-                                description='Whether the military rate is active',
-                            ),
-                            'amount': JsonSchema(
-                                type=JsonSchemaType.NUMBER,
-                                description='The fixed rate amount for military users',
                             ),
                         },
                     ),

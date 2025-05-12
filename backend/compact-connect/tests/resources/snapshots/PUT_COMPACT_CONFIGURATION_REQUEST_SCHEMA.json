@@ -24,6 +24,7 @@
         "format": "email",
         "type": "string"
       },
+      "minItems": 1,
       "type": "array"
     },
     "compactAdverseActionsNotificationEmails": {
@@ -32,6 +33,7 @@
         "format": "email",
         "type": "string"
       },
+      "minItems": 1,
       "type": "array"
     },
     "compactSummaryReportNotificationEmails": {
@@ -40,6 +42,7 @@
         "format": "email",
         "type": "string"
       },
+      "minItems": 1,
       "type": "array"
     },
     "licenseeRegistrationEnabled": {

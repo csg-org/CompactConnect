@@ -1,7 +1,7 @@
 # ruff: noqa: N801, N815, ARG002 invalid-name unused-kwargs
 from marshmallow import Schema
 from marshmallow.fields import Boolean, Email, List, Nested, String
-from marshmallow.validate import OneOf
+from marshmallow.validate import Length, OneOf
 
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import ForgivingSchema
@@ -54,15 +54,13 @@ class PutCompactConfigurationRequestSchema(Schema):
 
     compactCommissionFee = Nested(CompactCommissionFeeSchema(), required=True, allow_none=False)
     transactionFeeConfiguration = Nested(TransactionFeeConfigurationResponseSchema(), required=False, allow_none=False)
-    compactOperationsTeamEmails = List(Email(required=True, allow_none=False), required=True, allow_none=False)
+    compactOperationsTeamEmails = List(
+        Email(required=True, allow_none=False), required=True, allow_none=False, validate=Length(min=1)
+    )
     compactAdverseActionsNotificationEmails = List(
-        String(required=True, allow_none=False),
-        required=True,
-        allow_none=False,
+        String(required=True, allow_none=False), required=True, allow_none=False, validate=Length(min=1)
     )
     compactSummaryReportNotificationEmails = List(
-        String(required=True, allow_none=False),
-        required=True,
-        allow_none=False,
+        String(required=True, allow_none=False), required=True, allow_none=False, validate=Length(min=1)
     )
     licenseeRegistrationEnabled = Boolean(required=True, allow_none=False)

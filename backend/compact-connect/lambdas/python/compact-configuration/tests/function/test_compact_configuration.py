@@ -310,7 +310,6 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
                 'jurisdictionSummaryReportNotificationEmails': jurisdiction_config.jurisdictionSummaryReportNotificationEmails,
                 'licenseeRegistrationEnabled': jurisdiction_config.licenseeRegistrationEnabled,
                 'jurisprudenceRequirements': jurisdiction_config.jurisprudenceRequirements,
-                'militaryRate': TEST_MILITARY_RATE,
                 'privilegeFees': jurisdiction_config.privilegeFees,
             },
             cls=ResponseEncoder,
@@ -431,9 +430,6 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
         )
 
         stored_jurisdiction_data = JurisdictionConfigurationData.from_database_record(response['Item'])
-        # we expect the military rate passed in at the API level to be injected to each privilege fee
-        for privilege_fee in jurisdiction_config.privilegeFees:
-            privilege_fee['militaryRate'] = TEST_MILITARY_RATE
 
         self.assertEqual(jurisdiction_config.to_dict(), stored_jurisdiction_data.to_dict())
 

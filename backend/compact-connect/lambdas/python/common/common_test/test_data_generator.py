@@ -487,8 +487,8 @@ class TestDataGenerator:
             'postalAbbreviation': 'ky',
             'jurisdictionName': 'Kentucky',
             'privilegeFees': [
-                {'licenseTypeAbbreviation': 'slp', 'amount': Decimal('50.00')},
-                {'licenseTypeAbbreviation': 'aud', 'amount': Decimal('50.00')},
+                {'licenseTypeAbbreviation': 'slp', 'amount': Decimal('50.00'), 'militaryRate': Decimal('50.00')},
+                {'licenseTypeAbbreviation': 'aud', 'amount': Decimal('50.00'), 'militaryRate': Decimal('50.00')},
             ],
             'jurisprudenceRequirements': {
                 'required': True,

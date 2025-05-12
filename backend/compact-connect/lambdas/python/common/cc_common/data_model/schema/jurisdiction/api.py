@@ -1,7 +1,7 @@
 # ruff: noqa: N801, N802, N815, ARG002 invalid-name unused-kwargs
 from marshmallow import Schema
 from marshmallow.fields import Boolean, Decimal, Email, List, Nested, String
-from marshmallow.validate import OneOf
+from marshmallow.validate import Length, OneOf
 
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import ForgivingSchema
@@ -103,14 +103,12 @@ class PutCompactJurisdictionConfigurationRequestSchema(ForgivingSchema):
     jurisprudenceRequirements = Nested(
         JurisdictionJurisprudenceRequirementsResponseSchema(), required=True, allow_none=False
     )
-    jurisdictionOperationsTeamEmails = List(Email(required=True, allow_none=False), required=True, allow_none=False)
+    jurisdictionOperationsTeamEmails = List(
+        Email(required=True, allow_none=False), required=True, allow_none=False, validate=Length(min=1)
+    )
     jurisdictionAdverseActionsNotificationEmails = List(
-        Email(required=True, allow_none=False),
-        required=True,
-        allow_none=False,
+        Email(required=True, allow_none=False), required=True, allow_none=False, validate=Length(min=1)
     )
     jurisdictionSummaryReportNotificationEmails = List(
-        Email(required=True, allow_none=False),
-        required=True,
-        allow_none=False,
+        Email(required=True, allow_none=False), required=True, allow_none=False, validate=Length(min=1)
     )

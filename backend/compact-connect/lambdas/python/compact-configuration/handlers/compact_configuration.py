@@ -233,15 +233,6 @@ def _put_jurisdiction_configuration(event: dict, context: LambdaContext):  # noq
             raise CCInvalidRequestException(f'Invalid jurisdiction postal abbreviation: {jurisdiction}')
         validated_data['jurisdictionName'] = jurisdiction_name
 
-        # If there's a militaryRate field in the request, add it to each privilege fee
-        if 'militaryRate' in validated_data and validated_data['militaryRate'] is not None:
-            military_rate = validated_data['militaryRate']
-            # Add the military rate to each privilege fee
-            for fee in validated_data['privilegeFees']:
-                fee['militaryRate'] = military_rate
-            # Remove the top-level militaryRate field as it's now part of each privilege fee
-            del validated_data['militaryRate']
-
         jurisdiction_data = JurisdictionConfigurationData.create_new(validated_data)
         # Save the jurisdiction configuration
         config.compact_configuration_client.save_jurisdiction_configuration(jurisdiction_data)
