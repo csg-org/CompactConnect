@@ -3,10 +3,6 @@
 Schema for API objects.
 """
 
-from marshmallow import ValidationError, validates_schema
-from marshmallow.fields import Date, Email, List, Nested, Raw, String
-from marshmallow.validate import Length
-
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import ForgivingSchema
 from cc_common.data_model.schema.fields import (
@@ -18,6 +14,9 @@ from cc_common.data_model.schema.fields import (
     SocialSecurityNumber,
     UpdateType,
 )
+from marshmallow import ValidationError, validates_schema
+from marshmallow.fields import Date, Email, List, Nested, Raw, String
+from marshmallow.validate import Length
 
 
 class LicensePostRequestSchema(ForgivingSchema):

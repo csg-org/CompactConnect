@@ -4,10 +4,9 @@ from datetime import UTC, datetime
 from enum import StrEnum
 from hashlib import md5
 
+from cc_common.config import config
 from marshmallow import Schema, ValidationError, validates_schema
 from marshmallow.fields import Dict, String, Url
-
-from cc_common.config import config
 
 
 class CCEnum(StrEnum):

@@ -1,11 +1,10 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 # We diverge from PEP8 variable naming in schema because they map to our API JSON Schema in which,
 # by convention, we use camelCase.
+from cc_common.data_model.schema.base_record import BaseRecordSchema
 from marshmallow import pre_dump
 from marshmallow.fields import Boolean, String
 from marshmallow.validate import OneOf, Regexp
-
-from cc_common.data_model.schema.base_record import BaseRecordSchema
 
 ATTESTATION_TYPE = 'attestation'
 SUPPORTED_LOCALES = ['en']

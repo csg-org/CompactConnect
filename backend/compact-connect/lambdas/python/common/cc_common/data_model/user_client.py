@@ -4,7 +4,6 @@ from secrets import token_hex
 
 from boto3.dynamodb.conditions import Attr, Key
 from botocore.exceptions import ClientError
-
 from cc_common.config import _Config, logger
 from cc_common.data_model.query_paginator import paginated_query
 from cc_common.data_model.schema.common import StaffUserStatus

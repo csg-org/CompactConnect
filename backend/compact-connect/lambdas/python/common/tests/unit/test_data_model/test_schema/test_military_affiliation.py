@@ -1,7 +1,6 @@
 import json
 
 from marshmallow import ValidationError
-
 from tests import TstLambdas
 
 

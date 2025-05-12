@@ -273,7 +273,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         self.assertEqual('testFirstName', api_contract_v1_obj.transactionRequest.billTo.firstName)
         self.assertEqual('testLastName', api_contract_v1_obj.transactionRequest.billTo.lastName)
         # transaction settings
-        self.assertEqual('180', api_contract_v1_obj.transactionRequest.transactionSettings.setting[0].settingValue)
+        self.assertEqual('10', api_contract_v1_obj.transactionRequest.transactionSettings.setting[0].settingValue)
         self.assertEqual(
             'duplicateWindow', api_contract_v1_obj.transactionRequest.transactionSettings.setting[0].settingName
         )

@@ -1,10 +1,6 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 from urllib.parse import quote
 
-from marshmallow import post_load, pre_dump, pre_load
-from marshmallow.fields import UUID, Date, DateTime, Email, String
-from marshmallow.validate import Length, Regexp
-
 from cc_common.data_model.schema.base_record import BaseRecordSchema, CalculatedStatusRecordSchema
 from cc_common.data_model.schema.common import ensure_value_is_datetime
 from cc_common.data_model.schema.fields import (
@@ -15,6 +11,9 @@ from cc_common.data_model.schema.fields import (
     NationalProviderIdentifier,
     Set,
 )
+from marshmallow import post_load, pre_dump, pre_load
+from marshmallow.fields import UUID, Date, DateTime, Email, String
+from marshmallow.validate import Length, Regexp
 
 
 @BaseRecordSchema.register_schema('provider')

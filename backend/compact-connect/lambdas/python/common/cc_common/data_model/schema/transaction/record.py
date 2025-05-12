@@ -1,12 +1,11 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 from datetime import datetime
 
+from cc_common.data_model.schema.base_record import BaseRecordSchema, StrictSchema
+from cc_common.data_model.schema.fields import Compact
 from marshmallow import pre_dump
 from marshmallow.fields import List, Nested, String
 from marshmallow.validate import OneOf
-
-from cc_common.data_model.schema.base_record import BaseRecordSchema, StrictSchema
-from cc_common.data_model.schema.fields import Compact
 
 
 class TransactionLineItemSchema(StrictSchema):

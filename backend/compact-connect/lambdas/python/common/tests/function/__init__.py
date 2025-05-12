@@ -8,7 +8,6 @@ import boto3
 from boto3.dynamodb.types import TypeDeserializer
 from faker import Faker
 from moto import mock_aws
-
 from tests import TstLambdas
 
 logger = logging.getLogger(__name__)

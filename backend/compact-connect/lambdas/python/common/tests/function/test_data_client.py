@@ -6,7 +6,6 @@ from uuid import uuid4
 from boto3.dynamodb.conditions import Key
 from cc_common.exceptions import CCInvalidRequestException
 from moto import mock_aws
-
 from tests.function import TstFunction
 
 

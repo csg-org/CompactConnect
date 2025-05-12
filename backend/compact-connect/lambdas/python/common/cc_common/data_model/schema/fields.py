@@ -1,8 +1,7 @@
-from marshmallow.fields import List, String
-from marshmallow.validate import OneOf, Regexp
-
 from cc_common.config import config
 from cc_common.data_model.schema.common import ProviderEligibilityStatus, UpdateCategory
+from marshmallow.fields import List, String
+from marshmallow.validate import OneOf, Regexp
 
 
 class SocialSecurityNumber(String):

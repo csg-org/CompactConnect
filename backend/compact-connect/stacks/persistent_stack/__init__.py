@@ -17,7 +17,6 @@ from common_constructs.python_function import COMMON_PYTHON_LAMBDA_LAYER_SSM_PAR
 from common_constructs.security_profile import SecurityProfile
 from common_constructs.stack import AppStack
 from constructs import Construct
-
 from stacks.persistent_stack.bulk_uploads_bucket import BulkUploadsBucket
 from stacks.persistent_stack.compact_configuration_table import CompactConfigurationTable
 from stacks.persistent_stack.compact_configuration_upload import CompactConfigurationUpload

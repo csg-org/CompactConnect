@@ -20,7 +20,6 @@ from cdk_nag import NagSuppressions
 from common_constructs.nodejs_function import NodejsFunction
 from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
-
 from stacks import persistent_stack as ps
 
 # Importing module level to allow lazy loading for typing

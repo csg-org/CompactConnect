@@ -4,13 +4,12 @@
 from abc import ABC
 from datetime import date
 
-from marshmallow import EXCLUDE, RAISE, Schema, post_load, pre_dump, pre_load
-from marshmallow.fields import UUID, DateTime, String
-from marshmallow.validate import OneOf
-
 from cc_common.config import config
 from cc_common.data_model.schema.fields import Compact, SocialSecurityNumber
 from cc_common.exceptions import CCInternalException
+from marshmallow import EXCLUDE, RAISE, Schema, post_load, pre_dump, pre_load
+from marshmallow.fields import UUID, DateTime, String
+from marshmallow.validate import OneOf
 
 
 class StrictSchema(Schema):

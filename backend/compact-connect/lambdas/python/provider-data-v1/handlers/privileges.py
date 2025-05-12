@@ -6,7 +6,7 @@ from cc_common.config import config, logger, metrics
 from cc_common.data_model.schema.common import CCPermissionsAction
 from cc_common.exceptions import CCInternalException, CCInvalidRequestException
 from cc_common.utils import api_handler, authorize_compact_level_only_action, sqs_handler
-from event_batch_writer import EventBatchWriter
+from cc_common.event_batch_writer import EventBatchWriter
 
 
 @api_handler
@@ -141,16 +141,16 @@ def privilege_purchase_message_handler(message: dict):
     privileges = message.get('privileges')
     provider_email = message.get('providerEmail')
     transaction_date = message.get('transactionDate')
-    
+
     with logger.append_context_keys(
         provider_email=provider_email
     ):
         logger.info('Processing privilege purchase notification')
-        
+
         # Get provider information to retrieve email and name
         # TODO: copy this pattern to get data needed to furnish info?
         # provider = config.data_client.get_provider(compact=compact, provider_id=provider_id, detail=False)['items'][0]
-        
+
         error_messages = []
 
         # Send notification to the jurisdiction

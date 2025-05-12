@@ -9,7 +9,7 @@ from cc_common.data_model.schema.license.ingest import LicenseIngestSchema
 from cc_common.data_model.schema.license.record import LicenseUpdateRecordSchema
 from cc_common.exceptions import CCNotFoundException
 from cc_common.utils import sqs_handler
-from event_batch_writer import EventBatchWriter
+from cc_common.event_batch_writer import EventBatchWriter
 
 license_schema = LicenseIngestSchema()
 license_update_schema = LicenseUpdateRecordSchema()

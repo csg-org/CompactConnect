@@ -1,9 +1,8 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
-from marshmallow import Schema
-from marshmallow.fields import List, Nested, Raw, String
-
 from cc_common.data_model.schema.base_record import ForgivingSchema
 from cc_common.data_model.schema.fields import ActiveInactive, Compact, Jurisdiction, UpdateType
+from marshmallow import Schema
+from marshmallow.fields import List, Nested, Raw, String
 
 
 class AttestationVersionResponseSchema(Schema):

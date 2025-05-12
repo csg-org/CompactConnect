@@ -13,7 +13,6 @@ from aws_cdk.aws_cognito import (
 )
 from aws_cdk.aws_lambda import CfnFunction, CfnLayerVersion
 from aws_cdk.aws_ssm import CfnParameter
-
 from tests.app.base import TstAppABC
 
 

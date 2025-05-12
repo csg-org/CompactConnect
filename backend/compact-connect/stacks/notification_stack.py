@@ -1,23 +1,17 @@
 from __future__ import annotations
 
-from __future__ import annotations
-
-import json
 import os
 
 from aws_cdk import Duration
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Metric, Stats, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
-from aws_cdk.aws_events import EventPattern, Rule, RuleTargetInput, Schedule
-from aws_cdk.aws_events_targets import LambdaFunction, SqsQueue
-from aws_cdk.aws_logs import QueryDefinition, QueryString
+from aws_cdk.aws_events import EventPattern, Rule
+from aws_cdk.aws_events_targets import SqsQueue
 from cdk_nag import NagSuppressions
-from common_constructs.nodejs_function import NodejsFunction
 from common_constructs.python_function import PythonFunction
 from common_constructs.queued_lambda_processor import QueuedLambdaProcessor
 from common_constructs.stack import AppStack
 from constructs import Construct
-
 from stacks import persistent_stack as ps
 
 

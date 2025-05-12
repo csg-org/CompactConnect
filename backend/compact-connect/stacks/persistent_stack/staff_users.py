@@ -20,7 +20,6 @@ from common_constructs.nodejs_function import NodejsFunction
 from common_constructs.python_function import PythonFunction
 from common_constructs.user_pool import UserPool
 from constructs import Construct
-
 from stacks import persistent_stack as ps
 from stacks.persistent_stack.users_table import UsersTable
 

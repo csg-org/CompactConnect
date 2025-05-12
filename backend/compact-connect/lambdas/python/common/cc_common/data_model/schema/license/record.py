@@ -1,10 +1,6 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 from urllib.parse import quote
 
-from marshmallow import ValidationError, post_dump, post_load, pre_dump, validates_schema
-from marshmallow.fields import UUID, Date, DateTime, Email, List, Nested, String
-from marshmallow.validate import Length
-
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import (
     BaseRecordSchema,
@@ -21,6 +17,9 @@ from cc_common.data_model.schema.fields import (
     UpdateType,
 )
 from cc_common.data_model.schema.license import LicenseCommonSchema
+from marshmallow import ValidationError, post_dump, post_load, pre_dump, validates_schema
+from marshmallow.fields import UUID, Date, DateTime, Email, List, Nested, String
+from marshmallow.validate import Length
 
 
 @BaseRecordSchema.register_schema('license')

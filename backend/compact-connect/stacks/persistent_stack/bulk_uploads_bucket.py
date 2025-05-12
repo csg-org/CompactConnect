@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 
+import stacks.persistent_stack as ps
 from aws_cdk import Duration
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Stats, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
@@ -18,8 +19,6 @@ from common_constructs.bucket import Bucket
 from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
 from constructs import Construct
-
-import stacks.persistent_stack as ps
 
 
 class BulkUploadsBucket(Bucket):

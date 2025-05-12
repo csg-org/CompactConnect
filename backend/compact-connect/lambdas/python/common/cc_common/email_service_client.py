@@ -4,7 +4,6 @@ from typing import Any
 
 import boto3
 from aws_lambda_powertools.logging import Logger
-
 from cc_common.exceptions import CCInternalException
 
 

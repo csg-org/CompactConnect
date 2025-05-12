@@ -1,5 +1,5 @@
 import json
-from datetime import UTC, datetime
+from datetime import UTC, datetime, date
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
@@ -291,9 +291,8 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             user_active_military=user_active_military,
         )
 
-        #### TODO here need to
-
         # transaction was successful, now we create privilege records for the selected jurisdictions
+        #
         generated_privileges = config.data_client.create_provider_privileges(
             compact=compact_abbr,
             provider_id=provider_id,
@@ -306,13 +305,10 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             attestations=body['attestations'],
         )
 
-        ## Hererererere ------------------
-        provider_email = user_provider_data.emailAddress
+        provider_email = provider_record['emailAddress']
         transaction_date = datetime.now(tz=UTC).date()
 
-        {privilege.licenseTypeAbbrev} - ${privilege.jurisdiction}`
-
-        privileges = generated_privileges ## or dict of only the values we need, double check what those are, maybe dont need to change the return there
+        privileges = generated_privileges
         total_cost = transaction_response['totalCost']
         cost_line_items = transaction_response['lineItems']
 
@@ -325,8 +321,35 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             cost_line_items=cost_line_items
         )
 
-        return transaction_response
+        privileges_renewed=[]
+        privileges_issued=[]
 
+        for jurisdiction in selected_jurisdictions_postal_abbreviations:
+            if (
+                jurisdiction in existing_privileges_for_license
+            ):
+                privileges_renewed.append(jurisdiction)
+            else:
+                privileges_issued.append(jurisdiction)
+
+
+        for privilege_jurisdiction_issued in privileges_issued:
+            EventBusClient.publish_privilege_issued_event(
+                source='post_purchase_privileges',
+                provider_email=provider_email,
+                transaction_date=transaction_date,
+                privilege=privilege_jurisdiction_issued
+            )
+
+        for privilege_jurisdiction_renewed in privileges_renewed:
+            EventBusClient.publish_privilege_renewed_event(
+                source='post_purchase_privileges',
+                provider_email=provider_email,
+                transaction_date=transaction_date,
+                privilege=privilege_jurisdiction_renewed
+            )
+
+        return transaction_response
 
     except CCFailedTransactionException as e:
         logger.warning(f'Failed transaction: {e}.')

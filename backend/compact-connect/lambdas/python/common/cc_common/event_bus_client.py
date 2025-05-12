@@ -1,12 +1,9 @@
 import json
-from datetime import datetime
-from typing import Any
 
 import boto3
 from aws_lambda_powertools.logging import Logger
-
-from config import config
-from event_batch_writer import EventBatchWriter
+from cc_common.config import config
+from cc_common.event_batch_writer import EventBatchWriter
 
 
 class EventBusClient:
@@ -71,6 +68,44 @@ class EventBusClient:
         self._publish_event(
             source=source,
             detail_type='privilege.purchase',
+            detail=event_detail
+        )
+
+    def publish_privilege_issued_event(
+        self,
+        source: str,
+        provider_email: str,
+        date: str,
+        privilege: dict,
+    ):
+
+        event_detail = {
+            'providerEmail': provider_email,
+            'date': date,
+            'privilege': privilege
+        }
+        self._publish_event(
+            source=source,
+            detail_type='privilege.issued',
+            detail=event_detail
+        )
+
+    def publish_privilege_renewed_event(
+        self,
+        source: str,
+        provider_email: str,
+        date: str,
+        privilege: dict,
+    ):
+
+        event_detail = {
+            'providerEmail': provider_email,
+            'date': date,
+            'privilege': privilege
+        }
+        self._publish_event(
+            source=source,
+            detail_type='privilege.renewed',
             detail=event_detail
         )
 

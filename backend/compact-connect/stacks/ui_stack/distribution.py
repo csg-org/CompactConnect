@@ -23,7 +23,6 @@ from common_constructs.security_profile import SecurityProfile
 from common_constructs.stack import AppStack
 from common_constructs.webacl import WebACL, WebACLScope
 from constructs import Construct
-
 from stacks.persistent_stack import PersistentStack
 
 

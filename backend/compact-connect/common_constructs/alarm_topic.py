@@ -3,9 +3,8 @@ from aws_cdk.aws_iam import Effect, PolicyStatement, ServicePrincipal
 from aws_cdk.aws_kms import IKey
 from aws_cdk.aws_sns import Topic
 from aws_cdk.aws_sns_subscriptions import EmailSubscription
-from constructs import Construct
-
 from common_constructs.slack_channel_configuration import SlackChannelConfiguration
+from constructs import Construct
 
 
 class AlarmTopic(Topic):

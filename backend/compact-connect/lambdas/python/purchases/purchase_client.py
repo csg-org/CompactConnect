@@ -407,7 +407,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                     )
                     return {
                         'message': 'Successfully processed charge',
-                        'lineItems': line_items, # Todo: Ask landon if we should do this or query transactionID / if that is saved in the db
+                        'lineItems': line_items, # Todo: pass back here
                         # their SDK returns the transaction id as an internal IntElement type, so we need to cast it
                         # or this will cause an error when we try to serialize it to JSON
                         'transactionId': str(response.transactionResponse.transId),

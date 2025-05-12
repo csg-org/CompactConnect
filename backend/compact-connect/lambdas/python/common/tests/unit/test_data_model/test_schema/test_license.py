@@ -4,7 +4,6 @@ from unittest.mock import patch
 from uuid import UUID, uuid4
 
 from marshmallow import ValidationError
-
 from tests import TstLambdas
 
 

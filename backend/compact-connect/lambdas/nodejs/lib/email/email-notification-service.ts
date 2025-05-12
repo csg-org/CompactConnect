@@ -295,8 +295,8 @@ export class EmailNotificationService extends BaseEmailService {
         this.insertBody(emailContent, bodyText, 'center');
 
         privileges.forEach((privilege) => {
-            const titleText = `${privilege.licenseTypeAbbrev} - ${privilege.jurisdiction}`;
-            const privilegeIdText = `Privilege Id: ${privilege.jurisdiction}`;
+            const titleText = `${privilege.licenseTypeAbbrev.toUpperCase()} - ${privilege.jurisdiction.TODOtransformtoStatename}`; // TODO here: some state helper?
+            const privilegeIdText = `Privilege Id: ${privilege.privilegeId}`;
     
             this.insertTuple(emailContent, titleText, privilegeIdText);
         });

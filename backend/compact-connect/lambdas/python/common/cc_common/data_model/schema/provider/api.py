@@ -1,7 +1,4 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
-from marshmallow.fields import Date, Email, List, Nested, Raw, String
-from marshmallow.validate import Length, Regexp
-
 from cc_common.data_model.schema.base_record import ForgivingSchema
 from cc_common.data_model.schema.fields import (
     ActiveInactive,
@@ -15,6 +12,8 @@ from cc_common.data_model.schema.home_jurisdiction.api import ProviderHomeJurisd
 from cc_common.data_model.schema.license.api import LicenseGeneralResponseSchema
 from cc_common.data_model.schema.military_affiliation.api import MilitaryAffiliationGeneralResponseSchema
 from cc_common.data_model.schema.privilege.api import PrivilegeGeneralResponseSchema, PrivilegePublicResponseSchema
+from marshmallow.fields import Date, Email, List, Nested, Raw, String
+from marshmallow.validate import Length, Regexp
 
 
 class ProviderGeneralResponseSchema(ForgivingSchema):

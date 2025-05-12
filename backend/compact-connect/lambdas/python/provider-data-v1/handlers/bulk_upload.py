@@ -15,7 +15,7 @@ from cc_common.utils import (
     authorize_compact_jurisdiction,
     send_licenses_to_preprocessing_queue,
 )
-from event_batch_writer import EventBatchWriter
+from cc_common.event_batch_writer import EventBatchWriter
 from license_csv_reader import LicenseCSVReader
 from marshmallow import ValidationError
 
