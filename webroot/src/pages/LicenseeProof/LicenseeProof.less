@@ -103,6 +103,7 @@
 
         .row {
             display: flex;
+            flex-wrap: wrap;
             align-items: center;
             width: 100%;
             margin-bottom: 1rem;
@@ -112,6 +113,14 @@
             break-inside: avoid;
             background-color: @veryLightGrey;
             .preserve-print-background-graphics();
+
+            @media print {
+                flex-wrap: nowrap;
+            }
+
+            @media @tabletWidth {
+                flex-wrap: nowrap;
+            }
 
             &.highlight {
                 background-color: @printBackgroundHighlight;
