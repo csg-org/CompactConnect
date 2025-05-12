@@ -192,8 +192,10 @@ class EmailServiceClient:
         cost_line_items: list[dict]
     ) -> dict[str, str]:
         """
-        Send a jurisdiction transaction report email.
+        Send a privilege(s) purchase notification email.
 
+        :param provider_email: email of the provider who purchased privileges
+        :param transaction_date: date of the transaction
         :param privileges: privileges purchased
         :param total_cost: Total cost of the transaction
         :param cost_line_items: Line items (name, cost) of transaction

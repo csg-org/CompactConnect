@@ -80,7 +80,7 @@ class _Config:
 
     @cached_property
     def event_bus_name(self):
-        return os.environ['EVENT_BUS_NAME']
+        return os.environ['EVENT_BUS_NAME'] #TODO here
 
     @cached_property
     def provider_table(self):
@@ -291,6 +291,12 @@ class _Config:
             email_notification_service_lambda_name=self.email_notification_service_lambda_name,
             logger=logger,
         )
+
+    @cached_property
+    def event_bus_client(self):
+        from cc_common.event_bus_client import EventBusClient
+
+        return EventBusClient()
 
 
 config = _Config()

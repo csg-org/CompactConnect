@@ -316,7 +316,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
         for line_item in cost_line_items:
             total_cost = total_cost + line_item['unitPrice'] * line_item['quantity']
 
-        EventBusClient.publish_privilege_purchase_event(
+        config.event_bus_client.publish_privilege_purchase_event(
             source='post_purchase_privileges',
             provider_email=provider_email,
             transaction_date=transaction_date,
@@ -338,7 +338,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
 
 
         for privilege_jurisdiction_issued in privileges_issued:
-            EventBusClient.publish_privilege_issued_event(
+            config.event_bus_client.publish_privilege_issued_event(
                 source='post_purchase_privileges',
                 provider_email=provider_email,
                 date=transaction_date,
@@ -346,7 +346,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             )
 
         for privilege_jurisdiction_renewed in privileges_renewed:
-            EventBusClient.publish_privilege_renewed_event(
+            config.event_bus_client.publish_privilege_renewed_event(
                 source='post_purchase_privileges',
                 provider_email=provider_email,
                 date=transaction_date,

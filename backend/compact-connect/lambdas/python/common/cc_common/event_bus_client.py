@@ -12,15 +12,12 @@ class EventBusClient:
     This class abstracts the lambda client and provides a clean interface for sending emails.
     """
 
-    def __init__(self, lambda_client: boto3.client, logger: Logger):
+    def __init__(self):
         """
         Initialize the EventBusClient.
-
-        :param lambda_client: boto3 lambda client.
-        :param email_notification_service_lambda_name: Name of the email notification service lambda.
         """
-        self._lambda_client = lambda_client
-        self._logger = logger
+        # self._lambda_client = lambda_client maybe supposed to event_batch_writer like this
+        # self._logger = logger
 
     def _publish_event(
         self,
@@ -38,7 +35,7 @@ class EventBusClient:
         event_entry = {
             'Source': source,
             'DetailType': detail_type,
-            'Detail': json.dumps(detail),
+            'Detail': detail,
             'EventBusName': config.event_bus_name,
         }
         # We'll support using a provided event batch writer to send the event to the event bus

@@ -136,7 +136,12 @@ class TestPostPurchasePrivileges(TstFunction):
         mock_purchase_client = MagicMock()
         mock_purchase_client_constructor.return_value = mock_purchase_client
         mock_purchase_client.process_charge_for_licensee_privileges.return_value = {
-            'transactionId': MOCK_TRANSACTION_ID
+            'transactionId': MOCK_TRANSACTION_ID,
+            'lineItems': [{
+                'name': 'Alaska Big Fee',
+                'quantity': 47,
+                'unitPrice': 55.5
+            }]
         }
 
         return mock_purchase_client
