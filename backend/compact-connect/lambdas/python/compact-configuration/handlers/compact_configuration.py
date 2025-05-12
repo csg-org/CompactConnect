@@ -16,6 +16,7 @@ from cc_common.data_model.schema.jurisdiction.api import (
 )
 from cc_common.exceptions import CCInvalidRequestException, CCNotFoundException
 from cc_common.utils import api_handler, authorize_compact_level_only_action, authorize_state_level_only_action
+from marshmallow import ValidationError
 
 
 @api_handler
@@ -211,29 +212,33 @@ def _put_jurisdiction_configuration(event: dict, context: LambdaContext):  # noq
     )
 
     # Validate the request body
-    validated_data = PutCompactJurisdictionConfigurationRequestSchema().loads(event['body'])
+    try:
+        validated_data = PutCompactJurisdictionConfigurationRequestSchema().loads(event['body'])
 
-    # Add compact and jurisdiction details from path parameters
-    validated_data['compact'] = compact
-    validated_data['postalAbbreviation'] = jurisdiction
+        # Add compact and jurisdiction details from path parameters
+        validated_data['compact'] = compact
+        validated_data['postalAbbreviation'] = jurisdiction
 
-    # Set the jurisdiction name based on the postal abbreviation
-    jurisdiction_name = CompactConfigUtility.get_jurisdiction_name(jurisdiction)
-    if not jurisdiction_name:
-        raise CCInvalidRequestException(f'Invalid jurisdiction postal abbreviation: {jurisdiction}')
-    validated_data['jurisdictionName'] = jurisdiction_name
+        # Set the jurisdiction name based on the postal abbreviation
+        jurisdiction_name = CompactConfigUtility.get_jurisdiction_name(jurisdiction)
+        if not jurisdiction_name:
+            raise CCInvalidRequestException(f'Invalid jurisdiction postal abbreviation: {jurisdiction}')
+        validated_data['jurisdictionName'] = jurisdiction_name
 
-    # If there's a militaryRate field in the request, add it to each privilege fee
-    if 'militaryRate' in validated_data and validated_data['militaryRate'] is not None:
-        military_rate = validated_data['militaryRate']
-        # Add the military rate to each privilege fee
-        for fee in validated_data['privilegeFees']:
-            fee['militaryRate'] = military_rate
-        # Remove the top-level militaryRate field as it's now part of each privilege fee
-        del validated_data['militaryRate']
+        # If there's a militaryRate field in the request, add it to each privilege fee
+        if 'militaryRate' in validated_data and validated_data['militaryRate'] is not None:
+            military_rate = validated_data['militaryRate']
+            # Add the military rate to each privilege fee
+            for fee in validated_data['privilegeFees']:
+                fee['militaryRate'] = military_rate
+            # Remove the top-level militaryRate field as it's now part of each privilege fee
+            del validated_data['militaryRate']
 
-    jurisdiction_data = JurisdictionConfigurationData.create_new(validated_data)
-    # Save the jurisdiction configuration
-    config.compact_configuration_client.save_jurisdiction_configuration(jurisdiction_data)
+        jurisdiction_data = JurisdictionConfigurationData.create_new(validated_data)
+        # Save the jurisdiction configuration
+        config.compact_configuration_client.save_jurisdiction_configuration(jurisdiction_data)
+    except ValidationError as e:
+        logger.info('Invalid jurisdiction configuration', compact=compact, jurisdiction=jurisdiction, error=e)
+        raise CCInvalidRequestException('Invalid jurisdiction configuration: ' + str(e)) from e
 
     return {'message': 'ok'}

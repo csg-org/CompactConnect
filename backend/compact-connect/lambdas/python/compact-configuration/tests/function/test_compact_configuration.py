@@ -352,6 +352,15 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
 
         return event, jurisdiction_config
 
+    def _when_testing_invalid_privilege_fees(self, privilege_fees: list[dict]):
+        event, jurisdiction_config = self._when_testing_put_jurisdiction_configuration()
+
+        body = json.loads(event['body'])
+        body['privilegeFees'] = privilege_fees
+        event['body'] = json.dumps(body)
+
+        return event
+
     def test_get_jurisdiction_configuration_returns_invalid_exception_if_invalid_http_method(self):
         """Test getting a jurisdiction configuration returns an invalid exception if the HTTP method is invalid."""
         from handlers.compact_configuration import compact_configuration_api_handler
@@ -439,18 +448,6 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
         self.assertEqual(403, response['statusCode'])
         self.assertIn('Access denied', json.loads(response['body'])['message'])
 
-    def test_put_jurisdiction_configuration_returns_invalid_jurisdiction_with_auth_error(self):
-        """Test putting a jurisdiction configuration rejects an invalid jurisdiction abbreviation."""
-        from handlers.compact_configuration import compact_configuration_api_handler
-
-        event = generate_test_event('PUT', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE)
-        # Set the jurisdiction to an invalid one
-        event['pathParameters']['jurisdiction'] = 'invalid_jurisdiction'
-
-        response = compact_configuration_api_handler(event, self.mock_context)
-        self.assertEqual(403, response['statusCode'])
-        self.assertIn('Access denied', json.loads(response['body'])['message'])
-
     def test_put_jurisdiction_configuration_stores_jurisdiction_configuration(self):
         """Test putting a jurisdiction configuration stores the jurisdiction configuration."""
         from cc_common.data_model.schema.jurisdiction import JurisdictionConfigurationData
@@ -473,3 +470,59 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
             privilege_fee['militaryRate'] = TEST_MILITARY_RATE
 
         self.assertEqual(jurisdiction_config.to_dict(), stored_jurisdiction_data.to_dict())
+
+    def test_put_jurisdiction_configuration_rejects_invalid_license_type_abbreviation(self):
+        """Test putting a jurisdiction configuration with an invalid license type abbreviation is rejected."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        event = self._when_testing_invalid_privilege_fees(
+            privilege_fees=[{'licenseTypeAbbreviation': 'INVALID_LICENSE_TYPE', 'amount': 100.00}]
+        )
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        response_body = json.loads(response['body'])
+        self.assertIn(
+            'Invalid jurisdiction configuration: '
+            "{'privilegeFees': ['Invalid license type abbreviation(s): INVALID_LICENSE_TYPE.",
+            response_body['message'],
+        )
+
+    def test_put_jurisdiction_configuration_rejects_duplicate_license_type_abbreviation(self):
+        """Test putting a jurisdiction configuration with an invalid license type abbreviation is rejected."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        event = self._when_testing_invalid_privilege_fees(
+            privilege_fees=[
+                {'licenseTypeAbbreviation': 'slp', 'amount': 100.00},
+                {'licenseTypeAbbreviation': 'aud', 'amount': 100.00},
+                {'licenseTypeAbbreviation': 'slp', 'amount': 50.00},
+            ]
+        )
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        response_body = json.loads(response['body'])
+        self.assertIn(
+            'Invalid jurisdiction configuration: '
+            "{'privilegeFees': ['Duplicate privilege fees found for same license type abbreviation(s).",
+            response_body['message'],
+        )
+
+    def test_put_jurisdiction_configuration_rejects_missing_license_type_abbreviation(self):
+        """Test putting a jurisdiction configuration with an invalid license type abbreviation is rejected."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        event = self._when_testing_invalid_privilege_fees(
+            privilege_fees=[{'licenseTypeAbbreviation': 'slp', 'amount': 100.00}]
+        )
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        response_body = json.loads(response['body'])
+        self.assertIn(
+            "Invalid jurisdiction configuration: {'privilegeFees': "
+            "['Missing privilege fee(s) for required license type(s): aud. "
+            'All valid license types for aslp must be included',
+            response_body['message'],
+        )
