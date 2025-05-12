@@ -28,12 +28,12 @@ def compact_configuration_api_handler(event: dict, context: LambdaContext):  # n
         return _get_public_compact_jurisdictions(event, context)
     if event['httpMethod'] == 'GET' and event['resource'] == '/v1/compacts/{compact}':
         return _get_staff_users_compact_configuration(event, context)
-    if event['httpMethod'] == 'POST' and event['resource'] == '/v1/compacts/{compact}':
-        return _post_compact_configuration(event, context)
+    if event['httpMethod'] == 'PUT' and event['resource'] == '/v1/compacts/{compact}':
+        return _put_compact_configuration(event, context)
     if event['httpMethod'] == 'GET' and event['resource'] == '/v1/compacts/{compact}/jurisdictions/{jurisdiction}':
         return _get_staff_users_jurisdiction_configuration(event, context)
-    if event['httpMethod'] == 'POST' and event['resource'] == '/v1/compacts/{compact}/jurisdictions/{jurisdiction}':
-        return _post_jurisdiction_configuration(event, context)
+    if event['httpMethod'] == 'PUT' and event['resource'] == '/v1/compacts/{compact}/jurisdictions/{jurisdiction}':
+        return _put_jurisdiction_configuration(event, context)
 
     raise CCInvalidRequestException('Invalid HTTP method')
 
@@ -112,7 +112,7 @@ def _get_staff_users_compact_configuration(event: dict, context: LambdaContext):
 
 
 @authorize_compact_level_only_action(action=CCPermissionsAction.ADMIN)
-def _post_compact_configuration(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
+def _put_compact_configuration(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """
     Endpoint for staff users to upsert the compact configuration.
 
@@ -185,7 +185,7 @@ def _get_staff_users_jurisdiction_configuration(event: dict, context: LambdaCont
 
 
 @authorize_state_level_only_action(action=CCPermissionsAction.ADMIN)
-def _post_jurisdiction_configuration(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
+def _put_jurisdiction_configuration(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """
     Endpoint for staff users to upsert the jurisdiction configuration.
 

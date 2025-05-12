@@ -196,11 +196,11 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         event['pathParameters']['compact'] = compact_config['compactAbbr']
         return event, compact_config
 
-    def _when_testing_post_compact_configuration(self):
+    def _when_testing_put_compact_configuration(self):
         from cc_common.utils import ResponseEncoder
 
         compact_config = self.test_data_generator.generate_default_compact_configuration()
-        event = generate_test_event('POST', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE)
+        event = generate_test_event('PUT', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE)
         event['pathParameters']['compact'] = compact_config.compactAbbr
         # add compact admin scope to the event
         event['requestContext']['authorizer']['claims']['scope'] = f'{compact_config.compactAbbr}/admin'
@@ -258,11 +258,11 @@ class TestStaffUsersCompactConfiguration(TstFunction):
             response_body,
         )
 
-    def test_post_compact_configuration_rejects_invalid_compact_with_auth_error(self):
-        """Test posting a compact configuration rejects an invalid compact abbreviation."""
+    def test_put_compact_configuration_rejects_invalid_compact_with_auth_error(self):
+        """Test putting a compact configuration rejects an invalid compact abbreviation."""
         from handlers.compact_configuration import compact_configuration_api_handler
 
-        event = generate_test_event('POST', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE)
+        event = generate_test_event('PUT', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE)
         event['pathParameters']['compact'] = 'foo'
         # add compact admin scope to the event
         event['requestContext']['authorizer']['scopes'] = 'aslp/admin'
@@ -271,12 +271,12 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         self.assertEqual(403, response['statusCode'])
         self.assertIn('Access denied', json.loads(response['body'])['message'])
 
-    def test_post_compact_configuration_stores_compact_configuration(self):
-        """Test posting a compact configuration stores the compact configuration."""
+    def test_put_compact_configuration_stores_compact_configuration(self):
+        """Test putting a compact configuration stores the compact configuration."""
         from cc_common.data_model.schema.compact import CompactConfigurationData
         from handlers.compact_configuration import compact_configuration_api_handler
 
-        event, compact_config = self._when_testing_post_compact_configuration()
+        event, compact_config = self._when_testing_put_compact_configuration()
 
         response = compact_configuration_api_handler(event, self.mock_context)
         self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
@@ -299,11 +299,11 @@ TEST_MILITARY_RATE = Decimal('40.00')
 class TestStaffUsersJurisdictionConfiguration(TstFunction):
     """Test suite for managing jurisdiction configurations."""
 
-    def _when_testing_post_jurisdiction_configuration(self):
+    def _when_testing_put_jurisdiction_configuration(self):
         from cc_common.utils import ResponseEncoder
 
         jurisdiction_config = self.test_data_generator.generate_default_jurisdiction_configuration()
-        event = generate_test_event('POST', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE)
+        event = generate_test_event('PUT', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE)
         event['pathParameters']['jurisdiction'] = jurisdiction_config.postalAbbreviation
         # add compact admin scope to the event
         event['requestContext']['authorizer']['claims']['scope'] = (
@@ -401,11 +401,11 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
             response_body,
         )
 
-    def test_post_jurisdiction_configuration_rejects_invalid_jurisdiction_with_auth_error(self):
-        """Test posting a jurisdiction configuration rejects an invalid jurisdiction abbreviation."""
+    def test_put_jurisdiction_configuration_rejects_invalid_jurisdiction_with_auth_error(self):
+        """Test putting a jurisdiction configuration rejects an invalid jurisdiction abbreviation."""
         from handlers.compact_configuration import compact_configuration_api_handler
 
-        event = generate_test_event('POST', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE)
+        event = generate_test_event('PUT', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE)
         # Set the jurisdiction to an invalid one
         event['pathParameters']['jurisdiction'] = 'invalid_jurisdiction'
 
@@ -413,11 +413,11 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
         self.assertEqual(403, response['statusCode'])
         self.assertIn('Access denied', json.loads(response['body'])['message'])
 
-    def test_post_jurisdiction_configuration_returns_invalid_jurisdiction_with_auth_error(self):
-        """Test posting a jurisdiction configuration rejects an invalid jurisdiction abbreviation."""
+    def test_put_jurisdiction_configuration_returns_invalid_jurisdiction_with_auth_error(self):
+        """Test putting a jurisdiction configuration rejects an invalid jurisdiction abbreviation."""
         from handlers.compact_configuration import compact_configuration_api_handler
 
-        event = generate_test_event('POST', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE)
+        event = generate_test_event('PUT', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE)
         # Set the jurisdiction to an invalid one
         event['pathParameters']['jurisdiction'] = 'invalid_jurisdiction'
 
@@ -425,12 +425,12 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
         self.assertEqual(403, response['statusCode'])
         self.assertIn('Access denied', json.loads(response['body'])['message'])
 
-    def test_post_jurisdiction_configuration_stores_jurisdiction_configuration(self):
-        """Test posting a jurisdiction configuration stores the jurisdiction configuration."""
+    def test_put_jurisdiction_configuration_stores_jurisdiction_configuration(self):
+        """Test putting a jurisdiction configuration stores the jurisdiction configuration."""
         from cc_common.data_model.schema.jurisdiction import JurisdictionConfigurationData
         from handlers.compact_configuration import compact_configuration_api_handler
 
-        event, jurisdiction_config = self._when_testing_post_jurisdiction_configuration()
+        event, jurisdiction_config = self._when_testing_put_jurisdiction_configuration()
 
         response = compact_configuration_api_handler(event, self.mock_context)
         self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))

@@ -95,7 +95,7 @@ class CompactConfigurationApi:
             general_read_method_options=general_read_method_options,
         )
 
-        self._add_staff_users_post_compact_configuration_endpoint(
+        self._add_staff_users_put_compact_configuration_endpoint(
             compact_configuration_api_handler=self.compact_configuration_api_function,
             admin_method_options=admin_method_options,
         )
@@ -105,7 +105,7 @@ class CompactConfigurationApi:
             general_read_method_options=general_read_method_options,
         )
 
-        self._add_staff_users_post_jurisdiction_configuration_endpoint(
+        self._add_staff_users_put_jurisdiction_configuration_endpoint(
             compact_configuration_api_handler=self.compact_configuration_api_function,
             admin_method_options=admin_method_options,
         )
@@ -175,12 +175,12 @@ class CompactConfigurationApi:
             authorization_scopes=general_read_method_options.authorization_scopes,
         )
 
-    def _add_staff_users_post_compact_configuration_endpoint(
+    def _add_staff_users_put_compact_configuration_endpoint(
         self, compact_configuration_api_handler: PythonFunction, admin_method_options: MethodOptions
     ):
-        """Add POST endpoint for /v1/compacts/{compact}"""
+        """Add PUT endpoint for /v1/compacts/{compact}"""
         self.staff_users_compact_resource.add_method(
-            'POST',
+            'PUT',
             LambdaIntegration(compact_configuration_api_handler),
             method_responses=[
                 MethodResponse(
@@ -214,12 +214,12 @@ class CompactConfigurationApi:
             authorization_scopes=general_read_method_options.authorization_scopes,
         )
 
-    def _add_staff_users_post_jurisdiction_configuration_endpoint(
+    def _add_staff_users_put_jurisdiction_configuration_endpoint(
         self, compact_configuration_api_handler: PythonFunction, admin_method_options: MethodOptions
     ):
-        """Add POST endpoint for /v1/compacts/{compact}/jurisdictions/{jurisdiction}"""
+        """Add PUT endpoint for /v1/compacts/{compact}/jurisdictions/{jurisdiction}"""
         self.staff_users_jurisdiction_resource.add_method(
-            'POST',
+            'PUT',
             LambdaIntegration(compact_configuration_api_handler),
             method_responses=[
                 MethodResponse(

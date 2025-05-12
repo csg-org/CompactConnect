@@ -193,23 +193,23 @@ class TestCompactConfigurationApi(TestApi):
             overwrite_snapshot=False,
         )
 
-    def test_synth_generates_post_compact_configuration_endpoint(self):
-        """Test that the POST /v1/compacts/{compact} endpoint is properly configured"""
+    def test_synth_generates_put_compact_configuration_endpoint(self):
+        """Test that the PUT /v1/compacts/{compact} endpoint is properly configured"""
         api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
 
         # Get the compact resource
         compact_resource_id = api_stack.get_logical_id(api_stack.api.v1_api.compact_resource.node.default_child)
 
-        # Ensure the POST method is configured with the lambda integration
+        # Ensure the PUT method is configured with the lambda integration
         request_model_logical_id_capture = Capture()
         response_model_logical_id_capture = Capture()
 
-        # ensure the POST method is configured with the lambda integration and authorizer
+        # ensure the PUT method is configured with the lambda integration and authorizer
         api_stack_template.has_resource_properties(
             type=CfnMethod.CFN_RESOURCE_TYPE_NAME,
             props={
-                'HttpMethod': 'POST',
+                'HttpMethod': 'PUT',
                 'ResourceId': {'Ref': compact_resource_id},
                 # ensure staff users authorizer is being used
                 'AuthorizerId': {
@@ -239,7 +239,7 @@ class TestCompactConfigurationApi(TestApi):
 
         self.compare_snapshot(
             post_compact_request_model['Schema'],
-            'POST_COMPACT_CONFIGURATION_REQUEST_SCHEMA',
+            'PUT_COMPACT_CONFIGURATION_REQUEST_SCHEMA',
             overwrite_snapshot=False,
         )
 
@@ -305,8 +305,8 @@ class TestCompactConfigurationApi(TestApi):
             overwrite_snapshot=False,
         )
 
-    def test_synth_generates_post_jurisdiction_configuration_endpoint(self):
-        """Test that the POST /v1/compacts/{compact}/jurisdictions/{jurisdiction} endpoint is properly configured"""
+    def test_synth_generates_put_jurisdiction_configuration_endpoint(self):
+        """Test that the PUT /v1/compacts/{compact}/jurisdictions/{jurisdiction} endpoint is properly configured"""
         api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
 
@@ -318,11 +318,11 @@ class TestCompactConfigurationApi(TestApi):
         request_model_logical_id_capture = Capture()
         response_model_logical_id_capture = Capture()
 
-        # ensure the POST method is configured with the lambda integration and authorizer
+        # ensure the PUT method is configured with the lambda integration and authorizer
         api_stack_template.has_resource_properties(
             type=CfnMethod.CFN_RESOURCE_TYPE_NAME,
             props={
-                'HttpMethod': 'POST',
+                'HttpMethod': 'PUT',
                 'ResourceId': {'Ref': jurisdiction_resource_id},
                 # ensure staff users authorizer is being used
                 'AuthorizerId': {
@@ -352,7 +352,7 @@ class TestCompactConfigurationApi(TestApi):
 
         self.compare_snapshot(
             post_jurisdiction_request_model['Schema'],
-            'POST_JURISDICTION_CONFIGURATION_REQUEST_SCHEMA',
+            'PUT_JURISDICTION_CONFIGURATION_REQUEST_SCHEMA',
             overwrite_snapshot=False,
         )
 
