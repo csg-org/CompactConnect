@@ -64,7 +64,7 @@ class PageContainer extends Vue {
 
     get includeMainNav(): boolean {
         const nonMainNavRouteNames: Array<string> = [
-            'LicenseeVerification',
+            'LicenseeVerification', // This is a printer-friendly page
         ];
 
         return !nonMainNavRouteNames.includes(this.currentRouteName);
