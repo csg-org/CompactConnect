@@ -7,6 +7,13 @@
         "additionalProperties": false,
         "properties": {
           "licenseTypeAbbreviation": {
+            "enum": [
+              "aud",
+              "slp",
+              "ot",
+              "ota",
+              "lpc"
+            ],
             "type": "string"
           },
           "amount": {

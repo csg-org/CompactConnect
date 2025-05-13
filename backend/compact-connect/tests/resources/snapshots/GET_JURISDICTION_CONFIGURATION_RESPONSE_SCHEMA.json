@@ -76,7 +76,10 @@
         },
         "linkToDocumentation": {
           "description": "Optional link to jurisprudence documentation",
-          "type": "string"
+          "type": [
+            "string",
+            "null"
+          ]
         }
       },
       "required": [

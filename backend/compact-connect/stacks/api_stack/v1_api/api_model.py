@@ -1714,7 +1714,7 @@ class ApiModel:
                                 description='Whether jurisprudence requirements exist',
                             ),
                             'linkToDocumentation': JsonSchema(
-                                type=JsonSchemaType.STRING,
+                                type=[JsonSchemaType.STRING, JsonSchemaType.NULL],
                                 description='Optional link to jurisprudence documentation',
                             ),
                         },
@@ -1733,10 +1733,10 @@ class ApiModel:
         """Return the jurisdiction configuration request model for
         POST /v1/compacts/{compact}/jurisdictions/{jurisdiction}
         """
-        if hasattr(self.api, '_v1_post_jurisdiction_request_model'):
-            return self.api._v1_post_jurisdiction_request_model
+        if hasattr(self.api, '_v1_put_jurisdiction_request_model'):
+            return self.api._v1_put_jurisdiction_request_model
 
-        self.api._v1_post_jurisdiction_request_model = self.api.add_model(
+        self.api._v1_put_jurisdiction_request_model = self.api.add_model(
             'V1PostJurisdictionRequestModel',
             description='Post jurisdiction configuration request model',
             schema=JsonSchema(
@@ -1759,7 +1759,10 @@ class ApiModel:
                             additional_properties=False,
                             required=['licenseTypeAbbreviation', 'amount'],
                             properties={
-                                'licenseTypeAbbreviation': JsonSchema(type=JsonSchemaType.STRING),
+                                'licenseTypeAbbreviation': JsonSchema(
+                                    type=JsonSchemaType.STRING,
+                                    enum=self.stack.license_type_abbreviations
+                                ),
                                 'amount': JsonSchema(type=JsonSchemaType.NUMBER, minimum=0),
                                 'militaryRate': JsonSchema(
                                     type=[JsonSchemaType.NUMBER, JsonSchemaType.NULL],
@@ -1812,7 +1815,7 @@ class ApiModel:
                 },
             ),
         )
-        return self.api._v1_post_jurisdiction_request_model
+        return self.api._v1_put_jurisdiction_request_model
 
     @property
     def get_provider_ssn_response_model(self) -> Model:
