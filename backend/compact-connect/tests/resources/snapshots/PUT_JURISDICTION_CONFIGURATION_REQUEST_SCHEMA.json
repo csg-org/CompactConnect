@@ -12,7 +12,7 @@
           },
           "militaryRate": {
             "description": "Optional military rate for the privilege fee",
-            "type": "number"
+            "type": ["number", "null"]
           }
         },
         "required": [
@@ -58,7 +58,7 @@
         },
         "linkToDocumentation": {
           "description": "Optional link to jurisprudence documentation",
-          "type": "string"
+          "type": ["string", "null"]
         }
       },
       "required": [

@@ -11,7 +11,7 @@ from cc_common.license_util import LicenseUtility
 
 class JurisdictionJurisprudenceRequirementsRecordSchema(Schema):
     required = Boolean(required=True, allow_none=False)
-    linkToDocumentation = String(required=False, allow_none=False)
+    linkToDocumentation = String(required=False, allow_none=True)
 
 
 class JurisdictionPrivilegeFeeRecordSchema(Schema):

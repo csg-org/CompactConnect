@@ -242,6 +242,19 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         self.assertEqual(403, response['statusCode'])
         self.assertIn('Access denied', json.loads(response['body'])['message'])
 
+    def test_put_compact_configuration_rejects_state_admin_with_auth_error(self):
+        """Test putting a compact configuration rejects an invalid compact abbreviation."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        event = generate_test_event('PUT', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE)
+        event['pathParameters']['compact'] = 'aslp'
+        # add state admin scope to the event, but not compact admin
+        event['requestContext']['authorizer']['scopes'] = 'oh/aslp.admin'
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(403, response['statusCode'])
+        self.assertIn('Access denied', json.loads(response['body'])['message'])
+
     def test_put_compact_configuration_stores_compact_configuration(self):
         """Test putting a compact configuration stores the compact configuration."""
         from cc_common.data_model.schema.compact import CompactConfigurationData
@@ -413,6 +426,23 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
         self.assertEqual(403, response['statusCode'])
         self.assertIn('Access denied', json.loads(response['body'])['message'])
 
+    def test_put_jurisdiction_configuration_rejects_compact_admin_with_auth_error(self):
+        """Test putting a jurisdiction configuration rejects an update request from a compact admin."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        event = generate_test_event('PUT', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE)
+        event['pathParameters'] = {
+            'compact': 'aslp',
+            'jurisdiction': 'oh'
+        }
+        # add compact admin scope to the event, but not state admin
+        event['requestContext']['authorizer']['claims']['scope'] = 'aslp/admin'
+        event['requestContext']['authorizer']['claims']['sub'] = 'some-admin-id'
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(403, response['statusCode'])
+        self.assertIn('Access denied', json.loads(response['body'])['message'])
+
     def test_put_jurisdiction_configuration_stores_jurisdiction_configuration(self):
         """Test putting a jurisdiction configuration stores the jurisdiction configuration."""
         from cc_common.data_model.schema.jurisdiction import JurisdictionConfigurationData
@@ -432,6 +462,46 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
         stored_jurisdiction_data = JurisdictionConfigurationData.from_database_record(response['Item'])
 
         self.assertEqual(jurisdiction_config.to_dict(), stored_jurisdiction_data.to_dict())
+
+    def test_put_jurisdiction_configuration_accepts_null_values_for_optional_fields(self):
+        """Test putting a jurisdiction configuration accepts null values for optional fields."""
+        from cc_common.data_model.schema.jurisdiction import JurisdictionConfigurationData
+        from handlers.compact_configuration import compact_configuration_api_handler
+        from cc_common.utils import ResponseEncoder
+
+        event, jurisdiction_config = self._when_testing_put_jurisdiction_configuration()
+        
+        # Modify the body to include null values for optional fields
+        body = json.loads(event['body'])
+        
+        # Set linkToDocumentation to null
+        body['jurisprudenceRequirements'] = {
+            'required': True,
+            'linkToDocumentation': None
+        }
+        
+        # Set militaryRate to null for the first privilege fee
+        body['privilegeFees'][0]['militaryRate'] = None
+        
+        event['body'] = json.dumps(body, cls=ResponseEncoder)
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+
+        # Verify the configuration was stored with null values
+        serialized_jurisdiction_config = jurisdiction_config.serialize_to_database_record()
+        db_response = self.config.compact_configuration_table.get_item(
+            Key={'pk': serialized_jurisdiction_config['pk'], 'sk': serialized_jurisdiction_config['sk']}
+        )
+
+        stored_jurisdiction_data = JurisdictionConfigurationData.from_database_record(db_response['Item'])
+        stored_dict = stored_jurisdiction_data.to_dict()
+        
+        # Verify the optional fields have null values
+        self.assertIsNone(stored_dict['jurisprudenceRequirements']['linkToDocumentation'])
+        
+        # Find the privilege fee that should have null militaryRate
+        self.assertIsNone(stored_dict['privilegeFees'][0]['militaryRate'])
 
     def test_put_jurisdiction_configuration_rejects_invalid_license_type_abbreviation(self):
         """Test putting a jurisdiction configuration with an invalid license type abbreviation is rejected."""

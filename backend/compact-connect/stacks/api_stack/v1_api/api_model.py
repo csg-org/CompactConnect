@@ -1760,7 +1760,7 @@ class ApiModel:
                                 'licenseTypeAbbreviation': JsonSchema(type=JsonSchemaType.STRING),
                                 'amount': JsonSchema(type=JsonSchemaType.NUMBER),
                                 'militaryRate': JsonSchema(
-                                    type=JsonSchemaType.NUMBER,
+                                    type=[JsonSchemaType.NUMBER, JsonSchemaType.NULL],
                                     description='Optional military rate for the privilege fee',
                                 ),
                             },
@@ -1793,7 +1793,7 @@ class ApiModel:
                                 description='Whether jurisprudence requirements exist',
                             ),
                             'linkToDocumentation': JsonSchema(
-                                type=JsonSchemaType.STRING,
+                                type=[JsonSchemaType.STRING, JsonSchemaType.NULL],
                                 description='Optional link to jurisprudence documentation',
                             ),
                         },

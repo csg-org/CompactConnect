@@ -10,13 +10,13 @@ from cc_common.data_model.schema.jurisdiction.common import JURISDICTION_TYPE
 
 class JurisdictionJurisprudenceRequirementsResponseSchema(Schema):
     required = Boolean(required=True, allow_none=False)
-    linkToDocumentation = String(required=False, allow_none=False)
+    linkToDocumentation = String(required=False, allow_none=True)
 
 
 class JurisdictionPrivilegeFeeResponseSchema(Schema):
     licenseTypeAbbreviation = String(required=True, allow_none=False)
     amount = Decimal(required=True, allow_none=False)
-    militaryRate = Decimal(required=False, allow_none=False)
+    militaryRate = Decimal(required=False, allow_none=True)
 
 
 class JurisdictionMilitaryRateResponseSchema(Schema):
@@ -91,7 +91,7 @@ class CompactJurisdictionConfigurationResponseSchema(ForgivingSchema):
     licenseeRegistrationEnabled = Boolean(required=True, allow_none=False)
 
 
-class PutCompactJurisdictionConfigurationRequestSchema(ForgivingSchema):
+class PutCompactJurisdictionConfigurationRequestSchema(Schema):
     """
     Used to enforce which fields are posted in jurisdiction objects for the
     PUT /compacts/{compact}/jurisdictions/{jurisdiction} endpoint
@@ -99,7 +99,6 @@ class PutCompactJurisdictionConfigurationRequestSchema(ForgivingSchema):
 
     licenseeRegistrationEnabled = Boolean(required=True, allow_none=False)
     privilegeFees = List(Nested(JurisdictionPrivilegeFeeResponseSchema()), required=True, allow_none=False)
-    militaryRate = Decimal(required=False, allow_none=False, places=2)
     jurisprudenceRequirements = Nested(
         JurisdictionJurisprudenceRequirementsResponseSchema(), required=True, allow_none=False
     )
