@@ -84,14 +84,17 @@ class CompactJurisdictionConfigurationResponseSchema(ForgivingSchema):
     )
     licenseeRegistrationEnabled = Boolean(required=True, allow_none=False)
 
+
 class JurisdictionPrivilegeFeeRequestSchema(Schema):
     """
     The difference between this schema and the response schema is one is forgiving and allows null values in the
     case where we return a default config object for a state that has not set up their configuration yet.
     """
+
     licenseTypeAbbreviation = String(required=True, allow_none=False)
     amount = PositiveDecimal(required=True, allow_none=False)
     militaryRate = PositiveDecimal(required=False, allow_none=True)
+
 
 class PutCompactJurisdictionConfigurationRequestSchema(Schema):
     """

@@ -357,8 +357,8 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
 
     def test_get_jurisdiction_configuration_returns_empty_jurisdiction_configuration_if_no_configuration_exists(self):
         """Test getting a jurisdiction configuration returns a default configuration if none exists."""
-        from handlers.compact_configuration import compact_configuration_api_handler
         from cc_common.license_util import LicenseUtility
+        from handlers.compact_configuration import compact_configuration_api_handler
 
         event = generate_test_event('GET', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE)
         event['pathParameters']['jurisdiction'] = 'ky'
@@ -370,14 +370,12 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
         # Get the expected license types for this compact
         valid_license_types = LicenseUtility.get_valid_license_type_abbreviations('aslp')
         expected_privilege_fees = [
-            {'licenseTypeAbbreviation': lt, 'amount': None, 'militaryRate': None}
-            for lt in sorted(valid_license_types)
+            {'licenseTypeAbbreviation': lt, 'amount': None, 'militaryRate': None} for lt in sorted(valid_license_types)
         ]
-        
+
         # Sort the response privilege fees by license type for consistent comparison
         response_body['privilegeFees'] = sorted(
-            response_body['privilegeFees'], 
-            key=lambda x: x['licenseTypeAbbreviation']
+            response_body['privilegeFees'], key=lambda x: x['licenseTypeAbbreviation']
         )
 
         # Verify the jurisdiction name is set correctly from the mapping and privilege fees are created correctly

@@ -190,30 +190,32 @@ def _get_staff_users_jurisdiction_configuration(event: dict, context: LambdaCont
             jurisdiction=jurisdiction,
         )
         jurisdiction_name = CompactConfigUtility.get_jurisdiction_name(jurisdiction)
-        
+
         # Get all valid license types for this compact to populate default privilege fees
         valid_license_types = LicenseUtility.get_valid_license_type_abbreviations(compact)
         default_privilege_fees = [
-            # we set the amount to 0 to pass schemavalidation
-            {'licenseTypeAbbreviation': lt, 'amount': 0, 'militaryRate': None} 
+            # we set the amount to 0 to pass schema validation
+            {'licenseTypeAbbreviation': lt, 'amount': 0, 'militaryRate': None}
             for lt in valid_license_types
         ]
-        
+
         # Create a new empty configuration with the correct field names and default privilege fees
-        empty_config = JurisdictionConfigurationData.create_new({
-            'compact': compact,
-            'jurisdictionName': jurisdiction_name,
-            'postalAbbreviation': jurisdiction,
-            'privilegeFees': default_privilege_fees,
-            'jurisprudenceRequirements': {
-                'required': False,
-                'linkToDocumentation': None,
-            },
-            'jurisdictionOperationsTeamEmails': [],
-            'jurisdictionAdverseActionsNotificationEmails': [],
-            'jurisdictionSummaryReportNotificationEmails': [],
-            'licenseeRegistrationEnabled': False,
-        }).to_dict()
+        empty_config = JurisdictionConfigurationData.create_new(
+            {
+                'compact': compact,
+                'jurisdictionName': jurisdiction_name,
+                'postalAbbreviation': jurisdiction,
+                'privilegeFees': default_privilege_fees,
+                'jurisprudenceRequirements': {
+                    'required': False,
+                    'linkToDocumentation': None,
+                },
+                'jurisdictionOperationsTeamEmails': [],
+                'jurisdictionAdverseActionsNotificationEmails': [],
+                'jurisdictionSummaryReportNotificationEmails': [],
+                'licenseeRegistrationEnabled': False,
+            }
+        ).to_dict()
         # we set the privilege fees to None to show that they have not been set
         for fee in empty_config['privilegeFees']:
             fee['amount'] = None
