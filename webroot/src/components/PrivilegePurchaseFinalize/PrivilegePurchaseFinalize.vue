@@ -11,19 +11,19 @@
             <div class="finalize-purchase-container">
                 <div class="finalize-purchase-core-container">
                     <div class="finalize-purchase-title-row">
-                        <h1 class="finalize-purchase-title">{{paymentTitleText}}</h1>
+                        <h1 class="finalize-purchase-title">{{$t('payment.payment')}}</h1>
                         <CollapseCaretButton v-if="isPhone" @toggleCollapse="togglePaymentCollapsed" />
                     </div>
                     <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
                     <div v-if="shouldShowPaymentSection || !isPhone" class="payment-core-form">
                         <div class="credit-card-section">
-                            <div class="credit-card-title">{{creditCardTitleText}}</div>
+                            <div class="credit-card-title">{{$t('payment.creditCardTitle')}}</div>
                             <div class="form-row">
                                 <InputCreditCard :formInput="formData.creditCard" @input="formatCreditCard()" />
                             </div>
                             <div class="cc-dets form-row">
                                 <div class="exp-chunk">
-                                    <div class="exp-chunk-title">{{expirationDateText}} *</div>
+                                    <div class="exp-chunk-title">{{$t('payment.expirationDate')}} *</div>
                                     <div class="exp-chunk-input">
                                         <InputText
                                             :formInput="formData.expMonth"
@@ -47,7 +47,7 @@
                             </div>
                         </div>
                         <div class="billing-address-section">
-                            <div class="billing-address-title">{{billingAddressTitleText}}</div>
+                            <div class="billing-address-title">{{$t('payment.billingAddressTitle')}}</div>
                             <div class="form-row">
                                 <InputText :formInput="formData.firstName" />
                             </div>
@@ -97,12 +97,12 @@
                                 <div class="info-row-amount">${{totalCompactCommissionFeeDisplay}}</div>
                             </div>
                             <div v-if="isPerPrivilegeTransactionFeeActive" class="info-row">
-                                <div class="info-row-label">{{creditCardFeesText}}</div>
+                                <div class="info-row-label">{{$t('payment.ccTransactionFees')}}</div>
                                 <div class="info-row-amount">${{creditCardFeesTotalDisplay}}</div>
                             </div>
                         </div>
                         <div class="purchase-total info-row">
-                            <div class="info-row-label total">{{totalTitle}}</div>
+                            <div class="info-row-label total">{{$t('common.total')}}</div>
                             <div class="info-row-amount total">${{totalPurchasePriceDisplay}}</div>
                         </div>
                     </div>
@@ -111,25 +111,28 @@
             </div>
             <div v-if="formErrorMessage" class="form-error-message">{{formErrorMessage}}</div>
             <div class="button-row">
-                <InputButton
-                    :label="cancelText"
-                    :isTextLike="true"
-                    aria-label="close modal"
-                    class="cancel-button"
-                    @click="handleCancelClicked"
-                />
-                <div class="right-cell">
-                    <InputButton
-                        :label="backText"
-                        :isTransparent="true"
-                        aria-label="close modal"
-                        class="back-button"
-                        @click="handleBackClicked"
-                    />
+                <div class="form-nav-buttons">
                     <InputSubmit
                         :formInput="formData.submit"
-                        :label="submitLabel"
+                        class="form-nav-button"
+                        :label="$t('payment.completePurchase')"
                         :isEnabled="!isFormLoading && isSubmitEnabled"
+                    />
+                    <InputButton
+                        :label="$t('common.back')"
+                        :isTransparent="true"
+                        aria-label="close modal"
+                        class="form-nav-button back-button"
+                        @click="handleBackClicked"
+                    />
+                </div>
+                <div class="form-override-buttons">
+                    <InputButton
+                        :label="$t('common.cancel')"
+                        :isTextLike="true"
+                        aria-label="close modal"
+                        class="form-override-button cancel-button"
+                        @click="handleCancelClicked"
                     />
                 </div>
             </div>

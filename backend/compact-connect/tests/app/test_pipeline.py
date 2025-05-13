@@ -16,7 +16,7 @@ from aws_cdk.aws_ssm import CfnParameter
 from tests.app.base import TstAppABC
 
 
-class TestPipeline(TstAppABC, TestCase):
+class TestBackendPipeline(TstAppABC, TestCase):
     @classmethod
     def get_context(cls):
         with open('cdk.json') as f:
@@ -34,28 +34,37 @@ class TestPipeline(TstAppABC, TestCase):
         Test infrastructure as deployed via the pipeline
         """
         # Identify any findings from our AwsSolutions rule sets
-        self._check_no_stack_annotations(self.app.pipeline_stack)
+        self._check_no_stack_annotations(self.app.deployment_resources_stack)
+        self._check_no_stack_annotations(self.app.test_backend_pipeline_stack)
+        self._check_no_stack_annotations(self.app.prod_backend_pipeline_stack)
         for stage in (
-            self.app.pipeline_stack.test_stage,
-            self.app.pipeline_stack.prod_stage,
+            self.app.test_backend_pipeline_stack.test_stage,
+            self.app.beta_backend_pipeline_stack.beta_backend_stage,
+            self.app.prod_backend_pipeline_stack.prod_stage,
         ):
-            self._check_no_stage_annotations(stage)
+            self._check_no_backend_stage_annotations(stage)
 
-        for api_stack in (self.app.pipeline_stack.test_stage.api_stack, self.app.pipeline_stack.prod_stage.api_stack):
+        for api_stack in (
+            self.app.test_backend_pipeline_stack.test_stage.api_stack,
+            self.app.beta_backend_pipeline_stack.beta_backend_stage.api_stack,
+            self.app.prod_backend_pipeline_stack.prod_stage.api_stack,
+        ):
             with self.subTest(api_stack.stack_name):
                 self._inspect_api_stack(api_stack)
 
         self._inspect_persistent_stack(
-            self.app.pipeline_stack.test_stage.persistent_stack,
+            self.app.test_backend_pipeline_stack.test_stage.persistent_stack,
             domain_name='app.test.compactconnect.org',
             allow_local_ui=True,
         )
         self._inspect_persistent_stack(
-            self.app.pipeline_stack.prod_stage.persistent_stack, domain_name='app.compactconnect.org'
+            self.app.beta_backend_pipeline_stack.beta_backend_stage.persistent_stack,
+            domain_name='app.beta.compactconnect.org',
+            allow_local_ui=False,
         )
-
-        for ui_stack in (self.app.pipeline_stack.test_stage.ui_stack, self.app.pipeline_stack.prod_stage.ui_stack):
-            self._inspect_ui_stack(ui_stack)
+        self._inspect_persistent_stack(
+            self.app.prod_backend_pipeline_stack.prod_stage.persistent_stack, domain_name='app.compactconnect.org'
+        )
 
     def _when_testing_compact_resource_servers(self, persistent_stack, environment_name):
         persistent_stack_template = Template.from_stack(persistent_stack)
@@ -81,12 +90,12 @@ class TestPipeline(TstAppABC, TestCase):
                 msg=f'Expected scopes for compact {compact} not found',
             )
 
-    def test_synth_generates_compact_resource_servers_with_expected_scopes_for_staff_users_test_stage(self):
-        persistent_stack = self.app.pipeline_stack.test_stage.persistent_stack
-        self._when_testing_compact_resource_servers(persistent_stack, environment_name='test')
+    def test_synth_generates_compact_resource_servers_with_expected_scopes_for_staff_users_beta_stage(self):
+        persistent_stack = self.app.beta_backend_pipeline_stack.beta_backend_stage.persistent_stack
+        self._when_testing_compact_resource_servers(persistent_stack, environment_name='beta')
 
     def test_synth_generates_compact_resource_servers_with_expected_scopes_for_staff_users_prod_stage(self):
-        persistent_stack = self.app.pipeline_stack.prod_stage.persistent_stack
+        persistent_stack = self.app.prod_backend_pipeline_stack.prod_stage.persistent_stack
         self._when_testing_compact_resource_servers(persistent_stack, environment_name='prod')
 
     def _when_testing_jurisdiction_resource_servers(self, persistent_stack, snapshot_name, overwrite_snapshot):
@@ -120,15 +129,15 @@ class TestPipeline(TstAppABC, TestCase):
             overwrite_snapshot=overwrite_snapshot,
         )
 
-    def test_synth_generates_jurisdiction_resource_servers_with_expected_scopes_for_staff_users_test_stage(self):
+    def test_synth_generates_jurisdiction_resource_servers_with_expected_scopes_for_staff_users_beta_stage(self):
         """
         Test that the jurisdiction resource servers are created with the expected scopes
         for the staff users in the test environment.
         """
-        persistent_stack = self.app.pipeline_stack.test_stage.persistent_stack
+        persistent_stack = self.app.beta_backend_pipeline_stack.beta_backend_stage.persistent_stack
         self._when_testing_jurisdiction_resource_servers(
             persistent_stack=persistent_stack,
-            snapshot_name='JURISDICTION_RESOURCE_SERVER_CONFIGURATION_TEST_ENV',
+            snapshot_name='JURISDICTION_RESOURCE_SERVER_CONFIGURATION_BETA_ENV',
             overwrite_snapshot=False,
         )
 
@@ -137,7 +146,7 @@ class TestPipeline(TstAppABC, TestCase):
         Test that the jurisdiction resource servers are created with the expected scopes
         for the staff users in the prod environment.
         """
-        persistent_stack = self.app.pipeline_stack.prod_stage.persistent_stack
+        persistent_stack = self.app.prod_backend_pipeline_stack.prod_stage.persistent_stack
         self._when_testing_jurisdiction_resource_servers(
             persistent_stack=persistent_stack,
             snapshot_name='JURISDICTION_RESOURCE_SERVER_CONFIGURATION_PROD_ENV',
@@ -145,7 +154,7 @@ class TestPipeline(TstAppABC, TestCase):
         )
 
     def test_cognito_using_recommended_security_in_prod(self):
-        stack = self.app.pipeline_stack.prod_stage.persistent_stack
+        stack = self.app.prod_backend_pipeline_stack.prod_stage.persistent_stack
         template = Template.from_stack(stack)
 
         # Make sure both user pools match the security settings above
@@ -181,8 +190,8 @@ class TestPipeline(TstAppABC, TestCase):
         )
         self.assertEqual(0, len(implicit_grant_clients))
 
-    def test_synth_generates_compact_configuration_upload_custom_resource_with_expected_test_configuration_data(self):
-        persistent_stack = self.app.pipeline_stack.test_stage.persistent_stack
+    def test_synth_generates_compact_configuration_upload_custom_resource_with_expected_beta_configuration_data(self):
+        persistent_stack = self.app.beta_backend_pipeline_stack.beta_backend_stage.persistent_stack
         persistent_stack_template = Template.from_stack(persistent_stack)
 
         # Ensure our provider user pool is created with expected custom attributes
@@ -202,14 +211,14 @@ class TestPipeline(TstAppABC, TestCase):
         # If the configuration values for any jurisdiction changes, the snapshot will need to be updated.
         self.compare_snapshot(
             actual=sorted_compact_configuration,
-            snapshot_name='COMPACT_CONFIGURATION_UPLOADER_TEST_ENV_INPUT',
+            snapshot_name='COMPACT_CONFIGURATION_UPLOADER_BETA_ENV_INPUT',
             overwrite_snapshot=False,
         )
 
     def test_prod_synth_generates_compact_configuration_upload_custom_resource_with_expected_prod_configuration_data(
         self,
     ):
-        persistent_stack = self.app.pipeline_stack.prod_stage.persistent_stack
+        persistent_stack = self.app.prod_backend_pipeline_stack.prod_stage.persistent_stack
         persistent_stack_template = Template.from_stack(persistent_stack)
 
         # Ensure our provider user pool is created with expected custom attributes
@@ -234,7 +243,7 @@ class TestPipeline(TstAppABC, TestCase):
         )
 
     def test_synth_generates_python_lambda_layer_with_ssm_parameter(self):
-        persistent_stack = self.app.pipeline_stack.test_stage.persistent_stack
+        persistent_stack = self.app.test_backend_pipeline_stack.test_stage.persistent_stack
         persistent_stack_template = Template.from_stack(persistent_stack)
 
         # Ensure our provider user pool is created with expected custom attributes
@@ -255,7 +264,7 @@ class TestPipeline(TstAppABC, TestCase):
         self.assertEqual(['python3.12'], lambda_layer_parameter_properties['CompatibleRuntimes'])
 
     def test_synth_generates_provider_users_bucket_with_event_handler(self):
-        persistent_stack = self.app.pipeline_stack.test_stage.persistent_stack
+        persistent_stack = self.app.test_backend_pipeline_stack.test_stage.persistent_stack
         persistent_stack_template = Template.from_stack(persistent_stack)
 
         provider_users_bucket_event_lambda_logical_id = persistent_stack.get_logical_id(
@@ -312,12 +321,12 @@ class TestPipeline(TstAppABC, TestCase):
         return compact_configuration_input
 
 
-class TestPipelineVulnerable(TestCase):
+class TestBackendPipelineVulnerable(TestCase):
     @patch.dict(os.environ, {'CDK_DEFAULT_ACCOUNT': '000000000000', 'CDK_DEFAULT_REGION': 'us-east-1'})
     def test_app_refuses_to_synth_with_prod_vulnerable(self):
         with open('cdk.json') as f:
             context = json.load(f)['context']
-        with open('cdk.context.production-example.json') as f:
+        with open('cdk.context.prod-example.json') as f:
             ssm_context = json.load(f)['ssm_context']
 
         # Suppresses lambda bundling for tests
@@ -332,9 +341,46 @@ class TestPipelineVulnerable(TestCase):
         pipeline_context = context['ssm_context']['environments']['pipeline']
         context[
             f'ssm:account={pipeline_context["account_id"]}'
-            ':parameterName=compact-connect-context'
+            ':parameterName=prod-compact-connect-context'
             f':region={pipeline_context["region"]}'
         ] = json.dumps(ssm_context)
 
         with self.assertRaises(ValueError):
             CompactConnectApp(context=context)
+
+
+class TestFrontendPipeline(TstAppABC, TestCase):
+    @classmethod
+    def get_context(cls):
+        with open('cdk.json') as f:
+            context = json.load(f)['context']
+        # For pipeline deployments, the pipelines pull their CDK context values from SSM Parameter Store, rather
+        # than the cdk.context.json files used in local development. We can override the context values used in the
+        # tests by adding values here.
+
+        # Suppresses lambda bundling for tests
+        context['aws:cdk:bundling-stacks'] = []
+
+        return context
+
+    def test_synth_pipeline(self):
+        """
+        Test infrastructure as deployed via the pipeline
+        """
+        # Identify any findings from our AwsSolutions rule sets
+        self._check_no_stack_annotations(self.app.deployment_resources_stack)
+        self._check_no_stack_annotations(self.app.test_frontend_pipeline_stack)
+        self._check_no_stack_annotations(self.app.prod_frontend_pipeline_stack)
+        for stage in (
+            self.app.test_frontend_pipeline_stack.pre_prod_frontend_stage,
+            self.app.beta_frontend_pipeline_stack.beta_frontend_stage,
+            self.app.prod_frontend_pipeline_stack.prod_frontend_stage,
+        ):
+            self._check_no_frontend_stage_annotations(stage)
+
+        for frontend_deployment_stack in (
+            self.app.test_frontend_pipeline_stack.pre_prod_frontend_stage.frontend_deployment_stack,
+            self.app.beta_frontend_pipeline_stack.beta_frontend_stage.frontend_deployment_stack,
+            self.app.prod_frontend_pipeline_stack.prod_frontend_stage.frontend_deployment_stack,
+        ):
+            self._inspect_frontend_deployment_stack(frontend_deployment_stack)

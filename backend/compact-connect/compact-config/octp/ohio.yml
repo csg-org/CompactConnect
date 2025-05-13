@@ -1,7 +1,11 @@
 # PLACEHOLDER DATA, NOT FINAL CONFIGURATION.
 jurisdictionName: "Ohio"
 postalAbbreviation: "oh"
-jurisdictionFee: 100
+privilegeFees:
+  - licenseTypeAbbreviation: "ot"
+    amount: 100
+  - licenseTypeAbbreviation: "ota"
+    amount: 100
 militaryDiscount:
     active: true
     discountType: "FLAT_RATE"
@@ -13,4 +17,4 @@ jurisdictionSummaryReportNotificationEmails: []
 jurisprudenceRequirements:
     required: true
 licenseeRegistrationEnabledForEnvironments: ["test"]
-activeEnvironments: ["test"]
+activeEnvironments: ["test", "beta"]

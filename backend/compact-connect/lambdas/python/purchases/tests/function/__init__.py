@@ -149,14 +149,22 @@ class TstFunction(TstLambdas):
             logger.debug('Loading resource, %s: %s', resource, str(record))
             self._provider_table.put_item(Item=record)
 
-    def _load_license_data(self, status: str = 'active', expiration_date: str = None, license_type: str = None):
+    def _load_license_data(self, eligibility: str = 'eligible', expiration_date: str = None, license_type: str = None):
         """Use the canned test resources to load a basic provider to the DB"""
+        from cc_common.data_model.schema.common import ActiveInactiveStatus, CompactEligibilityStatus
+
         license_test_resources = ['../common/tests/resources/dynamo/license.json']
 
         for resource in license_test_resources:
             with open(resource) as f:
                 record = json.load(f, parse_float=Decimal)
-                record['jurisdictionStatus'] = status
+                if eligibility == CompactEligibilityStatus.ELIGIBLE:
+                    record['jurisdictionUploadedCompactEligibility'] = CompactEligibilityStatus.ELIGIBLE
+                    record['jurisdictionUploadedLicenseStatus'] = ActiveInactiveStatus.ACTIVE
+                else:
+                    record['jurisdictionUploadedCompactEligibility'] = CompactEligibilityStatus.INELIGIBLE
+                    record['jurisdictionUploadedLicenseStatus'] = ActiveInactiveStatus.INACTIVE
+
                 if expiration_date:
                     record['dateOfExpiration'] = expiration_date
                 if license_type:

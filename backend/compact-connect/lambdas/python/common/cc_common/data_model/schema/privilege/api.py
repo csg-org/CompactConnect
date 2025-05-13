@@ -1,4 +1,8 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
+from cc_common.data_model.schema.adverse_action.api import (
+    AdverseActionGeneralResponseSchema,
+    AdverseActionPublicResponseSchema,
+)
 from cc_common.data_model.schema.base_record import ForgivingSchema
 from cc_common.data_model.schema.fields import ActiveInactive, Compact, Jurisdiction, UpdateType
 from marshmallow import Schema
@@ -28,6 +32,7 @@ class PrivilegeUpdatePreviousGeneralResponseSchema(ForgivingSchema):
     Python -> load() -> API
     """
 
+    administratorSetStatus = ActiveInactive(required=True, allow_none=False)
     # list of attestations that were accepted when purchasing this privilege
     attestations = List(Nested(AttestationVersionResponseSchema()), required=False, allow_none=False)
     compactTransactionId = String(required=False, allow_none=False)
@@ -35,9 +40,8 @@ class PrivilegeUpdatePreviousGeneralResponseSchema(ForgivingSchema):
     dateOfIssuance = Raw(required=True, allow_none=False)
     dateOfRenewal = Raw(required=True, allow_none=False)
     dateOfUpdate = Raw(required=True, allow_none=False)
-    persistedStatus = ActiveInactive(required=True, allow_none=False)
-    privilegeId = String(required=True, allow_none=False)
     licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
+    privilegeId = String(required=True, allow_none=False)
 
 
 class PrivilegeUpdateGeneralResponseSchema(ForgivingSchema):
@@ -79,7 +83,8 @@ class PrivilegeGeneralResponseSchema(ForgivingSchema):
     dateOfExpiration = Raw(required=True, allow_none=False)
     dateOfUpdate = Raw(required=True, allow_none=False)
     history = List(Nested(PrivilegeUpdateGeneralResponseSchema, required=False, allow_none=False))
-    persistedStatus = ActiveInactive(required=True, allow_none=False)
+    adverseActions = List(Nested(AdverseActionGeneralResponseSchema, required=False, allow_none=False))
+    administratorSetStatus = ActiveInactive(required=True, allow_none=False)
     # the id of the transaction that was made when the user purchased this privilege
     compactTransactionId = String(required=False, allow_none=False)
     # list of attestations that were accepted when purchasing this privilege
@@ -97,13 +102,13 @@ class PrivilegeUpdatePreviousPublicResponseSchema(ForgivingSchema):
     Python -> load() -> API
     """
 
+    administratorSetStatus = ActiveInactive(required=True, allow_none=False)
     dateOfExpiration = Raw(required=True, allow_none=False)
     dateOfIssuance = Raw(required=True, allow_none=False)
     dateOfRenewal = Raw(required=True, allow_none=False)
     dateOfUpdate = Raw(required=True, allow_none=False)
-    persistedStatus = ActiveInactive(required=True, allow_none=False)
-    privilegeId = String(required=True, allow_none=False)
     licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
+    privilegeId = String(required=True, allow_none=False)
 
 
 class PrivilegeUpdatePublicResponseSchema(ForgivingSchema):
@@ -145,7 +150,8 @@ class PrivilegePublicResponseSchema(ForgivingSchema):
     dateOfRenewal = Raw(required=True, allow_none=False)
     dateOfUpdate = Raw(required=True, allow_none=False)
     history = List(Nested(PrivilegeUpdatePublicResponseSchema, required=False, allow_none=False))
-    persistedStatus = ActiveInactive(required=True, allow_none=False)
+    adverseActions = List(Nested(AdverseActionPublicResponseSchema, required=False, allow_none=False))
+    administratorSetStatus = ActiveInactive(required=True, allow_none=False)
     # the human-friendly identifier for this privilege
     privilegeId = String(required=True, allow_none=False)
     status = ActiveInactive(required=True, allow_none=False)

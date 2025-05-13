@@ -4,7 +4,7 @@ from boto3.dynamodb.types import TypeSerializer
 from cc_common.config import config, logger
 from cc_common.data_model.provider_record_util import ProviderRecordType, ProviderRecordUtility
 from cc_common.data_model.schema import LicenseRecordSchema
-from cc_common.data_model.schema.common import ProviderEligibilityStatus, UpdateCategory
+from cc_common.data_model.schema.common import ActiveInactiveStatus, UpdateCategory
 from cc_common.data_model.schema.license.ingest import LicenseIngestSchema
 from cc_common.data_model.schema.license.record import LicenseUpdateRecordSchema
 from cc_common.exceptions import CCNotFoundException
@@ -88,8 +88,9 @@ def ingest_license_message(message: dict):
     # We're not using the event time here, currently, so we'll discard it
     message['detail'].pop('eventTime')
 
-    # This schema load will transform the 'status' field to 'jurisdictionStatus' for internal
-    # references, and will also validate the data.
+    # This schema load will transform the 'licenseStatus' and 'compactEligibility' fields to
+    # 'jurisdictionUploadedLicenseStatus' and 'jurisdictionUploadedCompactEligibility' for internal references, and
+    # will also validate the data.
     license_ingest_message = license_schema.load(message['detail'])
 
     compact = license_ingest_message['compact']
@@ -272,7 +273,7 @@ def _populate_update_record(*, existing_license: dict, updated_values: dict, rem
         ):
             update_type = UpdateCategory.RENEWAL
             logger.info('License renewal detected')
-    elif updated_values == {'jurisdictionStatus': ProviderEligibilityStatus.INACTIVE.value}:
+    if updated_values.get('jurisdictionUploadedLicenseStatus') == ActiveInactiveStatus.INACTIVE:
         update_type = UpdateCategory.DEACTIVATION
         logger.info('License deactivation detected')
     if update_type is None:

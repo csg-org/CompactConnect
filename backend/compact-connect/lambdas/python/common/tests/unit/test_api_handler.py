@@ -143,3 +143,36 @@ class TestApiHandler(TstLambdas):
         resp = lambda_handler(event, self.mock_context)
         self.assertEqual(200, resp['statusCode'])
         self.assertEqual('https://example.org', resp['headers']['Access-Control-Allow-Origin'])
+
+    def test_unsupported_media_type(self):
+        from cc_common.utils import api_handler
+
+        @api_handler
+        def lambda_handler(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
+            return {'message': 'OK'}
+
+        with open('tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        # We only accept json
+        event['headers']['Content-Type'] = 'text/plain'
+        event['body'] = 'not json'
+
+        resp = lambda_handler(event, self.mock_context)
+        self.assertEqual(415, resp['statusCode'])
+
+    def test_json_decode_error(self):
+        from cc_common.utils import api_handler
+
+        @api_handler
+        def lambda_handler(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
+            return json.loads(event['body'])
+
+        with open('tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        event['headers']['Content-Type'] = 'application/json'
+        event['body'] = 'not json'
+
+        resp = lambda_handler(event, self.mock_context)
+        self.assertEqual(400, resp['statusCode'])

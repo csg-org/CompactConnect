@@ -16,11 +16,24 @@ from constructs import Construct
 
 
 class BackendPipeline(CdkCodePipeline):
+    """
+    Stack for creating the Backend CodePipeline resources.
+
+    This pipeline is part of a two-pipeline architecture where:
+    1. This Backend Pipeline deploys infrastructure and creates required resources
+    2. The Frontend Pipeline then deploys the frontend application using those resources
+
+    Deployment Flow:
+    - IS triggered by GitHub pushes (trigger_on_push=True)
+    - Triggers the Frontend Pipeline after successful deployment
+    """
+
     def __init__(
         self,
         scope: Construct,
         construct_id: str,
         *,
+        pipeline_name: str,
         github_repo_string: str,
         cdk_path: str,
         connection_arn: str,
@@ -29,6 +42,7 @@ class BackendPipeline(CdkCodePipeline):
         encryption_key: IKey,
         alarm_topic: ITopic,
         ssm_parameter: IParameter,
+        pipeline_stack_name: str,
         environment_context: dict,
         removal_policy: RemovalPolicy,
         **kwargs,
@@ -57,6 +71,7 @@ class BackendPipeline(CdkCodePipeline):
         super().__init__(
             scope,
             construct_id,
+            pipeline_name=pipeline_name,
             artifact_bucket=artifact_bucket,
             synth=ShellStep(
                 'Synth',
@@ -78,12 +93,19 @@ class BackendPipeline(CdkCodePipeline):
                     'npm install -g aws-cdk',
                     'python -m pip install -r requirements.txt',
                     '( cd lambdas/nodejs; yarn install --frozen-lockfile )',
-                    'cdk synth',
+                    # Only synthesize the specific pipeline stack needed
+                    f'cdk synth --context pipelineStack={pipeline_stack_name} --context action=pipelineSynth',
                 ],
             ),
             synth_code_build_defaults=CodeBuildOptions(
                 partial_build_spec=BuildSpec.from_object(
-                    {'phases': {'install': {'runtime-versions': {'python': '3.12'}}}},
+                    {
+                        'phases': {
+                            'install': {
+                                'runtime-versions': {'python': '3.12', 'nodejs': '22.x'},
+                            }
+                        }
+                    }
                 ),
             ),
             cross_account_keys=True,

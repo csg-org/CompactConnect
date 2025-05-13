@@ -1,7 +1,9 @@
 # PLACEHOLDER DATA, NOT FINAL CONFIGURATION.
 jurisdictionName: "Nebraska"
 postalAbbreviation: "ne"
-jurisdictionFee: 100
+privilegeFees:
+  - licenseTypeAbbreviation: "lpc"
+    amount: 100
 militaryDiscount:
     active: true
     discountType: "FLAT_RATE"

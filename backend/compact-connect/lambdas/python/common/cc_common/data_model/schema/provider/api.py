@@ -3,6 +3,7 @@ from cc_common.data_model.schema.base_record import ForgivingSchema
 from cc_common.data_model.schema.fields import (
     ActiveInactive,
     Compact,
+    CompactEligibility,
     ITUTE164PhoneNumber,
     Jurisdiction,
     NationalProviderIdentifier,
@@ -12,6 +13,7 @@ from cc_common.data_model.schema.home_jurisdiction.api import ProviderHomeJurisd
 from cc_common.data_model.schema.license.api import LicenseGeneralResponseSchema
 from cc_common.data_model.schema.military_affiliation.api import MilitaryAffiliationGeneralResponseSchema
 from cc_common.data_model.schema.privilege.api import PrivilegeGeneralResponseSchema, PrivilegePublicResponseSchema
+from marshmallow import Schema
 from marshmallow.fields import Date, Email, List, Nested, Raw, String
 from marshmallow.validate import Length, Regexp
 
@@ -36,8 +38,12 @@ class ProviderGeneralResponseSchema(ForgivingSchema):
     dateOfUpdate = Raw(required=True, allow_none=False)
     compact = Compact(required=True, allow_none=False)
     licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
+    licenseStatus = ActiveInactive(required=True, allow_none=False)
+    # TODO: remove this once the UI is updated to use licenseStatus  # noqa: FIX002
+    status = ActiveInactive(required=True, allow_none=False)
+    compactEligibility = CompactEligibility(required=True, allow_none=False)
+
     npi = NationalProviderIdentifier(required=False, allow_none=False)
-    jurisdictionStatus = ActiveInactive(required=True, allow_none=False)
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
@@ -54,7 +60,9 @@ class ProviderGeneralResponseSchema(ForgivingSchema):
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
     compactConnectRegisteredEmailAddress = Email(required=False, allow_none=False)
     cognitoSub = String(required=False, allow_none=False)
-    status = ActiveInactive(required=True, allow_none=False)
+
+    jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
+    jurisdictionUploadedCompactEligibility = CompactEligibility(required=True, allow_none=False)
 
     privilegeJurisdictions = Set(String, required=False, allow_none=False, load_default=set())
     providerFamGivMid = String(required=False, allow_none=False, validate=Length(2, 400))
@@ -91,20 +99,25 @@ class ProviderPublicResponseSchema(ForgivingSchema):
     dateOfUpdate = Raw(required=True, allow_none=False)
     compact = Compact(required=True, allow_none=False)
     licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
+    licenseStatus = ActiveInactive(required=True, allow_none=False)
+    # TODO: remove this once the UI is updated to use licenseStatus  # noqa: FIX002
+    status = ActiveInactive(required=True, allow_none=False)
+    compactEligibility = CompactEligibility(required=True, allow_none=False)
     npi = NationalProviderIdentifier(required=False, allow_none=False)
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
     suffix = String(required=False, allow_none=False, validate=Length(1, 100))
-    status = ActiveInactive(required=True, allow_none=False)
 
     privilegeJurisdictions = Set(String, required=False, allow_none=False, load_default=set())
     # Unlike the internal provider search endpoints used by staff users, which return license data in addition to
     # privilege data for a provider, we only return privilege data for a provider from the public GET provider endpoint
     privileges = List(Nested(PrivilegePublicResponseSchema(), required=False, allow_none=False))
+    # Note the lack of `licenses` here: we do not return license data for public endpoints
 
 
-class ProviderRegistrationRequestSchema(ForgivingSchema):
+# We set this to a strict schema, to avoid extra values from entering the system.
+class ProviderRegistrationRequestSchema(Schema):
     """
     Schema for provider registration requests.
 

@@ -71,7 +71,7 @@ class TestTransactionMonitoring(TstAppABC, TestCase):
         return replace_tokens(definition)
 
     def test_workflow_generate_process_transaction_history_lambda_with_permissions(self):
-        transaction_monitoring_stack = self.app.pipeline_stack.prod_stage.transaction_monitoring_stack
+        transaction_monitoring_stack = self.app.prod_backend_pipeline_stack.prod_stage.transaction_monitoring_stack
         transaction_monitoring_stack_template = Template.from_stack(transaction_monitoring_stack)
 
         compacts = transaction_monitoring_stack.node.get_context('compacts')
@@ -118,7 +118,7 @@ class TestTransactionMonitoring(TstAppABC, TestCase):
 
     def test_workflow_generates_expected_process_transaction_history_lambda_invoke_step(self):
         aslp_transaction_history_proccessing_workflow = (
-            self.app.pipeline_stack.prod_stage.transaction_monitoring_stack.compact_state_machines['aslp']
+            self.app.prod_backend_pipeline_stack.prod_stage.transaction_monitoring_stack.compact_state_machines['aslp']
         )
 
         self.assertEqual(
@@ -151,7 +151,7 @@ class TestTransactionMonitoring(TstAppABC, TestCase):
 
     def test_workflow_generates_expected_choice_step(self):
         aslp_transaction_history_proccessing_workflow = (
-            self.app.pipeline_stack.prod_stage.transaction_monitoring_stack.compact_state_machines['aslp']
+            self.app.prod_backend_pipeline_stack.prod_stage.transaction_monitoring_stack.compact_state_machines['aslp']
         )
 
         self.assertEqual(
@@ -183,7 +183,7 @@ class TestTransactionMonitoring(TstAppABC, TestCase):
 
     def test_workflow_generates_expected_batch_failure_notification_step(self):
         aslp_transaction_history_proccessing_workflow = (
-            self.app.pipeline_stack.prod_stage.transaction_monitoring_stack.compact_state_machines['aslp']
+            self.app.prod_backend_pipeline_stack.prod_stage.transaction_monitoring_stack.compact_state_machines['aslp']
         )
 
         self.assertEqual(

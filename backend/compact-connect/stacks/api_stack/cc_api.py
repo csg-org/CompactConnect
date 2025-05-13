@@ -109,7 +109,11 @@ class CCApi(RestApi):
             construct_id,
             cloud_watch_role=True,
             deploy_options=StageOptions(
-                stage_name=environment_name,
+                # NOTE: If we are ever updating our pipeline architecture which requires a change to the pipeline stack
+                # name, the domain base path mapping for the API will fail to deploy unless we change the name of the
+                # stage so that CDK will stand up a new base path mapping resource without conflicting with the
+                # previous one. This will allow the deployment to transition gracefully.
+                stage_name=f'{environment_name}-blue',
                 logging_level=MethodLoggingLevel.INFO,
                 access_log_destination=LogGroupLogDestination(access_log_group),
                 access_log_format=AccessLogFormat.custom(

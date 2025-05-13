@@ -25,13 +25,15 @@ class TestSandbox(TstSandbox):
         Test infrastructure as deployed in a developer's sandbox
         """
         # Identify any findings from our AwsSolutions rule sets
-        self._check_no_stage_annotations(self.app.sandbox_stage)
+        self._check_no_backend_stage_annotations(self.app.sandbox_backend_stage)
 
     def test_api_stack(self):
-        self._inspect_api_stack(self.app.sandbox_stage.api_stack)
+        self._inspect_api_stack(self.app.sandbox_backend_stage.api_stack)
 
         self._inspect_persistent_stack(
-            self.app.sandbox_stage.persistent_stack, domain_name='app.justin.compactconnect.org', allow_local_ui=True
+            self.app.sandbox_backend_stage.persistent_stack,
+            domain_name='app.justin.compactconnect.org',
+            allow_local_ui=True,
         )
 
 
@@ -51,11 +53,11 @@ class TestSandboxNoDomain(TstSandbox):
         return context
 
     def test_synth_sandbox_no_domain(self):
-        self._check_no_stage_annotations(self.app.sandbox_stage)
+        self._check_no_backend_stage_annotations(self.app.sandbox_backend_stage)
 
-        self._inspect_api_stack(self.app.sandbox_stage.api_stack)
+        self._inspect_api_stack(self.app.sandbox_backend_stage.api_stack)
 
-        self._inspect_persistent_stack(self.app.sandbox_stage.persistent_stack, allow_local_ui=True)
+        self._inspect_persistent_stack(self.app.sandbox_backend_stage.persistent_stack, allow_local_ui=True)
 
 
 class TestSandboxLocalUiPortOverride(TstSandbox):
@@ -74,12 +76,12 @@ class TestSandboxLocalUiPortOverride(TstSandbox):
         return context
 
     def test_synth_local_ui_port_override(self):
-        self._check_no_stage_annotations(self.app.sandbox_stage)
+        self._check_no_backend_stage_annotations(self.app.sandbox_backend_stage)
 
-        self._inspect_api_stack(self.app.sandbox_stage.api_stack)
+        self._inspect_api_stack(self.app.sandbox_backend_stage.api_stack)
 
         self._inspect_persistent_stack(
-            self.app.sandbox_stage.persistent_stack, allow_local_ui=True, local_ui_port='5432'
+            self.app.sandbox_backend_stage.persistent_stack, allow_local_ui=True, local_ui_port='5432'
         )
 
 

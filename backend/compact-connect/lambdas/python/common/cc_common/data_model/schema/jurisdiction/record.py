@@ -1,6 +1,6 @@
 # ruff: noqa: N801, N815, ARG002 invalid-name unused-kwargs
 from cc_common.config import config
-from cc_common.data_model.schema.base_record import BaseRecordSchema, ForgivingSchema
+from cc_common.data_model.schema.base_record import BaseRecordSchema
 from cc_common.data_model.schema.jurisdiction import JURISDICTION_TYPE, JurisdictionMilitaryDiscountType
 from marshmallow import Schema, pre_dump
 from marshmallow.fields import Boolean, Decimal, Email, List, Nested, String
@@ -19,8 +19,13 @@ class JurisdictionJurisprudenceRequirementsRecordSchema(Schema):
     required = Boolean(required=True, allow_none=False)
 
 
+class JurisdictionPrivilegeFeeRecordSchema(Schema):
+    licenseTypeAbbreviation = String(required=True, allow_none=False)
+    amount = Decimal(required=True, allow_none=False, places=2)
+
+
 @BaseRecordSchema.register_schema(JURISDICTION_TYPE)
-class JurisdictionRecordSchema(ForgivingSchema, BaseRecordSchema):
+class JurisdictionRecordSchema(BaseRecordSchema):
     """Schema for the root jurisdiction configuration records"""
 
     _record_type = JURISDICTION_TYPE
@@ -29,7 +34,7 @@ class JurisdictionRecordSchema(ForgivingSchema, BaseRecordSchema):
     jurisdictionName = String(required=True, allow_none=False)
     postalAbbreviation = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
     compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
-    jurisdictionFee = Decimal(required=True, allow_none=False, places=2)
+    privilegeFees = List(Nested(JurisdictionPrivilegeFeeRecordSchema()), required=True, allow_none=False)
     militaryDiscount = Nested(JurisdictionMilitaryDiscountRecordSchema(), required=False, allow_none=False)
     jurisdictionOperationsTeamEmails = List(
         Email(required=True, allow_none=False), required=True, allow_none=False, validate=Length(min=1)

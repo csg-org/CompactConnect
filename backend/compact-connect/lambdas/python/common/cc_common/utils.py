@@ -22,6 +22,7 @@ from cc_common.exceptions import (
     CCNotFoundException,
     CCRateLimitingException,
     CCUnauthorizedException,
+    CCUnsupportedMediaTypeException,
 )
 
 
@@ -100,11 +101,14 @@ def api_handler(fn: Callable):
         else:
             cors_origin = config.allowed_origins[0]
 
+        content_type = headers.get('Content-Type')
+
         # Propagate these keys to all log messages in this with block
         with logger.append_context_keys(
             method=event['httpMethod'],
             origin=origin,
             path=event['requestContext']['resourcePath'],
+            content_type=content_type,
             identity={'user': event['requestContext'].get('authorizer', {}).get('claims', {}).get('sub')},
             query_params=event['queryStringParameters'],
             username=event['requestContext'].get('authorizer', {}).get('claims', {}).get('cognito:username'),
@@ -112,6 +116,10 @@ def api_handler(fn: Callable):
             logger.info('Incoming request')
 
             try:
+                # We'll enforce json-only content for the whole API, right here.
+                if event.get('body') is not None and content_type != 'application/json':
+                    raise CCUnsupportedMediaTypeException(f'Unsupported media type: {content_type}')
+
                 return {
                     'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
                     'statusCode': 200,
@@ -138,6 +146,13 @@ def api_handler(fn: Callable):
                     'statusCode': 404,
                     'body': json.dumps({'message': f'{e.message}'}),
                 }
+            except CCUnsupportedMediaTypeException as e:
+                logger.info('Unsupported media type', exc_info=e)
+                return {
+                    'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
+                    'statusCode': 415,
+                    'body': json.dumps({'message': 'Unsupported media type'}),
+                }
             except CCRateLimitingException as e:
                 logger.info('Rate limiting request', exc_info=e)
                 return {
@@ -151,6 +166,13 @@ def api_handler(fn: Callable):
                     'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
                     'statusCode': 400,
                     'body': json.dumps({'message': e.message}),
+                }
+            except json.JSONDecodeError as e:
+                logger.warning('Invalid JSON in request body', exc_info=e)
+                return {
+                    'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
+                    'statusCode': 400,
+                    'body': json.dumps({'message': 'Invalid request: Malformed JSON'}),
                 }
             except ClientError as e:
                 # Any boto3 ClientErrors we haven't already caught and transformed are probably on us
@@ -222,6 +244,46 @@ class authorize_compact_level_only_action:  # noqa: N801 invalid-name
             if required_scope not in scopes:
                 logger.warning('Forbidden access attempt!')
                 raise CCAccessDeniedException('Forbidden access attempt!')
+            return fn(event, context)
+
+        return authorized
+
+
+class authorize_state_level_only_action:  # noqa: N801 invalid-name
+    """Authorize endpoint by matching path parameter compact to the expected scope limited to state level
+    (i.e. oh/{compact}.admin).
+
+    This wrapper should be used when we want to explicitly restrict access to callers with permission scopes
+    at the state level.
+    """
+
+    def __init__(self, action: str):
+        super().__init__()
+        self.action = action
+
+    def __call__(self, fn: Callable):
+        @wraps(fn)
+        @logger.inject_lambda_context
+        def authorized(event: dict, context: LambdaContext):
+            try:
+                compact = event['pathParameters']['compact']
+                jurisdiction = event['pathParameters']['jurisdiction']
+            except KeyError as e:
+                logger.error('Access attempt with missing path parameter!')
+                raise CCInvalidRequestException('Missing path parameter!') from e
+
+            logger.debug('Checking authorizer context', request_context=event['requestContext'])
+            try:
+                scopes = event['requestContext']['authorizer']['claims']['scope'].split(' ')
+            except KeyError as e:
+                logger.error('Unauthorized access attempt!', exc_info=e)
+                raise CCUnauthorizedException('Unauthorized access attempt!') from e
+
+            required_scope = f'{jurisdiction}/{compact}.{self.action}'
+            if required_scope not in scopes:
+                logger.warning('Forbidden access attempt!')
+                raise CCAccessDeniedException('Forbidden access attempt!')
+
             return fn(event, context)
 
         return authorized

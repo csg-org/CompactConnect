@@ -1,4 +1,4 @@
-from aws_cdk import Duration, Names
+from aws_cdk import Duration, Stack
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_iam import Effect, PolicyStatement
@@ -71,7 +71,7 @@ class QueuedLambdaProcessor(Construct):
         # role on the queue. In some cases, adding the dependency on the role can cause a circular
         # dependency.
         process_function.add_event_source_mapping(
-            f'SqsEventSource:{Names.node_unique_id(self.queue.node)}',
+            f'SqsEventSource:{Stack.of(self).stack_name}:{construct_id}',
             batch_size=batch_size,
             max_batching_window=max_batching_window,
             report_batch_item_failures=True,

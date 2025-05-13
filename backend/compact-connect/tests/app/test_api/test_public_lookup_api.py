@@ -20,7 +20,7 @@ class TestPublicLookupApi(TestApi):
 
     def test_synth_generates_public_get_provider_endpoint(self):
         """Test that the GET /v1/public/compacts/{compact}/providers/{providerId} endpoint is configured correctly."""
-        api_stack = self.app.sandbox_stage.api_stack
+        api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
 
         # Ensure the resource is created with expected path
@@ -77,7 +77,7 @@ class TestPublicLookupApi(TestApi):
 
     def test_synth_generates_public_query_providers_endpoint(self):
         """Test that the POST /providers/query endpoint is configured correctly."""
-        api_stack = self.app.sandbox_stage.api_stack
+        api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
 
         # Ensure the resource is created with expected path

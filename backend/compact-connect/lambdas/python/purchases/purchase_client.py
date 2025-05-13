@@ -41,19 +41,44 @@ class IgnoreContentNondeterminismFilter(logging.Filter):
 logging.getLogger('authorizenet.sdk').addFilter(IgnoreContentNondeterminismFilter())
 
 
-def _calculate_jurisdiction_fee(jurisdiction: Jurisdiction, user_active_military: bool) -> Decimal:
+def _calculate_jurisdiction_fee(
+    jurisdiction: Jurisdiction, license_type_abbr: str, user_active_military: bool
+) -> Decimal:
     """
     Calculate the total cost of a single jurisdiction privilege
+
+    :param jurisdiction: The jurisdiction to calculate the fee for
+    :param license_type_abbr: The abbreviation of the license type
+    :param user_active_military: Whether the user has an active military affiliation
+
+    :return: The calculated fee amount for the given license type and jurisdiction
     """
-    if user_active_military and jurisdiction.military_discount.active:
+
+    # If privilegeFees is defined, look up the fee for the given license type
+    license_fee = next(
+        (fee for fee in jurisdiction.privilege_fees if fee.license_type_abbreviation == license_type_abbr), None
+    )
+    if license_fee:
+        jurisdiction_fee = license_fee.amount
+    else:
+        logger.info(
+            'Unable to find license fee for specified license type',
+            jurisdiction=jurisdiction.postal_abbreviation,
+            license_type=license_type_abbr,
+            compact=jurisdiction.compact,
+        )
+        raise ValueError(f'No license fee found for license type: {license_type_abbr}')
+
+    # Apply military discount if applicable
+    if user_active_military and jurisdiction.military_discount and jurisdiction.military_discount.active:
         if jurisdiction.military_discount.discount_type == JurisdictionMilitaryDiscountType.FLAT_RATE:
-            total_jurisdiction_fee = jurisdiction.jurisdiction_fee - jurisdiction.military_discount.discount_amount
+            total_jurisdiction_fee = jurisdiction_fee - jurisdiction.military_discount.discount_amount
         else:
             raise ValueError(
                 f'Unsupported military discount type: {jurisdiction.military_discount.discount_type.value}'
             )
     else:
-        total_jurisdiction_fee = jurisdiction.jurisdiction_fee
+        total_jurisdiction_fee = jurisdiction_fee
 
     return total_jurisdiction_fee
 
@@ -105,16 +130,30 @@ def _calculate_compact_fee_for_single_jurisdiction(compact: Compact) -> Decimal:
 
 
 def _get_total_privilege_cost(
-    compact: Compact, selected_jurisdictions: list[Jurisdiction], user_active_military: bool
+    compact: Compact,
+    selected_jurisdictions: list[Jurisdiction],
+    user_active_military: bool,
+    license_type_abbreviation: str,
 ) -> Decimal:
     """
     Calculate the total cost of all privileges.
 
     This cost includes the jurisdiction fee for each jurisdiction, the compact fee, and any transaction fees.
+
+    :param compact: The compact configuration
+    :param selected_jurisdictions: List of jurisdictions to calculate costs for
+    :param user_active_military: Whether the user has an active military affiliation
+    :param license_type_abbreviation: The abbreviation of the license type
+
+    :return: The total cost for all privileges
     """
     total_cost = Decimal(0.0)
     for jurisdiction in selected_jurisdictions:
-        total_cost += _calculate_jurisdiction_fee(jurisdiction, user_active_military)
+        total_cost += _calculate_jurisdiction_fee(
+            jurisdiction=jurisdiction,
+            license_type_abbr=license_type_abbreviation,
+            user_active_military=user_active_military,
+        )
 
     total_cost += _calculate_total_compact_fee(compact, selected_jurisdictions)
     total_cost += _calculate_transaction_fee(compact, len(selected_jurisdictions))
@@ -313,7 +352,11 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
             privilege_line_item.itemId = f'priv:{compact_configuration.compact_abbr}-{jurisdiction.postal_abbreviation}-{license_type_abbreviation}'  # noqa: E501
             privilege_line_item.name = f'{jurisdiction_name_title_case} Compact Privilege'
             privilege_line_item.quantity = '1'
-            privilege_line_item.unitPrice = _calculate_jurisdiction_fee(jurisdiction, user_active_military)
+            privilege_line_item.unitPrice = _calculate_jurisdiction_fee(
+                jurisdiction=jurisdiction,
+                license_type_abbr=license_type_abbreviation,
+                user_active_military=user_active_military,
+            )
             if user_active_military and jurisdiction.military_discount.active:
                 privilege_line_item.description = (
                     f'Compact Privilege for {jurisdiction_name_title_case} (Military Discount)'
@@ -367,6 +410,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
             compact=compact_configuration,
             selected_jurisdictions=selected_jurisdictions,
             user_active_military=user_active_military,
+            license_type_abbreviation=license_type_abbreviation,
         )
         transaction_request.currencyCode = 'USD'
         transaction_request.payment = payment

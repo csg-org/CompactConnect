@@ -23,29 +23,6 @@ class TestDataClient(TstLambdas):
 
         self.client = DataClient(self.mock_config)
 
-    def test_get_provider_id_success(self):
-        # Mock response from DynamoDB
-        self.mock_ssn_table.get_item.return_value = {
-            'Item': {'pk': 'aslp#SSN#123456789', 'sk': 'aslp#SSN#123456789', 'providerId': 'test_provider_id'}
-        }
-
-        # Call the method
-        provider_id = self.client.get_provider_id(compact='aslp', ssn='123456789')
-
-        # Verify the result
-        self.assertEqual(provider_id, 'test_provider_id')
-        self.mock_ssn_table.get_item.assert_called_once_with(
-            Key={'pk': 'aslp#SSN#123456789', 'sk': 'aslp#SSN#123456789'}, ConsistentRead=True
-        )
-
-    def test_get_provider_id_not_found(self):
-        # Mock response from DynamoDB for non-existent item
-        self.mock_ssn_table.get_item.return_value = {}
-
-        # Verify it raises CCNotFoundException
-        with self.assertRaises(CCNotFoundException):
-            self.client.get_provider_id(compact='aslp', ssn='123456789')
-
     def test_get_or_create_provider_id_existing(self):
         # Mock ClientError for existing provider
         error_response = {

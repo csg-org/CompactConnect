@@ -81,12 +81,11 @@ class TestTransformations(TstFunction):
 
         from cc_common.data_model.data_client import DataClient
 
-        # We'll use the data client to get the resulting provider id
+        # We'll fetch the provider id from the ssn table
         client = DataClient(self.config)
-        provider_id = client.get_provider_id(
-            compact='aslp',
-            ssn=license_ssn,
-        )
+        provider_id = self._ssn_table.get_item(Key={'pk': f'aslp#SSN#{license_ssn}', 'sk': f'aslp#SSN#{license_ssn}'})[
+            'Item'
+        ]['providerId']
         self.assertEqual(expected_provider_id, provider_id)
         provider_record = client.get_provider(compact='aslp', provider_id=provider_id, detail=False)['items'][0]
 
@@ -117,7 +116,7 @@ class TestTransformations(TstFunction):
             attestations=[{'attestationId': 'jurisprudence-confirmation', 'version': '1'}],
         )
 
-        from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationType
+        from cc_common.data_model.schema.military_affiliation.common import MilitaryAffiliationType
 
         # Add a military affiliation
         client.create_military_affiliation(

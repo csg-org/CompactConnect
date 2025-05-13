@@ -96,9 +96,24 @@
                 "description": "The postal abbreviation of the jurisdiction",
                 "type": "string"
               },
-              "jurisdictionFee": {
-                "description": "The fee for the jurisdiction",
-                "type": "number"
+              "privilegeFees": {
+                "description": "The fees for the privileges",
+                "items": {
+                  "properties": {
+                    "licenseTypeAbbreviation": {
+                      "type": "string"
+                    },
+                    "amount": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "licenseTypeAbbreviation",
+                    "amount"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
               },
               "militaryDiscount": {
                 "properties": {
@@ -142,7 +157,7 @@
               "type",
               "jurisdictionName",
               "postalAbbreviation",
-              "jurisdictionFee",
+              "privilegeFees",
               "jurisprudenceRequirements"
             ],
             "type": "object"

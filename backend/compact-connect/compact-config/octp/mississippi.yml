@@ -1,7 +1,11 @@
 # PLACEHOLDER DATA, NOT FINAL CONFIGURATION.
 jurisdictionName: "Mississippi"
 postalAbbreviation: "ms"
-jurisdictionFee: 100
+privilegeFees:
+  - licenseTypeAbbreviation: "ot"
+    amount: 100
+  - licenseTypeAbbreviation: "ota"
+    amount: 100
 jurisdictionOperationsTeamEmails:
     - "cloud-team-nonprod-alerts@inspiringapps.com"
 jurisdictionAdverseActionsNotificationEmails: []
@@ -9,4 +13,4 @@ jurisdictionSummaryReportNotificationEmails: []
 jurisprudenceRequirements:
     required: true
 licenseeRegistrationEnabledForEnvironments: ["test"]
-activeEnvironments: ["test"]
+activeEnvironments: ["test", "beta"]

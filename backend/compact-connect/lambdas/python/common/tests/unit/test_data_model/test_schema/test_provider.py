@@ -16,12 +16,12 @@ class TestProviderRecordSchema(TstLambdas):
 
         schema = ProviderRecordSchema()
         loaded_record = schema.load(expected_provider_record.copy())
-        # assert status field is added
-        self.assertIn('status', loaded_record)
+        # assert licenseStatus field is added
+        self.assertIn('licenseStatus', loaded_record)
 
         license_record = schema.dump(schema.load(expected_provider_record.copy()))
-        # assert that the status field was stripped from the data on dump
-        self.assertNotIn('status', license_record)
+        # assert that the licenseStatus field was stripped from the data on dump
+        self.assertNotIn('licenseStatus', license_record)
 
         # These are dynamic and so won't match
         del expected_provider_record['dateOfUpdate']
@@ -52,18 +52,19 @@ class TestProviderRecordSchema(TstLambdas):
         schema = ProviderRecordSchema()
         provider_data = schema.load(raw_provider_data)
 
-        self.assertEqual('inactive', provider_data['status'])
+        self.assertEqual('inactive', provider_data['licenseStatus'])
 
-    def test_provider_record_schema_sets_status_to_inactive_if_jurisdiction_status_inactive(self):
+    def test_provider_record_schema_sets_status_to_inactive_if_license_status_inactive(self):
         """Test round-trip serialization/deserialization of license records"""
         from cc_common.data_model.schema import ProviderRecordSchema
 
         with open('tests/resources/dynamo/provider.json') as f:
             raw_provider_data = json.load(f)
             raw_provider_data['dateOfExpiration'] = '2100-01-01'
-            raw_provider_data['jurisdictionStatus'] = 'inactive'
+            raw_provider_data['jurisdictionUploadedLicenseStatus'] = 'inactive'
 
         schema = ProviderRecordSchema()
         provider_data = schema.load(raw_provider_data)
 
-        self.assertEqual('inactive', provider_data['status'])
+        self.assertEqual('inactive', provider_data['licenseStatus'])
+        self.assertEqual('ineligible', provider_data['compactEligibility'])

@@ -14,6 +14,7 @@ This is an [AWS-CDK](https://aws.amazon.com/cdk/) based project for the backend 
 - **[Local Development](#local-development)**
 - **[Tests](#tests)**
 - **[Deployment](#deployment)**
+- **[Google reCAPTCHA Setup](#google-recaptcha-setup)**
 - **[Decommissioning](#decommissioning)**
 - **[More Info](#more-info)**
 
@@ -114,43 +115,6 @@ Keeping documentation current is an important part of feature development in thi
 3) If you exported the api specification from somewhere other than the CSG Test environment, be sure to set the `servers[0].url` entry back to the correct base URL for the CSG Test environment.
 4) Use `bin/update_postman_collection.py` to update the [Postman Collection and Environment](./docs/postman), based on your new api spec, as appropriate.
 
-## Google reCAPTCHA Setup
-[Back to top](#compact-connect---backend-developer-documentation)
-
-The practitioner registration endpoint uses Google reCAPTCHA to prevent abuse. Follow these steps to set up reCAPTCHA for your environment:
-
-1. Visit https://www.google.com/recaptcha/
-2. Go to "v3 Admin Console"
-   - If needed, enter your Google account credentials
-3. Create a site
-   - Recaptcha type is v3 (score based)
-   - Domain will be the frontend browser domain for the environment ('localhost' for local development)
-   - Google Cloud Platform may require a project name
-   - Submit
-4. Open the Settings for the new site
-   - The Site Key (Public) will need to be set in the `VUE_APP_RECAPTCHA_KEY` environment variable in:
-        - TEST: `.github/workflows/webroot-deploy-test.yml`
-        - PROD: `.github/workflows/webroot-deploy-production.yml` (#108)
-        - Your local `.env` file of the webroot folder (if running the app locally)
-   - The Secret Key (Private) will need to be manually stored in the AWS account in secrets manager, using the following secret name:
-     `compact-connect/env/{value of 'environment_name' in cdk.context.json}/recaptcha/token`
-   The value of the secret key should be in the following format:
-   ```
-   {
-     "token": "<value of private Secret Key from Google reCAPTCHA>"
-   }
-   ```
-   You can run the following aws cli command to create the secret (make sure you are logged in to the same AWS account you want to store the secret in, under the us-east-1 region):
-   ```
-   aws secretsmanager create-secret --name compact-connect/env/{value of 'environment_name' in cdk.context.json}/recaptcha/token --secret-string '{"token": "<value of private Secret Key from Google reCAPTCHA>"}'
-   ```
-
-For Production environments, additional billing setup is required:
-1. In the Settings for a reCAPTCHA site, click "View in Cloud Console"
-2. From the main nav, go to Billing
-3. If you have an existing billing account, you may link it, otherwise you can Create a New Billing account, where you will add payment information
-4. More info on Google Recaptcha billing: https://cloud.google.com/recaptcha/docs/billing-information
-
 ## Deployment
 [Back to top](#compact-connect---backend-developer-documentation)
 
@@ -178,7 +142,8 @@ its environment:
    type of authentication you use to login to your account. See the [AWS CLI Configuration Guide](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-quickstart.html).
 7) Complete the [Google reCAPTCHA Setup](#google-recaptcha-setup) steps for your sandbox environment.
 8) Run `cdk bootstrap` to add some base CDK support infrastructure to your AWS account.
-9) Run `cdk deploy 'Sandbox/*'` to get the initial stack resources deployed.
+9) Run `cdk deploy 'Sandbox/*'` to get the initial backend stack resources deployed.
+10) *Optional:* If you have a domain name configured for your sandbox environment, once the backend stacks have successfully deployed, you can deploy the frontend UI by setting the 'deploy_sandbox_ui' context field to `true` and run `cdk deploy 'SandboxUI/*'`. If you do not have a domain name configured, you can still run the UI from local host (see the README.md under the webroot folder for more information about running the app on localhost).
 
 ### Subsequent sandbox deploys:
 For any future deploys, everything is set up so a simple `cdk deploy 'Sandbox/*'` should update all your infrastructure
@@ -203,41 +168,78 @@ authentication is working as expected.
 ### First deploy to the production environment
 The production environment requires a few steps to fully set up before deploys can be automated. Refer to the
 [README.md](../multi-account/README.md) for details on setting up a full multi-account architecture environment. Once
-that is done, perform the following steps to deploy the CI/CD pipeline into the appropriate AWS account:
-- Complete the [Google reCAPTCHA Setup](#google-recaptcha-setup) steps for each environment you will be deploying to (test, prod, etc.). Use the appropriate domain name for the environment (`app.test.compactconnect.org` for test environment, `app.compactconnect.org` for production). For the production environment, make sure to complete the billing setup steps as well.
-- Have someone with suitable permissions in the GitHub organization that hosts this code navigate to the AWS Console
+that is done, perform the following steps to deploy the CI/CD pipelines into the appropriate AWS account:
+- Complete the [Google reCAPTCHA Setup](#google-recaptcha-setup) steps for each environment you will be deploying to (test, beta, prod). Use the appropriate domain name for the environment (ie `app.test.compactconnect.org` for test environment, `app.beta.compactconnect.org` for beta environment, `app.compactconnect.org` for production). For the production environment, make sure to complete the billing setup steps as well.
+- Have someone who has suitable permissions in the GitHub organization that hosts this code navigate to the AWS Console
   for the Deploy account, go to the
   [AWS CodeStar Connections](https://us-east-1.console.aws.amazon.com/codesuite/settings/connections) page and create a
   connection that grants AWS permission to receive GitHub events. Note the ARN of the resulting connection for
   the next step.
-- Create a new Route53 hosted zone for the domain name you plan to use for the app in each of the production AWS
-  account and the test AWS account. See [About Route53 hosted zones](#about-route53-hosted-zones) below for more detail.
+- Create a new Route53 hosted zone for the domain name you plan to use for the app in each of the production, beta, and test AWS
+  accounts. See [About Route53 hosted zones](#about-route53-hosted-zones) below for more detail.
 - Request AWS to remove your account from the SES sandbox and wait for them to complete this request.
   See [SES Sandbox](https://docs.aws.amazon.com/ses/latest/dg/request-production-access.html).
-- Copy the `cdk.context.production-example.json` file to `cdk.context.json` and update accounts and other identifiers,
-  including the Code Star connection you just had created to match the identifiers for your actual accounts and
-  resources.
+- With the [aws-cli](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html), set up your local machine to authenticate against the Deploy account as an administrator.
+- For every environment, copy the appropriate example context file (`cdk.context.deploy-example.json` for the `Deploy` account, `cdk.context.test-example.json` for the `Test` account, `cdk.context.beta-example.json` for the `Beta` account, or `cdk.context.prod-example.json` for the `Prod` account) to `cdk.context.json` and update the values to match your respective accounts and other identifiers, including the code star connection you just created to match the identifiers for your actual accounts and resources. You will then need to run the `bin/put_ssm_context.sh <environment>` script to push relevant content from your `cdk.context.json` script into an SSM Parameter in your Deploy account. Replace `<environment>` with the target environment. For example, to set up for the test environment: `bin/put_ssm_context.sh test`.
+  For example, to set up for the test environment: `bin/put_ssm_context.sh test`. 
 - Optional: If a Slack integration is desired for operational support, have someone with permission to install Slack
-  apps in your workspace and Admin access to each of the Test, Prod, and Deploy accounts log into the Test AWS account
+  apps in your workspace and Admin access to each of the Test, Beta, Prod, and Deploy accounts log into each AWS account
   and go to the Chatbot service. Select 'Slack' under the **Configure a chat client** box and click **Configure
   client**, then follow the Slack authorization prompts. This will authorize AWS to integrate with the channels you
-  identify in your `cdk.context.json` file. Repeat this process for the Prod and Deploy accounts as well. For each
-  Slack channel you want to integrate, be sure to invite your new AWS app to those channels. Update the
+  identify in your `cdk.context.json` file. For each Slack channel you want to integrate, be sure to invite your new AWS app to those channels. Update the
   `notifications.slack` sections of the `cdk.context.json` file with the details for your Slack workspace and channels.
   If you opt not to integrate with Slack, remove the `slack` fields from the file.
-- With the [aws-cli](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html), set up your local
-  machine to authenticate against the Deploy account as an administrator.
-- Run the `bin/put_ssm_context.sh` script to push relevant content from your `cdk.context.json` script into an SSM
-  Parameter Store in your Deploy account.
-- Set cli-environment variables `CDK_DEFAULT_ACCOUNT` and `CDK_DEFAULT_REGION` to your deploy account id and
-  `us-east-1`, respectively.
-- Run the command `cdk deploy PipelineStack` to get the pipeline initial stack resources deployed.
+- Set cli-environment variables `CDK_DEFAULT_ACCOUNT` and `CDK_DEFAULT_REGION` to your deployment account id and `us-east-1`, respectively.
+- For each environment (test, beta, prod), you need to deploy both the backend and frontend pipeline stacks:
+
+1. **Deploy the Backend Pipeline Stacks first (note: you will need to approve the permission change requests for each stack deployment in the terminal)**:
+  `cdk deploy --context action=bootstrapDeploy TestBackendPipelineStack BetaBackendPipelineStack ProdBackendPipelineStack`
+
+2. **Then deploy the Frontend Pipeline Stacks (approve the permission change requests for each stack deployment)**:
+  `cdk deploy --context action=bootstrapDeploy TestFrontendPipelineStack BetaFrontendPipelineStack ProdFrontendPipelineStack`
+
+**Important**: When a pipeline stack is deployed, it will automatically trigger a deployment to its environment from the configured branch in your GitHub repo. The first time you deploy the backend pipeline, it should pass all the steps except the final trigger of the frontend pipeline, since the frontend pipeline will not exist until you deploy it. From there on, the pipelines should integrate as designed.
 
 ### Subsequent production deploys
 
-Once the pipeline is established with the above steps, deploys will automatically execute to the test and production
-environments whenever changes are pushed to the `development` or `main` branches of the repository named in your
-`cdk.context.json` file.
+Once the pipelines are established with the above steps, deployments will be automatically handled:
+
+- Pushes to the `development` branch will trigger the test backend pipeline, which will then trigger the test frontend pipeline
+- Pushes to the `main` branch will trigger both the beta and production backend pipelines, which will then trigger their respective frontend pipelines.
+
+## Google reCAPTCHA Setup
+[Back to top](#compact-connect---backend-developer-documentation)
+
+The practitioner registration endpoint uses Google reCAPTCHA to prevent abuse. Follow these steps to set up reCAPTCHA for your environment:
+
+1. Visit https://www.google.com/recaptcha/
+2. Go to "v3 Admin Console"
+   - If needed, enter your Google account credentials
+3. Create a site
+   - Recaptcha type is v3 (score based)
+   - Domain will be the frontend browser domain for the environment ('localhost' for local development)
+   - Google Cloud Platform may require a project name
+   - Submit
+4. Open the Settings for the new site
+   - The Site Key (Public) will need to be set in the cdk.context.json for the appropriate environment under the field named `recaptcha_public_key` for deployments, or in your local `.env` file of the webroot folder (if running the app locally)
+   - The Secret Key (Private) will need to be manually stored in the AWS account in secrets manager, using the following secret name:
+     `compact-connect/env/{value of 'environment_name' in cdk.context.json}/recaptcha/token`
+   The value of the secret key should be in the following format:
+   ```
+   {
+     "token": "<value of private Secret Key from Google reCAPTCHA>"
+   }
+   ```
+   You can run the following aws cli command to create the secret (make sure you are logged in to the same AWS account you want to store the secret in, under the us-east-1 region):
+   ```
+   aws secretsmanager create-secret --name compact-connect/env/{value of 'environment_name' in cdk.context.json}/recaptcha/token --secret-string '{"token": "<value of private Secret Key from Google reCAPTCHA>"}'
+   ```
+
+For Production environments, additional billing setup is required:
+1. In the Settings for a reCAPTCHA site, click "View in Cloud Console"
+2. From the main nav, go to Billing
+3. If you have an existing billing account, you may link it. Otherwise, you can create a New Billing account, where you will add payment information
+4. More info on Google Recaptcha billing: https://cloud.google.com/recaptcha/docs/billing-information
 
 ### Useful commands
 
@@ -280,7 +282,7 @@ ns-6.awsdns-16.org.
 
 Copy those name server values and, back in your production hosted zone, create a new NS record that matches the test
 one, with the same value (i.e. Record Name: `test.compcatconnect.org`, Type: `NS`, Value: `<same as above>`). Once that
-is done, your test hosted zone is ready for use by the app.
+is done, your test hosted zone is ready for use by the app. You will need to perform this action for your beta environment as well, should you choose to deploy one.
 
 ## More Info
 [Back to top](#compact-connect---backend-developer-documentation)

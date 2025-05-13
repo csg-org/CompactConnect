@@ -18,7 +18,7 @@ class TestProviderUsersApi(TestApi):
     """
 
     def test_synth_generates_provider_users_resource(self):
-        api_stack = self.app.sandbox_stage.api_stack
+        api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
 
         # Ensure the resource is created with expected path
@@ -34,7 +34,7 @@ class TestProviderUsersApi(TestApi):
         )
 
     def test_synth_generates_provider_users_registration_endpoint_resource(self):
-        api_stack = self.app.sandbox_stage.api_stack
+        api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
 
         # Ensure the resource is created with expected path
@@ -106,7 +106,7 @@ class TestProviderUsersApi(TestApi):
         )
 
     def test_synth_generates_get_provider_users_me_endpoint_resource(self):
-        api_stack = self.app.sandbox_stage.api_stack
+        api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
 
         # Ensure the resource is created with expected path
@@ -166,7 +166,7 @@ class TestProviderUsersApi(TestApi):
         )
 
     def test_synth_generates_provider_users_me_military_affiliation_endpoint_resource(self):
-        api_stack = self.app.sandbox_stage.api_stack
+        api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
 
         # Ensure the resource is created with expected path

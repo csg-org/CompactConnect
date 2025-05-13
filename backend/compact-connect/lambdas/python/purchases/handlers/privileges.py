@@ -4,7 +4,7 @@ from datetime import UTC, datetime, date
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
 from cc_common.data_model.provider_record_util import ProviderRecordType, ProviderRecordUtility
-from cc_common.data_model.schema.common import ProviderEligibilityStatus
+from cc_common.data_model.schema.common import ActiveInactiveStatus, CompactEligibilityStatus
 from cc_common.data_model.schema.compact import COMPACT_TYPE, Compact
 from cc_common.data_model.schema.compact.api import CompactOptionsResponseSchema
 from cc_common.data_model.schema.jurisdiction import JURISDICTION_TYPE, Jurisdiction
@@ -222,16 +222,16 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
         user_provider_data['items'],
         ProviderRecordType.LICENSE,
         _filter=lambda record: record['licenseType'] == body['licenseType']
-        and record['jurisdiction'] == home_state_selection,
+        and record['jurisdiction'] == home_state_selection
+        and record['compactEligibility'] == CompactEligibilityStatus.ELIGIBLE,
     )
 
     if not matching_license_records:
-        raise CCInvalidRequestException('Specified license type does not match any home state license type.')
+        raise CCInvalidRequestException(
+            'Specified license type does not match any eligible licenses in the home state.'
+        )
 
     matching_license_record = matching_license_records[0]
-
-    if matching_license_record['status'] == ProviderEligibilityStatus.INACTIVE:
-        raise CCInvalidRequestException('No active license found in selected home state for this user')
 
     provider_records = ProviderRecordUtility.get_records_of_type(
         user_provider_data['items'],
@@ -265,7 +265,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             # if their latest privilege expiration date matches the license expiration date they will not
             # receive any benefit from purchasing the same privilege, since the expiration date will not change
             and privilege['dateOfExpiration'] == matching_license_record['dateOfExpiration']
-            and privilege['persistedStatus'] == 'active'
+            and privilege['administratorSetStatus'] == ActiveInactiveStatus.ACTIVE
         ):
             raise CCInvalidRequestException(
                 f"Selected privilege jurisdiction '{privilege['jurisdiction'].lower()}'"

@@ -1,7 +1,11 @@
 # PLACEHOLDER DATA, NOT FINAL CONFIGURATION.
 jurisdictionName: "Nebraska"
 postalAbbreviation: "ne"
-jurisdictionFee: 100
+privilegeFees:
+  - licenseTypeAbbreviation: "ot"
+    amount: 100
+  - licenseTypeAbbreviation: "ota"
+    amount: 100
 militaryDiscount:
     active: true
     discountType: "FLAT_RATE"

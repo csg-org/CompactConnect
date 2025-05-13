@@ -9,6 +9,10 @@
     border-radius: 2rem;
     background-color: @white;
 
+    .error {
+        color: @midRed;
+    }
+
     .privilege-title-row {
         display: flex;
         flex-direction: row;
@@ -17,24 +21,32 @@
         border-top-left-radius: 2rem;
         border-top-right-radius: 2rem;
         color: @white;
-        background-color: @primaryColor;
+        background-color: darken(@darkGrey, 5%);
+
+        &.active {
+            background-color: @primaryColor;
+        }
 
         &.has-actions {
             padding-right: 0;
         }
 
         .privilege-title {
-            margin-bottom: 0.2rem;
+            margin: 0.2rem;
             font-weight: @fontWeightBold;
             font-size: @fontSizeLarge;
         }
 
         .privilege-status {
+            margin-top: 0.2rem;
             margin-left: auto;
-            font-size: @fontSizeMedium;
+            padding: 0.2rem 0.8rem;
+            border: 1px solid rgba(@white, 0.2);
+            border-radius: @borderRadiusPillShape;
+            background-color: rgba(@white, 0.04);
 
-            &.expired {
-                font-style: italic;
+            &.active {
+                background-color: rgba(@white, 0.18);
             }
         }
 
@@ -142,6 +154,15 @@
             .modal-content {
                 padding-top: 1rem;
 
+                .deactivation-notes {
+                    margin-top: 1.8rem;
+
+                    #notes {
+                        min-height: 12rem;
+                        border-color: @fontColor;
+                    }
+                }
+
                 .modal-error {
                     margin-top: 2.4rem;
                     color: @midRed;
@@ -150,12 +171,33 @@
 
                 .action-button-row {
                     display: flex;
-                    flex-direction: row;
-                    justify-content: flex-end;
-                    margin-top: 4rem;
+                    flex-direction: column;
+                    margin-top: 2rem;
 
-                    .submit-button {
-                        margin-left: 1rem;
+                    @media @desktopWidth {
+                        flex-direction: row;
+                        flex-wrap: wrap;
+                        justify-content: flex-end;
+                        margin-top: 4rem;
+                    }
+
+                    .action-button {
+                        margin-bottom: 1rem;
+
+                        @media @desktopWidth {
+                            &:not(:first-child) {
+                                margin-left: 2.4rem;
+                            }
+                        }
+
+                        .input-button,
+                        .input-submit {
+                            width: 100%;
+
+                            @media @desktopWidth {
+                                width: auto;
+                            }
+                        }
                     }
                 }
             }
@@ -174,16 +216,4 @@
             width: 100%;
         }
     }
-}
-
-.bold {
-    font-weight: @fontWeightBold;
-}
-
-.italics {
-    font-style: italic;
-}
-
-.error {
-    color: @midRed;
 }

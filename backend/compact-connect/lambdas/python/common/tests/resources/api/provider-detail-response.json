@@ -6,8 +6,11 @@
   "givenName": "Björk",
   "middleName": "Gunnar",
   "familyName": "Guðmundsdóttir",
-  "jurisdictionStatus": "active",
+  "jurisdictionUploadedLicenseStatus": "active",
+  "jurisdictionUploadedCompactEligibility": "eligible",
+  "licenseStatus": "active",
   "status": "active",
+  "compactEligibility": "eligible",
   "compact": "aslp",
   "licenseJurisdiction": "oh",
   "privilegeJurisdictions": ["ne"],
@@ -34,8 +37,12 @@
       "npi": "0608337260",
       "licenseNumber": "A0608337260",
       "licenseType": "speech-language pathologist",
+      "jurisdictionUploadedLicenseStatus": "active",
+      "jurisdictionUploadedCompactEligibility": "eligible",
+      "licenseStatus": "active",
       "status": "active",
-      "jurisdictionStatus": "active",
+      "licenseStatusName": "DEFINITELY_A_HUMAN",
+      "compactEligibility": "eligible",
       "givenName": "Björk",
       "middleName": "Gunnar",
       "familyName": "Guðmundsdóttir",
@@ -51,6 +58,7 @@
       "homeAddressPostalCode": "43004",
       "emailAddress": "björk@example.com",
       "phoneNumber": "+13213214321",
+      "adverseActions": [],
       "history": [
         {
           "type": "licenseUpdate",
@@ -63,7 +71,9 @@
           "previous": {
             "npi": "0608337260",
             "licenseNumber": "A0608337260",
-            "jurisdictionStatus": "active",
+            "jurisdictionUploadedLicenseStatus": "active",
+            "licenseStatusName": "DEFINITELY_A_HUMAN",
+            "jurisdictionUploadedCompactEligibility": "eligible",
             "ssnLastFour": "1234",
             "givenName": "Björk",
             "middleName": "Gunnar",
@@ -104,7 +114,8 @@
       "dateOfUpdate": "2020-05-05T12:59:59+00:00",
       "compactTransactionId": "1234567890",
       "privilegeId": "SLP-NE-1",
-      "persistedStatus": "active",
+      "administratorSetStatus": "active",
+      "adverseActions": [],
       "history": [
         {
           "type": "privilegeUpdate",
@@ -121,7 +132,7 @@
             "dateOfUpdate": "2016-05-05T12:59:59+00:00",
             "licenseJurisdiction": "oh",
             "compactTransactionId": "0123456789",
-            "persistedStatus": "active",
+            "administratorSetStatus": "active",
             "privilegeId": "SLP-NE-1",
             "attestations": [
               {

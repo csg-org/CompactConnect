@@ -1,3 +1,4 @@
+import base64
 from collections.abc import Mapping
 
 from aws_cdk import CfnOutput, Duration, RemovalPolicy
@@ -6,12 +7,14 @@ from aws_cdk.aws_cognito import (
     AdvancedSecurityMode,
     AuthFlow,
     AutoVerifiedAttrs,
+    CfnManagedLoginBranding,
     CfnUserPoolRiskConfigurationAttachment,
     ClientAttributes,
     CognitoDomainOptions,
     DeviceTracking,
     FeaturePlan,
     ICustomAttribute,
+    ManagedLoginVersion,
     Mfa,
     MfaSecondFactor,
     OAuthFlows,
@@ -20,6 +23,7 @@ from aws_cdk.aws_cognito import (
     PasswordPolicy,
     SignInAliases,
     StandardAttributes,
+    UserPoolClient,
     UserPoolEmail,
 )
 from aws_cdk.aws_cognito import UserPool as CdkUserPool
@@ -82,7 +86,9 @@ class UserPool(CdkUserPool):
 
         if cognito_domain_prefix:
             self.user_pool_domain = self.add_domain(
-                f'{construct_id}Domain', cognito_domain=CognitoDomainOptions(domain_prefix=cognito_domain_prefix)
+                f'{construct_id}Domain',
+                cognito_domain=CognitoDomainOptions(domain_prefix=cognito_domain_prefix),
+                managed_login_version=ManagedLoginVersion.NEWER_MANAGED_LOGIN,
             )
 
             CfnOutput(self, f'{construct_id}UsersDomain', value=self.user_pool_domain.domain_name)
@@ -221,3 +227,58 @@ class UserPool(CdkUserPool):
                 )
             ),
         )
+
+    def add_managed_login_styles(
+        self,
+        user_pool_client: UserPoolClient,
+        branding_assets: list[any] = None,
+        branding_settings: dict = None,
+    ):
+        # Handle custom styles
+        login_branding = CfnManagedLoginBranding(
+            self,
+            'MyCfnManagedLoginBranding',
+            user_pool_id=self.user_pool_id,
+            assets=branding_assets,
+            client_id=user_pool_client.user_pool_client_id,
+            return_merged_resources=False,
+            settings=branding_settings,
+            use_cognito_provided_values=False,
+        )
+
+        login_branding.add_dependency(user_pool_client.node.default_child)
+
+    def prepare_assets_for_managed_login_ui(
+        self, ico_filepath: str, logo_filepath: str, background_file_path: str | None = None
+    ):
+        # options found: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cognito-managedloginbranding-assettype.html#cfn-cognito-managedloginbranding-assettype-category
+        assets = []
+        base_64_favicon = self.convert_img_to_base_64(ico_filepath)
+        assets.append(
+            CfnManagedLoginBranding.AssetTypeProperty(
+                category='FAVICON_ICO', color_mode='LIGHT', extension='ICO', bytes=base_64_favicon
+            )
+        )
+
+        base_64_logo = self.convert_img_to_base_64(logo_filepath)
+        assets.append(
+            CfnManagedLoginBranding.AssetTypeProperty(
+                category='FORM_LOGO', color_mode='LIGHT', extension='PNG', bytes=base_64_logo
+            )
+        )
+
+        if background_file_path:
+            base_64_background = self.convert_img_to_base_64(background_file_path)
+            assets.append(
+                CfnManagedLoginBranding.AssetTypeProperty(
+                    category='PAGE_BACKGROUND', color_mode='LIGHT', extension='PNG', bytes=base_64_background
+                )
+            )
+
+        return assets
+
+    def convert_img_to_base_64(self, file_path: str):
+        with open(file_path, 'rb') as binary_file:
+            binary_file_data = binary_file.read()
+            base64_encoded_data = base64.b64encode(binary_file_data)
+            return base64_encoded_data.decode('utf-8')

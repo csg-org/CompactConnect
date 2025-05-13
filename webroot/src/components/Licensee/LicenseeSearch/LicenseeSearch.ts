@@ -9,6 +9,7 @@ import {
     Component,
     mixins,
     Prop,
+    Watch,
     toNative
 } from 'vue-facing-decorator';
 import { reactive, computed } from 'vue';
@@ -18,6 +19,7 @@ import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import SearchIcon from '@components/Icons/LicenseSearchAlt/LicenseSearchAlt.vue';
 import { CompactType, CompactSerializer } from '@models/Compact/Compact.model';
+import { State } from '@models/State/State.model';
 import { FormInput } from '@models/FormInput/FormInput.model';
 import Joi from 'joi';
 
@@ -78,9 +80,12 @@ class LicenseeSearch extends mixins(MixinForm) {
         return this.isPublicSearch;
     }
 
+    get compactStates(): Array<State> {
+        return this.userStore.currentCompact?.memberStates || [];
+    }
+
     get stateOptions(): Array<any> {
-        const { currentCompact } = this.userStore;
-        const compactMemberStates = (currentCompact?.memberStates || []).map((state) => ({
+        const compactMemberStates = this.compactStates.map((state) => ({
             value: state.abbrev, name: state.name()
         }));
         const defaultSelectOption: any = { value: '' };
@@ -106,7 +111,7 @@ class LicenseeSearch extends mixins(MixinForm) {
                 name: 'first-name',
                 label: computed(() => this.$t('common.firstName')),
                 placeholder: computed(() => this.$t('licensing.searchPlaceholderName')),
-                validation: Joi.string().min(0).max(10).messages(this.joiMessages.string),
+                validation: Joi.string().min(0).max(100).messages(this.joiMessages.string),
                 value: this.searchParams.firstName || '',
                 enforceMax: true,
             }),
@@ -115,7 +120,7 @@ class LicenseeSearch extends mixins(MixinForm) {
                 name: 'last-name',
                 label: computed(() => this.$t('common.lastName')),
                 placeholder: computed(() => this.$t('licensing.searchPlaceholderName')),
-                validation: Joi.string().min(0).max(10).messages(this.joiMessages.string),
+                validation: Joi.string().min(0).max(100).messages(this.joiMessages.string),
                 value: this.searchParams.lastName || '',
                 enforceMax: true,
             }),
@@ -153,7 +158,6 @@ class LicenseeSearch extends mixins(MixinForm) {
         if (this.enableCompactSelect) {
             await this.$store.dispatch('user/setCurrentCompact', CompactSerializer.fromServer({ type: selectedCompactType.value }));
             state.value = '';
-            state.valueOptions = this.stateOptions;
         }
     }
 
@@ -193,6 +197,13 @@ class LicenseeSearch extends mixins(MixinForm) {
         }
 
         this.checkValidForAll();
+    }
+
+    //
+    // Watch
+    //
+    @Watch('compactStates') updateStateInput() {
+        this.formData.state.valueOptions = this.stateOptions;
     }
 }
 

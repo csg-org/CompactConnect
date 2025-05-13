@@ -28,6 +28,9 @@ COMPACTS = _context['compacts']
 
 os.environ['COMPACTS'] = json.dumps(COMPACTS)
 os.environ['JURISDICTIONS'] = json.dumps(JURISDICTIONS)
+# The environment name has no bearing on the staff user creation process, but we need a value to be set
+# for the data model to work.
+os.environ['ENVIRONMENT_NAME'] = 'test'
 
 # We have to import this after we've mucked with our path and environment
 from cc_common.data_model.schema.common import StaffUserStatus  # noqa: E402
@@ -42,9 +45,9 @@ user_table = boto3.resource('dynamodb').Table(USER_TABLE_NAME)
 schema = UserRecordSchema()
 
 
-def create_compact_ed_user(*, email: str, compact: str, user_attributes: dict):
-    sys.stdout.write(f"Creating Compact ED user, '{email}', in {compact}")
-    sub = create_cognito_user(email=email)
+def create_compact_ed_user(*, email: str, compact: str, user_attributes: dict, permanent_password: str | None = None):
+    sys.stdout.write(f"Creating Compact ED user, '{email}', in {compact}\n")
+    sub = create_cognito_user(email=email, permanent_password=permanent_password)
     user_table.put_item(
         Item=schema.dump(
             {
@@ -59,9 +62,11 @@ def create_compact_ed_user(*, email: str, compact: str, user_attributes: dict):
     )
 
 
-def create_board_ed_user(*, email: str, compact: str, jurisdiction: str, user_attributes: dict):
-    sys.stdout.write(f"Creating Board ED user, '{email}', in {compact}/{jurisdiction}")
-    sub = create_cognito_user(email=email)
+def create_board_ed_user(
+    *, email: str, compact: str, jurisdiction: str, user_attributes: dict, permanent_password: str | None = None
+):
+    sys.stdout.write(f"Creating Board ED user, '{email}', in {compact}/{jurisdiction}\n")
+    sub = create_cognito_user(email=email, permanent_password=permanent_password)
     user_table.put_item(
         Item=schema.dump(
             {
@@ -76,7 +81,13 @@ def create_board_ed_user(*, email: str, compact: str, jurisdiction: str, user_at
     )
 
 
-def create_cognito_user(*, email: str):
+def create_cognito_user(*, email: str, permanent_password: str | None):
+    """Create a Cognito user with the given email address and password.
+
+    If provided, sets the password as the user's permanent password. Since this circumvents default password policies
+    (i.e., password reset), this should only be used in testing/sandbox environments.
+    """
+
     def get_sub_from_attributes(user_attributes: list):
         for attribute in user_attributes:
             if attribute['Name'] == 'sub':
@@ -84,18 +95,35 @@ def create_cognito_user(*, email: str):
         raise ValueError('Failed to find user sub!')
 
     try:
+        # By including the TemporaryPassword on user creation, we avoid creating a user if the desired permanent
+        # password does not adhere to the password policy. Either no user is created, or a user is created with
+        # the desired password.
+        kwargs = {'TemporaryPassword': permanent_password} if permanent_password is not None else {}
         user_data = cognito_client.admin_create_user(
             UserPoolId=USER_POOL_ID,
             Username=email,
             UserAttributes=[{'Name': 'email', 'Value': email}],
             DesiredDeliveryMediums=['EMAIL'],
+            **kwargs,
         )
+
+        if permanent_password is not None:
+            cognito_client.admin_set_user_password(
+                UserPoolId=USER_POOL_ID, Username=email, Password=permanent_password, Permanent=True
+            )
         return get_sub_from_attributes(user_data['User']['Attributes'])
 
     except ClientError as e:
         if e.response['Error']['Code'] == 'UsernameExistsException':
+            sys.stdout.write('User already exists, returning existing user')
             user_data = cognito_client.admin_get_user(UserPoolId=USER_POOL_ID, Username=email)
             return get_sub_from_attributes(user_data['UserAttributes'])
+        if e.response['Error']['Code'] == 'InvalidPasswordException':
+            sys.stderr.write(f'Invalid password: {e.response["Error"]["Message"]}')
+            sys.exit(2)
+        else:
+            sys.stderr.write(f'Failed to create user: {e.response["Error"]["Message"]}')
+            sys.exit(2)
 
 
 if __name__ == '__main__':

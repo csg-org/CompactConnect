@@ -123,10 +123,11 @@ export class DataApi {
      * @param  {string}           licenseeId     The Licensee ID.
      * @param  {string}           privilegeState The 2-character state abbreviation for the Privilege.
      * @param  {string}           licenseType    The license type.
+     * @param  {string}           notes          The deletion notes.
      * @return {Promise<object>}                 The server response.
      */
-    public deletePrivilege(compact, licenseeId, privilegeState, licenseType) {
-        return licenseDataApi.deletePrivilege(compact, licenseeId, privilegeState, licenseType);
+    public deletePrivilege(compact, licenseeId, privilegeState, licenseType, notes) {
+        return licenseDataApi.deletePrivilege(compact, licenseeId, privilegeState, licenseType, notes);
     }
 
     /**
@@ -225,6 +226,24 @@ export class DataApi {
      */
     public updateAuthenticatedStaffUser(data) {
         return userDataApi.updateAuthenticatedStaffUser(data);
+    }
+
+    /**
+     * GET Compact States.
+     * @param  {string}                compact A compact type.
+     * @return {Promise<Array<State>>}         A list of State instances.
+     */
+    public getCompactStates(compact) {
+        return userDataApi.getCompactStates(compact);
+    }
+
+    /**
+     * GET Compact States (Public).
+     * @param  {string}                compact A compact type.
+     * @return {Promise<Array<State>>}         A list of State instances.
+     */
+    public getCompactStatesPublic(compact) {
+        return userDataApi.getCompactStatesPublic(compact);
     }
 
     /**

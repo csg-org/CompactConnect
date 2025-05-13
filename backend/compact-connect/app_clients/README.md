@@ -20,7 +20,7 @@ Add a new app client yaml file to `/app_clients` following the schema of the exa
 
 ##### **Compact-Level Scopes:**
    These are the scopes that are scoped to a specific compact. Granting these scopes will allow the app client to perform actions across all jurisdictions within that compact.
-   Generally, the only scope that should be granted at the compact level is the `{compact}/readGeneral` scope.
+   Generally, the only scope that should be granted at the compact level is the `{compact}/readGeneral` scope if needed.
 
    The following scopes are available at the compact level:
    ```
@@ -59,7 +59,10 @@ Add a new app client yaml file to `/app_clients` following the schema of the exa
 
    This command creates an app client with the ability to generate access tokens that expire after 15 minutes. This expiration time can be adjusted according to the needs of the consuming team up to 1 day (see [AccessTokenValidity](https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_CreateUserPoolClient.html#CognitoUserPools-CreateUserPoolClient-request-AccessTokenValidity)), though it is strongly recommended to keep this value as short as possible to limit the amount of time an access token is valid for if it is compromised. The consuming team will need to implement logic to generate new access tokens before previous tokens expire.
 
-   If the consuming team plans to use both the test and production environments, you will need to create two separate app clients, one in each respective AWS accounts for those environments.
+   If the consuming team plans to use both the beta and production environments, you will need to create two separate app clients- one in each respective AWS account.
+
+   The cognito token URL for the beta environment is `https://compact-connect-staff-beta.auth.us-east-1.amazoncognito.com/oauth2/token` 
+   The cognito token URL for the prod environment is `https://compact-connect-staff.auth.us-east-1.amazoncognito.com/oauth2/token`
 
 
 ### 4. **Send Credentials to Consuming Team**
@@ -74,18 +77,17 @@ Add a new app client yaml file to `/app_clients` following the schema of the exa
    }
    ```
 
-   These credentials should be securely transmitted to the consuming team via a encrypted channel. You will also need to provide them with the user pool domain for the Staff Users user pool, which can be determined using the following cli command.
-   ```
-   aws cognito-idp describe-user-pool --user-pool-id '<user pool id>' --query 'UserPool.Domain' --output text
-   ```
-
-   If the team has questions about generating access tokens, refer them to Amazon's [documentation](https://docs.aws.amazon.com/cognito/latest/developerguide/token-endpoint.html). You can also give them the following curl example for generating an access token (Instruct them to replace the `<user pool domain>`, `<client id>`, `<client secret>` with the values you send them. The `<jurisdiction>` and `<compact>` scope values should be the state abbreviation/postal code and compact abbreviation they are requesting access to such as `ky` for Kentucky and `aslp` for the ASLP compact).
-   ```
-    curl --location --request POST 'https://<user pool domain>.auth.us-east-1.amazoncognito.com/oauth2/token?grant_type=client_credentials&client_id=<client id>&client_secret=<client secret>&scope=<jurisdiction>%2F<compact>.write' \
-    --header 'Content-Type: application/x-www-form-urlencoded' \
-    --header 'Accept: application/json'
+These credentials should be securely transmitted to the consuming team via an encrypted channel (i.e., a one-time use link) in the following format:
+   ```json
+   {
+   "clientId": "<client id>",
+   "clientSecret": "<client secret>"
+   }
    ```
 
+
+#### Email Instructions for consuming team
+As part of the email message sent to the consuming team, be sure to attach the onboarding instructions document ("Compact Connect Automated License Upload Instructions.txt").
 
 ## Rotating App Client Credentials
 Unfortunately, AWS Cognito does not support rotating app client credentials for an existing app client. The only way to rotate credentials is to create a new app client with a new clientId and clientSecret and then delete the old one. The following process should be performed if credentials are accidentally exposed or in the event of a security breach where the old credentials are compromised.
