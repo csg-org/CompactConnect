@@ -1,6 +1,5 @@
 import os
 
-import yaml
 from aws_cdk import Duration, RemovalPolicy, aws_ssm
 from aws_cdk.aws_cognito import SignInAliases, UserPoolEmail
 from aws_cdk.aws_iam import Effect, PolicyStatement
@@ -590,9 +589,7 @@ class PersistentStack(AppStack):
         """
         return self.node.get_context('compacts')
 
-    def get_list_of_active_jurisdictions_for_compact_environment(
-        self, compact: str
-    ) -> list[str]:
+    def get_list_of_active_jurisdictions_for_compact_environment(self, compact: str) -> list[str]:
         """
         Get the list of jurisdiction postal abbreviations which are active within a compact.
 

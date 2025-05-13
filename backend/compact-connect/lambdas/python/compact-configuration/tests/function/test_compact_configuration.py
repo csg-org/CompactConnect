@@ -431,10 +431,7 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
         from handlers.compact_configuration import compact_configuration_api_handler
 
         event = generate_test_event('PUT', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE)
-        event['pathParameters'] = {
-            'compact': 'aslp',
-            'jurisdiction': 'oh'
-        }
+        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
         # add compact admin scope to the event, but not state admin
         event['requestContext']['authorizer']['claims']['scope'] = 'aslp/admin'
         event['requestContext']['authorizer']['claims']['sub'] = 'some-admin-id'
@@ -466,23 +463,20 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
     def test_put_jurisdiction_configuration_accepts_null_values_for_optional_fields(self):
         """Test putting a jurisdiction configuration accepts null values for optional fields."""
         from cc_common.data_model.schema.jurisdiction import JurisdictionConfigurationData
-        from handlers.compact_configuration import compact_configuration_api_handler
         from cc_common.utils import ResponseEncoder
+        from handlers.compact_configuration import compact_configuration_api_handler
 
         event, jurisdiction_config = self._when_testing_put_jurisdiction_configuration()
-        
+
         # Modify the body to include null values for optional fields
         body = json.loads(event['body'])
-        
+
         # Set linkToDocumentation to null
-        body['jurisprudenceRequirements'] = {
-            'required': True,
-            'linkToDocumentation': None
-        }
-        
+        body['jurisprudenceRequirements'] = {'required': True, 'linkToDocumentation': None}
+
         # Set militaryRate to null for the first privilege fee
         body['privilegeFees'][0]['militaryRate'] = None
-        
+
         event['body'] = json.dumps(body, cls=ResponseEncoder)
 
         response = compact_configuration_api_handler(event, self.mock_context)
@@ -496,10 +490,10 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
 
         stored_jurisdiction_data = JurisdictionConfigurationData.from_database_record(db_response['Item'])
         stored_dict = stored_jurisdiction_data.to_dict()
-        
+
         # Verify the optional fields have null values
         self.assertIsNone(stored_dict['jurisprudenceRequirements']['linkToDocumentation'])
-        
+
         # Find the privilege fee that should have null militaryRate
         self.assertIsNone(stored_dict['privilegeFees'][0]['militaryRate'])
 
