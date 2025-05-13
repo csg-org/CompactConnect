@@ -550,5 +550,14 @@ describe('EmailNotificationServiceLambda', () => {
                 Source: 'Compact Connect <noreply@example.org>'
             });
         });
+
+        it('should throw error when no recipients found', async () => {
+            // Mock empty recipients list
+            SAMPLE_PRIVILEGE_PURCHASE_PROVIDER_NOTIFICATION_EVENT.specificEmails = [];
+
+            await expect(lambda.handler(SAMPLE_PRIVILEGE_PURCHASE_PROVIDER_NOTIFICATION_EVENT, {} as any))
+                .rejects
+                .toThrow('No recipients found');
+        });
     });
 });
