@@ -502,26 +502,28 @@ describe('EmailNotificationServiceLambda', () => {
             specificEmails: ['provider@example.com'],
             templateVariables: {
                 transactionDate: '12/12/2004',
+                // TODO here, need to confirm shape of privileges coming in, replicate in test and make sure my thing works
+                // Also confirm types of all inputs and make sure they are properly represented here and work
                 privileges: [
                     {
-                        privilegeId: 'OTA-oh-019',
-                        jurisdiction: 'Ohio',
-                        licenseType: 'OTA'
+                        privilegeId: 'OTA-OH-019',
+                        jurisdiction: 'OH',
+                        licenseTypeAbbrev: 'OTA'
                     }
                 ],
-                totalCost: '$45.00',
+                totalCost: 45.00,
                 costLineItems: [
                     {
-                        name: 'OH OTA fee', cost: '$45.00'
+                        name: 'OH OTA fee', quantity: 1, unitPrice: 45
                     },
                     {
-                        name: 'cc fees', cost: '$3.25'
+                        name: 'cc fees', quantity: 1, unitPrice: 3.5
                     }
                 ]
             }
         };
 
-        it('should successfully send privilege deactivation provider notification email', async () => {
+        it('should successfully send privilege purchase provider notification email', async () => {
             const response = await lambda.handler(SAMPLE_PRIVILEGE_PURCHASE_PROVIDER_NOTIFICATION_EVENT, {} as any);
 
             expect(response).toEqual({
@@ -542,7 +544,7 @@ describe('EmailNotificationServiceLambda', () => {
                     },
                     Subject: {
                         Charset: 'UTF-8',
-                        Data: 'Your Privilege 123 is Deactivated'
+                        Data: 'Compact Connect Privilege Purchase Confirmation'
                     }
                 },
                 Source: 'Compact Connect <noreply@example.org>'

@@ -275,7 +275,7 @@ export class EmailNotificationService extends BaseEmailService {
         specificEmails: string[] | undefined,
         transactionDate: string,
         privileges: any[], // fix later
-        totalCost: string,
+        totalCost: number,
         costLineItems: any[]
     ): Promise<void> {
         this.logger.info('Sending provider privilege purchase notification email', { providerEmail: specificEmails ? specificEmails[0] : 'none' });
@@ -301,7 +301,7 @@ export class EmailNotificationService extends BaseEmailService {
             this.insertTuple(emailContent, titleText, privilegeIdText);
         });
 
-        const rows = lineItems.map((lineItem) => {
+        const rows = costLineItems.map((lineItem) => {
             const quantityText = lineItem.quantity > 1 ? `x ${lineItem.quantity}` : '';
             const left = `${lineItem.name} ${quantityText}`;
             const right = `$${(lineItem.unitPrice * lineItem.quantity).toFixed(2)}`;
