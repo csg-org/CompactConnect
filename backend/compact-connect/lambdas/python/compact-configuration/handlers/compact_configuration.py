@@ -106,7 +106,7 @@ def _get_staff_users_compact_configuration(event: dict, context: LambdaContext):
         # in the case of a not found exception, we want to return an empty compact configuration with
         # null values
         compact_name = CompactConfigUtility.get_compact_name(compact)
-        
+
         # Create a new empty configuration with the correct field names
         empty_config = CompactConfigurationData.create_new(
             {
