@@ -105,19 +105,24 @@ def _get_staff_users_compact_configuration(event: dict, context: LambdaContext):
     except CCNotFoundException:
         # in the case of a not found exception, we want to return an empty compact configuration with
         # null values
-        compact_name = CompactConfigUtility.get_compact_name(compact) or compact
-        return {
-            'compactAbbr': compact,
-            'licenseeRegistrationEnabled': False,
-            'operationsTeamEmails': [],
-            'adverseActionsNotificationEmails': [],
-            'summaryReportNotificationEmails': [],
-            'compactCommissionFee': {
-                'commissionFee': None,
-                'commissionFeeType': 'FLAT_RATE',
-            },
-            'compactName': compact_name,
-        }
+        compact_name = CompactConfigUtility.get_compact_name(compact)
+        
+        # Create a new empty configuration with the correct field names
+        empty_config = CompactConfigurationData.create_new(
+            {
+                'compactAbbr': compact,
+                'compactName': compact_name,
+                'licenseeRegistrationEnabled': False,
+                'compactCommissionFee': {'feeType': 'FLAT_RATE', 'feeAmount': 0},
+                'compactOperationsTeamEmails': [],
+                'compactAdverseActionsNotificationEmails': [],
+                'compactSummaryReportNotificationEmails': [],
+            }
+        ).to_dict()
+        # we explicitly set this value to None (null) to denote it has not been set.
+        empty_config['compactCommissionFee']['feeAmount'] = None
+
+        return CompactConfigurationResponseSchema().load(empty_config)
 
 
 @authorize_compact_level_only_action(action=CCPermissionsAction.ADMIN)

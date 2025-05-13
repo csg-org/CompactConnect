@@ -5,10 +5,12 @@ from marshmallow.validate import Length, OneOf
 
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import ForgivingSchema
+from cc_common.data_model.schema.fields import PositiveDecimal
 from cc_common.data_model.schema.compact.common import (
     COMPACT_TYPE,
     CompactCommissionFeeSchema,
     LicenseeChargesSchema,
+    CompactFeeType
 )
 
 
@@ -28,12 +30,17 @@ class CompactOptionsResponseSchema(ForgivingSchema):
     type = String(required=True, allow_none=False, validate=OneOf([COMPACT_TYPE]))
 
 
+class CompactCommissionResponseFeeSchema(Schema):
+    feeType = String(required=True, allow_none=False, validate=OneOf([e.value for e in CompactFeeType]))
+    feeAmount = PositiveDecimal(required=True, allow_none=True, places=2)
+
+
 class CompactConfigurationResponseSchema(ForgivingSchema):
     """Schema for API responses from GET /v1/compacts/{compact}"""
 
     compactAbbr = String(required=True, allow_none=False)
     compactName = String(required=True, allow_none=False)
-    compactCommissionFee = Nested(CompactCommissionFeeSchema(), required=True, allow_none=False)
+    compactCommissionFee = Nested(CompactCommissionResponseFeeSchema(), required=True, allow_none=False)
     transactionFeeConfiguration = Nested(TransactionFeeConfigurationResponseSchema(), required=False, allow_none=False)
     compactOperationsTeamEmails = List(String(required=True, allow_none=False), required=True, allow_none=False)
     compactAdverseActionsNotificationEmails = List(
