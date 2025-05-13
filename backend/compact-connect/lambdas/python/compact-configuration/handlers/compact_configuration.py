@@ -141,28 +141,49 @@ def _put_compact_configuration(event: dict, context: LambdaContext):  # noqa: AR
 
     logger.info('Updating compact configuration', compact=compact, submitting_user_id=submitting_user_id)
 
-    # Validate the request body
-    validated_data = PutCompactConfigurationRequestSchema().loads(event['body'])
+    try:
+        # Validate the request body
+        validated_data = PutCompactConfigurationRequestSchema().loads(event['body'])
 
-    # Add compact abbreviation and name from path parameter
-    validated_data['compactAbbr'] = compact
-    compact_name = CompactConfigUtility.get_compact_name(compact)
-    if not compact_name:
-        raise CCInvalidRequestException(f'Invalid compact abbreviation: {compact}')
-    validated_data['compactName'] = compact_name
+        # Add compact abbreviation and name from path parameter
+        validated_data['compactAbbr'] = compact
+        compact_name = CompactConfigUtility.get_compact_name(compact)
+        if not compact_name:
+            raise CCInvalidRequestException(f'Invalid compact abbreviation: {compact}')
+        validated_data['compactName'] = compact_name
 
-    # Handle special case for transaction fee of 0
-    if validated_data.get('transactionFeeConfiguration', {}).get('licenseeCharges', {}).get('chargeAmount') == 0:
-        # If transaction fee is 0, remove the entire transactionFeeConfiguration object
-        logger.info('Removed transaction fee configuration because transaction fee was 0', compact=compact)
-        del validated_data['transactionFeeConfiguration']
+        # Check if licenseeRegistrationEnabled is being changed from true to false
+        if validated_data.get('licenseeRegistrationEnabled') is False:
+            try:
+                existing_config = config.compact_configuration_client.get_compact_configuration(compact=compact)
+                if existing_config.licenseeRegistrationEnabled is True:
+                    logger.info(
+                        'attempt to disable licensee registration after it was enabled.',
+                        compact=compact,
+                        submitting_user_id=submitting_user_id,
+                    )
+                    raise CCInvalidRequestException(
+                        'Once licensee registration has been enabled, it cannot be disabled.'
+                    )
+            except CCNotFoundException:
+                # No existing configuration, so this is the first time setting this field
+                logger.info('No existing configuration, so this is the first time setting this field', compact=compact)
 
-    compact_configuration = CompactConfigurationData.create_new(validated_data)
-    # Save the compact configuration
-    config.compact_configuration_client.save_compact_configuration(compact_configuration)
+        # Handle special case for transaction fee of 0
+        if validated_data.get('transactionFeeConfiguration', {}).get('licenseeCharges', {}).get('chargeAmount') == 0:
+            # If transaction fee is 0, remove the entire transactionFeeConfiguration object
+            logger.info('Removed transaction fee configuration because transaction fee was 0', compact=compact)
+            del validated_data['transactionFeeConfiguration']
 
-    # Return the saved configuration
-    return {'message': 'ok'}
+        compact_configuration = CompactConfigurationData.create_new(validated_data)
+        # Save the compact configuration
+        config.compact_configuration_client.save_compact_configuration(compact_configuration)
+
+        # Return the saved configuration
+        return {'message': 'ok'}
+    except ValidationError as e:
+        logger.info('Invalid compact configuration', compact=compact, error=e)
+        raise CCInvalidRequestException('Invalid compact configuration: ' + str(e)) from e
 
 
 def _get_staff_users_jurisdiction_configuration(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
@@ -256,6 +277,29 @@ def _put_jurisdiction_configuration(event: dict, context: LambdaContext):  # noq
         if not jurisdiction_name:
             raise CCInvalidRequestException(f'Invalid jurisdiction postal abbreviation: {jurisdiction}')
         validated_data['jurisdictionName'] = jurisdiction_name
+
+        # Check if licenseeRegistrationEnabled is being changed from true to false
+        if validated_data.get('licenseeRegistrationEnabled') is False:
+            try:
+                existing_config = config.compact_configuration_client.get_jurisdiction_configuration(
+                    compact=compact, jurisdiction=jurisdiction
+                )
+                if existing_config.licenseeRegistrationEnabled is True:
+                    logger.info(
+                        'attempt to disable licensee registration after it was enabled.',
+                        compact=compact,
+                        submitting_user_id=submitting_user_id,
+                    )
+                    raise CCInvalidRequestException(
+                        'Once licensee registration has been enabled, it cannot be disabled.'
+                    )
+            except CCNotFoundException:
+                # No existing configuration, so this is the first time setting this field
+                logger.info(
+                    'No existing configuration, so this is the first time setting this field',
+                    compact=compact,
+                    jurisdiction=jurisdiction,
+                )
 
         jurisdiction_data = JurisdictionConfigurationData.create_new(validated_data)
         # Save the jurisdiction configuration

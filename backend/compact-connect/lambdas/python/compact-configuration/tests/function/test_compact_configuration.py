@@ -296,6 +296,32 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         # Verify the transaction fee configuration is not present
         self.assertNotIn('transactionFeeConfiguration', stored_compact_data.to_dict())
 
+    def test_put_compact_configuration_rejects_disabling_licensee_registration(self):
+        """Test that a compact configuration update is rejected if trying to disable licensee registration after enabling it."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        # First, create a compact configuration with licenseeRegistrationEnabled=True
+        event, original_config = self._when_testing_put_compact_configuration()
+        # Set licenseeRegistrationEnabled to True in the request body
+        body = json.loads(event['body'])
+        body['licenseeRegistrationEnabled'] = True
+        event['body'] = json.dumps(body)
+
+        # Submit the configuration
+        compact_configuration_api_handler(event, self.mock_context)
+
+        # Now attempt to update with licenseeRegistrationEnabled=False
+        event, _ = self._when_testing_put_compact_configuration()
+        body = json.loads(event['body'])
+        body['licenseeRegistrationEnabled'] = False
+        event['body'] = json.dumps(body)
+
+        # Should be rejected with a 400 error
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        response_body = json.loads(response['body'])
+        self.assertIn('Once licensee registration has been enabled, it cannot be disabled', response_body['message'])
+
 
 TEST_MILITARY_RATE = Decimal('40.00')
 
@@ -564,3 +590,29 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
             'All valid license types for aslp must be included',
             response_body['message'],
         )
+
+    def test_put_jurisdiction_configuration_rejects_disabling_licensee_registration(self):
+        """Test that a jurisdiction configuration update is rejected if trying to disable licensee registration after enabling it."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        # First, create a jurisdiction configuration with licenseeRegistrationEnabled=True
+        event, jurisdiction_config = self._when_testing_put_jurisdiction_configuration()
+        # Set licenseeRegistrationEnabled to True in the request body
+        body = json.loads(event['body'])
+        body['licenseeRegistrationEnabled'] = True
+        event['body'] = json.dumps(body)
+
+        # Submit the configuration
+        compact_configuration_api_handler(event, self.mock_context)
+
+        # Now attempt to update with licenseeRegistrationEnabled=False
+        event, _ = self._when_testing_put_jurisdiction_configuration()
+        body = json.loads(event['body'])
+        body['licenseeRegistrationEnabled'] = False
+        event['body'] = json.dumps(body)
+
+        # Should be rejected with a 400 error
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        response_body = json.loads(response['body'])
+        self.assertIn('Once licensee registration has been enabled, it cannot be disabled', response_body['message'])
