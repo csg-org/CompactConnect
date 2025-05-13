@@ -584,10 +584,6 @@ class PersistentStack(AppStack):
         # default to csg test environment
         return 'https://app.test.compactconnect.org'
 
-    def _configuration_is_active_for_environment(self, environment_name: str, active_environments: list[str]) -> bool:
-        """Check if the compact configuration is active in the given environment."""
-        return environment_name in active_environments or self.node.try_get_context('sandbox') is True
-
     def get_list_of_compact_abbreviations(self) -> list[str]:
         """
         Get the list of all compact abbreviations for compacts configured in the cdk.json file
@@ -595,31 +591,21 @@ class PersistentStack(AppStack):
         return self.node.get_context('compacts')
 
     def get_list_of_active_jurisdictions_for_compact_environment(
-        self, compact: str, environment_name: str
+        self, compact: str
     ) -> list[str]:
         """
-        Get the list of jurisdiction postal codes which are active within a compact and environment.
+        Get the list of jurisdiction postal abbreviations which are active within a compact.
 
-        Currently, all configuration for compacts and jurisdictions is hardcoded in the compact-config directory.
-        This reads the YAML configuration files and returns the list of jurisdiction postal codes that are marked as
-        active for the environment.
+        This reads the active_compact_member_jurisdictions from the context in cdk.json and returns
+        the list of jurisdiction postal abbreviations for the specified compact.
         """
+        active_member_jurisdictions = self.node.get_context('active_compact_member_jurisdictions')
+        if not active_member_jurisdictions:
+            raise ValueError(f'No active member jurisdictions found in context for compact {compact}')
 
-        active_jurisdictions = []
-
-        # Read all jurisdiction configuration YAML files from each active compact directory
-        for jurisdiction_config_file in os.listdir(os.path.join('compact-config', compact)):
-            if jurisdiction_config_file.endswith('.yml'):
-                with open(os.path.join('compact-config', compact, jurisdiction_config_file)) as f:
-                    formatted_jurisdiction = yaml.safe_load(f)
-                    # only include the jurisdiction configuration if it is active in the environment
-                    if self._configuration_is_active_for_environment(
-                        environment_name,
-                        formatted_jurisdiction['activeEnvironments'],
-                    ):
-                        active_jurisdictions.append(formatted_jurisdiction['postalAbbreviation'].lower())
-
-        return active_jurisdictions
+        # Get the jurisdictions for the specified compact and ensure all are lowercase
+        jurisdictions = active_member_jurisdictions[compact]
+        return [j.lower() for j in jurisdictions]
 
     def _create_frontend_app_config_parameter(self):
         """

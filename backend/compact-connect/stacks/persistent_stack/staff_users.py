@@ -56,7 +56,7 @@ class StaffUsers(UserPool):
         stack: ps.PersistentStack = ps.PersistentStack.of(self)
 
         self.user_table = UsersTable(self, 'UsersTable', encryption_key=encryption_key, removal_policy=removal_policy)
-        self._add_resource_servers(stack=stack, environment_name=environment_name)
+        self._add_resource_servers(stack=stack)
         self._add_scope_customization(stack=stack)
         self._add_custom_message_lambda(stack=stack)
 
@@ -91,7 +91,7 @@ class StaffUsers(UserPool):
             ),
         ]
 
-    def _add_resource_servers(self, stack: ps.PersistentStack, environment_name: str):
+    def _add_resource_servers(self, stack: ps.PersistentStack):
         """Add scopes for all compact/jurisdictions"""
         # {compact}/write, {compact}/admin, {compact}/readGeneral for every compact resource server
         # {jurisdiction}/{compact}.write, {jurisdiction}/{compact}.admin, {jurisdiction}/{compact}.readGeneral
@@ -136,7 +136,7 @@ class StaffUsers(UserPool):
             # we define the jurisdiction level scopes, which will be used by every
             # jurisdiction that is active for the compact/environment.
             active_jurisdictions_for_compact = stack.get_list_of_active_jurisdictions_for_compact_environment(
-                compact=compact, environment_name=environment_name
+                compact=compact
             )
             for jurisdiction in active_jurisdictions_for_compact:
                 if _jurisdiction_compact_scope_mapping.get(jurisdiction) is None:
