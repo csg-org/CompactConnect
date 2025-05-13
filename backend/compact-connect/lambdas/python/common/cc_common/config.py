@@ -80,7 +80,7 @@ class _Config:
 
     @cached_property
     def event_bus_name(self):
-        return os.environ['EVENT_BUS_NAME'] #TODO here
+        return os.environ['EVENT_BUS_NAME']
 
     @cached_property
     def provider_table(self):

@@ -1,5 +1,5 @@
 import json
-
+import datetime
 import boto3
 from aws_lambda_powertools.logging import Logger
 from cc_common.config import config
@@ -22,7 +22,7 @@ class EventBusClient:
     def _publish_event(
         self,
         source: str,
-        detail: dict[str, str],
+        detail: dict,
         detail_type: str,
         event_batch_writer: EventBatchWriter | None = None,
     ):
@@ -35,7 +35,7 @@ class EventBusClient:
         event_entry = {
             'Source': source,
             'DetailType': detail_type,
-            'Detail': detail,
+            'Detail': json.dumps(detail),
             'EventBusName': config.event_bus_name,
         }
         # We'll support using a provided event batch writer to send the event to the event bus
@@ -49,7 +49,7 @@ class EventBusClient:
         self,
         source: str,
         provider_email: str,
-        transaction_date: str,
+        transaction_date: datetime,
         privileges: list[dict],
         total_cost: str,
         cost_line_items: list[dict]
@@ -57,7 +57,7 @@ class EventBusClient:
 
         event_detail = {
             'providerEmail': provider_email,
-            'transactionDate': transaction_date,
+            'transactionDate': transaction_date.strftime('%Y-%m-%d'),
             'privileges': privileges,
             'totalCost': total_cost,
             'costLineItems': cost_line_items
@@ -72,13 +72,13 @@ class EventBusClient:
         self,
         source: str,
         provider_email: str,
-        date: str,
+        date: datetime,
         privilege: dict,
     ):
 
         event_detail = {
             'providerEmail': provider_email,
-            'date': date,
+            'date': date.strftime('%Y-%m-%d'),
             'privilege': privilege
         }
         self._publish_event(
@@ -91,13 +91,13 @@ class EventBusClient:
         self,
         source: str,
         provider_email: str,
-        date: str,
+        date: datetime,
         privilege: dict,
     ):
 
         event_detail = {
             'providerEmail': provider_email,
-            'date': date,
+            'date': date.strftime('%Y-%m-%d'),
             'privilege': privilege
         }
         self._publish_event(

@@ -30,6 +30,11 @@ TEST_EMAIL = 'testRegisteredEmail@example.com'
 TEST_COGNITO_SUB = '1234567890'
 
 TEST_LICENSE_TYPE = 'speech-language pathologist'
+MOCK_LINE_ITEMS = [{
+    'name': 'Alaska Big Fee',
+    'quantity': 47,
+    'unitPrice': 55.5
+}]
 
 
 def generate_default_attestation_list():
@@ -137,11 +142,7 @@ class TestPostPurchasePrivileges(TstFunction):
         mock_purchase_client_constructor.return_value = mock_purchase_client
         mock_purchase_client.process_charge_for_licensee_privileges.return_value = {
             'transactionId': MOCK_TRANSACTION_ID,
-            'lineItems': [{
-                'name': 'Alaska Big Fee',
-                'quantity': 47,
-                'unitPrice': 55.5
-            }]
+            'lineItems': MOCK_LINE_ITEMS
         }
 
         return mock_purchase_client
@@ -249,7 +250,7 @@ class TestPostPurchasePrivileges(TstFunction):
         )
 
     @patch('handlers.privileges.PurchaseClient')
-    def test_post_purchase_privileges_returns_transaction_id(self, mock_purchase_client_constructor):
+    def test_post_purchase_privileges_returns_transaction_id_and_line_items(self, mock_purchase_client_constructor):
         from handlers.privileges import post_purchase_privileges
 
         self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
@@ -261,7 +262,8 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertEqual(200, resp['statusCode'])
         response_body = json.loads(resp['body'])
 
-        self.assertEqual({'transactionId': MOCK_TRANSACTION_ID}, response_body)
+        self.assertEqual(MOCK_TRANSACTION_ID, response_body['transactionId'])
+        self.assertEqual(MOCK_LINE_ITEMS, response_body['lineItems'])
 
     @patch('handlers.privileges.PurchaseClient')
     def test_post_purchase_privileges_returns_error_message_if_transaction_failure(
@@ -429,7 +431,8 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertEqual(200, resp['statusCode'], resp['body'])
         response_body = json.loads(resp['body'])
 
-        self.assertEqual({'transactionId': MOCK_TRANSACTION_ID}, response_body)
+        self.assertEqual(MOCK_TRANSACTION_ID, response_body['transactionId'])
+        self.assertEqual(MOCK_LINE_ITEMS, response_body['lineItems'])
 
         # ensure the persistent status is now active
         provider_records = self.config.data_client.get_provider(compact=TEST_COMPACT, provider_id=TEST_PROVIDER_ID)
@@ -476,7 +479,8 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertEqual(200, resp['statusCode'], resp['body'])
         response_body = json.loads(resp['body'])
 
-        self.assertEqual({'transactionId': MOCK_TRANSACTION_ID}, response_body)
+        self.assertEqual(MOCK_TRANSACTION_ID, response_body['transactionId'])
+        self.assertEqual(MOCK_LINE_ITEMS, response_body['lineItems'])
 
         # ensure there are two privilege records for the same jurisdiction
         provider_records = self.config.data_client.get_provider(compact=TEST_COMPACT, provider_id=TEST_PROVIDER_ID)
@@ -607,7 +611,11 @@ class TestPostPurchasePrivileges(TstFunction):
 
         # verify that the transaction was voided
         mock_purchase_client.void_privilege_purchase_transaction.assert_called_once_with(
-            compact_abbr=TEST_COMPACT, order_information={'transactionId': MOCK_TRANSACTION_ID}
+            compact_abbr=TEST_COMPACT,
+            order_information={
+                'transactionId': MOCK_TRANSACTION_ID,
+                'lineItems': MOCK_LINE_ITEMS
+            }
         )
 
     @patch('handlers.privileges.PurchaseClient')
