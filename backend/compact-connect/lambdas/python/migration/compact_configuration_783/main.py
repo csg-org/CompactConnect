@@ -55,14 +55,21 @@ def do_migration(_properties: dict) -> None:
 
                 # For all records (compact and jurisdiction):
                 # Replace licenseeRegistrationEnabledForEnvironments with licenseeRegistrationEnabled=true
-                if 'licenseeRegistrationEnabledForEnvironments' in record and 'militaryDiscount' in record and record.get('type') == 'jurisdiction':
+                if (
+                    'licenseeRegistrationEnabledForEnvironments' in record
+                    and 'militaryDiscount' in record
+                    and record.get('type') == 'jurisdiction'
+                ):
                     # Combined update for both fields
-                    update_expression = "REMOVE licenseeRegistrationEnabledForEnvironments, militaryDiscount SET #licRegEnabled = :licRegEnabled"
+                    update_expression = (
+                        'REMOVE licenseeRegistrationEnabledForEnvironments, militaryDiscount '
+                        'SET #licRegEnabled = :licRegEnabled'
+                    )
                     expression_attribute_values = {':licRegEnabled': True}
                     expression_attribute_names = {'#licRegEnabled': 'licenseeRegistrationEnabled'}
-                    
+
                     logger.info('Updating record with both fields', pk=record['pk'], sk=record['sk'])
-                    
+
                     config.compact_configuration_table.update_item(
                         Key=key,
                         UpdateExpression=update_expression,
@@ -71,12 +78,14 @@ def do_migration(_properties: dict) -> None:
                     )
                 elif 'licenseeRegistrationEnabledForEnvironments' in record:
                     # Only update licenseeRegistrationEnabledForEnvironments
-                    update_expression = "REMOVE licenseeRegistrationEnabledForEnvironments SET #licRegEnabled = :licRegEnabled"
+                    update_expression = (
+                        'REMOVE licenseeRegistrationEnabledForEnvironments SET #licRegEnabled = :licRegEnabled'
+                    )
                     expression_attribute_values = {':licRegEnabled': True}
                     expression_attribute_names = {'#licRegEnabled': 'licenseeRegistrationEnabled'}
-                    
+
                     logger.info('Updating registration field', pk=record['pk'], sk=record['sk'])
-                    
+
                     config.compact_configuration_table.update_item(
                         Key=key,
                         UpdateExpression=update_expression,
@@ -85,10 +94,10 @@ def do_migration(_properties: dict) -> None:
                     )
                 elif 'militaryDiscount' in record and record.get('type') == 'jurisdiction':
                     # Only remove militaryDiscount for jurisdiction records
-                    update_expression = "REMOVE militaryDiscount"
-                    
+                    update_expression = 'REMOVE militaryDiscount'
+
                     logger.info('Removing military discount field', pk=record['pk'], sk=record['sk'])
-                    
+
                     config.compact_configuration_table.update_item(
                         Key=key,
                         UpdateExpression=update_expression,

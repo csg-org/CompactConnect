@@ -68,7 +68,7 @@ def test_purchase_privilege_options():
             {'licenseTypeAbbreviation': 'aud', 'amount': 75, 'militaryRate': None},
             {'licenseTypeAbbreviation': 'slp', 'amount': 75, 'militaryRate': None},
         ],
-        'jurisprudenceRequirements': {'required': True, "linkToDocumentation": None},
+        'jurisprudenceRequirements': {'required': True, 'linkToDocumentation': None},
     }
 
     if ky_jurisdiction_data != expected_ky_jurisdiction_data:
