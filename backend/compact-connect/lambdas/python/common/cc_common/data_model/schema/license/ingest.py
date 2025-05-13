@@ -10,7 +10,7 @@ from cc_common.data_model.schema.fields import (
 )
 
 from cc_common.data_model.schema.license.common import LicenseCommonSchema
-from marshmallow import pre_load
+from marshmallow import ValidationError, pre_load, validates_schema
 from marshmallow.fields import UUID, Date, DateTime, String
 from marshmallow.validate import Length
 
