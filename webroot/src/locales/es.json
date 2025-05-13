@@ -367,7 +367,7 @@
         "licensing": "Licencia",
         "licensingPublic": "Buscar proveedores de salud",
         "users": "Usuarios",
-        "compactSettings": "Configuraciones compactas",
+        "compactSettings": "Ajustes",
         "purchasePrivileges": "Compras con privilegios",
         "styleGuide": "Guía de estilo",
         "account": "Cuenta",
@@ -415,7 +415,10 @@
         "fileWrongType": "Tipo de archivo incorrecto",
         "lastNameRequired": "Obligatorio cuando se proporciona el nombre",
         "ssnFormat": "Debe estar en formato ###-##-####",
-        "enterValidCreditCard": "Debe ser un número de tarjeta de crédito válido."
+        "enterValidCreditCard": "Debe ser un número de tarjeta de crédito válido.",
+        "numberType": "Debe ser un número",
+        "minNumber": "Debe ser mayor o igual a {min}",
+        "maxNumber": "Debe ser menor o igual a {max}"
     },
     "serverErrors": {
         "networkError": "Error de red",
@@ -458,10 +461,24 @@
         }
     ],
     "compact": {
-        "settingsTitle": "Configuraciones compactas",
+        "settingsTitle": "Ajustes",
         "paymentProcessorCredentials": "Authorize.net cartas credenciales",
         "paymentProcessorAccountId": "ID de cuenta API",
-        "paymentProcessorAccountKey": "Clave de transacción"
+        "paymentProcessorAccountKey": "Clave de transacción",
+        "privilegeFees": "Tarifas de privilegio",
+        "compactFee": "Tarifa compacta",
+        "privilegeTransactionFee": "Tarifa de transacción privilegiada",
+        "notifications": "Notificaciones",
+        "addEmails": "Añade correos electrónicos aquí",
+        "opsNotificationEmails": "Destinatarios de notificaciones de operaciones",
+        "opsNotificationEmailsSubtext": "Ingrese todos los destinatarios a quienes se les debe notificar sobre solicitudes de soporte (por ejemplo, datos no válidos que una jurisdicción ha cargado o cualquier otro problema que pueda surgir).",
+        "adverseActionsNotificationEmails": "Destinatarios de notificaciones de acciones adversas",
+        "adverseActionsNotificationEmailsSubtext": "Ingrese todos los destinatarios a quienes se les debe notificar sobre acciones adversas (por ejemplo, licenciatarios a quienes se les ha revocado o suspendido su licencia).",
+        "summaryReportEmails": "Destinatarios del informe resumido",
+        "summaryReportEmailsSubtext": "Ingrese todos los destinatarios que recibirán informes resumidos periódicos.",
+        "licenseRegistrationTitle": "Estado en vivo",
+        "licenseRegistrationEnabled": "¿Está habilitado el registro de licencia?",
+        "licenseRegistrationEnabledSubtext": "Esto habilita el estado en vivo para los privilegios de compra, y <em>esta acción es irreversible.</em>"
     },
     "stateUpload": {
         "formTitle": "Carga de datos compacta",

@@ -21,6 +21,7 @@
     label,
     .input-label {
         display: flex;
+        flex-wrap: wrap;
         align-items: center;
         margin-bottom: 0.6rem;
         color: @fontColor;
@@ -28,7 +29,15 @@
         font-size: 1.6rem;
 
         .icon {
+            flex-basis: 2%;
             padding-right: 0.6rem;
+        }
+
+        .input-label-subtext {
+            flex-basis: 100%;
+            color: darken(@darkGrey, 10%);
+            font-weight: @fontWeight;
+            font-size: 1.2rem;
         }
     }
 

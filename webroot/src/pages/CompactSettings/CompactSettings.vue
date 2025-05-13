@@ -8,7 +8,8 @@
 <template>
     <Section class="compact-settings-container">
         <h1 class="compact-settings-title">{{ $t('compact.settingsTitle') }}</h1>
-        <PaymentProcessorConfig />
+        <PaymentProcessorConfig v-if="isCompactAdmin" class="section payment-config" />
+        <CompactSettingsConfig v-if="isCompactAdmin" class="section compact-config" />
     </Section>
 </template>
 

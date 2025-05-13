@@ -1,0 +1,82 @@
+//
+//  CompactSettingsConfig.less
+//  CompactConnect
+//
+//  Created by InspiringApps on 5/13/2025.
+//
+
+.compact-config {
+    .compact-config-form {
+        width: 100%;
+    }
+
+    .form-section-title {
+        margin-bottom: 1.2rem;
+
+        &.notifications,
+        &.live-status {
+            padding-top: 1.2rem;
+            border-top: 1px solid @lightGrey;
+        }
+    }
+
+    .form-row {
+        flex-direction: row;
+        flex-wrap: wrap;
+        width: 100%;
+
+        :deep(input[type=text]) {
+            width: 10rem;
+            margin-left: auto;
+
+            & + .separator::before {
+                position: absolute;
+                top: 50%;
+                left: -11.6rem;
+                width: 30px;
+                font-weight: @fontWeightBold;
+                transform: translateY(-50%);
+                content: '$';
+            }
+        }
+
+        :deep(.form-field-error) {
+            flex-basis: 100%;
+            text-align: right;
+        }
+
+        &.currency {
+            :deep(label) {
+                flex-basis: 50%;
+                padding-right: 30px;
+
+                @media @desktopWidth {
+                    flex-basis: auto;
+                }
+            }
+        }
+
+        &.radio-group-container {
+            :deep(.input-label) {
+                flex-basis: 60%;
+            }
+
+            :deep(.input-label-subtext) {
+                flex-basis: 70%;
+
+                @media @tabletWidth {
+                    flex-basis: 55%;
+                }
+            }
+
+            :deep(.radio-button-group-container) {
+                margin-left: auto;
+            }
+        }
+    }
+
+    .compact-config-submit {
+        align-items: flex-end;
+        margin-top: 4rem;
+    }
+}

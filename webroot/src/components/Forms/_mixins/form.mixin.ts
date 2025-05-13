@@ -59,6 +59,12 @@ class MixinForm extends Vue {
                 'string.length': this.$t('inputErrors.exactLength', { length: '{#limit}' }),
                 'string.email': this.$t('inputErrors.email'),
             },
+            number: {
+                'number.base': this.$t('inputErrors.numberType'),
+                'number.empty': this.$t('inputErrors.required'),
+                'number.min': this.$t('inputErrors.minNumber', { min: '{#limit}' }),
+                'number.max': this.$t('inputErrors.maxNumber', { max: '{#limit}' }),
+            },
             creditCard: {
                 'string.empty': this.$t('inputErrors.required'),
                 'string.pattern.base': this.$t('inputErrors.enterValidCreditCard')
@@ -83,6 +89,7 @@ class MixinForm extends Vue {
                 'array.length': this.$t('inputErrors.lengthFiles', { length: '{#limit}' }),
             },
             boolean: {
+                'boolean.base': this.$t('inputErrors.required'),
                 'any.invalid': this.$t('inputErrors.required'),
             },
         };
@@ -123,8 +130,11 @@ class MixinForm extends Vue {
             container.items.add(value);
             fileInput.files = container.files;
             fileInput.dispatchEvent(new Event('change'));
+        } else if (value !== undefined) {
+            formInput.value = value;
+            formInput.validate();
         } else {
-            formInput.value = value || '';
+            formInput.value = '';
             formInput.validate();
         }
     }

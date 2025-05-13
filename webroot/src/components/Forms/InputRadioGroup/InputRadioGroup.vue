@@ -16,8 +16,16 @@
             v-if="!formInput.shouldHideLabel"
             class="input-label"
         >
-            {{ formInput.label }}
-            <span v-if="isRequired" class="required-indicator">*</span>
+            <div>
+                {{ formInput.label }}
+                <span v-if="isRequired" class="required-indicator">*</span>
+            </div>
+            <div
+                v-if="formInput.labelSubtext"
+                v-html="formInput.labelSubtext"
+                class="input-label-subtext"
+            >
+            </div>
         </div>
         <div
             class="radio-button-group-container"

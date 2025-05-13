@@ -15,6 +15,7 @@ export interface InterfaceFormInput {
     id?: string;
     name?: string;
     label?: string | ComputedRef<string>;
+    labelSubtext?: string | ComputedRef<string>;
     shouldHideLabel?: boolean;
     isLabelHTML?: boolean;
     placeholder?: string | ComputedRef<string>;
@@ -54,6 +55,7 @@ export class FormInput implements InterfaceFormInput {
     public id = '';
     public name = '';
     public label = '';
+    public labelSubtext = '';
     public shouldHideLabel = false;
     public isLabelHTML = false;
     public placeholder = '';
