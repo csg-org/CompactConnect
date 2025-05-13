@@ -105,6 +105,14 @@
                     },
                     "amount": {
                       "type": "number"
+                    },
+                    "militaryRate": {
+                      "description": "Optional military rate for the privilege fee",
+                      "minimum": 0,
+                      "type": [
+                        "number",
+                        "null"
+                      ]
                     }
                   },
                   "required": [
@@ -114,23 +122,6 @@
                   "type": "object"
                 },
                 "type": "array"
-              },
-              "militaryRate": {
-                "properties": {
-                  "active": {
-                    "description": "Whether the military rate is active",
-                    "type": "boolean"
-                  },
-                  "amount": {
-                    "description": "The fixed rate amount for military users",
-                    "type": "number"
-                  }
-                },
-                "required": [
-                  "active",
-                  "amount"
-                ],
-                "type": "object"
               },
               "jurisprudenceRequirements": {
                 "properties": {

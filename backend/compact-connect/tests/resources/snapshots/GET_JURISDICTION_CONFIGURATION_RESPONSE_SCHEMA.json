@@ -29,7 +29,11 @@
           },
           "militaryRate": {
             "description": "Optional military rate for the privilege fee",
-            "type": "number"
+            "minimum": 0,
+            "type": [
+              "number",
+              "null"
+            ]
           }
         },
         "required": [
