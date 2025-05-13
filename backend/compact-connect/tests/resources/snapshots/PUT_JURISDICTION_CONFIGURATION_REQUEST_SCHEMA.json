@@ -1,18 +1,25 @@
 {
+  "additionalProperties": false,
   "properties": {
     "privilegeFees": {
       "description": "The fees for the privileges by license type",
       "items": {
+        "additionalProperties": false,
         "properties": {
           "licenseTypeAbbreviation": {
             "type": "string"
           },
           "amount": {
+            "minimum": 0,
             "type": "number"
           },
           "militaryRate": {
             "description": "Optional military rate for the privilege fee",
-            "type": ["number", "null"]
+            "minimum": 0,
+            "type": [
+              "number",
+              "null"
+            ]
           }
         },
         "required": [
@@ -30,7 +37,8 @@
         "type": "string"
       },
       "minItems": 1,
-      "type": "array"
+      "type": "array",
+      "uniqueItems": true
     },
     "jurisdictionAdverseActionsNotificationEmails": {
       "description": "List of email addresses for adverse actions notifications",
@@ -39,7 +47,8 @@
         "type": "string"
       },
       "minItems": 1,
-      "type": "array"
+      "type": "array",
+      "uniqueItems": true
     },
     "jurisdictionSummaryReportNotificationEmails": {
       "description": "List of email addresses for summary report notifications",
@@ -48,9 +57,11 @@
         "type": "string"
       },
       "minItems": 1,
-      "type": "array"
+      "type": "array",
+      "uniqueItems": true
     },
     "jurisprudenceRequirements": {
+      "additionalProperties": false,
       "properties": {
         "required": {
           "description": "Whether jurisprudence requirements exist",
@@ -58,7 +69,10 @@
         },
         "linkToDocumentation": {
           "description": "Optional link to jurisprudence documentation",
-          "type": ["string", "null"]
+          "type": [
+            "string",
+            "null"
+          ]
         }
       },
       "required": [

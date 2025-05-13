@@ -1569,6 +1569,7 @@ class ApiModel:
             description='Post compact configuration request model',
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
+                additional_properties=False,
                 required=[
                     'compactCommissionFee',
                     'compactOperationsTeamEmails',
@@ -1579,28 +1580,32 @@ class ApiModel:
                 properties={
                     'compactCommissionFee': JsonSchema(
                         type=JsonSchemaType.OBJECT,
+                        additional_properties=False,
                         required=['feeType', 'feeAmount'],
                         properties={
                             'feeType': JsonSchema(type=JsonSchemaType.STRING, enum=['FLAT_RATE']),
-                            'feeAmount': JsonSchema(type=JsonSchemaType.NUMBER),
+                            'feeAmount': JsonSchema(type=JsonSchemaType.NUMBER, minimum=0),
                         },
                     ),
                     'compactOperationsTeamEmails': JsonSchema(
                         type=JsonSchemaType.ARRAY,
                         description='List of email addresses for operations team notifications',
                         min_items=1,
+                        unique_items=True,
                         items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
                     ),
                     'compactAdverseActionsNotificationEmails': JsonSchema(
                         type=JsonSchemaType.ARRAY,
                         description='List of email addresses for adverse actions notifications',
                         min_items=1,
+                        unique_items=True,
                         items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
                     ),
                     'compactSummaryReportNotificationEmails': JsonSchema(
                         type=JsonSchemaType.ARRAY,
                         description='List of email addresses for summary report notifications',
                         min_items=1,
+                        unique_items=True,
                         items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
                     ),
                     'licenseeRegistrationEnabled': JsonSchema(
@@ -1609,9 +1614,11 @@ class ApiModel:
                     ),
                     'transactionFeeConfiguration': JsonSchema(
                         type=JsonSchemaType.OBJECT,
+                        additional_properties=False,
                         properties={
                             'licenseeCharges': JsonSchema(
                                 type=JsonSchemaType.OBJECT,
+                                additional_properties=False,
                                 required=['active', 'chargeType', 'chargeAmount'],
                                 properties={
                                     'active': JsonSchema(
@@ -1625,6 +1632,7 @@ class ApiModel:
                                     ),
                                     'chargeAmount': JsonSchema(
                                         type=JsonSchemaType.NUMBER,
+                                        minimum=0,
                                         description='The amount to charge per privilege purchased',
                                     ),
                                 },
@@ -1741,6 +1749,7 @@ class ApiModel:
             description='Post jurisdiction configuration request model',
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
+                additional_properties=False,
                 required=[
                     'privilegeFees',
                     'jurisdictionOperationsTeamEmails',
@@ -1755,12 +1764,14 @@ class ApiModel:
                         description='The fees for the privileges by license type',
                         items=JsonSchema(
                             type=JsonSchemaType.OBJECT,
+                            additional_properties=False,
                             required=['licenseTypeAbbreviation', 'amount'],
                             properties={
                                 'licenseTypeAbbreviation': JsonSchema(type=JsonSchemaType.STRING),
-                                'amount': JsonSchema(type=JsonSchemaType.NUMBER),
+                                'amount': JsonSchema(type=JsonSchemaType.NUMBER, minimum=0),
                                 'militaryRate': JsonSchema(
                                     type=[JsonSchemaType.NUMBER, JsonSchemaType.NULL],
+                                    minimum=0,
                                     description='Optional military rate for the privilege fee',
                                 ),
                             },
@@ -1770,22 +1781,26 @@ class ApiModel:
                         type=JsonSchemaType.ARRAY,
                         description='List of email addresses for operations team notifications',
                         min_items=1,
+                        unique_items=True,
                         items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
                     ),
                     'jurisdictionAdverseActionsNotificationEmails': JsonSchema(
                         type=JsonSchemaType.ARRAY,
                         description='List of email addresses for adverse actions notifications',
                         min_items=1,
+                        unique_items=True,
                         items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
                     ),
                     'jurisdictionSummaryReportNotificationEmails': JsonSchema(
                         type=JsonSchemaType.ARRAY,
                         description='List of email addresses for summary report notifications',
                         min_items=1,
+                        unique_items=True,
                         items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
                     ),
                     'jurisprudenceRequirements': JsonSchema(
                         type=JsonSchemaType.OBJECT,
+                        additional_properties=False,
                         required=['required'],
                         properties={
                             'required': JsonSchema(

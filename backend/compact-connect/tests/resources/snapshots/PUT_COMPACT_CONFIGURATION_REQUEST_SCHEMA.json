@@ -1,6 +1,8 @@
 {
+  "additionalProperties": false,
   "properties": {
     "compactCommissionFee": {
+      "additionalProperties": false,
       "properties": {
         "feeType": {
           "enum": [
@@ -9,6 +11,7 @@
           "type": "string"
         },
         "feeAmount": {
+          "minimum": 0,
           "type": "number"
         }
       },
@@ -25,7 +28,8 @@
         "type": "string"
       },
       "minItems": 1,
-      "type": "array"
+      "type": "array",
+      "uniqueItems": true
     },
     "compactAdverseActionsNotificationEmails": {
       "description": "List of email addresses for adverse actions notifications",
@@ -34,7 +38,8 @@
         "type": "string"
       },
       "minItems": 1,
-      "type": "array"
+      "type": "array",
+      "uniqueItems": true
     },
     "compactSummaryReportNotificationEmails": {
       "description": "List of email addresses for summary report notifications",
@@ -43,15 +48,18 @@
         "type": "string"
       },
       "minItems": 1,
-      "type": "array"
+      "type": "array",
+      "uniqueItems": true
     },
     "licenseeRegistrationEnabled": {
       "description": "Denotes whether licensee registration is enabled",
       "type": "boolean"
     },
     "transactionFeeConfiguration": {
+      "additionalProperties": false,
       "properties": {
         "licenseeCharges": {
+          "additionalProperties": false,
           "properties": {
             "active": {
               "description": "Whether the compact is charging licensees transaction fees",
@@ -66,6 +74,7 @@
             },
             "chargeAmount": {
               "description": "The amount to charge per privilege purchased",
+              "minimum": 0,
               "type": "number"
             }
           },

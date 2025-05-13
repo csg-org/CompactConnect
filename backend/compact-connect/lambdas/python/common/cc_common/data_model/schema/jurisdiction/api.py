@@ -5,6 +5,7 @@ from marshmallow.validate import Length, OneOf
 
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import ForgivingSchema
+from cc_common.data_model.schema.fields import PositiveDecimal
 from cc_common.data_model.schema.jurisdiction.common import JURISDICTION_TYPE
 
 
@@ -15,8 +16,8 @@ class JurisdictionJurisprudenceRequirementsResponseSchema(Schema):
 
 class JurisdictionPrivilegeFeeResponseSchema(Schema):
     licenseTypeAbbreviation = String(required=True, allow_none=False)
-    amount = Decimal(required=True, allow_none=False)
-    militaryRate = Decimal(required=False, allow_none=True)
+    amount = PositiveDecimal(required=True, allow_none=False)
+    militaryRate = PositiveDecimal(required=False, allow_none=True)
 
 
 class JurisdictionMilitaryRateResponseSchema(Schema):

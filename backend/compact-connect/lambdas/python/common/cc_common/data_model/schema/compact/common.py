@@ -1,9 +1,10 @@
 # ruff: noqa: N801, N815, ARG002 invalid-name unused-kwargs
 from marshmallow import Schema
-from marshmallow.fields import Boolean, Decimal, Nested, String
+from marshmallow.fields import Boolean, Nested, String
 from marshmallow.validate import OneOf
 
 from cc_common.data_model.schema.common import CCEnum
+from cc_common.data_model.schema.fields import PositiveDecimal
 
 COMPACT_TYPE = 'compact'
 
@@ -18,7 +19,7 @@ class TransactionFeeChargeType(CCEnum):
 
 class CompactCommissionFeeSchema(Schema):
     feeType = String(required=True, allow_none=False, validate=OneOf([e.value for e in CompactFeeType]))
-    feeAmount = Decimal(required=True, allow_none=False, places=2)
+    feeAmount = PositiveDecimal(required=True, allow_none=False, places=2)
 
 
 class LicenseeChargesSchema(Schema):
@@ -26,7 +27,7 @@ class LicenseeChargesSchema(Schema):
 
     active = Boolean(required=True, allow_none=False)
     chargeType = String(required=True, allow_none=False, validate=OneOf([e.value for e in TransactionFeeChargeType]))
-    chargeAmount = Decimal(required=True, allow_none=False, places=2)
+    chargeAmount = PositiveDecimal(required=True, allow_none=False, places=2)
 
 
 class TransactionFeeConfigurationSchema(Schema):

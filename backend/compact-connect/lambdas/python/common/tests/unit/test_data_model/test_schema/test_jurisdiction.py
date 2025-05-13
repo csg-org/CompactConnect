@@ -52,3 +52,33 @@ class TestJurisdictionRecordSchema(TstLambdas):
 
         with self.assertRaises(ValidationError):
             JurisdictionRecordSchema().load(expected_jurisdiction_config.copy())
+
+    def test_jurisdiction_config_raises_validation_error_for_negative_privilege_fee_amount(self):
+        """Test that a negative privilege fee amount raises a ValidationError"""
+        from cc_common.data_model.schema.jurisdiction.record import JurisdictionRecordSchema
+
+        with open('tests/resources/dynamo/jurisdiction.json') as f:
+            expected_jurisdiction_config = json.load(f, parse_float=Decimal)
+            expected_jurisdiction_config['privilegeFees'][0]['amount'] = Decimal('-25.00')
+
+        with self.assertRaises(ValidationError) as context:
+            JurisdictionRecordSchema().load(expected_jurisdiction_config.copy())
+
+        self.assertIn(
+            "{'privilegeFees': {0: {'amount': ['Must be greater than or equal to 0.']", str(context.exception)
+        )
+
+    def test_jurisdiction_config_raises_validation_error_for_negative_military_rate(self):
+        """Test that a negative military rate raises a ValidationError"""
+        from cc_common.data_model.schema.jurisdiction.record import JurisdictionRecordSchema
+
+        with open('tests/resources/dynamo/jurisdiction.json') as f:
+            expected_jurisdiction_config = json.load(f, parse_float=Decimal)
+            expected_jurisdiction_config['privilegeFees'][0]['militaryRate'] = Decimal('-15.00')
+
+        with self.assertRaises(ValidationError) as context:
+            JurisdictionRecordSchema().load(expected_jurisdiction_config.copy())
+
+        self.assertIn(
+            "{'privilegeFees': {0: {'militaryRate': ['Must be greater than or equal to 0.']", str(context.exception)
+        )
