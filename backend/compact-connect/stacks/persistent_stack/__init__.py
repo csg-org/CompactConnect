@@ -366,88 +366,19 @@ class PersistentStack(AppStack):
         there should be an associated migration script that is run as part of the deployment. These are short-lived
         custom resources that should be removed from the CDK app once the migration has been run in all environments.
         """
-        multi_license_migration = DataMigration(
+        compact_configuration_migration = DataMigration(
             self,
-            '569MultiLicense',
-            migration_dir='569_multi_license',
+            '783CompactConfigurationMigration',
+            migration_dir='compact_configuration_783',
             lambda_environment={
-                'PROVIDER_TABLE_NAME': self.provider_table.table_name,
-                'PROV_FAM_GIV_MID_INDEX_NAME': self.provider_table.provider_fam_giv_mid_index_name,
+                'COMPACT_CONFIGURATION_TABLE_NAME': self.compact_configuration_table.table_name,
                 **self.common_env_vars,
             },
         )
-        self.provider_table.grant_read_write_data(multi_license_migration)
+        self.compact_configuration_table.grant_read_write_data(compact_configuration_migration)
         NagSuppressions.add_resource_suppressions_by_path(
             self,
-            f'{multi_license_migration.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': 'This policy contains wild-carded actions and resources but they are scoped to the '
-                    'specific actions, reporting Table and Key that this lambda specifically needs access to.',
-                },
-            ],
-        )
-
-        military_waiver_removal_migration = DataMigration(
-            self,
-            '618RemoveMilitaryWaiver',
-            migration_dir='618_remove_military_waiver',
-            lambda_environment={
-                'PROVIDER_TABLE_NAME': self.provider_table.table_name,
-                **self.common_env_vars,
-            },
-        )
-        self.provider_table.grant_read_write_data(military_waiver_removal_migration)
-        NagSuppressions.add_resource_suppressions_by_path(
-            self,
-            f'{military_waiver_removal_migration.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': 'This policy contains wild-carded actions and resources but they are scoped to the '
-                    'specific actions, Table and Key that this lambda needs access to in order to perform the'
-                    'migration.',
-                },
-            ],
-        )
-
-        three_license_status_migration = DataMigration(
-            self,
-            '667ThreeLicenseStatus',
-            migration_dir='667_three_license_status_fields',
-            lambda_environment={
-                'PROVIDER_TABLE_NAME': self.provider_table.table_name,
-                **self.common_env_vars,
-            },
-        )
-        self.provider_table.grant_read_write_data(three_license_status_migration)
-        NagSuppressions.add_resource_suppressions_by_path(
-            self,
-            f'{three_license_status_migration.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': 'This policy contains wild-carded actions and resources but they are scoped to the '
-                    'specific actions, Table and Key that this lambda needs access to in order to perform the'
-                    'migration.',
-                },
-            ],
-        )
-
-        deactivation_details_migration = DataMigration(
-            self,
-            '566DeactivationDetails',
-            migration_dir='deactivation_details_566',
-            lambda_environment={
-                'PROVIDER_TABLE_NAME': self.provider_table.table_name,
-                **self.common_env_vars,
-            },
-        )
-        self.provider_table.grant_read_write_data(deactivation_details_migration)
-        NagSuppressions.add_resource_suppressions_by_path(
-            self,
-            f'{deactivation_details_migration.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            f'{compact_configuration_migration.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
@@ -468,9 +399,7 @@ class PersistentStack(AppStack):
                 sort='@timestamp desc',
             ),
             log_groups=[
-                multi_license_migration.migration_function.log_group,
-                military_waiver_removal_migration.migration_function.log_group,
-                three_license_status_migration.migration_function.log_group,
+                compact_configuration_migration.migration_function.log_group,
             ],
         )
 

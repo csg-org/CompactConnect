@@ -134,8 +134,8 @@ class paginated_query:  # noqa: N801 invalid-name
         try:
             return [BaseRecordSchema.get_schema_by_type(item['type']).load(item) for item in records]
         except ValidationError as e:
-            logger.error("Validation error", error=e)
+            logger.error('Validation error', error=e)
             raise CCInternalException('Data validation failure!') from e
         except KeyError as e:
-            logger.error("Key error", error=e)
+            logger.error('Key error', error=e)
             raise CCInternalException('Key error!') from e

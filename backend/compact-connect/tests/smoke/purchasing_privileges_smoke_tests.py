@@ -40,9 +40,9 @@ def test_purchase_privilege_options():
         'type': 'compact',
         'compactName': 'Audiology and Speech Language Pathology',
         'compactAbbr': 'aslp',
-        'compactCommissionFee': {'feeType': 'FLAT_RATE', 'feeAmount': 3.50},
+        'compactCommissionFee': {'feeType': 'FLAT_RATE', 'feeAmount': 15},
         'transactionFeeConfiguration': {
-            'licenseeCharges': {'active': True, 'chargeType': 'FLAT_FEE_PER_PRIVILEGE', 'chargeAmount': 3.00}
+            'licenseeCharges': {'active': True, 'chargeType': 'FLAT_FEE_PER_PRIVILEGE', 'chargeAmount': 10}
         },
     }
 
@@ -65,11 +65,10 @@ def test_purchase_privilege_options():
         'compact': 'aslp',
         # Note: if these values are ever updated in the compact configuration, the test will need to be updated
         'privilegeFees': [
-            {'licenseTypeAbbreviation': 'aud', 'amount': 100},
-            {'licenseTypeAbbreviation': 'slp', 'amount': 100},
+            {'licenseTypeAbbreviation': 'aud', 'amount': 75, 'militaryRate': None},
+            {'licenseTypeAbbreviation': 'slp', 'amount': 75, 'militaryRate': None},
         ],
-        'militaryDiscount': {'active': True, 'discountType': 'FLAT_RATE', 'discountAmount': 10},
-        'jurisprudenceRequirements': {'required': True},
+        'jurisprudenceRequirements': {'required': True, "linkToDocumentation": None},
     }
 
     if ky_jurisdiction_data != expected_ky_jurisdiction_data:
