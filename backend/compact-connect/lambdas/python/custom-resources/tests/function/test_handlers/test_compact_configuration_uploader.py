@@ -220,7 +220,7 @@ class TestCompactConfigurationUploader(TstFunction):
         # Check active member jurisdictions for ASLP
         active_member_response = self.config.compact_configuration_table.get_item(
             Key={
-                'pk': f'{ASLP_COMPACT_ABBREVIATION}#CONFIGURATION',
+                'pk': f'{ASLP_COMPACT_ABBREVIATION}#ACTIVE_MEMBER_JURISDICTIONS',
                 'sk': f'{ASLP_COMPACT_ABBREVIATION}#ACTIVE_MEMBER_JURISDICTIONS',
             }
         )
@@ -242,7 +242,7 @@ class TestCompactConfigurationUploader(TstFunction):
         # Check active member jurisdictions for OT
         active_member_response = self.config.compact_configuration_table.get_item(
             Key={
-                'pk': f'{OT_COMPACT_ABBREVIATION}#CONFIGURATION',
+                'pk': f'{OT_COMPACT_ABBREVIATION}#ACTIVE_MEMBER_JURISDICTIONS',
                 'sk': f'{OT_COMPACT_ABBREVIATION}#ACTIVE_MEMBER_JURISDICTIONS',
             }
         )

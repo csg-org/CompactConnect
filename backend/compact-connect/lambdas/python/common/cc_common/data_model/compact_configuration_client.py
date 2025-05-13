@@ -126,7 +126,7 @@ class CompactConfigurationClient:
         """
         logger.info('Getting active member jurisdictions', compact=compact)
 
-        pk = f'{compact}#CONFIGURATION'
+        pk = f'{compact}#ACTIVE_MEMBER_JURISDICTIONS'
         sk = f'{compact}#ACTIVE_MEMBER_JURISDICTIONS'
 
         response = self.config.compact_configuration_table.get_item(Key={'pk': pk, 'sk': sk})

@@ -35,7 +35,6 @@ class JurisdictionOptionsResponseSchema(ForgivingSchema):
     postalAbbreviation = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
     compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
     privilegeFees = List(Nested(JurisdictionPrivilegeFeeResponseSchema()), required=True, allow_none=False)
-    militaryRate = Nested(JurisdictionMilitaryRateResponseSchema(), required=False, allow_none=False)
     jurisprudenceRequirements = Nested(
         JurisdictionJurisprudenceRequirementsResponseSchema(), required=True, allow_none=False
     )

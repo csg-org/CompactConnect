@@ -82,7 +82,7 @@ def _store_active_member_jurisdictions(compact_abbr: str, member_jurisdictions: 
 
     # Create the item to store
     item = {
-        'pk': f'{compact_abbr}#CONFIGURATION',
+        'pk': f'{compact_abbr}#ACTIVE_MEMBER_JURISDICTIONS',
         'sk': f'{compact_abbr}#ACTIVE_MEMBER_JURISDICTIONS',
         'active_member_jurisdictions': formatted_jurisdictions,
     }
