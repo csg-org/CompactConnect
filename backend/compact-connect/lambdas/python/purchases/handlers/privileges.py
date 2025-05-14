@@ -9,7 +9,6 @@ from cc_common.data_model.schema.compact import COMPACT_TYPE, Compact
 from cc_common.data_model.schema.compact.api import CompactOptionsResponseSchema
 from cc_common.data_model.schema.jurisdiction import JURISDICTION_TYPE, Jurisdiction
 from cc_common.data_model.schema.jurisdiction.api import JurisdictionOptionsResponseSchema
-from cc_common.event_bus_client import EventBusClient
 from cc_common.exceptions import (
     CCAwsServiceException,
     CCFailedTransactionException,

@@ -2,9 +2,10 @@ import json
 from base64 import b64decode, b64encode
 from collections.abc import Callable
 from types import MethodType
-from marshmallow import ValidationError
 
 from botocore.exceptions import ClientError
+from marshmallow import ValidationError
+
 from cc_common.config import config, logger
 from cc_common.data_model.schema.base_record import BaseRecordSchema
 from cc_common.exceptions import CCInternalException, CCInvalidRequestException

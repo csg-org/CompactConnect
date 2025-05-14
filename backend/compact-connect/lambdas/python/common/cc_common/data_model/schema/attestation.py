@@ -7,7 +7,6 @@ from marshmallow.validate import OneOf, Regexp
 
 from cc_common.data_model.schema.base_record import BaseRecordSchema
 
-
 ATTESTATION_TYPE = 'attestation'
 SUPPORTED_LOCALES = ['en']
 

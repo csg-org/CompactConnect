@@ -4,6 +4,7 @@ from decimal import Decimal
 from unittest.mock import patch
 
 from marshmallow import ValidationError
+
 from tests import TstLambdas
 
 

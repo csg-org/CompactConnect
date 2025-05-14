@@ -142,7 +142,6 @@ def privilege_purchase_message_handler(message: dict):
         logger.info('Processing privilege purchase notification')
 
         # Get provider information to retrieve email and name
-        # TODO: copy this pattern to get data needed to furnish info?
         # provider = config.data_client.get_provider(compact=compact, provider_id=provider_id, detail=False)['items'][0]
 
         error_messages = []

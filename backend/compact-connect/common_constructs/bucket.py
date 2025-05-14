@@ -6,7 +6,6 @@ from constructs import Construct
 from common_constructs.access_logs_bucket import AccessLogsBucket
 
 
-
 class Bucket(CdkBucket):
     def __init__(self, scope: Construct, construct_id: str, *, server_access_logs_bucket: AccessLogsBucket, **kwargs):
         stack = Stack.of(scope)

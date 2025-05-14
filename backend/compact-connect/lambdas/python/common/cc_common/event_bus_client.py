@@ -1,8 +1,6 @@
 import datetime
 import json
 
-import boto3
-from aws_lambda_powertools.logging import Logger
 from cc_common.config import config
 from cc_common.event_batch_writer import EventBatchWriter
 
@@ -17,8 +15,6 @@ class EventBusClient:
         """
         Initialize the EventBusClient.
         """
-        # self._lambda_client = lambda_client maybe supposed to event_batch_writer like this
-        # self._logger = logger
 
     def _publish_event(
         self,
@@ -28,7 +24,7 @@ class EventBusClient:
         event_batch_writer: EventBatchWriter | None = None,
     ):
         """
-        Something
+        Publish event to the event bus
         """
         detail_to_publish = detail
         detail_to_publish['eventTime'] = (config.current_standard_datetime.isoformat(),)
