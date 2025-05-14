@@ -109,13 +109,17 @@ class TestAppClientYaml(unittest.TestCase):
 
         # Get compacts and generate compact-level scopes
         compacts = get_compacts_from_cdk_json()
+
+        # Get active jurisdictions mapping
+        cdk_data = _load_cdk_json_data()
+        active_jurisdictions = cdk_data['context']['active_compact_member_jurisdictions']
+
         for compact in compacts:
             for action in SCOPE_ACTIONS:
                 valid_scopes.append(f'{compact}/{action}')
 
             # Get jurisdictions for this compact and generate jurisdiction-level scopes
-            jurisdictions = get_jurisdictions_from_cdk_json()
-            for jurisdiction in jurisdictions:
+            for jurisdiction in active_jurisdictions.get(compact, []):
                 for action in SCOPE_ACTIONS:
                     valid_scopes.append(f'{jurisdiction}/{compact}.{action}')
 

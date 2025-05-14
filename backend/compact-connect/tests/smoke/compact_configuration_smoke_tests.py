@@ -73,6 +73,7 @@ def test_compact_configuration():
     test_email = f'test-compact-admin-{compact}@ccSmokeTestFakeEmail.com'
     permissions = {'actions': {'admin'}, 'jurisdictions': {}}
 
+    user_sub = None
     try:
         # Create the test user
         user_sub = create_test_staff_user(
@@ -149,7 +150,8 @@ def test_compact_configuration():
 
     finally:
         # Clean up the test user
-        delete_test_staff_user(test_email, user_sub, compact)
+        if user_sub:
+            delete_test_staff_user(test_email, user_sub, compact)
 
 
 def test_jurisdiction_configuration():
@@ -164,6 +166,7 @@ def test_jurisdiction_configuration():
     test_email = f'test-state-admin-{jurisdiction}@ccSmokeTestFakeEmail.com'
     permissions = {'actions': {}, 'jurisdictions': {'ky': {'admin'}}}
 
+    user_sub = None
     try:
         # Create the test user
         user_sub = create_test_staff_user(
@@ -263,7 +266,8 @@ def test_jurisdiction_configuration():
         return config_response
     finally:
         # Clean up the test user
-        delete_test_staff_user(test_email, user_sub, compact)
+        if user_sub:
+            delete_test_staff_user(test_email, user_sub, compact)
 
 
 if __name__ == '__main__':
