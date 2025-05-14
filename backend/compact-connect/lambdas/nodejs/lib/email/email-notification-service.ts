@@ -273,15 +273,15 @@ export class EmailNotificationService extends BaseEmailService {
      * @param privilegeId - The privilege ID
      */
     public async sendPrivilegePurchaseProviderNotificationEmail(
-        specificEmails: string[] | undefined,
+        specificEmails: string[] = [],
         transactionDate: string,
-        privileges: any[], // fix later
+        privileges: any[], 
         totalCost: number,
         costLineItems: any[]
     ): Promise<void> {
-        this.logger.info('Sending provider privilege purchase notification email', { providerEmail: specificEmails ? specificEmails[0] : 'none' });
+        this.logger.info('Sending provider privilege purchase notification email', { providerEmail: specificEmails[0] });
 
-        const recipients = specificEmails || [];
+        const recipients = specificEmails;
 
         if (recipients.length === 0) {
             throw new Error(`No recipients found`);
