@@ -2105,6 +2105,7 @@
             "additionalProperties": false
           },
           "compactSummaryReportNotificationEmails": {
+            "maxItems": 10,
             "minItems": 1,
             "uniqueItems": true,
             "type": "array",
@@ -2115,6 +2116,7 @@
             }
           },
           "compactAdverseActionsNotificationEmails": {
+            "maxItems": 10,
             "minItems": 1,
             "uniqueItems": true,
             "type": "array",
@@ -2162,6 +2164,7 @@
             "additionalProperties": false
           },
           "compactOperationsTeamEmails": {
+            "maxItems": 10,
             "minItems": 1,
             "uniqueItems": true,
             "type": "array",
@@ -5367,6 +5370,7 @@
             }
           },
           "jurisdictionAdverseActionsNotificationEmails": {
+            "maxItems": 10,
             "minItems": 1,
             "uniqueItems": true,
             "type": "array",
@@ -5377,6 +5381,7 @@
             }
           },
           "jurisdictionOperationsTeamEmails": {
+            "maxItems": 10,
             "minItems": 1,
             "uniqueItems": true,
             "type": "array",
@@ -5413,6 +5418,7 @@
             "description": "Denotes whether licensee registration is enabled"
           },
           "jurisdictionSummaryReportNotificationEmails": {
+            "maxItems": 10,
             "minItems": 1,
             "uniqueItems": true,
             "type": "array",
