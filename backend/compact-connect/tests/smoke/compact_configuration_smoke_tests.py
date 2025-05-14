@@ -144,6 +144,9 @@ def test_compact_configuration():
 
         print(f'Successfully verified compact configuration for {compact}')
 
+        # return the config response to be used in other tests
+        return config_response
+
     finally:
         # Clean up the test user
         delete_test_staff_user(test_email, user_sub, compact)
@@ -256,7 +259,8 @@ def test_jurisdiction_configuration():
             )
 
         print(f'Successfully verified jurisdiction configuration for {jurisdiction} in {compact}')
-
+        # return the config response to be used in other tests
+        return config_response
     finally:
         # Clean up the test user
         delete_test_staff_user(test_email, user_sub, compact)
