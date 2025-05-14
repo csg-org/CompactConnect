@@ -902,9 +902,9 @@ class ApiModel:
                                     'militaryRate': JsonSchema(
                                         one_of=[
                                             JsonSchema(type=JsonSchemaType.NUMBER, minimum=0),
-                                            JsonSchema(type=JsonSchemaType.NULL)
+                                            JsonSchema(type=JsonSchemaType.NULL),
                                         ],
-                                        description='Optional military rate for the privilege fee.'
+                                        description='Optional military rate for the privilege fee.',
                                     ),
                                 },
                             ),
@@ -920,9 +920,9 @@ class ApiModel:
                                 'linkToDocumentation': JsonSchema(
                                     one_of=[
                                         JsonSchema(type=JsonSchemaType.STRING),
-                                        JsonSchema(type=JsonSchemaType.NULL)
+                                        JsonSchema(type=JsonSchemaType.NULL),
                                     ],
-                                    description='Optional link to jurisprudence documentation'
+                                    description='Optional link to jurisprudence documentation',
                                 ),
                             },
                         ),
@@ -1694,9 +1694,9 @@ class ApiModel:
                                 'militaryRate': JsonSchema(
                                     one_of=[
                                         JsonSchema(type=JsonSchemaType.NUMBER, minimum=0),
-                                        JsonSchema(type=JsonSchemaType.NULL)
+                                        JsonSchema(type=JsonSchemaType.NULL),
                                     ],
-                                    description='Optional military rate for the privilege fee.'
+                                    description='Optional military rate for the privilege fee.',
                                 ),
                             },
                         ),
@@ -1725,11 +1725,8 @@ class ApiModel:
                                 description='Whether jurisprudence requirements exist',
                             ),
                             'linkToDocumentation': JsonSchema(
-                                one_of=[
-                                    JsonSchema(type=JsonSchemaType.STRING),
-                                    JsonSchema(type=JsonSchemaType.NULL)
-                                ],
-                                description='Optional link to jurisprudence documentation'
+                                one_of=[JsonSchema(type=JsonSchemaType.STRING), JsonSchema(type=JsonSchemaType.NULL)],
+                                description='Optional link to jurisprudence documentation',
                             ),
                         },
                     ),
@@ -1780,9 +1777,9 @@ class ApiModel:
                                 'militaryRate': JsonSchema(
                                     one_of=[
                                         JsonSchema(type=JsonSchemaType.NUMBER, minimum=0),
-                                        JsonSchema(type=JsonSchemaType.NULL)
+                                        JsonSchema(type=JsonSchemaType.NULL),
                                     ],
-                                    description='Optional military rate for the privilege fee.'
+                                    description='Optional military rate for the privilege fee.',
                                 ),
                             },
                         ),
@@ -1818,11 +1815,8 @@ class ApiModel:
                                 description='Whether jurisprudence requirements exist',
                             ),
                             'linkToDocumentation': JsonSchema(
-                                one_of=[
-                                    JsonSchema(type=JsonSchemaType.STRING),
-                                    JsonSchema(type=JsonSchemaType.NULL)
-                                ],
-                                description='Optional link to jurisprudence documentation'
+                                one_of=[JsonSchema(type=JsonSchemaType.STRING), JsonSchema(type=JsonSchemaType.NULL)],
+                                description='Optional link to jurisprudence documentation',
                             ),
                         },
                     ),
