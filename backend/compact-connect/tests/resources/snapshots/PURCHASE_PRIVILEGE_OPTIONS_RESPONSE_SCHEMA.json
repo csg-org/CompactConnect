@@ -107,11 +107,15 @@
                       "type": "number"
                     },
                     "militaryRate": {
-                      "description": "Optional military rate for the privilege fee",
-                      "minimum": 0,
-                      "type": [
-                        "number",
-                        "null"
+                      "description": "Optional military rate for the privilege fee.",
+                      "oneOf": [
+                        {
+                          "minimum": 0,
+                          "type": "number"
+                        },
+                        {
+                          "type": "null"
+                        }
                       ]
                     }
                   },
@@ -128,6 +132,17 @@
                   "required": {
                     "description": "Whether jurisprudence requirements exist",
                     "type": "boolean"
+                  },
+                  "linkToDocumentation": {
+                    "description": "Optional link to jurisprudence documentation",
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   }
                 },
                 "required": [
