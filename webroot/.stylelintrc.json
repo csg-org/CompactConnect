@@ -18,6 +18,12 @@
                 "ignorePseudoClasses": ["deep"]
             }
         ],
+        "property-no-unknown": [
+            true,
+            {
+                "ignoreProperties": ["print-color-adjust"]
+            }
+        ],
         "order/properties-order": [],
         "plugin/rational-order": [true, {
             "border-in-box-model": true,
