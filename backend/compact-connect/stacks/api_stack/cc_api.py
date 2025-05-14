@@ -31,6 +31,7 @@ from common_constructs.security_profile import SecurityProfile
 from common_constructs.stack import AppStack, Stack
 from common_constructs.webacl import WebACL, WebACLScope
 from constructs import Construct
+
 from stacks import persistent_stack as ps
 from stacks.api_stack.v1_api import V1Api
 

@@ -3,6 +3,7 @@ from datetime import datetime
 from unittest.mock import ANY, MagicMock
 
 from boto3.dynamodb.conditions import Key
+
 from tests import TstLambdas
 
 TEST_SETTLEMENT_DATETIME = '2024-01-15T10:30:00+00:00'

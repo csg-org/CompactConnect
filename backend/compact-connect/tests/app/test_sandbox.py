@@ -2,6 +2,7 @@ import json
 from unittest import TestCase
 
 from app import CompactConnectApp
+
 from tests.app.base import TstAppABC
 
 

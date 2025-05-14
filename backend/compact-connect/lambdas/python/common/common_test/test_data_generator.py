@@ -11,6 +11,7 @@ from cc_common.data_model.schema.military_affiliation import MilitaryAffiliation
 from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
 from cc_common.data_model.schema.provider import ProviderData
 from cc_common.utils import ResponseEncoder
+
 from common_test.test_constants import *
 
 

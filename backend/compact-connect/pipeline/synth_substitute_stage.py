@@ -1,5 +1,6 @@
 from aws_cdk import Environment, Stage
 from constructs import Construct
+
 from pipeline.synth_substitute_stack import SynthSubstituteStack
 
 

@@ -13,6 +13,7 @@ from uuid import UUID
 from aws_lambda_powertools import Logger
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
+
 from cc_common.config import config, logger, metrics
 from cc_common.data_model.schema.common import CCPermissionsAction
 from cc_common.data_model.schema.provider.api import ProviderGeneralResponseSchema

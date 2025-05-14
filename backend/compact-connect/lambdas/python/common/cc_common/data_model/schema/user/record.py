@@ -1,12 +1,12 @@
 # ruff: noqa: N801, N815  invalid-name
+from marshmallow import Schema, post_dump, post_load, pre_dump
+from marshmallow.fields import UUID, Dict, Nested, String
+from marshmallow.validate import Length, OneOf
 
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import BaseRecordSchema
 from cc_common.data_model.schema.common import StaffUserStatus
 from cc_common.data_model.schema.fields import Set
-from marshmallow import Schema, post_dump, post_load, pre_dump
-from marshmallow.fields import UUID, Dict, Nested, String
-from marshmallow.validate import Length, OneOf
 
 
 class CompactPermissionsRecordSchema(Schema):

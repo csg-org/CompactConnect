@@ -526,7 +526,7 @@ export abstract class BaseEmailService {
             isBold
             && report[leftCellId]['data']['style']
             && report[rightCellId]['data']['style']
-            ) {
+        ) {
             report[leftCellId]['data']['style']['fontWeight'] = 'bold';
             report[rightCellId]['data']['style']['fontWeight'] = 'bold';
         }

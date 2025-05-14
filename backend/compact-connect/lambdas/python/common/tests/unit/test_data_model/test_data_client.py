@@ -2,6 +2,7 @@ from unittest.mock import MagicMock
 
 from botocore.exceptions import ClientError
 from cc_common.exceptions import CCNotFoundException
+
 from tests import TstLambdas
 
 

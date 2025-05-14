@@ -2,6 +2,7 @@ from aws_cdk.assertions import Capture, Template
 from aws_cdk.aws_apigateway import CfnMethod, CfnModel, CfnResource
 from aws_cdk.aws_cloudwatch import CfnAlarm
 from aws_cdk.aws_lambda import CfnFunction
+
 from tests.app.test_api import TestApi
 
 

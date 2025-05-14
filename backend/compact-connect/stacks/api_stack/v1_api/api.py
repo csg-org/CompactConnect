@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from aws_cdk.aws_apigateway import AuthorizationType, IResource, MethodOptions
+
 from stacks import persistent_stack as ps
 from stacks.api_stack import cc_api
 from stacks.api_stack.v1_api.attestations import Attestations

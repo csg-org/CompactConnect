@@ -14,6 +14,7 @@ from cdk_nag import NagSuppressions
 from common_constructs.python_function import PythonFunction
 from common_constructs.queued_lambda_processor import QueuedLambdaProcessor
 from constructs import Construct
+
 from stacks import persistent_stack as ps
 
 

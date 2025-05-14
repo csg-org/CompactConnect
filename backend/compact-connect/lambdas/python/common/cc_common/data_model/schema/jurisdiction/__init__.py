@@ -1,4 +1,5 @@
 # ruff: noqa: N801, N815, ARG002 invalid-name unused-kwargs
+
 from collections import UserDict
 from decimal import Decimal
 

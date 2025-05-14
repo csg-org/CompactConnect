@@ -3,6 +3,7 @@ import json
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
+
 from tests import TstLambdas
 
 

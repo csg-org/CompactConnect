@@ -1,10 +1,10 @@
 # ruff: noqa: N801, N815  invalid-name
-
-from cc_common.config import config
-from cc_common.data_model.schema.common import StaffUserStatus
 from marshmallow import Schema, post_dump, pre_load
 from marshmallow.fields import Boolean, Dict, Nested, Raw, String
 from marshmallow.validate import Length, OneOf
+
+from cc_common.config import config
+from cc_common.data_model.schema.common import StaffUserStatus
 
 
 class UserAttributesAPISchema(Schema):

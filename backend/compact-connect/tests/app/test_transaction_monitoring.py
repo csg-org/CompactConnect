@@ -4,6 +4,7 @@ from unittest import TestCase
 
 from aws_cdk.assertions import Template
 from aws_cdk.aws_lambda import CfnFunction
+
 from tests.app.base import TstAppABC
 
 

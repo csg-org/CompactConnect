@@ -8,6 +8,7 @@ from common_constructs.frontend_app_config_utility import (
 from common_constructs.security_profile import SecurityProfile
 from common_constructs.stack import AppStack
 from constructs import Construct
+
 from stacks.frontend_deployment_stack.deployment import CompactConnectUIBucketDeployment
 from stacks.frontend_deployment_stack.distribution import UIDistribution
 
