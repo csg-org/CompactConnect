@@ -352,58 +352,58 @@ export abstract class BaseEmailService {
         report[keyBlockId] = {
             'type': 'Text',
             'data': {
-              'style': {
-                'fontWeight': 'bold',
-                'padding': {
-                  'top': 16,
-                  'bottom': 0,
-                  'right': 12,
-                  'left': 24
+                'style': {
+                    'fontWeight': 'bold',
+                    'padding': {
+                    'top': 16,
+                    'bottom': 0,
+                    'right': 12,
+                    'left': 24
+                    }
+                },
+                'props': {
+                    'text': keyText
                 }
-              },
-              'props': {
-                'text': keyText
-              }
             }
         };
 
         report[valueBlockId] = {
             'type': 'Text',
             'data': {
-              'style': {
-                'color': '#525252',
-                'fontSize': 14,
-                'fontWeight': 'normal',
-                'padding': {
-                  'top': 0,
-                  'bottom': 0,
-                  'right': 24,
-                  'left': 24
+                'style': {
+                    'color': '#525252',
+                    'fontSize': 14,
+                    'fontWeight': 'normal',
+                    'padding': {
+                    'top': 0,
+                    'bottom': 0,
+                    'right': 24,
+                    'left': 24
+                    }
+                },
+                'props': {
+                    'text': valueText
                 }
-              },
-              'props': {
-                'text': valueText
-              }
             }
         };
 
         report[containerBlockId] = {
             'type': 'Container',
             'data': {
-              'style': {
-                'padding': {
-                  'top': 0,
-                  'bottom': 0,
-                  'right': 72,
-                  'left': 76
+                'style': {
+                    'padding': {
+                    'top': 0,
+                    'bottom': 0,
+                    'right': 72,
+                    'left': 76
+                    }
+                },
+                'props': {
+                    'childrenIds': [
+                        keyBlockId,
+                        valueBlockId
+                    ]
                 }
-              },
-              'props': {
-                'childrenIds': [
-                    keyBlockId,
-                    valueBlockId
-                ]
-              }
             }
         };
 
@@ -419,20 +419,20 @@ export abstract class BaseEmailService {
         report[titleBlockId] = {
             'type': 'Text',
             'data': {
-              'style': {
-                'fontWeight': 'bold',
-                'padding': {
-                  'top': 16,
-                  'bottom': 16,
-                  'right': 24,
-                  'left': 68
+                'style': {
+                    'fontWeight': 'bold',
+                    'padding': {
+                    'top': 16,
+                    'bottom': 16,
+                    'right': 24,
+                    'left': 68
+                    }
+                },
+                'props': {
+                    'text': title
                 }
-              },
-              'props': {
-                'text': title
-              }
             }
-        }
+        };
 
         report['root']['data']['childrenIds'].push(titleBlockId);
 
@@ -447,78 +447,78 @@ export abstract class BaseEmailService {
         const rightCellId = `block-${crypto.randomUUID()}`;
 
         report[leftCellId] = {
-            "type": "Text",
-            "data": {
-              "style": {
-                "fontWeight": "normal",
-                "textAlign": "left",
-                "padding": {
-                  "top": 0,
-                  "bottom": 0,
-                  "right": 24,
-                  "left": 24
+            'type': 'Text',
+            'data': {
+                'style': {
+                    'fontWeight': 'normal',
+                    'textAlign': 'left',
+                    'padding': {
+                    'top': 0,
+                    'bottom': 0,
+                    'right': 24,
+                    'left': 24
+                    }
+                },
+                'props': {
+                    'text': leftContent
                 }
-              },
-              "props": {
-                "text": leftContent
-              }
             }
         };
 
         report[rightCellId] = {
-            "type": "Text",
-            "data": {
-              "style": {
-                "fontWeight": "normal",
-                "textAlign": "right",
-                "padding": {
-                  "top": 0,
-                  "bottom": 0,
-                  "right": 24,
-                  "left": 24
+            'type': 'Text',
+            'data': {
+                'style': {
+                    'fontWeight': 'normal',
+                    'textAlign': 'right',
+                    'padding': {
+                        'top': 0,
+                        'bottom': 0,
+                        'right': 24,
+                        'left': 24
+                    }
+                },
+                'props': {
+                    'text': rightContent
                 }
-              },
-              "props": {
-                "text": rightContent
-              }
             }
         };
 
         report[containerId] = {
-            "type": "ColumnsContainer",
-            "data": {
-              "style": {
-                "padding": {
-                  "top": 0,
-                  "bottom": 0,
-                  "right": 44,
-                  "left": 44
+            'type': 'ColumnsContainer',
+            'data': {
+                'style': {
+                    'padding': {
+                        'top': 0,
+                        'bottom': 0,
+                        'right': 44,
+                        'left': 44
+                    }
+                },
+                'props': {
+                    'fixedWidths': [
+                        null,
+                        null,
+                        null
+                    ],
+                    'columnsCount': 2,
+                    'columnsGap': 16,
+                    'columns': [
+                        {
+                            'childrenIds': [
+                                leftCellId
+                            ]
+                        },
+                        {
+                            'childrenIds': [
+                                rightCellId
+                            ]
+                        },
+                        {
+                            'childrenIds': []
+                        }
+                    ]
                 }
-              },
-              "props": {
-                "fixedWidths": [
-                  null,
-                  null,
-                  null
-                ],
-                "columnsCount": 2,
-                "columnsGap": 16,
-                "columns": [
-                  {
-                    "childrenIds": [
-                      leftCellId
-                    ]
-                  },
-                  {
-                    "childrenIds": [
-                      rightCellId
-                    ]
-                  },
-                  {
-                    "childrenIds": []
-                  }
-                ]
-              }
             }
         };
 

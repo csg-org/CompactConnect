@@ -265,6 +265,7 @@ export class EmailNotificationService extends BaseEmailService {
             ]
         });
     }
+
     /**
      * Sends an email notification to a provider when they purchase privilege(s)
      * @param compact - The compact name for which the privilege was deactivated
@@ -306,7 +307,7 @@ export class EmailNotificationService extends BaseEmailService {
             const left = `${lineItem.name} ${quantityText}`;
             const right = `$${(lineItem.unitPrice * lineItem.quantity).toFixed(2)}`;
 
-            return { left, right }
+            return { left, right };
         });
 
         const totalCostDisplay = `$${totalCost.toFixed(2)}`;
