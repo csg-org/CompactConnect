@@ -99,70 +99,34 @@ class JurisdictionConfigurationData(CCDataClass):
     def jurisdictionName(self) -> str:
         return self._data['jurisdictionName']
 
-    @jurisdictionName.setter
-    def jurisdictionName(self, value: str) -> None:
-        self._data['jurisdictionName'] = value
-
     @property
     def postalAbbreviation(self) -> str:
         return self._data['postalAbbreviation']
-
-    @postalAbbreviation.setter
-    def postalAbbreviation(self, value: str) -> None:
-        self._data['postalAbbreviation'] = value
 
     @property
     def compact(self) -> str:
         return self._data['compact']
 
-    @compact.setter
-    def compact(self, value: str) -> None:
-        self._data['compact'] = value
-
     @property
     def privilegeFees(self) -> list[dict]:
         return self._data['privilegeFees']
-
-    @privilegeFees.setter
-    def privilegeFees(self, value: list[dict]) -> None:
-        self._data['privilegeFees'] = value
 
     @property
     def jurisprudenceRequirements(self) -> dict:
         return self._data['jurisprudenceRequirements']
 
-    @jurisprudenceRequirements.setter
-    def jurisprudenceRequirements(self, value: dict) -> None:
-        self._data['jurisprudenceRequirements'] = value
-
     @property
     def jurisdictionOperationsTeamEmails(self) -> list[str]:
         return self._data.get('jurisdictionOperationsTeamEmails', [])
-
-    @jurisdictionOperationsTeamEmails.setter
-    def jurisdictionOperationsTeamEmails(self, value: list[str]) -> None:
-        self._data['jurisdictionOperationsTeamEmails'] = value
 
     @property
     def jurisdictionAdverseActionsNotificationEmails(self) -> list[str]:
         return self._data.get('jurisdictionAdverseActionsNotificationEmails', [])
 
-    @jurisdictionAdverseActionsNotificationEmails.setter
-    def jurisdictionAdverseActionsNotificationEmails(self, value: list[str]) -> None:
-        self._data['jurisdictionAdverseActionsNotificationEmails'] = value
-
     @property
     def jurisdictionSummaryReportNotificationEmails(self) -> list[str]:
         return self._data.get('jurisdictionSummaryReportNotificationEmails', [])
 
-    @jurisdictionSummaryReportNotificationEmails.setter
-    def jurisdictionSummaryReportNotificationEmails(self, value: list[str]) -> None:
-        self._data['jurisdictionSummaryReportNotificationEmails'] = value
-
     @property
     def licenseeRegistrationEnabled(self) -> bool:
         return self._data.get('licenseeRegistrationEnabled', False)
-
-    @licenseeRegistrationEnabled.setter
-    def licenseeRegistrationEnabled(self, value: bool) -> None:
-        self._data['licenseeRegistrationEnabled'] = value

@@ -1,7 +1,6 @@
 # ruff: noqa: N801, N802, N815, ARG002 invalid-name unused-kwargs
 from collections import UserDict
-
-from marshmallow.fields import Decimal
+from decimal import Decimal
 
 from cc_common.data_model.schema.common import CCDataClass
 from cc_common.data_model.schema.compact.common import CompactFeeType, TransactionFeeChargeType
@@ -97,69 +96,37 @@ class CompactConfigurationData(CCDataClass):
     # Define the record schema at the class level
     _record_schema = CompactRecordSchema()
 
-    # Can use setters to set field data
-    _requires_data_at_construction = False
+    # object is immutable and cannot be changed after construction
+    _requires_data_at_construction = True
 
     @property
     def compactAbbr(self) -> str:
         return self._data['compactAbbr']
 
-    @compactAbbr.setter
-    def compactAbbr(self, value: str) -> None:
-        self._data['compactAbbr'] = value
-
     @property
     def compactName(self) -> str:
         return self._data['compactName']
-
-    @compactName.setter
-    def compactName(self, value: str) -> None:
-        self._data['compactName'] = value
 
     @property
     def compactCommissionFee(self) -> dict:
         return self._data['compactCommissionFee']
 
-    @compactCommissionFee.setter
-    def compactCommissionFee(self, value: dict) -> None:
-        self._data['compactCommissionFee'] = value
-
     @property
     def transactionFeeConfiguration(self) -> dict:
         return self._data.get('transactionFeeConfiguration')
-
-    @transactionFeeConfiguration.setter
-    def transactionFeeConfiguration(self, value: dict) -> None:
-        self._data['transactionFeeConfiguration'] = value
 
     @property
     def compactOperationsTeamEmails(self) -> list[str]:
         return self._data.get('compactOperationsTeamEmails', [])
 
-    @compactOperationsTeamEmails.setter
-    def compactOperationsTeamEmails(self, value: list[str]) -> None:
-        self._data['compactOperationsTeamEmails'] = value
-
     @property
     def compactAdverseActionsNotificationEmails(self) -> list[str]:
         return self._data.get('compactAdverseActionsNotificationEmails', [])
-
-    @compactAdverseActionsNotificationEmails.setter
-    def compactAdverseActionsNotificationEmails(self, value: list[str]) -> None:
-        self._data['compactAdverseActionsNotificationEmails'] = value
 
     @property
     def compactSummaryReportNotificationEmails(self) -> list[str]:
         return self._data.get('compactSummaryReportNotificationEmails', [])
 
-    @compactSummaryReportNotificationEmails.setter
-    def compactSummaryReportNotificationEmails(self, value: list[str]) -> None:
-        self._data['compactSummaryReportNotificationEmails'] = value
-
     @property
     def licenseeRegistrationEnabled(self) -> bool:
         return self._data.get('licenseeRegistrationEnabled', False)
-
-    @licenseeRegistrationEnabled.setter
-    def licenseeRegistrationEnabled(self, value: bool) -> None:
-        self._data['licenseeRegistrationEnabled'] = value

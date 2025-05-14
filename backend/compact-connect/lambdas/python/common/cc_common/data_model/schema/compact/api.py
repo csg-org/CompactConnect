@@ -44,12 +44,12 @@ class CompactConfigurationResponseSchema(ForgivingSchema):
     transactionFeeConfiguration = Nested(TransactionFeeConfigurationResponseSchema(), required=False, allow_none=False)
     compactOperationsTeamEmails = List(String(required=True, allow_none=False), required=True, allow_none=False)
     compactAdverseActionsNotificationEmails = List(
-        String(required=True, allow_none=False),
+        Email(required=True, allow_none=False),
         required=True,
         allow_none=False,
     )
     compactSummaryReportNotificationEmails = List(
-        String(required=True, allow_none=False),
+        Email(required=True, allow_none=False),
         required=True,
         allow_none=False,
     )
@@ -65,9 +65,9 @@ class PutCompactConfigurationRequestSchema(Schema):
         Email(required=True, allow_none=False), required=True, allow_none=False, validate=Length(min=1)
     )
     compactAdverseActionsNotificationEmails = List(
-        String(required=True, allow_none=False), required=True, allow_none=False, validate=Length(min=1)
+        Email(required=True, allow_none=False), required=True, allow_none=False, validate=Length(min=1)
     )
     compactSummaryReportNotificationEmails = List(
-        String(required=True, allow_none=False), required=True, allow_none=False, validate=Length(min=1)
+        Email(required=True, allow_none=False), required=True, allow_none=False, validate=Length(min=1)
     )
     licenseeRegistrationEnabled = Boolean(required=True, allow_none=False)

@@ -172,11 +172,6 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         event['requestContext']['authorizer']['claims']['scope'] = f'{compact_config.compactAbbr}/admin'
         event['requestContext']['authorizer']['claims']['sub'] = 'some-admin-id'
 
-        if transaction_fee_zero:
-            compact_config.transactionFeeConfiguration = {
-                'licenseeCharges': {'chargeAmount': 0.00, 'chargeType': 'FLAT_FEE_PER_PRIVILEGE', 'active': True}
-            }
-
         # we only allow the following values in the body
         event['body'] = json.dumps(
             {
@@ -185,7 +180,11 @@ class TestStaffUsersCompactConfiguration(TstFunction):
                 'compactOperationsTeamEmails': compact_config.compactOperationsTeamEmails,
                 'compactAdverseActionsNotificationEmails': compact_config.compactAdverseActionsNotificationEmails,
                 'compactSummaryReportNotificationEmails': compact_config.compactSummaryReportNotificationEmails,
-                'transactionFeeConfiguration': compact_config.transactionFeeConfiguration,
+                'transactionFeeConfiguration': compact_config.transactionFeeConfiguration
+                if not transaction_fee_zero
+                else {
+                    'licenseeCharges': {'chargeAmount': 0.00, 'chargeType': 'FLAT_FEE_PER_PRIVILEGE', 'active': True}
+                },
             },
             cls=ResponseEncoder,
         )
