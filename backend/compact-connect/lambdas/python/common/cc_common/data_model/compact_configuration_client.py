@@ -1,4 +1,5 @@
 from boto3.dynamodb.conditions import Key
+
 from cc_common.config import _Config, logger
 from cc_common.data_model.query_paginator import paginated_query
 from cc_common.data_model.schema.attestation import AttestationRecordSchema

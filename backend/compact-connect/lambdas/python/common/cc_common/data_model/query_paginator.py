@@ -2,12 +2,12 @@ import json
 from base64 import b64decode, b64encode
 from collections.abc import Callable
 from types import MethodType
+from marshmallow import ValidationError
 
 from botocore.exceptions import ClientError
 from cc_common.config import config, logger
 from cc_common.data_model.schema.base_record import BaseRecordSchema
 from cc_common.exceptions import CCInternalException, CCInvalidRequestException
-from marshmallow import ValidationError
 
 
 # It's conventional to name a decorator in snake_case, even if it is implemented as a class

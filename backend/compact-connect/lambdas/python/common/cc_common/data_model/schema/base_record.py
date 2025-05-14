@@ -4,6 +4,9 @@
 from abc import ABC
 from datetime import date
 
+from marshmallow import EXCLUDE, RAISE, Schema, post_load, pre_dump, pre_load
+from marshmallow.fields import UUID, DateTime, String
+
 from cc_common.config import config
 from cc_common.data_model.schema.common import (
     ActiveInactiveStatus,
@@ -12,9 +15,6 @@ from cc_common.data_model.schema.common import (
 )
 from cc_common.data_model.schema.fields import ActiveInactive, Compact, CompactEligibility, SocialSecurityNumber
 from cc_common.exceptions import CCInternalException
-from marshmallow import EXCLUDE, RAISE, Schema, post_load, pre_dump, pre_load
-from marshmallow.fields import UUID, DateTime, String
-from marshmallow.validate import OneOf
 
 
 class StrictSchema(Schema):

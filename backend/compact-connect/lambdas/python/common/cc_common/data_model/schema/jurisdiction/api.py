@@ -1,10 +1,11 @@
 # ruff: noqa: N801, N815, ARG002 invalid-name unused-kwargs
-from cc_common.config import config
-from cc_common.data_model.schema.base_record import ForgivingSchema
-from cc_common.data_model.schema.jurisdiction import JURISDICTION_TYPE, JurisdictionMilitaryDiscountType
 from marshmallow import Schema
 from marshmallow.fields import Boolean, Decimal, List, Nested, String
 from marshmallow.validate import OneOf
+
+from cc_common.config import config
+from cc_common.data_model.schema.base_record import ForgivingSchema
+from cc_common.data_model.schema.jurisdiction import JURISDICTION_TYPE, JurisdictionMilitaryDiscountType
 
 
 class JurisdictionMilitaryDiscountResponseSchema(Schema):

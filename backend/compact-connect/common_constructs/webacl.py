@@ -6,9 +6,10 @@ from aws_cdk.aws_iam import Effect, PolicyStatement, ServicePrincipal
 from aws_cdk.aws_logs import LogGroup, RetentionDays
 from aws_cdk.aws_wafv2 import CfnLoggingConfiguration, CfnWebACL, CfnWebACLAssociation
 from cdk_nag import NagSuppressions
+from constructs import Construct
+
 from common_constructs.security_profile import SecurityProfile
 from common_constructs.service_principal_name import ServicePrincipalName
-from constructs import Construct
 
 
 class WebACLScope(Enum):

@@ -1,8 +1,8 @@
 # ruff: noqa: N801, N815  invalid-name
+from marshmallow.fields import Raw, String
 
 from cc_common.data_model.schema.base_record import ForgivingSchema
 from cc_common.data_model.schema.fields import Compact, Jurisdiction
-from marshmallow.fields import Raw, String
 
 HOME_STATE_SELECTION_TYPE = 'homeJurisdictionSelection'
 

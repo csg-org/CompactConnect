@@ -1,4 +1,7 @@
 # ruff: noqa: N801, N815, ARG002 invalid-name unused-kwargs
+from marshmallow.fields import Nested, String
+from marshmallow.validate import OneOf
+
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import ForgivingSchema
 from cc_common.data_model.schema.compact import (
@@ -6,8 +9,6 @@ from cc_common.data_model.schema.compact import (
     CompactCommissionFeeSchema,
     LicenseeChargesSchema,
 )
-from marshmallow.fields import Nested, String
-from marshmallow.validate import OneOf
 
 
 class TransactionFeeConfigurationResponseSchema(ForgivingSchema):

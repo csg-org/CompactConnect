@@ -29,8 +29,9 @@ from aws_cdk.aws_cognito import (
 from aws_cdk.aws_cognito import UserPool as CdkUserPool
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
-from common_constructs.security_profile import SecurityProfile
 from constructs import Construct
+
+from common_constructs.security_profile import SecurityProfile
 
 
 class UserPool(CdkUserPool):

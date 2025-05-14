@@ -6,8 +6,9 @@ from aws_cdk.aws_iam import IGrantable, IRole
 from aws_cdk.aws_logs import RetentionDays
 from aws_cdk.custom_resources import Provider
 from cdk_nag import NagSuppressions
-from common_constructs.python_function import PythonFunction
 from constructs import Construct
+
+from common_constructs.python_function import PythonFunction
 
 
 @jsii.implements(IGrantable)

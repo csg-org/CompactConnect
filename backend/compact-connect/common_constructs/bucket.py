@@ -1,8 +1,10 @@
 from aws_cdk import Stack
 from aws_cdk.aws_s3 import BlockPublicAccess, BucketEncryption, ObjectOwnership
 from aws_cdk.aws_s3 import Bucket as CdkBucket
-from common_constructs.access_logs_bucket import AccessLogsBucket
 from constructs import Construct
+
+from common_constructs.access_logs_bucket import AccessLogsBucket
+
 
 
 class Bucket(CdkBucket):

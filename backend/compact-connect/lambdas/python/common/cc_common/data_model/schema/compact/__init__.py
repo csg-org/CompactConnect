@@ -1,10 +1,11 @@
 # ruff: noqa: N801, N815, ARG002 invalid-name unused-kwargs
 from collections import UserDict
 
-from cc_common.data_model.schema.common import CCEnum
 from marshmallow import Schema
 from marshmallow.fields import Boolean, Decimal, Nested, String
 from marshmallow.validate import OneOf
+
+from cc_common.data_model.schema.common import CCEnum
 
 COMPACT_TYPE = 'compact'
 

@@ -1,8 +1,9 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
-from cc_common.data_model.schema.base_record import BaseRecordSchema
-from cc_common.data_model.schema.fields import Compact, Jurisdiction
 from marshmallow import pre_dump
 from marshmallow.fields import DateTime, String
+
+from cc_common.data_model.schema.base_record import BaseRecordSchema
+from cc_common.data_model.schema.fields import Compact, Jurisdiction
 
 
 @BaseRecordSchema.register_schema('homeJurisdictionSelection')
