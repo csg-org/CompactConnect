@@ -1692,7 +1692,9 @@ class ApiModel:
                             type=JsonSchemaType.OBJECT,
                             required=['licenseTypeAbbreviation', 'amount'],
                             properties={
-                                'licenseTypeAbbreviation': JsonSchema(type=JsonSchemaType.STRING),
+                                'licenseTypeAbbreviation': JsonSchema(
+                                    type=JsonSchemaType.STRING, enum=self.stack.license_type_abbreviations
+                                ),
                                 'amount': JsonSchema(type=JsonSchemaType.NUMBER),
                                 'militaryRate': JsonSchema(
                                     one_of=[
