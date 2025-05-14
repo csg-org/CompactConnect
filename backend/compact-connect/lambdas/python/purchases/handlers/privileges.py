@@ -1,5 +1,5 @@
 import json
-from datetime import UTC, datetime, date
+from datetime import UTC, date, datetime
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
@@ -322,27 +322,24 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             transaction_date=transaction_date,
             privileges=privileges,
             total_cost=total_cost,
-            cost_line_items=cost_line_items
+            cost_line_items=cost_line_items,
         )
 
-        privileges_renewed=[]
-        privileges_issued=[]
+        privileges_renewed = []
+        privileges_issued = []
 
         for jurisdiction in selected_jurisdictions_postal_abbreviations:
-            if (
-                jurisdiction in existing_privileges_for_license
-            ):
+            if jurisdiction in existing_privileges_for_license:
                 privileges_renewed.append(jurisdiction)
             else:
                 privileges_issued.append(jurisdiction)
-
 
         for privilege_jurisdiction_issued in privileges_issued:
             config.event_bus_client.publish_privilege_issued_event(
                 source='post_purchase_privileges',
                 provider_email=provider_email,
                 date=transaction_date,
-                privilege=privilege_jurisdiction_issued
+                privilege=privilege_jurisdiction_issued,
             )
 
         for privilege_jurisdiction_renewed in privileges_renewed:
@@ -350,7 +347,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
                 source='post_purchase_privileges',
                 provider_email=provider_email,
                 date=transaction_date,
-                privilege=privilege_jurisdiction_renewed
+                privilege=privilege_jurisdiction_renewed,
             )
 
         return transaction_response

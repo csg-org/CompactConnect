@@ -7,6 +7,7 @@ from marshmallow import pre_dump
 from marshmallow.fields import List, Nested, String
 from marshmallow.validate import OneOf
 
+
 class TransactionLineItemSchema(ForgivingSchema):
     """Schema for line items within a transaction."""
 

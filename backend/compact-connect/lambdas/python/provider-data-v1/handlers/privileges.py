@@ -4,9 +4,9 @@ from aws_lambda_powertools.metrics import MetricUnit
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger, metrics
 from cc_common.data_model.schema.common import CCPermissionsAction
+from cc_common.event_batch_writer import EventBatchWriter
 from cc_common.exceptions import CCInternalException, CCInvalidRequestException
 from cc_common.utils import api_handler, authorize_compact_level_only_action, sqs_handler
-from cc_common.event_batch_writer import EventBatchWriter
 
 
 @api_handler
@@ -122,13 +122,12 @@ def deactivate_privilege(event: dict, context: LambdaContext):  # noqa: ARG001 u
     return {'message': 'OK'}
 
 
-
 @sqs_handler
 def privilege_purchase_message_handler(message: dict):
     """
     Handle privilege purchase messages from the event bus.
     This handler is responsible for sending email notifications to the provider
-    
+
     If notification sending fails, the function will raise a CCInternalException,
     which will cause the SQS handler decorator to report the message as a failure
     and the message will be retried according to the queue's retry policy.
@@ -139,9 +138,7 @@ def privilege_purchase_message_handler(message: dict):
     provider_email = message.get('providerEmail')
     transaction_date = message.get('transactionDate')
 
-    with logger.append_context_keys(
-        provider_email=provider_email
-    ):
+    with logger.append_context_keys(provider_email=provider_email):
         logger.info('Processing privilege purchase notification')
 
         # Get provider information to retrieve email and name
@@ -158,7 +155,7 @@ def privilege_purchase_message_handler(message: dict):
                 provider_email=provider_email,
                 privileges=privileges,
                 total_cost=total_cost,
-                cost_line_items=cost_line_items
+                cost_line_items=cost_line_items,
             )
         except CCInternalException as e:
             error_message = f'Failed to send jurisdiction privilege purchase notification: {str(e)}'

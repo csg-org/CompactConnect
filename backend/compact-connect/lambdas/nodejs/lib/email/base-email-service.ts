@@ -355,10 +355,10 @@ export abstract class BaseEmailService {
                 'style': {
                     'fontWeight': 'bold',
                     'padding': {
-                    'top': 16,
-                    'bottom': 0,
-                    'right': 12,
-                    'left': 24
+                        'top': 16,
+                        'bottom': 0,
+                        'right': 12,
+                        'left': 24
                     }
                 },
                 'props': {
@@ -375,10 +375,10 @@ export abstract class BaseEmailService {
                     'fontSize': 14,
                     'fontWeight': 'normal',
                     'padding': {
-                    'top': 0,
-                    'bottom': 0,
-                    'right': 24,
-                    'left': 24
+                        'top': 0,
+                        'bottom': 0,
+                        'right': 24,
+                        'left': 24
                     }
                 },
                 'props': {
@@ -392,10 +392,10 @@ export abstract class BaseEmailService {
             'data': {
                 'style': {
                     'padding': {
-                    'top': 0,
-                    'bottom': 0,
-                    'right': 72,
-                    'left': 76
+                        'top': 0,
+                        'bottom': 0,
+                        'right': 72,
+                        'left': 76
                     }
                 },
                 'props': {
@@ -422,10 +422,10 @@ export abstract class BaseEmailService {
                 'style': {
                     'fontWeight': 'bold',
                     'padding': {
-                    'top': 16,
-                    'bottom': 16,
-                    'right': 24,
-                    'left': 68
+                        'top': 16,
+                        'bottom': 16,
+                        'right': 24,
+                        'left': 68
                     }
                 },
                 'props': {
@@ -453,10 +453,10 @@ export abstract class BaseEmailService {
                     'fontWeight': 'normal',
                     'textAlign': 'left',
                     'padding': {
-                    'top': 0,
-                    'bottom': 0,
-                    'right': 24,
-                    'left': 24
+                        'top': 0,
+                        'bottom': 0,
+                        'right': 24,
+                        'left': 24
                     }
                 },
                 'props': {

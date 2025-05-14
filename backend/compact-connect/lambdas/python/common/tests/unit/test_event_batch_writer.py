@@ -4,7 +4,6 @@ from unittest.mock import MagicMock
 from uuid import uuid4
 
 from botocore.exceptions import ParamValidationError
-
 from tests import TstLambdas
 
 

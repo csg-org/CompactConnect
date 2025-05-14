@@ -1,5 +1,6 @@
-import json
 import datetime
+import json
+
 import boto3
 from aws_lambda_powertools.logging import Logger
 from cc_common.config import config
@@ -30,7 +31,7 @@ class EventBusClient:
         Something
         """
         detail_to_publish = detail
-        detail_to_publish['eventTime'] = config.current_standard_datetime.isoformat(),
+        detail_to_publish['eventTime'] = (config.current_standard_datetime.isoformat(),)
 
         event_entry = {
             'Source': source,
@@ -52,21 +53,16 @@ class EventBusClient:
         transaction_date: datetime,
         privileges: list[dict],
         total_cost: str,
-        cost_line_items: list[dict]
+        cost_line_items: list[dict],
     ):
-
         event_detail = {
             'providerEmail': provider_email,
             'transactionDate': transaction_date.strftime('%Y-%m-%d'),
             'privileges': privileges,
             'totalCost': total_cost,
-            'costLineItems': cost_line_items
+            'costLineItems': cost_line_items,
         }
-        self._publish_event(
-            source=source,
-            detail_type='privilege.purchase',
-            detail=event_detail
-        )
+        self._publish_event(source=source, detail_type='privilege.purchase', detail=event_detail)
 
     def publish_privilege_issued_event(
         self,
@@ -75,17 +71,8 @@ class EventBusClient:
         date: datetime,
         privilege: dict,
     ):
-
-        event_detail = {
-            'providerEmail': provider_email,
-            'date': date.strftime('%Y-%m-%d'),
-            'privilege': privilege
-        }
-        self._publish_event(
-            source=source,
-            detail_type='privilege.issued',
-            detail=event_detail
-        )
+        event_detail = {'providerEmail': provider_email, 'date': date.strftime('%Y-%m-%d'), 'privilege': privilege}
+        self._publish_event(source=source, detail_type='privilege.issued', detail=event_detail)
 
     def publish_privilege_renewed_event(
         self,
@@ -94,15 +81,5 @@ class EventBusClient:
         date: datetime,
         privilege: dict,
     ):
-
-        event_detail = {
-            'providerEmail': provider_email,
-            'date': date.strftime('%Y-%m-%d'),
-            'privilege': privilege
-        }
-        self._publish_event(
-            source=source,
-            detail_type='privilege.renewed',
-            detail=event_detail
-        )
-
+        event_detail = {'providerEmail': provider_email, 'date': date.strftime('%Y-%m-%d'), 'privilege': privilege}
+        self._publish_event(source=source, detail_type='privilege.renewed', detail=event_detail)

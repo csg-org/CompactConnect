@@ -11,7 +11,6 @@ from cc_common.data_model.schema.common import (
     ValidatesLicenseTypeMixin,
     ensure_value_is_datetime,
 )
-
 from cc_common.data_model.schema.fields import (
     ActiveInactive,
     Compact,
@@ -19,11 +18,9 @@ from cc_common.data_model.schema.fields import (
     PrivilegeEncumberedStatusField,
     UpdateType,
 )
-
 from marshmallow import Schema, ValidationError, post_dump, post_load, pre_dump, pre_load, validates_schema
 from marshmallow.fields import UUID, Date, DateTime, List, Nested, String
 from marshmallow.validate import Length
-
 
 
 class AttestationVersionRecordSchema(Schema):

@@ -30,11 +30,7 @@ TEST_EMAIL = 'testRegisteredEmail@example.com'
 TEST_COGNITO_SUB = '1234567890'
 
 TEST_LICENSE_TYPE = 'speech-language pathologist'
-MOCK_LINE_ITEMS = [{
-    'name': 'Alaska Big Fee',
-    'quantity': 47,
-    'unitPrice': 55.5
-}]
+MOCK_LINE_ITEMS = [{'name': 'Alaska Big Fee', 'quantity': 47, 'unitPrice': 55.5}]
 
 
 def generate_default_attestation_list():
@@ -142,7 +138,7 @@ class TestPostPurchasePrivileges(TstFunction):
         mock_purchase_client_constructor.return_value = mock_purchase_client
         mock_purchase_client.process_charge_for_licensee_privileges.return_value = {
             'transactionId': MOCK_TRANSACTION_ID,
-            'lineItems': MOCK_LINE_ITEMS
+            'lineItems': MOCK_LINE_ITEMS,
         }
 
         return mock_purchase_client
@@ -614,10 +610,7 @@ class TestPostPurchasePrivileges(TstFunction):
         # verify that the transaction was voided
         mock_purchase_client.void_privilege_purchase_transaction.assert_called_once_with(
             compact_abbr=TEST_COMPACT,
-            order_information={
-                'transactionId': MOCK_TRANSACTION_ID,
-                'lineItems': MOCK_LINE_ITEMS
-            }
+            order_information={'transactionId': MOCK_TRANSACTION_ID, 'lineItems': MOCK_LINE_ITEMS},
         )
 
     @patch('handlers.privileges.PurchaseClient')

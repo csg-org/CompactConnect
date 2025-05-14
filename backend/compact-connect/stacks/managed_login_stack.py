@@ -3,7 +3,6 @@ import json
 from aws_cdk.aws_cognito import CfnManagedLoginBranding
 from common_constructs.stack import AppStack
 from constructs import Construct
-
 from stacks.persistent_stack import PersistentStack
 
 

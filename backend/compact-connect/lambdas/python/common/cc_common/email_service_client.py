@@ -189,7 +189,7 @@ class EmailServiceClient:
         transaction_date: str,
         privileges: list[dict],
         total_cost: str,
-        cost_line_items: list[dict]
+        cost_line_items: list[dict],
     ) -> dict[str, str]:
         """
         Send a privilege(s) purchase notification email.
@@ -211,7 +211,7 @@ class EmailServiceClient:
                 'transaction_date': transaction_date,
                 'privileges': privileges,
                 'totalCost': total_cost,
-                'costLineItems': cost_line_items
+                'costLineItems': cost_line_items,
             },
         }
         return self._invoke_lambda(payload)
