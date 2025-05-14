@@ -133,8 +133,48 @@ class CompactConfigurationUpload(Construct):
 
         :return: List of attestations
         """
+        # Define required fields for attestations and their expected types
+        required_fields = {
+            'attestationId': str,
+            'displayName': str,
+            'description': str,
+            'text': str,
+            'required': bool,
+            'locale': str,
+        }
+
         try:
             with open('compact-config/attestations.yml') as f:
-                return yaml.safe_load(f)['attestations']
+                attestations_data = yaml.safe_load(f)
+
+                # Check top-level structure
+                if not isinstance(attestations_data, dict):
+                    raise ValueError('Attestations file must contain a YAML dictionary')
+
+                if 'attestations' not in attestations_data:
+                    raise ValueError("Attestations file must contain an 'attestations' key")
+
+                attestations = attestations_data['attestations']
+
+                if not isinstance(attestations, list):
+                    raise ValueError("The 'attestations' value must be a list of attestation objects")
+
+                # Validate each attestation has all required fields with correct types
+                for idx, attestation in enumerate(attestations):
+                    # Check for missing fields
+                    missing_fields = [
+                        field for field in required_fields if field not in attestation or not attestation[field]
+                    ]
+                    if missing_fields:
+                        raise ValueError(
+                            f'Attestation at index {idx} (ID: {attestation.get("attestationId", "unknown")}) '
+                            f'is missing required fields: {", ".join(missing_fields)}'
+                        )
+
+                return attestations
+        except FileNotFoundError as e:
+            raise RuntimeError("Attestations file 'compact-config/attestations.yml' not found") from e
+        except yaml.YAMLError as e:
+            raise RuntimeError(f'Invalid YAML in attestations file: {str(e)}') from e
         except Exception as e:
-            raise RuntimeError('Failed to load attestations file') from e
+            raise RuntimeError(f'Failed to load or validate attestations file: {str(e)}') from e
