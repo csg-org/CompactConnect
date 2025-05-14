@@ -550,8 +550,8 @@ class TestDataGenerator:
 
         # Create the item to store
         item = {
-            'pk': f'{compact}#ACTIVE_MEMBER_JURISDICTIONS',
-            'sk': f'{compact}#ACTIVE_MEMBER_JURISDICTIONS',
+            'pk': f'COMPACT#{compact}#ACTIVE_MEMBER_JURISDICTIONS',
+            'sk': f'COMPACT#{compact}#ACTIVE_MEMBER_JURISDICTIONS',
             'active_member_jurisdictions': formatted_jurisdictions,
         }
 

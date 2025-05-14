@@ -171,7 +171,8 @@ def _put_compact_configuration(event: dict, context: LambdaContext):  # noqa: AR
 
         # Handle special case for transaction fee of 0
         if validated_data.get('transactionFeeConfiguration', {}).get('licenseeCharges', {}).get('chargeAmount') == 0:
-            # If transaction fee is 0, remove the entire transactionFeeConfiguration object
+            # If transaction fee is 0, remove the entire transactionFeeConfiguration object since a value of 0
+            # is the same as no transaction fee
             logger.info('Removed transaction fee configuration because transaction fee was 0', compact=compact)
             del validated_data['transactionFeeConfiguration']
 
