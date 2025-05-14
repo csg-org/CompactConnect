@@ -60,11 +60,7 @@ def get_jurisdictions_from_cdk_json():
     """
     Get the list of jurisdictions from the CDK.json file.
 
-    param: compact: Optional compact to filter jurisdictions for.
-                If None, returns a dictionary of jurisdictions for all compacts.
-
-    return: the list of jurisdictions for the specified compact,
-                     or dictionary mapping compacts to jurisdictions
+    return: the list of jurisdictions defined in cdk.json
     """
     cdk_data = _load_cdk_json_data()
     if not cdk_data:
