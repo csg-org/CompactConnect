@@ -130,27 +130,16 @@ class TestBackendPipeline(TstAppABC, TestCase):
             overwrite_snapshot=overwrite_snapshot,
         )
 
-    def test_synth_generates_jurisdiction_resource_servers_with_expected_scopes_for_staff_users_beta_stage(self):
+    def test_synth_generates_jurisdiction_resource_servers_with_expected_scopes_for_staff_users(self):
         """
         Test that the jurisdiction resource servers are created with the expected scopes
-        for the staff users in the test environment.
-        """
-        persistent_stack = self.app.beta_backend_pipeline_stack.beta_backend_stage.persistent_stack
-        self._when_testing_jurisdiction_resource_servers(
-            persistent_stack=persistent_stack,
-            snapshot_name='JURISDICTION_RESOURCE_SERVER_CONFIGURATION_BETA_ENV',
-            overwrite_snapshot=False,
-        )
-
-    def test_synth_generates_jurisdiction_resource_servers_with_expected_scopes_for_staff_users_prod_stage(self):
-        """
-        Test that the jurisdiction resource servers are created with the expected scopes
-        for the staff users in the prod environment.
+        for the staff users. This setup is now environment agnostic, so whatever is shown
+        in this snapshot will be applied to all environments.
         """
         persistent_stack = self.app.prod_backend_pipeline_stack.prod_stage.persistent_stack
         self._when_testing_jurisdiction_resource_servers(
             persistent_stack=persistent_stack,
-            snapshot_name='JURISDICTION_RESOURCE_SERVER_CONFIGURATION_PROD_ENV',
+            snapshot_name='JURISDICTION_RESOURCE_SERVER_CONFIGURATION',
             overwrite_snapshot=False,
         )
 
