@@ -83,34 +83,48 @@ def put_provider_home_jurisdiction(event: dict, context: LambdaContext):  # noqa
     :param context: Lambda context
     :return: Success message
     """
-    compact, provider_id = _check_provider_user_attributes(event)
-
     # Parse the request body
     event_body = json.loads(event['body'])
 
-    jurisdiction = event_body['jurisdiction']
+    selected_jurisdiction = event_body['jurisdiction']
 
-    # provider_data = get_provider_information(compact=compact, provider_id=provider_id)
-
-    # Based on the following rules, we will update the provider's privileges with the new jurisdiction
+    # Based on the following rules, for every license type the provider has, we will update the provider's privileges
+    # associated with their respective licenses:
     # 1. If the jurisdiction is not a member of the compact, all the provider's existing privileges, and the provider
     # record itself, will have their 'homeJurisdictionChangeDeactivationStatus' set to 'nonMemberJurisdiction'
-    # 2. If the jurisdiction is a member of the compact, but the provider does not have any license in the jurisdiction,
-    # all of their existing privileges, and the provider record itself, will have their
+    # 2. Else if the jurisdiction is a member of the compact, but the provider does not have any license in the
+    # jurisdiction, all of their existing privileges, and the provider record itself, will have their
     # 'homeJurisdictionChangeDeactivationStatus' set to 'noLicenseInJurisdiction'
-    # 3. If any privileges have an 'encumberedStatus' that is not equal to 'unencumbered', they will not be moved over
-    # to the new jurisdiction.
-    # 4. If the license in the new jurisdiction has a 'compactEligiblity' status of 'ineligible', the associated
-    # privileges for the current license will be moved over to the new jurisdiction, but will be set to inactive.
-    # 5. If none of the above conditions are met, the provider's privileges will be moved over to the new jurisdiction
-    # and the expiration date will be updated to the expiration date of the license in the new jurisdiction.
+    # 3. Else if the license in the current home state is encumbered, all privileges will not be moved over
+    # to the new jurisdiction. They stay encumbered.
+    # 4. Else if the license in the new jurisdiction has a 'compactEligiblity' status of 'ineligible', the associated
+    # privileges for the current license will NOT be moved over to the new jurisdiction, we will set the
+    # 'homeJurisdictionChangeDeactivationStatus' field to 'licenseCompactIneligible'.
+    # 5. If the license in the new home state is encumbered, unexpired privileges are moved over and all privileges that
+    # do not already have an encumbered status of 'encumbered' will have their encumbered status set to
+    # 'licenseEncumbered'.
+    # 5. If none of the above conditions are met, the provider's unexpired privileges will be moved over to the new
+    # jurisdiction and the expiration date will be updated to the expiration date of the license in the new jurisdiction.
+    # If the license is the most recent active license, the providers record is updated to show this new license
+    # information.
+
+    compact, provider_id = _check_provider_user_attributes(event)
+
+    try:
+        provider_information = get_provider_information(compact=compact, provider_id=provider_id)
+    except CCNotFoundException as e:
+        message = 'Failed to find provider using provided claims'
+        logger.error(message, compact=compact, provider_id=provider_id)
+        raise CCInternalException(message) from e
+
 
     # Log the request
     logger.info(
         'Handling request to update provider home jurisdiction',
         compact=compact,
         provider_id=provider_id,
-        jurisdiction=jurisdiction,
+        previous_jurisdiction=provider_information['currentHomeJurisdiction'],
+        new_jurisdiction=selected_jurisdiction
     )
 
     # This is a placeholder implementation - we'll add the actual update logic in a follow-up
