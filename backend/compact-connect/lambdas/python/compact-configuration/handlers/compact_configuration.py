@@ -180,7 +180,6 @@ def _put_compact_configuration(event: dict, context: LambdaContext):  # noqa: AR
         # Save the compact configuration
         config.compact_configuration_client.save_compact_configuration(compact_configuration)
 
-        # Return the saved configuration
         return {'message': 'ok'}
     except ValidationError as e:
         logger.info('Invalid compact configuration', compact=compact, error=e)
