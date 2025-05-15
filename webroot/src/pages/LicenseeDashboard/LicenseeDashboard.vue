@@ -8,22 +8,37 @@
 <template>
     <div class="licensee-dashboard-container">
         <div class="top-block">
-            <div class="welcome-user">{{welcomeText}}, {{ userFullName }}</div>
+            <div class="welcome-user">{{ $t('common.welcome') }}, {{ userFullName }}</div>
             <div class="button-block">
-                <InputButton
-                    :label="$t('military.viewMilitaryStatus')"
-                    :aria-label="$t('military.viewMilitaryStatus')"
-                    :isTransparent="true"
-                    class="view-military-btn"
-                    @click="viewMilitaryStatus"
-                />
-                <InputButton
-                    :label="obtainPrivButtonLabel"
-                    :aria-label="$t('licensing.obtainPrivileges')"
-                    class="obtain-priv-btn"
-                    :isEnabled="isPrivilegePurchaseEnabled"
-                    @click="startPrivPurchaseFlow"
-                />
+                <div class="btn-container">
+                    <InputButton
+                        :label="$t('licensing.generateVerification')"
+                        :aria-label="$t('licensing.generateVerification')"
+                        :isTransparent="true"
+                        class="btn view-military-btn"
+                        :isEnabled="isGenerateProofEnabled"
+                        @click="viewLicenseeProof"
+                    />
+                    <div class="btn-subtext">{{ $t('licensing.generateVerificationSubtext') }}</div>
+                </div>
+                <div class="btn-container">
+                    <InputButton
+                        :label="$t('military.viewMilitaryStatus')"
+                        :aria-label="$t('military.viewMilitaryStatus')"
+                        :isTransparent="true"
+                        class="btn view-military-btn"
+                        @click="viewMilitaryStatus"
+                    />
+                </div>
+                <div class="btn-container">
+                    <InputButton
+                        :label="`+ ${this.$t('licensing.obtainPrivileges')}`"
+                        :aria-label="$t('licensing.obtainPrivileges')"
+                        class="btn obtain-priv-btn"
+                        :isEnabled="isPrivilegePurchaseEnabled"
+                        @click="startPrivPurchaseFlow"
+                    />
+                </div>
             </div>
         </div>
         <div class="license-section">
@@ -54,9 +69,7 @@
                             :alt="$t('licensing.privilegeIcon')"
                         />
                     </div>
-                    <div class="title-text">
-                        {{privilegeTitle}}
-                    </div>
+                    <div class="title-text">{{ $t('licensing.privileges') }}</div>
                 </div>
                 <CollapseCaretButton
                     @toggleCollapse="togglePrivsCollapsed"
