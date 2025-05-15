@@ -18,29 +18,59 @@ import Joi from 'joi';
 })
 class InputEmailList extends mixins(MixinInput) {
     //
+    // Data
+    //
+    inputValue = '';
+
+    //
+    // Computed
+    //
+    get shouldDisplayAddEmailHelp(): boolean {
+        return this.inputValue.length > 0;
+    }
+
+    //
     // Methods
     //
-    add(): void {
-        const { formInput, $refs } = this;
-        const emailInput = $refs.email as HTMLInputElement;
-        const emailValue = emailInput.value.toLowerCase();
-        const validation = Joi.string().email({ tlds: false }).messages({
-            'string.empty': this.$t('inputErrors.email'),
-            'string.email': this.$t('inputErrors.email'),
-        }).validate(emailValue);
+    validateInputValue(): void {
+        const { formInput, inputValue } = this;
 
-        if (validation.error) {
-            formInput.errorMessage = validation.error.message;
-            formInput.isValid = false;
-        } else if (Array.isArray(formInput.value)) {
+        if (formInput.isTouched) {
+            const emailValue = inputValue.toLowerCase();
+            const validation = Joi.string().email({ tlds: false }).messages({
+                'string.empty': this.$t('inputErrors.email'),
+                'string.email': this.$t('inputErrors.email'),
+            }).validate(emailValue);
+
+            if (validation.error) {
+                formInput.errorMessage = validation.error.message;
+            } else {
+                formInput.errorMessage = '';
+            }
+        }
+    }
+
+    input(): void {
+        this.validateInputValue();
+    }
+
+    add(): void {
+        const { formInput, inputValue, $refs } = this;
+        const emailInput = $refs.email as HTMLInputElement;
+        const emailValue = inputValue.toLowerCase();
+
+        formInput.isTouched = true;
+        this.validateInputValue();
+
+        if (!formInput.errorMessage && Array.isArray(formInput.value)) {
             if (!formInput.value.includes(emailValue)) {
                 formInput.value.push(emailValue);
             }
-            emailInput.value = '';
+            this.inputValue = '';
+            formInput.validate();
+            formInput.isTouched = false;
         }
 
-        formInput.isTouched = true;
-        formInput.validate();
         emailInput.focus();
     }
 
@@ -55,6 +85,7 @@ class InputEmailList extends mixins(MixinInput) {
         formInput.isTouched = true;
         formInput.validate();
         emailInput.focus();
+        formInput.isTouched = false;
     }
 }
 

@@ -36,6 +36,7 @@
                 :name="formInput.name"
                 :placeholder="formInput.placeholder"
                 ref="email"
+                v-model="inputValue"
                 :autocomplete="formInput.autocomplete"
                 :aria-label="formInput.label"
                 @blur="blur(formInput)"
@@ -44,12 +45,13 @@
                 :class="{ 'has-error': !!formInput.errorMessage }"
                 :disabled="formInput.isDisabled"
             />
+            <div v-if="shouldDisplayAddEmailHelp" class="add-email-help">Hit Enter to add</div>
             <button
                 class="btn-add-email"
                 @click.stop.prevent="add(formInput)"
                 :aria-label="$t('common.add')"
                 tabindex="-1"
-            ></button>
+            >+</button>
         </div>
         <span class="separator"></span>
         <span
