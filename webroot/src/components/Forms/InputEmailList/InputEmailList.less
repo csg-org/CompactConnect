@@ -4,3 +4,43 @@
 //
 //  Created by InspiringApps on 5/13/2025.
 //
+
+.input-container {
+    .input-row {
+        display: flex;
+
+        .email-input {
+            flex-grow: 1;
+        }
+
+        .btn-add-email {
+            .visually-hidden();
+
+            // flex-basis: 8rem;
+            // margin-left: 1rem;
+        }
+    }
+
+    .email-tag-container {
+        display: flex;
+        flex-wrap: wrap;
+        margin-top: 1.6rem;
+
+        .email-tag {
+            display: flex;
+            align-items: center;
+            margin-right: 1rem;
+            margin-bottom: 0.8rem;
+            padding-left: 1rem;
+            border-radius: @borderRadiusPillShape;
+            color: @white;
+            background-color: @fontColor;
+
+            .remove-email {
+                width: 3.2rem;
+                cursor: pointer;
+                stroke: @white;
+            }
+        }
+    }
+}

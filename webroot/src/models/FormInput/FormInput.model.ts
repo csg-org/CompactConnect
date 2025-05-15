@@ -19,7 +19,7 @@ export interface InterfaceFormInput {
     shouldHideLabel?: boolean;
     isLabelHTML?: boolean;
     placeholder?: string | ComputedRef<string>;
-    value?: string | number | boolean | null | Array<File>;
+    value?: string | number | boolean | null | Array<File> | Array<string>;
     valueOptions?: Array<{ value: any; name: string | ComputedRef<string>; }>;
     autocomplete?: string;
     fileConfig?: {

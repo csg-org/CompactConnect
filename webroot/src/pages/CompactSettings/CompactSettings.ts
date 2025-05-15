@@ -37,6 +37,10 @@ export default class CompactSettings extends Vue {
         return this.$store.state.user;
     }
 
+    get currentCompact(): Compact | null {
+        return this.userStore.currentCompact;
+    }
+
     get user() {
         return this.userStore.model;
     }
@@ -45,17 +49,12 @@ export default class CompactSettings extends Vue {
         return this.userStore.isLoggedIn;
     }
 
-    get currentCompact(): Compact | null {
-        return this.userStore.currentCompact;
-    }
-
     get isLoggedInAsStaff(): boolean {
         return this.authType === AuthTypes.STAFF;
     }
 
     get staffPermission(): CompactPermission | null {
-        const { model: user } = this.userStore;
-        const currentPermissions = user?.permissions;
+        const currentPermissions = this.user?.permissions;
         const compactPermission = currentPermissions?.find((currentPermission) =>
             currentPermission.compact.type === this.currentCompact?.type) || null;
 

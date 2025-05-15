@@ -65,6 +65,12 @@ class MixinForm extends Vue {
                 'number.min': this.$t('inputErrors.minNumber', { min: '{#limit}' }),
                 'number.max': this.$t('inputErrors.maxNumber', { max: '{#limit}' }),
             },
+            currency: {
+                'number.base': this.$t('inputErrors.currencyType'),
+                'number.empty': this.$t('inputErrors.required'),
+                'number.min': this.$t('inputErrors.minNumber', { min: '{#limit}' }),
+                'number.max': this.$t('inputErrors.maxNumber', { max: '{#limit}' }),
+            },
             creditCard: {
                 'string.empty': this.$t('inputErrors.required'),
                 'string.pattern.base': this.$t('inputErrors.enterValidCreditCard')

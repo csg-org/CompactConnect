@@ -417,6 +417,7 @@
         "ssnFormat": "Debe estar en formato ###-##-####",
         "enterValidCreditCard": "Debe ser un número de tarjeta de crédito válido.",
         "numberType": "Debe ser un número",
+        "currencyType": "Debe ser un monto en moneda válido",
         "minNumber": "Debe ser mayor o igual a {min}",
         "maxNumber": "Debe ser menor o igual a {max}"
     },
@@ -478,7 +479,8 @@
         "summaryReportEmailsSubtext": "Ingrese todos los destinatarios que recibirán informes resumidos periódicos.",
         "licenseRegistrationTitle": "Estado en vivo",
         "licenseRegistrationEnabled": "¿Está habilitado el registro de licencia?",
-        "licenseRegistrationEnabledSubtext": "Esto habilita el estado en vivo para los privilegios de compra, y <em>esta acción es irreversible.</em>"
+        "licenseRegistrationEnabledSubtext": "Esto habilita el estado en vivo para los privilegios de compra, y <em>esta acción es irreversible.</em>",
+        "saveSuccessfulCompact": "Los cambios compactos se guardaron correctamente"
     },
     "stateUpload": {
         "formTitle": "Carga de datos compacta",
