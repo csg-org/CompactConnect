@@ -404,12 +404,7 @@ class TestPutProviderHomeJurisdiction(TstFunction):
     def _when_provider_has_one_license_and_privilege(self, license_encumbered: bool=False,
                                                      license_type: str = TEST_LICENSE_TYPE):
         from cc_common.data_model.schema.common import LicenseEncumberedStatusEnum, PrivilegeEncumberedStatusEnum
-        test_provider_record = self.test_data_generator.put_default_provider_record_in_provider_table(
-            value_overrides={
-                'licenseJurisdiction': STARTING_JURISDICTION,
-                'compact': TEST_COMPACT,
-            }
-        )
+
 
 
         test_current_license_record = self.test_data_generator.put_default_license_record_in_provider_table(
@@ -419,6 +414,14 @@ class TestPutProviderHomeJurisdiction(TstFunction):
                 'licenseType': license_type,
                 'encumberedStatus': LicenseEncumberedStatusEnum.ENCUMBERED
                 if license_encumbered else LicenseEncumberedStatusEnum.UNENCUMBERED
+            }
+        )
+
+        test_provider_record = self.test_data_generator.put_default_provider_record_in_provider_table(
+            value_overrides={
+                'licenseJurisdiction': STARTING_JURISDICTION,
+                'compact': TEST_COMPACT,
+                'currentHomeJurisdiction': test_current_license_record.jurisdiction
             }
         )
 
@@ -842,10 +845,14 @@ class TestPutProviderHomeJurisdiction(TstFunction):
         # new license information if they are encumbered
         self.assertEqual('licenseEncumbered', stored_privilege_data.encumberedStatus)
         self.assertEqual(test_current_license_record.dateOfExpiration, stored_privilege_data.dateOfExpiration)
+        self.assertEqual(test_current_license_record.jurisdiction, stored_privilege_data.licenseJurisdiction)
 
-    def test_put_provider_home_jurisdiction_deactivates_privileges_if_new_home_state_license_is_encumbered(self):
+    def test_put_provider_home_jurisdiction_encumbers_privileges_if_new_home_state_license_is_encumbered(self):
         from handlers.provider_users import provider_users_api_handler
         from cc_common.data_model.schema.privilege import PrivilegeData
+
+        # In this scenario, the new license is encumbered, and the privileges should be moved over to the new license
+        # and become encumbered.
 
         (
          event,
@@ -859,7 +866,6 @@ class TestPutProviderHomeJurisdiction(TstFunction):
 
         self.assertEqual(200, resp['statusCode'])
 
-        # the privilege should be deactivated because there is no license in the new jurisdiction
         stored_privilege_data = PrivilegeData.from_database_record(
             self.test_data_generator.load_provider_data_record_from_database(test_privilege_record)
         )
@@ -868,7 +874,36 @@ class TestPutProviderHomeJurisdiction(TstFunction):
         self.assertNotIn('homeJurisdictionChangeDeactivationStatus', stored_privilege_data.to_dict())
         # these values should be set since the new license is encumbered
         self.assertEqual('licenseEncumbered', stored_privilege_data.encumberedStatus)
+        # we move the privilege over to the new license, so the expiration date should match
         self.assertEqual(test_new_license_record.dateOfExpiration, stored_privilege_data.dateOfExpiration)
+        # new jurisdiction should be put on record as well.
+        self.assertEqual(test_new_license_record.jurisdiction, stored_privilege_data.licenseJurisdiction)
+
+    def test_put_provider_home_jurisdiction_sets_encumbered_status_on_provider_if_new_home_state_license_is_encumbered(self):
+        from handlers.provider_users import provider_users_api_handler
+        from cc_common.data_model.schema.provider import ProviderData
+
+        # In this scenario, the new license is encumbered, and the provider encumbered status should reflect that.
+        (
+            event,
+            test_provider_record,
+            test_current_license_record,
+            test_privilege_record,
+            test_new_license_record
+        ) = self._when_new_home_state_license_is_encumbered()
+
+        resp = provider_users_api_handler(event, self.mock_context)
+
+        self.assertEqual(200, resp['statusCode'])
+
+        # the provider record should show provider is in a jurisdiction that is not a member of the compact
+        stored_provider_data = ProviderData.from_database_record(
+            self.test_data_generator.load_provider_data_record_from_database(test_provider_record)
+        )
+        self.assertEqual('inactive', stored_provider_data.licenseStatus)
+        self.assertEqual('ineligible', stored_provider_data.compactEligibility)
+        self.assertEqual('encumbered', stored_provider_data.encumberedStatus)
+        self.assertEqual(test_new_license_record.jurisdiction, stored_provider_data.licenseJurisdiction)
 
     def test_put_provider_home_jurisdiction_expires_privileges_if_new_home_state_license_is_expired(self):
         from handlers.provider_users import provider_users_api_handler

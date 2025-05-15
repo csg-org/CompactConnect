@@ -9,6 +9,7 @@ from boto3.dynamodb.types import TypeDeserializer, TypeSerializer
 from botocore.exceptions import ClientError
 
 from cc_common.config import _Config, config, logger, metrics
+from cc_common.data_model.provider_record_util import ProviderUserRecords
 from cc_common.data_model.query_paginator import paginated_query
 from cc_common.data_model.schema import PrivilegeRecordSchema
 from cc_common.data_model.schema.adverse_action import AdverseActionData
@@ -159,6 +160,40 @@ class DataClient:
             raise CCNotFoundException('Provider not found')
 
         return resp
+
+    @logger_inject_kwargs(logger, 'compact', 'provider_id')
+    def get_provider_user_records(
+            self,
+            *,
+            compact: str,
+            provider_id: str,
+            consistent_read: bool = True,
+    ) -> ProviderUserRecords:
+        logger.info('Getting provider')
+
+        resp = {'Items': []}
+        last_evaluated_key = None
+
+        while True:
+            pagination = {'ExclusiveStartKey': last_evaluated_key} if last_evaluated_key else {}
+
+            query_resp = self.config.provider_table.query(
+                Select='ALL_ATTRIBUTES',
+                KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}')
+                                       & Key('sk').begins_with(f'{compact}#PROVIDER'),
+                ConsistentRead=consistent_read,
+                **pagination,
+            )
+
+            resp['Items'].extend(query_resp.get('Items', []))
+
+            last_evaluated_key = query_resp.get('LastEvaluatedKey')
+            if not last_evaluated_key:
+                break
+        if not resp['Items']:
+            raise CCNotFoundException('Provider not found')
+
+        return ProviderUserRecords(query_resp['Items'])
 
     @paginated_query
     @logger_inject_kwargs(logger, 'compact', 'provider_name', 'jurisdiction')
@@ -1231,3 +1266,60 @@ class DataClient:
             )
 
             logger.info('Set encumbrance for license record')
+
+    @logger_inject_kwargs(logger, 'compact', 'provider_id', 'selected_jurisdiction')
+    def update_provider_home_state_jurisdiction(
+            self,
+            *,
+            compact: str,
+            provider_id: str,
+            selected_jurisdiction: str
+    ) -> None:
+        # Based on the following rules, for every license type the provider has, we will update the provider's privileges
+        # associated with their respective licenses:
+        # 1. If the jurisdiction is not a member of the compact, all the provider's existing privileges, and the provider
+        # record itself, will have their 'homeJurisdictionChangeDeactivationStatus' set to 'nonMemberJurisdiction'
+        # 2. Else if the jurisdiction is a member of the compact, but the provider does not have any license in the
+        # jurisdiction, all of their existing privileges, and the provider record itself, will have their
+        # 'homeJurisdictionChangeDeactivationStatus' set to 'noLicenseInJurisdiction'
+        # 3. Else if the license in the current home state is encumbered, all privileges will not be moved over
+        # to the new jurisdiction. They stay encumbered.
+        # 4. Else if the license in the new jurisdiction has a 'compactEligibility' status of 'ineligible', the associated
+        # privileges for the current license will NOT be moved over to the new jurisdiction, we will set the
+        # 'homeJurisdictionChangeDeactivationStatus' field to 'licenseCompactIneligible'.
+        # 5. If the license in the new home state is encumbered, unexpired privileges are moved over and all privileges that
+        # do not already have an encumbered status of 'encumbered' will have their encumbered status set to
+        # 'licenseEncumbered'.
+        # 5. If none of the above conditions are met, the provider's unexpired privileges will be moved over to the new
+        # jurisdiction and the expiration date will be updated to the expiration date of the license in the new jurisdiction.
+        # If the license is the most recent active license, the providers record is updated to show this new license
+        # information.
+        logger.info('Updating provider user home jurisdiction')
+
+        provider_user_records: ProviderUserRecords = config.data_client.get_provider_user_records(
+            compact=compact,
+            provider_id=provider_id
+        )
+        top_level_provider_record = provider_user_records.get_provider_record()
+
+        # TODO - add logic for non-member state (item 1) when config PR merged into development
+
+        new_home_state_licenses = provider_user_records.get_license_records(
+            filter_condition=lambda license_data: license_data.jurisdiction == selected_jurisdiction)
+
+        if not new_home_state_licenses:
+            logger.info("No home state license found in selected jurisdiction. Deactivating all privileges")
+            # TODO - deactivate all privileges with a 'homeJurisdictionChangeDeactivationStatus' of 'noLicenseInJurisdiction'
+
+        current_home_state_licenses = provider_user_records.get_license_records(
+            filter_condition=
+            lambda license_data: license_data.jurisdiction == top_level_provider_record.currentHomeJurisdiction)
+
+        # TODO - use this record to update the relevant fields on the provider record as part of this update
+        best_license_in_selected_jurisdiction = provider_user_records.find_best_license(
+            jurisdiction=selected_jurisdiction
+        )
+
+
+
+

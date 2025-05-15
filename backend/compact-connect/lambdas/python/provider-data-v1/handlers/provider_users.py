@@ -38,7 +38,7 @@ def provider_users_api_handler(event: dict, context: LambdaContext):
         if http_method == 'PATCH':
             return _patch_provider_military_affiliation(event, context)
     elif http_method == 'PUT' and resource_path == '/v1/provider-users/me/home-jurisdiction':
-        return put_provider_home_jurisdiction(event, context)
+        return _put_provider_home_jurisdiction(event, context)
 
     # If we get here, the method/resource combination is not supported
     raise CCInvalidRequestException(f'Unsupported method or resource: {http_method} {resource_path}')
@@ -74,7 +74,7 @@ def get_provider_user_me(event: dict, context: LambdaContext):  # noqa: ARG001 u
         raise CCInternalException(message) from e
 
 
-def put_provider_home_jurisdiction(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
+def _put_provider_home_jurisdiction(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """
     Handle the PUT method for updating a provider's home jurisdiction.
     This is a placeholder implementation that will be expanded in a future update.
@@ -88,46 +88,19 @@ def put_provider_home_jurisdiction(event: dict, context: LambdaContext):  # noqa
 
     selected_jurisdiction = event_body['jurisdiction']
 
-    # Based on the following rules, for every license type the provider has, we will update the provider's privileges
-    # associated with their respective licenses:
-    # 1. If the jurisdiction is not a member of the compact, all the provider's existing privileges, and the provider
-    # record itself, will have their 'homeJurisdictionChangeDeactivationStatus' set to 'nonMemberJurisdiction'
-    # 2. Else if the jurisdiction is a member of the compact, but the provider does not have any license in the
-    # jurisdiction, all of their existing privileges, and the provider record itself, will have their
-    # 'homeJurisdictionChangeDeactivationStatus' set to 'noLicenseInJurisdiction'
-    # 3. Else if the license in the current home state is encumbered, all privileges will not be moved over
-    # to the new jurisdiction. They stay encumbered.
-    # 4. Else if the license in the new jurisdiction has a 'compactEligiblity' status of 'ineligible', the associated
-    # privileges for the current license will NOT be moved over to the new jurisdiction, we will set the
-    # 'homeJurisdictionChangeDeactivationStatus' field to 'licenseCompactIneligible'.
-    # 5. If the license in the new home state is encumbered, unexpired privileges are moved over and all privileges that
-    # do not already have an encumbered status of 'encumbered' will have their encumbered status set to
-    # 'licenseEncumbered'.
-    # 5. If none of the above conditions are met, the provider's unexpired privileges will be moved over to the new
-    # jurisdiction and the expiration date will be updated to the expiration date of the license in the new jurisdiction.
-    # If the license is the most recent active license, the providers record is updated to show this new license
-    # information.
-
     compact, provider_id = _check_provider_user_attributes(event)
-
-    try:
-        provider_information = get_provider_information(compact=compact, provider_id=provider_id)
-    except CCNotFoundException as e:
-        message = 'Failed to find provider using provided claims'
-        logger.error(message, compact=compact, provider_id=provider_id)
-        raise CCInternalException(message) from e
-
 
     # Log the request
     logger.info(
         'Handling request to update provider home jurisdiction',
         compact=compact,
         provider_id=provider_id,
-        previous_jurisdiction=provider_information['currentHomeJurisdiction'],
         new_jurisdiction=selected_jurisdiction
     )
 
-    # This is a placeholder implementation - we'll add the actual update logic in a follow-up
+    config.data_client.update_provider_home_state_jurisdiction(
+        compact=compact, provider_id=provider_id, selected_jurisdiction=selected_jurisdiction)
+
     return {'message': 'ok'}
 
 

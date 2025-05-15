@@ -310,3 +310,53 @@ class ProviderUserRecords:
             logger.error('Multiple provider records found', provider_id=provider_user_records[0].providerId)
             raise CCInternalException('Multiple top-level provider records found for user.')
         return provider_user_records[0]
+
+    def find_best_license(self, jurisdiction: str | None = None) -> LicenseData:
+        """
+        Find the best license from a collection of licenses.
+
+        Strategy:
+        1. If jurisdiction is selected, only consider licenses from that jurisdiction
+        2. Select the most recently issued compact-eligible license if any exist
+        3. Otherwise, select the most recently issued active license if any exist
+        4. Otherwise, select the most recently issued license regardless of status
+
+        :param jurisdiction: Optional jurisdiction filter
+        :return: The best license record
+        """
+        license_records = self.get_license_records() if not jurisdiction else self.get_license_records(
+                filter_condition=lambda license_data: license_data.jurisdiction == jurisdiction
+            )
+
+        # Last issued compact-eligible license, if there are any compact-eligible licenses
+        latest_compact_eligible_licenses = sorted(
+            [
+                license_record
+                for license_record in license_records
+                if license_record.compactEligibility == CompactEligibilityStatus.ELIGIBLE
+            ],
+            key=lambda x: x.dateOfIssuance.isoformat(),
+            reverse=True,
+        )
+        if latest_compact_eligible_licenses:
+            return latest_compact_eligible_licenses[0]
+
+        # Last issued active license, if there are any active licenses
+        latest_active_licenses = sorted(
+            [
+                license_record
+                for license_record in license_records
+                if license_record.licenseStatus == ActiveInactiveStatus.ACTIVE
+            ],
+            key=lambda x: x.dateOfIssuance.isoformat(),
+            reverse=True,
+        )
+        if latest_active_licenses:
+            return latest_active_licenses[0]
+
+        # Last issued inactive license, otherwise
+        latest_licenses = sorted(license_records, key=lambda x: x.dateOfIssuance.isoformat(), reverse=True)
+        if not latest_licenses:
+            raise CCInternalException('No licenses found')
+
+        return latest_licenses[0]
