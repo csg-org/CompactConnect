@@ -466,7 +466,7 @@ class TestDataGenerator:
             items = [record.to_dict() for record in provider_record_items]
 
         # Now we put all the data together in a dict
-        provider_detail_response = ProviderRecordUtility.assemble_provider_records_into_object(items)
+        provider_detail_response = ProviderRecordUtility.assemble_provider_records_into_api_response_object(items)
 
         # cast to json, to match what the API is doing
         return json.loads(json.dumps(provider_detail_response, cls=ResponseEncoder))
