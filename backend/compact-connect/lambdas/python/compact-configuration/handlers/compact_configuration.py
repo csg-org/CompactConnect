@@ -251,7 +251,7 @@ def _put_jurisdiction_configuration(event: dict, context: LambdaContext):  # noq
 
     :param event: API Gateway event
     :param context: Lambda context
-    :return: The updated jurisdiction configuration
+    :return: A success message
     """
     compact = event['pathParameters']['compact']
     jurisdiction = event['pathParameters']['jurisdiction']
