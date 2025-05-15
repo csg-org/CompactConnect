@@ -1,5 +1,27 @@
 [
   {
+    "Identifier": "ak",
+    "Name": "ak",
+    "Scopes": [
+      {
+        "ScopeDescription": "Admin access for the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.admin"
+      },
+      {
+        "ScopeDescription": "Read access for SSNs in the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.readPrivate"
+      },
+      {
+        "ScopeDescription": "Read access for SSNs in the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.readSSN"
+      },
+      {
+        "ScopeDescription": "Write access for the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.write"
+      }
+    ]
+  },
+  {
     "Identifier": "al",
     "Name": "al",
     "Scopes": [
@@ -108,6 +130,50 @@
     ]
   },
   {
+    "Identifier": "co",
+    "Name": "co",
+    "Scopes": [
+      {
+        "ScopeDescription": "Admin access for the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.admin"
+      },
+      {
+        "ScopeDescription": "Read access for SSNs in the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.readPrivate"
+      },
+      {
+        "ScopeDescription": "Read access for SSNs in the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.readSSN"
+      },
+      {
+        "ScopeDescription": "Write access for the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.write"
+      }
+    ]
+  },
+  {
+    "Identifier": "de",
+    "Name": "de",
+    "Scopes": [
+      {
+        "ScopeDescription": "Admin access for the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.admin"
+      },
+      {
+        "ScopeDescription": "Read access for SSNs in the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.readPrivate"
+      },
+      {
+        "ScopeDescription": "Read access for SSNs in the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.readSSN"
+      },
+      {
+        "ScopeDescription": "Write access for the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.write"
+      }
+    ]
+  },
+  {
     "Identifier": "fl",
     "Name": "fl",
     "Scopes": [
@@ -184,6 +250,94 @@
     ]
   },
   {
+    "Identifier": "ia",
+    "Name": "ia",
+    "Scopes": [
+      {
+        "ScopeDescription": "Admin access for the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.admin"
+      },
+      {
+        "ScopeDescription": "Read access for SSNs in the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.readPrivate"
+      },
+      {
+        "ScopeDescription": "Read access for SSNs in the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.readSSN"
+      },
+      {
+        "ScopeDescription": "Write access for the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.write"
+      }
+    ]
+  },
+  {
+    "Identifier": "id",
+    "Name": "id",
+    "Scopes": [
+      {
+        "ScopeDescription": "Admin access for the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.admin"
+      },
+      {
+        "ScopeDescription": "Read access for SSNs in the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.readPrivate"
+      },
+      {
+        "ScopeDescription": "Read access for SSNs in the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.readSSN"
+      },
+      {
+        "ScopeDescription": "Write access for the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.write"
+      }
+    ]
+  },
+  {
+    "Identifier": "in",
+    "Name": "in",
+    "Scopes": [
+      {
+        "ScopeDescription": "Admin access for the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.admin"
+      },
+      {
+        "ScopeDescription": "Read access for SSNs in the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.readPrivate"
+      },
+      {
+        "ScopeDescription": "Read access for SSNs in the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.readSSN"
+      },
+      {
+        "ScopeDescription": "Write access for the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.write"
+      }
+    ]
+  },
+  {
+    "Identifier": "ks",
+    "Name": "ks",
+    "Scopes": [
+      {
+        "ScopeDescription": "Admin access for the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.admin"
+      },
+      {
+        "ScopeDescription": "Read access for SSNs in the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.readPrivate"
+      },
+      {
+        "ScopeDescription": "Read access for SSNs in the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.readSSN"
+      },
+      {
+        "ScopeDescription": "Write access for the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.write"
+      }
+    ]
+  },
+  {
     "Identifier": "ky",
     "Name": "ky",
     "Scopes": [
@@ -242,6 +396,22 @@
     "Name": "la",
     "Scopes": [
       {
+        "ScopeDescription": "Admin access for the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.admin"
+      },
+      {
+        "ScopeDescription": "Read access for SSNs in the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.readPrivate"
+      },
+      {
+        "ScopeDescription": "Read access for SSNs in the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.readSSN"
+      },
+      {
+        "ScopeDescription": "Write access for the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.write"
+      },
+      {
         "ScopeDescription": "Admin access for the octp compact within the jurisdiction",
         "ScopeName": "octp.admin"
       },
@@ -260,9 +430,113 @@
     ]
   },
   {
+    "Identifier": "md",
+    "Name": "md",
+    "Scopes": [
+      {
+        "ScopeDescription": "Admin access for the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.admin"
+      },
+      {
+        "ScopeDescription": "Read access for SSNs in the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.readPrivate"
+      },
+      {
+        "ScopeDescription": "Read access for SSNs in the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.readSSN"
+      },
+      {
+        "ScopeDescription": "Write access for the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.write"
+      }
+    ]
+  },
+  {
+    "Identifier": "me",
+    "Name": "me",
+    "Scopes": [
+      {
+        "ScopeDescription": "Admin access for the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.admin"
+      },
+      {
+        "ScopeDescription": "Read access for SSNs in the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.readPrivate"
+      },
+      {
+        "ScopeDescription": "Read access for SSNs in the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.readSSN"
+      },
+      {
+        "ScopeDescription": "Write access for the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.write"
+      }
+    ]
+  },
+  {
+    "Identifier": "mn",
+    "Name": "mn",
+    "Scopes": [
+      {
+        "ScopeDescription": "Admin access for the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.admin"
+      },
+      {
+        "ScopeDescription": "Read access for SSNs in the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.readPrivate"
+      },
+      {
+        "ScopeDescription": "Read access for SSNs in the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.readSSN"
+      },
+      {
+        "ScopeDescription": "Write access for the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.write"
+      }
+    ]
+  },
+  {
+    "Identifier": "mo",
+    "Name": "mo",
+    "Scopes": [
+      {
+        "ScopeDescription": "Admin access for the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.admin"
+      },
+      {
+        "ScopeDescription": "Read access for SSNs in the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.readPrivate"
+      },
+      {
+        "ScopeDescription": "Read access for SSNs in the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.readSSN"
+      },
+      {
+        "ScopeDescription": "Write access for the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.write"
+      }
+    ]
+  },
+  {
     "Identifier": "ms",
     "Name": "ms",
     "Scopes": [
+      {
+        "ScopeDescription": "Admin access for the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.admin"
+      },
+      {
+        "ScopeDescription": "Read access for SSNs in the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.readPrivate"
+      },
+      {
+        "ScopeDescription": "Read access for SSNs in the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.readSSN"
+      },
+      {
+        "ScopeDescription": "Write access for the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.write"
+      },
       {
         "ScopeDescription": "Admin access for the octp compact within the jurisdiction",
         "ScopeName": "octp.admin"

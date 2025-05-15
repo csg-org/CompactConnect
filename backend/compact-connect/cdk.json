@@ -46,7 +46,7 @@
       "coun"
     ],
     "active_compact_member_jurisdictions": {
-      "aslp": ["al", "ar", "fl", "ga", "ky", "ne", "oh"],
+      "aslp": ["al", "ak", "ar", "co", "de", "fl", "ga", "id", "in", "ia", "ks", "ky", "la", "me", "md", "mn", "ms", "mo", "ne", "oh"],
       "octp": ["al", "ar", "ky", "la", "ms", "ne", "oh"],
       "coun": ["al", "ar", "fl", "ga", "ky", "ne", "oh", "ut"]
     },
