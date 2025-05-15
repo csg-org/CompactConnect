@@ -76,7 +76,7 @@ class ProviderRecordSchema(CalculatedStatusRecordSchema):
     currentHomeJurisdiction = CurrentHomeJurisdictionField(
         required=False,
         allow_none=False,
-        default=UNKNOWN_JURISDICTION
+        load_default=UNKNOWN_JURISDICTION
     )
 
     @pre_dump
