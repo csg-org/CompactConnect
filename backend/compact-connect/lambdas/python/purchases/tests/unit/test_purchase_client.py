@@ -104,6 +104,17 @@ def _generate_aslp_compact_configuration(include_licensee_charges: bool = False)
 
 
 def _generate_selected_jurisdictions(jurisdiction_items: list[dict] = None):
+    """
+    Generates a list of Jurisdiction objects with customized privilege fees and military rates.
+    
+    Each jurisdiction is loaded from a JSON resource, updated with the specified privilege fee and a fixed military rate, and returned as a Jurisdiction object. If no input is provided, a default jurisdiction is used.
+    
+    Args:
+        jurisdiction_items: Optional list of dicts specifying 'postalCode', 'jurisdictionName', and 'privilegeFee' for each jurisdiction.
+    
+    Returns:
+        List of Jurisdiction objects with updated privilege fees and military rates.
+    """
     from cc_common.data_model.schema.jurisdiction import Jurisdiction
 
     if jurisdiction_items is None:
@@ -119,11 +130,9 @@ def _generate_selected_jurisdictions(jurisdiction_items: list[dict] = None):
             for licensee_fee in jurisdiction['privilegeFees']:
                 # DynamoDB loads this as a decimal
                 licensee_fee['amount'] = Decimal(jurisdiction_test_item['privilegeFee'])
+                # Add military rate to each fee
+                licensee_fee['militaryRate'] = Decimal(40.00)
 
-            # set military discount to fixed amount for tests
-            jurisdiction['militaryDiscount']['discountAmount'] = Decimal(25.00)
-            jurisdiction['militaryDiscount']['active'] = True
-            jurisdiction['militaryDiscount']['discountType'] = 'FLAT_RATE'
             jurisdiction['postalAbbreviation'] = jurisdiction_test_item['postalCode']
             jurisdiction['jurisdictionName'] = jurisdiction_test_item['jurisdictionName']
             jurisdiction_configurations.append(Jurisdiction(jurisdiction))
@@ -408,6 +417,9 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
 
     @patch('purchase_client.createTransactionController')
     def test_purchase_client_sets_licensee_id_in_order_description(self, mock_create_transaction_controller):
+        """
+        Tests that the licensee ID is correctly included in the order description field when processing a charge for licensee privileges.
+        """
         from purchase_client import PurchaseClient
 
         mock_secrets_manager_client = self._generate_mock_secrets_manager_client()
@@ -432,9 +444,14 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         self.assertEqual(f'LICENSEE#{MOCK_LICENSEE_ID}#', api_contract_v1_obj.transactionRequest.order.description)
 
     @patch('purchase_client.createTransactionController')
-    def test_purchase_client_sends_expected_line_items_when_purchasing_privileges_with_military_discount(
+    def test_purchase_client_sends_expected_line_items_when_purchasing_privileges_with_military_rate(
         self, mock_create_transaction_controller
     ):
+        """
+        Tests that purchasing privileges as an active military user applies the military rate to jurisdiction fees.
+        
+        Verifies that the transaction request sent to Authorize.Net includes line items with the military rate for jurisdiction fees, correct descriptions, and that the total amount reflects the military rate plus the compact fee.
+        """
         from purchase_client import PurchaseClient
 
         mock_secrets_manager_client = self._generate_mock_secrets_manager_client()
@@ -457,23 +474,81 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         api_contract_v1_obj = call_args[0]
         # we check every line item of the object to ensure that the correct values are being set
         self.assertEqual(2, len(api_contract_v1_obj.transactionRequest.lineItems.lineItem))
-        # verify jurisdiction fee line item with military discount
+        # verify jurisdiction fee line item with military rate
         self.assertEqual('priv:aslp-oh-slp', api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].itemId)
         self.assertEqual('Ohio Compact Privilege', api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].name)
-        self.assertEqual(75.00, api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].unitPrice)
+        self.assertEqual(40.00, api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].unitPrice)
         self.assertEqual(1, api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].quantity)
         self.assertEqual(
-            'Compact Privilege for Ohio (Military Discount)',
+            'Compact Privilege for Ohio (Military Rate)',
             api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].description,
         )
 
-        # ensure the total amount is the sum of the two line items
-        self.assertEqual(125.50, api_contract_v1_obj.transactionRequest.amount)
+        # ensure the total amount is the sum of the two line items (military rate + compact fee)
+        self.assertEqual(90.50, api_contract_v1_obj.transactionRequest.amount)
+
+    @patch('purchase_client.createTransactionController')
+    def test_standard_fee_used_when_military_rate_not_present(self, mock_create_transaction_controller):
+        """
+        Tests that the standard privilege fee is used when no military rate is present, even if the user is active military.
+        
+        Verifies that the jurisdiction line item uses the standard fee amount and description, and that the total transaction amount reflects the sum of the standard fee and the compact fee.
+        """
+        from cc_common.data_model.schema.jurisdiction import Jurisdiction
+        from purchase_client import PurchaseClient
+
+        mock_secrets_manager_client = self._generate_mock_secrets_manager_client()
+        self._when_authorize_dot_net_transaction_is_successful(
+            mock_create_transaction_controller=mock_create_transaction_controller
+        )
+
+        # Create jurisdictions with no military rate
+        jurisdiction_configurations = []
+        with open('../common/tests/resources/dynamo/jurisdiction.json') as f:
+            jurisdiction = json.load(f)
+            for licensee_fee in jurisdiction['privilegeFees']:
+                licensee_fee['amount'] = Decimal(100.00)
+                # Remove military rate if present
+                if 'militaryRate' in licensee_fee:
+                    del licensee_fee['militaryRate']
+
+            jurisdiction['postalAbbreviation'] = 'oh'
+            jurisdiction['jurisdictionName'] = 'ohio'
+            jurisdiction_configurations.append(Jurisdiction(jurisdiction))
+
+        test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
+
+        test_purchase_client.process_charge_for_licensee_privileges(
+            licensee_id=MOCK_LICENSEE_ID,
+            order_information=_generate_default_order_information(),
+            compact_configuration=_generate_aslp_compact_configuration(),
+            selected_jurisdictions=jurisdiction_configurations,
+            license_type_abbreviation=MOCK_LICENSE_TYPE_ABBR,
+            user_active_military=True,
+        )
+
+        call_args = mock_create_transaction_controller.call_args.args
+        api_contract_v1_obj = call_args[0]
+
+        # verify jurisdiction fee line item uses standard rate when no military rate present
+        self.assertEqual('priv:aslp-oh-slp', api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].itemId)
+        self.assertEqual('Ohio Compact Privilege', api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].name)
+        self.assertEqual(100.00, api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].unitPrice)
+        self.assertEqual(
+            'Compact Privilege for Ohio',
+            api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].description,
+        )
+
+        # ensure the total amount is the sum of standard fee + compact fee
+        self.assertEqual(150.50, api_contract_v1_obj.transactionRequest.amount)
 
     @patch('purchase_client.createTransactionController')
     def test_purchase_client_raises_failed_transaction_exception_when_transaction_fails(
         self, mock_create_transaction_controller
     ):
+        """
+        Tests that a failed Authorize.Net transaction raises a CCFailedTransactionException.
+        """
         from purchase_client import PurchaseClient
 
         mock_secrets_manager_client = self._generate_mock_secrets_manager_client()

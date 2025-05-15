@@ -3,9 +3,9 @@ from boto3.dynamodb.conditions import Key
 from cc_common.config import _Config, logger
 from cc_common.data_model.query_paginator import paginated_query
 from cc_common.data_model.schema.attestation import AttestationRecordSchema
-from cc_common.data_model.schema.compact import Compact
+from cc_common.data_model.schema.compact import CompactConfigurationData
 from cc_common.data_model.schema.compact.record import CompactRecordSchema
-from cc_common.data_model.schema.jurisdiction import Jurisdiction
+from cc_common.data_model.schema.jurisdiction import JurisdictionConfigurationData
 from cc_common.data_model.schema.jurisdiction.record import JurisdictionRecordSchema
 from cc_common.exceptions import CCNotFoundException
 from cc_common.utils import logger_inject_kwargs
@@ -49,12 +49,18 @@ class CompactConfigurationClient:
 
     def get_attestations_by_locale(self, *, compact: str, locale: str = 'en') -> dict[str, dict]:
         """
-        Get all attestations for a compact and locale, keyed by attestation ID.
-        Returns only the latest version of each attestation.
-
-        :param compact: The compact name
-        :param locale: The language code for the attestation text (defaults to 'en')
-        :return: Dictionary of attestation records keyed by attestation ID
+        Retrieves the latest version of all attestations for a given compact and locale.
+        
+        Queries the database for all attestations associated with the specified compact and locale,
+        returning a dictionary keyed by attestation ID, with each value being the most recent version
+        of that attestation.
+         
+        Args:
+            compact: The name of the compact.
+            locale: The language code for the attestation text (defaults to 'en').
+        
+        Returns:
+            A dictionary mapping attestation IDs to their latest attestation records.
         """
         logger.info('Getting all attestations', compact=compact, locale=locale)
 
@@ -75,13 +81,18 @@ class CompactConfigurationClient:
 
         return attestations_by_id
 
-    def get_compact_configuration(self, compact: str) -> Compact:
+    def get_compact_configuration(self, compact: str) -> CompactConfigurationData:
         """
-        Get the configuration for a specific compact.
-
-        :param compact: The compact abbreviation
-        :return: Compact configuration model
-        :raises CCNotFoundException: If the compact configuration is not found
+        Retrieves the configuration for a specified compact.
+        
+        Args:
+            compact: The abbreviation of the compact.
+        
+        Returns:
+            A CompactConfigurationData instance representing the compact's configuration.
+        
+        Raises:
+            CCNotFoundException: If the configuration for the specified compact does not exist.
         """
         logger.info('Getting compact configuration', compact=compact)
 
@@ -95,37 +106,60 @@ class CompactConfigurationClient:
             raise CCNotFoundException(f'No configuration found for compact "{compact}"')
 
         # Load through schema and convert to Compact model
-        compact_data = self.compact_schema.load(item)
-        return Compact(compact_data)
+        return CompactConfigurationData.from_database_record(item)
 
-    def get_compact_jurisdictions(self, compact: str) -> list[dict]:
+    def save_compact_configuration(self, compact_configuration: CompactConfigurationData) -> None:
         """
-        Get the jurisdictions for a specific compact.
-
-        :param compact: The compact abbreviation
-        :return: List of configured jurisdictions for the compact
+        Persists a compact configuration to the DynamoDB table.
+        
+        Args:
+        	compact_configuration: The compact configuration data to be saved.
         """
-        logger.info('Getting compact configuration', compact=compact)
+        logger.info('Saving compact configuration', compactAbbr=compact_configuration.compactAbbr)
 
-        pk = f'{compact}#CONFIGURATION'
-        sk_prefix = f'{compact}#JURISDICTION'
+        serialized_compact = compact_configuration.serialize_to_database_record()
 
-        # Realistically, we should never have more than 50 jurisdictions, so we do not need to handle pagination
-        response = self.config.compact_configuration_table.query(
-            KeyConditionExpression=Key('pk').eq(pk) & Key('sk').begins_with(sk_prefix),
-            Limit=1000,
-        )
+        self.config.compact_configuration_table.put_item(Item=serialized_compact)
 
-        return self.jurisdiction_schema.load(response.get('Items', []), many=True)
-
-    def get_jurisdiction_configuration(self, compact: str, jurisdiction: str) -> Jurisdiction:
+    def get_active_compact_jurisdictions(self, compact: str) -> list[dict]:
         """
-        Get the configuration for a specific jurisdiction within a compact.
+        Retrieves the list of active member jurisdictions for a given compact.
+        
+        This method returns jurisdictions currently reported as active members of the specified compact, as defined in the project's configuration and uploaded during deployment. Raises CCNotFoundException if no active member jurisdiction data is found.
+        
+        Args:
+            compact: The abbreviation of the compact.
+        
+        Returns:
+            A list of dictionaries, each representing an active member jurisdiction with its name, postal abbreviation, and associated compact abbreviation.
+        """
+        logger.info('Getting active member jurisdictions', compact=compact)
 
-        :param compact: The compact abbreviation
-        :param jurisdiction: The jurisdiction postal abbreviation
-        :return: Jurisdiction configuration model
-        :raises CCNotFoundException: If the jurisdiction configuration is not found
+        pk = f'COMPACT#{compact}#ACTIVE_MEMBER_JURISDICTIONS'
+        sk = f'COMPACT#{compact}#ACTIVE_MEMBER_JURISDICTIONS'
+
+        response = self.config.compact_configuration_table.get_item(Key={'pk': pk, 'sk': sk})
+
+        item = response.get('Item')
+        if not item or not item.get('active_member_jurisdictions'):
+            raise CCNotFoundException(f'No active member jurisdiction data found for compact "{compact}"')
+
+        # Return the active_member_jurisdictions list from the item
+        return item['active_member_jurisdictions']
+
+    def get_jurisdiction_configuration(self, compact: str, jurisdiction: str) -> JurisdictionConfigurationData:
+        """
+        Retrieves the configuration for a specific jurisdiction within a compact.
+        
+        Args:
+            compact: The compact abbreviation.
+            jurisdiction: The jurisdiction postal abbreviation.
+        
+        Returns:
+            A JurisdictionConfigurationData instance representing the jurisdiction's configuration.
+        
+        Raises:
+            CCNotFoundException: If the jurisdiction configuration is not found.
         """
         logger.info('Getting jurisdiction configuration', compact=compact, jurisdiction=jurisdiction)
 
@@ -141,8 +175,20 @@ class CompactConfigurationClient:
             )
 
         # Load through schema and convert to Jurisdiction model
-        jurisdiction_data = self.jurisdiction_schema.load(item)
-        return Jurisdiction(jurisdiction_data)
+        return JurisdictionConfigurationData.from_database_record(item)
+
+    def save_jurisdiction_configuration(self, jurisdiction_config: JurisdictionConfigurationData) -> None:
+        """
+        Saves a jurisdiction configuration to the DynamoDB table.
+        
+        Args:
+        	jurisdiction_config: The jurisdiction configuration data to be persisted.
+        """
+        logger.info('Saving jurisdiction configuration', jurisdiction=jurisdiction_config.postalAbbreviation)
+
+        serialized_jurisdiction = jurisdiction_config.serialize_to_database_record()
+
+        self.config.compact_configuration_table.put_item(Item=serialized_jurisdiction)
 
     @paginated_query
     @logger_inject_kwargs(logger, 'compact')

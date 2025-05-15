@@ -476,28 +476,22 @@ def get_event_scopes(event: dict):
 
 
 def collect_and_authorize_changes(*, path_compact: str, scopes: set, compact_changes: dict) -> dict:
-    """Transform PATCH user API changes to permissions into db operation changes. Operation changes are checked
-    against the provided scopes to ensure the user is allowed to make the requested changes.
-    :param str path_compact: The compact declared in the url path
-    :param set scopes: The scopes associated with the user making the request
-    :param dict compact_changes: Permissions changes in the request body
-    Example:
-    {
-        'actions': {
-            'admin': True,
-            'read': False
-        },
-        'jurisdictions': {
-            'oh': {
-                'actions': {
-                    'admin': True,
-                    'write': False
-                }
-            }
-        }
-    }
-    :return: Changes to the User's underlying record
-    :rtype: dict
+    """
+    Processes and authorizes permission changes for a compact based on user scopes.
+    
+    Validates and transforms requested permission changes from a PATCH API call into database operation changes, ensuring the user has the necessary permissions for each change. Only compact admins can modify compact-level admin or private read permissions, and only compact or jurisdiction admins can modify jurisdiction-level permissions. The function ignores 'read' actions, as they are implicitly granted, and verifies that jurisdiction changes apply only to active jurisdictions.
+    
+    Args:
+        path_compact: The compact identifier from the URL path.
+        scopes: The set of scopes associated with the requesting user.
+        compact_changes: The requested permission changes, structured by actions and jurisdictions.
+    
+    Returns:
+        A dictionary detailing sets of actions to add or remove at both the compact and jurisdiction levels.
+    
+    Raises:
+        CCAccessDeniedException: If the user lacks permission to make a requested change.
+        CCInvalidRequestException: If a jurisdiction is not valid for the specified compact.
     """
     compact_action_additions = set()
     compact_action_removals = set()
@@ -533,7 +527,9 @@ def collect_and_authorize_changes(*, path_compact: str, scopes: set, compact_cha
             )
 
         # verify that the jurisdiction is in the list of active jurisdictions for the compact
-        active_jurisdictions = config.compact_configuration_client.get_compact_jurisdictions(compact=path_compact)
+        active_jurisdictions = config.compact_configuration_client.get_active_compact_jurisdictions(
+            compact=path_compact
+        )
         active_jurisdictions_postal_abbreviations = [
             jurisdiction['postalAbbreviation'].lower() for jurisdiction in active_jurisdictions
         ]

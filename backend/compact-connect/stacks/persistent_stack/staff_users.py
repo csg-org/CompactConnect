@@ -41,6 +41,11 @@ class StaffUsers(UserPool):
         removal_policy,
         **kwargs,
     ):
+        """
+        Initializes the StaffUsers Cognito user pool with custom configuration for staff authentication.
+        
+        Creates a user pool with email-based sign-in, sets up a DynamoDB users table, adds resource servers and authorization scopes, configures a Lambda for dynamic scope customization, and registers a custom message Lambda for Cognito communications. Also creates a UI client with restricted attribute access for staff users.
+        """
         super().__init__(
             scope,
             construct_id,
@@ -56,7 +61,7 @@ class StaffUsers(UserPool):
         stack: ps.PersistentStack = ps.PersistentStack.of(self)
 
         self.user_table = UsersTable(self, 'UsersTable', encryption_key=encryption_key, removal_policy=removal_policy)
-        self._add_resource_servers(stack=stack, environment_name=environment_name)
+        self._add_resource_servers(stack=stack)
         self._add_scope_customization(stack=stack)
         self._add_custom_message_lambda(stack=stack)
 
@@ -72,6 +77,15 @@ class StaffUsers(UserPool):
         )
 
     def _generate_resource_server_scopes_list_for_compact(self, compact: str):
+        """
+        Generates a list of Cognito resource server scopes for a given compact.
+        
+        Args:
+            compact: The compact abbreviation for which to generate scopes.
+        
+        Returns:
+            A list of ResourceServerScope objects representing admin, write, and read access levels for the specified compact.
+        """
         return [
             ResourceServerScope(
                 scope_name=f'{compact}.admin',
@@ -91,8 +105,14 @@ class StaffUsers(UserPool):
             ),
         ]
 
-    def _add_resource_servers(self, stack: ps.PersistentStack, environment_name: str):
-        """Add scopes for all compact/jurisdictions"""
+    def _add_resource_servers(self, stack: ps.PersistentStack):
+        """
+        Adds Cognito resource servers and authorization scopes for all active compacts and jurisdictions.
+        
+        For each compact, creates a resource server with standard scopes (admin, write, readGeneral, readSSN).
+        For each jurisdiction active within any compact, creates a resource server with aggregated compact-specific scopes.
+        These resource servers and scopes enable fine-grained API access control via Cognito authorizer.
+        """
         # {compact}/write, {compact}/admin, {compact}/readGeneral for every compact resource server
         # {jurisdiction}/{compact}.write, {jurisdiction}/{compact}.admin, {jurisdiction}/{compact}.readGeneral
         # for every jurisdiction and compact resource server.
@@ -118,7 +138,7 @@ class StaffUsers(UserPool):
             scope_description='Read access for SSNs in the compact',
         )
 
-        active_compacts = stack.get_list_of_active_compacts_for_environment(environment_name)
+        active_compacts = stack.get_list_of_compact_abbreviations()
         self.compact_resource_servers = {}
         self.jurisdiction_resource_servers: dict[str, UserPoolResourceServer] = {}
         _jurisdiction_compact_scope_mapping: dict[str, list] = {}
@@ -136,7 +156,7 @@ class StaffUsers(UserPool):
             # we define the jurisdiction level scopes, which will be used by every
             # jurisdiction that is active for the compact/environment.
             active_jurisdictions_for_compact = stack.get_list_of_active_jurisdictions_for_compact_environment(
-                compact=compact, environment_name=environment_name
+                compact=compact
             )
             for jurisdiction in active_jurisdictions_for_compact:
                 if _jurisdiction_compact_scope_mapping.get(jurisdiction) is None:

@@ -27,23 +27,34 @@ MOCK_COGNITO_SUB = '3408b4e8-0061-7052-bbe0-fda9a9369c80'
 
 
 def generate_default_compact_config_overrides():
+    """
+    Returns a default compact configuration dictionary with registration enabled.
+    
+    The returned dictionary includes keys for primary and sort keys, compact abbreviation and name, and a flag indicating that licensee registration is enabled.
+    """
     return {
         'pk': f'{TEST_COMPACT_ABBR}#CONFIGURATION',
         'sk': f'{TEST_COMPACT_ABBR}#CONFIGURATION',
         'compactAbbr': TEST_COMPACT_ABBR,
         'compactName': TEST_COMPACT_NAME,
-        'licenseeRegistrationEnabledForEnvironments': ['test'],
+        'licenseeRegistrationEnabled': True,
     }
 
 
 def generate_default_jurisdiction_config_overrides():
+    """
+    Returns a default jurisdiction configuration dictionary with registration enabled.
+    
+    The returned dictionary includes keys for compact abbreviation, jurisdiction name,
+    postal abbreviation, and a flag indicating that licensee registration is enabled.
+    """
     return {
         'pk': f'{TEST_COMPACT_ABBR}#CONFIGURATION',
         'sk': f'{TEST_COMPACT_ABBR}#JURISDICTION#{MOCK_JURISDICTION_POSTAL_ABBR}',
         'compact': TEST_COMPACT_ABBR,
         'jurisdictionName': MOCK_JURISDICTION_NAME,
         'postalAbbreviation': MOCK_JURISDICTION_POSTAL_ABBR,
-        'licenseeRegistrationEnabledForEnvironments': ['test'],
+        'licenseeRegistrationEnabled': True,
     }
 
 
@@ -151,9 +162,14 @@ class TestProviderRegistration(TstFunction):
 
     @patch('handlers.registration.verify_recaptcha')
     def test_registration_returns_400_if_compact_is_not_enabled_for_registration(self, mock_verify_recaptcha):
+        """
+        Tests that registration returns HTTP 400 if the compact is not enabled for registration.
+        
+        Verifies that when the compact configuration disables licensee registration, the registration endpoint responds with a 400 status code and an appropriate error message.
+        """
         compact_config_overrides = generate_default_compact_config_overrides()
         # in this case, no environments are enabled for registration
-        compact_config_overrides.update({'licenseeRegistrationEnabledForEnvironments': []})
+        compact_config_overrides.update({'licenseeRegistrationEnabled': False})
         self._load_compact_configuration(overrides=compact_config_overrides)
         mock_verify_recaptcha.return_value = True
         from handlers.registration import register_provider
@@ -170,9 +186,15 @@ class TestProviderRegistration(TstFunction):
 
     @patch('handlers.registration.verify_recaptcha')
     def test_registration_returns_400_if_jurisdiction_is_not_enabled_for_registration(self, mock_verify_recaptcha):
+        """
+        Tests that registration returns HTTP 400 if the jurisdiction is not enabled for registration.
+        
+        Ensures that when the jurisdiction configuration disables registration, the register_provider
+        function responds with a 400 status code and an appropriate error message.
+        """
         jurisdiction_config_overrides = generate_default_jurisdiction_config_overrides()
         # in this case, no environments are enabled for registration
-        jurisdiction_config_overrides.update({'licenseeRegistrationEnabledForEnvironments': []})
+        jurisdiction_config_overrides.update({'licenseeRegistrationEnabled': False})
         self._load_jurisdiction_configuration(overrides=jurisdiction_config_overrides)
         mock_verify_recaptcha.return_value = True
         from handlers.registration import register_provider

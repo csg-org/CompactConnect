@@ -9,17 +9,19 @@ from .. import TstFunction
 class TestPatchUser(TstFunction):
     def _when_testing_with_valid_jurisdiction(self, compact: str):
         # load oh jurisdiction for provided compact to pass the jurisdiction validation
-        self._load_test_jurisdiction(
-            jurisdiction_overrides={
-                'pk': f'{compact}#CONFIGURATION',
-                'sk': f'{compact}#JURISDICTION#oh',
-                'jurisdictionName': 'Ohio',
-                'postalAbbreviation': 'oh',
-                'compact': compact,
-            }
-        )
+        """
+        Ensures active member jurisdictions are loaded for the specified compact.
+        
+        This prepares the test environment so that jurisdiction validation passes for the given compact.
+        """
+        self._load_compact_active_member_jurisdictions(compact)
 
     def test_patch_user(self):
+        """
+        Tests that patching a user's permissions with valid jurisdiction and admin scope updates the user's permissions and returns the expected user data.
+        
+        Verifies that the `patch_user` handler correctly processes a permission update request, applies the changes, and returns a 200 response with the updated user attributes, permissions, status, and identifiers.
+        """
         self._load_user_data()
         self._when_testing_with_valid_jurisdiction(compact='aslp')
 
@@ -294,7 +296,13 @@ class TestPatchUser(TstFunction):
         )
 
     def test_patch_user_returns_400_if_invalid_jurisdiction(self):
+        """
+        Tests that patching a user with an invalid jurisdiction returns a 400 Bad Request.
+        
+        Verifies that attempting to add permissions for a jurisdiction not active in the specified compact results in an appropriate error response.
+        """
         self._load_user_data()
+        self._load_compact_active_member_jurisdictions(compact='aslp')
 
         from handlers.users import patch_user
 

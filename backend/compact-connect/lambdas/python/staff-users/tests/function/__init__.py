@@ -1,7 +1,6 @@
 import json
 import logging
 import os
-from decimal import Decimal
 
 import boto3
 from boto3.dynamodb.types import TypeDeserializer
@@ -80,6 +79,11 @@ class TstFunction(TstLambdas):
         )
 
     def delete_resources(self):
+        """
+        Deletes the DynamoDB tables and Cognito user pool created for testing.
+        
+        Removes the main and compact configuration DynamoDB tables, waits for the main table to be fully deleted, and deletes the associated Cognito user pool.
+        """
         self._table.delete()
         self._compact_configuration_table.delete()
         waiter = self._table.meta.client.get_waiter('table_not_exists')
@@ -88,17 +92,23 @@ class TstFunction(TstLambdas):
         cognito_client = boto3.client('cognito-idp')
         cognito_client.delete_user_pool(UserPoolId=self._user_pool_id)
 
-    def _load_test_jurisdiction(self, jurisdiction_overrides: dict):
-        with open('../common/tests/resources/dynamo/jurisdiction.json') as f:
-            record = json.load(f, parse_float=Decimal)
+    def _load_compact_active_member_jurisdictions(self, compact: str = 'aslp'):
+        """
+        Loads active member jurisdictions for a specified compact using test data utilities.
+        
+        Args:
+            compact: The compact identifier for which to load active member jurisdictions. Defaults to 'aslp'.
+        """
+        from common_test.test_data_generator import TestDataGenerator
 
-        record.update(jurisdiction_overrides)
-        self.config.compact_configuration_table.put_item(Item=record)
-
-        # return record for optional usage in tests
-        return record
+        TestDataGenerator.put_compact_active_member_jurisdictions(compact)
 
     def _load_user_data(self, second_jurisdiction: str = None) -> str:
+        """
+        Loads user data from a JSON file into the DynamoDB table and returns the user ID.
+        
+        If a second jurisdiction is provided, adds write permissions for that jurisdiction before inserting the user record.
+        """
         with open('../common/tests/resources/dynamo/user.json') as f:
             # This item is saved in its serialized form, so we have to deserialize it first
             item = TypeDeserializer().deserialize({'M': json.load(f)})

@@ -60,12 +60,28 @@ class Stack(CdkStack):
 
     @cached_property
     def license_type_names(self):
-        """Flattened list of all license type names across all compacts"""
+        """
+        Returns a flattened list of all license type names from the context's license_types.
+        
+        Each name is extracted from the 'name' field of every license type dictionary across all compacts.
+        """
         return [typ['name'] for compact in self.node.get_context('license_types').values() for typ in compact]
 
     @cached_property
+    def license_type_abbreviations(self):
+        """
+        Returns a flattened list of all license type abbreviations across all compacts.
+        
+        Each abbreviation is extracted from the 'abbreviation' field of license type dictionaries
+        in the context's 'license_types' data.
+        """
+        return [typ['abbreviation'] for compact in self.node.get_context('license_types').values() for typ in compact]
+
+    @cached_property
     def license_types(self):
-        """Dictionary of license types by compact"""
+        """
+        Returns the dictionary of license types grouped by compact from the CDK context.
+        """
         return self.node.get_context('license_types')
 
     @cached_property

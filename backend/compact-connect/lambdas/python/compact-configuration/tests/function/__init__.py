@@ -17,13 +17,26 @@ class TstFunction(TstLambdas):
     """Base class to set up Moto mocking and create mock AWS resources for functional testing"""
 
     def setUp(self):  # noqa: N801 invalid-name
+        """
+        Prepares the test environment by setting up mock AWS resources and initializing test data helpers.
+        
+        Overrides the base setup to create required resources, register cleanup actions, and instantiate a helper for generating test objects.
+        """
         super().setUp()
 
         self.build_resources()
 
         self.addCleanup(self.delete_resources)
+        # this must be imported here as the import relies on env variables being set by the parent class
+        from common_test.test_data_generator import TestDataGenerator
+
+        # Helper class used to generate test objects
+        self.test_data_generator = TestDataGenerator()
 
     def build_resources(self):
+        """
+        Creates all required mocked AWS resources for testing.
+        """
         self.create_compact_configuration_table()
 
     def create_compact_configuration_table(self):

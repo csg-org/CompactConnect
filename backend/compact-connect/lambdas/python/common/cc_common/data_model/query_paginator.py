@@ -130,8 +130,16 @@ class paginated_query:  # noqa: N801 invalid-name
 
     @staticmethod
     def _load_records(records: list[dict]):
-        """Every record coming through this paginator should be de-serializable through our *RecordSchema"""
+        """
+        Deserializes a list of DynamoDB records using the appropriate schema based on each record's type.
+        
+        Attempts to load each record with the schema returned by `BaseRecordSchema.get_schema_by_type`. Raises a `CCInternalException` if a validation or key error occurs during deserialization.
+        """
         try:
             return [BaseRecordSchema.get_schema_by_type(item['type']).load(item) for item in records]
-        except (KeyError, ValidationError) as e:
+        except ValidationError as e:
+            logger.error('Validation error', error=e)
             raise CCInternalException('Data validation failure!') from e
+        except KeyError as e:
+            logger.error('Key error', error=e)
+            raise CCInternalException('Key error!') from e

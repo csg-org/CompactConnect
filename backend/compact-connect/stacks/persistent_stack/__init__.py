@@ -1,6 +1,5 @@
 import os
 
-import yaml
 from aws_cdk import Duration, RemovalPolicy, aws_ssm
 from aws_cdk.aws_cognito import SignInAliases, UserPoolEmail
 from aws_cdk.aws_iam import Effect, PolicyStatement
@@ -53,6 +52,11 @@ class PersistentStack(AppStack):
         environment_context: dict,
         **kwargs,
     ) -> None:
+        """
+        Initializes the PersistentStack with long-lived AWS resources for the application environment.
+        
+        Creates and configures persistent infrastructure components such as encryption keys, Lambda layers, S3 buckets, DynamoDB tables, event buses, notification topics, and Cognito user pools. Sets removal policies based on environment, manages cross-stack references via SSM parameters, and establishes dependencies to ensure proper resource creation order. Handles user management, email notification setup, and exports key resource identifiers for use in other stacks.
+        """
         super().__init__(
             scope, construct_id, environment_context=environment_context, environment_name=environment_name, **kwargs
         )
@@ -143,8 +147,6 @@ class PersistentStack(AppStack):
             'CompactConfigurationUpload',
             table=self.compact_configuration_table,
             master_key=self.shared_encryption_key,
-            environment_name=environment_name,
-            environment_context=environment_context,
         )
 
         if self.hosted_zone:
@@ -365,92 +367,23 @@ class PersistentStack(AppStack):
 
     def _add_migrations(self):
         """
-        Whenever a change is introduced that requires a schema migration (ie a new GSI or removing a deprecated field)
-        there should be an associated migration script that is run as part of the deployment. These are short-lived
-        custom resources that should be removed from the CDK app once the migration has been run in all environments.
+        Adds a schema migration custom resource for the compact configuration table.
+        
+        Creates and configures a short-lived Lambda-based migration resource to handle schema changes for the compact configuration table, including permissions and log query definitions.
         """
-        multi_license_migration = DataMigration(
+        compact_configuration_migration = DataMigration(
             self,
-            '569MultiLicense',
-            migration_dir='569_multi_license',
+            '783CompactConfigurationMigration',
+            migration_dir='compact_configuration_783',
             lambda_environment={
-                'PROVIDER_TABLE_NAME': self.provider_table.table_name,
-                'PROV_FAM_GIV_MID_INDEX_NAME': self.provider_table.provider_fam_giv_mid_index_name,
+                'COMPACT_CONFIGURATION_TABLE_NAME': self.compact_configuration_table.table_name,
                 **self.common_env_vars,
             },
         )
-        self.provider_table.grant_read_write_data(multi_license_migration)
+        self.compact_configuration_table.grant_read_write_data(compact_configuration_migration)
         NagSuppressions.add_resource_suppressions_by_path(
             self,
-            f'{multi_license_migration.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': 'This policy contains wild-carded actions and resources but they are scoped to the '
-                    'specific actions, reporting Table and Key that this lambda specifically needs access to.',
-                },
-            ],
-        )
-
-        military_waiver_removal_migration = DataMigration(
-            self,
-            '618RemoveMilitaryWaiver',
-            migration_dir='618_remove_military_waiver',
-            lambda_environment={
-                'PROVIDER_TABLE_NAME': self.provider_table.table_name,
-                **self.common_env_vars,
-            },
-        )
-        self.provider_table.grant_read_write_data(military_waiver_removal_migration)
-        NagSuppressions.add_resource_suppressions_by_path(
-            self,
-            f'{military_waiver_removal_migration.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': 'This policy contains wild-carded actions and resources but they are scoped to the '
-                    'specific actions, Table and Key that this lambda needs access to in order to perform the'
-                    'migration.',
-                },
-            ],
-        )
-
-        three_license_status_migration = DataMigration(
-            self,
-            '667ThreeLicenseStatus',
-            migration_dir='667_three_license_status_fields',
-            lambda_environment={
-                'PROVIDER_TABLE_NAME': self.provider_table.table_name,
-                **self.common_env_vars,
-            },
-        )
-        self.provider_table.grant_read_write_data(three_license_status_migration)
-        NagSuppressions.add_resource_suppressions_by_path(
-            self,
-            f'{three_license_status_migration.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': 'This policy contains wild-carded actions and resources but they are scoped to the '
-                    'specific actions, Table and Key that this lambda needs access to in order to perform the'
-                    'migration.',
-                },
-            ],
-        )
-
-        deactivation_details_migration = DataMigration(
-            self,
-            '566DeactivationDetails',
-            migration_dir='deactivation_details_566',
-            lambda_environment={
-                'PROVIDER_TABLE_NAME': self.provider_table.table_name,
-                **self.common_env_vars,
-            },
-        )
-        self.provider_table.grant_read_write_data(deactivation_details_migration)
-        NagSuppressions.add_resource_suppressions_by_path(
-            self,
-            f'{deactivation_details_migration.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            f'{compact_configuration_migration.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
@@ -471,9 +404,7 @@ class PersistentStack(AppStack):
                 sort='@timestamp desc',
             ),
             log_groups=[
-                multi_license_migration.migration_function.log_group,
-                military_waiver_removal_migration.migration_function.log_group,
-                three_license_status_migration.migration_function.log_group,
+                compact_configuration_migration.migration_function.log_group,
             ],
         )
 
@@ -579,71 +510,56 @@ class PersistentStack(AppStack):
         )
 
     def get_ui_base_path_url(self) -> str:
-        """Returns the base URL for the UI."""
+        """
+        Returns the base URL for the user interface.
+        
+        If a UI domain name is configured, returns its HTTPS URL; otherwise, defaults to the test environment URL.
+        """
         if self.ui_domain_name is not None:
             return f'https://{self.ui_domain_name}'
 
         # default to csg test environment
         return 'https://app.test.compactconnect.org'
 
-    def _configuration_is_active_for_environment(self, environment_name: str, active_environments: list[str]) -> bool:
-        """Check if the compact configuration is active in the given environment."""
-        return environment_name in active_environments or self.node.try_get_context('sandbox') is True
-
-    def get_list_of_active_compacts_for_environment(self, environment_name: str) -> list[str]:
+    def get_list_of_compact_abbreviations(self) -> list[str]:
         """
-        Currently, all configuration for compacts and jurisdictions is hardcoded in the compact-config directory.
-        This reads the YAML configuration files and returns the list of compacts that are marked as
-        active for the environment.
+        Returns the list of compact abbreviations configured in the CDK context.
+        
+        The list is retrieved from the 'compacts' key in the cdk.json context.
         """
+        return self.node.get_context('compacts')
 
-        active_compacts = []
-        # Read all compact configuration YAML files from top level compact-config directory
-        for compact_config_file in os.listdir('compact-config'):
-            if compact_config_file.endswith('.yml'):
-                with open(os.path.join('compact-config', compact_config_file)) as f:
-                    # convert YAML to JSON
-                    formatted_compact = yaml.safe_load(f)
-                    # only include the compact configuration if it is active in the environment
-                    if self._configuration_is_active_for_environment(
-                        environment_name,
-                        formatted_compact['activeEnvironments'],
-                    ):
-                        active_compacts.append(formatted_compact['compactAbbr'])
-
-        return active_compacts
-
-    def get_list_of_active_jurisdictions_for_compact_environment(
-        self, compact: str, environment_name: str
-    ) -> list[str]:
+    def get_list_of_active_jurisdictions_for_compact_environment(self, compact: str) -> list[str]:
         """
-        Get the list of jurisdiction postal codes which are active within a compact and environment.
-
-        Currently, all configuration for compacts and jurisdictions is hardcoded in the compact-config directory.
-        This reads the YAML configuration files and returns the list of jurisdiction postal codes that are marked as
-        active for the environment.
+        Returns a list of active jurisdiction postal abbreviations for the specified compact.
+        
+        Retrieves the list from the 'active_compact_member_jurisdictions' key in the CDK context.
+        All returned abbreviations are in lowercase.
+        
+        Args:
+            compact: The compact identifier whose active jurisdictions are requested.
+        
+        Returns:
+            A list of lowercase jurisdiction postal abbreviations.
+        
+        Raises:
+            ValueError: If no active jurisdictions are found for the specified compact.
         """
+        active_member_jurisdictions = self.node.get_context('active_compact_member_jurisdictions')
+        if not active_member_jurisdictions:
+            raise ValueError(f'No active member jurisdictions found in context for compact {compact}')
 
-        active_jurisdictions = []
-
-        # Read all jurisdiction configuration YAML files from each active compact directory
-        for jurisdiction_config_file in os.listdir(os.path.join('compact-config', compact)):
-            if jurisdiction_config_file.endswith('.yml'):
-                with open(os.path.join('compact-config', compact, jurisdiction_config_file)) as f:
-                    formatted_jurisdiction = yaml.safe_load(f)
-                    # only include the jurisdiction configuration if it is active in the environment
-                    if self._configuration_is_active_for_environment(
-                        environment_name,
-                        formatted_jurisdiction['activeEnvironments'],
-                    ):
-                        active_jurisdictions.append(formatted_jurisdiction['postalAbbreviation'].lower())
-
-        return active_jurisdictions
+        # Get the jurisdictions for the specified compact and ensure all are lowercase
+        jurisdictions = active_member_jurisdictions[compact]
+        return [j.lower() for j in jurisdictions]
 
     def _create_frontend_app_config_parameter(self):
         """
-        Creates and stores UI application configuration in SSM Parameter Store for use in the UI stack and
-        frontend deployment stack.
+        Generates and stores frontend application configuration in SSM Parameter Store.
+        
+        This method assembles configuration values required by the UI and frontend deployment stacks,
+        including Cognito user pool details, domain names, and relevant S3 bucket names, and saves
+        them as a parameter in AWS SSM Parameter Store for cross-stack access.
         """
         # Create and store UI application configuration in SSM Parameter Store for use in the UI stack
         frontend_app_config = PersistentStackFrontendAppConfigUtility()

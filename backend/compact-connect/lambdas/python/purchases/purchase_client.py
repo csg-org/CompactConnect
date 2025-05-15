@@ -13,8 +13,9 @@ from authorizenet.apicontrollers import (
 )
 from authorizenet.constants import constants
 from cc_common.config import config, logger
-from cc_common.data_model.schema.compact import Compact, CompactFeeType, TransactionFeeChargeType
-from cc_common.data_model.schema.jurisdiction import Jurisdiction, JurisdictionMilitaryDiscountType
+from cc_common.data_model.schema.compact import Compact
+from cc_common.data_model.schema.compact.common import CompactFeeType, TransactionFeeChargeType
+from cc_common.data_model.schema.jurisdiction import Jurisdiction
 from cc_common.exceptions import (
     CCFailedTransactionException,
     CCInternalException,
@@ -45,22 +46,26 @@ def _calculate_jurisdiction_fee(
     jurisdiction: Jurisdiction, license_type_abbr: str, user_active_military: bool
 ) -> Decimal:
     """
-    Calculate the total cost of a single jurisdiction privilege
-
-    :param jurisdiction: The jurisdiction to calculate the fee for
-    :param license_type_abbr: The abbreviation of the license type
-    :param user_active_military: Whether the user has an active military affiliation
-
-    :return: The calculated fee amount for the given license type and jurisdiction
+    Calculates the fee for a single jurisdiction privilege based on license type and military status.
+    
+    Args:
+        jurisdiction: The jurisdiction for which the fee is calculated.
+        license_type_abbr: Abbreviation of the license type.
+        user_active_military: Indicates if the user is active military.
+    
+    Returns:
+        The applicable fee amount for the specified license type and jurisdiction, using the military rate if available and applicable.
+    
+    Raises:
+        ValueError: If no fee is found for the specified license type.
     """
 
-    # If privilegeFees is defined, look up the fee for the given license type
+    # Find the fee for the specified license type
     license_fee = next(
         (fee for fee in jurisdiction.privilege_fees if fee.license_type_abbreviation == license_type_abbr), None
     )
-    if license_fee:
-        jurisdiction_fee = license_fee.amount
-    else:
+
+    if not license_fee:
         logger.info(
             'Unable to find license fee for specified license type',
             jurisdiction=jurisdiction.postal_abbreviation,
@@ -69,26 +74,19 @@ def _calculate_jurisdiction_fee(
         )
         raise ValueError(f'No license fee found for license type: {license_type_abbr}')
 
-    # Apply military discount if applicable
-    if user_active_military and jurisdiction.military_discount and jurisdiction.military_discount.active:
-        if jurisdiction.military_discount.discount_type == JurisdictionMilitaryDiscountType.FLAT_RATE:
-            total_jurisdiction_fee = jurisdiction_fee - jurisdiction.military_discount.discount_amount
-        else:
-            raise ValueError(
-                f'Unsupported military discount type: {jurisdiction.military_discount.discount_type.value}'
-            )
-    else:
-        total_jurisdiction_fee = jurisdiction_fee
+    # If user is active military and the license fee has a military rate, use that rate
+    if user_active_military and license_fee.military_rate is not None:
+        return license_fee.military_rate
 
-    return total_jurisdiction_fee
+    # Otherwise use the standard fee
+    return license_fee.amount
 
 
 def _calculate_total_compact_fee(compact: Compact, selected_jurisdictions: list[Jurisdiction]) -> Decimal:
     """
-    Calculate the total compact fee for all selected jurisdictions
-
-    There is potential that the compact fee may change depending on the jurisdiction (ie percentage based fees),
-    but for now we are assuming that the fee is the same for all jurisdictions.
+    Calculates the total compact fee for a set of selected jurisdictions.
+    
+    The total fee is determined by multiplying the compact's single-jurisdiction fee by the number of selected jurisdictions.
     """
     return _calculate_compact_fee_for_single_jurisdiction(compact) * len(selected_jurisdictions)
 
@@ -322,6 +320,26 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         user_active_military: bool,
     ) -> dict:
         # Create a merchantAuthenticationType object with authentication details
+        """
+        Processes a credit card charge for purchasing compact privileges via Authorize.Net.
+        
+        Builds and submits a transaction request including privilege, compact, and transaction fees for the selected jurisdictions and license type. Handles military rate pricing if applicable. Returns transaction details on success or raises an exception on failure.
+        
+        Args:
+            licensee_id: Unique identifier for the licensee making the purchase.
+            order_information: Dictionary containing credit card and billing details.
+            compact_configuration: Compact configuration object specifying fee and transaction settings.
+            selected_jurisdictions: List of jurisdictions for which privileges are being purchased.
+            license_type_abbreviation: Abbreviation of the license type being purchased.
+            user_active_military: Indicates if the user qualifies for military rates.
+        
+        Returns:
+            A dictionary containing a success message and the transaction ID.
+        
+        Raises:
+            CCFailedTransactionException: If the transaction is declined or invalid.
+            CCInternalException: For internal errors or unexpected API responses.
+        """
         merchant_auth = apicontractsv1.merchantAuthenticationType()
         merchant_auth.name = self.api_login_id
         merchant_auth.transactionKey = self.transaction_key
@@ -357,9 +375,24 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                 license_type_abbr=license_type_abbreviation,
                 user_active_military=user_active_military,
             )
-            if user_active_military and jurisdiction.military_discount.active:
+
+            # Set the description based on whether the user is active military and has a military rate
+            if (
+                user_active_military
+                and (
+                    license_fee := next(
+                        (
+                            fee
+                            for fee in jurisdiction.privilege_fees
+                            if fee.license_type_abbreviation == license_type_abbreviation
+                        ),
+                        None,
+                    )
+                )
+                and license_fee.military_rate is not None
+            ):
                 privilege_line_item.description = (
-                    f'Compact Privilege for {jurisdiction_name_title_case} (Military Discount)'
+                    f'Compact Privilege for {jurisdiction_name_title_case} (Military Rate)'
                 )
             else:
                 privilege_line_item.description = f'Compact Privilege for {jurisdiction_name_title_case}'

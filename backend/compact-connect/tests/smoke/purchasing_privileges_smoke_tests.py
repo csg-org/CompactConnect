@@ -1,15 +1,21 @@
 #!/usr/bin/env python3
-import json
 import time
 from datetime import UTC, datetime
 
 import requests
 from boto3.dynamodb.conditions import Key
+
+# Import the existing compact configuration tests
+from compact_configuration_smoke_tests import (
+    test_compact_configuration,
+    test_jurisdiction_configuration,
+)
 from config import config, logger
 from smoke_common import (
     SmokeTestFailureException,
     call_provider_users_me_endpoint,
     get_provider_user_auth_headers_cached,
+    load_smoke_test_env,
 )
 
 # This script can be run locally to test the privilege purchasing flow against a sandbox environment
@@ -19,7 +25,20 @@ from smoke_common import (
 
 
 def test_purchase_privilege_options():
-    """Test the GET /v1/purchases/privileges/options endpoint."""
+    """
+    Verifies the correctness of the /v1/purchases/privileges/options API response.
+    
+    Calls configuration tests to obtain expected compact and jurisdiction data, then requests
+    the privilege purchase options endpoint. Checks that the response contains the expected
+    compact and jurisdiction entries with correct keys and values, raising
+    SmokeTestFailureException if any verification fails.
+    """
+    # First, ensure we have known configuration by calling the configuration tests
+    # These will set up the configurations and return them for verification
+    compact_config = test_compact_configuration()
+    jurisdiction_config = test_jurisdiction_configuration()
+
+    # Now test the purchase privilege options endpoint
     headers = get_provider_user_auth_headers_cached()
     response = requests.get(
         url=f'{config.api_base_url}/v1/purchases/privileges/options',
@@ -35,48 +54,58 @@ def test_purchase_privilege_options():
 
     compact_data = next((item for item in response_body['items'] if item.get('type') == 'compact'), None)
 
-    # Verify compact data matches expected values
+    # Verify compact data matches expected values based on what was set in test_compact_configuration
     expected_compact_data = {
         'type': 'compact',
-        'compactName': 'Audiology and Speech Language Pathology',
-        'compactAbbr': 'aslp',
-        'compactCommissionFee': {'feeType': 'FLAT_RATE', 'feeAmount': 3.50},
-        'transactionFeeConfiguration': {
-            'licenseeCharges': {'active': True, 'chargeType': 'FLAT_FEE_PER_PRIVILEGE', 'chargeAmount': 3.00}
-        },
+        'compactName': compact_config['compactName'],
+        'compactAbbr': compact_config['compactAbbr'],
+        'compactCommissionFee': compact_config['compactCommissionFee'],
     }
 
-    if compact_data != expected_compact_data:
-        raise SmokeTestFailureException(
-            f'Compact data does not match expected values.\nExpected:\n {json.dumps(expected_compact_data)}\nActual:\n '
-            f'{json.dumps(compact_data)}'
-        )
+    # Add transaction fee config if it exists
+    if 'transactionFeeConfiguration' in compact_config:
+        expected_compact_data['transactionFeeConfiguration'] = compact_config['transactionFeeConfiguration']
 
-    # now we verify the ky jurisdiction data
-    # we only verify this one for brevity, since the other jurisdictions are loaded as configured in the yaml files
-    ky_jurisdiction_data = next(
-        (item for item in response_body['items'] if item.get('postalAbbreviation') == 'ky'), None
+    # Check if compact data matches our expectations
+    for key, value in expected_compact_data.items():
+        if key not in compact_data:
+            raise SmokeTestFailureException(f'Key {key} not found in compact data')
+        if compact_data[key] != value:
+            raise SmokeTestFailureException(f'Value mismatch for key {key}. Expected {value}, got {compact_data[key]}')
+
+    # Verify the jurisdiction data (Kentucky) based on what was set in test_jurisdiction_configuration
+    jurisdiction = jurisdiction_config['postalAbbreviation']
+    jurisdiction_data = next(
+        (item for item in response_body['items'] if item.get('postalAbbreviation') == jurisdiction), None
     )
 
-    expected_ky_jurisdiction_data = {
+    if not jurisdiction_data:
+        raise SmokeTestFailureException(f'Jurisdiction {jurisdiction} not found in response')
+
+    # Prepare expected jurisdiction data
+    expected_jurisdiction_data = {
         'type': 'jurisdiction',
-        'jurisdictionName': 'Kentucky',
-        'postalAbbreviation': 'ky',
-        'compact': 'aslp',
-        # Note: if these values are ever updated in the compact configuration, the test will need to be updated
-        'privilegeFees': [
-            {'licenseTypeAbbreviation': 'aud', 'amount': 100},
-            {'licenseTypeAbbreviation': 'slp', 'amount': 100},
-        ],
-        'militaryDiscount': {'active': True, 'discountType': 'FLAT_RATE', 'discountAmount': 10},
-        'jurisprudenceRequirements': {'required': True},
+        'jurisdictionName': jurisdiction_config['jurisdictionName'],
+        'postalAbbreviation': jurisdiction_config['postalAbbreviation'],
+        'compact': jurisdiction_config['compact'],
+        'privilegeFees': jurisdiction_config['privilegeFees'],
+        'jurisprudenceRequirements': jurisdiction_config['jurisprudenceRequirements'],
     }
 
-    if ky_jurisdiction_data != expected_ky_jurisdiction_data:
-        raise SmokeTestFailureException(
-            f'KY jurisdiction data does not match expected values.\nExpected:\n '
-            f'{json.dumps(expected_ky_jurisdiction_data)}\nActual:\n {json.dumps(ky_jurisdiction_data)}'
-        )
+    # Check if jurisdiction data matches our expectations
+    for key, value in expected_jurisdiction_data.items():
+        if key not in jurisdiction_data:
+            raise SmokeTestFailureException(
+                f'Key {key} not found in jurisdiction data. \n'
+                f'expected_response: {expected_jurisdiction_data}\n '
+                f'actual_response: {jurisdiction_data}'
+            )
+        if jurisdiction_data[key] != value:
+            raise SmokeTestFailureException(
+                f'Value mismatch for key {key}. \n'
+                f'expected_response: {value}\n '
+                f'actual_response: {jurisdiction_data[key]}'
+            )
 
     logger.info('Successfully verified purchase privilege options')
 
@@ -218,5 +247,9 @@ def test_purchasing_privilege():
 
 
 if __name__ == '__main__':
+    # Load environment variables from smoke_tests_env.json
+    load_smoke_test_env()
+
+    # Run tests
     test_purchase_privilege_options()
     test_purchasing_privilege()

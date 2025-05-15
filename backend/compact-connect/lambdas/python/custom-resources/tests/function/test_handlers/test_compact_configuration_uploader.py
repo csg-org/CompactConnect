@@ -1,6 +1,5 @@
 import json
 from datetime import datetime
-from decimal import Decimal
 from unittest.mock import patch
 
 from boto3.dynamodb.conditions import Key
@@ -17,6 +16,13 @@ OT_COMPACT_ABBREVIATION = 'octp'
 
 
 def generate_mock_attestation():
+    """
+    Creates a mock attestation dictionary with preset fields for testing purposes.
+    
+    Returns:
+        dict: A dictionary representing a mock attestation, including fields such as
+        attestationId, displayName, description, text, required, and locale.
+    """
     return {
         'attestationId': 'jurisprudence-confirmation',
         'displayName': 'Jurisprudence Confirmation',
@@ -28,242 +34,37 @@ def generate_mock_attestation():
     }
 
 
-def generate_single_root_compact_config(compact_abbr: str, active_environments: list):
-    return {
-        'compactAbbr': compact_abbr,
-        'compactCommissionFee': {'feeType': 'FLAT_RATE', 'feeAmount': 3.5},
-        'compactOperationsTeamEmails': [],
-        'compactAdverseActionsNotificationEmails': [],
-        'compactSummaryReportNotificationEmails': [],
-        'activeEnvironments': active_environments,
-        'licenseeRegistrationEnabledForEnvironments': [],
-        'attestations': [generate_mock_attestation()],
-    }
-
-
-def generate_single_jurisdiction_config(
-    compact: str, jurisdiction_name: str, postal_abbreviation: str, active_environments: list
-):
-    privilege_fees = (
-        [{'licenseTypeAbbreviation': 'aud', 'amount': 100}, {'licenseTypeAbbreviation': 'slp', 'amount': 100}]
-        if compact == 'aslp'
-        else [{'licenseTypeAbbreviation': 'ot', 'amount': 100}, {'licenseTypeAbbreviation': 'ota', 'amount': 100}]
-    )
-
-    return {
-        'jurisdictionName': jurisdiction_name,
-        'postalAbbreviation': postal_abbreviation,
-        'privilegeFees': privilege_fees,
-        'militaryDiscount': {'active': True, 'discountType': 'FLAT_RATE', 'discountAmount': 10},
-        'jurisdictionOperationsTeamEmails': ['cloud-team@example.com'],
-        'jurisdictionAdverseActionsNotificationEmails': [],
-        'jurisdictionSummaryReportNotificationEmails': [],
-        'jurisprudenceRequirements': {'required': True},
-        'licenseeRegistrationEnabledForEnvironments': [],
-        'activeEnvironments': active_environments,
-    }
-
-
-def generate_mock_compact_configuration():
-    return {
-        'compacts': [
-            generate_single_root_compact_config(ASLP_COMPACT_ABBREVIATION, active_environments=[TEST_ENVIRONMENT_NAME]),
-            generate_single_root_compact_config(OT_COMPACT_ABBREVIATION, active_environments=[]),
-        ],
-        'jurisdictions': {
-            ASLP_COMPACT_ABBREVIATION: [
-                generate_single_jurisdiction_config(
-                    ASLP_COMPACT_ABBREVIATION, 'nebraska', 'ne', active_environments=[TEST_ENVIRONMENT_NAME]
-                ),
-                generate_single_jurisdiction_config(ASLP_COMPACT_ABBREVIATION, 'ohio', 'oh', active_environments=[]),
-            ],
-            OT_COMPACT_ABBREVIATION: [
-                generate_single_jurisdiction_config(
-                    OT_COMPACT_ABBREVIATION, 'nebraska', 'ne', active_environments=['sandbox']
-                ),
-                generate_single_jurisdiction_config(
-                    OT_COMPACT_ABBREVIATION, 'ohio', 'oh', active_environments=['sandbox']
-                ),
-            ],
-        },
-    }
+def generate_mock_attestations():
+    """
+    Generates a list containing a single mock attestation.
+    
+    Returns:
+        A list with one mock attestation dictionary.
+    """
+    return [generate_mock_attestation()]
 
 
 @mock_aws
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(MOCK_CURRENT_TIMESTAMP))
 class TestCompactConfigurationUploader(TstFunction):
-    def test_compact_configuration_uploader_store_all_config(self):
+    def test_attestation_uploader_uploads_attestations(self):
+        """
+        Tests that attestations are uploaded to DynamoDB with correct attributes and versioning.
+        
+        This test triggers the attestation upload handler with a "Create" event containing
+        mock attestations and active member jurisdictions. It then queries DynamoDB to
+        verify that the attestation is stored with the expected structure, values, and
+        version information.
+        """
         from handlers.compact_config_uploader import on_event
 
         event = {
             'RequestType': 'Create',
             'ResourceProperties': {
-                'compact_configuration': json.dumps(generate_mock_compact_configuration()),
-            },
-        }
-
-        on_event(event, self.mock_context)
-
-        # now query for all the aslp compact configurations
-        aslp_response = self.config.compact_configuration_table.query(
-            Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq('aslp#CONFIGURATION'),
-        )
-
-        octp_response = self.config.compact_configuration_table.query(
-            Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq('octp#CONFIGURATION'),
-        )
-
-        items = aslp_response['Items'] + octp_response['Items']
-
-        self.assertEqual(
-            [
-                {
-                    'compactAdverseActionsNotificationEmails': [],
-                    'compactCommissionFee': {'feeAmount': Decimal('3.50'), 'feeType': 'FLAT_RATE'},
-                    'compactAbbr': ASLP_COMPACT_ABBREVIATION,
-                    'compactOperationsTeamEmails': [],
-                    'compactSummaryReportNotificationEmails': [],
-                    'dateOfUpdate': MOCK_CURRENT_TIMESTAMP,
-                    'pk': 'aslp#CONFIGURATION',
-                    'sk': 'aslp#CONFIGURATION',
-                    'licenseeRegistrationEnabledForEnvironments': [],
-                    'type': 'compact',
-                },
-                {
-                    'compact': ASLP_COMPACT_ABBREVIATION,
-                    'dateOfUpdate': MOCK_CURRENT_TIMESTAMP,
-                    'jurisdictionAdverseActionsNotificationEmails': [],
-                    'privilegeFees': [
-                        {'licenseTypeAbbreviation': 'aud', 'amount': Decimal('100.00')},
-                        {'licenseTypeAbbreviation': 'slp', 'amount': Decimal('100.00')},
-                    ],
-                    'jurisdictionName': 'nebraska',
-                    'jurisdictionOperationsTeamEmails': ['cloud-team@example.com'],
-                    'jurisdictionSummaryReportNotificationEmails': [],
-                    'jurisprudenceRequirements': {'required': True},
-                    'militaryDiscount': {
-                        'active': True,
-                        'discountAmount': Decimal('10.00'),
-                        'discountType': 'FLAT_RATE',
-                    },
-                    'pk': 'aslp#CONFIGURATION',
-                    'postalAbbreviation': 'ne',
-                    'sk': 'aslp#JURISDICTION#ne',
-                    'type': 'jurisdiction',
-                    'licenseeRegistrationEnabledForEnvironments': [],
-                },
-                {
-                    'compact': ASLP_COMPACT_ABBREVIATION,
-                    'dateOfUpdate': MOCK_CURRENT_TIMESTAMP,
-                    'jurisdictionAdverseActionsNotificationEmails': [],
-                    'privilegeFees': [
-                        {'licenseTypeAbbreviation': 'aud', 'amount': Decimal('100.00')},
-                        {'licenseTypeAbbreviation': 'slp', 'amount': Decimal('100.00')},
-                    ],
-                    'jurisdictionName': 'ohio',
-                    'jurisdictionOperationsTeamEmails': ['cloud-team@example.com'],
-                    'jurisdictionSummaryReportNotificationEmails': [],
-                    'jurisprudenceRequirements': {'required': True},
-                    'militaryDiscount': {
-                        'active': True,
-                        'discountAmount': Decimal('10.00'),
-                        'discountType': 'FLAT_RATE',
-                    },
-                    'pk': 'aslp#CONFIGURATION',
-                    'postalAbbreviation': 'oh',
-                    'sk': 'aslp#JURISDICTION#oh',
-                    'type': 'jurisdiction',
-                    'licenseeRegistrationEnabledForEnvironments': [],
-                },
-                {
-                    'compactAdverseActionsNotificationEmails': [],
-                    'compactCommissionFee': {'feeAmount': Decimal('3.50'), 'feeType': 'FLAT_RATE'},
-                    'compactAbbr': OT_COMPACT_ABBREVIATION,
-                    'compactOperationsTeamEmails': [],
-                    'compactSummaryReportNotificationEmails': [],
-                    'dateOfUpdate': MOCK_CURRENT_TIMESTAMP,
-                    'pk': 'octp#CONFIGURATION',
-                    'sk': 'octp#CONFIGURATION',
-                    'type': 'compact',
-                    'licenseeRegistrationEnabledForEnvironments': [],
-                },
-                {
-                    'compact': OT_COMPACT_ABBREVIATION,
-                    'dateOfUpdate': MOCK_CURRENT_TIMESTAMP,
-                    'jurisdictionAdverseActionsNotificationEmails': [],
-                    'privilegeFees': [
-                        {'licenseTypeAbbreviation': 'ot', 'amount': Decimal('100.00')},
-                        {'licenseTypeAbbreviation': 'ota', 'amount': Decimal('100.00')},
-                    ],
-                    'jurisdictionName': 'nebraska',
-                    'jurisdictionOperationsTeamEmails': ['cloud-team@example.com'],
-                    'jurisdictionSummaryReportNotificationEmails': [],
-                    'jurisprudenceRequirements': {'required': True},
-                    'militaryDiscount': {
-                        'active': True,
-                        'discountAmount': Decimal('10.00'),
-                        'discountType': 'FLAT_RATE',
-                    },
-                    'pk': 'octp#CONFIGURATION',
-                    'postalAbbreviation': 'ne',
-                    'sk': 'octp#JURISDICTION#ne',
-                    'type': 'jurisdiction',
-                    'licenseeRegistrationEnabledForEnvironments': [],
-                },
-                {
-                    'compact': OT_COMPACT_ABBREVIATION,
-                    'dateOfUpdate': MOCK_CURRENT_TIMESTAMP,
-                    'jurisdictionAdverseActionsNotificationEmails': [],
-                    'privilegeFees': [
-                        {'licenseTypeAbbreviation': 'ot', 'amount': Decimal('100.00')},
-                        {'licenseTypeAbbreviation': 'ota', 'amount': Decimal('100.00')},
-                    ],
-                    'jurisdictionName': 'ohio',
-                    'jurisdictionOperationsTeamEmails': ['cloud-team@example.com'],
-                    'jurisdictionSummaryReportNotificationEmails': [],
-                    'jurisprudenceRequirements': {'required': True},
-                    'militaryDiscount': {
-                        'active': True,
-                        'discountAmount': Decimal('10.00'),
-                        'discountType': 'FLAT_RATE',
-                    },
-                    'pk': 'octp#CONFIGURATION',
-                    'postalAbbreviation': 'oh',
-                    'sk': 'octp#JURISDICTION#oh',
-                    'type': 'jurisdiction',
-                    'licenseeRegistrationEnabledForEnvironments': [],
-                },
-            ],
-            items,
-        )
-
-    def test_compact_configuration_uploader_raises_exception_on_invalid_jurisdiction_config(self):
-        from handlers.compact_config_uploader import on_event
-
-        mock_configuration = generate_mock_compact_configuration()
-        # An empty ops team email is not allowed
-        mock_configuration['jurisdictions'][ASLP_COMPACT_ABBREVIATION][0]['jurisdictionOperationsTeamEmails'] = []
-
-        event = {
-            'RequestType': 'Create',
-            'ResourceProperties': {
-                'compact_configuration': json.dumps(mock_configuration),
-            },
-        }
-
-        with self.assertRaises(ValidationError):
-            on_event(event, self.mock_context)
-
-    def test_compact_configuration_uploader_uploads_attestations(self):
-        """Test that attestations are correctly uploaded to DynamoDB."""
-        from handlers.compact_config_uploader import on_event
-
-        event = {
-            'RequestType': 'Create',
-            'ResourceProperties': {
-                'compact_configuration': json.dumps(generate_mock_compact_configuration()),
+                'active_compact_member_jurisdictions': json.dumps(
+                    {ASLP_COMPACT_ABBREVIATION: ['ky', 'oh', 'ne'], OT_COMPACT_ABBREVIATION: ['ky', 'oh', 'ne']}
+                ),
+                'attestations': json.dumps(generate_mock_attestations()),
             },
         }
 
@@ -298,18 +99,24 @@ class TestCompactConfigurationUploader(TstFunction):
 
         self.assertEqual(expected_attestation, attestation)
 
-    def test_compact_configuration_uploader_raises_exception_on_invalid_attestation(self):
-        """Test that invalid attestation configurations raise validation errors."""
+    def test_attestation_uploader_raises_exception_on_invalid_attestation(self):
+        """
+        Tests that uploading an attestation missing required fields raises a ValidationError.
+        
+        Removes the 'required' field from a mock attestation and verifies that the handler
+        raises a ValidationError when processing the invalid attestation during a create event.
+        """
         from handlers.compact_config_uploader import on_event
 
-        mock_configuration = generate_mock_compact_configuration()
+        mock_attestations = generate_mock_attestations()
         # Make the attestation invalid by removing a required field
-        del mock_configuration['compacts'][0]['attestations'][0]['required']
+        del mock_attestations[0]['required']
 
         event = {
             'RequestType': 'Create',
             'ResourceProperties': {
-                'compact_configuration': json.dumps(mock_configuration),
+                'active_compact_member_jurisdictions': json.dumps({ASLP_COMPACT_ABBREVIATION: ['ky']}),
+                'attestations': json.dumps(mock_attestations),
             },
         }
 
@@ -317,6 +124,16 @@ class TestCompactConfigurationUploader(TstFunction):
             on_event(event, self.mock_context)
 
     def _when_testing_attestation_field_updates(self, field_to_change, new_value):
+        """
+        Tests that updating a specific attestation field results in a new version being created.
+        
+        Args:
+            field_to_change: The attestation field to modify (e.g., 'text', 'description').
+            new_value: The new value to assign to the specified field.
+        
+        This method uploads an initial attestation, updates the specified field, uploads again,
+        and asserts that two versions exist in DynamoDB with the correct field values for each version.
+        """
         from handlers.compact_config_uploader import on_event
 
         original_attestation = generate_mock_attestation()
@@ -324,19 +141,21 @@ class TestCompactConfigurationUploader(TstFunction):
         event = {
             'RequestType': 'Create',
             'ResourceProperties': {
-                'compact_configuration': json.dumps(generate_mock_compact_configuration()),
+                'active_compact_member_jurisdictions': json.dumps({ASLP_COMPACT_ABBREVIATION: ['ky']}),
+                'attestations': json.dumps(generate_mock_attestations()),
             },
         }
         on_event(event, self.mock_context)
 
         # Modify the attestation text and upload again
-        mock_configuration = generate_mock_compact_configuration()
-        mock_configuration['compacts'][0]['attestations'][0][field_to_change] = new_value
+        mock_attestations = generate_mock_attestations()
+        mock_attestations[0][field_to_change] = new_value
 
         event = {
             'RequestType': 'Update',
             'ResourceProperties': {
-                'compact_configuration': json.dumps(mock_configuration),
+                'active_compact_member_jurisdictions': json.dumps({ASLP_COMPACT_ABBREVIATION: ['ky']}),
+                'attestations': json.dumps(mock_attestations),
             },
         }
         on_event(event, self.mock_context)
@@ -362,31 +181,49 @@ class TestCompactConfigurationUploader(TstFunction):
         self.assertEqual('2', attestations[1]['version'])
         self.assertEqual(new_value, attestations[1][field_to_change])
 
-    def test_compact_configuration_uploader_handles_attestation_versioning_when_updating_text(self):
-        """Test that attestation versioning works correctly when content changes."""
+    def test_attestation_uploader_handles_attestation_versioning_when_updating_text(self):
+        """
+        Tests that updating the 'text' field of an attestation creates a new version in DynamoDB.
+        """
         self._when_testing_attestation_field_updates('text', 'New text')
 
-    def test_compact_configuration_uploader_handles_attestation_versioning_when_updating_description(self):
-        """Test that attestation versioning works correctly when content changes."""
+    def test_attestation_uploader_handles_attestation_versioning_when_updating_description(self):
+        """
+        Tests that updating the description field of an attestation creates a new version in DynamoDB.
+        """
         self._when_testing_attestation_field_updates('description', 'New description')
 
-    def test_compact_configuration_uploader_handles_attestation_versioning_when_updating_display_name(self):
-        """Test that attestation versioning works correctly when content changes."""
+    def test_attestation_uploader_handles_attestation_versioning_when_updating_display_name(self):
+        """
+        Tests that updating the display name of an attestation creates a new version in DynamoDB.
+        
+        This test verifies that when the display name field of an attestation is changed and uploaded, a new versioned record is created, preserving the previous version.
+        """
         self._when_testing_attestation_field_updates('displayName', 'New Display Name')
 
-    def test_compact_configuration_uploader_handles_attestation_versioning_when_updating_required_field(self):
-        """Test that attestation versioning works correctly when content changes."""
+    def test_attestation_uploader_handles_attestation_versioning_when_updating_required_field(self):
+        """
+        Tests that updating the 'required' field of an attestation creates a new version in DynamoDB.
+        
+        This ensures that when the 'required' attribute of an attestation is changed, a new versioned record is stored, preserving the previous version.
+        """
         self._when_testing_attestation_field_updates('required', False)
 
-    def test_compact_configuration_uploader_skips_upload_when_no_changes(self):
-        """Test that attestation is not uploaded when content hasn't changed."""
+    def test_attestation_uploader_skips_upload_when_no_changes(self):
+        """
+        Tests that uploading identical attestation data does not create a new version in DynamoDB.
+        
+        Performs an initial upload of an attestation, then uploads the same attestation again as an update.
+        Verifies that only one version of the attestation exists after both operations.
+        """
         from handlers.compact_config_uploader import on_event
 
         # First upload - should create version 1
         event = {
             'RequestType': 'Create',
             'ResourceProperties': {
-                'compact_configuration': json.dumps(generate_mock_compact_configuration()),
+                'active_compact_member_jurisdictions': json.dumps({ASLP_COMPACT_ABBREVIATION: ['ky']}),
+                'attestations': json.dumps(generate_mock_attestations()),
             },
         }
         on_event(event, self.mock_context)
@@ -395,7 +232,8 @@ class TestCompactConfigurationUploader(TstFunction):
         event = {
             'RequestType': 'Update',
             'ResourceProperties': {
-                'compact_configuration': json.dumps(generate_mock_compact_configuration()),
+                'active_compact_member_jurisdictions': json.dumps({ASLP_COMPACT_ABBREVIATION: ['ky']}),
+                'attestations': json.dumps(generate_mock_attestations()),
             },
         }
         on_event(event, self.mock_context)
@@ -410,3 +248,69 @@ class TestCompactConfigurationUploader(TstFunction):
         # Should still only have one version
         self.assertEqual(1, len(attestation_response['Items']))
         self.assertEqual('1', attestation_response['Items'][0]['version'])
+
+    def test_active_member_jurisdictions_are_stored_correctly(self):
+        """
+        Verifies that active member jurisdictions are correctly stored in DynamoDB for multiple compacts.
+        
+        This test uploads active member jurisdictions for two compacts and asserts that the resulting DynamoDB items contain the expected jurisdictions with correct structure and values.
+        """
+        from handlers.compact_config_uploader import on_event
+
+        member_jurisdictions = {
+            ASLP_COMPACT_ABBREVIATION: ['ky', 'oh', 'ne'],
+            OT_COMPACT_ABBREVIATION: ['ky', 'oh', 'ne', 'wi'],
+        }
+
+        event = {
+            'RequestType': 'Create',
+            'ResourceProperties': {
+                'active_compact_member_jurisdictions': json.dumps(member_jurisdictions),
+                'attestations': json.dumps(generate_mock_attestations()),
+            },
+        }
+
+        on_event(event, self.mock_context)
+
+        # Check active member jurisdictions for ASLP
+        active_member_response = self.config.compact_configuration_table.get_item(
+            Key={
+                'pk': f'COMPACT#{ASLP_COMPACT_ABBREVIATION}#ACTIVE_MEMBER_JURISDICTIONS',
+                'sk': f'COMPACT#{ASLP_COMPACT_ABBREVIATION}#ACTIVE_MEMBER_JURISDICTIONS',
+            }
+        )
+
+        self.assertIn('Item', active_member_response)
+        self.assertIn('active_member_jurisdictions', active_member_response['Item'])
+
+        active_members = active_member_response['Item']['active_member_jurisdictions']
+        self.assertEqual(3, len(active_members))
+
+        # Check that the expected jurisdictions are in the list with the correct structure
+        for jurisdiction in active_members:
+            self.assertIn('postalAbbreviation', jurisdiction)
+            self.assertIn('jurisdictionName', jurisdiction)
+            self.assertIn('compact', jurisdiction)
+            self.assertEqual(ASLP_COMPACT_ABBREVIATION, jurisdiction['compact'])
+            self.assertIn(jurisdiction['postalAbbreviation'], member_jurisdictions[ASLP_COMPACT_ABBREVIATION])
+
+        # Check active member jurisdictions for OT
+        active_member_response = self.config.compact_configuration_table.get_item(
+            Key={
+                'pk': f'COMPACT#{OT_COMPACT_ABBREVIATION}#ACTIVE_MEMBER_JURISDICTIONS',
+                'sk': f'COMPACT#{OT_COMPACT_ABBREVIATION}#ACTIVE_MEMBER_JURISDICTIONS',
+            }
+        )
+
+        self.assertIn('active_member_jurisdictions', active_member_response['Item'])
+
+        active_members = active_member_response['Item']['active_member_jurisdictions']
+        self.assertEqual(
+            [
+                {'compact': 'octp', 'jurisdictionName': 'Kentucky', 'postalAbbreviation': 'ky'},
+                {'compact': 'octp', 'jurisdictionName': 'Ohio', 'postalAbbreviation': 'oh'},
+                {'compact': 'octp', 'jurisdictionName': 'Nebraska', 'postalAbbreviation': 'ne'},
+                {'compact': 'octp', 'jurisdictionName': 'Wisconsin', 'postalAbbreviation': 'wi'},
+            ],
+            active_members,
+        )

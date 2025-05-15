@@ -102,10 +102,10 @@ def verify_recaptcha(token: str) -> bool:
 
 @api_handler
 def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
-    """Endpoint for a practitioner to register an account with the system.
-
-    :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
-    :param LambdaContext context:
+    """
+    Handles practitioner account registration, including validation, rate limiting, reCAPTCHA verification, and integration with AWS Cognito and backend data services.
+    
+    Processes a registration request by validating input, enforcing rate limits, verifying reCAPTCHA, checking registration eligibility for the specified compact and jurisdiction, and ensuring the provider is not already registered. If eligible, creates a Cognito user and finalizes registration in the backend. Returns a success message if registration is processed or already complete, or raises exceptions for invalid input, rate limiting, access denial, or internal errors.
     """
     # Get IP address from the request context
     source_ip = event['requestContext']['identity']['sourceIp']
@@ -163,15 +163,15 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
             'Registration is not currently available for the specified license type.'
         ) from e
 
-    # Check if registration is enabled for both compact and jurisdiction in the current environment
+    # Check if registration is enabled for both compact and jurisdiction
     # If registration is not enabled for either the compact or jurisdiction, return an error
-    if config.environment_name not in compact_config.licensee_registration_enabled_for_environments:
+    if not compact_config.licenseeRegistrationEnabled:
         logger.info(
             'Registration is not enabled for this compact', compact=body['compact'], environment=config.environment_name
         )
         metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
         raise CCInvalidRequestException(
-            f'Registration is not currently available for the {compact_config.compact_name} compact.'
+            f'Registration is not currently available for the {compact_config.compactName} compact.'
         )
 
     try:
@@ -187,7 +187,7 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
         )
         raise CCInvalidRequestException('Registration is not currently available for the specified state.') from e
 
-    if config.environment_name not in jurisdiction_config.licensee_registration_enabled_for_environments:
+    if not jurisdiction_config.licenseeRegistrationEnabled:
         logger.info(
             'Registration is not enabled for this jurisdiction',
             compact=body['compact'],
@@ -196,7 +196,7 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
         )
         metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
         raise CCInvalidRequestException(
-            f'Registration is not currently available for {jurisdiction_config.jurisdiction_name}.'
+            f'Registration is not currently available for {jurisdiction_config.jurisdictionName}.'
         )
 
     # Query license records for one matching on all provided fields

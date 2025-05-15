@@ -22,14 +22,17 @@ class V1Api:
     """v1 of the Provider Data API"""
 
     def __init__(self, root: IResource, persistent_stack: ps.PersistentStack):
+        """
+        Initializes the V1Api class, constructing the v1 API structure and routes for provider data management.
+        
+        Creates the `/v1` API resource and sets up all sub-resources, handlers, and authorization scopes for provider data, compacts, jurisdictions, public lookups, purchases, credentials, provider management, licenses, and staff user endpoints. Authorization scopes are dynamically generated based on active compacts and jurisdictions retrieved from the persistent stack. Integrates multiple sub-API handler classes and configures Cognito-based authorization for various access levels.
+        """
         super().__init__()
         self.root = root
         self.resource = root.add_resource('v1')
         self.api: cc_api.CCApi = root.api
         self.api_model = ApiModel(api=self.api)
-        _active_compacts = persistent_stack.get_list_of_active_compacts_for_environment(
-            environment_name=self.api.environment_name
-        )
+        _active_compacts = persistent_stack.get_list_of_compact_abbreviations()
 
         read_scopes = []
         write_scopes = []
@@ -45,7 +48,7 @@ class V1Api:
             read_ssn_scopes.append(f'{compact}/readSSN')
 
             _active_compact_jurisdictions = persistent_stack.get_list_of_active_jurisdictions_for_compact_environment(
-                compact=compact, environment_name=self.api.environment_name
+                compact=compact
             )
 
             # We also include the jurisdiction level compact scopes for all jurisdictions active within the compact
@@ -146,6 +149,8 @@ class V1Api:
         )
         # GET  /v1/compacts/{compact}/jurisdictions
         self.jurisdictions_resource = self.compact_resource.add_resource('jurisdictions')
+        # GET  /v1/compacts/{compact}/jurisdictions/{jurisdiction}
+        self.jurisdiction_resource = self.jurisdictions_resource.add_resource('{jurisdiction}')
         # GET  /v1/public/compacts/{compact}/jurisdictions
         self.public_compacts_compact_jurisdictions_resource = self.public_compacts_compact_resource.add_resource(
             'jurisdictions'
@@ -153,14 +158,16 @@ class V1Api:
 
         self.compact_configuration_api = CompactConfigurationApi(
             api=self.api,
+            compact_resource=self.compact_resource,
             jurisdictions_resource=self.jurisdictions_resource,
             public_jurisdictions_resource=self.public_compacts_compact_jurisdictions_resource,
+            jurisdiction_resource=self.jurisdiction_resource,
             general_read_method_options=read_auth_method_options,
+            admin_method_options=admin_auth_method_options,
             persistent_stack=persistent_stack,
             api_model=self.api_model,
         )
 
-        self.jurisdiction_resource = self.jurisdictions_resource.add_resource('{jurisdiction}')
         # POST /v1/compacts/{compact}/jurisdictions/{jurisdiction}/licenses
         # GET  /v1/compacts/{compact}/jurisdictions/{jurisdiction}/licenses/bulk-upload
         licenses_resource = self.jurisdiction_resource.add_resource('licenses')

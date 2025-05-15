@@ -22,15 +22,15 @@ BACKEND_DIR = Path(__file__).parent.parent.absolute()
 
 # Define the test directories to include
 TEST_DIRS = (
+    'compact-connect/lambdas/python/common',
     'compact-connect/lambdas/python/compact-configuration',
+    'compact-connect/lambdas/python/provider-data-v1',
+    'compact-connect/lambdas/python/purchases',
+    'compact-connect/lambdas/python/staff-users',
+    'compact-connect/lambdas/python/staff-user-pre-token',
     'compact-connect/lambdas/python/custom-resources',
     'compact-connect/lambdas/python/data-events',
     'compact-connect/lambdas/python/migration',
-    'compact-connect/lambdas/python/provider-data-v1',
-    'compact-connect/lambdas/python/purchases',
-    'compact-connect/lambdas/python/staff-user-pre-token',
-    'compact-connect/lambdas/python/staff-users',
-    'compact-connect/lambdas/python/common',
     'compact-connect',  # CDK tests
     'multi-account/control-tower',
     'multi-account/log-aggregation',
@@ -39,6 +39,11 @@ TEST_DIRS = (
 
 def get_coverage():
     # Initialize coverage.py with the existing .coveragerc
+    """
+    Initializes and returns a Coverage object configured for in-memory data storage.
+    
+    The Coverage object uses the .coveragerc configuration file located in the backend directory and does not write coverage data to disk.
+    """
     return Coverage(
         config_file=BACKEND_DIR / '.coveragerc',
         # Coverage data in memory
@@ -46,7 +51,44 @@ def get_coverage():
     )
 
 
+def clean_modules():
+    """
+    Removes specific modules from sys.modules to prevent state leakage between test runs.
+    
+    Deletes modules with certain prefixes and those matching local Python files in the current
+    directory to avoid cached module reuse and name clashes during sequential test execution.
+    """
+    # List of module prefixes to clean up
+    modules_to_clean = ['cc_common', 'common_test', 'handlers', 'tests']
+
+    for module_name in list(sys.modules.keys()):
+        for prefix in modules_to_clean:
+            if module_name == prefix or module_name.startswith(f'{prefix}.'):
+                del sys.modules[module_name]
+
+    # Delete local modules after each run so we don't use cached modules and hit name clashes between tests
+    for local_dir in [*os.listdir()]:
+        # Remove the .py extension from the local file name
+        local_dir = local_dir.split('.py', 1)[0]
+        if local_dir.isidentifier():
+            for m in sorted(sys.modules.keys()):
+                if m.startswith(local_dir):
+                    del sys.modules[m]
+
+
 def run_tests(cov: Coverage, args):
+    """
+    Runs all test suites in the specified directories under unified coverage measurement.
+    
+    Starts coverage collection, iterates through each test directory, and runs pytest on its tests with environment and module isolation. Cleans up Python modules before and after each suite to prevent state leakage. Restores working directory, sys.path, and environment variables between runs. Stops and saves coverage data after all tests.
+    
+    Args:
+        cov: The Coverage object used to measure code coverage.
+        args: Parsed command-line arguments controlling verbosity and other options.
+    
+    Returns:
+        The exit code from the test runs (0 if all tests pass, otherwise the first nonzero pytest exit code).
+    """
     cov.start()
 
     # Track overall test result
@@ -88,6 +130,9 @@ def run_tests(cov: Coverage, args):
                     if str(common_path) not in sys.path:
                         sys.path.insert(0, str(common_path))
 
+                # Clean up modules before running tests
+                clean_modules()
+
                 # Run pytest for this directory
                 test_result = pytest.main(pytest_args)
 
@@ -98,14 +143,8 @@ def run_tests(cov: Coverage, args):
                 # Restore the original environment
                 os.environ = original_env  # noqa: B003
 
-                # Delete local modules after each run so we don't use cached modules and hit name clashes between tests
-                for local_dir in ['cc_common', *os.listdir()]:
-                    # Remove the .py extension from the local file name
-                    local_dir = local_dir.split('.py', 1)[0]
-                    if local_dir.isidentifier():
-                        for m in sorted(sys.modules.keys()):
-                            if m.startswith(local_dir):
-                                del sys.modules[m]
+                # Thorough module cleanup after each test suite
+                clean_modules()
 
             finally:
                 # Restore the original working directory

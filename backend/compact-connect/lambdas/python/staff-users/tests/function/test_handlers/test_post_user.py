@@ -8,18 +8,22 @@ from .. import TstFunction
 @mock_aws
 class TestPostUser(TstFunction):
     def _when_testing_with_valid_jurisdiction(self):
-        # load oh jurisdiction for aslp compact to pass the jurisdiction validation
-        self._load_test_jurisdiction(
-            jurisdiction_overrides={
-                'pk': 'aslp#CONFIGURATION',
-                'sk': 'aslp#JURISDICTION#oh',
-                'jurisdictionName': 'Ohio',
-                'postalAbbreviation': 'oh',
-                'compact': 'aslp',
-            }
-        )
+        # load list of active jurisdiction for aslp compact to pass the jurisdiction validation
+        """
+        Prepares test data by loading active member jurisdictions for the ASLP compact.
+        
+        Ensures that jurisdiction validation in tests uses the current set of active jurisdictions.
+        """
+        self._load_compact_active_member_jurisdictions()
 
     def test_post_user(self):
+        """
+        Tests successful creation of a user with valid jurisdiction and permissions.
+        
+        Loads test event and user data, sets appropriate authorization and path parameters,
+        invokes the user creation handler, and asserts that the response contains the expected
+        user data with backend-generated fields excluded and status set to INACTIVE.
+        """
         from cc_common.data_model.schema.common import StaffUserStatus
         from handlers.users import post_user
 
@@ -118,7 +122,14 @@ class TestPostUser(TstFunction):
         self.assertEqual(403, resp['statusCode'])
 
     def test_post_user_returns_400_if_invalid_jurisdiction_permission_set(self):
+        """
+        Tests that creating a user with an invalid jurisdiction permission returns a 400 error.
+        
+        This test verifies that the `post_user` handler rejects user creation when the permissions include a jurisdiction not valid for the specified compact, returning an appropriate error message.
+        """
         from handlers.users import post_user
+
+        self._load_compact_active_member_jurisdictions()
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)

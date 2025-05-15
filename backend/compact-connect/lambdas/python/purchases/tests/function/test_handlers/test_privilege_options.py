@@ -21,6 +21,13 @@ class TestGetPurchasePrivilegeOptions(TstFunction):
         return event
 
     def test_get_purchase_privilege_options_returns_expected_jurisdiction_option(self):
+        """
+        Tests that the API returns the expected jurisdiction privilege option for a provider user.
+        
+        This test verifies that when a provider user event with valid custom claims is processed,
+        the `get_purchase_privilege_options` function returns a response containing exactly one
+        jurisdiction option matching the expected data, with sensitive and irrelevant fields removed.
+        """
         from handlers.privileges import get_purchase_privilege_options
 
         event = self._when_testing_provider_user_event_with_custom_claims()
@@ -39,7 +46,7 @@ class TestGetPurchasePrivilegeOptions(TstFunction):
             expected_jurisdiction_option.pop('jurisdictionAdverseActionsNotificationEmails')
             expected_jurisdiction_option.pop('jurisdictionSummaryReportNotificationEmails')
             # we also do not return the registration toggle
-            expected_jurisdiction_option.pop('licenseeRegistrationEnabledForEnvironments')
+            expected_jurisdiction_option.pop('licenseeRegistrationEnabled')
             # remove date fields as they are not needed in the response
             expected_jurisdiction_option.pop('dateOfUpdate')
 

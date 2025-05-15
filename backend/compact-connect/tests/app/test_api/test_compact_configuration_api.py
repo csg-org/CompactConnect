@@ -19,6 +19,11 @@ class TestCompactConfigurationApi(TestApi):
     """
 
     def test_synth_generates_get_staff_users_compact_jurisdictions_resource(self):
+        """
+        Tests that the GET /v1/compacts/{compact}/jurisdictions API Gateway resource is correctly configured.
+        
+        Verifies that the jurisdictions resource is created under the correct parent, the GET method uses the staff users authorizer and the expected Lambda integration, and the response model schema matches the expected contract.
+        """
         api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
 
@@ -32,6 +37,11 @@ class TestCompactConfigurationApi(TestApi):
                 },
                 'PathPart': 'jurisdictions',
             },
+        )
+
+        # Get the jurisdictions resource
+        jurisdictions_resource_id = api_stack.get_logical_id(
+            api_stack.api.v1_api.jurisdictions_resource.node.default_child
         )
 
         # Ensure the lambda is created with expected code path
@@ -55,6 +65,7 @@ class TestCompactConfigurationApi(TestApi):
             type=CfnMethod.CFN_RESOURCE_TYPE_NAME,
             props={
                 'HttpMethod': 'GET',
+                'ResourceId': {'Ref': jurisdictions_resource_id},
                 # ensure staff users authorizer is being used
                 'AuthorizerId': {
                     'Ref': api_stack.get_logical_id(api_stack.api.staff_users_authorizer.node.default_child),
@@ -87,6 +98,11 @@ class TestCompactConfigurationApi(TestApi):
         )
 
     def test_synth_generates_get_public_compact_jurisdictions_resource(self):
+        """
+        Validates the API Gateway configuration for the public GET /jurisdictions endpoint under a compact.
+        
+        Ensures the /jurisdictions resource is correctly created under the public compacts compact resource, verifies the GET method uses the expected Lambda integration, and asserts the 200 response model schema matches the expected contract via snapshot comparison.
+        """
         api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
 
@@ -136,5 +152,244 @@ class TestCompactConfigurationApi(TestApi):
         self.compare_snapshot(
             get_compact_jurisdictions_response_model['Schema'],
             'GET_PUBLIC_COMPACT_JURISDICTIONS_RESPONSE_SCHEMA',
+            overwrite_snapshot=False,
+        )
+
+    def test_synth_generates_get_compact_configuration_endpoint(self):
+        """
+        Verifies that the GET /v1/compacts/{compact} API endpoint is correctly configured in the synthesized CloudFormation template.
+        
+        Ensures the endpoint uses the staff users authorizer, the correct Lambda integration, and defines a 200 response with the expected response model. Validates the response model's schema against the stored snapshot 'GET_COMPACT_CONFIGURATION_RESPONSE_SCHEMA'.
+        """
+        api_stack = self.app.sandbox_backend_stage.api_stack
+        api_stack_template = Template.from_stack(api_stack)
+
+        # Get the compact resource
+        compact_resource_id = api_stack.get_logical_id(api_stack.api.v1_api.compact_resource.node.default_child)
+
+        # Ensure the GET method is configured with the lambda integration
+        method_model_logical_id_capture = Capture()
+
+        # ensure the GET method is configured with the lambda integration and authorizer
+        api_stack_template.has_resource_properties(
+            type=CfnMethod.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'HttpMethod': 'GET',
+                'ResourceId': {'Ref': compact_resource_id},
+                # ensure staff users authorizer is being used
+                'AuthorizerId': {
+                    'Ref': api_stack.get_logical_id(api_stack.api.staff_users_authorizer.node.default_child),
+                },
+                # ensure the lambda integration is configured with the expected handler
+                'Integration': TestApi.generate_expected_integration_object(
+                    api_stack.get_logical_id(
+                        api_stack.api.v1_api.compact_configuration_api.compact_configuration_api_function.node.default_child,
+                    ),
+                ),
+                'MethodResponses': [
+                    {
+                        'ResponseModels': {'application/json': {'Ref': method_model_logical_id_capture}},
+                        'StatusCode': '200',
+                    },
+                ],
+            },
+        )
+
+        # check the response model matches expected contract
+        get_compact_configuration_response_model = TestApi.get_resource_properties_by_logical_id(
+            method_model_logical_id_capture.as_string(),
+            api_stack_template.find_resources(CfnModel.CFN_RESOURCE_TYPE_NAME),
+        )
+
+        self.compare_snapshot(
+            get_compact_configuration_response_model['Schema'],
+            'GET_COMPACT_CONFIGURATION_RESPONSE_SCHEMA',
+            overwrite_snapshot=False,
+        )
+
+    def test_synth_generates_put_compact_configuration_endpoint(self):
+        """
+        Verifies that the PUT /v1/compacts/{compact} endpoint is configured with the correct Lambda integration, authorizer, and request/response models.
+        
+        This test asserts that the API Gateway method uses the staff users authorizer, integrates with the compact configuration Lambda function, and defines the expected request and response models. It also validates the JSON schemas of these models against stored snapshots.
+        """
+        api_stack = self.app.sandbox_backend_stage.api_stack
+        api_stack_template = Template.from_stack(api_stack)
+
+        # Get the compact resource
+        compact_resource_id = api_stack.get_logical_id(api_stack.api.v1_api.compact_resource.node.default_child)
+
+        # Ensure the PUT method is configured with the lambda integration
+        request_model_logical_id_capture = Capture()
+        response_model_logical_id_capture = Capture()
+
+        # ensure the PUT method is configured with the lambda integration and authorizer
+        api_stack_template.has_resource_properties(
+            type=CfnMethod.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'HttpMethod': 'PUT',
+                'ResourceId': {'Ref': compact_resource_id},
+                # ensure staff users authorizer is being used
+                'AuthorizerId': {
+                    'Ref': api_stack.get_logical_id(api_stack.api.staff_users_authorizer.node.default_child),
+                },
+                # ensure the lambda integration is configured with the expected handler
+                'Integration': TestApi.generate_expected_integration_object(
+                    api_stack.get_logical_id(
+                        api_stack.api.v1_api.compact_configuration_api.compact_configuration_api_function.node.default_child,
+                    ),
+                ),
+                'RequestModels': {'application/json': {'Ref': request_model_logical_id_capture}},
+                'MethodResponses': [
+                    {
+                        'ResponseModels': {'application/json': {'Ref': response_model_logical_id_capture}},
+                        'StatusCode': '200',
+                    },
+                ],
+            },
+        )
+
+        # check the request model matches expected contract
+        post_compact_request_model = TestApi.get_resource_properties_by_logical_id(
+            request_model_logical_id_capture.as_string(),
+            api_stack_template.find_resources(CfnModel.CFN_RESOURCE_TYPE_NAME),
+        )
+
+        self.compare_snapshot(
+            post_compact_request_model['Schema'],
+            'PUT_COMPACT_CONFIGURATION_REQUEST_SCHEMA',
+            overwrite_snapshot=False,
+        )
+
+        # check the response model matches expected contract
+        message_response_model = TestApi.get_resource_properties_by_logical_id(
+            response_model_logical_id_capture.as_string(),
+            api_stack_template.find_resources(CfnModel.CFN_RESOURCE_TYPE_NAME),
+        )
+
+        self.compare_snapshot(
+            message_response_model['Schema'],
+            'STANDARD_MESSAGE_RESPONSE_SCHEMA',
+            overwrite_snapshot=False,
+        )
+
+    def test_synth_generates_get_jurisdiction_configuration_endpoint(self):
+        """
+        Validates the API Gateway configuration for the GET /v1/compacts/{compact}/jurisdictions/{jurisdiction} endpoint.
+        
+        Ensures the endpoint uses the staff users authorizer, is integrated with the correct Lambda function, and defines a 200 response with the expected response model. Compares the response model's JSON schema against the stored snapshot for contract verification.
+        """
+        api_stack = self.app.sandbox_backend_stage.api_stack
+        api_stack_template = Template.from_stack(api_stack)
+
+        # Get the jurisdiction resource
+        jurisdiction_resource_id = api_stack.get_logical_id(
+            api_stack.api.v1_api.jurisdiction_resource.node.default_child
+        )
+
+        # Ensure the GET method is configured with the lambda integration
+        method_model_logical_id_capture = Capture()
+
+        # ensure the GET method is configured with the lambda integration and authorizer
+        api_stack_template.has_resource_properties(
+            type=CfnMethod.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'HttpMethod': 'GET',
+                'ResourceId': {'Ref': jurisdiction_resource_id},
+                # ensure staff users authorizer is being used
+                'AuthorizerId': {
+                    'Ref': api_stack.get_logical_id(api_stack.api.staff_users_authorizer.node.default_child),
+                },
+                # ensure the lambda integration is configured with the expected handler
+                'Integration': TestApi.generate_expected_integration_object(
+                    api_stack.get_logical_id(
+                        api_stack.api.v1_api.compact_configuration_api.compact_configuration_api_function.node.default_child,
+                    ),
+                ),
+                'MethodResponses': [
+                    {
+                        'ResponseModels': {'application/json': {'Ref': method_model_logical_id_capture}},
+                        'StatusCode': '200',
+                    },
+                ],
+            },
+        )
+
+        # check the response model matches expected contract
+        get_jurisdiction_response_model = TestApi.get_resource_properties_by_logical_id(
+            method_model_logical_id_capture.as_string(),
+            api_stack_template.find_resources(CfnModel.CFN_RESOURCE_TYPE_NAME),
+        )
+
+        self.compare_snapshot(
+            get_jurisdiction_response_model['Schema'],
+            'GET_JURISDICTION_CONFIGURATION_RESPONSE_SCHEMA',
+            overwrite_snapshot=False,
+        )
+
+    def test_synth_generates_put_jurisdiction_configuration_endpoint(self):
+        """
+        Verifies the API Gateway configuration for the PUT /v1/compacts/{compact}/jurisdictions/{jurisdiction} endpoint.
+        
+        Ensures the endpoint uses the staff users authorizer, the correct Lambda integration, and defines the expected request and response models. Validates that the request and response schemas match the expected contracts via snapshot comparison.
+        """
+        api_stack = self.app.sandbox_backend_stage.api_stack
+        api_stack_template = Template.from_stack(api_stack)
+
+        # Get the jurisdiction resource
+        jurisdiction_resource_id = api_stack.get_logical_id(
+            api_stack.api.v1_api.jurisdiction_resource.node.default_child
+        )
+
+        request_model_logical_id_capture = Capture()
+        response_model_logical_id_capture = Capture()
+
+        # ensure the PUT method is configured with the lambda integration and authorizer
+        api_stack_template.has_resource_properties(
+            type=CfnMethod.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'HttpMethod': 'PUT',
+                'ResourceId': {'Ref': jurisdiction_resource_id},
+                # ensure staff users authorizer is being used
+                'AuthorizerId': {
+                    'Ref': api_stack.get_logical_id(api_stack.api.staff_users_authorizer.node.default_child),
+                },
+                # ensure the lambda integration is configured with the expected handler
+                'Integration': TestApi.generate_expected_integration_object(
+                    api_stack.get_logical_id(
+                        api_stack.api.v1_api.compact_configuration_api.compact_configuration_api_function.node.default_child,
+                    ),
+                ),
+                'RequestModels': {'application/json': {'Ref': request_model_logical_id_capture}},
+                'MethodResponses': [
+                    {
+                        'ResponseModels': {'application/json': {'Ref': response_model_logical_id_capture}},
+                        'StatusCode': '200',
+                    },
+                ],
+            },
+        )
+
+        # check the request model matches expected contract
+        post_jurisdiction_request_model = TestApi.get_resource_properties_by_logical_id(
+            request_model_logical_id_capture.as_string(),
+            api_stack_template.find_resources(CfnModel.CFN_RESOURCE_TYPE_NAME),
+        )
+
+        self.compare_snapshot(
+            post_jurisdiction_request_model['Schema'],
+            'PUT_JURISDICTION_CONFIGURATION_REQUEST_SCHEMA',
+            overwrite_snapshot=False,
+        )
+
+        # check the response model matches expected contract
+        message_response_model = TestApi.get_resource_properties_by_logical_id(
+            response_model_logical_id_capture.as_string(),
+            api_stack_template.find_resources(CfnModel.CFN_RESOURCE_TYPE_NAME),
+        )
+
+        self.compare_snapshot(
+            message_response_model['Schema'],
+            'STANDARD_MESSAGE_RESPONSE_SCHEMA',
             overwrite_snapshot=False,
         )
