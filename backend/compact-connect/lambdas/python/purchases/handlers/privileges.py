@@ -313,7 +313,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
         # calculate total cost of transaction
         total_cost = 0
         for line_item in cost_line_items:
-            total_cost = total_cost + line_item['unitPrice'] * line_item['quantity']
+            total_cost = total_cost + float(line_item['unitPrice']) * int(line_item['quantity'])
 
         config.event_bus_client.publish_privilege_purchase_event(
             source='post_purchase_privileges',

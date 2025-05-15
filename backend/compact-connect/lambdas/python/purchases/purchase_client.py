@@ -449,9 +449,25 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                         message_code=response.transactionResponse.messages.message[0].code,
                         description=response.transactionResponse.messages.message[0].description,
                     )
+
+                    line_items_compat = []
+                    if hasattr(line_items, 'lineItem'):
+                        for item in line_items.lineItem:
+                            line_items_compat.append(
+                                {
+                                    # we must cast these to strings, or they will cause an error when we
+                                    # try to serialize in other parts of the system
+                                    'itemId': str(item.itemId),
+                                    'name': str(item.name),
+                                    'description': str(item.description),
+                                    'quantity': str(item.quantity),
+                                    'unitPrice': str(item.unitPrice),
+                                    'taxable': str(item.taxable),
+                                }
+                            )
                     return {
                         'message': 'Successfully processed charge',
-                        'lineItems': line_items,
+                        'lineItems': line_items_compat,
                         # their SDK returns the transaction id as an internal IntElement type, so we need to cast it
                         # or this will cause an error when we try to serialize it to JSON
                         'transactionId': str(response.transactionResponse.transId),

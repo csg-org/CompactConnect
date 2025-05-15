@@ -199,7 +199,7 @@ class EmailServiceClient:
         :param transaction_date: date of the transaction
         :param privileges: privileges purchased
         :param total_cost: Total cost of the transaction
-        :param cost_line_items: Line items (name, cost) of transaction
+        :param cost_line_items: Line items (name, unitPrice, quantity) of transaction
         :return: Response from the email notification service
         """
 
