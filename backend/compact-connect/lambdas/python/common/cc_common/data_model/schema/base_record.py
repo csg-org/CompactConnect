@@ -126,6 +126,8 @@ class CalculatedStatusRecordSchema(BaseRecordSchema):
                 and date.fromisoformat(in_data['dateOfExpiration']) >= config.expiration_resolution_date
                 and in_data.get('encumberedStatus', LicenseEncumberedStatusEnum.UNENCUMBERED)
                 == LicenseEncumberedStatusEnum.UNENCUMBERED
+                # TODO - should licenseStatus be inactive if user has moved to a different jurisdiction?
+                # and in_data.get('homeJurisdictionChangeDeactivationStatus', None) is None
             )
             else ActiveInactiveStatus.INACTIVE
         )
