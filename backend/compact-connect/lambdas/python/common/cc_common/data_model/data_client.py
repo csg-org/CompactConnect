@@ -9,7 +9,7 @@ from boto3.dynamodb.types import TypeDeserializer, TypeSerializer
 from botocore.exceptions import ClientError
 
 from cc_common.config import _Config, config, logger, metrics
-from cc_common.data_model.provider_record_util import ProviderUserRecords
+from cc_common.data_model.provider_record_util import ProviderUserRecords, ProviderRecordUtility
 from cc_common.data_model.query_paginator import paginated_query
 from cc_common.data_model.schema import PrivilegeRecordSchema
 from cc_common.data_model.schema.adverse_action import AdverseActionData
@@ -1293,6 +1293,8 @@ class DataClient:
            do not already have an encumbered status of 'encumbered' will have their encumbered status set to 'licenseEncumbered'.
         6. If none of the above conditions are met, the provider's unexpired privileges will be moved over to the new
            jurisdiction and the expiration date will be updated to the expiration date of the license in the new jurisdiction.
+           (the only exception to this is if any existing privilege is for the same jurisdiction as the new license, in
+           which case it is deactivated).
 
         :param compact: The compact name
         :param provider_id: The provider ID
@@ -1366,9 +1368,9 @@ class DataClient:
         self._update_provider_record_for_jurisdiction_change_with_license(
             compact=compact,
             provider_id=provider_id,
-            provider_record=top_level_provider_record,
+            provider_records=provider_user_records,
             new_license_record=best_license_in_selected_jurisdiction,
-            selected_jurisdiction=selected_jurisdiction,
+            selected_jurisdiction=selected_jurisdiction
         )
 
         # Get licenses from the current home state
@@ -1398,7 +1400,8 @@ class DataClient:
             privileges_for_license_type = [
                 privilege
                 for privilege in all_privileges
-                if privilege.licenseType == license_record.licenseType and privilege.licenseJurisdiction == current_home_jurisdiction
+                if privilege.licenseType == license_record.licenseType
+                   and privilege.licenseJurisdiction == current_home_jurisdiction
             ]
 
             if not privileges_for_license_type:
@@ -1451,24 +1454,25 @@ class DataClient:
         *,
         compact: str,
         provider_id: str,
-        provider_record: ProviderData,
+        provider_records: ProviderUserRecords,
         new_license_record: LicenseData,
-        selected_jurisdiction: str,
+        selected_jurisdiction: str
     ) -> None:
         """
-        Update the provider record when changing to a new jurisdiction with a valid license.
+        Update the provider record when changing to a new best license. This can happen in the case where a new license
+        record is uploaded into the system, or a provider changes their home state.
 
         :param compact: The compact name
         :param provider_id: The provider ID
-        :param provider_record: The current provider record
+        :param provider_records: All the records for this provider
         :param new_license_record: The best license in the new jurisdiction
-        :param selected_jurisdiction: The selected new jurisdiction
+        :param selected_jurisdiction: The selected jurisdiction
         """
         logger.info(
-            'Updating provider record for jurisdiction change with valid license',
+            'Updating provider record with information from new best license',
             compact=compact,
             provider_id=provider_id,
-            new_jurisdiction=selected_jurisdiction,
+            license_jurisdiction=new_license_record.jurisdiction,
         )
 
         # Create the provider update record
@@ -1477,16 +1481,14 @@ class DataClient:
             'updateType': UpdateCategory.HOME_JURISDICTION_CHANGE,
             'providerId': provider_id,
             'compact': compact,
-            'previous': provider_record.to_dict(),
+            'previous': provider_records.get_provider_record().to_dict(),
             'updatedValues': {
                 'licenseJurisdiction': new_license_record.jurisdiction,
-                'dateOfExpiration': new_license_record.dateOfExpiration,
+                # we explicitly set this to align with what was passed in as the selected jurisdiction
                 'currentHomeJurisdiction': selected_jurisdiction,
-                # Add any other fields that should be updated from the new license
-                'licenseNumber': new_license_record.licenseNumber,
-                'licenseType': new_license_record.licenseType,
-                'dateOfIssuance': new_license_record.dateOfIssuance,
-                'dateOfRenewal': new_license_record.dateOfRenewal,
+                # map all the fields from the new license record that the provider record cares about
+                # the record schema will filter out the ones that are not relevant
+                **new_license_record.to_dict(),
             },
         })
 
@@ -1499,35 +1501,24 @@ class DataClient:
                     'Item': TypeSerializer().serialize(provider_update_record.serialize_to_database_record())['M'],
                 }
             },
-            # Update provider record
-            {
-                'Update': {
-                    'TableName': self.config.provider_table_name,
-                    'Key': {
-                        'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
-                        'sk': {'S': f'{compact}#PROVIDER'},
-                    },
-                    'UpdateExpression': 'SET licenseJurisdiction = :licenseJurisdiction, '
-                    'dateOfExpiration = :dateOfExpiration, '
-                    'currentHomeJurisdiction = :currentHomeJurisdiction, '
-                    'licenseNumber = :licenseNumber, '
-                    'licenseType = :licenseType, '
-                    'dateOfIssuance = :dateOfIssuance, '
-                    'dateOfRenewal = :dateOfRenewal, '
-                    'dateOfUpdate = :dateOfUpdate',
-                    'ExpressionAttributeValues': {
-                        ':licenseJurisdiction': {'S': new_license_record.jurisdiction},
-                        ':dateOfExpiration': {'S': new_license_record.dateOfExpiration.isoformat()},
-                        ':currentHomeJurisdiction': {'S': selected_jurisdiction},
-                        ':licenseNumber': {'S': new_license_record.licenseNumber},
-                        ':licenseType': {'S': new_license_record.licenseType},
-                        ':dateOfIssuance': {'S': new_license_record.dateOfIssuance.isoformat()},
-                        ':dateOfRenewal': {'S': new_license_record.dateOfRenewal.isoformat()},
-                        ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
-                    },
-                }
-            },
         ]
+        # TODO - find a way to extract this so it is more DRY
+        # populate the provider record with the fields from the new license
+        provider_record = ProviderRecordUtility.populate_provider_record(
+            provider_id=provider_id,
+            license_record=new_license_record.to_dict(),
+            privilege_records=[privilege.to_dict() for privilege in provider_records.get_privilege_records()],
+        )
+        provider_record['currentHomeJurisdiction'] = selected_jurisdiction
+        # Update our provider data
+        transactions.append(
+            {
+                'Put': {
+                    'TableName': config.provider_table_name,
+                    'Item': TypeSerializer().serialize(provider_record)['M'],
+                }
+            }
+        )
 
         # Execute the transaction
         self.config.dynamodb_client.transact_write_items(TransactItems=transactions)
@@ -1567,6 +1558,9 @@ class DataClient:
                 'homeJurisdictionChangeDeactivationStatus': deactivation_status,
                 'currentHomeJurisdiction': selected_jurisdiction,
                 'dateOfUpdate': self.config.current_standard_datetime,
+                # note in this case, since there is no new license data we don't
+                # update the provider record fields that are derived from license records
+                # we keep the existing fields as is.
             },
         })
 
@@ -1633,9 +1627,6 @@ class DataClient:
         transactions = []
 
         for privilege in privileges:
-            # Skip already encumbered privileges - they remain encumbered without changes
-            if privilege.encumberedStatus == PrivilegeEncumberedStatusEnum.ENCUMBERED:
-                continue
 
             # Create update record
             privilege_update_record = PrivilegeUpdateData.create_new({
@@ -1716,24 +1707,41 @@ class DataClient:
             new_jurisdiction=new_license.jurisdiction,
             num_privileges=len(privileges),
             is_new_license_encumbered=is_new_license_encumbered,
+            license_type=new_license.licenseType,
             license_expiration=new_license.dateOfExpiration,
         )
 
         transactions = []
 
         for privilege in privileges:
-            # Already encumbered privileges remain unchanged with their current license association
-            if privilege.encumberedStatus == PrivilegeEncumberedStatusEnum.ENCUMBERED:
+
+            # if the privilege is for the same jurisdiction as the new license,
+            # then we deactivate it
+            if privilege.jurisdiction == new_license.jurisdiction:
+                logger.info('Privilege is for the same jurisdiction as the new license. Deactivating privilege.',
+                            privilege_id=privilege.privilegeId,
+                            privilege_jurisdiction=privilege.jurisdiction,
+                            new_license_jurisdiction=new_license.jurisdiction,
+                            privilege_license_type=privilege.licenseType
+                            )
+                self._deactivate_privileges_for_jurisdiction_change(
+                    compact=compact,
+                    provider_id=provider_id,
+                    privileges=[privilege],
+                    deactivation_status=HomeJurisdictionChangeDeactivationStatusEnum.PRIVILEGE_IN_HOME_STATE,
+                )
                 continue
 
             updated_values = {
                 'licenseJurisdiction': new_license.jurisdiction,
                 'dateOfExpiration': new_license.dateOfExpiration,
-                'dateOfUpdate': self.config.current_standard_datetime,
             }
 
             # If the new license is encumbered, set the privilege to licenseEncumbered
-            if is_new_license_encumbered:
+            # unless the privilege itself has specifically been encumbered
+            if is_new_license_encumbered and privilege.encumberedStatus != PrivilegeEncumberedStatusEnum.ENCUMBERED:
+                logger.info('New license record is encumbered and privilege is not already encumbered. '
+                            'Apply encumbered status.' )
                 updated_values['encumberedStatus'] = PrivilegeEncumberedStatusEnum.LICENSE_ENCUMBERED
 
             # Create update record
