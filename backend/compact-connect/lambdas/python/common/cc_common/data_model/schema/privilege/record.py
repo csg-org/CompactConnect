@@ -169,6 +169,9 @@ class PrivilegeUpdatePreviousRecordSchema(ForgivingSchema):
     dateOfUpdate = DateTime(required=True, allow_none=False)
     licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
     privilegeId = String(required=True, allow_none=False)
+    homeJurisdictionChangeDeactivationStatus = HomeJurisdictionChangeDeactivationStatusField(
+        required=False, allow_none=False
+    )
 
 
 @BaseRecordSchema.register_schema('privilegeUpdate')
