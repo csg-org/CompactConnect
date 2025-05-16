@@ -122,7 +122,7 @@ Keeping documentation current is an important part of feature development in thi
 Before deploying to any environment (sandbox, test, beta, or production), you'll need to request service quota increases for the following AWS services:
 
 #### 1. Resource Servers Per User Pool (Amazon Cognito)
-The Staff Users pool in CompactConnect uses resource servers for every jurisdiction (50+ states/territories) and compact to implement granular permission scopes. As detailed in [User Architecture documentation](./docs/design/README.md#user-architecture), each jurisdiction and compact has its own resource server with specific scopes.
+The Staff Users pool in CompactConnect uses resource servers for every jurisdiction (50+ states/territories). It also has resource servers for each compact to implement granular permission scopes. As detailed in [User Architecture documentation](./docs/design/README.md#user-architecture), resource server scopes are defined at both the jurisdiction level (ie for state administrators) and the compact level (ie for compact administrators), allowing for fine-grained access control tailored to each entity's specific needs.
 
 **Required Steps:**
 1. Visit the [AWS Service Quotas console](https://console.aws.amazon.com/servicequotas/home) in each AWS account you'll be deploying to
