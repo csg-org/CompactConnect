@@ -265,4 +265,65 @@ export class EmailNotificationService extends BaseEmailService {
             ]
         });
     }
+
+    /**
+     * Sends an email notification to a provider when they purchase privilege(s)
+     * @param compact - The compact name for which the privilege was deactivated
+     * @param jurisdiction - The jurisdiction for which the privilege was deactivated
+     * @param privilegeId - The privilege ID
+     */
+    public async sendPrivilegePurchaseProviderNotificationEmail(
+        specificEmails: string[] = [],
+        transactionDate: string,
+        privileges: any[], 
+        totalCost: number,
+        costLineItems: any[] // Array { value: string}
+    ): Promise<void> {
+        this.logger.info('Sending provider privilege purchase notification email', { providerEmail: specificEmails[0] });
+
+        const recipients = specificEmails;
+
+        if (recipients.length === 0) {
+            throw new Error(`No recipients found`);
+        }
+
+        const emailContent = this.getNewEmailTemplate();
+        const headerText = `Privilege Purchase Confirmation`;
+        const subject = `Compact Connect Privilege Purchase Confirmation`;
+        const bodyText = `This email is to confirm you successfully purchased the following privileges on ${transactionDate}`;
+
+        this.insertHeader(emailContent, headerText);
+        this.insertBody(emailContent, bodyText, 'center');
+
+        privileges.forEach((privilege) => {
+            const titleText = `${privilege.licenseTypeAbbrev.toUpperCase()} - ${privilege.jurisdiction.toUpperCase()}`;
+            const privilegeIdText = `Privilege Id: ${privilege.privilegeId}`;
+    
+            this.insertTuple(emailContent, titleText, privilegeIdText);
+        });
+
+        const rows = costLineItems.map((lineItem) => {
+            const quantityNum = parseInt(lineItem.quantity, 10);
+            const unitPriceNum = Number(lineItem.unitPrice);
+
+
+            const quantityText = quantityNum > 1 ? `x ${quantityNum}` : '';
+            const left = `${lineItem.name} ${quantityText}`;
+            const right = `$${(unitPriceNum * quantityNum).toFixed(2)}`;
+
+            return { left, right };
+        });
+
+        const totalCostDisplay = `$${totalCost.toFixed(2)}`;
+
+        this.insertTwoColumnTable(emailContent, 'Cost breakdown', rows);
+
+        this.insertTwoColumnRow(emailContent, 'Total', totalCostDisplay, true);
+
+        this.insertFooter(emailContent);
+
+        const htmlContent = renderToStaticMarkup(emailContent, { rootBlockId: 'root' });
+
+        await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send provider privilege purchase notification email' });
+    }
 }

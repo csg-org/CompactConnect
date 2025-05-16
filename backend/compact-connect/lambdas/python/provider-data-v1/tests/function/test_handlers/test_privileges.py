@@ -267,6 +267,31 @@ class TestDeactivatePrivilege(TstFunction):
             name='privilege-deactivation-notification-failed', unit=MetricUnit.Count, value=1
         )
 
+    # @patch('cc_common.config._Config.email_service_client')
+    # def test_purchase_privilege_handler_sends_expected_email_notifications(self, mock_email_service_client):
+    #     """
+    #     If a board admin has admin permission in the privilege jurisdiction, they can deactivate a privilege
+    #     """
+    #     self._load_provider_data()
+
+    #     # The user has admin permission for ne
+    #     resp = self._request_deactivation_with_scopes('openid email aslp/admin')
+    #     self.assertEqual(200, resp['statusCode'])
+    #     self.assertEqual({'message': 'OK'}, json.loads(resp['body']))
+
+    #     mock_email_service_client.send_provider_privilege_deactivation_email.assert_called_once_with(
+    #         compact='aslp',
+    #         provider_email='björkRegisteredEmail@example.com',
+    #         privilege_id='SLP-NE-1',
+    #     )
+    #     mock_email_service_client.send_jurisdiction_privilege_deactivation_email.assert_called_once_with(
+    #         compact='aslp',
+    #         jurisdiction='ne',
+    #         privilege_id='SLP-NE-1',
+    #         provider_first_name='Björk',
+    #         provider_last_name='Guðmundsdóttir',
+    #     )
+
     def test_non_admin_cannot_deactivate_privilege(self):
         """
         If a non-admin user attempts to deactivate a privilege, the response should be a 403

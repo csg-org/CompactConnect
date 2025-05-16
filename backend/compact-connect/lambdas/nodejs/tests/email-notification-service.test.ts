@@ -494,4 +494,70 @@ describe('EmailNotificationServiceLambda', () => {
                 .toThrow('No recipients specified for provider privilege deactivation notification email');
         });
     });
+    describe('Privilege Purchase Provider Notification', () => {
+        const SAMPLE_PRIVILEGE_PURCHASE_PROVIDER_NOTIFICATION_EVENT: EmailNotificationEvent = {
+            template: 'privilegePurchaseProviderNotification',
+            recipientType: 'SPECIFIC',
+            compact: 'aslp',
+            specificEmails: ['provider@example.com'],
+            templateVariables: {
+                transactionDate: '12/12/2004',
+                // TODO here, need to confirm shape of privileges coming in, replicate in test and make sure my thing works
+                // Also confirm types of all inputs and make sure they are properly represented here and work
+                privileges: [
+                    {
+                        privilegeId: 'OTA-OH-019',
+                        jurisdiction: 'OH',
+                        licenseTypeAbbrev: 'OTA'
+                    }
+                ],
+                totalCost: 45.00,
+                costLineItems: [
+                    {
+                        name: 'OH OTA fee', quantity: 1, unitPrice: 45
+                    },
+                    {
+                        name: 'cc fees', quantity: 1, unitPrice: 3.5
+                    }
+                ]
+            }
+        };
+
+        it('should successfully send privilege purchase provider notification email', async () => {
+            const response = await lambda.handler(SAMPLE_PRIVILEGE_PURCHASE_PROVIDER_NOTIFICATION_EVENT, {} as any);
+
+            expect(response).toEqual({
+                message: 'Email message sent'
+            });
+
+            // Verify email was sent with correct parameters
+            expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
+                Destination: {
+                    ToAddresses: ['provider@example.com']
+                },
+                Message: {
+                    Body: {
+                        Html: {
+                            Charset: 'UTF-8',
+                            Data: expect.stringContaining('<!DOCTYPE html>')
+                        }
+                    },
+                    Subject: {
+                        Charset: 'UTF-8',
+                        Data: 'Compact Connect Privilege Purchase Confirmation'
+                    }
+                },
+                Source: 'Compact Connect <noreply@example.org>'
+            });
+        });
+
+        it('should throw error when no recipients found', async () => {
+            // Mock empty recipients list
+            SAMPLE_PRIVILEGE_PURCHASE_PROVIDER_NOTIFICATION_EVENT.specificEmails = [];
+
+            await expect(lambda.handler(SAMPLE_PRIVILEGE_PURCHASE_PROVIDER_NOTIFICATION_EVENT, {} as any))
+                .rejects
+                .toThrow('No recipients found');
+        });
+    });
 });

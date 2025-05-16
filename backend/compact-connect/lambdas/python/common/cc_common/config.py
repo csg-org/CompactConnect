@@ -298,5 +298,11 @@ class _Config:
             logger=logger,
         )
 
+    @cached_property
+    def event_bus_client(self):
+        from cc_common.event_bus_client import EventBusClient
+
+        return EventBusClient()
+
 
 config = _Config()
