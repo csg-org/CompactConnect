@@ -17,6 +17,8 @@ from cc_common.data_model.schema.base_record import SSNIndexRecordSchema
 from cc_common.data_model.schema.common import (
     ActiveInactiveStatus,
     CCDataClass,
+    CompactEligibilityStatus,
+    HomeJurisdictionChangeDeactivationStatusEnum,
     LicenseEncumberedStatusEnum,
     PrivilegeEncumberedStatusEnum,
     UpdateCategory,
@@ -30,7 +32,7 @@ from cc_common.data_model.schema.military_affiliation.common import (
 from cc_common.data_model.schema.military_affiliation.record import MilitaryAffiliationRecordSchema
 from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
 from cc_common.data_model.schema.privilege.record import PrivilegeUpdateRecordSchema
-from cc_common.data_model.schema.provider import ProviderData
+from cc_common.data_model.schema.provider import ProviderData, ProviderUpdateData
 from cc_common.exceptions import (
     CCAwsServiceException,
     CCInternalException,
@@ -163,11 +165,11 @@ class DataClient:
 
     @logger_inject_kwargs(logger, 'compact', 'provider_id')
     def get_provider_user_records(
-            self,
-            *,
-            compact: str,
-            provider_id: str,
-            consistent_read: bool = True,
+        self,
+        *,
+        compact: str,
+        provider_id: str,
+        consistent_read: bool = True,
     ) -> ProviderUserRecords:
         logger.info('Getting provider')
 
@@ -180,7 +182,7 @@ class DataClient:
             query_resp = self.config.provider_table.query(
                 Select='ALL_ATTRIBUTES',
                 KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}')
-                                       & Key('sk').begins_with(f'{compact}#PROVIDER'),
+                & Key('sk').begins_with(f'{compact}#PROVIDER'),
                 ConsistentRead=consistent_read,
                 **pagination,
             )
@@ -1269,57 +1271,529 @@ class DataClient:
 
     @logger_inject_kwargs(logger, 'compact', 'provider_id', 'selected_jurisdiction')
     def update_provider_home_state_jurisdiction(
-            self,
-            *,
-            compact: str,
-            provider_id: str,
-            selected_jurisdiction: str
+        self, *, compact: str, provider_id: str, selected_jurisdiction: str
     ) -> None:
-        # Based on the following rules, for every license type the provider has, we will update the provider's privileges
-        # associated with their respective licenses:
-        # 1. If the jurisdiction is not a member of the compact, all the provider's existing privileges, and the provider
-        # record itself, will have their 'homeJurisdictionChangeDeactivationStatus' set to 'nonMemberJurisdiction'
-        # 2. Else if the jurisdiction is a member of the compact, but the provider does not have any license in the
-        # jurisdiction, all of their existing privileges, and the provider record itself, will have their
-        # 'homeJurisdictionChangeDeactivationStatus' set to 'noLicenseInJurisdiction'
-        # 3. Else if the license in the current home state is encumbered, all privileges will not be moved over
-        # to the new jurisdiction. They stay encumbered.
-        # 4. Else if the license in the new jurisdiction has a 'compactEligibility' status of 'ineligible', the associated
-        # privileges for the current license will NOT be moved over to the new jurisdiction, we will set the
-        # 'homeJurisdictionChangeDeactivationStatus' field to 'licenseCompactIneligible'.
-        # 5. If the license in the new home state is encumbered, unexpired privileges are moved over and all privileges that
-        # do not already have an encumbered status of 'encumbered' will have their encumbered status set to
-        # 'licenseEncumbered'.
-        # 5. If none of the above conditions are met, the provider's unexpired privileges will be moved over to the new
-        # jurisdiction and the expiration date will be updated to the expiration date of the license in the new jurisdiction.
-        # If the license is the most recent active license, the providers record is updated to show this new license
-        # information.
+        """
+        Update the provider's home jurisdiction and handle their privileges according to business rules.
+
+        The following rules are applied when updating the provider's home state jurisdiction:
+        1. If the jurisdiction is not a member of the compact, all the provider's existing privileges, and the provider
+           record itself, will have their 'homeJurisdictionChangeDeactivationStatus' set to 'nonMemberJurisdiction'
+        2. Else if the jurisdiction is a member of the compact, but the provider does not have any license in the
+           jurisdiction, all of their existing privileges, and the provider record itself, will have their
+           'homeJurisdictionChangeDeactivationStatus' set to 'noLicenseInJurisdiction'
+        3. Else if the license in the current home state is expired, the privileges are not moved over. If the provider
+        renews them, they will then be associated with the new home state.
+        3. Else if the license in the current home state is encumbered, all privileges will not be moved over
+           to the new jurisdiction. They stay encumbered.
+        4. Else if the license in the new jurisdiction has a 'compactEligibility' status of 'ineligible', the associated
+           privileges for the current license will NOT be moved over to the new jurisdiction, we will set the
+           'homeJurisdictionChangeDeactivationStatus' field to 'licenseCompactIneligible'.
+        5. If the license in the new home state is encumbered, unexpired privileges are moved over and all privileges that
+           do not already have an encumbered status of 'encumbered' will have their encumbered status set to 'licenseEncumbered'.
+        6. If none of the above conditions are met, the provider's unexpired privileges will be moved over to the new
+           jurisdiction and the expiration date will be updated to the expiration date of the license in the new jurisdiction.
+
+        :param compact: The compact name
+        :param provider_id: The provider ID
+        :param selected_jurisdiction: The new home jurisdiction selected by the provider
+        """
         logger.info('Updating provider user home jurisdiction')
 
-        provider_user_records: ProviderUserRecords = config.data_client.get_provider_user_records(
-            compact=compact,
-            provider_id=provider_id
+        provider_user_records: ProviderUserRecords = self.get_provider_user_records(
+            compact=compact, provider_id=provider_id
         )
         top_level_provider_record = provider_user_records.get_provider_record()
+        current_home_jurisdiction = top_level_provider_record.currentHomeJurisdiction
+
+        # Get all licenses in the new home jurisdiction
+        new_home_state_licenses = provider_user_records.get_license_records(
+            filter_condition=lambda license_data: license_data.jurisdiction == selected_jurisdiction
+        )
+
+        # Get all privileges for the provider
+        all_privileges = provider_user_records.get_privilege_records()
 
         # TODO - add logic for non-member state (item 1) when config PR merged into development
+        # Check if new jurisdiction is a non-member state (requirement 1)
+        is_non_member_state = selected_jurisdiction.lower() == 'other'
 
-        new_home_state_licenses = provider_user_records.get_license_records(
-            filter_condition=lambda license_data: license_data.jurisdiction == selected_jurisdiction)
+        if is_non_member_state:
+            # Update provider record and privileges for non-member state (requirement 1)
+            self._update_provider_record_for_jurisdiction_with_no_known_license(
+                compact=compact,
+                provider_id=provider_id,
+                provider_record=top_level_provider_record,
+                selected_jurisdiction=selected_jurisdiction,
+                deactivation_status=HomeJurisdictionChangeDeactivationStatusEnum.NON_MEMBER_JURISDICTION,
+            )
 
+            self._deactivate_privileges_for_jurisdiction_change(
+                compact=compact,
+                provider_id=provider_id,
+                privileges=all_privileges,
+                deactivation_status=HomeJurisdictionChangeDeactivationStatusEnum.NON_MEMBER_JURISDICTION,
+            )
+            return
+
+        # Check if provider has any licenses in the new jurisdiction (requirement 2)
         if not new_home_state_licenses:
-            logger.info("No home state license found in selected jurisdiction. Deactivating all privileges")
-            # TODO - deactivate all privileges with a 'homeJurisdictionChangeDeactivationStatus' of 'noLicenseInJurisdiction'
+            logger.info('No home state license found in selected jurisdiction. Deactivating all privileges')
 
-        current_home_state_licenses = provider_user_records.get_license_records(
-            filter_condition=
-            lambda license_data: license_data.jurisdiction == top_level_provider_record.currentHomeJurisdiction)
+            # Update provider record and privileges for no license in new jurisdiction (requirement 2)
+            self._update_provider_record_for_jurisdiction_with_no_known_license(
+                compact=compact,
+                provider_id=provider_id,
+                provider_record=top_level_provider_record,
+                selected_jurisdiction=selected_jurisdiction,
+                deactivation_status=HomeJurisdictionChangeDeactivationStatusEnum.NO_LICENSE_IN_JURISDICTION,
+            )
 
-        # TODO - use this record to update the relevant fields on the provider record as part of this update
+            self._deactivate_privileges_for_jurisdiction_change(
+                compact=compact,
+                provider_id=provider_id,
+                privileges=all_privileges,
+                deactivation_status=HomeJurisdictionChangeDeactivationStatusEnum.NO_LICENSE_IN_JURISDICTION,
+            )
+            return
+
+        # Find the best license in the selected jurisdiction
         best_license_in_selected_jurisdiction = provider_user_records.find_best_license(
             jurisdiction=selected_jurisdiction
         )
 
+        # Update the provider record with the new home jurisdiction and license information
+        self._update_provider_record_for_jurisdiction_change_with_license(
+            compact=compact,
+            provider_id=provider_id,
+            provider_record=top_level_provider_record,
+            new_license_record=best_license_in_selected_jurisdiction,
+            selected_jurisdiction=selected_jurisdiction,
+        )
+
+        # Get licenses from the current home state
+        current_home_state_licenses = provider_user_records.get_license_records(
+            filter_condition=lambda license_data: license_data.jurisdiction == current_home_jurisdiction
+        )
+
+        for license_record in current_home_state_licenses:
+
+            # if the current home state license is expired, then all the privileges associated with this license will
+            # also be expired, and we will not move them over
+            if license_record.dateOfExpiration < self.config.expiration_resolution_date:
+                logger.info('Current home state license is expired. Not moving privileges over.',
+                            license_type=license_record.licenseType)
+                continue
+
+            if license_record.encumberedStatus == LicenseEncumberedStatusEnum.ENCUMBERED:
+                logger.info('Current license is encumbered. Privileges for this license type will not be moved over to'
+                            'new license.',
+                            license_type=license_record.licenseType,
+                            encumbered_status=license_record.encumberedStatus
+                            )
+                continue
 
 
+            # Get privileges for this license type
+            privileges_for_license_type = [
+                privilege
+                for privilege in all_privileges
+                if privilege.licenseType == license_record.licenseType and privilege.licenseJurisdiction == current_home_jurisdiction
+            ]
 
+            if not privileges_for_license_type:
+                logger.info('No privileges found for license type.', license_type=license_record.licenseType)
+                continue
+
+            # Find the matching license in the new jurisdiction for this license type
+            matching_license_in_new_jurisdiction = next(
+                (license_data for license_data in new_home_state_licenses
+                 if license_data.licenseType == license_record.licenseType),
+                None,
+            )
+
+            if not matching_license_in_new_jurisdiction:
+                # No matching license in new jurisdiction for this license type, deactivate the privileges
+                logger.info('No matching license in new jurisdiction for license type. Deactivating privileges.',
+                            license_type=license_record.licenseType
+                            )
+                self._deactivate_privileges_for_jurisdiction_change(
+                    compact=compact,
+                    provider_id=provider_id,
+                    privileges=privileges_for_license_type,
+                    deactivation_status=HomeJurisdictionChangeDeactivationStatusEnum.NO_LICENSE_IN_JURISDICTION,
+                )
+                continue
+
+            # Check if new license is compact eligible (requirement 4)
+            if (
+                matching_license_in_new_jurisdiction.jurisdictionUploadedCompactEligibility
+                == CompactEligibilityStatus.INELIGIBLE
+            ):
+                self._deactivate_privileges_for_jurisdiction_change(
+                    compact=compact,
+                    provider_id=provider_id,
+                    privileges=privileges_for_license_type,
+                    deactivation_status=HomeJurisdictionChangeDeactivationStatusEnum.LICENSE_COMPACT_INELIGIBLE,
+                )
+                continue
+
+            # Update privileges based on their current state
+            self._update_privileges_for_jurisdiction_change(
+                compact=compact,
+                provider_id=provider_id,
+                privileges=privileges_for_license_type,
+                new_license=matching_license_in_new_jurisdiction,
+            )
+
+    def _update_provider_record_for_jurisdiction_change_with_license(
+        self,
+        *,
+        compact: str,
+        provider_id: str,
+        provider_record: ProviderData,
+        new_license_record: LicenseData,
+        selected_jurisdiction: str,
+    ) -> None:
+        """
+        Update the provider record when changing to a new jurisdiction with a valid license.
+
+        :param compact: The compact name
+        :param provider_id: The provider ID
+        :param provider_record: The current provider record
+        :param new_license_record: The best license in the new jurisdiction
+        :param selected_jurisdiction: The selected new jurisdiction
+        """
+        logger.info(
+            'Updating provider record for jurisdiction change with valid license',
+            compact=compact,
+            provider_id=provider_id,
+            new_jurisdiction=selected_jurisdiction,
+        )
+
+        # Create the provider update record
+        provider_update_record = ProviderUpdateData.create_new({
+            'type': 'providerUpdate',
+            'updateType': UpdateCategory.HOME_JURISDICTION_CHANGE,
+            'providerId': provider_id,
+            'compact': compact,
+            'previous': provider_record.to_dict(),
+            'updatedValues': {
+                'licenseJurisdiction': new_license_record.jurisdiction,
+                'dateOfExpiration': new_license_record.dateOfExpiration,
+                'currentHomeJurisdiction': selected_jurisdiction,
+                # Add any other fields that should be updated from the new license
+                'licenseNumber': new_license_record.licenseNumber,
+                'licenseType': new_license_record.licenseType,
+                'dateOfIssuance': new_license_record.dateOfIssuance,
+                'dateOfRenewal': new_license_record.dateOfRenewal,
+            },
+        })
+
+        # Create transaction items for the provider update
+        transactions = [
+            # Create provider update record
+            {
+                'Put': {
+                    'TableName': self.config.provider_table_name,
+                    'Item': TypeSerializer().serialize(provider_update_record.serialize_to_database_record())['M'],
+                }
+            },
+            # Update provider record
+            {
+                'Update': {
+                    'TableName': self.config.provider_table_name,
+                    'Key': {
+                        'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
+                        'sk': {'S': f'{compact}#PROVIDER'},
+                    },
+                    'UpdateExpression': 'SET licenseJurisdiction = :licenseJurisdiction, '
+                    'dateOfExpiration = :dateOfExpiration, '
+                    'currentHomeJurisdiction = :currentHomeJurisdiction, '
+                    'licenseNumber = :licenseNumber, '
+                    'licenseType = :licenseType, '
+                    'dateOfIssuance = :dateOfIssuance, '
+                    'dateOfRenewal = :dateOfRenewal, '
+                    'dateOfUpdate = :dateOfUpdate',
+                    'ExpressionAttributeValues': {
+                        ':licenseJurisdiction': {'S': new_license_record.jurisdiction},
+                        ':dateOfExpiration': {'S': new_license_record.dateOfExpiration.isoformat()},
+                        ':currentHomeJurisdiction': {'S': selected_jurisdiction},
+                        ':licenseNumber': {'S': new_license_record.licenseNumber},
+                        ':licenseType': {'S': new_license_record.licenseType},
+                        ':dateOfIssuance': {'S': new_license_record.dateOfIssuance.isoformat()},
+                        ':dateOfRenewal': {'S': new_license_record.dateOfRenewal.isoformat()},
+                        ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
+                    },
+                }
+            },
+        ]
+
+        # Execute the transaction
+        self.config.dynamodb_client.transact_write_items(TransactItems=transactions)
+
+    def _update_provider_record_for_jurisdiction_with_no_known_license(
+        self,
+        *,
+        compact: str,
+        provider_id: str,
+        provider_record: ProviderData,
+        selected_jurisdiction: str,
+        deactivation_status: HomeJurisdictionChangeDeactivationStatusEnum,
+    ) -> None:
+        """
+        Update the provider record when changing to a jurisdiction for which we do not have a license on file.
+
+        :param compact: The compact name
+        :param provider_id: The provider ID
+        :param provider_record: The current provider record
+        :param selected_jurisdiction: The selected non-member jurisdiction
+        """
+        logger.info(
+            'Updating provider record for non-member jurisdiction',
+            compact=compact,
+            provider_id=provider_id,
+            new_jurisdiction=selected_jurisdiction,
+        )
+
+        # Create the provider update record
+        provider_update_record = ProviderUpdateData.create_new({
+            'type': 'providerUpdate',
+            'updateType': UpdateCategory.HOME_JURISDICTION_CHANGE,
+            'providerId': provider_id,
+            'compact': compact,
+            'previous': provider_record.to_dict(),
+            'updatedValues': {
+                'homeJurisdictionChangeDeactivationStatus': deactivation_status,
+                'currentHomeJurisdiction': selected_jurisdiction,
+                'dateOfUpdate': self.config.current_standard_datetime,
+            },
+        })
+
+        # Create transaction items for the provider update
+        transactions = [
+            # Create provider update record
+            {
+                'Put': {
+                    'TableName': self.config.provider_table_name,
+                    'Item': TypeSerializer().serialize(provider_update_record.serialize_to_database_record())['M'],
+                }
+            },
+            # Update provider record
+            {
+                'Update': {
+                    'TableName': self.config.provider_table_name,
+                    'Key': {
+                        'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
+                        'sk': {'S': f'{compact}#PROVIDER'},
+                    },
+                    'UpdateExpression': 'SET '
+                    'homeJurisdictionChangeDeactivationStatus = :homeJurisdictionChangeDeactivationStatus,'
+                    'currentHomeJurisdiction = :currentHomeJurisdiction, '
+                    'dateOfUpdate = :dateOfUpdate',
+                    'ExpressionAttributeValues': {
+                        ':homeJurisdictionChangeDeactivationStatus': {'S': deactivation_status},
+                        ':currentHomeJurisdiction': {'S': selected_jurisdiction},
+                        ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
+                    },
+                }
+            },
+        ]
+
+        # Execute the transaction
+        self.config.dynamodb_client.transact_write_items(TransactItems=transactions)
+
+    def _deactivate_privileges_for_jurisdiction_change(
+        self,
+        *,
+        compact: str,
+        provider_id: str,
+        privileges: list[PrivilegeData],
+        deactivation_status: HomeJurisdictionChangeDeactivationStatusEnum,
+    ) -> None:
+        """
+        Deactivate privileges when changing to a jurisdiction where they can't be valid.
+
+        :param compact: The compact name
+        :param provider_id: The provider ID
+        :param privileges: The list of privileges to deactivate
+        :param deactivation_status: The reason for deactivation
+        """
+        if not privileges:
+            return
+
+        logger.info(
+            'Deactivating privileges for jurisdiction change',
+            compact=compact,
+            provider_id=provider_id,
+            deactivation_status=deactivation_status,
+            num_privileges=len(privileges),
+        )
+
+        transactions = []
+
+        for privilege in privileges:
+            # Skip already encumbered privileges - they remain encumbered without changes
+            if privilege.encumberedStatus == PrivilegeEncumberedStatusEnum.ENCUMBERED:
+                continue
+
+            # Create update record
+            privilege_update_record = PrivilegeUpdateData.create_new({
+                'type': 'privilegeUpdate',
+                'updateType': UpdateCategory.HOME_JURISDICTION_CHANGE,
+                'providerId': provider_id,
+                'compact': compact,
+                'jurisdiction': privilege.jurisdiction,
+                'licenseType': privilege.licenseType,
+                'previous': privilege.to_dict(),
+                'updatedValues': {
+                    'homeJurisdictionChangeDeactivationStatus': deactivation_status,
+                    'dateOfUpdate': self.config.current_standard_datetime,
+                },
+            })
+
+            # Add update record to transaction
+            transactions.append(
+                {
+                    'Put': {
+                        'TableName': self.config.provider_table_name,
+                        'Item': TypeSerializer().serialize(privilege_update_record.serialize_to_database_record())['M'],
+                    }
+                }
+            )
+
+            # Update privilege record
+            transactions.append(
+                {
+                    'Update': {
+                        'TableName': self.config.provider_table_name,
+                        'Key': {
+                            'pk': {'S': privilege.serialize_to_database_record()['pk']},
+                            'sk': {'S': privilege.serialize_to_database_record()['sk']},
+                        },
+                        'UpdateExpression': 'SET homeJurisdictionChangeDeactivationStatus = :homeJurisdictionChangeDeactivationStatus, '
+                        'dateOfUpdate = :dateOfUpdate',
+                        'ExpressionAttributeValues': {
+                            ':homeJurisdictionChangeDeactivationStatus': {'S': deactivation_status},
+                            ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
+                        },
+                    }
+                }
+            )
+
+        # Process transactions in batches of 100 (DynamoDB limit)
+        batch_size = 100
+        for i in range(0, len(transactions), batch_size):
+            batch = transactions[i : i + batch_size]
+            if batch:
+                self.config.dynamodb_client.transact_write_items(TransactItems=batch)
+
+    def _update_privileges_for_jurisdiction_change(
+        self,
+        *,
+        compact: str,
+        provider_id: str,
+        privileges: list[PrivilegeData],
+        new_license: LicenseData,
+    ) -> None:
+        """
+        Update privileges when changing to a jurisdiction with a valid license.
+
+        :param compact: The compact name
+        :param provider_id: The provider ID
+        :param privileges: The list of privileges to update
+        :param new_license: The license in the new jurisdiction
+        """
+        if not privileges:
+            return
+
+        is_new_license_encumbered = new_license.encumberedStatus == LicenseEncumberedStatusEnum.ENCUMBERED
+
+        logger.info(
+            'Updating privileges for jurisdiction change with valid license',
+            compact=compact,
+            provider_id=provider_id,
+            new_jurisdiction=new_license.jurisdiction,
+            num_privileges=len(privileges),
+            is_new_license_encumbered=is_new_license_encumbered,
+            license_expiration=new_license.dateOfExpiration,
+        )
+
+        transactions = []
+
+        for privilege in privileges:
+            # Already encumbered privileges remain unchanged with their current license association
+            if privilege.encumberedStatus == PrivilegeEncumberedStatusEnum.ENCUMBERED:
+                continue
+
+            updated_values = {
+                'licenseJurisdiction': new_license.jurisdiction,
+                'dateOfExpiration': new_license.dateOfExpiration,
+                'dateOfUpdate': self.config.current_standard_datetime,
+            }
+
+            # If the new license is encumbered, set the privilege to licenseEncumbered
+            if is_new_license_encumbered:
+                updated_values['encumberedStatus'] = PrivilegeEncumberedStatusEnum.LICENSE_ENCUMBERED
+
+            # Create update record
+            privilege_update_record = PrivilegeUpdateData.create_new({
+                'type': 'privilegeUpdate',
+                'updateType': UpdateCategory.HOME_JURISDICTION_CHANGE,
+                'providerId': provider_id,
+                'compact': compact,
+                'jurisdiction': privilege.jurisdiction,
+                'licenseType': privilege.licenseType,
+                'previous': privilege.to_dict(),
+                'updatedValues': updated_values,
+            })
+
+            # Add update record to transaction
+            transactions.append(
+                {
+                    'Put': {
+                        'TableName': self.config.provider_table_name,
+                        'Item': TypeSerializer().serialize(privilege_update_record.serialize_to_database_record())['M'],
+                    }
+                }
+            )
+
+            # Update privilege record
+            update_expression_parts = [
+                'SET licenseJurisdiction = :licenseJurisdiction, '
+                + 'dateOfExpiration = :dateOfExpiration, '
+                + 'dateOfUpdate = :dateOfUpdate'
+            ]
+            expression_values = {
+                ':licenseJurisdiction': {'S': new_license.jurisdiction},
+                ':dateOfExpiration': {'S': new_license.dateOfExpiration.isoformat()},
+                ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
+            }
+
+            if is_new_license_encumbered:
+                update_expression_parts.append(',encumberedStatus = :encumberedStatus')
+                expression_values[':encumberedStatus'] = {'S': updated_values['encumberedStatus']}
+
+            # Build the final update expression
+            update_expression = ' '.join(update_expression_parts)
+
+            transactions.append(
+                {
+                    'Update': {
+                        'TableName': self.config.provider_table_name,
+                        'Key': {
+                            'pk': {'S': privilege.serialize_to_database_record()['pk']},
+                            'sk': {'S': privilege.serialize_to_database_record()['sk']},
+                        },
+                        'UpdateExpression': update_expression,
+                        'ExpressionAttributeValues': expression_values,
+                    }
+                }
+            )
+
+        # Process transactions in batches of 100 (DynamoDB limit)
+        batch_size = 100
+        for i in range(0, len(transactions), batch_size):
+            batch = transactions[i : i + batch_size]
+            if batch:
+                self.config.dynamodb_client.transact_write_items(TransactItems=batch)

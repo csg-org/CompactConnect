@@ -4,7 +4,6 @@ from datetime import date, datetime
 from decimal import Decimal
 
 from boto3.dynamodb.conditions import Key
-
 from cc_common.data_model.provider_record_util import ProviderRecordUtility
 from cc_common.data_model.schema.adverse_action import AdverseActionData
 from cc_common.data_model.schema.common import CCDataClass
@@ -75,12 +74,29 @@ class TestDataGenerator:
         serialized_record = data_class.serialize_to_database_record()
 
         try:
-            return config.provider_table.get_item(Key={'pk': serialized_record['pk'], 'sk': serialized_record['sk']})['Item']
+            return config.provider_table.get_item(Key={'pk': serialized_record['pk'], 'sk': serialized_record['sk']})[
+                'Item'
+            ]
         except KeyError as e:
             raise Exception('Error loading test provider record from database') from e
 
     @staticmethod
-    def query_update_records_for_given_record_from_database(data_class: CCDataClass) -> list[dict]:
+    def _query_records_by_pk_and_sk_prefix(pk: str, sk_prefix: str) -> list[dict]:
+        """
+        Helper method to query records from the database using the provider data class instance.
+        """
+        from cc_common.config import config
+
+        try:
+            return config.provider_table.query(
+                KeyConditionExpression=Key('pk').eq(pk)
+                & Key('sk').begins_with(sk_prefix)
+            )['Items']
+        except KeyError as e:
+            raise Exception('Error querying update records from database') from e
+
+    @staticmethod
+    def query_privilege_update_records_for_given_record_from_database(privilege_data: PrivilegeData) -> list[dict]:
         """
         Helper method to query update records from the database using the provider data class instance.
 
@@ -88,17 +104,25 @@ class TestDataGenerator:
         record is the prefix for all the update records. Using this pattern, we can query for all of the update records
         that have been written for the given record.
         """
-        from cc_common.config import config
+        serialized_record = privilege_data.serialize_to_database_record()
 
-        serialized_record = data_class.serialize_to_database_record()
+        return TestDataGenerator._query_records_by_pk_and_sk_prefix(
+            serialized_record['pk'], f'{serialized_record['sk']}UPDATE')
 
-        try:
-            return config.provider_table.query(
-                KeyConditionExpression=Key('pk').eq(serialized_record['pk'])
-                                       & Key('sk').begins_with(serialized_record['sk'])
-            )['Items']
-        except KeyError as e:
-            raise Exception('Error querying update records from database') from e
+
+    @staticmethod
+    def query_provider_update_records_for_given_record_from_database(provider_record: ProviderData) -> list[dict]:
+        """
+        Helper method to query update records from the database using the provider data class instance.
+
+        All of our update records use the same pk as the actual record that is being updated. The sk of the actual
+        record is the prefix for all the update records. Using this pattern, we can query for all of the update records
+        that have been written for the given record.
+        """
+        serialized_record = provider_record.serialize_to_database_record()
+
+        return TestDataGenerator._query_records_by_pk_and_sk_prefix(
+            serialized_record['pk'], f'{serialized_record['sk']}#UPDATE')
 
     @staticmethod
     def generate_default_home_jurisdiction_selection(
