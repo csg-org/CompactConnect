@@ -5,7 +5,12 @@
 //  Created by InspiringApps on 5/13/2025.
 //
 
-import { Component, mixins, toNative } from 'vue-facing-decorator';
+import {
+    Component,
+    mixins,
+    Watch,
+    toNative
+} from 'vue-facing-decorator';
 import {
     reactive,
     computed,
@@ -14,6 +19,7 @@ import {
 } from 'vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import Card from '@components/Card/Card.vue';
+import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
 import InputText from '@components/Forms/InputText/InputText.vue';
 import InputEmailList from '@components/Forms/InputEmailList/InputEmailList.vue';
 import InputRadioGroup from '@components/Forms/InputRadioGroup/InputRadioGroup.vue';
@@ -25,7 +31,7 @@ import { CompactType, CompactConfig, FeeType } from '@models/Compact/Compact.mod
 import { StaffUser } from '@models/StaffUser/StaffUser.model';
 import { FormInput } from '@models/FormInput/FormInput.model';
 import { formatCurrencyInput, formatCurrencyBlur } from '@models/_formatters/currency';
-// import { dataApi } from '@network/data.api';
+import { dataApi } from '@network/data.api';
 import Joi from 'joi';
 
 interface RegistrationEnabledOption {
@@ -37,6 +43,7 @@ interface RegistrationEnabledOption {
     name: 'CompactSettingsConfig',
     components: {
         Card,
+        LoadingSpinner,
         MockPopulate,
         InputText,
         InputEmailList,
@@ -50,14 +57,17 @@ class CompactSettingsConfig extends mixins(MixinForm) {
     //
     // Data
     //
+    isLoading = false;
+    loadingErrorMessage = '';
+    initialCompactConfig: any = {};
     isRegistrationEnabledInitialValue = false;
     isConfirmConfigModalDisplayed = false;
 
     //
     // Lifecycle
     //
-    created() {
-        this.initFormInputs();
+    async created() {
+        await this.init();
     }
 
     //
@@ -86,6 +96,27 @@ class CompactSettingsConfig extends mixins(MixinForm) {
     //
     // Methods
     //
+    async init(): Promise<void> {
+        this.isLoading = true;
+
+        if (this.compactType) {
+            await this.getCompactConfig();
+            this.initFormInputs();
+        }
+    }
+
+    async getCompactConfig(): Promise<void> {
+        const compact = this.compactType || '';
+        const compactConfig = await dataApi.getCompactConfig(compact).catch((err) => {
+            this.loadingErrorMessage = err?.message || this.$t('serverErrors.networkError');
+        });
+
+        this.isLoading = false;
+
+        // @TODO: Handle initial fetched compact config
+        console.log(compactConfig);
+    }
+
     initFormInputs(): void {
         this.formData = reactive({
             compactFee: new FormInput({
@@ -283,6 +314,13 @@ class CompactSettingsConfig extends mixins(MixinForm) {
         this.populateFormInput(this.formData.adverseActionNotificationEmails, ['test@inspiringapps.com']);
         this.populateFormInput(this.formData.summaryReportNotificationEmails, ['test@inspiringapps.com']);
         this.populateFormInput(this.formData.isRegistrationEnabled, false);
+    }
+
+    //
+    // Watch
+    //
+    @Watch('compactType') fetchCompactConfig() {
+        this.init();
     }
 }
 

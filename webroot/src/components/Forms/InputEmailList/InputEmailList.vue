@@ -45,7 +45,7 @@
                 :class="{ 'has-error': !!formInput.errorMessage }"
                 :disabled="formInput.isDisabled"
             />
-            <div v-if="shouldDisplayAddEmailHelp" class="add-email-help">Hit Enter to add</div>
+            <div v-if="shouldDisplayAddEmailHelp" class="add-email-help">{{ $t('compact.enterToAdd')}}</div>
             <button
                 class="btn-add-email"
                 @click.stop.prevent="add(formInput)"

@@ -1769,6 +1769,59 @@ export const compactStates = [
     },
 ];
 
+export const compactConfig = {
+    compactAbbr: 'aslp',
+    compactName: 'Audiology and Speech Language Pathology',
+    compactCommissionFee: {
+        feeType: 'FLAT_RATE',
+        feeAmount: 10,
+    },
+    licenseeRegistrationEnabled: true,
+    compactOperationsTeamEmails: [
+        'ops@example.com',
+    ],
+    compactAdverseActionsNotificationEmails: [
+        'adverse@example.com',
+    ],
+    compactSummaryReportNotificationEmails: [
+        'summary@example.com',
+    ],
+    transactionFeeConfiguration: {
+        licenseeCharges: {
+            active: true,
+            chargeType: 'FLAT_FEE_PER_PRIVILEGE',
+            chargeAmount: 10,
+        },
+    },
+};
+
+export const stateConfig = {
+    compact: 'aslp',
+    jurisdictionName: 'Kentucky',
+    postalAbbreviation: 'ky',
+    licenseeRegistrationEnabled: false,
+    privilegeFees: [
+        {
+            licenseTypeAbbreviation: 'aud',
+            amount: null,
+            militaryRate: null,
+        },
+    ],
+    jurisprudenceRequirements: {
+        required: true,
+        linkToDocumentation: 'https://example.com',
+    },
+    jurisdictionOperationsTeamEmails: [
+        'ops@example.com',
+    ],
+    jurisdictionAdverseActionsNotificationEmails: [
+        'adverse@example.com',
+    ],
+    jurisdictionSummaryReportNotificationEmails: [
+        'summary@example.com',
+    ],
+};
+
 export const pets = [
     {
         id: 1,

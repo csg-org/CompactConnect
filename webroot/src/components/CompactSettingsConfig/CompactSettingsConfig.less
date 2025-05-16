@@ -6,6 +6,30 @@
 //
 
 .compact-config {
+    .loading-container {
+        width: 100%;
+        height: 40rem;
+    }
+
+    .loading-error-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        width: 100%;
+        min-height: 20rem;
+        color: @midRed;
+
+        .general-message {
+            font-weight: @fontWeightBold;
+            text-align: center;
+        }
+
+        .response-message {
+            margin-top: 2.4rem;
+            text-align: center;
+        }
+    }
+
     .compact-config-form {
         width: 100%;
     }

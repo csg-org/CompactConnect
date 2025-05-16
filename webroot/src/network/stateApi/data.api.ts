@@ -13,7 +13,7 @@ import {
     responseError
 } from '@network/stateApi/interceptors';
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
-import { PaymentProcessorConfig } from '@models/Compact/Compact.model';
+import { PaymentProcessorConfig, CompactConfig, CompactStateConfig } from '@models/Compact/Compact.model';
 
 export interface DataApiInterface {
     api: AxiosInstance;
@@ -115,6 +115,46 @@ export class StateDataApi implements DataApiInterface {
      */
     public updatePaymentProcessorConfig(compact: string, config: PaymentProcessorConfig) {
         return this.api.post(`v1/compacts/${compact}/credentials/payment-processor`, config);
+    }
+
+    /**
+     * GET Compact config.
+     * @param  {string}          compact The compact string ID (aslp, octp, coun).
+     * @return {Promise<object>}         The server response.
+     */
+    public getCompactConfig(compact: string) {
+        return this.api.get(`v1/compacts/${compact}`);
+    }
+
+    /**
+     * PUT Compact config.
+     * @param  {string}          compact The compact string ID (aslp, octp, coun).
+     * @param  {CompactConfig}   config  The compact config data.
+     * @return {Promise<object>}         The server response.
+     */
+    public updateCompactConfig(compact: string, config: CompactConfig) {
+        return this.api.put(`v1/compacts/${compact}`, config);
+    }
+
+    /**
+     * GET State config.
+     * @param  {string}          compact The compact string ID (aslp, octp, coun).
+     * @param  {string}          state   The 2-character state abbreviation.
+     * @return {Promise<object>}         The server response.
+     */
+    public getCompactStateConfig(compact: string, state: string) {
+        return this.api.get(`v1/compacts/${compact}/jurisdictions/${state}`);
+    }
+
+    /**
+     * PUT State config.
+     * @param  {string}             compact The compact string ID (aslp, octp, coun).
+     * @param  {string}             state   The 2-character state abbreviation.
+     * @param  {CompactStateConfig} config  The compact config data.
+     * @return {Promise<object>}            The server response.
+     */
+    public updateCompactStateConfig(compact: string, state: string, config: CompactStateConfig) {
+        return this.api.put(`v1/compacts/${compact}/jurisdictions/${state}`, config);
     }
 }
 

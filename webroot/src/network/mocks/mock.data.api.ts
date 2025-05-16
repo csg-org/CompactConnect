@@ -22,7 +22,9 @@ import {
     pets,
     privilegePurchaseOptionsResponse,
     attestation,
-    compactStates
+    compactStates,
+    compactConfig,
+    stateConfig
 } from '@network/mocks/mock.data';
 
 let mockStore: any = null;
@@ -72,11 +74,47 @@ export class DataApi {
         }));
     }
 
-    //
+    // Post compact payment processor config
     public updatePaymentProcessorConfig(compact: string, config: object) {
         return wait(500).then(() => ({
             message: 'success',
             compact,
+            config,
+        }));
+    }
+
+    // Get compact config
+    public getCompactConfig(compact: string) {
+        return wait(500).then(() => ({
+            ...compactConfig,
+            compact,
+        }));
+    }
+
+    // Put compact config
+    public updateCompactConfig(compact: string, config: object) {
+        return wait(500).then(() => ({
+            message: 'success',
+            compact,
+            config,
+        }));
+    }
+
+    // Get state config
+    public getCompactStateConfig(compact: string, state: string) {
+        return wait(500).then(() => ({
+            ...stateConfig,
+            compact,
+            state
+        }));
+    }
+
+    // Put state config
+    public updateCompactStateConfig(compact: string, state: string, config: object) {
+        return wait(500).then(() => ({
+            message: 'success',
+            compact,
+            state,
             config,
         }));
     }

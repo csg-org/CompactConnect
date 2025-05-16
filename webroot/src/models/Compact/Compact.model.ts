@@ -31,6 +31,8 @@ export enum FeeType {
 }
 
 export interface CompactConfig {
+    compactAbbr?: string,
+    compactName?: string,
     compactCommissionFee: {
         feeType: string,
         feeAmount: number,
@@ -46,6 +48,25 @@ export interface CompactConfig {
             chargeAmount: number,
         },
     },
+}
+
+export interface CompactStateConfig {
+    compact?: string,
+    jurisdictionName?: string,
+    postalAbbreviation?: string,
+    privilegeFees: Array<{
+        licenseTypeAbbreviation: string,
+        amount: number,
+        militaryRate: number | null, // Specific mix of number & null required by server
+    }>
+    jurisprudenceRequirements: {
+        required: boolean,
+        linkToDocumentation: string | null,
+    },
+    licenseeRegistrationEnabled: boolean,
+    jurisdictionOperationsTeamEmails: Array<string>,
+    jurisdictionAdverseActionsNotificationEmails: Array<string>,
+    jurisdictionSummaryReportNotificationEmails: Array<string>,
 }
 
 export interface InterfaceCompactCreate {

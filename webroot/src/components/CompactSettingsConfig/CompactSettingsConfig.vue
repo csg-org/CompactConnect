@@ -7,7 +7,12 @@
 
 <template>
     <Card class="compact-config">
-        <form class="compact-config-form" @submit.prevent="handleSubmit(false)">
+        <div v-if="isLoading" class="loading-container"><LoadingSpinner /></div>
+        <div v-else-if="loadingErrorMessage" class="loading-error-container">
+            <div class="general-message">{{ $t('compact.configLoadingErrorCompact') }}</div>
+            <div class="response-message">{{ loadingErrorMessage }}</div>
+        </div>
+        <form v-else class="compact-config-form" @submit.prevent="handleSubmit(false)">
             <div class="compact-config-form-container">
                 <h2 class="form-section-title fees">{{ $t('compact.privilegeFees') }}</h2>
                 <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
@@ -34,7 +39,6 @@
                     @blur="populateMissingRegistrationEnabled"
                 />
                 <InputSubmit
-                    id="compact-config-submit"
                     :formInput="formData.submit"
                     :label="submitLabel"
                     :isEnabled="!isFormLoading"
