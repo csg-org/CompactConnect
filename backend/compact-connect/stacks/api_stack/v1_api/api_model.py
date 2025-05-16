@@ -1565,8 +1565,8 @@ class ApiModel:
             return self.api._v1_post_compact_request_model
 
         self.api._v1_post_compact_request_model = self.api.add_model(
-            'V1PostCompactRequestModel',
-            description='Post compact configuration request model',
+            'V1PutCompactRequestModel',
+            description='Put compact configuration request model',
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
                 additional_properties=False,
@@ -1753,8 +1753,8 @@ class ApiModel:
             return self.api._v1_put_jurisdiction_request_model
 
         self.api._v1_put_jurisdiction_request_model = self.api.add_model(
-            'V1PostJurisdictionRequestModel',
-            description='Post jurisdiction configuration request model',
+            'V1PutJurisdictionRequestModel',
+            description='Put jurisdiction configuration request model',
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
                 additional_properties=False,
