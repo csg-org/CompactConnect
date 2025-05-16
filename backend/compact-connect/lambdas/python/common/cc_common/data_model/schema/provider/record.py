@@ -1,6 +1,10 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 from urllib.parse import quote
 
+from marshmallow import post_dump, post_load, pre_dump
+from marshmallow.fields import UUID, Date, DateTime, Email, List, Nested, String
+from marshmallow.validate import Length, Regexp
+
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import BaseRecordSchema, CalculatedStatusRecordSchema, ForgivingSchema
 from cc_common.data_model.schema.common import ChangeHashMixin
@@ -17,9 +21,6 @@ from cc_common.data_model.schema.fields import (
     Set,
     UpdateType,
 )
-from marshmallow import post_dump, post_load, pre_dump
-from marshmallow.fields import UUID, Date, DateTime, Email, List, Nested, String
-from marshmallow.validate import Length, Regexp
 
 
 @BaseRecordSchema.register_schema('provider')
@@ -74,9 +75,7 @@ class ProviderRecordSchema(CalculatedStatusRecordSchema):
     # This field is set whenever the provider registers with the compact connect system,
     # or updates their home jurisdiction.
     currentHomeJurisdiction = CurrentHomeJurisdictionField(
-        required=False,
-        allow_none=False,
-        load_default=UNKNOWN_JURISDICTION
+        required=False, allow_none=False, load_default=UNKNOWN_JURISDICTION
     )
 
     @pre_dump

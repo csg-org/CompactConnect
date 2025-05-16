@@ -263,6 +263,9 @@ class HomeJurisdictionChangeDeactivationStatusEnum(CCEnum):
     # This condition occurs when a provider with existing privileges moves to a jurisdiction
     # that is a member of the compact and has a license for the provider.
     NON_MEMBER_JURISDICTION = 'nonMemberJurisdiction'
+    # This condition occurs when a provider has an existing privilege in the same home state that
+    # they have moved to.
+    PRIVILEGE_IN_HOME_STATE = 'privilegeInHomeState'
 
 
 class StaffUserStatus(CCEnum):

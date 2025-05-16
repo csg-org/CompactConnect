@@ -57,7 +57,10 @@ class ProviderRecordUtility:
         ]
 
     @staticmethod
-    def get_privilege_records(provider_records: Iterable[dict], _filter: Callable | None = None,) -> list[ProviderData]:
+    def get_privilege_records(
+        provider_records: Iterable[dict],
+        _filter: Callable | None = None,
+    ) -> list[ProviderData]:
         """
         Get all privilege records from a list of provider records.
 
@@ -67,19 +70,26 @@ class ProviderRecordUtility:
         """
         return [
             ProviderData(**record)
-            for record in ProviderRecordUtility.get_records_of_type(provider_records, ProviderRecordType.PRIVILEGE, _filter)
+            for record in ProviderRecordUtility.get_records_of_type(
+                provider_records, ProviderRecordType.PRIVILEGE, _filter
+            )
         ]
-    
+
     @staticmethod
-    def get_license_records(provider_records: Iterable[dict], _filter: Callable | None = None,) -> list[LicenseData]:
+    def get_license_records(
+        provider_records: Iterable[dict],
+        _filter: Callable | None = None,
+    ) -> list[LicenseData]:
         """
         Get all license records from a list of provider records.
         """
         return [
             LicenseData(**record)
-            for record in ProviderRecordUtility.get_records_of_type(provider_records, ProviderRecordType.LICENSE, _filter)
+            for record in ProviderRecordUtility.get_records_of_type(
+                provider_records, ProviderRecordType.LICENSE, _filter
+            )
         ]
-    
+
     @classmethod
     def find_best_license(cls, license_records: Iterable[dict], home_jurisdiction: str | None = None) -> dict:
         """
@@ -266,17 +276,21 @@ class ProviderRecordUtility:
 
         return latest_military_affiliation['status'] == MilitaryAffiliationStatus.ACTIVE
 
+
 class ProviderUserRecords:
     """
     A collection of provider records for a single provider.
 
     This class is used to get all records for a single provider and provide utilities for getting specific records
     """
+
     def __init__(self, provider_records: Iterable[dict]):
         self.provider_records = provider_records
 
-    def get_privilege_records(self,
-                              filter_condition: Callable[[PrivilegeData], bool] | None = None, ) -> list[PrivilegeData]:
+    def get_privilege_records(
+        self,
+        filter_condition: Callable[[PrivilegeData], bool] | None = None,
+    ) -> list[PrivilegeData]:
         """
         Get all privilege records from a list of provider records.
 
@@ -288,7 +302,11 @@ class ProviderUserRecords:
             for record in ProviderRecordUtility.get_records_of_type(self.provider_records, ProviderRecordType.PRIVILEGE)
             if (filter_condition is None or filter_condition(PrivilegeData.from_database_record(record)))
         ]
-    def get_license_records(self, filter_condition: Callable[[LicenseData], bool] | None = None, ) -> list[LicenseData]:
+
+    def get_license_records(
+        self,
+        filter_condition: Callable[[LicenseData], bool] | None = None,
+    ) -> list[LicenseData]:
         """
         Get all license records from a list of provider records.
         """
@@ -324,9 +342,13 @@ class ProviderUserRecords:
         :param jurisdiction: Optional jurisdiction filter
         :return: The best license record
         """
-        license_records = self.get_license_records() if not jurisdiction else self.get_license_records(
+        license_records = (
+            self.get_license_records()
+            if not jurisdiction
+            else self.get_license_records(
                 filter_condition=lambda license_data: license_data.jurisdiction == jurisdiction
             )
+        )
 
         # Last issued compact-eligible license, if there are any compact-eligible licenses
         latest_compact_eligible_licenses = sorted(
