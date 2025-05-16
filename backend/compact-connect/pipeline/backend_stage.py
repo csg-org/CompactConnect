@@ -4,6 +4,7 @@ from constructs import Construct
 from stacks.api_stack import ApiStack
 from stacks.ingest_stack import IngestStack
 from stacks.managed_login_stack import ManagedLoginStack
+from stacks.notification_stack import NotificationStack
 from stacks.persistent_stack import PersistentStack
 from stacks.reporting_stack import ReportingStack
 from stacks.transaction_monitoring_stack import TransactionMonitoringStack
@@ -59,6 +60,16 @@ class BackendStage(Stage):
         self.api_stack = ApiStack(
             self,
             'APIStack',
+            env=environment,
+            environment_context=environment_context,
+            standard_tags=standard_tags,
+            environment_name=environment_name,
+            persistent_stack=self.persistent_stack,
+        )
+
+        self.notification_stack = NotificationStack(
+            self,
+            'NotificationStack',
             env=environment,
             environment_context=environment_context,
             standard_tags=standard_tags,

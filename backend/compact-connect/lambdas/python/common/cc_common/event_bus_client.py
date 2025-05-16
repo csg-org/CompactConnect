@@ -26,8 +26,6 @@ class EventBusClient:
         """
         Publish event to the event bus
         """
-        detail_to_publish = detail
-        detail_to_publish['eventTime'] = (config.current_standard_datetime.isoformat(),)
 
         event_entry = {
             'Source': source,

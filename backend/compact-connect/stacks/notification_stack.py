@@ -5,11 +5,12 @@ import os
 from aws_cdk import Duration
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Metric, Stats, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
-from aws_cdk.aws_events import EventPattern, Rule
+from aws_cdk.aws_events import EventPattern, Rule, IEventBus
 from aws_cdk.aws_events_targets import SqsQueue
 from cdk_nag import NagSuppressions
 from common_constructs.python_function import PythonFunction
 from common_constructs.queued_lambda_processor import QueuedLambdaProcessor
+from common_constructs.ssm_parameter_utility import SSMParameterUtility
 from common_constructs.stack import AppStack
 from constructs import Construct
 
@@ -27,9 +28,14 @@ class NotificationStack(AppStack):
         **kwargs,
     ):
         super().__init__(scope, construct_id, environment_name=environment_name, **kwargs)
-        self._add_privilege_purchase_notification_chain(persistent_stack)
+        data_event_bus = SSMParameterUtility.load_data_event_bus_from_ssm_parameter(self)
+        self._add_privilege_purchase_notification_chain(persistent_stack, data_event_bus)
 
-    def _add_privilege_purchase_notification_chain(self, persistent_stack: ps.PersistentStack):
+    def _add_privilege_purchase_notification_chain(
+            self,
+            persistent_stack: ps.PersistentStack,
+            data_event_bus: IEventBus
+    ):
         """Add the privilege deactivation notification lambda and event rules."""
         # Create the Lambda function handler for privilege purchase messages
         privilege_purchase_notification_handler = PythonFunction(
@@ -42,6 +48,7 @@ class NotificationStack(AppStack):
             timeout=Duration.minutes(1),
             environment={
                 'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
+                'EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME': persistent_stack.email_notification_service_lambda.function_name,  # noqa: E501 line-too-long
                 **self.common_env_vars,
             },
             alarm_topic=persistent_stack.alarm_topic,
@@ -98,7 +105,7 @@ class NotificationStack(AppStack):
         privilege_purchase_rule = Rule(
             self,
             'PrivilegePurchaseEventRule',
-            event_bus=persistent_stack.data_event_bus,
+            event_bus=data_event_bus,
             event_pattern=EventPattern(detail_type=['privilege.purchase']),
             targets=[SqsQueue(processor.queue, dead_letter_queue=processor.dlq)],
         )
@@ -111,7 +118,7 @@ class NotificationStack(AppStack):
                 namespace='AWS/Events',
                 metric_name='FailedInvocations',
                 dimensions_map={
-                    'EventBusName': persistent_stack.data_event_bus.event_bus_name,
+                    'EventBusName': data_event_bus.event_bus_name,
                     'RuleName': privilege_purchase_rule.rule_name,
                 },
                 period=Duration.minutes(5),
