@@ -7,6 +7,7 @@ from cc_common.data_model.schema.home_jurisdiction.record import (
     ProviderHomeJurisdictionSelectionRecordSchema,
 )
 
+
 # TODO - deprecated, this will be removed once the frontend is updated to # noqa: FIX002
 #  read the 'currentHomeJurisdiction' field on the provider record as part of https://github.com/csg-org/CompactConnect/issues/763
 class HomeJurisdictionSelectionData(CCDataClass):
