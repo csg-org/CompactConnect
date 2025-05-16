@@ -1,7 +1,6 @@
 import json
 import logging
 import os
-from decimal import Decimal
 
 import boto3
 from boto3.dynamodb.types import TypeDeserializer
@@ -88,15 +87,11 @@ class TstFunction(TstLambdas):
         cognito_client = boto3.client('cognito-idp')
         cognito_client.delete_user_pool(UserPoolId=self._user_pool_id)
 
-    def _load_test_jurisdiction(self, jurisdiction_overrides: dict):
-        with open('../common/tests/resources/dynamo/jurisdiction.json') as f:
-            record = json.load(f, parse_float=Decimal)
+    def _load_compact_active_member_jurisdictions(self, compact: str = 'aslp'):
+        """Load active member jurisdictions using the TestDataGenerator."""
+        from common_test.test_data_generator import TestDataGenerator
 
-        record.update(jurisdiction_overrides)
-        self.config.compact_configuration_table.put_item(Item=record)
-
-        # return record for optional usage in tests
-        return record
+        TestDataGenerator.put_compact_active_member_jurisdictions(compact)
 
     def _load_user_data(self, second_jurisdiction: str = None) -> str:
         with open('../common/tests/resources/dynamo/user.json') as f:

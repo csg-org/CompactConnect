@@ -39,7 +39,7 @@ class TestGetPurchasePrivilegeOptions(TstFunction):
             expected_jurisdiction_option.pop('jurisdictionAdverseActionsNotificationEmails')
             expected_jurisdiction_option.pop('jurisdictionSummaryReportNotificationEmails')
             # we also do not return the registration toggle
-            expected_jurisdiction_option.pop('licenseeRegistrationEnabledForEnvironments')
+            expected_jurisdiction_option.pop('licenseeRegistrationEnabled')
             # remove date fields as they are not needed in the response
             expected_jurisdiction_option.pop('dateOfUpdate')
 

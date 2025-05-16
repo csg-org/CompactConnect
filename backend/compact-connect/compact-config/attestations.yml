@@ -1,21 +1,3 @@
-# PLACEHOLDER DATA, NOT FINAL CONFIGURATION.
-compactAbbr: "aslp"
-compactName: "Audiology and Speech Language Pathology"
-compactCommissionFee:
-    feeType: "FLAT_RATE"
-    feeAmount: 3.50
-transactionFeeConfiguration:
-    licenseeCharges:
-        active: true
-        chargeType: "FLAT_FEE_PER_PRIVILEGE"
-        chargeAmount: 3.00
-compactOperationsTeamEmails: []
-compactAdverseActionsNotificationEmails: []
-compactSummaryReportNotificationEmails: []
-licenseeRegistrationEnabledForEnvironments: ["test"]
-
-activeEnvironments: ["test", "beta"]
-
 attestations:
   - attestationId: "jurisprudence-confirmation"
     displayName: "Jurisprudence Confirmation."

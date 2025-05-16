@@ -4,25 +4,25 @@
 #
 #    pip-compile --no-emit-index-url compact-connect/requirements-dev.in
 #
-boolean-py==4.0
+boolean-py==5.0
     # via license-expression
 build==1.2.2.post1
     # via pip-tools
-cachecontrol[filecache]==0.14.2
+cachecontrol[filecache]==0.14.3
     # via
     #   cachecontrol
     #   pip-audit
-certifi==2025.1.31
+certifi==2025.4.26
     # via requests
-charset-normalizer==3.4.1
+charset-normalizer==3.4.2
     # via requests
-click==8.1.8
+click==8.2.0
     # via pip-tools
-coverage[toml]==7.7.1
+coverage[toml]==7.8.0
     # via
     #   -r compact-connect/requirements-dev.in
     #   pytest-cov
-cyclonedx-python-lib==8.9.0
+cyclonedx-python-lib==9.1.0
     # via pip-audit
 defusedxml==0.7.1
     # via py-serializable
@@ -44,7 +44,7 @@ msgpack==1.1.0
     # via cachecontrol
 packageurl-python==0.16.0
     # via cyclonedx-python-lib
-packaging==24.2
+packaging==25.0
     # via
     #   build
     #   pip-audit
@@ -52,21 +52,21 @@ packaging==24.2
     #   pytest
 pip-api==0.0.34
     # via pip-audit
-pip-audit==2.8.0
+pip-audit==2.9.0
     # via -r compact-connect/requirements-dev.in
 pip-requirements-parser==32.0.1
     # via pip-audit
 pip-tools==7.4.1
     # via -r compact-connect/requirements-dev.in
-platformdirs==4.3.7
+platformdirs==4.3.8
     # via pip-audit
 pluggy==1.5.0
     # via pytest
-py-serializable==1.1.2
+py-serializable==2.0.0
     # via cyclonedx-python-lib
 pygments==2.19.1
     # via rich
-pyparsing==3.2.2
+pyparsing==3.2.3
     # via pip-requirements-parser
 pyproject-hooks==1.2.0
     # via
@@ -76,7 +76,7 @@ pytest==8.3.5
     # via
     #   -r compact-connect/requirements-dev.in
     #   pytest-cov
-pytest-cov==6.0.0
+pytest-cov==6.1.1
     # via -r compact-connect/requirements-dev.in
 python-dateutil==2.9.0.post0
     # via faker
@@ -84,9 +84,9 @@ requests==2.32.3
     # via
     #   cachecontrol
     #   pip-audit
-rich==13.9.4
+rich==14.0.0
     # via pip-audit
-ruff==0.11.2
+ruff==0.11.9
     # via -r compact-connect/requirements-dev.in
 six==1.17.0
     # via python-dateutil
@@ -94,7 +94,7 @@ sortedcontainers==2.4.0
     # via cyclonedx-python-lib
 toml==0.10.2
     # via pip-audit
-urllib3==2.3.0
+urllib3==2.4.0
     # via requests
 wheel==0.45.1
     # via pip-tools

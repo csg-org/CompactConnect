@@ -8,8 +8,9 @@ from zipfile import ZIP_DEFLATED, ZipFile
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
-from cc_common.data_model.schema.compact import COMPACT_TYPE, Compact
-from cc_common.data_model.schema.jurisdiction import JURISDICTION_TYPE
+from cc_common.data_model.schema.compact import Compact
+from cc_common.data_model.schema.compact.common import COMPACT_TYPE
+from cc_common.data_model.schema.jurisdiction.common import JURISDICTION_TYPE
 from cc_common.exceptions import CCInternalException, CCNotFoundException
 
 SETTLEMENT_ERROR_STATE = 'settlementError'

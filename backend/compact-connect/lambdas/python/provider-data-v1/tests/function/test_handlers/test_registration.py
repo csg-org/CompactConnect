@@ -32,7 +32,7 @@ def generate_default_compact_config_overrides():
         'sk': f'{TEST_COMPACT_ABBR}#CONFIGURATION',
         'compactAbbr': TEST_COMPACT_ABBR,
         'compactName': TEST_COMPACT_NAME,
-        'licenseeRegistrationEnabledForEnvironments': ['test'],
+        'licenseeRegistrationEnabled': True,
     }
 
 
@@ -43,7 +43,7 @@ def generate_default_jurisdiction_config_overrides():
         'compact': TEST_COMPACT_ABBR,
         'jurisdictionName': MOCK_JURISDICTION_NAME,
         'postalAbbreviation': MOCK_JURISDICTION_POSTAL_ABBR,
-        'licenseeRegistrationEnabledForEnvironments': ['test'],
+        'licenseeRegistrationEnabled': True,
     }
 
 
@@ -153,7 +153,7 @@ class TestProviderRegistration(TstFunction):
     def test_registration_returns_400_if_compact_is_not_enabled_for_registration(self, mock_verify_recaptcha):
         compact_config_overrides = generate_default_compact_config_overrides()
         # in this case, no environments are enabled for registration
-        compact_config_overrides.update({'licenseeRegistrationEnabledForEnvironments': []})
+        compact_config_overrides.update({'licenseeRegistrationEnabled': False})
         self._load_compact_configuration(overrides=compact_config_overrides)
         mock_verify_recaptcha.return_value = True
         from handlers.registration import register_provider
@@ -172,7 +172,7 @@ class TestProviderRegistration(TstFunction):
     def test_registration_returns_400_if_jurisdiction_is_not_enabled_for_registration(self, mock_verify_recaptcha):
         jurisdiction_config_overrides = generate_default_jurisdiction_config_overrides()
         # in this case, no environments are enabled for registration
-        jurisdiction_config_overrides.update({'licenseeRegistrationEnabledForEnvironments': []})
+        jurisdiction_config_overrides.update({'licenseeRegistrationEnabled': False})
         self._load_jurisdiction_configuration(overrides=jurisdiction_config_overrides)
         mock_verify_recaptcha.return_value = True
         from handlers.registration import register_provider

@@ -289,19 +289,6 @@ export const SAMPLE_JURISDICTION_CONFIGURATION = {
             }
         }
     },
-    'militaryDiscount': {
-        'M': {
-            'active': {
-                'BOOL': true
-            },
-            'discountAmount': {
-                'N': '10'
-            },
-            'discountType': {
-                'S': 'FLAT_RATE'
-            }
-        }
-    },
     'postalAbbreviation': {
         'S': 'oh'
     },
@@ -331,11 +318,6 @@ export const SAMPLE_UNMARSHALLED_JURISDICTION_CONFIGURATION = {
     'jurisdictionSummaryReportNotificationEmails': [],
     'jurisprudenceRequirements': {
         'required': true
-    },
-    'militaryDiscount': {
-        'active': true,
-        'discountAmount': '10',
-        'discountType': 'FLAT_RATE'
     },
     'postalAbbreviation': 'oh',
     'type': 'jurisdiction',

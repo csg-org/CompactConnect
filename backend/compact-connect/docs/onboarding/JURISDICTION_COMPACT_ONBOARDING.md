@@ -1,4 +1,4 @@
-# Jurisdiction Onboarding for Compact Connect
+# Jurisdiction and Compact Onboarding for Compact Connect
 
 Before a jurisdiction (i.e. state) can be onboarded to the Compact Connect system, there is certain information that
 must be provided for that jurisdiction. This document is intended to be referenced by State IT staff/CSG maintainers
@@ -6,274 +6,106 @@ that will need to assist with onboarding new jurisdictions or compacts into the 
 that is required and how that information is to be defined in the system. The following steps must be taken to onboard
 a jurisdiction to the Compact Connect system:
 
-1. Decide Jurisdiction Fee for a Compact Privilege
-2. Determine Contact Details for System Notifications
-3. Ensure Jurisdiction License Names and Adverse Actions are compatible with System
-4. Determine Jurisprudence Requirements
-5. Determine Active Development Environments for Jurisdiction
-6. Add Jurisdiction Configuration File to the System
-7. Add Global Compact Configuration File to the System
+## Inviting users to the system
+Compact Administrators can invite state administrators to Compact Connect by creating user accounts for them through the administrative interface. The process works as follows:
 
-## Deciding Jurisdiction Fee for a Compact Privilege
-The first step in onboarding a jurisdiction to the Compact Connect system is to decide on the fee that the jurisdiction
-will charge for a compact privilege. The value must be defined as part of the configuration file under the following field.
-```
-jurisdictionFee: number
-```
+1. The Compact Administrator logs into the Compact Connect system and navigates to the User Management section.
+2. They create a new user account for the state administrator, specifying their email address, name, and appropriate jurisdiction-level permissions.
+3. Upon creation, the system automatically sends an email to the state administrator containing temporary credentials (username and temporary password).
+4. The state administrator uses these temporary credentials to log in to Compact Connect for the first time.
+5. During the first login, the system prompts the state administrator to set a permanent password.
+6. Once logged in, state administrators can access the settings panel (the cog icon) and set the needed configuration as described below.
 
-### Decide Military Discount
-The jurisdiction must also decide if they will offer a military discount for military affiliated licensees.
-If they choose to do so, that discount amount must be defined. If you add the 'militaryDiscount' field to the
-configuration file, the following fields must be defined:
-```
-militaryDiscount:
-    discountType: "FLAT_RATE" # Currently only "FLAT_RATE" type is supported.
-    active: true              # Determines if the discount is active. Does NOT default to false.
-    discountAmount: <number>  # This value will subtracted from the jurisdiction fee.
-```
+## Jurisdiction Onboarding Overview
 
-## Determine Contact Details for System Notifications
-The jurisdiction must provide contact details for the following notifications:
+Before a jurisdiction (i.e. state) can be onboarded to the Compact Connect system, the following information must be provided and configured through the Compact Connect UI:
 
-1. Operations Team Notifications
-2. Adverse Actions Notifications
-3. Summary Report Notifications
+1. Jurisdiction Fee for Compact Privileges
+2. Contact Details for System Notifications
+3. Jurisprudence Requirements
+4. Licensee Registration Settings
 
-The following subsections detail the information that must be provided for each notification.
+These settings are managed by jurisdiction administrators through the Compact Connect administrative interface.
 
-### Operations Team Notifications
-The jurisdiction must provide an email address for the operations team that will be responsible for handling support
-notifications. This can include notifications for invalid data that a jurisdiction has uploaded, or any other issues that
-may arise.
+### Jurisdiction Fee for a Compact Privilege
 
-NOTE: While the system supports multiple email addresses, jurisdictions should be encouraged to utilize a distribution
-list that end users can subscribe to. This gives them the ability to add or remove users from the list as needed
-without requiring a change to the configuration file.
+Jurisdiction administrators must set the fee that the jurisdiction will charge for a compact privilege. This is configured in the Jurisdiction Settings section of the Compact Connect UI. This is set per license type offered by the compact.
 
-The email addresses must be defined as part of the configuration file under the following field.
-```
-jurisdictionOperationsTeamEmails: ["<email address>"]
-```
+#### Military Rate Configuration
 
-### Adverse Actions Notifications
-The jurisdiction must provide an email address for the adverse actions team that will be responsible for handling notifications
-related to adverse actions. This can include notifications for licensees that have had their licenses revoked or suspended.
+Jurisdictions may offer a reduced rate for military-affiliated licensees. If enabled, the jurisdiction can specify:
+- Military rate amount (a special fixed price for military members)
 
-NOTE: While the system supports multiple email addresses, jurisdictions should be encouraged to utilize a distribution
-list that end users can subscribe to. This gives them the ability to add or remove users from the list as needed
-without requiring a change to the configuration file.
+### Contact Details for System Notifications
 
-The email address must be defined as part of the configuration file under the following field.
-```
-jurisdictionAdverseActionsNotificationEmails: ["<email address>"]
-```
+Both jurisdiction and compact administrators must provide contact details for system notifications:
 
-### Summary Report Notifications
-The jurisdiction must provide an email address for receiving summary reports that will be generated by the system periodically.
+1. **Operations Team Notifications**  
+   Email addresses for the operations team responsible for handling support notifications.
 
-NOTE: While the system supports multiple email addresses, jurisdictions should be encouraged to utilize a distribution
-list that end users can subscribe to. This gives them the ability to add or remove users from the list as needed
-without requiring a change to the configuration file.
+2. **Adverse Actions Notifications**  
+   Email addresses for the team responsible for handling notifications related to adverse actions. Notifications will be sent whenever a license or privilege within the associated jurisdiction has an encumbrance placed on it.
 
-This email address must be defined as part of the configuration file under the following field.
-```
-jurisdictionSummaryReportNotificationEmails: ["<email address>"]
-```
+3. **Summary Report Notifications**  
+   Email addresses for receiving periodic summary reports generated by the system.
 
-## Ensure Jurisdiction License Names and Adverse Actions are compatible with System
+> **Recommendation**: While the system supports multiple email addresses for each notification type, we recommend using distribution lists that users can subscribe to or unsubscribe from without requiring configuration changes.
 
-### Translate License Names
-Each compact supports a specific set of license types, as defined under the `license_types` field in the [`cdk.json`](../../cdk.json) file.
-As part of onboarding, the jurisdiction is responsible for translating their license names to correlate with the names
-defined for the compact.
+### Jurisprudence Requirements
 
-### Translate Adverse Actions
-In addition to license names, jurisdictions will be responsible for translating their jurisdiction specific
-adverse action types for system recognized types. Currently, these have yet to be defined, but will be in the future.
+Jurisdictions must indicate whether they have jurisprudence requirements for licensees (assessment of knowledge of laws and rules governing practice). Jurisdictions may also provide an optional link to a website where these requirements are defined. This setting is configured through the Jurisdiction Settings interface.
 
-## Determine Jurisprudence Requirements
-The jurisdiction must notify the commission as to whether or not there are jurisprudence requirements for licensees
-in a jurisdiction (i.e. an assessment of an individual's knowledge of the laws and rules governing the practice of the
-medical field related to that license). If jurisprudence requirements exist, this must be defined as part of the
-configuration file under the following field.
-```
-jurisprudenceRequirements:
-    required: true
-```
+### Licensee Registration Settings
 
+Both compact and jurisdiction administrators can configure whether licensee registration is enabled for their respective entities. Once a compact or jurisdiction has enabled registration for licensees, they cannot disable this setting. 
 
-## Determine Active Development Environments for Jurisdiction
-When a jurisdiction is first being onboarded to the system, they may only want to be active in certain development
-environments.
-The following environment names are supported in the list:
-```
-test, prod
-```
+## Compact Onboarding Overview
 
-In order for a jurisdiction to be active in a specific environment, you must define the list of environments that the
-configuration should be deployed to under the following required field.
-```
-activeEnvironments: ["test"]
-```
+Similarly, for compact onboarding, compact administrators must configure:
 
-NOTE: for sandbox environments deployed locally, ALL defined compacts and jurisdictions will be deployed to
-the sandbox environment, regardless of the `activeEnvironments` list. This is to ensure that all configurations are
-available for testing purposes.
+1. Compact Commission Fee
+2. Optional Transaction Fee Configuration
+3. Contact Details for System Notifications
+4. Attestation Requirements
+5. Licensee Registration Settings
 
-## Add Jurisdiction Configuration File to the System
-Together, the above information constitutes the jurisdiction configuration file, which must be constructed in YAML
-format (see https://yaml.org/spec/1.2.2/). The file must be defined in the following format (unless otherwise noted,
-all fields are required):
+### Compact Commission Fee
 
-```
-jurisdictionName: "<jurisdiction name>"
-postalAbbreviation: "<jurisdiction abbreviation>"
-jurisdictionFee: <number>
-militaryDiscount:               # OPTIONAL - only if military discount is offered
-    active: true | false
-    discountType: "FLAT_RATE"
-    discountAmount: <number>
-jurisdictionOperationsTeamEmails: ["<email address>"]
-jurisdictionAdverseActionsNotificationEmails: ["<email address>"]
-jurisdictionSummaryReportNotificationEmails: ["<email address>"]
-jurisprudenceRequirements:
-    required: true | false
-activeEnvironments: ["sandbox", "test"]
-```
+The Compact Commission Fee is a standardized fee collected for every privilege purchase that goes to the compact organization to support their operations. This fee:
 
-These files are stored in the `compact-config` subdirectory under the `compact-connect` directory.
-The file system structure is as follows:
+- Is configured as a flat rate amount (e.g., $50)
+- Is added to the jurisdiction-specific fee for every privilege purchase
+- Is the same regardless of which jurisdiction the provider is purchasing a privilege for
 
-```
-compact-connect
-│
-└───compact-config
-    │   <compact-name>.yml
-    │
-    └───<compact-name ie aslp>
-        │   <jurisdiction-name>.yml
-        │   <jurisdiction-name>.yml
-```
+Compact administrators must set this fee through the Compact Settings section of the administrative interface.
 
-Note the jurisdiction configuration file name must be the name of the jurisdiction with '-'
-characters in place of spaces.
+### Optional Transaction Fee Configuration
 
+Each compact must decide if they want to charge licensees to absorb payment processor transaction fees:
 
-# Creating App Clients for Machine-to-Machine Authentication
-See [App Client Management for Staff Users](../../app_clients/README.md) for more information on how to create app clients for machine-to-machine authentication.
+1. **Licensee Charges** - Compacts can choose to charge licensees a fee to help cover transaction costs. This fee is applied once per privilege purchased.
 
-# Compact Onboarding for Compact Connect
+### Contact Details for System Notifications
 
-## Add Global Compact Configuration File to the System
-In addition to the jurisdiction configuration files, if a new compact is being added, a global compact configuration
-file must be added to the root of the `compact-config` directory. If it is not present for an associated directory of
-the same name, the deployment will fail. The compact file includes the following information (all fields are required
-unless otherwise specified):
-```
-compactAbbr: "<compact abbreviation ie aslp>"
-compactName: "<compact name ie Audiology and Speech Language Pathology>"
-compactCommissionFee:
-    feeType: "FLAT_RATE"                            # Currently only "FLAT_RATE" type is supported.
-    feeAmount: <number>                             # This value will be added to the jurisdiciton fee.
-transactionFeeConfiguration:                        # Optional: configuration for transaction fees
-    licenseeCharges:                               # Optional: How the compact wants to charge licensees to cover these fees
-        active: true|false                         # Whether the compact is charging licensees for transaction fees
-        chargeType: "FLAT_FEE_PER_PRIVILEGE"       # Currently only supporting FLAT_FEE_PER_PRIVILEGE
-        chargeAmount: <number>                     # The amount to charge per privilege purchased
-compactOperationsTeamEmails: ["<email address>"]
-compactAdverseActionsNotificationEmails: ["<email address>"]
-compactSummaryReportNotificationEmails: ["<email address>"]
-activeEnvironments: ["sandbox", "test"]
-attestations:                                       # Required attestations for the compact
-  - attestationId: "<id>"
-    displayName: "<name>"
-    description: "<description>"
-    text: "<attestation text>"
-    required: true|false
-    locale: "en"
-```
-At deploy time, if the environment name matches one of the files in the `activeEnvironments` list, these configuration
-files will be written to the database and accessible by the system.
+Both jurisdiction and compact administrators must provide contact details for system notifications:
 
-### Configure Transaction Fee Settings
-Each compact must decide if they want to charge licensees to absorb payment processor transaction fees. This includes the following fields:
+1. **Operations Team Notifications**  
+   Email addresses for the operations team responsible for handling support notifications.
 
-1. **Licensee Charges** - Compacts can choose to charge licensees a fee to help cover transaction costs:
-   - `active`: Whether to charge licensees a transaction fee
-   - `chargeType`: Currently only supports "FLAT_FEE_PER_PRIVILEGE"
-   - `chargeAmount`: The fixed amount to charge per privilege purchase
+2. **Adverse Actions Notifications**  
+   Email addresses for the team responsible for handling notifications related to adverse actions.
 
-Example configuration:
-```yaml
-transactionFeeConfiguration:
-    licenseeCharges:
-        active: true
-        chargeType: "FLAT_FEE_PER_PRIVILEGE"
-        chargeAmount: 3.00
-```
+3. **Summary Report Notifications**  
+   Email addresses for receiving periodic summary reports generated by the system.
 
-In this example:
-- The compact charges licensees a flat fee of $3.00 per privilege to help cover transaction fees
-
-Note: The `licenseeCharges` section is optional. If omitted, no transaction fees will be charged to licensees.
-
-### Configure Compact Attestations
-Each compact must define a set of attestations that providers must accept when purchasing privileges. Attestations are legally binding statements that providers must agree to, and they are versioned to ensure providers always see and accept the most current version. The attestations must be defined in the compact configuration file under the `attestations` field.
-
-The following attestations must be defined for each compact:
-
-1. **Jurisprudence Confirmation** (`jurisprudence-confirmation`)
-   - Confirms understanding that attestations are legally binding and false information may result in license/privilege loss
-
-2. **Scope of Practice** (`scope-of-practice-attestation`)
-   - Confirms understanding and agreement to abide by the state's scope of practice and applicable laws
-   - Acknowledges that violations may result in privilege revocation and two-year prohibition
-
-3. **Personal Information - Home State** (`personal-information-home-state-attestation`)
-   - Confirms residency in the declared home state
-   - Verifies personal and licensure information accuracy
-
-4. **Personal Information - Address** (`personal-information-address-attestation`)
-   - Confirms current address accuracy and consent to service of process
-   - Acknowledges requirement to notify Commission of address changes
-   - Confirms understanding of home state eligibility requirements
-
-5. **Discipline - No Current Encumbrance** (`discipline-no-current-encumbrance-attestation`)
-   - Confirms no current disciplinary restrictions on any state license
-   - Includes probation, supervision, program completion, and CE requirements
-
-6. **Discipline - No Prior Encumbrance** (`discipline-no-prior-encumbrance-attestation`)
-   - Confirms no disciplinary restrictions on any state license within the past two years
-
-7. **Provision of True Information** (`provision-of-true-information-attestation`)
-   - General attestation that all provided information is true and accurate
-
-8. **Not Under Investigation** (`not-under-investigation-attestation`)
-   - Confirms no current investigations by any board or regulatory body
-
-9. **Under Investigation** (`under-investigation-attestation`)
-   - Declares current investigation status
-   - Acknowledges that disciplinary action may result in privilege revocation
-
-10. **Military Affiliation** (`military-affiliation-confirmation-attestation`)
-    - Required only for providers with active military affiliation
-    - Confirms accuracy of uploaded military status documentation
-
-Each attestation in the configuration must include:
-```yaml
-attestations:
-  - attestationId: "<id>"           # Unique identifier for the attestation
-    displayName: "<name>"           # Human-readable name
-    description: "<description>"    # Brief description of the attestation's purpose
-    text: "<attestation text>"     # The full text of the attestation
-    required: true|false           # Whether the attestation is required
-    locale: "en"                   # Language code (currently only "en" supported)
-```
-
-The system automatically handles versioning of attestations. When the text, displayName, description, or required status of an attestation changes, the system will automatically increment the version number. Providers must always accept the latest version of each attestation when purchasing privileges.
+> **Recommendation**: While the system supports multiple email addresses for each notification type, we recommend using distribution lists that users can subscribe to or unsubscribe from without requiring configuration changes.
 
 ## Uploading Authorize.net API Keys
-Compact administrators can configure their Authorize.net payment processing credentials through the Compact Connect UI. These credentials are used to securely process payments for compact privilege applications. For detailed instructions on how to generate these keys in your Authorize.net account, please visit the [Authorize.net documentation](https://support.authorize.net/knowledgebase/Knowledgearticle/?code=000001271). Once these credentials have been generated, the compact admin can set up payment processing for your compact using the following steps:
+Compact administrators can configure their Authorize.net payment processing credentials through the Compact Connect UI. These 
+credentials are used to securely process payments for compact privilege applications. For detailed instructions on how to generate 
+these keys in your Authorize.net account, please visit the [Authorize.net documentation](https://support.authorize.net/knowledgebase/
+Knowledgearticle/?code=000001271). Once these credentials have been generated, the compact admin can set up payment processing for your 
+compact using the following steps:
 
 1. Log in to the Compact Connect UI as a compact administrator
 2. Navigate to the Compact Settings page (gear icon in the bottom left corner of the side navigation bar)
@@ -285,15 +117,9 @@ Compact administrators can configure their Authorize.net payment processing cred
 If the request is successful, payment processing will be enabled for your compact.
 
 **Important Security Notes:**
-- If you ever suspect your credentials have been compromised, generate new ones immediately in your Authorize.net account and update the credentials through the Compact Connect UI.
+- If your credentials are ever compromised, or you suspect they might have been compromised, generate new ones immediately in your Authorize.net account and update them through the Compact Connect UI.
 
-# Updating CDK Snapshot Tests to match Configuration Changes
-In order to ensure that the system is functioning as expected, we have tests in place to verify that the configuration
-files are being formatted correctly. We do this through 'Snapshot' tests, which are json files stored under the
-`tests/resources/snapshots` directory.
+## Access Management
 
-Whenever making changes to the configuration files which are active in the test or prod environments, you will need to
-update the snapshot to match the expected configuration. The simplest way to do this is to find the test in the
-`tests/unit` directory that is checking the snapshot labeled 'COMPACT_CONFIGURATION_UPLOADER_INPUT', and update the
-parameter 'overwrite_snapshot=' to 'True'. Rerun the tests to overwrite the snapshot with the updated configuration
-json content, then set the parameter back to 'False' to prevent accidental overwrites in the future.
+### Creating App Clients for Machine-to-Machine Authentication
+See [App Client Management for Staff Users](../../app_clients/README.md) for more information on how to create app clients for machine-to-machine authentication.
