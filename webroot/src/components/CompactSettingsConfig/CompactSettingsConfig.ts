@@ -6,17 +6,25 @@
 //
 
 import { Component, mixins, toNative } from 'vue-facing-decorator';
-import { reactive, computed, ComputedRef } from 'vue';
+import {
+    reactive,
+    computed,
+    ComputedRef,
+    nextTick
+} from 'vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import Card from '@components/Card/Card.vue';
 import InputText from '@components/Forms/InputText/InputText.vue';
 import InputEmailList from '@components/Forms/InputEmailList/InputEmailList.vue';
 import InputRadioGroup from '@components/Forms/InputRadioGroup/InputRadioGroup.vue';
+import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
+import Modal from '@components/Modal/Modal.vue';
 import MockPopulate from '@components/Forms/MockPopulate/MockPopulate.vue';
-import { CompactType } from '@models/Compact/Compact.model';
+import { CompactType, CompactConfig, FeeType } from '@models/Compact/Compact.model';
 import { StaffUser } from '@models/StaffUser/StaffUser.model';
 import { FormInput } from '@models/FormInput/FormInput.model';
+import { formatCurrencyInput, formatCurrencyBlur } from '@models/_formatters/currency';
 // import { dataApi } from '@network/data.api';
 import Joi from 'joi';
 
@@ -33,10 +41,18 @@ interface RegistrationEnabledOption {
         InputText,
         InputEmailList,
         InputRadioGroup,
+        InputButton,
         InputSubmit,
+        Modal,
     }
 })
 class CompactSettingsConfig extends mixins(MixinForm) {
+    //
+    // Data
+    //
+    isRegistrationEnabledInitialValue = false;
+    isConfirmConfigModalDisplayed = false;
+
     //
     // Lifecycle
     //
@@ -130,55 +146,17 @@ class CompactSettingsConfig extends mixins(MixinForm) {
         this.watchFormInputs(); // Important if you want automated form validation
     }
 
-    formatCurrencyInput(formInput: FormInput): void {
+    formatInput(formInput: FormInput): void {
         const { value } = formInput;
-        let [ dollars, cents ] = value.toString().split(/\.(.*)/s);
-        const hasDecimal = cents !== undefined;
-        let formatted = '';
-
-        // Get raw dollar & cent values
-        dollars = dollars.replace(/\D/g, '');
-        cents = (hasDecimal) ? cents.replace(/\D/g, '') : '';
-
-        // Prevent cents from having too many decimal places
-        if (cents.length > 2) {
-            cents = cents.slice(0, 2);
-        }
-
-        // Format with typing-in-progress allowances
-        if (dollars && hasDecimal) {
-            formatted = `${dollars}.${cents}`;
-        } else if (dollars) {
-            formatted = `${dollars}`;
-        } else if (cents) {
-            formatted = `0.${cents}`;
-        }
+        const formatted = formatCurrencyInput(value);
 
         // Update input value
         formInput.value = formatted;
     }
 
-    formatCurrencyBlur(formInput: FormInput, isOptional = false): void {
+    formatBlur(formInput: FormInput, isOptional = false): void {
         const { value } = formInput;
-        let [ dollars, cents ] = value.toString().split(/\.(.*)/s);
-        let formatted = '';
-
-        if (!value && isOptional) {
-            // Autofill if optional input is blank
-            dollars = '0';
-        } else if (cents?.length === 1) {
-            // Add trailing digit to cents if needed
-            cents += '0';
-        }
-
-        // Format with done-typing cleanups
-        if (dollars && cents) {
-            formatted = `${dollars}.${cents}`;
-        } else if (dollars) {
-            formatted = `${dollars}`;
-        } else if (cents) {
-            formatted = `0.${cents}`;
-        }
+        const formatted = formatCurrencyBlur(value, isOptional);
 
         // Update input value
         formInput.value = formatted;
@@ -187,55 +165,63 @@ class CompactSettingsConfig extends mixins(MixinForm) {
         formInput.validate();
     }
 
-    async handleSubmit(): Promise<void> {
+    async handleSubmit(isConfirmed = false): Promise<void> {
         this.populateOptionalMissing();
         this.validateAll({ asTouched: true });
 
         if (this.isFormValid) {
-            this.startFormLoading();
+            const { isRegistrationEnabled } = this.formValues;
 
-            // const compact = this.compactType || '';
-            const {
-                compactFee,
-                privilegeTransactionFee,
-                opsNotificationEmails,
-                adverseActionNotificationEmails,
-                summaryReportNotificationEmails,
-                isRegistrationEnabled,
-            } = this.formValues;
-            const payload = {
-                compactCommissionFee: {
-                    feeType: 'FLAT_RATE',
-                    feeAmount: Number(compactFee),
-                },
-                licenseeRegistrationEnabled: isRegistrationEnabled,
-                compactOperationsTeamEmails: opsNotificationEmails,
-                compactAdverseActionsNotificationEmails: adverseActionNotificationEmails,
-                compactSummaryReportNotificationEmails: summaryReportNotificationEmails,
-                transactionFeeConfiguration: {
-                    licenseeCharges: {
-                        active: true,
-                        chargeType: 'FLAT_FEE_PER_PRIVILEGE',
-                        chargeAmount: Number(privilegeTransactionFee),
-                    },
-                },
-            };
-
-            // @TODO
-            console.log('submit!');
-            console.log(JSON.stringify(payload, null, 2));
-            console.log('');
-            await new Promise((resolve) => setTimeout(() => { resolve(true); }, 500));
-            // await dataApi.updateCompactConfig(compact, payload).catch((err) => {
-            //     this.setError(err.message);
-            // });
-
-            if (!this.isFormError) {
-                this.isFormSuccessful = true;
-                this.updateFormSubmitSuccess(this.$t('compact.saveSuccessfulCompact'));
+            if (isRegistrationEnabled && !this.isRegistrationEnabledInitialValue && !isConfirmed) {
+                this.openConfirmConfigModal();
+            } else {
+                this.startFormLoading();
+                await this.processConfigUpdate();
+                this.endFormLoading();
             }
+        }
+    }
 
-            this.endFormLoading();
+    async processConfigUpdate(): Promise<void> {
+        const compact = this.compactType || '';
+        const {
+            compactFee,
+            privilegeTransactionFee,
+            opsNotificationEmails,
+            adverseActionNotificationEmails,
+            summaryReportNotificationEmails,
+            isRegistrationEnabled,
+        } = this.formValues;
+        const payload: CompactConfig = {
+            compactCommissionFee: {
+                feeType: FeeType.FLAT_RATE,
+                feeAmount: Number(compactFee),
+            },
+            licenseeRegistrationEnabled: isRegistrationEnabled,
+            compactOperationsTeamEmails: opsNotificationEmails,
+            compactAdverseActionsNotificationEmails: adverseActionNotificationEmails,
+            compactSummaryReportNotificationEmails: summaryReportNotificationEmails,
+            transactionFeeConfiguration: {
+                licenseeCharges: {
+                    active: true,
+                    chargeType: FeeType.FLAT_FEE_PER_PRIVILEGE,
+                    chargeAmount: Number(privilegeTransactionFee),
+                },
+            },
+        };
+
+        // @TODO
+        console.log(`submit for ${compact}`);
+        console.log(JSON.stringify(payload, null, 2));
+        console.log('');
+        await new Promise((resolve) => setTimeout(() => { resolve(true); }, 500));
+        // await dataApi.updateCompactConfig(compact, payload).catch((err) => {
+        //     this.setError(err.message);
+        // });
+
+        if (!this.isFormError) {
+            this.isFormSuccessful = true;
+            this.updateFormSubmitSuccess(this.$t('compact.saveSuccessfulCompact'));
         }
     }
 
@@ -254,6 +240,40 @@ class CompactSettingsConfig extends mixins(MixinForm) {
     populateOptionalMissing(): void {
         this.populateMissingPrivilegeTransactionFee();
         this.populateMissingRegistrationEnabled();
+    }
+
+    async openConfirmConfigModal(): Promise<void> {
+        this.isConfirmConfigModalDisplayed = true;
+        await nextTick();
+        document.getElementById('confirm-modal-cancel-button')?.focus();
+    }
+
+    async closeConfirmConfigModal(): Promise<void> {
+        this.isConfirmConfigModalDisplayed = false;
+        await nextTick();
+        document.getElementById(this.formData.submit.id)?.focus();
+    }
+
+    focusTrapConfirmConfigModal(event: KeyboardEvent): void {
+        const firstTabIndex = document.getElementById('confirm-modal-submit-button');
+        const lastTabIndex = document.getElementById('confirm-modal-cancel-button');
+
+        if (event.shiftKey) {
+            // shift + tab to last input
+            if (document.activeElement === firstTabIndex) {
+                lastTabIndex?.focus();
+                event.preventDefault();
+            }
+        } else if (document.activeElement === lastTabIndex) {
+            // Tab to first input
+            firstTabIndex?.focus();
+            event.preventDefault();
+        }
+    }
+
+    async submitConfirmConfigModal(): Promise<void> {
+        this.closeConfirmConfigModal();
+        await this.handleSubmit(true);
     }
 
     async mockPopulate(): Promise<void> {

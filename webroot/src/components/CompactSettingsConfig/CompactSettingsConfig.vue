@@ -7,21 +7,21 @@
 
 <template>
     <Card class="compact-config">
-        <form class="compact-config-form" @submit.prevent="handleSubmit">
+        <form class="compact-config-form" @submit.prevent="handleSubmit(false)">
             <div class="compact-config-form-container">
                 <h2 class="form-section-title fees">{{ $t('compact.privilegeFees') }}</h2>
                 <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
                 <InputText
                     :formInput="formData.compactFee"
                     class="form-row currency"
-                    @input="formatCurrencyInput(formData.compactFee)"
-                    @blur="formatCurrencyBlur(formData.compactFee)"
+                    @input="formatInput(formData.compactFee)"
+                    @blur="formatBlur(formData.compactFee)"
                 />
                 <InputText
                     :formInput="formData.privilegeTransactionFee"
                     class="form-row currency"
-                     @input="formatCurrencyInput(formData.privilegeTransactionFee)"
-                    @blur="formatCurrencyBlur(formData.privilegeTransactionFee, true)"
+                     @input="formatInput(formData.privilegeTransactionFee)"
+                    @blur="formatBlur(formData.privilegeTransactionFee, true)"
                 />
                 <h2 class="form-section-title notifications">{{ $t('compact.notifications') }}</h2>
                 <InputEmailList :formInput="formData.opsNotificationEmails" />
@@ -34,6 +34,7 @@
                     @blur="populateMissingRegistrationEnabled"
                 />
                 <InputSubmit
+                    id="compact-config-submit"
                     :formInput="formData.submit"
                     :label="submitLabel"
                     :isEnabled="!isFormLoading"
@@ -41,6 +42,41 @@
                 />
             </div>
         </form>
+        <TransitionGroup>
+            <Modal
+                v-if="isConfirmConfigModalDisplayed"
+                class="confirm-config-modal"
+                :title="$t('compact.confirmSaveCompactTitle')"
+                :showActions="false"
+                @keydown.tab="focusTrapConfirmConfigModal($event)"
+                @keyup.esc="closeConfirmConfigModal"
+            >
+                <template v-slot:content>
+                    <div class="modal-content confirm-modal-content">
+                        {{ $t('common.cannotBeUndone') }}
+                        <div class="action-button-row">
+                            <InputButton
+                                id="confirm-modal-submit-button"
+                                @click="submitConfirmConfigModal"
+                                class="action-button submit-button continue-button"
+                                :label="(isFormLoading)
+                                    ? $t('common.loading')
+                                    : $t('compact.confirmSaveCompactYes')"
+                                :isTransparent="true"
+                                :isEnabled="!isFormLoading"
+                            />
+                            <InputButton
+                                id="confirm-modal-cancel-button"
+                                class="action-button cancel-button"
+                                :label="$t('common.cancel')"
+                                :isWarning="true"
+                                :onClick="closeConfirmConfigModal"
+                            />
+                        </div>
+                    </div>
+                </template>
+            </Modal>
+        </TransitionGroup>
     </Card>
 </template>
 

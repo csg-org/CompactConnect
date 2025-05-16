@@ -70,6 +70,7 @@
         "ethnicity": "Ethnicity",
         "welcome": "Welcome",
         "finish": "Finish",
+        "cannotBeUndone": "This action cannot be undone",
         "formValidationErrorMessage": "Please correct the errors on the form shown in red and check the box acknowledging no refunds",
         "daysOfTheWeek": {
             "monday": {
@@ -482,6 +483,8 @@
         "licenseRegistrationTitle": "Live status",
         "licenseRegistrationEnabled": "Is license registration enabled?",
         "licenseRegistrationEnabledSubtext": "This enables live status for purchasing privileges, and <em>this action is irreversible.</em>",
+        "confirmSaveCompactTitle": "Are you sure you want to mark this state as live?",
+        "confirmSaveCompactYes": "Yes, mark as live",
         "saveSuccessfulCompact": "Compact changes saved successfully"
     },
     "stateUpload": {

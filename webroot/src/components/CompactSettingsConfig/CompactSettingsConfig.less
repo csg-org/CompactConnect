@@ -20,6 +20,60 @@
         }
     }
 
+    .confirm-config-modal {
+        :deep(.modal-container) {
+            width: 95%;
+            max-width: 60rem;
+            padding: 2rem;
+
+            @media @tabletWidth {
+                padding: 4rem;
+            }
+
+            .modal-content {
+                padding-top: 0.6rem;
+
+                .modal-error {
+                    margin-top: 2.4rem;
+                    color: @midRed;
+                    text-align: right;
+                }
+
+                .action-button-row {
+                    display: flex;
+                    flex-direction: column;
+                    margin-top: 2rem;
+
+                    @media @desktopWidth {
+                        flex-direction: row;
+                        flex-wrap: wrap;
+                        justify-content: flex-end;
+                        margin-top: 4rem;
+                    }
+
+                    .action-button {
+                        margin-bottom: 1rem;
+
+                        @media @desktopWidth {
+                            &:not(:first-child) {
+                                margin-left: 2.4rem;
+                            }
+                        }
+
+                        .input-button,
+                        .input-submit {
+                            width: 100%;
+
+                            @media @desktopWidth {
+                                width: auto;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     .form-row {
         flex-direction: row;
         flex-wrap: wrap;

@@ -25,6 +25,29 @@ export interface PaymentProcessorConfig {
     processor: string;
 }
 
+export enum FeeType {
+    FLAT_RATE = 'FLAT_RATE',
+    FLAT_FEE_PER_PRIVILEGE = 'FLAT_FEE_PER_PRIVILEGE',
+}
+
+export interface CompactConfig {
+    compactCommissionFee: {
+        feeType: string,
+        feeAmount: number,
+    },
+    licenseeRegistrationEnabled: boolean,
+    compactOperationsTeamEmails: Array<string>,
+    compactAdverseActionsNotificationEmails: Array<string>,
+    compactSummaryReportNotificationEmails: Array<string>,
+    transactionFeeConfiguration: {
+        licenseeCharges: {
+            active: boolean,
+            chargeType: string,
+            chargeAmount: number,
+        },
+    },
+}
+
 export interface InterfaceCompactCreate {
     id?: string | null;
     type?: CompactType | null;

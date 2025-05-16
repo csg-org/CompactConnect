@@ -68,8 +68,9 @@
         "language": "Idioma",
         "gender": "Género",
         "race": "Raza",
-        "finish": "Termina",
         "ethnicity": "Origen étnico",
+        "finish": "Termina",
+        "cannotBeUndone": "Esta acción no se puede deshacer",
         "daysOfTheWeek": {
             "monday": {
                 "full": "Lunes",
@@ -481,6 +482,8 @@
         "licenseRegistrationTitle": "Estado en vivo",
         "licenseRegistrationEnabled": "¿Está habilitado el registro de licencia?",
         "licenseRegistrationEnabledSubtext": "Esto habilita el estado en vivo para los privilegios de compra, y <em>esta acción es irreversible.</em>",
+        "confirmSaveCompactTitle": "¿Estás seguro de que deseas marcar este estado como activo?",
+        "confirmSaveCompactYes": "Sí, marcar como en vivo",
         "saveSuccessfulCompact": "Los cambios compactos se guardaron correctamente"
     },
     "stateUpload": {
