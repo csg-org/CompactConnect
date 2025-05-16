@@ -84,6 +84,7 @@ class HomeJurisdictionChangeDeactivationStatusField(String):
             *args, validate=OneOf([entry.value for entry in HomeJurisdictionChangeDeactivationStatusEnum]), **kwargs
         )
 
+
 class CurrentHomeJurisdictionField(String):
     def __init__(self, *args, **kwargs):
         super().__init__(

@@ -95,11 +95,12 @@ def _put_provider_home_jurisdiction(event: dict, context: LambdaContext):  # noq
         'Handling request to update provider home jurisdiction',
         compact=compact,
         provider_id=provider_id,
-        new_jurisdiction=selected_jurisdiction
+        new_jurisdiction=selected_jurisdiction,
     )
 
     config.data_client.update_provider_home_state_jurisdiction(
-        compact=compact, provider_id=provider_id, selected_jurisdiction=selected_jurisdiction)
+        compact=compact, provider_id=provider_id, selected_jurisdiction=selected_jurisdiction
+    )
 
     return {'message': 'ok'}
 
