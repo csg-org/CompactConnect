@@ -1561,10 +1561,10 @@ class ApiModel:
     @property
     def put_compact_request_model(self) -> Model:
         """Return the compact configuration request model for POST /v1/compacts/{compact}"""
-        if hasattr(self.api, '_v1_post_compact_request_model'):
-            return self.api._v1_post_compact_request_model
+        if hasattr(self.api, '_v1_put_compact_request_model'):
+            return self.api._v1_put_compact_request_model
 
-        self.api._v1_post_compact_request_model = self.api.add_model(
+        self.api._v1_put_compact_request_model = self.api.add_model(
             'V1PutCompactRequestModel',
             description='Put compact configuration request model',
             schema=JsonSchema(
@@ -1645,7 +1645,7 @@ class ApiModel:
                 },
             ),
         )
-        return self.api._v1_post_compact_request_model
+        return self.api._v1_put_compact_request_model
 
     @property
     def get_jurisdiction_response_model(self) -> Model:
