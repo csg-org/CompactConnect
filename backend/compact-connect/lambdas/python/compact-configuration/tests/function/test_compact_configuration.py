@@ -97,7 +97,7 @@ class TestGetStaffUsersCompactJurisdictions(TstFunction):
 class TestGetPublicCompactJurisdictions(TstFunction):
     """Test suite for get compact jurisdiction endpoints."""
 
-    def test_get_compact_jurisdictions_returns_invalid_exception_if_invalid_http_methog(self):
+    def test_get_compact_jurisdictions_returns_invalid_exception_if_invalid_http_method(self):
         """Test getting an empty list if no jurisdictions configured."""
         from handlers.compact_configuration import compact_configuration_api_handler
 
@@ -552,7 +552,7 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
         )
 
     def test_put_jurisdiction_configuration_rejects_duplicate_license_type_abbreviation(self):
-        """Test putting a jurisdiction configuration with an invalid license type abbreviation is rejected."""
+        """Test putting a jurisdiction configuration with a duplicate license type is rejected."""
         from handlers.compact_configuration import compact_configuration_api_handler
 
         event = self._when_testing_invalid_privilege_fees(
@@ -573,7 +573,7 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
         )
 
     def test_put_jurisdiction_configuration_rejects_missing_license_type_abbreviation(self):
-        """Test putting a jurisdiction configuration with an invalid license type abbreviation is rejected."""
+        """Test putting a jurisdiction configuration with a missing license type abbreviation is rejected."""
         from handlers.compact_configuration import compact_configuration_api_handler
 
         event = self._when_testing_invalid_privilege_fees(

@@ -127,7 +127,6 @@ class TestAppClientYaml(unittest.TestCase):
             os.path.join(self.app_clients_dir, '*.yaml')
         )
 
-        # Skip the README or other non-app client files
         if not yaml_files:
             self.fail('No app client YAML files found to validate')
 
