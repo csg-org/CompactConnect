@@ -34,7 +34,7 @@ class TstLambdas(TestCase):
                 'LICENSE_PREPROCESSING_QUEUE_URL': 'license-preprocessing-queue-url',
                 'PROVIDER_USER_BUCKET_NAME': 'provider-user-bucket',
                 'COMPACTS': '["aslp", "octp", "coun"]',
-                'JURISDICTIONS': '["ne", "oh", "ky"]',
+                'JURISDICTIONS': '["ne", "oh", "ky", "az"]',
                 'LICENSE_TYPES': json.dumps(
                     {
                         'aslp': [

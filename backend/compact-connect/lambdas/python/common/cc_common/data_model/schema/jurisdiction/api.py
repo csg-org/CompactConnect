@@ -41,6 +41,7 @@ class JurisdictionOptionsResponseSchema(ForgivingSchema):
         JurisdictionJurisprudenceRequirementsResponseSchema(), required=True, allow_none=False
     )
 
+
 class CompactJurisdictionsStaffUsersResponseSchema(ForgivingSchema):
     """
     Used to enforce which fields are returned in jurisdiction objects for the

@@ -6,6 +6,8 @@ from cc_common.data_model.schema.base_record import BaseRecordSchema
 from cc_common.data_model.schema.fields import Compact, Jurisdiction
 
 
+# TODO - deprecated, this will be removed once the frontend is updated to # noqa: FIX002
+#  read the 'currentHomeJurisdiction' field on the provider record as part of https://github.com/csg-org/CompactConnect/issues/763
 @BaseRecordSchema.register_schema('homeJurisdictionSelection')
 class ProviderHomeJurisdictionSelectionRecordSchema(BaseRecordSchema):
     """Schema for records denoting the home jurisdiction of a provider"""
