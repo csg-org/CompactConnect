@@ -1207,3 +1207,43 @@ class TestPutProviderHomeJurisdiction(TstFunction):
         # we should not be updating the license jurisdiction or the data of expiration
         self.assertNotIn('licenseJurisdiction', update_data.updatedValues)
         self.assertNotIn('dateOfExpiration', update_data.updatedValues)
+
+    def test_put_provider_home_jurisdiction_removes_deactivated_status_from_privilege_if_user_moves_again_to_a_jurisdiction_with_a_license(
+            self,
+        ):
+            from cc_common.data_model.schema.privilege import PrivilegeData
+            from handlers.provider_users import provider_users_api_handler
+
+            (test_provider_record, test_current_license_record, test_privilege_record) = (
+                self._when_provider_has_one_license_and_privilege(privilege_jurisdiction=NEW_JURISDICTION)
+            )
+
+            # first move to a new jurisdiction where there is no license
+            # this should deactivated the privilege
+            event = self._when_testing_put_provider_home_jurisdiction(NEW_JURISDICTION, test_provider_record)
+
+            resp = provider_users_api_handler(event, self.mock_context)
+
+            self.assertEqual(200, resp['statusCode'])
+
+            # the privilege should be deactivated because there is no license in the new jurisdiction
+            stored_privilege_data = PrivilegeData.from_database_record(
+                self.test_data_generator.load_provider_data_record_from_database(test_privilege_record)
+            )
+            self.assertEqual('inactive', stored_privilege_data.status)
+            self.assertEqual('noLicenseInJurisdiction', stored_privilege_data.homeJurisdictionChangeDeactivationStatus)
+
+            # now the user moves back, this should reactive the privilege
+            event = self._when_testing_put_provider_home_jurisdiction(STARTING_JURISDICTION, test_provider_record)
+
+            resp = provider_users_api_handler(event, self.mock_context)
+
+            self.assertEqual(200, resp['statusCode'])
+
+            # the privilege should be reactivated
+            updated_privilege_data = PrivilegeData.from_database_record(
+                self.test_data_generator.load_provider_data_record_from_database(test_privilege_record)
+            )
+            self.assertEqual('active', updated_privilege_data.status)
+            self.assertNotIn('homeJurisdictionChangeDeactivationStatus', updated_privilege_data.to_dict())
+            

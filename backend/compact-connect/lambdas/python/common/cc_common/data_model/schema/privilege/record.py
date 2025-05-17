@@ -196,6 +196,8 @@ class PrivilegeUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin, ValidatesLi
     updatedValues = Nested(PrivilegeUpdatePreviousRecordSchema(partial=True), required=True, allow_none=False)
     # optional field that is only included if the update was a deactivation
     deactivationDetails = Nested(DeactivationDetailsSchema(), required=False, allow_none=False)
+    # List of field names that were present in the previous record but removed in the update
+    removedValues = List(String(), required=False, allow_none=False)
 
     @post_dump  # Must be _post_ dump so we have values that are more easily hashed
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
