@@ -408,8 +408,6 @@ export abstract class BaseEmailService {
         };
 
         report['root']['data']['childrenIds'].push(containerBlockId);
-        report['root']['data']['childrenIds'].push(keyBlockId);
-        report['root']['data']['childrenIds'].push(valueBlockId);
     }
 
     protected insertTwoColumnTable(report: TReaderDocument, title: string, rows: { left: string, right: string }[]) {
@@ -422,7 +420,7 @@ export abstract class BaseEmailService {
                 'style': {
                     'fontWeight': 'bold',
                     'padding': {
-                        'top': 16,
+                        'top': 24,
                         'bottom': 16,
                         'right': 24,
                         'left': 68
@@ -437,11 +435,17 @@ export abstract class BaseEmailService {
         report['root']['data']['childrenIds'].push(titleBlockId);
 
         rows.forEach((row) => {
-            this.insertTwoColumnRow(report, row.left, row.right, false);
+            this.insertTwoColumnRow(report, row.left, row.right, false, 6);
         });
     }
 
-    protected insertTwoColumnRow(report: TReaderDocument, leftContent: string, rightContent: string, isBold: boolean) {
+    protected insertTwoColumnRow(
+        report: TReaderDocument,
+        leftContent: string,
+        rightContent: string,
+        isBold: boolean,
+        bottomPadding: number
+    ) {
         const containerId = `block-${crypto.randomUUID()}`;
         const leftCellId = `block-${crypto.randomUUID()}`;
         const rightCellId = `block-${crypto.randomUUID()}`;
@@ -490,7 +494,7 @@ export abstract class BaseEmailService {
                 'style': {
                     'padding': {
                         'top': 0,
-                        'bottom': 0,
+                        'bottom': bottomPadding || 6,
                         'right': 44,
                         'left': 44
                     }
@@ -502,7 +506,7 @@ export abstract class BaseEmailService {
                         null
                     ],
                     'columnsCount': 2,
-                    'columnsGap': 16,
+                    'columnsGap': 10,
                     'columns': [
                         {
                             'childrenIds': [
@@ -532,8 +536,6 @@ export abstract class BaseEmailService {
         }
 
         report['root']['data']['childrenIds'].push(containerId);
-        report['root']['data']['childrenIds'].push(leftCellId);
-        report['root']['data']['childrenIds'].push(rightCellId);
     }
 
     protected insertMarkdownBody(report: TReaderDocument, bodyText: string) {

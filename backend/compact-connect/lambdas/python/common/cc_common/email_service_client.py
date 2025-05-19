@@ -209,7 +209,7 @@ class EmailServiceClient:
                 provider_email,
             ],
             'templateVariables': {
-                'transaction_date': transaction_date,
+                'transactionDate': transaction_date,
                 'privileges': privileges,
                 'totalCost': total_cost,
                 'costLineItems': cost_line_items,

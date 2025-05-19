@@ -344,6 +344,8 @@ class DataClient:
 
         license_jurisdiction = provider_record['licenseJurisdiction']
 
+        privileges = []
+
         try:
             # We'll collect all the record changes into a transaction to protect data consistency
             transactions = []
@@ -373,6 +375,12 @@ class DataClient:
                     license_jurisdiction=license_jurisdiction,
                     original_privilege=original_privilege,
                 )
+
+                privileges.append({
+                    'jurisdiction': postal_abbreviation,
+                    'licenseTypeAbbrev': self.config.license_type_abbreviations[compact][license_type],
+                    'privilegeId': privilege_record['privilegeId'],
+                })
 
                 # Create privilege update record if this is updating an existing privilege
                 if original_privilege:
@@ -469,6 +477,8 @@ class DataClient:
                 existing_privileges_for_license_type=existing_privileges_for_license,
             )
             raise CCAwsServiceException(message) from e
+
+        return privileges
 
     def _rollback_privilege_transactions(
         self,

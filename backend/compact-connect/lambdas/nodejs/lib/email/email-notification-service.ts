@@ -318,7 +318,7 @@ export class EmailNotificationService extends BaseEmailService {
 
         this.insertTwoColumnTable(emailContent, 'Cost breakdown', rows);
 
-        this.insertTwoColumnRow(emailContent, 'Total', totalCostDisplay, true);
+        this.insertTwoColumnRow(emailContent, 'Total', totalCostDisplay, true, 24);
 
         this.insertFooter(emailContent);
 

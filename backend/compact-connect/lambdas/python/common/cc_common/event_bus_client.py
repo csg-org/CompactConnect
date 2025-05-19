@@ -26,7 +26,6 @@ class EventBusClient:
         """
         Publish event to the event bus
         """
-
         event_entry = {
             'Source': source,
             'DetailType': detail_type,
