@@ -220,3 +220,14 @@ class PrivilegeUpdateData(CCDataClass):
     @deactivationDetails.setter
     def deactivationDetails(self, value: dict) -> None:
         self._data['deactivationDetails'] = value
+
+    @property
+    def removedValues(self) -> list[str] | None:
+        """
+        This property is only present if the update type is a deactivation.
+        """
+        return self._data.get('removedValues')
+
+    @removedValues.setter
+    def removedValues(self, value: list[str]) -> None:
+        self._data['removedValues'] = value
