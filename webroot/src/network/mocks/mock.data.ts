@@ -1776,7 +1776,7 @@ export const compactConfig = {
         feeType: 'FLAT_RATE',
         feeAmount: 10,
     },
-    licenseeRegistrationEnabled: true,
+    licenseeRegistrationEnabled: false,
     compactOperationsTeamEmails: [
         'ops@example.com',
     ],
@@ -1790,7 +1790,7 @@ export const compactConfig = {
         licenseeCharges: {
             active: true,
             chargeType: 'FLAT_FEE_PER_PRIVILEGE',
-            chargeAmount: 10,
+            chargeAmount: 5,
         },
     },
 };

@@ -111,10 +111,9 @@ class CompactSettingsConfig extends mixins(MixinForm) {
             this.loadingErrorMessage = err?.message || this.$t('serverErrors.networkError');
         });
 
+        this.initialCompactConfig = compactConfig;
+        this.isRegistrationEnabledInitialValue = this.initialCompactConfig?.licenseeRegistrationEnabled;
         this.isLoading = false;
-
-        // @TODO: Handle initial fetched compact config
-        console.log(compactConfig);
     }
 
     initFormInputs(): void {
@@ -124,12 +123,14 @@ class CompactSettingsConfig extends mixins(MixinForm) {
                 name: 'compact-fee',
                 label: computed(() => this.$t('compact.compactFee')),
                 validation: Joi.number().required().min(0).messages(this.joiMessages.currency),
+                value: this.initialCompactConfig?.compactCommissionFee?.feeAmount,
             }),
             privilegeTransactionFee: new FormInput({
                 id: 'privilege-transaction-fee',
                 name: 'privilege-transaction-fee',
                 label: computed(() => this.$t('compact.privilegeTransactionFee')),
                 validation: Joi.number().min(0).messages(this.joiMessages.currency),
+                value: this.initialCompactConfig?.transactionFeeConfiguration?.licenseeCharges?.chargeAmountX,
             }),
             opsNotificationEmails: new FormInput({
                 id: 'ops-notification-emails',
@@ -138,7 +139,7 @@ class CompactSettingsConfig extends mixins(MixinForm) {
                 labelSubtext: computed(() => this.$t('compact.opsNotificationEmailsSubtext')),
                 placeholder: computed(() => this.$t('compact.addEmails')),
                 validation: Joi.array().min(1).messages(this.joiMessages.array),
-                value: [] as Array<string>,
+                value: this.initialCompactConfig?.compactOperationsTeamEmails || [],
             }),
             adverseActionNotificationEmails: new FormInput({
                 id: 'adverse-action-notification-emails',
@@ -147,7 +148,7 @@ class CompactSettingsConfig extends mixins(MixinForm) {
                 labelSubtext: computed(() => this.$t('compact.adverseActionsNotificationEmailsSubtext')),
                 placeholder: computed(() => this.$t('compact.addEmails')),
                 validation: Joi.array().min(1).messages(this.joiMessages.array),
-                value: [] as Array<string>,
+                value: this.initialCompactConfig?.compactAdverseActionsNotificationEmails || [],
             }),
             summaryReportNotificationEmails: new FormInput({
                 id: 'summary-report-notification-emails',
@@ -156,7 +157,7 @@ class CompactSettingsConfig extends mixins(MixinForm) {
                 labelSubtext: computed(() => this.$t('compact.summaryReportEmailsSubtext')),
                 placeholder: computed(() => this.$t('compact.addEmails')),
                 validation: Joi.array().min(1).messages(this.joiMessages.array),
-                value: [] as Array<string>,
+                value: this.initialCompactConfig?.compactSummaryReportNotificationEmails || [],
             }),
             isRegistrationEnabled: new FormInput({
                 id: 'registration-enabled',
@@ -168,6 +169,8 @@ class CompactSettingsConfig extends mixins(MixinForm) {
                     { value: true, name: computed(() => this.$t('common.yes')) },
                     { value: false, name: computed(() => this.$t('common.no')) },
                 ] as Array<RegistrationEnabledOption>,
+                value: this.initialCompactConfig?.licenseeRegistrationEnabled || false,
+                isDisabled: computed(() => this.isRegistrationEnabledInitialValue),
             }),
             submit: new FormInput({
                 isSubmitInput: true,
@@ -228,7 +231,6 @@ class CompactSettingsConfig extends mixins(MixinForm) {
                 feeType: FeeType.FLAT_RATE,
                 feeAmount: Number(compactFee),
             },
-            licenseeRegistrationEnabled: isRegistrationEnabled,
             compactOperationsTeamEmails: opsNotificationEmails,
             compactAdverseActionsNotificationEmails: adverseActionNotificationEmails,
             compactSummaryReportNotificationEmails: summaryReportNotificationEmails,
@@ -241,16 +243,22 @@ class CompactSettingsConfig extends mixins(MixinForm) {
             },
         };
 
-        // @TODO
-        console.log(`submit for ${compact}`);
-        console.log(JSON.stringify(payload, null, 2));
-        console.log('');
-        await new Promise((resolve) => setTimeout(() => { resolve(true); }, 500));
-        // await dataApi.updateCompactConfig(compact, payload).catch((err) => {
-        //     this.setError(err.message);
-        // });
+        // Update the payload with compact-enabled selection if needed
+        if (!this.isRegistrationEnabledInitialValue) {
+            payload.licenseeRegistrationEnabled = isRegistrationEnabled;
+        }
 
+        // Call the server API to update
+        await dataApi.updateCompactConfig(compact, payload).catch((err) => {
+            this.setError(err.message);
+        });
+
+        // Handle success
         if (!this.isFormError) {
+            if (Object.prototype.hasOwnProperty.call(payload, 'licenseeRegistrationEnabled')) {
+                this.isRegistrationEnabledInitialValue = (payload.licenseeRegistrationEnabled as boolean);
+            }
+
             this.isFormSuccessful = true;
             this.updateFormSubmitSuccess(this.$t('compact.saveSuccessfulCompact'));
         }
@@ -310,10 +318,10 @@ class CompactSettingsConfig extends mixins(MixinForm) {
     async mockPopulate(): Promise<void> {
         this.populateFormInput(this.formData.compactFee, 5.55);
         this.populateFormInput(this.formData.privilegeTransactionFee, 5);
-        this.populateFormInput(this.formData.opsNotificationEmails, ['test@inspiringapps.com']);
-        this.populateFormInput(this.formData.adverseActionNotificationEmails, ['test@inspiringapps.com']);
-        this.populateFormInput(this.formData.summaryReportNotificationEmails, ['test@inspiringapps.com']);
-        this.populateFormInput(this.formData.isRegistrationEnabled, false);
+        this.populateFormInput(this.formData.opsNotificationEmails, ['ops@example.com']);
+        this.populateFormInput(this.formData.adverseActionNotificationEmails, ['adverse@example.com']);
+        this.populateFormInput(this.formData.summaryReportNotificationEmails, ['summary@example.com']);
+        this.populateFormInput(this.formData.isRegistrationEnabled, true);
     }
 
     //

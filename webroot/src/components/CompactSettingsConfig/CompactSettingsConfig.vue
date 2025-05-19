@@ -35,7 +35,7 @@
                 <h2 class="form-section-title live-status">{{ $t('compact.licenseRegistrationTitle') }}</h2>
                 <InputRadioGroup
                     :formInput="formData.isRegistrationEnabled"
-                    class="form-row"
+                    class="live-status-radio form-row"
                     @blur="populateMissingRegistrationEnabled"
                 />
                 <InputSubmit

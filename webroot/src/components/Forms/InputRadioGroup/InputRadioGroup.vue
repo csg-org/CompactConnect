@@ -9,7 +9,8 @@
     <div
         class="input-container radio-group-container"
         :class="{
-            'has-error': !!formInput.errorMessage
+            'has-error': !!formInput.errorMessage,
+            'disabled': formInput.isDisabled,
         }"
     >
         <div
@@ -18,7 +19,7 @@
         >
             <div>
                 {{ formInput.label }}
-                <span v-if="isRequired" class="required-indicator">*</span>
+                <span v-if="isRequired && !formInput.isDisabled" class="required-indicator">*</span>
             </div>
             <div
                 v-if="formInput.labelSubtext"
@@ -47,11 +48,13 @@
                     :aria-label="option.name"
                     @blur="blur(formInput)"
                     @change="input(formInput)"
+                    :disabled="formInput.isDisabled"
                 />
                 <label
                     :for="`${formInput.name}-${index + 1}`"
                     v-html="option.name"
                     class="radio-button-label"
+                    :class="{ 'disabled': formInput.isDisabled }"
                 >
                 </label>
             </div>
