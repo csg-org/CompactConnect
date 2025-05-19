@@ -67,7 +67,7 @@ class TestBackendPipeline(TstAppABC, TestCase):
             self.app.prod_backend_pipeline_stack.prod_stage.persistent_stack, domain_name='app.compactconnect.org'
         )
 
-    def _when_testing_compact_resource_servers(self, persistent_stack, environment_name):
+    def _when_testing_compact_resource_servers(self, persistent_stack):
         persistent_stack_template = Template.from_stack(persistent_stack)
 
         # Get the resource servers created in the persistent stack
@@ -75,7 +75,7 @@ class TestBackendPipeline(TstAppABC, TestCase):
         # We must confirm that these scopes are being explicitly created for each compact marked as active in the
         # environment, which are absolutely critical for the system to function as expected.
         self.assertEqual(
-            sorted(persistent_stack.get_list_of_active_compacts_for_environment(environment_name)),
+            sorted(persistent_stack.get_list_of_compact_abbreviations()),
             sorted(list(resource_servers.keys())),
         )
 
@@ -93,11 +93,11 @@ class TestBackendPipeline(TstAppABC, TestCase):
 
     def test_synth_generates_compact_resource_servers_with_expected_scopes_for_staff_users_beta_stage(self):
         persistent_stack = self.app.beta_backend_pipeline_stack.beta_backend_stage.persistent_stack
-        self._when_testing_compact_resource_servers(persistent_stack, environment_name='beta')
+        self._when_testing_compact_resource_servers(persistent_stack)
 
     def test_synth_generates_compact_resource_servers_with_expected_scopes_for_staff_users_prod_stage(self):
         persistent_stack = self.app.prod_backend_pipeline_stack.prod_stage.persistent_stack
-        self._when_testing_compact_resource_servers(persistent_stack, environment_name='prod')
+        self._when_testing_compact_resource_servers(persistent_stack)
 
     def _when_testing_jurisdiction_resource_servers(self, persistent_stack, snapshot_name, overwrite_snapshot):
         persistent_stack_template = Template.from_stack(persistent_stack)
@@ -130,27 +130,16 @@ class TestBackendPipeline(TstAppABC, TestCase):
             overwrite_snapshot=overwrite_snapshot,
         )
 
-    def test_synth_generates_jurisdiction_resource_servers_with_expected_scopes_for_staff_users_beta_stage(self):
+    def test_synth_generates_jurisdiction_resource_servers_with_expected_scopes_for_staff_users(self):
         """
         Test that the jurisdiction resource servers are created with the expected scopes
-        for the staff users in the test environment.
-        """
-        persistent_stack = self.app.beta_backend_pipeline_stack.beta_backend_stage.persistent_stack
-        self._when_testing_jurisdiction_resource_servers(
-            persistent_stack=persistent_stack,
-            snapshot_name='JURISDICTION_RESOURCE_SERVER_CONFIGURATION_BETA_ENV',
-            overwrite_snapshot=False,
-        )
-
-    def test_synth_generates_jurisdiction_resource_servers_with_expected_scopes_for_staff_users_prod_stage(self):
-        """
-        Test that the jurisdiction resource servers are created with the expected scopes
-        for the staff users in the prod environment.
+        for the staff users. This setup is now environment agnostic, so whatever is shown
+        in this snapshot will be applied to all environments.
         """
         persistent_stack = self.app.prod_backend_pipeline_stack.prod_stage.persistent_stack
         self._when_testing_jurisdiction_resource_servers(
             persistent_stack=persistent_stack,
-            snapshot_name='JURISDICTION_RESOURCE_SERVER_CONFIGURATION_PROD_ENV',
+            snapshot_name='JURISDICTION_RESOURCE_SERVER_CONFIGURATION',
             overwrite_snapshot=False,
         )
 
@@ -190,58 +179,6 @@ class TestBackendPipeline(TstAppABC, TestCase):
             props={'Properties': {'AllowedOAuthFlows': Match.array_with(['implicit'])}},
         )
         self.assertEqual(0, len(implicit_grant_clients))
-
-    def test_synth_generates_compact_configuration_upload_custom_resource_with_expected_beta_configuration_data(self):
-        persistent_stack = self.app.beta_backend_pipeline_stack.beta_backend_stage.persistent_stack
-        persistent_stack_template = Template.from_stack(persistent_stack)
-
-        # Ensure our provider user pool is created with expected custom attributes
-        compact_configuration_uploader_custom_resource = self.get_resource_properties_by_logical_id(
-            persistent_stack.get_logical_id(
-                persistent_stack.compact_configuration_upload.compact_configuration_uploader_custom_resource.node.default_child
-            ),
-            persistent_stack_template.find_resources('Custom::CompactConfigurationUpload'),
-        )
-        # we don't care about ordering of the jurisdictions, but the snapshot is sensitive to the order,
-        # so we ensure to sort the jurisdictions before comparing
-        sorted_compact_configuration = self._sort_compact_configuration_input(
-            json.loads(compact_configuration_uploader_custom_resource['compact_configuration'])
-        )
-
-        # Assert that the compact_configuration property is set to the expected values
-        # If the configuration values for any jurisdiction changes, the snapshot will need to be updated.
-        self.compare_snapshot(
-            actual=sorted_compact_configuration,
-            snapshot_name='COMPACT_CONFIGURATION_UPLOADER_BETA_ENV_INPUT',
-            overwrite_snapshot=False,
-        )
-
-    def test_prod_synth_generates_compact_configuration_upload_custom_resource_with_expected_prod_configuration_data(
-        self,
-    ):
-        persistent_stack = self.app.prod_backend_pipeline_stack.prod_stage.persistent_stack
-        persistent_stack_template = Template.from_stack(persistent_stack)
-
-        # Ensure our provider user pool is created with expected custom attributes
-        compact_configuration_uploader_custom_resource = self.get_resource_properties_by_logical_id(
-            persistent_stack.get_logical_id(
-                persistent_stack.compact_configuration_upload.compact_configuration_uploader_custom_resource.node.default_child
-            ),
-            persistent_stack_template.find_resources('Custom::CompactConfigurationUpload'),
-        )
-        # we don't care about ordering of the jurisdictions, but the snapshot is sensitive to the order,
-        # so we ensure to sort the jurisdictions before comparing
-        sorted_compact_configuration = self._sort_compact_configuration_input(
-            json.loads(compact_configuration_uploader_custom_resource['compact_configuration'])
-        )
-
-        # Assert that the compact_configuration property is set to the expected values
-        # If the configuration values for any jurisdiction changes, the snapshot will need to be updated.
-        self.compare_snapshot(
-            actual=sorted_compact_configuration,
-            snapshot_name='COMPACT_CONFIGURATION_UPLOADER_PROD_ENV_INPUT',
-            overwrite_snapshot=False,
-        )
 
     def test_synth_generates_python_lambda_layer_with_ssm_parameter(self):
         persistent_stack = self.app.test_backend_pipeline_stack.test_stage.persistent_stack
@@ -304,22 +241,6 @@ class TestBackendPipeline(TstAppABC, TestCase):
         self.assertEqual(
             'handlers.provider_s3_events.process_provider_s3_events', provider_users_bucket_handler['Handler']
         )
-
-    @staticmethod
-    def _sort_compact_configuration_input(compact_configuration_input: dict) -> dict:
-        """
-        Sort the compact configuration input by compact name and then by jurisdiction postal abbreviation.
-        This ensures the snapshot comparison is consistent.
-        """
-        compact_configuration_input['compacts'] = sorted(
-            compact_configuration_input['compacts'], key=lambda compact: compact['compactAbbr']
-        )
-        for compact_abbr, jurisdictions in compact_configuration_input['jurisdictions'].items():
-            compact_configuration_input['jurisdictions'][compact_abbr] = sorted(
-                jurisdictions, key=lambda jurisdiction: jurisdiction['postalAbbreviation']
-            )
-
-        return compact_configuration_input
 
 
 class TestBackendPipelineVulnerable(TestCase):
