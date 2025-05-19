@@ -18,6 +18,8 @@ class TestTransformations(TstFunction):
         database, then returned via the API. We will specifically test that chain, end to end, to make sure the
         transformations all happen as expected.
         """
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+
         # Before we get started, we'll pre-set the SSN/providerId association we expect
         with open('../common/tests/resources/dynamo/provider-ssn.json') as f:
             provider_ssn = json.load(f)
@@ -87,22 +89,25 @@ class TestTransformations(TstFunction):
             'Item'
         ]['providerId']
         self.assertEqual(expected_provider_id, provider_id)
-        provider_record = client.get_provider(compact='aslp', provider_id=provider_id, detail=False)['items'][0]
+        provider_user_records: ProviderUserRecords = client.get_provider_user_records(
+            compact='aslp', provider_id=provider_id
+        )
 
         # Expected representation of each record in the database
         with open('../common/tests/resources/dynamo/provider.json') as f:
             expected_provider = json.load(f)
-            # TODO - this will be set to an actual jurisdiction when ingest logic is updated.
-            expected_provider['currentHomeJurisdiction'] = 'unknown'
+            # this should be set during the registration flow
+            expected_provider['currentHomeJurisdiction'] = 'oh'
 
         # register the provider in the system
         client.process_registration_values(
-            compact='aslp',
-            provider_id=provider_id,
+            current_provider_record=provider_user_records.get_provider_record(),
+            license_record=provider_user_records.get_license_records()[0],
             cognito_sub=expected_provider['cognitoSub'],
-            jurisdiction='oh',
             email_address=expected_provider['compactConnectRegisteredEmailAddress'],
         )
+
+        provider_record = provider_user_records.get_provider_record().to_dict()
 
         # Add a privilege to practice in Nebraska
         client.create_provider_privileges(
@@ -137,8 +142,8 @@ class TestTransformations(TstFunction):
             KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
             & Key('sk').begins_with('aslp#PROVIDER'),
         )
-        # One record for each of: provider, license, privilege, militaryAffiliation, and homeJurisdictionSelection
-        self.assertEqual(5, len(resp['Items']))
+        # One record for each of: provider, providerUpdate, license, privilege, militaryAffiliation, and homeJurisdictionSelection
+        self.assertEqual(6, len(resp['Items']))
         records = {item['type']: item for item in resp['Items']}
 
         # Convert this to the data type expected from DynamoDB
@@ -203,8 +208,7 @@ class TestTransformations(TstFunction):
             # in this case, the military affiliation status will be initializing, since it is not set to active until
             # the military affiliation document is uploaded to s3
             expected_provider['militaryAffiliations'][0]['status'] = 'initializing'
-            # TODO - this will be set to an actual jurisdiction when ingest logic is updated.
-            expected_provider['currentHomeJurisdiction'] = 'unknown'
+            expected_provider['currentHomeJurisdiction'] = 'oh'
 
         # Force the provider id to match
         expected_provider['providerId'] = provider_id

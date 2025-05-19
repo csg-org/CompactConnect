@@ -9,7 +9,7 @@ from boto3.dynamodb.types import TypeDeserializer, TypeSerializer
 from botocore.exceptions import ClientError
 
 from cc_common.config import _Config, config, logger, metrics
-from cc_common.data_model.provider_record_util import ProviderUserRecords, ProviderRecordUtility
+from cc_common.data_model.provider_record_util import ProviderRecordUtility, ProviderUserRecords
 from cc_common.data_model.query_paginator import paginated_query
 from cc_common.data_model.schema import PrivilegeRecordSchema
 from cc_common.data_model.schema.adverse_action import AdverseActionData
@@ -100,7 +100,7 @@ class DataClient:
         partial_ssn: str,
         dob: date,
         license_type: str,
-    ) -> dict | None:
+    ) -> LicenseData | None:
         """Query license records using the license GSI and find a matching record.
 
         :param compact: The compact name
@@ -133,7 +133,7 @@ class DataClient:
             logger.error('Multiple matching license records found')
             raise CCInternalException('Multiple matching license records found')
 
-        return matching_records[0] if matching_records else None
+        return LicenseData.from_database_record(matching_records[0]) if matching_records else None
 
     @paginated_query
     @logger_inject_kwargs(logger, 'compact', 'provider_id')
@@ -804,80 +804,123 @@ class DataClient:
         return privilege_count
 
     @logger_inject_kwargs(logger, 'compact', 'provider_id')
-    def provider_is_registered_in_compact_connect(self, *, compact: str, provider_id: str) -> bool:
-        """Check if a provider is already registered in the system by checking for the cognitoSub field.
+    def get_provider_top_level_record(self, *, compact: str, provider_id: str) -> ProviderData:
+        """Get the top level provider record for a provider.
 
         :param compact: The compact name
         :param provider_id: The provider ID
-        :return: True if the provider is already registered, False otherwise
+        :return: The top level provider record
         """
-        logger.info('Checking if provider is registered')
+        logger.info('Getting top level provider record')
         provider = self.config.provider_table.get_item(
             Key={
                 'pk': f'{compact}#PROVIDER#{provider_id}',
                 'sk': f'{compact}#PROVIDER',
             },
-            ProjectionExpression='cognitoSub',
             ConsistentRead=True,
         ).get('Item')
-        return provider is not None and provider.get('cognitoSub') is not None
+        if provider is None:
+            logger.info(
+                'Provider not found for compact {compact} and provider id {provider_id}',
+                compact=compact,
+                provider_id=provider_id,
+            )
+            raise CCNotFoundException(f'Provider not found for compact {compact} and provider id {provider_id}')
+
+        return ProviderData.from_database_record(provider)
 
     @logger_inject_kwargs(logger, 'compact', 'provider_id', 'cognito_sub', 'email_address', 'jurisdiction')
     def process_registration_values(
-        self, *, compact: str, provider_id: str, cognito_sub: str, email_address: str, jurisdiction: str
+        self,
+        *,
+        current_provider_record: ProviderData,
+        license_record: LicenseData,
+        cognito_sub: str,
+        email_address: str,
     ) -> None:
         """Set the registration values on a provider record and create home jurisdiction selection record
         in a transaction.
 
-        :param compact: The compact name
-        :param provider_id: The provider ID
         :param cognito_sub: The Cognito sub of the user
         :param email_address: The email address used for registration
-        :param jurisdiction: The jurisdiction postal code for home jurisdiction selection
+        :param license_record: The license record that was matched for the user during registration
         :return: None
         :raises: CCAwsServiceException if the transaction fails
         """
         logger.info('Setting registration values and creating home jurisdiction selection')
 
-        # Create the home jurisdiction selection record
+        # TODO - this homeJurisdictionSelection record type is deprecated, and should be removed   # noqa: FIX002
+        #  once the frontend is updated to read the 'currentHomeJurisdiction' field directly from the provider record
+        #  instead
         home_jurisdiction_selection_record = {
             'type': 'homeJurisdictionSelection',
-            'compact': compact,
-            'providerId': provider_id,
-            'jurisdiction': jurisdiction,
+            'compact': license_record.compact,
+            'providerId': license_record.providerId,
+            'jurisdiction': license_record.jurisdiction,
             'dateOfSelection': self.config.current_standard_datetime,
         }
 
         schema = ProviderHomeJurisdictionSelectionRecordSchema()
         serialized_record = schema.dump(home_jurisdiction_selection_record)
 
-        # Create both records in a transaction
+        # Registration-specific fields to add to the provider record
+        registration_values = {
+            'cognitoSub': cognito_sub,
+            'compactConnectRegisteredEmailAddress': email_address,
+            # we explicitly set this to align with the license record that was matched during registration
+            'currentHomeJurisdiction': license_record.jurisdiction,
+        }
+
+        # Create provider update record to show registration event and fields that were updated
+        provider_update_record = ProviderUpdateData.create_new(
+            {
+                'type': 'providerUpdate',
+                'updateType': UpdateCategory.REGISTRATION,
+                'providerId': license_record.providerId,
+                'compact': license_record.compact,
+                'previous': current_provider_record.to_dict(),
+                'updatedValues': {
+                    **registration_values,
+                    # map all the fields from the new license record that the provider record cares about
+                    # the record schema will filter out the ones that are not relevant
+                    **license_record.to_dict(),
+                },
+            }
+        )
+
+        serialized_provider_record = ProviderRecordUtility.populate_provider_record(
+            provider_id=current_provider_record.providerId,
+            license_record=license_record.to_dict(),
+            # no privileges yet, as the user is registering into the system.
+            privilege_records=[],
+        )
+
+        serialized_provider_record.update(registration_values)
+
+        # Create all records in a transaction
         self.config.dynamodb_client.transact_write_items(
             TransactItems=[
-                {
-                    'Update': {
-                        'TableName': self.config.provider_table_name,
-                        'Key': {
-                            'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
-                            'sk': {'S': f'{compact}#PROVIDER'},
-                        },
-                        'UpdateExpression': 'SET #cognitoSub = :cognitoSub, #email = :email',
-                        'ExpressionAttributeNames': {
-                            '#cognitoSub': 'cognitoSub',
-                            '#email': 'compactConnectRegisteredEmailAddress',
-                        },
-                        'ExpressionAttributeValues': {
-                            ':cognitoSub': {'S': cognito_sub},
-                            ':email': {'S': email_address},
-                        },
-                        'ConditionExpression': 'attribute_not_exists(cognitoSub)',
-                    }
-                },
+                # TODO - this first item should be removed once the frontend is updated to stop referencing it.
                 {
                     'Put': {
                         'TableName': self.config.provider_table_name,
                         'Item': TypeSerializer().serialize(serialized_record)['M'],
                         'ConditionExpression': 'attribute_not_exists(pk)',
+                    }
+                },
+                # Update provider record
+                {
+                    'Put': {
+                        'TableName': self.config.provider_table_name,
+                        'Item': TypeSerializer().serialize(serialized_provider_record)['M'],
+                        'ConditionExpression': 'attribute_not_exists(cognitoSub)',
+                    }
+                },
+                # Create provider update record
+                {
+                    'Put': {
+                        'TableName': self.config.provider_table_name,
+                        'Item': TypeSerializer().serialize(provider_update_record.serialize_to_database_record())['M'],
                     }
                 },
             ]
