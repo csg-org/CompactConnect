@@ -89,8 +89,7 @@ class TestDataGenerator:
 
         try:
             return config.provider_table.query(
-                KeyConditionExpression=Key('pk').eq(pk)
-                & Key('sk').begins_with(sk_prefix)
+                KeyConditionExpression=Key('pk').eq(pk) & Key('sk').begins_with(sk_prefix)
             )['Items']
         except KeyError as e:
             raise Exception('Error querying update records from database') from e
@@ -107,8 +106,8 @@ class TestDataGenerator:
         serialized_record = privilege_data.serialize_to_database_record()
 
         return TestDataGenerator._query_records_by_pk_and_sk_prefix(
-            serialized_record['pk'], f'{serialized_record['sk']}UPDATE')
-
+            serialized_record['pk'], f'{serialized_record["sk"]}UPDATE'
+        )
 
     @staticmethod
     def query_provider_update_records_for_given_record_from_database(provider_record: ProviderData) -> list[dict]:
@@ -122,7 +121,8 @@ class TestDataGenerator:
         serialized_record = provider_record.serialize_to_database_record()
 
         return TestDataGenerator._query_records_by_pk_and_sk_prefix(
-            serialized_record['pk'], f'{serialized_record['sk']}#UPDATE')
+            serialized_record['pk'], f'{serialized_record["sk"]}#UPDATE'
+        )
 
     @staticmethod
     def generate_default_home_jurisdiction_selection(
