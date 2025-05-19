@@ -224,6 +224,7 @@ class UpdateCategory(CCEnum):
     RENEWAL = 'renewal'
     ENCUMBRANCE = 'encumbrance'
     HOME_JURISDICTION_CHANGE = 'homeJurisdictionChange'
+    REGISTRATION = 'registration'
 
 
 class ActiveInactiveStatus(CCEnum):

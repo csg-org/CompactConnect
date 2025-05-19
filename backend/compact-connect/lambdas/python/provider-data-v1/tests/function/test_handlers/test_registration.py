@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from unittest.mock import PropertyMock, patch
 
 from cc_common.exceptions import CCInternalException
+from common_test.test_constants import DEFAULT_DATE_OF_UPDATE_TIMESTAMP
 from moto import mock_aws
 
 from .. import TstFunction
@@ -24,6 +25,7 @@ MOCK_IP_ADDRESS = '127.0.0.1'
 MOCK_DATETIME_STRING = '2025-01-23T08:15:00+00:00'
 
 MOCK_COGNITO_SUB = '3408b4e8-0061-7052-bbe0-fda9a9369c80'
+MOCK_COMPACT_CONNECT_REGISTERED_EMAIL_ADDRESS = 'test@example.com'
 
 
 def generate_default_compact_config_overrides():
@@ -62,6 +64,7 @@ def generate_test_request():
 
 
 @mock_aws
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP))
 class TestProviderRegistration(TstFunction):
     def setUp(self):
         super().setUp()
@@ -82,10 +85,13 @@ class TestProviderRegistration(TstFunction):
         with open('../common/tests/resources/dynamo/provider.json') as f:
             provider_data = json.load(f)
             provider_data['providerId'] = MOCK_PROVIDER_ID
+            provider_data['compact'] = TEST_COMPACT_ABBR
             if is_registered:
                 provider_data['cognitoSub'] = MOCK_COGNITO_SUB
+                provider_data['compactConnectRegisteredEmailAddress'] = MOCK_COMPACT_CONNECT_REGISTERED_EMAIL_ADDRESS
             else:
                 provider_data.pop('cognitoSub', None)
+                provider_data.pop('compactConnectRegisteredEmailAddress', None)
             self.config.provider_table.put_item(Item=provider_data)
 
         with open('../common/tests/resources/dynamo/license.json') as f:
@@ -121,6 +127,14 @@ class TestProviderRegistration(TstFunction):
             self.config.provider_table.put_item(Item=serialized_record)
 
         return provider_data, license_data
+
+    def _add_mock_provider_records_using_data_classes(self, *, is_registered=False, license_data_overrides=None):
+        # wrapper function for tests to work with data classes, rather than dictionaries themselves
+        from cc_common.data_model.schema.license import LicenseData
+        from cc_common.data_model.schema.provider import ProviderData
+
+        provider_data, license_data = self._add_mock_provider_records()
+        return ProviderData.from_database_record(provider_data), LicenseData.from_database_record(license_data)
 
     def _get_api_event(self):
         with open('../common/tests/resources/api-event.json') as f:
@@ -652,3 +666,89 @@ class TestProviderRegistration(TstFunction):
         body = json.loads(resp['body'])
         self.assertIn('Invalid request', body['message'])
         self.assertIn('dob', body['message'])
+
+    @patch('handlers.registration.verify_recaptcha')
+    def test_registration_creates_provider_update_record(self, mock_verify_recaptcha):
+        """Test that a provider update record is created during registration."""
+        from cc_common.data_model.schema.common import UpdateCategory
+        from cc_common.data_model.schema.provider import ProviderUpdateData
+        from handlers.registration import register_provider
+
+        mock_verify_recaptcha.return_value = True
+        provider_data, license_data = self._add_mock_provider_records_using_data_classes()
+
+        response = register_provider(self._get_test_event(), self.mock_context)
+
+        self.assertEqual(200, response['statusCode'])
+        self.assertEqual({'message': 'request processed'}, json.loads(response['body']))
+
+        # Get the Cognito sub to verify it matches in the provider update record
+        cognito_users = self.config.cognito_client.list_users(
+            UserPoolId=self.config.provider_user_pool_id, Filter='email = "test@example.com"'
+        )
+        self.assertEqual(1, len(cognito_users['Users']))
+        user_attributes = {attr['Name']: attr['Value'] for attr in cognito_users['Users'][0]['Attributes']}
+        cognito_sub = user_attributes.get('sub')
+
+        # Verify provider update record was created
+        stored_provider_update_records = (
+            self.test_data_generator.query_provider_update_records_for_given_record_from_database(provider_data)
+        )
+        self.assertEqual(1, len(stored_provider_update_records))
+
+        update_data = ProviderUpdateData.from_database_record(stored_provider_update_records[0])
+
+        # Verify the update record has the correct type and fields
+        self.assertEqual('providerUpdate', update_data.type)
+        self.assertEqual(UpdateCategory.REGISTRATION, update_data.updateType)
+        self.assertEqual(provider_data.providerId, update_data.providerId)
+        self.assertEqual(TEST_COMPACT_ABBR, update_data.compact)
+
+        # Verify the updated values in the provider update record
+        self.assertEqual(cognito_sub, update_data.updatedValues.get('cognitoSub'))
+        self.assertEqual('test@example.com', update_data.updatedValues.get('compactConnectRegisteredEmailAddress'))
+        self.assertEqual(MOCK_JURISDICTION_POSTAL_ABBR, update_data.updatedValues.get('currentHomeJurisdiction'))
+
+        self.assertEqual(
+            {
+                'compact': provider_data.compact,
+                'dateOfUpdate': datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP),
+                'previous': {
+                    'compact': provider_data.compact,
+                    'currentHomeJurisdiction': provider_data.currentHomeJurisdiction,
+                    'dateOfBirth': provider_data.dateOfBirth,
+                    'dateOfExpiration': provider_data.dateOfExpiration,
+                    'dateOfUpdate': provider_data.dateOfUpdate,
+                    'familyName': provider_data.familyName,
+                    'givenName': provider_data.givenName,
+                    'jurisdictionUploadedCompactEligibility': provider_data.jurisdictionUploadedCompactEligibility,
+                    'jurisdictionUploadedLicenseStatus': provider_data.jurisdictionUploadedLicenseStatus,
+                    'licenseJurisdiction': provider_data.licenseJurisdiction,
+                    'middleName': provider_data.middleName,
+                    'npi': provider_data.npi,
+                    'providerId': provider_data.providerId,
+                    'ssnLastFour': provider_data.ssnLastFour,
+                },
+                'providerId': provider_data.providerId,
+                'type': 'providerUpdate',
+                'updateType': 'registration',
+                'updatedValues': {
+                    'cognitoSub': cognito_sub,
+                    'compact': license_data.compact,
+                    'compactConnectRegisteredEmailAddress': MOCK_COMPACT_CONNECT_REGISTERED_EMAIL_ADDRESS,
+                    'currentHomeJurisdiction': license_data.jurisdiction,
+                    'dateOfBirth': license_data.dateOfBirth,
+                    'dateOfExpiration': license_data.dateOfExpiration,
+                    'dateOfUpdate': datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP),
+                    'familyName': license_data.familyName,
+                    'givenName': license_data.givenName,
+                    'jurisdictionUploadedCompactEligibility': license_data.jurisdictionUploadedCompactEligibility,
+                    'jurisdictionUploadedLicenseStatus': license_data.jurisdictionUploadedLicenseStatus,
+                    'middleName': license_data.middleName,
+                    'npi': license_data.npi,
+                    'providerId': license_data.providerId,
+                    'ssnLastFour': license_data.ssnLastFour,
+                },
+            },
+            update_data.to_dict(),
+        )

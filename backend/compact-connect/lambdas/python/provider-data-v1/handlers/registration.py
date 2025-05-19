@@ -6,6 +6,8 @@ from aws_lambda_powertools.metrics import MetricUnit
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
 from cc_common.config import config, logger, metrics
+from cc_common.data_model.schema.license import LicenseData
+from cc_common.data_model.schema.provider import ProviderData
 from cc_common.data_model.schema.provider.api import ProviderRegistrationRequestSchema
 from cc_common.exceptions import (
     CCAccessDeniedException,
@@ -200,7 +202,7 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
         )
 
     # Query license records for one matching on all provided fields
-    matching_record = config.data_client.find_matching_license_record(
+    matching_record: LicenseData = config.data_client.find_matching_license_record(
         compact=body['compact'],
         jurisdiction=body['jurisdiction'],
         family_name=body['familyName'],
@@ -224,17 +226,24 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
 
     # First check if the provider is already registered
     try:
-        if config.data_client.provider_is_registered_in_compact_connect(
-            compact=body['compact'],
-            provider_id=matching_record['providerId'],
-        ):
+        provider_record: ProviderData = config.data_client.get_provider_top_level_record(
+            compact=matching_record.compact, provider_id=matching_record.providerId
+        )
+        if provider_record.cognitoSub is not None:
             logger.warning(
                 'This provider is already registered in the system',
-                compact=body['compact'],
-                provider_id=matching_record['providerId'],
+                compact=matching_record.compact,
+                provider_id=matching_record.providerId,
             )
             metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
             return {'message': 'request processed'}
+    except CCNotFoundException as e:
+        logger.error(
+            'Provider license record was found, but no provider record was found.',
+            compact=matching_record.compact,
+            provider_id=matching_record.providerId,
+        )
+        raise CCInternalException('Failed to check if provider is registered') from e
     except Exception as e:
         logger.error('Failed to check if provider is registered', error=str(e))
         metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
@@ -246,8 +255,8 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
             UserPoolId=config.provider_user_pool_id,
             Username=body['email'],
             UserAttributes=[
-                {'Name': 'custom:compact', 'Value': body['compact']},
-                {'Name': 'custom:providerId', 'Value': matching_record['providerId']},
+                {'Name': 'custom:compact', 'Value': matching_record.compact.lower()},
+                {'Name': 'custom:providerId', 'Value': str(matching_record.providerId)},
                 {'Name': 'email', 'Value': body['email']},
                 {'Name': 'email_verified', 'Value': 'true'},
             ],
@@ -266,11 +275,10 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
     # Set registration values and create home jurisdiction selection in a transaction
     try:
         config.data_client.process_registration_values(
-            compact=body['compact'],
-            provider_id=matching_record['providerId'],
+            current_provider_record=provider_record,
+            license_record=matching_record,
             cognito_sub=cognito_sub,
             email_address=body['email'],
-            jurisdiction=body['jurisdiction'],
         )
     except Exception as e:
         logger.error('Failed to set registration values, rolling back cognito user creation', error=str(e))
@@ -285,6 +293,6 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
         metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
         raise CCInternalException('Failed to set registration values') from e
 
-    logger.info('Registered user successfully', compact=body['compact'], provider_id=matching_record['providerId'])
+    logger.info('Registered user successfully', compact=body['compact'], provider_id=matching_record.providerId)
     metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=1)
     return {'message': 'request processed'}
