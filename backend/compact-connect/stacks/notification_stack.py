@@ -93,7 +93,7 @@ class NotificationStack(AppStack):
             process_function=privilege_purchase_notification_handler,
             visibility_timeout=Duration.minutes(5),
             retention_period=Duration.hours(12),
-            max_batching_window=Duration.minutes(5),
+            max_batching_window=Duration.seconds(15),
             max_receive_count=3,
             batch_size=10,
             encryption_key=persistent_stack.shared_encryption_key,
