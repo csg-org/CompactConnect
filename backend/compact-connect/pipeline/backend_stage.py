@@ -67,8 +67,8 @@ class BackendStage(Stage):
             persistent_stack=self.persistent_stack,
         )
 
-        # Reporting and notifications depend on emails, which depend on having a domain name. If we don't configure a HostedZone
-        # we won't bother with these whole stacks.
+        # Reporting and notifications depend on emails, which depend on having a domain name. If we don't configure
+        # a HostedZone we won't bother with these whole stacks.
         if self.persistent_stack.hosted_zone:
             self.notification_stack = NotificationStack(
                 self,
