@@ -287,7 +287,7 @@ export class EmailNotificationService extends BaseEmailService {
                 quantity: string,
                 unitPrice: string
         }[],
-        specificEmails: string[] = [],
+        specificEmails: string[] = []
     ): Promise<void> {
         this.logger.info('Sending provider privilege purchase notification email', { providerEmail: specificEmails[0] });
 
