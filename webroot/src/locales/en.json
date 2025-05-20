@@ -10,6 +10,7 @@
         "close": "Close",
         "skip": "Skip",
         "print": "Print",
+        "edit": "Edit",
         "confirm": "Confirm",
         "caution": "Caution",
         "fees": "Fees",
@@ -466,6 +467,7 @@
     ],
     "compact": {
         "settingsTitle": "Settings",
+        "configuration": "Configuration",
         "paymentProcessorCredentials": "Authorize.net credentials",
         "paymentProcessorAccountId": "API login ID",
         "paymentProcessorAccountKey": "Transaction key",

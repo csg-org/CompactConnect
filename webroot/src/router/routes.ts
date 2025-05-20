@@ -93,6 +93,12 @@ const routes: Array<RouteConfig> = [
         meta: { requiresAuth: true, staffAccess: true },
     },
     {
+        path: '/:compact/Settings/:state',
+        name: 'StateSettings',
+        component: () => import(/* webpackChunkName: "upload" */ '@pages/StateSettings/StateSettings.vue'),
+        meta: { requiresAuth: true, staffAccess: true },
+    },
+    {
         path: '/:compact/StateUpload',
         name: 'StateUpload',
         component: () => import(/* webpackChunkName: "upload" */ '@pages/StateUpload/StateUpload.vue'),

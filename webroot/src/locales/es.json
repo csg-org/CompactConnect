@@ -12,6 +12,7 @@
         "close": "Cerrar",
         "skip": "Saltear",
         "print": "Imprimir",
+        "edit": "Editar",
         "fees": "Tarifas",
         "choose": "Elige",
         "chooseOne": "Elige uno",
@@ -465,6 +466,7 @@
     ],
     "compact": {
         "settingsTitle": "Ajustes",
+        "configuration": "Configuración",
         "paymentProcessorCredentials": "Authorize.net cartas credenciales",
         "paymentProcessorAccountId": "ID de cuenta API",
         "paymentProcessorAccountKey": "Clave de transacción",
