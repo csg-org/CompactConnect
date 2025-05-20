@@ -33,7 +33,7 @@ export enum FeeType {
 export interface CompactConfig {
     compactAbbr?: string,
     compactName?: string,
-    licenseeRegistrationEnabled?: boolean,
+    licenseeRegistrationEnabled: boolean,
     compactCommissionFee: {
         feeType: string,
         feeAmount: number,
@@ -54,7 +54,7 @@ export interface CompactStateConfig {
     compact?: string,
     jurisdictionName?: string,
     postalAbbreviation?: string,
-    licenseeRegistrationEnabled?: boolean,
+    licenseeRegistrationEnabled: boolean,
     privilegeFees: Array<{
         licenseTypeAbbreviation: string,
         amount: number,

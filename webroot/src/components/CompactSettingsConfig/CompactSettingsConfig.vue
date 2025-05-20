@@ -25,13 +25,18 @@
                 <InputText
                     :formInput="formData.privilegeTransactionFee"
                     class="form-row currency"
-                     @input="formatInput(formData.privilegeTransactionFee)"
+                    @input="formatInput(formData.privilegeTransactionFee)"
                     @blur="formatBlur(formData.privilegeTransactionFee, true)"
                 />
                 <h2 class="form-section-title notifications">{{ $t('compact.notifications') }}</h2>
                 <InputEmailList :formInput="formData.opsNotificationEmails" />
                 <InputEmailList :formInput="formData.adverseActionNotificationEmails" />
                 <InputEmailList :formInput="formData.summaryReportNotificationEmails" />
+                <button
+                    class="btn-catch-email-lists"
+                    @click.stop.prevent="() => null"
+                    tabindex="-1"
+                >+</button>
                 <h2 class="form-section-title live-status">{{ $t('compact.licenseRegistrationTitle') }}</h2>
                 <InputRadioGroup
                     :formInput="formData.isRegistrationEnabled"

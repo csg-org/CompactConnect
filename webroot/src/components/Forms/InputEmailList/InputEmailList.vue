@@ -41,17 +41,12 @@
                 :aria-label="formInput.label"
                 @blur="blur(formInput)"
                 @input="input(formInput)"
+                @keyup.enter.stop.prevent="add(formInput)"
                 class="email-input"
                 :class="{ 'has-error': !!formInput.errorMessage }"
                 :disabled="formInput.isDisabled"
             />
             <div v-if="shouldDisplayAddEmailHelp" class="add-email-help">{{ $t('compact.enterToAdd')}}</div>
-            <button
-                class="btn-add-email"
-                @click.stop.prevent="add(formInput)"
-                :aria-label="$t('common.add')"
-                tabindex="-1"
-            >+</button>
         </div>
         <span class="separator"></span>
         <span

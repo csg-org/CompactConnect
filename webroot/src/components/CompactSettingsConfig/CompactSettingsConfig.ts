@@ -97,11 +97,25 @@ class CompactSettingsConfig extends mixins(MixinForm) {
     // Methods
     //
     async init(): Promise<void> {
+        this.shouldValuesIncludeDisabled = true;
         this.isLoading = true;
 
         if (this.compactType) {
+            // Fetch compact config
             await this.getCompactConfig();
+            // Initialize the form
             this.initFormInputs();
+
+            // Format existing values
+            const { compactFee, privilegeTransactionFee } = this.formData;
+
+            if (compactFee?.value) {
+                this.formatBlur(this.formData.compactFee);
+            }
+
+            if (privilegeTransactionFee?.value) {
+                this.formatBlur(this.formData.privilegeTransactionFee, true);
+            }
         }
     }
 
@@ -130,7 +144,7 @@ class CompactSettingsConfig extends mixins(MixinForm) {
                 name: 'privilege-transaction-fee',
                 label: computed(() => this.$t('compact.privilegeTransactionFee')),
                 validation: Joi.number().min(0).messages(this.joiMessages.currency),
-                value: this.initialCompactConfig?.transactionFeeConfiguration?.licenseeCharges?.chargeAmountX,
+                value: this.initialCompactConfig?.transactionFeeConfiguration?.licenseeCharges?.chargeAmount,
             }),
             opsNotificationEmails: new FormInput({
                 id: 'ops-notification-emails',
@@ -241,12 +255,8 @@ class CompactSettingsConfig extends mixins(MixinForm) {
                     chargeAmount: Number(privilegeTransactionFee),
                 },
             },
+            licenseeRegistrationEnabled: isRegistrationEnabled,
         };
-
-        // Update the payload with compact-enabled selection if needed
-        if (!this.isRegistrationEnabledInitialValue) {
-            payload.licenseeRegistrationEnabled = isRegistrationEnabled;
-        }
 
         // Call the server API to update
         await dataApi.updateCompactConfig(compact, payload).catch((err) => {
