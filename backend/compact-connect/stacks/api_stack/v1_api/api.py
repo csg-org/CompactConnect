@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from aws_cdk.aws_apigateway import AuthorizationType, IResource, MethodOptions
-
 from common_constructs.ssm_parameter_utility import SSMParameterUtility
 from common_constructs.stack import Stack
 

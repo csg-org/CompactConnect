@@ -5,7 +5,7 @@ import os
 from aws_cdk import Duration
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Metric, Stats, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
-from aws_cdk.aws_events import EventPattern, Rule, IEventBus
+from aws_cdk.aws_events import EventPattern, IEventBus, Rule
 from aws_cdk.aws_events_targets import SqsQueue
 from cdk_nag import NagSuppressions
 from common_constructs.python_function import PythonFunction
