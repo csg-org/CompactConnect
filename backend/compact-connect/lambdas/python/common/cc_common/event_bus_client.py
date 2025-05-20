@@ -7,8 +7,8 @@ from cc_common.event_batch_writer import EventBatchWriter
 
 class EventBusClient:
     """
-    Client for sending email notifications through the email notification service lambda.
-    This class abstracts the lambda client and provides a clean interface for sending emails.
+    Client for publishing events to the event bus.
+    This class abstracts the event bus client and provides a clean interface for publishing events.
     """
 
     def __init__(self):
