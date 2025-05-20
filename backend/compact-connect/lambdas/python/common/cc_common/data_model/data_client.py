@@ -377,6 +377,8 @@ class DataClient:
                 )
 
                 privileges.append({
+                    'compact': compact,
+                    'providerId': provider_id,
                     'jurisdiction': postal_abbreviation,
                     'licenseTypeAbbrev': self.config.license_type_abbreviations[compact][license_type],
                     'privilegeId': privilege_record['privilegeId'],

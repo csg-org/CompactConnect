@@ -502,8 +502,6 @@ describe('EmailNotificationServiceLambda', () => {
             specificEmails: ['provider@example.com'],
             templateVariables: {
                 transactionDate: '12/12/2004',
-                // TODO here, need to confirm shape of privileges coming in, replicate in test and make sure my thing works
-                // Also confirm types of all inputs and make sure they are properly represented here and work
                 privileges: [
                     {
                         privilegeId: 'OTA-OH-019',
@@ -514,7 +512,7 @@ describe('EmailNotificationServiceLambda', () => {
                 totalCost: 45.00,
                 costLineItems: [
                     {
-                        name: 'OH OTA fee', quantity: 1, unitPrice: 45
+                        name: 'OH OTA fee', quantity: 2, unitPrice: 45
                     },
                     {
                         name: 'cc fees', quantity: 1, unitPrice: 3.5

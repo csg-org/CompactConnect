@@ -268,16 +268,26 @@ export class EmailNotificationService extends BaseEmailService {
 
     /**
      * Sends an email notification to a provider when they purchase privilege(s)
-     * @param compact - The compact name for which the privilege was deactivated
-     * @param jurisdiction - The jurisdiction for which the privilege was deactivated
-     * @param privilegeId - The privilege ID
+     * @param specificEmails - The email adresses(s) to send the email to, in this case always the provider's email
+     * @param transactionDate - The date the transaction occured
+     * @param privileges - The relevant privilege data necessary to generate teh email
+     * @param totalCost - The total cost of the transaction
+     * @param costLineItems - The line items involved in the purchase transaction
      */
     public async sendPrivilegePurchaseProviderNotificationEmail(
         specificEmails: string[] = [],
         transactionDate: string,
-        privileges: any[], 
+        privileges: {
+            jurisdiction: string,
+            licenseTypeAbbrev: string,
+            privilegeId: string
+        }[], 
         totalCost: number,
-        costLineItems: any[] // Array { value: string}
+        costLineItems: {
+                name: string,
+                quantity: string,
+                unitPrice: string
+        }[]
     ): Promise<void> {
         this.logger.info('Sending provider privilege purchase notification email', { providerEmail: specificEmails[0] });
 

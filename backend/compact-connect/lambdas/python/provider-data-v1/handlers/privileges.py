@@ -141,9 +141,6 @@ def privilege_purchase_message_handler(message: dict):
     with logger.append_context_keys(provider_email=provider_email):
         logger.info('Processing privilege purchase notification')
 
-        # Get provider information to retrieve email and name
-        # provider = config.data_client.get_provider(compact=compact, provider_id=provider_id, detail=False)['items'][0]
-
         error_messages = []
 
         # Send notification to the jurisdiction

@@ -232,6 +232,49 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         self.assertEqual(MOCK_TRANSACTION_ID, response['transactionId'])
 
     @patch('purchase_client.createTransactionController')
+    def test_purchase_client_returns_expected_line_items_in_response(
+        self, mock_create_transaction_controller
+    ):
+        from purchase_client import PurchaseClient
+
+        mock_secrets_manager_client = self._generate_mock_secrets_manager_client()
+        self._when_authorize_dot_net_transaction_is_successful(
+            mock_create_transaction_controller=mock_create_transaction_controller
+        )
+
+        test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
+
+        response = test_purchase_client.process_charge_for_licensee_privileges(
+            licensee_id=MOCK_LICENSEE_ID,
+            order_information=_generate_default_order_information(),
+            compact_configuration=_generate_aslp_compact_configuration(),
+            selected_jurisdictions=_generate_selected_jurisdictions(),
+            license_type_abbreviation=MOCK_LICENSE_TYPE_ABBR,
+            user_active_military=False,
+        )
+
+        # we check every line item of the object to ensure that the correct values are being set
+        self.assertEqual(2, len(response['lineItems']))
+        # first line item is the jurisdiction fee
+
+        self.assertEqual('priv:aslp-oh-slp', response['lineItems'][0]['itemId'])
+        self.assertEqual('Ohio Compact Privilege', response['lineItems'][0]['name'])
+        self.assertEqual('100', response['lineItems'][0]['unitPrice'])
+        self.assertEqual('1', response['lineItems'][0]['quantity'])
+        self.assertEqual(
+            'Compact Privilege for Ohio', response['lineItems'][0]['description']
+        )
+        # second line item is the compact fee
+        self.assertEqual('aslp-compact-fee', response['lineItems'][1]['itemId'])
+        self.assertEqual('ASLP Compact Fee', response['lineItems'][1]['name'])
+        self.assertEqual('50.5', response['lineItems'][1]['unitPrice'])
+        self.assertEqual('1', response['lineItems'][1]['quantity'])
+        self.assertEqual(
+            'Compact fee applied for each privilege purchased',
+            response['lineItems'][1]['description'],
+        )
+
+    @patch('purchase_client.createTransactionController')
     def test_purchase_client_makes_successful_transaction_using_authorize_net_processor(
         self, mock_create_transaction_controller
     ):

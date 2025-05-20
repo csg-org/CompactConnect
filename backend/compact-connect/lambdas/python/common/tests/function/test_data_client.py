@@ -144,7 +144,7 @@ class TestDataClient(TstFunction):
 
         test_data_client = DataClient(self.config)
 
-        test_data_client.create_provider_privileges(
+        response = test_data_client.create_provider_privileges(
             compact='aslp',
             provider_id='test_provider_id',
             license_type='audiologist',
@@ -190,6 +190,13 @@ class TestDataClient(TstFunction):
             Key={'pk': 'aslp#PROVIDER#test_provider_id', 'sk': 'aslp#PROVIDER'}
         )['Item']
         self.assertEqual({'ca'}, updated_provider['privilegeJurisdictions'])
+
+        # Verify the privilege data is being passed back in the response
+        self.assertEqual('aslp', response[0]['compact'])
+        self.assertEqual('test_provider_id', response[0]['providerId'])
+        self.assertEqual('ca', response[0]['jurisdiction'])
+        self.assertEqual('aud', response[0]['licenseTypeAbbrev'])
+        self.assertEqual('AUD-CA-124', response[0]['privilegeId'])
 
     def test_data_client_updates_privilege_records_for_specific_license_type(self):
         """
