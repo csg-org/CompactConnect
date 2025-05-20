@@ -128,11 +128,11 @@ export class Lambda implements LambdaInterface {
             break;
         case 'privilegePurchaseProviderNotification':
             await this.emailService.sendPrivilegePurchaseProviderNotificationEmail(
-                event.specificEmails,
                 event.templateVariables.transactionDate,
                 event.templateVariables.privileges,
                 event.templateVariables.totalCost,
-                event.templateVariables.costLineItems
+                event.templateVariables.costLineItems,
+                event.specificEmails
             );
             break;
         default:
