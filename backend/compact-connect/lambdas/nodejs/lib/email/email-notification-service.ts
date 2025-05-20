@@ -275,7 +275,7 @@ export class EmailNotificationService extends BaseEmailService {
      * @param costLineItems - The line items involved in the purchase transaction
      */
     public async sendPrivilegePurchaseProviderNotificationEmail(
-        specificEmails: string[] = [],
+        specificEmails: string[],
         transactionDate: string,
         privileges: {
             jurisdiction: string,
