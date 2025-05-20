@@ -41,6 +41,10 @@ body {
     font-weight: @fontWeightLight;  // So there is an explicit root font-weight definition to inherit
     font-size: @fontSize;
     background-color: @white;  // So that there is an explicit background-color set
+
+    @media print {
+        min-height: auto;
+    }
 }
 
 body > #jcc-app {
