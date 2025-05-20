@@ -54,9 +54,6 @@ class ProviderManagement:
 
         stack: Stack = Stack.of(resource)
 
-        # Load the data event bus from SSM parameter instead of direct reference
-        # data_event_bus = SSMParameterUtility.load_data_event_bus_from_ssm_parameter(stack)
-
         lambda_environment = {
             'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
             'PROV_FAM_GIV_MID_INDEX_NAME': persistent_stack.provider_table.provider_fam_giv_mid_index_name,
