@@ -829,102 +829,110 @@ class DataClient:
 
         return ProviderData.from_database_record(provider)
 
-    @logger_inject_kwargs(logger, 'compact', 'provider_id', 'cognito_sub', 'email_address', 'jurisdiction')
     def process_registration_values(
         self,
         *,
         current_provider_record: ProviderData,
-        license_record: LicenseData,
+        matched_license_record: LicenseData,
         cognito_sub: str,
         email_address: str,
     ) -> None:
         """Set the registration values on a provider record and create home jurisdiction selection record
         in a transaction.
 
+        :param current_provider_record: The provider record that is recorded in the db for this matching provider.
+        :param matched_license_record: The license record that was matched for the user during registration
         :param cognito_sub: The Cognito sub of the user
         :param email_address: The email address used for registration
-        :param license_record: The license record that was matched for the user during registration
         :return: None
         :raises: CCAwsServiceException if the transaction fails
         """
-        logger.info('Setting registration values and creating home jurisdiction selection')
-
-        # TODO - this homeJurisdictionSelection record type is deprecated, and should be removed   # noqa: FIX002
-        #  once the frontend is updated to read the 'currentHomeJurisdiction' field directly from the provider record
-        #  instead
-        home_jurisdiction_selection_record = {
-            'type': 'homeJurisdictionSelection',
-            'compact': license_record.compact,
-            'providerId': license_record.providerId,
-            'jurisdiction': license_record.jurisdiction,
-            'dateOfSelection': self.config.current_standard_datetime,
-        }
-
-        schema = ProviderHomeJurisdictionSelectionRecordSchema()
-        serialized_record = schema.dump(home_jurisdiction_selection_record)
-
-        # Registration-specific fields to add to the provider record
-        registration_values = {
-            'cognitoSub': cognito_sub,
-            'compactConnectRegisteredEmailAddress': email_address,
-            # we explicitly set this to align with the license record that was matched during registration
-            'currentHomeJurisdiction': license_record.jurisdiction,
-        }
-
-        # Create provider update record to show registration event and fields that were updated
-        provider_update_record = ProviderUpdateData.create_new(
-            {
-                'type': 'providerUpdate',
-                'updateType': UpdateCategory.REGISTRATION,
-                'providerId': license_record.providerId,
-                'compact': license_record.compact,
-                'previous': current_provider_record.to_dict(),
-                'updatedValues': {
-                    **registration_values,
-                    # map all the fields from the new license record that the provider record cares about
-                    # the record schema will filter out the ones that are not relevant
-                    **license_record.to_dict(),
-                },
-            }
-        )
-
-        serialized_provider_record = ProviderRecordUtility.populate_provider_record(
+        with logger.append_context_keys(
+            compact=current_provider_record.compact,
             provider_id=current_provider_record.providerId,
-            license_record=license_record.to_dict(),
-            # no privileges yet, as the user is registering into the system.
-            privilege_records=[],
-        )
+            license_jurisdiction=matched_license_record.jurisdiction,
+            cognito_sub=cognito_sub,
+        ):
+            logger.info('Setting registration values and setting current home jurisdiction selection')
 
-        serialized_provider_record.update(registration_values)
+            # TODO - this homeJurisdictionSelection record type is deprecated, and should be removed   # noqa: FIX002
+            #  once the frontend is updated to read the 'currentHomeJurisdiction' field directly from the provider record
+            #  instead
+            home_jurisdiction_selection_record = {
+                'type': 'homeJurisdictionSelection',
+                'compact': matched_license_record.compact,
+                'providerId': matched_license_record.providerId,
+                'jurisdiction': matched_license_record.jurisdiction,
+                'dateOfSelection': self.config.current_standard_datetime,
+            }
 
-        # Create all records in a transaction
-        self.config.dynamodb_client.transact_write_items(
-            TransactItems=[
-                # TODO - this first item should be removed once the frontend is updated to stop referencing it.
+            schema = ProviderHomeJurisdictionSelectionRecordSchema()
+            serialized_record = schema.dump(home_jurisdiction_selection_record)
+
+            # Registration-specific fields to add to the provider record
+            registration_values = {
+                'cognitoSub': cognito_sub,
+                'compactConnectRegisteredEmailAddress': email_address,
+                # we explicitly set this to align with the license record that was matched during registration
+                'currentHomeJurisdiction': matched_license_record.jurisdiction,
+            }
+
+            # Create provider update record to show registration event and fields that were updated
+            provider_update_record = ProviderUpdateData.create_new(
                 {
-                    'Put': {
-                        'TableName': self.config.provider_table_name,
-                        'Item': TypeSerializer().serialize(serialized_record)['M'],
-                        'ConditionExpression': 'attribute_not_exists(pk)',
-                    }
-                },
-                # Update provider record
-                {
-                    'Put': {
-                        'TableName': self.config.provider_table_name,
-                        'Item': TypeSerializer().serialize(serialized_provider_record)['M'],
-                        'ConditionExpression': 'attribute_not_exists(cognitoSub)',
-                    }
-                },
-                # Create provider update record
-                {
-                    'Put': {
-                        'TableName': self.config.provider_table_name,
-                        'Item': TypeSerializer().serialize(provider_update_record.serialize_to_database_record())['M'],
-                    }
-                },
-            ]
-        )
+                    'type': 'providerUpdate',
+                    'updateType': UpdateCategory.REGISTRATION,
+                    'providerId': matched_license_record.providerId,
+                    'compact': matched_license_record.compact,
+                    'previous': current_provider_record.to_dict(),
+                    'updatedValues': {
+                        **registration_values,
+                        # map all the fields from the new license record that the provider record cares about
+                        # the record schema will filter out the ones that are not relevant
+                        **matched_license_record.to_dict(),
+                    },
+                }
+            )
+
+            serialized_provider_record = ProviderRecordUtility.populate_provider_record(
+                provider_id=current_provider_record.providerId,
+                license_record=matched_license_record.to_dict(),
+                # no privileges yet, as the user is registering into the system.
+                privilege_records=[],
+            )
+
+            serialized_provider_record.update(registration_values)
+
+            # Create all records in a transaction
+            self.config.dynamodb_client.transact_write_items(
+                TransactItems=[
+                    # TODO - this first item should be removed once the frontend is updated to stop referencing it.
+                    {
+                        'Put': {
+                            'TableName': self.config.provider_table_name,
+                            'Item': TypeSerializer().serialize(serialized_record)['M'],
+                            'ConditionExpression': 'attribute_not_exists(pk)',
+                        }
+                    },
+                    # Update provider record
+                    {
+                        'Put': {
+                            'TableName': self.config.provider_table_name,
+                            'Item': TypeSerializer().serialize(serialized_provider_record)['M'],
+                            'ConditionExpression': 'attribute_not_exists(cognitoSub)',
+                        }
+                    },
+                    # Create provider update record
+                    {
+                        'Put': {
+                            'TableName': self.config.provider_table_name,
+                            'Item': TypeSerializer().serialize(provider_update_record.serialize_to_database_record())[
+                                'M'
+                            ],
+                        }
+                    },
+                ]
+            )
 
     @logger_inject_kwargs(logger, 'compact', 'provider_id', 'jurisdiction', 'license_type')
     def deactivate_privilege(

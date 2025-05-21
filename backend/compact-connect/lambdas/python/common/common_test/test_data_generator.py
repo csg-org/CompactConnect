@@ -358,7 +358,7 @@ class TestDataGenerator:
         return PrivilegeUpdateData.create_new(privilege_update)
 
     @staticmethod
-    def generate_default_provider(value_overrides: dict | None = None) -> ProviderData:
+    def generate_default_provider(value_overrides: dict | None = None, is_registered: bool = True) -> ProviderData:
         """Generate a default provider"""
         default_provider = {
             'providerId': DEFAULT_PROVIDER_ID,
@@ -382,9 +382,16 @@ class TestDataGenerator:
             'homeAddressPostalCode': DEFAULT_HOME_ADDRESS_POSTAL_CODE,
             'emailAddress': DEFAULT_EMAIL_ADDRESS,
             'phoneNumber': DEFAULT_PHONE_NUMBER,
-            'compactConnectRegisteredEmailAddress': DEFAULT_REGISTERED_EMAIL_ADDRESS,
-            'cognitoSub': DEFAULT_COGNITO_SUB,
         }
+
+        if is_registered:
+            default_provider.update(
+                {
+                    'compactConnectRegisteredEmailAddress': DEFAULT_REGISTERED_EMAIL_ADDRESS,
+                    'cognitoSub': DEFAULT_COGNITO_SUB,
+                    'currentHomeJurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                }
+            )
 
         if value_overrides:
             default_provider.update(value_overrides)
@@ -392,14 +399,16 @@ class TestDataGenerator:
         return ProviderData.create_new(default_provider)
 
     @staticmethod
-    def put_default_provider_record_in_provider_table(value_overrides: dict | None = None) -> ProviderData:
+    def put_default_provider_record_in_provider_table(
+        value_overrides: dict | None = None, is_registered: bool = True
+    ) -> ProviderData:
         """
         Creates a default provider record and stores it in the provider table.
 
         :param value_overrides: Optional dictionary to override default values
         :return: The ProviderData instance that was stored
         """
-        provider_data = TestDataGenerator.generate_default_provider(value_overrides)
+        provider_data = TestDataGenerator.generate_default_provider(value_overrides, is_registered)
         provider_record = provider_data.serialize_to_database_record()
 
         TestDataGenerator.store_record_in_provider_table(provider_record)

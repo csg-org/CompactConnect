@@ -98,12 +98,14 @@ class TestPostPurchasePrivileges(TstFunction):
 
                 self.config.compact_configuration_table.put_item(Item=serialized_data)
         # register the user in the system
+        test_provider = self.test_data_generator.put_default_provider_record_in_provider_table(is_registered=False)
+        test_license = self.test_data_generator.put_default_license_record_in_provider_table()
+
         self.config.data_client.process_registration_values(
-            compact=TEST_COMPACT,
-            provider_id=TEST_PROVIDER_ID,
+            current_provider_record=test_provider,
+            matched_license_record=test_license,
             cognito_sub=TEST_COGNITO_SUB,
             email_address=TEST_EMAIL,
-            jurisdiction='oh',
         )
 
     def _load_test_jurisdiction(self):
