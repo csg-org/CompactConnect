@@ -40,6 +40,30 @@ def compact_configuration_api_handler(event: dict, context: LambdaContext):  # n
     raise CCInvalidRequestException('Invalid HTTP method')
 
 
+def _validate_compact(compact: str) -> None:
+    """
+    Validate that the provided compact exists in the configured list of compacts.
+
+    :param compact: The compact abbreviation to validate
+    :raises CCInvalidRequestException: If the compact does not exist
+    """
+    if compact.lower() not in config.compacts:
+        logger.info('Invalid compact abbreviation', compact=compact)
+        raise CCInvalidRequestException(f'Invalid compact abbreviation: {compact}')
+
+
+def _validate_jurisdiction(jurisdiction: str) -> None:
+    """
+    Validate that the provided jurisdiction exists in the configured list of jurisdictions.
+
+    :param jurisdiction: The jurisdiction postal abbreviation to validate
+    :raises CCInvalidRequestException: If the jurisdiction does not exist
+    """
+    if jurisdiction.lower() not in config.jurisdictions:
+        logger.info('Invalid jurisdiction postal abbreviation', jurisdiction=jurisdiction)
+        raise CCInvalidRequestException(f'Invalid jurisdiction postal abbreviation: {jurisdiction}')
+
+
 def _get_staff_users_compact_jurisdictions(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """
     Endpoint for staff users to get the current active jurisdictions for a compact.
@@ -52,6 +76,9 @@ def _get_staff_users_compact_jurisdictions(event: dict, context: LambdaContext):
     :return: The latest version of the attestation record
     """
     compact = event['pathParameters']['compact']
+
+    # Validate the compact
+    _validate_compact(compact)
 
     logger.info('Getting active jurisdictions for compact', compact=compact)
 
@@ -77,6 +104,9 @@ def _get_public_compact_jurisdictions(event: dict, context: LambdaContext):  # n
     """
     compact = event['pathParameters']['compact']
 
+    # Validate the compact
+    _validate_compact(compact)
+
     logger.info('Getting active jurisdictions for compact', compact=compact)
 
     try:
@@ -97,6 +127,9 @@ def _get_staff_users_compact_configuration(event: dict, context: LambdaContext):
     :return: The compact configuration
     """
     compact = event['pathParameters']['compact']
+
+    # Validate the compact
+    _validate_compact(compact)
 
     logger.info('Getting compact configuration', compact=compact)
 
@@ -196,6 +229,10 @@ def _get_staff_users_jurisdiction_configuration(event: dict, context: LambdaCont
     """
     compact = event['pathParameters']['compact']
     jurisdiction = event['pathParameters']['jurisdiction']
+
+    # Validate the compact and jurisdiction
+    _validate_compact(compact)
+    _validate_jurisdiction(jurisdiction)
 
     logger.info('Getting jurisdiction configuration', compact=compact, jurisdiction=jurisdiction)
 
