@@ -102,7 +102,7 @@ class TestTransformations(TstFunction):
         # register the provider in the system
         client.process_registration_values(
             current_provider_record=provider_user_records.get_provider_record(),
-            license_record=provider_user_records.get_license_records()[0],
+            matched_license_record=provider_user_records.get_license_records()[0],
             cognito_sub=expected_provider['cognitoSub'],
             email_address=expected_provider['compactConnectRegisteredEmailAddress'],
         )

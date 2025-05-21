@@ -276,7 +276,7 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
     try:
         config.data_client.process_registration_values(
             current_provider_record=provider_record,
-            license_record=matching_record,
+            matched_license_record=matching_record,
             cognito_sub=cognito_sub,
             email_address=body['email'],
         )
