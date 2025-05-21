@@ -559,7 +559,7 @@ class TestPostPurchasePrivileges(TstFunction):
         with open('../common/tests/resources/dynamo/privilege.json') as f:
             privilege_record = json.load(f)
             privilege_record['pk'] = f'{TEST_COMPACT}#PROVIDER#{TEST_PROVIDER_ID}'
-            privilege_record['sk'] = f'{TEST_COMPACT}#PROVIDER#privilege/ky#2023-10-08'
+            privilege_record['sk'] = f'{TEST_COMPACT}#PROVIDER#privilege/ky/slp#'
             # in this case, the user is purchasing the privilege for the first time
             # so the date of renewal is the same as the date of issuance
             privilege_record['dateOfRenewal'] = test_issuance_date
@@ -581,10 +581,11 @@ class TestPostPurchasePrivileges(TstFunction):
 
         self.assertEqual(response_body, {'transactionId': MOCK_TRANSACTION_ID, 'lineItems': MOCK_LINE_ITEMS})
 
-        # ensure there are two privilege records for the same jurisdiction
+        # ensure there is one privilege for the jurisdiction (a renewal should simply update the existing record, not
+        # create a new one)
         provider_records = self.config.data_client.get_provider(compact=TEST_COMPACT, provider_id=TEST_PROVIDER_ID)
         privilege_records = [record for record in provider_records['items'] if record['type'] == 'privilege']
-        self.assertEqual(2, len(privilege_records))
+        self.assertEqual(1, len(privilege_records))
 
         # ensure the date of renewal is updated
         updated_privilege_record = next(
@@ -853,3 +854,107 @@ class TestPostPurchasePrivileges(TstFunction):
 
         resp = post_purchase_privileges(event, self.mock_context)
         self.assertEqual(200, resp['statusCode'], resp['body'])
+
+
+    @patch('handlers.privileges.PurchaseClient')
+    def test_purchase_privileges_removed_privilege_home_jurisdiction_change_deactivation_status_when_renewing_privilege(
+        self, mock_purchase_client_constructor
+    ):
+        """
+        In this case, the user is attempting to renew an existing privilege record for the kentucky jurisdiction,
+        which was deactivated due to a home jurisdiction change that did not have a license in the jurisdiction.
+        The user later obtained a license in their home jurisdiction and is renewing their privilege.
+        """
+        from handlers.privileges import post_purchase_privileges
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+        test_expiration_date = date(2024, 10, 8).isoformat()
+        event = self._when_testing_provider_user_event_with_custom_claims(license_expiration_date=test_expiration_date)
+        event['body'] = _generate_test_request_body()
+        test_issuance_date = datetime(2023, 10, 8, hour=5, tzinfo=UTC).isoformat()
+        
+        self.test_data_generator.put_default_privilege_record_in_provider_table(value_overrides={
+            'compact': TEST_COMPACT,
+            'jurisdiction': 'ky',
+            'providerId': TEST_PROVIDER_ID,
+            'dateOfRenewal': datetime.fromisoformat(test_issuance_date),
+            'dateOfIssuance': datetime.fromisoformat(test_issuance_date),
+            'dateOfExpiration': date.fromisoformat(test_expiration_date),
+            'licenseJurisdiction': 'oh',
+            # showing this privilege was deactivated due to a previous home jurisdiction change
+            'homeJurisdictionChangeDeactivationStatus': 'noLicenseInJurisdiction'
+        })
+
+        self.test_data_generator.put_default_license_record_in_provider_table(value_overrides={
+            'compact': TEST_COMPACT,
+            'jurisdiction': 'oh',
+            'providerId': TEST_PROVIDER_ID,
+        })
+
+        # now make the same call with the same jurisdiction
+        resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(200, resp['statusCode'], resp['body'])
+        response_body = json.loads(resp['body'])
+
+        self.assertEqual({'transactionId': MOCK_TRANSACTION_ID}, response_body)
+
+        # ensure there is only one privilege record for the jurisdiction
+        provider_records = self.config.data_client.get_provider(compact=TEST_COMPACT, provider_id=TEST_PROVIDER_ID)
+        privilege_records = [record for record in provider_records['items'] if record['type'] == 'privilege']
+        self.assertEqual(1, len(privilege_records))
+
+        updated_privilege_record = privilege_records[0]
+        # ensure the home jurisdiction change deactivation status is not present in updated record
+        self.assertNotIn('homeJurisdictionChangeDeactivationStatus', updated_privilege_record)
+
+    @patch('handlers.privileges.PurchaseClient')
+    def test_purchase_privileges_shows_removed_home_jurisdiction_change_deactivation_remove_when_privilege_renewed(
+            self, mock_purchase_client_constructor
+    ):
+        """
+        In this case, the user is attempting to renew an existing privilege record for the kentucky jurisdiction,
+        which was deactivated due to a home jurisdiction change that did not have a license in the jurisdiction.
+        The user later obtained a license in their home jurisdiction and is renewing their privilege.
+        """
+        from handlers.privileges import post_purchase_privileges
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+        test_expiration_date = date(2024, 10, 8).isoformat()
+        event = self._when_testing_provider_user_event_with_custom_claims(license_expiration_date=test_expiration_date)
+        event['body'] = _generate_test_request_body()
+        test_issuance_date = datetime(2023, 10, 8, hour=5, tzinfo=UTC).isoformat()
+
+        test_privilege_record = self.test_data_generator.put_default_privilege_record_in_provider_table(value_overrides={
+            'compact': TEST_COMPACT,
+            'jurisdiction': 'ky',
+            'providerId': TEST_PROVIDER_ID,
+            'dateOfRenewal': datetime.fromisoformat(test_issuance_date),
+            'dateOfIssuance': datetime.fromisoformat(test_issuance_date),
+            'dateOfExpiration': date.fromisoformat(test_expiration_date),
+            'licenseJurisdiction': 'oh',
+            # showing this privilege was deactivated due to a previous home jurisdiction change
+            'homeJurisdictionChangeDeactivationStatus': 'noLicenseInJurisdiction'
+        })
+
+        self.test_data_generator.put_default_license_record_in_provider_table(value_overrides={
+            'compact': TEST_COMPACT,
+            'jurisdiction': 'oh',
+            'providerId': TEST_PROVIDER_ID,
+        })
+
+        # now make the same call with the same jurisdiction
+        resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(200, resp['statusCode'], resp['body'])
+        response_body = json.loads(resp['body'])
+
+        self.assertEqual({'transactionId': MOCK_TRANSACTION_ID}, response_body)
+
+        # ensure there is only one privilege record for the jurisdiction
+        privilege_update_records = self.test_data_generator.query_privilege_update_records_for_given_record_from_database(
+            privilege_data=test_privilege_record
+        )
+        self.assertEqual(1, len(privilege_update_records))
+
+        privilege_update_record = privilege_update_records[0]
+        # ensure the home jurisdiction change deactivation status is not present in updated record
+        self.assertEqual(['homeJurisdictionChangeDeactivationStatus'], privilege_update_record.removedValues)
