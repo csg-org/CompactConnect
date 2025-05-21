@@ -888,10 +888,7 @@ class DataClient:
                     'compact': matched_license_record.compact,
                     'previous': current_provider_record.to_dict(),
                     'updatedValues': {
-                        **registration_values,
-                        # map all the fields from the new license record that the provider record cares about
-                        # the record schema will filter out the ones that are not relevant
-                        **matched_license_record.to_dict(),
+                        **registration_values
                     },
                 }
             )
@@ -1602,10 +1599,7 @@ class DataClient:
                 'updatedValues': {
                     'licenseJurisdiction': new_license_record.jurisdiction,
                     # we explicitly set this to align with what was passed in as the selected jurisdiction
-                    'currentHomeJurisdiction': selected_jurisdiction,
-                    # map all the fields from the new license record that the provider record cares about
-                    # the record schema will filter out the ones that are not relevant
-                    **new_license_record.to_dict(),
+                    'currentHomeJurisdiction': selected_jurisdiction
                 },
             }
         )
@@ -1675,11 +1669,7 @@ class DataClient:
                 'previous': provider_record.to_dict(),
                 'updatedValues': {
                     'homeJurisdictionChangeDeactivationStatus': deactivation_status,
-                    'currentHomeJurisdiction': selected_jurisdiction,
-                    'dateOfUpdate': self.config.current_standard_datetime,
-                    # note in this case, since there is no new license data we don't
-                    # update the provider record fields that are derived from license records
-                    # we keep the existing fields as is.
+                    'currentHomeJurisdiction': selected_jurisdiction
                 },
             }
         )
