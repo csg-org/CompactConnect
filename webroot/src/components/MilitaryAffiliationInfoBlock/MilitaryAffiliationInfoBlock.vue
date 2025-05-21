@@ -50,8 +50,9 @@
                 </ListContainer>
             </div>
         </div>
-        <div v-if="shouldShowEditButtons" class="button-row">
+        <div v-if="shouldShowEditButtons" class="button-row" :class="{ 'one-button': !shouldShowEndButton }">
             <InputButton
+                v-if="shouldShowEndButton"
                 :label="$t('military.endMilitaryAffiliation')"
                 :aria-label="$t('military.endMilitaryAffiliation')"
                 :isTextLike="true"

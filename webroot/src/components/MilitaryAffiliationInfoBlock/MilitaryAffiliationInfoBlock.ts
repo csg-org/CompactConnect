@@ -110,6 +110,10 @@ class MilitaryAffiliationInfoBlock extends mixins(MixinForm) {
         return this.$matches.phone.only ? this.$t('common.yes') : this.$t('military.yesEnd');
     }
 
+    get shouldShowEndButton(): boolean {
+        return this.licensee?.isMilitary() || false;
+    }
+
     get sortOptions(): Array<any> {
         // Sorting not API supported
         return [];
