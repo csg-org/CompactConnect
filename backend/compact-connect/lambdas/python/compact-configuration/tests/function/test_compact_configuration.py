@@ -53,6 +53,22 @@ class TestGetStaffUsersCompactJurisdictions(TstFunction):
             response_body,
         )
 
+    def test_get_compact_jurisdictions_returns_invalid_exception_if_invalid_compact(self):
+        """Test getting an error if invalid compact is provided."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        event = generate_test_event('GET', STAFF_USERS_COMPACT_JURISDICTION_ENDPOINT_RESOURCE)
+        event['pathParameters']['compact'] = 'invalid_compact'
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'], msg=json.loads(response['body']))
+        response_body = json.loads(response['body'])
+
+        self.assertEqual(
+            {'message': 'Invalid compact abbreviation: invalid_compact'},
+            response_body,
+        )
+
     def test_get_compact_jurisdictions_returns_empty_list_if_no_active_jurisdictions(self):
         """Test getting an empty list if no jurisdictions configured."""
         from handlers.compact_configuration import compact_configuration_api_handler
@@ -109,6 +125,22 @@ class TestGetPublicCompactJurisdictions(TstFunction):
 
         self.assertEqual(
             {'message': 'Invalid HTTP method'},
+            response_body,
+        )
+
+    def test_get_compact_jurisdictions_returns_invalid_exception_if_invalid_compact(self):
+        """Test getting an error if invalid compact is provided."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        event = generate_test_event('GET', PUBLIC_COMPACT_JURISDICTION_ENDPOINT_RESOURCE)
+        event['pathParameters']['compact'] = 'invalid_compact'
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'], msg=json.loads(response['body']))
+        response_body = json.loads(response['body'])
+
+        self.assertEqual(
+            {'message': 'Invalid compact abbreviation: invalid_compact'},
             response_body,
         )
 
@@ -202,6 +234,22 @@ class TestStaffUsersCompactConfiguration(TstFunction):
 
         self.assertEqual(
             {'message': 'Invalid HTTP method'},
+            response_body,
+        )
+
+    def test_get_compact_configuration_returns_invalid_exception_if_invalid_compact(self):
+        """Test getting an error if invalid compact is provided."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        event = generate_test_event('GET', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE)
+        event['pathParameters']['compact'] = 'invalid_compact'
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'], msg=json.loads(response['body']))
+        response_body = json.loads(response['body'])
+
+        self.assertEqual(
+            {'message': 'Invalid compact abbreviation: invalid_compact'},
             response_body,
         )
 
@@ -377,6 +425,39 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
 
         self.assertEqual(
             {'message': 'Invalid HTTP method'},
+            response_body,
+        )
+
+    def test_get_jurisdiction_configuration_returns_invalid_exception_if_invalid_compact(self):
+        """Test getting an error if invalid compact is provided."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        event = generate_test_event('GET', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE)
+        event['pathParameters']['compact'] = 'invalid_compact'
+        event['pathParameters']['jurisdiction'] = 'ky'
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'], msg=json.loads(response['body']))
+        response_body = json.loads(response['body'])
+
+        self.assertEqual(
+            {'message': 'Invalid compact abbreviation: invalid_compact'},
+            response_body,
+        )
+
+    def test_get_jurisdiction_configuration_returns_invalid_exception_if_invalid_jurisdiction(self):
+        """Test getting an error if invalid jurisdiction is provided."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        event = generate_test_event('GET', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE)
+        event['pathParameters']['jurisdiction'] = 'invalid_jurisdiction'
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'], msg=json.loads(response['body']))
+        response_body = json.loads(response['body'])
+
+        self.assertEqual(
+            {'message': 'Invalid jurisdiction postal abbreviation: invalid_jurisdiction'},
             response_body,
         )
 
