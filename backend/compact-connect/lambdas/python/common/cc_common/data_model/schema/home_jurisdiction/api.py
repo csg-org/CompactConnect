@@ -1,5 +1,4 @@
 # ruff: noqa: N801, N815  invalid-name
-
 from marshmallow.fields import Raw, String
 
 from cc_common.data_model.schema.base_record import ForgivingSchema
