@@ -476,6 +476,11 @@
         "privilegeFees": "Privilege fees",
         "compactFee": "Compact fee",
         "privilegeTransactionFee": "Privilege transaction fee",
+        "fee": "fee",
+        "jurisprudence": "Jurisprudence",
+        "jurisprudenceExamRequired": "Exam required?",
+        "jurisprudenceInfoLink": "Jurisprudence information link",
+        "jurisprudenceInfoLinkSubtext": "Compact privilege seekers will be able to follow this link for additional information about your state's jurisprudence requirements",
         "notifications": "Notifications",
         "addEmails": "Add emails here",
         "enterToAdd": "Hit Enter to add",
@@ -488,9 +493,12 @@
         "licenseRegistrationTitle": "Live status",
         "licenseRegistrationEnabled": "Is license registration enabled?",
         "licenseRegistrationEnabledSubtext": "This enables live status for purchasing privileges, and <em>this action is irreversible.</em>",
+        "privilegePurchaseEnabled": "State is live for compact privilege purchase",
+        "privilegePurchaseEnabledSubtext": "This enables live status for purchasing privileges, and <em>this action is irreversible.</em>",
         "confirmSaveCompactTitle": "Are you sure you want to mark this state as live?",
         "confirmSaveCompactYes": "Yes, mark as live",
-        "saveSuccessfulCompact": "Compact changes saved successfully"
+        "saveSuccessfulCompact": "Compact changes saved successfully",
+        "saveSuccessfulState": "State changes saved successfully"
     },
     "stateUpload": {
         "formTitle": "Compact data upload",

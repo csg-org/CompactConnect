@@ -6,7 +6,14 @@
 -->
 
 <template>
-    <h3>StateSettings</h3>
+    <Section class="state-settings-container">
+        <h1 class="state-settings-title">{{ pageTitle }}</h1>
+        <StateSettingsConfig
+            v-if="isStateAdmin"
+            :stateAbbrev="stateAbbrev"
+            class="state-config"
+        />
+    </Section>
 </template>
 
 <script lang="ts" src="./StateSettings.ts"></script>

@@ -475,6 +475,11 @@
         "privilegeFees": "Tarifas de privilegio",
         "compactFee": "Tarifa compacta",
         "privilegeTransactionFee": "Tarifa de transacción privilegiada",
+        "fee": "tarifa",
+        "jurisprudence": "Jurisprudencia",
+        "jurisprudenceExamRequired": "¿Es necesario un examen?",
+        "jurisprudenceInfoLink": "Enlace de información sobre jurisprudencia",
+        "jurisprudenceInfoLinkSubtext": "Los solicitantes de privilegios compactos podrán seguir este enlace para obtener información adicional sobre los requisitos de jurisprudencia de su estado.",
         "notifications": "Notificaciones",
         "addEmails": "Añade correos electrónicos aquí",
         "enterToAdd": "Presione Enter para agregar",
@@ -487,9 +492,12 @@
         "licenseRegistrationTitle": "Estado en vivo",
         "licenseRegistrationEnabled": "¿Está habilitado el registro de licencia?",
         "licenseRegistrationEnabledSubtext": "Esto habilita el estado en vivo para los privilegios de compra, y <em>esta acción es irreversible.</em>",
+        "privilegePurchaseEnabled": "El estado está en línea para la compra de privilegios compactos",
+        "privilegePurchaseEnabledSubtext": "Esto habilita el estado en vivo para los privilegios de compra, y <em>esta acción es irreversible.</em>",
         "confirmSaveCompactTitle": "¿Estás seguro de que deseas marcar este estado como activo?",
         "confirmSaveCompactYes": "Sí, marcar como en vivo",
-        "saveSuccessfulCompact": "Los cambios compactos se guardaron correctamente"
+        "saveSuccessfulCompact": "Los cambios compactos se guardaron correctamente",
+        "saveSuccessfulState": "Los cambios de estado se guardaron correctamente"
     },
     "stateUpload": {
         "formTitle": "Carga de datos compacta",

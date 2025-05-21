@@ -126,11 +126,11 @@ export default class CompactSettings extends Vue {
     //
     // Watch
     //
-    @Watch('isCompactAdmin') compactAdminUpdate() {
+    @Watch('currentCompact') currentCompactUpdate() {
         this.permissionRedirectCheck();
     }
 
-    @Watch('isStateAdminExactlyOne') stateAdminUpdate() {
+    @Watch('user') userUpdate() {
         this.permissionRedirectCheck();
     }
 }
