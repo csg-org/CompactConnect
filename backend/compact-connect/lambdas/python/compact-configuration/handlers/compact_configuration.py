@@ -43,7 +43,7 @@ def compact_configuration_api_handler(event: dict, context: LambdaContext):  # n
 def _validate_compact(compact: str) -> None:
     """
     Validate that the provided compact exists in the configured list of compacts.
-    
+
     :param compact: The compact abbreviation to validate
     :raises CCInvalidRequestException: If the compact does not exist
     """
@@ -55,7 +55,7 @@ def _validate_compact(compact: str) -> None:
 def _validate_jurisdiction(jurisdiction: str) -> None:
     """
     Validate that the provided jurisdiction exists in the configured list of jurisdictions.
-    
+
     :param jurisdiction: The jurisdiction postal abbreviation to validate
     :raises CCInvalidRequestException: If the jurisdiction does not exist
     """
@@ -76,7 +76,7 @@ def _get_staff_users_compact_jurisdictions(event: dict, context: LambdaContext):
     :return: The latest version of the attestation record
     """
     compact = event['pathParameters']['compact']
-    
+
     # Validate the compact
     _validate_compact(compact)
 
@@ -103,7 +103,7 @@ def _get_public_compact_jurisdictions(event: dict, context: LambdaContext):  # n
     :return: The latest version of the attestation record
     """
     compact = event['pathParameters']['compact']
-    
+
     # Validate the compact
     _validate_compact(compact)
 
@@ -127,7 +127,7 @@ def _get_staff_users_compact_configuration(event: dict, context: LambdaContext):
     :return: The compact configuration
     """
     compact = event['pathParameters']['compact']
-    
+
     # Validate the compact
     _validate_compact(compact)
 
@@ -229,7 +229,7 @@ def _get_staff_users_jurisdiction_configuration(event: dict, context: LambdaCont
     """
     compact = event['pathParameters']['compact']
     jurisdiction = event['pathParameters']['jurisdiction']
-    
+
     # Validate the compact and jurisdiction
     _validate_compact(compact)
     _validate_jurisdiction(jurisdiction)
