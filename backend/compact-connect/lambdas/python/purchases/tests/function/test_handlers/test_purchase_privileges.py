@@ -697,10 +697,11 @@ class TestPostPurchasePrivileges(TstFunction):
             mock_purchase_client_constructor
         )
         # set the first two api calls to call the actual implementation
+        # everything else should be mocked
         mock_data_client.get_privilege_purchase_options = (
             config.compact_configuration_client.get_privilege_purchase_options
         )
-        mock_data_client.get_provider = config.data_client.get_provider
+        mock_data_client.get_provider_user_records = config.data_client.get_provider_user_records
         # raise an exception when creating the privilege record
         mock_data_client.create_provider_privileges.side_effect = CCAwsServiceException('dynamo down')
 

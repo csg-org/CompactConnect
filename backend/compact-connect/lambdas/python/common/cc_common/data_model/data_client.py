@@ -297,8 +297,8 @@ class DataClient:
         attestations: list[dict],
         license_type: str,
         license_jurisdiction: str,
-        original_privilege: dict | None = None,
-    ):
+        original_privilege: PrivilegeData | None = None,
+    ) -> PrivilegeData:
         current_datetime = config.current_standard_datetime
         try:
             license_type_abbreviation = self.config.license_type_abbreviations[compact][license_type]
@@ -310,12 +310,12 @@ class DataClient:
 
         if original_privilege:
             # Copy over the original issuance date and privilege id
-            date_of_issuance = original_privilege['dateOfIssuance']
+            date_of_issuance = original_privilege.dateOfIssuance
             # TODO: This privilege number copy-over approach has a gap in it, in the event that a  # noqa: FIX002
             # provider's license type changes. In that event, the privilege id will have the original
             # license type abbreviation in it, not the new one.
             # This gap should be closed as part of https://github.com/csg-org/CompactConnect/issues/443.
-            privilege_id = original_privilege['privilegeId']
+            privilege_id = original_privilege.privilegeId
         else:
             date_of_issuance = current_datetime
             # Claim a privilege number for this jurisdiction
@@ -328,20 +328,22 @@ class DataClient:
                 (license_type_abbreviation.upper(), jurisdiction_postal_abbreviation.upper(), str(privilege_number))
             )
 
-        return {
-            'providerId': provider_id,
-            'compact': compact,
-            'jurisdiction': jurisdiction_postal_abbreviation.lower(),
-            'licenseJurisdiction': license_jurisdiction.lower(),
-            'licenseType': license_type,
-            'dateOfIssuance': date_of_issuance,
-            'dateOfRenewal': current_datetime,
-            'dateOfExpiration': license_expiration_date,
-            'compactTransactionId': compact_transaction_id,
-            'attestations': attestations,
-            'privilegeId': privilege_id,
-            'administratorSetStatus': ActiveInactiveStatus.ACTIVE,
-        }
+        return PrivilegeData.create_new(
+            {
+                'providerId': provider_id,
+                'compact': compact,
+                'jurisdiction': jurisdiction_postal_abbreviation.lower(),
+                'licenseJurisdiction': license_jurisdiction.lower(),
+                'licenseType': license_type,
+                'dateOfIssuance': date_of_issuance,
+                'dateOfRenewal': current_datetime,
+                'dateOfExpiration': license_expiration_date,
+                'compactTransactionId': compact_transaction_id,
+                'attestations': attestations,
+                'privilegeId': privilege_id,
+                'administratorSetStatus': ActiveInactiveStatus.ACTIVE,
+            }
+        )
 
     @logger_inject_kwargs(logger, 'compact', 'provider_id', 'compact_transaction_id')
     def create_provider_privileges(
@@ -351,8 +353,8 @@ class DataClient:
         jurisdiction_postal_abbreviations: list[str],
         license_expiration_date: date,
         compact_transaction_id: str,
-        provider_record: dict,
-        existing_privileges_for_license: list[dict],
+        provider_record: ProviderData,
+        existing_privileges_for_license: list[PrivilegeData],
         attestations: list[dict],
         license_type: str,
     ):
@@ -379,7 +381,7 @@ class DataClient:
             privilege_jurisdictions=jurisdiction_postal_abbreviations,
         )
 
-        license_jurisdiction = provider_record['licenseJurisdiction']
+        license_jurisdiction = provider_record.licenseJurisdiction
 
         privileges = []
 
@@ -395,13 +397,13 @@ class DataClient:
                     (
                         record
                         for record in existing_privileges_for_license
-                        if record['jurisdiction'].lower() == postal_abbreviation.lower()
-                        and record['licenseType'] == license_type
+                        if record.jurisdiction.lower() == postal_abbreviation.lower()
+                        and record.licenseType == license_type
                     ),
                     None,
                 )
 
-                privilege_record = self._generate_privilege_record(
+                privilege_record: PrivilegeData = self._generate_privilege_record(
                     compact=compact,
                     provider_id=provider_id,
                     jurisdiction_postal_abbreviation=postal_abbreviation,
@@ -417,35 +419,35 @@ class DataClient:
 
                 # Create privilege update record if this is updating an existing privilege
                 if original_privilege:
-                    update_record = {
-                        'type': 'privilegeUpdate',
-                        'updateType': 'renewal',
-                        'providerId': provider_id,
-                        'compact': compact,
-                        'jurisdiction': postal_abbreviation.lower(),
-                        'licenseType': license_type,
-                        'previous': original_privilege,
-                        'updatedValues': {
-                            'dateOfRenewal': privilege_record['dateOfRenewal'],
-                            'dateOfExpiration': privilege_record['dateOfExpiration'],
-                            'compactTransactionId': compact_transaction_id,
-                            'privilegeId': privilege_record['privilegeId'],
-                            'attestations': attestations,
-                            **(
-                                {'administratorSetStatus': ActiveInactiveStatus.ACTIVE}
-                                if original_privilege['administratorSetStatus'] == ActiveInactiveStatus.INACTIVE
-                                else {}
-                            ),
-                        },
-                    }
+                    update_record = PrivilegeUpdateData.create_new(
+                        {
+                            'type': 'privilegeUpdate',
+                            'updateType': 'renewal',
+                            'providerId': provider_id,
+                            'compact': compact,
+                            'jurisdiction': postal_abbreviation.lower(),
+                            'licenseType': license_type,
+                            'previous': original_privilege.to_dict(),
+                            'updatedValues': {
+                                'dateOfRenewal': privilege_record.dateOfRenewal,
+                                'dateOfExpiration': privilege_record.dateOfExpiration,
+                                'compactTransactionId': compact_transaction_id,
+                                'privilegeId': privilege_record.privilegeId,
+                                'attestations': attestations,
+                                **(
+                                    {'administratorSetStatus': ActiveInactiveStatus.ACTIVE}
+                                    if original_privilege.administratorSetStatus == ActiveInactiveStatus.INACTIVE
+                                    else {}
+                                ),
+                            },
+                        }
+                    )
                     privilege_update_records.append(update_record)
                     transactions.append(
                         {
                             'Put': {
                                 'TableName': self.config.provider_table_name,
-                                'Item': TypeSerializer().serialize(PrivilegeUpdateRecordSchema().dump(update_record))[
-                                    'M'
-                                ],
+                                'Item': TypeSerializer().serialize(update_record.serialize_to_database_record())['M'],
                             }
                         }
                     )
@@ -454,7 +456,7 @@ class DataClient:
                     {
                         'Put': {
                             'TableName': self.config.provider_table_name,
-                            'Item': TypeSerializer().serialize(PrivilegeRecordSchema().dump(privilege_record))['M'],
+                            'Item': TypeSerializer().serialize(privilege_record.serialize_to_database_record())['M'],
                         }
                     }
                 )
@@ -516,9 +518,9 @@ class DataClient:
     def _rollback_privilege_transactions(
         self,
         processed_transactions: list[dict],
-        provider_record: dict,
+        provider_record: ProviderData,
         license_type: str,
-        existing_privileges_for_license_type: list[dict],
+        existing_privileges_for_license_type: list[PrivilegeData],
     ):
         """Roll back successful privilege transactions after a failure."""
         rollback_transactions = []
@@ -527,9 +529,9 @@ class DataClient:
         # as a safety precaution, we must ensure that every privilege in the list matches the license type that we
         # attempted to change privilege for
         existing_privileges_by_jurisdiction = {
-            privilege['jurisdiction']: privilege
+            privilege.jurisdiction: privilege
             for privilege in existing_privileges_for_license_type
-            if privilege['licenseType'] == license_type
+            if privilege.licenseType == license_type
         }
 
         # Delete all privilege update records and handle privilege records appropriately
@@ -561,7 +563,7 @@ class DataClient:
                                 'Put': {
                                     'TableName': self.config.provider_table_name,
                                     'Item': TypeSerializer().serialize(
-                                        privilege_record_schema.dump(original_privilege)
+                                        original_privilege.serialize_to_database_record()
                                     )['M'],
                                 }
                             }
@@ -586,7 +588,7 @@ class DataClient:
             {
                 'Put': {
                     'TableName': self.config.provider_table_name,
-                    'Item': TypeSerializer().serialize(provider_record)['M'],
+                    'Item': TypeSerializer().serialize(provider_record.serialize_to_database_record())['M'],
                 }
             }
         )

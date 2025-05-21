@@ -246,36 +246,6 @@ class ProviderRecordUtility:
             provider['homeJurisdictionSelection'] = home_jurisdiction_selection
         return provider
 
-    @staticmethod
-    def determine_military_affiliation_status(provider_records: list[dict]) -> bool:
-        """
-        Determine if the provider has an active military affiliation.
-
-        :param provider_records: List of provider records
-        :return: True if the provider has an active military affiliation, False otherwise
-        :raises CCInvalidRequestException: If military affiliation is in initializing state
-        """
-        military_affiliation_records = [
-            record for record in provider_records if record['type'] == 'militaryAffiliation'
-        ]
-        if not military_affiliation_records:
-            return False
-
-        # we only need to check the most recent military affiliation record
-        latest_military_affiliation = sorted(
-            military_affiliation_records, key=lambda x: x['dateOfUpload'], reverse=True
-        )[0]
-
-        if latest_military_affiliation['status'] == MilitaryAffiliationStatus.INITIALIZING:
-            # this only occurs if the user's military document was not processed by S3 as expected
-            raise CCInvalidRequestException(
-                'Your proof of military affiliation documentation was not successfully processed. '
-                'Please return to the Military Status page and re-upload your military affiliation '
-                'documentation or end your military affiliation.'
-            )
-
-        return latest_military_affiliation['status'] == MilitaryAffiliationStatus.ACTIVE
-
 
 class ProviderUserRecords:
     """
@@ -285,6 +255,8 @@ class ProviderUserRecords:
     """
 
     def __init__(self, provider_records: Iterable[dict]):
+        # list of all records for this provider in dict format, which can be used for parts of the system that
+        # have not been updated to use the data class pattern
         self.provider_records = provider_records
 
     def get_privilege_records(
@@ -382,3 +354,22 @@ class ProviderUserRecords:
             raise CCInternalException('No licenses found')
 
         return latest_licenses[0]
+
+    def get_latest_military_affiliation_status(self) -> MilitaryAffiliationStatus | None:
+        """
+        Determine the provider's latest military affiliation status if present.
+
+        :return: The military affiliation status of the provider if present, else None
+        """
+        military_affiliation_records = [
+            record for record in self.provider_records if record['type'] == 'militaryAffiliation'
+        ]
+        if not military_affiliation_records:
+            return None
+
+        # we only need to check the most recent military affiliation record
+        latest_military_affiliation = sorted(
+            military_affiliation_records, key=lambda x: x['dateOfUpload'], reverse=True
+        )[0]
+
+        return latest_military_affiliation['status']

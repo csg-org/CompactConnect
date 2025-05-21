@@ -107,13 +107,11 @@ class TestTransformations(TstFunction):
             email_address=expected_provider['compactConnectRegisteredEmailAddress'],
         )
 
-        provider_record = provider_user_records.get_provider_record().to_dict()
-
         # Add a privilege to practice in Nebraska
         client.create_provider_privileges(
             compact='aslp',
             provider_id=provider_id,
-            provider_record=provider_record,
+            provider_record=provider_user_records.get_provider_record(),
             # using values in expected privilege json file
             jurisdiction_postal_abbreviations=['ne'],
             license_expiration_date=date(2025, 4, 4),

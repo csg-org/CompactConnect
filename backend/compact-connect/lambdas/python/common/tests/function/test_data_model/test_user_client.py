@@ -43,16 +43,17 @@ class TestClient(TstFunction):
             client.get_user_in_compact(compact='aslp', user_id='123')
 
     def test_get_compact_users_by_family_name(self):
+        jurisdiction_list = ['oh', 'ne', 'ky']
         # One user with compact-staff-like permissions in aslp
         self._create_compact_staff_user(compacts=['aslp'])
         # One user with compact-staff-like permissions in octp
         self._create_compact_staff_user(compacts=['octp'])
         # One user with board-staff-like permissions in aslp in each jurisdiction
-        self._create_board_staff_users(compacts=['aslp'])
+        self._create_board_staff_users(compacts=['aslp'], jurisdiction_list=jurisdiction_list)
         # One user with board-staff-like permissions in aslp and octp in each jurisdiction
-        self._create_board_staff_users(compacts=['aslp', 'octp'])
+        self._create_board_staff_users(compacts=['aslp', 'octp'], jurisdiction_list=jurisdiction_list)
         # One user with board-staff-like permissions in octp in each jurisdiction
-        self._create_board_staff_users(compacts=['octp'])
+        self._create_board_staff_users(compacts=['octp'], jurisdiction_list=jurisdiction_list)
 
         from cc_common.data_model.user_client import UserClient
 
@@ -62,7 +63,7 @@ class TestClient(TstFunction):
 
         # We created two users that have aslp permissions in each jurisdiction and one aslp compact-staff user
         # so those are what we should get back
-        self.assertEqual(2 * len(self.config.jurisdictions) + 1, len(resp['items']))
+        self.assertEqual(2 * len(jurisdiction_list) + 1, len(resp['items']))
 
         # Verify that we're getting the expected fields
         for user in resp['items']:
@@ -76,12 +77,14 @@ class TestClient(TstFunction):
         self.assertEqual(sorted_family_names, family_names)
 
     def test_get_jurisdictions_users_by_family_name(self):
+        jurisdiction_list = ['oh', 'ne', 'ky']
+
         # One user with compact-staff-like permissions in aslp
         self._create_compact_staff_user(compacts=['aslp'])
         # One user with board-staff-like permissions in aslp in each jurisdiction
-        self._create_board_staff_users(compacts=['aslp'])
+        self._create_board_staff_users(compacts=['aslp'], jurisdiction_list=jurisdiction_list)
         # One user with board-staff-like permissions in aslp and octp in each jurisdiction
-        self._create_board_staff_users(compacts=['aslp', 'octp'])
+        self._create_board_staff_users(compacts=['aslp', 'octp'], jurisdiction_list=jurisdiction_list)
 
         from cc_common.data_model.user_client import UserClient
 
@@ -96,7 +99,7 @@ class TestClient(TstFunction):
 
         # We created two board users that have aslp permissions in each jurisdiction so those are what we should get
         # back
-        self.assertEqual(2 * len(self.config.jurisdictions), len(resp['items']))
+        self.assertEqual(2 * len(jurisdiction_list), len(resp['items']))
 
         # Verify that we're getting the expected fields
         for user in resp['items']:

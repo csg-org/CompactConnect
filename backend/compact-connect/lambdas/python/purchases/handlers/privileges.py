@@ -3,14 +3,16 @@ from datetime import date
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
-from cc_common.data_model.provider_record_util import ProviderRecordType, ProviderRecordUtility
+from cc_common.data_model.provider_record_util import ProviderRecordType, ProviderRecordUtility, ProviderUserRecords
 from cc_common.data_model.schema.common import ActiveInactiveStatus, CompactEligibilityStatus
 from cc_common.data_model.schema.compact import Compact
 from cc_common.data_model.schema.compact.api import CompactOptionsResponseSchema
 from cc_common.data_model.schema.compact.common import COMPACT_TYPE
+from cc_common.data_model.schema.fields import OTHER_JURISDICTION, UNKNOWN_JURISDICTION
 from cc_common.data_model.schema.jurisdiction import Jurisdiction
 from cc_common.data_model.schema.jurisdiction.api import JurisdictionOptionsResponseSchema
 from cc_common.data_model.schema.jurisdiction.common import JURISDICTION_TYPE
+from cc_common.data_model.schema.military_affiliation.common import MilitaryAffiliationStatus
 from cc_common.exceptions import (
     CCAwsServiceException,
     CCFailedTransactionException,
@@ -212,19 +214,33 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
 
     # get the user's profile information
     provider_id = _get_caller_provider_id_custom_attribute(event)
-    user_provider_data = config.data_client.get_provider(compact=compact_abbr, provider_id=provider_id)
+    provider_user_records: ProviderUserRecords = config.data_client.get_provider_user_records(
+        compact=compact_abbr, provider_id=provider_id
+    )
+    top_level_provider_record = provider_user_records.get_provider_record()
 
-    home_state_selection = ProviderRecordUtility.get_provider_home_state_selection(user_provider_data['items'])
-    if home_state_selection is None:
-        raise CCInternalException('No home state selection found for this user')
+    current_home_jurisdiction = top_level_provider_record.currentHomeJurisdiction
+    if (
+        current_home_jurisdiction is None
+        or current_home_jurisdiction == UNKNOWN_JURISDICTION
+        or current_home_jurisdiction == OTHER_JURISDICTION
+    ):
+        logger.error(
+            'API request to purchase privileges for provider that does not have a valid home state selection.',
+            provider_id=provider_id,
+            compact=compact,
+            current_home_jurisdiction=current_home_jurisdiction,
+        )
+        raise CCInternalException(
+            'Invalid home state selection found for this user. '
+            'User should not be able to request privileges in this state.'
+        )
 
     # we now validate that the license type matches one of the license types from the home state license records
-    matching_license_records = ProviderRecordUtility.get_records_of_type(
-        user_provider_data['items'],
-        ProviderRecordType.LICENSE,
-        _filter=lambda record: record['licenseType'] == body['licenseType']
-        and record['jurisdiction'] == home_state_selection
-        and record['compactEligibility'] == CompactEligibilityStatus.ELIGIBLE,
+    matching_license_records = provider_user_records.get_license_records(
+        filter_condition=lambda record: record.licenseType == body['licenseType']
+        and record.jurisdiction == current_home_jurisdiction
+        and record.compactEligibility == CompactEligibilityStatus.ELIGIBLE,
     )
 
     if not matching_license_records:
@@ -234,47 +250,43 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
 
     matching_license_record = matching_license_records[0]
 
-    provider_records = ProviderRecordUtility.get_records_of_type(
-        user_provider_data['items'],
-        ProviderRecordType.PROVIDER,
-    )
-    # this should never happen, but we check just in case
-    if not provider_records:
-        raise CCNotFoundException('Provider not found')
-    provider_record = provider_records[0]
-
-    license_jurisdiction = matching_license_record['jurisdiction']
+    license_jurisdiction = matching_license_record.jurisdiction
     if license_jurisdiction.lower() in selected_jurisdictions_postal_abbreviations:
         raise CCInvalidRequestException(
             f"Selected privilege jurisdiction '{license_jurisdiction}' matches license jurisdiction"
         )
 
-    all_privilege_records = ProviderRecordUtility.get_records_of_type(
-        user_provider_data['items'], ProviderRecordType.PRIVILEGE
+    existing_privileges_for_license = provider_user_records.get_privilege_records(
+        filter_condition=lambda privilege_record: privilege_record.licenseType == matching_license_record.licenseType
     )
-
-    existing_privileges_for_license = [
-        record for record in all_privilege_records if record['licenseType'] == matching_license_record['licenseType']
-    ]
     # a licensee can only purchase an existing privilege for a jurisdiction
     # if their existing privilege expiration date does not match their license expiration date
     # this is because the only reason a user should renew an existing privilege is if they have renewed
     # their license and want to extend the expiration date of their privilege to match the new license expiration date.
     for privilege in existing_privileges_for_license:
         if (
-            privilege['jurisdiction'].lower() in selected_jurisdictions_postal_abbreviations
+            privilege.jurisdiction.lower() in selected_jurisdictions_postal_abbreviations
             # if their latest privilege expiration date matches the license expiration date they will not
             # receive any benefit from purchasing the same privilege, since the expiration date will not change
-            and privilege['dateOfExpiration'] == matching_license_record['dateOfExpiration']
-            and privilege['administratorSetStatus'] == ActiveInactiveStatus.ACTIVE
+            and privilege.dateOfExpiration == matching_license_record.dateOfExpiration
+            and privilege.administratorSetStatus == ActiveInactiveStatus.ACTIVE
         ):
             raise CCInvalidRequestException(
-                f"Selected privilege jurisdiction '{privilege['jurisdiction'].lower()}'"
+                f"Selected privilege jurisdiction '{privilege.jurisdiction.lower()}'"
                 f' matches existing privilege jurisdiction for license type'
             )
 
-    license_expiration_date: date = matching_license_record['dateOfExpiration']
-    user_active_military = ProviderRecordUtility.determine_military_affiliation_status(user_provider_data['items'])
+    license_expiration_date: date = matching_license_record.dateOfExpiration
+    provider_latest_military_status = provider_user_records.get_latest_military_affiliation_status()
+    if provider_latest_military_status == MilitaryAffiliationStatus.INITIALIZING:
+        # this only occurs if the user's military document was not processed by S3 as expected
+        raise CCInvalidRequestException(
+            'Your proof of military affiliation documentation was not successfully processed. '
+            'Please return to the Military Status page and re-upload your military affiliation '
+            'documentation or end your military affiliation.'
+        )
+
+    user_active_military = provider_latest_military_status == MilitaryAffiliationStatus.ACTIVE
 
     # Validate attestations are the latest versions before proceeding with the purchase
     _validate_attestations(compact_abbr, body.get('attestations', []), user_active_military)
@@ -282,7 +294,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
     purchase_client = PurchaseClient()
     transaction_response = None
     try:
-        license_type_abbr = config.license_type_abbreviations[compact_abbr][matching_license_record['licenseType']]
+        license_type_abbr = config.license_type_abbreviations[compact_abbr][matching_license_record.licenseType]
         transaction_response = purchase_client.process_charge_for_licensee_privileges(
             licensee_id=provider_id,
             order_information=body['orderInformation'],
@@ -299,9 +311,9 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             jurisdiction_postal_abbreviations=selected_jurisdictions_postal_abbreviations,
             license_expiration_date=license_expiration_date,
             compact_transaction_id=transaction_response['transactionId'],
-            provider_record=provider_record,
+            provider_record=top_level_provider_record,
             existing_privileges_for_license=existing_privileges_for_license,
-            license_type=matching_license_record['licenseType'],
+            license_type=matching_license_record.licenseType,
             attestations=body['attestations'],
         )
 
