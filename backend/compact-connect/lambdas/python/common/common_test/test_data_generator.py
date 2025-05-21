@@ -95,7 +95,8 @@ class TestDataGenerator:
             raise Exception('Error querying update records from database') from e
 
     @staticmethod
-    def query_privilege_update_records_for_given_record_from_database(privilege_data: PrivilegeData) -> list[dict]:
+    def query_privilege_update_records_for_given_record_from_database(
+            privilege_data: PrivilegeData) -> list[PrivilegeUpdateData]:
         """
         Helper method to query update records from the database using the provider data class instance.
 
@@ -105,9 +106,11 @@ class TestDataGenerator:
         """
         serialized_record = privilege_data.serialize_to_database_record()
 
-        return TestDataGenerator._query_records_by_pk_and_sk_prefix(
+        privilege_update_records = TestDataGenerator._query_records_by_pk_and_sk_prefix(
             serialized_record['pk'], f'{serialized_record["sk"]}UPDATE'
         )
+
+        return [PrivilegeUpdateData.from_database_record(update_record) for update_record in privilege_update_records]
 
     @staticmethod
     def query_provider_update_records_for_given_record_from_database(provider_record: ProviderData) -> list[dict]:

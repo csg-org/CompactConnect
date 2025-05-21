@@ -1065,7 +1065,6 @@ class TestPutProviderHomeJurisdiction(TstFunction):
         self.assertEqual(new_license_record.suffix, stored_provider_data.suffix)
 
     def test_put_provider_home_jurisdiction_adds_privilege_update_record_when_privilege_moved_over_to_license(self):
-        from cc_common.data_model.schema.privilege import PrivilegeUpdateData
         from handlers.provider_users import provider_users_api_handler
 
         (test_provider_record, test_current_license_record, test_privilege_record) = (
@@ -1086,7 +1085,7 @@ class TestPutProviderHomeJurisdiction(TstFunction):
         )
         self.assertEqual(1, len(stored_privilege_update_records))
 
-        update_data = PrivilegeUpdateData.from_database_record(stored_privilege_update_records[0])
+        update_data = stored_privilege_update_records[0]
         # the updateType should be homeJurisdictionUpdate
         self.assertEqual('homeJurisdictionChange', update_data.updateType)
         # this should not be present since the record was moved over
@@ -1249,7 +1248,6 @@ class TestPutProviderHomeJurisdiction(TstFunction):
     def test_put_provider_home_jurisdiction_adds_privilege_update_record_when_privilege_same_jurisdiction_as_new_home_state(
         self,
     ):
-        from cc_common.data_model.schema.privilege import PrivilegeUpdateData
         from handlers.provider_users import provider_users_api_handler
 
         self._when_provider_has_license_in_new_home_state()
@@ -1271,7 +1269,7 @@ class TestPutProviderHomeJurisdiction(TstFunction):
         )
         self.assertEqual(1, len(stored_privilege_update_records))
 
-        update_data = PrivilegeUpdateData.from_database_record(stored_privilege_update_records[0])
+        update_data = stored_privilege_update_records[0]
         # the updateType should be homeJurisdictionUpdate
         self.assertEqual('homeJurisdictionChange', update_data.updateType)
         self.assertEqual('privilegeInHomeState', update_data.updatedValues['homeJurisdictionChangeDeactivationStatus'])
