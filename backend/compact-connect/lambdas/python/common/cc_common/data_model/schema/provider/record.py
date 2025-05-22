@@ -75,13 +75,6 @@ class ProviderRecordSchema(BaseRecordSchema):
     providerFamGivMid = String(required=False, allow_none=False, validate=Length(2, 400))
     providerDateOfUpdate = DateTime(required=True, allow_none=False)
 
-    # This field is only set if a provider changes their home jurisdiction and there is not a valid license on record
-    # for that jurisdiction.
-    # It is removed in the event that a valid license record is uploaded into the system for the provider for their
-    # new jurisdiction.
-    homeJurisdictionChangeDeactivationStatus = HomeJurisdictionChangeDeactivationStatusField(
-        required=False, allow_none=False
-    )
     # This field is set whenever the provider registers with the compact connect system,
     # or updates their home jurisdiction.
     currentHomeJurisdiction = CurrentHomeJurisdictionField(
@@ -120,9 +113,9 @@ class ProviderRecordSchema(BaseRecordSchema):
                 and in_data['licenseStatus'] == ActiveInactiveStatus.ACTIVE
                 and in_data.get('encumberedStatus', LicenseEncumberedStatusEnum.UNENCUMBERED)
                 == LicenseEncumberedStatusEnum.UNENCUMBERED
-                # in the case of providers, we set this value if the provider moved to a jurisdiction where they do
-                # not have a valid license within the compact member states.
-                and in_data.get('homeJurisdictionChangeDeactivationStatus', None) is None
+                # In the case of providers, if they have moved to a jurisdiction where they have no license which the
+                # system knows about, they are considered ineligible as they cannot purchase privileges in that case.
+                and in_data.get('currentHomeJurisdiction', UNKNOWN_JURISDICTION) == in_data['licenseJurisdiction']
             )
             else CompactEligibilityStatus.INELIGIBLE
         )
