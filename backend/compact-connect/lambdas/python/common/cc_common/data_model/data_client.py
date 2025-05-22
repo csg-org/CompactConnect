@@ -534,7 +534,6 @@ class DataClient:
         }
 
         # Delete all privilege update records and handle privilege records appropriately
-        privilege_record_schema = PrivilegeRecordSchema()
         for transaction in processed_transactions:
             if transaction.get('Put'):
                 item = TypeDeserializer().deserialize({'M': transaction['Put']['Item']})
@@ -854,8 +853,8 @@ class DataClient:
             logger.info('Setting registration values and setting current home jurisdiction selection')
 
             # TODO - this homeJurisdictionSelection record type is deprecated, and should be removed   # noqa: FIX002
-            #  once the frontend is updated to read the 'currentHomeJurisdiction' field directly from the provider record
-            #  instead
+            #  once the frontend is updated to read the 'currentHomeJurisdiction' field directly from the provider
+            #  record instead
             home_jurisdiction_selection_record = {
                 'type': 'homeJurisdictionSelection',
                 'compact': matched_license_record.compact,
@@ -897,7 +896,8 @@ class DataClient:
             # Create all records in a transaction
             self.config.dynamodb_client.transact_write_items(
                 TransactItems=[
-                    # TODO - this first item should be removed once the frontend is updated to stop referencing it.
+                    # TODO - this first item should be removed once the # noqa: FIX002
+                    #  frontend is updated to stop referencing it.
                     {
                         'Put': {
                             'TableName': self.config.provider_table_name,
@@ -1319,24 +1319,22 @@ class DataClient:
         Update the provider's home jurisdiction and handle their privileges according to business rules.
 
         The following rules are applied when updating the provider's home state jurisdiction:
-        1. If the jurisdiction is not a member of the compact, all the provider's existing privileges, and the provider
-           record itself, will have their 'homeJurisdictionChangeStatus' set to 'nonMemberJurisdiction'
-        2. Else if the jurisdiction is a member of the compact, but the provider does not have any license in the
-           jurisdiction, all of their existing privileges, and the provider record itself, will have their
-           'homeJurisdictionChangeStatus' set to 'noLicenseInJurisdiction'
-        3. Else if the license in the current home state is expired, the privileges are not moved over. If the provider
-        renews them, they will then be associated with the new home state.
+        1. If the provider does not have any known license in the selected jurisdiction, all of their existing
+           privileges will have their 'homeJurisdictionChangeStatus' set to 'inactive'
+        3. Else if the license in the current home state is expired, the privileges are not moved over. If the license
+           is later updated and the provider renews the privileges, they will be associated with the new home state.
         3. Else if the license in the current home state is encumbered, all privileges will not be moved over
            to the new jurisdiction. They stay encumbered.
         4. Else if the license in the new jurisdiction has a 'compactEligibility' status of 'ineligible', the associated
            privileges for the current license will NOT be moved over to the new jurisdiction, we will set the
-           'homeJurisdictionChangeStatus' field to 'licenseCompactIneligible'.
-        5. If the license in the new home state is encumbered, unexpired privileges are moved over and all privileges that
-           do not already have an encumbered status of 'encumbered' will have their encumbered status set to 'licenseEncumbered'.
+           'homeJurisdictionChangeStatus' field to 'inactive'.
+        5. If the license in the new home state is encumbered, unexpired privileges are moved over and all privileges
+           that do not already have an encumbered status of 'encumbered' will have their encumbered status set to
+           'licenseEncumbered'.
         6. If none of the above conditions are met, the provider's unexpired privileges will be moved over to the new
-           jurisdiction and the expiration date will be updated to the expiration date of the license in the new jurisdiction.
-           (the only exception to this is if any existing privilege is for the same jurisdiction as the new license, in
-           which case it is deactivated).
+           jurisdiction and the expiration date will be updated to the expiration date of the license in the new
+           jurisdiction. (the only exception to this is if any existing privilege is for the same jurisdiction as the
+           new license, in which case it is deactivated).
 
         :param compact: The compact name
         :param provider_id: The provider ID
@@ -1358,26 +1356,6 @@ class DataClient:
         # Get all privileges for the provider
         all_privileges = provider_user_records.get_privilege_records()
 
-        # TODO - add logic for non-member state (item 1) when config PR merged into development
-        # Check if new jurisdiction is a non-member state (requirement 1)
-        is_non_member_state = selected_jurisdiction.lower() == 'other'
-
-        if is_non_member_state:
-            # Update provider record and privileges for non-member state (requirement 1)
-            self._update_provider_record_for_jurisdiction_with_no_known_license(
-                compact=compact,
-                provider_id=provider_id,
-                provider_record=top_level_provider_record,
-                selected_jurisdiction=selected_jurisdiction,
-            )
-
-            self._deactivate_privileges_for_jurisdiction_change(
-                compact=compact,
-                provider_id=provider_id,
-                privileges=all_privileges
-            )
-            return
-
         # Check if provider has any licenses in the new jurisdiction (requirement 2)
         if not new_home_state_licenses:
             logger.info('No home state license found in selected jurisdiction. Deactivating all privileges')
@@ -1391,9 +1369,7 @@ class DataClient:
             )
 
             self._deactivate_privileges_for_jurisdiction_change(
-                compact=compact,
-                provider_id=provider_id,
-                privileges=all_privileges
+                compact=compact, provider_id=provider_id, privileges=all_privileges
             )
             return
 
@@ -1522,9 +1498,7 @@ class DataClient:
             )
             # Deactivate privileges if no matching license in new jurisdiction
             self._deactivate_privileges_for_jurisdiction_change(
-                compact=compact,
-                provider_id=provider_id,
-                privileges=privileges_for_license_type
+                compact=compact, provider_id=provider_id, privileges=privileges_for_license_type
             )
             return
 
@@ -1534,9 +1508,7 @@ class DataClient:
             == CompactEligibilityStatus.INELIGIBLE
         ):
             self._deactivate_privileges_for_jurisdiction_change(
-                compact=compact,
-                provider_id=provider_id,
-                privileges=privileges_for_license_type
+                compact=compact, provider_id=provider_id, privileges=privileges_for_license_type
             )
             return
 
@@ -1600,7 +1572,6 @@ class DataClient:
                 }
             },
         ]
-        # TODO - find a way to extract this so it is more DRY
         # populate the provider record with the fields from the new license
         provider_record = ProviderRecordUtility.populate_provider_record(
             current_provider_record=provider_records.get_provider_record(),
@@ -1755,8 +1726,7 @@ class DataClient:
                         'UpdateExpression': 'SET homeJurisdictionChangeStatus = :homeJurisdictionChangeStatus,'
                         'dateOfUpdate = :dateOfUpdate',
                         'ExpressionAttributeValues': {
-                            ':homeJurisdictionChangeStatus':
-                                {'S': HomeJurisdictionChangeStatusEnum.INACTIVE},
+                            ':homeJurisdictionChangeStatus': {'S': HomeJurisdictionChangeStatusEnum.INACTIVE},
                             ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
                         },
                     }
@@ -1823,9 +1793,7 @@ class DataClient:
                     privilege_license_type=privilege.licenseType,
                 )
                 self._deactivate_privileges_for_jurisdiction_change(
-                    compact=compact,
-                    provider_id=provider_id,
-                    privileges=[privilege]
+                    compact=compact, provider_id=provider_id, privileges=[privilege]
                 )
                 continue
 
