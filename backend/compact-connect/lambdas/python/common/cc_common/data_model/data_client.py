@@ -18,7 +18,7 @@ from cc_common.data_model.schema.common import (
     ActiveInactiveStatus,
     CCDataClass,
     CompactEligibilityStatus,
-    HomeJurisdictionChangeDeactivationStatusEnum,
+    HomeJurisdictionChangeStatusEnum,
     LicenseEncumberedStatusEnum,
     PrivilegeEncumberedStatusEnum,
     UpdateCategory,
@@ -444,8 +444,8 @@ class DataClient:
                     )
                     # if this privilege was previously deactivated due to a home jurisdiction change
                     # we remove this value when the privilege is renewed. Noting that removal here.
-                    if original_privilege.homeJurisdictionChangeDeactivationStatus is not None:
-                        update_record.removedValues = ['homeJurisdictionChangeDeactivationStatus']
+                    if original_privilege.homeJurisdictionChangeStatus is not None:
+                        update_record.removedValues = ['homeJurisdictionChangeStatus']
 
                     privilege_update_records.append(update_record)
                     transactions.append(
@@ -1330,17 +1330,17 @@ class DataClient:
 
         The following rules are applied when updating the provider's home state jurisdiction:
         1. If the jurisdiction is not a member of the compact, all the provider's existing privileges, and the provider
-           record itself, will have their 'homeJurisdictionChangeDeactivationStatus' set to 'nonMemberJurisdiction'
+           record itself, will have their 'homeJurisdictionChangeStatus' set to 'nonMemberJurisdiction'
         2. Else if the jurisdiction is a member of the compact, but the provider does not have any license in the
            jurisdiction, all of their existing privileges, and the provider record itself, will have their
-           'homeJurisdictionChangeDeactivationStatus' set to 'noLicenseInJurisdiction'
+           'homeJurisdictionChangeStatus' set to 'noLicenseInJurisdiction'
         3. Else if the license in the current home state is expired, the privileges are not moved over. If the provider
         renews them, they will then be associated with the new home state.
         3. Else if the license in the current home state is encumbered, all privileges will not be moved over
            to the new jurisdiction. They stay encumbered.
         4. Else if the license in the new jurisdiction has a 'compactEligibility' status of 'ineligible', the associated
            privileges for the current license will NOT be moved over to the new jurisdiction, we will set the
-           'homeJurisdictionChangeDeactivationStatus' field to 'licenseCompactIneligible'.
+           'homeJurisdictionChangeStatus' field to 'licenseCompactIneligible'.
         5. If the license in the new home state is encumbered, unexpired privileges are moved over and all privileges that
            do not already have an encumbered status of 'encumbered' will have their encumbered status set to 'licenseEncumbered'.
         6. If none of the above conditions are met, the provider's unexpired privileges will be moved over to the new
@@ -1737,7 +1737,7 @@ class DataClient:
                     'licenseType': privilege.licenseType,
                     'previous': privilege.to_dict(),
                     'updatedValues': {
-                        'homeJurisdictionChangeDeactivationStatus': HomeJurisdictionChangeDeactivationStatusEnum.INACTIVE,
+                        'homeJurisdictionChangeStatus': HomeJurisdictionChangeStatusEnum.INACTIVE,
                         'dateOfUpdate': self.config.current_standard_datetime,
                     },
                 }
@@ -1762,11 +1762,11 @@ class DataClient:
                             'pk': {'S': privilege.serialize_to_database_record()['pk']},
                             'sk': {'S': privilege.serialize_to_database_record()['sk']},
                         },
-                        'UpdateExpression': 'SET homeJurisdictionChangeDeactivationStatus = :homeJurisdictionChangeDeactivationStatus,'
+                        'UpdateExpression': 'SET homeJurisdictionChangeStatus = :homeJurisdictionChangeStatus,'
                         'dateOfUpdate = :dateOfUpdate',
                         'ExpressionAttributeValues': {
-                            ':homeJurisdictionChangeDeactivationStatus':
-                                {'S': HomeJurisdictionChangeDeactivationStatusEnum.INACTIVE},
+                            ':homeJurisdictionChangeStatus':
+                                {'S': HomeJurisdictionChangeStatusEnum.INACTIVE},
                             ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
                         },
                     }
@@ -1842,14 +1842,13 @@ class DataClient:
             # Check if privilege was previously deactivated due to a home jurisdiction change.
             # If the privilege was renewed after the last jurisdiction update, this field should
             # not be present.
-            if privilege.homeJurisdictionChangeDeactivationStatus is not None:
+            if privilege.homeJurisdictionChangeStatus is not None:
                 logger.info(
                     'Privilege was previously deactivated due to home jurisdiction change. '
                     'Will not move privilege over.',
                     privilege_id=privilege.privilegeId,
                     privilege_jurisdiction=privilege.jurisdiction,
                     privilege_license_type=privilege.licenseType,
-                    deactivation_status=privilege.homeJurisdictionChangeDeactivationStatus,
                 )
                 continue
 

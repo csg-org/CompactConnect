@@ -882,7 +882,7 @@ class TestPostPurchasePrivileges(TstFunction):
                 'dateOfExpiration': date.fromisoformat(test_expiration_date),
                 'licenseJurisdiction': 'oh',
                 # showing this privilege was deactivated due to a previous home jurisdiction change
-                'homeJurisdictionChangeDeactivationStatus': 'inactive',
+                'homeJurisdictionChangeStatus': 'inactive',
             }
         )
 
@@ -908,7 +908,7 @@ class TestPostPurchasePrivileges(TstFunction):
 
         updated_privilege_record = privilege_records[0]
         # ensure the home jurisdiction change deactivation status is not present in updated record
-        self.assertNotIn('homeJurisdictionChangeDeactivationStatus', updated_privilege_record)
+        self.assertNotIn('homeJurisdictionChangeStatus', updated_privilege_record)
 
     @patch('handlers.privileges.PurchaseClient')
     def test_purchase_privileges_shows_removed_home_jurisdiction_change_deactivation_remove_when_privilege_renewed(
@@ -937,7 +937,7 @@ class TestPostPurchasePrivileges(TstFunction):
                 'dateOfExpiration': date.fromisoformat(test_expiration_date),
                 'licenseJurisdiction': 'oh',
                 # showing this privilege was deactivated due to a previous home jurisdiction change
-                'homeJurisdictionChangeDeactivationStatus': 'inactive',
+                'homeJurisdictionChangeStatus': 'inactive',
             }
         )
 
@@ -966,4 +966,4 @@ class TestPostPurchasePrivileges(TstFunction):
 
         privilege_update_record = privilege_update_records[0]
         # ensure the home jurisdiction change deactivation status is not present in updated record
-        self.assertEqual(['homeJurisdictionChangeDeactivationStatus'], privilege_update_record.removedValues)
+        self.assertEqual(['homeJurisdictionChangeStatus'], privilege_update_record.removedValues)
