@@ -134,6 +134,15 @@ class CCDataClass:
         """
         return deepcopy(self._data)
 
+    def update(self, data: dict[str, Any]) -> dict[str, Any]:
+        """Update the internal data dictionary with the provided data.
+
+        This method is useful for updating specific fields in the data class.
+        """
+        self._data.update(data)
+        return self._data
+
+
     def serialize_to_database_record(self) -> dict[str, Any]:
         """Serialize the object using the schema's dump method"""
         # we set a deepcopy here so that the GSIs and DB keys do not get added to the underlying data dictionary

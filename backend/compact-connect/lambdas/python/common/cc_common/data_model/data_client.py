@@ -898,14 +898,13 @@ class DataClient:
                 }
             )
 
-            serialized_provider_record = ProviderRecordUtility.populate_provider_record(
-                provider_id=current_provider_record.providerId,
+            provider_record = ProviderRecordUtility.populate_provider_record(
+                current_provider_record=current_provider_record,
                 license_record=matched_license_record.to_dict(),
                 # no privileges yet, as the user is registering into the system.
                 privilege_records=[],
             )
-
-            serialized_provider_record.update(registration_values)
+            provider_record.update(registration_values)
 
             # Create all records in a transaction
             self.config.dynamodb_client.transact_write_items(
@@ -922,8 +921,8 @@ class DataClient:
                     {
                         'Put': {
                             'TableName': self.config.provider_table_name,
-                            'Item': TypeSerializer().serialize(serialized_provider_record)['M'],
-                            'ConditionExpression': 'attribute_not_exists(cognitoSub)',
+                            'Item': TypeSerializer().serialize(provider_record.serialize_to_database_record())['M'],
+                            'ConditionExpression': 'attribute_not_exists(compactConnectRegisteredEmailAddress)',
                         }
                     },
                     # Create provider update record
@@ -1415,7 +1414,7 @@ class DataClient:
             return
 
         # Find the best license in the selected jurisdiction
-        best_license_in_selected_jurisdiction = provider_user_records.find_best_license(
+        best_license_in_selected_jurisdiction = provider_user_records.find_best_license_in_current_known_licenses(
             jurisdiction=selected_jurisdiction
         )
 
@@ -1622,17 +1621,19 @@ class DataClient:
         # TODO - find a way to extract this so it is more DRY
         # populate the provider record with the fields from the new license
         provider_record = ProviderRecordUtility.populate_provider_record(
-            provider_id=provider_id,
+            current_provider_record=provider_records.get_provider_record(),
             license_record=new_license_record.to_dict(),
             privilege_records=[privilege.to_dict() for privilege in provider_records.get_privilege_records()],
         )
-        provider_record['currentHomeJurisdiction'] = selected_jurisdiction
+        provider_record.update({
+            'currentHomeJurisdiction': selected_jurisdiction
+        })
         # Update our provider data
         transactions.append(
             {
                 'Put': {
                     'TableName': config.provider_table_name,
-                    'Item': TypeSerializer().serialize(provider_record)['M'],
+                    'Item': TypeSerializer().serialize(provider_record.serialize_to_database_record())['M'],
                 }
             }
         )
