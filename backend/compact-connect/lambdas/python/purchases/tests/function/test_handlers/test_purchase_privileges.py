@@ -27,7 +27,6 @@ ALL_ATTESTATION_IDS = [
 ]
 
 TEST_EMAIL = 'testRegisteredEmail@example.com'
-TEST_COGNITO_SUB = '1234567890'
 
 TEST_LICENSE_TYPE = 'speech-language pathologist'
 MOCK_LINE_ITEMS = [{'name': 'Alaska Big Fee', 'quantity': '1', 'unitPrice': '55.5', 'description': 'Fee for Alaska'}]
@@ -104,7 +103,6 @@ class TestPostPurchasePrivileges(TstFunction):
         self.config.data_client.process_registration_values(
             current_provider_record=test_provider,
             matched_license_record=test_license,
-            cognito_sub=TEST_COGNITO_SUB,
             email_address=TEST_EMAIL,
         )
 
