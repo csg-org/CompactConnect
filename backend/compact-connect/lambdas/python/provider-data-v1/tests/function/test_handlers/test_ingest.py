@@ -152,9 +152,8 @@ class TestIngest(TstFunction):
         from handlers.ingest import ingest_license_message
 
         # The test resource provider has a license in oh
-        self._load_provider_data()
-        with open('../common/tests/resources/dynamo/provider-ssn.json') as f:
-            provider_id = json.load(f)['providerId']
+        test_provider = self.test_data_generator.put_default_provider_record_in_provider_table(is_registered=False)
+        self.test_data_generator.put_default_license_record_in_provider_table()
 
         with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
@@ -166,13 +165,6 @@ class TestIngest(TstFunction):
         message['detail']['jurisdiction'] = 'ky'
         message['detail']['licenseStatus'] = 'active'
         message['detail']['compactEligibility'] = 'eligible'
-        # remove the home state selection for the provider which was added by the TstFunction test setup
-        self.config.provider_table.delete_item(
-            Key={
-                'pk': f'aslp#PROVIDER#{provider_id}',
-                'sk': 'aslp#PROVIDER#home-jurisdiction#',
-            }
-        )
 
         event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
 
@@ -180,7 +172,7 @@ class TestIngest(TstFunction):
 
         self.assertEqual({'batchItemFailures': []}, resp)
 
-        provider_data = self._get_provider_via_api(provider_id)
+        provider_data = self._get_provider_via_api(test_provider.providerId)
 
         # The new name and jurisdiction should be reflected in the provider data
         self.assertEqual('Newname', provider_data['familyName'])
@@ -880,7 +872,6 @@ class TestIngest(TstFunction):
         4. Verifies that both licenses are present but the provider data still comes from the 'oh' license
            because of the home jurisdiction selection, even though the 'ky' license is newer
         """
-        from cc_common.data_model.schema.home_jurisdiction.record import ProviderHomeJurisdictionSelectionRecordSchema
         from handlers.ingest import ingest_license_message
 
         # First, ingest a speech-language pathologist license in 'oh'
@@ -895,19 +886,11 @@ class TestIngest(TstFunction):
         self.assertEqual('oh', provider_data_after_first_license['licenseJurisdiction'])
         self.assertEqual('Björk', provider_data_after_first_license['givenName'])
 
-        # Set a home jurisdiction selection for the provider to 'oh'
-        home_jurisdiction_selection = {
-            'type': 'homeJurisdictionSelection',
-            'compact': 'aslp',
+        # Set the current home jurisdiction on the provider to simulate them registering in the system
+        self.test_data_generator.put_default_provider_record_in_provider_table(value_overrides={
             'providerId': provider_id,
-            'jurisdiction': 'oh',
-            'dateOfSelection': self.config.current_standard_datetime,
-        }
-
-        # Create the home jurisdiction selection record
-        schema = ProviderHomeJurisdictionSelectionRecordSchema()
-        serialized_record = schema.dump(home_jurisdiction_selection)
-        self.config.provider_table.put_item(Item=serialized_record)
+            'currentHomeJurisdiction': 'oh'
+        }, is_registered=True)
 
         # Now ingest a second license for the same provider but with a different license type
         # in a different jurisdiction (ky) and with a newer issuance date
@@ -964,8 +947,7 @@ class TestIngest(TstFunction):
         self.assertEqual('Guðmundsdóttir', provider_data['familyName'])
 
         # Verify that the home jurisdiction selection is present in the provider data
-        self.assertIn('homeJurisdictionSelection', provider_data)
-        self.assertEqual('oh', provider_data['homeJurisdictionSelection']['jurisdiction'])
+        self.assertEqual('oh', provider_data['currentHomeJurisdiction'])
 
     def test_multiple_license_types_different_jurisdictions(self):
         """

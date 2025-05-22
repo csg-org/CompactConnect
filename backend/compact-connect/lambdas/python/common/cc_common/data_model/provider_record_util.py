@@ -3,6 +3,7 @@ from enum import StrEnum
 
 from cc_common.config import logger
 from cc_common.data_model.schema.common import ActiveInactiveStatus, AdverseActionAgainstEnum, CompactEligibilityStatus
+from cc_common.data_model.schema.fields import UNKNOWN_JURISDICTION, OTHER_JURISDICTION
 from cc_common.data_model.schema.license import LicenseData
 from cc_common.data_model.schema.license.api import LicenseUpdatePreviousResponseSchema
 from cc_common.data_model.schema.military_affiliation.common import MilitaryAffiliationStatus
@@ -89,6 +90,13 @@ class ProviderRecordUtility:
                 provider_records, ProviderRecordType.LICENSE, _filter
             )
         ]
+    
+    @staticmethod
+    def get_provider_record(provider_records: Iterable[dict]) -> dict:
+        """
+        Get the provider record from a list of provider records.
+        """
+        return ProviderRecordUtility.get_records_of_type(provider_records, ProviderRecordType.PROVIDER)[0]
 
     @classmethod
     def find_best_license(cls, license_records: Iterable[dict], home_jurisdiction: str | None = None) -> dict:
@@ -106,10 +114,14 @@ class ProviderRecordUtility:
         :return: The best license record
         """
         # If the provider's home jurisdiction was selected, we only consider licenses from that jurisdiction
+        # Unless the provider does not have any licenses in that jurisdiction
+        # (ie they moved to a non-member jurisdiction)
         if home_jurisdiction is not None:
-            license_records = cls.get_records_of_type(
+            license_records_in_jurisdiction = cls.get_records_of_type(
                 license_records, ProviderRecordType.LICENSE, _filter=lambda x: x['jurisdiction'] == home_jurisdiction
             )
+            if license_records_in_jurisdiction:
+                license_records = license_records_in_jurisdiction
 
         # Last issued compact-eligible license, if there are any compact-eligible licenses
         latest_compact_eligible_licenses = sorted(
