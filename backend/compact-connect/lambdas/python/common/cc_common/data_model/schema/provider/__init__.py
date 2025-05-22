@@ -12,7 +12,7 @@ from cc_common.data_model.schema.provider.record import (
 
 class ProviderData(CCDataClass):
     """
-    Class representing a Provider with getters and setters for all properties.
+    Class representing a Provider with getters for all properties.
     """
 
     # Define record schema at the class level
@@ -110,10 +110,6 @@ class ProviderData(CCDataClass):
     @property
     def licenseStatus(self) -> str | None:
         return self._data.get('licenseStatus')
-
-    @property
-    def homeJurisdictionChangeDeactivationStatus(self) -> str | None:
-        return self._data.get('homeJurisdictionChangeDeactivationStatus')
 
     @property
     def currentHomeJurisdiction(self) -> str | None:

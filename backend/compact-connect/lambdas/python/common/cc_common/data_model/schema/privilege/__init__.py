@@ -6,7 +6,7 @@ from uuid import UUID
 from cc_common.data_model.schema.common import (
     ActiveInactiveStatus,
     CCDataClass,
-    HomeJurisdictionChangeDeactivationStatusEnum,
+    HomeJurisdictionChangeStatusEnum,
 )
 from cc_common.data_model.schema.privilege.record import (
     PrivilegeRecordSchema,
@@ -131,12 +131,12 @@ class PrivilegeData(CCDataClass):
         self._data['encumberedStatus'] = value
 
     @property
-    def homeJurisdictionChangeDeactivationStatus(self) -> str | None:
-        return self._data.get('homeJurisdictionChangeDeactivationStatus')
+    def homeJurisdictionChangeStatus(self) -> str | None:
+        return self._data.get('homeJurisdictionChangeStatus')
 
-    @homeJurisdictionChangeDeactivationStatus.setter
-    def homeJurisdictionChangeDeactivationStatus(self, value: HomeJurisdictionChangeDeactivationStatusEnum) -> None:
-        self._data['homeJurisdictionChangeDeactivationStatus'] = value
+    @homeJurisdictionChangeStatus.setter
+    def homeJurisdictionChangeStatus(self, value: HomeJurisdictionChangeStatusEnum) -> None:
+        self._data['homeJurisdictionChangeStatus'] = value
 
     @property
     def status(self) -> str:

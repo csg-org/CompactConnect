@@ -20,7 +20,6 @@ from cc_common.data_model.schema.fields import (
     Compact,
     CompactEligibility,
     CurrentHomeJurisdictionField,
-    HomeJurisdictionChangeDeactivationStatusField,
     Jurisdiction,
     LicenseEncumberedStatusField,
     NationalProviderIdentifier,
@@ -201,9 +200,6 @@ class ProviderUpdatePreviousRecordSchema(ForgivingSchema):
     cognitoSub = String(required=False, allow_none=False)
     currentHomeJurisdiction = CurrentHomeJurisdictionField(required=False, allow_none=False)
     dateOfUpdate = DateTime(required=True, allow_none=False)
-    homeJurisdictionChangeDeactivationStatus = HomeJurisdictionChangeDeactivationStatusField(
-        required=False, allow_none=False
-    )
 
 
 @BaseRecordSchema.register_schema('providerUpdate')
