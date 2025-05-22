@@ -2,11 +2,12 @@ import json
 
 from boto3.dynamodb.types import TypeSerializer
 from cc_common.config import config, logger
-from cc_common.data_model.provider_record_util import ProviderRecordType, ProviderRecordUtility
+from cc_common.data_model.provider_record_util import ProviderRecordType, ProviderRecordUtility, ProviderUserRecords
 from cc_common.data_model.schema import LicenseRecordSchema
 from cc_common.data_model.schema.common import ActiveInactiveStatus, UpdateCategory
 from cc_common.data_model.schema.license.ingest import LicenseIngestSchema
 from cc_common.data_model.schema.license.record import LicenseUpdateRecordSchema
+from cc_common.data_model.schema.provider import ProviderData
 from cc_common.event_batch_writer import EventBatchWriter
 from cc_common.exceptions import CCNotFoundException
 from cc_common.utils import sqs_handler
@@ -130,8 +131,9 @@ def ingest_license_message(message: dict):
                     detail=True,
                     consistent_read=True,
                 )
+                provider_records = provider_data['items']
                 license_records = ProviderRecordUtility.get_records_of_type(
-                    provider_data['items'],
+                    provider_records,
                     ProviderRecordType.LICENSE,
                 )
                 licenses_organized = {}
@@ -141,12 +143,14 @@ def ingest_license_message(message: dict):
 
                 # Get all privilege jurisdictions, directly from privilege records
                 privilege_records = ProviderRecordUtility.get_records_of_type(
-                    provider_data['items'],
+                    provider_records,
                     ProviderRecordType.PRIVILEGE,
                 )
 
                 # Get the home jurisdiction selection, if it exists
-                home_jurisdiction = ProviderRecordUtility.get_provider_home_state_selection(provider_data['items'])
+                current_provider_record = ProviderData.create_new(
+                    ProviderRecordUtility.get_provider_record(provider_records))
+                home_jurisdiction = current_provider_record.currentHomeJurisdiction
 
             except CCNotFoundException:
                 licenses_organized = {}
