@@ -652,7 +652,7 @@ class TestPutProviderHomeJurisdiction(TstFunction):
             self.test_data_generator.load_provider_data_record_from_database(test_privilege_record)
         )
         self.assertEqual('inactive', stored_privilege_data.status)
-        self.assertEqual('noLicenseInJurisdiction', stored_privilege_data.homeJurisdictionChangeDeactivationStatus)
+        self.assertEqual('inactive', stored_privilege_data.homeJurisdictionChangeDeactivationStatus)
 
     def test_put_provider_home_jurisdiction_only_deactivates_privileges_for_non_existent_license_in_new_jurisdiction(
         self,
@@ -696,7 +696,7 @@ class TestPutProviderHomeJurisdiction(TstFunction):
         )
         self.assertEqual('inactive', stored_privilege_data_for_privilege_without_matching_license.status)
         self.assertEqual(
-            'noLicenseInJurisdiction',
+            'inactive',
             stored_privilege_data_for_privilege_without_matching_license.homeJurisdictionChangeDeactivationStatus,
         )
         self.assertEqual(
@@ -844,7 +844,7 @@ class TestPutProviderHomeJurisdiction(TstFunction):
             self.test_data_generator.load_provider_data_record_from_database(test_privilege_record)
         )
         self.assertEqual('inactive', stored_privilege_data.status)
-        self.assertEqual('nonMemberJurisdiction', stored_privilege_data.homeJurisdictionChangeDeactivationStatus)
+        self.assertEqual('inactive', stored_privilege_data.homeJurisdictionChangeDeactivationStatus)
 
     def test_put_provider_home_jurisdiction_sets_deactivation_status_on_provider_record_if_new_jurisdiction_non_member(
         self,
@@ -968,7 +968,7 @@ class TestPutProviderHomeJurisdiction(TstFunction):
             self.test_data_generator.load_provider_data_record_from_database(test_privilege_record)
         )
         self.assertEqual('inactive', stored_privilege_data.status)
-        self.assertEqual('licenseCompactIneligible', stored_privilege_data.homeJurisdictionChangeDeactivationStatus)
+        self.assertEqual('inactive', stored_privilege_data.homeJurisdictionChangeDeactivationStatus)
 
         # verify the expiration dates match on the current license and privilege record
         # since in this case they should not be moved over
@@ -1232,7 +1232,7 @@ class TestPutProviderHomeJurisdiction(TstFunction):
             self.test_data_generator.load_provider_data_record_from_database(test_privilege_record)
         )
         self.assertEqual('inactive', stored_privilege_data.status)
-        self.assertEqual('privilegeInHomeState', stored_privilege_data.homeJurisdictionChangeDeactivationStatus)
+        self.assertEqual('inactive', stored_privilege_data.homeJurisdictionChangeDeactivationStatus)
 
         # verify the expiration dates match on the current license and privilege record
         # since in this case they should not be moved over
@@ -1266,7 +1266,7 @@ class TestPutProviderHomeJurisdiction(TstFunction):
         update_data = stored_privilege_update_records[0]
         # the updateType should be homeJurisdictionUpdate
         self.assertEqual('homeJurisdictionChange', update_data.updateType)
-        self.assertEqual('privilegeInHomeState', update_data.updatedValues['homeJurisdictionChangeDeactivationStatus'])
+        self.assertEqual('inactive', update_data.updatedValues['homeJurisdictionChangeDeactivationStatus'])
         # we should not be updating the license jurisdiction or the data of expiration
         self.assertNotIn('licenseJurisdiction', update_data.updatedValues)
         self.assertNotIn('dateOfExpiration', update_data.updatedValues)
@@ -1279,7 +1279,6 @@ class TestPutProviderHomeJurisdiction(TstFunction):
         then move back to a member state with a valid license. Because their privilege was previously deactivated, it
         should not be moved over even though there is a valid license.
         """
-        from cc_common.data_model.schema.common import HomeJurisdictionChangeDeactivationStatusEnum
         from cc_common.data_model.schema.privilege import PrivilegeData
         from handlers.provider_users import provider_users_api_handler
 
@@ -1300,7 +1299,7 @@ class TestPutProviderHomeJurisdiction(TstFunction):
             self.test_data_generator.load_provider_data_record_from_database(test_privilege_record)
         )
         self.assertEqual('inactive', stored_privilege_data.status)
-        self.assertEqual('noLicenseInJurisdiction', stored_privilege_data.homeJurisdictionChangeDeactivationStatus)
+        self.assertEqual('inactive', stored_privilege_data.homeJurisdictionChangeDeactivationStatus)
 
         # now the user moves back to a member jurisdiction with a license
         event = self._when_testing_put_provider_home_jurisdiction(STARTING_JURISDICTION, test_provider_record)
@@ -1317,6 +1316,6 @@ class TestPutProviderHomeJurisdiction(TstFunction):
         self.assertEqual('inactive', updated_privilege_data.status)
         self.assertEqual(test_current_license_record.jurisdiction, updated_privilege_data.licenseJurisdiction)
         self.assertEqual(
-            HomeJurisdictionChangeDeactivationStatusEnum.NO_LICENSE_IN_JURISDICTION,
+            'inactive',
             updated_privilege_data.homeJurisdictionChangeDeactivationStatus,
         )

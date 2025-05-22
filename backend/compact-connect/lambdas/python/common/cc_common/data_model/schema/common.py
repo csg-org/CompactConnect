@@ -263,18 +263,7 @@ class HomeJurisdictionChangeDeactivationStatusEnum(CCEnum):
     and that change results in the privilege becoming inactive.
     """
 
-    # This condition occurs when a provider with existing privileges changes their home jurisdiction
-    # to a jurisdiction that does not have a license for the provider.
-    NO_LICENSE_IN_JURISDICTION = 'noLicenseInJurisdiction'
-    # This condition occurs when a provider with existing privileges moves to a jurisdiction
-    # and the license in the new jurisdiction is not compact eligible.
-    LICENSE_COMPACT_INELIGIBLE = 'licenseCompactIneligible'
-    # This condition occurs when a provider with existing privileges moves to a jurisdiction
-    # that is a member of the compact and has a license for the provider.
-    NON_MEMBER_JURISDICTION = 'nonMemberJurisdiction'
-    # This condition occurs when a provider has an existing privilege in the same home state that
-    # they have moved to.
-    PRIVILEGE_IN_HOME_STATE = 'privilegeInHomeState'
+    INACTIVE = 'inactive'
 
 
 class StaffUserStatus(CCEnum):
