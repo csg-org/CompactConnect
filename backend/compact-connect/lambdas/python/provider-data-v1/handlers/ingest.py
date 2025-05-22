@@ -2,7 +2,7 @@ import json
 
 from boto3.dynamodb.types import TypeSerializer
 from cc_common.config import config, logger
-from cc_common.data_model.provider_record_util import ProviderRecordType, ProviderRecordUtility, ProviderUserRecords
+from cc_common.data_model.provider_record_util import ProviderRecordType, ProviderRecordUtility
 from cc_common.data_model.schema import LicenseRecordSchema
 from cc_common.data_model.schema.common import ActiveInactiveStatus, UpdateCategory
 from cc_common.data_model.schema.license.ingest import LicenseIngestSchema

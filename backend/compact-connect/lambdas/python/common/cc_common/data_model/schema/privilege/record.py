@@ -86,9 +86,7 @@ class PrivilegeRecordSchema(BaseRecordSchema, ValidatesLicenseTypeMixin):
     # This field is only set if a privilege is deactivated as a result of a provider changing their home jurisdiction
     # It is removed in the event that the provider is able to repurchase the privilege in the new jurisdiction after
     # the license in the new jurisdiction is compact eligible.
-    homeJurisdictionChangeStatus = HomeJurisdictionChangeStatusField(
-        required=False, allow_none=False
-    )
+    homeJurisdictionChangeStatus = HomeJurisdictionChangeStatusField(required=False, allow_none=False)
 
     # This field is the actual status referenced by the system, which is determined by the expiration date
     # in addition to the administratorSetStatus. This should never be written to the DB. It is calculated
@@ -169,9 +167,7 @@ class PrivilegeUpdatePreviousRecordSchema(ForgivingSchema):
     dateOfUpdate = DateTime(required=True, allow_none=False)
     licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
     privilegeId = String(required=True, allow_none=False)
-    homeJurisdictionChangeStatus = HomeJurisdictionChangeStatusField(
-        required=False, allow_none=False
-    )
+    homeJurisdictionChangeStatus = HomeJurisdictionChangeStatusField(required=False, allow_none=False)
 
 
 @BaseRecordSchema.register_schema('privilegeUpdate')

@@ -139,7 +139,8 @@ class TestTransformations(TstFunction):
             KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
             & Key('sk').begins_with('aslp#PROVIDER'),
         )
-        # One record for each of: provider, providerUpdate, license, privilege, militaryAffiliation, and homeJurisdictionSelection
+        # One record for each of: provider, providerUpdate, license,
+        # privilege, militaryAffiliation, and homeJurisdictionSelection
         self.assertEqual(6, len(resp['Items']))
         records = {item['type']: item for item in resp['Items']}
 
