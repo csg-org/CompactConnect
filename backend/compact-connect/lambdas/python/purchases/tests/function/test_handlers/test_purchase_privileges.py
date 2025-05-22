@@ -865,10 +865,10 @@ class TestPostPurchasePrivileges(TstFunction):
         from handlers.privileges import post_purchase_privileges
 
         self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
-        test_expiration_date = date(2024, 10, 8).isoformat()
+        test_expiration_date = date(2025, 10, 8).isoformat()
         event = self._when_testing_provider_user_event_with_custom_claims(license_expiration_date=test_expiration_date)
         event['body'] = _generate_test_request_body()
-        test_issuance_date = datetime(2023, 10, 8, hour=5, tzinfo=UTC).isoformat()
+        test_issuance_date = datetime(2024, 10, 8, hour=5, tzinfo=UTC).isoformat()
 
         self.test_data_generator.put_default_privilege_record_in_provider_table(
             value_overrides={
@@ -879,6 +879,7 @@ class TestPostPurchasePrivileges(TstFunction):
                 'dateOfIssuance': datetime.fromisoformat(test_issuance_date),
                 'dateOfExpiration': date.fromisoformat(test_expiration_date),
                 'licenseJurisdiction': 'oh',
+                'administratorSetStatus': 'active',
                 # showing this privilege was deactivated due to a previous home jurisdiction change
                 'homeJurisdictionChangeStatus': 'inactive',
             }
@@ -888,6 +889,7 @@ class TestPostPurchasePrivileges(TstFunction):
             value_overrides={
                 'compact': TEST_COMPACT,
                 'jurisdiction': 'oh',
+                'dateOfExpiration': date.fromisoformat(test_expiration_date),
                 'providerId': TEST_PROVIDER_ID,
             }
         )
@@ -920,7 +922,7 @@ class TestPostPurchasePrivileges(TstFunction):
         from handlers.privileges import post_purchase_privileges
 
         self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
-        test_expiration_date = date(2024, 10, 8).isoformat()
+        test_expiration_date = date(2025, 10, 8).isoformat()
         event = self._when_testing_provider_user_event_with_custom_claims(license_expiration_date=test_expiration_date)
         event['body'] = _generate_test_request_body()
         test_issuance_date = datetime(2023, 10, 8, hour=5, tzinfo=UTC).isoformat()
@@ -934,6 +936,7 @@ class TestPostPurchasePrivileges(TstFunction):
                 'dateOfIssuance': datetime.fromisoformat(test_issuance_date),
                 'dateOfExpiration': date.fromisoformat(test_expiration_date),
                 'licenseJurisdiction': 'oh',
+                'administratorSetStatus': 'active',
                 # showing this privilege was deactivated due to a previous home jurisdiction change
                 'homeJurisdictionChangeStatus': 'inactive',
             }
@@ -943,6 +946,7 @@ class TestPostPurchasePrivileges(TstFunction):
             value_overrides={
                 'compact': TEST_COMPACT,
                 'jurisdiction': 'oh',
+                'dateOfExpiration': date.fromisoformat(test_expiration_date),
                 'providerId': TEST_PROVIDER_ID,
             }
         )

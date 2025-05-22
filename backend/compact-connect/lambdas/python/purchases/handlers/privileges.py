@@ -4,7 +4,8 @@ from datetime import date
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
 from cc_common.data_model.provider_record_util import ProviderUserRecords
-from cc_common.data_model.schema.common import ActiveInactiveStatus, CompactEligibilityStatus
+from cc_common.data_model.schema.common import ActiveInactiveStatus, CompactEligibilityStatus, \
+    HomeJurisdictionChangeStatusEnum
 from cc_common.data_model.schema.compact import Compact
 from cc_common.data_model.schema.compact.api import CompactOptionsResponseSchema
 from cc_common.data_model.schema.compact.common import COMPACT_TYPE
@@ -268,7 +269,12 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             # if their latest privilege expiration date matches the license expiration date they will not
             # receive any benefit from purchasing the same privilege, since the expiration date will not change
             and privilege.dateOfExpiration == matching_license_record.dateOfExpiration
+            # If an admin previously deactivated this privilege for whatever reason, we allow the provider to
+            # renew it even if the expiration dates still match
             and privilege.administratorSetStatus == ActiveInactiveStatus.ACTIVE
+            # Similar here, if the user's privilege was deactivated previously due to changing their home jurisdiction
+            # to where they had no license, but now they have an eligible license, they can renew their privilege.
+            and privilege.homeJurisdictionChangeStatus != HomeJurisdictionChangeStatusEnum.INACTIVE
         ):
             raise CCInvalidRequestException(
                 f"Selected privilege jurisdiction '{privilege.jurisdiction.lower()}'"
