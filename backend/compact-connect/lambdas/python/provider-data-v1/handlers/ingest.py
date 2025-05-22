@@ -155,6 +155,7 @@ def ingest_license_message(message: dict):
             except CCNotFoundException:
                 licenses_organized = {}
                 privilege_records = []
+                current_provider_record = None
 
             # Set (or replace) the posted license for its jurisdiction
             existing_license = licenses_organized.get(posted_license_record['jurisdiction'], {}).get(
@@ -186,7 +187,7 @@ def ingest_license_message(message: dict):
                 logger.info('Updating provider data')
 
                 provider_record = ProviderRecordUtility.populate_provider_record(
-                    provider_id=provider_id,
+                    current_provider_record=current_provider_record,
                     license_record=posted_license_record,
                     privilege_records=privilege_records,
                 )
@@ -195,7 +196,7 @@ def ingest_license_message(message: dict):
                     {
                         'Put': {
                             'TableName': config.provider_table_name,
-                            'Item': TypeSerializer().serialize(provider_record)['M'],
+                            'Item': TypeSerializer().serialize(provider_record.serialize_to_database_record())['M'],
                         }
                     }
                 )

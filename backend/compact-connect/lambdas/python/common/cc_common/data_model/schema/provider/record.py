@@ -111,6 +111,13 @@ class ProviderRecordSchema(CalculatedStatusRecordSchema):
         )
         return in_data
 
+    @pre_dump
+    def remove_empty_privilege_jurisdictions(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
+        # DynamoDB doesn't accept empty sets, so remove privilegeJurisdictions if empty
+        if 'privilegeJurisdictions' in in_data and not in_data['privilegeJurisdictions']:
+            del in_data['privilegeJurisdictions']
+        return in_data
+
     @post_load
     def drop_fam_giv_mid(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         del in_data['providerFamGivMid']

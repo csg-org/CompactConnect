@@ -3,15 +3,13 @@ from enum import StrEnum
 
 from cc_common.config import logger
 from cc_common.data_model.schema.common import ActiveInactiveStatus, AdverseActionAgainstEnum, CompactEligibilityStatus
-from cc_common.data_model.schema.fields import UNKNOWN_JURISDICTION, OTHER_JURISDICTION
 from cc_common.data_model.schema.license import LicenseData
 from cc_common.data_model.schema.license.api import LicenseUpdatePreviousResponseSchema
 from cc_common.data_model.schema.military_affiliation.common import MilitaryAffiliationStatus
 from cc_common.data_model.schema.privilege import PrivilegeData
 from cc_common.data_model.schema.privilege.api import PrivilegeUpdatePreviousGeneralResponseSchema
 from cc_common.data_model.schema.provider import ProviderData
-from cc_common.data_model.schema.provider.record import ProviderRecordSchema
-from cc_common.exceptions import CCInternalException, CCInvalidRequestException
+from cc_common.exceptions import CCInternalException
 
 
 class ProviderRecordType(StrEnum):
@@ -157,40 +155,39 @@ class ProviderRecordUtility:
         return latest_licenses[0]
 
     @staticmethod
-    def get_provider_home_state_selection(provider_records: Iterable[dict]) -> str | None:
-        """
-        Get the provider's home state selection from a list of provider records.
-
-        :param provider_records: The list of provider records to search through
-        :return: The provider's home state selection
-        """
-        home_state_selection_records = ProviderRecordUtility.get_records_of_type(
-            provider_records,
-            ProviderRecordType.HOME_JURISDICTION_SELECTION,
-        )
-        if not home_state_selection_records:
-            return None
-
-        return home_state_selection_records[0]['jurisdiction']
-
-    @staticmethod
-    def populate_provider_record(provider_id: str, license_record: dict, privilege_records: list[dict]) -> dict:
+    def populate_provider_record(current_provider_record: ProviderData,
+                                 license_record: dict, privilege_records: list[dict]) -> ProviderData:
         """
         Create a provider record from a license record and privilege records.
 
-        :param provider_id: The ID of the provider
+        :param current_provider_record: The current provider record to update if it currently exists.
         :param license_record: The license record to use as a basis for the provider record
         :param privilege_records: List of privilege records
         :return: A provider record ready to be persisted
         """
         privilege_jurisdictions = {record['jurisdiction'] for record in privilege_records}
-        return ProviderRecordSchema().dump(
+        if current_provider_record is None:
+            return ProviderData.create_new(
+                {
+                    'providerId': license_record['providerId'],
+                    'compact': license_record['compact'],
+                    'licenseJurisdiction': license_record['jurisdiction'],
+                    # We can't put an empty string set to DynamoDB, so we'll only add the field if it is not empty
+                    **({'privilegeJurisdictions': privilege_jurisdictions} if privilege_jurisdictions else {}),
+                    **license_record,
+                }
+            )
+        # else populate the current fields of the provider record first before updating with
+        # new values
+        return ProviderData.create_new(
             {
-                'providerId': provider_id,
-                'compact': license_record['compact'],
+                # keep existing values from the current provider record
+                **current_provider_record.to_dict(),
+                # update the license jurisdiction to match the new license
                 'licenseJurisdiction': license_record['jurisdiction'],
                 # We can't put an empty string set to DynamoDB, so we'll only add the field if it is not empty
                 **({'privilegeJurisdictions': privilege_jurisdictions} if privilege_jurisdictions else {}),
+                # now override the key values on the current provider record with the new license record
                 **license_record,
             }
         )
@@ -313,12 +310,13 @@ class ProviderUserRecords:
             raise CCInternalException('Multiple top-level provider records found for user.')
         return provider_user_records[0]
 
-    def find_best_license(self, jurisdiction: str | None = None) -> LicenseData:
+    def find_best_license_in_current_known_licenses(self, jurisdiction: str | None = None) -> LicenseData:
         """
-        Find the best license from a collection of licenses.
+        Find the best license from this provider's known licenses.
 
         Strategy:
-        1. If jurisdiction is selected, only consider licenses from that jurisdiction
+        1. If jurisdiction is selected, only consider licenses from that jurisdiction. Else check licenses in current
+        home jurisdiction.
         2. Select the most recently issued compact-eligible license if any exist
         3. Otherwise, select the most recently issued active license if any exist
         4. Otherwise, select the most recently issued license regardless of status
@@ -326,13 +324,21 @@ class ProviderUserRecords:
         :param jurisdiction: Optional jurisdiction filter
         :return: The best license record
         """
-        license_records = (
-            self.get_license_records()
-            if not jurisdiction
-            else self.get_license_records(
-                filter_condition=lambda license_data: license_data.jurisdiction == jurisdiction
+        if jurisdiction:
+            license_records = (
+                self.get_license_records(
+                    filter_condition=lambda license_data: license_data.jurisdiction == jurisdiction
+                )
             )
-        )
+        else:
+            # if jurisdiction is not provided, we filter by the user's current home jurisdiction
+            current_home_jurisdiction_license_records = self.get_license_records(
+                    filter_condition=lambda license_data: license_data.jurisdiction
+                                                          == self.get_provider_record().currentHomeJurisdiction
+                )
+            # if there are no licenses for their current home jurisdiction, we will search through all licenses
+            license_records = current_home_jurisdiction_license_records \
+                if current_home_jurisdiction_license_records else self.get_license_records()
 
         # Last issued compact-eligible license, if there are any compact-eligible licenses
         latest_compact_eligible_licenses = sorted(
