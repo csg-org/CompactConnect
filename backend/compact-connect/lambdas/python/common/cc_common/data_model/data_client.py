@@ -1373,7 +1373,6 @@ class DataClient:
                 provider_id=provider_id,
                 provider_record=top_level_provider_record,
                 selected_jurisdiction=selected_jurisdiction,
-                deactivation_status=HomeJurisdictionChangeDeactivationStatusEnum.NON_MEMBER_JURISDICTION,
             )
 
             self._deactivate_privileges_for_jurisdiction_change(
@@ -1394,7 +1393,6 @@ class DataClient:
                 provider_id=provider_id,
                 provider_record=top_level_provider_record,
                 selected_jurisdiction=selected_jurisdiction,
-                deactivation_status=HomeJurisdictionChangeDeactivationStatusEnum.NO_LICENSE_IN_JURISDICTION,
             )
 
             self._deactivate_privileges_for_jurisdiction_change(
@@ -1638,7 +1636,6 @@ class DataClient:
         provider_id: str,
         provider_record: ProviderData,
         selected_jurisdiction: str,
-        deactivation_status: HomeJurisdictionChangeDeactivationStatusEnum,
     ) -> None:
         """
         Update the provider record when changing to a jurisdiction for which we do not have a license on file.
@@ -1664,7 +1661,6 @@ class DataClient:
                 'compact': compact,
                 'previous': provider_record.to_dict(),
                 'updatedValues': {
-                    'homeJurisdictionChangeDeactivationStatus': deactivation_status,
                     'currentHomeJurisdiction': selected_jurisdiction,
                 },
             }
@@ -1688,11 +1684,9 @@ class DataClient:
                         'sk': {'S': f'{compact}#PROVIDER'},
                     },
                     'UpdateExpression': 'SET '
-                    'homeJurisdictionChangeDeactivationStatus = :homeJurisdictionChangeDeactivationStatus,'
                     'currentHomeJurisdiction = :currentHomeJurisdiction, '
                     'dateOfUpdate = :dateOfUpdate',
                     'ExpressionAttributeValues': {
-                        ':homeJurisdictionChangeDeactivationStatus': {'S': deactivation_status},
                         ':currentHomeJurisdiction': {'S': selected_jurisdiction},
                         ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
                     },

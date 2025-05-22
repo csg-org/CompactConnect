@@ -824,10 +824,7 @@ class TestPutProviderHomeJurisdiction(TstFunction):
         stored_provider_data = ProviderData.from_database_record(
             self.test_data_generator.load_provider_data_record_from_database(test_provider_record)
         )
-        # TODO - should licenseStatus be inactive if user has moved to a different jurisdiction?
-        # self.assertEqual('inactive', stored_provider_data.licenseStatus)
         self.assertEqual('ineligible', stored_provider_data.compactEligibility)
-        self.assertEqual('noLicenseInJurisdiction', stored_provider_data.homeJurisdictionChangeDeactivationStatus)
         self.assertEqual(NEW_JURISDICTION, stored_provider_data.currentHomeJurisdiction)
 
     def test_put_provider_home_jurisdiction_deactivates_privileges_if_new_jurisdiction_non_member(self):
@@ -867,10 +864,7 @@ class TestPutProviderHomeJurisdiction(TstFunction):
         stored_provider_data = ProviderData.from_database_record(
             self.test_data_generator.load_provider_data_record_from_database(test_provider_record)
         )
-        # TODO - should licenseStatus be inactive if user has moved to a different jurisdiction?
-        # self.assertEqual('inactive', stored_provider_data.licenseStatus)
         self.assertEqual('ineligible', stored_provider_data.compactEligibility)
-        self.assertEqual('nonMemberJurisdiction', stored_provider_data.homeJurisdictionChangeDeactivationStatus)
         # this value must be set to show the provider is in a non-member jurisdiction
         self.assertEqual('other', stored_provider_data.currentHomeJurisdiction)
         # assert the provider's license jurisdiction and expiration has not changed
@@ -1148,7 +1142,6 @@ class TestPutProviderHomeJurisdiction(TstFunction):
         # In this case, the license information should stay the same as before, and the currentHomeJurisdiction
         # should be set to 'other'
         self.assertEqual('other', update_data.updatedValues['currentHomeJurisdiction'])
-        self.assertEqual('nonMemberJurisdiction', update_data.updatedValues['homeJurisdictionChangeDeactivationStatus'])
 
     def test_put_provider_home_jurisdiction_adds_provider_update_record_when_no_license_in_selected_jurisdiction(self):
         from cc_common.data_model.schema.provider import ProviderUpdateData
@@ -1175,9 +1168,6 @@ class TestPutProviderHomeJurisdiction(TstFunction):
         self.assertEqual('homeJurisdictionChange', update_data.updateType)
         # In this case, the currentHomeJurisdiction should be set to the new jurisdiction
         self.assertEqual(NEW_JURISDICTION, update_data.updatedValues['currentHomeJurisdiction'])
-        self.assertEqual(
-            'noLicenseInJurisdiction', update_data.updatedValues['homeJurisdictionChangeDeactivationStatus']
-        )
 
     def test_put_provider_home_jurisdiction_adds_provider_update_record_when_license_compact_ineligible_in_selected_jurisdiction(
         self,
