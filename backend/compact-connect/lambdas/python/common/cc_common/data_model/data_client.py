@@ -1384,8 +1384,7 @@ class DataClient:
             self._deactivate_privileges_for_jurisdiction_change(
                 compact=compact,
                 provider_id=provider_id,
-                privileges=all_privileges,
-                deactivation_status=HomeJurisdictionChangeDeactivationStatusEnum.NON_MEMBER_JURISDICTION,
+                privileges=all_privileges
             )
             return
 
@@ -1404,8 +1403,7 @@ class DataClient:
             self._deactivate_privileges_for_jurisdiction_change(
                 compact=compact,
                 provider_id=provider_id,
-                privileges=all_privileges,
-                deactivation_status=HomeJurisdictionChangeDeactivationStatusEnum.NO_LICENSE_IN_JURISDICTION,
+                privileges=all_privileges
             )
             return
 
@@ -1536,8 +1534,7 @@ class DataClient:
             self._deactivate_privileges_for_jurisdiction_change(
                 compact=compact,
                 provider_id=provider_id,
-                privileges=privileges_for_license_type,
-                deactivation_status=HomeJurisdictionChangeDeactivationStatusEnum.NO_LICENSE_IN_JURISDICTION,
+                privileges=privileges_for_license_type
             )
             return
 
@@ -1549,8 +1546,7 @@ class DataClient:
             self._deactivate_privileges_for_jurisdiction_change(
                 compact=compact,
                 provider_id=provider_id,
-                privileges=privileges_for_license_type,
-                deactivation_status=HomeJurisdictionChangeDeactivationStatusEnum.LICENSE_COMPACT_INELIGIBLE,
+                privileges=privileges_for_license_type
             )
             return
 
@@ -1709,7 +1705,6 @@ class DataClient:
         compact: str,
         provider_id: str,
         privileges: list[PrivilegeData],
-        deactivation_status: HomeJurisdictionChangeDeactivationStatusEnum,
     ) -> None:
         """
         Deactivate privileges when changing to a jurisdiction where they can't be valid.
@@ -1717,7 +1712,6 @@ class DataClient:
         :param compact: The compact name
         :param provider_id: The provider ID
         :param privileges: The list of privileges to deactivate
-        :param deactivation_status: The reason for deactivation
         """
         if not privileges:
             return
@@ -1726,7 +1720,6 @@ class DataClient:
             'Deactivating privileges for jurisdiction change',
             compact=compact,
             provider_id=provider_id,
-            deactivation_status=deactivation_status,
             num_privileges=len(privileges),
         )
 
@@ -1744,7 +1737,7 @@ class DataClient:
                     'licenseType': privilege.licenseType,
                     'previous': privilege.to_dict(),
                     'updatedValues': {
-                        'homeJurisdictionChangeDeactivationStatus': deactivation_status,
+                        'homeJurisdictionChangeDeactivationStatus': HomeJurisdictionChangeDeactivationStatusEnum.INACTIVE,
                         'dateOfUpdate': self.config.current_standard_datetime,
                     },
                 }
@@ -1769,10 +1762,11 @@ class DataClient:
                             'pk': {'S': privilege.serialize_to_database_record()['pk']},
                             'sk': {'S': privilege.serialize_to_database_record()['sk']},
                         },
-                        'UpdateExpression': 'SET homeJurisdictionChangeDeactivationStatus = :homeJurisdictionChangeDeactivationStatus, '
+                        'UpdateExpression': 'SET homeJurisdictionChangeDeactivationStatus = :homeJurisdictionChangeDeactivationStatus,'
                         'dateOfUpdate = :dateOfUpdate',
                         'ExpressionAttributeValues': {
-                            ':homeJurisdictionChangeDeactivationStatus': {'S': deactivation_status},
+                            ':homeJurisdictionChangeDeactivationStatus':
+                                {'S': HomeJurisdictionChangeDeactivationStatusEnum.INACTIVE},
                             ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
                         },
                     }
@@ -1841,8 +1835,7 @@ class DataClient:
                 self._deactivate_privileges_for_jurisdiction_change(
                     compact=compact,
                     provider_id=provider_id,
-                    privileges=[privilege],
-                    deactivation_status=HomeJurisdictionChangeDeactivationStatusEnum.PRIVILEGE_IN_HOME_STATE,
+                    privileges=[privilege]
                 )
                 continue
 

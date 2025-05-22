@@ -882,7 +882,7 @@ class TestPostPurchasePrivileges(TstFunction):
                 'dateOfExpiration': date.fromisoformat(test_expiration_date),
                 'licenseJurisdiction': 'oh',
                 # showing this privilege was deactivated due to a previous home jurisdiction change
-                'homeJurisdictionChangeDeactivationStatus': 'noLicenseInJurisdiction',
+                'homeJurisdictionChangeDeactivationStatus': 'inactive',
             }
         )
 
@@ -937,7 +937,7 @@ class TestPostPurchasePrivileges(TstFunction):
                 'dateOfExpiration': date.fromisoformat(test_expiration_date),
                 'licenseJurisdiction': 'oh',
                 # showing this privilege was deactivated due to a previous home jurisdiction change
-                'homeJurisdictionChangeDeactivationStatus': 'noLicenseInJurisdiction',
+                'homeJurisdictionChangeDeactivationStatus': 'inactive',
             }
         )
 
