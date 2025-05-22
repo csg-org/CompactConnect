@@ -1175,10 +1175,13 @@ class TestPutProviderHomeJurisdiction(TstFunction):
         self.assertEqual('homeJurisdictionChange', update_data.updateType)
         # In this case, the currentHomeJurisdiction should be set to the new jurisdiction
         self.assertEqual(NEW_JURISDICTION, update_data.updatedValues['currentHomeJurisdiction'])
-        self.assertEqual('noLicenseInJurisdiction',
-                         update_data.updatedValues['homeJurisdictionChangeDeactivationStatus'])
+        self.assertEqual(
+            'noLicenseInJurisdiction', update_data.updatedValues['homeJurisdictionChangeDeactivationStatus']
+        )
 
-    def test_put_provider_home_jurisdiction_adds_provider_update_record_when_license_compact_ineligible_in_selected_jurisdiction(self):
+    def test_put_provider_home_jurisdiction_adds_provider_update_record_when_license_compact_ineligible_in_selected_jurisdiction(
+        self,
+    ):
         from cc_common.data_model.schema.provider import ProviderUpdateData
         from handlers.provider_users import provider_users_api_handler
 
@@ -1208,12 +1211,13 @@ class TestPutProviderHomeJurisdiction(TstFunction):
         # the updateType should be homeJurisdictionUpdate
         self.assertEqual('homeJurisdictionChange', update_data.updateType)
         # In this case, the currentHomeJurisdiction should be set to the new jurisdiction
-        self.assertEqual(new_jurisdiction_license_record.jurisdiction, update_data.updatedValues['currentHomeJurisdiction'])
+        self.assertEqual(
+            new_jurisdiction_license_record.jurisdiction, update_data.updatedValues['currentHomeJurisdiction']
+        )
         # In this case, it is not necessary to set this deactivation status on the provider record,
         # since we are updating the license field 'jurisdictionUploadedCompactEligibility' on the record
         # which will cause the 'compactEligibility' field to calculate to 'ineligible' when we load the provider records
-        self.assertNotIn('homeJurisdictionChangeDeactivationStatus',
-                         update_data.updatedValues)
+        self.assertNotIn('homeJurisdictionChangeDeactivationStatus', update_data.updatedValues)
 
     def test_put_provider_home_jurisdiction_deactivates_privilege_if_jurisdiction_is_same_as_new_home_state_license(
         self,

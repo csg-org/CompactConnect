@@ -96,7 +96,8 @@ class TestDataGenerator:
 
     @staticmethod
     def query_privilege_update_records_for_given_record_from_database(
-            privilege_data: PrivilegeData) -> list[PrivilegeUpdateData]:
+        privilege_data: PrivilegeData,
+    ) -> list[PrivilegeUpdateData]:
         """
         Helper method to query update records from the database using the provider data class instance.
 

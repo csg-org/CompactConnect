@@ -88,7 +88,7 @@ class ProviderRecordUtility:
                 provider_records, ProviderRecordType.LICENSE, _filter
             )
         ]
-    
+
     @staticmethod
     def get_provider_record(provider_records: Iterable[dict]) -> dict:
         """
@@ -155,8 +155,9 @@ class ProviderRecordUtility:
         return latest_licenses[0]
 
     @staticmethod
-    def populate_provider_record(current_provider_record: ProviderData,
-                                 license_record: dict, privilege_records: list[dict]) -> ProviderData:
+    def populate_provider_record(
+        current_provider_record: ProviderData, license_record: dict, privilege_records: list[dict]
+    ) -> ProviderData:
         """
         Create a provider record from a license record and privilege records.
 
@@ -325,20 +326,21 @@ class ProviderUserRecords:
         :return: The best license record
         """
         if jurisdiction:
-            license_records = (
-                self.get_license_records(
-                    filter_condition=lambda license_data: license_data.jurisdiction == jurisdiction
-                )
+            license_records = self.get_license_records(
+                filter_condition=lambda license_data: license_data.jurisdiction == jurisdiction
             )
         else:
             # if jurisdiction is not provided, we filter by the user's current home jurisdiction
             current_home_jurisdiction_license_records = self.get_license_records(
-                    filter_condition=lambda license_data: license_data.jurisdiction
-                                                          == self.get_provider_record().currentHomeJurisdiction
-                )
+                filter_condition=lambda license_data: license_data.jurisdiction
+                == self.get_provider_record().currentHomeJurisdiction
+            )
             # if there are no licenses for their current home jurisdiction, we will search through all licenses
-            license_records = current_home_jurisdiction_license_records \
-                if current_home_jurisdiction_license_records else self.get_license_records()
+            license_records = (
+                current_home_jurisdiction_license_records
+                if current_home_jurisdiction_license_records
+                else self.get_license_records()
+            )
 
         # Last issued compact-eligible license, if there are any compact-eligible licenses
         latest_compact_eligible_licenses = sorted(
