@@ -1361,13 +1361,12 @@ class DataClient:
 
         # Get all privileges for the provider that were not deactivated previously
         all_active_privileges = provider_user_records.get_privilege_records(
-            filter_condition=lambda privilege:
-            privilege.homeJurisdictionChangeStatus != HomeJurisdictionChangeStatusEnum.INACTIVE
+            filter_condition=lambda privilege: privilege.homeJurisdictionChangeStatus
+            != HomeJurisdictionChangeStatusEnum.INACTIVE
         )
 
         if not all_active_privileges:
             logger.info('No active privileges found for user. Proceeding with provider update')
-
 
         # Check if provider has any licenses in the new jurisdiction
         if not new_home_state_licenses:
@@ -1383,7 +1382,7 @@ class DataClient:
 
             self._deactivate_privileges_for_jurisdiction_change(
                 compact=compact, provider_id=provider_id, privileges=all_active_privileges
-                )
+            )
             return
 
         # Find the best license in the selected jurisdiction
