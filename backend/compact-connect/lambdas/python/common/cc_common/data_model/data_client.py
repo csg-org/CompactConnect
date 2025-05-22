@@ -1353,12 +1353,19 @@ class DataClient:
             filter_condition=lambda license_data: license_data.jurisdiction == selected_jurisdiction
         )
 
-        # Get all privileges for the provider
-        all_privileges = provider_user_records.get_privilege_records()
+        # Get all privileges for the provider that were not deactivated previously
+        all_active_privileges = provider_user_records.get_privilege_records(
+            filter_condition=lambda privilege:
+            privilege.homeJurisdictionChangeStatus != HomeJurisdictionChangeStatusEnum.INACTIVE
+        )
 
-        # Check if provider has any licenses in the new jurisdiction (requirement 2)
+        if not all_active_privileges:
+            logger.info('No active privileges found for user. Proceeding with provider update')
+
+
+        # Check if provider has any licenses in the new jurisdiction
         if not new_home_state_licenses:
-            logger.info('No home state license found in selected jurisdiction. Deactivating all privileges')
+            logger.info('No home state license found in selected jurisdiction. Deactivating all active privileges')
 
             # Update provider record and privileges for no license in new jurisdiction (requirement 2)
             self._update_provider_record_for_jurisdiction_with_no_known_license(
@@ -1369,8 +1376,8 @@ class DataClient:
             )
 
             self._deactivate_privileges_for_jurisdiction_change(
-                compact=compact, provider_id=provider_id, privileges=all_privileges
-            )
+                compact=compact, provider_id=provider_id, privileges=all_active_privileges
+                )
             return
 
         # Find the best license in the selected jurisdiction
@@ -1393,7 +1400,7 @@ class DataClient:
         )
 
         # Get unique license types from all privileges
-        privilege_license_types = set(privilege.licenseType for privilege in all_privileges)
+        privilege_license_types = set(privilege.licenseType for privilege in all_active_privileges)
 
         for license_type in privilege_license_types:
             # Find the matching license in the current jurisdiction for this license type
@@ -1466,15 +1473,16 @@ class DataClient:
         :param selected_jurisdiction: The jurisdiction the provider has selected through the api.
         :param license_type: The license type to check
         """
-        # Get privileges for this license type
+        # Get privileges for this license type that were not previously deactivated
         privileges_for_license_type = [
             privilege
             for privilege in provider_user_records.get_privilege_records()
             if privilege.licenseType == license_type
+            and privilege.homeJurisdictionChangeStatus != HomeJurisdictionChangeStatusEnum.INACTIVE
         ]
 
         if not privileges_for_license_type:
-            logger.info('No privileges found for license type.', license_type=license_type)
+            logger.info('No active privileges found for license type.', license_type=license_type)
             return
 
         licenses_in_selected_jurisdiction = provider_user_records.get_license_records(
@@ -1507,6 +1515,7 @@ class DataClient:
             matching_license_in_selected_jurisdiction.jurisdictionUploadedCompactEligibility
             == CompactEligibilityStatus.INELIGIBLE
         ):
+            logger.info('License in selected jurisdiction is not compact eligible')
             self._deactivate_privileges_for_jurisdiction_change(
                 compact=compact, provider_id=provider_id, privileges=privileges_for_license_type
             )
