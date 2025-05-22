@@ -149,7 +149,8 @@ def ingest_license_message(message: dict):
 
                 # Get the home jurisdiction selection, if it exists
                 current_provider_record = ProviderData.create_new(
-                    ProviderRecordUtility.get_provider_record(provider_records))
+                    ProviderRecordUtility.get_provider_record(provider_records)
+                )
                 home_jurisdiction = current_provider_record.currentHomeJurisdiction
 
             except CCNotFoundException:

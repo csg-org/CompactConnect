@@ -887,10 +887,9 @@ class TestIngest(TstFunction):
         self.assertEqual('Björk', provider_data_after_first_license['givenName'])
 
         # Set the current home jurisdiction on the provider to simulate them registering in the system
-        self.test_data_generator.put_default_provider_record_in_provider_table(value_overrides={
-            'providerId': provider_id,
-            'currentHomeJurisdiction': 'oh'
-        }, is_registered=True)
+        self.test_data_generator.put_default_provider_record_in_provider_table(
+            value_overrides={'providerId': provider_id, 'currentHomeJurisdiction': 'oh'}, is_registered=True
+        )
 
         # Now ingest a second license for the same provider but with a different license type
         # in a different jurisdiction (ky) and with a newer issuance date

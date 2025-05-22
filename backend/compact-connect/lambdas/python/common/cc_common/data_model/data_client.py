@@ -886,9 +886,7 @@ class DataClient:
                     'providerId': matched_license_record.providerId,
                     'compact': matched_license_record.compact,
                     'previous': current_provider_record.to_dict(),
-                    'updatedValues': {
-                        **registration_values
-                    },
+                    'updatedValues': {**registration_values},
                 }
             )
 
@@ -1597,7 +1595,7 @@ class DataClient:
                 'updatedValues': {
                     'licenseJurisdiction': new_license_record.jurisdiction,
                     # we explicitly set this to align with what was passed in as the selected jurisdiction
-                    'currentHomeJurisdiction': selected_jurisdiction
+                    'currentHomeJurisdiction': selected_jurisdiction,
                 },
             }
         )
@@ -1619,9 +1617,7 @@ class DataClient:
             license_record=new_license_record.to_dict(),
             privilege_records=[privilege.to_dict() for privilege in provider_records.get_privilege_records()],
         )
-        provider_record.update({
-            'currentHomeJurisdiction': selected_jurisdiction
-        })
+        provider_record.update({'currentHomeJurisdiction': selected_jurisdiction})
         # Update our provider data
         transactions.append(
             {
@@ -1669,7 +1665,7 @@ class DataClient:
                 'previous': provider_record.to_dict(),
                 'updatedValues': {
                     'homeJurisdictionChangeDeactivationStatus': deactivation_status,
-                    'currentHomeJurisdiction': selected_jurisdiction
+                    'currentHomeJurisdiction': selected_jurisdiction,
                 },
             }
         )
