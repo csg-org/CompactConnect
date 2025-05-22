@@ -3,7 +3,7 @@ from datetime import date
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
-from cc_common.data_model.provider_record_util import ProviderRecordType, ProviderRecordUtility, ProviderUserRecords
+from cc_common.data_model.provider_record_util import ProviderUserRecords
 from cc_common.data_model.schema.common import ActiveInactiveStatus, CompactEligibilityStatus
 from cc_common.data_model.schema.compact import Compact
 from cc_common.data_model.schema.compact.api import CompactOptionsResponseSchema
@@ -18,7 +18,6 @@ from cc_common.exceptions import (
     CCFailedTransactionException,
     CCInternalException,
     CCInvalidRequestException,
-    CCNotFoundException,
 )
 from cc_common.utils import api_handler
 from purchase_client import PurchaseClient

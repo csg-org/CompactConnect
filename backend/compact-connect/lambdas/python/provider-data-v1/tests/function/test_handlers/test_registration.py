@@ -126,7 +126,7 @@ class TestProviderRegistration(TstFunction):
 
         return provider_data, license_data
 
-    def _add_mock_provider_records_using_data_classes(self, *, is_registered=False, license_data_overrides=None):
+    def _add_mock_provider_records_using_data_classes(self):
         # wrapper function for tests to work with data classes, rather than dictionaries themselves
         from cc_common.data_model.schema.license import LicenseData
         from cc_common.data_model.schema.provider import ProviderData

@@ -80,10 +80,8 @@ class TestProviderRecordSchema(TstLambdas):
             raw_provider_data['licenseJurisdiction'] = 'oh'
             raw_provider_data['currentHomeJurisdiction'] = 'az'
 
-
         schema = ProviderRecordSchema()
         provider_data = schema.load(raw_provider_data)
 
         self.assertEqual('active', provider_data['licenseStatus'])
         self.assertEqual('ineligible', provider_data['compactEligibility'])
-

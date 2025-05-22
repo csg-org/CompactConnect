@@ -1325,10 +1325,10 @@ class ApiModel:
         # The provider is in a known jurisdiction that is listed within the system
         allowed_options = self.api.node.get_context('jurisdictions') + ['other', 'unknown']
         return JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='The current jurisdiction postal abbreviation if known.',
-                        enum=allowed_options,
-                    )
+            type=JsonSchemaType.STRING,
+            description='The current jurisdiction postal abbreviation if known.',
+            enum=allowed_options,
+        )
 
     @property
     def _common_provider_properties(self) -> dict:
