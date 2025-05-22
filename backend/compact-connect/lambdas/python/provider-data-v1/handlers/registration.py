@@ -229,7 +229,7 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
         provider_record: ProviderData = config.data_client.get_provider_top_level_record(
             compact=matching_record.compact, provider_id=matching_record.providerId
         )
-        if provider_record.cognitoSub is not None:
+        if provider_record.compactConnectRegisteredEmailAddress is not None:
             logger.warning(
                 'This provider is already registered in the system',
                 compact=matching_record.compact,
@@ -251,7 +251,7 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
 
     # Create Cognito user
     try:
-        response = config.cognito_client.admin_create_user(
+        config.cognito_client.admin_create_user(
             UserPoolId=config.provider_user_pool_id,
             Username=body['email'],
             UserAttributes=[
@@ -261,12 +261,6 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
                 {'Name': 'email_verified', 'Value': 'true'},
             ],
         )
-        # Get the Cognito sub from the response
-        cognito_sub = next((attr['Value'] for attr in response['User']['Attributes'] if attr['Name'] == 'sub'), None)
-        if cognito_sub is None:
-            logger.info('Failed to get cognito sub from response', response=response)
-            raise CCInternalException('Failed to get cognito sub from response')
-
     except Exception as e:
         logger.error('Failed to create Cognito user', error=str(e))
         metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
@@ -277,7 +271,6 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
         config.data_client.process_registration_values(
             current_provider_record=provider_record,
             matched_license_record=matching_record,
-            cognito_sub=cognito_sub,
             email_address=body['email'],
         )
     except Exception as e:

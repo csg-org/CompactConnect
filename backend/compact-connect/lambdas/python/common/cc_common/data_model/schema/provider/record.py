@@ -66,7 +66,6 @@ class ProviderRecordSchema(BaseRecordSchema):
     dateOfExpiration = Date(required=True, allow_none=False)
     dateOfBirth = Date(required=True, allow_none=False)
     compactConnectRegisteredEmailAddress = Email(required=False, allow_none=False)
-    cognitoSub = String(required=False, allow_none=False)
 
     # Generated fields
     birthMonthDay = String(required=False, allow_none=False, validate=Regexp('^[0-1]{1}[0-9]{1}-[0-3]{1}[0-9]{1}'))
@@ -197,7 +196,6 @@ class ProviderUpdatePreviousRecordSchema(ForgivingSchema):
     dateOfExpiration = Date(required=True, allow_none=False)
     dateOfBirth = Date(required=True, allow_none=False)
     compactConnectRegisteredEmailAddress = Email(required=False, allow_none=False)
-    cognitoSub = String(required=False, allow_none=False)
     currentHomeJurisdiction = CurrentHomeJurisdictionField(required=False, allow_none=False)
     dateOfUpdate = DateTime(required=True, allow_none=False)
 

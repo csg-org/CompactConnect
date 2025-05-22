@@ -52,7 +52,6 @@ class ProviderGeneralResponseSchema(ForgivingSchema):
     # they do not include a timestamp, so we use the Date field type
     dateOfExpiration = Raw(required=True, allow_none=False)
     compactConnectRegisteredEmailAddress = Email(required=False, allow_none=False)
-    cognitoSub = String(required=False, allow_none=False)
 
     jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
     jurisdictionUploadedCompactEligibility = CompactEligibility(required=True, allow_none=False)

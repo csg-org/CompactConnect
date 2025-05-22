@@ -96,7 +96,7 @@ class TestProviderManagementApi(TestApi):
         self.compare_snapshot(
             response_model['Schema'],
             'GET_PROVIDER_RESPONSE_SCHEMA',
-            overwrite_snapshot=False,
+            overwrite_snapshot=True,
         )
 
     def test_synth_generates_query_providers_endpoint(self):
@@ -176,7 +176,7 @@ class TestProviderManagementApi(TestApi):
         self.compare_snapshot(
             response_model['Schema'],
             'QUERY_PROVIDERS_RESPONSE_SCHEMA',
-            overwrite_snapshot=False,
+            overwrite_snapshot=True,
         )
 
     def test_synth_generates_get_provider_ssn_endpoint(self):

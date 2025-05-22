@@ -13,7 +13,6 @@
   "licenseJurisdiction": "oh",
   "privilegeJurisdictions": ["ne"],
   "compactConnectRegisteredEmailAddress": "björkRegisteredEmail@example.com",
-  "cognitoSub": "3408b4e8-0061-7052-bbe0-fda9a9369c80",
   "dateOfUpdate": "2024-07-08T23:59:59+00:00",
   "dateOfExpiration": "2025-04-04",
   "birthMonthDay": "06-06",

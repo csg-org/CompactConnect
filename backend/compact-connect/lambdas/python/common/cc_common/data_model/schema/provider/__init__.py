@@ -83,15 +83,6 @@ class ProviderData(CCDataClass):
         return self._data.get('compactConnectRegisteredEmailAddress')
 
     @property
-    def cognitoSub(self) -> str | None:
-        """
-        The cognito sub value for the provider.
-
-        This is only set if the provider has registered with Compact Connect.
-        """
-        return self._data.get('cognitoSub')
-
-    @property
     def birthMonthDay(self) -> str | None:
         return self._data.get('birthMonthDay')
 

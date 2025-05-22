@@ -73,7 +73,7 @@ class TestPublicLookupApi(TestApi):
         self.compare_snapshot(
             response_model['Schema'],
             'PUBLIC_GET_PROVIDER_RESPONSE_SCHEMA',
-            overwrite_snapshot=False,
+            overwrite_snapshot=True,
         )
 
     def test_synth_generates_public_query_providers_endpoint(self):
@@ -146,5 +146,5 @@ class TestPublicLookupApi(TestApi):
         self.compare_snapshot(
             response_model['Schema'],
             'PUBLIC_QUERY_PROVIDERS_RESPONSE_SCHEMA',
-            overwrite_snapshot=False,
+            overwrite_snapshot=True,
         )

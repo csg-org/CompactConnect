@@ -163,7 +163,7 @@ class TestProviderUsersApi(TestApi):
         self.compare_snapshot(
             actual=get_provider_users_me_response_model['Schema'],
             snapshot_name='PROVIDER_USER_RESPONSE_SCHEMA',
-            overwrite_snapshot=False,
+            overwrite_snapshot=True,
         )
 
     def test_synth_generates_provider_users_me_military_affiliation_endpoint_resource(self):

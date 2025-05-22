@@ -392,7 +392,6 @@ class TestDataGenerator:
             default_provider.update(
                 {
                     'compactConnectRegisteredEmailAddress': DEFAULT_REGISTERED_EMAIL_ADDRESS,
-                    'cognitoSub': DEFAULT_COGNITO_SUB,
                     'currentHomeJurisdiction': DEFAULT_LICENSE_JURISDICTION,
                 }
             )

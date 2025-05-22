@@ -841,7 +841,6 @@ class DataClient:
         *,
         current_provider_record: ProviderData,
         matched_license_record: LicenseData,
-        cognito_sub: str,
         email_address: str,
     ) -> None:
         """Set the registration values on a provider record and create home jurisdiction selection record
@@ -849,7 +848,6 @@ class DataClient:
 
         :param current_provider_record: The provider record that is recorded in the db for this matching provider.
         :param matched_license_record: The license record that was matched for the user during registration
-        :param cognito_sub: The Cognito sub of the user
         :param email_address: The email address used for registration
         :return: None
         :raises: CCAwsServiceException if the transaction fails
@@ -858,7 +856,6 @@ class DataClient:
             compact=current_provider_record.compact,
             provider_id=current_provider_record.providerId,
             license_jurisdiction=matched_license_record.jurisdiction,
-            cognito_sub=cognito_sub,
         ):
             logger.info('Setting registration values and setting current home jurisdiction selection')
 
@@ -878,7 +875,6 @@ class DataClient:
 
             # Registration-specific fields to add to the provider record
             registration_values = {
-                'cognitoSub': cognito_sub,
                 'compactConnectRegisteredEmailAddress': email_address,
                 # we explicitly set this to align with the license record that was matched during registration
                 'currentHomeJurisdiction': matched_license_record.jurisdiction,
