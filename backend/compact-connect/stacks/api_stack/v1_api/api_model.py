@@ -1318,6 +1318,19 @@ class ApiModel:
         }
 
     @property
+    def current_home_jurisdiction_selection_field(self) -> JsonSchema:
+        # A provider's current home jurisdiction can be one of the following:
+        # 'unknown' - The provider has not registered with the system
+        # 'other' - The provider is in a jurisdiction that is not in the system's list of jurisdictions
+        # The provider is in a known jurisdiction that is listed within the system
+        allowed_options = self.api.node.get_context('jurisdictions') + ['other', 'unknown']
+        return JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='The current jurisdiction postal abbreviation if known.',
+                        enum=allowed_options,
+                    )
+
+    @property
     def _common_provider_properties(self) -> dict:
         return {
             'type': JsonSchema(type=JsonSchemaType.STRING, enum=['provider']),
@@ -1352,9 +1365,7 @@ class ApiModel:
                 min_length=5,
                 max_length=100,
             ),
-            'cognitoSub': JsonSchema(
-                type=JsonSchemaType.STRING,
-            ),
+            'currentHomeJurisdiction': self.current_home_jurisdiction_selection_field,
             'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
         }
 
@@ -2115,5 +2126,6 @@ class ApiModel:
                 type=JsonSchemaType.ARRAY,
                 items=JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')),
             ),
+            'currentHomeJurisdiction': self.current_home_jurisdiction_selection_field,
             'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
         }
