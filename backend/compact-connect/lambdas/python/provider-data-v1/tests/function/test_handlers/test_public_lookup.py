@@ -31,7 +31,6 @@ class TestPublicQueryProviders(TstFunction):
         with open('../common/tests/resources/api/provider-response.json') as f:
             expected_provider = json.load(f)
             # we do not return the following fields for the public endpoint
-            expected_provider.pop('cognitoSub')
             expected_provider.pop('birthMonthDay')
             expected_provider.pop('compactConnectRegisteredEmailAddress')
             expected_provider.pop('dateOfExpiration')
@@ -338,7 +337,6 @@ class TestPublicGetProvider(TstFunction):
             # we do not return the following fields from the public endpoint
             expected_provider.pop('ssnLastFour')
             expected_provider.pop('dateOfBirth')
-            expected_provider.pop('cognitoSub')
             expected_provider.pop('birthMonthDay')
             expected_provider.pop('compactConnectRegisteredEmailAddress')
             expected_provider.pop('militaryAffiliations')

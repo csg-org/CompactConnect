@@ -26,7 +26,6 @@ class TestIngest(TstFunction):
         # in these test cases, the provider user has not registered in the system, so these values will not be
         # present
         del expected_provider['compactConnectRegisteredEmailAddress']
-        del expected_provider['cognitoSub']
         return expected_provider
 
     def _with_ingested_license(self, omit_email: bool = False) -> str:

@@ -87,10 +87,8 @@ class TestProviderRegistration(TstFunction):
             provider_data['providerId'] = MOCK_PROVIDER_ID
             provider_data['compact'] = TEST_COMPACT_ABBR
             if is_registered:
-                provider_data['cognitoSub'] = MOCK_COGNITO_SUB
                 provider_data['compactConnectRegisteredEmailAddress'] = MOCK_COMPACT_CONNECT_REGISTERED_EMAIL_ADDRESS
             else:
-                provider_data.pop('cognitoSub', None)
                 provider_data.pop('compactConnectRegisteredEmailAddress', None)
             self.config.provider_table.put_item(Item=provider_data)
 
@@ -327,7 +325,7 @@ class TestProviderRegistration(TstFunction):
         user_attributes = {attr['Name']: attr['Value'] for attr in cognito_users['Users'][0]['Attributes']}
 
         # We'll check the sub below
-        sub_value = user_attributes.pop('sub', None)
+        user_attributes.pop('sub', None)
 
         # Verify all attributes match exactly what we expect (no more, no less)
         expected_attributes = {
@@ -348,8 +346,6 @@ class TestProviderRegistration(TstFunction):
         self.assertEqual(TEST_COMPACT_ABBR, provider_record['compact'])
         self.assertEqual(provider_data['providerId'], provider_record['providerId'])
         self.assertEqual('test@example.com', provider_record['compactConnectRegisteredEmailAddress'])
-        # The user sub should match the value saved on the provider record
-        self.assertEqual(sub_value, provider_record['cognitoSub'])
 
     @patch('handlers.registration.verify_recaptcha')
     def test_registration_returns_200_if_dob_does_not_match(self, mock_verify_recaptcha):
@@ -431,14 +427,15 @@ class TestProviderRegistration(TstFunction):
         )
         self.assertEqual(0, len(cognito_users['Users']))
 
-        # Verify the provider record was rolled back and the cognitoSub is not present
+        # Verify the provider record was rolled back
         provider_record = self.config.provider_table.get_item(
             Key={
                 'pk': f'{TEST_COMPACT_ABBR}#PROVIDER#{provider_data["providerId"]}',
                 'sk': f'{TEST_COMPACT_ABBR}#PROVIDER',
             }
         ).get('Item')
-        self.assertIsNone(provider_record.get('cognitoSub'))
+        # Verify no registration information was added
+        self.assertIsNone(provider_record.get('compactConnectRegisteredEmailAddress'))
 
     @patch('handlers.registration.verify_recaptcha')
     def test_registration_rate_limits_provider_users(self, mock_verify_recaptcha):
@@ -682,14 +679,6 @@ class TestProviderRegistration(TstFunction):
         self.assertEqual(200, response['statusCode'])
         self.assertEqual({'message': 'request processed'}, json.loads(response['body']))
 
-        # Get the Cognito sub to verify it matches in the provider update record
-        cognito_users = self.config.cognito_client.list_users(
-            UserPoolId=self.config.provider_user_pool_id, Filter='email = "test@example.com"'
-        )
-        self.assertEqual(1, len(cognito_users['Users']))
-        user_attributes = {attr['Name']: attr['Value'] for attr in cognito_users['Users'][0]['Attributes']}
-        cognito_sub = user_attributes.get('sub')
-
         # Verify provider update record was created
         stored_provider_update_records = (
             self.test_data_generator.query_provider_update_records_for_given_record_from_database(provider_data)
@@ -705,7 +694,6 @@ class TestProviderRegistration(TstFunction):
         self.assertEqual(TEST_COMPACT_ABBR, update_data.compact)
 
         # Verify the updated values in the provider update record
-        self.assertEqual(cognito_sub, update_data.updatedValues.get('cognitoSub'))
         self.assertEqual('test@example.com', update_data.updatedValues.get('compactConnectRegisteredEmailAddress'))
         self.assertEqual(MOCK_JURISDICTION_POSTAL_ABBR, update_data.updatedValues.get('currentHomeJurisdiction'))
 
@@ -733,7 +721,6 @@ class TestProviderRegistration(TstFunction):
                 'type': 'providerUpdate',
                 'updateType': 'registration',
                 'updatedValues': {
-                    'cognitoSub': cognito_sub,
                     'compactConnectRegisteredEmailAddress': MOCK_COMPACT_CONNECT_REGISTERED_EMAIL_ADDRESS,
                     'currentHomeJurisdiction': 'ky',
                 },
