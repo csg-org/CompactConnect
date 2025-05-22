@@ -45,6 +45,11 @@
       "octp",
       "coun"
     ],
+    "active_compact_member_jurisdictions": {
+      "aslp": ["al", "ak", "ar", "co", "de", "fl", "ga", "id", "in", "ia", "ks", "ky", "la", "me", "md", "mn", "ms", "mo", "ne", "oh"],
+      "octp": ["al", "ar", "ky", "la", "ms", "ne", "oh"],
+      "coun": ["al", "ar", "fl", "ga", "ky", "ne", "oh", "ut"]
+    },
     "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
     "@aws-cdk/core:checkSecretUsage": true,
     "@aws-cdk/core:target-partitions": [

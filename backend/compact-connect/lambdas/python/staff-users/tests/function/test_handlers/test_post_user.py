@@ -8,16 +8,8 @@ from .. import TstFunction
 @mock_aws
 class TestPostUser(TstFunction):
     def _when_testing_with_valid_jurisdiction(self):
-        # load oh jurisdiction for aslp compact to pass the jurisdiction validation
-        self._load_test_jurisdiction(
-            jurisdiction_overrides={
-                'pk': 'aslp#CONFIGURATION',
-                'sk': 'aslp#JURISDICTION#oh',
-                'jurisdictionName': 'Ohio',
-                'postalAbbreviation': 'oh',
-                'compact': 'aslp',
-            }
-        )
+        # load list of active jurisdiction for aslp compact to pass the jurisdiction validation
+        self._load_compact_active_member_jurisdictions()
 
     def test_post_user(self):
         from cc_common.data_model.schema.common import StaffUserStatus
@@ -119,6 +111,8 @@ class TestPostUser(TstFunction):
 
     def test_post_user_returns_400_if_invalid_jurisdiction_permission_set(self):
         from handlers.users import post_user
+
+        self._load_compact_active_member_jurisdictions()
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)

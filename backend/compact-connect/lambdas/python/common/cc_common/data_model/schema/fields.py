@@ -1,5 +1,5 @@
-from marshmallow.fields import List, String
-from marshmallow.validate import OneOf, Regexp
+from marshmallow.fields import Decimal, List, String
+from marshmallow.validate import OneOf, Range, Regexp
 
 from cc_common.config import config
 from cc_common.data_model.schema.common import (
@@ -81,3 +81,10 @@ class ITUTE164PhoneNumber(String):
 class ClinicalPrivilegeActionCategoryField(String):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, validate=OneOf([entry.value for entry in ClinicalPrivilegeActionCategory]), **kwargs)
+
+
+class PositiveDecimal(Decimal):
+    """A Decimal field that validates the value is greater than or equal to 0."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, validate=Range(min=0), **kwargs)

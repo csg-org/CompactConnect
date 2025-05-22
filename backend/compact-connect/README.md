@@ -118,6 +118,33 @@ Keeping documentation current is an important part of feature development in thi
 ## Deployment
 [Back to top](#compact-connect---backend-developer-documentation)
 
+### AWS Service Quota Increases
+Before deploying to any environment (sandbox, test, beta, or production), you'll need to request service quota increases for the following AWS services:
+
+#### 1. Resource Servers Per User Pool (Amazon Cognito)
+The Staff Users pool in CompactConnect uses resource servers for every jurisdiction (50+ states/territories). It also has resource servers for each compact to implement granular permission scopes. As detailed in [User Architecture documentation](./docs/design/README.md#user-architecture), resource server scopes are defined at both the jurisdiction level (ie for state administrators) and the compact level (ie for compact administrators), allowing for fine-grained access control tailored to each entity's specific needs.
+
+**Required Steps:**
+1. Visit the [AWS Service Quotas console](https://console.aws.amazon.com/servicequotas/home) in each AWS account you'll be deploying to
+2. Search for "Amazon Cognito User Pools"
+3. Find "Resource servers per user pool" (default value is 25)
+4. Request an increase to at least 100 resource servers per user pool
+5. Wait for AWS to approve the increase before attempting deployment
+
+This increase gives sufficient capacity for all jurisdictions (50+ states/territories) plus all compacts, with room for future expansion.
+
+#### 2. Concurrent Executions (AWS Lambda)
+CompactConnect uses numerous Lambda functions to power its backend services. By default, new AWS accounts have a very low concurrent execution limit.
+
+**Required Steps:**
+1. Visit the [AWS Service Quotas console](https://console.aws.amazon.com/servicequotas/home) in each AWS account you'll be deploying to
+2. Search for "AWS Lambda"
+3. Find "Concurrent executions" (default value is 10 for new accounts)
+4. Request an increase to at least 1,000 concurrent executions
+5. Wait for AWS to approve the increase before attempting deployment
+
+This increase ensures that your Lambda functions can scale appropriately during periods of high traffic without throttling.
+
 ### First deploy to a Sandbox environment
 The very first deploy to a new environment (like your personal sandbox account) requires a few steps to fully set up
 its environment:

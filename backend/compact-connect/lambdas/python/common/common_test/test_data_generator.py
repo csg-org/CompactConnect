@@ -1,11 +1,14 @@
 # ruff: noqa: F403, F405 star import of test constants file
 import json
 from datetime import date, datetime
+from decimal import Decimal
 
 from cc_common.data_model.provider_record_util import ProviderRecordUtility
 from cc_common.data_model.schema.adverse_action import AdverseActionData
 from cc_common.data_model.schema.common import CCDataClass
+from cc_common.data_model.schema.compact import CompactConfigurationData
 from cc_common.data_model.schema.home_jurisdiction import HomeJurisdictionSelectionData
+from cc_common.data_model.schema.jurisdiction import JurisdictionConfigurationData
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
 from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationData
 from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
@@ -175,7 +178,6 @@ class TestDataGenerator:
             'licenseStatusName': DEFAULT_LICENSE_STATUS_NAME,
             'jurisdictionUploadedLicenseStatus': DEFAULT_LICENSE_STATUS,
             'jurisdictionUploadedCompactEligibility': DEFAULT_COMPACT_ELIGIBILITY,
-            'compactEligibility': DEFAULT_COMPACT_ELIGIBILITY,
         }
         if value_overrides:
             default_license.update(value_overrides)
@@ -428,3 +430,132 @@ class TestDataGenerator:
 
         # cast to json, to match what the API is doing
         return json.loads(json.dumps(provider_detail_response, cls=ResponseEncoder))
+
+    @staticmethod
+    def generate_default_compact_configuration(value_overrides: dict | None = None) -> CompactConfigurationData:
+        """Generate a default compact configuration"""
+        default_compact_config = {
+            'compactAbbr': DEFAULT_COMPACT,
+            'compactName': 'Audiology and Speech Language Pathology',
+            'compactCommissionFee': {
+                'feeAmount': Decimal('10.00'),
+                'feeType': 'FLAT_RATE',
+            },
+            'compactOperationsTeamEmails': ['ops@example.com'],
+            'compactAdverseActionsNotificationEmails': ['adverse@example.com'],
+            'compactSummaryReportNotificationEmails': ['summary@example.com'],
+            'licenseeRegistrationEnabled': True,
+            'transactionFeeConfiguration': {
+                'licenseeCharges': {
+                    'active': True,
+                    'chargeAmount': Decimal('10.00'),
+                    'chargeType': 'FLAT_FEE_PER_PRIVILEGE',
+                },
+            },
+        }
+        if value_overrides:
+            default_compact_config.update(value_overrides)
+
+        return CompactConfigurationData.create_new(default_compact_config)
+
+    @staticmethod
+    def put_default_compact_configuration_in_configuration_table(
+        value_overrides: dict | None = None,
+    ) -> CompactConfigurationData:
+        """
+        Creates a default compact configuration record and stores it in the configuration table.
+
+        :param value_overrides: Optional dictionary to override default values
+        :return: The CompactConfigurationData instance that was stored
+        """
+        compact_config = TestDataGenerator.generate_default_compact_configuration(value_overrides)
+        compact_config_record = compact_config.serialize_to_database_record()
+
+        from cc_common.config import config
+
+        config.compact_configuration_table.put_item(Item=compact_config_record)
+
+        return compact_config
+
+    @staticmethod
+    def generate_default_jurisdiction_configuration(
+        value_overrides: dict | None = None,
+    ) -> JurisdictionConfigurationData:
+        """Generate a default jurisdiction configuration"""
+        default_jurisdiction_config = {
+            'compact': 'aslp',
+            'postalAbbreviation': 'ky',
+            'jurisdictionName': 'Kentucky',
+            'privilegeFees': [
+                {'licenseTypeAbbreviation': 'slp', 'amount': Decimal('50.00'), 'militaryRate': Decimal('50.00')},
+                {'licenseTypeAbbreviation': 'aud', 'amount': Decimal('50.00'), 'militaryRate': Decimal('50.00')},
+            ],
+            'jurisprudenceRequirements': {
+                'required': True,
+                'linkToDocumentation': 'https://example.com/jurisprudence',
+            },
+            'jurisdictionOperationsTeamEmails': ['state-ops@example.com'],
+            'jurisdictionAdverseActionsNotificationEmails': ['state-adverse@example.com'],
+            'jurisdictionSummaryReportNotificationEmails': ['state-summary@example.com'],
+            'licenseeRegistrationEnabled': True,
+        }
+        if value_overrides:
+            default_jurisdiction_config.update(value_overrides)
+
+        return JurisdictionConfigurationData.create_new(default_jurisdiction_config)
+
+    @staticmethod
+    def put_default_jurisdiction_configuration_in_configuration_table(
+        value_overrides: dict | None = None,
+    ) -> JurisdictionConfigurationData:
+        """
+        Creates a default jurisdiction configuration record and stores it in the configuration table.
+
+        :param value_overrides: Optional dictionary to override default values
+        :return: The JurisdictionConfigurationData instance that was stored
+        """
+        jurisdiction_config = TestDataGenerator.generate_default_jurisdiction_configuration(value_overrides)
+        jurisdiction_config_record = jurisdiction_config.serialize_to_database_record()
+
+        from cc_common.config import config
+
+        config.compact_configuration_table.put_item(Item=jurisdiction_config_record)
+
+        return jurisdiction_config
+
+    @staticmethod
+    def put_compact_active_member_jurisdictions(
+        compact: str = DEFAULT_COMPACT, postal_abbreviations: list[str] = None
+    ) -> list[dict]:
+        """
+        Creates and stores active member jurisdictions for a compact in the configuration table.
+
+        :param compact: The compact abbreviation
+        :param postal_abbreviations: List of jurisdiction postal abbreviations
+        :return: The list of active member jurisdictions that was stored
+        """
+        from cc_common.config import config
+        from cc_common.data_model.compact_configuration_utils import CompactConfigUtility
+
+        if postal_abbreviations is None:
+            postal_abbreviations = ['ky', 'oh', 'ne']  # Default jurisdictions if none provided
+
+        # Format member jurisdictions into the expected shape
+        formatted_jurisdictions = []
+        for jurisdiction in postal_abbreviations:
+            jurisdiction_name = CompactConfigUtility.get_jurisdiction_name(postal_abbr=jurisdiction)
+            formatted_jurisdictions.append(
+                {'jurisdictionName': jurisdiction_name, 'postalAbbreviation': jurisdiction, 'compact': compact}
+            )
+
+        # Create the item to store
+        item = {
+            'pk': f'COMPACT#{compact}#ACTIVE_MEMBER_JURISDICTIONS',
+            'sk': f'COMPACT#{compact}#ACTIVE_MEMBER_JURISDICTIONS',
+            'active_member_jurisdictions': formatted_jurisdictions,
+        }
+
+        # Store in the table
+        config.compact_configuration_table.put_item(Item=item)
+
+        return formatted_jurisdictions

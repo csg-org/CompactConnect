@@ -12,8 +12,8 @@
         <header>
             <PageHeader v-if="includePageHeader"></PageHeader>
         </header>
-        <PageNav />
-        <div class="page-content" role="main">
+        <PageNav v-if="includeMainNav" />
+        <div class="page-content" :class="{ 'include-nav': includeMainNav }" role="main">
             <transition name="fade">
                 <PageLoadingMask v-show="isLoading"></PageLoadingMask>
             </transition>

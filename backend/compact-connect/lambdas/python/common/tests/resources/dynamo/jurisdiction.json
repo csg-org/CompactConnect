@@ -8,22 +8,19 @@
   "privilegeFees": [
     {
       "licenseTypeAbbreviation": "aud",
-      "amount": 100
+      "amount": 100,
+      "militaryRate": 40
     },
     {
       "licenseTypeAbbreviation": "slp",
-      "amount": 100
+      "amount": 100,
+      "militaryRate": 40
     }
   ],
-  "militaryDiscount": {
-    "active": true,
-    "discountType": "FLAT_RATE",
-    "discountAmount": 10
-  },
   "jurisdictionOperationsTeamEmails": ["some-operations-team@test.com"],
   "jurisdictionAdverseActionsNotificationEmails": ["some-adverse-actions-notification-team@test.com"],
   "jurisdictionSummaryReportNotificationEmails": ["some-summary-report-notification-team@test.com"],
-  "licenseeRegistrationEnabledForEnvironments": ["test"],
+  "licenseeRegistrationEnabled": true,
   "jurisprudenceRequirements": {
     "required": true
   },

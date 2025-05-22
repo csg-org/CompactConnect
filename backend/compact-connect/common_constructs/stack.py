@@ -64,6 +64,15 @@ class Stack(CdkStack):
         return [typ['name'] for compact in self.node.get_context('license_types').values() for typ in compact]
 
     @cached_property
+    def license_type_abbreviations(self):
+        """Flattened list of all license type names across all compacts"""
+        return [
+            typ['abbreviation']
+            for compact_license_types in self.node.get_context('license_types').values()
+            for typ in compact_license_types
+        ]
+
+    @cached_property
     def license_types(self):
         """Dictionary of license types by compact"""
         return self.node.get_context('license_types')

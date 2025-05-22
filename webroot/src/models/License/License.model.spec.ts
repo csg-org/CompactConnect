@@ -145,6 +145,19 @@ describe('License model', () => {
             },
         ]);
     });
+    it('should create a License with specific values (custom displayName delimiter)', () => {
+        const data = {
+            issueState: new State({ abbrev: 'co' }),
+            licenseType: LicenseType.AUDIOLOGIST,
+        };
+        const license = new License(data);
+
+        // Test field values
+        expect(license).to.be.an.instanceof(License);
+
+        // Test methods
+        expect(license.displayName(' ... ')).to.equal('Colorado ... AUD');
+    });
     it('should create a License with specific values through serializer', () => {
         const data = {
             compact: CompactType.ASLP,

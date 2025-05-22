@@ -1,40 +1,10 @@
-# ruff: noqa: N801, N815, ARG002 invalid-name unused-kwargs
+# ruff: noqa: N801, N802, N815, ARG002 invalid-name unused-kwargs
 from collections import UserDict
+from decimal import Decimal
 
-from marshmallow import Schema
-from marshmallow.fields import Boolean, Decimal, Nested, String
-from marshmallow.validate import OneOf
-
-from cc_common.data_model.schema.common import CCEnum
-
-COMPACT_TYPE = 'compact'
-
-
-class CompactFeeType(CCEnum):
-    FLAT_RATE = 'FLAT_RATE'
-
-
-class TransactionFeeChargeType(CCEnum):
-    FLAT_FEE_PER_PRIVILEGE = 'FLAT_FEE_PER_PRIVILEGE'
-
-
-class CompactCommissionFeeSchema(Schema):
-    feeType = String(required=True, allow_none=False, validate=OneOf([e.value for e in CompactFeeType]))
-    feeAmount = Decimal(required=True, allow_none=False, places=2)
-
-
-class LicenseeChargesSchema(Schema):
-    """Schema for licensee transaction fee charges configuration"""
-
-    active = Boolean(required=True, allow_none=False)
-    chargeType = String(required=True, allow_none=False, validate=OneOf([e.value for e in TransactionFeeChargeType]))
-    chargeAmount = Decimal(required=True, allow_none=False, places=2)
-
-
-class TransactionFeeConfigurationSchema(Schema):
-    """Schema for the transaction fee configuration"""
-
-    licenseeCharges = Nested(LicenseeChargesSchema(), required=False, allow_none=True)
+from cc_common.data_model.schema.common import CCDataClass
+from cc_common.data_model.schema.compact.common import CompactFeeType, TransactionFeeChargeType
+from cc_common.data_model.schema.compact.record import CompactRecordSchema
 
 
 class CompactCommissionFee(UserDict):
@@ -74,6 +44,9 @@ class TransactionFeeConfiguration(UserDict):
 class Compact(UserDict):
     """
     Compact configuration data model. Used to access variables without needing to know the underlying key structure.
+
+    Deprecated: This is a legacy class maintained for backward compatibility. For new code, prefer using
+    CompactConfigurationData instead.
     """
 
     @property
@@ -109,5 +82,51 @@ class Compact(UserDict):
         return self.get('compactSummaryReportNotificationEmails')
 
     @property
-    def licensee_registration_enabled_for_environments(self) -> list[str] | None:
-        return self.get('licenseeRegistrationEnabledForEnvironments', [])
+    def licensee_registration_enabled(self):
+        return self.get('licenseeRegistrationEnabled', False)
+
+
+# New data class-based implementation
+class CompactConfigurationData(CCDataClass):
+    """
+    Class representing a Compact Configuration with getters and setters for all properties.
+    This is the preferred way to work with compact configuration data.
+    """
+
+    # Define the record schema at the class level
+    _record_schema = CompactRecordSchema()
+
+    # object is immutable and cannot be changed after construction
+    _requires_data_at_construction = True
+
+    @property
+    def compactAbbr(self) -> str:
+        return self._data['compactAbbr']
+
+    @property
+    def compactName(self) -> str:
+        return self._data['compactName']
+
+    @property
+    def compactCommissionFee(self) -> dict:
+        return self._data['compactCommissionFee']
+
+    @property
+    def transactionFeeConfiguration(self) -> dict:
+        return self._data.get('transactionFeeConfiguration')
+
+    @property
+    def compactOperationsTeamEmails(self) -> list[str]:
+        return self._data.get('compactOperationsTeamEmails', [])
+
+    @property
+    def compactAdverseActionsNotificationEmails(self) -> list[str]:
+        return self._data.get('compactAdverseActionsNotificationEmails', [])
+
+    @property
+    def compactSummaryReportNotificationEmails(self) -> list[str]:
+        return self._data.get('compactSummaryReportNotificationEmails', [])
+
+    @property
+    def licenseeRegistrationEnabled(self) -> bool:
+        return self._data.get('licenseeRegistrationEnabled', False)
