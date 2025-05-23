@@ -79,7 +79,6 @@ class TestProviderRegistration(TstFunction):
         :param bool is_registered: If true, addd a home jurisdiction selection record for the provider
         :param dict license_data_overrides: Optional overrides for the license data
         """
-        from cc_common.data_model.schema.home_jurisdiction.record import ProviderHomeJurisdictionSelectionRecordSchema
         from cc_common.data_model.schema.license.record import LicenseRecordSchema
 
         with open('../common/tests/resources/dynamo/provider.json') as f:
@@ -110,18 +109,6 @@ class TestProviderRegistration(TstFunction):
                 license_data.update(license_data_overrides)
             license_schema = LicenseRecordSchema()
             serialized_record = license_schema.dump(license_schema.loads(json.dumps(license_data)))
-            self.config.provider_table.put_item(Item=serialized_record)
-
-        if is_registered:
-            home_jurisdiction_schema = ProviderHomeJurisdictionSelectionRecordSchema()
-            home_jurisdiction_record = {
-                'type': 'homeJurisdictionSelection',
-                'compact': TEST_COMPACT_ABBR,
-                'providerId': MOCK_PROVIDER_ID,
-                'jurisdiction': MOCK_JURISDICTION_POSTAL_ABBR,
-                'dateOfSelection': datetime.fromisoformat('2024-01-01T00:00:00Z'),
-            }
-            serialized_record = home_jurisdiction_schema.dump(home_jurisdiction_record)
             self.config.provider_table.put_item(Item=serialized_record)
 
         return provider_data, license_data
@@ -281,31 +268,6 @@ class TestProviderRegistration(TstFunction):
         self.assertEqual(expected_attributes, user_attributes)
 
     @patch('handlers.registration.verify_recaptcha')
-    def test_registration_creates_home_jurisdiction_selection(self, mock_verify_recaptcha):
-        mock_verify_recaptcha.return_value = True
-        provider_data, license_data = self._add_mock_provider_records(is_registered=False)
-        from handlers.registration import register_provider
-
-        response = register_provider(self._get_test_event(), self.mock_context)
-
-        self.assertEqual(200, response['statusCode'])
-        self.assertEqual({'message': 'request processed'}, json.loads(response['body']))
-
-        # Verify home jurisdiction selection record was created
-        home_jurisdiction = self.config.provider_table.get_item(
-            Key={
-                'pk': f'{TEST_COMPACT_ABBR}#PROVIDER#{provider_data["providerId"]}',
-                'sk': f'{TEST_COMPACT_ABBR}#PROVIDER#home-jurisdiction#',
-            }
-        )['Item']
-        self.assertEqual('homeJurisdictionSelection', home_jurisdiction['type'])
-        self.assertEqual(TEST_COMPACT_ABBR, home_jurisdiction['compact'])
-        self.assertEqual(provider_data['providerId'], home_jurisdiction['providerId'])
-        self.assertEqual(MOCK_JURISDICTION_POSTAL_ABBR, home_jurisdiction['jurisdiction'])
-        self.assertIsNotNone(home_jurisdiction['dateOfSelection'])
-        self.assertIsNotNone(home_jurisdiction['dateOfUpdate'])
-
-    @patch('handlers.registration.verify_recaptcha')
     def test_registration_sets_registration_values(self, mock_verify_recaptcha):
         mock_verify_recaptcha.return_value = True
         provider_data, license_data = self._add_mock_provider_records()
@@ -399,27 +361,25 @@ class TestProviderRegistration(TstFunction):
     def test_registration_rolls_back_cognito_user_on_dynamo_transaction_failure(self, mock_verify_recaptcha):
         mock_verify_recaptcha.return_value = True
         provider_data, license_data = self._add_mock_provider_records(is_registered=False)
-        # this simulates having a user shown as not registered, but another user registers for the exact same
-        # account in the system at the same time. Highly unlikely, but we check here to make sure the race condition
-        # is handled by the conditional expressions
-        from cc_common.data_model.schema.home_jurisdiction.record import ProviderHomeJurisdictionSelectionRecordSchema
         from handlers.registration import register_provider
 
-        home_jurisdiction_schema = ProviderHomeJurisdictionSelectionRecordSchema()
-        home_jurisdiction_record = {
-            'type': 'homeJurisdictionSelection',
-            'compact': TEST_COMPACT_ABBR,
-            'providerId': MOCK_PROVIDER_ID,
-            'jurisdiction': MOCK_JURISDICTION_POSTAL_ABBR,
-            'dateOfSelection': datetime.fromisoformat('2024-01-01T00:00:00Z'),
-        }
-        serialized_record = home_jurisdiction_schema.dump(home_jurisdiction_record)
-        self.config.provider_table.put_item(Item=serialized_record)
+        # Mock DynamoDB to fail the transaction
+        from botocore.exceptions import ClientError
+        with patch('handlers.registration.config.dynamodb_client') as mock_dynamo:
+            mock_dynamo.transact_write_items.side_effect = ClientError(
+                {
+                    'Error': {
+                        'Code': 'TransactionCanceledException',
+                        'Message': 'Transaction cancelled, please refer cancellation reasons for specific reasons'
+                    }
+                },
+                'TransactWriteItems'
+            )
 
-        # Verify the registration fails with the expected error
-        with self.assertRaises(CCInternalException) as context:
-            register_provider(self._get_test_event(), self.mock_context)
-        self.assertEqual('Failed to set registration values', context.exception.message)
+            # Verify the registration fails with the expected error
+            with self.assertRaises(CCInternalException) as context:
+                register_provider(self._get_test_event(), self.mock_context)
+            self.assertEqual('Failed to set registration values', context.exception.message)
 
         # Verify no Cognito user exists for this email (it should have been deleted during rollback)
         cognito_users = self.config.cognito_client.list_users(
@@ -543,20 +503,12 @@ class TestProviderRegistration(TstFunction):
         }
         self.assertEqual(expected_attributes, user_attributes)
 
-        # Verify home jurisdiction selection record was created
-        home_jurisdiction = self.config.provider_table.get_item(
-            Key={
-                'pk': f'{TEST_COMPACT_ABBR}#PROVIDER#{provider_data["providerId"]}',
-                'sk': f'{TEST_COMPACT_ABBR}#PROVIDER#home-jurisdiction#',
-            }
-        )['Item']
-        self.assertEqual('homeJurisdictionSelection', home_jurisdiction['type'])
-        self.assertEqual(TEST_COMPACT_ABBR, home_jurisdiction['compact'])
-        self.assertEqual(provider_data['providerId'], home_jurisdiction['providerId'])
-        self.assertEqual(MOCK_JURISDICTION_POSTAL_ABBR, home_jurisdiction['jurisdiction'])
-        self.assertIsNotNone(home_jurisdiction['dateOfSelection'])
-        self.assertIsNotNone(home_jurisdiction['dateOfUpdate'])
-
+        # Verify provider values were set
+        stored_provider_record = self.config.data_client.get_provider_top_level_record(
+            compact=TEST_COMPACT_ABBR, provider_id=provider_data['providerId'])
+        self.assertEqual(MOCK_COMPACT_CONNECT_REGISTERED_EMAIL_ADDRESS,
+                         stored_provider_record.compactConnectRegisteredEmailAddress)
+        self.assertEqual(MOCK_JURISDICTION_POSTAL_ABBR, stored_provider_record.currentHomeJurisdiction)
     @patch('handlers.registration.verify_recaptcha')
     def test_registration_works_with_japanese_characters(self, mock_verify_recaptcha):
         """Test that registration works with Japanese characters in names."""
@@ -602,19 +554,13 @@ class TestProviderRegistration(TstFunction):
         }
         self.assertEqual(expected_attributes, user_attributes)
 
-        # Verify home jurisdiction selection record was created
-        home_jurisdiction = self.config.provider_table.get_item(
-            Key={
-                'pk': f'{TEST_COMPACT_ABBR}#PROVIDER#{provider_data["providerId"]}',
-                'sk': f'{TEST_COMPACT_ABBR}#PROVIDER#home-jurisdiction#',
-            }
-        )['Item']
-        self.assertEqual('homeJurisdictionSelection', home_jurisdiction['type'])
-        self.assertEqual(TEST_COMPACT_ABBR, home_jurisdiction['compact'])
-        self.assertEqual(provider_data['providerId'], home_jurisdiction['providerId'])
-        self.assertEqual(MOCK_JURISDICTION_POSTAL_ABBR, home_jurisdiction['jurisdiction'])
-        self.assertIsNotNone(home_jurisdiction['dateOfSelection'])
-        self.assertIsNotNone(home_jurisdiction['dateOfUpdate'])
+        # Verify provider values were set
+        stored_provider_record = self.config.data_client.get_provider_top_level_record(
+            compact=TEST_COMPACT_ABBR, provider_id=provider_data['providerId'])
+        self.assertEqual(MOCK_COMPACT_CONNECT_REGISTERED_EMAIL_ADDRESS,
+                         stored_provider_record.compactConnectRegisteredEmailAddress)
+        self.assertEqual(MOCK_JURISDICTION_POSTAL_ABBR, stored_provider_record.currentHomeJurisdiction)
+
 
     @patch('handlers.registration.verify_recaptcha')
     def test_registration_rejects_invalid_email(self, mock_verify_recaptcha):

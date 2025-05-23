@@ -23,7 +23,6 @@ from cc_common.data_model.schema.common import (
     PrivilegeEncumberedStatusEnum,
     UpdateCategory,
 )
-from cc_common.data_model.schema.home_jurisdiction.record import ProviderHomeJurisdictionSelectionRecordSchema
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
 from cc_common.data_model.schema.military_affiliation.common import (
     MilitaryAffiliationStatus,
@@ -858,20 +857,6 @@ class DataClient:
         ):
             logger.info('Setting registration values and setting current home jurisdiction selection')
 
-            # TODO - this homeJurisdictionSelection record type is deprecated, and should be removed   # noqa: FIX002
-            #  once the frontend is updated to read the 'currentHomeJurisdiction' field directly from the provider
-            #  record instead
-            home_jurisdiction_selection_record = {
-                'type': 'homeJurisdictionSelection',
-                'compact': matched_license_record.compact,
-                'providerId': matched_license_record.providerId,
-                'jurisdiction': matched_license_record.jurisdiction,
-                'dateOfSelection': self.config.current_standard_datetime,
-            }
-
-            schema = ProviderHomeJurisdictionSelectionRecordSchema()
-            serialized_record = schema.dump(home_jurisdiction_selection_record)
-
             # Registration-specific fields to add to the provider record
             registration_values = {
                 'compactConnectRegisteredEmailAddress': email_address,
@@ -902,15 +887,6 @@ class DataClient:
             # Create all records in a transaction
             self.config.dynamodb_client.transact_write_items(
                 TransactItems=[
-                    # TODO - this first item should be removed once the # noqa: FIX002
-                    #  frontend is updated to stop referencing it.
-                    {
-                        'Put': {
-                            'TableName': self.config.provider_table_name,
-                            'Item': TypeSerializer().serialize(serialized_record)['M'],
-                            'ConditionExpression': 'attribute_not_exists(pk)',
-                        }
-                    },
                     # Update provider record
                     {
                         'Put': {
