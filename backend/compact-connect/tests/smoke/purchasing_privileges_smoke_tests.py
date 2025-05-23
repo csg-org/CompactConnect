@@ -103,7 +103,7 @@ def test_purchase_privilege_options():
     logger.info('Successfully verified purchase privilege options')
 
 
-def test_purchasing_privilege():
+def test_purchasing_privilege(delete_current_privilege: bool = True):
     # Step 1: Get latest versions of required attestations - GET '/v1/compact/{compact}/attestations/{attestationId}'.
     # Step 2: Purchase a privilege through the POST '/v1/purchases/privileges' endpoint.
     # Step 3: Verify a transaction id is returned in the response body.
@@ -113,25 +113,26 @@ def test_purchasing_privilege():
     original_provider_data = call_provider_users_me_endpoint()
     provider_id = original_provider_data.get('providerId')
     compact = original_provider_data.get('compact')
-    dynamodb_table = config.provider_user_dynamodb_table
-    # query for all ne related privilege records
-    original_privilege_records = dynamodb_table.query(
-        KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}')
-        & Key('sk').begins_with(f'{compact}#PROVIDER#privilege/ne/')
-    ).get('Items', [])
-    for privilege in original_privilege_records:
-        # delete the privilege records
-        privilege_pk = privilege['pk']
-        privilege_sk = privilege['sk']
-        logger.info(f'Deleting privilege record:\n{privilege_pk}\n{privilege_sk}')
-        dynamodb_table.delete_item(
-            Key={
-                'pk': privilege_pk,
-                'sk': privilege_sk,
-            }
-        )
-        # give dynamodb time to propagate
-        time.sleep(1)
+    if delete_current_privilege:
+        dynamodb_table = config.provider_user_dynamodb_table
+        # query for all ne related privilege records
+        original_privilege_records = dynamodb_table.query(
+            KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}')
+            & Key('sk').begins_with(f'{compact}#PROVIDER#privilege/ne/')
+        ).get('Items', [])
+        for privilege in original_privilege_records:
+            # delete the privilege records
+            privilege_pk = privilege['pk']
+            privilege_sk = privilege['sk']
+            logger.info(f'Deleting privilege record:\n{privilege_pk}\n{privilege_sk}')
+            dynamodb_table.delete_item(
+                Key={
+                    'pk': privilege_pk,
+                    'sk': privilege_sk,
+                }
+            )
+            # give dynamodb time to propagate
+            time.sleep(1)
 
     # Get the latest version of every attestation required for the privilege purchase
     required_attestation_ids = [
@@ -163,7 +164,7 @@ def test_purchasing_privilege():
             raise SmokeTestFailureException(f'Failed to get attestation. Response: {get_attestation_response.json()}')
 
         attestation = get_attestation_response.json()
-        logger.info(f'Received attestation response for {attestation_id}: {attestation}')
+        logger.info(f'Received attestation response for {attestation_id}')
         attestations_from_system.append({'attestationId': attestation_id, 'version': attestation['version']})
 
     license_type = original_provider_data['licenses'][0]['licenseType']
