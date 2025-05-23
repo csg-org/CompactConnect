@@ -361,19 +361,19 @@ class TestProviderRegistration(TstFunction):
     def test_registration_rolls_back_cognito_user_on_dynamo_transaction_failure(self, mock_verify_recaptcha):
         mock_verify_recaptcha.return_value = True
         provider_data, license_data = self._add_mock_provider_records(is_registered=False)
-        from handlers.registration import register_provider
-
         # Mock DynamoDB to fail the transaction
         from botocore.exceptions import ClientError
+        from handlers.registration import register_provider
+
         with patch('handlers.registration.config.dynamodb_client') as mock_dynamo:
             mock_dynamo.transact_write_items.side_effect = ClientError(
                 {
                     'Error': {
                         'Code': 'TransactionCanceledException',
-                        'Message': 'Transaction cancelled, please refer cancellation reasons for specific reasons'
+                        'Message': 'Transaction cancelled, please refer cancellation reasons for specific reasons',
                     }
                 },
-                'TransactWriteItems'
+                'TransactWriteItems',
             )
 
             # Verify the registration fails with the expected error
@@ -505,10 +505,13 @@ class TestProviderRegistration(TstFunction):
 
         # Verify provider values were set
         stored_provider_record = self.config.data_client.get_provider_top_level_record(
-            compact=TEST_COMPACT_ABBR, provider_id=provider_data['providerId'])
-        self.assertEqual(MOCK_COMPACT_CONNECT_REGISTERED_EMAIL_ADDRESS,
-                         stored_provider_record.compactConnectRegisteredEmailAddress)
+            compact=TEST_COMPACT_ABBR, provider_id=provider_data['providerId']
+        )
+        self.assertEqual(
+            MOCK_COMPACT_CONNECT_REGISTERED_EMAIL_ADDRESS, stored_provider_record.compactConnectRegisteredEmailAddress
+        )
         self.assertEqual(MOCK_JURISDICTION_POSTAL_ABBR, stored_provider_record.currentHomeJurisdiction)
+
     @patch('handlers.registration.verify_recaptcha')
     def test_registration_works_with_japanese_characters(self, mock_verify_recaptcha):
         """Test that registration works with Japanese characters in names."""
@@ -556,11 +559,12 @@ class TestProviderRegistration(TstFunction):
 
         # Verify provider values were set
         stored_provider_record = self.config.data_client.get_provider_top_level_record(
-            compact=TEST_COMPACT_ABBR, provider_id=provider_data['providerId'])
-        self.assertEqual(MOCK_COMPACT_CONNECT_REGISTERED_EMAIL_ADDRESS,
-                         stored_provider_record.compactConnectRegisteredEmailAddress)
+            compact=TEST_COMPACT_ABBR, provider_id=provider_data['providerId']
+        )
+        self.assertEqual(
+            MOCK_COMPACT_CONNECT_REGISTERED_EMAIL_ADDRESS, stored_provider_record.compactConnectRegisteredEmailAddress
+        )
         self.assertEqual(MOCK_JURISDICTION_POSTAL_ABBR, stored_provider_record.currentHomeJurisdiction)
-
 
     @patch('handlers.registration.verify_recaptcha')
     def test_registration_rejects_invalid_email(self, mock_verify_recaptcha):

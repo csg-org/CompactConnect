@@ -346,10 +346,11 @@ class TestPublicGetProvider(TstFunction):
             expected_provider['privileges'][0]['history'][0]['previous'].pop('attestations')
             expected_provider['privileges'][0]['history'][0]['previous'].pop('compactTransactionId')
             expected_provider['privileges'][0]['history'][0]['updatedValues'].pop('compactTransactionId')
-            expected_provider.pop('homeJurisdictionSelection')
             expected_provider.pop('dateOfExpiration')
             expected_provider.pop('jurisdictionUploadedLicenseStatus')
             expected_provider.pop('jurisdictionUploadedCompactEligibility')
+            # TODO - remove this as part of https://github.com/csg-org/CompactConnect/issues/763 # noqa: FIX002
+            expected_provider.pop('homeJurisdictionSelection')
 
         self.assertEqual(expected_provider, provider_data)
 

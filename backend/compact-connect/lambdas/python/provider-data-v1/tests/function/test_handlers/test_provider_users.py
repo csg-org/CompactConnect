@@ -43,27 +43,26 @@ class TestGetProvider(TstFunction):
 
         self.assertEqual(expected_provider, provider_data)
 
-    def test_get_provider_does_not_return_home_jurisdiction_selection_key_if_not_present(self):
+    #  TODO: temp test to ensure backwards compatibility # noqa: FIX002
+    #   it should be removed as part of https://github.com/csg-org/CompactConnect/issues/763
+    def test_get_provider_maps_current_home_jurisdiction_to_deprecated_home_jurisdiction_selection(self):
         from handlers.provider_users import provider_users_api_handler
 
         event = self._when_testing_provider_user_event_with_custom_claims()
-        # delete the homeJurisdictionSelection key from the provider dynamodb record
-        self.config.provider_table.delete_item(
-            Key={
-                'pk': f'{TEST_COMPACT}#PROVIDER#{event["requestContext"]["authorizer"]["claims"]["custom:providerId"]}',
-                'sk': f'{TEST_COMPACT}#PROVIDER#home-jurisdiction#',
-            },
-        )
-
         resp = provider_users_api_handler(event, self.mock_context)
 
         self.assertEqual(200, resp['statusCode'])
         provider_data = json.loads(resp['body'])
 
-        expected_provider = self.test_data_generator.generate_default_provider_detail_response()
-        del expected_provider['homeJurisdictionSelection']
-
-        self.assertEqual(expected_provider, provider_data)
+        self.assertEqual(
+            {
+                'compact': 'aslp',
+                'jurisdiction': 'oh',
+                'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
+                'type': 'homeJurisdictionSelection',
+            },
+            provider_data['homeJurisdictionSelection'],
+        )
 
     def test_get_provider_returns_400_if_api_call_made_without_proper_claims(self):
         from handlers.provider_users import provider_users_api_handler

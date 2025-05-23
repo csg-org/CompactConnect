@@ -49,7 +49,6 @@ DEFAULT_PHONE_NUMBER = '+13213214321'
 DEFAULT_REGISTERED_EMAIL_ADDRESS = 'björkRegisteredEmail@example.com'
 
 # record type constants
-HOME_JURISDICTION_RECORD_TYPE = 'homeJurisdictionSelection'
 ADVERSE_ACTION_RECORD_TYPE = 'adverseAction'
 MILITARY_AFFILIATION_RECORD_TYPE = 'militaryAffiliation'
 LICENSE_RECORD_TYPE = 'license'
