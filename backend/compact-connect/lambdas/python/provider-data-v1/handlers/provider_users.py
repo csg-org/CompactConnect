@@ -3,6 +3,7 @@ import uuid
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
+from cc_common.data_model.schema.fields import OTHER_JURISDICTION
 from cc_common.data_model.schema.military_affiliation.api import PostMilitaryAffiliationResponseSchema
 from cc_common.data_model.schema.military_affiliation.common import (
     MILITARY_AFFILIATIONS_DOCUMENT_TYPE_KEY_NAME,
@@ -86,7 +87,11 @@ def _put_provider_home_jurisdiction(event: dict, context: LambdaContext):  # noq
     # Parse the request body
     event_body = json.loads(event['body'])
 
-    selected_jurisdiction = event_body['jurisdiction']
+    selected_jurisdiction = event_body['jurisdiction'].lower()
+
+    # ensure selected_jurisdiction is one of the known jurisdictions or the word 'other':
+    if selected_jurisdiction not in config.jurisdictions and selected_jurisdiction != OTHER_JURISDICTION:
+        raise CCInvalidRequestException('Invalid jurisdiction selected.')
 
     compact, provider_id = _check_provider_user_attributes(event)
 
