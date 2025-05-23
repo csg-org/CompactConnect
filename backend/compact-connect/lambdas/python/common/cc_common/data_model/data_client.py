@@ -195,7 +195,7 @@ class DataClient:
         if not resp['Items']:
             raise CCNotFoundException('Provider not found')
 
-        return ProviderUserRecords(query_resp['Items'])
+        return ProviderUserRecords(resp['Items'])
 
     @paginated_query
     @logger_inject_kwargs(logger, 'compact', 'provider_name', 'jurisdiction')

@@ -936,3 +936,92 @@ class TestDataClient(TstFunction):
             Key={'pk': f'aslp#PROVIDER#{provider_id}', 'sk': 'aslp#PROVIDER'},
         )['Item']
         self.assertEqual(set(), provider.get('privilegeJurisdictions', set()))
+
+    def test_get_provider_user_records_correctly_handles_pagination(self):
+        """Test that get_provider_user_records correctly handles pagination by returning all records.
+        
+        This test ensures the fix for a bug where only the last page of results was being returned,
+        discarding everything collected in previous iterations.
+        """
+        from cc_common.data_model.data_client import DataClient
+
+        # Create a client
+        client = DataClient(self.config)
+        
+        # Create a provider record
+        provider_uuid = str(uuid4())
+        self.test_data_generator.put_default_provider_record_in_provider_table(
+            value_overrides={
+                'providerId': provider_uuid,
+                'compact': 'aslp',
+            }
+        )
+        
+        # Create many privilege records (more than would typically fit in a single page)
+        # Create 30 records, which should be enough to trigger pagination in most test environments
+        jurisdictions = self.config.jurisdictions[:30]
+        for jurisdiction in jurisdictions:
+            self.test_data_generator.put_default_privilege_record_in_provider_table(value_overrides=
+                {
+                    'providerId': provider_uuid,
+                    'compact': 'aslp',
+                    'jurisdiction': jurisdiction,
+                    'licenseType': 'audiologist',
+                    'privilegeId': f'AUD-{jurisdiction.upper()}-1',
+                    'dateOfIssuance': datetime(2023, 11, 8, 23, 59, 59, tzinfo=UTC),
+                    'dateOfRenewal': datetime(2023, 11, 8, 23, 59, 59, tzinfo=UTC),
+                    'dateOfExpiration': date(2024, 10, 31),
+                    'dateOfUpdate': datetime(2023, 11, 8, 23, 59, 59, tzinfo=UTC),
+                    'compactTransactionId': '1234567890',
+                    'administratorSetStatus': 'active',
+                    'attestations': [],
+                }
+            )
+            
+        # Create license records for each jurisdiction as well
+        for jurisdiction in jurisdictions:
+            self.test_data_generator.put_default_license_record_in_provider_table(value_overrides={
+                'providerId': provider_uuid,
+                'compact': 'aslp',
+                'jurisdiction': jurisdiction,
+                'licenseType': 'audiologist',
+            })
+            
+        # Override the DynamoDB query method to force pagination with a small limit
+        original_query = self.config.provider_table.query
+        
+        def mock_query(**kwargs):
+            # Force a small page size to ensure pagination
+            kwargs['Limit'] = 10
+            result = original_query(**kwargs)
+            return result
+            
+        self.config.provider_table.query = mock_query
+        
+        try:
+            # Call the method that should handle pagination correctly
+            provider_records = client.get_provider_user_records(compact='aslp', provider_id=provider_uuid)
+            
+            # Verify that we got all the records
+            # We expect 1 provider record + 30 privilege records + 30 license records = 61 total
+            self.assertEqual(61, len(provider_records.provider_records))
+            
+            # Check that we have all the different record types
+            record_types = {record['type'] for record in provider_records.provider_records}
+            self.assertEqual({'provider', 'privilege', 'license'}, record_types)
+            
+            # Verify we have all privileges from all jurisdictions
+            privilege_records = provider_records.get_privilege_records()
+            self.assertEqual(30, len(privilege_records))
+            privilege_jurisdictions = {priv.jurisdiction for priv in privilege_records}
+            self.assertEqual(set(jurisdictions), privilege_jurisdictions)
+            
+            # Verify we have all license records
+            license_records = provider_records.get_license_records()
+            self.assertEqual(30, len(license_records))
+            license_jurisdictions = {lic.jurisdiction for lic in license_records}
+            self.assertEqual(set(jurisdictions), license_jurisdictions)
+            
+        finally:
+            # Restore the original query method
+            self.config.provider_table.query = original_query
