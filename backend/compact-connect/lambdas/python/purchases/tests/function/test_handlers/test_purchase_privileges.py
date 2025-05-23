@@ -379,7 +379,7 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertEqual(400, resp['statusCode'])
         response_body = json.loads(resp['body'])
 
-        self.assertEqual({'message': 'Error: cvv invalid'}, response_body)
+        self.assertEqual({'message': 'Error: payment info invalid'}, response_body)
 
     @patch('handlers.privileges.PurchaseClient')
     def test_post_purchase_privileges_returns_400_if_selected_jurisdiction_invalid(
@@ -911,7 +911,7 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertNotIn('homeJurisdictionChangeStatus', updated_privilege_record)
 
     @patch('handlers.privileges.PurchaseClient')
-    def test_purchase_privileges_shows_removed_home_jurisdiction_change_deactivation_remove_when_privilege_renewed(
+    def test_purchase_privileges_removes_home_jurisdiction_change_status_when_privilege_renewed(
         self, mock_purchase_client_constructor
     ):
         """
@@ -969,3 +969,34 @@ class TestPostPurchasePrivileges(TstFunction):
         privilege_update_record = privilege_update_records[0]
         # ensure the home jurisdiction change deactivation status is not present in updated record
         self.assertEqual(['homeJurisdictionChangeStatus'], privilege_update_record.removedValues)
+
+    @patch('handlers.privileges.PurchaseClient')
+    def test_purchase_privileges_returns_400_if_provider_encumbered(
+            self, mock_purchase_client_constructor
+    ):
+        """
+        In this case, the provider is ineligible to purchase privileges because one of their privileges was encumbered
+        In this case, they should not be allowed to purchase privileges.
+        """
+        from handlers.privileges import post_purchase_privileges
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+        test_expiration_date = date(2025, 10, 8).isoformat()
+        event = self._when_testing_provider_user_event_with_custom_claims(license_expiration_date=test_expiration_date)
+        event['body'] = _generate_test_request_body()
+
+        # override the provider record to include an encumbered status
+        self.test_data_generator.put_default_provider_record_in_provider_table(
+            value_overrides={
+                'encumberedStatus': 'encumbered',
+                'providerId': TEST_PROVIDER_ID,
+            }
+        )
+
+        # now make the call
+        resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(400, resp['statusCode'], resp['body'])
+        response_body = json.loads(resp['body'])
+
+        self.assertEqual({'message': 'You have a license or privilege that is currently encumbered, and '
+            'are unable to purchase privileges at this time.'}, response_body)

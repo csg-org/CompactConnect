@@ -1841,7 +1841,7 @@ class DataClient:
             set_clauses = [
                 'licenseJurisdiction = :licenseJurisdiction',
                 'dateOfExpiration = :dateOfExpiration',
-                'dateOfUpdate = :dateOfUpdate'
+                'dateOfUpdate = :dateOfUpdate',
             ]
             expression_values = {
                 ':licenseJurisdiction': {'S': new_license.jurisdiction},
