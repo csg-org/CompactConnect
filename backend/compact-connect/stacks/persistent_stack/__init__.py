@@ -366,19 +366,19 @@ class PersistentStack(AppStack):
         there should be an associated migration script that is run as part of the deployment. These are short-lived
         custom resources that should be removed from the CDK app once the migration has been run in all environments.
         """
-        compact_configuration_migration = DataMigration(
+        home_jurisdiction_migration = DataMigration(
             self,
-            '783CompactConfigurationMigration',
-            migration_dir='compact_configuration_783',
+            '796HomeJurisdictionMigration',
+            migration_dir='home_jurisdiction_796',
             lambda_environment={
-                'COMPACT_CONFIGURATION_TABLE_NAME': self.compact_configuration_table.table_name,
+                'PROVIDER_TABLE_NAME': self.provider_table.table_name,
                 **self.common_env_vars,
             },
         )
-        self.compact_configuration_table.grant_read_write_data(compact_configuration_migration)
+        self.provider_table.grant_read_write_data(home_jurisdiction_migration)
         NagSuppressions.add_resource_suppressions_by_path(
             self,
-            f'{compact_configuration_migration.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            f'{home_jurisdiction_migration.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
@@ -399,7 +399,7 @@ class PersistentStack(AppStack):
                 sort='@timestamp desc',
             ),
             log_groups=[
-                compact_configuration_migration.migration_function.log_group,
+                home_jurisdiction_migration.migration_function.log_group,
             ],
         )
 

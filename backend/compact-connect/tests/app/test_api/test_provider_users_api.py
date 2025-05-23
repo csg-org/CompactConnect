@@ -125,7 +125,7 @@ class TestProviderUsersApi(TestApi):
         # ensure the handler is created
         api_stack_template.has_resource_properties(
             type=CfnFunction.CFN_RESOURCE_TYPE_NAME,
-            props={'Handler': 'handlers.provider_users.get_provider_user_me'},
+            props={'Handler': 'handlers.provider_users.provider_users_api_handler'},
         )
 
         method_model_logical_id_capture = Capture()
@@ -142,7 +142,7 @@ class TestProviderUsersApi(TestApi):
                 # ensure the lambda integration is configured with the expected handler
                 'Integration': TestApi.generate_expected_integration_object(
                     api_stack.get_logical_id(
-                        api_stack.api.v1_api.provider_users.get_provider_users_me_handler.node.default_child,
+                        api_stack.api.v1_api.provider_users.provider_users_me_handler.node.default_child,
                     ),
                 ),
                 'MethodResponses': [
@@ -187,7 +187,7 @@ class TestProviderUsersApi(TestApi):
         # ensure the handler is created
         api_stack_template.has_resource_properties(
             type=CfnFunction.CFN_RESOURCE_TYPE_NAME,
-            props={'Handler': 'handlers.provider_users.provider_user_me_military_affiliation'},
+            props={'Handler': 'handlers.provider_users.provider_users_api_handler'},
         )
 
         post_method_request_model_logical_id_capture = Capture()
@@ -205,7 +205,7 @@ class TestProviderUsersApi(TestApi):
                 # ensure the lambda integration is configured with the expected handler
                 'Integration': TestApi.generate_expected_integration_object(
                     api_stack.get_logical_id(
-                        api_stack.api.v1_api.provider_users.provider_users_me_military_affiliation_handler.node.default_child,
+                        api_stack.api.v1_api.provider_users.provider_users_me_handler.node.default_child,
                     ),
                 ),
                 'RequestModels': {
@@ -257,7 +257,7 @@ class TestProviderUsersApi(TestApi):
                 # ensure the lambda integration is configured with the expected handler
                 'Integration': TestApi.generate_expected_integration_object(
                     api_stack.get_logical_id(
-                        api_stack.api.v1_api.provider_users.provider_users_me_military_affiliation_handler.node.default_child,
+                        api_stack.api.v1_api.provider_users.provider_users_me_handler.node.default_child,
                     ),
                 ),
                 'RequestModels': {
@@ -308,4 +308,81 @@ class TestProviderUsersApi(TestApi):
                 'type': 'object',
             },
             patch_response_model['Schema'],
+        )
+
+    def test_synth_generates_provider_users_me_home_jurisdiction_endpoint_resource(self):
+        api_stack = self.app.sandbox_backend_stage.api_stack
+        api_stack_template = Template.from_stack(api_stack)
+
+        # Ensure the resource is created with expected path
+        api_stack_template.has_resource_properties(
+            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'ParentId': {
+                    # Verify the parent id matches the expected 'provider-users' resource
+                    'Ref': api_stack.get_logical_id(
+                        api_stack.api.v1_api.provider_users.provider_users_me_resource.node.default_child
+                    ),
+                },
+                'PathPart': 'home-jurisdiction',
+            },
+        )
+
+        # ensure the handler is created
+        api_stack_template.has_resource_properties(
+            type=CfnFunction.CFN_RESOURCE_TYPE_NAME,
+            props={'Handler': 'handlers.provider_users.provider_users_api_handler'},
+        )
+
+        post_method_request_model_logical_id_capture = Capture()
+        post_method_response_model_logical_id_capture = Capture()
+
+        # ensure the POST method is configured with the lambda integration and authorizer
+        api_stack_template.has_resource_properties(
+            type=CfnMethod.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'HttpMethod': 'PUT',
+                # the provider users endpoints uses a separate authorizer from the staff endpoints
+                'AuthorizerId': {
+                    'Ref': api_stack.get_logical_id(api_stack.api.provider_users_authorizer.node.default_child),
+                },
+                # ensure the lambda integration is configured with the expected handler
+                'Integration': TestApi.generate_expected_integration_object(
+                    api_stack.get_logical_id(
+                        api_stack.api.v1_api.provider_users.provider_users_me_handler.node.default_child,
+                    ),
+                ),
+                'RequestModels': {
+                    'application/json': {'Ref': post_method_request_model_logical_id_capture},
+                },
+                'MethodResponses': [
+                    {
+                        'ResponseModels': {'application/json': {'Ref': post_method_response_model_logical_id_capture}},
+                        'StatusCode': '200',
+                    },
+                ],
+            },
+        )
+
+        # now check the model matches expected contract
+        post_request_model = TestApi.get_resource_properties_by_logical_id(
+            post_method_request_model_logical_id_capture.as_string(),
+            api_stack_template.find_resources(CfnModel.CFN_RESOURCE_TYPE_NAME),
+        )
+
+        self.compare_snapshot(
+            post_request_model['Schema'],
+            'PUT_PROVIDER_USERS_HOME_JURISDICTION_REQUEST_SCHEMA',
+            overwrite_snapshot=False,
+        )
+
+        post_response_model = TestApi.get_resource_properties_by_logical_id(
+            post_method_response_model_logical_id_capture.as_string(),
+            api_stack_template.find_resources(CfnModel.CFN_RESOURCE_TYPE_NAME),
+        )
+
+        self.compare_snapshot(
+            post_response_model['Schema'],
+            'PUT_PROVIDER_USERS_HOME_JURISDICTION_RESPONSE_SCHEMA',
+            overwrite_snapshot=False,
         )

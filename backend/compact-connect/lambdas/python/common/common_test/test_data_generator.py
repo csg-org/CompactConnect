@@ -3,11 +3,11 @@ import json
 from datetime import date, datetime
 from decimal import Decimal
 
+from boto3.dynamodb.conditions import Key
 from cc_common.data_model.provider_record_util import ProviderRecordUtility
 from cc_common.data_model.schema.adverse_action import AdverseActionData
 from cc_common.data_model.schema.common import CCDataClass
 from cc_common.data_model.schema.compact import CompactConfigurationData
-from cc_common.data_model.schema.home_jurisdiction import HomeJurisdictionSelectionData
 from cc_common.data_model.schema.jurisdiction import JurisdictionConfigurationData
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
 from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationData
@@ -61,22 +61,71 @@ class TestDataGenerator:
         return api_event
 
     @staticmethod
-    def generate_default_home_jurisdiction_selection(
-        value_overrides: dict | None = None,
-    ) -> HomeJurisdictionSelectionData:
-        """Generate a default home jurisdiction selection"""
-        default_home_jurisdiction = {
-            'providerId': DEFAULT_PROVIDER_ID,
-            'compact': DEFAULT_COMPACT,
-            'type': HOME_JURISDICTION_RECORD_TYPE,
-            'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
-            'dateOfSelection': datetime.fromisoformat(DEFAULT_HOME_SELECTION_DATE),
-            'dateOfUpdate': datetime.fromisoformat(DEFAULT_HOME_UPDATE_DATE),
-        }
-        if value_overrides:
-            default_home_jurisdiction.update(value_overrides)
+    def load_provider_data_record_from_database(data_class: CCDataClass) -> dict:
+        """
+        Helper method to load a data record from the database using the provider data class instance.
 
-        return HomeJurisdictionSelectionData.create_new(default_home_jurisdiction)
+        This leverages the fact that your expected object should have the same pk/sk values as the actual record that
+        is stored in the database as a result of your test run.
+        """
+        from cc_common.config import config
+
+        serialized_record = data_class.serialize_to_database_record()
+
+        try:
+            return config.provider_table.get_item(Key={'pk': serialized_record['pk'], 'sk': serialized_record['sk']})[
+                'Item'
+            ]
+        except KeyError as e:
+            raise Exception('Error loading test provider record from database') from e
+
+    @staticmethod
+    def _query_records_by_pk_and_sk_prefix(pk: str, sk_prefix: str) -> list[dict]:
+        """
+        Helper method to query records from the database using the provider data class instance.
+        """
+        from cc_common.config import config
+
+        try:
+            return config.provider_table.query(
+                KeyConditionExpression=Key('pk').eq(pk) & Key('sk').begins_with(sk_prefix)
+            )['Items']
+        except KeyError as e:
+            raise Exception('Error querying update records from database') from e
+
+    @staticmethod
+    def query_privilege_update_records_for_given_record_from_database(
+        privilege_data: PrivilegeData,
+    ) -> list[PrivilegeUpdateData]:
+        """
+        Helper method to query update records from the database using the provider data class instance.
+
+        All of our update records use the same pk as the actual record that is being updated. The sk of the actual
+        record is the prefix for all the update records. Using this pattern, we can query for all of the update records
+        that have been written for the given record.
+        """
+        serialized_record = privilege_data.serialize_to_database_record()
+
+        privilege_update_records = TestDataGenerator._query_records_by_pk_and_sk_prefix(
+            serialized_record['pk'], f'{serialized_record["sk"]}UPDATE'
+        )
+
+        return [PrivilegeUpdateData.from_database_record(update_record) for update_record in privilege_update_records]
+
+    @staticmethod
+    def query_provider_update_records_for_given_record_from_database(provider_record: ProviderData) -> list[dict]:
+        """
+        Helper method to query update records from the database using the provider data class instance.
+
+        All of our update records use the same pk as the actual record that is being updated. The sk of the actual
+        record is the prefix for all the update records. Using this pattern, we can query for all of the update records
+        that have been written for the given record.
+        """
+        serialized_record = provider_record.serialize_to_database_record()
+
+        return TestDataGenerator._query_records_by_pk_and_sk_prefix(
+            serialized_record['pk'], f'{serialized_record["sk"]}#UPDATE'
+        )
 
     @staticmethod
     def generate_default_adverse_action(value_overrides: dict | None = None) -> AdverseActionData:
@@ -294,7 +343,7 @@ class TestDataGenerator:
         return PrivilegeUpdateData.create_new(privilege_update)
 
     @staticmethod
-    def generate_default_provider(value_overrides: dict | None = None) -> ProviderData:
+    def generate_default_provider(value_overrides: dict | None = None, is_registered: bool = True) -> ProviderData:
         """Generate a default provider"""
         default_provider = {
             'providerId': DEFAULT_PROVIDER_ID,
@@ -318,9 +367,15 @@ class TestDataGenerator:
             'homeAddressPostalCode': DEFAULT_HOME_ADDRESS_POSTAL_CODE,
             'emailAddress': DEFAULT_EMAIL_ADDRESS,
             'phoneNumber': DEFAULT_PHONE_NUMBER,
-            'compactConnectRegisteredEmailAddress': DEFAULT_REGISTERED_EMAIL_ADDRESS,
-            'cognitoSub': DEFAULT_COGNITO_SUB,
         }
+
+        if is_registered:
+            default_provider.update(
+                {
+                    'compactConnectRegisteredEmailAddress': DEFAULT_REGISTERED_EMAIL_ADDRESS,
+                    'currentHomeJurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                }
+            )
 
         if value_overrides:
             default_provider.update(value_overrides)
@@ -328,14 +383,16 @@ class TestDataGenerator:
         return ProviderData.create_new(default_provider)
 
     @staticmethod
-    def put_default_provider_record_in_provider_table(value_overrides: dict | None = None) -> ProviderData:
+    def put_default_provider_record_in_provider_table(
+        value_overrides: dict | None = None, is_registered: bool = True
+    ) -> ProviderData:
         """
         Creates a default provider record and stores it in the provider table.
 
         :param value_overrides: Optional dictionary to override default values
         :return: The ProviderData instance that was stored
         """
-        provider_data = TestDataGenerator.generate_default_provider(value_overrides)
+        provider_data = TestDataGenerator.generate_default_provider(value_overrides, is_registered)
         provider_record = provider_data.serialize_to_database_record()
 
         TestDataGenerator.store_record_in_provider_table(provider_record)
@@ -407,11 +464,6 @@ class TestDataGenerator:
                 default_military_affiliation, datetime.fromisoformat(DEFAULT_MILITARY_UPDATE_DATE)
             )
 
-            default_home_jurisdiction = TestDataGenerator.generate_default_home_jurisdiction_selection()
-            TestDataGenerator._override_date_of_update_for_record(
-                default_home_jurisdiction, datetime.fromisoformat(DEFAULT_HOME_UPDATE_DATE)
-            )
-
             items = [
                 TestDataGenerator.generate_default_provider().to_dict(),
                 default_license_record.to_dict(),
@@ -419,14 +471,13 @@ class TestDataGenerator:
                 default_privilege_record.to_dict(),
                 default_privilege_update_record.to_dict(),
                 default_military_affiliation.to_dict(),
-                default_home_jurisdiction.to_dict(),
             ]
         else:
             # convert each item into a dictionary
             items = [record.to_dict() for record in provider_record_items]
 
         # Now we put all the data together in a dict
-        provider_detail_response = ProviderRecordUtility.assemble_provider_records_into_object(items)
+        provider_detail_response = ProviderRecordUtility.assemble_provider_records_into_api_response_object(items)
 
         # cast to json, to match what the API is doing
         return json.loads(json.dumps(provider_detail_response, cls=ResponseEncoder))

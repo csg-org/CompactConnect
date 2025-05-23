@@ -9,24 +9,16 @@
   "jurisdictionUploadedLicenseStatus": "active",
   "jurisdictionUploadedCompactEligibility": "eligible",
   "licenseStatus": "active",
-  "status": "active",
   "compactEligibility": "eligible",
   "compact": "aslp",
   "licenseJurisdiction": "oh",
   "privilegeJurisdictions": ["ne"],
-  "homeAddressStreet1": "123 A St.",
-  "homeAddressStreet2": "Apt 321",
-  "homeAddressCity": "Columbus",
-  "homeAddressState": "oh",
-  "homeAddressPostalCode": "43004",
-  "emailAddress": "björk@example.com",
-  "phoneNumber": "+13213214321",
   "compactConnectRegisteredEmailAddress": "björkRegisteredEmail@example.com",
-  "cognitoSub": "3408b4e8-0061-7052-bbe0-fda9a9369c80",
   "dateOfBirth": "1985-06-06",
   "dateOfUpdate": "2024-07-08T23:59:59+00:00",
   "dateOfExpiration": "2025-04-04",
   "birthMonthDay": "06-06",
+  "currentHomeJurisdiction": "oh",
   "licenses": [
     {
       "type": "license",
@@ -40,7 +32,6 @@
       "jurisdictionUploadedLicenseStatus": "active",
       "jurisdictionUploadedCompactEligibility": "eligible",
       "licenseStatus": "active",
-      "status": "active",
       "licenseStatusName": "DEFINITELY_A_HUMAN",
       "compactEligibility": "eligible",
       "givenName": "Björk",
@@ -173,8 +164,6 @@
     "type": "homeJurisdictionSelection",
     "compact": "aslp",
     "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
-    "jurisdiction": "oh",
-    "dateOfSelection": "2024-01-01T00:00:00+00:00",
-    "dateOfUpdate": "2024-01-01T00:00:00+00:00"
+    "jurisdiction": "oh"
   }
 }

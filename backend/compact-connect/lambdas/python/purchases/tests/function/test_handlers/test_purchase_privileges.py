@@ -27,7 +27,6 @@ ALL_ATTESTATION_IDS = [
 ]
 
 TEST_EMAIL = 'testRegisteredEmail@example.com'
-TEST_COGNITO_SUB = '1234567890'
 
 TEST_LICENSE_TYPE = 'speech-language pathologist'
 
@@ -97,12 +96,13 @@ class TestPostPurchasePrivileges(TstFunction):
 
                 self.config.compact_configuration_table.put_item(Item=serialized_data)
         # register the user in the system
+        test_provider = self.test_data_generator.put_default_provider_record_in_provider_table(is_registered=False)
+        test_license = self.test_data_generator.put_default_license_record_in_provider_table()
+
         self.config.data_client.process_registration_values(
-            compact=TEST_COMPACT,
-            provider_id=TEST_PROVIDER_ID,
-            cognito_sub=TEST_COGNITO_SUB,
+            current_provider_record=test_provider,
+            matched_license_record=test_license,
             email_address=TEST_EMAIL,
-            jurisdiction='oh',
         )
 
     def _load_test_jurisdiction(self):
@@ -145,7 +145,7 @@ class TestPostPurchasePrivileges(TstFunction):
         mock_purchase_client = MagicMock()
         mock_purchase_client_constructor.return_value = mock_purchase_client
         mock_purchase_client.process_charge_for_licensee_privileges.side_effect = CCFailedTransactionException(
-            'cvv invalid'
+            'payment info invalid'
         )
 
         return mock_purchase_client
@@ -273,7 +273,7 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertEqual(400, resp['statusCode'])
         response_body = json.loads(resp['body'])
 
-        self.assertEqual({'message': 'Error: cvv invalid'}, response_body)
+        self.assertEqual({'message': 'Error: payment info invalid'}, response_body)
 
     @patch('handlers.privileges.PurchaseClient')
     def test_post_purchase_privileges_returns_400_if_selected_jurisdiction_invalid(
@@ -451,7 +451,7 @@ class TestPostPurchasePrivileges(TstFunction):
         with open('../common/tests/resources/dynamo/privilege.json') as f:
             privilege_record = json.load(f)
             privilege_record['pk'] = f'{TEST_COMPACT}#PROVIDER#{TEST_PROVIDER_ID}'
-            privilege_record['sk'] = f'{TEST_COMPACT}#PROVIDER#privilege/ky#2023-10-08'
+            privilege_record['sk'] = f'{TEST_COMPACT}#PROVIDER#privilege/ky/slp#'
             # in this case, the user is purchasing the privilege for the first time
             # so the date of renewal is the same as the date of issuance
             privilege_record['dateOfRenewal'] = test_issuance_date
@@ -473,10 +473,11 @@ class TestPostPurchasePrivileges(TstFunction):
 
         self.assertEqual({'transactionId': MOCK_TRANSACTION_ID}, response_body)
 
-        # ensure there are two privilege records for the same jurisdiction
+        # ensure there is one privilege for the jurisdiction (a renewal should simply update the existing record, not
+        # create a new one)
         provider_records = self.config.data_client.get_provider(compact=TEST_COMPACT, provider_id=TEST_PROVIDER_ID)
         privilege_records = [record for record in provider_records['items'] if record['type'] == 'privilege']
-        self.assertEqual(2, len(privilege_records))
+        self.assertEqual(1, len(privilege_records))
 
         # ensure the date of renewal is updated
         updated_privilege_record = next(
@@ -589,10 +590,11 @@ class TestPostPurchasePrivileges(TstFunction):
             mock_purchase_client_constructor
         )
         # set the first two api calls to call the actual implementation
+        # everything else should be mocked
         mock_data_client.get_privilege_purchase_options = (
             config.compact_configuration_client.get_privilege_purchase_options
         )
-        mock_data_client.get_provider = config.data_client.get_provider
+        mock_data_client.get_provider_user_records = config.data_client.get_provider_user_records
         # raise an exception when creating the privilege record
         mock_data_client.create_provider_privileges.side_effect = CCAwsServiceException('dynamo down')
 
@@ -743,3 +745,154 @@ class TestPostPurchasePrivileges(TstFunction):
 
         resp = post_purchase_privileges(event, self.mock_context)
         self.assertEqual(200, resp['statusCode'], resp['body'])
+
+    @patch('handlers.privileges.PurchaseClient')
+    def test_purchase_privileges_removed_privilege_home_jurisdiction_change_deactivation_status_when_renewing_privilege(
+        self, mock_purchase_client_constructor
+    ):
+        """
+        In this case, the user is attempting to renew an existing privilege record for the kentucky jurisdiction,
+        which was deactivated due to a home jurisdiction change that did not have a license in the jurisdiction.
+        The user later obtained a license in their home jurisdiction and is renewing their privilege.
+        """
+        from handlers.privileges import post_purchase_privileges
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+        test_expiration_date = date(2025, 10, 8).isoformat()
+        event = self._when_testing_provider_user_event_with_custom_claims(license_expiration_date=test_expiration_date)
+        event['body'] = _generate_test_request_body()
+        test_issuance_date = datetime(2024, 10, 8, hour=5, tzinfo=UTC).isoformat()
+
+        self.test_data_generator.put_default_privilege_record_in_provider_table(
+            value_overrides={
+                'compact': TEST_COMPACT,
+                'jurisdiction': 'ky',
+                'providerId': TEST_PROVIDER_ID,
+                'dateOfRenewal': datetime.fromisoformat(test_issuance_date),
+                'dateOfIssuance': datetime.fromisoformat(test_issuance_date),
+                'dateOfExpiration': date.fromisoformat(test_expiration_date),
+                'licenseJurisdiction': 'oh',
+                'administratorSetStatus': 'active',
+                # showing this privilege was deactivated due to a previous home jurisdiction change
+                'homeJurisdictionChangeStatus': 'inactive',
+            }
+        )
+
+        self.test_data_generator.put_default_license_record_in_provider_table(
+            value_overrides={
+                'compact': TEST_COMPACT,
+                'jurisdiction': 'oh',
+                'dateOfExpiration': date.fromisoformat(test_expiration_date),
+                'providerId': TEST_PROVIDER_ID,
+            }
+        )
+
+        # now make the same call with the same jurisdiction
+        resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(200, resp['statusCode'], resp['body'])
+        response_body = json.loads(resp['body'])
+
+        self.assertEqual({'transactionId': MOCK_TRANSACTION_ID}, response_body)
+
+        # ensure there is only one privilege record for the jurisdiction
+        provider_records = self.config.data_client.get_provider(compact=TEST_COMPACT, provider_id=TEST_PROVIDER_ID)
+        privilege_records = [record for record in provider_records['items'] if record['type'] == 'privilege']
+        self.assertEqual(1, len(privilege_records))
+
+        updated_privilege_record = privilege_records[0]
+        # ensure the home jurisdiction change deactivation status is not present in updated record
+        self.assertNotIn('homeJurisdictionChangeStatus', updated_privilege_record)
+
+    @patch('handlers.privileges.PurchaseClient')
+    def test_purchase_privileges_removes_home_jurisdiction_change_status_when_privilege_renewed(
+        self, mock_purchase_client_constructor
+    ):
+        """
+        In this case, the user is attempting to renew an existing privilege record for the kentucky jurisdiction,
+        which was deactivated due to a home jurisdiction change that did not have a license in the jurisdiction.
+        The user later obtained a license in their home jurisdiction and is renewing their privilege.
+        """
+        from handlers.privileges import post_purchase_privileges
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+        test_expiration_date = date(2025, 10, 8).isoformat()
+        event = self._when_testing_provider_user_event_with_custom_claims(license_expiration_date=test_expiration_date)
+        event['body'] = _generate_test_request_body()
+        test_issuance_date = datetime(2023, 10, 8, hour=5, tzinfo=UTC).isoformat()
+
+        test_privilege_record = self.test_data_generator.put_default_privilege_record_in_provider_table(
+            value_overrides={
+                'compact': TEST_COMPACT,
+                'jurisdiction': 'ky',
+                'providerId': TEST_PROVIDER_ID,
+                'dateOfRenewal': datetime.fromisoformat(test_issuance_date),
+                'dateOfIssuance': datetime.fromisoformat(test_issuance_date),
+                'dateOfExpiration': date.fromisoformat(test_expiration_date),
+                'licenseJurisdiction': 'oh',
+                'administratorSetStatus': 'active',
+                # showing this privilege was deactivated due to a previous home jurisdiction change
+                'homeJurisdictionChangeStatus': 'inactive',
+            }
+        )
+
+        self.test_data_generator.put_default_license_record_in_provider_table(
+            value_overrides={
+                'compact': TEST_COMPACT,
+                'jurisdiction': 'oh',
+                'dateOfExpiration': date.fromisoformat(test_expiration_date),
+                'providerId': TEST_PROVIDER_ID,
+            }
+        )
+
+        # now make the same call with the same jurisdiction
+        resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(200, resp['statusCode'], resp['body'])
+        response_body = json.loads(resp['body'])
+
+        self.assertEqual({'transactionId': MOCK_TRANSACTION_ID}, response_body)
+
+        # ensure there is only one privilege record for the jurisdiction
+        privilege_update_records = (
+            self.test_data_generator.query_privilege_update_records_for_given_record_from_database(
+                privilege_data=test_privilege_record
+            )
+        )
+        self.assertEqual(1, len(privilege_update_records))
+
+        privilege_update_record = privilege_update_records[0]
+        # ensure the home jurisdiction change deactivation status is not present in updated record
+        self.assertEqual(['homeJurisdictionChangeStatus'], privilege_update_record.removedValues)
+
+    @patch('handlers.privileges.PurchaseClient')
+    def test_purchase_privileges_returns_400_if_provider_encumbered(self, mock_purchase_client_constructor):
+        """
+        In this case, the provider is ineligible to purchase privileges because one of their privileges was encumbered
+        In this case, they should not be allowed to purchase privileges.
+        """
+        from handlers.privileges import post_purchase_privileges
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+        test_expiration_date = date(2025, 10, 8).isoformat()
+        event = self._when_testing_provider_user_event_with_custom_claims(license_expiration_date=test_expiration_date)
+        event['body'] = _generate_test_request_body()
+
+        # override the provider record to include an encumbered status
+        self.test_data_generator.put_default_provider_record_in_provider_table(
+            value_overrides={
+                'encumberedStatus': 'encumbered',
+                'providerId': TEST_PROVIDER_ID,
+            }
+        )
+
+        # now make the call
+        resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(400, resp['statusCode'], resp['body'])
+        response_body = json.loads(resp['body'])
+
+        self.assertEqual(
+            {
+                'message': 'You have a license or privilege that is currently encumbered, and '
+                'are unable to purchase privileges at this time.'
+            },
+            response_body,
+        )

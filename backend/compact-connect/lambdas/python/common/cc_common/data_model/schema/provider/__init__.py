@@ -6,12 +6,13 @@ from uuid import UUID
 from cc_common.data_model.schema.common import CCDataClass
 from cc_common.data_model.schema.provider.record import (
     ProviderRecordSchema,
+    ProviderUpdateRecordSchema,
 )
 
 
 class ProviderData(CCDataClass):
     """
-    Class representing a Provider with getters and setters for all properties.
+    Class representing a Provider with getters for all properties.
     """
 
     # Define record schema at the class level
@@ -73,34 +74,6 @@ class ProviderData(CCDataClass):
         return self._data['dateOfBirth']
 
     @property
-    def homeAddressStreet1(self) -> str:
-        return self._data['homeAddressStreet1']
-
-    @property
-    def homeAddressStreet2(self) -> str | None:
-        return self._data.get('homeAddressStreet2')
-
-    @property
-    def homeAddressCity(self) -> str:
-        return self._data['homeAddressCity']
-
-    @property
-    def homeAddressState(self) -> str:
-        return self._data['homeAddressState']
-
-    @property
-    def homeAddressPostalCode(self) -> str:
-        return self._data['homeAddressPostalCode']
-
-    @property
-    def emailAddress(self) -> str | None:
-        return self._data.get('emailAddress')
-
-    @property
-    def phoneNumber(self) -> str | None:
-        return self._data.get('phoneNumber')
-
-    @property
     def compactConnectRegisteredEmailAddress(self) -> str | None:
         """
         The email address for the provider that was used to register with Compact Connect.
@@ -108,15 +81,6 @@ class ProviderData(CCDataClass):
         If the provider has not registered with Compact Connect, this will be None.
         """
         return self._data.get('compactConnectRegisteredEmailAddress')
-
-    @property
-    def cognitoSub(self) -> str | None:
-        """
-        The cognito sub value for the provider.
-
-        This is only set if the provider has registered with Compact Connect.
-        """
-        return self._data.get('cognitoSub')
 
     @property
     def birthMonthDay(self) -> str | None:
@@ -129,3 +93,55 @@ class ProviderData(CCDataClass):
     @property
     def encumberedStatus(self) -> str | None:
         return self._data.get('encumberedStatus')
+
+    @property
+    def compactEligibility(self) -> str:
+        return self._data['compactEligibility']
+
+    @property
+    def licenseStatus(self) -> str | None:
+        return self._data.get('licenseStatus')
+
+    @property
+    def currentHomeJurisdiction(self) -> str | None:
+        return self._data.get('currentHomeJurisdiction')
+
+
+class ProviderUpdateData(CCDataClass):
+    """
+    Class representing a Provider Update with getters and setters for all properties.
+    Takes a dict as an argument to the constructor to avoid primitive obsession.
+
+    Note: This class requires valid data when created - it cannot be instantiated empty
+    and populated later.
+    """
+
+    # Define the record schema at the class level
+    _record_schema = ProviderUpdateRecordSchema()
+
+    # Require valid data when creating instances
+    _requires_data_at_construction = True
+
+    @property
+    def updateType(self) -> str:
+        return self._data['updateType']
+
+    @property
+    def providerId(self) -> UUID:
+        return self._data['providerId']
+
+    @property
+    def compact(self) -> str:
+        return self._data['compact']
+
+    @property
+    def previous(self) -> dict:
+        return self._data['previous']
+
+    @property
+    def updatedValues(self) -> dict:
+        return self._data['updatedValues']
+
+    @property
+    def removedValues(self) -> list[str] | None:
+        return self._data.get('removedValues')
