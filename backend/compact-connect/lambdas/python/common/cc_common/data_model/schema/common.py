@@ -134,13 +134,28 @@ class CCDataClass:
         """
         return deepcopy(self._data)
 
-    def update(self, data: dict[str, Any]) -> dict[str, Any]:
+    def update(self, data: dict[str, Any]) -> None:
         """Update the internal data dictionary with the provided data.
 
         This method is useful for updating specific fields in the data class.
+        The method creates a deep copy of the current data, applies the updates,
+        and then runs the updated data through a full dump/load cycle with the schema
+        to ensure all transformations are applied and the data is validated.
+
+        :param data: Dictionary containing the fields to update
+        :raises ValidationError: If the resulting data fails validation
         """
-        self._data.update(data)
-        return self._data
+        # Create a deep copy of the current data
+        updated_data = deepcopy(self._data)
+
+        # Apply the updates to the copy
+        updated_data.update(data)
+
+        # Run through a full dump/load cycle to apply all transformations and validate
+        validated_data = self.create_new(updated_data).to_dict()
+
+        # Update the internal data with the validated result
+        self._data = validated_data
 
     def serialize_to_database_record(self) -> dict[str, Any]:
         """Serialize the object using the schema's dump method"""
