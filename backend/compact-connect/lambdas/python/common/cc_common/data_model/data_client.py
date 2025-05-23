@@ -1838,10 +1838,10 @@ class DataClient:
             )
 
             # Update privilege record
-            update_expression_parts = [
-                'SET licenseJurisdiction = :licenseJurisdiction, '
-                + 'dateOfExpiration = :dateOfExpiration, '
-                + 'dateOfUpdate = :dateOfUpdate'
+            set_clauses = [
+                'licenseJurisdiction = :licenseJurisdiction',
+                'dateOfExpiration = :dateOfExpiration',
+                'dateOfUpdate = :dateOfUpdate'
             ]
             expression_values = {
                 ':licenseJurisdiction': {'S': new_license.jurisdiction},
@@ -1850,11 +1850,11 @@ class DataClient:
             }
 
             if is_new_license_encumbered:
-                update_expression_parts.append(',encumberedStatus = :encumberedStatus')
+                set_clauses.append('encumberedStatus = :encumberedStatus')
                 expression_values[':encumberedStatus'] = {'S': updated_values['encumberedStatus']}
 
             # Build the final update expression
-            update_expression = ' '.join(update_expression_parts)
+            update_expression = 'SET ' + ', '.join(set_clauses)
 
             transactions.append(
                 {
