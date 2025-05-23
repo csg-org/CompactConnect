@@ -22,7 +22,6 @@ class ProviderRecordType(StrEnum):
     LICENSE_UPDATE = 'licenseUpdate'
     PRIVILEGE = 'privilege'
     PRIVILEGE_UPDATE = 'privilegeUpdate'
-    HOME_JURISDICTION_SELECTION = 'homeJurisdictionSelection'
     MILITARY_AFFILIATION = 'militaryAffiliation'
     ADVERSE_ACTION = 'adverseAction'
 
@@ -123,7 +122,7 @@ class ProviderRecordUtility:
 
     @staticmethod
     def populate_provider_record(
-        current_provider_record: ProviderData, license_record: dict, privilege_records: list[dict]
+        current_provider_record: ProviderData | None, license_record: dict, privilege_records: list[dict]
     ) -> ProviderData:
         """
         Create a provider record from a license record and privilege records.
@@ -172,7 +171,6 @@ class ProviderRecordUtility:
         privileges = {}
         licenses = {}
         military_affiliations = []
-        home_jurisdiction_selection = None
 
         for record in provider_records:
             match record['type']:
@@ -192,9 +190,10 @@ class ProviderRecordUtility:
                 case 'militaryAffiliation':
                     logger.debug('Identified military affiliation record')
                     military_affiliations.append(record)
+                # TODO - remove this once migration has been run replacing the 'homeJurisdictionSelection' field
+                # with the 'currentHomeJurisdiction' field
                 case 'homeJurisdictionSelection':
                     logger.debug('Identified home jurisdiction selection record')
-                    home_jurisdiction_selection = record
 
         # Process update and adverse action records after all base records have been identified
         for record in provider_records:
@@ -219,8 +218,15 @@ class ProviderRecordUtility:
         provider['licenses'] = list(licenses.values())
         provider['privileges'] = list(privileges.values())
         provider['militaryAffiliations'] = military_affiliations
-        if home_jurisdiction_selection:
-            provider['homeJurisdictionSelection'] = home_jurisdiction_selection
+        # TODO - remove this once migration has been run replacing the 'homeJurisdictionSelection' field
+        # with the 'currentHomeJurisdiction' field
+        if provider['currentHomeJurisdiction'] is not 'unknown' and provider['currentHomeJurisdiction'] is not 'other':
+            provider['homeJurisdictionSelection'] = {
+                'type': 'homeJurisdictionSelection',
+                'jurisdiction': provider['currentHomeJurisdiction'],
+                'compact': provider['compact'],
+                'providerId': provider['providerId'],
+            }
         return provider
 
 

@@ -13,10 +13,24 @@ from cc_common.data_model.schema.fields import (
     NationalProviderIdentifier,
     Set,
 )
-from cc_common.data_model.schema.home_jurisdiction.api import ProviderHomeJurisdictionSelectionGeneralResponseSchema
 from cc_common.data_model.schema.license.api import LicenseGeneralResponseSchema
 from cc_common.data_model.schema.military_affiliation.api import MilitaryAffiliationGeneralResponseSchema
 from cc_common.data_model.schema.privilege.api import PrivilegeGeneralResponseSchema, PrivilegePublicResponseSchema
+
+# TODO deprecated - to be removed after frontend has been update to only   # noqa: FIX002
+#  reference 'currentHomeJurisdiction' field in https://github.com/csg-org/CompactConnect/issues/763
+class ProviderHomeJurisdictionSelectionGeneralResponseSchema(ForgivingSchema):
+    """
+    Schema defining fields available to all staff users with only the 'readGeneral' permission.
+
+    Serialization direction:
+    Python -> load() -> API
+    """
+
+    type = String(required=True, allow_none=False)
+    compact = Compact(required=True, allow_none=False)
+    providerId = String(required=True, allow_none=False)
+    jurisdiction = Raw(required=True, allow_none=False)
 
 
 class ProviderGeneralResponseSchema(ForgivingSchema):
