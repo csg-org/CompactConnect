@@ -147,7 +147,7 @@ class TestPostPurchasePrivileges(TstFunction):
         mock_purchase_client = MagicMock()
         mock_purchase_client_constructor.return_value = mock_purchase_client
         mock_purchase_client.process_charge_for_licensee_privileges.side_effect = CCFailedTransactionException(
-            'cvv invalid'
+            'payment info invalid'
         )
 
         return mock_purchase_client

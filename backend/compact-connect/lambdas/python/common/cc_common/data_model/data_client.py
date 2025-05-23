@@ -1660,6 +1660,12 @@ class DataClient:
         """
         Deactivate privileges when changing to a jurisdiction where they can't be valid.
 
+        Note: This method is designed to handle up to 50 privileges in a single transaction.
+        We don't anticipate a system with more than 50 jurisdictions for the foreseeable future,
+        so this limit is sufficient.
+        If the system grows beyond 50 jurisdictions, this method will need to be enhanced to
+        process multiple transactions with proper rollback handling.
+
         :param compact: The compact name
         :param provider_id: The provider ID
         :param privileges: The list of privileges to deactivate
@@ -1723,12 +1729,12 @@ class DataClient:
                 }
             )
 
-        # Process transactions in batches of 100 (DynamoDB limit)
-        batch_size = 100
-        for i in range(0, len(transactions), batch_size):
-            batch = transactions[i : i + batch_size]
-            if batch:
-                self.config.dynamodb_client.transact_write_items(TransactItems=batch)
+        # Execute all privilege updates in a single transaction
+        # Note: Each privilege requires 2 transaction items (update record + privilege update)
+        # Until the system grows beyond 50 jurisdictions
+        # we'll never exceed DynamoDB's 100 item transaction limit
+        if transactions:
+            self.config.dynamodb_client.transact_write_items(TransactItems=transactions)
 
     def _update_privileges_for_jurisdiction_change(
         self,
@@ -1740,6 +1746,11 @@ class DataClient:
     ) -> None:
         """
         Update privileges when changing to a jurisdiction with a valid license.
+
+        Note: This method is designed to handle up to 50 privileges in a single transaction.
+        The current system supports a maximum of 50 jurisdictions, so this limit is sufficient.
+        If the system grows beyond 50 jurisdictions, this method will need to be enhanced to
+        process multiple transactions with proper rollback handling.
 
         :param compact: The compact name
         :param provider_id: The provider ID
@@ -1870,9 +1881,9 @@ class DataClient:
                 }
             )
 
-        # Process transactions in batches of 100 (DynamoDB limit)
-        batch_size = 100
-        for i in range(0, len(transactions), batch_size):
-            batch = transactions[i : i + batch_size]
-            if batch:
-                self.config.dynamodb_client.transact_write_items(TransactItems=batch)
+        # Execute all privilege updates in a single transaction
+        # Note: Each privilege requires 2 transaction items (update record + privilege update)
+        # Until the system grows beyond 50 jurisdictions
+        # we'll never exceed DynamoDB's 100 item transaction limit
+        if transactions:
+            self.config.dynamodb_client.transact_write_items(TransactItems=transactions)
