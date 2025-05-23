@@ -7,7 +7,8 @@ from cc_common.data_model.provider_record_util import ProviderUserRecords
 from cc_common.data_model.schema.common import (
     ActiveInactiveStatus,
     CompactEligibilityStatus,
-    HomeJurisdictionChangeStatusEnum, LicenseEncumberedStatusEnum,
+    HomeJurisdictionChangeStatusEnum,
+    LicenseEncumberedStatusEnum,
 )
 from cc_common.data_model.schema.compact import Compact
 from cc_common.data_model.schema.compact.api import CompactOptionsResponseSchema
@@ -224,10 +225,15 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
 
     # first verify that the provider is not encumbered
     if top_level_provider_record.encumberedStatus == LicenseEncumberedStatusEnum.ENCUMBERED:
-        logger.info('This practitioner currently has a license or privilege that is encumbered. '
-                    'Cannot purchase privileges', compact=compact_abbr, provider_id=provider_id)
-        raise CCInvalidRequestException('You have a license or privilege that is currently encumbered, and are unable'
-                                        ' to purchase privileges at this time.')
+        logger.info(
+            'This practitioner currently has a license or privilege that is encumbered. Cannot purchase privileges',
+            compact=compact_abbr,
+            provider_id=provider_id,
+        )
+        raise CCInvalidRequestException(
+            'You have a license or privilege that is currently encumbered, and are unable'
+            ' to purchase privileges at this time.'
+        )
 
     current_home_jurisdiction = top_level_provider_record.currentHomeJurisdiction
     if (

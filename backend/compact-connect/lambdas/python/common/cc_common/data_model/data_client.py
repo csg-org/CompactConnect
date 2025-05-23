@@ -1520,8 +1520,8 @@ class DataClient:
         selected_jurisdiction: str,
     ) -> None:
         """
-        Update the provider record when changing to a new best license. This can happen in the case where a new license
-        record is uploaded into the system, or a provider changes their home state.
+        Update the provider record when changing to a new best license. This can happen in the case where
+        a provider changes their home state.
 
         :param compact: The compact name
         :param provider_id: The provider ID

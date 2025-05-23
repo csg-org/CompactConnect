@@ -971,9 +971,7 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertEqual(['homeJurisdictionChangeStatus'], privilege_update_record.removedValues)
 
     @patch('handlers.privileges.PurchaseClient')
-    def test_purchase_privileges_returns_400_if_provider_encumbered(
-            self, mock_purchase_client_constructor
-    ):
+    def test_purchase_privileges_returns_400_if_provider_encumbered(self, mock_purchase_client_constructor):
         """
         In this case, the provider is ineligible to purchase privileges because one of their privileges was encumbered
         In this case, they should not be allowed to purchase privileges.
@@ -998,5 +996,10 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertEqual(400, resp['statusCode'], resp['body'])
         response_body = json.loads(resp['body'])
 
-        self.assertEqual({'message': 'You have a license or privilege that is currently encumbered, and '
-            'are unable to purchase privileges at this time.'}, response_body)
+        self.assertEqual(
+            {
+                'message': 'You have a license or privilege that is currently encumbered, and '
+                'are unable to purchase privileges at this time.'
+            },
+            response_body,
+        )
