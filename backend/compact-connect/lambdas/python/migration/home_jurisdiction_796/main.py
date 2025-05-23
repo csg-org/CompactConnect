@@ -59,14 +59,14 @@ def do_migration(_properties: dict) -> None:
         logger.info('No homeJurisdictionSelection records found, migration complete')
         return
 
-    # Process records in batches of 50 (DynamoDB transaction limit is 100 items, 
+    # Process records in batches of 50 (DynamoDB transaction limit is 100 items,
     # and each record generates 2 items: 1 update + 1 delete)
     batch_size = 50
     success_count = 0
     error_count = 0
 
     for i in range(0, len(home_jurisdiction_selections), batch_size):
-        batch = home_jurisdiction_selections[i:i + batch_size]
+        batch = home_jurisdiction_selections[i : i + batch_size]
         logger.info(f'Processing batch {i // batch_size + 1} with {len(batch)} records')
 
         try:
@@ -86,7 +86,7 @@ def do_migration(_properties: dict) -> None:
 def _process_batch(home_jurisdiction_selections: list[dict]) -> None:
     """
     Process a batch of homeJurisdictionSelection records.
-    
+
     Args:
         home_jurisdiction_selections: List of homeJurisdictionSelection records to process
     """
@@ -106,33 +106,37 @@ def _process_batch(home_jurisdiction_selections: list[dict]) -> None:
 
             # Determine the provider record key
             provider_pk = selection_record['pk']
-            provider_sk = f"{selection_record['compact']}#PROVIDER"
+            provider_sk = f'{selection_record["compact"]}#PROVIDER'
 
             # Add transaction item to update the provider record
-            transaction_items.append({
-                'Update': {
-                    'TableName': config.provider_table.table_name,
-                    'Key': {
-                        'pk': {'S': provider_pk},
-                        'sk': {'S': provider_sk},
-                    },
-                    'UpdateExpression': 'SET currentHomeJurisdiction = :jurisdiction',
-                    'ExpressionAttributeValues': {
-                        ':jurisdiction': {'S': selected_jurisdiction},
-                    },
+            transaction_items.append(
+                {
+                    'Update': {
+                        'TableName': config.provider_table.table_name,
+                        'Key': {
+                            'pk': {'S': provider_pk},
+                            'sk': {'S': provider_sk},
+                        },
+                        'UpdateExpression': 'SET currentHomeJurisdiction = :jurisdiction',
+                        'ExpressionAttributeValues': {
+                            ':jurisdiction': {'S': selected_jurisdiction},
+                        },
+                    }
                 }
-            })
+            )
 
             # Add transaction item to delete the homeJurisdictionSelection record
-            transaction_items.append({
-                'Delete': {
-                    'TableName': config.provider_table.table_name,
-                    'Key': {
-                        'pk': {'S': selection_record['pk']},
-                        'sk': {'S': selection_record['sk']},
-                    },
+            transaction_items.append(
+                {
+                    'Delete': {
+                        'TableName': config.provider_table.table_name,
+                        'Key': {
+                            'pk': {'S': selection_record['pk']},
+                            'sk': {'S': selection_record['sk']},
+                        },
+                    }
                 }
-            })
+            )
 
             logger.info(
                 'Prepared transaction items for homeJurisdictionSelection',
@@ -158,4 +162,4 @@ def _process_batch(home_jurisdiction_selections: list[dict]) -> None:
         config.dynamodb_client.transact_write_items(TransactItems=transaction_items)
         logger.info('Transaction completed successfully')
     else:
-        logger.warning('No valid transaction items to process in this batch') 
+        logger.warning('No valid transaction items to process in this batch')
