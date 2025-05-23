@@ -54,47 +54,14 @@ class ProviderRecordUtility:
             for record in provider_records
             if record['type'] == record_type and (_filter is None or _filter(record))
         ]
-
     @staticmethod
-    def get_privilege_records(
-        provider_records: Iterable[dict],
-        _filter: Callable | None = None,
-    ) -> list[ProviderData]:
-        """
-        Get all privilege records from a list of provider records.
-
-        :param provider_records: The list of provider records to search through
-        :param filter: An optional filter to apply to the records
-        :return: A list of privilege records
-        """
-        return [
-            ProviderData(**record)
-            for record in ProviderRecordUtility.get_records_of_type(
-                provider_records, ProviderRecordType.PRIVILEGE, _filter
-            )
-        ]
-
-    @staticmethod
-    def get_license_records(
-        provider_records: Iterable[dict],
-        _filter: Callable | None = None,
-    ) -> list[LicenseData]:
-        """
-        Get all license records from a list of provider records.
-        """
-        return [
-            LicenseData(**record)
-            for record in ProviderRecordUtility.get_records_of_type(
-                provider_records, ProviderRecordType.LICENSE, _filter
-            )
-        ]
-
-    @staticmethod
-    def get_provider_record(provider_records: Iterable[dict]) -> dict:
+    def get_provider_record(provider_records: Iterable[dict]) -> dict | None:
         """
         Get the provider record from a list of provider records.
         """
-        return ProviderRecordUtility.get_records_of_type(provider_records, ProviderRecordType.PROVIDER)[0]
+        provider_records = ProviderRecordUtility.get_records_of_type(provider_records, ProviderRecordType.PROVIDER)
+        return provider_records[0] if provider_records else None
+
 
     @classmethod
     def find_best_license(cls, license_records: Iterable[dict], home_jurisdiction: str | None = None) -> dict:
