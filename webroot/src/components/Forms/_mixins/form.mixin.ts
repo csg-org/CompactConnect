@@ -58,6 +58,7 @@ class MixinForm extends Vue {
                 'string.max': this.$t('inputErrors.maxLength', { max: '{#limit}' }),
                 'string.length': this.$t('inputErrors.exactLength', { length: '{#limit}' }),
                 'string.email': this.$t('inputErrors.email'),
+                'string.uri': this.$t('inputErrors.uri'),
             },
             number: {
                 'number.base': this.$t('inputErrors.numberType'),

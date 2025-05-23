@@ -14,20 +14,22 @@
         </div>
         <form v-else class="state-config-form" @submit.prevent="handleSubmit(false)">
             <div class="state-config-form-container">
+                <!-- Privilege fees -->
                 <h2 class="form-section-title fees">{{ $t('compact.privilegeFees') }}</h2>
                 <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
-                <!-- <InputText
-                    :formInput="formData.compactFee"
-                    class="form-row currency"
-                    @input="formatInput(formData.compactFee)"
-                    @blur="formatBlur(formData.compactFee)"
-                />
                 <InputText
-                    :formInput="formData.privilegeTransactionFee"
+                    v-for="(formInput) in feeInputs"
+                    :key="formInput.id"
+                    :formInput="formInput"
                     class="form-row currency"
-                    @input="formatInput(formData.privilegeTransactionFee)"
-                    @blur="formatBlur(formData.privilegeTransactionFee, true)"
-                /> -->
+                    @input="formatInput(formInput)"
+                    @blur="formatBlur(formInput, formInput.id.endsWith('military'))"
+                />
+                <!-- Jurisprudence -->
+                <h2 class="form-section-title jurisprudence">{{ $t('compact.jurisprudence') }}</h2>
+                <InputRadioGroup :formInput="formData.isJurisprudenceExamRequired" class="form-row" />
+                <InputText :formInput="formData.jurisprudenceInfoLink" class="form-row jurisprudence-info-link" />
+                <!-- Notifications -->
                 <h2 class="form-section-title notifications">{{ $t('compact.notifications') }}</h2>
                 <InputEmailList :formInput="formData.opsNotificationEmails" />
                 <InputEmailList :formInput="formData.adverseActionNotificationEmails" />
@@ -37,6 +39,7 @@
                     @click.stop.prevent="() => null"
                     tabindex="-1"
                 >+</button>
+                <!-- Live status -->
                 <h2 class="form-section-title live-status">{{ $t('compact.licenseRegistrationTitle') }}</h2>
                 <InputRadioGroup
                     :formInput="formData.isPurchaseEnabled"

@@ -28,14 +28,14 @@ import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import Modal from '@components/Modal/Modal.vue';
 import MockPopulate from '@components/Forms/MockPopulate/MockPopulate.vue';
-import { CompactType, CompactStateConfig /* , FeeType */ } from '@models/Compact/Compact.model';
+import { CompactType, CompactStateConfig } from '@models/Compact/Compact.model';
 import { StaffUser } from '@models/StaffUser/StaffUser.model';
 import { FormInput } from '@models/FormInput/FormInput.model';
 import { formatCurrencyInput, formatCurrencyBlur } from '@models/_formatters/currency';
 import { dataApi } from '@network/data.api';
 import Joi from 'joi';
 
-interface PurchaseEnabledOption {
+interface RadioOption {
     value: boolean;
     name: string | ComputedRef<string>;
 }
@@ -63,6 +63,7 @@ class StateSettingsConfig extends mixins(MixinForm) {
     isLoading = false;
     loadingErrorMessage = '';
     initialStateConfig: any = {};
+    feeInputs: Array<FormInput> = [];
     isPurchaseEnabledInitialValue = false;
     isConfirmConfigModalDisplayed = false;
 
@@ -108,27 +109,22 @@ class StateSettingsConfig extends mixins(MixinForm) {
             await this.getStateConfig();
             // Initialize the form
             this.initFormInputs();
-
-            // @TODO
-            // Format existing values
-            // const { compactFee, privilegeTransactionFee } = this.formData;
-            //
-            // if (compactFee?.value) {
-            //     this.formatBlur(this.formData.compactFee);
-            // }
-            //
-            // if (privilegeTransactionFee?.value) {
-            //     this.formatBlur(this.formData.privilegeTransactionFee, true);
-            // }
         }
     }
 
     async getStateConfig(): Promise<void> {
         const compact = this.compactType || '';
-        const stateConfig = await dataApi.getCompactStateConfig(compact, this.stateAbbrev).catch((err) => {
+        const stateConfig: any = await dataApi.getCompactStateConfig(compact, this.stateAbbrev).catch((err) => {
             this.loadingErrorMessage = err?.message || this.$t('serverErrors.networkError');
         });
+        const licenseTypes = (this.$tm('licensing.licenseTypes') || []).filter((licenseType) =>
+            licenseType.compactKey === compact);
 
+        stateConfig?.privilegeFees?.forEach((privilegeFee) => {
+            const licenseType = licenseTypes.find((type) => type.abbrev === privilegeFee.licenseTypeAbbreviation);
+
+            privilegeFee.name = licenseType?.name || privilegeFee.licenseTypeAbbreviation?.toUpperCase() || '';
+        });
         this.initialStateConfig = stateConfig;
         this.isPurchaseEnabledInitialValue = this.initialStateConfig?.licenseeRegistrationEnabled;
         this.isLoading = false;
@@ -136,21 +132,26 @@ class StateSettingsConfig extends mixins(MixinForm) {
 
     initFormInputs(): void {
         this.formData = reactive({
-            // @TODO
-            // compactFee: new FormInput({
-            //     id: 'compact-fee',
-            //     name: 'compact-fee',
-            //     label: computed(() => this.$t('compact.compactFee')),
-            //     validation: Joi.number().required().min(0).messages(this.joiMessages.currency),
-            //     value: this.initialStateConfig?.compactCommissionFee?.feeAmount,
-            // }),
-            // privilegeTransactionFee: new FormInput({
-            //     id: 'privilege-transaction-fee',
-            //     name: 'privilege-transaction-fee',
-            //     label: computed(() => this.$t('compact.privilegeTransactionFee')),
-            //     validation: Joi.number().min(0).messages(this.joiMessages.currency),
-            //     value: this.initialStateConfig?.transactionFeeConfiguration?.licenseeCharges?.chargeAmount,
-            // }),
+            isJurisprudenceExamRequired: new FormInput({
+                id: 'jurisprudence-exam-required',
+                name: 'jurisprudence-exam-required',
+                label: computed(() => this.$t('compact.jurisprudenceExamRequired')),
+                validation: Joi.boolean().required().messages(this.joiMessages.boolean),
+                valueOptions: [
+                    { value: true, name: computed(() => this.$t('common.yes')) },
+                    { value: false, name: computed(() => this.$t('common.no')) },
+                ] as Array<RadioOption>,
+                value: this.initialStateConfig?.jurisprudenceRequirements?.required || false,
+            }),
+            jurisprudenceInfoLink: new FormInput({
+                id: 'jurisprudence-info-link',
+                name: 'jurisprudence-info-link',
+                label: computed(() => this.$t('compact.jurisprudenceInfoLink')),
+                labelSubtext: computed(() => this.$t('compact.jurisprudenceInfoLinkSubtext')),
+                placeholder: 'https://',
+                validation: Joi.string().uri().allow('').messages(this.joiMessages.string),
+                value: this.initialStateConfig?.jurisprudenceRequirements?.linkToDocumentation || '',
+            }),
             opsNotificationEmails: new FormInput({
                 id: 'ops-notification-emails',
                 name: 'ops-notification-emails',
@@ -187,7 +188,7 @@ class StateSettingsConfig extends mixins(MixinForm) {
                 valueOptions: [
                     { value: true, name: computed(() => this.$t('common.yes')) },
                     { value: false, name: computed(() => this.$t('common.no')) },
-                ] as Array<PurchaseEnabledOption>,
+                ] as Array<RadioOption>,
                 value: this.initialStateConfig?.licenseeRegistrationEnabled || false,
                 isDisabled: computed(() => this.isPurchaseEnabledInitialValue),
             }),
@@ -196,6 +197,40 @@ class StateSettingsConfig extends mixins(MixinForm) {
                 id: 'submit-compact-settings',
             }),
         });
+
+        // Privilege fee inputs
+        this.initialStateConfig?.privilegeFees?.forEach((privilegeFee) => {
+            const licenseType = privilegeFee.licenseTypeAbbreviation;
+            const licenseTypeMilitary = `${licenseType}Military`;
+
+            this.formData[licenseType] = new FormInput({
+                id: `${licenseType}-fee`,
+                name: `${licenseType}-fee`,
+                label: computed(() => `${privilegeFee.name} ${this.$t('compact.fee')}`),
+                validation: Joi.number().required().min(0).messages(this.joiMessages.currency),
+                value: privilegeFee.amount,
+            });
+
+            if (this.formData[licenseType].value) {
+                this.formatBlur(this.formData[licenseType]);
+            }
+
+            this.formData[licenseTypeMilitary] = new FormInput({
+                id: `${licenseType}-fee-military`,
+                name: `${licenseType}-fee-military`,
+                label: computed(() => `${this.$t('compact.militaryAffiliated')} ${privilegeFee.name} ${this.$t('compact.fee')}`),
+                validation: Joi.number().min(0).messages(this.joiMessages.currency),
+                value: privilegeFee.militaryRate,
+            });
+
+            if (this.formData[licenseTypeMilitary].value) {
+                this.formatBlur(this.formData[licenseTypeMilitary]);
+            }
+
+            this.feeInputs.push(this.formData[licenseType]);
+            this.feeInputs.push(this.formData[licenseTypeMilitary]);
+        });
+
         this.watchFormInputs(); // Important if you want automated form validation
     }
 
@@ -238,34 +273,34 @@ class StateSettingsConfig extends mixins(MixinForm) {
     async processConfigUpdate(): Promise<void> {
         const compact = this.compactType || '';
         const {
-            // @TODO
-            // compactFee,
-            // privilegeTransactionFee,
+            isJurisprudenceExamRequired,
+            jurisprudenceInfoLink,
             opsNotificationEmails,
             adverseActionNotificationEmails,
             summaryReportNotificationEmails,
             isPurchaseEnabled,
         } = this.formValues;
+        const feeInputsCore = this.feeInputs.filter((feeInput) => feeInput.id.endsWith('fee'));
         const payload: CompactStateConfig = {
-            privilegeFees: [],
+            privilegeFees: feeInputsCore.map((feeInputCore) => {
+                // Map indeterminate set of privilege fee inputs to their payload structure
+                const [ licenseType ] = feeInputCore.id.split('-');
+                const militaryInput = Object.values(this.formData).find((formInput) =>
+                    (formInput as unknown as FormInput).id === `${feeInputCore.id}-military`) as FormInput | undefined;
+
+                return {
+                    licenseTypeAbbreviation: licenseType,
+                    amount: Number(feeInputCore.value),
+                    militaryRate: Number(militaryInput?.value) || null,
+                };
+            }),
             jurisprudenceRequirements: {
-                required: false,
-                linkToDocumentation: '',
+                required: isJurisprudenceExamRequired,
+                linkToDocumentation: jurisprudenceInfoLink,
             },
-            // compactCommissionFee: {
-            //     feeType: FeeType.FLAT_RATE,
-            //     feeAmount: Number(compactFee),
-            // },
             jurisdictionOperationsTeamEmails: opsNotificationEmails,
             jurisdictionAdverseActionsNotificationEmails: adverseActionNotificationEmails,
             jurisdictionSummaryReportNotificationEmails: summaryReportNotificationEmails,
-            // transactionFeeConfiguration: {
-            //     licenseeCharges: {
-            //         active: true,
-            //         chargeType: FeeType.FLAT_FEE_PER_PRIVILEGE,
-            //         chargeAmount: Number(privilegeTransactionFee),
-            //     },
-            // },
             licenseeRegistrationEnabled: isPurchaseEnabled,
         };
 
@@ -285,12 +320,13 @@ class StateSettingsConfig extends mixins(MixinForm) {
         }
     }
 
-    // @TODO
-    // populateMissingPrivilegeTransactionFee(): void {
-    //     if (this.formData.privilegeTransactionFee.value === '') {
-    //         this.populateFormInput(this.formData.privilegeTransactionFee, 0);
-    //     }
-    // }
+    populateMissingPrivilegeFees(): void {
+        this.feeInputs.forEach((feeInput) => {
+            if (feeInput.id?.endsWith('military') && (feeInput.value === '' || feeInput.value === null)) {
+                this.populateFormInput(feeInput, 0);
+            }
+        });
+    }
 
     populateMissingPurchaseEnabled(): void {
         if (this.formData.isPurchaseEnabled.value === '') {
@@ -299,7 +335,7 @@ class StateSettingsConfig extends mixins(MixinForm) {
     }
 
     populateOptionalMissing(): void {
-        // this.populateMissingPrivilegeTransactionFee();
+        this.populateMissingPrivilegeFees();
         this.populateMissingPurchaseEnabled();
     }
 
@@ -338,9 +374,11 @@ class StateSettingsConfig extends mixins(MixinForm) {
     }
 
     async mockPopulate(): Promise<void> {
-        // @TODO
-        // this.populateFormInput(this.formData.compactFee, 5.55);
-        // this.populateFormInput(this.formData.privilegeTransactionFee, 5);
+        this.feeInputs.forEach((feeInput) => {
+            this.populateFormInput(feeInput, 5);
+        });
+        this.populateFormInput(this.formData.isJurisprudenceExamRequired, true);
+        this.populateFormInput(this.formData.jurisprudenceInfoLink, 'https://example.com');
         this.populateFormInput(this.formData.opsNotificationEmails, ['ops@example.com']);
         this.populateFormInput(this.formData.adverseActionNotificationEmails, ['adverse@example.com']);
         this.populateFormInput(this.formData.summaryReportNotificationEmails, ['summary@example.com']);

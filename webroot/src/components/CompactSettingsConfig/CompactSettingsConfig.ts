@@ -34,7 +34,7 @@ import { formatCurrencyInput, formatCurrencyBlur } from '@models/_formatters/cur
 import { dataApi } from '@network/data.api';
 import Joi from 'joi';
 
-interface RegistrationEnabledOption {
+interface RadioOption {
     value: boolean;
     name: string | ComputedRef<string>;
 }
@@ -182,7 +182,7 @@ class CompactSettingsConfig extends mixins(MixinForm) {
                 valueOptions: [
                     { value: true, name: computed(() => this.$t('common.yes')) },
                     { value: false, name: computed(() => this.$t('common.no')) },
-                ] as Array<RegistrationEnabledOption>,
+                ] as Array<RadioOption>,
                 value: this.initialCompactConfig?.licenseeRegistrationEnabled || false,
                 isDisabled: computed(() => this.isRegistrationEnabledInitialValue),
             }),

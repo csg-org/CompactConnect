@@ -59,6 +59,7 @@ export interface CompactStateConfig {
         licenseTypeAbbreviation: string,
         amount: number,
         militaryRate: number | null, // Specific mix of number & null required by server
+        name?: string,
     }>
     jurisprudenceRequirements: {
         required: boolean,

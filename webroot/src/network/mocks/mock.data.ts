@@ -1770,8 +1770,8 @@ export const compactStates = [
 ];
 
 export const compactConfig = {
-    compactAbbr: 'aslp',
-    compactName: 'Audiology and Speech Language Pathology',
+    compactAbbr: 'otcp',
+    compactName: 'Occupational Therapy',
     compactCommissionFee: {
         feeType: 'FLAT_RATE',
         feeAmount: 10,
@@ -1796,15 +1796,20 @@ export const compactConfig = {
 };
 
 export const stateConfig = {
-    compact: 'aslp',
+    compact: 'otcp',
     jurisdictionName: 'Kentucky',
     postalAbbreviation: 'ky',
     licenseeRegistrationEnabled: false,
     privilegeFees: [
         {
-            licenseTypeAbbreviation: 'aud',
-            amount: null,
+            licenseTypeAbbreviation: 'ot',
+            amount: 30,
             militaryRate: null,
+        },
+        {
+            licenseTypeAbbreviation: 'ota',
+            amount: 30,
+            militaryRate: 25,
         },
     ],
     jurisprudenceRequirements: {

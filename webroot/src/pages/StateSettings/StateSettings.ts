@@ -9,6 +9,7 @@ import { Component, Vue, Watch } from 'vue-facing-decorator';
 import { AuthTypes } from '@/app.config';
 import Section from '@components/Section/Section.vue';
 import StateSettingsConfig from '@components/StateSettingsConfig/StateSettingsConfig.vue';
+import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import { Compact } from '@models/Compact/Compact.model';
 import { CompactPermission, StatePermission } from '@models/StaffUser/StaffUser.model';
 
@@ -17,6 +18,7 @@ import { CompactPermission, StatePermission } from '@models/StaffUser/StaffUser.
     components: {
         Section,
         StateSettingsConfig,
+        InputButton,
     },
 })
 export default class StateSettings extends Vue {
@@ -98,6 +100,16 @@ export default class StateSettings extends Vue {
                 // Redirect user to home page
                 this.$router.replace({ name: 'Home' });
             }
+        }
+    }
+
+    goBack() {
+        const compact = this.currentCompact?.type;
+
+        if (compact) {
+            this.$router.push({ name: 'CompactSettings', params: { compact }});
+        } else {
+            this.$router.push({ name: 'Home' });
         }
     }
 

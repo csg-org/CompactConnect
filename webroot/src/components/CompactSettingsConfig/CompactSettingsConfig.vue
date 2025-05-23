@@ -14,6 +14,7 @@
         </div>
         <form v-else class="compact-config-form" @submit.prevent="handleSubmit(false)">
             <div class="compact-config-form-container">
+                <!-- Privilege fees -->
                 <h2 class="form-section-title fees">{{ $t('compact.privilegeFees') }}</h2>
                 <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
                 <InputText
@@ -28,6 +29,7 @@
                     @input="formatInput(formData.privilegeTransactionFee)"
                     @blur="formatBlur(formData.privilegeTransactionFee, true)"
                 />
+                <!-- Notifications -->
                 <h2 class="form-section-title notifications">{{ $t('compact.notifications') }}</h2>
                 <InputEmailList :formInput="formData.opsNotificationEmails" />
                 <InputEmailList :formInput="formData.adverseActionNotificationEmails" />
@@ -37,6 +39,7 @@
                     @click.stop.prevent="() => null"
                     tabindex="-1"
                 >+</button>
+                <!-- Live status -->
                 <h2 class="form-section-title live-status">{{ $t('compact.licenseRegistrationTitle') }}</h2>
                 <InputRadioGroup
                     :formInput="formData.isRegistrationEnabled"

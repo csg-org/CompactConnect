@@ -43,7 +43,7 @@ const formatCurrencyInput = (value: string | number = ''): string => {
  * @return {string}
  */
 const formatCurrencyBlur = (value: string | number = '', isOptional = false): string => {
-    let [ dollars, cents ] = value.toString().split(/\.(.*)/s);
+    let [ dollars, cents ] = (value || '').toString().split(/\.(.*)/s);
     let formatted = '';
 
     if (!value && isOptional) {
