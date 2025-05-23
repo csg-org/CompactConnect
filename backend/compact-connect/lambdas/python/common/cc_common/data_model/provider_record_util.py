@@ -54,6 +54,7 @@ class ProviderRecordUtility:
             for record in provider_records
             if record['type'] == record_type and (_filter is None or _filter(record))
         ]
+
     @staticmethod
     def get_provider_record(provider_records: Iterable[dict]) -> dict | None:
         """
@@ -61,7 +62,6 @@ class ProviderRecordUtility:
         """
         provider_records = ProviderRecordUtility.get_records_of_type(provider_records, ProviderRecordType.PROVIDER)
         return provider_records[0] if provider_records else None
-
 
     @classmethod
     def find_best_license(cls, license_records: Iterable[dict], home_jurisdiction: str | None = None) -> dict:
