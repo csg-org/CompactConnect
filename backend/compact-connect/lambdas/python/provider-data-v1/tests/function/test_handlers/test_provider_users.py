@@ -620,6 +620,22 @@ class TestPutProviderHomeJurisdiction(TstFunction):
 
         self.assertEqual({'message': 'ok'}, resp_body)
 
+    def test_put_provider_home_jurisdiction_returns_400_with_invalid_jurisdiction(self):
+        from handlers.provider_users import provider_users_api_handler
+
+        (test_provider_record, test_current_license_record, test_privilege_record) = (
+            self._when_provider_has_one_license_and_privilege()
+        )
+
+        event = self._when_testing_put_provider_home_jurisdiction('foo', test_provider_record)
+
+        resp = provider_users_api_handler(event, self.mock_context)
+
+        self.assertEqual(400, resp['statusCode'])
+        resp_body = json.loads(resp['body'])
+
+        self.assertEqual({'message': 'Invalid jurisdiction selected.'}, resp_body)
+
     def test_put_provider_home_jurisdiction_returns_400_if_api_call_made_without_proper_claims(self):
         from handlers.provider_users import provider_users_api_handler
 
