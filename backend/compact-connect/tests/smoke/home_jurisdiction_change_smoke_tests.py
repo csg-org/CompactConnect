@@ -18,6 +18,9 @@ from smoke_common import (
 # 'smoke_tests_env_example.json' file as a template.
 
 
+TEST_EXPIRATION_DATE = '2050-04-04'
+
+
 def test_home_jurisdiction_change_inactivates_privileges_when_no_license_in_new_jurisdiction():
     """
     Test that when a provider changes their home jurisdiction to a jurisdiction where they don't have a license:
@@ -163,9 +166,185 @@ def test_home_jurisdiction_change_inactivates_privileges_when_no_license_in_new_
     logger.info('Successfully completed home jurisdiction change test')
 
 
+def add_license_for_provider(provider_record: dict, jurisdiction: str):
+    """
+    Add a license for a provider in a given jurisdiction
+    """
+    license_type = provider_record['licenses'][0]['licenseType']
+    provider_id = provider_record['providerId']
+    compact = provider_record['compact']
+    license_record = {
+        'pk': f'{compact}#PROVIDER#{provider_id}',
+        'sk': f'{compact}#PROVIDER#license/{jurisdiction}/{license_type}#',
+        'type': 'license',
+        'providerId': provider_id,
+        'compact': compact,
+        'jurisdiction': jurisdiction,
+        'ssnLastFour': '1234',
+        'npi': '0608337260',
+        'licenseNumber': 'A0608337260',
+        'licenseType': 'speech-language pathologist',
+        'givenName': 'Björk',
+        'middleName': 'Gunnar',
+        'familyName': 'Guðmundsdóttir',
+        'dateOfIssuance': '2010-06-06',
+        'dateOfRenewal': '2020-04-04',
+        'dateOfExpiration': TEST_EXPIRATION_DATE,
+        'dateOfBirth': '1985-06-06',
+        'dateOfUpdate': '2024-06-06T12:59:59+00:00',
+        'homeAddressStreet1': '123 A St.',
+        'homeAddressStreet2': 'Apt 321',
+        'homeAddressCity': 'Columbus',
+        'homeAddressState': 'oh',
+        'homeAddressPostalCode': '43004',
+        'emailAddress': 'björk@example.com',
+        'phoneNumber': '+13213214321',
+        'jurisdictionUploadedLicenseStatus': 'active',
+        'licenseStatusName': 'DEFINITELY_A_HUMAN',
+        'jurisdictionUploadedCompactEligibility': 'eligible',
+        'licenseGSIPK': 'C#aslp#J#oh',
+        'licenseGSISK': 'FN#gu%C3%B0mundsd%C3%B3ttir#GN#bj%C3%B6rk',
+    }
+    # put the license in for the new jurisdiction
+    logger.info('Adding temp license record', pk=license_record['pk'], sk=license_record['sk'])
+    config.provider_user_dynamodb_table.put_item(Item=license_record)
+    # give dynamodb time to propagate
+    time.sleep(1)
+
+    return license_record
+
+
+def test_home_jurisdiction_change_moves_privileges_when_valid_license_in_new_jurisdiction():
+    """
+    Test that when a provider changes their home jurisdiction to a jurisdiction where they have a valid license:
+    1. All their privileges are set to active
+    2. Their compactEligibility on the provider record is set to eligible
+    """
+    logger.info('Running home jurisdiction change test - changing to jurisdiction with valid license')
+
+    # Get the provider's information before making any changes
+    provider_info_before = call_provider_users_me_endpoint()
+
+    original_jurisdiction = provider_info_before.get('currentHomeJurisdiction')
+    original_expiration_date = provider_info_before['licenses'][0]['dateOfExpiration']
+    new_jurisdiction = 'al'  # Alabama - assuming the provider doesn't have a license here
+    logger.info(f'Original home jurisdiction: {original_jurisdiction}')
+
+    # In this test, we temporarily add a valid license for the provider in the new jurisdiction,
+    # then move the user to the new jurisdiction
+    # and verify that the privilege is moved to the new jurisdiction
+    new_license_record = add_license_for_provider(provider_info_before, new_jurisdiction)
+
+    # we've set a duplicate transaction window to prevent double charges on their cards
+    # wait until processing the charge a second time
+    time.sleep(5)
+    test_purchasing_privilege(delete_current_privilege=True)
+
+    # Now change the home jurisdiction so the 'ne' privilege is moved over
+    logger.info(f'Changing home jurisdiction to {new_jurisdiction}')
+    response = requests.put(
+        f'{config.api_base_url}/v1/provider-users/me/home-jurisdiction',
+        headers=get_provider_user_auth_headers_cached(),
+        json={'jurisdiction': new_jurisdiction},
+        timeout=30,
+    )
+
+    # Verify the response status code
+    if response.status_code != 200:
+        raise SmokeTestFailureException(f'Expected 200 status code, got {response.status_code}: {response.text}')
+
+    logger.info(f'Home jurisdiction change response: {response.text}')
+
+    # get the provider's information after the home jurisdiction change
+    provider_info_after_change = call_provider_users_me_endpoint()
+
+    # verify the privilege is moved to the new jurisdiction
+    privileges_after_change = provider_info_after_change.get('privileges', [])
+    ne_privilege_after_change = next(
+        (privilege for privilege in privileges_after_change if privilege['jurisdiction'] == 'ne'), None
+    )
+    if not ne_privilege_after_change:
+        raise SmokeTestFailureException('Nebraska privilege not found after home jurisdiction change')
+    if ne_privilege_after_change.get('status') != 'active':
+        raise SmokeTestFailureException(
+            f"Privilege should be 'active', but got '{ne_privilege_after_change.get('status')}'"
+        )
+    logger.info('privilege is active after home jurisdiction change')
+
+    # verify the privilege licenseJurisdiction is the new jurisdiction
+    if ne_privilege_after_change.get('licenseJurisdiction') != new_jurisdiction:
+        raise SmokeTestFailureException(
+            f"Privilege licenseJurisdiction should be '{new_jurisdiction}', "
+            f"but got '{ne_privilege_after_change.get('licenseJurisdiction')}'"
+        )
+    logger.info('privilege licenseJurisdiction is the new jurisdiction')
+
+    # verify the expiration date is the same as the license expiration date
+    if ne_privilege_after_change.get('dateOfExpiration') != TEST_EXPIRATION_DATE:
+        raise SmokeTestFailureException(
+            f"Privilege dateOfExpiration should be '{TEST_EXPIRATION_DATE}', "
+            f"but got '{ne_privilege_after_change.get('dateOfExpiration')}'"
+        )
+    logger.info('privilege dateOfExpiration is the new expiration date')
+    # now move the home jurisdiction back to the original jurisdiction and verify the privilege is moved back
+    logger.info(f'Restoring original home jurisdiction: {original_jurisdiction}')
+    response = requests.put(
+        f'{config.api_base_url}/v1/provider-users/me/home-jurisdiction',
+        headers=get_provider_user_auth_headers_cached(),
+        json={'jurisdiction': original_jurisdiction},
+        timeout=30,
+    )
+
+    if response.status_code != 200:
+        raise SmokeTestFailureException(f'Expected 200 status code, got {response.status_code}: {response.text}')
+
+    logger.info(f'Home jurisdiction change response: {response.text}')
+
+    # get the provider's information after the home jurisdiction change
+    provider_info_after_restore = call_provider_users_me_endpoint()
+
+    # verify the privilege is moved back to the original jurisdiction
+    privileges_after_restore = provider_info_after_restore.get('privileges', [])
+    ne_privilege_after_restore = next(
+        (privilege for privilege in privileges_after_restore if privilege['jurisdiction'] == 'ne'), None
+    )
+    if not ne_privilege_after_restore:
+        raise SmokeTestFailureException('Nebraska privilege not found after home jurisdiction change')
+    if ne_privilege_after_restore.get('status') != 'active':
+        raise SmokeTestFailureException(
+            f"Privilege should be 'active', but got '{ne_privilege_after_restore.get('status')}'"
+        )
+    logger.info('privilege still has active status')
+
+    # verify the privilege licenseJurisdiction is the original jurisdiction
+    if ne_privilege_after_restore.get('licenseJurisdiction') != original_jurisdiction:
+        raise SmokeTestFailureException(
+            f"Privilege licenseJurisdiction should be '{original_jurisdiction}', "
+            f"but got '{ne_privilege_after_restore.get('licenseJurisdiction')}'"
+        )
+    logger.info('privilege licenseJurisdiction is the original jurisdiction')
+
+    # verify the expiration date is the same as the license expiration date
+    if ne_privilege_after_restore.get('dateOfExpiration') != original_expiration_date:
+        raise SmokeTestFailureException(
+            f"Privilege dateOfExpiration should be '{original_expiration_date}', "
+            f"but got '{ne_privilege_after_restore.get('dateOfExpiration')}'"
+        )
+    logger.info('privilege dateOfExpiration is the original expiration date')
+
+    # Now delete the new license record
+    logger.info('Deleting temp license record', pk=new_license_record['pk'], sk=new_license_record['sk'])
+    config.provider_user_dynamodb_table.delete_item(
+        Key={'pk': new_license_record['pk'], 'sk': new_license_record['sk']}
+    )
+
+    logger.info('Successfully completed home jurisdiction change test')
+
+
 if __name__ == '__main__':
     # Load environment variables from smoke_tests_env.json
     load_smoke_test_env()
 
     # Run test
     test_home_jurisdiction_change_inactivates_privileges_when_no_license_in_new_jurisdiction()
+    test_home_jurisdiction_change_moves_privileges_when_valid_license_in_new_jurisdiction()
