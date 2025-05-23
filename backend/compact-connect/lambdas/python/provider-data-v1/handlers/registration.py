@@ -261,10 +261,6 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
                 {'Name': 'email_verified', 'Value': 'true'},
             ],
         )
-    except config.cognito_client.exceptions.UsernameExistsException:
-        logger.warning('User already exists in Cognito', email=body['email'])
-        metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
-        raise CCInvalidRequestException('User with this e-mail is already registered.')
     except Exception as e:
         logger.error('Failed to create Cognito user', error=str(e))
         metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
