@@ -190,10 +190,6 @@ class ProviderRecordUtility:
                 case 'militaryAffiliation':
                     logger.debug('Identified military affiliation record')
                     military_affiliations.append(record)
-                # TODO - remove this once migration has been run replacing the 'homeJurisdictionSelection' field
-                # with the 'currentHomeJurisdiction' field
-                case 'homeJurisdictionSelection':
-                    logger.debug('Identified home jurisdiction selection record')
 
         # Process update and adverse action records after all base records have been identified
         for record in provider_records:
@@ -218,9 +214,9 @@ class ProviderRecordUtility:
         provider['licenses'] = list(licenses.values())
         provider['privileges'] = list(privileges.values())
         provider['militaryAffiliations'] = military_affiliations
-        # TODO - remove this once migration has been run replacing the 'homeJurisdictionSelection' field
-        # with the 'currentHomeJurisdiction' field
-        if provider['currentHomeJurisdiction'] is not 'unknown' and provider['currentHomeJurisdiction'] is not 'other':
+        # TODO - remove this once migration has been run replacing the 'homeJurisdictionSelection' field # noqa: FIX002
+        #   this should be removed as part of https://github.com/csg-org/CompactConnect/issues/763
+        if provider['currentHomeJurisdiction'] != 'unknown' and provider['currentHomeJurisdiction'] != 'other':
             provider['homeJurisdictionSelection'] = {
                 'type': 'homeJurisdictionSelection',
                 'jurisdiction': provider['currentHomeJurisdiction'],

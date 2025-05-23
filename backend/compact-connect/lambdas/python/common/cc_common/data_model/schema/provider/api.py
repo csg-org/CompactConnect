@@ -17,6 +17,7 @@ from cc_common.data_model.schema.license.api import LicenseGeneralResponseSchema
 from cc_common.data_model.schema.military_affiliation.api import MilitaryAffiliationGeneralResponseSchema
 from cc_common.data_model.schema.privilege.api import PrivilegeGeneralResponseSchema, PrivilegePublicResponseSchema
 
+
 # TODO deprecated - to be removed after frontend has been update to only   # noqa: FIX002
 #  reference 'currentHomeJurisdiction' field in https://github.com/csg-org/CompactConnect/issues/763
 class ProviderHomeJurisdictionSelectionGeneralResponseSchema(ForgivingSchema):
@@ -27,9 +28,9 @@ class ProviderHomeJurisdictionSelectionGeneralResponseSchema(ForgivingSchema):
     Python -> load() -> API
     """
 
-    type = String(required=True, allow_none=False)
-    compact = Compact(required=True, allow_none=False)
-    providerId = String(required=True, allow_none=False)
+    type = Raw(required=True, allow_none=False)
+    compact = Raw(required=True, allow_none=False)
+    providerId = Raw(required=True, allow_none=False)
     jurisdiction = Raw(required=True, allow_none=False)
 
 

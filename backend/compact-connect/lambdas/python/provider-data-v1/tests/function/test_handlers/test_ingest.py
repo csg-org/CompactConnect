@@ -17,11 +17,12 @@ class TestIngest(TstFunction):
         expected_provider['privilegeJurisdictions'] = []
         expected_provider['privileges'] = []
         expected_provider['militaryAffiliations'] = []
-        del expected_provider['homeJurisdictionSelection']
         expected_provider['currentHomeJurisdiction'] = 'unknown'
         # if the home jurisdiction is unknown, the user has not registered in the system, and
         # is there ineligible to purchase privileges until they register in the system.
         expected_provider['compactEligibility'] = 'ineligible'
+        # TODO: remove line this as part of https://github.com/csg-org/CompactConnect/issues/763 # noqa: FIX002
+        del expected_provider['homeJurisdictionSelection']
 
         # in these test cases, the provider user has not registered in the system, so these values will not be
         # present

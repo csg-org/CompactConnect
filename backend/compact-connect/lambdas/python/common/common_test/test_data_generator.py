@@ -8,7 +8,6 @@ from cc_common.data_model.provider_record_util import ProviderRecordUtility
 from cc_common.data_model.schema.adverse_action import AdverseActionData
 from cc_common.data_model.schema.common import CCDataClass
 from cc_common.data_model.schema.compact import CompactConfigurationData
-from cc_common.data_model.schema.home_jurisdiction import HomeJurisdictionSelectionData
 from cc_common.data_model.schema.jurisdiction import JurisdictionConfigurationData
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
 from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationData
@@ -127,24 +126,6 @@ class TestDataGenerator:
         return TestDataGenerator._query_records_by_pk_and_sk_prefix(
             serialized_record['pk'], f'{serialized_record["sk"]}#UPDATE'
         )
-
-    @staticmethod
-    def generate_default_home_jurisdiction_selection(
-        value_overrides: dict | None = None,
-    ) -> HomeJurisdictionSelectionData:
-        """Generate a default home jurisdiction selection"""
-        default_home_jurisdiction = {
-            'providerId': DEFAULT_PROVIDER_ID,
-            'compact': DEFAULT_COMPACT,
-            'type': HOME_JURISDICTION_RECORD_TYPE,
-            'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
-            'dateOfSelection': datetime.fromisoformat(DEFAULT_HOME_SELECTION_DATE),
-            'dateOfUpdate': datetime.fromisoformat(DEFAULT_HOME_UPDATE_DATE),
-        }
-        if value_overrides:
-            default_home_jurisdiction.update(value_overrides)
-
-        return HomeJurisdictionSelectionData.create_new(default_home_jurisdiction)
 
     @staticmethod
     def generate_default_adverse_action(value_overrides: dict | None = None) -> AdverseActionData:
@@ -483,11 +464,6 @@ class TestDataGenerator:
                 default_military_affiliation, datetime.fromisoformat(DEFAULT_MILITARY_UPDATE_DATE)
             )
 
-            default_home_jurisdiction = TestDataGenerator.generate_default_home_jurisdiction_selection()
-            TestDataGenerator._override_date_of_update_for_record(
-                default_home_jurisdiction, datetime.fromisoformat(DEFAULT_HOME_UPDATE_DATE)
-            )
-
             items = [
                 TestDataGenerator.generate_default_provider().to_dict(),
                 default_license_record.to_dict(),
@@ -495,7 +471,6 @@ class TestDataGenerator:
                 default_privilege_record.to_dict(),
                 default_privilege_update_record.to_dict(),
                 default_military_affiliation.to_dict(),
-                default_home_jurisdiction.to_dict(),
             ]
         else:
             # convert each item into a dictionary
