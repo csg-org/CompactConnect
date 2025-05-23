@@ -7,6 +7,7 @@ Look here for continued documentation of the back-end design, as it progresses.
 - **[License Ingest](#license-ingest)**
 - **[User Architecture](#user-architecture)**
 - **[Data Model](#data-model)**
+- **[Privileges](#privileges)**
 - **[Attestations](#attestations)**
 - **[Transaction History Reporting](#transaction-history-reporting)**
 - **[Audit Logging](#audit-logging)**
@@ -375,6 +376,112 @@ The model incorporates several security and operational features:
 
 This comprehensive data model enables efficient queries while maintaining complete historical data, supporting both
 operational needs and audit requirements for healthcare provider licensing across jurisdictions.
+
+## Privileges
+[Back to top](#backend-design)
+
+Privileges are authorizations that allow licensed providers to practice their profession in jurisdictions other than their home state. The CompactConnect system manages the entire privilege lifecycle, from initial purchase through home jurisdiction changes and renewals. This section provides a comprehensive walkthrough of how privileges work within the system.
+
+### Overview of Privilege System
+
+The privilege system is built around several core concepts:
+
+1. **Home Jurisdiction**: The state where a provider holds their primary license and has selected as their home base
+2. **Privilege Jurisdictions**: Other compact member states where the provider wants to practice
+3. **License-Based Eligibility**: Privileges are tied to specific license types and depend on having a valid, unencumbered license in the home jurisdiction
+
+### Privilege Purchase Flow
+
+When a provider wants to purchase privileges to practice in additional jurisdictions, they follow this process:
+
+#### 1. Eligibility Check
+The system first verifies the provider's eligibility:
+- Provider must have a valid, active license in their home jurisdiction
+- License must not be expired or encumbered
+- Provider must have completed registration in CompactConnect
+- Provider must accept current attestations for privilege purchase
+
+#### 2. Jurisdiction Selection
+Providers can select multiple jurisdictions for privilege purchase in a single transaction. The system:
+- Validates each selected jurisdiction is a compact member
+- Checks for existing privileges to avoid duplicates
+- Calculates fees based on jurisdiction-specific pricing
+
+#### 3. Payment Processing
+The purchase process integrates with payment processors (currently Authorize.net):
+- Creates line items for each jurisdiction privilege
+- Includes compact administrative fees
+- Processes payment with privilege details
+- Links payment transaction id to privilege records for audit trails
+
+#### 4. Privilege Record Creation
+Upon successful payment, the system creates privilege records. Each privilege record includes:
+- Unique privilege identifier (example: `slp-ky-1234`)
+- Issuance and expiration dates (tied to home license expiration)
+- Reference to the purchase transaction id
+- Attestations accepted during purchase
+- Status tracking fields
+
+### Home Jurisdiction Changes
+[Flow chart diagram](./practitioner-home-state-update-flow-chart.pdf)
+
+One of the most complex aspects of the privilege system is handling when a provider changes their home jurisdiction. This process follows a detailed business logic flow chart to ensure privileges are properly transferred, deactivated, or updated based on various conditions.
+
+#### Rules for Home Jurisdiction Changes
+
+The system applies the following rules when a provider updates their home jurisdiction:
+
+##### Rule 1: No License in Selected Jurisdiction
+If the provider has no known license in the newly selected jurisdiction:
+- All existing privileges are marked with `homeJurisdictionChangeStatus: 'inactive'`
+- Provider record is updated with the new home jurisdiction
+- Privileges remain in the system but cannot be used for practice
+
+##### Rule 2: Expired License in Current Home State
+If the license in the current home state has expired:
+- Privileges are not transferred to the new jurisdiction
+- Existing privileges remain expired
+- Provider can renew privileges later if they obtain a valid license
+
+##### Rule 3: Encumbered License in Current Home State
+If the current home state license is encumbered (due to adverse actions):
+- Privileges are not moved to the new jurisdiction
+- Encumbered status is maintained
+- Provider must resolve encumbrance issues before privileges can be renewed
+
+##### Rule 4: Ineligible License in New Jurisdiction
+If the license in the new jurisdiction has `compactEligibility: 'ineligible'`:
+- Existing privileges are deactivated (`homeJurisdictionChangeStatus: 'inactive'`)
+- Provider cannot practice under compact privileges until eligibility is restored
+
+##### Rule 5: Encumbered License in New Jurisdiction
+If the new jurisdiction license is encumbered but unexpired:
+- Privileges are transferred to the new jurisdiction
+- Privileges that aren't already encumbered get `encumberedStatus: 'licenseEncumbered'`
+- Expiration dates are updated to match the new license
+
+##### Rule 6: Valid License Transfer
+If the provider has a  valid, unencumbered, compact-eligible license in the new jurisdiction:
+- Privileges are transferred to the new jurisdiction
+- Expiration dates are updated to match the new license expiration
+- Any privilege for the same jurisdiction as the new license is deactivated (to avoid conflicts)
+- License jurisdiction on privilege records is updated
+
+### Privilege Lifecycle Management
+
+
+#### Privilege Renewals
+When providers renew privileges:
+- System checks for existing privilege records
+- Preserves original issuance date and privilege ID
+- Updates expiration date and renewal date
+- Creates privilege update history records
+- Reactivates privileges that were previously deactivated due to administrator action
+
+#### Adverse Actions and Encumbrance
+The system supports encumbering privileges due to adverse actions:
+- **Privilege-Specific Encumbrance**: Targets individual privileges
+- **License-Based Encumbrance**: If the encumbered license is in the home state, all privileges tied to that license are also encumbered
 
 ## Attestations
 [Back to top](#backend-design)
