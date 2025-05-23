@@ -231,7 +231,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
         logger.error(
             'API request to purchase privileges for provider that does not have a valid home state selection.',
             provider_id=provider_id,
-            compact=compact,
+            compact=compact.compact_abbr,
             current_home_jurisdiction=current_home_jurisdiction,
         )
         raise CCInternalException(
