@@ -256,23 +256,28 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         # we check every line item of the object to ensure that the correct values are being set
         self.assertEqual(2, len(response['lineItems']))
         # first line item is the jurisdiction fee
+        self.assertEqual(
+            (response['lineItems']),
+    [
+                {
+                    'itemId': 'priv:aslp-oh-slp',
+                    'name': 'Ohio Compact Privilege',
+                    'unitPrice': '100',
+                    'quantity': '1',
+                    'description': 'Compact Privilege for Ohio',
+                    'taxable': 'None',
+                },
+                {
+                    'itemId': 'aslp-compact-fee',
+                    'name': 'ASLP Compact Fee',
+                    'unitPrice': '50.5',
+                    'quantity': '1',
+                    'description': 'Compact fee applied for each privilege purchased',
+                    'taxable': 'None',
+                },
+            ],
+        )
 
-        self.assertEqual('priv:aslp-oh-slp', response['lineItems'][0]['itemId'])
-        self.assertEqual('Ohio Compact Privilege', response['lineItems'][0]['name'])
-        self.assertEqual('100', response['lineItems'][0]['unitPrice'])
-        self.assertEqual('1', response['lineItems'][0]['quantity'])
-        self.assertEqual(
-            'Compact Privilege for Ohio', response['lineItems'][0]['description']
-        )
-        # second line item is the compact fee
-        self.assertEqual('aslp-compact-fee', response['lineItems'][1]['itemId'])
-        self.assertEqual('ASLP Compact Fee', response['lineItems'][1]['name'])
-        self.assertEqual('50.5', response['lineItems'][1]['unitPrice'])
-        self.assertEqual('1', response['lineItems'][1]['quantity'])
-        self.assertEqual(
-            'Compact fee applied for each privilege purchased',
-            response['lineItems'][1]['description'],
-        )
 
     @patch('purchase_client.createTransactionController')
     def test_purchase_client_makes_successful_transaction_using_authorize_net_processor(

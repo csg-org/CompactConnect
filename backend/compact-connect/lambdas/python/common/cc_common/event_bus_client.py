@@ -1,7 +1,11 @@
-import datetime
 import json
 
 from cc_common.config import config
+from cc_common.data_model.schema.data_event.api import (
+    PrivilegeIssuanceDetailSchema,
+    PrivilegePurchaseDetailSchema,
+    PrivilegeRenewalDetailSchema,
+)
 from cc_common.event_batch_writer import EventBatchWriter
 
 
@@ -24,7 +28,7 @@ class EventBusClient:
         event_batch_writer: EventBatchWriter | None = None,
     ):
         """
-        Publish event to the event bus
+        Publish event to the event bus, with event dateTime added
         """
         event_entry = {
             'Source': source,
@@ -42,37 +46,68 @@ class EventBusClient:
     def publish_privilege_purchase_event(
         self,
         source: str,
+        jurisdiction: str,
+        compact: str,
         provider_email: str,
-        transaction_date: datetime,
         privileges: list[dict],
         total_cost: str,
         cost_line_items: list[dict],
     ):
         event_detail = {
+            'jurisdiction': jurisdiction,
+            'compact': compact,
             'providerEmail': provider_email,
-            'transactionDate': transaction_date.strftime('%Y-%m-%d'),
             'privileges': privileges,
             'totalCost': total_cost,
             'costLineItems': cost_line_items,
+            'eventTime': config.current_standard_datetime.isoformat()
         }
-        self._publish_event(source=source, detail_type='privilege.purchase', detail=event_detail)
+
+        privilege_purchase_detail_schema = PrivilegePurchaseDetailSchema()
+
+        loaded_detail = privilege_purchase_detail_schema.load(event_detail)
+        deserialized_detail = privilege_purchase_detail_schema.dump(loaded_detail)
+
+        self._publish_event(source=source, detail_type='privilege.purchase', detail=deserialized_detail)
 
     def publish_privilege_issued_event(
         self,
         source: str,
+        jurisdiction: str,
+        compact: str,
         provider_email: str,
-        date: datetime,
-        privilege: dict,
     ):
-        event_detail = {'providerEmail': provider_email, 'date': date.strftime('%Y-%m-%d'), 'privilege': privilege}
-        self._publish_event(source=source, detail_type='privilege.issued', detail=event_detail)
+        event_detail = {
+            'jurisdiction': jurisdiction,
+            'compact': compact,
+            'providerEmail': provider_email,
+            'eventTime': config.current_standard_datetime.isoformat(),
+        }
+
+        privilege_issued_detail_schema = PrivilegeIssuanceDetailSchema()
+
+        loaded_detail = privilege_issued_detail_schema.load(event_detail)
+        deserialized_detail = privilege_issued_detail_schema.dump(loaded_detail)
+
+        self._publish_event(source=source, detail_type='privilege.issued', detail=deserialized_detail)
 
     def publish_privilege_renewed_event(
         self,
         source: str,
+        jurisdiction: str,
+        compact: str,
         provider_email: str,
-        date: datetime,
-        privilege: dict,
     ):
-        event_detail = {'providerEmail': provider_email, 'date': date.strftime('%Y-%m-%d'), 'privilege': privilege}
-        self._publish_event(source=source, detail_type='privilege.renewed', detail=event_detail)
+        event_detail = {
+            'jurisdiction': jurisdiction,
+            'compact': compact,
+            'providerEmail': provider_email,
+            'eventTime': config.current_standard_datetime.isoformat(),
+        }
+
+        privilege_renewal_detail_schema = PrivilegeRenewalDetailSchema()
+
+        loaded_detail = privilege_renewal_detail_schema.load(event_detail)
+        deserialized_detail = privilege_renewal_detail_schema.dump(loaded_detail)
+
+        self._publish_event(source=source, detail_type='privilege.renewed', detail=deserialized_detail)

@@ -307,7 +307,6 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
         )
 
         provider_email = provider_record['emailAddress']
-        transaction_date = datetime.now(tz=UTC).date()
 
         privileges = generated_privileges
         cost_line_items = transaction_response['lineItems']
@@ -319,10 +318,11 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
 
         config.event_bus_client.publish_privilege_purchase_event(
             source='post_purchase_privileges',
+            jurisdiction=selected_jurisdictions_postal_abbreviations[0],
+            compact=compact_abbr,
             provider_email=provider_email,
-            transaction_date=transaction_date,
             privileges=privileges,
-            total_cost=total_cost,
+            total_cost=str(total_cost),
             cost_line_items=cost_line_items,
         )
 
@@ -338,17 +338,17 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
         for privilege_jurisdiction_issued in privileges_issued:
             config.event_bus_client.publish_privilege_issued_event(
                 source='post_purchase_privileges',
+                jurisdiction=privilege_jurisdiction_issued,
+                compact=compact_abbr,
                 provider_email=provider_email,
-                date=transaction_date,
-                privilege=privilege_jurisdiction_issued,
             )
 
         for privilege_jurisdiction_renewed in privileges_renewed:
             config.event_bus_client.publish_privilege_renewed_event(
                 source='post_purchase_privileges',
+                jurisdiction=privilege_jurisdiction_renewed,
+                compact=compact_abbr,
                 provider_email=provider_email,
-                date=transaction_date,
-                privilege=privilege_jurisdiction_renewed,
             )
 
         return transaction_response

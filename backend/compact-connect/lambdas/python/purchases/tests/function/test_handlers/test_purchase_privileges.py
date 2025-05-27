@@ -30,7 +30,7 @@ TEST_EMAIL = 'testRegisteredEmail@example.com'
 TEST_COGNITO_SUB = '1234567890'
 
 TEST_LICENSE_TYPE = 'speech-language pathologist'
-MOCK_LINE_ITEMS = [{'name': 'Alaska Big Fee', 'quantity': 47, 'unitPrice': 55.5}]
+MOCK_LINE_ITEMS = [{'name': 'Alaska Big Fee', 'quantity': '47', 'unitPrice': '55.5', 'description': 'Fee for Alaska'}]
 
 
 def generate_default_attestation_list():
@@ -246,7 +246,7 @@ class TestPostPurchasePrivileges(TstFunction):
         )
 
     @patch('handlers.privileges.PurchaseClient')
-    def test_post_purchase_privileges_returns_transaction_id_and_line_items(self, mock_purchase_client_constructor):
+    def test_post_purchase_privileges_returns_necessary_data(self, mock_purchase_client_constructor):
         from handlers.privileges import post_purchase_privileges
 
         self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
@@ -258,8 +258,49 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertEqual(200, resp['statusCode'])
         response_body = json.loads(resp['body'])
 
-        self.assertEqual(MOCK_TRANSACTION_ID, response_body['transactionId'])
-        self.assertEqual(MOCK_LINE_ITEMS, response_body['lineItems'])
+        self.assertEqual({
+                'transactionId': MOCK_TRANSACTION_ID,
+                'lineItems': MOCK_LINE_ITEMS,
+            },
+            response_body
+        )
+
+    @patch('handlers.privileges.PurchaseClient')
+    @patch('handlers.privileges.EventBatchWriter', autospec=True)
+    def test_post_purchase_privileges_kicks_off_expected_events(
+            self,
+            mock_purchase_client_constructor,
+            mock_event_writer,
+    ):
+        from handlers.privileges import post_purchase_privileges
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+
+        event = self._when_testing_provider_user_event_with_custom_claims()
+        event['body'] = _generate_test_request_body()
+
+        post_purchase_privileges(event, self.mock_context)
+        mock_event_writer.return_value.__enter__.return_value.put_event.assert_called_once()
+        call_kwargs = mock_event_writer.return_value.__enter__.return_value.put_event.call_args.kwargs
+        self.assertEqual(
+            call_kwargs,
+            {
+                'Entry': {
+                    'Source': 'org.compactconnect.provider-data',
+                    'DetailType': 'license.deactivation',
+                    'Detail': json.dumps(
+                        {
+                            'eventTime': '2024-11-08T23:59:59+00:00',
+                            'compact': 'aslp',
+                            'jurisdiction': 'oh',
+                            'providerId': provider_id,
+                        }
+                    ),
+                    'EventBusName': 'license-data-events',
+                }
+            },
+        )
+
 
     @patch('handlers.privileges.PurchaseClient')
     def test_post_purchase_privileges_returns_error_message_if_transaction_failure(

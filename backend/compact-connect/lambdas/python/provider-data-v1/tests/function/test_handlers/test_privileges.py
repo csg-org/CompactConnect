@@ -116,6 +116,14 @@ class TestDeactivatePrivilege(TstFunction):
 
         return deactivate_privilege(event, self.mock_context)
 
+    def _run_privilege_purchase_message_handler(self):
+        from handlers.privileges import privilege_purchase_message_handler
+
+        with open('../common/tests/resources/events/purchase_event.json') as f:
+            purchase_event = json.load(f)
+
+        return privilege_purchase_message_handler(purchase_event, self.mock_context)
+
     @patch('cc_common.config._Config.email_service_client')
     @patch('handlers.privileges.EventBatchWriter', autospec=True)
     def test_compact_admin_can_deactivate_privilege(self, mock_event_writer, mock_email_service_client):  # noqa: ARG002 unused-argument
@@ -284,3 +292,26 @@ class TestDeactivatePrivilege(TstFunction):
         # Note lack of self._load_provider_data() here - we're _not_ loading the provider in this case
         resp = self._request_deactivation_with_scopes('openid email aslp/admin')
         self.assertEqual(404, resp['statusCode'])
+
+    @patch('cc_common.config._Config.email_service_client')
+    def test_privilege_purchase_message_handler_sends_email(self, mock_email_service_client):
+        """
+        If a valid event purchase event is passed into the privilege_purchase_message_handler, it should kick off the
+        send_privilege_purchase_email lambda
+        """
+        self._run_privilege_purchase_message_handler()
+
+        mock_email_service_client.send_privilege_purchase_email.assert_called_once_with(
+            compact='aslp',
+            provider_email='björkRegisteredEmail@example.com',
+            privilege_id='SLP-NE-1',
+        )
+
+    def test_privilege_purchase_message_handler_errors_correctly_malformed_message(self):
+        """
+        If a invalid event purchase event is passed into the privilege_purchase_message_handler, it should trigger a
+        handled error
+        """
+        self._run_privilege_purchase_message_handler()
+
+        # asertRaises
