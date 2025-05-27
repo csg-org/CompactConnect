@@ -628,6 +628,24 @@ class ProviderManagement:
             authorization_scopes=method_options.authorization_scopes,
         )
 
+        # Add PATCH method for lifting privilege encumbrances
+        self.encumbrance_privilege_resource.add_method(
+            'PATCH',
+            request_validator=self.api.parameter_body_validator,
+            request_models={'application/json': self.api_model.patch_privilege_encumbrance_request_model},
+            method_responses=[
+                MethodResponse(
+                    status_code='200',
+                    response_models={'application/json': self.api_model.message_response_model},
+                ),
+            ],
+            integration=LambdaIntegration(self.provider_encumbrance_handler, timeout=Duration.seconds(29)),
+            request_parameters={'method.request.header.Authorization': True},
+            authorization_type=method_options.authorization_type,
+            authorizer=method_options.authorizer,
+            authorization_scopes=method_options.authorization_scopes,
+        )
+
     def _add_encumber_license(
         self,
         method_options: MethodOptions,
@@ -639,6 +657,24 @@ class ProviderManagement:
             'POST',
             request_validator=self.api.parameter_body_validator,
             request_models={'application/json': self.api_model.post_license_encumbrance_request_model},
+            method_responses=[
+                MethodResponse(
+                    status_code='200',
+                    response_models={'application/json': self.api_model.message_response_model},
+                ),
+            ],
+            integration=LambdaIntegration(self.provider_encumbrance_handler, timeout=Duration.seconds(29)),
+            request_parameters={'method.request.header.Authorization': True},
+            authorization_type=method_options.authorization_type,
+            authorizer=method_options.authorizer,
+            authorization_scopes=method_options.authorization_scopes,
+        )
+
+        # Add PATCH method for lifting license encumbrances
+        self.encumbrance_license_resource.add_method(
+            'PATCH',
+            request_validator=self.api.parameter_body_validator,
+            request_models={'application/json': self.api_model.patch_license_encumbrance_request_model},
             method_responses=[
                 MethodResponse(
                     status_code='200',
