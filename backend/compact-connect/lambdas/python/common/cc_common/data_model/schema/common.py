@@ -223,6 +223,7 @@ class UpdateCategory(CCEnum):
     OTHER = 'other'
     RENEWAL = 'renewal'
     ENCUMBRANCE = 'encumbrance'
+    LIFTING_ENCUMBRANCE = 'lifting_encumbrance'
 
 
 class ActiveInactiveStatus(CCEnum):

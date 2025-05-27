@@ -33,6 +33,10 @@ def encumbrance_handler(event: dict, context: LambdaContext) -> dict:
             return handle_privilege_encumbrance(event)
         if event['httpMethod'] == 'POST' and event['resource'] == LICENSE_ENCUMBRANCE_ENDPOINT_RESOURCE:
             return handle_license_encumbrance(event)
+        if event['httpMethod'] == 'PATCH' and event['resource'] == PRIVILEGE_ENCUMBRANCE_ENDPOINT_RESOURCE:
+            return handle_privilege_encumbrance_lifting(event)
+        if event['httpMethod'] == 'PATCH' and event['resource'] == LICENSE_ENCUMBRANCE_ENDPOINT_RESOURCE:
+            return handle_license_encumbrance_lifting(event)
 
         raise CCInvalidRequestException('Invalid endpoint requested')
 
@@ -105,4 +109,21 @@ def handle_license_encumbrance(event: dict) -> dict:
     logger.info('Processing adverse action updates for license record')
     config.data_client.encumber_license(adverse_action)
 
+    return {'message': 'OK'}
+
+
+def handle_privilege_encumbrance_lifting(event: dict) -> dict:
+    """Handle lifting encumbrance from a privilege record"""
+    logger.info('Processing privilege encumbrance lifting')
+
+
+    # TODO: Implement privilege encumbrance lifting logic
+    return {'message': 'OK'}
+
+
+def handle_license_encumbrance_lifting(event: dict) -> dict:
+    """Handle lifting encumbrance from a license record"""
+    logger.info('Processing license encumbrance lifting')
+
+    # TODO: Implement license encumbrance lifting logic
     return {'message': 'OK'}
