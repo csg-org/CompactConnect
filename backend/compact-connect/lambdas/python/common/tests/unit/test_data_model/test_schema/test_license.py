@@ -50,12 +50,10 @@ class TestLicenseRecordSchema(TstLambdas):
         loaded_license = schema.load(expected_license.copy())
         # assert calculated status fields are added
         self.assertIn('licenseStatus', loaded_license)
-        self.assertIn('status', loaded_license)
         self.assertIn('compactEligibility', loaded_license)
 
         license_data = schema.dump(loaded_license)
         # assert that the calculated status fields were stripped from the data on dump
-        self.assertNotIn('status', license_data)
         self.assertNotIn('licenseStatus', license_data)
         self.assertNotIn('compactEligibility', license_data)
 
@@ -164,17 +162,6 @@ class TestLicenseRecordSchema(TstLambdas):
 
         self.assertEqual('inactive', license_data['licenseStatus'])
         self.assertEqual('ineligible', license_data['compactEligibility'])
-
-    def test_strips_status_during_serialization(self):
-        from cc_common.data_model.schema import LicenseRecordSchema
-
-        with open('tests/resources/dynamo/license.json') as f:
-            raw_license_data = json.load(f)
-
-        schema = LicenseRecordSchema()
-        license_data = schema.dump(schema.load(raw_license_data))
-
-        self.assertNotIn('status', license_data)
 
 
 class TestLicenseUpdateRecordSchema(TstLambdas):

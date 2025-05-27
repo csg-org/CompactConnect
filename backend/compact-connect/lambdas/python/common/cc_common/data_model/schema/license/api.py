@@ -149,8 +149,6 @@ class LicenseGeneralResponseSchema(ForgivingSchema):
     licenseType = String(required=True, allow_none=False)
     licenseStatusName = String(required=False, allow_none=False, validate=Length(1, 100))
     licenseStatus = ActiveInactive(required=True, allow_none=False)
-    # TODO: remove this once the UI is updated to use licenseStatus  # noqa: FIX002
-    status = ActiveInactive(required=True, allow_none=False)
     jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
     compactEligibility = CompactEligibility(required=True, allow_none=False)
     jurisdictionUploadedCompactEligibility = CompactEligibility(required=True, allow_none=False)
