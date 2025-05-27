@@ -441,6 +441,66 @@ class ApiModel:
         return self.api._v1_post_license_encumbrance_request_model
 
     @property
+    def patch_privilege_encumbrance_request_model(self) -> Model:
+        """Return the patch privilege encumbrance request model for lifting encumbrances, which should only be created once per API"""
+        if hasattr(self.api, '_v1_patch_privilege_encumbrance_request_model'):
+            return self.api._v1_patch_privilege_encumbrance_request_model
+        self.api._v1_patch_privilege_encumbrance_request_model = self.api.add_model(
+            'V1PatchPrivilegeEncumbranceRequestModel',
+            description='Patch privilege encumbrance request model for lifting encumbrances',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                additional_properties=False,
+                required=['effectiveLiftDate', 'encumbranceId'],
+                properties={
+                    'effectiveLiftDate': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='The effective date when the encumbrance will be lifted',
+                        format='date',
+                        pattern=cc_api.YMD_FORMAT,
+                    ),
+                    'encumbranceId': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='The unique identifier of the encumbrance to be lifted',
+                        max_length=100,
+                    ),
+                },
+            ),
+        )
+
+        return self.api._v1_patch_privilege_encumbrance_request_model
+
+    @property
+    def patch_license_encumbrance_request_model(self) -> Model:
+        """Return the patch license encumbrance request model for lifting encumbrances, which should only be created once per API"""
+        if hasattr(self.api, '_v1_patch_license_encumbrance_request_model'):
+            return self.api._v1_patch_license_encumbrance_request_model
+        self.api._v1_patch_license_encumbrance_request_model = self.api.add_model(
+            'V1PatchLicenseEncumbranceRequestModel',
+            description='Patch license encumbrance request model for lifting encumbrances',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                additional_properties=False,
+                required=['effectiveLiftDate', 'encumbranceId'],
+                properties={
+                    'effectiveLiftDate': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='The effective date when the encumbrance will be lifted',
+                        format='date',
+                        pattern=cc_api.YMD_FORMAT,
+                    ),
+                    'encumbranceId': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='The unique identifier of the encumbrance to be lifted',
+                        max_length=100,
+                    ),
+                },
+            ),
+        )
+
+        return self.api._v1_patch_license_encumbrance_request_model
+
+    @property
     def post_provider_user_military_affiliation_request_model(self) -> Model:
         """Return the post payment processor credentials request model, which should only be created once per API"""
         if hasattr(self.api, '_v1_post_provider_user_military_affiliation_request_model'):
