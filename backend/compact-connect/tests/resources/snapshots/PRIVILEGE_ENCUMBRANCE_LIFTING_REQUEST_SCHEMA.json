@@ -1,0 +1,22 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "effectiveLiftDate": {
+      "description": "The effective date when the encumbrance will be lifted",
+      "format": "date",
+      "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+      "type": "string"
+    },
+    "encumbranceId": {
+      "description": "The unique identifier of the encumbrance to be lifted",
+      "maxLength": 100,
+      "type": "string"
+    }
+  },
+  "required": [
+    "effectiveLiftDate",
+    "encumbranceId"
+  ],
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-04/schema#"
+}
