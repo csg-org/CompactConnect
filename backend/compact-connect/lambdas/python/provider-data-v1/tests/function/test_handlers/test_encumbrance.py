@@ -1,12 +1,14 @@
 import json
-from datetime import date, datetime
+from datetime import UTC, date, datetime, timedelta
 from unittest.mock import patch
 
 from boto3.dynamodb.conditions import Key
+from cc_common.exceptions import CCInternalException
 from common_test.test_constants import (
     DEFAULT_AA_SUBMITTING_USER_ID,
     DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
     DEFAULT_LICENSE_JURISDICTION,
+    DEFAULT_LICENSE_TYPE_ABBREVIATION,
     DEFAULT_PRIVILEGE_JURISDICTION,
 )
 from moto import mock_aws
@@ -417,3 +419,452 @@ class TestPostLicenseEncumbrance(TstFunction):
             {'message': 'Access denied'},
             response_body,
         )
+
+
+@mock_aws
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP))
+class TestPatchPrivilegeEncumbranceLifting(TstFunction):
+    """Test suite for privilege encumbrance lifting endpoints."""
+
+    def _setup_privilege_with_adverse_action(self, adverse_action_overrides=None, privilege_overrides=None):
+        """Helper method to set up a privilege with an adverse action for testing."""
+        self.test_data_generator.put_default_provider_record_in_provider_table(
+            value_overrides={'encumberedStatus': 'encumbered'}
+        )
+        test_privilege_record = self.test_data_generator.put_default_privilege_record_in_provider_table(
+            value_overrides=privilege_overrides or {'encumberedStatus': 'encumbered'}
+        )
+        test_adverse_action = self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+            value_overrides={
+                'actionAgainst': 'privilege',
+                'jurisdiction': test_privilege_record.jurisdiction,
+                'licenseType': test_privilege_record.licenseType,
+                **(adverse_action_overrides or {}),
+            }
+        )
+        return test_privilege_record, test_adverse_action
+
+    def _generate_lift_encumbrance_event(self, privilege_record, adverse_action, body_overrides=None):
+        """Helper method to generate a test event for lifting privilege encumbrance."""
+        body = {
+            'effectiveLiftDate': '2024-01-15',
+            'encumbranceId': str(adverse_action.adverseActionId),
+            **(body_overrides or {}),
+        }
+
+        return self.test_data_generator.generate_test_api_event(
+            sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
+            scope_override=f'openid email {privilege_record.jurisdiction}/aslp.admin',
+            value_overrides={
+                'httpMethod': 'PATCH',
+                'resource': PRIVILEGE_ENCUMBRANCE_ENDPOINT_RESOURCE,
+                'pathParameters': {
+                    'compact': privilege_record.compact,
+                    'providerId': str(privilege_record.providerId),
+                    'jurisdiction': privilege_record.jurisdiction,
+                    'licenseType': DEFAULT_LICENSE_TYPE_ABBREVIATION,
+                },
+                'body': json.dumps(body),
+            },
+        )
+
+    def test_should_raise_cc_invalid_exception_if_lift_date_in_future(self):
+        from handlers.encumbrance import encumbrance_handler
+
+        privilege_record, adverse_action = self._setup_privilege_with_adverse_action()
+
+        # Set lift date to future
+        future_date = (datetime.now(UTC) + timedelta(days=2)).strftime('%Y-%m-%d')
+        event = self._generate_lift_encumbrance_event(
+            privilege_record, adverse_action, body_overrides={'effectiveLiftDate': future_date}
+        )
+
+        response = encumbrance_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        response_body = json.loads(response['body'])
+        self.assertIn('future date', response_body['message'])
+
+    def test_should_raise_cc_invalid_exception_if_lift_date_is_invalid_date(self):
+        from handlers.encumbrance import encumbrance_handler
+
+        privilege_record, adverse_action = self._setup_privilege_with_adverse_action()
+
+        event = self._generate_lift_encumbrance_event(
+            privilege_record, adverse_action, body_overrides={'effectiveLiftDate': 'invalid-date'}
+        )
+
+        response = encumbrance_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        response_body = json.loads(response['body'])
+        self.assertIn('Invalid date format', response_body['message'])
+
+    def test_should_raise_cc_not_found_exception_if_adverse_action_not_found(self):
+        from handlers.encumbrance import encumbrance_handler
+
+        privilege_record, _ = self._setup_privilege_with_adverse_action()
+
+        # Use a non-existent adverse action ID
+        event = self._generate_lift_encumbrance_event(
+            privilege_record, type('MockAdverseAction', (), {'adverseActionId': 'non-existent-id'})()
+        )
+
+        response = encumbrance_handler(event, self.mock_context)
+        self.assertEqual(404, response['statusCode'])
+        response_body = json.loads(response['body'])
+        self.assertIn('Encumbrance record not found', response_body['message'])
+
+    def test_should_raise_cc_invalid_exception_if_adverse_action_is_already_lifted(self):
+        from handlers.encumbrance import encumbrance_handler
+
+        privilege_record, adverse_action = self._setup_privilege_with_adverse_action(
+            adverse_action_overrides={'effectiveLiftDate': date(2024, 1, 10)}
+        )
+
+        event = self._generate_lift_encumbrance_event(privilege_record, adverse_action)
+
+        response = encumbrance_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        response_body = json.loads(response['body'])
+        self.assertIn('already been lifted', response_body['message'])
+
+    def test_should_return_ok_message_if_successful(self):
+        from handlers.encumbrance import encumbrance_handler
+
+        privilege_record, adverse_action = self._setup_privilege_with_adverse_action()
+        event = self._generate_lift_encumbrance_event(privilege_record, adverse_action)
+
+        response = encumbrance_handler(event, self.mock_context)
+
+        self.assertEqual(200, response['statusCode'])
+        response_body = json.loads(response['body'])
+        self.assertEqual({'message': 'OK'}, response_body)
+
+    def test_should_raise_cc_internal_exception_if_privilege_record_not_found(self):
+        from handlers.encumbrance import encumbrance_handler
+
+        # Set up adverse action without corresponding privilege record
+        self.test_data_generator.put_default_provider_record_in_provider_table()
+        adverse_action = self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+            value_overrides={'actionAgainst': 'privilege'}
+        )
+
+        event = self.test_data_generator.generate_test_api_event(
+            sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
+            scope_override=f'openid email {adverse_action.jurisdiction}/aslp.admin',
+            value_overrides={
+                'httpMethod': 'PATCH',
+                'resource': PRIVILEGE_ENCUMBRANCE_ENDPOINT_RESOURCE,
+                'pathParameters': {
+                    'compact': adverse_action.compact,
+                    'providerId': str(adverse_action.providerId),
+                    'jurisdiction': adverse_action.jurisdiction,
+                    'licenseType': adverse_action.licenseTypeAbbreviation,
+                },
+                'body': json.dumps(
+                    {
+                        'effectiveLiftDate': '2024-01-15',
+                        'encumbranceId': str(adverse_action.adverseActionId),
+                    }
+                ),
+            },
+        )
+
+        with self.assertRaises(CCInternalException) as context:
+            encumbrance_handler(event, self.mock_context)
+
+        self.assertIn('Privilege record not found', str(context.exception))
+
+    def test_should_update_encumbrance_status_on_privilege_record_if_last_encumbrance_lifted(self):
+        from cc_common.data_model.schema.common import PrivilegeEncumberedStatusEnum
+        from handlers.encumbrance import encumbrance_handler
+
+        privilege_record, adverse_action = self._setup_privilege_with_adverse_action(
+            privilege_overrides={'encumberedStatus': 'encumbered'}
+        )
+        event = self._generate_lift_encumbrance_event(privilege_record, adverse_action)
+
+        response = encumbrance_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'])
+
+        # Verify privilege record is now unencumbered
+        provider_records = self.config.data_client.get_provider_user_records(
+            compact=privilege_record.compact, provider_id=str(privilege_record.providerId)
+        )
+
+        privilege_records = provider_records.get_privilege_records(
+            filter_condition=lambda p: (
+                p.jurisdiction == privilege_record.jurisdiction and p.licenseType == privilege_record.licenseType
+            )
+        )
+
+        self.assertEqual(1, len(privilege_records))
+        self.assertEqual(PrivilegeEncumberedStatusEnum.UNENCUMBERED, privilege_records[0].encumberedStatus)
+
+    def test_should_update_adverse_action_to_set_lifted_fields_when_privilege_encumbrance_is_lifted(self):
+        from handlers.encumbrance import encumbrance_handler
+
+        privilege_record, adverse_action = self._setup_privilege_with_adverse_action()
+        event = self._generate_lift_encumbrance_event(privilege_record, adverse_action)
+
+        response = encumbrance_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'])
+
+        # Verify adverse action has lift information
+        provider_records = self.config.data_client.get_provider_user_records(
+            compact=privilege_record.compact, provider_id=str(privilege_record.providerId)
+        )
+
+        adverse_actions = provider_records.get_adverse_action_records_for_privilege(
+            privilege_jurisdiction=privilege_record.jurisdiction,
+            privilege_license_type_abbreviation=adverse_action.licenseTypeAbbreviation,
+        )
+
+        self.assertEqual(1, len(adverse_actions))
+        lifted_adverse_action = adverse_actions[0]
+        self.assertEqual(date(2024, 1, 15), lifted_adverse_action.effectiveLiftDate)
+        self.assertEqual(DEFAULT_AA_SUBMITTING_USER_ID, str(lifted_adverse_action.liftingUser))
+
+    def test_should_update_provider_record_to_unencumbered_when_last_privilege_encumbrance_is_lifted(self):
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from cc_common.data_model.schema.common import LicenseEncumberedStatusEnum
+        from handlers.encumbrance import encumbrance_handler
+
+        privilege_record, adverse_action = self._setup_privilege_with_adverse_action(
+            privilege_overrides={'encumberedStatus': 'encumbered'}
+        )
+        event = self._generate_lift_encumbrance_event(privilege_record, adverse_action)
+
+        response = encumbrance_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'])
+
+        # Verify provider record is now unencumbered
+        provider_records: ProviderUserRecords = self.config.data_client.get_provider_user_records(
+            compact=privilege_record.compact, provider_id=str(privilege_record.providerId)
+        )
+
+        loaded_provider_data = provider_records.get_provider_record()
+        self.assertEqual(LicenseEncumberedStatusEnum.UNENCUMBERED, loaded_provider_data.encumberedStatus)
+
+
+@mock_aws
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP))
+class TestPatchLicenseEncumbranceLifting(TstFunction):
+    """Test suite for license encumbrance lifting endpoints."""
+
+    def _setup_license_with_adverse_action(self, adverse_action_overrides=None, license_overrides=None):
+        """Helper method to set up a license with an adverse action for testing."""
+        self.test_data_generator.put_default_provider_record_in_provider_table(
+            value_overrides={'encumberedStatus': 'encumbered'}
+        )
+        test_license_record = self.test_data_generator.put_default_license_record_in_provider_table(
+            value_overrides=license_overrides or {}
+        )
+        test_adverse_action = self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+            value_overrides={
+                'actionAgainst': 'license',
+                'jurisdiction': test_license_record.jurisdiction,
+                **(adverse_action_overrides or {}),
+            }
+        )
+        return test_license_record, test_adverse_action
+
+    def _generate_lift_encumbrance_event(self, license_record, adverse_action, body_overrides=None):
+        """Helper method to generate a test event for lifting license encumbrance."""
+        body = {
+            'effectiveLiftDate': '2024-01-15',
+            'encumbranceId': str(adverse_action.adverseActionId),
+            **(body_overrides or {}),
+        }
+
+        return self.test_data_generator.generate_test_api_event(
+            sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
+            scope_override=f'openid email {license_record.jurisdiction}/aslp.admin',
+            value_overrides={
+                'httpMethod': 'PATCH',
+                'resource': LICENSE_ENCUMBRANCE_ENDPOINT_RESOURCE,
+                'pathParameters': {
+                    'compact': license_record.compact,
+                    'providerId': str(license_record.providerId),
+                    'jurisdiction': license_record.jurisdiction,
+                    'licenseType': DEFAULT_LICENSE_TYPE_ABBREVIATION,
+                },
+                'body': json.dumps(body),
+            },
+        )
+
+    def test_should_raise_cc_invalid_exception_if_lift_date_in_future(self):
+        from handlers.encumbrance import encumbrance_handler
+
+        license_record, adverse_action = self._setup_license_with_adverse_action()
+
+        # Set lift date to future
+        future_date = (datetime.now(tz=UTC) + timedelta(days=2)).strftime('%Y-%m-%d')
+        event = self._generate_lift_encumbrance_event(
+            license_record, adverse_action, body_overrides={'effectiveLiftDate': future_date}
+        )
+
+        response = encumbrance_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        response_body = json.loads(response['body'])
+        self.assertIn('future date', response_body['message'])
+
+    def test_should_raise_cc_invalid_exception_if_lift_date_is_invalid_date(self):
+        from handlers.encumbrance import encumbrance_handler
+
+        license_record, adverse_action = self._setup_license_with_adverse_action()
+
+        event = self._generate_lift_encumbrance_event(
+            license_record, adverse_action, body_overrides={'effectiveLiftDate': 'invalid-date'}
+        )
+
+        response = encumbrance_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        response_body = json.loads(response['body'])
+        self.assertIn('Invalid date format', response_body['message'])
+
+    def test_should_raise_cc_not_found_exception_if_adverse_action_not_found(self):
+        from handlers.encumbrance import encumbrance_handler
+
+        license_record, _ = self._setup_license_with_adverse_action()
+
+        # Use a non-existent adverse action ID
+        event = self._generate_lift_encumbrance_event(
+            license_record, type('MockAdverseAction', (), {'adverseActionId': 'non-existent-id'})()
+        )
+
+        response = encumbrance_handler(event, self.mock_context)
+        self.assertEqual(404, response['statusCode'])
+        response_body = json.loads(response['body'])
+        self.assertIn('Encumbrance record not found', response_body['message'])
+
+    def test_should_raise_cc_invalid_exception_if_adverse_action_is_already_lifted(self):
+        from handlers.encumbrance import encumbrance_handler
+
+        license_record, adverse_action = self._setup_license_with_adverse_action(
+            adverse_action_overrides={'effectiveLiftDate': date(2024, 1, 10)}
+        )
+
+        event = self._generate_lift_encumbrance_event(license_record, adverse_action)
+
+        response = encumbrance_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        response_body = json.loads(response['body'])
+        self.assertIn('already been lifted', response_body['message'])
+
+    def test_should_return_ok_message_if_successful(self):
+        from handlers.encumbrance import encumbrance_handler
+
+        license_record, adverse_action = self._setup_license_with_adverse_action()
+        event = self._generate_lift_encumbrance_event(license_record, adverse_action)
+
+        response = encumbrance_handler(event, self.mock_context)
+
+        self.assertEqual(200, response['statusCode'])
+        response_body = json.loads(response['body'])
+        self.assertEqual({'message': 'OK'}, response_body)
+
+    def test_should_raise_cc_internal_exception_if_license_record_not_found(self):
+        from handlers.encumbrance import encumbrance_handler
+
+        # Set up adverse action without corresponding license record
+        self.test_data_generator.put_default_provider_record_in_provider_table()
+        adverse_action = self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+            value_overrides={'actionAgainst': 'license'}
+        )
+
+        event = self.test_data_generator.generate_test_api_event(
+            sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
+            scope_override=f'openid email {adverse_action.jurisdiction}/aslp.admin',
+            value_overrides={
+                'httpMethod': 'PATCH',
+                'resource': LICENSE_ENCUMBRANCE_ENDPOINT_RESOURCE,
+                'pathParameters': {
+                    'compact': adverse_action.compact,
+                    'providerId': str(adverse_action.providerId),
+                    'jurisdiction': adverse_action.jurisdiction,
+                    'licenseType': adverse_action.licenseTypeAbbreviation,
+                },
+                'body': json.dumps(
+                    {
+                        'effectiveLiftDate': '2024-01-15',
+                        'encumbranceId': str(adverse_action.adverseActionId),
+                    }
+                ),
+            },
+        )
+
+        with self.assertRaises(CCInternalException) as context:
+            encumbrance_handler(event, self.mock_context)
+
+        self.assertIn('License record not found', str(context.exception))
+
+    def test_should_update_encumbrance_status_on_license_record_if_last_encumbrance_lifted(self):
+        from cc_common.data_model.schema.common import LicenseEncumberedStatusEnum
+        from handlers.encumbrance import encumbrance_handler
+
+        license_record, adverse_action = self._setup_license_with_adverse_action(
+            license_overrides={'encumberedStatus': 'encumbered'}
+        )
+        event = self._generate_lift_encumbrance_event(license_record, adverse_action)
+
+        response = encumbrance_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'])
+
+        # Verify license record is now unencumbered
+        provider_records = self.config.data_client.get_provider_user_records(
+            compact=license_record.compact, provider_id=str(license_record.providerId)
+        )
+
+        license_records = provider_records.get_license_records(
+            filter_condition=lambda record: (
+                record.jurisdiction == license_record.jurisdiction and record.licenseType == license_record.licenseType
+            )
+        )
+
+        self.assertEqual(1, len(license_records))
+        self.assertEqual(LicenseEncumberedStatusEnum.UNENCUMBERED, license_records[0].encumberedStatus)
+
+    def test_should_update_adverse_action_to_set_lifted_fields_when_license_encumbrance_is_lifted(self):
+        from handlers.encumbrance import encumbrance_handler
+
+        license_record, adverse_action = self._setup_license_with_adverse_action()
+        event = self._generate_lift_encumbrance_event(license_record, adverse_action)
+
+        response = encumbrance_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'])
+
+        # Verify adverse action has lift information
+        provider_records = self.config.data_client.get_provider_user_records(
+            compact=license_record.compact, provider_id=str(license_record.providerId)
+        )
+
+        adverse_actions = provider_records.get_adverse_action_records_for_license(
+            license_jurisdiction=license_record.jurisdiction,
+            license_type_abbreviation=adverse_action.licenseTypeAbbreviation,
+        )
+
+        self.assertEqual(1, len(adverse_actions))
+        lifted_adverse_action = adverse_actions[0]
+        self.assertEqual(date(2024, 1, 15), lifted_adverse_action.effectiveLiftDate)
+        self.assertEqual(DEFAULT_AA_SUBMITTING_USER_ID, str(lifted_adverse_action.liftingUser))
+
+    def test_should_update_provider_record_to_unencumbered_when_last_license_encumbrance_is_lifted(self):
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from cc_common.data_model.schema.common import LicenseEncumberedStatusEnum
+        from handlers.encumbrance import encumbrance_handler
+
+        license_record, adverse_action = self._setup_license_with_adverse_action(
+            license_overrides={'encumberedStatus': 'encumbered'}
+        )
+        event = self._generate_lift_encumbrance_event(license_record, adverse_action)
+
+        response = encumbrance_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'])
+
+        # Verify provider record is now unencumbered
+        provider_records: ProviderUserRecords = self.config.data_client.get_provider_user_records(
+            compact=license_record.compact, provider_id=str(license_record.providerId)
+        )
+
+        loaded_provider_data = provider_records.get_provider_record()
+        self.assertEqual(LicenseEncumberedStatusEnum.UNENCUMBERED, loaded_provider_data.encumberedStatus)

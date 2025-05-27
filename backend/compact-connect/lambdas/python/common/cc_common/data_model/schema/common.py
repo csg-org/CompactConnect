@@ -248,6 +248,7 @@ class UpdateCategory(CCEnum):
     ENCUMBRANCE = 'encumbrance'
     HOME_JURISDICTION_CHANGE = 'homeJurisdictionChange'
     REGISTRATION = 'registration'
+    LIFTING_ENCUMBRANCE = 'lifting_encumbrance'
 
 
 class ActiveInactiveStatus(CCEnum):
