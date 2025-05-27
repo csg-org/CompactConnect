@@ -103,9 +103,19 @@ def _put_provider_home_jurisdiction(event: dict, context: LambdaContext):  # noq
         new_jurisdiction=selected_jurisdiction,
     )
 
-    config.data_client.update_provider_home_state_jurisdiction(
-        compact=compact, provider_id=provider_id, selected_jurisdiction=selected_jurisdiction
-    )
+    try:
+        config.data_client.update_provider_home_state_jurisdiction(
+            compact=compact, provider_id=provider_id, selected_jurisdiction=selected_jurisdiction
+        )
+    except CCInternalException as e:
+        logger.error(
+            'Failed to update provider home jurisdiction',
+            compact=compact,
+            provider_id=provider_id,
+            new_jurisdiction=selected_jurisdiction,
+            error=str(e),
+        )
+        raise
 
     return {'message': 'ok'}
 
