@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
@@ -116,29 +117,32 @@ def handle_privilege_encumbrance_lifting(event: dict) -> dict:
     """Handle lifting encumbrance from a privilege record"""
     # Get the cognito sub of the caller for tracing
     cognito_sub = _get_submitting_user_id(event)
-    
+
     with logger.append_context_keys(cognito_sub=cognito_sub):
         logger.info('Processing privilege encumbrance lifting')
-        
+
         # Extract path parameters
         compact = event['pathParameters']['compact']
         provider_id = event['pathParameters']['providerId']
         jurisdiction = event['pathParameters']['jurisdiction']
         license_type_abbreviation = event['pathParameters']['licenseType'].lower()
-        
+
         # Parse and validate request body
         body = json.loads(event['body'])
         effective_lift_date = body['effectiveLiftDate']
         encumbrance_id = body['encumbranceId']
-        
-        # Validate that the effective lift date is not in the future
-        from datetime import datetime
-        lift_date = datetime.fromisoformat(effective_lift_date).date()
+
+        # Validate date format and parse the effective lift date
+        try:
+            lift_date = datetime.fromisoformat(effective_lift_date).date()
+        except ValueError as e:
+            raise CCInvalidRequestException('Invalid date format. Expected ISO format (YYYY-MM-DD)') from e
+
         current_date = config.expiration_resolution_date
-        
+
         if lift_date > current_date:
             raise CCInvalidRequestException('The lift date must not be a future date')
-        
+
         # Call the data client method to lift the privilege encumbrance
         config.data_client.lift_privilege_encumbrance(
             compact=compact,
@@ -147,9 +151,9 @@ def handle_privilege_encumbrance_lifting(event: dict) -> dict:
             license_type_abbreviation=license_type_abbreviation,
             adverse_action_id=encumbrance_id,
             effective_lift_date=lift_date,
-            lifting_user=cognito_sub
+            lifting_user=cognito_sub,
         )
-        
+
         return {'message': 'OK'}
 
 
@@ -157,29 +161,32 @@ def handle_license_encumbrance_lifting(event: dict) -> dict:
     """Handle lifting encumbrance from a license record"""
     # Get the cognito sub of the caller for tracing
     cognito_sub = _get_submitting_user_id(event)
-    
+
     with logger.append_context_keys(cognito_sub=cognito_sub):
         logger.info('Processing license encumbrance lifting')
-        
+
         # Extract path parameters
         compact = event['pathParameters']['compact']
         provider_id = event['pathParameters']['providerId']
         jurisdiction = event['pathParameters']['jurisdiction']
         license_type_abbreviation = event['pathParameters']['licenseType'].lower()
-        
+
         # Parse and validate request body
         body = json.loads(event['body'])
         effective_lift_date = body['effectiveLiftDate']
         encumbrance_id = body['encumbranceId']
-        
-        # Validate that the effective lift date is not in the future
-        from datetime import datetime
-        lift_date = datetime.fromisoformat(effective_lift_date).date()
+
+        # Validate date format and parse the effective lift date
+        try:
+            lift_date = datetime.fromisoformat(effective_lift_date).date()
+        except ValueError as e:
+            raise CCInvalidRequestException('Invalid date format. Expected ISO format (YYYY-MM-DD)') from e
+
         current_date = config.expiration_resolution_date
-        
+
         if lift_date > current_date:
             raise CCInvalidRequestException('The lift date must not be a future date')
-        
+
         # Call the data client method to lift the license encumbrance
         config.data_client.lift_license_encumbrance(
             compact=compact,
@@ -188,7 +195,7 @@ def handle_license_encumbrance_lifting(event: dict) -> dict:
             license_type_abbreviation=license_type_abbreviation,
             adverse_action_id=encumbrance_id,
             effective_lift_date=lift_date,
-            lifting_user=cognito_sub
+            lifting_user=cognito_sub,
         )
-        
+
         return {'message': 'OK'}
