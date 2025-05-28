@@ -1,5 +1,7 @@
 import json
 
+from datetime import datetime
+
 from aws_lambda_powertools.metrics import MetricUnit
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger, metrics
@@ -132,11 +134,11 @@ def privilege_purchase_message_handler(message: dict):
     which will cause the SQS handler decorator to report the message as a failure
     and the message will be retried according to the queue's retry policy.
     """
-    total_cost = message['detail']['totalCost']
-    cost_line_items = message['detail']['costLineItems']
-    privileges = message['detail']['privileges']
-    provider_email = message['detail']['providerEmail']
-    transaction_date = message['detail']['transactionDate']
+    total_cost = message['Detail']['totalCost']
+    cost_line_items = message['Detail']['costLineItems']
+    privileges = message['Detail']['privileges']
+    provider_email = message['Detail']['providerEmail']
+    transaction_date_time = message['Detail']['eventTime']
 
     with logger.append_context_keys(provider_email=provider_email):
         logger.info('Processing privilege purchase notification')
@@ -145,9 +147,10 @@ def privilege_purchase_message_handler(message: dict):
 
         # Send notification to the jurisdiction
         try:
+            transaction_date = datetime.strptime(transaction_date_time, '%Y-%m-%dT%H:%M:%S+00:00')
             logger.info('Sending privilege purchase notification to provider', provider=provider_email)
             config.email_service_client.send_privilege_purchase_email(
-                transaction_date=transaction_date,
+                transaction_date=transaction_date.strftime('%Y-%m-%d'),
                 provider_email=provider_email,
                 privileges=privileges,
                 total_cost=total_cost,

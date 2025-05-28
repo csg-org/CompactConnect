@@ -266,11 +266,11 @@ class TestPostPurchasePrivileges(TstFunction):
         )
 
     @patch('handlers.privileges.PurchaseClient')
-    @patch('handlers.privileges.EventBatchWriter', autospec=True)
+    @patch('handlers.privileges.EventBusClient', autospec=True)
     def test_post_purchase_privileges_kicks_off_expected_events(
             self,
             mock_purchase_client_constructor,
-            mock_event_writer,
+            mock_event_bus,
     ):
         from handlers.privileges import post_purchase_privileges
 

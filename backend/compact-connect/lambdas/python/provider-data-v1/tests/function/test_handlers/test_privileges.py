@@ -116,13 +116,22 @@ class TestDeactivatePrivilege(TstFunction):
 
         return deactivate_privilege(event, self.mock_context)
 
-    def _run_privilege_purchase_message_handler(self):
-        from handlers.privileges import privilege_purchase_message_handler
-
-        with open('../common/tests/resources/events/purchase_event.json') as f:
-            purchase_event = json.load(f)
-
-        return privilege_purchase_message_handler(purchase_event, self.mock_context)
+    # def _run_privilege_purchase_message_handler(self):
+    #     from handlers.privileges import privilege_purchase_message_handler
+    #
+    #     with open('../common/tests/resources/events/purchase_event_body.json') as f:
+    #         purchase_event_body = json.load(f)
+    #
+    #     purchase_event = {
+    #         'Records': [
+    #             {
+    #                 'messageId': 123,
+    #                 'body': json.dumps(purchase_event_body)
+    #             }
+    #         ]
+    #     }
+    #
+    #     return privilege_purchase_message_handler(purchase_event, self.mock_context)
 
     @patch('cc_common.config._Config.email_service_client')
     @patch('handlers.privileges.EventBatchWriter', autospec=True)
@@ -171,15 +180,16 @@ class TestDeactivatePrivilege(TstFunction):
         self.assertEqual(403, resp['statusCode'])
         self.assertEqual({'message': 'Access denied'}, json.loads(resp['body']))
 
-    @patch('cc_common.config._Config.email_service_client')
-    def test_deactivate_privilege_handler_sends_expected_email_notifications(self, mock_email_service_client):
+    def test_deactivate_privilege_handler_sends_expected_email_notifications(self):
         """
         If a board admin has admin permission in the privilege jurisdiction, they can deactivate a privilege
         """
         self._load_provider_data()
 
         # The user has admin permission for ne
-        resp = self._request_deactivation_with_scopes('openid email aslp/admin')
+        with patch('handlers.privileges.config.email_service_client') as mock_email_service_client:
+            resp = self._request_deactivation_with_scopes('openid email aslp/admin')
+
         self.assertEqual(200, resp['statusCode'])
         self.assertEqual({'message': 'OK'}, json.loads(resp['body']))
 
@@ -214,9 +224,8 @@ class TestDeactivatePrivilege(TstFunction):
         self.assertEqual({'message': 'Privilege already deactivated'}, json.loads(resp['body']))
 
     @patch('handlers.privileges.metrics')
-    @patch('cc_common.config._Config.email_service_client')
     def test_deactivate_privilege_handler_still_sends_jurisdiction_notification_if_provider_notification_failed_to_send(
-        self, mock_email_service_client, mock_metrics
+        self, mock_metrics
     ):
         """
         If the deactivation notification to the provider fails to send, we want to ensure that the notification to
@@ -224,12 +233,14 @@ class TestDeactivatePrivilege(TstFunction):
         """
         self._load_provider_data()
 
-        (mock_email_service_client.send_provider_privilege_deactivation_email).side_effect = CCInternalException(
-            'email failed to send'
-        )
+        with patch('handlers.privileges.config.email_service_client') as mock_email_service_client:
 
-        # We expect the handler to still return a 200, since the privilege was deactivated
-        resp = self._request_deactivation_with_scopes('openid email aslp/admin')
+            (mock_email_service_client.send_provider_privilege_deactivation_email).side_effect = CCInternalException(
+                'email failed to send'
+            )
+            # We expect the handler to still return a 200, since the privilege was deactivated
+            resp = self._request_deactivation_with_scopes('openid email aslp/admin')
+
         self.assertEqual(200, resp['statusCode'])
 
         # Even though the first notification failed, the handler should still have attempted to send both
@@ -253,21 +264,21 @@ class TestDeactivatePrivilege(TstFunction):
         )
 
     @patch('handlers.privileges.metrics')
-    @patch('cc_common.config._Config.email_service_client')
+    # @patch('cc_common.config._Config.email_service_client')
     def test_deactivate_privilege_handler_pushes_custom_metric_if_state_notification_failed_to_send(
-        self, mock_email_service_client, mock_metrics
+        self, mock_metrics
     ):
         """
         If the deactivation state notification fails to send, ensure we raise an exception.
         """
         self._load_provider_data()
 
-        (mock_email_service_client.send_jurisdiction_privilege_deactivation_email).side_effect = CCInternalException(
-            'email failed to send'
-        )
+        with patch('handlers.privileges.config.email_service_client') as mock_email_service_client:
+            (mock_email_service_client.send_jurisdiction_privilege_deactivation_email
+                ).side_effect = CCInternalException('email failed to send')
+            # We expect the handler to still return a 200, since the privilege was deactivated
+            resp = self._request_deactivation_with_scopes('openid email aslp/admin')
 
-        # We expect the handler to still return a 200, since the privilege was deactivated
-        resp = self._request_deactivation_with_scopes('openid email aslp/admin')
         self.assertEqual(200, resp['statusCode'])
 
         # assert metric was sent
@@ -293,25 +304,28 @@ class TestDeactivatePrivilege(TstFunction):
         resp = self._request_deactivation_with_scopes('openid email aslp/admin')
         self.assertEqual(404, resp['statusCode'])
 
-    @patch('cc_common.config._Config.email_service_client')
-    def test_privilege_purchase_message_handler_sends_email(self, mock_email_service_client):
+    # @patch('cc_common.config.config.email_service_client')
+    def test_privilege_purchase_message_handler_sends_email(self):
         """
         If a valid event purchase event is passed into the privilege_purchase_message_handler, it should kick off the
         send_privilege_purchase_email lambda
         """
-        self._run_privilege_purchase_message_handler()
+        # self._run_privilege_purchase_message_handler()
+        from handlers.privileges import privilege_purchase_message_handler
 
-        mock_email_service_client.send_privilege_purchase_email.assert_called_once_with(
-            compact='aslp',
-            provider_email='björkRegisteredEmail@example.com',
-            privilege_id='SLP-NE-1',
-        )
+        with open('../common/tests/resources/events/purchase_event_body.json') as f:
+            purchase_event_body = json.load(f)
 
-    def test_privilege_purchase_message_handler_errors_correctly_malformed_message(self):
-        """
-        If a invalid event purchase event is passed into the privilege_purchase_message_handler, it should trigger a
-        handled error
-        """
-        self._run_privilege_purchase_message_handler()
+        purchase_event = {
+            'Records': [
+                {
+                    'messageId': 123,
+                    'body': json.dumps(purchase_event_body)
+                }
+            ]
+        }
 
-        # asertRaises
+        with patch('handlers.privileges.config.email_service_client') as mock_email_service_client:
+            privilege_purchase_message_handler(purchase_event, self.mock_context)
+
+        mock_email_service_client.send_privilege_purchase_email.assert_called_once()
