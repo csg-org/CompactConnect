@@ -326,16 +326,19 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             cost_line_items=cost_line_items,
         )
 
-        privileges_renewed = []
-        privileges_issued = []
+        privilege_jurisdictions_renewed = []
+        privilege_jurisdictions_issued = []
+        existing_privilege_jurisdictions = [
+            existing_privilege['jurisdiction'] for existing_privilege in existing_privileges_for_license
+        ]
 
         for jurisdiction in selected_jurisdictions_postal_abbreviations:
-            if jurisdiction in existing_privileges_for_license:
-                privileges_renewed.append(jurisdiction)
+            if jurisdiction in existing_privilege_jurisdictions:
+                privilege_jurisdictions_renewed.append(jurisdiction)
             else:
-                privileges_issued.append(jurisdiction)
+                privilege_jurisdictions_issued.append(jurisdiction)
 
-        for privilege_jurisdiction_issued in privileges_issued:
+        for privilege_jurisdiction_issued in privilege_jurisdictions_issued:
             config.event_bus_client.publish_privilege_issued_event(
                 source='post_purchase_privileges',
                 jurisdiction=privilege_jurisdiction_issued,
@@ -343,7 +346,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
                 provider_email=provider_email,
             )
 
-        for privilege_jurisdiction_renewed in privileges_renewed:
+        for privilege_jurisdiction_renewed in privilege_jurisdictions_renewed:
             config.event_bus_client.publish_privilege_renewed_event(
                 source='post_purchase_privileges',
                 jurisdiction=privilege_jurisdiction_renewed,

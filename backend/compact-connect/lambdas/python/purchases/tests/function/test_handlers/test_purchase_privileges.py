@@ -300,6 +300,71 @@ class TestPostPurchasePrivileges(TstFunction):
         )
 
     @patch('handlers.privileges.PurchaseClient')
+    @patch('handlers.privileges.config.event_bus_client', autospec=True)
+    def test_post_purchase_privileges_kicks_off_privilege_issued_event(
+        self,
+        mock_event_bus,
+        mock_purchase_client_constructor,
+    ):
+        from handlers.privileges import post_purchase_privileges
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+
+        event = self._when_testing_provider_user_event_with_custom_claims()
+        event['body'] = _generate_test_request_body()
+
+        post_purchase_privileges(event, self.mock_context)
+        mock_event_bus.publish_privilege_issued_event.assert_called_once_with(
+            source='post_purchase_privileges',
+            jurisdiction='ky',
+            compact='aslp',
+            provider_email='björkRegisteredEmail@example.com',
+        )
+
+    @patch('handlers.privileges.PurchaseClient')
+    @patch('handlers.privileges.config.event_bus_client', autospec=True)
+    def test_post_purchase_privileges_kicks_off_privilege_renewed_event(
+        self,
+        mock_event_bus,
+        mock_purchase_client_constructor,
+    ):
+        from handlers.privileges import post_purchase_privileges
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+
+        event = self._when_testing_provider_user_event_with_custom_claims()
+        event['body'] = _generate_test_request_body()
+
+        test_expiration_date = date(2026, 10, 8).isoformat()
+        event = self._when_testing_provider_user_event_with_custom_claims(license_expiration_date=test_expiration_date)
+        event['body'] = _generate_test_request_body()
+        test_issuance_date = datetime(2023, 10, 8, hour=5, tzinfo=UTC).isoformat()
+
+        # create an existing privilege record for the kentucky jurisdiction, simulating a previous purchase
+        with open('../common/tests/resources/dynamo/privilege.json') as f:
+            privilege_record = json.load(f)
+            privilege_record['pk'] = f'{TEST_COMPACT}#PROVIDER#{TEST_PROVIDER_ID}'
+            privilege_record['sk'] = f'{TEST_COMPACT}#PROVIDER#privilege/ky/slp#'
+            # in this case, the user is purchasing the privilege for the first time
+            # so the date of renewal is the same as the date of issuance
+            privilege_record['dateOfRenewal'] = test_issuance_date
+            privilege_record['dateOfIssuance'] = test_issuance_date
+            privilege_record['dateOfExpiration'] = test_expiration_date
+            privilege_record['compact'] = TEST_COMPACT
+            privilege_record['jurisdiction'] = 'ky'
+            privilege_record['providerId'] = TEST_PROVIDER_ID
+            privilege_record['administratorSetStatus'] = 'inactive'
+            self.config.provider_table.put_item(Item=privilege_record)
+
+        post_purchase_privileges(event, self.mock_context)
+        mock_event_bus.publish_privilege_renewed_event.assert_called_once_with(
+            source='post_purchase_privileges',
+            jurisdiction='ky',
+            compact='aslp',
+            provider_email='björkRegisteredEmail@example.com',
+        )
+
+    @patch('handlers.privileges.PurchaseClient')
     def test_post_purchase_privileges_returns_error_message_if_transaction_failure(
         self, mock_purchase_client_constructor
     ):
