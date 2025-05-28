@@ -2,10 +2,14 @@ from collections.abc import Callable, Iterable
 from enum import StrEnum
 
 from cc_common.config import logger
+from cc_common.data_model.schema.adverse_action import AdverseActionData
 from cc_common.data_model.schema.common import ActiveInactiveStatus, AdverseActionAgainstEnum, CompactEligibilityStatus
+from cc_common.data_model.schema.license import LicenseData
 from cc_common.data_model.schema.license.api import LicenseUpdatePreviousResponseSchema
 from cc_common.data_model.schema.military_affiliation.common import MilitaryAffiliationStatus
+from cc_common.data_model.schema.privilege import PrivilegeData
 from cc_common.data_model.schema.privilege.api import PrivilegeUpdatePreviousGeneralResponseSchema
+from cc_common.data_model.schema.provider import ProviderData
 from cc_common.data_model.schema.provider.record import ProviderRecordSchema
 from cc_common.exceptions import CCInternalException, CCInvalidRequestException
 
@@ -238,3 +242,170 @@ class ProviderRecordUtility:
             )
 
         return latest_military_affiliation['status'] == MilitaryAffiliationStatus.ACTIVE
+
+class ProviderUserRecords:
+    """
+    A collection of provider records for a single provider.
+    This class is used to get all records for a single provider and provide utilities for getting specific records
+    """
+
+    def __init__(self, provider_records: Iterable[dict]):
+        # list of all records for this provider in dict format, which can be used for parts of the system that
+        # have not been updated to use the data class pattern
+        self.provider_records = provider_records
+
+    def get_privilege_records(
+        self,
+        filter_condition: Callable[[PrivilegeData], bool] | None = None,
+    ) -> list[PrivilegeData]:
+        """
+        Get all privilege records from a list of provider records.
+        :param filter_condition: An optional filter to apply to the privilege records
+        """
+        return [
+            PrivilegeData.from_database_record(record)
+            for record in ProviderRecordUtility.get_records_of_type(self.provider_records, ProviderRecordType.PRIVILEGE)
+            if (filter_condition is None or filter_condition(PrivilegeData.from_database_record(record)))
+        ]
+
+    def get_license_records(
+        self,
+        filter_condition: Callable[[LicenseData], bool] | None = None,
+    ) -> list[LicenseData]:
+        """
+        Get all license records from a list of provider records.
+        """
+        return [
+            LicenseData.from_database_record(record)
+            for record in ProviderRecordUtility.get_records_of_type(self.provider_records, ProviderRecordType.LICENSE)
+            if (filter_condition is None or filter_condition(LicenseData.from_database_record(record)))
+        ]
+
+    def get_adverse_action_records_for_license(
+        self,
+        license_jurisdiction: str,
+        license_type_abbreviation: str,
+        filter_condition: Callable[[AdverseActionData], bool] | None = None,
+    ) -> list[AdverseActionData]:
+        """
+        Get all adverse action records for a given license.
+        """
+        return [
+            AdverseActionData.from_database_record(record)
+            for record in ProviderRecordUtility.get_records_of_type(self.provider_records, ProviderRecordType.ADVERSE_ACTION)
+            if record['actionAgainst'] == AdverseActionAgainstEnum.LICENSE
+            and record['jurisdiction'] == license_jurisdiction
+            and record['licenseTypeAbbreviation'] == license_type_abbreviation
+            and (filter_condition is None or filter_condition(AdverseActionData.from_database_record(record)))
+        ]
+
+    def get_adverse_action_records_for_privilege(
+        self,
+        privilege_jurisdiction: str,
+        privilege_license_type_abbreviation: str,
+        filter_condition: Callable[[AdverseActionData], bool] | None = None,
+    ) -> list[AdverseActionData]:
+        """
+        Get all adverse action records for a given privilege.
+        """
+        return [
+            AdverseActionData.from_database_record(record)
+            for record in ProviderRecordUtility.get_records_of_type(self.provider_records, ProviderRecordType.ADVERSE_ACTION)
+            if record['actionAgainst'] == AdverseActionAgainstEnum.PRIVILEGE
+            and record['jurisdiction'] == privilege_jurisdiction
+            and record['licenseTypeAbbreviation'] == privilege_license_type_abbreviation
+            and (filter_condition is None or filter_condition(AdverseActionData.from_database_record(record)))
+        ]
+
+    def get_provider_record(self) -> ProviderData:
+        """
+        Get the provider record from a list of provider records.
+        """
+        provider_user_records = [
+            ProviderData.from_database_record(record)
+            for record in ProviderRecordUtility.get_records_of_type(self.provider_records, ProviderRecordType.PROVIDER)
+        ]
+        if len(provider_user_records) > 1:
+            logger.error('Multiple provider records found', provider_id=provider_user_records[0].providerId)
+            raise CCInternalException('Multiple top-level provider records found for user.')
+        return provider_user_records[0]
+
+    def find_best_license_in_current_known_licenses(self, jurisdiction: str | None = None) -> LicenseData:
+        """
+        Find the best license from this provider's known licenses.
+        Strategy:
+        1. If jurisdiction is selected, only consider licenses from that jurisdiction. Else check licenses in current
+        home jurisdiction.
+        2. Select the most recently issued compact-eligible license if any exist
+        3. Otherwise, select the most recently issued active license if any exist
+        4. Otherwise, select the most recently issued license regardless of status
+        :param jurisdiction: Optional jurisdiction filter
+        :return: The best license record
+        """
+        if jurisdiction:
+            license_records = self.get_license_records(
+                filter_condition=lambda license_data: license_data.jurisdiction == jurisdiction
+            )
+        else:
+            # if jurisdiction is not provided, we filter by the user's current home jurisdiction
+            current_home_jurisdiction_license_records = self.get_license_records(
+                filter_condition=lambda license_data: license_data.jurisdiction
+                == self.get_provider_record().currentHomeJurisdiction
+            )
+            # if there are no licenses for their current home jurisdiction, we will search through all licenses
+            license_records = (
+                current_home_jurisdiction_license_records
+                if current_home_jurisdiction_license_records
+                else self.get_license_records()
+            )
+
+        # Last issued compact-eligible license, if there are any compact-eligible licenses
+        latest_compact_eligible_licenses = sorted(
+            [
+                license_record
+                for license_record in license_records
+                if license_record.compactEligibility == CompactEligibilityStatus.ELIGIBLE
+            ],
+            key=lambda x: x.dateOfIssuance.isoformat(),
+            reverse=True,
+        )
+        if latest_compact_eligible_licenses:
+            return latest_compact_eligible_licenses[0]
+
+        # Last issued active license, if there are any active licenses
+        latest_active_licenses = sorted(
+            [
+                license_record
+                for license_record in license_records
+                if license_record.licenseStatus == ActiveInactiveStatus.ACTIVE
+            ],
+            key=lambda x: x.dateOfIssuance.isoformat(),
+            reverse=True,
+        )
+        if latest_active_licenses:
+            return latest_active_licenses[0]
+
+        # Last issued inactive license, otherwise
+        latest_licenses = sorted(license_records, key=lambda x: x.dateOfIssuance.isoformat(), reverse=True)
+        if not latest_licenses:
+            raise CCInternalException('No licenses found')
+
+        return latest_licenses[0]
+
+    def get_latest_military_affiliation_status(self) -> MilitaryAffiliationStatus | None:
+        """
+        Determine the provider's latest military affiliation status if present.
+        :return: The military affiliation status of the provider if present, else None
+        """
+        military_affiliation_records = [
+            record for record in self.provider_records if record['type'] == 'militaryAffiliation'
+        ]
+        if not military_affiliation_records:
+            return None
+
+        # we only need to check the most recent military affiliation record
+        latest_military_affiliation = sorted(
+            military_affiliation_records, key=lambda x: x['dateOfUpload'], reverse=True
+        )[0]
+
+        return latest_military_affiliation['status']
