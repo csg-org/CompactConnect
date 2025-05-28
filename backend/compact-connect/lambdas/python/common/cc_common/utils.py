@@ -533,7 +533,9 @@ def collect_and_authorize_changes(*, path_compact: str, scopes: set, compact_cha
             )
 
         # verify that the jurisdiction is in the list of active jurisdictions for the compact
-        active_jurisdictions = config.compact_configuration_client.get_compact_jurisdictions(compact=path_compact)
+        active_jurisdictions = config.compact_configuration_client.get_active_compact_jurisdictions(
+            compact=path_compact
+        )
         active_jurisdictions_postal_abbreviations = [
             jurisdiction['postalAbbreviation'].lower() for jurisdiction in active_jurisdictions
         ]

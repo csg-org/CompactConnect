@@ -9,15 +9,7 @@ from .. import TstFunction
 class TestPatchUser(TstFunction):
     def _when_testing_with_valid_jurisdiction(self, compact: str):
         # load oh jurisdiction for provided compact to pass the jurisdiction validation
-        self._load_test_jurisdiction(
-            jurisdiction_overrides={
-                'pk': f'{compact}#CONFIGURATION',
-                'sk': f'{compact}#JURISDICTION#oh',
-                'jurisdictionName': 'Ohio',
-                'postalAbbreviation': 'oh',
-                'compact': compact,
-            }
-        )
+        self._load_compact_active_member_jurisdictions(compact)
 
     def test_patch_user(self):
         self._load_user_data()
@@ -295,6 +287,7 @@ class TestPatchUser(TstFunction):
 
     def test_patch_user_returns_400_if_invalid_jurisdiction(self):
         self._load_user_data()
+        self._load_compact_active_member_jurisdictions(compact='aslp')
 
         from handlers.users import patch_user
 

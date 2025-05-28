@@ -1,11 +1,11 @@
 # ruff: noqa: N801, N815, ARG002 invalid-name unused-kwargs
 from marshmallow import pre_dump
-from marshmallow.fields import List, Nested, String
+from marshmallow.fields import Boolean, List, Nested, String
 from marshmallow.validate import Length, OneOf
 
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import BaseRecordSchema
-from cc_common.data_model.schema.compact import (
+from cc_common.data_model.schema.compact.common import (
     COMPACT_TYPE,
     CompactCommissionFeeSchema,
     TransactionFeeConfigurationSchema,
@@ -22,6 +22,8 @@ class CompactRecordSchema(BaseRecordSchema):
     compactAbbr = String(required=True, allow_none=False, validate=OneOf(config.compacts))
     compactName = String(required=True, allow_none=False)
     compactCommissionFee = Nested(CompactCommissionFeeSchema(), required=True, allow_none=False)
+    # Optional field for compacts that want to charge a transaction fee
+    # If the transaction fee is set to 0 by the client, the transactionFeeConfiguration object is removed
     transactionFeeConfiguration = Nested(TransactionFeeConfigurationSchema(), required=False, allow_none=False)
     compactOperationsTeamEmails = List(String(required=True, allow_none=False), required=True, allow_none=False)
     compactAdverseActionsNotificationEmails = List(
@@ -34,11 +36,7 @@ class CompactRecordSchema(BaseRecordSchema):
         required=True,
         allow_none=False,
     )
-    licenseeRegistrationEnabledForEnvironments = List(
-        String(required=True, allow_none=False, validate=OneOf(['test', 'prod', config.environment_name])),
-        required=True,
-        allow_none=False,
-    )
+    licenseeRegistrationEnabled = Boolean(required=True, allow_none=False)
 
     # Generated fields
     pk = String(required=True, allow_none=False)

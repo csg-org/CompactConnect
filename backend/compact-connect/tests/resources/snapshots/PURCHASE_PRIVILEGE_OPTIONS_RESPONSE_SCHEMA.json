@@ -105,6 +105,18 @@
                     },
                     "amount": {
                       "type": "number"
+                    },
+                    "militaryRate": {
+                      "description": "Optional military rate for the privilege fee.",
+                      "oneOf": [
+                        {
+                          "minimum": 0,
+                          "type": "number"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     }
                   },
                   "required": [
@@ -115,36 +127,22 @@
                 },
                 "type": "array"
               },
-              "militaryDiscount": {
-                "properties": {
-                  "active": {
-                    "description": "Whether the military discount is active",
-                    "type": "boolean"
-                  },
-                  "discountType": {
-                    "description": "The type of discount",
-                    "enum": [
-                      "FLAT_RATE"
-                    ],
-                    "type": "string"
-                  },
-                  "discountAmount": {
-                    "description": "The amount of the discount",
-                    "type": "number"
-                  }
-                },
-                "required": [
-                  "active",
-                  "discountType",
-                  "discountAmount"
-                ],
-                "type": "object"
-              },
               "jurisprudenceRequirements": {
                 "properties": {
                   "required": {
                     "description": "Whether jurisprudence requirements exist",
                     "type": "boolean"
+                  },
+                  "linkToDocumentation": {
+                    "description": "Optional link to jurisprudence documentation",
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   }
                 },
                 "required": [
