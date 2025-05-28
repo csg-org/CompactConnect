@@ -243,6 +243,7 @@ class ProviderRecordUtility:
 
         return latest_military_affiliation['status'] == MilitaryAffiliationStatus.ACTIVE
 
+
 class ProviderUserRecords:
     """
     A collection of provider records for a single provider.
@@ -292,7 +293,9 @@ class ProviderUserRecords:
         """
         return [
             AdverseActionData.from_database_record(record)
-            for record in ProviderRecordUtility.get_records_of_type(self.provider_records, ProviderRecordType.ADVERSE_ACTION)
+            for record in ProviderRecordUtility.get_records_of_type(
+                self.provider_records, ProviderRecordType.ADVERSE_ACTION
+            )
             if record['actionAgainst'] == AdverseActionAgainstEnum.LICENSE
             and record['jurisdiction'] == license_jurisdiction
             and record['licenseTypeAbbreviation'] == license_type_abbreviation
@@ -310,7 +313,9 @@ class ProviderUserRecords:
         """
         return [
             AdverseActionData.from_database_record(record)
-            for record in ProviderRecordUtility.get_records_of_type(self.provider_records, ProviderRecordType.ADVERSE_ACTION)
+            for record in ProviderRecordUtility.get_records_of_type(
+                self.provider_records, ProviderRecordType.ADVERSE_ACTION
+            )
             if record['actionAgainst'] == AdverseActionAgainstEnum.PRIVILEGE
             and record['jurisdiction'] == privilege_jurisdiction
             and record['licenseTypeAbbreviation'] == privilege_license_type_abbreviation
