@@ -509,13 +509,13 @@ describe('EmailNotificationServiceLambda', () => {
                         licenseTypeAbbrev: 'OTA'
                     }
                 ],
-                totalCost: 45.00,
+                totalCost: '45.0',
                 costLineItems: [
                     {
-                        name: 'OH OTA fee', quantity: 2, unitPrice: 45
+                        name: 'OH OTA fee', quantity: '2', unitPrice: '45'
                     },
                     {
-                        name: 'cc fees', quantity: 1, unitPrice: 3.5
+                        name: 'cc fees', quantity: '1', unitPrice: '3.5'
                     }
                 ]
             }

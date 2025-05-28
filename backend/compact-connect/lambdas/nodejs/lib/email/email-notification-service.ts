@@ -281,7 +281,7 @@ export class EmailNotificationService extends BaseEmailService {
             licenseTypeAbbrev: string,
             privilegeId: string
         }[], 
-        totalCost: number,
+        totalCost: string,
         costLineItems: {
                 name: string,
                 quantity: string,
@@ -324,7 +324,7 @@ export class EmailNotificationService extends BaseEmailService {
             return { left, right };
         });
 
-        const totalCostDisplay = `$${totalCost.toFixed(2)}`;
+        const totalCostDisplay = `$${Number(totalCost).toFixed(2)}`;
 
         this.insertTwoColumnTable(emailContent, 'Cost breakdown', rows);
 
