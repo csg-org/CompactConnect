@@ -30,7 +30,7 @@ TEST_EMAIL = 'testRegisteredEmail@example.com'
 TEST_COGNITO_SUB = '1234567890'
 
 TEST_LICENSE_TYPE = 'speech-language pathologist'
-MOCK_LINE_ITEMS = [{'name': 'Alaska Big Fee', 'quantity': '47', 'unitPrice': '55.5', 'description': 'Fee for Alaska'}]
+MOCK_LINE_ITEMS = [{'name': 'Alaska Big Fee', 'quantity': '1', 'unitPrice': '55.5', 'description': 'Fee for Alaska'}]
 
 
 def generate_default_attestation_list():
@@ -269,8 +269,8 @@ class TestPostPurchasePrivileges(TstFunction):
     @patch('handlers.privileges.config.event_bus_client', autospec=True)
     def test_post_purchase_privileges_kicks_off_privilege_purchase_event(
             self,
-            mock_purchase_client_constructor,
             mock_event_bus,
+            mock_purchase_client_constructor,
     ):
         from handlers.privileges import post_purchase_privileges
 
@@ -282,11 +282,12 @@ class TestPostPurchasePrivileges(TstFunction):
         post_purchase_privileges(event, self.mock_context)
         mock_event_bus.publish_privilege_purchase_event.assert_called_once_with(
             source='post_purchase_privileges',
-            jurisdiction='license_jurisdiction',
-            compact='compact_abbr',
-            provider_email='provider_email',
-            privileges='privileges',
-            total_cost='45',
+            jurisdiction='oh',
+            compact='aslp',
+            provider_email='björkRegisteredEmail@example.com',
+            privileges=[{'compact': 'aslp', 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
+                         'jurisdiction': 'ky', 'licenseTypeAbbrev': 'slp', 'privilegeId': 'SLP-KY-1'}],
+            total_cost='55.5',
             cost_line_items=MOCK_LINE_ITEMS,
         )
 

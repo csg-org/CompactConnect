@@ -306,7 +306,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             attestations=body['attestations'],
         )
 
-        provider_email = provider_record['emailAddress']
+        provider_email = provider_record['compactConnectRegisteredEmailAddress']
 
         privileges = generated_privileges
         cost_line_items = transaction_response['lineItems']
