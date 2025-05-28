@@ -196,11 +196,23 @@ class TestDataClient(TstFunction):
             response,
             [
                 {
+                    'administratorSetStatus': 'active',
+                    'attestations': [{'attestationId': 'jurisprudence-confirmation', 'version': '1'}],
                     'compact': 'aslp',
+                    'compactTransactionId': 'test_transaction_id',
+                    'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#test_transaction_id#',
+                    'dateOfIssuance': datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
+                    'dateOfRenewal': datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
+                    'dateOfExpiration': date.fromisoformat('2024-10-31'),
+                    'dateOfUpdate': datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
                     'jurisdiction': 'ca',
-                    'licenseTypeAbbrev': 'aud',
+                    'licenseJurisdiction': 'oh',
+                    'licenseType': 'audiologist',
+                    'pk': 'aslp#PROVIDER#test_provider_id',
                     'privilegeId': 'AUD-CA-124',
                     'providerId': 'test_provider_id',
+                    'sk': 'aslp#PROVIDER#privilege/ca/aud#',
+                    'type': 'privilege',
                 }
             ],
         )

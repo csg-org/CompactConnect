@@ -306,9 +306,22 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             attestations=body['attestations'],
         )
 
+        # Filtering the params to a subset that is actually needed
+        filtered_privileges = [
+            {
+                'compact': p['compact'],
+                'providerId': p['providerId'],
+                'jurisdiction': p['jurisdiction'],
+                'licenseTypeAbbrev': config.license_type_abbreviations[compact_abbr][
+                    matching_license_record['licenseType']
+                ],
+                'privilegeId': p['privilegeId'],
+            }
+            for p in generated_privileges
+        ]
+
         provider_email = provider_record['compactConnectRegisteredEmailAddress']
 
-        privileges = generated_privileges
         cost_line_items = transaction_response['lineItems']
 
         # calculate total cost of transaction
@@ -321,7 +334,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             jurisdiction=license_jurisdiction,
             compact=compact_abbr,
             provider_email=provider_email,
-            privileges=privileges,
+            privileges=filtered_privileges,
             total_cost=str(total_cost),
             cost_line_items=cost_line_items,
         )
