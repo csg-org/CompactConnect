@@ -112,18 +112,20 @@ export default class CompactSettings extends Vue {
     }
 
     routeToStateConfig(abbrev: string, isRouteReplace = false): void {
-        const routeConfig = {
-            name: 'StateSettings',
-            params: {
-                compact: this.currentCompact?.type,
-                state: abbrev,
-            },
-        };
+        if (this.currentCompact?.type) {
+            const routeConfig = {
+                name: 'StateSettings',
+                params: {
+                    compact: this.currentCompact?.type,
+                    state: abbrev,
+                },
+            };
 
-        if (isRouteReplace) {
-            this.$router.replace(routeConfig);
-        } else {
-            this.$router.push(routeConfig);
+            if (isRouteReplace) {
+                this.$router.replace(routeConfig);
+            } else {
+                this.$router.push(routeConfig);
+            }
         }
     }
 
