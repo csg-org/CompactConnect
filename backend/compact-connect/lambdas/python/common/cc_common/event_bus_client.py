@@ -60,7 +60,7 @@ class EventBusClient:
             'privileges': privileges,
             'totalCost': total_cost,
             'costLineItems': cost_line_items,
-            'eventTime': config.current_standard_datetime.isoformat()
+            'eventTime': config.current_standard_datetime.isoformat(),
         }
 
         privilege_purchase_detail_schema = PrivilegePurchaseDetailSchema()

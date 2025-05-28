@@ -1,5 +1,5 @@
 import json
-from datetime import UTC, date, datetime
+from datetime import date
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger

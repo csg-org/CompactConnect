@@ -232,9 +232,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         self.assertEqual(MOCK_TRANSACTION_ID, response['transactionId'])
 
     @patch('purchase_client.createTransactionController')
-    def test_purchase_client_returns_expected_line_items_in_response(
-        self, mock_create_transaction_controller
-    ):
+    def test_purchase_client_returns_expected_line_items_in_response(self, mock_create_transaction_controller):
         from purchase_client import PurchaseClient
 
         mock_secrets_manager_client = self._generate_mock_secrets_manager_client()
@@ -258,7 +256,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         # first line item is the jurisdiction fee
         self.assertEqual(
             (response['lineItems']),
-    [
+            [
                 {
                     'itemId': 'priv:aslp-oh-slp',
                     'name': 'Ohio Compact Privilege',
@@ -277,7 +275,6 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
                 },
             ],
         )
-
 
     @patch('purchase_client.createTransactionController')
     def test_purchase_client_makes_successful_transaction_using_authorize_net_processor(

@@ -376,13 +376,15 @@ class DataClient:
                     original_privilege=original_privilege,
                 )
 
-                privileges.append({
-                    'compact': compact,
-                    'providerId': provider_id,
-                    'jurisdiction': postal_abbreviation,
-                    'licenseTypeAbbrev': self.config.license_type_abbreviations[compact][license_type],
-                    'privilegeId': privilege_record['privilegeId'],
-                })
+                privileges.append(
+                    {
+                        'compact': compact,
+                        'providerId': provider_id,
+                        'jurisdiction': postal_abbreviation,
+                        'licenseTypeAbbrev': self.config.license_type_abbreviations[compact][license_type],
+                        'privilegeId': privilege_record['privilegeId'],
+                    }
+                )
 
                 # Create privilege update record if this is updating an existing privilege
                 if original_privilege:

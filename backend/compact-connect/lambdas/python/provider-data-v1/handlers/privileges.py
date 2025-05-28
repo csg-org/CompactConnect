@@ -1,5 +1,4 @@
 import json
-
 from datetime import datetime
 
 from aws_lambda_powertools.metrics import MetricUnit
@@ -147,10 +146,10 @@ def privilege_purchase_message_handler(message: dict):
 
         # Send notification to the jurisdiction
         try:
-            transaction_date = datetime.strptime(transaction_date_time, '%Y-%m-%dT%H:%M:%S+00:00')
+            transaction_date = datetime.fromisoformat(transaction_date_time)
             logger.info('Sending privilege purchase notification to provider', provider=provider_email)
             config.email_service_client.send_privilege_purchase_email(
-                transaction_date=transaction_date.strftime('%Y-%m-%d'),
+                transaction_date=transaction_date.date().isoformat(),
                 provider_email=provider_email,
                 privileges=privileges,
                 total_cost=total_cost,

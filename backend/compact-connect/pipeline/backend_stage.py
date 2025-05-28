@@ -90,7 +90,6 @@ class BackendStage(Stage):
                 persistent_stack=self.persistent_stack,
             )
 
-
         self.transaction_monitoring_stack = TransactionMonitoringStack(
             self,
             'TransactionMonitoringStack',

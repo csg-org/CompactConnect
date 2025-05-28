@@ -234,7 +234,6 @@ class TestDeactivatePrivilege(TstFunction):
         self._load_provider_data()
 
         with patch('handlers.privileges.config.email_service_client') as mock_email_service_client:
-
             (mock_email_service_client.send_provider_privilege_deactivation_email).side_effect = CCInternalException(
                 'email failed to send'
             )
@@ -265,17 +264,16 @@ class TestDeactivatePrivilege(TstFunction):
 
     @patch('handlers.privileges.metrics')
     # @patch('cc_common.config._Config.email_service_client')
-    def test_deactivate_privilege_handler_pushes_custom_metric_if_state_notification_failed_to_send(
-        self, mock_metrics
-    ):
+    def test_deactivate_privilege_handler_pushes_custom_metric_if_state_notification_failed_to_send(self, mock_metrics):
         """
         If the deactivation state notification fails to send, ensure we raise an exception.
         """
         self._load_provider_data()
 
         with patch('handlers.privileges.config.email_service_client') as mock_email_service_client:
-            (mock_email_service_client.send_jurisdiction_privilege_deactivation_email
-                ).side_effect = CCInternalException('email failed to send')
+            (
+                mock_email_service_client.send_jurisdiction_privilege_deactivation_email
+            ).side_effect = CCInternalException('email failed to send')
             # We expect the handler to still return a 200, since the privilege was deactivated
             resp = self._request_deactivation_with_scopes('openid email aslp/admin')
 
@@ -316,14 +314,7 @@ class TestDeactivatePrivilege(TstFunction):
         with open('../common/tests/resources/events/purchase_event_body.json') as f:
             purchase_event_body = json.load(f)
 
-        purchase_event = {
-            'Records': [
-                {
-                    'messageId': 123,
-                    'body': json.dumps(purchase_event_body)
-                }
-            ]
-        }
+        purchase_event = {'Records': [{'messageId': 123, 'body': json.dumps(purchase_event_body)}]}
 
         with patch('handlers.privileges.config.email_service_client') as mock_email_service_client:
             privilege_purchase_message_handler(purchase_event, self.mock_context)

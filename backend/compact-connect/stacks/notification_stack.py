@@ -32,9 +32,7 @@ class NotificationStack(AppStack):
         self._add_privilege_purchase_notification_chain(persistent_stack, data_event_bus)
 
     def _add_privilege_purchase_notification_chain(
-            self,
-            persistent_stack: ps.PersistentStack,
-            data_event_bus: IEventBus
+        self, persistent_stack: ps.PersistentStack, data_event_bus: IEventBus
     ):
         """Add the privilege deactivation notification lambda and event rules."""
         # Create the Lambda function handler for privilege purchase messages

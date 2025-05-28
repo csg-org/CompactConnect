@@ -33,7 +33,6 @@ class V1Api:
         data_event_bus = SSMParameterUtility.load_data_event_bus_from_ssm_parameter(stack)
         _active_compacts = persistent_stack.get_list_of_compact_abbreviations()
 
-
         read_scopes = []
         write_scopes = []
         admin_scopes = []
@@ -147,7 +146,7 @@ class V1Api:
             ssn_method_options=read_ssn_auth_method_options,
             persistent_stack=persistent_stack,
             api_model=self.api_model,
-            data_event_bus=data_event_bus
+            data_event_bus=data_event_bus,
         )
         # GET  /v1/compacts/{compact}/jurisdictions
         self.jurisdictions_resource = self.compact_resource.add_resource('jurisdictions')

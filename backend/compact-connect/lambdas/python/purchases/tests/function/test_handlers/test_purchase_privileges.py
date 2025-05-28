@@ -258,19 +258,20 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertEqual(200, resp['statusCode'])
         response_body = json.loads(resp['body'])
 
-        self.assertEqual({
+        self.assertEqual(
+            {
                 'transactionId': MOCK_TRANSACTION_ID,
                 'lineItems': MOCK_LINE_ITEMS,
             },
-            response_body
+            response_body,
         )
 
     @patch('handlers.privileges.PurchaseClient')
     @patch('handlers.privileges.config.event_bus_client', autospec=True)
     def test_post_purchase_privileges_kicks_off_privilege_purchase_event(
-            self,
-            mock_event_bus,
-            mock_purchase_client_constructor,
+        self,
+        mock_event_bus,
+        mock_purchase_client_constructor,
     ):
         from handlers.privileges import post_purchase_privileges
 
@@ -285,8 +286,15 @@ class TestPostPurchasePrivileges(TstFunction):
             jurisdiction='oh',
             compact='aslp',
             provider_email='björkRegisteredEmail@example.com',
-            privileges=[{'compact': 'aslp', 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
-                         'jurisdiction': 'ky', 'licenseTypeAbbrev': 'slp', 'privilegeId': 'SLP-KY-1'}],
+            privileges=[
+                {
+                    'compact': 'aslp',
+                    'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
+                    'jurisdiction': 'ky',
+                    'licenseTypeAbbrev': 'slp',
+                    'privilegeId': 'SLP-KY-1',
+                }
+            ],
             total_cost='55.5',
             cost_line_items=MOCK_LINE_ITEMS,
         )

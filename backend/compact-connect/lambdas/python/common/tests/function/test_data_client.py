@@ -192,13 +192,18 @@ class TestDataClient(TstFunction):
         self.assertEqual({'ca'}, updated_provider['privilegeJurisdictions'])
 
         # Verify the privilege data is being passed back in the response
-        self.assertEqual(response, [{
-              'compact': 'aslp',
-              'jurisdiction': 'ca',
-              'licenseTypeAbbrev': 'aud',
-              'privilegeId': 'AUD-CA-124',
-              'providerId': 'test_provider_id'
-        }])
+        self.assertEqual(
+            response,
+            [
+                {
+                    'compact': 'aslp',
+                    'jurisdiction': 'ca',
+                    'licenseTypeAbbrev': 'aud',
+                    'privilegeId': 'AUD-CA-124',
+                    'providerId': 'test_provider_id',
+                }
+            ],
+        )
 
     def test_data_client_updates_privilege_records_for_specific_license_type(self):
         """
