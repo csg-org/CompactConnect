@@ -143,7 +143,7 @@ export class StateDataApi implements DataApiInterface {
      * @return {Promise<object>}         The server response.
      */
     public getCompactStateConfig(compact: string, state: string) {
-        return this.api.get(`v1/compacts/${compact}/jurisdictions/${state}`);
+        return this.api.get(`v1/compacts/${compact}/jurisdictions/${state.toLowerCase()}`);
     }
 
     /**
@@ -154,7 +154,7 @@ export class StateDataApi implements DataApiInterface {
      * @return {Promise<object>}            The server response.
      */
     public updateCompactStateConfig(compact: string, state: string, config: CompactStateConfig) {
-        return this.api.put(`v1/compacts/${compact}/jurisdictions/${state}`, config);
+        return this.api.put(`v1/compacts/${compact}/jurisdictions/${state.toLowerCase()}`, config);
     }
 }
 

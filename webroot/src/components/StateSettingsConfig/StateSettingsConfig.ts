@@ -62,7 +62,7 @@ class StateSettingsConfig extends mixins(MixinForm) {
     //
     isLoading = false;
     loadingErrorMessage = '';
-    initialStateConfig: any = {};
+    initialStateConfig: CompactStateConfig | null = null;
     feeInputs: Array<FormInput> = [];
     isPurchaseEnabledInitialValue = false;
     isConfirmConfigModalDisplayed = false;
@@ -82,11 +82,11 @@ class StateSettingsConfig extends mixins(MixinForm) {
     }
 
     get compactType(): CompactType | null {
-        return this.userStore.currentCompact?.type;
+        return this.userStore?.currentCompact?.type || null;
     }
 
     get user(): StaffUser | null {
-        return this.userStore.model;
+        return this.userStore?.model || null;
     }
 
     get submitLabel(): string {
@@ -114,19 +114,22 @@ class StateSettingsConfig extends mixins(MixinForm) {
 
     async getStateConfig(): Promise<void> {
         const compact = this.compactType || '';
+        const licenseTypes = (this.$tm('licensing.licenseTypes') || []).filter((licenseType) =>
+            licenseType.compactKey === compact);
         const stateConfig: any = await dataApi.getCompactStateConfig(compact, this.stateAbbrev).catch((err) => {
             this.loadingErrorMessage = err?.message || this.$t('serverErrors.networkError');
         });
-        const licenseTypes = (this.$tm('licensing.licenseTypes') || []).filter((licenseType) =>
-            licenseType.compactKey === compact);
 
-        stateConfig?.privilegeFees?.forEach((privilegeFee) => {
-            const licenseType = licenseTypes.find((type) => type.abbrev === privilegeFee.licenseTypeAbbreviation);
+        if (!this.loadingErrorMessage) {
+            stateConfig?.privilegeFees?.forEach((privilegeFee) => {
+                const licenseType = licenseTypes.find((type) => type.abbrev === privilegeFee.licenseTypeAbbreviation);
 
-            privilegeFee.name = licenseType?.name || privilegeFee.licenseTypeAbbreviation?.toUpperCase() || '';
-        });
-        this.initialStateConfig = stateConfig;
-        this.isPurchaseEnabledInitialValue = this.initialStateConfig?.licenseeRegistrationEnabled;
+                privilegeFee.name = licenseType?.name || privilegeFee.licenseTypeAbbreviation?.toUpperCase() || '';
+            });
+            this.initialStateConfig = stateConfig;
+            this.isPurchaseEnabledInitialValue = this.initialStateConfig?.licenseeRegistrationEnabled || false;
+        }
+
         this.isLoading = false;
     }
 
@@ -198,11 +201,18 @@ class StateSettingsConfig extends mixins(MixinForm) {
             }),
         });
 
-        // Privilege fee inputs
+        // Initialize the dynamic fee inputs
+        this.initPrivilegeFeeInputs();
+
+        this.watchFormInputs(); // Important if you want automated form validation
+    }
+
+    initPrivilegeFeeInputs(): void {
         this.initialStateConfig?.privilegeFees?.forEach((privilegeFee) => {
             const licenseType = privilegeFee.licenseTypeAbbreviation;
             const licenseTypeMilitary = `${licenseType}Military`;
 
+            // Core license fee input
             this.formData[licenseType] = new FormInput({
                 id: `${licenseType}-fee`,
                 name: `${licenseType}-fee`,
@@ -215,6 +225,7 @@ class StateSettingsConfig extends mixins(MixinForm) {
                 this.formatBlur(this.formData[licenseType]);
             }
 
+            // Military license fee input
             this.formData[licenseTypeMilitary] = new FormInput({
                 id: `${licenseType}-fee-military`,
                 name: `${licenseType}-fee-military`,
@@ -230,8 +241,6 @@ class StateSettingsConfig extends mixins(MixinForm) {
             this.feeInputs.push(this.formData[licenseType]);
             this.feeInputs.push(this.formData[licenseTypeMilitary]);
         });
-
-        this.watchFormInputs(); // Important if you want automated form validation
     }
 
     formatInput(formInput: FormInput): void {

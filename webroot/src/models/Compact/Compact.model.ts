@@ -35,7 +35,7 @@ export interface CompactConfig {
     compactName?: string,
     licenseeRegistrationEnabled: boolean,
     compactCommissionFee: {
-        feeType: string,
+        feeType: FeeType,
         feeAmount: number,
     },
     compactOperationsTeamEmails: Array<string>,
@@ -44,7 +44,7 @@ export interface CompactConfig {
     transactionFeeConfiguration: {
         licenseeCharges: {
             active: boolean,
-            chargeType: string,
+            chargeType: FeeType,
             chargeAmount: number,
         },
     },

@@ -88,6 +88,10 @@ export default class CompactSettings extends Vue {
         return this.isLoggedInAsStaff && this.statePermissionsAdmin.length === 1;
     }
 
+    get shouldShowStateList(): boolean {
+        return (this.isCompactAdmin && this.isStateAdminAny) || this.isStateAdminMultiple;
+    }
+
     //
     // Methods
     //
@@ -102,7 +106,7 @@ export default class CompactSettings extends Vue {
                 this.$router.replace({ name: 'Home' });
             } else if (!this.isCompactAdmin && this.isStateAdminExactlyOne) {
                 // Redirect user to state config page
-                this.routeToStateConfig(this.statePermissionsAdmin[0].state.abbrev || '', true);
+                this.routeToStateConfig(this.statePermissionsAdmin[0]?.state?.abbrev || '', true);
             }
         }
     }

@@ -57,7 +57,7 @@
         </span>
         <ul class="email-tag-container">
             <li
-                v-for="(email, index) in formInput.value"
+                 v-for="(email, index) in (Array.isArray(formInput.value) ? formInput.value : [])"
                 :key="index"
                 class="email-tag"
             >
