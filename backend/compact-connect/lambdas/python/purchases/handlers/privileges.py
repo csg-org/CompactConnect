@@ -318,7 +318,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
 
         config.event_bus_client.publish_privilege_purchase_event(
             source='post_purchase_privileges',
-            jurisdiction=selected_jurisdictions_postal_abbreviations[0],
+            jurisdiction=license_jurisdiction,
             compact=compact_abbr,
             provider_email=provider_email,
             privileges=privileges,

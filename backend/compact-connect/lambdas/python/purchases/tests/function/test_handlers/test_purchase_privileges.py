@@ -266,8 +266,8 @@ class TestPostPurchasePrivileges(TstFunction):
         )
 
     @patch('handlers.privileges.PurchaseClient')
-    @patch('handlers.privileges.EventBusClient', autospec=True)
-    def test_post_purchase_privileges_kicks_off_expected_events(
+    @patch('handlers.privileges.config.event_bus_client', autospec=True)
+    def test_post_purchase_privileges_kicks_off_privilege_purchase_event(
             self,
             mock_purchase_client_constructor,
             mock_event_bus,
@@ -280,27 +280,15 @@ class TestPostPurchasePrivileges(TstFunction):
         event['body'] = _generate_test_request_body()
 
         post_purchase_privileges(event, self.mock_context)
-        mock_event_writer.return_value.__enter__.return_value.put_event.assert_called_once()
-        call_kwargs = mock_event_writer.return_value.__enter__.return_value.put_event.call_args.kwargs
-        self.assertEqual(
-            call_kwargs,
-            {
-                'Entry': {
-                    'Source': 'org.compactconnect.provider-data',
-                    'DetailType': 'license.deactivation',
-                    'Detail': json.dumps(
-                        {
-                            'eventTime': '2024-11-08T23:59:59+00:00',
-                            'compact': 'aslp',
-                            'jurisdiction': 'oh',
-                            'providerId': provider_id,
-                        }
-                    ),
-                    'EventBusName': 'license-data-events',
-                }
-            },
+        mock_event_bus.publish_privilege_purchase_event.assert_called_once_with(
+            source='post_purchase_privileges',
+            jurisdiction='license_jurisdiction',
+            compact='compact_abbr',
+            provider_email='provider_email',
+            privileges='privileges',
+            total_cost='45',
+            cost_line_items=MOCK_LINE_ITEMS,
         )
-
 
     @patch('handlers.privileges.PurchaseClient')
     def test_post_purchase_privileges_returns_error_message_if_transaction_failure(
