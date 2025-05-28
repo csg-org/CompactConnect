@@ -133,11 +133,11 @@ def privilege_purchase_message_handler(message: dict):
     which will cause the SQS handler decorator to report the message as a failure
     and the message will be retried according to the queue's retry policy.
     """
-    total_cost = message['Detail']['totalCost']
-    cost_line_items = message['Detail']['costLineItems']
-    privileges = message['Detail']['privileges']
-    provider_email = message['Detail']['providerEmail']
-    transaction_date_time = message['Detail']['eventTime']
+    total_cost = message['detail']['totalCost']
+    cost_line_items = message['detail']['costLineItems']
+    privileges = message['detail']['privileges']
+    provider_email = message['detail']['providerEmail']
+    transaction_date_time = message['detail']['eventTime']
 
     with logger.append_context_keys(provider_email=provider_email):
         logger.info('Processing privilege purchase notification')

@@ -1,5 +1,5 @@
 {
-   "Detail": {
+   "detail": {
       "compact": "aslp",
       "jurisdiction": "ky",
       "eventTime": "2024-11-08T23:59:59+00:00",
@@ -19,8 +19,7 @@
           "unitPrice": "55.5"
       }]
   },
-  "DetailType": "privilege.purchase",
-  "EventBusName": "event-bus",
-  "Source": "post_purchase_privileges"
+  "detail-type": "privilege.purchase",
+  "source": "post_purchase_privileges"
 }
 
