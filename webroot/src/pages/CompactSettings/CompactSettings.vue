@@ -7,10 +7,10 @@
 
 <template>
     <Section class="compact-settings-container">
-        <h1 class="compact-settings-title">{{ $t('compact.settingsTitle') }}</h1>
+        <h1 v-if="isCompactAdmin" class="compact-settings-title">{{ $t('compact.settingsTitle') }}</h1>
         <PaymentProcessorConfig v-if="isCompactAdmin" class="section payment-config" />
         <CompactSettingsConfig v-if="isCompactAdmin" class="section compact-config" />
-        <div v-if="isStateAdminMultiple" class="state-list">
+        <div v-if="isStateAdminMultiple" class="section state-list">
             <div class="state-row header-row">
                 <div class="state-cell header-cell state">{{ $t('common.state') }}</div>
                 <div class="state-cell header-cell actions">{{ $t('compact.configuration') }}</div>

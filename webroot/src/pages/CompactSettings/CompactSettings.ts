@@ -102,25 +102,25 @@ export default class CompactSettings extends Vue {
                 this.$router.replace({ name: 'Home' });
             } else if (!this.isCompactAdmin && this.isStateAdminExactlyOne) {
                 // Redirect user to state config page
-                this.$router.replace({
-                    name: 'StateSettings',
-                    params: {
-                        compact: this.currentCompact.type,
-                        state: this.statePermissionsAdmin[0].state.abbrev,
-                    },
-                });
+                this.routeToStateConfig(this.statePermissionsAdmin[0].state.abbrev || '', true);
             }
         }
     }
 
-    routeToStateConfig(abbrev: string): void {
-        this.$router.push({
+    routeToStateConfig(abbrev: string, isRouteReplace = false): void {
+        const routeConfig = {
             name: 'StateSettings',
             params: {
                 compact: this.currentCompact?.type,
                 state: abbrev,
             },
-        });
+        };
+
+        if (isRouteReplace) {
+            this.$router.replace(routeConfig);
+        } else {
+            this.$router.push(routeConfig);
+        }
     }
 
     //

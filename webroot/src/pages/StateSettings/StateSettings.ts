@@ -104,13 +104,7 @@ export default class StateSettings extends Vue {
     }
 
     goBack() {
-        const compact = this.currentCompact?.type;
-
-        if (compact) {
-            this.$router.push({ name: 'CompactSettings', params: { compact }});
-        } else {
-            this.$router.push({ name: 'Home' });
-        }
+        this.$router.go(-1);
     }
 
     //

@@ -103,21 +103,6 @@
         flex-wrap: wrap;
         width: 100%;
 
-        :deep(input[type=text]) {
-            width: 10rem;
-            margin-left: auto;
-
-            & + .separator::before {
-                position: absolute;
-                top: 50%;
-                left: -11.6rem;
-                width: 30px;
-                font-weight: @fontWeightBold;
-                transform: translateY(-50%);
-                content: '$';
-            }
-        }
-
         :deep(.form-field-error) {
             flex-basis: 100%;
             text-align: right;
@@ -125,12 +110,29 @@
 
         &.currency {
             :deep(label) {
-                flex-basis: 50%;
+                flex-basis: calc(100% - 12rem);
                 padding-right: 30px;
+            }
 
-                @media @desktopWidth {
-                    flex-basis: auto;
+            :deep(input[type=text]) {
+                align-self: center;
+                width: 10rem;
+                height: 4rem;
+                margin-left: auto;
+
+                & + .separator::before {
+                    position: absolute;
+                    top: 50%;
+                    left: -11.6rem;
+                    width: 30px;
+                    font-weight: @fontWeightBold;
+                    transform: translateY(-50%);
+                    content: '$';
                 }
+            }
+
+            :deep(.form-field-error) {
+                text-align: right;
             }
         }
 
