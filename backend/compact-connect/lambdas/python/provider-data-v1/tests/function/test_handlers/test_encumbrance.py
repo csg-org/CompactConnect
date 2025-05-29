@@ -1,10 +1,9 @@
 import json
-from datetime import date, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from unittest.mock import patch
 
 from boto3.dynamodb.conditions import Key
 from cc_common.exceptions import CCInternalException
-from cc_common.license_util import LicenseUtility
 from common_test.test_constants import (
     DEFAULT_AA_SUBMITTING_USER_ID,
     DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
@@ -475,7 +474,7 @@ class TestPatchPrivilegeEncumbranceLifting(TstFunction):
         privilege_record, adverse_action = self._setup_privilege_with_adverse_action()
 
         # Set lift date to future
-        future_date = (datetime.now() + timedelta(days=30)).strftime('%Y-%m-%d')
+        future_date = (datetime.now(UTC) + timedelta(days=2)).strftime('%Y-%m-%d')
         event = self._generate_lift_encumbrance_event(
             privilege_record, adverse_action, body_overrides={'effectiveLiftDate': future_date}
         )
@@ -760,7 +759,7 @@ class TestPatchLicenseEncumbranceLifting(TstFunction):
         license_record, adverse_action = self._setup_license_with_adverse_action()
 
         # Set lift date to future
-        future_date = (datetime.now() + timedelta(days=30)).strftime('%Y-%m-%d')
+        future_date = (datetime.now(tz=UTC) + timedelta(days=2)).strftime('%Y-%m-%d')
         event = self._generate_lift_encumbrance_event(
             license_record, adverse_action, body_overrides={'effectiveLiftDate': future_date}
         )
@@ -878,8 +877,8 @@ class TestPatchLicenseEncumbranceLifting(TstFunction):
         )
 
         license_records = provider_records.get_license_records(
-            filter_condition=lambda l: (
-                l.jurisdiction == license_record.jurisdiction and l.licenseType == license_record.licenseType
+            filter_condition=lambda record: (
+                record.jurisdiction == license_record.jurisdiction and record.licenseType == license_record.licenseType
             )
         )
 

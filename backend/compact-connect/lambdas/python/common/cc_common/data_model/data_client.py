@@ -1021,10 +1021,35 @@ class DataClient:
         )
 
     def _generate_put_transaction_item(self, item: dict):
+        return {'Put': {'TableName': self.config.provider_table.name, 'Item': TypeSerializer().serialize(item)['M']}}
+
+    def _generate_adverse_action_lift_update_item(
+        self, target_adverse_action: AdverseActionData, effective_lift_date: date, lifting_user: str
+    ) -> dict:
+        """
+        Generate a transaction item to update an adverse action record with lift information.
+
+        :param AdverseActionData target_adverse_action: The adverse action to update
+        :param date effective_lift_date: The effective date when the encumbrance is lifted
+        :param str lifting_user: The cognito sub of the user lifting the encumbrance
+        :return: DynamoDB transaction item for updating the adverse action
+        """
+        serialized_target_adverse_action = target_adverse_action.serialize_to_database_record()
         return {
-            'Put': {
+            'Update': {
                 'TableName': self.config.provider_table.name,
-                'Item': TypeSerializer().serialize(item)['M'],
+                'Key': {
+                    'pk': {'S': serialized_target_adverse_action['pk']},
+                    'sk': {'S': serialized_target_adverse_action['sk']},
+                },
+                'UpdateExpression': 'SET effectiveLiftDate = :lift_date, '
+                'liftingUser = :lifting_user, '
+                'dateOfUpdate = :date_of_update',
+                'ExpressionAttributeValues': {
+                    ':lift_date': {'S': effective_lift_date.isoformat()},
+                    ':lifting_user': {'S': lifting_user},
+                    ':date_of_update': {'S': self.config.current_standard_datetime.isoformat()},
+                },
             },
         }
 
@@ -1422,24 +1447,13 @@ class DataClient:
             transact_items = []
 
             # Always update the adverse action record with lift information
-            adverse_action_update_item = {
-                'Update': {
-                    'TableName': self.config.provider_table.name,
-                    'Key': {
-                        'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
-                        'sk': {
-                            'S': f'{compact}#PROVIDER#privilege/{jurisdiction}/{license_type_abbreviation}#ADVERSE_ACTION#{adverse_action_id}'
-                        },
-                    },
-                    'UpdateExpression': 'SET effectiveLiftDate = :lift_date, liftingUser = :lifting_user, dateOfUpdate = :date_of_update',
-                    'ExpressionAttributeValues': {
-                        ':lift_date': {'S': effective_lift_date.isoformat()},
-                        ':lifting_user': {'S': lifting_user},
-                        ':date_of_update': {'S': self.config.current_standard_datetime.isoformat()},
-                    },
-                },
-            }
-            transact_items.append(adverse_action_update_item)
+            transact_items.append(
+                self._generate_adverse_action_lift_update_item(
+                    target_adverse_action=target_adverse_action,
+                    effective_lift_date=effective_lift_date,
+                    lifting_user=lifting_user,
+                )
+            )
 
             # If this was the last unlifted adverse action, update privilege status and create update record
             if not unlifted_adverse_actions:
@@ -1527,7 +1541,7 @@ class DataClient:
             )
 
             # Find the specific adverse action record to lift
-            target_adverse_action = None
+            target_adverse_action: AdverseActionData | None = None
             for adverse_action in adverse_action_records:
                 if str(adverse_action.adverseActionId) == adverse_action_id:
                     target_adverse_action = adverse_action
@@ -1549,9 +1563,9 @@ class DataClient:
 
             # Get the license record
             license_records = provider_user_records.get_license_records(
-                filter_condition=lambda l: (
-                    l.jurisdiction == jurisdiction
-                    and l.licenseType
+                filter_condition=lambda record: (
+                    record.jurisdiction == jurisdiction
+                    and record.licenseType
                     == LicenseUtility.get_license_type_by_abbreviation(compact, license_type_abbreviation).name
                 )
             )
@@ -1567,24 +1581,13 @@ class DataClient:
             transact_items = []
 
             # Always update the adverse action record with lift information
-            adverse_action_update_item = {
-                'Update': {
-                    'TableName': self.config.provider_table.name,
-                    'Key': {
-                        'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
-                        'sk': {
-                            'S': f'{compact}#PROVIDER#license/{jurisdiction}/{license_type_abbreviation}#ADVERSE_ACTION#{adverse_action_id}'
-                        },
-                    },
-                    'UpdateExpression': 'SET effectiveLiftDate = :lift_date, liftingUser = :lifting_user, dateOfUpdate = :date_of_update',
-                    'ExpressionAttributeValues': {
-                        ':lift_date': {'S': effective_lift_date.isoformat()},
-                        ':lifting_user': {'S': lifting_user},
-                        ':date_of_update': {'S': self.config.current_standard_datetime.isoformat()},
-                    },
-                },
-            }
-            transact_items.append(adverse_action_update_item)
+            transact_items.append(
+                self._generate_adverse_action_lift_update_item(
+                    target_adverse_action=target_adverse_action,
+                    effective_lift_date=effective_lift_date,
+                    lifting_user=lifting_user,
+                )
+            )
 
             # If this was the last unlifted adverse action, update license status and create update record
             if not unlifted_adverse_actions:

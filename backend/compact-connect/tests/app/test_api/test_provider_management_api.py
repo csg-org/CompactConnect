@@ -39,7 +39,8 @@ class TestProviderManagementApi(TestApi):
         return next(key for key in encumbrance_resource_logical_ids.keys())
 
     def _get_privilege_license_type_param_resource_id(self, api_stack_template, api_stack):
-        """Helper method to get the privilege {licenseType} parameter resource ID by traversing the resource hierarchy."""
+        """Helper method to get the privilege {licenseType}
+        parameter resource ID by traversing the resource hierarchy."""
         provider_resource = api_stack.api.v1_api.provider_management.provider_resource.node.default_child
         privileges_logical_id = api_stack_template.find_resources(
             type=CfnResource.CFN_RESOURCE_TYPE_NAME,
