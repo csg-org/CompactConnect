@@ -442,7 +442,8 @@ class ApiModel:
 
     @property
     def patch_privilege_encumbrance_request_model(self) -> Model:
-        """Return the patch privilege encumbrance request model for lifting encumbrances, which should only be created once per API"""
+        """Return the patch privilege encumbrance request model for lifting encumbrances,
+        which should only be created once per API"""
         if hasattr(self.api, '_v1_patch_privilege_encumbrance_request_model'):
             return self.api._v1_patch_privilege_encumbrance_request_model
         self.api._v1_patch_privilege_encumbrance_request_model = self.api.add_model(
@@ -472,7 +473,8 @@ class ApiModel:
 
     @property
     def patch_license_encumbrance_request_model(self) -> Model:
-        """Return the patch license encumbrance request model for lifting encumbrances, which should only be created once per API"""
+        """Return the patch license encumbrance request model for lifting encumbrances,
+        which should only be created once per API"""
         if hasattr(self.api, '_v1_patch_license_encumbrance_request_model'):
             return self.api._v1_patch_license_encumbrance_request_model
         self.api._v1_patch_license_encumbrance_request_model = self.api.add_model(
