@@ -429,9 +429,11 @@ class TestPatchPrivilegeEncumbranceLifting(TstFunction):
 
     def _setup_privilege_with_adverse_action(self, adverse_action_overrides=None, privilege_overrides=None):
         """Helper method to set up a privilege with an adverse action for testing."""
-        self.test_data_generator.put_default_provider_record_in_provider_table()
+        self.test_data_generator.put_default_provider_record_in_provider_table(
+            value_overrides={'encumberedStatus': 'encumbered'}
+        )
         test_privilege_record = self.test_data_generator.put_default_privilege_record_in_provider_table(
-            value_overrides=privilege_overrides or {}
+            value_overrides=privilege_overrides or {'encumberedStatus': 'encumbered'}
         )
         test_adverse_action = self.test_data_generator.put_default_adverse_action_record_in_provider_table(
             value_overrides={
@@ -623,6 +625,27 @@ class TestPatchPrivilegeEncumbranceLifting(TstFunction):
         self.assertEqual(date(2024, 1, 15), lifted_adverse_action.effectiveLiftDate)
         self.assertEqual(DEFAULT_AA_SUBMITTING_USER_ID, str(lifted_adverse_action.liftingUser))
 
+    def test_should_update_provider_record_to_unencumbered_when_last_privilege_encumbrance_is_lifted(self):
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from cc_common.data_model.schema.common import LicenseEncumberedStatusEnum
+        from handlers.encumbrance import encumbrance_handler
+
+        privilege_record, adverse_action = self._setup_privilege_with_adverse_action(
+            privilege_overrides={'encumberedStatus': 'encumbered'}
+        )
+        event = self._generate_lift_encumbrance_event(privilege_record, adverse_action)
+
+        response = encumbrance_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'])
+
+        # Verify provider record is now unencumbered
+        provider_records: ProviderUserRecords = self.config.data_client.get_provider_user_records(
+            compact=privilege_record.compact, provider_id=str(privilege_record.providerId)
+        )
+
+        loaded_provider_data = provider_records.get_provider_record()
+        self.assertEqual(LicenseEncumberedStatusEnum.UNENCUMBERED, loaded_provider_data.encumberedStatus)
+
 
 @mock_aws
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP))
@@ -631,7 +654,9 @@ class TestPatchLicenseEncumbranceLifting(TstFunction):
 
     def _setup_license_with_adverse_action(self, adverse_action_overrides=None, license_overrides=None):
         """Helper method to set up a license with an adverse action for testing."""
-        self.test_data_generator.put_default_provider_record_in_provider_table()
+        self.test_data_generator.put_default_provider_record_in_provider_table(
+            value_overrides={'encumberedStatus': 'encumbered'}
+        )
         test_license_record = self.test_data_generator.put_default_license_record_in_provider_table(
             value_overrides=license_overrides or {}
         )
@@ -823,3 +848,24 @@ class TestPatchLicenseEncumbranceLifting(TstFunction):
         lifted_adverse_action = adverse_actions[0]
         self.assertEqual(date(2024, 1, 15), lifted_adverse_action.effectiveLiftDate)
         self.assertEqual(DEFAULT_AA_SUBMITTING_USER_ID, str(lifted_adverse_action.liftingUser))
+
+    def test_should_update_provider_record_to_unencumbered_when_last_license_encumbrance_is_lifted(self):
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from cc_common.data_model.schema.common import LicenseEncumberedStatusEnum
+        from handlers.encumbrance import encumbrance_handler
+
+        license_record, adverse_action = self._setup_license_with_adverse_action(
+            license_overrides={'encumberedStatus': 'encumbered'}
+        )
+        event = self._generate_lift_encumbrance_event(license_record, adverse_action)
+
+        response = encumbrance_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'])
+
+        # Verify provider record is now unencumbered
+        provider_records: ProviderUserRecords = self.config.data_client.get_provider_user_records(
+            compact=license_record.compact, provider_id=str(license_record.providerId)
+        )
+
+        loaded_provider_data = provider_records.get_provider_record()
+        self.assertEqual(LicenseEncumberedStatusEnum.UNENCUMBERED, loaded_provider_data.encumberedStatus)
