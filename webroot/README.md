@@ -106,6 +106,27 @@
             - Prod: `6LcEQckqAAAAAJUQDEO1KsoeH17-EH5h2UfrwdyK`
         - _Local_ :arrow_heading_down:
             - `6Le-3bgqAAAAAILDVUKkRnAF9SSzb8o9uv5lY7Ih`
+    - **`VUE_APP_ACCEPT_UI_LOGIN_ID`**
+        - _Server_ :arrow_heading_up:
+            - Dev(JCC-Test): _Get from your Authorize.net account_
+            - Test(CSG-Test): _Get from your Authorize.net account_
+            - Prod: _Get from your Authorize.net account_
+        - _Local_ :arrow_heading_down:
+            - _Get from your Authorize.net account_
+    - **`VUE_APP_ACCEPT_UI_CLIENT_KEY`**
+        - _Server_ :arrow_heading_up:
+            - Dev(JCC-Test): _Get from your Authorize.net account_
+            - Test(CSG-Test): _Get from your Authorize.net account_
+            - Prod: _Get from your Authorize.net account_
+        - _Local_ :arrow_heading_down:
+            - _Get from your Authorize.net account_
+    - **`VUE_APP_ACCEPT_UI_PRODUCTION_MODE`**
+        - _Server_ :arrow_heading_up:
+            - Dev(JCC-Test): `false`
+            - Test(CSG-Test): `false`
+            - Prod: `true`
+        - _Local_ :arrow_heading_down:
+            - `false`
     - **`VUE_APP_MOCK_API`** :arrow_heading_down:
         - Only used for local development
         - `true` if mock API should be used

@@ -34,6 +34,9 @@ export interface EnvConfig {
     cognitoAuthDomainLicensee?: string;
     cognitoClientIdLicensee?: string;
     recaptchaKey?: string;
+    acceptUiLoginId?: string;
+    acceptUiClientKey?: string;
+    acceptUiProductionMode?: boolean;
     isUsingMockApi?: boolean;
 }
 
@@ -56,6 +59,9 @@ export const config: EnvConfig = {
     cognitoAuthDomainLicensee: context.VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE,
     cognitoClientIdLicensee: context.VUE_APP_COGNITO_CLIENT_ID_LICENSEE,
     recaptchaKey: context.VUE_APP_RECAPTCHA_KEY,
+    acceptUiLoginId: context.VUE_APP_ACCEPT_UI_LOGIN_ID,
+    acceptUiClientKey: context.VUE_APP_ACCEPT_UI_CLIENT_KEY,
+    acceptUiProductionMode: (context.VUE_APP_ACCEPT_UI_PRODUCTION_MODE === 'true'),
     isUsingMockApi: (context.VUE_APP_MOCK_API === 'true'),
 };
 
