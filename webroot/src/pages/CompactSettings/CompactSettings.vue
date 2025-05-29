@@ -7,7 +7,9 @@
 
 <template>
     <Section class="compact-settings-container">
-        <h1 v-if="isCompactAdmin" class="compact-settings-title">{{ $t('compact.settingsTitle') }}</h1>
+        <h1 v-if="isCompactAdmin || shouldShowStateList" class="compact-settings-title">
+            {{ $t('compact.settingsTitle') }}
+        </h1>
         <PaymentProcessorConfig v-if="isCompactAdmin" class="section payment-config" />
         <CompactSettingsConfig v-if="isCompactAdmin" class="section compact-config" />
         <div v-if="shouldShowStateList" class="section state-list">
