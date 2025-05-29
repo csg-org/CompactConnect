@@ -62,7 +62,7 @@ def _generate_adverse_action_for_record_type(
         schema = AdverseActionPostRequestSchema()
         adverse_action_request = schema.load(body)
     except ValidationError as e:
-        raise CCInvalidRequestException('Invalid request body') from e
+        raise CCInvalidRequestException(f'Invalid request body: {e.messages}') from e
 
     # populate the adverse action data to be stored in the database
     adverse_action = AdverseActionData.create_new()
