@@ -1078,6 +1078,73 @@ class DataClient:
 
         return transaction_items
 
+    def _generate_provider_encumbered_status_transaction_items_if_no_encumbrances(
+        self, provider_user_records: ProviderUserRecords, lifted_record: PrivilegeData | LicenseData
+    ) -> list[dict]:
+        """
+        Check if any licenses or privileges (excluding the lifted record) still have encumbered status.
+        If none are encumbered, return transaction items to set the provider record to unencumbered.
+
+        :param ProviderUserRecords provider_user_records: All provider records
+        :param lifted_record: The privilege or license record that is having its encumbrance lifted
+        :return: List of transaction items (empty if other records are still encumbered)
+        """
+        # Get the provider record
+        provider_record = provider_user_records.get_provider_record()
+
+        # Get all license records
+        license_records = provider_user_records.get_license_records()
+
+        # Get all privilege records
+        privilege_records = provider_user_records.get_privilege_records()
+
+        # Check if the lifted record is a license or privilege based on its type
+        lifted_record_type = getattr(lifted_record, 'type', None)
+
+        # Check license records for encumbered status (excluding the lifted record if it's a license)
+        for license_record in license_records:
+            if (
+                lifted_record_type == 'license'
+                and license_record.jurisdiction == lifted_record.jurisdiction
+                and license_record.licenseType == lifted_record.licenseType
+            ):
+                # Skip the record being lifted
+                continue
+            if license_record.encumberedStatus == LicenseEncumberedStatusEnum.ENCUMBERED:
+                logger.info(
+                    'License record still encumbered, provider record will not be updated',
+                    encumbered_license_jurisdiction=license_record.jurisdiction,
+                    encumbered_license_type=license_record.licenseType,
+                )
+                return []
+
+        # Check privilege records for encumbered status (excluding the lifted record if it's a privilege)
+        for privilege_record in privilege_records:
+            if (
+                lifted_record_type == 'privilege'
+                and privilege_record.jurisdiction == lifted_record.jurisdiction
+                and privilege_record.licenseType == lifted_record.licenseType
+            ):
+                # Skip the record being lifted
+                continue
+            if privilege_record.encumberedStatus == PrivilegeEncumberedStatusEnum.ENCUMBERED:
+                logger.info(
+                    'Privilege record still encumbered, provider record will not be updated',
+                    encumbered_privilege_jurisdiction=privilege_record.jurisdiction,
+                    encumbered_privilege_type=privilege_record.licenseType,
+                )
+                return []
+
+        # No other records are encumbered, so we can set the provider to unencumbered
+        logger.info('No other licenses or privileges are encumbered, setting provider to unencumbered')
+
+        provider_update_item = self._generate_set_provider_encumbered_status_item(
+            provider_data=provider_record,
+            provider_encumbered_status=LicenseEncumberedStatusEnum.UNENCUMBERED,
+        )
+
+        return [provider_update_item]
+
     def encumber_privilege(self, adverse_action: AdverseActionData) -> None:
         """
         Adds an adverse action record for a privilege for a provider in a jurisdiction.
@@ -1401,6 +1468,13 @@ class DataClient:
 
                 transact_items.append(self._generate_put_transaction_item(privilege_update_record))
 
+                # Check if provider should be set to unencumbered
+                provider_status_items = self._generate_provider_encumbered_status_transaction_items_if_no_encumbrances(
+                    provider_user_records=provider_user_records,
+                    lifted_record=privilege_data,
+                )
+                transact_items.extend(provider_status_items)
+
             # Execute the transaction
             self.config.dynamodb_client.transact_write_items(TransactItems=transact_items)
 
@@ -1538,6 +1612,13 @@ class DataClient:
                 ).serialize_to_database_record()
 
                 transact_items.append(self._generate_put_transaction_item(license_update_record))
+
+                # Check if provider should be set to unencumbered
+                provider_status_items = self._generate_provider_encumbered_status_transaction_items_if_no_encumbrances(
+                    provider_user_records=provider_user_records,
+                    lifted_record=license_data,
+                )
+                transact_items.extend(provider_status_items)
 
             # Execute the transaction
             self.config.dynamodb_client.transact_write_items(TransactItems=transact_items)
