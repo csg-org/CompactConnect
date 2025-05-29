@@ -170,30 +170,14 @@
                 }
 
                 .payment-core-form {
-                    .billing-address-section {
-                        .billing-address-title {
-                            margin-top: 4rem;
-                            font-weight: @fontWeightBold;
-                            font-size: @fontSizeLarger;
-                        }
+                    display: flex;
+                    justify-content: center;
+                    margin-top: 4rem;
 
-                        .state-zip-line {
-                            display: flex;
-                            flex-direction: column;
-                            justify-content: space-between;
-
-                            .state-select {
-                                margin-bottom: 1.6rem;
-                            }
-
-                            @media @desktopWidth {
-                                flex-direction: row;
-
-                                .state-select {
-                                    margin-bottom: 0;
-                                }
-                            }
-                        }
+                    .accept-ui {
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
                     }
                 }
             }

@@ -4,3 +4,45 @@
 //
 //  Created by InspiringApps on 5/29/2025.
 //
+
+.accept-ui-container {
+    .accept-ui-button-container {
+        .button-icon-container {
+            position: absolute;
+            top: 50%;
+            left: 8px;
+            height: 2.8rem;
+            transform: translateY(-50%);
+        }
+
+        .btn-accept-ui {
+            padding-top: 1.2rem;
+            padding-bottom: 1.2rem;
+            padding-left: 4rem;
+        }
+
+        .button-icon {
+            height: 100%;
+            stroke: @white;
+        }
+    }
+
+    .accept-ui-message-container {
+        display: flex;
+        flex-direction: column;
+        margin-top: 0.4rem;
+        text-align: center;
+
+        &.error {
+            color: @midRed;
+        }
+
+        &.success {
+            color: @midGreen;
+        }
+
+        .next-steps {
+            margin-top: 1.8rem;
+        }
+    }
+}

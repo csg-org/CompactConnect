@@ -41,6 +41,7 @@ class PrivilegePurchaseAcceptUI extends Vue {
     acceptUiScript: HTMLElement | null = null;
     acceptUiPaymentDetails: AcceptUiResponse = {};
     errorMessage = '';
+    successMessage = '';
 
     //
     // Lifecycle
@@ -90,6 +91,16 @@ class PrivilegePurchaseAcceptUI extends Vue {
         (window as any).handlePaymentDetailsResponse = undefined;
     }
 
+    handleClicked(): void {
+        this.resetMessages();
+        this.adjustFramePosition();
+    }
+
+    resetMessages(): void {
+        this.errorMessage = '';
+        this.successMessage = '';
+    }
+
     adjustFramePosition(): void {
         const acceptUiContainer = document.getElementById('AcceptUIContainer');
 
@@ -110,6 +121,7 @@ class PrivilegePurchaseAcceptUI extends Vue {
             this.errorMessage = this.$t('payment.confirmCardDetailsError');
             this.$emit('error', acceptUiPaymentDetails);
         } else {
+            this.successMessage = this.$t('payment.confirmCardDetailsSuccess1');
             acceptUiPaymentDetails.expiry = moment().add(14, 'minutes');
             this.$emit('success', acceptUiPaymentDetails);
         }

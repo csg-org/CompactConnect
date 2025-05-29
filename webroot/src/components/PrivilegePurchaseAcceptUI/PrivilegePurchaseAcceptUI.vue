@@ -20,13 +20,13 @@
                 :data-acceptUIFormBtnTxt="$t('payment.confirmCardDetails')"
                 data-responseHandler="handlePaymentDetailsResponse"
                 ref="acceptUi"
-                @click="adjustFramePosition"
+                @click="handleClicked"
             >
                 <span v-if="isLoadingInit">{{ $t('common.loading') }}</span>
                 <span v-else>{{ $t('payment.enterPaymentDetails') }}</span>
             </button>
             <div class="button-icon-container">
-                <svg class="icon button-icon" viewBox="0 0 24 24">
+                <svg class="icon button-icon" fill="none" viewBox="0 0 24 24">
                 <path d="M9 12L11 14L15 9.99999M20 12C20 16.4611 14.54 19.6937 12.6414 20.683C12.4361 20.79 12.3334
                     20.8435 12.191 20.8712C12.08 20.8928 11.92 20.8928 11.809 20.8712C11.6666 20.8435 11.5639 20.79
                     11.3586 20.683C9.45996 19.6937 4 16.4611 4 12V8.21759C4 7.41808 4 7.01833 4.13076 6.6747C4.24627
@@ -39,7 +39,14 @@
                 </svg>
             </div>
         </div>
-        <div v-if="errorMessage" class="accept-ui-error-container">{{ errorMessage }}</div>
+        <div v-if="errorMessage" class="accept-ui-message-container error">
+            <div>{{ errorMessage }}</div>
+            <div class="next-steps">{{ $t('payment.confirmCardDetailsTryAgain') }}</div>
+        </div>
+        <div v-else-if="successMessage" class="accept-ui-message-container success">
+            <div>{{ successMessage }}</div>
+            <div class="next-steps">{{ $t('payment.confirmCardDetailsSuccess2') }}</div>
+        </div>
     </div>
 </template>
 
