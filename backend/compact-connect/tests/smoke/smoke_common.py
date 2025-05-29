@@ -4,6 +4,7 @@ import sys
 
 import boto3
 import requests
+from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
 from config import config, logger
 
@@ -223,3 +224,16 @@ def call_provider_users_me_endpoint():
         raise SmokeTestFailureException(f'Failed to GET provider data. Response: {get_provider_data_response.json()}')
     # return the response body
     return get_provider_data_response.json()
+
+
+def get_all_provider_database_records():
+    # get the provider id and compact from the response
+    response = call_provider_users_me_endpoint()
+    provider_id = response['providerId']
+    compact = response['compact']
+    # query the provider database for all records
+    query_result = config.provider_user_dynamodb_table.query(
+        KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}')
+    )
+
+    return query_result['Items']
