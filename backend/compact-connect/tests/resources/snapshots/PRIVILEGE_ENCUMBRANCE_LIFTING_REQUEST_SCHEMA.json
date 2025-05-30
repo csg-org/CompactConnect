@@ -1,20 +1,21 @@
 {
   "additionalProperties": false,
   "properties": {
-    "encumbranceEffectiveDate": {
-      "description": "The effective date of the encumbrance",
+    "effectiveLiftDate": {
+      "description": "The effective date when the encumbrance will be lifted",
       "format": "date",
       "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
       "type": "string"
     },
-    "clinicalPrivilegeActionCategory": {
-      "description": "The category of clinical privilege action",
+    "encumbranceId": {
+      "description": "The unique identifier of the encumbrance to be lifted",
+      "maxLength": 100,
       "type": "string"
     }
   },
   "required": [
-    "encumbranceEffectiveDate",
-    "clinicalPrivilegeActionCategory"
+    "effectiveLiftDate",
+    "encumbranceId"
   ],
   "type": "object",
   "$schema": "http://json-schema.org/draft-04/schema#"

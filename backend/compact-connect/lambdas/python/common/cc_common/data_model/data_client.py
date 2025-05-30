@@ -9,6 +9,7 @@ from boto3.dynamodb.types import TypeDeserializer, TypeSerializer
 from botocore.exceptions import ClientError
 
 from cc_common.config import _Config, config, logger, metrics
+from cc_common.data_model.provider_record_util import ProviderUserRecords
 from cc_common.data_model.query_paginator import paginated_query
 from cc_common.data_model.schema import PrivilegeRecordSchema
 from cc_common.data_model.schema.adverse_action import AdverseActionData
@@ -36,6 +37,7 @@ from cc_common.exceptions import (
     CCInvalidRequestException,
     CCNotFoundException,
 )
+from cc_common.license_util import LicenseUtility
 from cc_common.utils import logger_inject_kwargs
 
 
@@ -159,6 +161,40 @@ class DataClient:
             raise CCNotFoundException('Provider not found')
 
         return resp
+
+    @logger_inject_kwargs(logger, 'compact', 'provider_id')
+    def get_provider_user_records(
+        self,
+        *,
+        compact: str,
+        provider_id: str,
+        consistent_read: bool = True,
+    ) -> ProviderUserRecords:
+        logger.info('Getting provider')
+
+        resp = {'Items': []}
+        last_evaluated_key = None
+
+        while True:
+            pagination = {'ExclusiveStartKey': last_evaluated_key} if last_evaluated_key else {}
+
+            query_resp = self.config.provider_table.query(
+                Select='ALL_ATTRIBUTES',
+                KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}')
+                & Key('sk').begins_with(f'{compact}#PROVIDER'),
+                ConsistentRead=consistent_read,
+                **pagination,
+            )
+
+            resp['Items'].extend(query_resp.get('Items', []))
+
+            last_evaluated_key = query_resp.get('LastEvaluatedKey')
+            if not last_evaluated_key:
+                break
+        if not resp['Items']:
+            raise CCNotFoundException('Provider not found')
+
+        return ProviderUserRecords(resp['Items'])
 
     @paginated_query
     @logger_inject_kwargs(logger, 'compact', 'provider_name', 'jurisdiction')
@@ -979,10 +1015,35 @@ class DataClient:
         )
 
     def _generate_put_transaction_item(self, item: dict):
+        return {'Put': {'TableName': self.config.provider_table.name, 'Item': TypeSerializer().serialize(item)['M']}}
+
+    def _generate_adverse_action_lift_update_item(
+        self, target_adverse_action: AdverseActionData, effective_lift_date: date, lifting_user: str
+    ) -> dict:
+        """
+        Generate a transaction item to update an adverse action record with lift information.
+
+        :param AdverseActionData target_adverse_action: The adverse action to update
+        :param date effective_lift_date: The effective date when the encumbrance is lifted
+        :param str lifting_user: The cognito sub of the user lifting the encumbrance
+        :return: DynamoDB transaction item for updating the adverse action
+        """
+        serialized_target_adverse_action = target_adverse_action.serialize_to_database_record()
         return {
-            'Put': {
+            'Update': {
                 'TableName': self.config.provider_table.name,
-                'Item': TypeSerializer().serialize(item)['M'],
+                'Key': {
+                    'pk': {'S': serialized_target_adverse_action['pk']},
+                    'sk': {'S': serialized_target_adverse_action['sk']},
+                },
+                'UpdateExpression': 'SET effectiveLiftDate = :lift_date, '
+                'liftingUser = :lifting_user, '
+                'dateOfUpdate = :date_of_update',
+                'ExpressionAttributeValues': {
+                    ':lift_date': {'S': effective_lift_date.isoformat()},
+                    ':lifting_user': {'S': lifting_user},
+                    ':date_of_update': {'S': self.config.current_standard_datetime.isoformat()},
+                },
             },
         }
 
@@ -1035,6 +1096,73 @@ class DataClient:
             )
 
         return transaction_items
+
+    def _generate_provider_encumbered_status_transaction_items_if_no_encumbrances(
+        self, provider_user_records: ProviderUserRecords, lifted_record: PrivilegeData | LicenseData
+    ) -> list[dict]:
+        """
+        Check if any licenses or privileges (excluding the lifted record) still have encumbered status.
+        If none are encumbered, return transaction items to set the provider record to unencumbered.
+
+        :param ProviderUserRecords provider_user_records: All provider records
+        :param lifted_record: The privilege or license record that is having its encumbrance lifted
+        :return: List of transaction items (empty if other records are still encumbered)
+        """
+        # Get the provider record
+        provider_record = provider_user_records.get_provider_record()
+
+        # Get all license records
+        license_records = provider_user_records.get_license_records()
+
+        # Get all privilege records
+        privilege_records = provider_user_records.get_privilege_records()
+
+        # Check if the lifted record is a license or privilege based on its type
+        lifted_record_type = getattr(lifted_record, 'type', None)
+
+        # Check license records for encumbered status (excluding the lifted record if it's a license)
+        for license_record in license_records:
+            if (
+                lifted_record_type == 'license'
+                and license_record.jurisdiction == lifted_record.jurisdiction
+                and license_record.licenseType == lifted_record.licenseType
+            ):
+                # Skip the record being lifted
+                continue
+            if license_record.encumberedStatus == LicenseEncumberedStatusEnum.ENCUMBERED:
+                logger.info(
+                    'License record still encumbered, provider record will not be updated',
+                    encumbered_license_jurisdiction=license_record.jurisdiction,
+                    encumbered_license_type=license_record.licenseType,
+                )
+                return []
+
+        # Check privilege records for encumbered status (excluding the lifted record if it's a privilege)
+        for privilege_record in privilege_records:
+            if (
+                lifted_record_type == 'privilege'
+                and privilege_record.jurisdiction == lifted_record.jurisdiction
+                and privilege_record.licenseType == lifted_record.licenseType
+            ):
+                # Skip the record being lifted
+                continue
+            if privilege_record.encumberedStatus == PrivilegeEncumberedStatusEnum.ENCUMBERED:
+                logger.info(
+                    'Privilege record still encumbered, provider record will not be updated',
+                    encumbered_privilege_jurisdiction=privilege_record.jurisdiction,
+                    encumbered_privilege_type=privilege_record.licenseType,
+                )
+                return []
+
+        # No other records are encumbered, so we can set the provider to unencumbered
+        logger.info('No other licenses or privileges are encumbered, setting provider to unencumbered')
+
+        provider_update_item = self._generate_set_provider_encumbered_status_item(
+            provider_data=provider_record,
+            provider_encumbered_status=LicenseEncumberedStatusEnum.UNENCUMBERED,
+        )
+
+        return [provider_update_item]
 
     def encumber_privilege(self, adverse_action: AdverseActionData) -> None:
         """
@@ -1225,3 +1353,267 @@ class DataClient:
             )
 
             logger.info('Set encumbrance for license record')
+
+    def lift_privilege_encumbrance(
+        self,
+        compact: str,
+        provider_id: str,
+        jurisdiction: str,
+        license_type_abbreviation: str,
+        adverse_action_id: str,
+        effective_lift_date: date,
+        lifting_user: str,
+    ) -> None:
+        """
+        Lift an encumbrance from a privilege record by updating the adverse action record
+        and potentially updating the privilege record's encumbered status.
+
+        :param str compact: The compact name
+        :param str provider_id: The provider ID
+        :param str jurisdiction: The jurisdiction
+        :param str license_type_abbreviation: The license type abbreviation
+        :param str adverse_action_id: The adverse action ID to lift
+        :param date effective_lift_date: The effective date when the encumbrance is lifted
+        :param str lifting_user: The cognito sub of the user lifting the encumbrance
+        :raises CCNotFoundException: If the adverse action record is not found
+        :raises CCInvalidRequestException: If the encumbrance has already been lifted
+        """
+        with logger.append_context_keys(
+            compact=compact,
+            provider_id=provider_id,
+            jurisdiction=jurisdiction,
+            license_type_abbreviation=license_type_abbreviation,
+            adverse_action_id=adverse_action_id,
+        ):
+            logger.info('Lifting privilege encumbrance')
+
+            # Get all provider records
+            provider_user_records = self.get_provider_user_records(
+                compact=compact,
+                provider_id=provider_id,
+                consistent_read=True,
+            )
+
+            # Get adverse action records for this privilege
+            adverse_action_records = provider_user_records.get_adverse_action_records_for_privilege(
+                privilege_jurisdiction=jurisdiction,
+                privilege_license_type_abbreviation=license_type_abbreviation,
+            )
+
+            # Find the specific adverse action record to lift
+            target_adverse_action: AdverseActionData | None = None
+            for adverse_action in adverse_action_records:
+                if str(adverse_action.adverseActionId) == adverse_action_id:
+                    target_adverse_action = adverse_action
+                    break
+
+            if target_adverse_action is None:
+                raise CCNotFoundException('Encumbrance record not found')
+
+            # Check if the adverse action has already been lifted
+            if target_adverse_action.effectiveLiftDate is not None:
+                raise CCInvalidRequestException('Encumbrance has already been lifted')
+
+            # Check if this is the last remaining unlifted adverse action
+            unlifted_adverse_actions = [
+                aa
+                for aa in adverse_action_records
+                if aa.effectiveLiftDate is None and str(aa.adverseActionId) != adverse_action_id
+            ]
+
+            # Get the privilege record
+            license_type_name = LicenseUtility.get_license_type_by_abbreviation(compact, license_type_abbreviation).name
+            privilege_records = provider_user_records.get_privilege_records(
+                filter_condition=lambda p: (p.jurisdiction == jurisdiction and p.licenseType == license_type_name)
+            )
+
+            if not privilege_records:
+                message = 'Privilege record not found for adverse action record.'
+                logger.error(message, license_type_name=license_type_name)
+                raise CCInternalException(message)
+
+            privilege_data = privilege_records[0]
+
+            # Build transaction items
+            transact_items = []
+
+            # Always update the adverse action record with lift information
+            transact_items.append(
+                self._generate_adverse_action_lift_update_item(
+                    target_adverse_action=target_adverse_action,
+                    effective_lift_date=effective_lift_date,
+                    lifting_user=lifting_user,
+                )
+            )
+
+            # If this was the last unlifted adverse action, update privilege status and create update record
+            if not unlifted_adverse_actions:
+                # Update privilege record to unencumbered status
+                privilege_update_item = self._generate_set_privilege_encumbered_status_item(
+                    privilege_data=privilege_data,
+                    privilege_encumbered_status=PrivilegeEncumberedStatusEnum.UNENCUMBERED,
+                )
+                transact_items.append(privilege_update_item)
+
+                # Create privilege update record
+                privilege_update_record = PrivilegeUpdateData.create_new(
+                    {
+                        'type': 'privilegeUpdate',
+                        'updateType': UpdateCategory.LIFTING_ENCUMBRANCE,
+                        'providerId': provider_id,
+                        'compact': compact,
+                        'jurisdiction': jurisdiction,
+                        'licenseType': privilege_data.licenseType,
+                        'previous': privilege_data.to_dict(),
+                        'updatedValues': {
+                            'encumberedStatus': PrivilegeEncumberedStatusEnum.UNENCUMBERED,
+                        },
+                    }
+                ).serialize_to_database_record()
+
+                transact_items.append(self._generate_put_transaction_item(privilege_update_record))
+
+                # Check if provider should be set to unencumbered
+                provider_status_items = self._generate_provider_encumbered_status_transaction_items_if_no_encumbrances(
+                    provider_user_records=provider_user_records,
+                    lifted_record=privilege_data,
+                )
+                transact_items.extend(provider_status_items)
+
+            # Execute the transaction
+            self.config.dynamodb_client.transact_write_items(TransactItems=transact_items)
+
+            logger.info('Successfully lifted privilege encumbrance')
+
+    def lift_license_encumbrance(
+        self,
+        compact: str,
+        provider_id: str,
+        jurisdiction: str,
+        license_type_abbreviation: str,
+        adverse_action_id: str,
+        effective_lift_date: date,
+        lifting_user: str,
+    ) -> None:
+        """
+        Lift an encumbrance from a license record by updating the adverse action record
+        and potentially updating the license record's encumbered status.
+
+        :param str compact: The compact name
+        :param str provider_id: The provider ID
+        :param str jurisdiction: The jurisdiction
+        :param str license_type_abbreviation: The license type abbreviation
+        :param str adverse_action_id: The adverse action ID to lift
+        :param date effective_lift_date: The effective date when the encumbrance is lifted
+        :param str lifting_user: The cognito sub of the user lifting the encumbrance
+        :raises CCNotFoundException: If the adverse action record is not found
+        :raises CCInvalidRequestException: If the encumbrance has already been lifted
+        """
+        with logger.append_context_keys(
+            compact=compact,
+            provider_id=provider_id,
+            jurisdiction=jurisdiction,
+            license_type_abbreviation=license_type_abbreviation,
+            adverse_action_id=adverse_action_id,
+        ):
+            logger.info('Lifting license encumbrance')
+
+            # Get all provider records
+            provider_user_records = self.get_provider_user_records(
+                compact=compact,
+                provider_id=provider_id,
+                consistent_read=True,
+            )
+
+            # Get adverse action records for this license
+            adverse_action_records = provider_user_records.get_adverse_action_records_for_license(
+                license_jurisdiction=jurisdiction,
+                license_type_abbreviation=license_type_abbreviation,
+            )
+
+            # Find the specific adverse action record to lift
+            target_adverse_action: AdverseActionData | None = None
+            for adverse_action in adverse_action_records:
+                if str(adverse_action.adverseActionId) == adverse_action_id:
+                    target_adverse_action = adverse_action
+                    break
+
+            if target_adverse_action is None:
+                raise CCNotFoundException('Encumbrance record not found')
+
+            # Check if the adverse action has already been lifted
+            if target_adverse_action.effectiveLiftDate is not None:
+                raise CCInvalidRequestException('Encumbrance has already been lifted')
+
+            # Check if this is the last remaining unlifted adverse action
+            unlifted_adverse_actions = [
+                aa
+                for aa in adverse_action_records
+                if aa.effectiveLiftDate is None and str(aa.adverseActionId) != adverse_action_id
+            ]
+
+            # Get the license record
+            license_type_name = LicenseUtility.get_license_type_by_abbreviation(compact, license_type_abbreviation).name
+            license_records = provider_user_records.get_license_records(
+                filter_condition=lambda record: (
+                    record.jurisdiction == jurisdiction and record.licenseType == license_type_name
+                )
+            )
+
+            if not license_records:
+                message = 'License record not found for adverse action record.'
+                logger.error(message, license_type_name=license_type_name)
+                raise CCInternalException(message)
+
+            license_data = license_records[0]
+
+            # Build transaction items
+            transact_items = []
+
+            # Always update the adverse action record with lift information
+            transact_items.append(
+                self._generate_adverse_action_lift_update_item(
+                    target_adverse_action=target_adverse_action,
+                    effective_lift_date=effective_lift_date,
+                    lifting_user=lifting_user,
+                )
+            )
+
+            # If this was the last unlifted adverse action, update license status and create update record
+            if not unlifted_adverse_actions:
+                # Update license record to unencumbered status
+                license_update_item = self._generate_set_license_encumbered_status_item(
+                    license_data=license_data,
+                    license_encumbered_status=LicenseEncumberedStatusEnum.UNENCUMBERED,
+                )
+                transact_items.append(license_update_item)
+
+                # Create license update record
+                license_update_record = LicenseUpdateData.create_new(
+                    {
+                        'type': 'licenseUpdate',
+                        'updateType': UpdateCategory.LIFTING_ENCUMBRANCE,
+                        'providerId': provider_id,
+                        'compact': compact,
+                        'jurisdiction': jurisdiction,
+                        'licenseType': license_data.licenseType,
+                        'previous': license_data.to_dict(),
+                        'updatedValues': {
+                            'encumberedStatus': LicenseEncumberedStatusEnum.UNENCUMBERED,
+                        },
+                    }
+                ).serialize_to_database_record()
+
+                transact_items.append(self._generate_put_transaction_item(license_update_record))
+
+                # Check if provider should be set to unencumbered
+                provider_status_items = self._generate_provider_encumbered_status_transaction_items_if_no_encumbrances(
+                    provider_user_records=provider_user_records,
+                    lifted_record=license_data,
+                )
+                transact_items.extend(provider_status_items)
+
+            # Execute the transaction
+            self.config.dynamodb_client.transact_write_items(TransactItems=transact_items)
+
+            logger.info('Successfully lifted license encumbrance')
