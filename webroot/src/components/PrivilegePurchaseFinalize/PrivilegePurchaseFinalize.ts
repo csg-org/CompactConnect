@@ -337,23 +337,27 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
                 attestationsSelected,
                 selectedPurchaseLicense
             });
-            const purchaseServerEvent = await this.$store.dispatch('user/postPrivilegePurchases', serverData);
+            // const purchaseServerEvent = await this.$store.dispatch('user/postPrivilegePurchases', serverData);
+
+            console.log('server payload');
+            console.log(serverData);
+            console.log('');
 
             this.endFormLoading();
 
-            if (purchaseServerEvent?.message === 'Successfully processed charge') {
-                this.$store.dispatch('user/saveFlowStep', new PurchaseFlowStep({
-                    stepNum: this.flowStep
-                }));
-
-                this.$router.push({
-                    name: 'PrivilegePurchaseSuccessful',
-                    params: { compact: this.currentCompactType }
-                });
-            } else if (purchaseServerEvent?.message) {
-                this.isFormError = true;
-                this.formErrorMessage = purchaseServerEvent?.message;
-            }
+            // if (purchaseServerEvent?.message === 'Successfully processed charge') {
+            //     this.$store.dispatch('user/saveFlowStep', new PurchaseFlowStep({
+            //         stepNum: this.flowStep
+            //     }));
+            //
+            //     this.$router.push({
+            //         name: 'PrivilegePurchaseSuccessful',
+            //         params: { compact: this.currentCompactType }
+            //     });
+            // } else if (purchaseServerEvent?.message) {
+            //     this.isFormError = true;
+            //     this.formErrorMessage = purchaseServerEvent?.message;
+            // }
         } else {
             this.isFormError = true;
             this.formErrorMessage = this.$t('common.formValidationErrorMessage');

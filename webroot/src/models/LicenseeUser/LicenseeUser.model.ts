@@ -73,19 +73,8 @@ export class LicenseeUserPurchaseSerializer {
             attestations: attestationsSelected,
             licenseType: selectedPurchaseLicense.licenseType,
             orderInformation: {
-                card: {
-                    number: formValues.creditCard.replace(/\s+/g, ''),
-                    expiration: `20${formValues.expYear}-${formValues.expMonth}`,
-                    cvv: formValues.cvv
-                },
-                billing: {
-                    firstName: formValues.firstName,
-                    lastName: formValues.lastName,
-                    streetAddress: formValues.streetAddress1,
-                    streetAddress2: formValues.streetAddress2,
-                    state: formValues.stateSelect.toUpperCase(),
-                    zip: formValues.zip
-                }
+                dataDescriptor: formValues.dataDescriptor,
+                dataValue: formValues.dataValue,
             },
         };
 
