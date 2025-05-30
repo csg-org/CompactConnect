@@ -1424,11 +1424,7 @@ class DataClient:
             # Get the privilege record
             license_type_name = LicenseUtility.get_license_type_by_abbreviation(compact, license_type_abbreviation).name
             privilege_records = provider_user_records.get_privilege_records(
-                filter_condition=lambda p: (
-                    p.jurisdiction == jurisdiction
-                    and p.licenseType
-                    == license_type_name
-                )
+                filter_condition=lambda p: (p.jurisdiction == jurisdiction and p.licenseType == license_type_name)
             )
 
             if not privilege_records:
@@ -1560,9 +1556,7 @@ class DataClient:
             license_type_name = LicenseUtility.get_license_type_by_abbreviation(compact, license_type_abbreviation).name
             license_records = provider_user_records.get_license_records(
                 filter_condition=lambda record: (
-                    record.jurisdiction == jurisdiction
-                    and record.licenseType
-                    == license_type_name
+                    record.jurisdiction == jurisdiction and record.licenseType == license_type_name
                 )
             )
 

@@ -286,7 +286,6 @@ class ProviderUserRecords:
                 # log the warning, but continue with initialization
                 logger.warning('Unrecognized record type found.', record_type=record_type)
 
-
     def get_privilege_records(
         self,
         filter_condition: Callable[[PrivilegeData], bool] | None = None,
