@@ -255,8 +255,8 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         self.assertEqual(2, len(response['lineItems']))
         # first line item is the jurisdiction fee
         self.assertEqual(
-            (response['lineItems']),
-            [
+            response['lineItems'],
+    [
                 {
                     'itemId': 'priv:aslp-oh-slp',
                     'name': 'Ohio Compact Privilege',
@@ -319,7 +319,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         self.assertEqual('testFirstName', api_contract_v1_obj.transactionRequest.billTo.firstName)
         self.assertEqual('testLastName', api_contract_v1_obj.transactionRequest.billTo.lastName)
         # transaction settings
-        self.assertEqual('10', api_contract_v1_obj.transactionRequest.transactionSettings.setting[0].settingValue)
+        self.assertEqual('35', api_contract_v1_obj.transactionRequest.transactionSettings.setting[0].settingValue)
         self.assertEqual(
             'duplicateWindow', api_contract_v1_obj.transactionRequest.transactionSettings.setting[0].settingName
         )

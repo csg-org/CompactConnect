@@ -408,7 +408,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         # Add values for transaction settings
         duplicate_window_setting = apicontractsv1.settingType()
         duplicate_window_setting.settingName = 'duplicateWindow'
-        duplicate_window_setting.settingValue = '10'
+        duplicate_window_setting.settingValue = '35'
         settings = apicontractsv1.ArrayOfSetting()
         settings.setting.append(duplicate_window_setting)
 
@@ -459,10 +459,10 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                         description=response.transactionResponse.messages.message[0].description,
                     )
 
-                    line_items_compat = []
+                    line_items_list = []
                     if hasattr(line_items, 'lineItem'):
                         for item in line_items.lineItem:
-                            line_items_compat.append(
+                            line_items_list.append(
                                 {
                                     # we must cast these to strings, or they will cause an error when we
                                     # try to serialize in other parts of the system
@@ -476,7 +476,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                             )
                     return {
                         'message': 'Successfully processed charge',
-                        'lineItems': line_items_compat,
+                        'lineItems': line_items_list,
                         # their SDK returns the transaction id as an internal IntElement type, so we need to cast it
                         # or this will cause an error when we try to serialize it to JSON
                         'transactionId': str(response.transactionResponse.transId),

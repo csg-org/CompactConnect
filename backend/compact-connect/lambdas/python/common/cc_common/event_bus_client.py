@@ -3,7 +3,7 @@ import json
 from cc_common.config import config
 from cc_common.data_model.schema.data_event.api import (
     PrivilegeIssuanceDetailSchema,
-    PrivilegePurchaseDetailSchema,
+    PrivilegePurchaseEventDetailSchema,
     PrivilegeRenewalDetailSchema,
 )
 from cc_common.event_batch_writer import EventBatchWriter
@@ -63,7 +63,7 @@ class EventBusClient:
             'eventTime': config.current_standard_datetime.isoformat(),
         }
 
-        privilege_purchase_detail_schema = PrivilegePurchaseDetailSchema()
+        privilege_purchase_detail_schema = PrivilegePurchaseEventDetailSchema()
 
         loaded_detail = privilege_purchase_detail_schema.load(event_detail)
         deserialized_detail = privilege_purchase_detail_schema.dump(loaded_detail)

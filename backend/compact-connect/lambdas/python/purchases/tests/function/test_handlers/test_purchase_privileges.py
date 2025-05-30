@@ -530,8 +530,10 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertEqual(200, resp['statusCode'], resp['body'])
         response_body = json.loads(resp['body'])
 
-        self.assertEqual(MOCK_TRANSACTION_ID, response_body['transactionId'])
-        self.assertEqual(MOCK_LINE_ITEMS, response_body['lineItems'])
+        self.assertEqual(response_body, {
+            'transactionId': MOCK_TRANSACTION_ID,
+            'lineItems': MOCK_LINE_ITEMS
+        })
 
         # ensure the persistent status is now active
         provider_records = self.config.data_client.get_provider(compact=TEST_COMPACT, provider_id=TEST_PROVIDER_ID)
@@ -578,8 +580,10 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertEqual(200, resp['statusCode'], resp['body'])
         response_body = json.loads(resp['body'])
 
-        self.assertEqual(MOCK_TRANSACTION_ID, response_body['transactionId'])
-        self.assertEqual(MOCK_LINE_ITEMS, response_body['lineItems'])
+        self.assertEqual(response_body, {
+            'transactionId': MOCK_TRANSACTION_ID,
+            'lineItems': MOCK_LINE_ITEMS
+        })
 
         # ensure there are two privilege records for the same jurisdiction
         provider_records = self.config.data_client.get_provider(compact=TEST_COMPACT, provider_id=TEST_PROVIDER_ID)

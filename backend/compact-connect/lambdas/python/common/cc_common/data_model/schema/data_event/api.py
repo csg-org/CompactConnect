@@ -14,7 +14,7 @@ from marshmallow.fields import (
 from marshmallow.validate import Length
 
 
-class PrivilegeEventSchema(ForgivingSchema):
+class PrivilegeEventPrivilegeSchema(ForgivingSchema):
     compact = String(required=True, allow_none=False)
     providerId = String(required=True, allow_none=False)
     jurisdiction = String(required=True, allow_none=False)
@@ -22,7 +22,7 @@ class PrivilegeEventSchema(ForgivingSchema):
     privilegeId = String(required=True, allow_none=False)
 
 
-class LineItemEventSchema(ForgivingSchema):
+class PrivilegeEventLineItemSchema(ForgivingSchema):
     name = String(required=True, allow_none=False)
     description = String(required=True, allow_none=False)
     quantity = String(required=True, allow_none=False)
@@ -35,11 +35,11 @@ class DataEventDetailBaseSchema(ForgivingSchema):
     eventTime = DateTime(required=True, allow_none=False)
 
 
-class PrivilegePurchaseDetailSchema(DataEventDetailBaseSchema):
+class PrivilegePurchaseEventDetailSchema(DataEventDetailBaseSchema):
     providerEmail = Email(required=False, allow_none=False)
-    privileges = List(Nested(PrivilegeEventSchema(), required=True, allow_none=False), validate=Length(1, 100))
+    privileges = List(Nested(PrivilegeEventPrivilegeSchema(), required=True, allow_none=False), validate=Length(1, 100))
     totalCost = String(required=True, allow_none=False)
-    costLineItems = List(Nested(LineItemEventSchema(), required=True, allow_none=False), validate=Length(1, 300))
+    costLineItems = List(Nested(PrivilegeEventLineItemSchema(), required=True, allow_none=False), validate=Length(1, 300))
 
 
 class PrivilegeIssuanceDetailSchema(DataEventDetailBaseSchema):
