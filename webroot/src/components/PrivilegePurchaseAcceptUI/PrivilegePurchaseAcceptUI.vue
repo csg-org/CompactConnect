@@ -11,7 +11,11 @@
             <button
                 type="button"
                 class="AcceptUI btn-accept-ui"
-                :class="{ 'loading-init': isLoadingInit }"
+                :class="{
+                    'loading-init': isLoadingInit,
+                    'include-icon': includeButtonIcon,
+                    'warning': isWarning,
+                }"
                 :data-apiLoginID="loginId"
                 :data-clientKey="clientKey"
                 data-paymentOptions='{ "showCreditCard": true, "showBankAccount": false }'
@@ -20,12 +24,13 @@
                 :data-acceptUIFormBtnTxt="$t('payment.confirmCardDetails')"
                 data-responseHandler="handlePaymentDetailsResponse"
                 ref="acceptUi"
+                :disabled="!isEnabled"
                 @click="handleClicked"
             >
                 <span v-if="isLoadingInit">{{ $t('common.loading') }}</span>
-                <span v-else>{{ $t('payment.enterPaymentDetails') }}</span>
+                <span v-else>{{ buttonLabelText }}</span>
             </button>
-            <div class="button-icon-container">
+            <div v-if="includeButtonIcon" class="button-icon-container">
                 <svg class="icon button-icon" fill="none" viewBox="0 0 24 24">
                 <path d="M9 12L11 14L15 9.99999M20 12C20 16.4611 14.54 19.6937 12.6414 20.683C12.4361 20.79 12.3334
                     20.8435 12.191 20.8712C12.08 20.8928 11.92 20.8928 11.809 20.8712C11.6666 20.8435 11.5639 20.79

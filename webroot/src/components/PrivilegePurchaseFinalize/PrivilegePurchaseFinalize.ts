@@ -6,7 +6,7 @@
 //
 
 import { Component, mixins, Prop } from 'vue-facing-decorator';
-import { reactive } from 'vue';
+import { reactive, nextTick } from 'vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import PrivilegePurchaseAcceptUI, { AcceptUiResponse } from '@components/PrivilegePurchaseAcceptUI/PrivilegePurchaseAcceptUI.vue';
 import CollapseCaretButton from '@components/CollapseCaretButton/CollapseCaretButton.vue';
@@ -263,16 +263,6 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
     //
     initFormInputs(): void {
         this.formData = reactive({
-            dataDescriptor: new FormInput({
-                id: 'data-descriptor',
-                name: 'data-descriptor',
-                validation: Joi.string().required().messages(this.joiMessages.string),
-            }),
-            dataValue: new FormInput({
-                id: 'data-value',
-                name: 'data-value',
-                validation: Joi.string().required().messages(this.joiMessages.string),
-            }),
             noRefunds: new FormInput({
                 id: 'no-refunds-check',
                 name: 'no-refunds-check',
@@ -293,31 +283,44 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
         this.shouldShowPaymentSection = !this.shouldShowPaymentSection;
     }
 
-    acceptUiSuccessResponse(response: AcceptUiResponse): void {
-        const { formData } = this;
+    async acceptUiSuccessResponse(response: AcceptUiResponse): Promise<void> {
         const { opaqueData } = response;
 
+        // @TODO
         console.log('component success response:');
         console.log(response);
         console.log('');
 
-        formData.dataDescriptor.value = opaqueData?.dataDescriptor;
-        formData.dataValue.value = opaqueData?.dataValue;
+        await this.handleSubmitOverride({
+            dataDescriptor: opaqueData?.dataDescriptor,
+            dataValue: opaqueData?.dataValue,
+        });
     }
 
-    acceptUiErrorResponse(response: AcceptUiResponse): void {
-        const { formData } = this;
+    async acceptUiErrorResponse(response: AcceptUiResponse): Promise<void> {
+        const responseMessages = response?.messages?.message || [];
 
+        // @TODO
         console.log('component error response:');
         console.log(response);
         console.log('');
 
-        formData.dataDescriptor.value = '';
-        formData.dataValue.value = '';
-        this.validateAll();
+        if (Array.isArray(responseMessages)) {
+            responseMessages.forEach((message) => {
+                console.warn(`${message.code || ''} ${message.text || ''}`.trim());
+            });
+        }
+
+        this.isFormError = true;
+        this.formErrorMessage = this.$t('payment.confirmCardDetailsError');
+
+        await nextTick();
+        const formMessageElement = document.getElementById('button-row');
+
+        formMessageElement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
-    async handleSubmit(): Promise<void> {
+    async handleSubmitOverride(paymentDetails: object): Promise<void> {
         this.validateAll({ asTouched: true });
 
         if (this.isFormValid) {
@@ -326,38 +329,38 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
             this.formErrorMessage = '';
 
             const {
-                formValues,
                 statesSelected,
                 attestationsSelected,
                 selectedPurchaseLicense
             } = this;
             const serverData = LicenseeUserPurchaseSerializer.toServer({
-                formValues,
                 statesSelected,
                 attestationsSelected,
-                selectedPurchaseLicense
+                selectedPurchaseLicense,
+                paymentDetails
             });
-            // const purchaseServerEvent = await this.$store.dispatch('user/postPrivilegePurchases', serverData);
+            const purchaseServerEvent = await this.$store.dispatch('user/postPrivilegePurchases', serverData);
 
+            // @TODO
             console.log('server payload');
             console.log(serverData);
             console.log('');
 
             this.endFormLoading();
 
-            // if (purchaseServerEvent?.message === 'Successfully processed charge') {
-            //     this.$store.dispatch('user/saveFlowStep', new PurchaseFlowStep({
-            //         stepNum: this.flowStep
-            //     }));
-            //
-            //     this.$router.push({
-            //         name: 'PrivilegePurchaseSuccessful',
-            //         params: { compact: this.currentCompactType }
-            //     });
-            // } else if (purchaseServerEvent?.message) {
-            //     this.isFormError = true;
-            //     this.formErrorMessage = purchaseServerEvent?.message;
-            // }
+            if (purchaseServerEvent?.message === 'Successfully processed charge') {
+                this.$store.dispatch('user/saveFlowStep', new PurchaseFlowStep({
+                    stepNum: this.flowStep
+                }));
+
+                this.$router.push({
+                    name: 'PrivilegePurchaseSuccessful',
+                    params: { compact: this.currentCompactType }
+                });
+            } else if (purchaseServerEvent?.message) {
+                this.isFormError = true;
+                this.formErrorMessage = purchaseServerEvent?.message;
+            }
         } else {
             this.isFormError = true;
             this.formErrorMessage = this.$t('common.formValidationErrorMessage');
@@ -395,8 +398,6 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
         // navigator.clipboard.writeText(`46214`); // Test CC zip code
 
         // Standard mock-populate handling
-        this.formData.dataDescriptor.value = 'COMMON.ACCEPT.INAPP.PAYMENT';
-        this.formData.dataValue.value = 'abc123';
         this.formData.noRefunds.value = true;
         this.validateAll({ asTouched: true });
     }

@@ -5,7 +5,12 @@
 //  Created by InspiringApps on 5/29/2025.
 //
 
-import { Component, Vue, toNative } from 'vue-facing-decorator';
+import {
+    Component,
+    Vue,
+    Prop,
+    toNative
+} from 'vue-facing-decorator';
 import moment, { Moment } from 'moment';
 
 export interface AcceptUiResponse {
@@ -34,6 +39,11 @@ export interface AcceptUiResponse {
     emits: ['success', 'error'],
 })
 class PrivilegePurchaseAcceptUI extends Vue {
+    @Prop({ default: '' }) buttonLabel?: string;
+    @Prop({ default: false }) includeButtonIcon?: boolean;
+    @Prop({ default: true }) private isEnabled?: boolean;
+    @Prop({ default: false }) private isWarning?: boolean;
+
     //
     // Data
     //
@@ -63,6 +73,10 @@ class PrivilegePurchaseAcceptUI extends Vue {
 
     get clientKey(): string {
         return this.$envConfig.acceptUiClientKey || '';
+    }
+
+    get buttonLabelText(): string {
+        return this.buttonLabel || this.$t('payment.enterPaymentDetails');
     }
 
     //
@@ -118,11 +132,11 @@ class PrivilegePurchaseAcceptUI extends Vue {
         acceptUiPaymentDetails.encryptedCardData = response?.encryptedCardData;
 
         if (response?.messages?.resultCode?.toLowerCase() !== 'ok') {
-            this.errorMessage = this.$t('payment.confirmCardDetailsError');
+            // this.errorMessage = this.$t('payment.confirmCardDetailsError');
             this.$emit('error', acceptUiPaymentDetails);
         } else {
-            this.successMessage = this.$t('payment.confirmCardDetailsSuccess1');
-            acceptUiPaymentDetails.expiry = moment().add(14, 'minutes');
+            // this.successMessage = this.$t('payment.confirmCardDetailsSuccess1');
+            acceptUiPaymentDetails.expiry = moment().add(15, 'minutes');
             this.$emit('success', acceptUiPaymentDetails);
         }
     }

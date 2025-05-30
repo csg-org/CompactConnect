@@ -7,7 +7,7 @@
 
 <template>
     <div id="finalize-privilege-purchase-container" class="finalize-privilege-purchase-container">
-        <form class="complete-purchase-form" @submit.prevent="handleSubmit">
+        <form class="complete-purchase-form" @submit.prevent="() => null">
             <div class="finalize-purchase-container">
                 <div class="finalize-purchase-core-container">
                     <div class="finalize-purchase-title-row">
@@ -15,13 +15,7 @@
                         <CollapseCaretButton v-if="isPhone" @toggleCollapse="togglePaymentCollapsed" />
                     </div>
                     <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
-                    <div v-if="shouldShowPaymentSection || !isPhone" class="payment-core-form">
-                        <PrivilegePurchaseAcceptUI
-                            class="accept-ui"
-                            @success="acceptUiSuccessResponse"
-                            @error="acceptUiErrorResponse"
-                        />
-                    </div>
+                    <div v-if="shouldShowPaymentSection || !isPhone" class="payment-core-form"></div>
                 </div>
                 <div class="cost-breakdown-container">
                     <div class="cost-listing-block">
@@ -63,13 +57,14 @@
                 </div>
             </div>
             <div v-if="formErrorMessage" class="form-error-message">{{formErrorMessage}}</div>
-            <div class="button-row">
+            <div id="button-row" class="button-row">
                 <div class="form-nav-buttons">
-                    <InputSubmit
-                        :formInput="formData.submit"
-                        class="form-nav-button"
-                        :label="$t('payment.completePurchase')"
+                    <PrivilegePurchaseAcceptUI
+                        class="form-nav-button accept-ui"
+                        :buttonLabel="$t('payment.completePurchase')"
                         :isEnabled="!isFormLoading && isSubmitEnabled"
+                        @success="acceptUiSuccessResponse"
+                        @error="acceptUiErrorResponse"
                     />
                     <InputButton
                         :label="$t('common.back')"

@@ -63,18 +63,18 @@ export class LicenseeUserSerializer {
 
 export class LicenseeUserPurchaseSerializer {
     static toServer({
-        formValues,
         statesSelected,
         attestationsSelected,
-        selectedPurchaseLicense
+        selectedPurchaseLicense,
+        paymentDetails
     }): any {
         const purchaseData: any = {
             selectedJurisdictions: statesSelected,
             attestations: attestationsSelected,
             licenseType: selectedPurchaseLicense.licenseType,
             orderInformation: {
-                dataDescriptor: formValues.dataDescriptor,
-                dataValue: formValues.dataValue,
+                dataDescriptor: paymentDetails.dataDescriptor,
+                dataValue: paymentDetails.dataValue,
             },
         };
 
