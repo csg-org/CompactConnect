@@ -58,6 +58,7 @@
                 :isTextLike="true"
                 :shouldHideMargin="true"
                 class="end-aff-button"
+                @keyup.enter="focusOnModalCancelButton()"
                 @click="startEndAffiliationFlow"
             />
             <InputButton
