@@ -230,7 +230,7 @@ class StateSettingsConfig extends mixins(MixinForm) {
                 id: `${licenseType}-fee-military`,
                 name: `${licenseType}-fee-military`,
                 label: computed(() => `${this.$t('compact.militaryAffiliated')} ${privilegeFee.name} ${this.$t('compact.fee')}`),
-                validation: Joi.number().min(0).messages(this.joiMessages.currency),
+                validation: Joi.number().min(0).allow(null, '').messages(this.joiMessages.currency),
                 value: privilegeFee.militaryRate,
             });
 
@@ -253,10 +253,11 @@ class StateSettingsConfig extends mixins(MixinForm) {
 
     formatBlur(formInput: FormInput, isOptional = false): void {
         const { value } = formInput;
-        const formatted = formatCurrencyBlur(value, isOptional);
 
         // Update input value
-        formInput.value = formatted;
+        if (value !== null && value !== '') {
+            formInput.value = formatCurrencyBlur(value, isOptional);
+        }
         // Validate as touched
         formInput.isTouched = true;
         formInput.validate();
@@ -300,7 +301,7 @@ class StateSettingsConfig extends mixins(MixinForm) {
                 return {
                     licenseTypeAbbreviation: licenseType,
                     amount: Number(feeInputCore.value),
-                    militaryRate: Number(militaryInput?.value) || null,
+                    militaryRate: ([null, ''].includes(militaryInput?.value as any)) ? null : Number(militaryInput?.value),
                 };
             }),
             jurisprudenceRequirements: {
@@ -329,14 +330,6 @@ class StateSettingsConfig extends mixins(MixinForm) {
         }
     }
 
-    populateMissingPrivilegeFees(): void {
-        this.feeInputs.forEach((feeInput) => {
-            if (feeInput.id?.endsWith('military') && (feeInput.value === '' || feeInput.value === null)) {
-                this.populateFormInput(feeInput, 0);
-            }
-        });
-    }
-
     populateMissingPurchaseEnabled(): void {
         if (this.formData.isPurchaseEnabled.value === '') {
             this.populateFormInput(this.formData.isPurchaseEnabled, false);
@@ -344,7 +337,6 @@ class StateSettingsConfig extends mixins(MixinForm) {
     }
 
     populateOptionalMissing(): void {
-        this.populateMissingPrivilegeFees();
         this.populateMissingPurchaseEnabled();
     }
 
