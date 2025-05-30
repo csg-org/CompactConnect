@@ -74,7 +74,7 @@ describe('Form mixin', async () => {
         const formInput = new FormInput();
         const component = wrapper.vm;
 
-        component.populateFormInput(formInput, null);
+        component.populateFormInput(formInput);
 
         expect(formInput.value).to.equal('');
     });

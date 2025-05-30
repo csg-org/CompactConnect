@@ -23,6 +23,7 @@
                         :formInput="formData.submit"
                         :label="submitLabel"
                         :isEnabled="!isFormLoading"
+                        class="payment-processer-submit"
                     />
                 </form>
             </div>

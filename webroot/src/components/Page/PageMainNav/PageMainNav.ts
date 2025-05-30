@@ -201,7 +201,7 @@ class PageMainNav extends Vue {
                 params: { compact: this.currentCompact?.type },
                 label: computed(() => this.$t('navigation.compactSettings')),
                 iconComponent: markRaw(SettingsIcon),
-                isEnabled: Boolean(this.currentCompact) && this.isCompactAdmin,
+                isEnabled: Boolean(this.currentCompact) && this.isAnyTypeOfAdmin,
                 isExternal: false,
                 isExactActive: false,
             },

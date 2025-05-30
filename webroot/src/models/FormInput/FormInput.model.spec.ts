@@ -22,6 +22,7 @@ describe('FormInput model', () => {
         expect(formInput.id).to.equal('');
         expect(formInput.name).to.equal('');
         expect(formInput.label).to.equal('');
+        expect(formInput.labelSubtext).to.equal('');
         expect(formInput.shouldHideLabel).to.equal(false);
         expect(formInput.isLabelHTML).to.equal(false);
         expect(formInput.placeholder).to.equal('');
@@ -83,6 +84,7 @@ describe('FormInput model', () => {
             id: 'test',
             name: 'test',
             label: 'test',
+            labelSubtext: 'test',
             shouldHideLabel: true,
             isLabelHTML: true,
             placeholder: 'test',
@@ -123,6 +125,7 @@ describe('FormInput model', () => {
         expect(formInput.id).to.equal(values.id);
         expect(formInput.name).to.equal(values.name);
         expect(formInput.label).to.equal(values.label);
+        expect(formInput.labelSubtext).to.equal(values.labelSubtext);
         expect(formInput.shouldHideLabel).to.equal(values.shouldHideLabel);
         expect(formInput.isLabelHTML).to.equal(values.isLabelHTML);
         expect(formInput.placeholder).to.equal(values.placeholder);

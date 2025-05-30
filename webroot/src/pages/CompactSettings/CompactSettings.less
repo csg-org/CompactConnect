@@ -10,8 +10,48 @@
     max-width: 60rem;
     min-height: ~"calc(100vh - @{appHeaderHeight} - @{appFooterHeight})";
     margin: 0 auto;
+    padding: 1.6rem;
 
     .compact-settings-title {
         margin-bottom: 3.2rem;
+    }
+
+    .section {
+        margin-bottom: 3.2rem;
+
+        @media @desktopWidth {
+            min-width: 50rem;
+        }
+    }
+
+    .state-list {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 2.4rem;
+        border-radius: 8px;
+        background-color: @white;
+
+        .state-row {
+            display: flex;
+            min-height: 6.4rem;
+            padding: 1.6rem;
+
+            &.header-row {
+                font-weight: @fontWeightBold;
+            }
+
+            &:not(.header-row) {
+                border-top: 1px solid @veryLightGrey;
+            }
+
+            .state-cell {
+                display: flex;
+                align-items: center;
+
+                &.actions {
+                    margin-left: auto;
+                }
+            }
+        }
     }
 }

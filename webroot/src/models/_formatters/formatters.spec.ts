@@ -19,6 +19,7 @@ import {
     dateDiff
 } from '@models/_formatters/date';
 import { singleDelimeterPhoneFormatter, formatPhoneNumber, stripPhoneNumber } from '@models/_formatters/phone';
+import { formatCurrencyInput, formatCurrencyBlur } from '@models/_formatters/currency';
 import moment from 'moment';
 
 describe('Date formatters', () => {
@@ -82,5 +83,67 @@ describe('Phone formatters', () => {
         const formatted = formatPhoneNumber('12');
 
         expect(formatted).to.equal('12');
+    });
+});
+describe('Currency formatters', () => {
+    it('should return empty when value param is empty (input)', () => {
+        const formatted = formatCurrencyInput();
+
+        expect(formatted).to.equal('');
+    });
+    it('should return correctly formatted when value param is only dollars (input)', () => {
+        const formatted = formatCurrencyInput('10');
+
+        expect(formatted).to.equal('10');
+    });
+    it('should return correctly formatted when value param is only dollars with trailing decimal point (input)', () => {
+        const formatted = formatCurrencyInput('10.');
+
+        expect(formatted).to.equal('10.');
+    });
+    it('should return correctly formatted when value param has partial cents (input)', () => {
+        const formatted = formatCurrencyInput('1.1');
+
+        expect(formatted).to.equal('1.1');
+    });
+    it('should return correctly formatted when value param has too much precision for cents (input)', () => {
+        const formatted = formatCurrencyInput('1.111');
+
+        expect(formatted).to.equal('1.11');
+    });
+    it('should return correctly formatted when value param cents only (input)', () => {
+        const formatted = formatCurrencyInput('.111');
+
+        expect(formatted).to.equal('0.11');
+    });
+    it('should return empty for blur when value param is empty (blur)', () => {
+        const formatted = formatCurrencyBlur();
+
+        expect(formatted).to.equal('');
+    });
+    it('should return return correctly formatted when value param is empty and optional (blur)', () => {
+        const formatted = formatCurrencyBlur('', true);
+
+        expect(formatted).to.equal('0');
+    });
+    it('should return return correctly formatted when value param only has 1 decimal place for cents (blur)', () => {
+        const formatted = formatCurrencyBlur('1.1');
+
+        expect(formatted).to.equal('1.10');
+    });
+    it('should return correctly formatted when value param is only dollars (blur)', () => {
+        const formatted = formatCurrencyBlur('1');
+
+        expect(formatted).to.equal('1');
+    });
+    it('should return correctly formatted when value param is only dollars with trailing decimal point (blur)', () => {
+        const formatted = formatCurrencyBlur('1.');
+
+        expect(formatted).to.equal('1');
+    });
+    it('should return correctly formatted when value param cents only (blur)', () => {
+        const formatted = formatCurrencyBlur('.111');
+
+        expect(formatted).to.equal('0.11');
     });
 });

@@ -25,6 +25,51 @@ export interface PaymentProcessorConfig {
     processor: string;
 }
 
+export enum FeeType {
+    FLAT_RATE = 'FLAT_RATE',
+    FLAT_FEE_PER_PRIVILEGE = 'FLAT_FEE_PER_PRIVILEGE',
+}
+
+export interface CompactConfig {
+    compactAbbr?: string,
+    compactName?: string,
+    licenseeRegistrationEnabled: boolean,
+    compactCommissionFee: {
+        feeType: FeeType,
+        feeAmount: number,
+    },
+    compactOperationsTeamEmails: Array<string>,
+    compactAdverseActionsNotificationEmails: Array<string>,
+    compactSummaryReportNotificationEmails: Array<string>,
+    transactionFeeConfiguration: {
+        licenseeCharges: {
+            active: boolean,
+            chargeType: FeeType,
+            chargeAmount: number,
+        },
+    },
+}
+
+export interface CompactStateConfig {
+    compact?: string,
+    jurisdictionName?: string,
+    postalAbbreviation?: string,
+    licenseeRegistrationEnabled: boolean,
+    privilegeFees: Array<{
+        licenseTypeAbbreviation: string,
+        amount: number,
+        militaryRate: number | null, // Specific mix of number & null required by server
+        name?: string,
+    }>
+    jurisprudenceRequirements: {
+        required: boolean,
+        linkToDocumentation: string | null,
+    },
+    jurisdictionOperationsTeamEmails: Array<string>,
+    jurisdictionAdverseActionsNotificationEmails: Array<string>,
+    jurisdictionSummaryReportNotificationEmails: Array<string>,
+}
+
 export interface InterfaceCompactCreate {
     id?: string | null;
     type?: CompactType | null;
