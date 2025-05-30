@@ -9,6 +9,8 @@ from aws_lambda_powertools import Metrics
 from aws_lambda_powertools.logging import Logger
 from botocore.config import Config as BotoConfig
 
+from cc_common.email_service_client import EmailServiceClient
+
 logging.basicConfig()
 logger = Logger()
 logger.setLevel(logging.DEBUG if os.environ.get('DEBUG', 'false').lower() == 'true' else logging.INFO)
@@ -290,13 +292,17 @@ class _Config:
 
     @cached_property
     def email_service_client(self):
-        from cc_common.email_service_client import EmailServiceClient
-
         return EmailServiceClient(
             lambda_client=self.lambda_client,
             email_notification_service_lambda_name=self.email_notification_service_lambda_name,
             logger=logger,
         )
+
+    @cached_property
+    def event_bus_client(self):
+        from cc_common.event_bus_client import EventBusClient
+
+        return EventBusClient()
 
 
 config = _Config()

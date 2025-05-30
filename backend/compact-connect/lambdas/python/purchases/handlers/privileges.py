@@ -293,7 +293,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
         )
 
         # transaction was successful, now we create privilege records for the selected jurisdictions
-        config.data_client.create_provider_privileges(
+        generated_privileges = config.data_client.create_provider_privileges(
             compact=compact_abbr,
             provider_id=provider_id,
             jurisdiction_postal_abbreviations=selected_jurisdictions_postal_abbreviations,
@@ -304,6 +304,67 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             license_type=matching_license_record['licenseType'],
             attestations=body['attestations'],
         )
+
+        # Filtering the params to a subset that is actually needed
+        filtered_privileges = [
+            {
+                'compact': p['compact'],
+                'providerId': p['providerId'],
+                'jurisdiction': p['jurisdiction'],
+                'licenseTypeAbbrev': config.license_type_abbreviations[compact_abbr][
+                    matching_license_record['licenseType']
+                ],
+                'privilegeId': p['privilegeId'],
+            }
+            for p in generated_privileges
+        ]
+
+        provider_email = provider_record['compactConnectRegisteredEmailAddress']
+
+        cost_line_items = transaction_response['lineItems']
+
+        # calculate total cost of transaction
+        total_cost = 0
+        for line_item in cost_line_items:
+            total_cost = total_cost + float(line_item['unitPrice']) * int(line_item['quantity'])
+
+        config.event_bus_client.publish_privilege_purchase_event(
+            source='post_purchase_privileges',
+            jurisdiction=license_jurisdiction,
+            compact=compact_abbr,
+            provider_email=provider_email,
+            privileges=filtered_privileges,
+            total_cost=str(total_cost),
+            cost_line_items=cost_line_items,
+        )
+
+        privilege_jurisdictions_renewed = []
+        privilege_jurisdictions_issued = []
+        existing_privilege_jurisdictions = [
+            existing_privilege['jurisdiction'] for existing_privilege in existing_privileges_for_license
+        ]
+
+        for jurisdiction in selected_jurisdictions_postal_abbreviations:
+            if jurisdiction in existing_privilege_jurisdictions:
+                privilege_jurisdictions_renewed.append(jurisdiction)
+            else:
+                privilege_jurisdictions_issued.append(jurisdiction)
+
+        for privilege_jurisdiction_issued in privilege_jurisdictions_issued:
+            config.event_bus_client.publish_privilege_issued_event(
+                source='post_purchase_privileges',
+                jurisdiction=privilege_jurisdiction_issued,
+                compact=compact_abbr,
+                provider_email=provider_email,
+            )
+
+        for privilege_jurisdiction_renewed in privilege_jurisdictions_renewed:
+            config.event_bus_client.publish_privilege_renewed_event(
+                source='post_purchase_privileges',
+                jurisdiction=privilege_jurisdiction_renewed,
+                compact=compact_abbr,
+                provider_email=provider_email,
+            )
 
         return transaction_response
 

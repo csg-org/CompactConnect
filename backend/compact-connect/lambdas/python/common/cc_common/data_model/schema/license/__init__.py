@@ -1,5 +1,4 @@
 # ruff: noqa: N802 we use camelCase to match the marshmallow schema definition
-
 from datetime import date
 from uuid import UUID
 

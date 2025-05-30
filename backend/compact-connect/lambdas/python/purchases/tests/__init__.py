@@ -23,6 +23,7 @@ class TstLambdas(TestCase):
                 'JURISDICTIONS': '["ne", "oh", "ky"]',
                 'ENVIRONMENT_NAME': 'test',
                 'PROVIDER_TABLE_NAME': 'provider-table',
+                'EVENT_BUS_NAME': 'event-bus',
                 'PROV_FAM_GIV_MID_INDEX_NAME': 'providerFamGivMid',
                 'PROV_DATE_OF_UPDATE_INDEX_NAME': 'providerDateOfUpdate',
                 'COMPACT_TRANSACTION_ID_GSI_NAME': 'compactTransactionIdGSI',
