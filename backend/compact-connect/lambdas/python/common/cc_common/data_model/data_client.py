@@ -1428,17 +1428,18 @@ class DataClient:
             ]
 
             # Get the privilege record
+            license_type_name = LicenseUtility.get_license_type_by_abbreviation(compact, license_type_abbreviation).name
             privilege_records = provider_user_records.get_privilege_records(
                 filter_condition=lambda p: (
                     p.jurisdiction == jurisdiction
                     and p.licenseType
-                    == LicenseUtility.get_license_type_by_abbreviation(compact, license_type_abbreviation).name
+                    == license_type_name
                 )
             )
 
             if not privilege_records:
                 message = 'Privilege record not found for adverse action record.'
-                logger.error(message)
+                logger.error(message, license_type_name=license_type_name)
                 raise CCInternalException(message)
 
             privilege_data = privilege_records[0]
@@ -1562,17 +1563,18 @@ class DataClient:
             ]
 
             # Get the license record
+            license_type_name = LicenseUtility.get_license_type_by_abbreviation(compact, license_type_abbreviation).name
             license_records = provider_user_records.get_license_records(
                 filter_condition=lambda record: (
                     record.jurisdiction == jurisdiction
                     and record.licenseType
-                    == LicenseUtility.get_license_type_by_abbreviation(compact, license_type_abbreviation).name
+                    == license_type_name
                 )
             )
 
             if not license_records:
                 message = 'License record not found for adverse action record.'
-                logger.error(message)
+                logger.error(message, license_type_name=license_type_name)
                 raise CCInternalException(message)
 
             license_data = license_records[0]
