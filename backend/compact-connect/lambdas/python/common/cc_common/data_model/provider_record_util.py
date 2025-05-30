@@ -4,10 +4,11 @@ from enum import StrEnum
 from cc_common.config import logger
 from cc_common.data_model.schema.adverse_action import AdverseActionData
 from cc_common.data_model.schema.common import ActiveInactiveStatus, AdverseActionAgainstEnum, CompactEligibilityStatus
-from cc_common.data_model.schema.license import LicenseData
+from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
 from cc_common.data_model.schema.license.api import LicenseUpdatePreviousResponseSchema
+from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationData
 from cc_common.data_model.schema.military_affiliation.common import MilitaryAffiliationStatus
-from cc_common.data_model.schema.privilege import PrivilegeData
+from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
 from cc_common.data_model.schema.privilege.api import PrivilegeUpdatePreviousGeneralResponseSchema
 from cc_common.data_model.schema.provider import ProviderData
 from cc_common.data_model.schema.provider.record import ProviderRecordSchema
@@ -255,6 +256,37 @@ class ProviderUserRecords:
         # have not been updated to use the data class pattern
         self.provider_records = provider_records
 
+        # Pre-convert and categorize records by type for efficiency
+        self._privilege_records: list[PrivilegeData] = []
+        self._license_records: list[LicenseData] = []
+        self._adverse_action_records: list[AdverseActionData] = []
+        self._provider_records: list[ProviderData] = []
+        self._military_affiliation_records: list[MilitaryAffiliationData] = []
+        self._license_update_records: list[LicenseUpdateData] = []
+        self._privilege_update_records: list[PrivilegeUpdateData] = []
+
+        # Convert records once during initialization
+        for record in provider_records:
+            record_type = record.get('type')
+            if record_type == ProviderRecordType.PRIVILEGE:
+                self._privilege_records.append(PrivilegeData.from_database_record(record))
+            elif record_type == ProviderRecordType.LICENSE:
+                self._license_records.append(LicenseData.from_database_record(record))
+            elif record_type == ProviderRecordType.ADVERSE_ACTION:
+                self._adverse_action_records.append(AdverseActionData.from_database_record(record))
+            elif record_type == ProviderRecordType.PROVIDER:
+                self._provider_records.append(ProviderData.from_database_record(record))
+            elif record_type == ProviderRecordType.MILITARY_AFFILIATION:
+                self._military_affiliation_records.append(MilitaryAffiliationData.from_database_record(record))
+            elif record_type == ProviderRecordType.LICENSE_UPDATE:
+                self._license_update_records.append(LicenseUpdateData.from_database_record(record))
+            elif record_type == ProviderRecordType.PRIVILEGE_UPDATE:
+                self._privilege_update_records.append(PrivilegeUpdateData.from_database_record(record))
+            else:
+                # log the warning, but continue with initialization
+                logger.warning('Unrecognized record type found.', record_type=record_type)
+
+
     def get_privilege_records(
         self,
         filter_condition: Callable[[PrivilegeData], bool] | None = None,
@@ -263,11 +295,7 @@ class ProviderUserRecords:
         Get all privilege records from a list of provider records.
         :param filter_condition: An optional filter to apply to the privilege records
         """
-        return [
-            PrivilegeData.from_database_record(record)
-            for record in ProviderRecordUtility.get_records_of_type(self.provider_records, ProviderRecordType.PRIVILEGE)
-            if (filter_condition is None or filter_condition(PrivilegeData.from_database_record(record)))
-        ]
+        return [record for record in self._privilege_records if filter_condition is None or filter_condition(record)]
 
     def get_license_records(
         self,
@@ -276,11 +304,7 @@ class ProviderUserRecords:
         """
         Get all license records from a list of provider records.
         """
-        return [
-            LicenseData.from_database_record(record)
-            for record in ProviderRecordUtility.get_records_of_type(self.provider_records, ProviderRecordType.LICENSE)
-            if (filter_condition is None or filter_condition(LicenseData.from_database_record(record)))
-        ]
+        return [record for record in self._license_records if filter_condition is None or filter_condition(record)]
 
     def get_adverse_action_records_for_license(
         self,
@@ -292,14 +316,12 @@ class ProviderUserRecords:
         Get all adverse action records for a given license.
         """
         return [
-            AdverseActionData.from_database_record(record)
-            for record in ProviderRecordUtility.get_records_of_type(
-                self.provider_records, ProviderRecordType.ADVERSE_ACTION
-            )
-            if record['actionAgainst'] == AdverseActionAgainstEnum.LICENSE
-            and record['jurisdiction'] == license_jurisdiction
-            and record['licenseTypeAbbreviation'] == license_type_abbreviation
-            and (filter_condition is None or filter_condition(AdverseActionData.from_database_record(record)))
+            record
+            for record in self._adverse_action_records
+            if record.actionAgainst == AdverseActionAgainstEnum.LICENSE
+            and record.jurisdiction == license_jurisdiction
+            and record.licenseTypeAbbreviation == license_type_abbreviation
+            and (filter_condition is None or filter_condition(record))
         ]
 
     def get_adverse_action_records_for_privilege(
@@ -312,28 +334,24 @@ class ProviderUserRecords:
         Get all adverse action records for a given privilege.
         """
         return [
-            AdverseActionData.from_database_record(record)
-            for record in ProviderRecordUtility.get_records_of_type(
-                self.provider_records, ProviderRecordType.ADVERSE_ACTION
-            )
-            if record['actionAgainst'] == AdverseActionAgainstEnum.PRIVILEGE
-            and record['jurisdiction'] == privilege_jurisdiction
-            and record['licenseTypeAbbreviation'] == privilege_license_type_abbreviation
-            and (filter_condition is None or filter_condition(AdverseActionData.from_database_record(record)))
+            record
+            for record in self._adverse_action_records
+            if record.actionAgainst == AdverseActionAgainstEnum.PRIVILEGE
+            and record.jurisdiction == privilege_jurisdiction
+            and record.licenseTypeAbbreviation == privilege_license_type_abbreviation
+            and (filter_condition is None or filter_condition(record))
         ]
 
     def get_provider_record(self) -> ProviderData:
         """
         Get the provider record from a list of provider records.
         """
-        provider_user_records = [
-            ProviderData.from_database_record(record)
-            for record in ProviderRecordUtility.get_records_of_type(self.provider_records, ProviderRecordType.PROVIDER)
-        ]
-        if len(provider_user_records) > 1:
-            logger.error('Multiple provider records found', provider_id=provider_user_records[0].providerId)
+        if len(self._provider_records) > 1:
+            logger.error('Multiple provider records found', provider_id=self._provider_records[0].providerId)
             raise CCInternalException('Multiple top-level provider records found for user.')
-        return provider_user_records[0]
+        if not self._provider_records:
+            raise CCInternalException('No provider record found for user.')
+        return self._provider_records[0]
 
     def find_best_license_in_current_known_licenses(self, jurisdiction: str | None = None) -> LicenseData:
         """
@@ -397,20 +415,17 @@ class ProviderUserRecords:
 
         return latest_licenses[0]
 
-    def get_latest_military_affiliation_status(self) -> MilitaryAffiliationStatus | None:
+    def get_latest_military_affiliation_status(self) -> str | None:
         """
         Determine the provider's latest military affiliation status if present.
         :return: The military affiliation status of the provider if present, else None
         """
-        military_affiliation_records = [
-            record for record in self.provider_records if record['type'] == 'militaryAffiliation'
-        ]
-        if not military_affiliation_records:
+        if not self._military_affiliation_records:
             return None
 
         # we only need to check the most recent military affiliation record
         latest_military_affiliation = sorted(
-            military_affiliation_records, key=lambda x: x['dateOfUpload'], reverse=True
+            self._military_affiliation_records, key=lambda x: x.dateOfUpload, reverse=True
         )[0]
 
-        return latest_military_affiliation['status']
+        return latest_military_affiliation.status
