@@ -39,7 +39,9 @@ class PrivilegePurchaseEventDetailSchema(DataEventDetailBaseSchema):
     providerEmail = Email(required=False, allow_none=False)
     privileges = List(Nested(PrivilegeEventPrivilegeSchema(), required=True, allow_none=False), validate=Length(1, 100))
     totalCost = String(required=True, allow_none=False)
-    costLineItems = List(Nested(PrivilegeEventLineItemSchema(), required=True, allow_none=False), validate=Length(1, 300))
+    costLineItems = List(
+        Nested(PrivilegeEventLineItemSchema(), required=True, allow_none=False), validate=Length(1, 300)
+    )
 
 
 class PrivilegeIssuanceDetailSchema(DataEventDetailBaseSchema):

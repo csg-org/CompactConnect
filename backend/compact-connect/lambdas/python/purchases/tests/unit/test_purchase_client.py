@@ -256,7 +256,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         # first line item is the jurisdiction fee
         self.assertEqual(
             response['lineItems'],
-    [
+            [
                 {
                     'itemId': 'priv:aslp-oh-slp',
                     'name': 'Ohio Compact Privilege',
