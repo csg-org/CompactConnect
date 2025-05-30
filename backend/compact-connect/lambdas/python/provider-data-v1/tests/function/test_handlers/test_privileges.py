@@ -289,7 +289,6 @@ class TestDeactivatePrivilege(TstFunction):
         If a valid event purchase event is passed into the privilege_purchase_message_handler, it should kick off the
         send_privilege_purchase_email lambda
         """
-        # self._run_privilege_purchase_message_handler()
         from handlers.privileges import privilege_purchase_message_handler
 
         with open('../common/tests/resources/events/purchase_event_body.json') as f:
