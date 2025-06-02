@@ -100,12 +100,12 @@ export default class CompactSettings extends Vue {
     }
 
     permissionRedirectCheck(): void {
-        if (this.currentCompact && this.user) {
-            if (!this.isLoggedInAsStaff || (!this.isCompactAdmin && !this.isStateAdminAny)) {
-                // Redirect user to home page
+        if (this.currentCompact && this.user && !this.isCompactAdmin) {
+            if (!this.isStateAdminAny) {
+                // Not compact or state admin, so redirect to home page
                 this.$router.replace({ name: 'Home' });
-            } else if (!this.isCompactAdmin && this.isStateAdminExactlyOne) {
-                // Redirect user to state config page
+            } else if (this.isStateAdminExactlyOne) {
+                // Not compact admin and state admin for only 1 state, so redirect to state config page
                 this.routeToStateConfig(this.statePermissionsAdmin[0]?.state?.abbrev || '', true);
             }
         }

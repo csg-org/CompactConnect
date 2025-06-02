@@ -7,6 +7,7 @@
 
 /**
  * Currency formatter for active input.
+ * Will less aggressively format, since the user is actively interacting.
  * @param  {string | number} value The active input value.
  * @return {string}
  */
@@ -38,7 +39,8 @@ const formatCurrencyInput = (value: string | number = ''): string => {
 
 /**
  * Currency formatter for completed input.
- * @param  {string | number} value              The active input value.
+ * Will more aggressively format, since the user is done interacting.
+ * @param  {string | number} value              The value held by the blurred input.
  * @param  {boolean}         [isOptional=false] TRUE if the input value is optional.
  * @return {string}
  */

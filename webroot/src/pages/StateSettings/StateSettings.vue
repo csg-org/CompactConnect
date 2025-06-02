@@ -15,7 +15,7 @@
             class="back-btn"
             @click="goBack"
         />
-        <h1 class="state-settings-title">{{ pageTitle }}</h1>
+        <h1 v-if="isStateAdmin" class="state-settings-title">{{ pageTitle }}</h1>
         <StateSettingsConfig
             v-if="isStateAdmin"
             :stateAbbrev="stateAbbrev"

@@ -301,7 +301,9 @@ class StateSettingsConfig extends mixins(MixinForm) {
                 return {
                     licenseTypeAbbreviation: licenseType,
                     amount: Number(feeInputCore.value),
-                    militaryRate: ([null, ''].includes(militaryInput?.value as any)) ? null : Number(militaryInput?.value),
+                    militaryRate: (militaryInput?.value === null || militaryInput?.value === '')
+                        ? null
+                        : Number(militaryInput?.value),
                 };
             }),
             jurisprudenceRequirements: {

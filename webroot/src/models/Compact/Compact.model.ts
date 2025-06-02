@@ -16,7 +16,7 @@ import { CompactFeeConfig } from '@models/CompactFeeConfig/CompactFeeConfig.mode
 export enum CompactType { // Temp server definition until server returns via endpoint
     ASLP = 'aslp',
     OT = 'octp',
-    COUNSILING = 'coun',
+    COUNSELING = 'coun',
 }
 
 export interface PaymentProcessorConfig {

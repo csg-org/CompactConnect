@@ -95,11 +95,9 @@ export default class StateSettings extends Vue {
     }
 
     permissionRedirectCheck(): void {
-        if (this.currentCompact && this.user) {
-            if (!this.isLoggedInAsStaff || !this.isStateAdmin) {
-                // Redirect user to home page
-                this.$router.replace({ name: 'Home' });
-            }
+        if (this.currentCompact && this.user && !this.isStateAdmin) {
+            // User is not an admin for the requested state, so redirect to home page
+            this.$router.replace({ name: 'Home' });
         }
     }
 
