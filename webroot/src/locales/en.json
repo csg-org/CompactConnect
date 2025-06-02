@@ -493,6 +493,7 @@
         "expirationDate": "Expiration date",
         "continueToPurchase": "Continue to purchase",
         "compactPrivilegeStateFee": "Compact Privilege State Fee",
+        "compactPrivilegeStateFeeMilitary": "Compact Privilege State Fee (Military Rate)",
         "compactCommissionFee": "Administrative Fee",
         "purchaseSuccessful": "Purchase Successful",
         "purchaseSuccessfulMessage": "Your purchase was successful. Your privileges will appear on your profile page within seconds. If you submitted incorrect documents, you will be contacted by compact staff."

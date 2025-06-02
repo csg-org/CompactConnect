@@ -175,15 +175,17 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
             const feeConfig = state?.fees?.[licenseTypeKey];
             const hasMilitaryRate = Boolean(feeConfig && (feeConfig.militaryRate || feeConfig.militaryRate === 0));
 
-            const stateFeeText = `${state?.jurisdiction?.name()} ${hasMilitaryRate
-                ? this.$t('military.militaryDiscountText')
+            const shouldUseMilitaryRate = Boolean(hasMilitaryRate && this.licensee?.isMilitaryStatusActive());
+
+            const stateFeeText = `${state?.jurisdiction?.name()} ${shouldUseMilitaryRate
+                ? this.$t('payment.compactPrivilegeStateFeeMilitary')
                 : this.$t('payment.compactPrivilegeStateFee')
             }`;
 
             let stateFeeDisplay = '';
 
             if (feeConfig) {
-                if (hasMilitaryRate) {
+                if (shouldUseMilitaryRate) {
                     stateFeeDisplay = feeConfig.militaryRate.toFixed(2);
                 } else {
                     stateFeeDisplay = (feeConfig?.baseRate || 0).toFixed(2);
@@ -225,17 +227,20 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
 
         const licenseTypeKey = this.licenseTypeSelected;
 
-        // TODO probably total is wrong need to fix
-
         this.selectedStatePurchaseDataList.forEach((stateSelected) => {
-            console.log('stateSelected', stateSelected);
+            const feeConfig = stateSelected?.fees?.[licenseTypeKey];
 
-            if (stateSelected?.fees?.[licenseTypeKey]) {
-                total += stateSelected.fees[licenseTypeKey];
+            if (feeConfig) {
+                const hasMilitaryRate = Boolean(feeConfig && (feeConfig.militaryRate || feeConfig.militaryRate === 0));
+                const shouldUseMilitaryRate = Boolean(hasMilitaryRate && this.licensee?.isMilitaryStatusActive());
+
+                if (shouldUseMilitaryRate) {
+                    total += feeConfig.militaryRate;
+                } else {
+                    total += feeConfig.baseRate;
+                }
             }
         });
-
-        console.log('total', total);
 
         return total;
     }

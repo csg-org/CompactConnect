@@ -492,6 +492,7 @@
         "expirationDate": "Fecha de vencimiento",
         "continueToPurchase": "Continuar comprando",
         "compactPrivilegeStateFee": "Quota Estatal de Privilegio Compacto",
+        "compactPrivilegeStateFeeMilitary": "Compact Privilege State Fee (Tasa Militar)",
         "compactCommissionFee": "Tarifa Administrativa",
         "purchaseSuccessful": "Compra exitosa",
         "purchaseSuccessfulMessage": "Tu compra fue exitosa. Sus privilegios aparecerán en su página de perfil dentro de segundos. Si envió documentos incorrectos, el personal compacto se comunicará con usted."
