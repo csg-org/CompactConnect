@@ -560,6 +560,19 @@ class DataClient:
                 raise CCAwsServiceException('Failed to roll back privilege transactions') from e
         logger.info('Privilege rollback complete')
 
+    def _get_all_military_affiliation_records_for_provider(
+            self, compact: str, provider_id: str
+    ):
+        military_affiliation_records = self.config.provider_table.query(
+            KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}')
+            & Key('sk').begins_with(
+                f'{compact}#PROVIDER#military-affiliation#',
+            ),
+        ).get('Items', [])
+
+        schema = MilitaryAffiliationRecordSchema()
+        return [schema.load(record) for record in military_affiliation_records]
+
     def _get_military_affiliation_records_by_status(
         self, compact: str, provider_id: str, status: MilitaryAffiliationStatus
     ):
@@ -656,7 +669,7 @@ class DataClient:
         with self.config.provider_table.batch_writer() as batch:
             batch.put_item(Item=latest_military_affiliation_record_serialized)
 
-        # We need to check for any other military affiliations with an 'active' status for this provider
+        # We need to check for any other military affiliations with status for this provider
         # and set them to inactive. Note these could be consolidated into a single batch call if performance
         # becomes an issue.
         self.inactivate_military_affiliation_status(compact, provider_id)
@@ -665,16 +678,16 @@ class DataClient:
 
     def inactivate_military_affiliation_status(self, compact: str, provider_id: str):
         """
-        Sets all active military affiliation records to an inactive status for a provider in the database.
+        Sets all military affiliation records to an inactive status for a provider in the database.
 
         :param compact: The compact name
         :param provider_id: The provider id
         :return: None
         """
-        active_military_affiliation_records = self._get_active_military_affiliation_records(compact, provider_id)
+        military_affiliation_records = self._get_all_military_affiliation_records_for_provider(compact, provider_id)
         schema = MilitaryAffiliationRecordSchema()
         with self.config.provider_table.batch_writer() as batch:
-            for record in active_military_affiliation_records:
+            for record in military_affiliation_records:
                 record['status'] = MilitaryAffiliationStatus.INACTIVE.value
                 serialized_record = schema.dump(record)
                 batch.put_item(Item=serialized_record)

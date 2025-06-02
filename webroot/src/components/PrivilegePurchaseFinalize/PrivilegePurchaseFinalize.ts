@@ -165,8 +165,10 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
             }
 
             return includes;
-        }).map((option) =>
-            ({ ...option, isMilitaryDiscountActive: option.isMilitaryDiscountActive && this.licensee?.isMilitary() }));
+        }).map((option) => ({
+            ...option,
+            isMilitaryDiscountActive: option.isMilitaryDiscountActive && this.licensee?.isMilitaryStatusActive()
+        }));
     }
 
     get selectedStatePurchaseDisplayDataList(): Array<object> {

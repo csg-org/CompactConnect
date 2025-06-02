@@ -76,7 +76,7 @@ describe('Licensee model', () => {
         expect(licensee.licenseTypeName()).to.equal('');
         expect(licensee.statusDisplay()).to.equal('Inactive');
         expect(licensee.phoneNumberDisplay()).to.equal('');
-        expect(licensee.isMilitary()).to.equal(false);
+        expect(licensee.isMilitaryStatusActive()).to.equal(false);
         expect(licensee.activeMilitaryAffiliation()).to.equal(null);
         expect(licensee.homeJurisdictionLicenses()).to.matchPattern([]);
         expect(licensee.activeHomeJurisdictionLicenses()).to.matchPattern([]);
@@ -180,7 +180,7 @@ describe('Licensee model', () => {
         expect(licensee.licenseTypeName()).to.equal('Audiologist');
         expect(licensee.statusDisplay()).to.equal('Active');
         expect(licensee.phoneNumberDisplay()).to.equal('+1 323-455-8990');
-        expect(licensee.isMilitary()).to.equal(false);
+        expect(licensee.isMilitaryStatusActive()).to.equal(false);
         expect(licensee.activeMilitaryAffiliation()).to.equal(null);
         expect(licensee.homeJurisdictionLicenses()).to.matchPattern([]);
         expect(licensee.activeHomeJurisdictionLicenses()).to.matchPattern([]);
@@ -439,7 +439,7 @@ describe('Licensee model', () => {
         expect(licensee.licenseTypeName()).to.equal('Audiologist');
         expect(licensee.statusDisplay()).to.equal('Active');
         expect(licensee.phoneNumberDisplay()).to.equal('+1 323-455-8990');
-        expect(licensee.isMilitary()).to.equal(true);
+        expect(licensee.isMilitaryStatusActive()).to.equal(true);
         expect(licensee.activeMilitaryAffiliation()).to.matchPattern({
             affiliationType: 'affiliationType',
             compact: 'aslp',
@@ -618,6 +618,139 @@ describe('Licensee model', () => {
         expect(licensee.bestHomeJurisdictionLicenseMailingAddress()).to.be.an.instanceof(Address);
         expect(licensee.purchaseEligibleLicenses()).to.matchPattern([]);
         expect(licensee.canPurchasePrivileges()).to.equal(false);
+    });
+    it('should create a Licensee with specific values through serializer (with initiliazing military status)', () => {
+        const data = {
+            providerId: 'test-id',
+            npi: 'test-npi',
+            givenName: 'test-firstName',
+            middleName: 'test-middleName',
+            familyName: 'test-lastName',
+            homeAddressStreet1: 'test-street1',
+            homeAddressStreet2: 'test-street2',
+            birthMonthDay: '01-16',
+            homeAddressCity: 'test-city',
+            homeAddressState: 'co',
+            homeAddressPostalCode: 'test-zip',
+            dateOfBirth: moment().format(serverDateFormat),
+            phoneNumber: '+13234558990',
+            homeJurisdictionSelection: {
+                compact: 'aslp',
+                dateOfSelection: '2025-01-30T18:55:00+00:00',
+                dateOfUpdate: '2025-01-30T18:55:00+00:00',
+                jurisdiction: 'co',
+                providerId: '0a945011-e2a7-4b25-b514-84f4d89b9937',
+                type: 'homeJurisdictionSelection'
+            },
+            ssnLastFour: '0000',
+            licenseType: LicenseType.AUDIOLOGIST,
+            licenseJurisdiction: 'co',
+            militaryAffiliations: [{
+                affiliationType: 'affiliationType',
+                compact: 'aslp',
+                dateOfUpdate: '2025-01-07T23:50:17+00:00',
+                dateOfUpload: '2025-01-03T23:50:17+00:00',
+                documentKeys: ['key'],
+                fileNames: ['file.png'],
+                status: 'inactive'
+            },
+            {
+                affiliationType: 'affiliationType',
+                compact: 'aslp',
+                dateOfUpdate: '2025-02-07T23:50:17+00:00',
+                dateOfUpload: '2025-02-03T23:50:17+00:00',
+                documentKeys: ['key'],
+                fileNames: ['file.png'],
+                status: 'initializing'
+            }],
+            licenses: [
+                {
+                    id: 'test-id',
+                    licenseNumber: '1',
+                    providerId: 'providerId1',
+                    compact: CompactType.ASLP,
+                    type: 'license-home',
+                    jurisdiction: 'co',
+                    dateOfIssuance: moment().format(serverDateFormat),
+                    homeAddressStreet1: 'test-street1',
+                    homeAddressStreet2: 'test-street2',
+                    homeAddressCity: 'test-city',
+                    homeAddressState: 'co',
+                    homeAddressPostalCode: 'test-zip',
+                    renewalDate: moment().format(serverDateFormat),
+                    expireDate: moment().add(1, 'day').format(serverDateFormat),
+                    licenseType: LicenseType.AUDIOLOGIST,
+                    licenseStatus: LicenseStatus.ACTIVE,
+                    licenseStatusName: 'test-status-name',
+                    compactEligibility: EligibilityStatus.ELIGIBLE,
+                },
+                {
+                    id: 'test-id',
+                    licenseNumber: '2',
+                    providerId: 'providerId2',
+                    compact: CompactType.ASLP,
+                    type: 'license-home',
+                    jurisdiction: 'co',
+                    homeAddressStreet1: 'test-street1',
+                    homeAddressStreet2: 'test-street2',
+                    homeAddressCity: 'test-city',
+                    homeAddressState: 'co',
+                    homeAddressPostalCode: 'test-zip',
+                    dateOfIssuance: moment().format(serverDateFormat),
+                    renewalDate: moment().format(serverDateFormat),
+                    expireDate: moment().subtract(1, 'day').format(serverDateFormat),
+                    licenseType: LicenseType.AUDIOLOGIST,
+                    status: LicenseStatus.INACTIVE,
+                    licenseStatusName: 'test-status-name',
+                    compactEligibility: EligibilityStatus.INELIGIBLE,
+                },
+                {
+                    id: 'test-id',
+                    licenseNumber: '3',
+                    providerId: 'providerId1',
+                    compact: CompactType.ASLP,
+                    type: 'license-home',
+                    jurisdiction: 'ma',
+                    homeAddressStreet1: 'test-street1',
+                    homeAddressStreet2: 'test-street2',
+                    homeAddressCity: 'test-city',
+                    homeAddressState: 'co',
+                    homeAddressPostalCode: 'test-zip',
+                    dateOfIssuance: moment().format(serverDateFormat),
+                    renewalDate: moment().format(serverDateFormat),
+                    expireDate: moment().subtract(1, 'day').format(serverDateFormat),
+                    licenseType: LicenseType.AUDIOLOGIST,
+                    status: LicenseStatus.ACTIVE,
+                    licenseStatusName: 'test-status-name',
+                    compactEligibility: EligibilityStatus.ELIGIBLE,
+                },
+            ],
+            privilegeJurisdictions: ['co'],
+            privileges: [
+                {
+                    id: 'test-id',
+                    compact: CompactType.ASLP,
+                    type: 'privilege',
+                    jurisdiction: 'co',
+                    issueDate: moment().format(serverDateFormat),
+                    renewalDate: moment().format(serverDateFormat),
+                    expireDate: moment().subtract(1, 'day').format(serverDateFormat),
+                    licenseType: LicenseType.AUDIOLOGIST,
+                    status: LicenseStatus.ACTIVE,
+                }
+            ],
+            dateOfUpdate: moment().format(serverDateFormat),
+            status: LicenseeStatus.ACTIVE,
+        };
+        const licensee = LicenseeSerializer.fromServer(data);
+
+        // Test field values
+        expect(licensee).to.be.an.instanceof(Licensee);
+
+        // Test methods
+        expect(licensee.isMilitaryStatusActive()).to.equal(false);
+        expect(licensee.isMilitaryStatusInitializing()).to.equal(true);
+        expect(licensee.activeMilitaryAffiliation()).to.equal(null);
     });
     it('should serialize a Licensee for transmission to server', () => {
         const licensee = LicenseeSerializer.fromServer({

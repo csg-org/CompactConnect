@@ -115,7 +115,7 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
     }
 
     get isMilitaryAffiliated(): boolean {
-        return this.licensee?.isMilitary() || false;
+        return this.licensee?.isMilitaryStatusActive() || false;
     }
 
     get investigationsOptions(): Array<AttestationOption> {

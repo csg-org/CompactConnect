@@ -171,7 +171,7 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
     }
 
     get shouldApplyMilitaryDiscount(): boolean {
-        return Boolean(this.isMilitaryDiscountActive && this.licensee?.isMilitary());
+        return Boolean(this.isMilitaryDiscountActive && this.licensee?.isMilitaryStatusActive());
     }
 
     get subTotal(): string {

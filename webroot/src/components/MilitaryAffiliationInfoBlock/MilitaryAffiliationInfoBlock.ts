@@ -54,10 +54,12 @@ class MilitaryAffiliationInfoBlock extends mixins(MixinForm) {
     }
 
     get status(): string {
-        let militaryStatus = '';
+        let militaryStatus = this.$t('licensing.statusOptions.inactive');
 
-        if (this.licensee) {
-            militaryStatus = this.licensee.isMilitary() ? this.$t('licensing.statusOptions.active') : this.$t('licensing.statusOptions.inactive');
+        if (this.isStatusActive) {
+            militaryStatus = this.$t('licensing.statusOptions.active');
+        } else if (this.isStatusInitializing) {
+            militaryStatus = this.$t('licensing.statusOptions.initializing');
         }
 
         return militaryStatus;
@@ -67,12 +69,20 @@ class MilitaryAffiliationInfoBlock extends mixins(MixinForm) {
         return this.$t('military.affiliationType').toUpperCase();
     }
 
+    get isStatusInitializing(): boolean {
+        return this.licensee?.isMilitaryStatusInitializing() || false;
+    }
+
+    get isStatusActive(): boolean {
+        return this.licensee?.isMilitaryStatusActive() || false;
+    }
+
     get affiliationType(): string {
         let militaryStatus = '';
 
         if (this.licensee) {
             const activeAffiliation = this.licensee.activeMilitaryAffiliation() as any;
-            const isMilitary = this.licensee.isMilitary();
+            const isMilitary = this.licensee.isMilitaryStatusActive();
 
             if (isMilitary && activeAffiliation?.affiliationType === 'militaryMember') {
                 militaryStatus = this.$tm('military.affiliationTypes.militaryMember');
@@ -111,7 +121,7 @@ class MilitaryAffiliationInfoBlock extends mixins(MixinForm) {
     }
 
     get shouldShowEndButton(): boolean {
-        return this.licensee?.isMilitary() || false;
+        return this.isStatusActive || this.isStatusInitializing;
     }
 
     get sortOptions(): Array<any> {

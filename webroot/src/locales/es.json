@@ -572,7 +572,8 @@
         "militaryAffiliation": "Afiliación militar",
         "statusOptions": {
             "active": "Activo",
-            "inactive": "Inactivo"
+            "inactive": "Inactivo",
+            "initializing": "Inicializando"
         },
         "privilegeActions": "Acciones de privilegio",
         "privilegeActionsNone": "No hay acciones disponibles",
@@ -682,7 +683,8 @@
         "submitFail": "Error al cargar el documento",
         "fileInstructions": "Sólo 1 archivo (sólo PDF, docx, png, jpeg)",
         "fileName": "Nombre del archivo",
-        "dateUploaded": "Fecha de carga"
+        "dateUploaded": "Fecha de carga",
+        "initializingMessage": "Su documento está en un estado de inicialización. Esto puede indicar que hubo un error de carga. No puede comprar privilegios en este estado. Si este estado persiste, intente cargar su documento nuevamente o haga clic en finalizar afiliación militar y luego actualice la página."
     },
     "account": {
         "requestAccount": "Solicitar cuenta",
@@ -716,7 +718,6 @@
             "inactive": "Inactivo",
             "pending": "Pendiente"
         },
-        "resendInvite": "Reenviar invitación",
         "userSearchLabel": "Introduzca un nombre",
         "userActions": "Acciones del usuario",
         "edit": "Editar",
