@@ -231,6 +231,24 @@ class TestPostPrivilegeEncumbrance(TstFunction):
             response_body,
         )
 
+    def test_license_encumbrance_handler_returns_400_if_encumbrance_date_in_future(self):
+        """Verifying that only state admins are allowed to encumber licenses"""
+        from handlers.encumbrance import encumbrance_handler
+
+        future_date = (datetime.now(tz=UTC) + timedelta(days=2)).strftime('%Y-%m-%d')
+        event, test_license_record = self._when_testing_valid_privilege_encumbrance(
+            body_overrides={'encumbranceEffectiveDate': future_date}
+        )
+
+        response = encumbrance_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'], msg=json.loads(response['body']))
+        response_body = json.loads(response['body'])
+
+        self.assertEqual(
+            {'message': 'The encumbrance date must not be a future date'},
+            response_body,
+        )
+
 
 @mock_aws
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP))
@@ -425,6 +443,25 @@ class TestPostLicenseEncumbrance(TstFunction):
 
         self.assertEqual(
             {'message': 'Access denied'},
+            response_body,
+        )
+
+    def test_license_encumbrance_handler_returns_400_if_encumbrance_date_in_future(self):
+        """Verifying that only state admins are allowed to encumber licenses"""
+        from handlers.encumbrance import encumbrance_handler
+
+        future_date = (datetime.now(tz=UTC) + timedelta(days=2)).strftime('%Y-%m-%d')
+
+        event, test_license_record = self._when_testing_valid_license_encumbrance(
+            body_overrides={'encumbranceEffectiveDate': future_date}
+        )
+
+        response = encumbrance_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'], msg=json.loads(response['body']))
+        response_body = json.loads(response['body'])
+
+        self.assertEqual(
+            {'message': 'The encumbrance date must not be a future date'},
             response_body,
         )
 

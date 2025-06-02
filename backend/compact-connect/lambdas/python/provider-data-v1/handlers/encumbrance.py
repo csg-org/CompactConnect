@@ -66,6 +66,12 @@ def _generate_adverse_action_for_record_type(
     except ValidationError as e:
         raise CCInvalidRequestException(f'Invalid request body: {e.messages}') from e
 
+    current_date = config.expiration_resolution_date
+    encumbrance_effective_date = adverse_action_request['encumbranceEffectiveDate']
+
+    if encumbrance_effective_date > current_date:
+        raise CCInvalidRequestException('The encumbrance date must not be a future date')
+
     # populate the adverse action data to be stored in the database
     adverse_action = AdverseActionData.create_new()
     adverse_action.compact = compact
@@ -88,7 +94,7 @@ def _generate_adverse_action_for_record_type(
     adverse_action.clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategory(
         adverse_action_request['clinicalPrivilegeActionCategory']
     )
-    adverse_action.effectiveStartDate = adverse_action_request['encumbranceEffectiveDate']
+    adverse_action.effectiveStartDate = encumbrance_effective_date
     adverse_action.submittingUser = _get_submitting_user_id(event)
     adverse_action.creationDate = config.current_standard_datetime
 
