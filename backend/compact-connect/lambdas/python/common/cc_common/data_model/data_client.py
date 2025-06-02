@@ -1537,9 +1537,10 @@ class DataClient:
         # Get privileges for this license type that were not previously deactivated
         privileges_for_license_type = [
             privilege
-            for privilege in provider_user_records.get_privilege_records()
-            if privilege.licenseType == license_type
-            and privilege.homeJurisdictionChangeStatus != HomeJurisdictionChangeStatusEnum.INACTIVE
+            for privilege in provider_user_records.get_privilege_records(
+                filter_condition=lambda p: p.licenseType == license_type
+                and p.homeJurisdictionChangeStatus != HomeJurisdictionChangeStatusEnum.INACTIVE
+            )
         ]
 
         if not privileges_for_license_type:
@@ -1636,7 +1637,8 @@ class DataClient:
                     'Item': TypeSerializer().serialize(provider_update_record.serialize_to_database_record())['M'],
                 }
             },
-            # Update provider record
+            # Update provider record. In this case, we set the current home jurisdiction without setting any new license
+            # values, since there is no new license.
             {
                 'Update': {
                     'TableName': self.config.provider_table_name,
@@ -1801,7 +1803,6 @@ class DataClient:
             privilege_records=[privilege.to_dict() for privilege in provider_records.get_privilege_records()],
         )
         provider_record.update({'currentHomeJurisdiction': selected_jurisdiction})
-        # Update our provider data
         transactions.append(
             {
                 'Put': {
@@ -1897,7 +1898,10 @@ class DataClient:
             }
 
             # If the new license is encumbered, set the privilege to licenseEncumbered
-            # unless the privilege itself has specifically been encumbered
+            # unless the privilege itself has specifically been encumbered. Note here that we use the
+            # 'LICENSE_ENCUMBERED' status type to denote the encumbrance is the result of a home state license being
+            # encumbered, rather than a state setting an encumbrance on an individual privilege directly. If a state
+            # sets an encumbrance on a privilege record directly, it will be in an 'ENCUMBERED' status.
             if is_new_license_encumbered and privilege.encumberedStatus != PrivilegeEncumberedStatusEnum.ENCUMBERED:
                 logger.info(
                     'New license record is encumbered and privilege is not already encumbered. Apply encumbered status.'
@@ -1947,13 +1951,15 @@ class DataClient:
             # Build the final update expression
             update_expression = 'SET ' + ', '.join(set_clauses)
 
+            serialized_privilege_record = privilege.serialize_to_database_record()
+
             transactions.append(
                 {
                     'Update': {
                         'TableName': self.config.provider_table_name,
                         'Key': {
-                            'pk': {'S': privilege.serialize_to_database_record()['pk']},
-                            'sk': {'S': privilege.serialize_to_database_record()['sk']},
+                            'pk': {'S': serialized_privilege_record['pk']},
+                            'sk': {'S': serialized_privilege_record['sk']},
                         },
                         'UpdateExpression': update_expression,
                         'ExpressionAttributeValues': expression_values,

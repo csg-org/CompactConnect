@@ -193,7 +193,7 @@ class TestDataClient(TstFunction):
         # Verify the privilege data is being passed back in the response
         self.assertEqual(1, len(response))
         self.assertEqual(
-        {
+            {
                 'administratorSetStatus': 'active',
                 'attestations': [{'attestationId': 'jurisprudence-confirmation', 'version': '1'}],
                 'compact': 'aslp',

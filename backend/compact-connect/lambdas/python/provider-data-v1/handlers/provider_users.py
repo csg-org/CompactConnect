@@ -31,15 +31,16 @@ def provider_users_api_handler(event: dict, context: LambdaContext):
     resource_path = event.get('resource')
 
     # Route to the appropriate handler
-    if http_method == 'GET' and resource_path == '/v1/provider-users/me':
-        return get_provider_user_me(event, context)
-    if resource_path == '/v1/provider-users/me/military-affiliation':
-        if http_method == 'POST':
+    api_method = (http_method, resource_path)
+    match api_method:
+        case ('GET', '/v1/provider-users/me'):
+            return get_provider_user_me(event, context)
+        case ('POST', '/v1/provider-users/me/military-affiliation'):
             return _post_provider_military_affiliation(event, context)
-        if http_method == 'PATCH':
+        case ('PATCH', '/v1/provider-users/me/military-affiliation'):
             return _patch_provider_military_affiliation(event, context)
-    elif http_method == 'PUT' and resource_path == '/v1/provider-users/me/home-jurisdiction':
-        return _put_provider_home_jurisdiction(event, context)
+        case ('PUT', '/v1/provider-users/me/home-jurisdiction'):
+            return _put_provider_home_jurisdiction(event, context)
 
     # If we get here, the method/resource combination is not supported
     raise CCInvalidRequestException(f'Unsupported method or resource: {http_method} {resource_path}')
@@ -78,7 +79,6 @@ def get_provider_user_me(event: dict, context: LambdaContext):  # noqa: ARG001 u
 def _put_provider_home_jurisdiction(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """
     Handle the PUT method for updating a provider's home jurisdiction.
-    This is a placeholder implementation that will be expanded in a future update.
 
     :param event: API Gateway event
     :param context: Lambda context

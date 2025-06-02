@@ -276,6 +276,9 @@ class HomeJurisdictionChangeStatusEnum(CCEnum):
     """
     This is only used if the provider has existing privileges when they change their home jurisdiction,
     and that change results in the privilege becoming inactive.
+
+    This field will never be present for an 'active' privilege, hence the only allowed value for this
+    field is 'inactive'.
     """
 
     INACTIVE = 'inactive'
