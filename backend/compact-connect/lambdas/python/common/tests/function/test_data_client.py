@@ -191,29 +191,28 @@ class TestDataClient(TstFunction):
         self.assertEqual({'ky'}, updated_provider['privilegeJurisdictions'])
 
         # Verify the privilege data is being passed back in the response
+        self.assertEqual(1, len(response))
         self.assertEqual(
-            response,
-            [
-                {
-                    'administratorSetStatus': 'active',
-                    'attestations': [{'attestationId': 'jurisprudence-confirmation', 'version': '1'}],
-                    'compact': 'aslp',
-                    'compactTransactionId': 'test_transaction_id',
-                    'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#test_transaction_id#',
-                    'dateOfIssuance': datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
-                    'dateOfRenewal': datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
-                    'dateOfExpiration': date.fromisoformat('2024-10-31'),
-                    'dateOfUpdate': datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
-                    'jurisdiction': 'ca',
-                    'licenseJurisdiction': 'oh',
-                    'licenseType': 'audiologist',
-                    'pk': 'aslp#PROVIDER#test_provider_id',
-                    'privilegeId': 'AUD-CA-124',
-                    'providerId': 'test_provider_id',
-                    'sk': 'aslp#PROVIDER#privilege/ca/aud#',
-                    'type': 'privilege',
-                }
-            ],
+        {
+                'administratorSetStatus': 'active',
+                'attestations': [{'attestationId': 'jurisprudence-confirmation', 'version': '1'}],
+                'compact': 'aslp',
+                'compactTransactionId': 'test_transaction_id',
+                'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#test_transaction_id#',
+                'dateOfIssuance': '2024-11-08T23:59:59+00:00',
+                'dateOfRenewal': '2024-11-08T23:59:59+00:00',
+                'dateOfExpiration': '2024-10-31',
+                'dateOfUpdate': '2024-11-08T23:59:59+00:00',
+                'jurisdiction': 'ky',
+                'licenseJurisdiction': 'oh',
+                'licenseType': 'audiologist',
+                'pk': f'aslp#PROVIDER#{DEFAULT_PROVIDER_ID}',
+                'privilegeId': 'AUD-KY-124',
+                'providerId': DEFAULT_PROVIDER_ID,
+                'sk': 'aslp#PROVIDER#privilege/ky/aud#',
+                'type': 'privilege',
+            },
+            response[0].serialize_to_database_record(),
         )
 
     def test_data_client_updates_privilege_records_for_specific_license_type(self):
