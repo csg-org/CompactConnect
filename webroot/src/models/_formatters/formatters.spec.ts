@@ -121,6 +121,11 @@ describe('Currency formatters', () => {
 
         expect(formatted).to.equal('');
     });
+    it('should return return correctly formatted when value param is empty and discretely not optional (blur)', () => {
+        const formatted = formatCurrencyBlur('', false);
+
+        expect(formatted).to.equal('');
+    });
     it('should return return correctly formatted when value param is empty and optional (blur)', () => {
         const formatted = formatCurrencyBlur('', true);
 
