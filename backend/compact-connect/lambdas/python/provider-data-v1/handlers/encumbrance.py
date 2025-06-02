@@ -1,10 +1,12 @@
 import json
-from datetime import datetime
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
 from cc_common.data_model.schema.adverse_action import AdverseActionData
-from cc_common.data_model.schema.adverse_action.api import AdverseActionPostRequestSchema
+from cc_common.data_model.schema.adverse_action.api import (
+    AdverseActionPatchRequestSchema,
+    AdverseActionPostRequestSchema,
+)
 from cc_common.data_model.schema.common import (
     AdverseActionAgainstEnum,
     CCPermissionsAction,
@@ -129,14 +131,12 @@ def handle_privilege_encumbrance_lifting(event: dict) -> dict:
 
         # Parse and validate request body
         body = json.loads(event['body'])
-        effective_lift_date = body['effectiveLiftDate']
-        encumbrance_id = body['encumbranceId']
-
-        # Validate date format and parse the effective lift date
         try:
-            lift_date = datetime.fromisoformat(effective_lift_date).date()
-        except ValueError as e:
-            raise CCInvalidRequestException('Invalid date format. Expected ISO format (YYYY-MM-DD)') from e
+            validated_body = AdverseActionPatchRequestSchema().load(body)
+            lift_date = validated_body['effectiveLiftDate']
+            encumbrance_id = validated_body['encumbranceId']
+        except ValidationError as e:
+            raise CCInvalidRequestException(f'Invalid request body: {e.messages}') from e
 
         current_date = config.expiration_resolution_date
 
@@ -173,14 +173,12 @@ def handle_license_encumbrance_lifting(event: dict) -> dict:
 
         # Parse and validate request body
         body = json.loads(event['body'])
-        effective_lift_date = body['effectiveLiftDate']
-        encumbrance_id = body['encumbranceId']
-
-        # Validate date format and parse the effective lift date
         try:
-            lift_date = datetime.fromisoformat(effective_lift_date).date()
-        except ValueError as e:
-            raise CCInvalidRequestException('Invalid date format. Expected ISO format (YYYY-MM-DD)') from e
+            validated_body = AdverseActionPatchRequestSchema().load(body)
+            lift_date = validated_body['effectiveLiftDate']
+            encumbrance_id = validated_body['encumbranceId']
+        except ValidationError as e:
+            raise CCInvalidRequestException(f'Invalid request body: {e.messages}') from e
 
         current_date = config.expiration_resolution_date
 

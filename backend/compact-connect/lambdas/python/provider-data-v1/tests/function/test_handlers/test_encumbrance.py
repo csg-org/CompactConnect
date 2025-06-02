@@ -41,9 +41,13 @@ def _generate_test_body():
 class TestPostPrivilegeEncumbrance(TstFunction):
     """Test suite for privilege encumbrance endpoints."""
 
-    def _when_testing_valid_privilege_encumbrance(self):
+    def _when_testing_valid_privilege_encumbrance(self, body_overrides: dict | None = None):
         self.test_data_generator.put_default_provider_record_in_provider_table()
         test_privilege_record = self.test_data_generator.put_default_privilege_record_in_provider_table()
+
+        body = _generate_test_body()
+        if body_overrides:
+            body.update(body_overrides)
 
         test_event = self.test_data_generator.generate_test_api_event(
             sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
@@ -59,7 +63,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
                         compact=test_privilege_record.compact, license_type=test_privilege_record.licenseType
                     ),
                 },
-                'body': json.dumps(_generate_test_body()),
+                'body': json.dumps(body),
             },
         )
         # return both the test event and the test privilege record
@@ -233,9 +237,13 @@ class TestPostPrivilegeEncumbrance(TstFunction):
 class TestPostLicenseEncumbrance(TstFunction):
     """Test suite for license encumbrance endpoints."""
 
-    def _when_testing_valid_license_encumbrance(self):
+    def _when_testing_valid_license_encumbrance(self, body_overrides: dict | None = None):
         self.test_data_generator.put_default_provider_record_in_provider_table()
         test_license_record = self.test_data_generator.put_default_license_record_in_provider_table()
+
+        body = _generate_test_body()
+        if body_overrides:
+            body.update(body_overrides)
 
         test_event = self.test_data_generator.generate_test_api_event(
             sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
@@ -251,7 +259,7 @@ class TestPostLicenseEncumbrance(TstFunction):
                         compact=test_license_record.compact, license_type=test_license_record.licenseType
                     ),
                 },
-                'body': json.dumps(_generate_test_body()),
+                'body': json.dumps(body),
             },
         )
 
@@ -496,7 +504,7 @@ class TestPatchPrivilegeEncumbranceLifting(TstFunction):
         response = encumbrance_handler(event, self.mock_context)
         self.assertEqual(400, response['statusCode'])
         response_body = json.loads(response['body'])
-        self.assertIn('Invalid date format', response_body['message'])
+        self.assertEqual("Invalid request body: {'effectiveLiftDate': ['Not a valid date.']}", response_body['message'])
 
     def test_should_raise_cc_not_found_exception_if_adverse_action_not_found(self):
         from handlers.encumbrance import encumbrance_handler
@@ -800,7 +808,7 @@ class TestPatchLicenseEncumbranceLifting(TstFunction):
         response = encumbrance_handler(event, self.mock_context)
         self.assertEqual(400, response['statusCode'])
         response_body = json.loads(response['body'])
-        self.assertIn('Invalid date format', response_body['message'])
+        self.assertEqual("Invalid request body: {'effectiveLiftDate': ['Not a valid date.']}", response_body['message'])
 
     def test_should_raise_cc_not_found_exception_if_adverse_action_not_found(self):
         from handlers.encumbrance import encumbrance_handler
