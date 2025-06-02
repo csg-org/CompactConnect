@@ -29,9 +29,6 @@ export class PrivilegePurchaseOption implements InterfacePrivilegePurchaseOption
     public jurisdiction? = new State();
     public compactType? = null;
     public fees? = {};
-    public isMilitaryDiscountActive? = false;
-    public militaryDiscountType? = null;
-    public militaryDiscountAmount? = 0;
     public isJurisprudenceRequired? = false;
 
     constructor(data?: InterfacePrivilegePurchaseOption) {
@@ -52,23 +49,25 @@ export class PrivilegePurchaseOption implements InterfacePrivilegePurchaseOption
 // ========================================================
 export class PrivilegePurchaseOptionSerializer {
     static fromServer(json: any): PrivilegePurchaseOption {
+        console.log('json', json);
+
         const purchaseOptionData = {
             jurisdiction: new State({ abbrev: json.postalAbbreviation }),
             compactType: json.compact,
             fees: {},
-            isMilitaryDiscountActive: json?.militaryDiscount?.active === true || false,
-            militaryDiscountType: json?.militaryDiscount?.discountType || null,
-            militaryDiscountAmount: json?.militaryDiscount?.discountAmount || null,
             isJurisprudenceRequired: json?.jurisprudenceRequirements?.required || false,
         };
 
         if (Array.isArray(json.privilegeFees)) {
             json.privilegeFees.forEach((fee) => {
                 if (fee.licenseTypeAbbreviation) {
-                    purchaseOptionData.fees[fee.licenseTypeAbbreviation] = fee.amount || 0;
+                    purchaseOptionData.fees[fee.licenseTypeAbbreviation] = { baseRate: fee.amount || 0 };
+                    purchaseOptionData.fees[fee.licenseTypeAbbreviation].militaryRate = fee.militaryRate;
                 }
             });
         }
+
+        console.log('purchaseOptionData', purchaseOptionData);
 
         return new PrivilegePurchaseOption(purchaseOptionData);
     }

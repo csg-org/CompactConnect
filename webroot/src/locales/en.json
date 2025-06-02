@@ -542,6 +542,7 @@
         "deselectState": "Deselect state",
         "adminFee": "Administration Fee",
         "jurisdictionFee": "Jurisdiction Fee",
+        "jurisdictionFeeMilitary": "Jurisdiction Fee (Military)",
         "licenseTypeSearch": "Profession type",
         "licenseType": "License type",
         "adverseActions": "Adverse actions",
@@ -719,7 +720,6 @@
             "inactive": "Inactive",
             "pending": "Pending"
         },
-        "resendInvite": "Resend invite",
         "userSearchLabel": "Enter a name",
         "userActions": "User actions",
         "edit": "Edit",

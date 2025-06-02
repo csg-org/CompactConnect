@@ -88,8 +88,8 @@ export default class MilitaryStatusUpdate extends mixins(MixinForm) {
                 fileConfig: {
                     accepts: [`application/pdf`, `application/vnd.openxmlformats-officedocument.wordprocessingml.document`, `image/png`, `image/jpeg`],
                     allowMultiple: false,
-                    maxSizeMbPer: 9,
-                    maxSizeMbAll: 9,
+                    maxSizeMbPer: 100,
+                    maxSizeMbAll: 100,
                 },
             }),
             submit: new FormInput({
