@@ -28,6 +28,7 @@ class QueuedLambdaProcessor(Construct):
         batch_size: int,
         encryption_key: IKey,
         alarm_topic: ITopic,
+        dlq_count_alarm_threshold: int = 10,
     ):
         super().__init__(scope, construct_id)
 
@@ -92,7 +93,11 @@ class QueuedLambdaProcessor(Construct):
         )
 
         self._add_queue_alarms(
-            retention_period=retention_period, queue=self.queue, dlq=self.dlq, alarm_topic=alarm_topic
+            retention_period=retention_period,
+            queue=self.queue,
+            dlq=self.dlq,
+            alarm_topic=alarm_topic,
+            dlq_count_alarm_threshold=dlq_count_alarm_threshold,
         )
 
         QueryDefinition(
@@ -113,6 +118,7 @@ class QueuedLambdaProcessor(Construct):
         queue: IQueue,
         dlq: IQueue,
         alarm_topic: ITopic,
+        dlq_count_alarm_threshold: int = 10,
     ):
         # Alarm if messages are older than half the queue retention period
         message_age_alarm = Alarm(
@@ -135,7 +141,7 @@ class QueuedLambdaProcessor(Construct):
             'DLQMessagesAlarm',
             metric=dlq.metric_approximate_number_of_messages_visible(),
             evaluation_periods=1,
-            threshold=10,
+            threshold=dlq_count_alarm_threshold,
             actions_enabled=True,
             alarm_description=f'{dlq.node.path} high message volume',
             comparison_operator=ComparisonOperator.GREATER_THAN_THRESHOLD,

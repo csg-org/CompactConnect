@@ -30,6 +30,7 @@ TEST_EMAIL = 'testRegisteredEmail@example.com'
 TEST_COGNITO_SUB = '1234567890'
 
 TEST_LICENSE_TYPE = 'speech-language pathologist'
+MOCK_LINE_ITEMS = [{'name': 'Alaska Big Fee', 'quantity': '1', 'unitPrice': '55.5', 'description': 'Fee for Alaska'}]
 
 
 def generate_default_attestation_list():
@@ -136,7 +137,8 @@ class TestPostPurchasePrivileges(TstFunction):
         mock_purchase_client = MagicMock()
         mock_purchase_client_constructor.return_value = mock_purchase_client
         mock_purchase_client.process_charge_for_licensee_privileges.return_value = {
-            'transactionId': MOCK_TRANSACTION_ID
+            'transactionId': MOCK_TRANSACTION_ID,
+            'lineItems': MOCK_LINE_ITEMS,
         }
 
         return mock_purchase_client
@@ -244,7 +246,7 @@ class TestPostPurchasePrivileges(TstFunction):
         )
 
     @patch('handlers.privileges.PurchaseClient')
-    def test_post_purchase_privileges_returns_transaction_id(self, mock_purchase_client_constructor):
+    def test_post_purchase_privileges_returns_necessary_data(self, mock_purchase_client_constructor):
         from handlers.privileges import post_purchase_privileges
 
         self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
@@ -256,7 +258,111 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertEqual(200, resp['statusCode'])
         response_body = json.loads(resp['body'])
 
-        self.assertEqual({'transactionId': MOCK_TRANSACTION_ID}, response_body)
+        self.assertEqual(
+            {
+                'transactionId': MOCK_TRANSACTION_ID,
+                'lineItems': MOCK_LINE_ITEMS,
+            },
+            response_body,
+        )
+
+    @patch('handlers.privileges.PurchaseClient')
+    @patch('handlers.privileges.config.event_bus_client', autospec=True)
+    def test_post_purchase_privileges_kicks_off_privilege_purchase_event(
+        self,
+        mock_event_bus,
+        mock_purchase_client_constructor,
+    ):
+        from handlers.privileges import post_purchase_privileges
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+
+        event = self._when_testing_provider_user_event_with_custom_claims()
+        event['body'] = _generate_test_request_body()
+
+        post_purchase_privileges(event, self.mock_context)
+        mock_event_bus.publish_privilege_purchase_event.assert_called_once_with(
+            source='post_purchase_privileges',
+            jurisdiction='oh',
+            compact='aslp',
+            provider_email='björkRegisteredEmail@example.com',
+            privileges=[
+                {
+                    'compact': 'aslp',
+                    'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
+                    'jurisdiction': 'ky',
+                    'licenseTypeAbbrev': 'slp',
+                    'privilegeId': 'SLP-KY-1',
+                }
+            ],
+            total_cost='55.5',
+            cost_line_items=MOCK_LINE_ITEMS,
+        )
+
+    @patch('handlers.privileges.PurchaseClient')
+    @patch('handlers.privileges.config.event_bus_client', autospec=True)
+    def test_post_purchase_privileges_kicks_off_privilege_issued_event(
+        self,
+        mock_event_bus,
+        mock_purchase_client_constructor,
+    ):
+        from handlers.privileges import post_purchase_privileges
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+
+        event = self._when_testing_provider_user_event_with_custom_claims()
+        event['body'] = _generate_test_request_body()
+
+        post_purchase_privileges(event, self.mock_context)
+        mock_event_bus.publish_privilege_issued_event.assert_called_once_with(
+            source='post_purchase_privileges',
+            jurisdiction='ky',
+            compact='aslp',
+            provider_email='björkRegisteredEmail@example.com',
+        )
+
+    @patch('handlers.privileges.PurchaseClient')
+    @patch('handlers.privileges.config.event_bus_client', autospec=True)
+    def test_post_purchase_privileges_kicks_off_privilege_renewed_event(
+        self,
+        mock_event_bus,
+        mock_purchase_client_constructor,
+    ):
+        from handlers.privileges import post_purchase_privileges
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+
+        event = self._when_testing_provider_user_event_with_custom_claims()
+        event['body'] = _generate_test_request_body()
+
+        test_expiration_date = date(2026, 10, 8).isoformat()
+        event = self._when_testing_provider_user_event_with_custom_claims(license_expiration_date=test_expiration_date)
+        event['body'] = _generate_test_request_body()
+        test_issuance_date = datetime(2023, 10, 8, hour=5, tzinfo=UTC).isoformat()
+
+        # create an existing privilege record for the kentucky jurisdiction, simulating a previous purchase
+        with open('../common/tests/resources/dynamo/privilege.json') as f:
+            privilege_record = json.load(f)
+            privilege_record['pk'] = f'{TEST_COMPACT}#PROVIDER#{TEST_PROVIDER_ID}'
+            privilege_record['sk'] = f'{TEST_COMPACT}#PROVIDER#privilege/ky/slp#'
+            # in this case, the user is purchasing the privilege for the first time
+            # so the date of renewal is the same as the date of issuance
+            privilege_record['dateOfRenewal'] = test_issuance_date
+            privilege_record['dateOfIssuance'] = test_issuance_date
+            privilege_record['dateOfExpiration'] = test_expiration_date
+            privilege_record['compact'] = TEST_COMPACT
+            privilege_record['jurisdiction'] = 'ky'
+            privilege_record['providerId'] = TEST_PROVIDER_ID
+            privilege_record['administratorSetStatus'] = 'inactive'
+            self.config.provider_table.put_item(Item=privilege_record)
+
+        post_purchase_privileges(event, self.mock_context)
+        mock_event_bus.publish_privilege_renewed_event.assert_called_once_with(
+            source='post_purchase_privileges',
+            jurisdiction='ky',
+            compact='aslp',
+            provider_email='björkRegisteredEmail@example.com',
+        )
 
     @patch('handlers.privileges.PurchaseClient')
     def test_post_purchase_privileges_returns_error_message_if_transaction_failure(
@@ -424,7 +530,7 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertEqual(200, resp['statusCode'], resp['body'])
         response_body = json.loads(resp['body'])
 
-        self.assertEqual({'transactionId': MOCK_TRANSACTION_ID}, response_body)
+        self.assertEqual(response_body, {'transactionId': MOCK_TRANSACTION_ID, 'lineItems': MOCK_LINE_ITEMS})
 
         # ensure the persistent status is now active
         provider_records = self.config.data_client.get_provider(compact=TEST_COMPACT, provider_id=TEST_PROVIDER_ID)
@@ -471,7 +577,7 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertEqual(200, resp['statusCode'], resp['body'])
         response_body = json.loads(resp['body'])
 
-        self.assertEqual({'transactionId': MOCK_TRANSACTION_ID}, response_body)
+        self.assertEqual(response_body, {'transactionId': MOCK_TRANSACTION_ID, 'lineItems': MOCK_LINE_ITEMS})
 
         # ensure there are two privilege records for the same jurisdiction
         provider_records = self.config.data_client.get_provider(compact=TEST_COMPACT, provider_id=TEST_PROVIDER_ID)
@@ -604,7 +710,8 @@ class TestPostPurchasePrivileges(TstFunction):
 
         # verify that the transaction was voided
         mock_purchase_client.void_privilege_purchase_transaction.assert_called_once_with(
-            compact_abbr=TEST_COMPACT, order_information={'transactionId': MOCK_TRANSACTION_ID}
+            compact_abbr=TEST_COMPACT,
+            order_information={'transactionId': MOCK_TRANSACTION_ID, 'lineItems': MOCK_LINE_ITEMS},
         )
 
     @patch('handlers.privileges.PurchaseClient')

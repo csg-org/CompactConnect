@@ -232,6 +232,51 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         self.assertEqual(MOCK_TRANSACTION_ID, response['transactionId'])
 
     @patch('purchase_client.createTransactionController')
+    def test_purchase_client_returns_expected_line_items_in_response(self, mock_create_transaction_controller):
+        from purchase_client import PurchaseClient
+
+        mock_secrets_manager_client = self._generate_mock_secrets_manager_client()
+        self._when_authorize_dot_net_transaction_is_successful(
+            mock_create_transaction_controller=mock_create_transaction_controller
+        )
+
+        test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
+
+        response = test_purchase_client.process_charge_for_licensee_privileges(
+            licensee_id=MOCK_LICENSEE_ID,
+            order_information=_generate_default_order_information(),
+            compact_configuration=_generate_aslp_compact_configuration(),
+            selected_jurisdictions=_generate_selected_jurisdictions(),
+            license_type_abbreviation=MOCK_LICENSE_TYPE_ABBR,
+            user_active_military=False,
+        )
+
+        # we check every line item of the object to ensure that the correct values are being set
+        self.assertEqual(2, len(response['lineItems']))
+        # first line item is the jurisdiction fee
+        self.assertEqual(
+            response['lineItems'],
+            [
+                {
+                    'itemId': 'priv:aslp-oh-slp',
+                    'name': 'Ohio Compact Privilege',
+                    'unitPrice': '100',
+                    'quantity': '1',
+                    'description': 'Compact Privilege for Ohio',
+                    'taxable': 'None',
+                },
+                {
+                    'itemId': 'aslp-compact-fee',
+                    'name': 'ASLP Compact Fee',
+                    'unitPrice': '50.5',
+                    'quantity': '1',
+                    'description': 'Compact fee applied for each privilege purchased',
+                    'taxable': 'None',
+                },
+            ],
+        )
+
+    @patch('purchase_client.createTransactionController')
     def test_purchase_client_makes_successful_transaction_using_authorize_net_processor(
         self, mock_create_transaction_controller
     ):
@@ -274,7 +319,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         self.assertEqual('testFirstName', api_contract_v1_obj.transactionRequest.billTo.firstName)
         self.assertEqual('testLastName', api_contract_v1_obj.transactionRequest.billTo.lastName)
         # transaction settings
-        self.assertEqual('180', api_contract_v1_obj.transactionRequest.transactionSettings.setting[0].settingValue)
+        self.assertEqual('35', api_contract_v1_obj.transactionRequest.transactionSettings.setting[0].settingValue)
         self.assertEqual(
             'duplicateWindow', api_contract_v1_obj.transactionRequest.transactionSettings.setting[0].settingName
         )
