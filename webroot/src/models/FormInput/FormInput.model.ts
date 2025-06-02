@@ -15,10 +15,11 @@ export interface InterfaceFormInput {
     id?: string;
     name?: string;
     label?: string | ComputedRef<string>;
+    labelSubtext?: string | ComputedRef<string>;
     shouldHideLabel?: boolean;
     isLabelHTML?: boolean;
     placeholder?: string | ComputedRef<string>;
-    value?: string | number | boolean | null | Array<File>;
+    value?: string | number | boolean | null | Array<File> | Array<string>;
     valueOptions?: Array<{ value: any; name: string | ComputedRef<string>; }>;
     autocomplete?: string;
     fileConfig?: {
@@ -54,6 +55,7 @@ export class FormInput implements InterfaceFormInput {
     public id = '';
     public name = '';
     public label = '';
+    public labelSubtext = '';
     public shouldHideLabel = false;
     public isLabelHTML = false;
     public placeholder = '';

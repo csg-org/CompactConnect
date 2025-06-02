@@ -16,6 +16,7 @@
                 'no-text-transform': !shouldTransformText,
                 'transparent': isTransparent,
                 'text-like': isTextLike,
+                'warning': isWarning,
             }"
             :value="label"
             v-bind:disabled="isEnabled === false ? true : false"

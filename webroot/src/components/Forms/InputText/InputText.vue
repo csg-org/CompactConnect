@@ -18,8 +18,16 @@
             v-if="!formInput.shouldHideLabel"
             :for="formInput.id"
         >
-            {{ formInput.label }}
-            <span v-if="isRequired" class="required-indicator">*</span>
+            <div>
+                {{ formInput.label }}
+                <span v-if="isRequired" class="required-indicator">*</span>
+            </div>
+            <div
+                v-if="formInput.labelSubtext"
+                v-html="formInput.labelSubtext"
+                class="input-label-subtext"
+            >
+            </div>
         </label>
         <input
             type="text"
@@ -35,6 +43,7 @@
             :class="{ 'has-error': !!formInput.errorMessage }"
             :disabled="formInput.isDisabled"
         />
+        <span class="separator"></span>
         <span
             v-if="formInput.errorMessage && !formInput.shouldHideErrorMessage"
             class="form-field-error"
