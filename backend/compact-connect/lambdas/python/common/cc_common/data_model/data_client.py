@@ -1897,11 +1897,15 @@ class DataClient:
                 'dateOfExpiration': new_license.dateOfExpiration,
             }
 
-            # If the new license is encumbered, set the privilege to licenseEncumbered
-            # unless the privilege itself has specifically been encumbered. Note here that we use the
-            # 'LICENSE_ENCUMBERED' status type to denote the encumbrance is the result of a home state license being
-            # encumbered, rather than a state setting an encumbrance on an individual privilege directly. If a state
-            # sets an encumbrance on a privilege record directly, it will be in an 'ENCUMBERED' status.
+            # When a home state license is encumbered, all associated privileges for that license must be
+            # encumbered as well. We use the 'LICENSE_ENCUMBERED' status type to denote the encumbrance on the privilege
+            # is the result of a home state license being encumbered, rather than a state setting an encumbrance on an
+            # individual privilege directly. If a state sets an encumbrance on a privilege record directly, it will be
+            # in an 'ENCUMBERED' status.
+            #
+            # When changing home states, if the new home state license is encumbered, we set the privileges for that
+            # license type to a 'LICENSE_ENCUMBERED' status unless the privilege itself has already been encumbered with
+            # an 'ENCUMBERED' status.
             if is_new_license_encumbered and privilege.encumberedStatus != PrivilegeEncumberedStatusEnum.ENCUMBERED:
                 logger.info(
                     'New license record is encumbered and privilege is not already encumbered. Apply encumbered status.'
