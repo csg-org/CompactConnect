@@ -1391,6 +1391,11 @@ class DataClient:
             license_type_abbreviation=license_type_abbreviation,
             adverse_action_id=adverse_action_id,
         ):
+            license_type_name = LicenseUtility.get_license_type_by_abbreviation(compact, license_type_abbreviation).name
+            if not license_type_name:
+                logger.info('Invalid license type abbreviation provided.')
+                raise CCInvalidRequestException(f'Invalid license type abbreviation: {license_type_abbreviation}')
+
             logger.info('Lifting privilege encumbrance')
 
             # Get all provider records
@@ -1428,7 +1433,6 @@ class DataClient:
             ]
 
             # Get the privilege record
-            license_type_name = LicenseUtility.get_license_type_by_abbreviation(compact, license_type_abbreviation).name
             privilege_records = provider_user_records.get_privilege_records(
                 filter_condition=lambda p: (p.jurisdiction == jurisdiction and p.licenseType == license_type_name)
             )
@@ -1522,6 +1526,11 @@ class DataClient:
             license_type_abbreviation=license_type_abbreviation,
             adverse_action_id=adverse_action_id,
         ):
+            license_type_name = LicenseUtility.get_license_type_by_abbreviation(compact, license_type_abbreviation).name
+            if not license_type_name:
+                logger.info('Invalid license type abbreviation provided.')
+                raise CCInvalidRequestException(f'Invalid license type abbreviation: {license_type_abbreviation}')
+
             logger.info('Lifting license encumbrance')
 
             # Get all provider records
@@ -1559,7 +1568,6 @@ class DataClient:
             ]
 
             # Get the license record
-            license_type_name = LicenseUtility.get_license_type_by_abbreviation(compact, license_type_abbreviation).name
             license_records = provider_user_records.get_license_records(
                 filter_condition=lambda record: (
                     record.jurisdiction == jurisdiction and record.licenseType == license_type_name
