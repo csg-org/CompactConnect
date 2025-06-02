@@ -1769,6 +1769,64 @@ export const compactStates = [
     },
 ];
 
+export const compactConfig = {
+    compactAbbr: 'otcp',
+    compactName: 'Occupational Therapy',
+    compactCommissionFee: {
+        feeType: 'FLAT_RATE',
+        feeAmount: 10,
+    },
+    licenseeRegistrationEnabled: false,
+    compactOperationsTeamEmails: [
+        'ops@example.com',
+    ],
+    compactAdverseActionsNotificationEmails: [
+        'adverse@example.com',
+    ],
+    compactSummaryReportNotificationEmails: [
+        'summary@example.com',
+    ],
+    transactionFeeConfiguration: {
+        licenseeCharges: {
+            active: true,
+            chargeType: 'FLAT_FEE_PER_PRIVILEGE',
+            chargeAmount: 5,
+        },
+    },
+};
+
+export const stateConfig = {
+    compact: 'otcp',
+    jurisdictionName: 'Kentucky',
+    postalAbbreviation: 'ky',
+    licenseeRegistrationEnabled: false,
+    privilegeFees: [
+        {
+            licenseTypeAbbreviation: 'ot',
+            amount: 30,
+            militaryRate: null,
+        },
+        {
+            licenseTypeAbbreviation: 'ota',
+            amount: 30,
+            militaryRate: 25,
+        },
+    ],
+    jurisprudenceRequirements: {
+        required: true,
+        linkToDocumentation: 'https://example.com',
+    },
+    jurisdictionOperationsTeamEmails: [
+        'ops@example.com',
+    ],
+    jurisdictionAdverseActionsNotificationEmails: [
+        'adverse@example.com',
+    ],
+    jurisdictionSummaryReportNotificationEmails: [
+        'summary@example.com',
+    ],
+};
+
 export const pets = [
     {
         id: 1,

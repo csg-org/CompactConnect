@@ -19,7 +19,6 @@ from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
 from common_constructs.nodejs_function import NodejsFunction
 from common_constructs.python_function import PythonFunction
-from common_constructs.ssm_parameter_utility import SSMParameterUtility
 from common_constructs.stack import Stack
 
 from stacks import persistent_stack as ps
@@ -44,6 +43,7 @@ class ProviderManagement:
         admin_method_options: MethodOptions,
         ssn_method_options: MethodOptions,
         persistent_stack: ps.PersistentStack,
+        data_event_bus: EventBus,
         api_model: ApiModel,
     ):
         super().__init__()
@@ -53,9 +53,6 @@ class ProviderManagement:
         self.api_model = api_model
 
         stack: Stack = Stack.of(resource)
-
-        # Load the data event bus from SSM parameter instead of direct reference
-        data_event_bus = SSMParameterUtility.load_data_event_bus_from_ssm_parameter(stack)
 
         lambda_environment = {
             'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,

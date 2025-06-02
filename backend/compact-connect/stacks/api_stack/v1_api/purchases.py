@@ -4,6 +4,7 @@ import os
 
 from aws_cdk import Duration
 from aws_cdk.aws_apigateway import LambdaIntegration, MethodResponse, Resource
+from aws_cdk.aws_events import EventBus
 from aws_cdk.aws_iam import Effect, PolicyStatement
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
@@ -24,6 +25,7 @@ class Purchases:
         data_encryption_key: IKey,
         compact_configuration_table: CompactConfigurationTable,
         provider_data_table: ProviderTable,
+        data_event_bus: EventBus,
         api_model: ApiModel,
     ):
         super().__init__()
@@ -33,9 +35,11 @@ class Purchases:
         self.api: cc_api.CCApi = resource.api
 
         stack: Stack = Stack.of(resource)
+
         lambda_environment = {
             'COMPACT_CONFIGURATION_TABLE_NAME': compact_configuration_table.table_name,
             'PROVIDER_TABLE_NAME': provider_data_table.table_name,
+            'EVENT_BUS_NAME': data_event_bus.event_bus_name,
             **stack.common_env_vars,
         }
 
@@ -45,6 +49,7 @@ class Purchases:
             data_encryption_key=data_encryption_key,
             compact_configuration_table=compact_configuration_table,
             provider_data_table=provider_data_table,
+            data_event_bus=data_event_bus,
             lambda_environment=lambda_environment,
         )
         # /v1/purchases/privileges/options
@@ -61,12 +66,14 @@ class Purchases:
         data_encryption_key: IKey,
         compact_configuration_table: CompactConfigurationTable,
         provider_data_table: ProviderTable,
+        data_event_bus: EventBus,
         lambda_environment: dict,
     ):
         self.post_purchase_privilege_handler = self._post_purchase_privileges_handler(
             data_encryption_key=data_encryption_key,
             compact_configuration_table=compact_configuration_table,
             provider_data_table=provider_data_table,
+            data_event_bus=data_event_bus,
             lambda_environment=lambda_environment,
         )
         self.api.log_groups.append(self.post_purchase_privilege_handler.log_group)
@@ -91,6 +98,7 @@ class Purchases:
         data_encryption_key: IKey,
         compact_configuration_table: CompactConfigurationTable,
         provider_data_table: ProviderTable,
+        data_event_bus: EventBus,
         lambda_environment: dict,
     ) -> PythonFunction:
         stack = Stack.of(self.purchases_resource)
@@ -106,10 +114,12 @@ class Purchases:
             # required as this lambda is bundled with the authorize.net SDK which is large
             memory_size=256,
         )
+
         data_encryption_key.grant_decrypt(handler)
         compact_configuration_table.grant_read_data(handler)
         # This lambda is responsible for adding privilege records to a provider after they have purchased them.
         provider_data_table.grant_read_write_data(handler)
+        data_event_bus.grant_put_events_to(handler)
 
         # grant access to secrets manager secrets following this namespace pattern
         # compact-connect/env/{environment_name}/compact/{compact_abbr}/credentials/payment-processor
