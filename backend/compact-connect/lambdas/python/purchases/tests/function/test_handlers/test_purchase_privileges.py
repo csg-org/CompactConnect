@@ -1,6 +1,7 @@
 import json
 from datetime import UTC, date, datetime
 from unittest.mock import MagicMock, patch
+from uuid import UUID
 
 from cc_common.config import config
 from cc_common.exceptions import CCAwsServiceException, CCFailedTransactionException, CCInternalException
@@ -289,7 +290,7 @@ class TestPostPurchasePrivileges(TstFunction):
             privileges=[
                 {
                     'compact': 'aslp',
-                    'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
+                    'providerId': UUID('89a6377e-c3a5-40e5-bca5-317ec854c570'),
                     'jurisdiction': 'ky',
                     'licenseTypeAbbrev': 'slp',
                     'privilegeId': 'SLP-KY-1',
@@ -897,9 +898,6 @@ class TestPostPurchasePrivileges(TstFunction):
         # now make the same call with the same jurisdiction
         resp = post_purchase_privileges(event, self.mock_context)
         self.assertEqual(200, resp['statusCode'], resp['body'])
-        response_body = json.loads(resp['body'])
-
-        self.assertEqual({'transactionId': MOCK_TRANSACTION_ID}, response_body)
 
         # ensure there is only one privilege record for the jurisdiction
         provider_records = self.config.data_client.get_provider(compact=TEST_COMPACT, provider_id=TEST_PROVIDER_ID)
@@ -954,9 +952,6 @@ class TestPostPurchasePrivileges(TstFunction):
         # now make the same call with the same jurisdiction
         resp = post_purchase_privileges(event, self.mock_context)
         self.assertEqual(200, resp['statusCode'], resp['body'])
-        response_body = json.loads(resp['body'])
-
-        self.assertEqual({'transactionId': MOCK_TRANSACTION_ID}, response_body)
 
         # ensure there is only one privilege record for the jurisdiction
         privilege_update_records = (

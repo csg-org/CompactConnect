@@ -341,18 +341,18 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
         # Filtering the params to a subset that is actually needed
         filtered_privileges = [
             {
-                'compact': p['compact'],
-                'providerId': p['providerId'],
-                'jurisdiction': p['jurisdiction'],
+                'compact': p.compact,
+                'providerId': p.providerId,
+                'jurisdiction': p.jurisdiction,
                 'licenseTypeAbbrev': config.license_type_abbreviations[compact_abbr][
-                    matching_license_record['licenseType']
+                    matching_license_record.licenseType
                 ],
-                'privilegeId': p['privilegeId'],
+                'privilegeId': p.privilegeId,
             }
             for p in generated_privileges
         ]
 
-        provider_email = provider_record['compactConnectRegisteredEmailAddress']
+        provider_email = top_level_provider_record.compactConnectRegisteredEmailAddress
 
         cost_line_items = transaction_response['lineItems']
 
@@ -374,7 +374,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
         privilege_jurisdictions_renewed = []
         privilege_jurisdictions_issued = []
         existing_privilege_jurisdictions = [
-            existing_privilege['jurisdiction'] for existing_privilege in existing_privileges_for_license
+            existing_privilege.jurisdiction for existing_privilege in existing_privileges_for_license
         ]
 
         for jurisdiction in selected_jurisdictions_postal_abbreviations:

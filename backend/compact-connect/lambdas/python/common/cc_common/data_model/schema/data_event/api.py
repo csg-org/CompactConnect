@@ -4,19 +4,13 @@ from cc_common.data_model.schema.fields import (
     Compact,
     Jurisdiction,
 )
-from marshmallow.fields import (
-    DateTime,
-    Email,
-    List,
-    Nested,
-    String,
-)
+from marshmallow.fields import UUID, DateTime, Email, List, Nested, String
 from marshmallow.validate import Length
 
 
 class PrivilegeEventPrivilegeSchema(ForgivingSchema):
     compact = String(required=True, allow_none=False)
-    providerId = String(required=True, allow_none=False)
+    providerId = UUID(required=True, allow_none=False)
     jurisdiction = String(required=True, allow_none=False)
     licenseTypeAbbrev = String(required=True, allow_none=False)
     privilegeId = String(required=True, allow_none=False)
