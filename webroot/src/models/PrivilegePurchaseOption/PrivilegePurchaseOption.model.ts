@@ -4,7 +4,6 @@
 //
 //  Created by InspiringApps on 7/2/2024.
 //
-import { FeeTypes } from '@/app.config';
 import { deleteUndefinedProperties } from '@models/_helpers';
 import { State } from '@models/State/State.model';
 
@@ -15,9 +14,6 @@ export interface InterfacePrivilegePurchaseOption {
     jurisdiction?: State;
     compactType?: string | null;
     fees?: { [key: string]: number };
-    isMilitaryDiscountActive?: boolean;
-    militaryDiscountType?: FeeTypes | null;
-    militaryDiscountAmount?: number;
     isJurisprudenceRequired?: boolean;
 }
 
@@ -49,8 +45,6 @@ export class PrivilegePurchaseOption implements InterfacePrivilegePurchaseOption
 // ========================================================
 export class PrivilegePurchaseOptionSerializer {
     static fromServer(json: any): PrivilegePurchaseOption {
-        console.log('json', json);
-
         const purchaseOptionData = {
             jurisdiction: new State({ abbrev: json.postalAbbreviation }),
             compactType: json.compact,
@@ -62,12 +56,12 @@ export class PrivilegePurchaseOptionSerializer {
             json.privilegeFees.forEach((fee) => {
                 if (fee.licenseTypeAbbreviation) {
                     purchaseOptionData.fees[fee.licenseTypeAbbreviation] = { baseRate: fee.amount || 0 };
-                    purchaseOptionData.fees[fee.licenseTypeAbbreviation].militaryRate = fee.militaryRate;
+                    if (fee.militaryRate) {
+                        purchaseOptionData.fees[fee.licenseTypeAbbreviation].militaryRate = fee.militaryRate;
+                    }
                 }
             });
         }
-
-        console.log('purchaseOptionData', purchaseOptionData);
 
         return new PrivilegePurchaseOption(purchaseOptionData);
     }
