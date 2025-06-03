@@ -898,7 +898,7 @@ class TestPutProviderHomeJurisdiction(TstFunction):
 
         self.assertEqual(200, resp['statusCode'])
 
-        # the privilege should be deactivated because there is no license in the new jurisdiction
+        # the privilege should remain encumbered and not be updated because the original license was encumbered
         stored_privilege_data = PrivilegeData.from_database_record(
             self.test_data_generator.load_provider_data_record_from_database(test_privilege_record)
         )
