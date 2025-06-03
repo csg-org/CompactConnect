@@ -139,9 +139,6 @@ def test_home_jurisdiction_change_inactivates_privileges_when_no_license_in_new_
         )
 
     # Now purchase the privilege again to reactivate it.
-    # Ensure the 'test_purchasing_privilege' test does not delete the existing privilege record,
-    # so we ensure the existing record has the home jurisdiction change deactivation status removed, and the privilege
-    # becomes active again as expected.
 
     # we've set a duplicate transaction window to prevent double charges on their cards, so
     # we wait for that period before processing the charge a second time
