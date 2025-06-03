@@ -135,7 +135,7 @@ export default class MilitaryStatusUpdate extends mixins(MixinForm) {
                 const parser = new DOMParser();
                 const xmlData = parser.parseFromString(uploadResponse?.response?.data || '', 'text/xml');
 
-                const xmlErrorMessage = xmlData.getElementsByTagName('Message')[0].innerHTML;
+                const xmlErrorMessage = xmlData.getElementsByTagName('Message')[0]?.innerHTML || '';
 
                 this.resetForm(false, xmlErrorMessage);
             }
@@ -156,6 +156,7 @@ export default class MilitaryStatusUpdate extends mixins(MixinForm) {
         } else {
             this.$nextTick(() => {
                 this.updateFormSubmitError(xmlErrorMessage || this.$t('military.submitFail'));
+                this.$store.dispatch('user/getLicenseeAccountRequest');
             });
         }
     }
