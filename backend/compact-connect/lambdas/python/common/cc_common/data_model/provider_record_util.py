@@ -7,12 +7,10 @@ from cc_common.data_model.schema.common import ActiveInactiveStatus, AdverseActi
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
 from cc_common.data_model.schema.license.api import LicenseUpdatePreviousResponseSchema
 from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationData
-from cc_common.data_model.schema.military_affiliation.common import MilitaryAffiliationStatus
 from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
 from cc_common.data_model.schema.privilege.api import PrivilegeUpdatePreviousGeneralResponseSchema
 from cc_common.data_model.schema.provider import ProviderData
-from cc_common.data_model.schema.provider.record import ProviderRecordSchema
-from cc_common.exceptions import CCInternalException, CCInvalidRequestException
+from cc_common.exceptions import CCInternalException
 
 
 class ProviderRecordType(StrEnum):
@@ -227,6 +225,7 @@ class ProviderRecordUtility:
                 'providerId': provider['providerId'],
             }
         return provider
+
 
 class ProviderUserRecords:
     """
