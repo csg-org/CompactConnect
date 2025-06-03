@@ -41,7 +41,7 @@ def _generate_test_body():
 class TestPostPrivilegeEncumbrance(TstFunction):
     """Test suite for privilege encumbrance endpoints."""
 
-    def _when_testing_valid_privilege_encumbrance(self, body_overrides: dict | None = None):
+    def _when_testing_privilege_encumbrance(self, body_overrides: dict | None = None):
         self.test_data_generator.put_default_provider_record_in_provider_table()
         test_privilege_record = self.test_data_generator.put_default_privilege_record_in_provider_table()
 
@@ -72,7 +72,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
     def test_privilege_encumbrance_handler_returns_ok_message_with_valid_body(self):
         from handlers.encumbrance import encumbrance_handler
 
-        event = self._when_testing_valid_privilege_encumbrance()[0]
+        event = self._when_testing_privilege_encumbrance()[0]
 
         response = encumbrance_handler(event, self.mock_context)
         self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
@@ -87,7 +87,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
         from cc_common.data_model.schema.adverse_action import AdverseActionData
         from handlers.encumbrance import encumbrance_handler
 
-        event, test_privilege_record = self._when_testing_valid_privilege_encumbrance()
+        event, test_privilege_record = self._when_testing_privilege_encumbrance()
 
         response = encumbrance_handler(event, self.mock_context)
         self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
@@ -122,7 +122,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
         from cc_common.data_model.schema.privilege import PrivilegeUpdateData
         from handlers.encumbrance import encumbrance_handler
 
-        event, test_privilege_record = self._when_testing_valid_privilege_encumbrance()
+        event, test_privilege_record = self._when_testing_privilege_encumbrance()
 
         response = encumbrance_handler(event, self.mock_context)
         self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
@@ -157,7 +157,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
         from cc_common.data_model.schema.privilege import PrivilegeData
         from handlers.encumbrance import encumbrance_handler
 
-        event, test_privilege_record = self._when_testing_valid_privilege_encumbrance()
+        event, test_privilege_record = self._when_testing_privilege_encumbrance()
 
         response = encumbrance_handler(event, self.mock_context)
         self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
@@ -190,7 +190,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
         from cc_common.data_model.schema.provider import ProviderData
         from handlers.encumbrance import encumbrance_handler
 
-        event, test_license_record = self._when_testing_valid_privilege_encumbrance()
+        event, test_license_record = self._when_testing_privilege_encumbrance()
         test_provider_record = self.test_data_generator.generate_default_provider()
 
         response = encumbrance_handler(event, self.mock_context)
@@ -218,7 +218,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
     def test_privilege_encumbrance_handler_returns_access_denied_if_compact_admin(self):
         from handlers.encumbrance import encumbrance_handler
 
-        event, test_privilege_record = self._when_testing_valid_privilege_encumbrance()
+        event, test_privilege_record = self._when_testing_privilege_encumbrance()
 
         event['requestContext']['authorizer']['claims']['scope'] = f'openid email {test_privilege_record.compact}/admin'
 
@@ -231,12 +231,12 @@ class TestPostPrivilegeEncumbrance(TstFunction):
             response_body,
         )
 
-    def test_license_encumbrance_handler_returns_400_if_encumbrance_date_in_future(self):
-        """Verifying that only state admins are allowed to encumber licenses"""
+    def test_privilege_encumbrance_handler_returns_400_if_encumbrance_date_in_future(self):
+        """Verifying that encumbrance dates cannot be set in the future"""
         from handlers.encumbrance import encumbrance_handler
 
         future_date = (datetime.now(tz=UTC) + timedelta(days=2)).strftime('%Y-%m-%d')
-        event, test_license_record = self._when_testing_valid_privilege_encumbrance(
+        event, test_privilege_record = self._when_testing_privilege_encumbrance(
             body_overrides={'encumbranceEffectiveDate': future_date}
         )
 
