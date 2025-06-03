@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "LicenseApi",
-    "version": "2025-05-14T16:18:20Z"
+    "version": "2025-05-22T19:30:42Z"
   },
   "servers": [
     {
@@ -75,7 +75,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SandboLicenMX5Eufr1MQto"
+                "$ref": "#/components/schemas/SandboLicenJL55EyhA697p"
               }
             }
           },
@@ -98,10 +98,23 @@
             "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
               "aslp/admin",
               "al/aslp.admin",
+              "ak/aslp.admin",
               "ar/aslp.admin",
+              "co/aslp.admin",
+              "de/aslp.admin",
               "fl/aslp.admin",
               "ga/aslp.admin",
+              "id/aslp.admin",
+              "in/aslp.admin",
+              "ia/aslp.admin",
+              "ks/aslp.admin",
               "ky/aslp.admin",
+              "la/aslp.admin",
+              "me/aslp.admin",
+              "md/aslp.admin",
+              "mn/aslp.admin",
+              "ms/aslp.admin",
+              "mo/aslp.admin",
               "ne/aslp.admin",
               "oh/aslp.admin",
               "octp/admin",
@@ -220,10 +233,23 @@
             "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
               "aslp/admin",
               "al/aslp.admin",
+              "ak/aslp.admin",
               "ar/aslp.admin",
+              "co/aslp.admin",
+              "de/aslp.admin",
               "fl/aslp.admin",
               "ga/aslp.admin",
+              "id/aslp.admin",
+              "in/aslp.admin",
+              "ia/aslp.admin",
+              "ks/aslp.admin",
               "ky/aslp.admin",
+              "la/aslp.admin",
+              "me/aslp.admin",
+              "md/aslp.admin",
+              "mn/aslp.admin",
+              "ms/aslp.admin",
+              "mo/aslp.admin",
               "ne/aslp.admin",
               "oh/aslp.admin",
               "octp/admin",
@@ -372,7 +398,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SandboLicenNDZulK8adQpf"
+                "$ref": "#/components/schemas/SandboLicenRonTgEOIYulh"
               }
             }
           },
@@ -395,10 +421,23 @@
             "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
               "aslp/admin",
               "al/aslp.admin",
+              "ak/aslp.admin",
               "ar/aslp.admin",
+              "co/aslp.admin",
+              "de/aslp.admin",
               "fl/aslp.admin",
               "ga/aslp.admin",
+              "id/aslp.admin",
+              "in/aslp.admin",
+              "ia/aslp.admin",
+              "ks/aslp.admin",
               "ky/aslp.admin",
+              "la/aslp.admin",
+              "me/aslp.admin",
+              "md/aslp.admin",
+              "mn/aslp.admin",
+              "ms/aslp.admin",
+              "mo/aslp.admin",
               "ne/aslp.admin",
               "oh/aslp.admin",
               "octp/admin",
@@ -478,10 +517,23 @@
             "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
               "aslp/write",
               "al/aslp.write",
+              "ak/aslp.write",
               "ar/aslp.write",
+              "co/aslp.write",
+              "de/aslp.write",
               "fl/aslp.write",
               "ga/aslp.write",
+              "id/aslp.write",
+              "in/aslp.write",
+              "ia/aslp.write",
+              "ks/aslp.write",
               "ky/aslp.write",
+              "la/aslp.write",
+              "me/aslp.write",
+              "md/aslp.write",
+              "mn/aslp.write",
+              "ms/aslp.write",
+              "mo/aslp.write",
               "ne/aslp.write",
               "oh/aslp.write",
               "octp/write",
@@ -551,10 +603,23 @@
             "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
               "aslp/write",
               "al/aslp.write",
+              "ak/aslp.write",
               "ar/aslp.write",
+              "co/aslp.write",
+              "de/aslp.write",
               "fl/aslp.write",
               "ga/aslp.write",
+              "id/aslp.write",
+              "in/aslp.write",
+              "ia/aslp.write",
+              "ks/aslp.write",
               "ky/aslp.write",
+              "la/aslp.write",
+              "me/aslp.write",
+              "md/aslp.write",
+              "mn/aslp.write",
+              "ms/aslp.write",
+              "mo/aslp.write",
               "ne/aslp.write",
               "oh/aslp.write",
               "octp/write",
@@ -754,10 +819,23 @@
             "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
               "aslp/admin",
               "al/aslp.admin",
+              "ak/aslp.admin",
               "ar/aslp.admin",
+              "co/aslp.admin",
+              "de/aslp.admin",
               "fl/aslp.admin",
               "ga/aslp.admin",
+              "id/aslp.admin",
+              "in/aslp.admin",
+              "ia/aslp.admin",
+              "ks/aslp.admin",
               "ky/aslp.admin",
+              "la/aslp.admin",
+              "me/aslp.admin",
+              "md/aslp.admin",
+              "mn/aslp.admin",
+              "ms/aslp.admin",
+              "mo/aslp.admin",
               "ne/aslp.admin",
               "oh/aslp.admin",
               "octp/admin",
@@ -853,10 +931,23 @@
             "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
               "aslp/admin",
               "al/aslp.admin",
+              "ak/aslp.admin",
               "ar/aslp.admin",
+              "co/aslp.admin",
+              "de/aslp.admin",
               "fl/aslp.admin",
               "ga/aslp.admin",
+              "id/aslp.admin",
+              "in/aslp.admin",
+              "ia/aslp.admin",
+              "ks/aslp.admin",
               "ky/aslp.admin",
+              "la/aslp.admin",
+              "me/aslp.admin",
+              "md/aslp.admin",
+              "mn/aslp.admin",
+              "ms/aslp.admin",
+              "mo/aslp.admin",
               "ne/aslp.admin",
               "oh/aslp.admin",
               "octp/admin",
@@ -952,10 +1043,23 @@
             "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
               "aslp/admin",
               "al/aslp.admin",
+              "ak/aslp.admin",
               "ar/aslp.admin",
+              "co/aslp.admin",
+              "de/aslp.admin",
               "fl/aslp.admin",
               "ga/aslp.admin",
+              "id/aslp.admin",
+              "in/aslp.admin",
+              "ia/aslp.admin",
+              "ks/aslp.admin",
               "ky/aslp.admin",
+              "la/aslp.admin",
+              "me/aslp.admin",
+              "md/aslp.admin",
+              "mn/aslp.admin",
+              "ms/aslp.admin",
+              "mo/aslp.admin",
               "ne/aslp.admin",
               "oh/aslp.admin",
               "octp/admin",
@@ -1025,10 +1129,23 @@
             "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
               "aslp/readSSN",
               "al/aslp.readSSN",
+              "ak/aslp.readSSN",
               "ar/aslp.readSSN",
+              "co/aslp.readSSN",
+              "de/aslp.readSSN",
               "fl/aslp.readSSN",
               "ga/aslp.readSSN",
+              "id/aslp.readSSN",
+              "in/aslp.readSSN",
+              "ia/aslp.readSSN",
+              "ks/aslp.readSSN",
               "ky/aslp.readSSN",
+              "la/aslp.readSSN",
+              "me/aslp.readSSN",
+              "md/aslp.readSSN",
+              "mn/aslp.readSSN",
+              "ms/aslp.readSSN",
+              "mo/aslp.readSSN",
               "ne/aslp.readSSN",
               "oh/aslp.readSSN",
               "octp/readSSN",
@@ -1089,10 +1206,23 @@
             "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
               "aslp/admin",
               "al/aslp.admin",
+              "ak/aslp.admin",
               "ar/aslp.admin",
+              "co/aslp.admin",
+              "de/aslp.admin",
               "fl/aslp.admin",
               "ga/aslp.admin",
+              "id/aslp.admin",
+              "in/aslp.admin",
+              "ia/aslp.admin",
+              "ks/aslp.admin",
               "ky/aslp.admin",
+              "la/aslp.admin",
+              "me/aslp.admin",
+              "md/aslp.admin",
+              "mn/aslp.admin",
+              "ms/aslp.admin",
+              "mo/aslp.admin",
               "ne/aslp.admin",
               "oh/aslp.admin",
               "octp/admin",
@@ -1161,10 +1291,23 @@
             "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
               "aslp/admin",
               "al/aslp.admin",
+              "ak/aslp.admin",
               "ar/aslp.admin",
+              "co/aslp.admin",
+              "de/aslp.admin",
               "fl/aslp.admin",
               "ga/aslp.admin",
+              "id/aslp.admin",
+              "in/aslp.admin",
+              "ia/aslp.admin",
+              "ks/aslp.admin",
               "ky/aslp.admin",
+              "la/aslp.admin",
+              "me/aslp.admin",
+              "md/aslp.admin",
+              "mn/aslp.admin",
+              "ms/aslp.admin",
+              "mo/aslp.admin",
               "ne/aslp.admin",
               "oh/aslp.admin",
               "octp/admin",
@@ -1243,10 +1386,23 @@
             "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
               "aslp/admin",
               "al/aslp.admin",
+              "ak/aslp.admin",
               "ar/aslp.admin",
+              "co/aslp.admin",
+              "de/aslp.admin",
               "fl/aslp.admin",
               "ga/aslp.admin",
+              "id/aslp.admin",
+              "in/aslp.admin",
+              "ia/aslp.admin",
+              "ks/aslp.admin",
               "ky/aslp.admin",
+              "la/aslp.admin",
+              "me/aslp.admin",
+              "md/aslp.admin",
+              "mn/aslp.admin",
+              "ms/aslp.admin",
+              "mo/aslp.admin",
               "ne/aslp.admin",
               "oh/aslp.admin",
               "octp/admin",
@@ -1316,10 +1472,23 @@
             "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
               "aslp/admin",
               "al/aslp.admin",
+              "ak/aslp.admin",
               "ar/aslp.admin",
+              "co/aslp.admin",
+              "de/aslp.admin",
               "fl/aslp.admin",
               "ga/aslp.admin",
+              "id/aslp.admin",
+              "in/aslp.admin",
+              "ia/aslp.admin",
+              "ks/aslp.admin",
               "ky/aslp.admin",
+              "la/aslp.admin",
+              "me/aslp.admin",
+              "md/aslp.admin",
+              "mn/aslp.admin",
+              "ms/aslp.admin",
+              "mo/aslp.admin",
               "ne/aslp.admin",
               "oh/aslp.admin",
               "octp/admin",
@@ -1406,10 +1575,23 @@
             "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
               "aslp/admin",
               "al/aslp.admin",
+              "ak/aslp.admin",
               "ar/aslp.admin",
+              "co/aslp.admin",
+              "de/aslp.admin",
               "fl/aslp.admin",
               "ga/aslp.admin",
+              "id/aslp.admin",
+              "in/aslp.admin",
+              "ia/aslp.admin",
+              "ks/aslp.admin",
               "ky/aslp.admin",
+              "la/aslp.admin",
+              "me/aslp.admin",
+              "md/aslp.admin",
+              "mn/aslp.admin",
+              "ms/aslp.admin",
+              "mo/aslp.admin",
               "ne/aslp.admin",
               "oh/aslp.admin",
               "octp/admin",
@@ -1481,10 +1663,23 @@
             "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
               "aslp/admin",
               "al/aslp.admin",
+              "ak/aslp.admin",
               "ar/aslp.admin",
+              "co/aslp.admin",
+              "de/aslp.admin",
               "fl/aslp.admin",
               "ga/aslp.admin",
+              "id/aslp.admin",
+              "in/aslp.admin",
+              "ia/aslp.admin",
+              "ks/aslp.admin",
               "ky/aslp.admin",
+              "la/aslp.admin",
+              "me/aslp.admin",
+              "md/aslp.admin",
+              "mn/aslp.admin",
+              "ms/aslp.admin",
+              "mo/aslp.admin",
               "ne/aslp.admin",
               "oh/aslp.admin",
               "octp/admin",
@@ -1528,6 +1723,47 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SandboLicenExAfURF0KyCV"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "SandboxAPIStackLicenseApiProviderUsersPoolAuthorizerEB7523BA": []
+          }
+        ]
+      }
+    },
+    "/v1/provider-users/me/home-jurisdiction": {
+      "put": {
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SandboLicenRoFVLhwPvO9O"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SandboLicen2XGMfkiyQuog"
                 }
               }
             }
@@ -2074,109 +2310,6 @@
         },
         "additionalProperties": false
       },
-      "SandboLicenMX5Eufr1MQto": {
-        "required": [
-          "compactAdverseActionsNotificationEmails",
-          "compactCommissionFee",
-          "compactOperationsTeamEmails",
-          "compactSummaryReportNotificationEmails",
-          "licenseeRegistrationEnabled"
-        ],
-        "type": "object",
-        "properties": {
-          "compactCommissionFee": {
-            "required": [
-              "feeAmount",
-              "feeType"
-            ],
-            "type": "object",
-            "properties": {
-              "feeAmount": {
-                "minimum": 0,
-                "type": "number"
-              },
-              "feeType": {
-                "type": "string",
-                "enum": [
-                  "FLAT_RATE"
-                ]
-              }
-            },
-            "additionalProperties": false
-          },
-          "compactSummaryReportNotificationEmails": {
-            "maxItems": 10,
-            "minItems": 1,
-            "uniqueItems": true,
-            "type": "array",
-            "description": "List of email addresses for summary report notifications",
-            "items": {
-              "type": "string",
-              "format": "email"
-            }
-          },
-          "compactAdverseActionsNotificationEmails": {
-            "maxItems": 10,
-            "minItems": 1,
-            "uniqueItems": true,
-            "type": "array",
-            "description": "List of email addresses for adverse actions notifications",
-            "items": {
-              "type": "string",
-              "format": "email"
-            }
-          },
-          "licenseeRegistrationEnabled": {
-            "type": "boolean",
-            "description": "Denotes whether licensee registration is enabled"
-          },
-          "transactionFeeConfiguration": {
-            "type": "object",
-            "properties": {
-              "licenseeCharges": {
-                "required": [
-                  "active",
-                  "chargeAmount",
-                  "chargeType"
-                ],
-                "type": "object",
-                "properties": {
-                  "chargeType": {
-                    "type": "string",
-                    "description": "The type of transaction fee charge",
-                    "enum": [
-                      "FLAT_FEE_PER_PRIVILEGE"
-                    ]
-                  },
-                  "active": {
-                    "type": "boolean",
-                    "description": "Whether the compact is charging licensees transaction fees"
-                  },
-                  "chargeAmount": {
-                    "minimum": 0,
-                    "type": "number",
-                    "description": "The amount to charge per privilege purchased"
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          "compactOperationsTeamEmails": {
-            "maxItems": 10,
-            "minItems": 1,
-            "uniqueItems": true,
-            "type": "array",
-            "description": "List of email addresses for operations team notifications",
-            "items": {
-              "type": "string",
-              "format": "email"
-            }
-          }
-        },
-        "additionalProperties": false
-      },
       "SandboLicennJUDf4nosBCY": {
         "type": "object",
         "properties": {
@@ -2210,6 +2343,75 @@
             "description": "The status to set the military affiliation to.",
             "enum": [
               "inactive"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "SandboLicenRoFVLhwPvO9O": {
+        "required": [
+          "jurisdiction"
+        ],
+        "type": "object",
+        "properties": {
+          "jurisdiction": {
+            "type": "string",
+            "description": "The jurisdiction postal abbreviation to set as home jurisdiction",
+            "enum": [
+              "al",
+              "ak",
+              "az",
+              "ar",
+              "ca",
+              "co",
+              "ct",
+              "de",
+              "dc",
+              "fl",
+              "ga",
+              "hi",
+              "id",
+              "il",
+              "in",
+              "ia",
+              "ks",
+              "ky",
+              "la",
+              "me",
+              "md",
+              "ma",
+              "mi",
+              "mn",
+              "ms",
+              "mo",
+              "mt",
+              "ne",
+              "nv",
+              "nh",
+              "nj",
+              "nm",
+              "ny",
+              "nc",
+              "nd",
+              "oh",
+              "ok",
+              "or",
+              "pa",
+              "pr",
+              "ri",
+              "sc",
+              "sd",
+              "tn",
+              "tx",
+              "ut",
+              "vt",
+              "va",
+              "vi",
+              "wa",
+              "wv",
+              "wi",
+              "wy",
+              "other"
             ]
           }
         },
@@ -2475,17 +2677,12 @@
           "dateOfUpdate",
           "familyName",
           "givenName",
-          "homeAddressCity",
-          "homeAddressPostalCode",
-          "homeAddressState",
-          "homeAddressStreet1",
           "licenseJurisdiction",
           "licenses",
           "militaryAffiliations",
           "privilegeJurisdictions",
           "privileges",
           "providerId",
-          "status",
           "type"
         ],
         "type": "object",
@@ -3313,16 +3510,6 @@
               "coun"
             ]
           },
-          "homeAddressStreet2": {
-            "maxLength": 100,
-            "minLength": 1,
-            "type": "string"
-          },
-          "homeAddressStreet1": {
-            "maxLength": 100,
-            "minLength": 2,
-            "type": "string"
-          },
           "type": {
             "type": "string",
             "enum": [
@@ -3334,24 +3521,10 @@
             "minLength": 1,
             "type": "string"
           },
-          "emailAddress": {
-            "maxLength": 100,
-            "minLength": 5,
-            "type": "string",
-            "format": "email"
-          },
           "dateOfExpiration": {
             "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
             "type": "string",
             "format": "date"
-          },
-          "cognitoSub": {
-            "type": "string"
-          },
-          "homeAddressState": {
-            "maxLength": 100,
-            "minLength": 2,
-            "type": "string"
           },
           "providerId": {
             "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
@@ -3453,11 +3626,6 @@
             "minLength": 1,
             "type": "string"
           },
-          "homeAddressCity": {
-            "maxLength": 100,
-            "minLength": 2,
-            "type": "string"
-          },
           "birthMonthDay": {
             "pattern": "^[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
             "type": "string",
@@ -3471,11 +3639,6 @@
           },
           "npi": {
             "pattern": "^[0-9]{10}$",
-            "type": "string"
-          },
-          "homeAddressPostalCode": {
-            "maxLength": 7,
-            "minLength": 5,
             "type": "string"
           },
           "givenName": {
@@ -3569,6 +3732,67 @@
                 "wy"
               ]
             }
+          },
+          "currentHomeJurisdiction": {
+            "type": "string",
+            "description": "The current jurisdiction postal abbreviation if known.",
+            "enum": [
+              "al",
+              "ak",
+              "az",
+              "ar",
+              "ca",
+              "co",
+              "ct",
+              "de",
+              "dc",
+              "fl",
+              "ga",
+              "hi",
+              "id",
+              "il",
+              "in",
+              "ia",
+              "ks",
+              "ky",
+              "la",
+              "me",
+              "md",
+              "ma",
+              "mi",
+              "mn",
+              "ms",
+              "mo",
+              "mt",
+              "ne",
+              "nv",
+              "nh",
+              "nj",
+              "nm",
+              "ny",
+              "nc",
+              "nd",
+              "oh",
+              "ok",
+              "or",
+              "pa",
+              "pr",
+              "ri",
+              "sc",
+              "sd",
+              "tn",
+              "tx",
+              "ut",
+              "vt",
+              "va",
+              "vi",
+              "wa",
+              "wv",
+              "wi",
+              "wy",
+              "other",
+              "unknown"
+            ]
           },
           "licenses": {
             "type": "array",
@@ -4193,10 +4417,6 @@
             "pattern": "^[0-9]{4}$",
             "type": "string"
           },
-          "phoneNumber": {
-            "pattern": "^\\+[0-9]{8,15}$",
-            "type": "string"
-          },
           "militaryAffiliations": {
             "type": "array",
             "items": {
@@ -4279,13 +4499,6 @@
             "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
             "type": "string",
             "format": "date"
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "active",
-              "inactive"
-            ]
           }
         }
       },
@@ -4383,7 +4596,6 @@
           "licenseJurisdiction",
           "privilegeJurisdictions",
           "providerId",
-          "status",
           "type"
         ],
         "type": "object",
@@ -4667,6 +4879,67 @@
             "minLength": 1,
             "type": "string"
           },
+          "currentHomeJurisdiction": {
+            "type": "string",
+            "description": "The current jurisdiction postal abbreviation if known.",
+            "enum": [
+              "al",
+              "ak",
+              "az",
+              "ar",
+              "ca",
+              "co",
+              "ct",
+              "de",
+              "dc",
+              "fl",
+              "ga",
+              "hi",
+              "id",
+              "il",
+              "in",
+              "ia",
+              "ks",
+              "ky",
+              "la",
+              "me",
+              "md",
+              "ma",
+              "mi",
+              "mn",
+              "ms",
+              "mo",
+              "mt",
+              "ne",
+              "nv",
+              "nh",
+              "nj",
+              "nm",
+              "ny",
+              "nc",
+              "nd",
+              "oh",
+              "ok",
+              "or",
+              "pa",
+              "pr",
+              "ri",
+              "sc",
+              "sd",
+              "tn",
+              "tx",
+              "ut",
+              "vt",
+              "va",
+              "vi",
+              "wa",
+              "wv",
+              "wi",
+              "wy",
+              "other",
+              "unknown"
+            ]
+          },
           "providerId": {
             "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
             "type": "string"
@@ -4685,13 +4958,6 @@
             "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
             "type": "string",
             "format": "date"
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "active",
-              "inactive"
-            ]
           }
         }
       },
@@ -5267,60 +5533,7 @@
           }
         }
       },
-      "SandboLicen0nXo7c1qXD2j": {
-        "required": [
-          "fields"
-        ],
-        "type": "object",
-        "properties": {
-          "fields": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "string"
-            }
-          },
-          "url": {
-            "type": "string"
-          }
-        }
-      },
-      "SandboLicen8Bgi0jUvOUWT": {
-        "type": "array",
-        "items": {
-          "required": [
-            "compact",
-            "jurisdictionName",
-            "postalAbbreviation"
-          ],
-          "type": "object",
-          "properties": {
-            "postalAbbreviation": {
-              "type": "string",
-              "description": "The postal abbreviation of the jurisdiction"
-            },
-            "compact": {
-              "type": "string"
-            },
-            "jurisdictionName": {
-              "type": "string",
-              "description": "The name of the jurisdiction"
-            }
-          }
-        }
-      },
-      "SandboLicenXPOL25KuB6gU": {
-        "required": [
-          "message"
-        ],
-        "type": "object",
-        "properties": {
-          "message": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false
-      },
-      "SandboLicenNDZulK8adQpf": {
+      "SandboLicenRonTgEOIYulh": {
         "required": [
           "jurisdictionAdverseActionsNotificationEmails",
           "jurisdictionOperationsTeamEmails",
@@ -5427,6 +5640,59 @@
               "type": "string",
               "format": "email"
             }
+          }
+        },
+        "additionalProperties": false
+      },
+      "SandboLicen0nXo7c1qXD2j": {
+        "required": [
+          "fields"
+        ],
+        "type": "object",
+        "properties": {
+          "fields": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "url": {
+            "type": "string"
+          }
+        }
+      },
+      "SandboLicen8Bgi0jUvOUWT": {
+        "type": "array",
+        "items": {
+          "required": [
+            "compact",
+            "jurisdictionName",
+            "postalAbbreviation"
+          ],
+          "type": "object",
+          "properties": {
+            "postalAbbreviation": {
+              "type": "string",
+              "description": "The postal abbreviation of the jurisdiction"
+            },
+            "compact": {
+              "type": "string"
+            },
+            "jurisdictionName": {
+              "type": "string",
+              "description": "The name of the jurisdiction"
+            }
+          }
+        }
+      },
+      "SandboLicenXPOL25KuB6gU": {
+        "required": [
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
           }
         },
         "additionalProperties": false
@@ -5603,7 +5869,6 @@
                 "licenseJurisdiction",
                 "privilegeJurisdictions",
                 "providerId",
-                "status",
                 "type"
               ],
               "type": "object",
@@ -5769,17 +6034,71 @@
                   "minLength": 1,
                   "type": "string"
                 },
+                "currentHomeJurisdiction": {
+                  "type": "string",
+                  "description": "The current jurisdiction postal abbreviation if known.",
+                  "enum": [
+                    "al",
+                    "ak",
+                    "az",
+                    "ar",
+                    "ca",
+                    "co",
+                    "ct",
+                    "de",
+                    "dc",
+                    "fl",
+                    "ga",
+                    "hi",
+                    "id",
+                    "il",
+                    "in",
+                    "ia",
+                    "ks",
+                    "ky",
+                    "la",
+                    "me",
+                    "md",
+                    "ma",
+                    "mi",
+                    "mn",
+                    "ms",
+                    "mo",
+                    "mt",
+                    "ne",
+                    "nv",
+                    "nh",
+                    "nj",
+                    "nm",
+                    "ny",
+                    "nc",
+                    "nd",
+                    "oh",
+                    "ok",
+                    "or",
+                    "pa",
+                    "pr",
+                    "ri",
+                    "sc",
+                    "sd",
+                    "tn",
+                    "tx",
+                    "ut",
+                    "vt",
+                    "va",
+                    "vi",
+                    "wa",
+                    "wv",
+                    "wi",
+                    "wy",
+                    "other",
+                    "unknown"
+                  ]
+                },
                 "dateOfUpdate": {
                   "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
                   "type": "string",
                   "format": "date"
-                },
-                "status": {
-                  "type": "string",
-                  "enum": [
-                    "active",
-                    "inactive"
-                  ]
                 }
               }
             }
@@ -5836,6 +6155,109 @@
                 }
               },
               "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "SandboLicenJL55EyhA697p": {
+        "required": [
+          "compactAdverseActionsNotificationEmails",
+          "compactCommissionFee",
+          "compactOperationsTeamEmails",
+          "compactSummaryReportNotificationEmails",
+          "licenseeRegistrationEnabled"
+        ],
+        "type": "object",
+        "properties": {
+          "compactCommissionFee": {
+            "required": [
+              "feeAmount",
+              "feeType"
+            ],
+            "type": "object",
+            "properties": {
+              "feeAmount": {
+                "minimum": 0,
+                "type": "number"
+              },
+              "feeType": {
+                "type": "string",
+                "enum": [
+                  "FLAT_RATE"
+                ]
+              }
+            },
+            "additionalProperties": false
+          },
+          "compactSummaryReportNotificationEmails": {
+            "maxItems": 10,
+            "minItems": 1,
+            "uniqueItems": true,
+            "type": "array",
+            "description": "List of email addresses for summary report notifications",
+            "items": {
+              "type": "string",
+              "format": "email"
+            }
+          },
+          "compactAdverseActionsNotificationEmails": {
+            "maxItems": 10,
+            "minItems": 1,
+            "uniqueItems": true,
+            "type": "array",
+            "description": "List of email addresses for adverse actions notifications",
+            "items": {
+              "type": "string",
+              "format": "email"
+            }
+          },
+          "licenseeRegistrationEnabled": {
+            "type": "boolean",
+            "description": "Denotes whether licensee registration is enabled"
+          },
+          "transactionFeeConfiguration": {
+            "type": "object",
+            "properties": {
+              "licenseeCharges": {
+                "required": [
+                  "active",
+                  "chargeAmount",
+                  "chargeType"
+                ],
+                "type": "object",
+                "properties": {
+                  "chargeType": {
+                    "type": "string",
+                    "description": "The type of transaction fee charge",
+                    "enum": [
+                      "FLAT_FEE_PER_PRIVILEGE"
+                    ]
+                  },
+                  "active": {
+                    "type": "boolean",
+                    "description": "Whether the compact is charging licensees transaction fees"
+                  },
+                  "chargeAmount": {
+                    "minimum": 0,
+                    "type": "number",
+                    "description": "The amount to charge per privilege purchased"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          "compactOperationsTeamEmails": {
+            "maxItems": 10,
+            "minItems": 1,
+            "uniqueItems": true,
+            "type": "array",
+            "description": "List of email addresses for operations team notifications",
+            "items": {
+              "type": "string",
+              "format": "email"
             }
           }
         },
@@ -6030,10 +6452,6 @@
                 "dateOfUpdate",
                 "familyName",
                 "givenName",
-                "homeAddressCity",
-                "homeAddressPostalCode",
-                "homeAddressState",
-                "homeAddressStreet1",
                 "jurisdictionUploadedCompactEligibility",
                 "jurisdictionUploadedLicenseStatus",
                 "licenseJurisdiction",
@@ -6110,78 +6528,8 @@
                     "coun"
                   ]
                 },
-                "homeAddressStreet2": {
-                  "maxLength": 100,
-                  "minLength": 1,
-                  "type": "string"
-                },
-                "homeAddressStreet1": {
-                  "maxLength": 100,
-                  "minLength": 2,
-                  "type": "string"
-                },
-                "type": {
-                  "type": "string",
-                  "enum": [
-                    "provider"
-                  ]
-                },
-                "suffix": {
-                  "maxLength": 100,
-                  "minLength": 1,
-                  "type": "string"
-                },
-                "emailAddress": {
-                  "maxLength": 100,
-                  "minLength": 5,
-                  "type": "string",
-                  "format": "email"
-                },
-                "dateOfExpiration": {
-                  "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
-                  "type": "string",
-                  "format": "date"
-                },
-                "cognitoSub": {
-                  "type": "string"
-                },
-                "homeAddressState": {
-                  "maxLength": 100,
-                  "minLength": 2,
-                  "type": "string"
-                },
-                "providerId": {
-                  "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
-                  "type": "string"
-                },
-                "familyName": {
-                  "maxLength": 100,
-                  "minLength": 1,
-                  "type": "string"
-                },
-                "homeAddressCity": {
-                  "maxLength": 100,
-                  "minLength": 2,
-                  "type": "string"
-                },
-                "birthMonthDay": {
-                  "pattern": "^[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
-                  "type": "string",
-                  "format": "date"
-                },
-                "compactConnectRegisteredEmailAddress": {
-                  "maxLength": 100,
-                  "minLength": 5,
-                  "type": "string",
-                  "format": "email"
-                },
                 "npi": {
                   "pattern": "^[0-9]{10}$",
-                  "type": "string"
-                },
-                "homeAddressPostalCode": {
-                  "maxLength": 7,
-                  "minLength": 5,
                   "type": "string"
                 },
                 "givenName": {
@@ -6276,12 +6624,89 @@
                     ]
                   }
                 },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "provider"
+                  ]
+                },
+                "suffix": {
+                  "maxLength": 100,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "currentHomeJurisdiction": {
+                  "type": "string",
+                  "description": "The current jurisdiction postal abbreviation if known.",
+                  "enum": [
+                    "al",
+                    "ak",
+                    "az",
+                    "ar",
+                    "ca",
+                    "co",
+                    "ct",
+                    "de",
+                    "dc",
+                    "fl",
+                    "ga",
+                    "hi",
+                    "id",
+                    "il",
+                    "in",
+                    "ia",
+                    "ks",
+                    "ky",
+                    "la",
+                    "me",
+                    "md",
+                    "ma",
+                    "mi",
+                    "mn",
+                    "ms",
+                    "mo",
+                    "mt",
+                    "ne",
+                    "nv",
+                    "nh",
+                    "nj",
+                    "nm",
+                    "ny",
+                    "nc",
+                    "nd",
+                    "oh",
+                    "ok",
+                    "or",
+                    "pa",
+                    "pr",
+                    "ri",
+                    "sc",
+                    "sd",
+                    "tn",
+                    "tx",
+                    "ut",
+                    "vt",
+                    "va",
+                    "vi",
+                    "wa",
+                    "wv",
+                    "wi",
+                    "wy",
+                    "other",
+                    "unknown"
+                  ]
+                },
                 "ssnLastFour": {
                   "pattern": "^[0-9]{4}$",
                   "type": "string"
                 },
-                "phoneNumber": {
-                  "pattern": "^\\+[0-9]{8,15}$",
+                "dateOfExpiration": {
+                  "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                  "type": "string",
+                  "format": "date"
+                },
+                "providerId": {
+                  "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
                   "type": "string"
                 },
                 "licenseStatus": {
@@ -6291,22 +6716,31 @@
                     "inactive"
                   ]
                 },
+                "familyName": {
+                  "maxLength": 100,
+                  "minLength": 1,
+                  "type": "string"
+                },
                 "middleName": {
                   "maxLength": 100,
                   "minLength": 1,
                   "type": "string"
                 },
+                "birthMonthDay": {
+                  "pattern": "^[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                  "type": "string",
+                  "format": "date"
+                },
+                "compactConnectRegisteredEmailAddress": {
+                  "maxLength": 100,
+                  "minLength": 5,
+                  "type": "string",
+                  "format": "email"
+                },
                 "dateOfUpdate": {
                   "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
                   "type": "string",
                   "format": "date"
-                },
-                "status": {
-                  "type": "string",
-                  "enum": [
-                    "active",
-                    "inactive"
-                  ]
                 }
               }
             }

@@ -15,17 +15,10 @@
   "privilegeJurisdictions": ["ne"],
   "jurisdictionUploadedLicenseStatus": "active",
   "jurisdictionUploadedCompactEligibility": "eligible",
-  "homeAddressStreet1": "123 A St.",
-  "homeAddressStreet2": "Apt 321",
-  "homeAddressCity": "Columbus",
-  "homeAddressState": "oh",
-  "homeAddressPostalCode": "43004",
-  "emailAddress": "björk@example.com",
-  "phoneNumber": "+13213214321",
   "compactConnectRegisteredEmailAddress": "björkRegisteredEmail@example.com",
-  "cognitoSub": "3408b4e8-0061-7052-bbe0-fda9a9369c80",
   "dateOfExpiration": "2025-04-04",
   "dateOfBirth": "1985-06-06",
   "dateOfUpdate": "2024-07-08T23:59:59+00:00",
-  "birthMonthDay": "06-06"
+  "birthMonthDay": "06-06",
+  "currentHomeJurisdiction": "oh"
 }
