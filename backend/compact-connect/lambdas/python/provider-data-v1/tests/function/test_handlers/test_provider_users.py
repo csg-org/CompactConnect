@@ -393,8 +393,8 @@ class TestPatchProviderMilitaryAffiliation(TstFunction):
             event = json.load(f)
             event['httpMethod'] = 'PATCH'
             event['resource'] = '/v1/provider-users/me/military-affiliation'
-            event['requestContext']['authorizer']['claims']['custom:providerId'] = test_provider.providerId
-            event['requestContext']['authorizer']['claims']['custom:compact'] = test_provider.compact
+            event['requestContext']['authorizer']['claims']['custom:providerId'] = DEFAULT_PROVIDER_ID
+            event['requestContext']['authorizer']['claims']['custom:compact'] = DEFAULT_COMPACT
             event['body'] = json.dumps({'status': 'inactive'})
 
 
