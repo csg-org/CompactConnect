@@ -190,7 +190,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
         from cc_common.data_model.schema.provider import ProviderData
         from handlers.encumbrance import encumbrance_handler
 
-        event, test_license_record = self._when_testing_privilege_encumbrance()
+        event, test_privilege_record = self._when_testing_privilege_encumbrance()
         test_provider_record = self.test_data_generator.generate_default_provider()
 
         response = encumbrance_handler(event, self.mock_context)
@@ -447,7 +447,7 @@ class TestPostLicenseEncumbrance(TstFunction):
         )
 
     def test_license_encumbrance_handler_returns_400_if_encumbrance_date_in_future(self):
-        """Verifying that only state admins are allowed to encumber licenses"""
+        """Verifying that license encumbrances cannot have future effective dates"""
         from handlers.encumbrance import encumbrance_handler
 
         future_date = (datetime.now(tz=UTC) + timedelta(days=2)).strftime('%Y-%m-%d')
