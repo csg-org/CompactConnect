@@ -111,3 +111,57 @@ class EventBusClient:
         deserialized_detail = privilege_renewal_detail_schema.dump(loaded_detail)
 
         self._publish_event(source=source, detail_type='privilege.renewed', detail=deserialized_detail)
+
+    def publish_license_encumbrance_event(
+        self,
+        source: str,
+        compact: str,
+        provider_id: str,
+        jurisdiction: str,
+        license_type_abbreviation: str,
+    ):
+        """
+        Publish a license encumbrance event to the event bus.
+
+        :param source: The source of the event
+        :param compact: The compact name
+        :param provider_id: The provider ID
+        :param jurisdiction: The jurisdiction of the license
+        :param license_type_abbreviation: The license type abbreviation
+        """
+        event_detail = {
+            'compact': compact,
+            'providerId': provider_id,
+            'jurisdiction': jurisdiction,
+            'licenseTypeAbbreviation': license_type_abbreviation,
+            'eventTime': config.current_standard_datetime.isoformat(),
+        }
+
+        self._publish_event(source=source, detail_type='license.encumbrance', detail=event_detail)
+
+    def publish_license_encumbrance_lifting_event(
+        self,
+        source: str,
+        compact: str,
+        provider_id: str,
+        jurisdiction: str,
+        license_type_abbreviation: str,
+    ):
+        """
+        Publish a license encumbrance lifting event to the event bus.
+
+        :param source: The source of the event
+        :param compact: The compact name
+        :param provider_id: The provider ID
+        :param jurisdiction: The jurisdiction of the license
+        :param license_type_abbreviation: The license type abbreviation
+        """
+        event_detail = {
+            'compact': compact,
+            'providerId': provider_id,
+            'jurisdiction': jurisdiction,
+            'licenseTypeAbbreviation': license_type_abbreviation,
+            'eventTime': config.current_standard_datetime.isoformat(),
+        }
+
+        self._publish_event(source=source, detail_type='license.encumbranceLifted', detail=event_detail)

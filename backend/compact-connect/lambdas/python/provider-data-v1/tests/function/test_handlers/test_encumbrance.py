@@ -151,6 +151,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
             expected_privilege_update_data.to_dict(),
             loaded_privilege_update_data.to_dict(),
         )
+        self.assertEqual({'encumberedStatus': 'encumbered'}, loaded_privilege_update_data.updatedValues)
 
     def test_privilege_encumbrance_handler_sets_privilege_record_to_inactive_in_provider_data_table(self):
         from cc_common.data_model.schema.common import PrivilegeEncumberedStatusEnum

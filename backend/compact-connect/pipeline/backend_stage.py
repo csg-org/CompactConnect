@@ -1,6 +1,7 @@
 from aws_cdk import Environment, Stage
 from common_constructs.stack import StandardTags
 from constructs import Construct
+from event_listener_stack import EventListenerStack
 from stacks.api_stack import ApiStack
 from stacks.ingest_stack import IngestStack
 from stacks.managed_login_stack import ManagedLoginStack
@@ -60,6 +61,16 @@ class BackendStage(Stage):
         self.api_stack = ApiStack(
             self,
             'APIStack',
+            env=environment,
+            environment_context=environment_context,
+            standard_tags=standard_tags,
+            environment_name=environment_name,
+            persistent_stack=self.persistent_stack,
+        )
+
+        self.event_listener_stack = EventListenerStack(
+            self,
+            'EventListenerStack',
             env=environment,
             environment_context=environment_context,
             standard_tags=standard_tags,

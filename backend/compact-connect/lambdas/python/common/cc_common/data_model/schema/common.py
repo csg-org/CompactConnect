@@ -121,6 +121,20 @@ class CCDataClass:
         """
         return self._data['dateOfUpdate']
 
+    @property
+    def licenseTypeAbbreviation(self) -> str | None:
+        """
+        Computed property that returns the license type abbreviation if the instance
+        has both 'compact' and 'licenseType' fields, otherwise returns None.
+        """
+        if 'compact' in self._data and 'licenseType' in self._data:
+            license_type_abbr = config.license_type_abbreviations.get(self._data['compact'], {}).get(
+                self._data['licenseType']
+            )
+            return license_type_abbr.lower() if license_type_abbr else None
+
+        return None
+
     def to_dict(self) -> dict[str, Any]:
         """Return the internal data dictionary
 
