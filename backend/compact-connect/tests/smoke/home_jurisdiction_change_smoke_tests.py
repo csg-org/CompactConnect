@@ -144,8 +144,8 @@ def test_home_jurisdiction_change_inactivates_privileges_when_no_license_in_new_
     # becomes active again as expected.
 
     # we've set a duplicate transaction window to prevent double charges on their cards, so
-    # we wait a few seconds before processing the charge a second time
-    time.sleep(5)
+    # we wait for that period before processing the charge a second time
+    time.sleep(35)
     test_purchasing_privilege(delete_current_privilege=False)
 
     # verify privilege is active
@@ -239,8 +239,8 @@ def test_home_jurisdiction_change_moves_privileges_when_valid_license_in_new_jur
     new_license_record = add_license_for_provider(provider_info_before, new_jurisdiction)
     try:
         # we've set a duplicate transaction window to prevent double charges on their cards, so
-        # we wait a few seconds before processing the charge a second time
-        time.sleep(5)
+        # we wait for that period before processing the charge a second time
+        time.sleep(35)
         test_purchasing_privilege(delete_current_privilege=True)
 
         # Now change the home jurisdiction so the 'ne' privilege is moved over
