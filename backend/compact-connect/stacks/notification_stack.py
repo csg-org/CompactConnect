@@ -54,7 +54,6 @@ class NotificationStack(AppStack):
 
         # Grant necessary permissions
         persistent_stack.provider_table.grant_read_data(privilege_purchase_notification_handler)
-        persistent_stack.setup_ses_permissions_for_lambda(privilege_purchase_notification_handler)
         persistent_stack.email_notification_service_lambda.grant_invoke(privilege_purchase_notification_handler)
 
         NagSuppressions.add_resource_suppressions_by_path(
