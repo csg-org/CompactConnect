@@ -173,17 +173,18 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
 
         return this.selectedStatePurchaseDataList.map((state) => {
             const feeConfig = state?.fees?.[licenseTypeKey];
-            const hasMilitaryRate = Boolean(feeConfig && (feeConfig.militaryRate || feeConfig.militaryRate === 0));
 
-            const shouldUseMilitaryRate = Boolean(hasMilitaryRate && this.licensee?.isMilitaryStatusActive());
-            const stateFeeText = `${state?.jurisdiction?.name()} ${shouldUseMilitaryRate
-                ? this.$t('payment.compactPrivilegeStateFeeMilitary')
-                : this.$t('payment.compactPrivilegeStateFee')
-            }`;
-
+            let stateFeeText = '';
             let stateFeeDisplay = '';
 
             if (feeConfig) {
+                const shouldUseMilitaryRate = this.getShouldUseMilitaryRate(feeConfig);
+
+                stateFeeText = `${state?.jurisdiction?.name()} ${shouldUseMilitaryRate
+                    ? this.$t('payment.compactPrivilegeStateFeeMilitary')
+                    : this.$t('payment.compactPrivilegeStateFee')
+                }`;
+
                 if (shouldUseMilitaryRate) {
                     stateFeeDisplay = feeConfig.militaryRate.toFixed(2);
                 } else {
@@ -230,8 +231,7 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
             const feeConfig = stateSelected?.fees?.[licenseTypeKey];
 
             if (feeConfig) {
-                const hasMilitaryRate = Boolean(feeConfig && (feeConfig.militaryRate || feeConfig.militaryRate === 0));
-                const shouldUseMilitaryRate = Boolean(hasMilitaryRate && this.licensee?.isMilitaryStatusActive());
+                const shouldUseMilitaryRate = this.getShouldUseMilitaryRate(feeConfig);
 
                 if (shouldUseMilitaryRate) {
                     total += feeConfig.militaryRate;
@@ -539,6 +539,13 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
     handleZipInput(formInput): void {
         // Remove all non-numerals
         formInput.value = formInput.value.replace(/[^\d]/g, '');
+    }
+
+    getShouldUseMilitaryRate(feeConfig) {
+        const { militaryRate } = feeConfig || {};
+        const hasMilitaryRate = Boolean(militaryRate || militaryRate === 0);
+
+        return Boolean(hasMilitaryRate && this.licensee?.isMilitaryStatusActive());
     }
 
     mockPopulate(): void {
