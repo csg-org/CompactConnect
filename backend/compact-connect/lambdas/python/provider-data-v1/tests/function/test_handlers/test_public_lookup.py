@@ -31,14 +31,6 @@ class TestPublicQueryProviders(TstFunction):
         with open('../common/tests/resources/api/provider-response.json') as f:
             expected_provider = json.load(f)
             # we do not return the following fields for the public endpoint
-            expected_provider.pop('homeAddressStreet1')
-            expected_provider.pop('homeAddressStreet2')
-            expected_provider.pop('homeAddressCity')
-            expected_provider.pop('homeAddressState')
-            expected_provider.pop('homeAddressPostalCode')
-            expected_provider.pop('emailAddress')
-            expected_provider.pop('phoneNumber')
-            expected_provider.pop('cognitoSub')
             expected_provider.pop('birthMonthDay')
             expected_provider.pop('compactConnectRegisteredEmailAddress')
             expected_provider.pop('dateOfExpiration')
@@ -345,14 +337,6 @@ class TestPublicGetProvider(TstFunction):
             # we do not return the following fields from the public endpoint
             expected_provider.pop('ssnLastFour')
             expected_provider.pop('dateOfBirth')
-            expected_provider.pop('homeAddressStreet1')
-            expected_provider.pop('homeAddressStreet2')
-            expected_provider.pop('homeAddressCity')
-            expected_provider.pop('homeAddressState')
-            expected_provider.pop('homeAddressPostalCode')
-            expected_provider.pop('emailAddress')
-            expected_provider.pop('phoneNumber')
-            expected_provider.pop('cognitoSub')
             expected_provider.pop('birthMonthDay')
             expected_provider.pop('compactConnectRegisteredEmailAddress')
             expected_provider.pop('militaryAffiliations')
@@ -362,10 +346,11 @@ class TestPublicGetProvider(TstFunction):
             expected_provider['privileges'][0]['history'][0]['previous'].pop('attestations')
             expected_provider['privileges'][0]['history'][0]['previous'].pop('compactTransactionId')
             expected_provider['privileges'][0]['history'][0]['updatedValues'].pop('compactTransactionId')
-            expected_provider.pop('homeJurisdictionSelection')
             expected_provider.pop('dateOfExpiration')
             expected_provider.pop('jurisdictionUploadedLicenseStatus')
             expected_provider.pop('jurisdictionUploadedCompactEligibility')
+            # TODO - remove this as part of https://github.com/csg-org/CompactConnect/issues/763 # noqa: FIX002
+            expected_provider.pop('homeJurisdictionSelection')
 
         self.assertEqual(expected_provider, provider_data)
 

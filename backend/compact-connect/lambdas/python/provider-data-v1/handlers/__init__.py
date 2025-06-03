@@ -22,4 +22,4 @@ def get_provider_information(compact: str, provider_id: str) -> dict:
         logger.error('A provider had so many records, they paginated!')
         raise CCInternalException('Unexpected provider data')
 
-    return ProviderRecordUtility.assemble_provider_records_into_object(provider_data['items'])
+    return ProviderRecordUtility.assemble_provider_records_into_api_response_object(provider_data['items'])

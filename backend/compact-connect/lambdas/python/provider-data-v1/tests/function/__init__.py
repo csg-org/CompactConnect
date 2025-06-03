@@ -350,16 +350,15 @@ class TstFunction(TstLambdas):
                 )
 
             # Add a privilege
-            provider_record = data_client.get_provider(
+            provider_user_records = data_client.get_provider_user_records(
                 compact='aslp',
                 provider_id=provider_id,
-                detail=False,
-            )['items'][0]
+            )
             if privilege_jurisdiction:
                 data_client.create_provider_privileges(
                     compact='aslp',
                     provider_id=provider_id,
-                    provider_record=provider_record,
+                    provider_record=provider_user_records.get_provider_record(),
                     jurisdiction_postal_abbreviations=[privilege_jurisdiction],
                     license_expiration_date=date(2050, 6, 6),
                     compact_transaction_id='1234567890',
