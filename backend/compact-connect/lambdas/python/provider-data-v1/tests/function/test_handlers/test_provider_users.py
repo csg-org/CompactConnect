@@ -392,9 +392,11 @@ class TestPatchProviderMilitaryAffiliation(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
             event['httpMethod'] = 'PATCH'
-            event['requestContext']['authorizer']['claims']['custom:providerId'] = DEFAULT_PROVIDER_ID
-            event['requestContext']['authorizer']['claims']['custom:compact'] = DEFAULT_COMPACT
+            event['resource'] = '/v1/provider-users/me/military-affiliation'
+            event['requestContext']['authorizer']['claims']['custom:providerId'] = test_provider.providerId
+            event['requestContext']['authorizer']['claims']['custom:compact'] = test_provider.compact
             event['body'] = json.dumps({'status': 'inactive'})
+
 
         # get the military affiliation record loaded in the test setup and confirm it is initializing
         affiliation_record = self._get_military_affiliation_records(event)
