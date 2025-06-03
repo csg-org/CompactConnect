@@ -176,7 +176,6 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
             const hasMilitaryRate = Boolean(feeConfig && (feeConfig.militaryRate || feeConfig.militaryRate === 0));
 
             const shouldUseMilitaryRate = Boolean(hasMilitaryRate && this.licensee?.isMilitaryStatusActive());
-
             const stateFeeText = `${state?.jurisdiction?.name()} ${shouldUseMilitaryRate
                 ? this.$t('payment.compactPrivilegeStateFeeMilitary')
                 : this.$t('payment.compactPrivilegeStateFee')
