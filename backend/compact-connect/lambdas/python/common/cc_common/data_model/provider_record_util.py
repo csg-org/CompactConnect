@@ -58,7 +58,7 @@ class ProviderRecordUtility:
     @staticmethod
     def get_provider_record(provider_records: Iterable[dict]) -> dict | None:
         """
-        Get the provider record from a list of provider records.
+        Get the provider record from a list of records associated with a provider.
         """
         provider_records = ProviderRecordUtility.get_records_of_type(provider_records, ProviderRecordType.PROVIDER)
         return provider_records[0] if provider_records else None
