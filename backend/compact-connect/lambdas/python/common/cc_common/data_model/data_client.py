@@ -566,9 +566,7 @@ class DataClient:
                 raise CCAwsServiceException('Failed to roll back privilege transactions') from e
         logger.info('Privilege rollback complete')
 
-    def _get_all_military_affiliation_records_for_provider(
-            self, compact: str, provider_id: str
-    ):
+    def _get_all_military_affiliation_records_for_provider(self, compact: str, provider_id: str):
         military_affiliation_records = self.config.provider_table.query(
             KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}')
             & Key('sk').begins_with(
