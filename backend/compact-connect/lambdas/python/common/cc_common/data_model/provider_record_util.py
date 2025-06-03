@@ -268,6 +268,23 @@ class ProviderUserRecords:
                 # log the warning, but continue with initialization
                 logger.warning('Unrecognized record type found.', record_type=record_type)
 
+    def get_specific_license_record(self, jurisdiction: str, license_abbreviation: str) -> LicenseData | None:
+        """
+        Get a specific license record from a list of provider records.
+
+        :param jurisdiction: The jurisdiction of the license.
+        :param license_abbreviation: The abbreviation of the license type.
+        :return: The license record if found, else None.
+        """
+        return next(
+            (
+                record
+                for record in self._license_records
+                if record.jurisdiction == jurisdiction and record.licenseTypeAbbreviation == license_abbreviation
+            ),
+            None,
+        )
+
     def get_privilege_records(
         self,
         filter_condition: Callable[[PrivilegeData], bool] | None = None,

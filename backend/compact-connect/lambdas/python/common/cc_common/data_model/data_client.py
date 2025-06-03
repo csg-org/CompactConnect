@@ -1362,7 +1362,7 @@ class DataClient:
             transact_items = [
                 # Create a history record, reflecting this change
                 self._generate_put_transaction_item(license_update_record),
-                # Add the adverse action record for the privilege
+                # Add the adverse action record for the license
                 self._generate_put_transaction_item(adverse_action.serialize_to_database_record()),
             ]
 
@@ -2337,3 +2337,207 @@ class DataClient:
             )
 
         return transactions
+
+    def encumber_home_jurisdiction_license_privileges(
+        self,
+        compact: str,
+        provider_id: str,
+        jurisdiction: str,
+        license_type_abbreviation: str,
+    ) -> None:
+        """
+        Encumber all unencumbered privileges associated with a home jurisdiction license.
+
+        This method finds all unencumbered privileges for the given license and sets their
+        encumberedStatus to LICENSE_ENCUMBERED, along with creating privilege update records.
+
+        :param str compact: The compact name.
+        :param str provider_id: The provider ID.
+        :param str jurisdiction: The jurisdiction of the license.
+        :param str license_type_abbreviation: The license type abbreviation
+        """
+        # Get all provider records
+        provider_user_records: ProviderUserRecords = config.data_client.get_provider_user_records(
+            compact=compact,
+            provider_id=provider_id,
+        )
+
+        # Get the license type name from abbreviation
+        license_type_name = LicenseUtility.get_license_type_by_abbreviation(compact, license_type_abbreviation).name
+        if not license_type_name:
+            logger.error('Invalid license type abbreviation provided')
+            raise CCInternalException
+
+        # Find privileges associated with the license that which was encumbered, which themselves are not currently
+        # encumbered
+        unencumbered_privileges_associated_with_license = provider_user_records.get_privilege_records(
+            filter_condition=lambda p: (
+                p.licenseJurisdiction == jurisdiction
+                and p.licenseTypeAbbreviation == license_type_abbreviation
+                and (p.encumberedStatus is None or p.encumberedStatus == PrivilegeEncumberedStatusEnum.UNENCUMBERED)
+            )
+        )
+
+        if not unencumbered_privileges_associated_with_license:
+            logger.info('No unencumbered privileges found for this license.')
+            return
+
+        logger.info(
+            'Found privileges to encumber', privilege_count=len(unencumbered_privileges_associated_with_license)
+        )
+
+        # Build transaction items for all privileges
+        transaction_items = []
+
+        for privilege_data in unencumbered_privileges_associated_with_license:
+            # Create privilege update record
+            privilege_update_record = PrivilegeUpdateData.create_new(
+                {
+                    'type': 'privilegeUpdate',
+                    'updateType': UpdateCategory.ENCUMBRANCE,
+                    'providerId': provider_id,
+                    'compact': compact,
+                    'jurisdiction': privilege_data.jurisdiction,
+                    'licenseType': privilege_data.licenseType,
+                    'previous': privilege_data.to_dict(),
+                    'updatedValues': {
+                        'encumberedStatus': PrivilegeEncumberedStatusEnum.LICENSE_ENCUMBERED,
+                    },
+                }
+            ).serialize_to_database_record()
+
+            # Add PUT transaction for privilege update record
+            transaction_items.append(self._generate_put_transaction_item(privilege_update_record))
+
+            # Add UPDATE transaction for privilege encumbered status
+            transaction_items.append(
+                self._generate_set_privilege_encumbered_status_item(
+                    privilege_data=privilege_data,
+                    privilege_encumbered_status=PrivilegeEncumberedStatusEnum.LICENSE_ENCUMBERED,
+                )
+            )
+
+        # Execute transactions in batches of 100 (DynamoDB limit)
+        batch_size = 100
+        while transaction_items:
+            batch = transaction_items[:batch_size]
+            transaction_items = transaction_items[batch_size:]
+
+            try:
+                self.config.dynamodb_client.transact_write_items(TransactItems=batch)
+                logger.info('Successfully processed privilege encumbrance batch', batch_size=len(batch))
+            except ClientError as e:
+                logger.error('Failed to process privilege encumbrance batch', error=str(e))
+                raise CCAwsServiceException('Failed to encumber privileges for license') from e
+
+        logger.info('Successfully encumbered associated privileges for license')
+
+    def lift_home_jurisdiction_license_privilege_encumbrances(
+        self,
+        compact: str,
+        provider_id: str,
+        jurisdiction: str,
+        license_type_abbreviation: str,
+    ) -> None:
+        """
+        Lift encumbrances from privileges that were encumbered due to a home jurisdiction license encumbrance.
+
+        This method  first verifies that the license is completely unencumbered, then finds all privileges 
+        for the given license with a 'LICENSE_ENCUMBERED' status and sets their encumberedStatus to 'UNENCUMBERED'.
+
+        :param str compact: The compact name.
+        :param str provider_id: The provider ID.
+        :param str jurisdiction: The jurisdiction of the license.
+        :param str license_type_abbreviation: The license type abbreviation
+        """
+        # Get all provider records
+        provider_user_records = config.data_client.get_provider_user_records(
+            compact=compact,
+            provider_id=provider_id,
+        )
+
+        # Get the license type name from abbreviation
+        from cc_common.license_util import LicenseUtility
+
+        license_type_name = LicenseUtility.get_license_type_by_abbreviation(compact, license_type_abbreviation).name
+        if not license_type_name:
+            logger.error('Invalid license type abbreviation provided')
+            return
+
+        # Verify the license itself is unencumbered before lifting privilege encumbrances
+        # A license may still be encumbered by another adverse action that has not been lifted yet.
+        license_record = provider_user_records.get_specific_license_record(jurisdiction, license_type_abbreviation)
+        if not license_record:
+            logger.warning('No license record found for the specified jurisdiction and license type')
+            raise CCInternalException('No license record found for the specified jurisdiction and license type')
+
+        if license_record.encumberedStatus == LicenseEncumberedStatusEnum.ENCUMBERED:
+            logger.info(
+                'License is still encumbered. Not lifting privilege encumbrances. '
+                'Privileges will remain LICENSE_ENCUMBERED until all license encumbrances are lifted.'
+            )
+            return
+
+        logger.info('License is unencumbered. Proceeding to lift privilege encumbrances.')
+
+        # Find privileges that match the license jurisdiction and type and are currently LICENSE_ENCUMBERED
+        # (meaning they were encumbered due to the license, not due to their own adverse actions)
+        matching_privileges = provider_user_records.get_privilege_records(
+            filter_condition=lambda p: (
+                p.licenseJurisdiction == jurisdiction
+                and p.licenseType == license_type_name
+                and p.encumberedStatus == PrivilegeEncumberedStatusEnum.LICENSE_ENCUMBERED
+            )
+        )
+
+        if not matching_privileges:
+            logger.info('No license-encumbered privileges found for this license')
+            return
+
+        logger.info('Found license-encumbered privileges to unencumber', privilege_count=len(matching_privileges))
+
+        # Build transaction items for all privileges
+        transaction_items = []
+
+        for privilege_data in matching_privileges:
+            # Create privilege update record
+            privilege_update_record = PrivilegeUpdateData.create_new(
+                {
+                    'type': 'privilegeUpdate',
+                    'updateType': UpdateCategory.LIFTING_ENCUMBRANCE,
+                    'providerId': provider_id,
+                    'compact': compact,
+                    'jurisdiction': privilege_data.jurisdiction,
+                    'licenseType': privilege_data.licenseType,
+                    'previous': privilege_data.to_dict(),
+                    'updatedValues': {
+                        'encumberedStatus': PrivilegeEncumberedStatusEnum.UNENCUMBERED,
+                    },
+                }
+            ).serialize_to_database_record()
+
+            # Add PUT transaction for privilege update record
+            transaction_items.append(self._generate_put_transaction_item(privilege_update_record))
+
+            # Add UPDATE transaction for privilege encumbered status
+            transaction_items.append(
+                self._generate_set_privilege_encumbered_status_item(
+                    privilege_data=privilege_data,
+                    privilege_encumbered_status=PrivilegeEncumberedStatusEnum.UNENCUMBERED,
+                )
+            )
+
+        # Execute transactions in batches of 100 (DynamoDB limit)
+        batch_size = 100
+        while transaction_items:
+            batch = transaction_items[:batch_size]
+            transaction_items = transaction_items[batch_size:]
+
+            try:
+                self.config.dynamodb_client.transact_write_items(TransactItems=batch)
+                logger.info('Successfully processed privilege unencumbrance batch', batch_size=len(batch))
+            except ClientError as e:
+                logger.error('Failed to process privilege unencumbrance batch', error=str(e))
+                raise CCAwsServiceException('Failed to unencumber privileges for license') from e
+
+        logger.info('Successfully unencumbered all license-encumbered privileges for license')
