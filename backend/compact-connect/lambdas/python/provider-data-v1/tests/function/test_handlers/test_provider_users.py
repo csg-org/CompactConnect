@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 from boto3.dynamodb.conditions import Key
 from cc_common.exceptions import CCInternalException
-from common_test.test_constants import DEFAULT_DATE_OF_UPDATE_TIMESTAMP
+from common_test.test_constants import DEFAULT_DATE_OF_UPDATE_TIMESTAMP, DEFAULT_PROVIDER_ID, DEFAULT_COMPACT
 from moto import mock_aws
 
 from .. import TstFunction
@@ -366,6 +366,33 @@ class TestPatchProviderMilitaryAffiliation(TstFunction):
         affiliation_record = self._get_military_affiliation_records(event)
         self.assertEqual(1, len(affiliation_record))
         self.assertEqual('active', affiliation_record[0]['status'])
+
+        resp = provider_user_me_military_affiliation(event, self.mock_context)
+
+        self.assertEqual(200, resp['statusCode'])
+
+        # now confirm the status has been updated to inactive
+        affiliation_record = self._get_military_affiliation_records(event)
+
+        self.assertEqual(1, len(affiliation_record))
+        self.assertEqual('inactive', affiliation_record[0]['status'])
+
+    def test_patch_provider_military_affiliation_updates_status_when_initializing(self):
+        from handlers.provider_users import provider_user_me_military_affiliation
+
+        self.test_data_generator.put_default_military_affiliation_in_provider_table({'status': 'initializing'})
+
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+            event['httpMethod'] = 'PATCH'
+            event['requestContext']['authorizer']['claims']['custom:providerId'] = DEFAULT_PROVIDER_ID
+            event['requestContext']['authorizer']['claims']['custom:compact'] = DEFAULT_COMPACT
+            event['body'] = json.dumps({'status': 'inactive'})
+
+        # get the military affiliation record loaded in the test setup and confirm it is initializing
+        affiliation_record = self._get_military_affiliation_records(event)
+        self.assertEqual(1, len(affiliation_record))
+        self.assertEqual('initializing', affiliation_record[0]['status'])
 
         resp = provider_user_me_military_affiliation(event, self.mock_context)
 
