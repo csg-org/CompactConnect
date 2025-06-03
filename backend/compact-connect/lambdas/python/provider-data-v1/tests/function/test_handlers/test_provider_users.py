@@ -385,7 +385,7 @@ class TestPatchProviderMilitaryAffiliation(TstFunction):
         self.assertEqual('inactive', affiliation_record[0]['status'])
 
     def test_patch_provider_military_affiliation_updates_status_when_initializing(self):
-        from handlers.provider_users import provider_user_me_military_affiliation
+        from handlers.provider_users import provider_users_api_handler
 
         self.test_data_generator.put_default_military_affiliation_in_provider_table({'status': 'initializing'})
 
@@ -401,7 +401,7 @@ class TestPatchProviderMilitaryAffiliation(TstFunction):
         self.assertEqual(1, len(affiliation_record))
         self.assertEqual('initializing', affiliation_record[0]['status'])
 
-        resp = provider_user_me_military_affiliation(event, self.mock_context)
+        resp = provider_users_api_handler(event, self.mock_context)
 
         self.assertEqual(200, resp['statusCode'])
 
