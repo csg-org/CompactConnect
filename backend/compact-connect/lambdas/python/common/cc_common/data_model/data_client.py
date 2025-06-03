@@ -9,7 +9,11 @@ from boto3.dynamodb.types import TypeDeserializer, TypeSerializer
 from botocore.exceptions import ClientError
 
 from cc_common.config import _Config, config, logger, metrics
-from cc_common.data_model.provider_record_util import ProviderRecordUtility, ProviderUserRecords
+from cc_common.data_model.provider_record_util import (
+    MilitaryAffiliationData,
+    ProviderRecordUtility,
+    ProviderUserRecords,
+)
 from cc_common.data_model.query_paginator import paginated_query
 from cc_common.data_model.schema import PrivilegeRecordSchema
 from cc_common.data_model.schema.adverse_action import AdverseActionData
@@ -616,8 +620,7 @@ class DataClient:
             ),
         ).get('Items', [])
 
-        schema = MilitaryAffiliationRecordSchema()
-        return [schema.load(record) for record in military_affiliation_records]
+        return [MilitaryAffiliationData.from_database_record(record) for record in military_affiliation_records]
 
     def _get_military_affiliation_records_by_status(
         self, compact: str, provider_id: str, status: MilitaryAffiliationStatus
@@ -731,11 +734,10 @@ class DataClient:
         :return: None
         """
         military_affiliation_records = self._get_all_military_affiliation_records_for_provider(compact, provider_id)
-        schema = MilitaryAffiliationRecordSchema()
         with self.config.provider_table.batch_writer() as batch:
             for record in military_affiliation_records:
-                record['status'] = MilitaryAffiliationStatus.INACTIVE.value
-                serialized_record = schema.dump(record)
+                record.update({'status': MilitaryAffiliationStatus.INACTIVE.value})
+                serialized_record = record.serialize_to_database_record()
                 batch.put_item(Item=serialized_record)
 
     @logger_inject_kwargs(logger, 'compact', 'provider_ids')

@@ -397,7 +397,6 @@ class TestPatchProviderMilitaryAffiliation(TstFunction):
             event['requestContext']['authorizer']['claims']['custom:compact'] = DEFAULT_COMPACT
             event['body'] = json.dumps({'status': 'inactive'})
 
-
         # get the military affiliation record loaded in the test setup and confirm it is initializing
         affiliation_record = self._get_military_affiliation_records(event)
         self.assertEqual(1, len(affiliation_record))
