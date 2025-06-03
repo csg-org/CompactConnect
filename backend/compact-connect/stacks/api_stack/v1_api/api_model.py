@@ -1322,7 +1322,7 @@ class ApiModel:
         # A provider's current home jurisdiction can be one of the following:
         # 'unknown' - The provider has not registered with the system
         # 'other' - The provider is in a jurisdiction that is not in the system's list of jurisdictions
-        # The provider is in a known jurisdiction that is listed within the system
+        # Otherwise, the provider is in a known jurisdiction that is listed within the system.
         allowed_options = self.api.node.get_context('jurisdictions') + ['other', 'unknown']
         return JsonSchema(
             type=JsonSchemaType.STRING,

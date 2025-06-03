@@ -862,6 +862,9 @@ class TestPostPurchasePrivileges(TstFunction):
         In this case, the user is attempting to renew an existing privilege record for the kentucky jurisdiction,
         which was deactivated due to a home jurisdiction change that did not have a license in the jurisdiction.
         The user later obtained a license in their home jurisdiction and is renewing their privilege.
+
+        This test specifically checks that the 'homeJurisdictionChangeStatus' field is removed
+        from the privilege record.
         """
         from handlers.privileges import post_purchase_privileges
 
@@ -909,13 +912,17 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertNotIn('homeJurisdictionChangeStatus', updated_privilege_record)
 
     @patch('handlers.privileges.PurchaseClient')
-    def test_purchase_privileges_removes_home_jurisdiction_change_status_when_privilege_renewed(
+    def test_purchase_privileges_shows_home_jurisdiction_change_status_was_removed_in_update_record(
         self, mock_purchase_client_constructor
     ):
         """
         In this case, the user is attempting to renew an existing privilege record for the kentucky jurisdiction,
         which was deactivated due to a home jurisdiction change that did not have a license in the jurisdiction.
         The user later obtained a license in their home jurisdiction and is renewing their privilege.
+
+        This test specifically checks that the privilege update record was created with the
+        'homeJurisdictionChangeStatus' field included in the list of 'removedValues' so we have a trail of when it was
+        removed.
         """
         from handlers.privileges import post_purchase_privileges
 

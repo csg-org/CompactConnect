@@ -833,7 +833,7 @@ class TestPutProviderHomeJurisdiction(TstFunction):
 
         self.assertEqual(200, resp['statusCode'])
 
-        # the provider record should show provider is in a jurisdiction that is not a member of the compact
+        # the provider record should show provider is ineligible since they do not have a license in their home state.
         stored_provider_data = ProviderData.from_database_record(
             self.test_data_generator.load_provider_data_record_from_database(test_provider_record)
         )
@@ -952,10 +952,10 @@ class TestPutProviderHomeJurisdiction(TstFunction):
 
         self.assertEqual(200, resp['statusCode'])
 
-        # the privilege should be deactivated because there is no license in the new jurisdiction
         stored_privilege_data = PrivilegeData.from_database_record(
             self.test_data_generator.load_provider_data_record_from_database(test_privilege_record)
         )
+        # the privilege should be inactive because the new license is expired
         self.assertEqual('inactive', stored_privilege_data.status)
         # this field should not be added, since the privilege is going to be expired, not deactivated
         self.assertNotIn('homeJurisdictionChangeStatus', stored_privilege_data.to_dict())
@@ -976,10 +976,10 @@ class TestPutProviderHomeJurisdiction(TstFunction):
 
         self.assertEqual(200, resp['statusCode'])
 
-        # the privilege should be deactivated because there is no license in the new jurisdiction
         stored_privilege_data = PrivilegeData.from_database_record(
             self.test_data_generator.load_provider_data_record_from_database(test_privilege_record)
         )
+        # the privilege should be deactivated because the new license is compact ineligible
         self.assertEqual('inactive', stored_privilege_data.status)
         self.assertEqual('inactive', stored_privilege_data.homeJurisdictionChangeStatus)
 
@@ -1092,7 +1092,7 @@ class TestPutProviderHomeJurisdiction(TstFunction):
         self.assertEqual(1, len(stored_privilege_update_records))
 
         update_data = stored_privilege_update_records[0]
-        # the updateType should be homeJurisdictionUpdate
+        # the updateType should be homeJurisdictionChange
         self.assertEqual('homeJurisdictionChange', update_data.updateType)
         # this should not be present since the record was moved over
         self.assertNotIn('homeJurisdictionChangeStatus', update_data.updatedValues)
@@ -1121,7 +1121,7 @@ class TestPutProviderHomeJurisdiction(TstFunction):
         self.assertEqual(1, len(stored_provider_update_records))
 
         update_data = ProviderUpdateData.from_database_record(stored_provider_update_records[0])
-        # the updateType should be homeJurisdictionUpdate
+        # the updateType should be homeJurisdictionChange
         self.assertEqual('homeJurisdictionChange', update_data.updateType)
         self.assertNotIn('homeJurisdictionChangeStatus', update_data.updatedValues)
         # the updateData should include the new home jurisdiction and the license jurisdiction fields
@@ -1149,13 +1149,13 @@ class TestPutProviderHomeJurisdiction(TstFunction):
 
         update_data = ProviderUpdateData.from_database_record(stored_provider_update_records[0])
 
-        # the updateType should be homeJurisdictionUpdate
+        # the updateType should be homeJurisdictionChange
         self.assertEqual('homeJurisdictionChange', update_data.updateType)
         # In this case, the license information should stay the same as before, and the currentHomeJurisdiction
         # should be set to 'other'
         self.assertEqual('other', update_data.updatedValues['currentHomeJurisdiction'])
 
-    def test_put_provider_home_jurisdiction_adds_provider_update_record_when_no_license_in_selected_jurisdiction(self):
+    def test_put_provider_home_jurisdiction_adds_provider_update_record_when_member_jurisdiction(self):
         from cc_common.data_model.schema.provider import ProviderUpdateData
         from handlers.provider_users import provider_users_api_handler
 
@@ -1176,7 +1176,7 @@ class TestPutProviderHomeJurisdiction(TstFunction):
 
         update_data = ProviderUpdateData.from_database_record(stored_provider_update_records[0])
 
-        # the updateType should be homeJurisdictionUpdate
+        # the updateType should be homeJurisdictionChange
         self.assertEqual('homeJurisdictionChange', update_data.updateType)
         # In this case, the currentHomeJurisdiction should be set to the new jurisdiction
         self.assertEqual(NEW_JURISDICTION, update_data.updatedValues['currentHomeJurisdiction'])
@@ -1210,7 +1210,7 @@ class TestPutProviderHomeJurisdiction(TstFunction):
 
         update_data = ProviderUpdateData.from_database_record(stored_provider_update_records[0])
 
-        # the updateType should be homeJurisdictionUpdate
+        # the updateType should be homeJurisdictionChange
         self.assertEqual('homeJurisdictionChange', update_data.updateType)
         # In this case, the currentHomeJurisdiction should be set to the new jurisdiction
         self.assertEqual(
@@ -1272,7 +1272,7 @@ class TestPutProviderHomeJurisdiction(TstFunction):
         self.assertEqual(1, len(stored_privilege_update_records))
 
         update_data = stored_privilege_update_records[0]
-        # the updateType should be homeJurisdictionUpdate
+        # the updateType should be homeJurisdictionChange
         self.assertEqual('homeJurisdictionChange', update_data.updateType)
         self.assertEqual('inactive', update_data.updatedValues['homeJurisdictionChangeStatus'])
         # we should not be updating the license jurisdiction or the data of expiration

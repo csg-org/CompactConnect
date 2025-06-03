@@ -19,7 +19,7 @@ class TestIngest(TstFunction):
         expected_provider['militaryAffiliations'] = []
         expected_provider['currentHomeJurisdiction'] = 'unknown'
         # if the home jurisdiction is unknown, the user has not registered in the system, and
-        # is there ineligible to purchase privileges until they register in the system.
+        # is ineligible to purchase privileges until they register in the system.
         expected_provider['compactEligibility'] = 'ineligible'
         # TODO: remove line this as part of https://github.com/csg-org/CompactConnect/issues/763 # noqa: FIX002
         del expected_provider['homeJurisdictionSelection']

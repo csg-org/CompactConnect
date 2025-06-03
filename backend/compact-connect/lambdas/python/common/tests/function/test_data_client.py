@@ -956,8 +956,7 @@ class TestDataClient(TstFunction):
             }
         )
 
-        # Create many privilege records (more than would typically fit in a single page)
-        # Create 30 records, which should be enough to trigger pagination in most test environments
+        # Creating 30 records, to test pagination with 10 records at a time.
         jurisdictions = self.config.jurisdictions[:30]
         for jurisdiction in jurisdictions:
             self.test_data_generator.put_default_privilege_record_in_provider_table(
