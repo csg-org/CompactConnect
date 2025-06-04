@@ -198,6 +198,15 @@ class TestEncumbranceEvents(TstFunction):
         # Set up test data
         self.test_data_generator.put_default_provider_record_in_provider_table()
 
+        # Set up license record that is unencumbered (so privileges should be unencumbered)
+        self.test_data_generator.put_default_license_record_in_provider_table(
+            value_overrides={
+                'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                'licenseType': DEFAULT_LICENSE_TYPE,
+                'encumberedStatus': 'unencumbered',  # License is unencumbered
+            }
+        )
+
         # Privilege with encumbrance status as result of license encumbrance
         self.test_data_generator.put_default_privilege_record_in_provider_table(
             value_overrides={
@@ -285,6 +294,16 @@ class TestEncumbranceEvents(TstFunction):
 
         # Set up test data
         self.test_data_generator.put_default_provider_record_in_provider_table()
+
+        # Set up license record that is unencumbered (so privileges should be unencumbered)
+        self.test_data_generator.put_default_license_record_in_provider_table(
+            value_overrides={
+                'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                'licenseType': DEFAULT_LICENSE_TYPE,
+                'encumberedStatus': 'unencumbered',  # License is unencumbered
+            }
+        )
+
         privilege = self.test_data_generator.put_default_privilege_record_in_provider_table(
             value_overrides={
                 'licenseJurisdiction': DEFAULT_LICENSE_JURISDICTION,
@@ -361,6 +380,15 @@ class TestEncumbranceEvents(TstFunction):
 
         # Set up test data
         self.test_data_generator.put_default_provider_record_in_provider_table()
+
+        # Set up license record that is unencumbered (so privileges should be unencumbered)
+        self.test_data_generator.put_default_license_record_in_provider_table(
+            value_overrides={
+                'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                'licenseType': DEFAULT_LICENSE_TYPE,
+                'encumberedStatus': 'unencumbered',  # License is unencumbered
+            }
+        )
 
         # Create multiple LICENSE_ENCUMBERED privileges
         self.test_data_generator.put_default_privilege_record_in_provider_table(
@@ -502,6 +530,15 @@ class TestEncumbranceEvents(TstFunction):
         # Set up test data
         self.test_data_generator.put_default_provider_record_in_provider_table()
 
+        # Set up license record that is unencumbered (so privileges should be unencumbered)
+        self.test_data_generator.put_default_license_record_in_provider_table(
+            value_overrides={
+                'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                'licenseType': DEFAULT_LICENSE_TYPE,
+                'encumberedStatus': 'unencumbered',  # License is unencumbered
+            }
+        )
+
         # Create privilege with matching license jurisdiction (should be unencumbered)
         self.test_data_generator.put_default_privilege_record_in_provider_table(
             value_overrides={
@@ -554,6 +591,15 @@ class TestEncumbranceEvents(TstFunction):
         # Set up test data
         self.test_data_generator.put_default_provider_record_in_provider_table()
 
+        # Set up license record that is unencumbered (so privileges should be unencumbered)
+        self.test_data_generator.put_default_license_record_in_provider_table(
+            value_overrides={
+                'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                'licenseType': DEFAULT_LICENSE_TYPE,
+                'encumberedStatus': 'unencumbered',  # License is unencumbered
+            }
+        )
+
         # Create privilege with matching license type (should be unencumbered)
         self.test_data_generator.put_default_privilege_record_in_provider_table(
             value_overrides={
@@ -597,3 +643,62 @@ class TestEncumbranceEvents(TstFunction):
         self.assertEqual(
             PrivilegeEncumberedStatusEnum.LICENSE_ENCUMBERED, different_type_privilege_after.encumberedStatus
         )
+
+    def test_license_encumbrance_lifted_listener_does_not_unencumber_when_license_remains_encumbered(self):
+        """Test that privileges are NOT unencumbered when the license itself remains encumbered."""
+        from cc_common.data_model.schema.common import PrivilegeEncumberedStatusEnum
+        from handlers.encumbrance_events import license_encumbrance_lifted_listener
+
+        # Set up test data
+        self.test_data_generator.put_default_provider_record_in_provider_table()
+
+        # Set up license record that is STILL encumbered (has multiple encumbrances)
+        self.test_data_generator.put_default_license_record_in_provider_table(
+            value_overrides={
+                'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                'licenseType': DEFAULT_LICENSE_TYPE,
+                'encumberedStatus': 'encumbered',  # License is still encumbered
+            }
+        )
+
+        # Create privileges that should NOT be unencumbered
+        self.test_data_generator.put_default_privilege_record_in_provider_table(
+            value_overrides={
+                'licenseJurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                'licenseType': DEFAULT_LICENSE_TYPE,
+                'encumberedStatus': 'licenseEncumbered',
+                'jurisdiction': 'ne',
+            }
+        )
+
+        self.test_data_generator.put_default_privilege_record_in_provider_table(
+            value_overrides={
+                'licenseJurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                'licenseType': DEFAULT_LICENSE_TYPE,
+                'encumberedStatus': 'licenseEncumbered',
+                'jurisdiction': 'ky',
+            }
+        )
+
+        message = self._generate_license_encumbrance_lifting_message()
+        event = self._create_sqs_event(message)
+
+        # Execute the handler
+        license_encumbrance_lifted_listener(event, self.mock_context)
+
+        # Verify privileges remain license encumbered (NOT unencumbered)
+        provider_records = self.config.data_client.get_provider_user_records(
+            compact=DEFAULT_COMPACT,
+            provider_id=DEFAULT_PROVIDER_ID,
+        )
+
+        privileges = provider_records.get_privilege_records()
+        
+        for privilege in privileges:
+            if (privilege.licenseJurisdiction == DEFAULT_LICENSE_JURISDICTION and 
+                privilege.licenseType == DEFAULT_LICENSE_TYPE):
+                # All matching privileges should remain LICENSE_ENCUMBERED
+                self.assertEqual(
+                    PrivilegeEncumberedStatusEnum.LICENSE_ENCUMBERED, 
+                    privilege.encumberedStatus
+                )

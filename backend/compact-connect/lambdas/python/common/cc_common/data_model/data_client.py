@@ -2360,7 +2360,6 @@ class DataClient:
         provider_user_records: ProviderUserRecords = config.data_client.get_provider_user_records(
             compact=compact,
             provider_id=provider_id,
-            consistent_read=True,
         )
 
         # Get the license type name from abbreviation
@@ -2443,8 +2442,8 @@ class DataClient:
         """
         Lift encumbrances from privileges that were encumbered due to a home jurisdiction license encumbrance.
 
-        This method finds all privileges with LICENSE_ENCUMBERED status for the given license
-        and sets their encumberedStatus to UNENCUMBERED, along with creating privilege update records.
+        This method  first verifies that the license is completely unencumbered, then finds all privileges 
+        for the given license with a 'LICENSE_ENCUMBERED' status and sets their encumberedStatus to 'UNENCUMBERED'.
 
         :param str compact: The compact name.
         :param str provider_id: The provider ID.
@@ -2455,7 +2454,6 @@ class DataClient:
         provider_user_records = config.data_client.get_provider_user_records(
             compact=compact,
             provider_id=provider_id,
-            consistent_read=True,
         )
 
         # Get the license type name from abbreviation
@@ -2465,6 +2463,22 @@ class DataClient:
         if not license_type_name:
             logger.error('Invalid license type abbreviation provided')
             return
+
+        # Verify the license itself is unencumbered before lifting privilege encumbrances
+        # A license may still be encumbered by another adverse action that has not been lifted yet.
+        license_record = provider_user_records.get_specific_license_record(jurisdiction, license_type_abbreviation)
+        if not license_record:
+            logger.warning('No license record found for the specified jurisdiction and license type')
+            raise CCInternalException('No license record found for the specified jurisdiction and license type')
+
+        if license_record.encumberedStatus == LicenseEncumberedStatusEnum.ENCUMBERED:
+            logger.info(
+                'License is still encumbered. Not lifting privilege encumbrances. '
+                'Privileges will remain LICENSE_ENCUMBERED until all license encumbrances are lifted.'
+            )
+            return
+
+        logger.info('License is unencumbered. Proceeding to lift privilege encumbrances.')
 
         # Find privileges that match the license jurisdiction and type and are currently LICENSE_ENCUMBERED
         # (meaning they were encumbered due to the license, not due to their own adverse actions)
