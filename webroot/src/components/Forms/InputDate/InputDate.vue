@@ -65,7 +65,8 @@
                     <input
                         :id="`dp-input-${formInput.id}`"
                         type="text"
-                        v-model="dateDisplay"
+                        v-model="localValue"
+                        @input="onInput"
                         @keydown.enter="onEnter"
                         @keydown.tab="onTab"
                         @blur="onBlur"

@@ -101,9 +101,110 @@ const dateDiff = (date1: stringOptional, date2: stringOptional, diffUnit: unitOf
     return diff;
 };
 
+/**
+ * Format numeric date input (MMddyyyy) to MM/dd/yyyy display format
+ * @param {string} value Raw numeric input (e.g., "12252024")
+ * @return {string} Formatted date string (e.g., "12/25/2024")
+ */
+const formatDateInput = (value: string): string => {
+    // Remove all non-numeric characters
+    const numericOnly = (value || '').replace(/\D/g, '');
+
+    // Apply MM/dd/yyyy formatting
+    let formatted = numericOnly;
+
+    if (numericOnly.length >= 2) {
+        formatted = `${numericOnly.substring(0, 2)}/${numericOnly.substring(2)}`;
+    }
+    if (numericOnly.length >= 4) {
+        formatted = `${numericOnly.substring(0, 2)}/${numericOnly.substring(2, 4)}/${numericOnly.substring(4, 8)}`;
+    }
+
+    return formatted;
+};
+
+/**
+ * Convert numeric date input (MMddyyyy) to server format (yyyy-MM-dd)
+ * @param {string} value Raw numeric input (e.g., "12252024")
+ * @return {string} Server format date string (e.g., "2024-12-25") or empty string if invalid
+ */
+const dateInputToServerFormat = (value: string): string => {
+    const numericOnly = (value || '').replace(/\D/g, '');
+    let serverFormat = '';
+
+    if (numericOnly.length === 8) {
+        const month = numericOnly.substring(0, 2);
+        const day = numericOnly.substring(2, 4);
+        const year = numericOnly.substring(4, 8);
+
+        // Validate basic ranges
+        const monthNum = parseInt(month, 10);
+        const dayNum = parseInt(day, 10);
+        const yearNum = parseInt(year, 10);
+
+        if (monthNum >= 1 && monthNum <= 12 && dayNum >= 1 && dayNum <= 31 && yearNum >= 1900 && yearNum <= 2100) {
+            serverFormat = `${year}-${month}-${day}`;
+        }
+    }
+
+    return serverFormat;
+};
+
+/**
+ * Convert server format date (yyyy-MM-dd) to numeric input format (MMddyyyy)
+ * @param {string} value Server format date string (e.g., "2024-12-25")
+ * @return {string} Numeric format (e.g., "12252024")
+ */
+const serverFormatToDateInput = (value: string): string => {
+    let dateInput = '';
+
+    if (value) {
+        const dateParts = value.split('-');
+
+        if (dateParts.length === 3) {
+            const [year, month, day] = dateParts;
+
+            dateInput = `${month}${day}${year}`;
+        }
+    }
+
+    return dateInput;
+};
+
+/**
+ * Validate if numeric date input represents a valid date
+ * @param {string} value Raw numeric input (e.g., "12252024")
+ * @return {boolean} True if valid date
+ */
+const isValidDateInput = (value: string): boolean => {
+    const serverFormat = dateInputToServerFormat(value);
+    let isValid = false;
+
+    if (serverFormat) {
+        // Try to create a valid date from the formatted input
+        const date = new Date(serverFormat);
+        const isValidDate = date instanceof Date && !Number.isNaN(date.getTime());
+
+        if (isValidDate) {
+            // Additional validation: check if the date components match what was input
+            const [year, month, day] = serverFormat.split('-').map((num) => parseInt(num, 10));
+
+            isValid = date.getFullYear() === year
+                && date.getMonth() + 1 === month
+                && date.getDate() === day;
+        }
+    }
+
+    return isValid;
+};
+
 export {
     dateDisplay,
     datetimeDisplay,
     relativeFromNowDisplay,
-    dateDiff
+    dateDiff,
+    formatDateInput,
+    dateInputToServerFormat,
+    serverFormatToDateInput,
+    isValidDateInput
 };

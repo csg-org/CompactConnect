@@ -9,11 +9,18 @@ import {
     Component,
     mixins,
     Prop,
-    toNative
+    toNative,
+    Watch
 } from 'vue-facing-decorator';
 import MixinInput from '@components/Forms/_mixins/input.mixin';
 import VueDatePicker, { DatePickerMarker } from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
+import {
+    formatDateInput,
+    dateInputToServerFormat,
+    serverFormatToDateInput,
+    isValidDateInput
+} from '@models/_formatters/date';
 
 @Component({
     name: 'InputDate',
@@ -26,6 +33,7 @@ class InputDate extends mixins(MixinInput) {
     // Data
     //
     localValue = '';
+    lastDatePickerValue = '';
 
     // https://vue3datepicker.com/props/modes/
     @Prop({ default: 'yyyy-MM-dd' }) modelFormat?: string; // https://date-fns.org/v2.16.1/docs/format
@@ -67,91 +75,72 @@ class InputDate extends mixins(MixinInput) {
     //
     created() {
         this.localValue = this.formInput.value || '';
+        this.lastDatePickerValue = this.formInput.value || '';
+    }
+
+    //
+    // Watchers
+    //
+    @Watch('formInput.value')
+    onFormInputValueChange(newValue: string): void {
+        // Only update if this is actually a new datepicker selection
+        if (newValue !== this.lastDatePickerValue && newValue !== this.dateRaw) {
+            if (!newValue) {
+                this.localValue = '';
+                this.lastDatePickerValue = '';
+            } else {
+                const newDateInput = serverFormatToDateInput(newValue);
+
+                this.localValue = formatDateInput(newDateInput);
+                this.lastDatePickerValue = newValue;
+            }
+        }
     }
 
     //
     // Computed
     //
     get dateDisplay(): string {
-        const currentDate = this.localValue;
-
-        // Remove all non-numeric characters
-        const numericOnly = currentDate.replace(/\D/g, '');
-
-        // Apply MM/dd/yyyy formatting
-        let formatted = numericOnly;
-
-        if (numericOnly.length >= 2) {
-            formatted = `${numericOnly.substring(0, 2)}/${numericOnly.substring(2)}`;
-        }
-        if (numericOnly.length >= 4) {
-            formatted = `${numericOnly.substring(0, 2)}/${numericOnly.substring(2, 4)}/${numericOnly.substring(4, 8)}`;
-        }
-
-        return formatted;
+        return formatDateInput(this.localValue);
     }
 
     set dateDisplay(value: string) {
-        // Store the raw input, removing non-numeric characters but preserving partial input
-        const numericOnly = value.replace(/\D/g, '');
+        // Store the raw value as-is to preserve cursor position
+        const numericOnly = value.replace(/\D/g, '').substring(0, 8);
 
-        this.localValue = numericOnly.substring(0, 8);
+        this.localValue = numericOnly;
 
-        // Update form input value with the properly formatted date
-        this.formInput.value = this.dateRaw;
-        this.formInput.validate();
+        // Only update form value if we have a complete date
+        const serverFormat = this.dateRaw;
+
+        if (serverFormat !== this.formInput.value) {
+            this.formInput.value = serverFormat;
+            this.formInput.validate();
+        }
     }
 
     get dateRaw(): string {
-        const { localValue } = this;
-        let raw = '';
-
-        // Convert MM/dd/yyyy to yyyy-MM-dd format for the form value
-        const numericOnly = localValue.replace(/\D/g, '');
-
-        if (numericOnly.length === 8) {
-            const month = numericOnly.substring(0, 2);
-            const day = numericOnly.substring(2, 4);
-            const year = numericOnly.substring(4, 8);
-
-            // Validate basic ranges
-            const monthNum = parseInt(month, 10);
-            const dayNum = parseInt(day, 10);
-            const yearNum = parseInt(year, 10);
-
-            if (monthNum >= 1 && monthNum <= 12 && dayNum >= 1 && dayNum <= 31 && yearNum >= 1900 && yearNum <= 2100) {
-                raw = `${year}-${month}-${day}`;
-            }
-        }
-
-        return raw;
+        return dateInputToServerFormat(this.localValue.replace(/\D/g, ''));
     }
 
     get isDateValid(): boolean {
-        const { dateRaw } = this;
-        let isValid = false;
-
-        // Try to create a valid date from the formatted input
-        if (dateRaw) {
-            const date = new Date(dateRaw);
-            const isValidDate = date instanceof Date && !Number.isNaN(date.getTime());
-
-            if (isValidDate) {
-                // Additional validation: check if the date components match what was input
-                const [year, month, day] = dateRaw.split('-').map((num) => parseInt(num, 10));
-
-                isValid = date.getFullYear() === year
-                    && date.getMonth() + 1 === month
-                    && date.getDate() === day;
-            }
-        }
-
-        return isValid;
+        return isValidDateInput(this.localValue.replace(/\D/g, ''));
     }
 
     //
     // Methods
     //
+    onInput(): void {
+        // Format the input as user types
+        const numericOnly = this.localValue.replace(/\D/g, '');
+
+        this.localValue = formatDateInput(numericOnly);
+
+        // Update form value
+        this.formInput.value = this.dateRaw;
+        this.formInput.validate();
+    }
+
     input(): void {
         const { formInput } = this;
 
