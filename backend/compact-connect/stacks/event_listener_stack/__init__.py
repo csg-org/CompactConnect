@@ -30,12 +30,10 @@ class EventListenerStack(AppStack):
     ):
         super().__init__(scope, construct_id, environment_name=environment_name, **kwargs)
         data_event_bus = SSMParameterUtility.load_data_event_bus_from_ssm_parameter(self)
-        self._add_license_encumbrance_listener(environment_name, persistent_stack, data_event_bus)
-        self._add_lifting_license_encumbrance_listener(environment_name, persistent_stack, data_event_bus)
+        self._add_license_encumbrance_listener(persistent_stack, data_event_bus)
+        self._add_lifting_license_encumbrance_listener(persistent_stack, data_event_bus)
 
-    def _add_license_encumbrance_listener(
-        self, environment_name: str, persistent_stack: ps.PersistentStack, data_event_bus: EventBus
-    ):
+    def _add_license_encumbrance_listener(self, persistent_stack: ps.PersistentStack, data_event_bus: EventBus):
         """Add the license encumbrance listener lambda, queues, and event rules."""
         # Create the Lambda function handler that listens for license encumbrance events
         construct_id_prefix = 'LicenseEncumbranceListener'
@@ -83,9 +81,7 @@ class EventListenerStack(AppStack):
             persistent_stack=persistent_stack,
         )
 
-    def _add_lifting_license_encumbrance_listener(
-        self, environment_name: str, persistent_stack: ps.PersistentStack, data_event_bus: EventBus
-    ):
+    def _add_lifting_license_encumbrance_listener(self, persistent_stack: ps.PersistentStack, data_event_bus: EventBus):
         """Add the lifting license encumbrance listener lambda, queues, and event rules."""
         # Create the Lambda function handler that listens for license encumbrance lifting events
         construct_id_prefix = 'LiftedLicenseEncumbranceListener'
