@@ -9,7 +9,7 @@ from cc_common.data_model.schema.license.api import LicenseUpdatePreviousRespons
 from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationData
 from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
 from cc_common.data_model.schema.privilege.api import PrivilegeUpdatePreviousGeneralResponseSchema
-from cc_common.data_model.schema.provider import ProviderData
+from cc_common.data_model.schema.provider import ProviderData, ProviderUpdateData
 from cc_common.exceptions import CCInternalException
 
 
@@ -19,6 +19,7 @@ class ProviderRecordType(StrEnum):
     """
 
     PROVIDER = 'provider'
+    PROVIDER_UPDATE = 'providerUpdate'
     LICENSE = 'license'
     LICENSE_UPDATE = 'licenseUpdate'
     PRIVILEGE = 'privilege'
@@ -243,6 +244,7 @@ class ProviderUserRecords:
         self._license_records: list[LicenseData] = []
         self._adverse_action_records: list[AdverseActionData] = []
         self._provider_records: list[ProviderData] = []
+        self._provider_update_records: list[ProviderUpdateData] = []
         self._military_affiliation_records: list[MilitaryAffiliationData] = []
         self._license_update_records: list[LicenseUpdateData] = []
         self._privilege_update_records: list[PrivilegeUpdateData] = []
@@ -258,6 +260,8 @@ class ProviderUserRecords:
                 self._adverse_action_records.append(AdverseActionData.from_database_record(record))
             elif record_type == ProviderRecordType.PROVIDER:
                 self._provider_records.append(ProviderData.from_database_record(record))
+            elif record_type == ProviderRecordType.PROVIDER_UPDATE:
+                self._provider_update_records.append(ProviderUpdateData.from_database_record(record))
             elif record_type == ProviderRecordType.MILITARY_AFFILIATION:
                 self._military_affiliation_records.append(MilitaryAffiliationData.from_database_record(record))
             elif record_type == ProviderRecordType.LICENSE_UPDATE:
