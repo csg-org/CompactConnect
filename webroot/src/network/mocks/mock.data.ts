@@ -150,7 +150,12 @@ export const privilegePurchaseOptionsResponse = {
                     chargeAmount: 2
                 }
             },
-            type: 'compact'
+            type: 'compact',
+            paymentGateway: {
+                loginId: '24xMHMr4L5TX',
+                clientKey: '5qxB7gvCGVJA5W6kpC265z4rDSfJcs65pmRrAGEJcTbcQqwvnRhw8E6256C283du',
+                isProductionMode: false,
+            },
         },
         {
             jurisdictionName: 'kentucky',

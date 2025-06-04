@@ -18,6 +18,7 @@ import InputCreditCard from '@components/Forms/InputCreditCard/InputCreditCard.v
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import MockPopulate from '@components/Forms/MockPopulate/MockPopulate.vue';
 import { Compact } from '@models/Compact/Compact.model';
+import { PaymentSdkConfig } from '@models/CompactFeeConfig/CompactFeeConfig.model';
 import { FormInput } from '@models/FormInput/FormInput.model';
 import { LicenseeUser, LicenseeUserPurchaseSerializer } from '@models/LicenseeUser/LicenseeUser.model';
 import { License } from '@models/License/License.model';
@@ -186,6 +187,10 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
         return this.currentCompact?.privilegePurchaseOptions || [];
     }
 
+    get currentCompactPaymentSdkConfig(): PaymentSdkConfig {
+        return this.currentCompact?.fees?.paymentSdkConfig || {};
+    }
+
     get currentCompactCommissionFee(): number | null {
         return this.currentCompact?.fees?.compactCommissionFee || null;
     }
@@ -286,34 +291,15 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
     async acceptUiSuccessResponse(response: AcceptUiResponse): Promise<void> {
         const { opaqueData } = response;
 
-        // @TODO
-        console.log('component success response:');
-        console.log(response);
-        console.log('');
-
         await this.handleSubmitOverride({
             dataDescriptor: opaqueData?.dataDescriptor,
             dataValue: opaqueData?.dataValue,
         });
     }
 
-    async acceptUiErrorResponse(response: AcceptUiResponse): Promise<void> {
-        const responseMessages = response?.messages?.message || [];
-
-        // @TODO
-        console.log('component error response:');
-        console.log(response);
-        console.log('');
-
-        if (Array.isArray(responseMessages)) {
-            responseMessages.forEach((message) => {
-                console.warn(`${message.code || ''} ${message.text || ''}`.trim());
-            });
-        }
-
+    async acceptUiErrorResponse(): Promise<void> {
         this.isFormError = true;
         this.formErrorMessage = this.$t('payment.confirmCardDetailsError');
-
         await nextTick();
         const formMessageElement = document.getElementById('button-row');
 
@@ -340,11 +326,6 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
                 paymentDetails
             });
             const purchaseServerEvent = await this.$store.dispatch('user/postPrivilegePurchases', serverData);
-
-            // @TODO
-            console.log('server payload');
-            console.log(serverData);
-            console.log('');
 
             this.endFormLoading();
 
@@ -387,7 +368,7 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
         }
     }
 
-    mockPopulate(): void {
+    async mockPopulate(): Promise<void> {
         // It's handy to have certain values copied to the clipboard during local development;
         // The following are applicable depending on the testing scenario:
         navigator.clipboard.writeText(`5424 0000 0000 0015`); // Test CC number
@@ -400,5 +381,9 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
         // Standard mock-populate handling
         this.formData.noRefunds.value = true;
         this.validateAll({ asTouched: true });
+        await nextTick();
+        const formButtons = document.getElementById('button-row');
+
+        formButtons?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 }

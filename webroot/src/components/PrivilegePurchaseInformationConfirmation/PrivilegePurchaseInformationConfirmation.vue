@@ -85,7 +85,7 @@
                     </div>
                 </div>
             </div>
-            <div v-if="areFormInputsSet" class="button-row">
+            <div v-if="areFormInputsSet" id="button-row" class="button-row">
                 <div class="form-nav-buttons">
                     <InputSubmit
                         :formInput="formData.submit"

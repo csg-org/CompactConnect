@@ -5,9 +5,14 @@
 //  Created by InspiringApps on 2/17/2025.
 //
 
-import { expect } from 'chai';
+import chaiMatchPattern from 'chai-match-pattern';
+import chai from 'chai';
 import { FeeTypes } from '@/app.config';
 import { CompactFeeConfig, CompactFeeConfigSerializer } from '@models/CompactFeeConfig/CompactFeeConfig.model';
+
+chai.use(chaiMatchPattern);
+
+const { expect } = chai;
 
 describe('CompactFeeConfig model', () => {
     it('should create a CompactFeeConfig with default values', () => {
@@ -20,6 +25,7 @@ describe('CompactFeeConfig model', () => {
         expect(compactFeeConfiguration.compactCommissionFeeType).to.equal(null);
         expect(compactFeeConfiguration.perPrivilegeTransactionFeeAmount).to.equal(0);
         expect(compactFeeConfiguration.isPerPrivilegeTransactionFeeActive).to.equal(false);
+        expect(compactFeeConfiguration.paymentSdkConfig).to.matchPattern({});
     });
     it('should create a CompactFeeConfig with specific values', () => {
         const data = {
@@ -28,7 +34,11 @@ describe('CompactFeeConfig model', () => {
             compactCommissionFeeType: FeeTypes.FLAT_RATE,
             perPrivilegeTransactionFeeAmount: 3,
             isPerPrivilegeTransactionFeeActive: true,
-
+            paymentSdkConfig: {
+                loginId: 'test-loginId',
+                clientKey: 'test-clientKey',
+                isProductionMode: true,
+            },
         };
         const compactFeeConfiguration = new CompactFeeConfig(data);
 
@@ -39,6 +49,11 @@ describe('CompactFeeConfig model', () => {
         expect(compactFeeConfiguration.compactCommissionFeeType).to.equal(FeeTypes.FLAT_RATE);
         expect(compactFeeConfiguration.perPrivilegeTransactionFeeAmount).to.equal(3);
         expect(compactFeeConfiguration.isPerPrivilegeTransactionFeeActive).to.equal(true);
+        expect(compactFeeConfiguration.paymentSdkConfig).to.matchPattern({
+            loginId: data.paymentSdkConfig.loginId,
+            clientKey: data.paymentSdkConfig.clientKey,
+            isProductionMode: data.paymentSdkConfig.isProductionMode,
+        });
     });
     it('should create a CompactFeeConfig with specific values through serializer', () => {
         const data = {
@@ -54,7 +69,12 @@ describe('CompactFeeConfig model', () => {
                     chargeAmount: 2
                 }
             },
-            type: 'compact'
+            type: 'compact',
+            paymentGateway: {
+                loginId: 'test-loginId',
+                clientKey: 'test-clientKey',
+                isProductionMode: true,
+            },
         };
         const compactFeeConfiguration = CompactFeeConfigSerializer.fromServer(data);
 
@@ -65,15 +85,20 @@ describe('CompactFeeConfig model', () => {
         expect(compactFeeConfiguration.compactCommissionFeeType).to.equal(FeeTypes.FLAT_RATE);
         expect(compactFeeConfiguration.perPrivilegeTransactionFeeAmount).to.equal(2);
         expect(compactFeeConfiguration.isPerPrivilegeTransactionFeeActive).to.equal(true);
+        expect(compactFeeConfiguration.paymentSdkConfig).to.matchPattern({
+            loginId: data.paymentGateway.loginId,
+            clientKey: data.paymentGateway.clientKey,
+            isProductionMode: data.paymentGateway.isProductionMode,
+        });
     });
-    it('should create a CompactFeeConfig with specific values through serializer (missing transactionFeeConfiguration)', () => {
+    it('should create a CompactFeeConfig with specific values through serializer (missing transactionFeeConfiguration & payment gateway info)', () => {
         const data = {
             compactAbbr: 'aslp',
             compactCommissionFee: {
                 feeType: 'FLAT_RATE',
                 feeAmount: 3.5
             },
-            type: 'compact'
+            type: 'compact',
         };
         const compactFeeConfiguration = CompactFeeConfigSerializer.fromServer(data);
 
@@ -84,5 +109,10 @@ describe('CompactFeeConfig model', () => {
         expect(compactFeeConfiguration.compactCommissionFeeType).to.equal(FeeTypes.FLAT_RATE);
         expect(compactFeeConfiguration.perPrivilegeTransactionFeeAmount).to.equal(0);
         expect(compactFeeConfiguration.isPerPrivilegeTransactionFeeActive).to.equal(false);
+        expect(compactFeeConfiguration.paymentSdkConfig).to.matchPattern({
+            loginId: '',
+            clientKey: '',
+            isProductionMode: false,
+        });
     });
 });

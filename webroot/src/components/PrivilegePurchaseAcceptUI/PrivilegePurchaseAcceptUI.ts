@@ -11,6 +11,7 @@ import {
     Prop,
     toNative
 } from 'vue-facing-decorator';
+import { PaymentSdkConfig } from '@models/CompactFeeConfig/CompactFeeConfig.model';
 import moment, { Moment } from 'moment';
 
 export interface AcceptUiResponse {
@@ -39,6 +40,7 @@ export interface AcceptUiResponse {
     emits: ['success', 'error'],
 })
 class PrivilegePurchaseAcceptUI extends Vue {
+    @Prop({ required: true }) paymentSdkConfig!: PaymentSdkConfig | null;
     @Prop({ default: '' }) buttonLabel?: string;
     @Prop({ default: false }) includeButtonIcon?: boolean;
     @Prop({ default: true }) private isEnabled?: boolean;
@@ -68,11 +70,15 @@ class PrivilegePurchaseAcceptUI extends Vue {
     // Computed
     //
     get loginId(): string {
-        return this.$envConfig.acceptUiLoginId || '';
+        return this.paymentSdkConfig?.loginId || '';
     }
 
     get clientKey(): string {
-        return this.$envConfig.acceptUiClientKey || '';
+        return this.paymentSdkConfig?.clientKey || '';
+    }
+
+    get isProductionMode(): boolean {
+        return this.paymentSdkConfig?.isProductionMode || false;
     }
 
     get buttonLabelText(): string {
@@ -83,6 +89,9 @@ class PrivilegePurchaseAcceptUI extends Vue {
     // Methods
     //
     initPaymentDetailsUi(): void {
+        const scriptSrc = (this.isProductionMode)
+            ? 'https://js.authorize.net/v3/AcceptUI.js'
+            : 'https://jstest.authorize.net/v3/AcceptUI.js';
         const componentContainer = document.getElementById('finalize-privilege-purchase-container');
         const script = document.createElement('script');
 
@@ -91,13 +100,11 @@ class PrivilegePurchaseAcceptUI extends Vue {
 
         // Load the AcceptUI library
         this.acceptUiScript = script;
-        script.src = 'https://jstest.authorize.net/v3/AcceptUI.js';
+        script.src = scriptSrc;
         script.charset = 'utf-8';
         componentContainer?.appendChild(script);
         script.onload = () => {
             this.isLoadingInit = false;
-            console.log('script loaded');
-            console.log('');
         };
     }
 
@@ -132,10 +139,16 @@ class PrivilegePurchaseAcceptUI extends Vue {
         acceptUiPaymentDetails.encryptedCardData = response?.encryptedCardData;
 
         if (response?.messages?.resultCode?.toLowerCase() !== 'ok') {
-            // this.errorMessage = this.$t('payment.confirmCardDetailsError');
+            const responseMessages = response?.messages?.message || [];
+
+            if (Array.isArray(responseMessages)) {
+                responseMessages.forEach((message) => {
+                    console.warn(`Authorize.net SDK: ${message.code || ''} ${message.text || ''}`.trim());
+                });
+            }
+
             this.$emit('error', acceptUiPaymentDetails);
         } else {
-            // this.successMessage = this.$t('payment.confirmCardDetailsSuccess1');
             acceptUiPaymentDetails.expiry = moment().add(15, 'minutes');
             this.$emit('success', acceptUiPaymentDetails);
         }

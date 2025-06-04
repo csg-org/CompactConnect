@@ -61,7 +61,8 @@
                 <div class="form-nav-buttons">
                     <PrivilegePurchaseAcceptUI
                         class="form-nav-button accept-ui"
-                        :buttonLabel="$t('payment.completePurchase')"
+                        :paymentSdkConfig="currentCompactPaymentSdkConfig"
+                        :buttonLabel="$t('common.next')"
                         :isEnabled="!isFormLoading && isSubmitEnabled"
                         @success="acceptUiSuccessResponse"
                         @error="acceptUiErrorResponse"

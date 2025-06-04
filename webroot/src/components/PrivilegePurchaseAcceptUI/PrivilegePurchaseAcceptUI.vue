@@ -46,11 +46,9 @@
         </div>
         <div v-if="errorMessage" class="accept-ui-message-container error">
             <div>{{ errorMessage }}</div>
-            <div class="next-steps">{{ $t('payment.confirmCardDetailsTryAgain') }}</div>
         </div>
         <div v-else-if="successMessage" class="accept-ui-message-container success">
             <div>{{ successMessage }}</div>
-            <div class="next-steps">{{ $t('payment.confirmCardDetailsSuccess2') }}</div>
         </div>
     </div>
 </template>
