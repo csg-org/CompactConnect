@@ -320,15 +320,14 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         merchant_auth.name = self.api_login_id
         merchant_auth.transactionKey = self.transaction_key
 
-        # Create the payment data for a credit card
-        credit_card = apicontractsv1.creditCardType()
-        credit_card.cardNumber = order_information['card']['number']
-        credit_card.expirationDate = order_information['card']['expiration']
-        credit_card.cardCode = order_information['card']['cvv']
+        # Create the payment data using opaqueData (Accept.js payment nonce)
+        opaque_data = apicontractsv1.opaqueDataType()
+        opaque_data.dataDescriptor = order_information['opaqueData']['dataDescriptor']
+        opaque_data.dataValue = order_information['opaqueData']['dataValue']
 
         # Add the payment data to a paymentType object
         payment = apicontractsv1.paymentType()
-        payment.creditCard = credit_card
+        payment.opaqueData = opaque_data
 
         # Create order information
         order = apicontractsv1.orderType()
@@ -395,16 +394,6 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
             transaction_fee_line_item.unitPrice = _calculate_transaction_fee(compact_configuration, 1)
             line_items.lineItem.append(transaction_fee_line_item)
 
-        # Set the customer's Bill To address
-        customer_address = apicontractsv1.customerAddressType()
-        customer_address.firstName = order_information['billing']['firstName']
-        customer_address.lastName = order_information['billing']['lastName']
-        customer_address.address = (
-            f'{order_information["billing"]["streetAddress"]} {order_information["billing"].get("streetAddress2", "")}'
-        ).strip()
-        customer_address.state = order_information['billing']['state']
-        customer_address.zip = order_information['billing']['zip']
-
         # Add values for transaction settings
         duplicate_window_setting = apicontractsv1.settingType()
         duplicate_window_setting.settingName = 'duplicateWindow'
@@ -423,7 +412,6 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         )
         transaction_request.currencyCode = 'USD'
         transaction_request.payment = payment
-        transaction_request.billTo = customer_address
         transaction_request.transactionSettings = settings
         transaction_request.order = order
         transaction_request.lineItems = line_items
@@ -917,7 +905,7 @@ class PurchaseClient:
         Process a charge on a credit card for a list of privileges within a compact.
 
         :param licensee_id: The Licensee user ID.
-        :param order_information: A dictionary containing the order information (billing, card, etc.)
+        :param order_information: A dictionary containing the order information (payment nonce, etc.)
         :param compact_configuration: The compact configuration.
         :param selected_jurisdictions: A list of selected jurisdictions to purchase privileges for.
         :param license_type_abbreviation: The license type abbreviation used to generate line item id.

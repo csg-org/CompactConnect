@@ -52,6 +52,10 @@ MOCK_SETTLEMENT_TIME_LOCAL = '2024-12-27T13:49:20.757'
 MOCK_SETTLEMENT_TIME_UTC_2 = '2024-12-26T15:15:20.007Z'
 MOCK_SETTLEMENT_TIME_LOCAL_2 = '2024-12-26T11:15:20.007Z'
 
+# mock order information
+MOCK_DATA_DESCRIPTOR = 'COMMON.ACCEPT.INAPP.PAYMENT'
+MOCK_DATA_VALUE = 'eyJjbMockDataValue'
+
 
 def json_to_magic_mock(json_obj):
     """
@@ -72,16 +76,7 @@ def json_to_magic_mock(json_obj):
 
 
 def _generate_default_order_information():
-    return {
-        'card': {'number': '4111111111111112', 'expiration': '2035-10', 'cvv': '125'},
-        'billing': {
-            'firstName': 'testFirstName',
-            'lastName': 'testLastName',
-            'streetAddress': '123 Test St',
-            'state': 'OH',
-            'zip': '12345',
-        },
-    }
+    return {'opaqueData': {'dataDescriptor': MOCK_DATA_DESCRIPTOR, 'dataValue': MOCK_DATA_VALUE}}
 
 
 def _generate_aslp_compact_configuration(include_licensee_charges: bool = False):
@@ -305,19 +300,13 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         # authentication fields
         self.assertEqual(MOCK_LOGIN_ID, api_contract_v1_obj.merchantAuthentication.name)
         self.assertEqual(MOCK_TRANSACTION_KEY, api_contract_v1_obj.merchantAuthentication.transactionKey)
-        # credit card payment fields
-        self.assertEqual('4111111111111112', api_contract_v1_obj.transactionRequest.payment.creditCard.cardNumber)
-        self.assertEqual('2035-10', api_contract_v1_obj.transactionRequest.payment.creditCard.expirationDate)
-        self.assertEqual('125', api_contract_v1_obj.transactionRequest.payment.creditCard.cardCode)
+        # opaque data fields
+        self.assertEqual(MOCK_DATA_DESCRIPTOR, api_contract_v1_obj.transactionRequest.payment.opaqueData.dataDescriptor)
+        self.assertEqual(MOCK_DATA_VALUE, api_contract_v1_obj.transactionRequest.payment.opaqueData.dataValue)
         # transaction billing fields
         expected_total_fee_amount = 150.50
         self.assertEqual(expected_total_fee_amount, api_contract_v1_obj.transactionRequest.amount)
         self.assertEqual('USD', api_contract_v1_obj.transactionRequest.currencyCode)
-        self.assertEqual('OH', api_contract_v1_obj.transactionRequest.billTo.state)
-        self.assertEqual('12345', api_contract_v1_obj.transactionRequest.billTo.zip)
-        self.assertEqual('123 Test St', api_contract_v1_obj.transactionRequest.billTo.address)
-        self.assertEqual('testFirstName', api_contract_v1_obj.transactionRequest.billTo.firstName)
-        self.assertEqual('testLastName', api_contract_v1_obj.transactionRequest.billTo.lastName)
         # transaction settings
         self.assertEqual('35', api_contract_v1_obj.transactionRequest.transactionSettings.setting[0].settingValue)
         self.assertEqual(

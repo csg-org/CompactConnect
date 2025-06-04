@@ -23,6 +23,19 @@ from smoke_common import (
 # To run this script, create a smoke_tests_env.json file in the same directory as this script using the
 # 'smoke_tests_env_example.json' file as a template.
 
+# IMPORTANT - until we find a way to automate generating payment opaque data tokens,
+# this test requires you to generate a payment nonce using the Accept.js lib and a sandbox testing card.
+PAYMENT_NONCE_DATA_VALUE = ''
+
+def _generate_post_body(attestations_from_system, license_type):
+    return {
+        'orderInformation': {
+            {'opaqueData': {'dataDescriptor': 'COMMON.ACCEPT.INAPP.PAYMENT', 'dataValue': PAYMENT_NONCE_DATA_VALUE}}
+        },
+        'selectedJurisdictions': ['ne'],
+        'attestations': attestations_from_system,
+        'licenseType': license_type,
+    }
 
 def test_purchase_privilege_options():
     """Test the GET /v1/purchases/privileges/options endpoint."""
@@ -169,28 +182,7 @@ def test_purchasing_privilege(delete_current_privilege: bool = True):
 
     license_type = original_provider_data['licenses'][0]['licenseType']
 
-    post_body = {
-        'orderInformation': {
-            'card': {
-                # This test card number is defined in authorize.net's testing documentation
-                # https://developer.authorize.net/hello_world/testing_guide.html
-                'number': '4007000000027',
-                'cvv': '123',
-                'expiration': '2050-12',
-            },
-            'billing': {
-                'zip': '44628',
-                'firstName': 'Joe',
-                'lastName': 'Dokes',
-                'streetAddress': '14 Main Street',
-                'streetAddress2': 'Apt. 12J',
-                'state': 'TX',
-            },
-        },
-        'selectedJurisdictions': ['ne'],
-        'attestations': attestations_from_system,
-        'licenseType': license_type,
-    }
+    post_body = _generate_post_body(attestations_from_system, license_type)
 
     headers = get_provider_user_auth_headers_cached()
     post_api_response = requests.post(
