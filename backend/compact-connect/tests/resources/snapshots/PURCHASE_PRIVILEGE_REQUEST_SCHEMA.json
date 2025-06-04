@@ -76,85 +76,28 @@
     },
     "orderInformation": {
       "properties": {
-        "card": {
+        "opaqueData": {
           "properties": {
-            "number": {
+            "dataDescriptor": {
               "description": "The card number",
-              "maxLength": 19,
-              "minLength": 13,
+              "maxLength": 100,
               "type": "string"
             },
-            "expiration": {
+            "dataValue": {
               "description": "The card expiration date",
-              "maxLength": 7,
-              "minLength": 7,
-              "type": "string"
-            },
-            "cvv": {
-              "description": "The card cvv",
-              "maxLength": 4,
-              "minLength": 3,
+              "maxLength": 1000,
               "type": "string"
             }
           },
           "required": [
-            "number",
-            "expiration",
-            "cvv"
-          ],
-          "type": "object"
-        },
-        "billing": {
-          "properties": {
-            "firstName": {
-              "description": "The first name on the card",
-              "maxLength": 100,
-              "minLength": 1,
-              "type": "string"
-            },
-            "lastName": {
-              "description": "The last name on the card",
-              "maxLength": 100,
-              "minLength": 1,
-              "type": "string"
-            },
-            "streetAddress": {
-              "description": "The street address for the card",
-              "maxLength": 150,
-              "minLength": 2,
-              "type": "string"
-            },
-            "streetAddress2": {
-              "description": "The second street address for the card",
-              "maxLength": 150,
-              "type": "string"
-            },
-            "state": {
-              "description": "The state postal abbreviation for the card",
-              "maxLength": 2,
-              "minLength": 2,
-              "type": "string"
-            },
-            "zip": {
-              "description": "The zip code for the card",
-              "maxLength": 10,
-              "minLength": 5,
-              "type": "string"
-            }
-          },
-          "required": [
-            "firstName",
-            "lastName",
-            "streetAddress",
-            "state",
-            "zip"
+            "dataDescriptor",
+            "dataValue"
           ],
           "type": "object"
         }
       },
       "required": [
-        "card",
-        "billing"
+        "opaqueData"
       ],
       "type": "object"
     },

@@ -33,6 +33,10 @@ TEST_LICENSE_TYPE = 'speech-language pathologist'
 MOCK_LINE_ITEMS = [{'name': 'Alaska Big Fee', 'quantity': '1', 'unitPrice': '55.5', 'description': 'Fee for Alaska'}]
 
 
+MOCK_DATA_DESCRIPTOR = 'COMMON.ACCEPT.INAPP.PAYMENT'
+MOCK_DATA_VALUE = 'eyJjbMockDataValue'
+
+
 def generate_default_attestation_list():
     return [
         {'attestationId': 'jurisprudence-confirmation', 'version': '1'},
@@ -58,17 +62,7 @@ def _generate_test_request_body(
         {
             'licenseType': license_type,
             'selectedJurisdictions': selected_jurisdictions,
-            'orderInformation': {
-                'card': {'number': '<card number>', 'expiration': '<expiration date>', 'cvv': '<cvv>'},
-                'billing': {
-                    'firstName': 'testFirstName',
-                    'lastName': 'testLastName',
-                    'streetAddress': '123 Test St',
-                    'streetAddress2': '',  # optional
-                    'state': 'OH',
-                    'zip': '12345',
-                },
-            },
+            'orderInformation': {'opaqueData': {'dataDescriptor': MOCK_DATA_DESCRIPTOR, 'dataValue': MOCK_DATA_VALUE}},
             'attestations': attestations,
         }
     )
