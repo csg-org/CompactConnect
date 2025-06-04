@@ -10,7 +10,6 @@ from botocore.exceptions import ClientError
 
 from cc_common.config import _Config, config, logger, metrics
 from cc_common.data_model.provider_record_util import (
-    MilitaryAffiliationData,
     ProviderRecordUtility,
     ProviderUserRecords,
 )
@@ -28,6 +27,7 @@ from cc_common.data_model.schema.common import (
     UpdateCategory,
 )
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
+from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationData
 from cc_common.data_model.schema.military_affiliation.common import (
     MilitaryAffiliationStatus,
     MilitaryAffiliationType,
