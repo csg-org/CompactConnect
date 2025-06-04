@@ -693,12 +693,11 @@ class TestEncumbranceEvents(TstFunction):
         )
 
         privileges = provider_records.get_privilege_records()
-        
+
         for privilege in privileges:
-            if (privilege.licenseJurisdiction == DEFAULT_LICENSE_JURISDICTION and 
-                privilege.licenseType == DEFAULT_LICENSE_TYPE):
+            if (
+                privilege.licenseJurisdiction == DEFAULT_LICENSE_JURISDICTION
+                and privilege.licenseType == DEFAULT_LICENSE_TYPE
+            ):
                 # All matching privileges should remain LICENSE_ENCUMBERED
-                self.assertEqual(
-                    PrivilegeEncumberedStatusEnum.LICENSE_ENCUMBERED, 
-                    privilege.encumberedStatus
-                )
+                self.assertEqual(PrivilegeEncumberedStatusEnum.LICENSE_ENCUMBERED, privilege.encumberedStatus)

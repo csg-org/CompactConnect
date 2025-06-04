@@ -6,6 +6,8 @@ This script tests the end-to-end encumbrance workflow for both licenses and priv
 including setting encumbrances and lifting them through the API endpoints.
 """
 
+import time
+
 import requests
 from purchasing_privileges_smoke_tests import test_purchasing_privilege
 from smoke_common import (
@@ -139,12 +141,104 @@ def _get_privilege_data_from_provider_response(provider_data: dict, jurisdiction
     return next((privilege for privilege in privileges if privilege['jurisdiction'] == jurisdiction), None)
 
 
+def _validate_privilege_encumbered_status(
+    expected_status: str,
+    test_jurisdiction: str,
+    test_license_type: str,
+    max_wait_time: int = 60,
+    check_interval: int = 10,
+):
+    """
+    Validate that the privilege encumberedStatus matches the expected value.
+
+    This method will poll the provider me endpoint every check_interval seconds
+    for up to max_wait_time seconds, checking if the privilege has the expected
+    encumberedStatus. This accounts for eventual consistency in downstream processing.
+
+    Args:
+        expected_status: The expected encumberedStatus value ('licenseEncumbered', 'unencumbered', etc.)
+        test_jurisdiction: The jurisdiction of the license that was encumbered/unencumbered
+        test_license_type: The license type that was encumbered/unencumbered
+        max_wait_time: Maximum time to wait in seconds (default: 60)
+        check_interval: Time between checks in seconds (default: 10)
+
+    Raises:
+        SmokeTestFailureException: If the privilege status doesn't match within max_wait_time
+    """
+    logger.info(
+        f'Validating privilege encumbered status is "{expected_status}" for jurisdiction "{test_jurisdiction}"...'
+    )
+
+    start_time = time.time()
+    attempts = 0
+    max_attempts = max_wait_time // check_interval
+
+    while attempts < max_attempts:
+        attempts += 1
+
+        try:
+            # Get current provider data
+            provider_data = call_provider_users_me_endpoint()
+
+            # Find the privilege that matches the license jurisdiction and type
+            privileges = provider_data.get('privileges', [])
+            matching_privilege = None
+
+            for privilege in privileges:
+                # Match by license jurisdiction and license type
+                if (
+                    privilege.get('licenseJurisdiction') == test_jurisdiction
+                    and privilege.get('licenseType') == test_license_type
+                ):
+                    matching_privilege = privilege
+                    break
+
+            if not matching_privilege:
+                logger.warning(
+                    f'Attempt {attempts}/{max_attempts}: No privilege found matching license jurisdiction '
+                    f'"{test_jurisdiction}" and license type "{test_license_type}"'
+                )
+            else:
+                actual_status = matching_privilege.get('encumberedStatus')
+                logger.info(
+                    f'Attempt {attempts}/{max_attempts}: Privilege encumberedStatus is "{actual_status}", expecting '
+                    f'"{expected_status}"'
+                )
+
+                if actual_status == expected_status:
+                    elapsed_time = time.time() - start_time
+                    logger.info(
+                        f'✅ Privilege encumbered status validation successful after {elapsed_time:.1f} seconds'
+                    )
+                    return
+
+            # If not the last attempt, wait before trying again
+            if attempts < max_attempts:
+                logger.info(f'Waiting {check_interval} seconds before next check...')
+                time.sleep(check_interval)
+
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f'Attempt {attempts}/{max_attempts}: Error checking privilege status: {e}')
+            if attempts < max_attempts:
+                time.sleep(check_interval)
+
+    # If we get here, validation failed
+    elapsed_time = time.time() - start_time
+    raise SmokeTestFailureException(
+        f'Privilege encumbered status validation failed after {elapsed_time:.1f} seconds. '
+        f'Expected "{expected_status}" but status did not update within {max_wait_time} seconds. '
+        f'This suggests the downstream processing is not working correctly.'
+    )
+
+
 def test_license_encumbrance_workflow():
     """
     Test the complete license encumbrance workflow:
     1. Encumber a license twice
-    2. Lift one encumbrance (license should remain encumbered)
-    3. Lift the final encumbrance (license should become unencumbered)
+    2. Verify that the associated privilege is also encumbered with a 'licenseEncumbered' encumberedStatus
+    3. Lift one encumbrance (license should remain encumbered)
+    4. Lift the final encumbrance (license should become unencumbered)
+    5. Verify that the associated privilege is no longer encumbered (has an 'unencumbered' encumberedStatus)
     """
     logger.info('Starting license encumbrance workflow test...')
 
@@ -236,6 +330,13 @@ def test_license_encumbrance_workflow():
         first_adverse_action_id = license_adverse_actions[0]['adverseActionId']
         logger.info('First license encumbrance verified successfully')
 
+        # Step 2: Verify that the associated privilege is also encumbered with 'licenseEncumbered' status
+        logger.info('Verifying associated privilege is encumbered...')
+        _validate_privilege_encumbered_status(
+            expected_status='licenseEncumbered', test_jurisdiction=jurisdiction, test_license_type=license_type
+        )
+        logger.info('Verified privilege is encumbered with licenseEncumbered status')
+
         # Second encumbrance
         second_encumbrance_body = {
             'encumbranceEffectiveDate': '2025-01-01',
@@ -270,8 +371,8 @@ def test_license_encumbrance_workflow():
             aa['adverseActionId'] for aa in license_adverse_actions if aa['adverseActionId'] != first_adverse_action_id
         )
 
-        # Step 2: Lift first encumbrance (license should remain encumbered)
-        logger.info('Step 2: Lifting first license encumbrance...')
+        # Step 3: Lift first encumbrance (license should remain encumbered)
+        logger.info('Step 3: Lifting first license encumbrance...')
 
         lift_body = {
             'effectiveLiftDate': '2025-05-05',
@@ -304,8 +405,8 @@ def test_license_encumbrance_workflow():
 
         logger.info('Verified license remains encumbered after lifting first encumbrance')
 
-        # Step 3: Lift final encumbrance (license should become unencumbered)
-        logger.info('Step 3: Lifting final license encumbrance...')
+        # Step 4: Lift final encumbrance (license should become unencumbered)
+        logger.info('Step 4: Lifting final license encumbrance...')
 
         lift_body = {
             'effectiveLiftDate': '2025-05-25',
@@ -342,6 +443,13 @@ def test_license_encumbrance_workflow():
                 f'Provider should be unencumbered after lifting all license encumbrances, '
                 f'got: {provider_data.get("encumberedStatus")}'
             )
+
+        # Step 5: Verify that the associated privilege is no longer encumbered (has 'unencumbered' status)
+        logger.info('Verifying associated privilege is no longer encumbered...')
+        _validate_privilege_encumbered_status(
+            expected_status='unencumbered', test_jurisdiction=jurisdiction, test_license_type=license_type
+        )
+        logger.info('Verified privilege is unencumbered after lifting all license encumbrances')
 
         logger.info('License encumbrance workflow test completed successfully')
 

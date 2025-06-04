@@ -54,7 +54,7 @@ class EventListenerStack(AppStack):
         )
 
         # Grant necessary permissions
-        persistent_stack.provider_table.grant_read_data(license_encumbrance_listener_handler)
+        persistent_stack.provider_table.grant_read_write_data(license_encumbrance_listener_handler)
         persistent_stack.email_notification_service_lambda.grant_invoke(license_encumbrance_listener_handler)
 
         NagSuppressions.add_resource_suppressions_by_path(
@@ -101,7 +101,7 @@ class EventListenerStack(AppStack):
         )
 
         # Grant necessary permissions
-        persistent_stack.provider_table.grant_read_data(lifting_license_encumbrance_listener_handler)
+        persistent_stack.provider_table.grant_read_write_data(lifting_license_encumbrance_listener_handler)
 
         NagSuppressions.add_resource_suppressions_by_path(
             self,
