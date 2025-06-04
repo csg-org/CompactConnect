@@ -7,6 +7,7 @@ from cc_common.data_model.schema.data_event.api import (
     PrivilegeRenewalDetailSchema,
 )
 from cc_common.event_batch_writer import EventBatchWriter
+from cc_common.utils import ResponseEncoder
 
 
 class EventBusClient:
@@ -33,7 +34,7 @@ class EventBusClient:
         event_entry = {
             'Source': source,
             'DetailType': detail_type,
-            'Detail': json.dumps(detail),
+            'Detail': json.dumps(detail, cls=ResponseEncoder),
             'EventBusName': config.event_bus_name,
         }
         # We'll support using a provided event batch writer to send the event to the event bus
