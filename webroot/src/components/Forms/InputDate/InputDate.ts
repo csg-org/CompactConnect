@@ -24,6 +24,7 @@ import '@vuepic/vue-datepicker/dist/main.css';
 class InputDate extends mixins(MixinInput) {
     // https://vue3datepicker.com/props/modes/
     @Prop({ default: 'yyyy-MM-dd' }) modelFormat?: string; // https://date-fns.org/v2.16.1/docs/format
+    @Prop({ default: null }) textInput?: { format?: string; openMenu?: boolean } | null;
     @Prop({ default: false }) isDisabled?: boolean;
     @Prop({ default: false }) isReadOnly?: boolean;
     @Prop({ default: false }) isInline?: boolean;

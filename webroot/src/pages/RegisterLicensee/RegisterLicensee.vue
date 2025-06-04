@@ -48,7 +48,9 @@
                             :yearRange="[1920, new Date().getFullYear()]"
                             :maxDate="new Date()"
                             :preventMinMaxNavigation="true"
-                        />
+                            :textInput="{ format: 'MM/dd/yyyy', openMenu: false }"
+                            :startDate="new Date(1980, 0, 1)"
+                         />
                         <InputSelect :formInput="formData.licenseState" />
                         <InputSelect :formInput="formData.licenseType" />
                         <InputText :formInput="formData.email" class="input-email-component" />
