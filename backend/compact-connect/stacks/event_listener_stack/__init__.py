@@ -118,7 +118,7 @@ class EventListenerStack(AppStack):
             ],
         )
 
-        self.license_encumbrance_event_listener = QueueEventListener(
+        self.lifting_license_encumbrance_event_listener = QueueEventListener(
             self,
             construct_id=construct_id_prefix,
             data_event_bus=data_event_bus,
