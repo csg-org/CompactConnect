@@ -58,15 +58,14 @@
             :locale="$i18n.locale"
         >
             <template
-                v-if="textInput?.openMenu === false"
-                #dp-input="{ value, onInput, onEnter, onTab, onBlur, onKeypress, onPaste, openMenu }"
+                v-if="!textInput.openMenu"
+                #dp-input="{ onEnter, onTab, onBlur, onKeypress, onPaste, openMenu }"
             >
                 <div class="dp__input_wrap">
                     <input
                         :id="`dp-input-${formInput.id}`"
                         type="text"
-                        :value="value"
-                        @input="onInput"
+                        v-model="dateDisplay"
                         @keydown.enter="onEnter"
                         @keydown.tab="onTab"
                         @blur="onBlur"
@@ -80,6 +79,7 @@
                         :aria-label="formInput.label"
                         :name="formInput.name"
                         :autocomplete="isAutoComplete"
+                        maxlength="10"
                     />
                     <div>
                         <svg

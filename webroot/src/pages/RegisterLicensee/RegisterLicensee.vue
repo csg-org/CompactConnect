@@ -49,7 +49,7 @@
                             :maxDate="new Date()"
                             :preventMinMaxNavigation="true"
                             :textInput="{ format: 'MM/dd/yyyy', openMenu: false }"
-                            :startDate="new Date(1980, 0, 1)"
+                            :startDate="new Date(1975, 0, 1)"
                          />
                         <InputSelect :formInput="formData.licenseState" />
                         <InputSelect :formInput="formData.licenseType" />
