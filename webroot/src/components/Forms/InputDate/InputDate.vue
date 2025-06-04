@@ -31,7 +31,7 @@
             :model-type="modelFormat"
             v-model="formInput.value"
             :autocomplete="isAutoComplete"
-            :text-input="textInput || { format: 'MM/dd/yyyy', openMenu: true }"
+            :text-input="textInput"
             :disabled="isDisabled"
             :inline="isInline"
             :auto-apply="isAutoApply"
@@ -42,7 +42,7 @@
             :min-date="minDate"
             :max-date="maxDate"
             :prevent-min-max-navigation="(minDate || maxDate) ? preventMinMaxNavigation : false"
-            :start-date="startDate"
+            :start-date="startDate || formInput.value || null"
             :allowed-dates="allowedDates"
             :disabled-dates="disabledDates"
             :year-range="yearRange"
@@ -58,7 +58,7 @@
             :locale="$i18n.locale"
         >
             <template
-                v-if="!textInput.openMenu"
+                v-if="textInput && !textInput.openMenu"
                 #dp-input="{ onEnter, onTab, onBlur, onKeypress, onPaste, openMenu }"
             >
                 <div class="dp__input_wrap">

@@ -108,7 +108,7 @@ const dateDiff = (date1: stringOptional, date2: stringOptional, diffUnit: unitOf
  */
 const formatDateInput = (value: string): string => {
     // Remove all non-numeric characters
-    const numericOnly = (value || '').replace(/\D/g, '');
+    const numericOnly = (value || '').replace(/\D/g, '').substring(0, 8);
 
     // Apply MM/dd/yyyy formatting
     let formatted = numericOnly;
@@ -136,13 +136,9 @@ const dateInputToServerFormat = (value: string): string => {
         const month = numericOnly.substring(0, 2);
         const day = numericOnly.substring(2, 4);
         const year = numericOnly.substring(4, 8);
+        const testDate = moment(`${year}-${month}-${day}`, 'YYYY-MM-DD', true);
 
-        // Validate basic ranges
-        const monthNum = parseInt(month, 10);
-        const dayNum = parseInt(day, 10);
-        const yearNum = parseInt(year, 10);
-
-        if (monthNum >= 1 && monthNum <= 12 && dayNum >= 1 && dayNum <= 31 && yearNum >= 1900 && yearNum <= 2100) {
+        if (testDate.isValid()) {
             serverFormat = `${year}-${month}-${day}`;
         }
     }
@@ -157,8 +153,9 @@ const dateInputToServerFormat = (value: string): string => {
  */
 const serverFormatToDateInput = (value: string): string => {
     let dateInput = '';
+    const isDateValid = moment(value, 'YYYY-MM-DD', true);
 
-    if (value) {
+    if (value && isDateValid) {
         const dateParts = value.split('-');
 
         if (dateParts.length === 3) {
