@@ -9,9 +9,9 @@ from common_constructs.python_function import PythonFunction
 from common_constructs.ssm_parameter_utility import SSMParameterUtility
 from common_constructs.stack import AppStack
 from constructs import Construct
-from event_listener_stack.queue_event_listener import QueueEventListener
 
 from stacks import persistent_stack as ps
+from stacks.event_listener_stack.queue_event_listener import QueueEventListener
 
 
 class EventListenerStack(AppStack):
@@ -77,7 +77,6 @@ class EventListenerStack(AppStack):
         self.license_encumbrance_event_listener = QueueEventListener(
             self,
             construct_id=construct_id_prefix,
-            environment_name=environment_name,
             data_event_bus=data_event_bus,
             listener_function=license_encumbrance_listener_handler,
             listener_detail_type='license.encumbrance',
@@ -126,7 +125,6 @@ class EventListenerStack(AppStack):
         self.license_encumbrance_event_listener = QueueEventListener(
             self,
             construct_id=construct_id_prefix,
-            environment_name=environment_name,
             data_event_bus=data_event_bus,
             listener_function=lifting_license_encumbrance_listener_handler,
             listener_detail_type='license.encumbranceLifted',

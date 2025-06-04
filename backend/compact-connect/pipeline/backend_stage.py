@@ -1,8 +1,8 @@
 from aws_cdk import Environment, Stage
 from common_constructs.stack import StandardTags
 from constructs import Construct
-from event_listener_stack import EventListenerStack
 from stacks.api_stack import ApiStack
+from stacks.event_listener_stack import EventListenerStack
 from stacks.ingest_stack import IngestStack
 from stacks.managed_login_stack import ManagedLoginStack
 from stacks.notification_stack import NotificationStack

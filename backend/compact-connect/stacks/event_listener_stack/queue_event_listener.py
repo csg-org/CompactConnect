@@ -8,7 +8,6 @@ from aws_cdk.aws_events_targets import SqsQueue
 from aws_cdk.aws_lambda import IFunction
 from common_constructs.queued_lambda_processor import QueuedLambdaProcessor
 from constructs import Construct
-from persistent_stack import EventBus
 
 from stacks import persistent_stack as ps
 
@@ -24,14 +23,13 @@ class QueueEventListener(Construct):
         scope: Construct,
         construct_id: str,
         *,
-        environment_name: str,
-        data_event_bus: EventBus,
+        data_event_bus: ps.EventBus,
         listener_function: IFunction,
         listener_detail_type: str,
         persistent_stack: ps.PersistentStack,
         **kwargs,
     ):
-        super().__init__(scope, construct_id, environment_name=environment_name, **kwargs)
+        super().__init__(scope, construct_id, **kwargs)
 
         # Add specific error alarm for this handler
         self.lambda_failure_alarm = Alarm(
