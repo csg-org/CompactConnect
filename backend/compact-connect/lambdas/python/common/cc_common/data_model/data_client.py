@@ -2442,7 +2442,7 @@ class DataClient:
         """
         Lift encumbrances from privileges that were encumbered due to a home jurisdiction license encumbrance.
 
-        This method  first verifies that the license is completely unencumbered, then finds all privileges 
+        This method  first verifies that the license is completely unencumbered, then finds all privileges
         for the given license with a 'LICENSE_ENCUMBERED' status and sets their encumberedStatus to 'UNENCUMBERED'.
 
         :param str compact: The compact name.
