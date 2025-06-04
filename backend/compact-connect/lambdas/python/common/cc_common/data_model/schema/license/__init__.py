@@ -1,5 +1,4 @@
 # ruff: noqa: N802 we use camelCase to match the marshmallow schema definition
-
 from datetime import date
 from uuid import UUID
 
@@ -112,6 +111,10 @@ class LicenseData(CCDataClass):
     @property
     def phoneNumber(self) -> str | None:
         return self._data.get('phoneNumber')
+
+    @property
+    def licenseStatus(self) -> str | None:
+        return self._data.get('licenseStatus')
 
     @property
     def licenseStatusName(self) -> str | None:

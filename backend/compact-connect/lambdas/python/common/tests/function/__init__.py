@@ -29,9 +29,11 @@ class TstFunction(TstLambdas):
         self.addCleanup(self.delete_resources)
 
         import cc_common.config
+        from common_test.test_data_generator import TestDataGenerator
 
         cc_common.config.config = cc_common.config._Config()  # noqa: SLF001 protected-access
         self.config = cc_common.config.config
+        self.test_data_generator = TestDataGenerator
 
     def build_resources(self):
         self.create_compact_configuration_table()
@@ -285,14 +287,21 @@ class TstFunction(TstLambdas):
             )
         return sub
 
-    def _create_board_staff_users(self, compacts: list[str]):
-        """Create a board-staff style user for each jurisdiction in the provided compact."""
+    def _create_board_staff_users(self, compacts: list[str], jurisdiction_list: list[str] = None):
+        """Create a board-staff style user for each jurisdiction in the provided compact.
+
+        :param compacts: List of compact abbreviations
+        :param jurisdiction_list: Optional list of jurisdictions to use, defaults to ['oh', 'ne', 'ky']
+        """
         from cc_common.data_model.schema.common import StaffUserStatus
         from cc_common.data_model.schema.user.record import UserRecordSchema
 
         schema = UserRecordSchema()
 
-        for jurisdiction in self.config.jurisdictions:
+        # Use default jurisdictions if none provided
+        jurisdictions = jurisdiction_list or ['oh', 'ne', 'ky']
+
+        for jurisdiction in jurisdictions:
             email = self.faker.unique.email()
             sub = self._create_cognito_user(email=email)
             for compact in compacts:

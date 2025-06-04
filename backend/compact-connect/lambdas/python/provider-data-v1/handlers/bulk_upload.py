@@ -8,6 +8,7 @@ from botocore.exceptions import ClientError
 from botocore.response import StreamingBody
 from cc_common.config import config, logger
 from cc_common.data_model.schema.license.api import LicenseGeneralResponseSchema, LicensePostRequestSchema
+from cc_common.event_batch_writer import EventBatchWriter
 from cc_common.exceptions import CCInternalException
 from cc_common.utils import (
     ResponseEncoder,
@@ -15,7 +16,6 @@ from cc_common.utils import (
     authorize_compact_jurisdiction,
     send_licenses_to_preprocessing_queue,
 )
-from event_batch_writer import EventBatchWriter
 from license_csv_reader import LicenseCSVReader
 from marshmallow import ValidationError
 

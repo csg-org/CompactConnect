@@ -6,10 +6,19 @@ from cc_common.data_model.schema.common import (
     ActiveInactiveStatus,
     ClinicalPrivilegeActionCategory,
     CompactEligibilityStatus,
+    HomeJurisdictionChangeStatusEnum,
     LicenseEncumberedStatusEnum,
     PrivilegeEncumberedStatusEnum,
     UpdateCategory,
 )
+
+# This is a special value that is used to indicate that the provider's home jurisdiction is not known.
+# This can happen if a provider moves to a jurisdiction that is not part of the compact.
+OTHER_JURISDICTION = 'other'
+
+# This is a special value that is used to indicate that the provider's home jurisdiction is not known.
+# This can happen if a provider has not registered with the compact connect system yet.
+UNKNOWN_JURISDICTION = 'unknown'
 
 
 class SocialSecurityNumber(String):
@@ -67,6 +76,18 @@ class LicenseEncumberedStatusField(String):
 class PrivilegeEncumberedStatusField(String):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, validate=OneOf([entry.value for entry in PrivilegeEncumberedStatusEnum]), **kwargs)
+
+
+class HomeJurisdictionChangeStatusField(String):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, validate=OneOf([entry.value for entry in HomeJurisdictionChangeStatusEnum]), **kwargs)
+
+
+class CurrentHomeJurisdictionField(String):
+    def __init__(self, *args, **kwargs):
+        super().__init__(
+            *args, validate=OneOf(config.jurisdictions + [OTHER_JURISDICTION, UNKNOWN_JURISDICTION]), **kwargs
+        )
 
 
 class ITUTE164PhoneNumber(String):

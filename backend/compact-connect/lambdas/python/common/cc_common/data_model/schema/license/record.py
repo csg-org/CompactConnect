@@ -1,17 +1,22 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
+from datetime import date
 from urllib.parse import quote
 
-from marshmallow import ValidationError, post_dump, post_load, pre_dump, validates_schema
+from marshmallow import ValidationError, post_dump, post_load, pre_dump, pre_load, validates_schema
 from marshmallow.fields import UUID, Date, DateTime, Email, List, Nested, String
 from marshmallow.validate import Length
 
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import (
     BaseRecordSchema,
-    CalculatedStatusRecordSchema,
     ForgivingSchema,
 )
-from cc_common.data_model.schema.common import ChangeHashMixin
+from cc_common.data_model.schema.common import (
+    ActiveInactiveStatus,
+    ChangeHashMixin,
+    CompactEligibilityStatus,
+    LicenseEncumberedStatusEnum,
+)
 from cc_common.data_model.schema.fields import (
     ActiveInactive,
     Compact,
@@ -26,7 +31,7 @@ from cc_common.data_model.schema.license.common import LicenseCommonSchema
 
 
 @BaseRecordSchema.register_schema('license')
-class LicenseRecordSchema(CalculatedStatusRecordSchema, LicenseCommonSchema):
+class LicenseRecordSchema(BaseRecordSchema, LicenseCommonSchema):
     """
     Schema for license records in the provider data table
 
@@ -51,9 +56,55 @@ class LicenseRecordSchema(CalculatedStatusRecordSchema, LicenseCommonSchema):
     # Persisted values
     jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
     jurisdictionUploadedCompactEligibility = CompactEligibility(required=True, allow_none=False)
-    # Calculated values
     licenseStatusName = String(required=False, allow_none=False, validate=Length(1, 100))
+    # Calculated values
+    licenseStatus = ActiveInactive(required=True, allow_none=False)
     compactEligibility = CompactEligibility(required=True, allow_none=False)
+
+    @pre_load
+    def _calculate_statuses(self, in_data, **_kwargs):
+        """Determine the statuses of the record based on the expiration date"""
+        in_data = self._calculate_license_status(in_data)
+        return self._calculate_compact_eligibility(in_data)
+
+    def _calculate_license_status(self, in_data, **_kwargs):
+        """Determine the status of the license based on the expiration date"""
+        in_data['licenseStatus'] = (
+            ActiveInactiveStatus.ACTIVE
+            if (
+                in_data['jurisdictionUploadedLicenseStatus'] == ActiveInactiveStatus.ACTIVE
+                and date.fromisoformat(in_data['dateOfExpiration']) >= config.expiration_resolution_date
+                and in_data.get('encumberedStatus', LicenseEncumberedStatusEnum.UNENCUMBERED)
+                == LicenseEncumberedStatusEnum.UNENCUMBERED
+            )
+            else ActiveInactiveStatus.INACTIVE
+        )
+        return in_data
+
+    def _calculate_compact_eligibility(self, in_data, **_kwargs):
+        """
+        Licenses are only eligible for the compact if their jurisdiction says they are, they are not encumbered,
+        and they have an active license status.
+        """
+        in_data['compactEligibility'] = (
+            CompactEligibilityStatus.ELIGIBLE
+            if (
+                in_data['jurisdictionUploadedCompactEligibility'] == CompactEligibilityStatus.ELIGIBLE
+                and in_data['licenseStatus'] == ActiveInactiveStatus.ACTIVE
+                and in_data.get('encumberedStatus', LicenseEncumberedStatusEnum.UNENCUMBERED)
+                == LicenseEncumberedStatusEnum.UNENCUMBERED
+            )
+            else CompactEligibilityStatus.INELIGIBLE
+        )
+        return in_data
+
+    @pre_dump
+    def remove_calculated_fields(self, in_data, **_kwargs):
+        """Remove the calculated status fields before dumping to the database"""
+        in_data.pop('status', None)
+        in_data.pop('licenseStatus', None)
+        in_data.pop('compactEligibility', None)
+        return in_data
 
     @pre_dump
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument

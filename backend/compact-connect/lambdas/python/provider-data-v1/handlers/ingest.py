@@ -7,9 +7,10 @@ from cc_common.data_model.schema import LicenseRecordSchema
 from cc_common.data_model.schema.common import ActiveInactiveStatus, UpdateCategory
 from cc_common.data_model.schema.license.ingest import LicenseIngestSchema
 from cc_common.data_model.schema.license.record import LicenseUpdateRecordSchema
+from cc_common.data_model.schema.provider import ProviderData
+from cc_common.event_batch_writer import EventBatchWriter
 from cc_common.exceptions import CCNotFoundException
 from cc_common.utils import sqs_handler
-from event_batch_writer import EventBatchWriter
 
 license_schema = LicenseIngestSchema()
 license_update_schema = LicenseUpdateRecordSchema()
@@ -130,8 +131,9 @@ def ingest_license_message(message: dict):
                     detail=True,
                     consistent_read=True,
                 )
+                provider_records = provider_data['items']
                 license_records = ProviderRecordUtility.get_records_of_type(
-                    provider_data['items'],
+                    provider_records,
                     ProviderRecordType.LICENSE,
                 )
                 licenses_organized = {}
@@ -141,16 +143,20 @@ def ingest_license_message(message: dict):
 
                 # Get all privilege jurisdictions, directly from privilege records
                 privilege_records = ProviderRecordUtility.get_records_of_type(
-                    provider_data['items'],
+                    provider_records,
                     ProviderRecordType.PRIVILEGE,
                 )
 
                 # Get the home jurisdiction selection, if it exists
-                home_jurisdiction = ProviderRecordUtility.get_provider_home_state_selection(provider_data['items'])
+                current_provider_record = ProviderData.create_new(
+                    ProviderRecordUtility.get_provider_record(provider_records)
+                )
+                home_jurisdiction = current_provider_record.currentHomeJurisdiction
 
             except CCNotFoundException:
                 licenses_organized = {}
                 privilege_records = []
+                current_provider_record = None
 
             # Set (or replace) the posted license for its jurisdiction
             existing_license = licenses_organized.get(posted_license_record['jurisdiction'], {}).get(
@@ -182,7 +188,7 @@ def ingest_license_message(message: dict):
                 logger.info('Updating provider data')
 
                 provider_record = ProviderRecordUtility.populate_provider_record(
-                    provider_id=provider_id,
+                    current_provider_record=current_provider_record,
                     license_record=posted_license_record,
                     privilege_records=privilege_records,
                 )
@@ -191,7 +197,7 @@ def ingest_license_message(message: dict):
                     {
                         'Put': {
                             'TableName': config.provider_table_name,
-                            'Item': TypeSerializer().serialize(provider_record)['M'],
+                            'Item': TypeSerializer().serialize(provider_record.serialize_to_database_record())['M'],
                         }
                     }
                 )

@@ -1609,41 +1609,6 @@
       ],
       "type": "string"
     },
-    "emailAddress": {
-      "format": "email",
-      "maxLength": 100,
-      "minLength": 5,
-      "type": "string"
-    },
-    "phoneNumber": {
-      "pattern": "^\\+[0-9]{8,15}$",
-      "type": "string"
-    },
-    "homeAddressStreet1": {
-      "maxLength": 100,
-      "minLength": 2,
-      "type": "string"
-    },
-    "homeAddressStreet2": {
-      "maxLength": 100,
-      "minLength": 1,
-      "type": "string"
-    },
-    "homeAddressCity": {
-      "maxLength": 100,
-      "minLength": 2,
-      "type": "string"
-    },
-    "homeAddressState": {
-      "maxLength": 100,
-      "minLength": 2,
-      "type": "string"
-    },
-    "homeAddressPostalCode": {
-      "maxLength": 7,
-      "minLength": 5,
-      "type": "string"
-    },
     "birthMonthDay": {
       "format": "date",
       "pattern": "^[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
@@ -1717,13 +1682,6 @@
       ],
       "type": "string"
     },
-    "status": {
-      "enum": [
-        "active",
-        "inactive"
-      ],
-      "type": "string"
-    },
     "privilegeJurisdictions": {
       "items": {
         "enum": [
@@ -1791,7 +1749,65 @@
       "minLength": 5,
       "type": "string"
     },
-    "cognitoSub": {
+    "currentHomeJurisdiction": {
+      "description": "The current jurisdiction postal abbreviation if known.",
+      "enum": [
+        "al",
+        "ak",
+        "az",
+        "ar",
+        "ca",
+        "co",
+        "ct",
+        "de",
+        "dc",
+        "fl",
+        "ga",
+        "hi",
+        "id",
+        "il",
+        "in",
+        "ia",
+        "ks",
+        "ky",
+        "la",
+        "me",
+        "md",
+        "ma",
+        "mi",
+        "mn",
+        "ms",
+        "mo",
+        "mt",
+        "ne",
+        "nv",
+        "nh",
+        "nj",
+        "nm",
+        "ny",
+        "nc",
+        "nd",
+        "oh",
+        "ok",
+        "or",
+        "pa",
+        "pr",
+        "ri",
+        "sc",
+        "sd",
+        "tn",
+        "tx",
+        "ut",
+        "vt",
+        "va",
+        "vi",
+        "wa",
+        "wv",
+        "wi",
+        "wy",
+        "other",
+        "unknown"
+      ],
       "type": "string"
     },
     "dateOfUpdate": {
@@ -1806,7 +1822,6 @@
     "givenName",
     "familyName",
     "licenseType",
-    "status",
     "compact",
     "licenseJurisdiction",
     "privilegeJurisdictions",

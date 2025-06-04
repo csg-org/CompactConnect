@@ -134,6 +134,29 @@ class CCDataClass:
         """
         return deepcopy(self._data)
 
+    def update(self, data: dict[str, Any]) -> None:
+        """Update the internal data dictionary with the provided data.
+
+        This method is useful for updating specific fields in the data class.
+        The method creates a deep copy of the current data, applies the updates,
+        and then runs the updated data through a full dump/load cycle with the schema
+        to ensure all transformations are applied and the data is validated.
+
+        :param data: Dictionary containing the fields to update
+        :raises ValidationError: If the resulting data fails validation
+        """
+        # Create a deep copy of the current data
+        updated_data = deepcopy(self._data)
+
+        # Apply the updates to the copy
+        updated_data.update(data)
+
+        # Run through a full dump/load cycle to apply all transformations and validate
+        validated_data = self.create_new(updated_data).to_dict()
+
+        # Update the internal data with the validated result
+        self._data = validated_data
+
     def serialize_to_database_record(self) -> dict[str, Any]:
         """Serialize the object using the schema's dump method"""
         # we set a deepcopy here so that the GSIs and DB keys do not get added to the underlying data dictionary
@@ -223,6 +246,8 @@ class UpdateCategory(CCEnum):
     OTHER = 'other'
     RENEWAL = 'renewal'
     ENCUMBRANCE = 'encumbrance'
+    HOME_JURISDICTION_CHANGE = 'homeJurisdictionChange'
+    REGISTRATION = 'registration'
 
 
 class ActiveInactiveStatus(CCEnum):
@@ -245,6 +270,18 @@ class PrivilegeEncumberedStatusEnum(CCEnum):
     UNENCUMBERED = 'unencumbered'
     # the following status is set whenever the license this privilege is associated with is encumbered
     LICENSE_ENCUMBERED = 'licenseEncumbered'
+
+
+class HomeJurisdictionChangeStatusEnum(CCEnum):
+    """
+    This is only used if the provider has existing privileges when they change their home jurisdiction,
+    and that change results in the privilege becoming inactive.
+
+    This field will never be present for an 'active' privilege, hence the only allowed value for this
+    field is 'inactive'.
+    """
+
+    INACTIVE = 'inactive'
 
 
 class StaffUserStatus(CCEnum):

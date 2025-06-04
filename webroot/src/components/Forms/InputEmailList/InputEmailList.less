@@ -1,0 +1,63 @@
+//
+//  InputEmailList.less
+//  CompactConnect
+//
+//  Created by InspiringApps on 5/13/2025.
+//
+
+.input-container {
+    .input-row {
+        display: flex;
+
+        .email-input {
+            flex-grow: 1;
+            padding-right: 80px;
+        }
+
+        .add-email-help {
+            position: absolute;
+            top: 50%;
+            right: 8px;
+            width: 48px;
+            color: darken(@darkGrey, 10%);
+            font-size: 1.2rem;
+            text-align: center;
+            transform: translateY(-50%);
+        }
+    }
+
+    .email-tag-container {
+        display: flex;
+        flex-wrap: wrap;
+        margin-top: 1.6rem;
+
+        .email-tag {
+            display: flex;
+            align-items: center;
+            max-width: 100%;
+            margin-right: 1rem;
+            margin-bottom: 0.8rem;
+            padding-left: 1rem;
+            border-top-left-radius: ~"calc(@{borderRadiusPillShape} - 1999px)";
+            border-top-right-radius: @borderRadiusPillShape;
+            border-bottom-right-radius: @borderRadiusPillShape;
+            border-bottom-left-radius: ~"calc(@{borderRadiusPillShape} - 1999px)";
+            color: @white;
+            background-color: @fontColor;
+
+            .email {
+                display: inline-block;
+                max-width: calc(100% - 3rem);
+                padding: 0.6rem 0;
+                word-break: break-word;
+            }
+
+            .remove-email {
+                width: 3.2rem;
+                margin-left: auto;
+                cursor: pointer;
+                stroke: @white;
+            }
+        }
+    }
+}

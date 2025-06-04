@@ -89,7 +89,13 @@ const routes: Array<RouteConfig> = [
     {
         path: '/:compact/Settings',
         name: 'CompactSettings',
-        component: () => import(/* webpackChunkName: "licensing" */ '@pages/CompactSettings/CompactSettings.vue'),
+        component: () => import(/* webpackChunkName: "upload" */ '@pages/CompactSettings/CompactSettings.vue'),
+        meta: { requiresAuth: true, staffAccess: true },
+    },
+    {
+        path: '/:compact/Settings/:state',
+        name: 'StateSettings',
+        component: () => import(/* webpackChunkName: "upload" */ '@pages/StateSettings/StateSettings.vue'),
         meta: { requiresAuth: true, staffAccess: true },
     },
     {

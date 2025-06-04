@@ -3,6 +3,7 @@ import uuid
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
+from cc_common.data_model.schema.fields import OTHER_JURISDICTION
 from cc_common.data_model.schema.military_affiliation.api import PostMilitaryAffiliationResponseSchema
 from cc_common.data_model.schema.military_affiliation.common import (
     MILITARY_AFFILIATIONS_DOCUMENT_TYPE_KEY_NAME,
@@ -14,6 +15,35 @@ from cc_common.exceptions import CCInternalException, CCInvalidRequestException,
 from cc_common.utils import api_handler
 
 from . import get_provider_information
+
+
+@api_handler
+def provider_users_api_handler(event: dict, context: LambdaContext):
+    """
+    Main entry point for provider users API.
+    Routes to the appropriate handler based on the HTTP method and resource path.
+
+    :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
+    :param context: Lambda context
+    """
+    # Extract the HTTP method and resource path
+    http_method = event.get('httpMethod')
+    resource_path = event.get('resource')
+
+    # Route to the appropriate handler
+    api_method = (http_method, resource_path)
+    match api_method:
+        case ('GET', '/v1/provider-users/me'):
+            return get_provider_user_me(event, context)
+        case ('POST', '/v1/provider-users/me/military-affiliation'):
+            return _post_provider_military_affiliation(event, context)
+        case ('PATCH', '/v1/provider-users/me/military-affiliation'):
+            return _patch_provider_military_affiliation(event, context)
+        case ('PUT', '/v1/provider-users/me/home-jurisdiction'):
+            return _put_provider_home_jurisdiction(event, context)
+
+    # If we get here, the method/resource combination is not supported
+    raise CCInvalidRequestException(f'Unsupported method or resource: {http_method} {resource_path}')
 
 
 def _check_provider_user_attributes(event: dict) -> tuple[str, str]:
@@ -30,7 +60,6 @@ def _check_provider_user_attributes(event: dict) -> tuple[str, str]:
     return compact, provider_id
 
 
-@api_handler
 def get_provider_user_me(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """Endpoint for a provider user to fetch their personal provider data.
 
@@ -47,19 +76,48 @@ def get_provider_user_me(event: dict, context: LambdaContext):  # noqa: ARG001 u
         raise CCInternalException(message) from e
 
 
-@api_handler
-def provider_user_me_military_affiliation(event: dict, context: LambdaContext):
+def _put_provider_home_jurisdiction(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """
-    Endpoint for a provider user to update their military affiliation.
-    This handles both the POST and PATCH methods.
-    """
-    # handle POST method
-    if event['httpMethod'] == 'POST':
-        return _post_provider_military_affiliation(event, context)
-    if event['httpMethod'] == 'PATCH':
-        return _patch_provider_military_affiliation(event, context)
+    Handle the PUT method for updating a provider's home jurisdiction.
 
-    raise CCInvalidRequestException('Invalid HTTP method')
+    :param event: API Gateway event
+    :param context: Lambda context
+    :return: Success message
+    """
+    # Parse the request body
+    event_body = json.loads(event['body'])
+
+    selected_jurisdiction = event_body['jurisdiction'].lower()
+
+    # ensure selected_jurisdiction is one of the known jurisdictions or the word 'other':
+    if selected_jurisdiction not in config.jurisdictions and selected_jurisdiction != OTHER_JURISDICTION:
+        raise CCInvalidRequestException('Invalid jurisdiction selected.')
+
+    compact, provider_id = _check_provider_user_attributes(event)
+
+    # Log the request
+    logger.info(
+        'Handling request to update provider home jurisdiction',
+        compact=compact,
+        provider_id=provider_id,
+        new_jurisdiction=selected_jurisdiction,
+    )
+
+    try:
+        config.data_client.update_provider_home_state_jurisdiction(
+            compact=compact, provider_id=provider_id, selected_jurisdiction=selected_jurisdiction
+        )
+    except CCInternalException as e:
+        logger.error(
+            'Failed to update provider home jurisdiction',
+            compact=compact,
+            provider_id=provider_id,
+            new_jurisdiction=selected_jurisdiction,
+            error=str(e),
+        )
+        raise
+
+    return {'message': 'ok'}
 
 
 def _post_provider_military_affiliation(event, context):  # noqa: ARG001 unused-argument

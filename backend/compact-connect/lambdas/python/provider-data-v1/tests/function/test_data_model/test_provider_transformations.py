@@ -18,6 +18,8 @@ class TestTransformations(TstFunction):
         database, then returned via the API. We will specifically test that chain, end to end, to make sure the
         transformations all happen as expected.
         """
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+
         # Before we get started, we'll pre-set the SSN/providerId association we expect
         with open('../common/tests/resources/dynamo/provider-ssn.json') as f:
             provider_ssn = json.load(f)
@@ -87,18 +89,20 @@ class TestTransformations(TstFunction):
             'Item'
         ]['providerId']
         self.assertEqual(expected_provider_id, provider_id)
-        provider_record = client.get_provider(compact='aslp', provider_id=provider_id, detail=False)['items'][0]
+        provider_user_records: ProviderUserRecords = client.get_provider_user_records(
+            compact='aslp', provider_id=provider_id
+        )
 
         # Expected representation of each record in the database
         with open('../common/tests/resources/dynamo/provider.json') as f:
             expected_provider = json.load(f)
+            # this should be set during the registration flow
+            expected_provider['currentHomeJurisdiction'] = 'oh'
 
         # register the provider in the system
         client.process_registration_values(
-            compact='aslp',
-            provider_id=provider_id,
-            cognito_sub=expected_provider['cognitoSub'],
-            jurisdiction='oh',
+            current_provider_record=provider_user_records.get_provider_record(),
+            matched_license_record=provider_user_records.get_license_records()[0],
             email_address=expected_provider['compactConnectRegisteredEmailAddress'],
         )
 
@@ -106,7 +110,7 @@ class TestTransformations(TstFunction):
         client.create_provider_privileges(
             compact='aslp',
             provider_id=provider_id,
-            provider_record=provider_record,
+            provider_record=provider_user_records.get_provider_record(),
             # using values in expected privilege json file
             jurisdiction_postal_abbreviations=['ne'],
             license_expiration_date=date(2025, 4, 4),
@@ -135,7 +139,8 @@ class TestTransformations(TstFunction):
             KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
             & Key('sk').begins_with('aslp#PROVIDER'),
         )
-        # One record for each of: provider, license, privilege, militaryAffiliation, and homeJurisdictionSelection
+        # One record for each of: provider, providerUpdate, license,
+        # privilege, and militaryAffiliation
         self.assertEqual(5, len(resp['Items']))
         records = {item['type']: item for item in resp['Items']}
 
@@ -201,6 +206,7 @@ class TestTransformations(TstFunction):
             # in this case, the military affiliation status will be initializing, since it is not set to active until
             # the military affiliation document is uploaded to s3
             expected_provider['militaryAffiliations'][0]['status'] = 'initializing'
+            expected_provider['currentHomeJurisdiction'] = 'oh'
 
         # Force the provider id to match
         expected_provider['providerId'] = provider_id
@@ -213,8 +219,6 @@ class TestTransformations(TstFunction):
         del provider_data['privileges'][0]['dateOfRenewal']
         del provider_data['militaryAffiliations'][0]['dateOfUpload']
         del provider_data['militaryAffiliations'][0]['dateOfUpdate']
-        del provider_data['homeJurisdictionSelection']['dateOfSelection']
-        del provider_data['homeJurisdictionSelection']['dateOfUpdate']
         del expected_provider['dateOfUpdate']
         del expected_provider['licenses'][0]['dateOfUpdate']
         del expected_provider['privileges'][0]['dateOfUpdate']
@@ -222,8 +226,6 @@ class TestTransformations(TstFunction):
         del expected_provider['privileges'][0]['dateOfRenewal']
         del expected_provider['militaryAffiliations'][0]['dateOfUpload']
         del expected_provider['militaryAffiliations'][0]['dateOfUpdate']
-        del expected_provider['homeJurisdictionSelection']['dateOfUpdate']
-        del expected_provider['homeJurisdictionSelection']['dateOfSelection']
 
         # This lengthy test does not include change records for licenses or privileges, so we'll blank out the
         # sample history from our expected_provider

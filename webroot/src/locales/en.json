@@ -10,6 +10,7 @@
         "close": "Close",
         "skip": "Skip",
         "print": "Print",
+        "edit": "Edit",
         "confirm": "Confirm",
         "caution": "Caution",
         "fees": "Fees",
@@ -70,6 +71,7 @@
         "ethnicity": "Ethnicity",
         "welcome": "Welcome",
         "finish": "Finish",
+        "cannotBeUndone": "This action cannot be undone",
         "formValidationErrorMessage": "Please correct the errors on the form shown in red and check the box acknowledging no refunds",
         "daysOfTheWeek": {
             "monday": {
@@ -369,7 +371,7 @@
         "licensing": "Search licensing data",
         "licensingPublic": "Search health providers",
         "users": "Manage users",
-        "compactSettings": "Compact Settings",
+        "compactSettings": "Settings",
         "purchasePrivileges": "Privilege purchasing",
         "styleGuide": "Styleguide",
         "account": "Account",
@@ -391,6 +393,7 @@
     "inputErrors": {
         "required": "Required field",
         "email": "Must be a valid email address",
+        "uri": "Must be a valid complete URL",
         "minLength": "Must be at least {min} characters",
         "maxLength": "Must be less than or equal to {max} characters",
         "exactLength": "Must be {length} characters",
@@ -417,7 +420,11 @@
         "fileWrongType": "Wrong file type",
         "lastNameRequired": "Required when first name is provided",
         "ssnFormat": "Must be in format ###-##-####",
-        "enterValidCreditCard": "Must be a valid credit card number"
+        "enterValidCreditCard": "Must be a valid credit card number",
+        "numberType": "Must be a number",
+        "currencyType": "Must be a valid currency amount",
+        "minNumber": "Must be greater than or equal to {min}",
+        "maxNumber": "Must be less than or equal to {max}"
     },
     "serverErrors": {
         "networkError": "Network error",
@@ -460,10 +467,40 @@
         }
     ],
     "compact": {
-        "settingsTitle": "Compact settings",
+        "settingsTitle": "Settings",
+        "configuration": "Configuration",
         "paymentProcessorCredentials": "Authorize.net credentials",
         "paymentProcessorAccountId": "API login ID",
-        "paymentProcessorAccountKey": "Transaction key"
+        "paymentProcessorAccountKey": "Transaction key",
+        "configLoadingErrorCompact": "There was an error loading the compact configuration",
+        "configLoadingErrorState": "There was an error loading the state configuration",
+        "privilegeFees": "Privilege fees",
+        "compactFee": "Compact fee",
+        "privilegeTransactionFee": "Privilege transaction fee",
+        "fee": "fee",
+        "militaryAffiliated": "Military-affiliated",
+        "jurisprudence": "Jurisprudence",
+        "jurisprudenceExamRequired": "Exam required?",
+        "jurisprudenceInfoLink": "Jurisprudence information link",
+        "jurisprudenceInfoLinkSubtext": "Compact privilege seekers will be able to follow this link for additional information about your state's jurisprudence requirements",
+        "notifications": "Notifications",
+        "addEmails": "Add emails here",
+        "enterToAdd": "Hit Enter to add",
+        "opsNotificationEmails": "Operations notifications recipients",
+        "opsNotificationEmailsSubtext": "Enter all recipients who should be notified of support requests (e.g. invalid data that a jurisdiction has uploaded, or any other issues that may arise).",
+        "adverseActionsNotificationEmails": "Encumbrance notification recipients",
+        "adverseActionsNotificationEmailsSubtext": "Enter all recipients who should be notified of encumbrances (e.g. licensees that have had their licenses revoked or suspended).",
+        "summaryReportEmails": "Summary report recipients",
+        "summaryReportEmailsSubtext": "Enter all recipients who will receive periodic summary reports.",
+        "licenseRegistrationTitle": "Live status",
+        "licenseRegistrationEnabled": "Is license registration enabled?",
+        "licenseRegistrationEnabledSubtext": "This enables live status for purchasing privileges, and <em>this action is irreversible.</em>",
+        "privilegePurchaseEnabled": "State is live for compact privilege purchase",
+        "privilegePurchaseEnabledSubtext": "This enables live status for purchasing privileges, and <em>this action is irreversible.</em>",
+        "confirmSaveCompactTitle": "Are you sure you want to mark this state as live?",
+        "confirmSaveCompactYes": "Yes, mark as live",
+        "saveSuccessfulCompact": "Compact changes saved successfully",
+        "saveSuccessfulState": "State changes saved successfully"
     },
     "stateUpload": {
         "formTitle": "Compact data upload",
