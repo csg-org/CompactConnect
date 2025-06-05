@@ -86,11 +86,15 @@ const buildCspHeaders = (environment) => {
         '\'self\'',
         'https://www.google.com/recaptcha/',
         'https://www.gstatic.com/recaptcha/',
+        'https://jstest.authorize.net/',
+        'https://js.authorize.net/',
     ].join(' ');
     const cspScriptSrcElem = [
         '\'self\'',
         'https://www.google.com/recaptcha/',
         'https://www.gstatic.com/recaptcha/',
+        'https://jstest.authorize.net/',
+        'https://js.authorize.net/',
     ].join(' ');
     const cspScriptSrcAttr = [
         '\'self\'',
@@ -128,6 +132,8 @@ const buildCspHeaders = (environment) => {
         '\'self\'',
         'https://www.google.com/recaptcha/',
         'https://recaptcha.google.com/recaptcha/',
+        'https://jstest.authorize.net/',
+        'https://js.authorize.net/',
     ].join(' ');
     const cspFrameAncestorsSrc = [
         '\'none\'',

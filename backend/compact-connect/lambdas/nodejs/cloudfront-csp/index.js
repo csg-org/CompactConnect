@@ -173,11 +173,15 @@ const setCspHeader = (headers = {}) => {
                 'self',
                 'https://www.google.com/recaptcha/',
                 'https://www.gstatic.com/recaptcha/',
+                'https://jstest.authorize.net/',
+                'https://js.authorize.net/',
             ]),
             buildSrcString('script-src-elem', [
                 'self',
                 'https://www.google.com/recaptcha/',
                 'https://www.gstatic.com/recaptcha/',
+                'https://jstest.authorize.net/',
+                'https://js.authorize.net/',
             ]),
             buildSrcString('script-src-attr', [
                 'self',
@@ -215,6 +219,8 @@ const setCspHeader = (headers = {}) => {
                 'self',
                 'https://www.google.com/recaptcha/',
                 'https://recaptcha.google.com/recaptcha/',
+                'https://jstest.authorize.net/',
+                'https://js.authorize.net/',
             ]),
             buildSrcString('frame-ancestors', [
                 'none'
