@@ -479,18 +479,13 @@ class ApiModel:
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
                 additional_properties=False,
-                required=['effectiveLiftDate', 'encumbranceId'],
+                required=['effectiveLiftDate'],
                 properties={
                     'effectiveLiftDate': JsonSchema(
                         type=JsonSchemaType.STRING,
                         description='The effective date when the encumbrance will be lifted',
                         format='date',
                         pattern=cc_api.YMD_FORMAT,
-                    ),
-                    'encumbranceId': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='The unique identifier of the encumbrance to be lifted',
-                        max_length=100,
                     ),
                 },
             ),
@@ -510,18 +505,13 @@ class ApiModel:
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
                 additional_properties=False,
-                required=['effectiveLiftDate', 'encumbranceId'],
+                required=['effectiveLiftDate'],
                 properties={
                     'effectiveLiftDate': JsonSchema(
                         type=JsonSchemaType.STRING,
                         description='The effective date when the encumbrance will be lifted',
                         format='date',
                         pattern=cc_api.YMD_FORMAT,
-                    ),
-                    'encumbranceId': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='The unique identifier of the encumbrance to be lifted',
-                        max_length=100,
                     ),
                 },
             ),

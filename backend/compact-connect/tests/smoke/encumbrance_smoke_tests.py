@@ -26,21 +26,27 @@ from smoke_common import (
 
 
 def _generate_license_encumbrance_url(
-    compact: str, provider_id: str, jurisdiction: str, license_type_abbreviation: str
+    compact: str, provider_id: str, jurisdiction: str, license_type_abbreviation: str, encumbrance_id: str = None
 ):
-    return (
+    base_url = (
         f'{config.api_base_url}/v1/compacts/{compact}/providers/{provider_id}'
         f'/licenses/jurisdiction/{jurisdiction}/licenseType/{license_type_abbreviation}/encumbrance'
     )
+    if encumbrance_id:
+        return f'{base_url}/{encumbrance_id}'
+    return base_url
 
 
 def _generate_privilege_encumbrance_url(
-    compact: str, provider_id: str, jurisdiction: str, license_type_abbreviation: str
+    compact: str, provider_id: str, jurisdiction: str, license_type_abbreviation: str, encumbrance_id: str = None
 ):
-    return (
+    base_url = (
         f'{config.api_base_url}/v1/compacts/{compact}/providers/{provider_id}'
         f'/privileges/jurisdiction/{jurisdiction}/licenseType/{license_type_abbreviation}/encumbrance'
     )
+    if encumbrance_id:
+        return f'{base_url}/{encumbrance_id}'
+    return base_url
 
 
 def clean_adverse_actions():
@@ -376,10 +382,14 @@ def test_license_encumbrance_workflow():
 
         lift_body = {
             'effectiveLiftDate': '2025-05-05',
-            'encumbranceId': first_adverse_action_id,
         }
 
-        response3 = requests.patch(license_encumbrance_url, headers=staff_headers, json=lift_body, timeout=10)
+        # Generate URL with encumbrance ID for PATCH operation
+        license_encumbrance_lift_url = _generate_license_encumbrance_url(
+            compact, provider_id, jurisdiction, license_type_abbreviation, first_adverse_action_id
+        )
+
+        response3 = requests.patch(license_encumbrance_lift_url, headers=staff_headers, json=lift_body, timeout=10)
 
         if response3.status_code != 200:
             raise SmokeTestFailureException(f'Failed to lift first license encumbrance. Response: {response3.json()}')
@@ -410,10 +420,14 @@ def test_license_encumbrance_workflow():
 
         lift_body = {
             'effectiveLiftDate': '2025-05-25',
-            'encumbranceId': second_adverse_action_id,
         }
 
-        response4 = requests.patch(license_encumbrance_url, headers=staff_headers, json=lift_body, timeout=10)
+        # Generate URL with encumbrance ID for PATCH operation
+        license_encumbrance_lift_url = _generate_license_encumbrance_url(
+            compact, provider_id, jurisdiction, license_type_abbreviation, second_adverse_action_id
+        )
+
+        response4 = requests.patch(license_encumbrance_lift_url, headers=staff_headers, json=lift_body, timeout=10)
 
         if response4.status_code != 200:
             raise SmokeTestFailureException(f'Failed to lift final license encumbrance. Response: {response4.json()}')
@@ -585,10 +599,14 @@ def test_privilege_encumbrance_workflow():
 
         lift_body = {
             'effectiveLiftDate': '2025-03-03',
-            'encumbranceId': first_adverse_action_id,
         }
 
-        response3 = requests.patch(privilege_encumbrance_url, headers=staff_headers, json=lift_body, timeout=10)
+        # Generate URL with encumbrance ID for PATCH operation
+        privilege_encumbrance_lift_url = _generate_privilege_encumbrance_url(
+            compact, provider_id, jurisdiction, license_type_abbreviation, first_adverse_action_id
+        )
+
+        response3 = requests.patch(privilege_encumbrance_lift_url, headers=staff_headers, json=lift_body, timeout=10)
 
         if response3.status_code != 200:
             raise SmokeTestFailureException(f'Failed to lift first privilege encumbrance. Response: {response3.json()}')
@@ -612,10 +630,14 @@ def test_privilege_encumbrance_workflow():
 
         lift_body = {
             'effectiveLiftDate': '2025-04-04',
-            'encumbranceId': second_adverse_action_id,
         }
 
-        response4 = requests.patch(privilege_encumbrance_url, headers=staff_headers, json=lift_body, timeout=10)
+        # Generate URL with encumbrance ID for PATCH operation
+        privilege_encumbrance_lift_url = _generate_privilege_encumbrance_url(
+            compact, provider_id, jurisdiction, license_type_abbreviation, second_adverse_action_id
+        )
+
+        response4 = requests.patch(privilege_encumbrance_lift_url, headers=staff_headers, json=lift_body, timeout=10)
 
         if response4.status_code != 200:
             raise SmokeTestFailureException(f'Failed to lift final privilege encumbrance. Response: {response4.json()}')

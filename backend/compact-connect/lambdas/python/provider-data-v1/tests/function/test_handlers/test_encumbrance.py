@@ -23,6 +23,14 @@ LICENSE_ENCUMBRANCE_ENDPOINT_RESOURCE = (
     '/v1/compacts/{compact}/providers/{providerId}/licenses/'
     'jurisdiction/{jurisdiction}/licenseType/{licenseType}/encumbrance'
 )
+PRIVILEGE_ENCUMBRANCE_ID_ENDPOINT_RESOURCE = (
+    '/v1/compacts/{compact}/providers/{providerId}/privileges/'
+    'jurisdiction/{jurisdiction}/licenseType/{licenseType}/encumbrance/{encumbranceId}'
+)
+LICENSE_ENCUMBRANCE_ID_ENDPOINT_RESOURCE = (
+    '/v1/compacts/{compact}/providers/{providerId}/licenses/'
+    'jurisdiction/{jurisdiction}/licenseType/{licenseType}/encumbrance/{encumbranceId}'
+)
 
 TEST_ENCUMBRANCE_EFFECTIVE_DATE = '2023-01-15'
 
@@ -494,7 +502,6 @@ class TestPatchPrivilegeEncumbranceLifting(TstFunction):
         """Helper method to generate a test event for lifting privilege encumbrance."""
         body = {
             'effectiveLiftDate': '2024-01-15',
-            'encumbranceId': str(adverse_action.adverseActionId),
             **(body_overrides or {}),
         }
 
@@ -503,12 +510,13 @@ class TestPatchPrivilegeEncumbranceLifting(TstFunction):
             scope_override=f'openid email {privilege_record.jurisdiction}/aslp.admin',
             value_overrides={
                 'httpMethod': 'PATCH',
-                'resource': PRIVILEGE_ENCUMBRANCE_ENDPOINT_RESOURCE,
+                'resource': PRIVILEGE_ENCUMBRANCE_ID_ENDPOINT_RESOURCE,
                 'pathParameters': {
                     'compact': privilege_record.compact,
                     'providerId': str(privilege_record.providerId),
                     'jurisdiction': privilege_record.jurisdiction,
                     'licenseType': DEFAULT_LICENSE_TYPE_ABBREVIATION,
+                    'encumbranceId': str(adverse_action.adverseActionId),
                 },
                 'body': json.dumps(body),
             },
@@ -599,17 +607,17 @@ class TestPatchPrivilegeEncumbranceLifting(TstFunction):
             scope_override=f'openid email {adverse_action.jurisdiction}/aslp.admin',
             value_overrides={
                 'httpMethod': 'PATCH',
-                'resource': PRIVILEGE_ENCUMBRANCE_ENDPOINT_RESOURCE,
+                'resource': PRIVILEGE_ENCUMBRANCE_ID_ENDPOINT_RESOURCE,
                 'pathParameters': {
                     'compact': adverse_action.compact,
                     'providerId': str(adverse_action.providerId),
                     'jurisdiction': adverse_action.jurisdiction,
                     'licenseType': adverse_action.licenseTypeAbbreviation,
+                    'encumbranceId': str(adverse_action.adverseActionId),
                 },
                 'body': json.dumps(
                     {
                         'effectiveLiftDate': '2024-01-15',
-                        'encumbranceId': str(adverse_action.adverseActionId),
                     }
                 ),
             },
@@ -798,7 +806,6 @@ class TestPatchLicenseEncumbranceLifting(TstFunction):
         """Helper method to generate a test event for lifting license encumbrance."""
         body = {
             'effectiveLiftDate': '2024-01-15',
-            'encumbranceId': str(adverse_action.adverseActionId),
             **(body_overrides or {}),
         }
 
@@ -807,12 +814,13 @@ class TestPatchLicenseEncumbranceLifting(TstFunction):
             scope_override=f'openid email {license_record.jurisdiction}/aslp.admin',
             value_overrides={
                 'httpMethod': 'PATCH',
-                'resource': LICENSE_ENCUMBRANCE_ENDPOINT_RESOURCE,
+                'resource': LICENSE_ENCUMBRANCE_ID_ENDPOINT_RESOURCE,
                 'pathParameters': {
                     'compact': license_record.compact,
                     'providerId': str(license_record.providerId),
                     'jurisdiction': license_record.jurisdiction,
                     'licenseType': DEFAULT_LICENSE_TYPE_ABBREVIATION,
+                    'encumbranceId': str(adverse_action.adverseActionId),
                 },
                 'body': json.dumps(body),
             },
@@ -903,17 +911,17 @@ class TestPatchLicenseEncumbranceLifting(TstFunction):
             scope_override=f'openid email {adverse_action.jurisdiction}/aslp.admin',
             value_overrides={
                 'httpMethod': 'PATCH',
-                'resource': LICENSE_ENCUMBRANCE_ENDPOINT_RESOURCE,
+                'resource': LICENSE_ENCUMBRANCE_ID_ENDPOINT_RESOURCE,
                 'pathParameters': {
                     'compact': adverse_action.compact,
                     'providerId': str(adverse_action.providerId),
                     'jurisdiction': adverse_action.jurisdiction,
                     'licenseType': adverse_action.licenseTypeAbbreviation,
+                    'encumbranceId': str(adverse_action.adverseActionId),
                 },
                 'body': json.dumps(
                     {
                         'effectiveLiftDate': '2024-01-15',
-                        'encumbranceId': str(adverse_action.adverseActionId),
                     }
                 ),
             },

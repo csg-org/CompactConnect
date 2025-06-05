@@ -628,8 +628,9 @@ class ProviderManagement:
             authorization_scopes=method_options.authorization_scopes,
         )
 
-        # Add PATCH method for lifting privilege encumbrances
-        self.encumbrance_privilege_resource.add_method(
+        # Add PATCH method for lifting privilege encumbrances - now with encumbranceId in path
+        self.encumbrance_privilege_id_resource = self.encumbrance_privilege_resource.add_resource('{encumbranceId}')
+        self.encumbrance_privilege_id_resource.add_method(
             'PATCH',
             request_validator=self.api.parameter_body_validator,
             request_models={'application/json': self.api_model.patch_privilege_encumbrance_request_model},
@@ -670,8 +671,9 @@ class ProviderManagement:
             authorization_scopes=method_options.authorization_scopes,
         )
 
-        # Add PATCH method for lifting license encumbrances
-        self.encumbrance_license_resource.add_method(
+        # Add PATCH method for lifting license encumbrances - now with encumbranceId in path
+        self.encumbrance_license_id_resource = self.encumbrance_license_resource.add_resource('{encumbranceId}')
+        self.encumbrance_license_id_resource.add_method(
             'PATCH',
             request_validator=self.api.parameter_body_validator,
             request_models={'application/json': self.api_model.patch_license_encumbrance_request_model},

@@ -33,7 +33,6 @@ class AdverseActionPatchRequestSchema(ForgivingSchema):
     """
 
     effectiveLiftDate = Date(required=True, allow_none=False)
-    encumbranceId = String(required=True, allow_none=False)
 
 
 class AdverseActionPublicResponseSchema(ForgivingSchema):

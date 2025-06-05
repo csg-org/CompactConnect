@@ -689,19 +689,32 @@ class TestProviderManagementApi(TestApi):
 
     def test_synth_generates_privilege_encumbrance_lifting_endpoint(self):
         """Test that the PATCH /providers/{providerId}/privileges/jurisdiction/{jurisdiction}
-        /licenseType/{licenseType}/encumbrance endpoint is configured correctly."""
+        /licenseType/{licenseType}/encumbrance/{encumbranceId} endpoint is configured correctly."""
         api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
 
         # Get the encumbrance resource logical ID
         encumbrance_resource_logical_id = self._get_privilege_encumbrance_resource_id(api_stack_template, api_stack)
 
-        # Ensure the PATCH method is configured correctly
+        # Find the {encumbranceId} sub-resource of the encumbrance resource
+        encumbrance_id_resource_logical_ids = api_stack_template.find_resources(
+            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'Properties': {
+                    'ParentId': {'Ref': encumbrance_resource_logical_id},
+                    'PathPart': '{encumbranceId}',
+                }
+            },
+        )
+        self.assertEqual(len(encumbrance_id_resource_logical_ids), 1)
+        encumbrance_id_resource_logical_id = next(key for key in encumbrance_id_resource_logical_ids.keys())
+
+        # Ensure the PATCH method is configured correctly on the {encumbranceId} resource
         request_model_logical_id_capture = Capture()
         api_stack_template.has_resource_properties(
             type=CfnMethod.CFN_RESOURCE_TYPE_NAME,
             props={
-                'ResourceId': {'Ref': encumbrance_resource_logical_id},
+                'ResourceId': {'Ref': encumbrance_id_resource_logical_id},
                 'HttpMethod': 'PATCH',
                 'AuthorizerId': {
                     'Ref': api_stack.get_logical_id(api_stack.api.staff_users_authorizer.node.default_child),
@@ -742,19 +755,32 @@ class TestProviderManagementApi(TestApi):
 
     def test_synth_generates_license_encumbrance_lifting_endpoint(self):
         """Test that the PATCH /providers/{providerId}/licenses/jurisdiction/{jurisdiction}
-        /licenseType/{licenseType}/encumbrance endpoint is configured correctly."""
+        /licenseType/{licenseType}/encumbrance/{encumbranceId} endpoint is configured correctly."""
         api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
 
         # Find the license encumbrance resource
         encumbrance_resource_logical_id = self._get_license_encumbrance_resource_id(api_stack_template, api_stack)
 
-        # Ensure the PATCH method is configured correctly
+        # Find the {encumbranceId} sub-resource of the encumbrance resource
+        encumbrance_id_resource_logical_ids = api_stack_template.find_resources(
+            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'Properties': {
+                    'ParentId': {'Ref': encumbrance_resource_logical_id},
+                    'PathPart': '{encumbranceId}',
+                }
+            },
+        )
+        self.assertEqual(len(encumbrance_id_resource_logical_ids), 1)
+        encumbrance_id_resource_logical_id = next(key for key in encumbrance_id_resource_logical_ids.keys())
+
+        # Ensure the PATCH method is configured correctly on the {encumbranceId} resource
         request_model_logical_id_capture = Capture()
         api_stack_template.has_resource_properties(
             type=CfnMethod.CFN_RESOURCE_TYPE_NAME,
             props={
-                'ResourceId': {'Ref': encumbrance_resource_logical_id},
+                'ResourceId': {'Ref': encumbrance_id_resource_logical_id},
                 'HttpMethod': 'PATCH',
                 'AuthorizerId': {
                     'Ref': api_stack.get_logical_id(api_stack.api.staff_users_authorizer.node.default_child),

@@ -26,6 +26,14 @@ LICENSE_ENCUMBRANCE_ENDPOINT_RESOURCE = (
     '/v1/compacts/{compact}/providers/{providerId}/licenses/'
     'jurisdiction/{jurisdiction}/licenseType/{licenseType}/encumbrance'
 )
+PRIVILEGE_ENCUMBRANCE_ID_ENDPOINT_RESOURCE = (
+    '/v1/compacts/{compact}/providers/{providerId}/privileges/'
+    'jurisdiction/{jurisdiction}/licenseType/{licenseType}/encumbrance/{encumbranceId}'
+)
+LICENSE_ENCUMBRANCE_ID_ENDPOINT_RESOURCE = (
+    '/v1/compacts/{compact}/providers/{providerId}/licenses/'
+    'jurisdiction/{jurisdiction}/licenseType/{licenseType}/encumbrance/{encumbranceId}'
+)
 
 
 @api_handler
@@ -37,9 +45,9 @@ def encumbrance_handler(event: dict, context: LambdaContext) -> dict:
             return handle_privilege_encumbrance(event)
         if event['httpMethod'] == 'POST' and event['resource'] == LICENSE_ENCUMBRANCE_ENDPOINT_RESOURCE:
             return handle_license_encumbrance(event)
-        if event['httpMethod'] == 'PATCH' and event['resource'] == PRIVILEGE_ENCUMBRANCE_ENDPOINT_RESOURCE:
+        if event['httpMethod'] == 'PATCH' and event['resource'] == PRIVILEGE_ENCUMBRANCE_ID_ENDPOINT_RESOURCE:
             return handle_privilege_encumbrance_lifting(event)
-        if event['httpMethod'] == 'PATCH' and event['resource'] == LICENSE_ENCUMBRANCE_ENDPOINT_RESOURCE:
+        if event['httpMethod'] == 'PATCH' and event['resource'] == LICENSE_ENCUMBRANCE_ID_ENDPOINT_RESOURCE:
             return handle_license_encumbrance_lifting(event)
 
         raise CCInvalidRequestException('Invalid endpoint requested')
@@ -145,13 +153,13 @@ def handle_privilege_encumbrance_lifting(event: dict) -> dict:
         provider_id = event['pathParameters']['providerId']
         jurisdiction = event['pathParameters']['jurisdiction']
         license_type_abbreviation = event['pathParameters']['licenseType'].lower()
+        encumbrance_id = event['pathParameters']['encumbranceId']
 
         # Parse and validate request body
         body = json.loads(event['body'])
         try:
             validated_body = AdverseActionPatchRequestSchema().load(body)
             lift_date = validated_body['effectiveLiftDate']
-            encumbrance_id = validated_body['encumbranceId']
         except ValidationError as e:
             raise CCInvalidRequestException(f'Invalid request body: {e.messages}') from e
 
@@ -187,13 +195,13 @@ def handle_license_encumbrance_lifting(event: dict) -> dict:
         provider_id = event['pathParameters']['providerId']
         jurisdiction = event['pathParameters']['jurisdiction']
         license_type_abbreviation = event['pathParameters']['licenseType'].lower()
+        encumbrance_id = event['pathParameters']['encumbranceId']
 
         # Parse and validate request body
         body = json.loads(event['body'])
         try:
             validated_body = AdverseActionPatchRequestSchema().load(body)
             lift_date = validated_body['effectiveLiftDate']
-            encumbrance_id = validated_body['encumbranceId']
         except ValidationError as e:
             raise CCInvalidRequestException(f'Invalid request body: {e.messages}') from e
 
