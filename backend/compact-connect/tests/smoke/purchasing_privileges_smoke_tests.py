@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+import json
 import time
+import uuid
 from datetime import UTC, datetime
 
 import requests
@@ -24,15 +26,14 @@ from smoke_common import (
 # To run this script, create a smoke_tests_env.json file in the same directory as this script using the
 # 'smoke_tests_env_example.json' file as a template.
 
-# IMPORTANT - until we find a way to automate generating payment opaque data tokens,
-# this test requires you to generate a payment nonce using the Accept UI frame and a sandbox testing card.
-PAYMENT_NONCE_DATA_VALUE = ''
-
 
 def _generate_post_body(attestations_from_system, license_type):
+    # Generate a payment nonce for testing
+    payment_nonce = _generate_opaque_data()
+
     return {
         'orderInformation': {
-            {'opaqueData': {'dataDescriptor': 'COMMON.ACCEPT.INAPP.PAYMENT', 'dataValue': PAYMENT_NONCE_DATA_VALUE}}
+            'opaqueData': payment_nonce
         },
         'selectedJurisdictions': ['ne'],
         'attestations': attestations_from_system,
@@ -254,6 +255,83 @@ def test_purchasing_privilege(delete_current_privilege: bool = True):
             )
 
     logger.info(f'Successfully purchased privilege record: {matching_privilege}')
+
+
+def _generate_opaque_data():
+    """
+    Generate a payment nonce using Authorize.Net's Secure Payment Container API.
+    This allows us to create payment nonces programmatically for testing.
+    """
+
+    # Call the purchase privilege options endpoint and extract the api login id and
+    # public key from the compact configuration object that is returned.
+    headers = get_provider_user_auth_headers_cached()
+    response = requests.get(
+        url=f'{config.api_base_url}/v1/purchases/privileges/options',
+        headers=headers,
+        timeout=10,
+    )
+
+    if response.status_code != 200:
+        raise SmokeTestFailureException(f'Failed to get purchase privilege options. Response: {response.json()}')
+
+    response_body = response.json()
+    compact_data = next((item for item in response_body['items'] if item.get('type') == 'compact'), None)
+    
+    if not compact_data:
+        raise SmokeTestFailureException('No compact data found in purchase privilege options response')
+    
+    if 'paymentProcessorPublicFields' not in compact_data:
+        raise SmokeTestFailureException('No paymentProcessorPublicFields found in compact data')
+    
+    payment_fields = compact_data['paymentProcessorPublicFields']
+    api_login_id = payment_fields.get('apiLoginId')
+    public_client_key = payment_fields.get('publicClientKey')
+    
+    if not api_login_id or not public_client_key:
+        raise SmokeTestFailureException(f'Missing credentials in paymentProcessorPublicFields: {payment_fields}')
+
+    # Generate the payment nonce using the secure payment container API
+    unique_id = str(uuid.uuid4())
+
+    # Create the secure payment container request
+    request_data = {
+        "securePaymentContainerRequest": {
+            "merchantAuthentication": {
+                "name": api_login_id,
+                "clientKey": public_client_key  # Use the public client key
+            },
+            "refId": "12345",
+            "data": {
+                "type": "TOKEN",
+                "id": unique_id,
+                "token": {
+                    "cardNumber": "4111111111111111",  # Visa test card
+                    "expirationDate": "122030",
+                    "cardCode": "999",
+                    "fullName": "SmokeTest User"
+                }
+            }
+        }
+    }
+
+    # Make the API request
+    test_url = "https://apitest.authorize.net/xml/v1/request.api"
+    headers = {"Content-Type": "application/json"}
+    response = requests.post(test_url, json=request_data, headers=headers, timeout=30)
+
+    if response.status_code == 200:
+        response_data = json.loads(response.content.decode('utf-8-sig'))
+
+        # Extract the payment nonce from the response
+        # The exact structure may vary, but it should contain the opaque data
+        if 'opaqueData' in response_data:
+            logger.info(f'Generated opaque data.')
+            return response_data['opaqueData']
+        logger.error(f'No opaqueData in response: {response_data}')
+        raise SmokeTestFailureException(f'No opaqueData in response: {response_data}')
+    logger.error(f'Failed to generate payment nonce: {response.status_code} - {response.text}')
+    raise SmokeTestFailureException(f'Failed to generate payment nonce: {response.status_code} - {response.text}')
 
 
 if __name__ == '__main__':
