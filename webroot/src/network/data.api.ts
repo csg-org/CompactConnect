@@ -9,7 +9,7 @@ import { stateDataApi } from '@network/stateApi/data.api';
 import { licenseDataApi } from '@network/licenseApi/data.api';
 import { userDataApi } from '@network/userApi/data.api';
 import { exampleDataApi } from '@network/exampleApi/data.api';
-import { PaymentProcessorConfig } from '@models/Compact/Compact.model';
+import { PaymentProcessorConfig, CompactConfig, CompactStateConfig } from '@models/Compact/Compact.model';
 
 export class DataApi {
     /**
@@ -48,12 +48,52 @@ export class DataApi {
 
     /**
      * POST Compact payment processer config.
-     * @param  {string}                 compact The compact string ID (aslp, ot, counseling).
+     * @param  {string}                 compact The compact string ID (aslp, octp, coun).
      * @param  {PaymentProcessorConfig} config  The payment processer config data.
      * @return {Promise<object>}                The server response.
      */
     public updatePaymentProcessorConfig(compact: string, config: PaymentProcessorConfig) {
         return stateDataApi.updatePaymentProcessorConfig(compact, config);
+    }
+
+    /**
+     * GET Compact config.
+     * @param  {string}          compact The compact string ID (aslp, octp, coun).
+     * @return {Promise<object>}         The server response.
+     */
+    public getCompactConfig(compact: string) {
+        return stateDataApi.getCompactConfig(compact);
+    }
+
+    /**
+     * PUT Compact config.
+     * @param  {string}          compact The compact string ID (aslp, octp, coun).
+     * @param  {CompactConfig}   config  The compact config data.
+     * @return {Promise<object>}         The server response.
+     */
+    public updateCompactConfig(compact: string, config: CompactConfig) {
+        return stateDataApi.updateCompactConfig(compact, config);
+    }
+
+    /**
+     * GET State config.
+     * @param  {string}          compact The compact string ID (aslp, octp, coun).
+     * @param  {string}          state   The 2-character state abbreviation.
+     * @return {Promise<object>}         The server response.
+     */
+    public getCompactStateConfig(compact: string, state: string) {
+        return stateDataApi.getCompactStateConfig(compact, state);
+    }
+
+    /**
+     * PUT State config.
+     * @param  {string}             compact The compact string ID (aslp, octp, coun).
+     * @param  {string}             state   The 2-character state abbreviation.
+     * @param  {CompactStateConfig} config  The compact config data.
+     * @return {Promise<object>}            The server response.
+     */
+    public updateCompactStateConfig(compact: string, state: string, config: CompactStateConfig) {
+        return stateDataApi.updateCompactStateConfig(compact, state, config);
     }
 
     // ========================================================================

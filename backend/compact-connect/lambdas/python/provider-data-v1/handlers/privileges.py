@@ -1,12 +1,13 @@
 import json
+from datetime import datetime
 
 from aws_lambda_powertools.metrics import MetricUnit
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger, metrics
 from cc_common.data_model.schema.common import CCPermissionsAction
+from cc_common.event_batch_writer import EventBatchWriter
 from cc_common.exceptions import CCInternalException, CCInvalidRequestException
-from cc_common.utils import api_handler, authorize_compact_level_only_action
-from event_batch_writer import EventBatchWriter
+from cc_common.utils import api_handler, authorize_compact_level_only_action, sqs_handler
 
 
 @api_handler
@@ -120,3 +121,45 @@ def deactivate_privilege(event: dict, context: LambdaContext):  # noqa: ARG001 u
             metrics.add_metric(name='privilege-deactivation-notification-failed', unit=MetricUnit.Count, value=1)
 
     return {'message': 'OK'}
+
+
+@sqs_handler
+def privilege_purchase_message_handler(message: dict):
+    """
+    Handle privilege purchase messages from the event bus.
+    This handler is responsible for sending email notifications to the provider
+
+    If notification sending fails, the function will raise a CCInternalException,
+    which will cause the SQS handler decorator to report the message as a failure
+    and the message will be retried according to the queue's retry policy.
+    """
+    total_cost = message['detail']['totalCost']
+    cost_line_items = message['detail']['costLineItems']
+    privileges = message['detail']['privileges']
+    provider_email = message['detail']['providerEmail']
+    transaction_date_time = message['detail']['eventTime']
+
+    with logger.append_context_keys(provider_email=provider_email):
+        logger.info('Processing privilege purchase notification')
+
+        error_messages = []
+
+        # Send notification to the jurisdiction
+        try:
+            transaction_date = datetime.fromisoformat(transaction_date_time)
+            logger.info('Sending privilege purchase notification to provider', provider=provider_email)
+            config.email_service_client.send_privilege_purchase_email(
+                transaction_date=transaction_date.date().isoformat(),
+                provider_email=provider_email,
+                privileges=privileges,
+                total_cost=total_cost,
+                cost_line_items=cost_line_items,
+            )
+        except CCInternalException as e:
+            error_message = f'Failed to send jurisdiction privilege purchase notification: {str(e)}'
+            logger.error(error_message, exc_info=e)
+            error_messages.append(error_message)
+
+        # If there were any errors, raise an exception to trigger a retry
+        if error_messages:
+            raise CCInternalException('; '.join(error_messages))

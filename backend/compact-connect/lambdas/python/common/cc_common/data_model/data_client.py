@@ -9,6 +9,7 @@ from boto3.dynamodb.types import TypeDeserializer, TypeSerializer
 from botocore.exceptions import ClientError
 
 from cc_common.config import _Config, config, logger, metrics
+from cc_common.data_model.provider_record_util import ProviderRecordUtility, ProviderUserRecords
 from cc_common.data_model.query_paginator import paginated_query
 from cc_common.data_model.schema import PrivilegeRecordSchema
 from cc_common.data_model.schema.adverse_action import AdverseActionData
@@ -16,11 +17,12 @@ from cc_common.data_model.schema.base_record import SSNIndexRecordSchema
 from cc_common.data_model.schema.common import (
     ActiveInactiveStatus,
     CCDataClass,
+    CompactEligibilityStatus,
+    HomeJurisdictionChangeStatusEnum,
     LicenseEncumberedStatusEnum,
     PrivilegeEncumberedStatusEnum,
     UpdateCategory,
 )
-from cc_common.data_model.schema.home_jurisdiction.record import ProviderHomeJurisdictionSelectionRecordSchema
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
 from cc_common.data_model.schema.military_affiliation.common import (
     MilitaryAffiliationStatus,
@@ -29,7 +31,7 @@ from cc_common.data_model.schema.military_affiliation.common import (
 from cc_common.data_model.schema.military_affiliation.record import MilitaryAffiliationRecordSchema
 from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
 from cc_common.data_model.schema.privilege.record import PrivilegeUpdateRecordSchema
-from cc_common.data_model.schema.provider import ProviderData
+from cc_common.data_model.schema.provider import ProviderData, ProviderUpdateData
 from cc_common.exceptions import (
     CCAwsServiceException,
     CCInternalException,
@@ -97,7 +99,7 @@ class DataClient:
         partial_ssn: str,
         dob: date,
         license_type: str,
-    ) -> dict | None:
+    ) -> LicenseData | None:
         """Query license records using the license GSI and find a matching record.
 
         :param compact: The compact name
@@ -130,7 +132,7 @@ class DataClient:
             logger.error('Multiple matching license records found')
             raise CCInternalException('Multiple matching license records found')
 
-        return matching_records[0] if matching_records else None
+        return LicenseData.from_database_record(matching_records[0]) if matching_records else None
 
     @paginated_query
     @logger_inject_kwargs(logger, 'compact', 'provider_id')
@@ -159,6 +161,40 @@ class DataClient:
             raise CCNotFoundException('Provider not found')
 
         return resp
+
+    @logger_inject_kwargs(logger, 'compact', 'provider_id')
+    def get_provider_user_records(
+        self,
+        *,
+        compact: str,
+        provider_id: str,
+        consistent_read: bool = True,
+    ) -> ProviderUserRecords:
+        logger.info('Getting provider')
+
+        resp = {'Items': []}
+        last_evaluated_key = None
+
+        while True:
+            pagination = {'ExclusiveStartKey': last_evaluated_key} if last_evaluated_key else {}
+
+            query_resp = self.config.provider_table.query(
+                Select='ALL_ATTRIBUTES',
+                KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}')
+                & Key('sk').begins_with(f'{compact}#PROVIDER'),
+                ConsistentRead=consistent_read,
+                **pagination,
+            )
+
+            resp['Items'].extend(query_resp.get('Items', []))
+
+            last_evaluated_key = query_resp.get('LastEvaluatedKey')
+            if not last_evaluated_key:
+                break
+        if not resp['Items']:
+            raise CCNotFoundException('Provider not found')
+
+        return ProviderUserRecords(resp['Items'])
 
     @paginated_query
     @logger_inject_kwargs(logger, 'compact', 'provider_name', 'jurisdiction')
@@ -260,8 +296,8 @@ class DataClient:
         attestations: list[dict],
         license_type: str,
         license_jurisdiction: str,
-        original_privilege: dict | None = None,
-    ):
+        original_privilege: PrivilegeData | None = None,
+    ) -> PrivilegeData:
         current_datetime = config.current_standard_datetime
         try:
             license_type_abbreviation = self.config.license_type_abbreviations[compact][license_type]
@@ -273,12 +309,12 @@ class DataClient:
 
         if original_privilege:
             # Copy over the original issuance date and privilege id
-            date_of_issuance = original_privilege['dateOfIssuance']
+            date_of_issuance = original_privilege.dateOfIssuance
             # TODO: This privilege number copy-over approach has a gap in it, in the event that a  # noqa: FIX002
             # provider's license type changes. In that event, the privilege id will have the original
             # license type abbreviation in it, not the new one.
             # This gap should be closed as part of https://github.com/csg-org/CompactConnect/issues/443.
-            privilege_id = original_privilege['privilegeId']
+            privilege_id = original_privilege.privilegeId
         else:
             date_of_issuance = current_datetime
             # Claim a privilege number for this jurisdiction
@@ -291,20 +327,22 @@ class DataClient:
                 (license_type_abbreviation.upper(), jurisdiction_postal_abbreviation.upper(), str(privilege_number))
             )
 
-        return {
-            'providerId': provider_id,
-            'compact': compact,
-            'jurisdiction': jurisdiction_postal_abbreviation.lower(),
-            'licenseJurisdiction': license_jurisdiction.lower(),
-            'licenseType': license_type,
-            'dateOfIssuance': date_of_issuance,
-            'dateOfRenewal': current_datetime,
-            'dateOfExpiration': license_expiration_date,
-            'compactTransactionId': compact_transaction_id,
-            'attestations': attestations,
-            'privilegeId': privilege_id,
-            'administratorSetStatus': ActiveInactiveStatus.ACTIVE,
-        }
+        return PrivilegeData.create_new(
+            {
+                'providerId': provider_id,
+                'compact': compact,
+                'jurisdiction': jurisdiction_postal_abbreviation.lower(),
+                'licenseJurisdiction': license_jurisdiction.lower(),
+                'licenseType': license_type,
+                'dateOfIssuance': date_of_issuance,
+                'dateOfRenewal': current_datetime,
+                'dateOfExpiration': license_expiration_date,
+                'compactTransactionId': compact_transaction_id,
+                'attestations': attestations,
+                'privilegeId': privilege_id,
+                'administratorSetStatus': ActiveInactiveStatus.ACTIVE,
+            }
+        )
 
     @logger_inject_kwargs(logger, 'compact', 'provider_id', 'compact_transaction_id')
     def create_provider_privileges(
@@ -314,8 +352,8 @@ class DataClient:
         jurisdiction_postal_abbreviations: list[str],
         license_expiration_date: date,
         compact_transaction_id: str,
-        provider_record: dict,
-        existing_privileges_for_license: list[dict],
+        provider_record: ProviderData,
+        existing_privileges_for_license: list[PrivilegeData],
         attestations: list[dict],
         license_type: str,
     ):
@@ -342,7 +380,9 @@ class DataClient:
             privilege_jurisdictions=jurisdiction_postal_abbreviations,
         )
 
-        license_jurisdiction = provider_record['licenseJurisdiction']
+        license_jurisdiction = provider_record.licenseJurisdiction
+
+        privileges = []
 
         try:
             # We'll collect all the record changes into a transaction to protect data consistency
@@ -356,13 +396,13 @@ class DataClient:
                     (
                         record
                         for record in existing_privileges_for_license
-                        if record['jurisdiction'].lower() == postal_abbreviation.lower()
-                        and record['licenseType'] == license_type
+                        if record.jurisdiction.lower() == postal_abbreviation.lower()
+                        and record.licenseType == license_type
                     ),
                     None,
                 )
 
-                privilege_record = self._generate_privilege_record(
+                privilege_record: PrivilegeData = self._generate_privilege_record(
                     compact=compact,
                     provider_id=provider_id,
                     jurisdiction_postal_abbreviation=postal_abbreviation,
@@ -374,37 +414,44 @@ class DataClient:
                     original_privilege=original_privilege,
                 )
 
+                privileges.append(privilege_record)
+
                 # Create privilege update record if this is updating an existing privilege
                 if original_privilege:
-                    update_record = {
-                        'type': 'privilegeUpdate',
-                        'updateType': 'renewal',
-                        'providerId': provider_id,
-                        'compact': compact,
-                        'jurisdiction': postal_abbreviation.lower(),
-                        'licenseType': license_type,
-                        'previous': original_privilege,
-                        'updatedValues': {
-                            'dateOfRenewal': privilege_record['dateOfRenewal'],
-                            'dateOfExpiration': privilege_record['dateOfExpiration'],
-                            'compactTransactionId': compact_transaction_id,
-                            'privilegeId': privilege_record['privilegeId'],
-                            'attestations': attestations,
-                            **(
-                                {'administratorSetStatus': ActiveInactiveStatus.ACTIVE}
-                                if original_privilege['administratorSetStatus'] == ActiveInactiveStatus.INACTIVE
-                                else {}
-                            ),
-                        },
-                    }
+                    update_record = PrivilegeUpdateData.create_new(
+                        {
+                            'type': 'privilegeUpdate',
+                            'updateType': 'renewal',
+                            'providerId': provider_id,
+                            'compact': compact,
+                            'jurisdiction': postal_abbreviation.lower(),
+                            'licenseType': license_type,
+                            'previous': original_privilege.to_dict(),
+                            'updatedValues': {
+                                'dateOfRenewal': privilege_record.dateOfRenewal,
+                                'dateOfExpiration': privilege_record.dateOfExpiration,
+                                'compactTransactionId': compact_transaction_id,
+                                'privilegeId': privilege_record.privilegeId,
+                                'attestations': attestations,
+                                **(
+                                    {'administratorSetStatus': ActiveInactiveStatus.ACTIVE}
+                                    if original_privilege.administratorSetStatus == ActiveInactiveStatus.INACTIVE
+                                    else {}
+                                ),
+                            },
+                        }
+                    )
+                    # if this privilege was previously deactivated due to a home jurisdiction change
+                    # we remove this value when the privilege is renewed. Noting that removal here.
+                    if original_privilege.homeJurisdictionChangeStatus is not None:
+                        update_record.update({'removedValues': ['homeJurisdictionChangeStatus']})
+
                     privilege_update_records.append(update_record)
                     transactions.append(
                         {
                             'Put': {
                                 'TableName': self.config.provider_table_name,
-                                'Item': TypeSerializer().serialize(PrivilegeUpdateRecordSchema().dump(update_record))[
-                                    'M'
-                                ],
+                                'Item': TypeSerializer().serialize(update_record.serialize_to_database_record())['M'],
                             }
                         }
                     )
@@ -413,7 +460,7 @@ class DataClient:
                     {
                         'Put': {
                             'TableName': self.config.provider_table_name,
-                            'Item': TypeSerializer().serialize(PrivilegeRecordSchema().dump(privilege_record))['M'],
+                            'Item': TypeSerializer().serialize(privilege_record.serialize_to_database_record())['M'],
                         }
                     }
                 )
@@ -470,12 +517,14 @@ class DataClient:
             )
             raise CCAwsServiceException(message) from e
 
+        return privileges
+
     def _rollback_privilege_transactions(
         self,
         processed_transactions: list[dict],
-        provider_record: dict,
+        provider_record: ProviderData,
         license_type: str,
-        existing_privileges_for_license_type: list[dict],
+        existing_privileges_for_license_type: list[PrivilegeData],
     ):
         """Roll back successful privilege transactions after a failure."""
         rollback_transactions = []
@@ -484,13 +533,12 @@ class DataClient:
         # as a safety precaution, we must ensure that every privilege in the list matches the license type that we
         # attempted to change privilege for
         existing_privileges_by_jurisdiction = {
-            privilege['jurisdiction']: privilege
+            privilege.jurisdiction: privilege
             for privilege in existing_privileges_for_license_type
-            if privilege['licenseType'] == license_type
+            if privilege.licenseType == license_type
         }
 
         # Delete all privilege update records and handle privilege records appropriately
-        privilege_record_schema = PrivilegeRecordSchema()
         for transaction in processed_transactions:
             if transaction.get('Put'):
                 item = TypeDeserializer().deserialize({'M': transaction['Put']['Item']})
@@ -518,7 +566,7 @@ class DataClient:
                                 'Put': {
                                     'TableName': self.config.provider_table_name,
                                     'Item': TypeSerializer().serialize(
-                                        privilege_record_schema.dump(original_privilege)
+                                        original_privilege.serialize_to_database_record()
                                     )['M'],
                                 }
                             }
@@ -543,7 +591,7 @@ class DataClient:
             {
                 'Put': {
                     'TableName': self.config.provider_table_name,
-                    'Item': TypeSerializer().serialize(provider_record)['M'],
+                    'Item': TypeSerializer().serialize(provider_record.serialize_to_database_record())['M'],
                 }
             }
         )
@@ -761,84 +809,103 @@ class DataClient:
         return privilege_count
 
     @logger_inject_kwargs(logger, 'compact', 'provider_id')
-    def provider_is_registered_in_compact_connect(self, *, compact: str, provider_id: str) -> bool:
-        """Check if a provider is already registered in the system by checking for the cognitoSub field.
+    def get_provider_top_level_record(self, *, compact: str, provider_id: str) -> ProviderData:
+        """Get the top level provider record for a provider.
 
         :param compact: The compact name
         :param provider_id: The provider ID
-        :return: True if the provider is already registered, False otherwise
+        :return: The top level provider record
         """
-        logger.info('Checking if provider is registered')
+        logger.info('Getting top level provider record')
         provider = self.config.provider_table.get_item(
             Key={
                 'pk': f'{compact}#PROVIDER#{provider_id}',
                 'sk': f'{compact}#PROVIDER',
             },
-            ProjectionExpression='cognitoSub',
             ConsistentRead=True,
         ).get('Item')
-        return provider is not None and provider.get('cognitoSub') is not None
+        if provider is None:
+            logger.info(
+                'Provider not found for compact {compact} and provider id {provider_id}',
+                compact=compact,
+                provider_id=provider_id,
+            )
+            raise CCNotFoundException(f'Provider not found for compact {compact} and provider id {provider_id}')
 
-    @logger_inject_kwargs(logger, 'compact', 'provider_id', 'cognito_sub', 'email_address', 'jurisdiction')
+        return ProviderData.from_database_record(provider)
+
     def process_registration_values(
-        self, *, compact: str, provider_id: str, cognito_sub: str, email_address: str, jurisdiction: str
+        self,
+        *,
+        current_provider_record: ProviderData,
+        matched_license_record: LicenseData,
+        email_address: str,
     ) -> None:
         """Set the registration values on a provider record and create home jurisdiction selection record
         in a transaction.
 
-        :param compact: The compact name
-        :param provider_id: The provider ID
-        :param cognito_sub: The Cognito sub of the user
+        :param current_provider_record: The provider record that is recorded in the db for this matching provider.
+        :param matched_license_record: The license record that was matched for the user during registration
         :param email_address: The email address used for registration
-        :param jurisdiction: The jurisdiction postal code for home jurisdiction selection
         :return: None
         :raises: CCAwsServiceException if the transaction fails
         """
-        logger.info('Setting registration values and creating home jurisdiction selection')
+        with logger.append_context_keys(
+            compact=current_provider_record.compact,
+            provider_id=current_provider_record.providerId,
+            license_jurisdiction=matched_license_record.jurisdiction,
+        ):
+            logger.info('Setting registration values and setting current home jurisdiction selection')
 
-        # Create the home jurisdiction selection record
-        home_jurisdiction_selection_record = {
-            'type': 'homeJurisdictionSelection',
-            'compact': compact,
-            'providerId': provider_id,
-            'jurisdiction': jurisdiction,
-            'dateOfSelection': self.config.current_standard_datetime,
-        }
+            # Registration-specific fields to add to the provider record
+            registration_values = {
+                'compactConnectRegisteredEmailAddress': email_address,
+                # we explicitly set this to align with the license record that was matched during registration
+                'currentHomeJurisdiction': matched_license_record.jurisdiction,
+            }
 
-        schema = ProviderHomeJurisdictionSelectionRecordSchema()
-        serialized_record = schema.dump(home_jurisdiction_selection_record)
-
-        # Create both records in a transaction
-        self.config.dynamodb_client.transact_write_items(
-            TransactItems=[
+            # Create provider update record to show registration event and fields that were updated
+            provider_update_record = ProviderUpdateData.create_new(
                 {
-                    'Update': {
-                        'TableName': self.config.provider_table_name,
-                        'Key': {
-                            'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
-                            'sk': {'S': f'{compact}#PROVIDER'},
-                        },
-                        'UpdateExpression': 'SET #cognitoSub = :cognitoSub, #email = :email',
-                        'ExpressionAttributeNames': {
-                            '#cognitoSub': 'cognitoSub',
-                            '#email': 'compactConnectRegisteredEmailAddress',
-                        },
-                        'ExpressionAttributeValues': {
-                            ':cognitoSub': {'S': cognito_sub},
-                            ':email': {'S': email_address},
-                        },
-                        'ConditionExpression': 'attribute_not_exists(cognitoSub)',
-                    }
-                },
-                {
-                    'Put': {
-                        'TableName': self.config.provider_table_name,
-                        'Item': TypeSerializer().serialize(serialized_record)['M'],
-                        'ConditionExpression': 'attribute_not_exists(pk)',
-                    }
-                },
-            ]
-        )
+                    'type': 'providerUpdate',
+                    'updateType': UpdateCategory.REGISTRATION,
+                    'providerId': matched_license_record.providerId,
+                    'compact': matched_license_record.compact,
+                    'previous': current_provider_record.to_dict(),
+                    'updatedValues': {**registration_values},
+                }
+            )
+
+            provider_record = ProviderRecordUtility.populate_provider_record(
+                current_provider_record=current_provider_record,
+                license_record=matched_license_record.to_dict(),
+                # no privileges yet, as the user is registering into the system.
+                privilege_records=[],
+            )
+            provider_record.update(registration_values)
+
+            # Create all records in a transaction
+            self.config.dynamodb_client.transact_write_items(
+                TransactItems=[
+                    # Update provider record
+                    {
+                        'Put': {
+                            'TableName': self.config.provider_table_name,
+                            'Item': TypeSerializer().serialize(provider_record.serialize_to_database_record())['M'],
+                            'ConditionExpression': 'attribute_not_exists(compactConnectRegisteredEmailAddress)',
+                        }
+                    },
+                    # Create provider update record
+                    {
+                        'Put': {
+                            'TableName': self.config.provider_table_name,
+                            'Item': TypeSerializer().serialize(provider_update_record.serialize_to_database_record())[
+                                'M'
+                            ],
+                        }
+                    },
+                ]
+            )
 
     @logger_inject_kwargs(logger, 'compact', 'provider_id', 'jurisdiction', 'license_type')
     def deactivate_privilege(
@@ -1225,3 +1292,683 @@ class DataClient:
             )
 
             logger.info('Set encumbrance for license record')
+
+    @logger_inject_kwargs(logger, 'compact', 'provider_id', 'selected_jurisdiction')
+    def update_provider_home_state_jurisdiction(
+        self, *, compact: str, provider_id: str, selected_jurisdiction: str
+    ) -> None:
+        """
+        Update the provider's home jurisdiction and handle their privileges according to business rules.
+
+        The following rules are applied when updating the provider's home state jurisdiction:
+        1. If the provider does not have any known license in the selected jurisdiction, all of their existing
+           privileges will have their 'homeJurisdictionChangeStatus' set to 'inactive'
+        3. Else if the license in the current home state is expired, the privileges are not moved over. If the license
+           is later updated and the provider renews the privileges, they will be associated with the new home state.
+        3. Else if the license in the current home state is encumbered, all privileges will not be moved over
+           to the new jurisdiction. They stay encumbered.
+        4. Else if the license in the new jurisdiction has a 'compactEligibility' status of 'ineligible', the associated
+           privileges for the current license will NOT be moved over to the new jurisdiction, we will set the
+           'homeJurisdictionChangeStatus' field to 'inactive'.
+        5. If the license in the new home state is encumbered, unexpired privileges are moved over and all privileges
+           that do not already have an encumbered status of 'encumbered' will have their encumbered status set to
+           'licenseEncumbered'.
+        6. If none of the above conditions are met, the provider's unexpired privileges will be moved over to the new
+           jurisdiction and the expiration date will be updated to the expiration date of the license in the new
+           jurisdiction. (the only exception to this is if any existing privilege is for the same jurisdiction as the
+           new license, in which case it is deactivated).
+
+        :param compact: The compact name
+        :param provider_id: The provider ID
+        :param selected_jurisdiction: The new home jurisdiction selected by the provider
+        :raises CCInternalException: If any transaction fails during the update process
+        """
+        logger.info('Updating provider user home jurisdiction')
+
+        provider_user_records: ProviderUserRecords = self.get_provider_user_records(
+            compact=compact, provider_id=provider_id
+        )
+        top_level_provider_record = provider_user_records.get_provider_record()
+        current_home_jurisdiction = top_level_provider_record.currentHomeJurisdiction
+
+        # Get all licenses in the new home jurisdiction
+        new_home_state_licenses = provider_user_records.get_license_records(
+            filter_condition=lambda license_data: license_data.jurisdiction == selected_jurisdiction
+        )
+
+        # Get all privileges for the provider that were not deactivated previously
+        all_active_privileges = provider_user_records.get_privilege_records(
+            filter_condition=lambda privilege: privilege.homeJurisdictionChangeStatus
+            != HomeJurisdictionChangeStatusEnum.INACTIVE
+        )
+
+        if not all_active_privileges:
+            logger.info('No active privileges found for user. Proceeding with provider update')
+
+        try:
+            # Collect all transaction items
+            all_transaction_items = []
+
+            # Check if provider has any licenses in the new jurisdiction
+            if not new_home_state_licenses:
+                logger.info('No home state license found in selected jurisdiction. Deactivating all active privileges')
+
+                # Get provider record update transaction items for no license in new jurisdiction
+                provider_transaction_items = (
+                    self._get_provider_record_transaction_items_for_jurisdiction_with_no_known_license(
+                        compact=compact,
+                        provider_id=provider_id,
+                        provider_record=top_level_provider_record,
+                        selected_jurisdiction=selected_jurisdiction,
+                    )
+                )
+                all_transaction_items.extend(provider_transaction_items)
+
+                # Get privilege deactivation transaction items
+                privilege_transaction_items = (
+                    self._get_privilege_deactivation_transaction_items_for_jurisdiction_change(
+                        compact=compact, provider_id=provider_id, privileges=all_active_privileges
+                    )
+                )
+                all_transaction_items.extend(privilege_transaction_items)
+            else:
+                # Find the best license in the selected jurisdiction
+                best_license_in_selected_jurisdiction = (
+                    provider_user_records.find_best_license_in_current_known_licenses(
+                        jurisdiction=selected_jurisdiction
+                    )
+                )
+
+                # Get provider record update transaction items for jurisdiction change with license
+                provider_transaction_items = (
+                    self._get_provider_record_transaction_items_for_jurisdiction_change_with_license(
+                        compact=compact,
+                        provider_id=provider_id,
+                        provider_records=provider_user_records,
+                        new_license_record=best_license_in_selected_jurisdiction,
+                        selected_jurisdiction=selected_jurisdiction,
+                    )
+                )
+                all_transaction_items.extend(provider_transaction_items)
+
+                # Get licenses from the current home state
+                current_home_state_licenses = provider_user_records.get_license_records(
+                    filter_condition=lambda license_data: license_data.jurisdiction == current_home_jurisdiction
+                )
+
+                # Get unique license types from all privileges
+                privilege_license_types = set(privilege.licenseType for privilege in all_active_privileges)
+
+                for license_type in privilege_license_types:
+                    # Find the matching license in the current jurisdiction for this license type
+                    matching_license_in_current_jurisdiction = next(
+                        (
+                            license_data
+                            for license_data in current_home_state_licenses
+                            if license_data.licenseType == license_type
+                        ),
+                        None,
+                    )
+
+                    if not matching_license_in_current_jurisdiction:
+                        logger.info(
+                            'No current home state license found for license type. '
+                            'User likely previously moved to a state with no known license '
+                            'and privileges were deactivated. Will not move privileges over.',
+                            license_type=license_type,
+                            current_home_jurisdiction=current_home_jurisdiction,
+                            new_home_state_licenses=new_home_state_licenses,
+                        )
+                        continue
+
+                    # if the current home state license is expired, then all the privileges associated
+                    # with this license will also be expired, and we will not move them over
+                    if (
+                        matching_license_in_current_jurisdiction.dateOfExpiration
+                        < self.config.expiration_resolution_date
+                    ):
+                        logger.info(
+                            'Current home state license is expired. Not moving privileges over.',
+                            license_type=license_type,
+                        )
+                        continue
+
+                    if (
+                        matching_license_in_current_jurisdiction.encumberedStatus
+                        == LicenseEncumberedStatusEnum.ENCUMBERED
+                    ):
+                        logger.info(
+                            'Current license is encumbered. Privileges for this license type will not be moved over to'
+                            'new license.',
+                            license_type=license_type,
+                            encumbered_status=matching_license_in_current_jurisdiction.encumberedStatus,
+                        )
+                        continue
+
+                    # Get transaction items for privileges that can be moved to a license in the new jurisdiction
+                    privilege_transaction_items = (
+                        self._get_privilege_transaction_items_resulting_from_home_jurisdiction_move(
+                            compact=compact,
+                            provider_id=provider_id,
+                            provider_user_records=provider_user_records,
+                            selected_jurisdiction=selected_jurisdiction,
+                            license_type=license_type,
+                        )
+                    )
+                    all_transaction_items.extend(privilege_transaction_items)
+
+            # Execute all transactions in batches
+            self._execute_batched_transactions(all_transaction_items)
+
+        except Exception as e:
+            logger.error(
+                'Failed to update provider home state jurisdiction',
+                compact=compact,
+                provider_id=provider_id,
+                selected_jurisdiction=selected_jurisdiction,
+                error=str(e),
+            )
+            raise CCInternalException('Failed to update provider home state jurisdiction') from e
+
+    def _execute_batched_transactions(self, transaction_items: list[dict]) -> None:
+        """
+        Execute transaction items in batches of 100 (DynamoDB limit).
+
+        :param transaction_items: List of transaction items to execute
+        :raises CCInternalException: If any transaction batch fails
+        """
+        if not transaction_items:
+            logger.info('No transaction items to execute')
+            return
+
+        logger.info('Executing batched transactions', total_items=len(transaction_items))
+
+        # DynamoDB transaction limit is 100 items
+        batch_size = 100
+        processed_batches = []
+
+        try:
+            # Process transactions in batches
+            for i in range(0, len(transaction_items), batch_size):
+                batch = transaction_items[i : i + batch_size]
+                logger.info(
+                    'Executing transaction batch',
+                    batch_number=len(processed_batches) + 1,
+                    batch_size=len(batch),
+                    total_batches=(len(transaction_items) + batch_size - 1) // batch_size,
+                )
+
+                self.config.dynamodb_client.transact_write_items(TransactItems=batch)
+                processed_batches.append(batch)
+
+        except Exception as e:
+            logger.error(
+                'Transaction batch failed',
+                failed_batch_number=len(processed_batches) + 1,
+                total_processed_batches=len(processed_batches),
+                error=str(e),
+            )
+            raise CCInternalException(f'Transaction batch failed: {str(e)}') from e
+
+    def _get_privilege_transaction_items_resulting_from_home_jurisdiction_move(
+        self,
+        *,
+        compact: str,
+        provider_id: str,
+        provider_user_records: ProviderUserRecords,
+        selected_jurisdiction: str,
+        license_type: str,
+    ) -> list[dict]:
+        """
+        Get transaction items for privileges that are affected by moving to a new jurisdiction.
+
+        This method contains the common logic for determining if privileges should be:
+        1. Deactivated because there's no matching license in the selected jurisdiction
+        2. Deactivated because the matching license is not compact eligible
+        3. Updated to reference the new license (potentially with encumbered status)
+
+        :param compact: The compact name
+        :param provider_id: The provider ID
+        :param provider_user_records: Collection of records for provider, including privileges and licenses
+        :param selected_jurisdiction: The jurisdiction the provider has selected through the api.
+        :param license_type: The license type to check
+        :return: List of transaction items
+        """
+        # Get privileges for this license type that were not previously deactivated
+        privileges_for_license_type = [
+            privilege
+            for privilege in provider_user_records.get_privilege_records(
+                filter_condition=lambda p: p.licenseType == license_type
+                and p.homeJurisdictionChangeStatus != HomeJurisdictionChangeStatusEnum.INACTIVE
+            )
+        ]
+
+        if not privileges_for_license_type:
+            logger.info('No active privileges found for license type.', license_type=license_type)
+            return []
+
+        licenses_in_selected_jurisdiction = provider_user_records.get_license_records(
+            filter_condition=lambda license_data: license_data.jurisdiction == selected_jurisdiction
+        )
+
+        # Find matching license in new jurisdiction
+        matching_license_in_selected_jurisdiction = next(
+            (
+                license_data
+                for license_data in licenses_in_selected_jurisdiction
+                if license_data.licenseType == license_type
+            ),
+            None,
+        )
+
+        if not matching_license_in_selected_jurisdiction:
+            logger.info(
+                'No matching license in new jurisdiction for license type. Deactivating privileges.',
+                license_type=license_type,
+            )
+            # Return transaction items for deactivating privileges if no matching license in new jurisdiction
+            return self._get_privilege_deactivation_transaction_items_for_jurisdiction_change(
+                compact=compact, provider_id=provider_id, privileges=privileges_for_license_type
+            )
+
+        # Check if new license is compact eligible
+        if (
+            matching_license_in_selected_jurisdiction.jurisdictionUploadedCompactEligibility
+            == CompactEligibilityStatus.INELIGIBLE
+        ):
+            logger.info('License in selected jurisdiction is not compact eligible')
+            return self._get_privilege_deactivation_transaction_items_for_jurisdiction_change(
+                compact=compact, provider_id=provider_id, privileges=privileges_for_license_type
+            )
+
+        # Return transaction items for updating privileges based on their current state
+        return self._get_privilege_update_transaction_items_for_jurisdiction_change(
+            compact=compact,
+            provider_id=provider_id,
+            privileges=privileges_for_license_type,
+            new_license=matching_license_in_selected_jurisdiction,
+        )
+
+    def _get_provider_record_transaction_items_for_jurisdiction_with_no_known_license(
+        self,
+        *,
+        compact: str,
+        provider_id: str,
+        provider_record: ProviderData,
+        selected_jurisdiction: str,
+    ) -> list[dict]:
+        """
+        Get transaction items for updating the provider record when changing to a
+        jurisdiction for which we do not have a license on file.
+
+        :param compact: The compact name
+        :param provider_id: The provider ID
+        :param provider_record: The current provider record
+        :param selected_jurisdiction: The selected non-member jurisdiction
+        :return: List of transaction items
+        """
+        logger.info(
+            'Updating provider record for jurisdiction with no known license',
+            compact=compact,
+            provider_id=provider_id,
+            new_jurisdiction=selected_jurisdiction,
+        )
+
+        # Create the provider update record
+        provider_update_record = ProviderUpdateData.create_new(
+            {
+                'type': 'providerUpdate',
+                'updateType': UpdateCategory.HOME_JURISDICTION_CHANGE,
+                'providerId': provider_id,
+                'compact': compact,
+                'previous': provider_record.to_dict(),
+                'updatedValues': {
+                    'currentHomeJurisdiction': selected_jurisdiction,
+                },
+            }
+        )
+
+        # Create transaction items for the provider update
+        return [
+            # Create provider update record
+            {
+                'Put': {
+                    'TableName': self.config.provider_table_name,
+                    'Item': TypeSerializer().serialize(provider_update_record.serialize_to_database_record())['M'],
+                }
+            },
+            # Update provider record. In this case, we set the current home jurisdiction without setting any new license
+            # values, since there is no new license.
+            {
+                'Update': {
+                    'TableName': self.config.provider_table_name,
+                    'Key': {
+                        'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
+                        'sk': {'S': f'{compact}#PROVIDER'},
+                    },
+                    'UpdateExpression': 'SET '
+                    'currentHomeJurisdiction = :currentHomeJurisdiction, '
+                    'dateOfUpdate = :dateOfUpdate',
+                    'ExpressionAttributeValues': {
+                        ':currentHomeJurisdiction': {'S': selected_jurisdiction},
+                        ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
+                    },
+                }
+            },
+        ]
+
+    def _get_privilege_deactivation_transaction_items_for_jurisdiction_change(
+        self,
+        *,
+        compact: str,
+        provider_id: str,
+        privileges: list[PrivilegeData],
+    ) -> list[dict]:
+        """
+        Get transaction items for deactivating privileges when changing to a jurisdiction where they can't be valid.
+
+        Note: This method is designed to handle up to 50 privileges in a single transaction.
+        We don't anticipate a system with more than 50 jurisdictions for the foreseeable future,
+        so this limit is sufficient.
+        If the system grows beyond 50 jurisdictions, this method will need to be enhanced to
+        process multiple transactions with proper rollback handling.
+
+        :param compact: The compact name
+        :param provider_id: The provider ID
+        :param privileges: The list of privileges to deactivate
+        :return: List of transaction items
+        """
+        if not privileges:
+            logger.info(
+                'No privileges provided to deactivate for jurisdiction change',
+                compact=compact,
+                provider_id=provider_id,
+            )
+            return []
+
+        logger.info(
+            'Deactivating privileges for jurisdiction change',
+            compact=compact,
+            provider_id=provider_id,
+            num_privileges=len(privileges),
+        )
+
+        transactions = []
+
+        for privilege in privileges:
+            # Create update record
+            privilege_update_record = PrivilegeUpdateData.create_new(
+                {
+                    'type': 'privilegeUpdate',
+                    'updateType': UpdateCategory.HOME_JURISDICTION_CHANGE,
+                    'providerId': provider_id,
+                    'compact': compact,
+                    'jurisdiction': privilege.jurisdiction,
+                    'licenseType': privilege.licenseType,
+                    'previous': privilege.to_dict(),
+                    'updatedValues': {
+                        'homeJurisdictionChangeStatus': HomeJurisdictionChangeStatusEnum.INACTIVE,
+                        'dateOfUpdate': self.config.current_standard_datetime,
+                    },
+                }
+            )
+
+            # Add update record to transaction
+            transactions.append(
+                {
+                    'Put': {
+                        'TableName': self.config.provider_table_name,
+                        'Item': TypeSerializer().serialize(privilege_update_record.serialize_to_database_record())['M'],
+                    }
+                }
+            )
+
+            # Update privilege record
+            transactions.append(
+                {
+                    'Update': {
+                        'TableName': self.config.provider_table_name,
+                        'Key': {
+                            'pk': {'S': privilege.serialize_to_database_record()['pk']},
+                            'sk': {'S': privilege.serialize_to_database_record()['sk']},
+                        },
+                        'UpdateExpression': 'SET homeJurisdictionChangeStatus = :homeJurisdictionChangeStatus,'
+                        'dateOfUpdate = :dateOfUpdate',
+                        'ExpressionAttributeValues': {
+                            ':homeJurisdictionChangeStatus': {'S': HomeJurisdictionChangeStatusEnum.INACTIVE},
+                            ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
+                        },
+                    }
+                }
+            )
+
+        return transactions
+
+    def _get_provider_record_transaction_items_for_jurisdiction_change_with_license(
+        self,
+        *,
+        compact: str,
+        provider_id: str,
+        provider_records: ProviderUserRecords,
+        new_license_record: LicenseData,
+        selected_jurisdiction: str,
+    ) -> list[dict]:
+        """
+        Get transaction items for updating the provider record when changing to a new best license.
+
+        :param compact: The compact name
+        :param provider_id: The provider ID
+        :param provider_records: All the records for this provider
+        :param new_license_record: The best license in the new jurisdiction
+        :param selected_jurisdiction: The selected jurisdiction
+        :return: List of transaction items
+        """
+        logger.info(
+            'Updating provider record with information from new best license',
+            compact=compact,
+            provider_id=provider_id,
+            license_jurisdiction=new_license_record.jurisdiction,
+        )
+
+        # Create the provider update record
+        provider_update_record = ProviderUpdateData.create_new(
+            {
+                'type': 'providerUpdate',
+                'updateType': UpdateCategory.HOME_JURISDICTION_CHANGE,
+                'providerId': provider_id,
+                'compact': compact,
+                'previous': provider_records.get_provider_record().to_dict(),
+                'updatedValues': {
+                    'licenseJurisdiction': new_license_record.jurisdiction,
+                    # we explicitly set this to align with what was passed in as the selected jurisdiction
+                    'currentHomeJurisdiction': selected_jurisdiction,
+                },
+            }
+        )
+
+        # Create transaction items for the provider update
+        transactions = [
+            # Create provider update record
+            {
+                'Put': {
+                    'TableName': self.config.provider_table_name,
+                    'Item': TypeSerializer().serialize(provider_update_record.serialize_to_database_record())['M'],
+                }
+            },
+        ]
+        # populate the provider record with the fields from the new license
+        provider_record = ProviderRecordUtility.populate_provider_record(
+            current_provider_record=provider_records.get_provider_record(),
+            license_record=new_license_record.to_dict(),
+            privilege_records=[privilege.to_dict() for privilege in provider_records.get_privilege_records()],
+        )
+        provider_record.update({'currentHomeJurisdiction': selected_jurisdiction})
+        transactions.append(
+            {
+                'Put': {
+                    'TableName': config.provider_table_name,
+                    'Item': TypeSerializer().serialize(provider_record.serialize_to_database_record())['M'],
+                }
+            }
+        )
+
+        return transactions
+
+    def _get_privilege_update_transaction_items_for_jurisdiction_change(
+        self,
+        *,
+        compact: str,
+        provider_id: str,
+        privileges: list[PrivilegeData],
+        new_license: LicenseData,
+    ) -> list[dict]:
+        """
+        Get transaction items for updating privileges when changing to a jurisdiction with a valid license.
+
+        Note: This method is designed to handle up to 50 privileges in a single transaction.
+        The current system supports a maximum of 50 jurisdictions, so this limit is sufficient.
+        If the system grows beyond 50 jurisdictions, this method will need to be enhanced to
+        process multiple transactions with proper rollback handling.
+
+        :param compact: The compact name
+        :param provider_id: The provider ID
+        :param privileges: The list of privileges to update
+        :param new_license: The license in the new jurisdiction
+        :return: List of transaction items
+        """
+        if not privileges:
+            logger.info(
+                'No privileges provided to update for jurisdiction change with valid license',
+                compact=compact,
+                provider_id=provider_id,
+                new_jurisdiction=new_license.jurisdiction,
+                license_type=new_license.licenseType,
+            )
+            return []
+
+        is_new_license_encumbered = new_license.encumberedStatus == LicenseEncumberedStatusEnum.ENCUMBERED
+
+        logger.info(
+            'Updating privileges for jurisdiction change with valid license',
+            compact=compact,
+            provider_id=provider_id,
+            new_jurisdiction=new_license.jurisdiction,
+            num_privileges=len(privileges),
+            is_new_license_encumbered=is_new_license_encumbered,
+            license_type=new_license.licenseType,
+            license_expiration=new_license.dateOfExpiration,
+        )
+
+        transactions = []
+
+        for privilege in privileges:
+            # if the privilege is for the same jurisdiction as the new license,
+            # then we deactivate it
+            if privilege.jurisdiction == new_license.jurisdiction:
+                logger.info(
+                    'Privilege is for the same jurisdiction as the new license. Deactivating privilege.',
+                    privilege_id=privilege.privilegeId,
+                    privilege_jurisdiction=privilege.jurisdiction,
+                    new_license_jurisdiction=new_license.jurisdiction,
+                    privilege_license_type=privilege.licenseType,
+                )
+                # Get transaction items for deactivating this privilege and add them to our transactions
+                deactivation_transactions = self._get_privilege_deactivation_transaction_items_for_jurisdiction_change(
+                    compact=compact, provider_id=provider_id, privileges=[privilege]
+                )
+                transactions.extend(deactivation_transactions)
+                continue
+
+            # Check if privilege was previously deactivated due to a home jurisdiction change.
+            # If the privilege was renewed after the last jurisdiction update, this field should
+            # not be present.
+            if privilege.homeJurisdictionChangeStatus is not None:
+                logger.info(
+                    'Privilege was previously deactivated due to home jurisdiction change. '
+                    'Will not move privilege over.',
+                    privilege_id=privilege.privilegeId,
+                    privilege_jurisdiction=privilege.jurisdiction,
+                    privilege_license_type=privilege.licenseType,
+                )
+                continue
+
+            updated_values = {
+                'licenseJurisdiction': new_license.jurisdiction,
+                'dateOfExpiration': new_license.dateOfExpiration,
+            }
+
+            # When a home state license is encumbered, all associated privileges for that license must be
+            # encumbered as well. We use the 'LICENSE_ENCUMBERED' status type to denote the encumbrance on the privilege
+            # is the result of a home state license being encumbered, rather than a state setting an encumbrance on an
+            # individual privilege directly. If a state sets an encumbrance on a privilege record directly, it will be
+            # in an 'ENCUMBERED' status.
+            #
+            # When changing home states, if the new home state license is encumbered, we set the privileges for that
+            # license type to a 'LICENSE_ENCUMBERED' status unless the privilege itself has already been encumbered with
+            # an 'ENCUMBERED' status.
+            if is_new_license_encumbered and privilege.encumberedStatus != PrivilegeEncumberedStatusEnum.ENCUMBERED:
+                logger.info(
+                    'New license record is encumbered and privilege is not already encumbered. Apply encumbered status.'
+                )
+                updated_values['encumberedStatus'] = PrivilegeEncumberedStatusEnum.LICENSE_ENCUMBERED
+
+            # Create update record
+            privilege_update_record = PrivilegeUpdateData.create_new(
+                {
+                    'type': 'privilegeUpdate',
+                    'updateType': UpdateCategory.HOME_JURISDICTION_CHANGE,
+                    'providerId': provider_id,
+                    'compact': compact,
+                    'jurisdiction': privilege.jurisdiction,
+                    'licenseType': privilege.licenseType,
+                    'previous': privilege.to_dict(),
+                    'updatedValues': updated_values,
+                }
+            )
+
+            # Add update record to transaction
+            transactions.append(
+                {
+                    'Put': {
+                        'TableName': self.config.provider_table_name,
+                        'Item': TypeSerializer().serialize(privilege_update_record.serialize_to_database_record())['M'],
+                    }
+                }
+            )
+
+            # Update privilege record
+            set_clauses = [
+                'licenseJurisdiction = :licenseJurisdiction',
+                'dateOfExpiration = :dateOfExpiration',
+                'dateOfUpdate = :dateOfUpdate',
+            ]
+            expression_values = {
+                ':licenseJurisdiction': {'S': new_license.jurisdiction},
+                ':dateOfExpiration': {'S': new_license.dateOfExpiration.isoformat()},
+                ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
+            }
+
+            if is_new_license_encumbered:
+                set_clauses.append('encumberedStatus = :encumberedStatus')
+                expression_values[':encumberedStatus'] = {'S': updated_values['encumberedStatus']}
+
+            # Build the final update expression
+            update_expression = 'SET ' + ', '.join(set_clauses)
+
+            serialized_privilege_record = privilege.serialize_to_database_record()
+
+            transactions.append(
+                {
+                    'Update': {
+                        'TableName': self.config.provider_table_name,
+                        'Key': {
+                            'pk': {'S': serialized_privilege_record['pk']},
+                            'sk': {'S': serialized_privilege_record['sk']},
+                        },
+                        'UpdateExpression': update_expression,
+                        'ExpressionAttributeValues': expression_values,
+                    }
+                }
+            )
+
+        return transactions

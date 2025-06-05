@@ -24,9 +24,11 @@ class TstFunction(TstLambdas):
         self.build_resources()
 
         import cc_common.config
+        from common_test.test_data_generator import TestDataGenerator
 
         cc_common.config.config = cc_common.config._Config()  # noqa: SLF001 protected-access
         self.config = cc_common.config.config
+        self.test_data_generator = TestDataGenerator
 
         self.addCleanup(self.delete_resources)
 
@@ -37,6 +39,7 @@ class TstFunction(TstLambdas):
         self._transaction_reports_bucket = boto3.resource('s3').create_bucket(
             Bucket=os.environ['TRANSACTION_REPORTS_BUCKET_NAME']
         )
+        boto3.client('events').create_event_bus(Name=os.environ['EVENT_BUS_NAME'])
 
     def create_compact_configuration_table(self):
         self._compact_configuration_table = boto3.resource('dynamodb').create_table(

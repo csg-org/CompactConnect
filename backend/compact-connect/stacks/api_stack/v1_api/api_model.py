@@ -39,6 +39,33 @@ class ApiModel:
         return self.api._v1_message_response_model
 
     @property
+    def put_provider_home_jurisdiction_request_model(self) -> Model:
+        """Return the PUT home jurisdiction request model, which should only be created once per API"""
+        if hasattr(self.api, '_v1_put_provider_home_jurisdiction_request_model'):
+            return self.api._v1_put_provider_home_jurisdiction_request_model
+
+        # the user can set their home jurisdiction to any of the known jurisdictions, or 'other'
+        # in the case the provider has a home jurisdiction that is not listed
+        allowed_options = self.api.node.get_context('jurisdictions') + ['other']
+        self.api._v1_put_provider_home_jurisdiction_request_model = self.api.add_model(
+            'V1PutProviderHomeJurisdictionRequestModel',
+            description='PUT provider home jurisdiction request model',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                additional_properties=False,
+                required=['jurisdiction'],
+                properties={
+                    'jurisdiction': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='The jurisdiction postal abbreviation to set as home jurisdiction',
+                        enum=allowed_options,
+                    ),
+                },
+            ),
+        )
+        return self.api._v1_put_provider_home_jurisdiction_request_model
+
+    @property
     def query_providers_request_model(self) -> Model:
         """Return the query providers request model, which should only be created once per API"""
         if hasattr(self.api, '_v1_query_providers_request_model'):
@@ -968,7 +995,6 @@ class ApiModel:
                 'givenName',
                 'familyName',
                 'licenseType',
-                'status',
                 'compact',
                 'licenseJurisdiction',
                 'privilegeJurisdictions',
@@ -1292,6 +1318,19 @@ class ApiModel:
         }
 
     @property
+    def current_home_jurisdiction_selection_field(self) -> JsonSchema:
+        # A provider's current home jurisdiction can be one of the following:
+        # 'unknown' - The provider has not registered with the system
+        # 'other' - The provider is in a jurisdiction that is not in the system's list of jurisdictions
+        # Otherwise, the provider is in a known jurisdiction that is listed within the system.
+        allowed_options = self.api.node.get_context('jurisdictions') + ['other', 'unknown']
+        return JsonSchema(
+            type=JsonSchemaType.STRING,
+            description='The current jurisdiction postal abbreviation if known.',
+            enum=allowed_options,
+        )
+
+    @property
     def _common_provider_properties(self) -> dict:
         return {
             'type': JsonSchema(type=JsonSchemaType.STRING, enum=['provider']),
@@ -1310,20 +1349,12 @@ class ApiModel:
                 type=JsonSchemaType.STRING, enum=['eligible', 'ineligible']
             ),
             'compact': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.node.get_context('compacts')),
-            'emailAddress': JsonSchema(type=JsonSchemaType.STRING, format='email', min_length=5, max_length=100),
-            'phoneNumber': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.PHONE_NUMBER_FORMAT),
-            'homeAddressStreet1': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
-            'homeAddressStreet2': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
-            'homeAddressCity': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
-            'homeAddressState': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
-            'homeAddressPostalCode': JsonSchema(type=JsonSchemaType.STRING, min_length=5, max_length=7),
             'birthMonthDay': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.MD_FORMAT),
             'dateOfBirth': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
             'dateOfExpiration': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
             'licenseJurisdiction': JsonSchema(
                 type=JsonSchemaType.STRING, enum=self.stack.node.get_context('jurisdictions')
             ),
-            'status': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
             'privilegeJurisdictions': JsonSchema(
                 type=JsonSchemaType.ARRAY,
                 items=JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.node.get_context('jurisdictions')),
@@ -1334,9 +1365,7 @@ class ApiModel:
                 min_length=5,
                 max_length=100,
             ),
-            'cognitoSub': JsonSchema(
-                type=JsonSchemaType.STRING,
-            ),
+            'currentHomeJurisdiction': self.current_home_jurisdiction_selection_field,
             'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
         }
 
@@ -1936,7 +1965,6 @@ class ApiModel:
                 'licenseJurisdiction',
                 'givenName',
                 'familyName',
-                'status',
                 'privilegeJurisdictions',
             ],
             properties={
@@ -2073,7 +2101,6 @@ class ApiModel:
                 'providerId',
                 'givenName',
                 'familyName',
-                'status',
                 'compact',
                 'licenseJurisdiction',
                 'privilegeJurisdictions',
@@ -2093,12 +2120,12 @@ class ApiModel:
             'middleName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
             'familyName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
             'suffix': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
-            'status': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
             'compact': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')),
             'licenseJurisdiction': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')),
             'privilegeJurisdictions': JsonSchema(
                 type=JsonSchemaType.ARRAY,
                 items=JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')),
             ),
+            'currentHomeJurisdiction': self.current_home_jurisdiction_selection_field,
             'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
         }

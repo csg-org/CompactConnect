@@ -10,7 +10,7 @@ from tests import TstLambdas
 
 class TestEventBatchWriter(TstLambdas):
     def test_write_big_batch(self):
-        from event_batch_writer import EventBatchWriter
+        from cc_common.event_batch_writer import EventBatchWriter
 
         put_count = []
 
@@ -38,7 +38,7 @@ class TestEventBatchWriter(TstLambdas):
         self.assertEqual(13, mock_client.put_events.call_count)
 
     def test_write_small_batch(self):
-        from event_batch_writer import EventBatchWriter
+        from cc_common.event_batch_writer import EventBatchWriter
 
         put_count = []
 
@@ -66,7 +66,7 @@ class TestEventBatchWriter(TstLambdas):
         """Making sure that, in the event that we exit with exactly 0 messages remaining, we don't try
         to put an empty batch
         """
-        from event_batch_writer import EventBatchWriter
+        from cc_common.event_batch_writer import EventBatchWriter
 
         put_count = []
 
@@ -93,7 +93,7 @@ class TestEventBatchWriter(TstLambdas):
         self.assertEqual(1, mock_client.put_events.call_count)
 
     def test_exception_recovery(self):
-        from event_batch_writer import EventBatchWriter
+        from cc_common.event_batch_writer import EventBatchWriter
 
         put_count = []
 
@@ -127,7 +127,7 @@ class TestEventBatchWriter(TstLambdas):
         """EventBatchWriter requires that it be used as a context manager (in a `with EventBatchWriter(...):` block)
         Trying to use it otherwise should raise an exception.
         """
-        from event_batch_writer import EventBatchWriter
+        from cc_common.event_batch_writer import EventBatchWriter
 
         # If a developer uses this wrong
         writer = EventBatchWriter(MagicMock())
@@ -135,7 +135,7 @@ class TestEventBatchWriter(TstLambdas):
             writer.put_event(Entry={})
 
     def test_entry_failures(self):
-        from event_batch_writer import EventBatchWriter
+        from cc_common.event_batch_writer import EventBatchWriter
 
         put_count = []
 
@@ -170,7 +170,7 @@ class TestEventBatchWriter(TstLambdas):
 
     def test_write_custom_batch_size(self):
         """Override the default batch size of 10"""
-        from event_batch_writer import EventBatchWriter
+        from cc_common.event_batch_writer import EventBatchWriter
 
         put_count = []
 
