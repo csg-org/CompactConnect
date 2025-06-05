@@ -415,6 +415,14 @@ def test_license_encumbrance_workflow():
 
         logger.info('Verified license remains encumbered after lifting first encumbrance')
 
+        # Also verify the provider record is still encumbered
+        if provider_data.get('encumberedStatus') != 'encumbered':
+            raise SmokeTestFailureException(
+                f"Provider encumberedStatus should still be 'encumbered', got: {provider_data.get('encumberedStatus')}"
+            )
+
+        logger.info('Verified provider remains encumbered after lifting first encumbrance')
+
         # Step 4: Lift final encumbrance (license should become unencumbered)
         logger.info('Step 4: Lifting final license encumbrance...')
 
@@ -623,6 +631,12 @@ def test_privilege_encumbrance_workflow():
                 f'got: {updated_privilege.get("encumberedStatus")}'
             )
 
+        # Also verify the provider record is still encumbered
+        if provider_data.get('encumberedStatus') != 'encumbered':
+            raise SmokeTestFailureException(
+                f"Provider encumberedStatus should still be 'encumbered', got: {provider_data.get('encumberedStatus')}"
+            )
+
         logger.info('Verified privilege remains encumbered after lifting first encumbrance')
 
         # Step 3: Lift final encumbrance (privilege should become unencumbered)
@@ -652,6 +666,12 @@ def test_privilege_encumbrance_workflow():
             raise SmokeTestFailureException(
                 f'Privilege should be unencumbered after lifting all encumbrances, '
                 f'got: {updated_privilege.get("encumberedStatus")}'
+            )
+
+        # Also verify the provider record is now unencumbered
+        if provider_data.get('encumberedStatus') != 'unencumbered':
+            raise SmokeTestFailureException(
+                f"Provider encumberedStatus should now be 'unencumbered', got: {provider_data.get('encumberedStatus')}"
             )
 
         logger.info('Privilege encumbrance workflow test completed successfully')

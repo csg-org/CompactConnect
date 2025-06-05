@@ -346,7 +346,7 @@ class ProviderUserRecords:
 
     def get_provider_record(self) -> ProviderData:
         """
-        Get the provider record from a list of provider records.
+        Get the provider record from a list of records associated with a provider.
         """
         if len(self._provider_records) > 1:
             logger.error('Multiple provider records found', provider_id=self._provider_records[0].providerId)

@@ -87,16 +87,16 @@ class TestEncumbranceEvents(TstFunction):
         privileges = provider_records.get_privilege_records()
 
         # Find the privileges by jurisdiction
-        unencumbered_privilege_after = next(p for p in privileges if p.jurisdiction == 'ne')
-        already_encumbered_privilege_after = next(p for p in privileges if p.jurisdiction == 'ky')
+        previously_unencumbered_privilege = next(p for p in privileges if p.jurisdiction == 'ne')
+        previously_encumbered_privilege = next(p for p in privileges if p.jurisdiction == 'ky')
 
         # Verify the unencumbered privilege is now LICENSE_ENCUMBERED
         self.assertEqual(
-            PrivilegeEncumberedStatusEnum.LICENSE_ENCUMBERED, unencumbered_privilege_after.encumberedStatus
+            PrivilegeEncumberedStatusEnum.LICENSE_ENCUMBERED, previously_unencumbered_privilege.encumberedStatus
         )
 
         # Verify the already encumbered privilege remains ENCUMBERED (not changed)
-        self.assertEqual(PrivilegeEncumberedStatusEnum.ENCUMBERED, already_encumbered_privilege_after.encumberedStatus)
+        self.assertEqual(PrivilegeEncumberedStatusEnum.ENCUMBERED, previously_encumbered_privilege.encumberedStatus)
 
     def test_license_encumbrance_listener_handles_no_matching_privileges(self):
         """Test that license encumbrance event handles case where no matching privileges exist."""
@@ -242,18 +242,18 @@ class TestEncumbranceEvents(TstFunction):
         privileges = provider_records.get_privilege_records()
 
         # Find the privileges by jurisdiction
-        license_encumbered_privilege_after = next(
+        privilege_with_previous_license_encumbered_status = next(
             p for p in privileges if p.jurisdiction == DEFAULT_PRIVILEGE_JURISDICTION
         )
-        self_encumbered_privilege_after = next(p for p in privileges if p.jurisdiction == 'ky')
+        privilege_with_previous_encumbered_status = next(p for p in privileges if p.jurisdiction == 'ky')
 
         # Verify the LICENSE_ENCUMBERED privilege is now unencumbered
         self.assertEqual(
-            PrivilegeEncumberedStatusEnum.UNENCUMBERED, license_encumbered_privilege_after.encumberedStatus
+            PrivilegeEncumberedStatusEnum.UNENCUMBERED, privilege_with_previous_license_encumbered_status.encumberedStatus
         )
 
         # Verify the self-encumbered privilege remains encumbered
-        self.assertEqual(PrivilegeEncumberedStatusEnum.ENCUMBERED, self_encumbered_privilege_after.encumberedStatus)
+        self.assertEqual(PrivilegeEncumberedStatusEnum.ENCUMBERED, privilege_with_previous_encumbered_status.encumberedStatus)
 
     def test_license_encumbrance_lifted_listener_handles_no_license_encumbered_privileges(self):
         """Test that license encumbrance lifting event handles case where no LICENSE_ENCUMBERED privileges exist."""
@@ -516,11 +516,11 @@ class TestEncumbranceEvents(TstFunction):
 
         privileges = provider_records.get_privilege_records()
 
-        matching_privilege_after = next(p for p in privileges if p.jurisdiction == 'ne')
-        different_jurisdiction_privilege_after = next(p for p in privileges if p.jurisdiction == 'tx')
+        matching_privilege = next(p for p in privileges if p.jurisdiction == 'ne')
+        different_jurisdiction_privilege = next(p for p in privileges if p.jurisdiction == 'tx')
 
-        self.assertEqual(PrivilegeEncumberedStatusEnum.LICENSE_ENCUMBERED, matching_privilege_after.encumberedStatus)
-        self.assertIsNone(different_jurisdiction_privilege_after.encumberedStatus)
+        self.assertEqual(PrivilegeEncumberedStatusEnum.LICENSE_ENCUMBERED, matching_privilege.encumberedStatus)
+        self.assertIsNone(different_jurisdiction_privilege.encumberedStatus)
 
     def test_license_encumbrance_lifted_listener_handles_mixed_license_jurisdictions(self):
         """Test that license encumbrance lifting event only affects privileges with matching license jurisdiction."""
