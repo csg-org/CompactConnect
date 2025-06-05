@@ -1068,6 +1068,7 @@ class DataClient:
                     'pk': {'S': serialized_target_adverse_action['pk']},
                     'sk': {'S': serialized_target_adverse_action['sk']},
                 },
+                'ConditionExpression': 'attribute_not_exists(effectiveLiftDate)',
                 'UpdateExpression': 'SET effectiveLiftDate = :lift_date, '
                 'liftingUser = :lifting_user, '
                 'dateOfUpdate = :date_of_update',
@@ -1078,6 +1079,65 @@ class DataClient:
                 },
             },
         }
+
+    def _validate_license_type_abbreviation(self, compact: str, license_type_abbreviation: str) -> str:
+        """
+        Validate license type abbreviation and return the full license type name.
+
+        :param str compact: The compact name
+        :param str license_type_abbreviation: The license type abbreviation to validate
+        :return: The full license type name
+        :raises CCInvalidRequestException: If the license type abbreviation is invalid
+        """
+        license_type_name = LicenseUtility.get_license_type_by_abbreviation(compact, license_type_abbreviation).name
+        if not license_type_name:
+            logger.info('Invalid license type abbreviation provided.')
+            raise CCInvalidRequestException(f'Invalid license type abbreviation: {license_type_abbreviation}')
+        return license_type_name
+
+    def _find_and_validate_adverse_action(
+        self, adverse_action_records: list[AdverseActionData], adverse_action_id: str
+    ) -> AdverseActionData:
+        """
+        Find and validate an adverse action record from a list of records.
+
+        :param list[AdverseActionData] adverse_action_records: List of adverse action records to search
+        :param str adverse_action_id: The ID of the adverse action to find
+        :return: The found adverse action record
+        :raises CCNotFoundException: If the adverse action record is not found
+        :raises CCInvalidRequestException: If the encumbrance has already been lifted
+        """
+        # Find the specific adverse action record to lift
+        target_adverse_action: AdverseActionData | None = None
+        for adverse_action in adverse_action_records:
+            if str(adverse_action.adverseActionId) == adverse_action_id:
+                target_adverse_action = adverse_action
+                break
+
+        if target_adverse_action is None:
+            raise CCNotFoundException('Encumbrance record not found')
+
+        # Check if the adverse action has already been lifted
+        if target_adverse_action.effectiveLiftDate is not None:
+            raise CCInvalidRequestException('Encumbrance has already been lifted')
+
+        return target_adverse_action
+
+    def _get_unlifted_adverse_actions(
+        self, adverse_action_records: list[AdverseActionData], target_adverse_action_id: str
+    ) -> list[AdverseActionData]:
+        """
+        Get all unlifted adverse actions excluding the target adverse action.
+
+        :param list[AdverseActionData] adverse_action_records: List of adverse action records
+        :param str target_adverse_action_id: The ID of the target adverse action being lifted
+        :return: List of unlifted adverse actions excluding the target one
+        """
+        return [
+            aa
+            for aa in adverse_action_records
+            if aa.effectiveLiftDate is None and str(aa.adverseActionId) != target_adverse_action_id
+        ]
 
     def _generate_provider_encumbered_status_update_item_if_not_already_encumbered(
         self, adverse_action: AdverseActionData, transaction_items: list[dict]
@@ -1417,10 +1477,7 @@ class DataClient:
             license_type_abbreviation=license_type_abbreviation,
             adverse_action_id=adverse_action_id,
         ):
-            license_type_name = LicenseUtility.get_license_type_by_abbreviation(compact, license_type_abbreviation).name
-            if not license_type_name:
-                logger.info('Invalid license type abbreviation provided.')
-                raise CCInvalidRequestException(f'Invalid license type abbreviation: {license_type_abbreviation}')
+            license_type_name = self._validate_license_type_abbreviation(compact, license_type_abbreviation)
 
             logger.info('Lifting privilege encumbrance')
 
@@ -1438,25 +1495,7 @@ class DataClient:
             )
 
             # Find the specific adverse action record to lift
-            target_adverse_action: AdverseActionData | None = None
-            for adverse_action in adverse_action_records:
-                if str(adverse_action.adverseActionId) == adverse_action_id:
-                    target_adverse_action = adverse_action
-                    break
-
-            if target_adverse_action is None:
-                raise CCNotFoundException('Encumbrance record not found')
-
-            # Check if the adverse action has already been lifted
-            if target_adverse_action.effectiveLiftDate is not None:
-                raise CCInvalidRequestException('Encumbrance has already been lifted')
-
-            # Check if this is the last remaining unlifted adverse action
-            unlifted_adverse_actions = [
-                aa
-                for aa in adverse_action_records
-                if aa.effectiveLiftDate is None and str(aa.adverseActionId) != adverse_action_id
-            ]
+            target_adverse_action = self._find_and_validate_adverse_action(adverse_action_records, adverse_action_id)
 
             # Get the privilege record
             privilege_records = provider_user_records.get_privilege_records(
@@ -1483,6 +1522,7 @@ class DataClient:
             )
 
             # If this was the last unlifted adverse action, update privilege status and create update record
+            unlifted_adverse_actions = self._get_unlifted_adverse_actions(adverse_action_records, adverse_action_id)
             if not unlifted_adverse_actions:
                 # Update privilege record to unencumbered status
                 privilege_update_item = self._generate_set_privilege_encumbered_status_item(
@@ -1552,10 +1592,7 @@ class DataClient:
             license_type_abbreviation=license_type_abbreviation,
             adverse_action_id=adverse_action_id,
         ):
-            license_type_name = LicenseUtility.get_license_type_by_abbreviation(compact, license_type_abbreviation).name
-            if not license_type_name:
-                logger.info('Invalid license type abbreviation provided.')
-                raise CCInvalidRequestException(f'Invalid license type abbreviation: {license_type_abbreviation}')
+            license_type_name = self._validate_license_type_abbreviation(compact, license_type_abbreviation)
 
             logger.info('Lifting license encumbrance')
 
@@ -1573,25 +1610,7 @@ class DataClient:
             )
 
             # Find the specific adverse action record to lift
-            target_adverse_action: AdverseActionData | None = None
-            for adverse_action in adverse_action_records:
-                if str(adverse_action.adverseActionId) == adverse_action_id:
-                    target_adverse_action = adverse_action
-                    break
-
-            if target_adverse_action is None:
-                raise CCNotFoundException('Encumbrance record not found')
-
-            # Check if the adverse action has already been lifted
-            if target_adverse_action.effectiveLiftDate is not None:
-                raise CCInvalidRequestException('Encumbrance has already been lifted')
-
-            # Check if this is the last remaining unlifted adverse action
-            unlifted_adverse_actions = [
-                aa
-                for aa in adverse_action_records
-                if aa.effectiveLiftDate is None and str(aa.adverseActionId) != adverse_action_id
-            ]
+            target_adverse_action = self._find_and_validate_adverse_action(adverse_action_records, adverse_action_id)
 
             # Get the license record
             license_records = provider_user_records.get_license_records(
@@ -1620,6 +1639,7 @@ class DataClient:
             )
 
             # If this was the last unlifted adverse action, update license status and create update record
+            unlifted_adverse_actions = self._get_unlifted_adverse_actions(adverse_action_records, adverse_action_id)
             if not unlifted_adverse_actions:
                 # Update license record to unencumbered status
                 license_update_item = self._generate_set_license_encumbered_status_item(
@@ -2362,10 +2382,7 @@ class DataClient:
         )
 
         # Get the license type name from abbreviation
-        license_type_name = LicenseUtility.get_license_type_by_abbreviation(compact, license_type_abbreviation).name
-        if not license_type_name:
-            logger.error('Invalid license type abbreviation provided')
-            raise CCInternalException('Invalid license type abbreviation provided')
+        license_type_name = self._validate_license_type_abbreviation(compact, license_type_abbreviation)
 
         # Find privileges associated with the license that which was encumbered, which themselves are not currently
         # encumbered
@@ -2455,12 +2472,7 @@ class DataClient:
         )
 
         # Get the license type name from abbreviation
-        from cc_common.license_util import LicenseUtility
-
-        license_type_name = LicenseUtility.get_license_type_by_abbreviation(compact, license_type_abbreviation).name
-        if not license_type_name:
-            logger.error('Invalid license type abbreviation provided')
-            raise CCInternalException('Invalid license type abbreviation provided')
+        license_type_name = self._validate_license_type_abbreviation(compact, license_type_abbreviation)
 
         # Verify the license itself is unencumbered before lifting privilege encumbrances
         # A license may still be encumbered by another adverse action that has not been lifted yet.
