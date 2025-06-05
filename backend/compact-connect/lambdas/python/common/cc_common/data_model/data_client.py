@@ -2357,9 +2357,10 @@ class DataClient:
         :param str license_type_abbreviation: The license type abbreviation
         """
         # Get all provider records
-        provider_user_records: ProviderUserRecords = config.data_client.get_provider_user_records(
+        provider_user_records: ProviderUserRecords = self.get_provider_user_records(
             compact=compact,
             provider_id=provider_id,
+            consistent_read=True
         )
 
         # Get the license type name from abbreviation
@@ -2451,9 +2452,10 @@ class DataClient:
         :param str license_type_abbreviation: The license type abbreviation
         """
         # Get all provider records
-        provider_user_records = config.data_client.get_provider_user_records(
+        provider_user_records = self.get_provider_user_records(
             compact=compact,
             provider_id=provider_id,
+            consistent_read=True
         )
 
         # Get the license type name from abbreviation
