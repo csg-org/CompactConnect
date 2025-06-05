@@ -249,11 +249,14 @@ class TestEncumbranceEvents(TstFunction):
 
         # Verify the LICENSE_ENCUMBERED privilege is now unencumbered
         self.assertEqual(
-            PrivilegeEncumberedStatusEnum.UNENCUMBERED, privilege_with_previous_license_encumbered_status.encumberedStatus
+            PrivilegeEncumberedStatusEnum.UNENCUMBERED,
+            privilege_with_previous_license_encumbered_status.encumberedStatus,
         )
 
         # Verify the self-encumbered privilege remains encumbered
-        self.assertEqual(PrivilegeEncumberedStatusEnum.ENCUMBERED, privilege_with_previous_encumbered_status.encumberedStatus)
+        self.assertEqual(
+            PrivilegeEncumberedStatusEnum.ENCUMBERED, privilege_with_previous_encumbered_status.encumberedStatus
+        )
 
     def test_license_encumbrance_lifted_listener_handles_no_license_encumbered_privileges(self):
         """Test that license encumbrance lifting event handles case where no LICENSE_ENCUMBERED privileges exist."""
