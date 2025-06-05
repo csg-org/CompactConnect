@@ -35,6 +35,7 @@ class Credentials:
         stack: Stack = Stack.of(resource)
         lambda_environment = {
             **stack.common_env_vars,
+            'COMPACT_CONFIGURATION_TABLE_NAME': persistent_stack.compact_configuration_table.table_name
         }
 
         # /v1/compacts/{compact}/credentials/payment-processor
