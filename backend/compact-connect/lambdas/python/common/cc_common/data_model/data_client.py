@@ -2381,8 +2381,8 @@ class DataClient:
             compact=compact, provider_id=provider_id, consistent_read=True
         )
 
-        # Get the license type name from abbreviation
-        license_type_name = self._validate_license_type_abbreviation(compact, license_type_abbreviation)
+        # Validate the license type abbreviation
+        self._validate_license_type_abbreviation(compact, license_type_abbreviation)
 
         # Find privileges associated with the license that which was encumbered, which themselves are not currently
         # encumbered
