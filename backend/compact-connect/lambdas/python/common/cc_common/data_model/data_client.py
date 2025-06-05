@@ -1089,11 +1089,11 @@ class DataClient:
         :return: The full license type name
         :raises CCInvalidRequestException: If the license type abbreviation is invalid
         """
-        license_type_name = LicenseUtility.get_license_type_by_abbreviation(compact, license_type_abbreviation).name
-        if not license_type_name:
+        license_type = LicenseUtility.get_license_type_by_abbreviation(compact, license_type_abbreviation)
+        if license_type is None:
             logger.info('Invalid license type abbreviation provided.')
             raise CCInvalidRequestException(f'Invalid license type abbreviation: {license_type_abbreviation}')
-        return license_type_name
+        return license_type.name
 
     def _find_and_validate_adverse_action(
         self, adverse_action_records: list[AdverseActionData], adverse_action_id: str
