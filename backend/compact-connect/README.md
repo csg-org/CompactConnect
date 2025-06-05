@@ -170,7 +170,7 @@ its environment:
 7) Complete the [Google reCAPTCHA Setup](#google-recaptcha-setup) steps for your sandbox environment.
 8) Run `cdk bootstrap` to add some base CDK support infrastructure to your AWS account.
 9) Run `cdk deploy 'Sandbox/*'` to get the initial backend stack resources deployed.
-10) *Optional:* If you have a domain name configured for your sandbox environment, once the backend stacks have successfully deployed, you can deploy the frontend UI by setting the 'deploy_sandbox_ui' context field to `true` and run `cdk deploy 'SandboxUI/*'`. If you do not have a domain name configured, you can still run the UI from local host (see the README.md under the webroot folder for more information about running the app on localhost).
+10) *Optional:* If you have a domain name configured for your sandbox environment, once the backend stacks have successfully deployed, you can deploy the frontend UI by setting the 'deploy_sandbox_ui' context field to `true` and run `cdk deploy 'SandboxUI/*'`. If you do not have a domain name configured, you can still run the UI from local host (see the README.md under the webroot folder for more information about running the app on localhost). If you do have a domain name configured, the application will be accessible at the 'app' subdomain of the configured domain name (e.g., app.[configured_domain.com]).
 
 ### Subsequent sandbox deploys:
 For any future deploys, everything is set up so a simple `cdk deploy 'Sandbox/*'` should update all your infrastructure
