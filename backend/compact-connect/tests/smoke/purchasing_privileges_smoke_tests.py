@@ -24,8 +24,9 @@ from smoke_common import (
 # 'smoke_tests_env_example.json' file as a template.
 
 # IMPORTANT - until we find a way to automate generating payment opaque data tokens,
-# this test requires you to generate a payment nonce using the Accept.js lib and a sandbox testing card.
+# this test requires you to generate a payment nonce using the Accept UI frame and a sandbox testing card.
 PAYMENT_NONCE_DATA_VALUE = ''
+
 
 def _generate_post_body(attestations_from_system, license_type):
     return {
@@ -36,6 +37,7 @@ def _generate_post_body(attestations_from_system, license_type):
         'attestations': attestations_from_system,
         'licenseType': license_type,
     }
+
 
 def test_purchase_privilege_options():
     """Test the GET /v1/purchases/privileges/options endpoint."""

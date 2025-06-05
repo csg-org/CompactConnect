@@ -14,15 +14,15 @@ from authorizenet.apicontrollers import (
 from authorizenet.constants import constants
 from cc_common.config import config, logger
 from cc_common.data_model.schema.compact import Compact
-from cc_common.data_model.schema.compact.common import CompactFeeType, TransactionFeeChargeType
+from cc_common.data_model.schema.compact.common import CompactFeeType, PaymentProcessorType, TransactionFeeChargeType
 from cc_common.data_model.schema.jurisdiction import Jurisdiction
 from cc_common.exceptions import (
     CCFailedTransactionException,
     CCInternalException,
     CCInvalidRequestException,
+    CCNotFoundException,
 )
 
-AUTHORIZE_DOT_NET_CLIENT_TYPE = 'authorize.net'
 OK_TRANSACTION_MESSAGE_RESULT_CODE = 'Ok'
 MAXIMUM_TRANSACTION_API_LIMIT = 1000
 
@@ -222,7 +222,7 @@ class PaymentProcessorClient(ABC):
 
 class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
     def __init__(self, api_login_id: str, transaction_key: str):
-        super().__init__(AUTHORIZE_DOT_NET_CLIENT_TYPE)
+        super().__init__(PaymentProcessorType.AUTHORIZE_DOT_NET_TYPE)
         self.api_login_id = api_login_id
         self.transaction_key = transaction_key
 
@@ -523,7 +523,11 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                 message_code=response.messages.message[0].code,
                 message_text=response.messages.message[0].text,
             )
-            return {'message': 'Successfully verified credentials'}
+            return {
+                'message': 'Successfully verified credentials',
+                'publicClientKey': str(response.publicClientKey),
+                'apiLoginId': self.api_login_id,
+            }
 
         logger_message = 'Failed to verify credentials.'
         error_code = response.messages.message[0]['code'].text
@@ -801,7 +805,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                                 },
                                 'lineItems': line_items,
                                 # this defines the type of transaction processor that processed the transaction
-                                'transactionProcessor': AUTHORIZE_DOT_NET_CLIENT_TYPE,
+                                'transactionProcessor': PaymentProcessorType.AUTHORIZE_DOT_NET_TYPE,
                             }
                             transactions.append(transaction_data)
                             processed_transaction_count += 1
@@ -842,7 +846,7 @@ class PaymentProcessorClientFactory:
     @staticmethod
     def create_payment_processor_client(credentials: dict) -> PaymentProcessorClient:
         processor_type: str = credentials.get('processor')
-        if processor_type.lower() == AUTHORIZE_DOT_NET_CLIENT_TYPE:
+        if processor_type.lower() == PaymentProcessorType.AUTHORIZE_DOT_NET_TYPE:
             return AuthorizeNetPaymentProcessorClient(
                 api_login_id=credentials.get('api_login_id'), transaction_key=credentials.get('transaction_key')
             )
@@ -950,7 +954,7 @@ class PurchaseClient:
         :return: A response indicating the credentials were validated and stored successfully
         :raises CCInvalidRequestException: If the credentials are invalid
         """
-        if credentials['processor'] != AUTHORIZE_DOT_NET_CLIENT_TYPE:
+        if credentials['processor'] != PaymentProcessorType.AUTHORIZE_DOT_NET_TYPE:
             raise CCInvalidRequestException('Invalid payment processor')
 
         # call payment processor test endpoint to validate the credentials
@@ -963,7 +967,24 @@ class PurchaseClient:
         # this will raise an exception if the credentials are invalid
         response = PaymentProcessorClientFactory().create_payment_processor_client(secret_value).validate_credentials()
 
-        # no exceptions were raised, so the credentials are valid
+        # No exceptions were raised, so the credentials are valid
+        # Store the public fields in the compact configuration for frontend use
+        if credentials['processor'] == PaymentProcessorType.AUTHORIZE_DOT_NET_TYPE:
+            logger.info('Storing payment processor public fields in compact configuration', compact_abbr=compact_abbr)
+            try:
+                config.compact_configuration_client.set_compact_authorize_net_public_values(
+                    compact=compact_abbr,
+                    api_login_id=response['apiLoginId'],
+                    public_client_key=response['publicClientKey'],
+                )
+            except CCNotFoundException as e:
+                logger.info('Compact configuration has not been configured yet', compact_abbr=compact_abbr)
+                raise CCInvalidRequestException(
+                    'Compact Fee configuration has not been configured yet. '
+                    'Please configure the compact fee values and then upload your '
+                    'credentials again.'
+                ) from e
+
         # first check to see if secret already exists
         try:
             self.secrets_manager_client.describe_secret(
@@ -984,7 +1005,7 @@ class PurchaseClient:
                 SecretString=json.dumps(secret_value),
             )
 
-        return response
+        return {'message': 'Successfully verified credentials'}
 
     def get_settled_transactions(
         self,

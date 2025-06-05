@@ -9,6 +9,10 @@ from cc_common.data_model.schema.fields import PositiveDecimal
 COMPACT_TYPE = 'compact'
 
 
+class PaymentProcessorType(CCEnum):
+    AUTHORIZE_DOT_NET_TYPE = 'authorize.net'
+
+
 class CompactFeeType(CCEnum):
     FLAT_RATE = 'FLAT_RATE'
 
@@ -34,3 +38,14 @@ class TransactionFeeConfigurationSchema(Schema):
     """Schema for the transaction fee configuration"""
 
     licenseeCharges = Nested(LicenseeChargesSchema(), required=False, allow_none=True)
+
+
+class PaymentProcessorPublicFieldsSchema(Schema):
+    """
+    Schema for compact payment processor public fields.
+
+    These fields are required by the client side to generate a payment collection form.
+    """
+
+    publicClientKey = String(required=True, allow_none=False)
+    apiLoginId = String(required=True, allow_none=False)
