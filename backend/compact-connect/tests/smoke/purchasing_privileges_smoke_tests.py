@@ -9,6 +9,7 @@ from boto3.dynamodb.conditions import Key
 from compact_configuration_smoke_tests import (
     test_compact_configuration,
     test_jurisdiction_configuration,
+    test_upload_payment_processor_credentials,
 )
 from config import config, logger
 from smoke_common import (
@@ -45,6 +46,9 @@ def test_purchase_privilege_options():
     # These will set up the configurations and return them for verification
     compact_config = test_compact_configuration()
     jurisdiction_config = test_jurisdiction_configuration()
+    
+    # Upload payment processor credentials to ensure they are available
+    test_upload_payment_processor_credentials()
 
     # Now test the purchase privilege options endpoint
     headers = get_provider_user_auth_headers_cached()
@@ -68,6 +72,7 @@ def test_purchase_privilege_options():
         'compactName': compact_config['compactName'],
         'compactAbbr': compact_config['compactAbbr'],
         'compactCommissionFee': compact_config['compactCommissionFee'],
+        'isSandbox': True,  # Should always be True in sandbox environment
     }
 
     # Add transaction fee config if it exists
@@ -80,6 +85,23 @@ def test_purchase_privilege_options():
             raise SmokeTestFailureException(f'Key {key} not found in compact data')
         if compact_data[key] != value:
             raise SmokeTestFailureException(f'Value mismatch for key {key}. Expected {value}, got {compact_data[key]}')
+
+    # Verify paymentProcessorPublicFields are present and contain expected values
+    if 'paymentProcessorPublicFields' not in compact_data:
+        raise SmokeTestFailureException('paymentProcessorPublicFields not found in compact data')
+    
+    payment_fields = compact_data['paymentProcessorPublicFields']
+    
+    # Verify apiLoginId matches what we uploaded
+    if payment_fields.get('apiLoginId') != config.sandbox_authorize_net_api_login_id:
+        raise SmokeTestFailureException(
+            f'apiLoginId mismatch. Expected {config.sandbox_authorize_net_api_login_id}, '
+            f'got {payment_fields.get("apiLoginId")}'
+        )
+    
+    # Verify publicClientKey is present (we don't verify the exact value since it's from authorize.net)
+    if not payment_fields.get('publicClientKey'):
+        raise SmokeTestFailureException('publicClientKey is not present')
 
     # Verify the jurisdiction data (Kentucky) based on what was set in test_jurisdiction_configuration
     jurisdiction = jurisdiction_config['postalAbbreviation']
