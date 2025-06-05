@@ -2358,16 +2358,14 @@ class DataClient:
         """
         # Get all provider records
         provider_user_records: ProviderUserRecords = self.get_provider_user_records(
-            compact=compact,
-            provider_id=provider_id,
-            consistent_read=True
+            compact=compact, provider_id=provider_id, consistent_read=True
         )
 
         # Get the license type name from abbreviation
         license_type_name = LicenseUtility.get_license_type_by_abbreviation(compact, license_type_abbreviation).name
         if not license_type_name:
             logger.error('Invalid license type abbreviation provided')
-            raise CCInternalException
+            raise CCInternalException('Invalid license type abbreviation provided')
 
         # Find privileges associated with the license that which was encumbered, which themselves are not currently
         # encumbered
@@ -2453,9 +2451,7 @@ class DataClient:
         """
         # Get all provider records
         provider_user_records = self.get_provider_user_records(
-            compact=compact,
-            provider_id=provider_id,
-            consistent_read=True
+            compact=compact, provider_id=provider_id, consistent_read=True
         )
 
         # Get the license type name from abbreviation
@@ -2464,7 +2460,7 @@ class DataClient:
         license_type_name = LicenseUtility.get_license_type_by_abbreviation(compact, license_type_abbreviation).name
         if not license_type_name:
             logger.error('Invalid license type abbreviation provided')
-            return
+            raise CCInternalException('Invalid license type abbreviation provided')
 
         # Verify the license itself is unencumbered before lifting privilege encumbrances
         # A license may still be encumbered by another adverse action that has not been lifted yet.
