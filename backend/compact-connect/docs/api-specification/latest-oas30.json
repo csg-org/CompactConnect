@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "LicenseApi",
-    "version": "2025-06-03T21:07:14Z"
+    "version": "2025-06-05T16:54:45Z"
   },
   "servers": [
     {
@@ -970,6 +970,126 @@
         ]
       }
     },
+    "/v1/compacts/{compact}/providers/{providerId}/licenses/jurisdiction/{jurisdiction}/licenseType/{licenseType}/encumbrance/{encumbranceId}": {
+      "patch": {
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "compact",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "providerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "jurisdiction",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "licenseType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "encumbranceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SandboLicen70lxldsITafm"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SandboLicen2XGMfkiyQuog"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
+              "aslp/admin",
+              "al/aslp.admin",
+              "ak/aslp.admin",
+              "ar/aslp.admin",
+              "co/aslp.admin",
+              "de/aslp.admin",
+              "fl/aslp.admin",
+              "ga/aslp.admin",
+              "id/aslp.admin",
+              "in/aslp.admin",
+              "ia/aslp.admin",
+              "ks/aslp.admin",
+              "ky/aslp.admin",
+              "la/aslp.admin",
+              "me/aslp.admin",
+              "md/aslp.admin",
+              "mn/aslp.admin",
+              "ms/aslp.admin",
+              "mo/aslp.admin",
+              "ne/aslp.admin",
+              "oh/aslp.admin",
+              "octp/admin",
+              "al/octp.admin",
+              "ar/octp.admin",
+              "ky/octp.admin",
+              "la/octp.admin",
+              "ms/octp.admin",
+              "ne/octp.admin",
+              "oh/octp.admin",
+              "coun/admin",
+              "al/coun.admin",
+              "ar/coun.admin",
+              "fl/coun.admin",
+              "ga/coun.admin",
+              "ky/coun.admin",
+              "ne/coun.admin",
+              "oh/coun.admin",
+              "ut/coun.admin"
+            ]
+          }
+        ]
+      }
+    },
     "/v1/compacts/{compact}/providers/{providerId}/privileges/jurisdiction/{jurisdiction}/licenseType/{licenseType}/deactivate": {
       "post": {
         "parameters": [
@@ -1229,6 +1349,126 @@
           },
           {
             "name": "licenseType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SandboLicen3iPXeV1EY4kC"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SandboLicen2XGMfkiyQuog"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
+              "aslp/admin",
+              "al/aslp.admin",
+              "ak/aslp.admin",
+              "ar/aslp.admin",
+              "co/aslp.admin",
+              "de/aslp.admin",
+              "fl/aslp.admin",
+              "ga/aslp.admin",
+              "id/aslp.admin",
+              "in/aslp.admin",
+              "ia/aslp.admin",
+              "ks/aslp.admin",
+              "ky/aslp.admin",
+              "la/aslp.admin",
+              "me/aslp.admin",
+              "md/aslp.admin",
+              "mn/aslp.admin",
+              "ms/aslp.admin",
+              "mo/aslp.admin",
+              "ne/aslp.admin",
+              "oh/aslp.admin",
+              "octp/admin",
+              "al/octp.admin",
+              "ar/octp.admin",
+              "ky/octp.admin",
+              "la/octp.admin",
+              "ms/octp.admin",
+              "ne/octp.admin",
+              "oh/octp.admin",
+              "coun/admin",
+              "al/coun.admin",
+              "ar/coun.admin",
+              "fl/coun.admin",
+              "ga/coun.admin",
+              "ky/coun.admin",
+              "ne/coun.admin",
+              "oh/coun.admin",
+              "ut/coun.admin"
+            ]
+          }
+        ]
+      }
+    },
+    "/v1/compacts/{compact}/providers/{providerId}/privileges/jurisdiction/{jurisdiction}/licenseType/{licenseType}/encumbrance/{encumbranceId}": {
+      "patch": {
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "compact",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "providerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "jurisdiction",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "licenseType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "encumbranceId",
             "in": "path",
             "required": true,
             "schema": {
@@ -5290,8 +5530,7 @@
       },
       "SandboLicen3iPXeV1EY4kC": {
         "required": [
-          "effectiveLiftDate",
-          "encumbranceId"
+          "effectiveLiftDate"
         ],
         "type": "object",
         "properties": {
@@ -5300,11 +5539,6 @@
             "type": "string",
             "description": "The effective date when the encumbrance will be lifted",
             "format": "date"
-          },
-          "encumbranceId": {
-            "maxLength": 100,
-            "type": "string",
-            "description": "The unique identifier of the encumbrance to be lifted"
           }
         },
         "additionalProperties": false
@@ -5871,8 +6105,7 @@
       },
       "SandboLicen70lxldsITafm": {
         "required": [
-          "effectiveLiftDate",
-          "encumbranceId"
+          "effectiveLiftDate"
         ],
         "type": "object",
         "properties": {
@@ -5881,11 +6114,6 @@
             "type": "string",
             "description": "The effective date when the encumbrance will be lifted",
             "format": "date"
-          },
-          "encumbranceId": {
-            "maxLength": 100,
-            "type": "string",
-            "description": "The unique identifier of the encumbrance to be lifted"
           }
         },
         "additionalProperties": false
