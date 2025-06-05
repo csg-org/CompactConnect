@@ -9,6 +9,8 @@ from cdk_nag import NagSuppressions
 from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
 
+from stacks import persistent_stack as ps
+
 # Importing module level to allow lazy loading for typing
 from stacks.api_stack import cc_api
 
@@ -21,6 +23,7 @@ class Credentials:
         *,
         resource: Resource,
         method_options: MethodOptions,
+        persistent_stack: ps.PersistentStack,
         api_model: ApiModel,
     ):
         super().__init__()
@@ -36,14 +39,11 @@ class Credentials:
 
         # /v1/compacts/{compact}/credentials/payment-processor
         self._add_post_credentials_payment_processor(
-            method_options=method_options,
-            lambda_environment=lambda_environment,
+            method_options=method_options, lambda_environment=lambda_environment, persistent_stack=persistent_stack
         )
 
     def _add_post_credentials_payment_processor(
-        self,
-        method_options: MethodOptions,
-        lambda_environment: dict,
+        self, method_options: MethodOptions, lambda_environment: dict, persistent_stack: ps.PersistentStack
     ):
         self.payment_processor_resource = self.resource.add_resource('payment-processor')
 
@@ -51,6 +51,9 @@ class Credentials:
             lambda_environment=lambda_environment,
         )
         self.api.log_groups.append(self.post_credentials_payment_processor_handler.log_group)
+        persistent_stack.compact_configuration_table.grant_read_write_data(
+            self.post_credentials_payment_processor_handler
+        )
 
         self.payment_processor_resource.add_method(
             'POST',
