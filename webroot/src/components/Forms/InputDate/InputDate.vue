@@ -13,7 +13,7 @@
             'no-margin': formInput.shouldHideMargin,
             'has-error': !!formInput.errorMessage
         }"
-        @blur="blur"
+        @blur="onInputBlur"
     >
         <label
             v-if="!formInput.shouldHideLabel"
@@ -59,7 +59,7 @@
         >
             <template
                 v-if="textInput && !textInput.openMenu"
-                #dp-input="{ onEnter, onTab, onBlur, onKeypress, onPaste, openMenu }"
+                #dp-input="{ onEnter, onTab, onKeypress, onPaste, openMenu }"
             >
                 <div class="dp__input_wrap">
                     <input
@@ -69,7 +69,7 @@
                         @input="onInput"
                         @keydown.enter="onEnter"
                         @keydown.tab="onTab"
-                        @blur="onBlur"
+                        @blur="onInputBlur"
                         @keypress="onKeypress"
                         @paste="onPaste"
                         @click.stop

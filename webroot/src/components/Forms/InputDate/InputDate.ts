@@ -18,8 +18,7 @@ import '@vuepic/vue-datepicker/dist/main.css';
 import {
     formatDateInput,
     dateInputToServerFormat,
-    serverFormatToDateInput,
-    isValidDateInput
+    serverFormatToDateInput
 } from '@models/_formatters/date';
 
 @Component({
@@ -34,6 +33,7 @@ class InputDate extends mixins(MixinInput) {
     //
     localValue = '';
     lastDatePickerValue = '';
+    previousLength = 0;
 
     // https://vue3datepicker.com/props/modes/
     @Prop({ default: 'yyyy-MM-dd' }) modelFormat?: string; // https://date-fns.org/v2.16.1/docs/format
@@ -76,6 +76,7 @@ class InputDate extends mixins(MixinInput) {
     created() {
         this.localValue = this.formInput.value || '';
         this.lastDatePickerValue = this.formInput.value || '';
+        this.previousLength = this.localValue.length;
     }
 
     //
@@ -87,58 +88,44 @@ class InputDate extends mixins(MixinInput) {
         if (newValue !== this.lastDatePickerValue && newValue !== this.dateRaw) {
             if (!newValue) {
                 this.localValue = '';
-                this.lastDatePickerValue = '';
             } else {
                 const newDateInput = serverFormatToDateInput(newValue);
 
                 this.localValue = formatDateInput(newDateInput);
-                this.lastDatePickerValue = newValue;
             }
+
+            // Only update lastDatePickerValue for genuine datepicker changes
+            this.lastDatePickerValue = newValue;
         }
     }
 
     //
     // Computed
     //
-    get dateDisplay(): string {
-        return formatDateInput(this.localValue);
-    }
-
-    set dateDisplay(value: string) {
-        // Store the raw value as-is to preserve cursor position
-        const numericOnly = value.replace(/\D/g, '').substring(0, 8);
-
-        this.localValue = numericOnly;
-
-        // Only update form value if we have a complete date
-        const serverFormat = this.dateRaw;
-
-        if (serverFormat !== this.formInput.value) {
-            this.formInput.value = serverFormat;
-            this.formInput.validate();
-        }
-    }
-
     get dateRaw(): string {
         return dateInputToServerFormat(this.localValue.replace(/\D/g, ''));
-    }
-
-    get isDateValid(): boolean {
-        return isValidDateInput(this.localValue.replace(/\D/g, ''));
     }
 
     //
     // Methods
     //
     onInput(): void {
-        // Format the input as user types
-        const numericOnly = this.localValue.replace(/\D/g, '');
+        const currentLength = this.localValue.length;
+        const isDeleting = currentLength < this.previousLength;
 
-        this.localValue = formatDateInput(numericOnly);
+        if (!isDeleting) {
+            // Format the input as user types (only when adding characters)
+            this.localValue = formatDateInput(this.localValue);
+        }
 
-        // Update form value
-        this.formInput.value = this.dateRaw;
-        this.formInput.validate();
+        // Update form value with slight delay to prevent VueDatePicker conflicts
+        this.$nextTick(() => {
+            this.formInput.value = this.dateRaw;
+            this.formInput.validate();
+        });
+
+        // Update previous length for next comparison
+        this.previousLength = this.localValue.length;
     }
 
     input(): void {
@@ -152,6 +139,25 @@ class InputDate extends mixins(MixinInput) {
 
     focus(): void {
         (this.$refs.datepicker as any)?.openMenu();
+    }
+
+    onInputBlur(): void {
+        const hasManualChanges = this.dateRaw && this.dateRaw !== this.lastDatePickerValue;
+
+        if (hasManualChanges) {
+            // Update lastDatePickerValue with manual input and skip VueDatePicker's selectDate
+            this.lastDatePickerValue = this.dateRaw;
+        } else {
+            // No manual changes, let VueDatePicker handle its normal blur logic
+            try {
+                (this.$refs.datepicker as any)?.selectDate();
+            } catch {
+                // Continue
+            }
+        }
+
+        this.formInput.isTouched = true;
+        this.formInput.validate();
     }
 
     blur(): void {

@@ -168,33 +168,6 @@ const serverFormatToDateInput = (value: string): string => {
     return dateInput;
 };
 
-/**
- * Validate if numeric date input represents a valid date
- * @param {string} value Raw numeric input (e.g., "12252024")
- * @return {boolean} True if valid date
- */
-const isValidDateInput = (value: string): boolean => {
-    const serverFormat = dateInputToServerFormat(value);
-    let isValid = false;
-
-    if (serverFormat) {
-        // Try to create a valid date from the formatted input
-        const date = new Date(serverFormat);
-        const isValidDate = date instanceof Date && !Number.isNaN(date.getTime());
-
-        if (isValidDate) {
-            // Additional validation: check if the date components match what was input
-            const [year, month, day] = serverFormat.split('-').map((num) => parseInt(num, 10));
-
-            isValid = date.getFullYear() === year
-                && date.getMonth() + 1 === month
-                && date.getDate() === day;
-        }
-    }
-
-    return isValid;
-};
-
 export {
     dateDisplay,
     datetimeDisplay,
@@ -202,6 +175,5 @@ export {
     dateDiff,
     formatDateInput,
     dateInputToServerFormat,
-    serverFormatToDateInput,
-    isValidDateInput
+    serverFormatToDateInput
 };
