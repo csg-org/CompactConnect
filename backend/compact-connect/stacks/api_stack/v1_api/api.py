@@ -133,6 +133,7 @@ class V1Api:
         self.credentials = Credentials(
             resource=credentials_resource,
             method_options=admin_auth_method_options,
+            persistent_stack=persistent_stack,
             api_model=self.api_model,
         )
 

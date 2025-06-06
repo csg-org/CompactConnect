@@ -52,6 +52,14 @@ class _Config:
     def test_provider_user_password(self):
         return os.environ['CC_TEST_PROVIDER_USER_PASSWORD']
 
+    @property
+    def sandbox_authorize_net_api_login_id(self):
+        return os.environ['SANDBOX_AUTHORIZE_NET_API_LOGIN_ID']
+
+    @property
+    def sandbox_authorize_net_transaction_key(self):
+        return os.environ['SANDBOX_AUTHORIZE_NET_TRANSACTION_KEY']
+
     @cached_property
     def cognito_client(self):
         return boto3.client('cognito-idp')
