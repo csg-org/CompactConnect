@@ -150,6 +150,23 @@ class TestTransactionMonitoring(TstAppABC, TestCase):
             ),
         )
 
+    def test_workflow_generates_expected_initialize_step(self):
+        aslp_transaction_history_proccessing_workflow = (
+            self.app.prod_backend_pipeline_stack.prod_stage.transaction_monitoring_stack.compact_state_machines['aslp']
+        )
+
+        self.assertEqual(
+            {
+                'Next': 'aslp-ProcessTransactionHistory',
+                'Parameters': {'compact': 'aslp', 'processedBatchIds': [], 'scheduledTime.$': '$.time'},
+                'ResultPath': '$.Payload',
+                'Type': 'Pass',
+            },
+            self.remove_dynamic_tokens_numbers(
+                aslp_transaction_history_proccessing_workflow.initialize_state.to_state_json()
+            ),
+        )
+
     def test_workflow_generates_expected_choice_step(self):
         aslp_transaction_history_proccessing_workflow = (
             self.app.prod_backend_pipeline_stack.prod_stage.transaction_monitoring_stack.compact_state_machines['aslp']
