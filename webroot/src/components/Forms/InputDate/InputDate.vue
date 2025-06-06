@@ -13,7 +13,7 @@
             'no-margin': formInput.shouldHideMargin,
             'has-error': !!formInput.errorMessage
         }"
-        @blur="blur"
+        @blur="onInputBlur"
     >
         <label
             v-if="!formInput.shouldHideLabel"
@@ -31,7 +31,7 @@
             :model-type="modelFormat"
             v-model="formInput.value"
             :autocomplete="isAutoComplete"
-            :text-input="{ format: 'MM/dd/yyyy', openMenu: true }"
+            :text-input="textInput"
             :disabled="isDisabled"
             :inline="isInline"
             :auto-apply="isAutoApply"
@@ -42,9 +42,9 @@
             :min-date="minDate"
             :max-date="maxDate"
             :prevent-min-max-navigation="(minDate || maxDate) ? preventMinMaxNavigation : false"
-            :start-date="startDate"
+            :start-date="startDate || formInput.value || null"
             :allowed-dates="allowedDates"
-            :disabledDates="disabledDates"
+            :disabled-dates="disabledDates"
             :year-range="yearRange"
             :enable-time-picker="enableTimePicker"
             :enable-seconds="enableSeconds"
@@ -56,7 +56,63 @@
             @update:model-value="input(formInput)"
             :loading="isLoading"
             :locale="$i18n.locale"
-        />
+        >
+            <template
+                v-if="textInput && !textInput.openMenu"
+                #dp-input="{ onEnter, onTab, onKeypress, onPaste, openMenu }"
+            >
+                <div class="dp__input_wrap">
+                    <input
+                        :id="`dp-input-${formInput.id}`"
+                        type="text"
+                        v-model="localValue"
+                        @input="onInput"
+                        @keydown.enter="onEnter"
+                        @keydown.tab="onTab"
+                        @blur="onInputBlur"
+                        @keypress="onKeypress"
+                        @paste="onPaste"
+                        @click.stop
+                        @focus.stop
+                        class="dp__input dp__input_icon_pad"
+                        :placeholder="formInput.placeholder"
+                        :disabled="isDisabled"
+                        :aria-label="formInput.label"
+                        :name="formInput.name"
+                        :autocomplete="isAutoComplete"
+                        maxlength="10"
+                    />
+                    <div>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 32 32"
+                            fill="currentColor"
+                            class="dp__icon dp__input_icon dp__input_icons"
+                            @click="openMenu"
+                            @keydown.enter="openMenu"
+                            @keydown.space.prevent="openMenu"
+                            tabindex="0"
+                            role="button"
+                            aria-label="Open calendar"
+                            :aria-disabled="isDisabled"
+                        >
+                            <path d="M29.333 8c0-2.208-1.792-4-4-4h-18.667c-2.208 0-4 1.792-4 4v18.667c0
+                            2.208 1.792 4 4 4h18.667c2.208 0 4-1.792 4-4v-18.667zM26.667 8v18.667c0
+                            0.736-0.597 1.333-1.333 1.333 0 0-18.667 0-18.667 0-0.736
+                            0-1.333-0.597-1.333-1.333 0 0 0-18.667 0-18.667 0-0.736 0.597-1.333
+                            1.333-1.333 0 0 18.667 0 18.667 0 0.736 0 1.333 0.597 1.333 1.333z"></path>
+                            <path d="M20 2.667v5.333c0 0.736 0.597 1.333 1.333 1.333s1.333-0.597
+                            1.333-1.333v-5.333c0-0.736-0.597-1.333-1.333-1.333s-1.333 0.597-1.333 1.333z"></path>
+                            <path d="M9.333 2.667v5.333c0 0.736 0.597 1.333 1.333 1.333s1.333-0.597
+                            1.333-1.333v-5.333c0-0.736-0.597-1.333-1.333-1.333s-1.333 0.597-1.333 1.333z"></path>
+                            <path d="M4 14.667h24c0.736 0 1.333-0.597
+                            1.333-1.333s-0.597-1.333-1.333-1.333h-24c-0.736 0-1.333 0.597-1.333
+                            1.333s0.597 1.333 1.333 1.333z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </template>
+        </VueDatePicker>
         <span
             v-if="formInput.errorMessage && !formInput.shouldHideErrorMessage"
             class="form-field-error"
