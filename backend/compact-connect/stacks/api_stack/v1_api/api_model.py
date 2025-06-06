@@ -687,12 +687,12 @@ class ApiModel:
                                 properties={
                                     'dataDescriptor': JsonSchema(
                                         type=JsonSchemaType.STRING,
-                                        description='The card number',
+                                        description='The opaque data descriptor returned by Authorize.Net Accept UI',
                                         max_length=100,
                                     ),
                                     'dataValue': JsonSchema(
                                         type=JsonSchemaType.STRING,
-                                        description='The card expiration date',
+                                        description='The opaque data value token returned by Authorize.Net Accept UI',
                                         max_length=1000,
                                     ),
                                 },

@@ -79,12 +79,12 @@
         "opaqueData": {
           "properties": {
             "dataDescriptor": {
-              "description": "The card number",
+              "description": "The opaque data descriptor returned by Authorize.Net Accept UI",
               "maxLength": 100,
               "type": "string"
             },
             "dataValue": {
-              "description": "The card expiration date",
+              "description": "The opaque data value token returned by Authorize.Net Accept UI",
               "maxLength": 1000,
               "type": "string"
             }
