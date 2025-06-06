@@ -179,46 +179,26 @@ class PersistentStack(AppStack):
         )
 
         # PROVIDER USER POOL MIGRATION PLAN:
-        # 1. ✓ Create the blue user pool in all environments. (Deploy 1 of 3)
-        # 2. Cut over to the blue user pool by: (Deploy 2 of 3)
-        #   a. ✓ Update the API stack to use the blue user pool (just rename
-        #      self.provider_users->self.provider_users_deprecated and
-        #      self.provider_users_standby->self.provider_users below)
-        #   b. ✓ Move the main provider prefix to the blue user pool (just use the provider_prefix in the other
-        #      ProviderUsers constructor below)
-        #   c. Deploy to all environments. You will have to manually delete the original user pool domain right before
-        #      deploying to each environment. This will result in a deletion failure in the CFn events, but the overall
-        #      deployment will succeed.
-        # 3. Testers/users will need to re-register to get a new provider user in the blue user pool.
-        # 4. Remove the original user pool. (Deploy 3 of 3)
+        # 1. ✓ Create the green user pool (ProviderUsersGreen) with correct standard attributes in all environments.
+        # 2. ✓ Deploy migration custom resource that deletes the domain from the deprecated user pool
+        #      (ProviderUsersBlue) so the green user pool can use the main provider domain prefix.
+        #      This will result in a deletion failure in the CFN events, but the overall deployment will succeed.
+        # 3. ✓ Set up dependency so green user pool creation waits for domain migration to complete.
+        # 4. After deployment, users will need to re-register in the new green user pool since user 
+        #      accounts cannot be migrated between pools with different standard attribute schemas.
+        # 5. Once migration is complete and green user pool is fully operational, remove the deprecated 
+        #      user pool (ProviderUsersBlue) in a future deployment.
 
-        # This user pool is deprecated and will be removed once we've cut over to the blue user pool
+        # This user pool is deprecated and will be removed once we've cut over to the green user pool
         # across all environments.
         provider_prefix = f'{app_name}-provider'
         provider_prefix = provider_prefix if environment_name == 'prod' else f'{provider_prefix}-{environment_name}'
-        self.provider_users_deprecated = ProviderUsers(
-            self,
-            'ProviderUsers',
-            cognito_domain_prefix=None,
-            environment_name=environment_name,
-            environment_context=environment_context,
-            encryption_key=self.shared_encryption_key,
-            sign_in_aliases=None,
-            user_pool_email=user_pool_email_settings,
-            security_profile=security_profile,
-            removal_policy=removal_policy,
-        )
-        # We explicitly export the user pool values so we can later move the API stack over to the
-        # new user pool without putting our app into a cross-stack dependency 'deadly embrace':
-        # https://www.endoflineblog.com/cdk-tips-03-how-to-unblock-cross-stack-references
-        self.export_value(self.provider_users_deprecated.user_pool_id)
-        self.export_value(self.provider_users_deprecated.user_pool_arn)
 
         # We have to use a different prefix so we don't have a naming conflict with the original user pool
-        self.provider_users = ProviderUsers(
+        self.provider_users_deprecated = ProviderUsers(
             self,
             'ProviderUsersBlue',
-            cognito_domain_prefix=provider_prefix,
+            cognito_domain_prefix=None,
             environment_name=environment_name,
             environment_context=environment_context,
             encryption_key=self.shared_encryption_key,
@@ -226,19 +206,49 @@ class PersistentStack(AppStack):
             user_pool_email=user_pool_email_settings,
             security_profile=security_profile,
             removal_policy=removal_policy,
+            deprecated_pool=True
+        )
+        # We explicitly export the user pool values so we can later move the API stack over to the
+        # new user pool without putting our app into a cross-stack dependency 'deadly embrace':
+        # https://www.endoflineblog.com/cdk-tips-03-how-to-unblock-cross-stack-references
+        self.export_value(self.provider_users_deprecated.user_pool_id)
+        self.export_value(self.provider_users_deprecated.user_pool_arn)
+
+        self.provider_user_pool_migration = DataMigration(
+            self,
+            'ProviderUserPoolMigration',
+            migration_dir='provider_user_pool_migration_551',
+            lambda_environment={
+                'PROVIDER_USER_POOL_ID': self.provider_users_deprecated.user_pool_id,
+                'PROVIDER_USER_POOL_DOMAIN': provider_prefix,
+                **self.common_env_vars,
+            },
+        )
+        self.provider_users_deprecated.grant(self.provider_user_pool_migration,
+                                             'cognito-idp:DeleteUserPoolDomain')
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            f'{self.provider_user_pool_migration.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'This policy contains wild-carded actions and resources but they are scoped to the '
+                    'specific action that this lambda needs access to in order to perform the user pool domain '
+                    'migration.',
+                },
+            ],
         )
 
         QueryDefinition(
             self,
-            'UserCustomEmails',
-            query_definition_name='UserCustomEmails/Lambdas',
+            'StaffUserCustomEmails',
+            query_definition_name='StaffUserCustomEmails/Lambdas',
             query_string=QueryString(
                 fields=['@timestamp', '@log', 'level', 'message', '@message'],
                 filter_statements=['level in ["INFO", "WARNING", "ERROR"]'],
                 sort='@timestamp desc',
             ),
             log_groups=[
-                self.provider_users.custom_message_lambda.log_group,
                 self.staff_users.custom_message_lambda.log_group,
             ],
         )
@@ -249,14 +259,11 @@ class PersistentStack(AppStack):
             # by the user pool email settings
             self.staff_users.node.add_dependency(self.user_email_notifications.email_identity)
             self.staff_users.node.add_dependency(self.user_email_notifications.dmarc_record)
-            self.provider_users.node.add_dependency(self.user_email_notifications.email_identity)
-            self.provider_users.node.add_dependency(self.user_email_notifications.dmarc_record)
             self.provider_users_deprecated.node.add_dependency(self.user_email_notifications.email_identity)
             self.provider_users_deprecated.node.add_dependency(self.user_email_notifications.dmarc_record)
             # the verification custom resource needs to be completed before the user pools are created
             # so that the user pools will be created after the SES identity is verified
             self.staff_users.node.add_dependency(self.user_email_notifications.verification_custom_resource)
-            self.provider_users.node.add_dependency(self.user_email_notifications.verification_custom_resource)
             self.provider_users_deprecated.node.add_dependency(
                 self.user_email_notifications.verification_custom_resource
             )
@@ -545,12 +552,6 @@ class PersistentStack(AppStack):
         frontend_app_config.set_staff_cognito_values(
             domain_name=self.staff_users.user_pool_domain.domain_name,
             client_id=self.staff_users.ui_client.user_pool_client_id,
-        )
-
-        # Add provider user pool Cognito configuration
-        frontend_app_config.set_provider_cognito_values(
-            domain_name=self.provider_users.user_pool_domain.domain_name,
-            client_id=self.provider_users.ui_client.user_pool_client_id,
         )
 
         # Add UI and API domain names
