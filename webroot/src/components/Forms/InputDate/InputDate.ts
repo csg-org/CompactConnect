@@ -103,7 +103,7 @@ class InputDate extends mixins(MixinInput) {
     // Computed
     //
     get dateRaw(): string {
-        return dateInputToServerFormat(this.localValue.replace(/\D/g, ''));
+        return dateInputToServerFormat(this.localValue);
     }
 
     //

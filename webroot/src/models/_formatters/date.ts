@@ -102,8 +102,8 @@ const dateDiff = (date1: stringOptional, date2: stringOptional, diffUnit: unitOf
 };
 
 /**
- * Format numeric date input (MMddyyyy) to MM/dd/yyyy display format
- * @param {string} value Raw numeric input (e.g., "12252024")
+ * Format date input to MM/dd/yyyy display format
+ * @param {string} value Raw input string (e.g., "12252024" or "12/25/2024")
  * @return {string} Formatted date string (e.g., "12/25/2024")
  */
 const formatDateInput = (value: string): string => {
@@ -124,8 +124,8 @@ const formatDateInput = (value: string): string => {
 };
 
 /**
- * Convert numeric date input (MMddyyyy) to server format (yyyy-MM-dd)
- * @param {string} value Raw numeric input (e.g., "12252024")
+ * Convert date input to server format (yyyy-MM-dd)
+ * @param {string} value Raw input string (e.g., "12252024" or "12/25/2024")
  * @return {string} Server format date string (e.g., "2024-12-25") or empty string if invalid
  */
 const dateInputToServerFormat = (value: string): string => {
