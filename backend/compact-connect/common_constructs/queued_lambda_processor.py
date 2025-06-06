@@ -70,7 +70,7 @@ class QueuedLambdaProcessor(Construct):
         # the Queue rather than principal policy on the role to avoid creating a dependency from the
         # role on the queue. In some cases, adding the dependency on the role can cause a circular
         # dependency.
-        process_function.add_event_source_mapping(
+        self.event_source_mapping = process_function.add_event_source_mapping(
             f'SqsEventSource:{Stack.of(self).stack_name}:{construct_id}',
             batch_size=batch_size,
             max_batching_window=max_batching_window,

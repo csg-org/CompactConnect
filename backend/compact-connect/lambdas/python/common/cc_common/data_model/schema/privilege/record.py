@@ -168,6 +168,8 @@ class PrivilegeUpdatePreviousRecordSchema(ForgivingSchema):
     licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
     privilegeId = String(required=True, allow_none=False)
     homeJurisdictionChangeStatus = HomeJurisdictionChangeStatusField(required=False, allow_none=False)
+    # this field is only set if the privilege or the associated license is encumbered
+    encumberedStatus = PrivilegeEncumberedStatusField(required=False, allow_none=False)
 
 
 @BaseRecordSchema.register_schema('privilegeUpdate')
