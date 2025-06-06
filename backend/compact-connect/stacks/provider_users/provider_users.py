@@ -65,10 +65,11 @@ class ProviderUsers(UserPool):
             # we only allow the user to be able to see their providerId and compact, which are custom attributes.
             # If we ever want other attributes to be read or written, they must be added here.
             read_attributes=ClientAttributes()
-            .with_standard_attributes(email=True, given_name=True, family_name=True)
+            .with_standard_attributes(email=True)
             .with_custom_attributes('providerId', 'compact'),
-            write_attributes=ClientAttributes().with_standard_attributes(email=True, given_name=True, family_name=True),
+            write_attributes=ClientAttributes().with_standard_attributes(email=True),
         )
+
         self._add_custom_message_lambda(stack=stack, environment_name=environment_name)
 
     @staticmethod
@@ -84,14 +85,14 @@ class ProviderUsers(UserPool):
         intend to use them for authentication purposes or for back-end processing.
         """
         return StandardAttributes(
-            # We are requiring the following attributes for all users
+            # We require the email attributes for all users
             # that are registered in the provider user pool.
             email=StandardAttribute(mutable=True, required=True),
-            given_name=StandardAttribute(mutable=True, required=True),
-            family_name=StandardAttribute(mutable=True, required=True),
             # The following attributes are not required, but we are including them because
             # Cognito does not allow you to add them after the user pool is created, and we
             # may want to use them in the future.
+            given_name=StandardAttribute(mutable=True, required=False),
+            family_name=StandardAttribute(mutable=True, required=False),
             address=StandardAttribute(mutable=True, required=False),
             birthdate=StandardAttribute(mutable=True, required=False),
             fullname=StandardAttribute(mutable=True, required=False),
