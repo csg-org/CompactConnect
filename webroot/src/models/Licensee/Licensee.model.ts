@@ -196,10 +196,16 @@ export class Licensee implements InterfaceLicensee {
         return this.phoneNumber ? formatPhoneNumber(stripPhoneNumber(this.phoneNumber)) : '';
     }
 
-    public isMilitary(): boolean {
+    public isMilitaryStatusActive(): boolean {
         // The API does not return the affiliations in the get-all endpoint therefore all users will appear unaffiliated
         // if only that endpoint has been called
         return this.militaryAffiliations?.some((affiliation) => ((affiliation as MilitaryAffiliation).status as any) === 'active') || false;
+    }
+
+    public isMilitaryStatusInitializing(): boolean {
+        // The API does not return the affiliations in the get-all endpoint therefore all users will appear unaffiliated
+        // if only that endpoint has been called
+        return this.militaryAffiliations?.some((affiliation) => ((affiliation as MilitaryAffiliation).status as any) === 'initializing') || false;
     }
 
     public activeMilitaryAffiliation(): MilitaryAffiliation | null {

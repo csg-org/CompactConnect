@@ -10,12 +10,15 @@
         <div class="info-row">
             <div class="chunk">
                 <div class="chunk-title">{{statusTitleText}}</div>
-                <div class="chunk-text">{{status}}</div>
+                <div class="chunk-text" :class="{ 'error': isStatusInitializing}">{{status}}</div>
             </div>
             <div class="chunk affiliation-type">
                 <div class="chunk-title">{{affiliationTypeTitle}}</div>
                 <div class="chunk-text">{{affiliationType}}</div>
             </div>
+        </div>
+        <div v-if="isStatusInitializing" class="info-row error">
+            {{$t('military.initializingMessage')}}
         </div>
         <div class="chunk">
             <div class="chunk-title">{{previouslyUploadedTitle}}</div>
@@ -50,13 +53,15 @@
                 </ListContainer>
             </div>
         </div>
-        <div v-if="shouldShowEditButtons" class="button-row">
+        <div v-if="shouldShowEditButtons" class="button-row" :class="{ 'one-button': !shouldShowEndButton }">
             <InputButton
+                v-if="shouldShowEndButton"
                 :label="$t('military.endMilitaryAffiliation')"
                 :aria-label="$t('military.endMilitaryAffiliation')"
                 :isTextLike="true"
                 :shouldHideMargin="true"
                 class="end-aff-button"
+                @keyup.enter="focusOnModalCancelButton()"
                 @click="startEndAffiliationFlow"
             />
             <InputButton

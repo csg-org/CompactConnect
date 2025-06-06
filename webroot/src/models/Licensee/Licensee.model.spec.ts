@@ -76,7 +76,7 @@ describe('Licensee model', () => {
         expect(licensee.licenseTypeName()).to.equal('');
         expect(licensee.statusDisplay()).to.equal('Inactive');
         expect(licensee.phoneNumberDisplay()).to.equal('');
-        expect(licensee.isMilitary()).to.equal(false);
+        expect(licensee.isMilitaryStatusActive()).to.equal(false);
         expect(licensee.activeMilitaryAffiliation()).to.equal(null);
         expect(licensee.homeJurisdictionLicenses()).to.matchPattern([]);
         expect(licensee.activeHomeJurisdictionLicenses()).to.matchPattern([]);
@@ -180,7 +180,7 @@ describe('Licensee model', () => {
         expect(licensee.licenseTypeName()).to.equal('Audiologist');
         expect(licensee.statusDisplay()).to.equal('Active');
         expect(licensee.phoneNumberDisplay()).to.equal('+1 323-455-8990');
-        expect(licensee.isMilitary()).to.equal(false);
+        expect(licensee.isMilitaryStatusActive()).to.equal(false);
         expect(licensee.activeMilitaryAffiliation()).to.equal(null);
         expect(licensee.homeJurisdictionLicenses()).to.matchPattern([]);
         expect(licensee.activeHomeJurisdictionLicenses()).to.matchPattern([]);
@@ -439,7 +439,7 @@ describe('Licensee model', () => {
         expect(licensee.licenseTypeName()).to.equal('Audiologist');
         expect(licensee.statusDisplay()).to.equal('Active');
         expect(licensee.phoneNumberDisplay()).to.equal('+1 323-455-8990');
-        expect(licensee.isMilitary()).to.equal(true);
+        expect(licensee.isMilitaryStatusActive()).to.equal(true);
         expect(licensee.activeMilitaryAffiliation()).to.matchPattern({
             affiliationType: 'affiliationType',
             compact: 'aslp',
@@ -618,6 +618,37 @@ describe('Licensee model', () => {
         expect(licensee.bestHomeJurisdictionLicenseMailingAddress()).to.be.an.instanceof(Address);
         expect(licensee.purchaseEligibleLicenses()).to.matchPattern([]);
         expect(licensee.canPurchasePrivileges()).to.equal(false);
+    });
+    it('should create a Licensee with specific values through serializer (with initiliazing military status)', () => {
+        const data = {
+            militaryAffiliations: [{
+                affiliationType: 'affiliationType',
+                compact: 'aslp',
+                dateOfUpdate: '2025-01-07T23:50:17+00:00',
+                dateOfUpload: '2025-01-03T23:50:17+00:00',
+                documentKeys: ['key'],
+                fileNames: ['file.png'],
+                status: 'inactive'
+            },
+            {
+                affiliationType: 'affiliationType',
+                compact: 'aslp',
+                dateOfUpdate: '2025-02-07T23:50:17+00:00',
+                dateOfUpload: '2025-02-03T23:50:17+00:00',
+                documentKeys: ['key'],
+                fileNames: ['file.png'],
+                status: 'initializing'
+            }]
+        };
+        const licensee = LicenseeSerializer.fromServer(data);
+
+        // Test field values
+        expect(licensee).to.be.an.instanceof(Licensee);
+
+        // Test methods
+        expect(licensee.isMilitaryStatusActive()).to.equal(false);
+        expect(licensee.isMilitaryStatusInitializing()).to.equal(true);
+        expect(licensee.activeMilitaryAffiliation()).to.equal(null);
     });
     it('should serialize a Licensee for transmission to server', () => {
         const licensee = LicenseeSerializer.fromServer({
