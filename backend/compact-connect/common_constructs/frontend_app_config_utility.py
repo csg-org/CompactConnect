@@ -34,19 +34,6 @@ class PersistentStackFrontendAppConfigUtility:
         self._config['staff_cognito_domain'] = domain_name
         self._config['staff_cognito_client_id'] = client_id
 
-    def set_provider_cognito_values(self, domain_name: str, client_id: str) -> None:
-        """
-        Set Cognito configuration values for provider users.
-        
-        NOTE: This method is deprecated. Provider cognito values should now be set 
-        via ProviderUsersStackFrontendAppConfigUtility.
-
-        :param domain_name: The Cognito domain name for provider users
-        :param client_id: The UI client ID for provider users
-        """
-        self._config['provider_cognito_domain'] = domain_name
-        self._config['provider_cognito_client_id'] = client_id
-
     def set_domain_names(self, ui_domain_name: str, api_domain_name: str) -> None:
         """
         Set UI and API domain names.

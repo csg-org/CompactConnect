@@ -206,38 +206,12 @@ class PersistentStack(AppStack):
             user_pool_email=user_pool_email_settings,
             security_profile=security_profile,
             removal_policy=removal_policy,
-            deprecated_pool=True
         )
         # We explicitly export the user pool values so we can later move the API stack over to the
         # new user pool without putting our app into a cross-stack dependency 'deadly embrace':
         # https://www.endoflineblog.com/cdk-tips-03-how-to-unblock-cross-stack-references
         self.export_value(self.provider_users_deprecated.user_pool_id)
         self.export_value(self.provider_users_deprecated.user_pool_arn)
-
-        self.provider_user_pool_migration = DataMigration(
-            self,
-            'ProviderUserPoolMigration',
-            migration_dir='provider_user_pool_migration_551',
-            lambda_environment={
-                'PROVIDER_USER_POOL_ID': self.provider_users_deprecated.user_pool_id,
-                'PROVIDER_USER_POOL_DOMAIN': provider_prefix,
-                **self.common_env_vars,
-            },
-        )
-        self.provider_users_deprecated.grant(self.provider_user_pool_migration,
-                                             'cognito-idp:DeleteUserPoolDomain')
-        NagSuppressions.add_resource_suppressions_by_path(
-            self,
-            f'{self.provider_user_pool_migration.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': 'This policy contains wild-carded actions and resources but they are scoped to the '
-                    'specific action that this lambda needs access to in order to perform the user pool domain '
-                    'migration.',
-                },
-            ],
-        )
 
         QueryDefinition(
             self,
