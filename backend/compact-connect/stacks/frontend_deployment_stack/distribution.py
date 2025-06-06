@@ -23,6 +23,7 @@ from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.frontend_app_config_utility import (
     COGNITO_AUTH_DOMAIN_SUFFIX,
     PersistentStackFrontendAppConfigValues,
+    ProviderUsersStackFrontendAppConfigValues,
 )
 from common_constructs.security_profile import SecurityProfile
 from common_constructs.stack import AppStack
@@ -32,7 +33,10 @@ from constructs import Construct
 S3_URL_SUFFIX = '.s3.amazonaws.com'
 
 
-def generate_csp_lambda_code(persistent_stack_values: PersistentStackFrontendAppConfigValues) -> str:
+def generate_csp_lambda_code(
+    persistent_stack_values: PersistentStackFrontendAppConfigValues,
+    provider_users_stack_values: ProviderUsersStackFrontendAppConfigValues,
+) -> str:
     """
     Generate CSP Lambda code with injected configuration values.
 
@@ -42,6 +46,7 @@ def generate_csp_lambda_code(persistent_stack_values: PersistentStackFrontendApp
     This function reads the template file and replaces placeholders with actual values.
 
     :param persistent_stack_values: The values from the persistent stack
+    :param provider_users_stack_values: The values from the provider users stack
     :return: The generated Lambda function code
     """
     template_path = os.path.join('lambdas', 'nodejs', 'cloudfront-csp', 'index.js')
@@ -56,7 +61,7 @@ def generate_csp_lambda_code(persistent_stack_values: PersistentStackFrontendApp
         '##S3_UPLOAD_URL_STATE##': f'{persistent_stack_values.bulk_uploads_bucket_name}{S3_URL_SUFFIX}',
         '##S3_UPLOAD_URL_PROVIDER##': f'{persistent_stack_values.provider_users_bucket_name}{S3_URL_SUFFIX}',
         '##COGNITO_STAFF##': f'{persistent_stack_values.staff_cognito_domain}{COGNITO_AUTH_DOMAIN_SUFFIX}',
-        '##COGNITO_PROVIDER##': f'{persistent_stack_values.provider_cognito_domain}{COGNITO_AUTH_DOMAIN_SUFFIX}',
+        '##COGNITO_PROVIDER##': f'{provider_users_stack_values.provider_cognito_domain}{COGNITO_AUTH_DOMAIN_SUFFIX}',
     }
 
     for placeholder, value in replacements.items():
@@ -75,6 +80,7 @@ class UIDistribution(Distribution):
         security_profile: SecurityProfile = SecurityProfile.RECOMMENDED,
         access_logs_bucket: AccessLogsBucket,
         persistent_stack_frontend_app_config_values: PersistentStackFrontendAppConfigValues,
+        provider_users_stack_frontend_app_config_values: ProviderUsersStackFrontendAppConfigValues,
     ):
         stack: AppStack = AppStack.of(scope)
 
@@ -111,7 +117,10 @@ class UIDistribution(Distribution):
         )
 
         # Generate the CSP Lambda code with injected values
-        csp_function_code = generate_csp_lambda_code(persistent_stack_frontend_app_config_values)
+        csp_function_code = generate_csp_lambda_code(
+            persistent_stack_frontend_app_config_values, 
+            provider_users_stack_frontend_app_config_values
+        )
 
         self.csp_function = Function(
             scope,
