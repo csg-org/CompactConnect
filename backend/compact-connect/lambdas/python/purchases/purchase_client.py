@@ -846,7 +846,7 @@ class PaymentProcessorClientFactory:
     @staticmethod
     def create_payment_processor_client(credentials: dict) -> PaymentProcessorClient:
         processor_type: str = credentials.get('processor')
-        if processor_type.lower() == PaymentProcessorType.AUTHORIZE_DOT_NET_TYPE:
+        if processor_type.lower() == PaymentProcessorType.AUTHORIZE_DOT_NET_TYPE.lower():
             return AuthorizeNetPaymentProcessorClient(
                 api_login_id=credentials.get('api_login_id'), transaction_key=credentials.get('transaction_key')
             )
