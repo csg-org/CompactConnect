@@ -3,6 +3,7 @@
 import json
 
 import requests
+from config import config
 from smoke_common import (
     COMPACTS,
     SmokeTestFailureException,
@@ -12,7 +13,6 @@ from smoke_common import (
     get_staff_user_auth_headers,
     load_smoke_test_env,
 )
-from config import config
 
 # This script is used to test the compact configuration functionality against a sandbox environment
 # of the Compact Connect API.

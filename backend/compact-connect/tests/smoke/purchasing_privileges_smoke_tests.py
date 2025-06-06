@@ -32,9 +32,7 @@ def _generate_post_body(attestations_from_system, license_type):
     payment_nonce = _generate_opaque_data()
 
     return {
-        'orderInformation': {
-            'opaqueData': payment_nonce
-        },
+        'orderInformation': {'opaqueData': payment_nonce},
         'selectedJurisdictions': ['ne'],
         'attestations': attestations_from_system,
         'licenseType': license_type,
@@ -47,7 +45,7 @@ def test_purchase_privilege_options():
     # These will set up the configurations and return them for verification
     compact_config = test_compact_configuration()
     jurisdiction_config = test_jurisdiction_configuration()
-    
+
     # Upload payment processor credentials to ensure they are available
     test_upload_payment_processor_credentials()
 
@@ -90,16 +88,16 @@ def test_purchase_privilege_options():
     # Verify paymentProcessorPublicFields are present and contain expected values
     if 'paymentProcessorPublicFields' not in compact_data:
         raise SmokeTestFailureException('paymentProcessorPublicFields not found in compact data')
-    
+
     payment_fields = compact_data['paymentProcessorPublicFields']
-    
+
     # Verify apiLoginId matches what we uploaded
     if payment_fields.get('apiLoginId') != config.sandbox_authorize_net_api_login_id:
         raise SmokeTestFailureException(
             f'apiLoginId mismatch. Expected {config.sandbox_authorize_net_api_login_id}, '
             f'got {payment_fields.get("apiLoginId")}'
         )
-    
+
     # Verify publicClientKey is present (we don't verify the exact value since it's from authorize.net)
     if not payment_fields.get('publicClientKey'):
         raise SmokeTestFailureException('publicClientKey is not present')
@@ -277,17 +275,17 @@ def _generate_opaque_data():
 
     response_body = response.json()
     compact_data = next((item for item in response_body['items'] if item.get('type') == 'compact'), None)
-    
+
     if not compact_data:
         raise SmokeTestFailureException('No compact data found in purchase privilege options response')
-    
+
     if 'paymentProcessorPublicFields' not in compact_data:
         raise SmokeTestFailureException('No paymentProcessorPublicFields found in compact data')
-    
+
     payment_fields = compact_data['paymentProcessorPublicFields']
     api_login_id = payment_fields.get('apiLoginId')
     public_client_key = payment_fields.get('publicClientKey')
-    
+
     if not api_login_id or not public_client_key:
         raise SmokeTestFailureException(f'Missing credentials in paymentProcessorPublicFields: {payment_fields}')
 
@@ -296,28 +294,28 @@ def _generate_opaque_data():
 
     # Create the secure payment container request
     request_data = {
-        "securePaymentContainerRequest": {
-            "merchantAuthentication": {
-                "name": api_login_id,
-                "clientKey": public_client_key  # Use the public client key
+        'securePaymentContainerRequest': {
+            'merchantAuthentication': {
+                'name': api_login_id,
+                'clientKey': public_client_key,  # Use the public client key
             },
-            "refId": "12345",
-            "data": {
-                "type": "TOKEN",
-                "id": unique_id,
-                "token": {
-                    "cardNumber": "4111111111111111",  # Visa test card
-                    "expirationDate": "122030",
-                    "cardCode": "999",
-                    "fullName": "SmokeTest User"
-                }
-            }
+            'refId': '12345',
+            'data': {
+                'type': 'TOKEN',
+                'id': unique_id,
+                'token': {
+                    'cardNumber': '4111111111111111',  # Visa test card
+                    'expirationDate': '122030',
+                    'cardCode': '999',
+                    'fullName': 'SmokeTest User',
+                },
+            },
         }
     }
 
     # Make the API request
-    test_url = "https://apitest.authorize.net/xml/v1/request.api"
-    headers = {"Content-Type": "application/json"}
+    test_url = 'https://apitest.authorize.net/xml/v1/request.api'
+    headers = {'Content-Type': 'application/json'}
     response = requests.post(test_url, json=request_data, headers=headers, timeout=30)
 
     if response.status_code == 200:
@@ -326,7 +324,7 @@ def _generate_opaque_data():
         # Extract the payment nonce from the response
         # The exact structure may vary, but it should contain the opaque data
         if 'opaqueData' in response_data:
-            logger.info(f'Generated opaque data.')
+            logger.info('Generated opaque data.')
             return response_data['opaqueData']
         logger.error(f'No opaqueData in response: {response_data}')
         raise SmokeTestFailureException(f'No opaqueData in response: {response_data}')
