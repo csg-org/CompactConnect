@@ -35,6 +35,8 @@ class ProviderUsers(UserPool):
         sign_in_aliases: SignInAliases,
         user_pool_email: UserPoolEmail,
         removal_policy,
+        # TODO - remove this field once migration is complete   # noqa: FIX002
+        deprecated_pool: bool,
         **kwargs,
     ):
         super().__init__(
@@ -46,7 +48,7 @@ class ProviderUsers(UserPool):
             removal_policy=removal_policy,
             email=user_pool_email,
             sign_in_aliases=sign_in_aliases,
-            standard_attributes=self._configure_user_pool_standard_attributes(),
+            standard_attributes=self._configure_user_pool_standard_attributes(deprecated_pool),
             custom_attributes={
                 # these fields are required in order for the provider to be able to query
                 # for their personal profile information. Once these fields are set, they cannot be changed.
@@ -58,21 +60,38 @@ class ProviderUsers(UserPool):
         stack: ps.PersistentStack = ps.PersistentStack.of(self)
 
         # Create an app client to allow the front-end to authenticate.
-        self.ui_client = self.add_ui_client(
-            ui_domain_name=stack.ui_domain_name,
-            environment_context=environment_context,
-            # For now, we are allowing the user to read and update their email, given name, and family name.
-            # we only allow the user to be able to see their providerId and compact, which are custom attributes.
-            # If we ever want other attributes to be read or written, they must be added here.
-            read_attributes=ClientAttributes()
-            .with_standard_attributes(email=True, given_name=True, family_name=True)
-            .with_custom_attributes('providerId', 'compact'),
-            write_attributes=ClientAttributes().with_standard_attributes(email=True, given_name=True, family_name=True),
-        )
+        # TODO - remove the deprecated pool if/else check when user pool migration is complete  # noqa: FIX002
+        if deprecated_pool:
+            self.ui_client = self.add_ui_client(
+                ui_domain_name=stack.ui_domain_name,
+                environment_context=environment_context,
+                # For now, we are allowing the user to read and update their email, given name, and family name.
+                # we only allow the user to be able to see their providerId and compact, which are custom attributes.
+                # If we ever want other attributes to be read or written, they must be added here.
+                read_attributes=ClientAttributes()
+                .with_standard_attributes(email=True, given_name=True, family_name=True)
+                .with_custom_attributes('providerId', 'compact'),
+                write_attributes=ClientAttributes().with_standard_attributes(email=True,
+                                                                             given_name=True,
+                                                                             family_name=True),
+            )
+        else:
+            self.ui_client = self.add_ui_client(
+                ui_domain_name=stack.ui_domain_name,
+                environment_context=environment_context,
+                # For now, we are allowing the user to read and update their email, given name, and family name.
+                # we only allow the user to be able to see their providerId and compact, which are custom attributes.
+                # If we ever want other attributes to be read or written, they must be added here.
+                read_attributes=ClientAttributes()
+                .with_standard_attributes(email=True)
+                .with_custom_attributes('providerId', 'compact'),
+                write_attributes=ClientAttributes().with_standard_attributes(email=True),
+            )
+
         self._add_custom_message_lambda(stack=stack, environment_name=environment_name)
 
     @staticmethod
-    def _configure_user_pool_standard_attributes() -> StandardAttributes:
+    def _configure_user_pool_standard_attributes(deprecated_pool: bool) -> StandardAttributes:
         """
         The provider user pool standard attributes.
 
@@ -84,14 +103,15 @@ class ProviderUsers(UserPool):
         intend to use them for authentication purposes or for back-end processing.
         """
         return StandardAttributes(
-            # We are requiring the following attributes for all users
+            # We require the email attributes for all users
             # that are registered in the provider user pool.
             email=StandardAttribute(mutable=True, required=True),
-            given_name=StandardAttribute(mutable=True, required=True),
-            family_name=StandardAttribute(mutable=True, required=True),
             # The following attributes are not required, but we are including them because
             # Cognito does not allow you to add them after the user pool is created, and we
             # may want to use them in the future.
+            # TODO - once user pool migration is complete, remove this deprecated_pool check  # noqa: FIX002
+            given_name=StandardAttribute(mutable=True, required=True if deprecated_pool else False),
+            family_name=StandardAttribute(mutable=True, required=True if deprecated_pool else False),
             address=StandardAttribute(mutable=True, required=False),
             birthdate=StandardAttribute(mutable=True, required=False),
             fullname=StandardAttribute(mutable=True, required=False),
