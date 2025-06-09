@@ -217,11 +217,6 @@ class RegisterLicensee extends mixins(MixinForm) {
             passwordInput.style.height = '1px';
             passwordInput.style.width = '1px';
             passwordInput.style.overflow = 'hidden';
-        } else {
-            // Element not ready yet, try again on next frame
-            requestAnimationFrame(() => {
-                this.initExtraFields();
-            });
         }
     }
 
@@ -306,7 +301,6 @@ class RegisterLicensee extends mixins(MixinForm) {
 
     handleBackToForm(): void {
         this.isConfirmationScreen = false;
-        this.initExtraFields();
     }
 
     handleMissingCompactType(): void {
@@ -417,6 +411,15 @@ class RegisterLicensee extends mixins(MixinForm) {
     @Watch('isFormError') isFormErrorChanged(): void {
         if (this.isFormError && !this.isFinalError) {
             this.handleBackToForm();
+        }
+    }
+
+    @Watch('isConfirmationScreen')
+    onConfirmationScreenChange(newValue: boolean): void {
+        if (!newValue) { // Back to form
+            this.$nextTick(() => {
+                this.initExtraFields();
+            });
         }
     }
 }
