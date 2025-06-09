@@ -524,10 +524,29 @@ class PersistentStack(AppStack):
 
         This reads the active_compact_member_jurisdictions from the context in cdk.json and returns
         the list of jurisdiction postal abbreviations for the specified compact.
+
+        For sandbox environments, it will use sandbox_active_compact_member_jurisdictions. This is because
+        We have more than 25 active jurisdictions, but Cognito has a default limit of 25 resource servers per user pool,
+        and we need to create a resource server for each active jurisdiction.
+        We set the number of active jurisdictions to less than 25 in the sandbox environment so developers don't have
+        to request a quota increase in order to deploy the sandbox environment.
         """
-        active_member_jurisdictions = self.node.get_context('active_compact_member_jurisdictions')
+        # Check if this is a sandbox environment
+        is_sandbox = self.node.try_get_context('sandbox')
+
+        if is_sandbox:
+            # Try to get sandbox-specific configuration
+            active_member_jurisdictions = self.node.try_get_context('sandbox_active_compact_member_jurisdictions')
+        else:
+            # Use regular configuration for non-sandbox environments
+            active_member_jurisdictions = self.node.get_context('active_compact_member_jurisdictions')
+
         if not active_member_jurisdictions:
-            raise ValueError(f'No active member jurisdictions found in context for compact {compact}')
+            raise ValueError(
+                f'No active member jurisdictions found in context for compact {compact}. '
+                'If this is a sandbox environment, make sure to set the '
+                'sandbox_active_compact_member_jurisdictions context variable in your cdk.context.json file.'
+            )
 
         # Get the jurisdictions for the specified compact and ensure all are lowercase
         jurisdictions = active_member_jurisdictions[compact]
