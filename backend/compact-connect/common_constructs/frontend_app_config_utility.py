@@ -9,8 +9,9 @@ HTTPS_PREFIX = 'https://'
 COGNITO_AUTH_DOMAIN_SUFFIX = '.auth.us-east-1.amazoncognito.com'
 
 PERSISTENT_STACK_FRONTEND_APP_CONFIGURATION_PARAMETER_NAME = '/deployment/persistent-stack/frontend_app_configuration'
-PROVIDER_USERS_STACK_FRONTEND_APP_CONFIGURATION_PARAMETER_NAME = '/deployment/provider-users-stack/frontend_app_configuration'
-
+PROVIDER_USERS_STACK_FRONTEND_APP_CONFIGURATION_PARAMETER_NAME = (
+    '/deployment/provider-users-stack/frontend_app_configuration'
+)
 
 
 class PersistentStackFrontendAppConfigUtility:
@@ -211,16 +212,6 @@ class PersistentStackFrontendAppConfigValues:
         return self._config['staff_cognito_client_id']
 
     @property
-    def provider_cognito_domain(self) -> str:
-        """Get the Cognito domain name for provider users."""
-        return self._config['provider_cognito_domain']
-
-    @property
-    def provider_cognito_client_id(self) -> str:
-        """Get the UI client ID for provider users."""
-        return self._config['provider_cognito_client_id']
-
-    @property
     def ui_domain_name(self) -> str:
         """Get the domain name for the UI application."""
         return self._config['ui_domain_name']
@@ -279,7 +270,8 @@ class ProviderUsersStackFrontendAppConfigValues:
 
         :param stack: The CDK stack
 
-        :return: An instance of ProviderUsersStackFrontendAppConfigValues with loaded configuration if the parameter exists, otherwise None
+        :return: An instance of ProviderUsersStackFrontendAppConfigValues with loaded configuration if the parameter
+        exists, otherwise None
         """
         config_value = StringParameter.value_from_lookup(
             stack, PROVIDER_USERS_STACK_FRONTEND_APP_CONFIGURATION_PARAMETER_NAME, default_value=None

@@ -143,9 +143,7 @@ class TstAppABC(ABC):
                 provider_users_user_pool_app_client['ReadAttributes'],
                 ['custom:compact', 'custom:providerId', 'email'],
             )
-            self.assertEqual(
-                provider_users_user_pool_app_client['WriteAttributes'], ['email']
-            )
+            self.assertEqual(provider_users_user_pool_app_client['WriteAttributes'], ['email'])
 
     def _inspect_persistent_stack(
         self,
