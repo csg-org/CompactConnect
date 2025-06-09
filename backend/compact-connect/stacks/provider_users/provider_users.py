@@ -35,6 +35,7 @@ class ProviderUsers(UserPool):
         sign_in_aliases: SignInAliases,
         user_pool_email: UserPoolEmail,
         removal_policy,
+        persistent_stack: ps.PersistentStack,
         **kwargs,
     ):
         super().__init__(
@@ -55,11 +56,10 @@ class ProviderUsers(UserPool):
             },
             **kwargs,
         )
-        stack: ps.PersistentStack = ps.PersistentStack.of(self)
 
         # Create an app client to allow the front-end to authenticate.
         self.ui_client = self.add_ui_client(
-            ui_domain_name=stack.ui_domain_name,
+            ui_domain_name=persistent_stack.ui_domain_name,
             environment_context=environment_context,
             # For now, we are allowing the user to read and update their email, given name, and family name.
             # we only allow the user to be able to see their providerId and compact, which are custom attributes.
@@ -70,7 +70,7 @@ class ProviderUsers(UserPool):
             write_attributes=ClientAttributes().with_standard_attributes(email=True),
         )
 
-        self._add_custom_message_lambda(stack=stack, environment_name=environment_name)
+        self._add_custom_message_lambda(stack=persistent_stack, environment_name=environment_name)
 
     @staticmethod
     def _configure_user_pool_standard_attributes() -> StandardAttributes:

@@ -30,8 +30,6 @@ class TestPersistentStackFrontendAppConfigUtility(TestCase):
             {
                 'staff_cognito_domain': 'staff-domain.example.com',
                 'staff_cognito_client_id': 'staff-client-123',
-                'provider_cognito_domain': 'provider-domain.example.com',
-                'provider_cognito_client_id': 'provider-client-456',
                 'ui_domain_name': 'ui.example.com',
                 'api_domain_name': 'api.example.com',
             },
@@ -46,8 +44,6 @@ class TestPersistentStackFrontendAppConfigUtility(TestCase):
                 {
                     'staff_cognito_domain': 'staff-domain.example.com',
                     'staff_cognito_client_id': 'staff-client-123',
-                    'provider_cognito_domain': 'provider-domain.example.com',
-                    'provider_cognito_client_id': 'provider-client-456',
                     'ui_domain_name': 'ui.example.com',
                     'api_domain_name': 'api.example.com',
                 }
@@ -57,10 +53,9 @@ class TestPersistentStackFrontendAppConfigUtility(TestCase):
         # Test getters
         self.assertEqual(util.staff_cognito_domain, 'staff-domain.example.com')
         self.assertEqual(util.staff_cognito_client_id, 'staff-client-123')
-        self.assertEqual(util.provider_cognito_domain, 'provider-domain.example.com')
-        self.assertEqual(util.provider_cognito_client_id, 'provider-client-456')
         self.assertEqual(util.ui_domain_name, 'ui.example.com')
         self.assertEqual(util.api_domain_name, 'api.example.com')
+
 
 class TestProviderUserStackFrontendAppConfigUtility(TestCase):
     """Tests for the ProviderUserStackFrontendAppConfigUtility class"""
@@ -100,3 +95,4 @@ class TestProviderUserStackFrontendAppConfigUtility(TestCase):
 
         # Test getters
         self.assertEqual(util.provider_cognito_domain, 'provider-domain.example.com')
+        self.assertEqual(util.provider_cognito_client_id, 'provider-client-456')

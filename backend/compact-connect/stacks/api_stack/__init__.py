@@ -18,7 +18,7 @@ class ApiStack(AppStack):
         environment_name: str,
         environment_context: dict,
         persistent_stack: ps.PersistentStack,
-        provider_user_pool_stack: ProviderUsersStack,
+        provider_users_stack: ProviderUsersStack,
         **kwargs,
     ):
         super().__init__(
@@ -33,5 +33,5 @@ class ApiStack(AppStack):
             environment_name=environment_name,
             security_profile=security_profile,
             persistent_stack=persistent_stack,
-            provider_user_pool_stack=provider_user_pool_stack,
+            provider_users_stack=provider_users_stack,
         )

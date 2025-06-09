@@ -58,6 +58,7 @@ class BackendStage(Stage):
             environment_name=environment_name,
             standard_tags=standard_tags,
             persistent_stack=self.persistent_stack,
+            provider_users_stack=self.provider_users_stack,
         )
 
         self.ingest_stack = IngestStack(
@@ -78,7 +79,7 @@ class BackendStage(Stage):
             standard_tags=standard_tags,
             environment_name=environment_name,
             persistent_stack=self.persistent_stack,
-            provider_user_pool_stack=self.provider_users_stack,
+            provider_users_stack=self.provider_users_stack,
         )
 
         self.event_listener_stack = EventListenerStack(

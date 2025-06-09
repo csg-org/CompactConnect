@@ -18,22 +18,18 @@ class ProviderUsersStack(AppStack):
     """
 
     def __init__(
-            self,
-            scope: Construct,
-            construct_id: str,
-            *,
-            app_name: str,
-            environment_name: str,
-            environment_context: dict,
-            persistent_stack: PersistentStack,
-            **kwargs,
+        self,
+        scope: Construct,
+        construct_id: str,
+        *,
+        app_name: str,
+        environment_name: str,
+        environment_context: dict,
+        persistent_stack: PersistentStack,
+        **kwargs,
     ) -> None:
         super().__init__(
-            scope,
-            construct_id,
-            environment_context=environment_context,
-            environment_name=environment_name,
-            **kwargs
+            scope, construct_id, environment_context=environment_context, environment_name=environment_name, **kwargs
         )
 
         self.persistent_stack = persistent_stack
@@ -70,6 +66,7 @@ class ProviderUsersStack(AppStack):
             user_pool_email=user_pool_email_settings,
             security_profile=security_profile,
             removal_policy=removal_policy,
+            persistent_stack=persistent_stack,
         )
 
         # Add SES dependencies if hosted zone exists

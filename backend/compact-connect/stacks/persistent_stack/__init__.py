@@ -178,19 +178,8 @@ class PersistentStack(AppStack):
             removal_policy=removal_policy,
         )
 
-        # PROVIDER USER POOL MIGRATION PLAN:
-        # 1. ✓ Create the green user pool (ProviderUsersGreen) with correct standard attributes in all environments.
-        # 2. ✓ Deploy migration custom resource that deletes the domain from the deprecated user pool
-        #      (ProviderUsersBlue) so the green user pool can use the main provider domain prefix.
-        #      This will result in a deletion failure in the CFN events, but the overall deployment will succeed.
-        # 3. ✓ Set up dependency so green user pool creation waits for domain migration to complete.
-        # 4. After deployment, users will need to re-register in the new green user pool since user 
-        #      accounts cannot be migrated between pools with different standard attribute schemas.
-        # 5. Once migration is complete and green user pool is fully operational, remove the deprecated 
-        #      user pool (ProviderUsersBlue) in a future deployment.
-
         # This user pool is deprecated and will be removed once we've cut over to the green user pool
-        # across all environments.
+        # in the new provider_users_stack across all environments.
         provider_prefix = f'{app_name}-provider'
         provider_prefix = provider_prefix if environment_name == 'prod' else f'{provider_prefix}-{environment_name}'
 
@@ -212,6 +201,7 @@ class PersistentStack(AppStack):
         # https://www.endoflineblog.com/cdk-tips-03-how-to-unblock-cross-stack-references
         self.export_value(self.provider_users_deprecated.user_pool_id)
         self.export_value(self.provider_users_deprecated.user_pool_arn)
+        self.export_value(self.provider_users_deprecated.ui_client.user_pool_client_id)
 
         QueryDefinition(
             self,
