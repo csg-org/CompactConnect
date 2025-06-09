@@ -26,6 +26,14 @@ from cc_common.exceptions import (
 OK_TRANSACTION_MESSAGE_RESULT_CODE = 'Ok'
 MAXIMUM_TRANSACTION_API_LIMIT = 1000
 
+# Authorize.net does not have a clear way to distinguish between an error that is caused by an issue with the card
+# information passed in by the user, and an internal issue caused by the API itself. To account for this, we
+# pulled the list of known issues from their transaction response code lookup and put the list of error codes that are
+# likely caused by the user. These include issues such as an invalid or unsupported card number, the expiration date
+# being expired, or the card being declined. You can review the description of these codes by searching for them at
+# https://developer.authorize.net/api/reference/responseCodes.html
+AUTHORIZE_NET_CARD_USER_ERROR_CODES = ['2', '5', '6', '7', '8', '11', '17']
+
 # The authorizenet SDK emits many warnings due to a Pyxb issue that they will not address,
 # see https://github.com/AuthorizeNet/sdk-python/issues/133,
 # so we are ignoring warnings to reduce noise in our logging
@@ -231,12 +239,10 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         if hasattr(response, 'transactionResponse') and hasattr(response.transactionResponse, 'errors'):
             error_code = response.transactionResponse.errors.error[0].errorCode
             error_message = response.transactionResponse.errors.error[0].errorText
-            if error_code == '11' or error_message == 'A duplicate transaction has been submitted.':
-                # This occurs if the user submitted duplicate transactions within the duplicate window
-                # we log the warning and return it as a user error
-                logger.warning(logger_message, error_code=error_code, error_message=error_message)
+            if error_code in AUTHORIZE_NET_CARD_USER_ERROR_CODES:
+                logger.warning(logger_message, transaction_error_code=error_code, transaction_error_message=error_message)
                 raise CCInvalidRequestException('Duplicate transaction detected for previously successful transaction.')
-            logger.error(logger_message, error_code=error_code, error_message=error_message)
+            logger.error(logger_message, transaction_error_code=error_code, transaction_error_message=error_message)
 
         else:
             error_code = response.messages.message[0]['code'].text
