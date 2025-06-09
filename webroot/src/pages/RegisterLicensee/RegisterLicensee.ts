@@ -130,7 +130,9 @@ class RegisterLicensee extends mixins(MixinForm) {
     get selectedState(): State | null {
         const selectedOption = this.stateOptions.find((option) => option.value === this.formData.licenseState.value);
 
-        return selectedOption ? new State({ abbrev: selectedOption.value as string }) : null;
+        return selectedOption && typeof selectedOption.value === 'string'
+            ? new State({ abbrev: selectedOption.value })
+            : null;
     }
 
     get formattedDob(): string {

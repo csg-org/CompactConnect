@@ -151,7 +151,6 @@
                             <div class="register-licensee-summary-row-button-container">
                                 <InputButton
                                     @click="handleBackToForm"
-                                    id="register-licensee-submit-button"
                                     class="action-button submit-button continue-button"
                                     :label="$t('common.back')"
                                     :isTransparent="true"
