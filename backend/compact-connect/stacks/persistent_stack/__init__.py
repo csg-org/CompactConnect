@@ -536,7 +536,7 @@ class PersistentStack(AppStack):
 
         if is_sandbox:
             # Try to get sandbox-specific configuration
-            active_member_jurisdictions = self.node.try_get_context('sandbox_active_compact_member_jurisdictions')
+            active_member_jurisdictions = self.node.get_context('sandbox_active_compact_member_jurisdictions')
         else:
             # Use regular configuration for non-sandbox environments
             active_member_jurisdictions = self.node.get_context('active_compact_member_jurisdictions')
