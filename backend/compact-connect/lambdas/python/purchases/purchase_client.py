@@ -239,7 +239,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         if hasattr(response, 'transactionResponse') and hasattr(response.transactionResponse, 'errors'):
             error_code = response.transactionResponse.errors.error[0].errorCode
             error_message = response.transactionResponse.errors.error[0].errorText
-            if error_code in AUTHORIZE_NET_CARD_USER_ERROR_CODES:
+            if str(error_code) in AUTHORIZE_NET_CARD_USER_ERROR_CODES:
                 logger.warning(logger_message, transaction_error_code=error_code, transaction_error_message=error_message)
                 raise CCInvalidRequestException('Duplicate transaction detected for previously successful transaction.')
             logger.error(logger_message, transaction_error_code=error_code, transaction_error_message=error_message)
