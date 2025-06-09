@@ -85,85 +85,87 @@
                             />
                         </div>
                         <div v-else class="register-licensee-summary-container">
-                            <h1 class="register-licensee-title summary-title">
+                            <h1 class="register-licensee-title summary-title" id="summary-heading">
                                 {{ $t('account.accountSummary') }}
                             </h1>
-                            <div
-                                class="register-licensee-subtext summary-subtext"
-                                v-html="$t('account.accountSummarySubtext')"
-                            />
-                            <div class="register-licensee-summary-row">
-                                <div class="register-licensee-summary-row-label">
-                                    {{ $t('common.firstName') }}
-                                </div>
-                                <div class="register-licensee-summary-row-value">
-                                    {{ formData.firstName.value }}
-                                </div>
-                            </div>
-                            <div class="register-licensee-summary-row">
-                                <div class="register-licensee-summary-row-label">
-                                    {{ $t('common.lastName') }}
-                                </div>
-                                <div class="register-licensee-summary-row-value">
-                                    {{ formData.lastName.value }}
-                                </div>
-                            </div>
-                            <div class="register-licensee-summary-row">
-                                <div class="register-licensee-summary-row-label">
-                                    {{ $t('licensing.stateOfHomeLicense') }}
-                                </div>
-                                <div class="register-licensee-summary-row-value">
-                                    {{ selectedState?.name() || formData.licenseState.value }}
-                                </div>
-                            </div>
-                            <div class="register-licensee-summary-row">
-                                <div class="register-licensee-summary-row-label">
-                                    {{ $t('licensing.licenseType') }}
-                                </div>
-                                <div class="register-licensee-summary-row-value license-type-value">
-                                    {{ formData.licenseType.value }}
-                                </div>
-                            </div>
-                            <div class="register-licensee-summary-row">
-                                <div class="register-licensee-summary-row-label">
-                                    {{ $t('licensing.ssnLastFour') }}
-                                </div>
-                                <div class="register-licensee-summary-row-value">
-                                    {{ formData.ssnLastFour.value }}
-                                </div>
-                            </div>
-                            <div class="register-licensee-summary-row">
-                                <div class="register-licensee-summary-row-label">
-                                    {{ $t('common.emailAddress') }}
-                                </div>
-                                <div class="register-licensee-summary-row-value">
-                                    {{ formData.email.value }}
-                                </div>
-                            </div>
-                            <div class="register-licensee-summary-row">
-                                <div class="register-licensee-summary-row-label">
-                                    {{ $t('common.dateOfBirth') }}
-                                </div>
-                                <div class="register-licensee-summary-row-value">
-                                    {{ formattedDob }}
-                                </div>
-                            </div>
-                            <div class="register-licensee-summary-row-button-container">
-                                <InputButton
-                                    @click="handleBackToForm"
-                                    class="action-button submit-button continue-button"
-                                    :label="$t('common.back')"
-                                    :isTransparent="true"
-                                    :isEnabled="!isFormLoading"
+                            <section role="region" aria-labelledby="summary-heading">
+                                <div
+                                    class="register-licensee-subtext summary-subtext"
+                                    v-html="$t('account.accountSummarySubtext')"
                                 />
-                                <InputSubmit
-                                    :formInput="formData.submit"
-                                    :label="$t('common.confirm')"
-                                    class="input-submit"
-                                    :isTransparent="false"
-                                    :isEnabled="!isFormLoading"
-                                />
-                            </div>
+                                <div class="register-licensee-summary-row">
+                                    <div class="register-licensee-summary-row-label">
+                                        {{ $t('common.firstName') }}
+                                    </div>
+                                    <div class="register-licensee-summary-row-value">
+                                        {{ formData.firstName.value }}
+                                    </div>
+                                </div>
+                                <div class="register-licensee-summary-row">
+                                    <div class="register-licensee-summary-row-label">
+                                        {{ $t('common.lastName') }}
+                                    </div>
+                                    <div class="register-licensee-summary-row-value">
+                                        {{ formData.lastName.value }}
+                                    </div>
+                                </div>
+                                <div class="register-licensee-summary-row">
+                                    <div class="register-licensee-summary-row-label">
+                                        {{ $t('licensing.stateOfHomeLicense') }}
+                                    </div>
+                                    <div class="register-licensee-summary-row-value">
+                                        {{ selectedState?.name() || formData.licenseState.value }}
+                                    </div>
+                                </div>
+                                <div class="register-licensee-summary-row">
+                                    <div class="register-licensee-summary-row-label">
+                                        {{ $t('licensing.licenseType') }}
+                                    </div>
+                                    <div class="register-licensee-summary-row-value license-type-value">
+                                        {{ formData.licenseType.value }}
+                                    </div>
+                                </div>
+                                <div class="register-licensee-summary-row">
+                                    <div class="register-licensee-summary-row-label">
+                                        {{ $t('licensing.ssnLastFour') }}
+                                    </div>
+                                    <div class="register-licensee-summary-row-value">
+                                        {{ formData.ssnLastFour.value }}
+                                    </div>
+                                </div>
+                                <div class="register-licensee-summary-row">
+                                    <div class="register-licensee-summary-row-label">
+                                        {{ $t('common.emailAddress') }}
+                                    </div>
+                                    <div class="register-licensee-summary-row-value">
+                                        {{ formData.email.value }}
+                                    </div>
+                                </div>
+                                <div class="register-licensee-summary-row">
+                                    <div class="register-licensee-summary-row-label">
+                                        {{ $t('common.dateOfBirth') }}
+                                    </div>
+                                    <div class="register-licensee-summary-row-value">
+                                        {{ formattedDob }}
+                                    </div>
+                                </div>
+                                <div class="register-licensee-summary-row-button-container">
+                                    <InputButton
+                                        @click="handleBackToForm"
+                                        class="action-button submit-button continue-button"
+                                        :label="$t('common.back')"
+                                        :isTransparent="true"
+                                        :isEnabled="!isFormLoading"
+                                    />
+                                    <InputSubmit
+                                        :formInput="formData.submit"
+                                        :label="$t('common.confirm')"
+                                        class="input-submit"
+                                        :isTransparent="false"
+                                        :isEnabled="!isFormLoading"
+                                    />
+                                </div>
+                            </section>
                         </div>
                     </form>
                 </template>
