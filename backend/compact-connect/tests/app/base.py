@@ -18,10 +18,10 @@ from aws_cdk.aws_s3 import CfnBucket
 from aws_cdk.aws_sqs import CfnQueue
 from common_constructs.stack import Stack
 from pipeline import BackendStage, FrontendStage
-from provider_users import ProviderUsersStack
 from stacks.api_stack import ApiStack
 from stacks.frontend_deployment_stack import FrontendDeploymentStack
 from stacks.persistent_stack import PersistentStack
+from stacks.provider_users import ProviderUsersStack
 
 
 class TstAppABC(ABC):
