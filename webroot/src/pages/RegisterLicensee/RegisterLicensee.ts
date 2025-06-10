@@ -11,7 +11,12 @@ import {
     toNative,
     Watch
 } from 'vue-facing-decorator';
-import { reactive, computed, ComputedRef } from 'vue';
+import {
+    reactive,
+    computed,
+    ComputedRef,
+    nextTick
+} from 'vue';
 import { stateList } from '@/app.config';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import Section from '@components/Section/Section.vue';
@@ -130,7 +135,7 @@ class RegisterLicensee extends mixins(MixinForm) {
     get selectedState(): State | null {
         const selectedOption = this.stateOptions.find((option) => option.value === this.formData.licenseState.value);
 
-        return selectedOption && typeof selectedOption.value === 'string'
+        return (selectedOption && typeof selectedOption.value === 'string')
             ? new State({ abbrev: selectedOption.value })
             : null;
     }
@@ -293,16 +298,31 @@ class RegisterLicensee extends mixins(MixinForm) {
         }
     }
 
-    handleProceedToConfirmation(): void {
+    async handleProceedToConfirmation(): Promise<void> {
         this.validateAll({ asTouched: true });
 
         if (this.isFormValid) {
             this.isConfirmationScreen = true;
+
+            // Wait for DOM to update, then scroll to confirmation screen
+            await nextTick();
+
+            this.scrollIntoView('summary-heading');
+        }
+    }
+
+    scrollIntoView(elementId: string): void {
+        const element = document.getElementById(elementId);
+
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     }
 
     handleBackToForm(): void {
         this.isConfirmationScreen = false;
+
+        this.scrollIntoView('register-licensee-form');
     }
 
     handleMissingCompactType(): void {
@@ -416,8 +436,7 @@ class RegisterLicensee extends mixins(MixinForm) {
         }
     }
 
-    @Watch('isConfirmationScreen')
-    onConfirmationScreenChange(newValue: boolean): void {
+    @Watch('isConfirmationScreen') onConfirmationScreenChange(newValue: boolean): void {
         if (!newValue) { // Back to form
             this.$nextTick(() => {
                 this.initExtraFields();

@@ -36,7 +36,7 @@
                     </div>
                 </template>
                 <template v-else-if="!isFormSuccessful">
-                    <form @submit.prevent="handleSubmit" class="register-licensee-form">
+                    <form @submit.prevent="handleSubmit" class="register-licensee-form" id="register-licensee-form">
                         <div v-if="!isConfirmationScreen" class="register-licensee-form-container">
                             <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
                             <a
@@ -75,8 +75,7 @@
                             </label>
                             <InputButton
                                 @click="handleProceedToConfirmation"
-                                id="register-licensee-continue-to-confirmation-button"
-                                class="action-button submit-button continue-button"
+                                class="action-button continue-button register-licensee-continue-to-confirmation-button"
                                 :label="(isFormLoading)
                                     ? $t('common.loading')
                                     : $t('common.next')"
