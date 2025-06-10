@@ -136,7 +136,7 @@ class RegisterLicensee extends mixins(MixinForm) {
         const selectedOption = this.stateOptions.find((option) => option.value === this.formData.licenseState.value);
 
         return (selectedOption && typeof selectedOption.value === 'string')
-            ? new State({ abbrev: selectedOption.value })
+            ? new State({ abbrev: selectedOption.value.toUpperCase() })
             : null;
     }
 
