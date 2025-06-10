@@ -360,6 +360,29 @@ class PersistentStack(AppStack):
             ],
         )
 
+        self.provider_user_pool_migration = DataMigration(
+            self,
+            'ProviderUserPoolMigration',
+            migration_dir='provider_user_pool_migration_551',
+            lambda_environment={
+                'PROVIDER_TABLE_NAME': self.provider_table.table_name,
+                **self.common_env_vars,
+            },
+        )
+        self.provider_table.grant_read_write_data(self.provider_user_pool_migration)
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            f'{self.provider_user_pool_migration.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'This policy contains wild-carded actions and resources but they are scoped to the '
+                    'specific table that this lambda needs access to in order to perform the user pool domain '
+                    'migration.',
+                },
+            ],
+        )
+
         QueryDefinition(
             self,
             'Migrations',
@@ -371,6 +394,7 @@ class PersistentStack(AppStack):
             ),
             log_groups=[
                 home_jurisdiction_migration.migration_function.log_group,
+                self.provider_user_pool_migration.migration_function.log_group,
             ],
         )
 
