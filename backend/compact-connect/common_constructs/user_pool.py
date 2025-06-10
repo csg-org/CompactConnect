@@ -189,7 +189,7 @@ class UserPool(CdkUserPool):
                 scopes=ui_scopes,
             ),
             access_token_validity=Duration.minutes(60),
-            auth_session_validity=Duration.minutes(3),
+            auth_session_validity=Duration.minutes(15),
             enable_token_revocation=True,
             generate_secret=False,
             refresh_token_validity=Duration.days(30),
