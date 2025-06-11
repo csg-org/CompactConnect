@@ -289,12 +289,7 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
     }
 
     async acceptUiSuccessResponse(response: AcceptUiResponse): Promise<void> {
-        const { opaqueData } = response;
-
-        await this.handleSubmitOverride({
-            dataDescriptor: opaqueData?.dataDescriptor,
-            dataValue: opaqueData?.dataValue,
-        });
+        await this.handleSubmitOverride(response?.opaqueData || {});
     }
 
     async acceptUiErrorResponse(): Promise<void> {
@@ -306,7 +301,7 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
         formMessageElement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
-    async handleSubmitOverride(paymentDetails: object): Promise<void> {
+    async handleSubmitOverride(opaqueData: object): Promise<void> {
         this.validateAll({ asTouched: true });
 
         if (this.isFormValid) {
@@ -323,7 +318,7 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
                 statesSelected,
                 attestationsSelected,
                 selectedPurchaseLicense,
-                paymentDetails
+                opaqueData
             });
             const purchaseServerEvent = await this.$store.dispatch('user/postPrivilegePurchases', serverData);
 

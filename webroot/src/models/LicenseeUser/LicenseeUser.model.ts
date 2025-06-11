@@ -66,15 +66,16 @@ export class LicenseeUserPurchaseSerializer {
         statesSelected,
         attestationsSelected,
         selectedPurchaseLicense,
-        paymentDetails
+        opaqueData
     }): any {
         const purchaseData: any = {
             selectedJurisdictions: statesSelected,
             attestations: attestationsSelected,
             licenseType: selectedPurchaseLicense.licenseType,
             orderInformation: {
-                dataDescriptor: paymentDetails.dataDescriptor,
-                dataValue: paymentDetails.dataValue,
+                opaqueData: {
+                    ...opaqueData,
+                },
             },
         };
 

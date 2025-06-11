@@ -234,10 +234,6 @@ describe('User model', () => {
         expect(user.accountStatusDisplay()).to.equal('Inactive');
     });
     it('should serialize a privilege purchase request for transmission', () => {
-        const paymentDetails = {
-            dataDescriptor: `test-dataDescriptor`,
-            dataValue: `test-dataValue`,
-        };
         const statesSelected = ['ne', 'ky'];
         const attestationsSelected = [
             new AcceptedAttestationToSend({
@@ -253,18 +249,21 @@ describe('User model', () => {
             id: 'test-id',
             licenseType: LicenseType.AUDIOLOGIST,
         });
+        const opaqueData = {
+            dataDescriptor: `test-dataDescriptor`,
+            dataValue: `test-dataValue`,
+        };
         const requestData = LicenseeUserPurchaseSerializer.toServer({
             statesSelected,
             attestationsSelected,
             selectedPurchaseLicense,
-            paymentDetails
+            opaqueData
         });
 
         expect(requestData.selectedJurisdictions).to.matchPattern(['ne', 'ky']);
         expect(requestData.attestations).to.matchPattern(attestationsSelected);
         expect(requestData.licenseType).to.equal(selectedPurchaseLicense.licenseType);
         expect(requestData.attestations.length).to.equal(2);
-        expect(requestData.orderInformation.dataDescriptor).to.equal(paymentDetails.dataDescriptor);
-        expect(requestData.orderInformation.dataValue).to.equal(paymentDetails.dataValue);
+        expect(requestData.orderInformation.opaqueData).to.matchPattern(opaqueData);
     });
 });

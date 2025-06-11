@@ -151,10 +151,10 @@ export const privilegePurchaseOptionsResponse = {
                 }
             },
             type: 'compact',
-            paymentGateway: {
-                loginId: '24xMHMr4L5TX',
-                clientKey: '5qxB7gvCGVJA5W6kpC265z4rDSfJcs65pmRrAGEJcTbcQqwvnRhw8E6256C283du',
-                isProductionMode: false,
+            isSandbox: true,
+            paymentProcessorPublicFields: {
+                apiLoginId: process.env.VUE_APP_MOCK_API_PAYMENT_LOGIN_ID,
+                publicClientKey: process.env.VUE_APP_MOCK_API_PAYMENT_CLIENT_KEY,
             },
         },
         {

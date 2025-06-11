@@ -56,7 +56,8 @@ export class CompactFeeConfigSerializer {
             compactAbbr,
             compactCommissionFee,
             transactionFeeConfiguration,
-            paymentGateway
+            paymentProcessorPublicFields,
+            isSandbox
         } = json;
         const { licenseeCharges } = transactionFeeConfiguration || {};
 
@@ -68,9 +69,9 @@ export class CompactFeeConfigSerializer {
             isPerPrivilegeTransactionFeeActive: licenseeCharges?.active
                 && licenseeCharges?.chargeType === FeeTypes.FLAT_FEE_PER_PRIVILEGE,
             paymentSdkConfig: {
-                loginId: paymentGateway?.loginId || '',
-                clientKey: paymentGateway?.clientKey || '',
-                isProductionMode: paymentGateway?.isProductionMode || false,
+                loginId: paymentProcessorPublicFields?.apiLoginId || '',
+                clientKey: paymentProcessorPublicFields?.publicClientKey || '',
+                isProductionMode: (typeof isSandbox === 'boolean') ? !isSandbox : false,
             },
         };
 
