@@ -50,6 +50,7 @@ class UserPool(CdkUserPool):
         email: UserPoolEmail,
         removal_policy,
         security_profile: SecurityProfile = SecurityProfile.RECOMMENDED,
+        password_policy: PasswordPolicy = None,
         **kwargs,
     ):
         if environment_name == 'prod' and security_profile != SecurityProfile.RECOMMENDED:
@@ -74,7 +75,7 @@ class UserPool(CdkUserPool):
             ),
             mfa=Mfa.REQUIRED if security_profile == SecurityProfile.RECOMMENDED else Mfa.OPTIONAL,
             mfa_second_factor=MfaSecondFactor(otp=True, sms=False),
-            password_policy=PasswordPolicy(min_length=12),
+            password_policy=PasswordPolicy(min_length=12) if not password_policy else password_policy,
             self_sign_up_enabled=False,
             sign_in_aliases=sign_in_aliases,
             sign_in_case_sensitive=False,

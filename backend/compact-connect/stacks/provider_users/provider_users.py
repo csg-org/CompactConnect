@@ -3,6 +3,7 @@ from __future__ import annotations
 from aws_cdk import Duration
 from aws_cdk.aws_cognito import (
     ClientAttributes,
+    PasswordPolicy,
     SignInAliases,
     StandardAttribute,
     StandardAttributes,
@@ -54,6 +55,7 @@ class ProviderUsers(UserPool):
                 'providerId': StringAttribute(mutable=False),
                 'compact': StringAttribute(mutable=False),
             },
+            password_policy=PasswordPolicy(min_length=12, temp_password_validity=Duration.days(1)),
             **kwargs,
         )
 
