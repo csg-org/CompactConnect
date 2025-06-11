@@ -5,7 +5,7 @@
 //  Created by InspiringApps on 5/2/2025.
 //
 
-import { Component, Vue } from 'vue-facing-decorator';
+import { Component, Vue, Watch } from 'vue-facing-decorator';
 import LicenseHomeIcon from '@components/Icons/LicenseHome/LicenseHome.vue';
 import PrivilegesIcon from '@components/Icons/LicenseeUser/LicenseeUser.vue';
 import UserIcon from '@components/Icons/User/User.vue';
@@ -15,6 +15,7 @@ import { Licensee } from '@models/Licensee/Licensee.model';
 import { State } from '@models/State/State.model';
 import { LicenseeUser } from '@/models/LicenseeUser/LicenseeUser.model';
 import moment from 'moment';
+import QRCode from 'qrcode';
 
 @Component({
     name: 'LicenseeProof',
@@ -25,6 +26,16 @@ import moment from 'moment';
     }
 })
 export default class LicenseeProof extends Vue {
+    // Data
+    public qrCodeDataUrl = '';
+
+    //
+    // Lifecycle
+    //
+    async mounted() {
+        await this.generateQRCode();
+    }
+
     //
     // Computed
     //
@@ -79,10 +90,50 @@ export default class LicenseeProof extends Vue {
             }) || [];
     }
 
+    get publicProfileUrl(): string {
+        let url = '';
+        const { domain } = this.$envConfig;
+        const licenseeId = this.licensee.id;
+        const compactType = this.currentCompactType;
+
+        if (licenseeId && compactType) {
+            url = `${domain}/Search/${compactType}/${licenseeId}`;
+        }
+
+        return url;
+    }
+
     //
     // Methods
     //
     printHandler(): void {
         window.print();
+    }
+
+    async generateQRCode(): Promise<void> {
+        if (this.publicProfileUrl) {
+            try {
+                // Get the primary color from CSS custom properties
+                const primaryColor = getComputedStyle(document.documentElement)
+                    .getPropertyValue('--primary-color').trim();
+
+                this.qrCodeDataUrl = await QRCode.toDataURL(this.publicProfileUrl, {
+                    width: 150,
+                    margin: 1,
+                    color: {
+                        dark: primaryColor || '#2459a9', // Fallback to hardcoded value
+                        light: '#ffffff'
+                    }
+                });
+            } catch (error) {
+                console.error('Error generating QR code:', error);
+                this.qrCodeDataUrl = '';
+            }
+        }
+    }
+
+    // Watch for changes to publicProfileUrl
+    @Watch('publicProfileUrl') async onPublicProfileUrlChanged() {
+        await this.generateQRCode();
     }
 }

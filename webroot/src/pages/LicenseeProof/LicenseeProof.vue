@@ -94,6 +94,19 @@
                     <span class="date-text">{{ privilege.expireDateDisplay() }}</span>
                 </div>
             </div>
+            <div class="qr-code-section" v-if="qrCodeDataUrl">
+                <img
+                    :src="qrCodeDataUrl"
+                    :alt="$t('licensing.qrCodeAlt')"
+                    class="qr-code-image"
+                />
+                <div class="qr-code-label">
+                    {{ $t('licensing.publicProfileLink') }}
+                    <a :href="publicProfileUrl" target="_blank">
+                        {{ publicProfileUrl }}
+                    </a>
+                </div>
+            </div>
         </div>
         <div class="print-footer">{{ $t('licensing.privilegeProofFooter') }}</div>
     </div>

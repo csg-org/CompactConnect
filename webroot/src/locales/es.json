@@ -499,7 +499,10 @@
         "confirmSaveCompactTitle": "¿Estás seguro de que deseas marcar este estado como activo?",
         "confirmSaveCompactYes": "Sí, marcar como en vivo",
         "saveSuccessfulCompact": "Los cambios compactos se guardaron correctamente",
-        "saveSuccessfulState": "Los cambios de estado se guardaron correctamente"
+        "saveSuccessfulState": "Los cambios de estado se guardaron correctamente",
+        "privilegeProofFooter": "Este documento es generado oficialmente por Compact Connect y sirve como prueba de las licencias y privilegios actuales del profesional.",
+        "publicProfileLink": "Ver perfil público en",
+        "qrCodeAlt": "Código QR que enlaza al perfil público"
     },
     "stateUpload": {
         "formTitle": "Carga de datos compacta",

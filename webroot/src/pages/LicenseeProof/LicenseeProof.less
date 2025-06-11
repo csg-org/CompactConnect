@@ -157,6 +157,33 @@
                 }
             }
         }
+
+        .qr-code-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 2rem;
+            padding: 2rem;
+            page-break-inside: avoid;
+            break-inside: avoid;
+
+            .qr-code-label {
+                margin: 2rem 0 4rem 0;
+                color: @primaryColor;
+                font-weight: @fontWeightMedium;
+                font-size: @fontSizeMedium;
+                text-align: center;
+
+                a {
+                    font-weight: @fontWeightBold;
+                    text-decoration: underline;
+                }
+            }
+
+            .qr-code-image {
+                border-radius: 8px;
+            }
+        }
     }
 
     .print-footer {
