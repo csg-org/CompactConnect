@@ -275,7 +275,7 @@ class PageMainNav extends Vue {
     }
 
     clickOutside(event): void {
-        if (!event.target.closest || !event.target.closest('.main-nav-container, .nav-toggle')) {
+        if (event.target instanceof Element && !event.target.closest('.main-nav-container, .nav-toggle')) {
             this.navCollapse();
         }
     }

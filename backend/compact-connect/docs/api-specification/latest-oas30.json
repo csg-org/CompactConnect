@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "LicenseApi",
-    "version": "2025-05-22T19:30:42Z"
+    "version": "2025-06-05T16:54:45Z"
   },
   "servers": [
     {
@@ -858,6 +858,236 @@
             ]
           }
         ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "compact",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "providerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "jurisdiction",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "licenseType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SandboLicen70lxldsITafm"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SandboLicen2XGMfkiyQuog"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
+              "aslp/admin",
+              "al/aslp.admin",
+              "ak/aslp.admin",
+              "ar/aslp.admin",
+              "co/aslp.admin",
+              "de/aslp.admin",
+              "fl/aslp.admin",
+              "ga/aslp.admin",
+              "id/aslp.admin",
+              "in/aslp.admin",
+              "ia/aslp.admin",
+              "ks/aslp.admin",
+              "ky/aslp.admin",
+              "la/aslp.admin",
+              "me/aslp.admin",
+              "md/aslp.admin",
+              "mn/aslp.admin",
+              "ms/aslp.admin",
+              "mo/aslp.admin",
+              "ne/aslp.admin",
+              "oh/aslp.admin",
+              "octp/admin",
+              "al/octp.admin",
+              "ar/octp.admin",
+              "ky/octp.admin",
+              "la/octp.admin",
+              "ms/octp.admin",
+              "ne/octp.admin",
+              "oh/octp.admin",
+              "coun/admin",
+              "al/coun.admin",
+              "ar/coun.admin",
+              "fl/coun.admin",
+              "ga/coun.admin",
+              "ky/coun.admin",
+              "ne/coun.admin",
+              "oh/coun.admin",
+              "ut/coun.admin"
+            ]
+          }
+        ]
+      }
+    },
+    "/v1/compacts/{compact}/providers/{providerId}/licenses/jurisdiction/{jurisdiction}/licenseType/{licenseType}/encumbrance/{encumbranceId}": {
+      "patch": {
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "compact",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "providerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "jurisdiction",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "licenseType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "encumbranceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SandboLicen70lxldsITafm"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SandboLicen2XGMfkiyQuog"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
+              "aslp/admin",
+              "al/aslp.admin",
+              "ak/aslp.admin",
+              "ar/aslp.admin",
+              "co/aslp.admin",
+              "de/aslp.admin",
+              "fl/aslp.admin",
+              "ga/aslp.admin",
+              "id/aslp.admin",
+              "in/aslp.admin",
+              "ia/aslp.admin",
+              "ks/aslp.admin",
+              "ky/aslp.admin",
+              "la/aslp.admin",
+              "me/aslp.admin",
+              "md/aslp.admin",
+              "mn/aslp.admin",
+              "ms/aslp.admin",
+              "mo/aslp.admin",
+              "ne/aslp.admin",
+              "oh/aslp.admin",
+              "octp/admin",
+              "al/octp.admin",
+              "ar/octp.admin",
+              "ky/octp.admin",
+              "la/octp.admin",
+              "ms/octp.admin",
+              "ne/octp.admin",
+              "oh/octp.admin",
+              "coun/admin",
+              "al/coun.admin",
+              "ar/coun.admin",
+              "fl/coun.admin",
+              "ga/coun.admin",
+              "ky/coun.admin",
+              "ne/coun.admin",
+              "oh/coun.admin",
+              "ut/coun.admin"
+            ]
+          }
+        ]
       }
     },
     "/v1/compacts/{compact}/providers/{providerId}/privileges/jurisdiction/{jurisdiction}/licenseType/{licenseType}/deactivate": {
@@ -1021,6 +1251,236 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/SandboLicenVsLyrFKNZvNw"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SandboLicen2XGMfkiyQuog"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
+              "aslp/admin",
+              "al/aslp.admin",
+              "ak/aslp.admin",
+              "ar/aslp.admin",
+              "co/aslp.admin",
+              "de/aslp.admin",
+              "fl/aslp.admin",
+              "ga/aslp.admin",
+              "id/aslp.admin",
+              "in/aslp.admin",
+              "ia/aslp.admin",
+              "ks/aslp.admin",
+              "ky/aslp.admin",
+              "la/aslp.admin",
+              "me/aslp.admin",
+              "md/aslp.admin",
+              "mn/aslp.admin",
+              "ms/aslp.admin",
+              "mo/aslp.admin",
+              "ne/aslp.admin",
+              "oh/aslp.admin",
+              "octp/admin",
+              "al/octp.admin",
+              "ar/octp.admin",
+              "ky/octp.admin",
+              "la/octp.admin",
+              "ms/octp.admin",
+              "ne/octp.admin",
+              "oh/octp.admin",
+              "coun/admin",
+              "al/coun.admin",
+              "ar/coun.admin",
+              "fl/coun.admin",
+              "ga/coun.admin",
+              "ky/coun.admin",
+              "ne/coun.admin",
+              "oh/coun.admin",
+              "ut/coun.admin"
+            ]
+          }
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "compact",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "providerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "jurisdiction",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "licenseType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SandboLicen3iPXeV1EY4kC"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SandboLicen2XGMfkiyQuog"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
+              "aslp/admin",
+              "al/aslp.admin",
+              "ak/aslp.admin",
+              "ar/aslp.admin",
+              "co/aslp.admin",
+              "de/aslp.admin",
+              "fl/aslp.admin",
+              "ga/aslp.admin",
+              "id/aslp.admin",
+              "in/aslp.admin",
+              "ia/aslp.admin",
+              "ks/aslp.admin",
+              "ky/aslp.admin",
+              "la/aslp.admin",
+              "me/aslp.admin",
+              "md/aslp.admin",
+              "mn/aslp.admin",
+              "ms/aslp.admin",
+              "mo/aslp.admin",
+              "ne/aslp.admin",
+              "oh/aslp.admin",
+              "octp/admin",
+              "al/octp.admin",
+              "ar/octp.admin",
+              "ky/octp.admin",
+              "la/octp.admin",
+              "ms/octp.admin",
+              "ne/octp.admin",
+              "oh/octp.admin",
+              "coun/admin",
+              "al/coun.admin",
+              "ar/coun.admin",
+              "fl/coun.admin",
+              "ga/coun.admin",
+              "ky/coun.admin",
+              "ne/coun.admin",
+              "oh/coun.admin",
+              "ut/coun.admin"
+            ]
+          }
+        ]
+      }
+    },
+    "/v1/compacts/{compact}/providers/{providerId}/privileges/jurisdiction/{jurisdiction}/licenseType/{licenseType}/encumbrance/{encumbranceId}": {
+      "patch": {
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "compact",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "providerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "jurisdiction",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "licenseType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "encumbranceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SandboLicen3iPXeV1EY4kC"
               }
             }
           },
@@ -1751,7 +2211,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SandboLicenRoFVLhwPvO9O"
+                "$ref": "#/components/schemas/SandboLicen1cbc0aCO29n4"
               }
             }
           },
@@ -2348,75 +2808,6 @@
         },
         "additionalProperties": false
       },
-      "SandboLicenRoFVLhwPvO9O": {
-        "required": [
-          "jurisdiction"
-        ],
-        "type": "object",
-        "properties": {
-          "jurisdiction": {
-            "type": "string",
-            "description": "The jurisdiction postal abbreviation to set as home jurisdiction",
-            "enum": [
-              "al",
-              "ak",
-              "az",
-              "ar",
-              "ca",
-              "co",
-              "ct",
-              "de",
-              "dc",
-              "fl",
-              "ga",
-              "hi",
-              "id",
-              "il",
-              "in",
-              "ia",
-              "ks",
-              "ky",
-              "la",
-              "me",
-              "md",
-              "ma",
-              "mi",
-              "mn",
-              "ms",
-              "mo",
-              "mt",
-              "ne",
-              "nv",
-              "nh",
-              "nj",
-              "nm",
-              "ny",
-              "nc",
-              "nd",
-              "oh",
-              "ok",
-              "or",
-              "pa",
-              "pr",
-              "ri",
-              "sc",
-              "sd",
-              "tn",
-              "tx",
-              "ut",
-              "vt",
-              "va",
-              "vi",
-              "wa",
-              "wv",
-              "wi",
-              "wy",
-              "other"
-            ]
-          }
-        },
-        "additionalProperties": false
-      },
       "SandboLicen6ovbaZqPmZBv": {
         "required": [
           "compact",
@@ -2449,7 +2840,7 @@
             "description": "Compact name"
           },
           "dob": {
-            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
             "type": "string",
             "description": "Date of birth in YYYY-MM-DD format"
           },
@@ -3060,7 +3451,7 @@
                             "type": "string"
                           },
                           "dateOfIssuance": {
-                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                             "type": "string",
                             "format": "date"
                           },
@@ -3072,7 +3463,7 @@
                             ]
                           },
                           "dateOfExpiration": {
-                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                             "type": "string",
                             "format": "date"
                           },
@@ -3084,12 +3475,12 @@
                             "type": "string"
                           },
                           "dateOfRenewal": {
-                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                             "type": "string",
                             "format": "date"
                           },
                           "dateOfUpdate": {
-                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                             "type": "string",
                             "format": "date"
                           },
@@ -3317,7 +3708,7 @@
                             "type": "string"
                           },
                           "dateOfIssuance": {
-                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                             "type": "string",
                             "format": "date"
                           },
@@ -3329,7 +3720,7 @@
                             ]
                           },
                           "dateOfExpiration": {
-                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                             "type": "string",
                             "format": "date"
                           },
@@ -3341,12 +3732,12 @@
                             "type": "string"
                           },
                           "dateOfRenewal": {
-                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                             "type": "string",
                             "format": "date"
                           },
                           "dateOfUpdate": {
-                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                             "type": "string",
                             "format": "date"
                           },
@@ -3366,7 +3757,7 @@
                         ]
                       },
                       "dateOfUpdate": {
-                        "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                        "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                         "type": "string",
                         "format": "date"
                       },
@@ -3391,7 +3782,7 @@
                   "type": "string"
                 },
                 "dateOfIssuance": {
-                  "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                   "type": "string",
                   "format": "date"
                 },
@@ -3413,7 +3804,7 @@
                   ]
                 },
                 "dateOfExpiration": {
-                  "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                   "type": "string",
                   "format": "date"
                 },
@@ -3425,12 +3816,12 @@
                   "type": "string"
                 },
                 "dateOfRenewal": {
-                  "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                   "type": "string",
                   "format": "date"
                 },
                 "dateOfUpdate": {
-                  "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                   "type": "string",
                   "format": "date"
                 },
@@ -3522,7 +3913,7 @@
             "type": "string"
           },
           "dateOfExpiration": {
-            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
             "type": "string",
             "format": "date"
           },
@@ -3534,7 +3925,7 @@
             "type": "object",
             "properties": {
               "dateOfSelection": {
-                "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                 "type": "string",
                 "format": "date"
               },
@@ -3615,7 +4006,7 @@
                 ]
               },
               "dateOfUpdate": {
-                "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                 "type": "string",
                 "format": "date"
               }
@@ -3661,7 +4052,7 @@
             ]
           },
           "dateOfBirth": {
-            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
             "type": "string",
             "format": "date"
           },
@@ -3910,7 +4301,7 @@
                   "type": "string"
                 },
                 "dateOfIssuance": {
-                  "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                   "type": "string",
                   "format": "date"
                 },
@@ -3931,7 +4322,7 @@
                   "format": "email"
                 },
                 "dateOfExpiration": {
-                  "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                   "type": "string",
                   "format": "date"
                 },
@@ -3945,7 +4336,7 @@
                   "type": "string"
                 },
                 "dateOfRenewal": {
-                  "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                   "type": "string",
                   "format": "date"
                 },
@@ -3993,7 +4384,7 @@
                   ]
                 },
                 "dateOfBirth": {
-                  "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                   "type": "string",
                   "format": "date"
                 },
@@ -4098,7 +4489,7 @@
                             ]
                           },
                           "dateOfBirth": {
-                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                             "type": "string",
                             "format": "date"
                           },
@@ -4115,7 +4506,7 @@
                             "type": "string"
                           },
                           "dateOfIssuance": {
-                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                             "type": "string",
                             "format": "date"
                           },
@@ -4126,7 +4517,7 @@
                             "format": "email"
                           },
                           "dateOfExpiration": {
-                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                             "type": "string",
                             "format": "date"
                           },
@@ -4140,7 +4531,7 @@
                             "type": "string"
                           },
                           "dateOfRenewal": {
-                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                             "type": "string",
                             "format": "date"
                           },
@@ -4278,7 +4669,7 @@
                             ]
                           },
                           "dateOfBirth": {
-                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                             "type": "string",
                             "format": "date"
                           },
@@ -4295,7 +4686,7 @@
                             "type": "string"
                           },
                           "dateOfIssuance": {
-                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                             "type": "string",
                             "format": "date"
                           },
@@ -4306,7 +4697,7 @@
                             "format": "email"
                           },
                           "dateOfExpiration": {
-                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                             "type": "string",
                             "format": "date"
                           },
@@ -4320,7 +4711,7 @@
                             "type": "string"
                           },
                           "dateOfRenewal": {
-                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                             "type": "string",
                             "format": "date"
                           },
@@ -4365,7 +4756,7 @@
                         ]
                       },
                       "dateOfUpdate": {
-                        "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                        "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                         "type": "string",
                         "format": "date"
                       },
@@ -4406,7 +4797,7 @@
                   "type": "string"
                 },
                 "dateOfUpdate": {
-                  "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                   "type": "string",
                   "format": "date"
                 }
@@ -4433,7 +4824,7 @@
               "type": "object",
               "properties": {
                 "dateOfUpload": {
-                  "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                   "type": "string",
                   "format": "date"
                 },
@@ -4463,7 +4854,7 @@
                   ]
                 },
                 "dateOfUpdate": {
-                  "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                   "type": "string",
                   "format": "date"
                 },
@@ -4496,7 +4887,7 @@
             "type": "string"
           },
           "dateOfUpdate": {
-            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
             "type": "string",
             "format": "date"
           }
@@ -4624,7 +5015,7 @@
                   ]
                 },
                 "dateOfExpiration": {
-                  "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                   "type": "string",
                   "format": "date"
                 },
@@ -4644,7 +5035,7 @@
                   "type": "string"
                 },
                 "dateOfRenewal": {
-                  "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                   "type": "string",
                   "format": "date"
                 },
@@ -4713,12 +5104,12 @@
                   ]
                 },
                 "dateOfIssuance": {
-                  "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                   "type": "string",
                   "format": "date"
                 },
                 "dateOfUpdate": {
-                  "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                   "type": "string",
                   "format": "date"
                 },
@@ -4955,7 +5346,7 @@
             "type": "string"
           },
           "dateOfUpdate": {
-            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
             "type": "string",
             "format": "date"
           }
@@ -5066,7 +5457,7 @@
         "type": "object",
         "properties": {
           "encumbranceEffectiveDate": {
-            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
             "type": "string",
             "description": "The effective date of the encumbrance",
             "format": "date"
@@ -5125,7 +5516,7 @@
         "type": "object",
         "properties": {
           "encumbranceEffectiveDate": {
-            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
             "type": "string",
             "description": "The effective date of the encumbrance",
             "format": "date"
@@ -5133,6 +5524,21 @@
           "clinicalPrivilegeActionCategory": {
             "type": "string",
             "description": "The category of clinical privilege action"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SandboLicen3iPXeV1EY4kC": {
+        "required": [
+          "effectiveLiftDate"
+        ],
+        "type": "object",
+        "properties": {
+          "effectiveLiftDate": {
+            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+            "type": "string",
+            "description": "The effective date when the encumbrance will be lifted",
+            "format": "date"
           }
         },
         "additionalProperties": false
@@ -5697,6 +6103,90 @@
         },
         "additionalProperties": false
       },
+      "SandboLicen70lxldsITafm": {
+        "required": [
+          "effectiveLiftDate"
+        ],
+        "type": "object",
+        "properties": {
+          "effectiveLiftDate": {
+            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+            "type": "string",
+            "description": "The effective date when the encumbrance will be lifted",
+            "format": "date"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SandboLicen1cbc0aCO29n4": {
+        "required": [
+          "jurisdiction"
+        ],
+        "type": "object",
+        "properties": {
+          "jurisdiction": {
+            "type": "string",
+            "description": "The jurisdiction postal abbreviation to set as home jurisdiction",
+            "enum": [
+              "al",
+              "ak",
+              "az",
+              "ar",
+              "ca",
+              "co",
+              "ct",
+              "de",
+              "dc",
+              "fl",
+              "ga",
+              "hi",
+              "id",
+              "il",
+              "in",
+              "ia",
+              "ks",
+              "ky",
+              "la",
+              "me",
+              "md",
+              "ma",
+              "mi",
+              "mn",
+              "ms",
+              "mo",
+              "mt",
+              "ne",
+              "nv",
+              "nh",
+              "nj",
+              "nm",
+              "ny",
+              "nc",
+              "nd",
+              "oh",
+              "ok",
+              "or",
+              "pa",
+              "pr",
+              "ri",
+              "sc",
+              "sd",
+              "tn",
+              "tx",
+              "ut",
+              "vt",
+              "va",
+              "vi",
+              "wa",
+              "wv",
+              "wi",
+              "wy",
+              "other"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
       "SandboLicenm6UNWux1K7jI": {
         "required": [
           "apiLoginId",
@@ -6096,7 +6586,7 @@
                   ]
                 },
                 "dateOfUpdate": {
-                  "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                   "type": "string",
                   "format": "date"
                 }
@@ -6552,7 +7042,7 @@
                   ]
                 },
                 "dateOfBirth": {
-                  "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                   "type": "string",
                   "format": "date"
                 },
@@ -6701,7 +7191,7 @@
                   "type": "string"
                 },
                 "dateOfExpiration": {
-                  "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                   "type": "string",
                   "format": "date"
                 },
@@ -6738,7 +7228,7 @@
                   "format": "email"
                 },
                 "dateOfUpdate": {
-                  "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                   "type": "string",
                   "format": "date"
                 }
@@ -6876,7 +7366,7 @@
         "type": "object",
         "properties": {
           "dateOfUpload": {
-            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
             "type": "string",
             "description": "The date the document was uploaded",
             "format": "date"
@@ -6898,7 +7388,7 @@
             }
           },
           "dateOfUpdate": {
-            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
             "type": "string",
             "description": "The date the document was last updated",
             "format": "date"
@@ -7000,7 +7490,7 @@
               ]
             },
             "dateOfBirth": {
-              "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+              "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
               "type": "string",
               "format": "date"
             },
@@ -7010,7 +7500,7 @@
               "type": "string"
             },
             "dateOfIssuance": {
-              "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+              "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
               "type": "string",
               "format": "date"
             },
@@ -7036,7 +7526,7 @@
               "format": "email"
             },
             "dateOfExpiration": {
-              "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+              "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
               "type": "string",
               "format": "date"
             },
@@ -7050,7 +7540,7 @@
               "type": "string"
             },
             "dateOfRenewal": {
-              "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+              "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
               "type": "string",
               "format": "date"
             },

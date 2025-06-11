@@ -16,9 +16,9 @@ certifi==2025.4.26
     # via requests
 charset-normalizer==3.4.2
     # via requests
-click==8.2.0
+click==8.2.1
     # via pip-tools
-coverage[toml]==7.8.0
+coverage[toml]==7.8.2
     # via
     #   -r compact-connect/requirements-dev.in
     #   pytest-cov
@@ -42,7 +42,7 @@ mdurl==0.1.2
     # via markdown-it-py
 msgpack==1.1.0
     # via cachecontrol
-packageurl-python==0.16.0
+packageurl-python==0.17.1
     # via cyclonedx-python-lib
 packaging==25.0
     # via
@@ -60,19 +60,21 @@ pip-tools==7.4.1
     # via -r compact-connect/requirements-dev.in
 platformdirs==4.3.8
     # via pip-audit
-pluggy==1.5.0
+pluggy==1.6.0
     # via pytest
 py-serializable==2.0.0
     # via cyclonedx-python-lib
 pygments==2.19.1
-    # via rich
+    # via
+    #   pytest
+    #   rich
 pyparsing==3.2.3
     # via pip-requirements-parser
 pyproject-hooks==1.2.0
     # via
     #   build
     #   pip-tools
-pytest==8.3.5
+pytest==8.4.0
     # via
     #   -r compact-connect/requirements-dev.in
     #   pytest-cov
@@ -80,13 +82,13 @@ pytest-cov==6.1.1
     # via -r compact-connect/requirements-dev.in
 python-dateutil==2.9.0.post0
     # via faker
-requests==2.32.3
+requests==2.32.4
     # via
     #   cachecontrol
     #   pip-audit
 rich==14.0.0
     # via pip-audit
-ruff==0.11.9
+ruff==0.11.13
     # via -r compact-connect/requirements-dev.in
 six==1.17.0
     # via python-dateutil

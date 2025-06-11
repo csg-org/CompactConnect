@@ -20,6 +20,163 @@ class TestProviderManagementApi(TestApi):
     4. Ensure the request and response models for the endpoint are present and match the expected schemas.
     """
 
+    def _get_privilege_encumbrance_resource_id(self, api_stack_template, api_stack):
+        """Helper method to get the privilege encumbrance resource ID by traversing the resource hierarchy."""
+        license_type_param_logical_id = self._get_privilege_license_type_param_resource_id(
+            api_stack_template, api_stack
+        )
+
+        encumbrance_resource_logical_ids = api_stack_template.find_resources(
+            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'Properties': {
+                    'ParentId': {'Ref': license_type_param_logical_id},
+                    'PathPart': 'encumbrance',
+                }
+            },
+        )
+        self.assertEqual(len(encumbrance_resource_logical_ids), 1)
+        return next(key for key in encumbrance_resource_logical_ids.keys())
+
+    def _get_privilege_license_type_param_resource_id(self, api_stack_template, api_stack):
+        """Helper method to get the privilege {licenseType}
+        parameter resource ID by traversing the resource hierarchy."""
+        provider_resource = api_stack.api.v1_api.provider_management.provider_resource.node.default_child
+        privileges_logical_id = api_stack_template.find_resources(
+            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'Properties': {
+                    'ParentId': {'Ref': api_stack.get_logical_id(provider_resource)},
+                    'PathPart': 'privileges',
+                }
+            },
+        )
+        self.assertEqual(len(privileges_logical_id), 1)
+        privileges_logical_id = next(key for key in privileges_logical_id.keys())
+
+        jurisdiction_logical_id = api_stack_template.find_resources(
+            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'Properties': {
+                    'ParentId': {'Ref': privileges_logical_id},
+                    'PathPart': 'jurisdiction',
+                }
+            },
+        )
+        self.assertEqual(len(jurisdiction_logical_id), 1)
+        jurisdiction_logical_id = next(key for key in jurisdiction_logical_id.keys())
+
+        jurisdiction_param_logical_id = api_stack_template.find_resources(
+            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'Properties': {
+                    'ParentId': {'Ref': jurisdiction_logical_id},
+                    'PathPart': '{jurisdiction}',
+                }
+            },
+        )
+        self.assertEqual(len(jurisdiction_param_logical_id), 1)
+        jurisdiction_param_logical_id = next(key for key in jurisdiction_param_logical_id.keys())
+
+        license_type_logical_id = api_stack_template.find_resources(
+            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'Properties': {
+                    'ParentId': {'Ref': jurisdiction_param_logical_id},
+                    'PathPart': 'licenseType',
+                }
+            },
+        )
+        self.assertEqual(len(license_type_logical_id), 1)
+        license_type_logical_id = next(key for key in license_type_logical_id.keys())
+
+        license_type_param_logical_id = api_stack_template.find_resources(
+            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'Properties': {
+                    'ParentId': {'Ref': license_type_logical_id},
+                    'PathPart': '{licenseType}',
+                }
+            },
+        )
+        self.assertEqual(len(license_type_param_logical_id), 1)
+        return next(key for key in license_type_param_logical_id.keys())
+
+    def _get_license_encumbrance_resource_id(self, api_stack_template, api_stack):
+        """Helper method to get the license encumbrance resource ID by traversing the resource hierarchy."""
+        provider_resource = api_stack.api.v1_api.provider_management.provider_resource.node.default_child
+        licenses_logical_id = api_stack_template.find_resources(
+            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'Properties': {
+                    'ParentId': {'Ref': api_stack.get_logical_id(provider_resource)},
+                    'PathPart': 'licenses',
+                }
+            },
+        )
+        self.assertEqual(len(licenses_logical_id), 1)
+        licenses_logical_id = next(key for key in licenses_logical_id.keys())
+
+        jurisdiction_logical_id = api_stack_template.find_resources(
+            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'Properties': {
+                    'ParentId': {'Ref': licenses_logical_id},
+                    'PathPart': 'jurisdiction',
+                }
+            },
+        )
+        self.assertEqual(len(jurisdiction_logical_id), 1)
+        jurisdiction_logical_id = next(key for key in jurisdiction_logical_id.keys())
+
+        jurisdiction_param_logical_id = api_stack_template.find_resources(
+            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'Properties': {
+                    'ParentId': {'Ref': jurisdiction_logical_id},
+                    'PathPart': '{jurisdiction}',
+                }
+            },
+        )
+        self.assertEqual(len(jurisdiction_param_logical_id), 1)
+        jurisdiction_param_logical_id = next(key for key in jurisdiction_param_logical_id.keys())
+
+        license_type_logical_id = api_stack_template.find_resources(
+            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'Properties': {
+                    'ParentId': {'Ref': jurisdiction_param_logical_id},
+                    'PathPart': 'licenseType',
+                }
+            },
+        )
+        self.assertEqual(len(license_type_logical_id), 1)
+        license_type_logical_id = next(key for key in license_type_logical_id.keys())
+
+        license_type_param_logical_id = api_stack_template.find_resources(
+            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'Properties': {
+                    'ParentId': {'Ref': license_type_logical_id},
+                    'PathPart': '{licenseType}',
+                }
+            },
+        )
+        self.assertEqual(len(license_type_param_logical_id), 1)
+        license_type_param_logical_id = next(key for key in license_type_param_logical_id.keys())
+
+        encumbrance_resource_logical_ids = api_stack_template.find_resources(
+            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'Properties': {
+                    'ParentId': {'Ref': license_type_param_logical_id},
+                    'PathPart': 'encumbrance',
+                }
+            },
+        )
+        self.assertEqual(len(encumbrance_resource_logical_ids), 1)
+        return next(key for key in encumbrance_resource_logical_ids.keys())
+
     def test_synth_generates_providers_resource(self):
         """Test that the /providers resource is created correctly."""
         api_stack = self.app.sandbox_backend_stage.api_stack
@@ -377,68 +534,10 @@ class TestProviderManagementApi(TestApi):
             overwrite_snapshot=False,
         )
 
-        # Verify the resource path is created correctly by checking each level
-        provider_resource = api_stack.api.v1_api.provider_management.provider_resource.node.default_child
-        privileges_logical_id = api_stack_template.find_resources(
-            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
-            props={
-                'Properties': {
-                    'ParentId': {'Ref': api_stack.get_logical_id(provider_resource)},
-                    'PathPart': 'privileges',
-                }
-            },
+        # Verify the deactivate resource is created correctly
+        license_type_param_logical_id = self._get_privilege_license_type_param_resource_id(
+            api_stack_template, api_stack
         )
-        self.assertEqual(len(privileges_logical_id), 1)
-        privileges_logical_id = next(key for key in privileges_logical_id.keys())
-
-        jurisdiction_logical_id = api_stack_template.find_resources(
-            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
-            props={
-                'Properties': {
-                    'ParentId': {'Ref': privileges_logical_id},
-                    'PathPart': 'jurisdiction',
-                }
-            },
-        )
-        self.assertEqual(len(jurisdiction_logical_id), 1)
-        jurisdiction_logical_id = next(key for key in jurisdiction_logical_id.keys())
-
-        jurisdiction_param_logical_id = api_stack_template.find_resources(
-            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
-            props={
-                'Properties': {
-                    'ParentId': {'Ref': jurisdiction_logical_id},
-                    'PathPart': '{jurisdiction}',
-                }
-            },
-        )
-        self.assertEqual(len(jurisdiction_param_logical_id), 1)
-        jurisdiction_param_logical_id = next(key for key in jurisdiction_param_logical_id.keys())
-
-        license_type_logical_id = api_stack_template.find_resources(
-            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
-            props={
-                'Properties': {
-                    'ParentId': {'Ref': jurisdiction_param_logical_id},
-                    'PathPart': 'licenseType',
-                }
-            },
-        )
-        self.assertEqual(len(license_type_logical_id), 1)
-        license_type_logical_id = next(key for key in license_type_logical_id.keys())
-
-        license_type_param_logical_id = api_stack_template.find_resources(
-            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
-            props={
-                'Properties': {
-                    'ParentId': {'Ref': license_type_logical_id},
-                    'PathPart': '{licenseType}',
-                }
-            },
-        )
-        self.assertEqual(len(license_type_param_logical_id), 1)
-        license_type_param_logical_id = next(key for key in license_type_param_logical_id.keys())
-
         api_stack_template.has_resource_properties(
             type=CfnResource.CFN_RESOURCE_TYPE_NAME,
             props={
@@ -489,80 +588,7 @@ class TestProviderManagementApi(TestApi):
         self.assertEqual(encumbrance_handler['Handler'], 'handlers.encumbrance.encumbrance_handler')
 
         # Verify the privilege encumbrance resource path is created correctly
-        provider_resource = api_stack.api.v1_api.provider_management.provider_resource.node.default_child
-        privileges_logical_id = api_stack_template.find_resources(
-            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
-            props={
-                'Properties': {
-                    'ParentId': {'Ref': api_stack.get_logical_id(provider_resource)},
-                    'PathPart': 'privileges',
-                }
-            },
-        )
-        self.assertEqual(len(privileges_logical_id), 1)
-        privileges_logical_id = next(key for key in privileges_logical_id.keys())
-
-        jurisdiction_logical_id = api_stack_template.find_resources(
-            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
-            props={
-                'Properties': {
-                    'ParentId': {'Ref': privileges_logical_id},
-                    'PathPart': 'jurisdiction',
-                }
-            },
-        )
-        self.assertEqual(len(jurisdiction_logical_id), 1)
-        jurisdiction_logical_id = next(key for key in jurisdiction_logical_id.keys())
-
-        jurisdiction_param_logical_id = api_stack_template.find_resources(
-            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
-            props={
-                'Properties': {
-                    'ParentId': {'Ref': jurisdiction_logical_id},
-                    'PathPart': '{jurisdiction}',
-                }
-            },
-        )
-        self.assertEqual(len(jurisdiction_param_logical_id), 1)
-        jurisdiction_param_logical_id = next(key for key in jurisdiction_param_logical_id.keys())
-
-        license_type_logical_id = api_stack_template.find_resources(
-            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
-            props={
-                'Properties': {
-                    'ParentId': {'Ref': jurisdiction_param_logical_id},
-                    'PathPart': 'licenseType',
-                }
-            },
-        )
-        self.assertEqual(len(license_type_logical_id), 1)
-        license_type_logical_id = next(key for key in license_type_logical_id.keys())
-
-        license_type_param_logical_id = api_stack_template.find_resources(
-            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
-            props={
-                'Properties': {
-                    'ParentId': {'Ref': license_type_logical_id},
-                    'PathPart': '{licenseType}',
-                }
-            },
-        )
-        self.assertEqual(len(license_type_param_logical_id), 1)
-        license_type_param_logical_id = next(key for key in license_type_param_logical_id.keys())
-
-        encumbrance_resource_logical_ids = api_stack_template.find_resources(
-            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
-            props={
-                'Properties': {
-                    'ParentId': {'Ref': license_type_param_logical_id},
-                    'PathPart': 'encumbrance',
-                }
-            },
-        )
-        self.assertEqual(len(encumbrance_resource_logical_ids), 1)
-        encumbrance_resource_logical_id = api_stack.get_logical_id(
-            api_stack.api.v1_api.provider_management.encumbrance_privilege_resource.node.default_child
-        )
+        encumbrance_resource_logical_id = self._get_privilege_encumbrance_resource_id(api_stack_template, api_stack)
 
         # Ensure the POST method is configured correctly
         request_model_logical_id_capture = Capture()
@@ -615,78 +641,7 @@ class TestProviderManagementApi(TestApi):
         api_stack_template = Template.from_stack(api_stack)
 
         # Verify the license encumbrance resource path is created correctly
-        provider_resource = api_stack.api.v1_api.provider_management.provider_resource.node.default_child
-        licenses_logical_id = api_stack_template.find_resources(
-            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
-            props={
-                'Properties': {
-                    'ParentId': {'Ref': api_stack.get_logical_id(provider_resource)},
-                    'PathPart': 'licenses',
-                }
-            },
-        )
-        self.assertEqual(len(licenses_logical_id), 1)
-        licenses_logical_id = next(key for key in licenses_logical_id.keys())
-
-        jurisdiction_logical_id = api_stack_template.find_resources(
-            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
-            props={
-                'Properties': {
-                    'ParentId': {'Ref': licenses_logical_id},
-                    'PathPart': 'jurisdiction',
-                }
-            },
-        )
-        self.assertEqual(len(jurisdiction_logical_id), 1)
-        jurisdiction_logical_id = next(key for key in jurisdiction_logical_id.keys())
-
-        jurisdiction_param_logical_id = api_stack_template.find_resources(
-            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
-            props={
-                'Properties': {
-                    'ParentId': {'Ref': jurisdiction_logical_id},
-                    'PathPart': '{jurisdiction}',
-                }
-            },
-        )
-        self.assertEqual(len(jurisdiction_param_logical_id), 1)
-        jurisdiction_param_logical_id = next(key for key in jurisdiction_param_logical_id.keys())
-
-        license_type_logical_id = api_stack_template.find_resources(
-            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
-            props={
-                'Properties': {
-                    'ParentId': {'Ref': jurisdiction_param_logical_id},
-                    'PathPart': 'licenseType',
-                }
-            },
-        )
-        self.assertEqual(len(license_type_logical_id), 1)
-        license_type_logical_id = next(key for key in license_type_logical_id.keys())
-
-        license_type_param_logical_id = api_stack_template.find_resources(
-            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
-            props={
-                'Properties': {
-                    'ParentId': {'Ref': license_type_logical_id},
-                    'PathPart': '{licenseType}',
-                }
-            },
-        )
-        self.assertEqual(len(license_type_param_logical_id), 1)
-        license_type_param_logical_id = next(key for key in license_type_param_logical_id.keys())
-
-        encumbrance_resource_logical_ids = api_stack_template.find_resources(
-            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
-            props={
-                'Properties': {
-                    'ParentId': {'Ref': license_type_param_logical_id},
-                    'PathPart': 'encumbrance',
-                }
-            },
-        )
-        self.assertEqual(len(encumbrance_resource_logical_ids), 1)
-        encumbrance_resource_logical_id = next(key for key in encumbrance_resource_logical_ids.keys())
+        encumbrance_resource_logical_id = self._get_license_encumbrance_resource_id(api_stack_template, api_stack)
 
         # Ensure the POST method is configured correctly
         request_model_logical_id_capture = Capture()
@@ -729,5 +684,137 @@ class TestProviderManagementApi(TestApi):
         self.compare_snapshot(
             request_model['Schema'],
             'LICENSE_ENCUMBRANCE_REQUEST_SCHEMA',
+            overwrite_snapshot=False,
+        )
+
+    def test_synth_generates_privilege_encumbrance_lifting_endpoint(self):
+        """Test that the PATCH /providers/{providerId}/privileges/jurisdiction/{jurisdiction}
+        /licenseType/{licenseType}/encumbrance/{encumbranceId} endpoint is configured correctly."""
+        api_stack = self.app.sandbox_backend_stage.api_stack
+        api_stack_template = Template.from_stack(api_stack)
+
+        # Get the encumbrance resource logical ID
+        encumbrance_resource_logical_id = self._get_privilege_encumbrance_resource_id(api_stack_template, api_stack)
+
+        # Find the {encumbranceId} sub-resource of the encumbrance resource
+        encumbrance_id_resource_logical_ids = api_stack_template.find_resources(
+            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'Properties': {
+                    'ParentId': {'Ref': encumbrance_resource_logical_id},
+                    'PathPart': '{encumbranceId}',
+                }
+            },
+        )
+        self.assertEqual(len(encumbrance_id_resource_logical_ids), 1)
+        encumbrance_id_resource_logical_id = next(key for key in encumbrance_id_resource_logical_ids.keys())
+
+        # Ensure the PATCH method is configured correctly on the {encumbranceId} resource
+        request_model_logical_id_capture = Capture()
+        api_stack_template.has_resource_properties(
+            type=CfnMethod.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'ResourceId': {'Ref': encumbrance_id_resource_logical_id},
+                'HttpMethod': 'PATCH',
+                'AuthorizerId': {
+                    'Ref': api_stack.get_logical_id(api_stack.api.staff_users_authorizer.node.default_child),
+                },
+                'Integration': TestApi.generate_expected_integration_object(
+                    api_stack.get_logical_id(
+                        api_stack.api.v1_api.provider_management.provider_encumbrance_handler.node.default_child,
+                    ),
+                ),
+                'RequestModels': {
+                    'application/json': {'Ref': request_model_logical_id_capture},
+                },
+                'MethodResponses': [
+                    {
+                        'ResponseModels': {
+                            'application/json': {
+                                'Ref': api_stack.get_logical_id(
+                                    api_stack.api.v1_api.api_model.message_response_model.node.default_child
+                                )
+                            }
+                        },
+                        'StatusCode': '200',
+                    },
+                ],
+            },
+        )
+
+        # Verify request model schema
+        request_model = TestApi.get_resource_properties_by_logical_id(
+            request_model_logical_id_capture.as_string(),
+            api_stack_template.find_resources(CfnModel.CFN_RESOURCE_TYPE_NAME),
+        )
+        self.compare_snapshot(
+            request_model['Schema'],
+            'PRIVILEGE_ENCUMBRANCE_LIFTING_REQUEST_SCHEMA',
+            overwrite_snapshot=False,
+        )
+
+    def test_synth_generates_license_encumbrance_lifting_endpoint(self):
+        """Test that the PATCH /providers/{providerId}/licenses/jurisdiction/{jurisdiction}
+        /licenseType/{licenseType}/encumbrance/{encumbranceId} endpoint is configured correctly."""
+        api_stack = self.app.sandbox_backend_stage.api_stack
+        api_stack_template = Template.from_stack(api_stack)
+
+        # Find the license encumbrance resource
+        encumbrance_resource_logical_id = self._get_license_encumbrance_resource_id(api_stack_template, api_stack)
+
+        # Find the {encumbranceId} sub-resource of the encumbrance resource
+        encumbrance_id_resource_logical_ids = api_stack_template.find_resources(
+            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'Properties': {
+                    'ParentId': {'Ref': encumbrance_resource_logical_id},
+                    'PathPart': '{encumbranceId}',
+                }
+            },
+        )
+        self.assertEqual(len(encumbrance_id_resource_logical_ids), 1)
+        encumbrance_id_resource_logical_id = next(key for key in encumbrance_id_resource_logical_ids.keys())
+
+        # Ensure the PATCH method is configured correctly on the {encumbranceId} resource
+        request_model_logical_id_capture = Capture()
+        api_stack_template.has_resource_properties(
+            type=CfnMethod.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'ResourceId': {'Ref': encumbrance_id_resource_logical_id},
+                'HttpMethod': 'PATCH',
+                'AuthorizerId': {
+                    'Ref': api_stack.get_logical_id(api_stack.api.staff_users_authorizer.node.default_child),
+                },
+                'Integration': TestApi.generate_expected_integration_object(
+                    api_stack.get_logical_id(
+                        api_stack.api.v1_api.provider_management.provider_encumbrance_handler.node.default_child,
+                    ),
+                ),
+                'RequestModels': {
+                    'application/json': {'Ref': request_model_logical_id_capture},
+                },
+                'MethodResponses': [
+                    {
+                        'ResponseModels': {
+                            'application/json': {
+                                'Ref': api_stack.get_logical_id(
+                                    api_stack.api.v1_api.api_model.message_response_model.node.default_child
+                                )
+                            }
+                        },
+                        'StatusCode': '200',
+                    },
+                ],
+            },
+        )
+
+        # Verify request model schema
+        request_model = TestApi.get_resource_properties_by_logical_id(
+            request_model_logical_id_capture.as_string(),
+            api_stack_template.find_resources(CfnModel.CFN_RESOURCE_TYPE_NAME),
+        )
+        self.compare_snapshot(
+            request_model['Schema'],
+            'LICENSE_ENCUMBRANCE_LIFTING_REQUEST_SCHEMA',
             overwrite_snapshot=False,
         )

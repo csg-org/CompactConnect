@@ -21,6 +21,20 @@ class AdverseActionPostRequestSchema(ForgivingSchema):
     clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategoryField(required=True, allow_none=False)
 
 
+class AdverseActionPatchRequestSchema(ForgivingSchema):
+    """
+    Schema for adverse action PATCH requests (encumbrance lifting).
+
+    This schema is used to validate incoming requests to the adverse action PATCH API endpoint
+    for lifting encumbrances.
+
+    Serialization direction:
+    API -> load() -> Python
+    """
+
+    effectiveLiftDate = Date(required=True, allow_none=False)
+
+
 class AdverseActionPublicResponseSchema(ForgivingSchema):
     """
     Schema for adverse action public responses.

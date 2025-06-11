@@ -9,11 +9,17 @@ import {
     Component,
     mixins,
     Prop,
-    toNative
+    toNative,
+    Watch
 } from 'vue-facing-decorator';
 import MixinInput from '@components/Forms/_mixins/input.mixin';
 import VueDatePicker, { DatePickerMarker } from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
+import {
+    formatDateInput,
+    dateInputToServerFormat,
+    serverFormatToDateInput
+} from '@models/_formatters/date';
 
 @Component({
     name: 'InputDate',
@@ -22,8 +28,16 @@ import '@vuepic/vue-datepicker/dist/main.css';
     },
 })
 class InputDate extends mixins(MixinInput) {
+    //
+    // Data
+    //
+    localValue = '';
+    lastDatePickerValue = '';
+    previousLength = 0;
+
     // https://vue3datepicker.com/props/modes/
     @Prop({ default: 'yyyy-MM-dd' }) modelFormat?: string; // https://date-fns.org/v2.16.1/docs/format
+    @Prop({ default: null }) textInput?: { format?: string; openMenu?: boolean } | null;
     @Prop({ default: false }) isDisabled?: boolean;
     @Prop({ default: false }) isReadOnly?: boolean;
     @Prop({ default: false }) isInline?: boolean;
@@ -57,8 +71,63 @@ class InputDate extends mixins(MixinInput) {
     @Prop({ default: false }) isLoading?: boolean;
 
     //
+    // Lifecycle
+    //
+    created() {
+        this.localValue = this.formInput.value || '';
+        this.lastDatePickerValue = this.formInput.value || '';
+        this.previousLength = this.localValue.length;
+    }
+
+    //
+    // Watchers
+    //
+    @Watch('formInput.value')
+    onFormInputValueChange(newValue: string): void {
+        // Only update if this is actually a new datepicker selection
+        if (newValue !== this.lastDatePickerValue && newValue !== this.dateRaw) {
+            if (!newValue) {
+                this.localValue = '';
+            } else {
+                const newDateInput = serverFormatToDateInput(newValue);
+
+                this.localValue = formatDateInput(newDateInput);
+            }
+
+            // Only update lastDatePickerValue for genuine datepicker changes
+            this.lastDatePickerValue = newValue;
+        }
+    }
+
+    //
+    // Computed
+    //
+    get dateRaw(): string {
+        return dateInputToServerFormat(this.localValue);
+    }
+
+    //
     // Methods
     //
+    onInput(): void {
+        const currentLength = this.localValue.length;
+        const isDeleting = currentLength < this.previousLength;
+
+        if (!isDeleting) {
+            // Format the input as user types (only when adding characters)
+            this.localValue = formatDateInput(this.localValue);
+        }
+
+        // Update form value with slight delay to prevent VueDatePicker conflicts
+        this.$nextTick(() => {
+            this.formInput.value = this.dateRaw;
+            this.formInput.validate();
+        });
+
+        // Update previous length for next comparison
+        this.previousLength = this.localValue.length;
+    }
+
     input(): void {
         const { formInput } = this;
 
@@ -70,6 +139,25 @@ class InputDate extends mixins(MixinInput) {
 
     focus(): void {
         (this.$refs.datepicker as any)?.openMenu();
+    }
+
+    onInputBlur(): void {
+        const hasManualChanges = this.dateRaw && this.dateRaw !== this.lastDatePickerValue;
+
+        if (hasManualChanges) {
+            // Update lastDatePickerValue with manual input and skip VueDatePicker's selectDate
+            this.lastDatePickerValue = this.dateRaw;
+        } else {
+            // No manual changes, let VueDatePicker handle its normal blur logic
+            try {
+                (this.$refs.datepicker as any)?.selectDate();
+            } catch {
+                // Continue
+            }
+        }
+
+        this.formInput.isTouched = true;
+        this.formInput.validate();
     }
 
     blur(): void {
