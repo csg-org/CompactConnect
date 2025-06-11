@@ -9,14 +9,10 @@
     <div id="finalize-privilege-purchase-container" class="finalize-privilege-purchase-container">
         <form class="complete-purchase-form" @submit.prevent="() => null">
             <div class="finalize-purchase-container">
-                <div class="finalize-purchase-core-container">
-                    <div class="finalize-purchase-title-row">
-                        <h1 class="finalize-purchase-title">{{$t('payment.payment')}}</h1>
-                        <CollapseCaretButton v-if="isPhone" @toggleCollapse="togglePaymentCollapsed" />
-                    </div>
-                    <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
-                    <div v-if="shouldShowPaymentSection || !isPhone" class="payment-core-form"></div>
+                <div class="finalize-purchase-title-row">
+                    <h1 class="finalize-purchase-title">{{$t('payment.payment')}}</h1>
                 </div>
+                <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
                 <div class="cost-breakdown-container">
                     <div class="cost-listing-block">
                         <div class="cost-section">

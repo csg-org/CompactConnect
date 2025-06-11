@@ -5,6 +5,10 @@
 //  Created by InspiringApps on 10/28/2024.
 //
 .finalize-privilege-purchase-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
     .form-error-message {
         padding: 2rem;
         color: @midRed;
@@ -14,23 +18,22 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        max-width: 72rem;
-
-        @media @desktopWidth {
-            max-width: unset;
-        }
 
         .button-row {
             .purchase-flow-buttons();
         }
 
         .finalize-purchase-container {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
+            padding: 4rem 2.4rem 1.6rem 2.4rem;
+            border-radius: 20px;
+            background-color: @white;
 
             @media @tabletWidth {
-                flex-direction: row;
+                width: 72rem;
+            }
+
+            @media @desktopWidth {
+                width: 90rem;
             }
 
             .progress-bar-container {
@@ -47,56 +50,27 @@
                 }
             }
 
+            .finalize-purchase-title-row {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 2rem;
+            }
+
             .cost-breakdown-container {
                 display: flex;
                 flex-direction: column;
+                min-height: 60vh;
                 margin-top: 1rem;
-                padding: 2rem;
-                border-radius: 20px;
-                color: @white;
-                background-color: @darkBlue;
-
-                @media @tabletWidth {
-                    width: 34rem;
-                    margin-top: unset;
-                    padding: 8rem 4rem;
-                    border-radius: 0 20px 20px 0;
-                }
 
                 .no-refunds-checkbox {
                     margin-top: auto;
                 }
 
                 :deep(.checkbox-container) {
-                    input {
-                        &:not(:checked) + .checkbox-replacement::before {
-                            border-color: @white;
-                        }
-
-                        &:checked + .checkbox-replacement {
-                            &::before {
-                                border-color: @white;
-                            }
-
-                            &::after {
-                                background-color: @tersiaryColor;
-                            }
-                        }
-
-                        &:focus {
-                            outline: 0;
-                        }
-                    }
-
                     label {
-                        margin-left: 1rem;
-                        color: @white;
                         font-weight: @fontWeightLight;
-                        font-size: 1.3rem;
-
-                        @media @tabletWidth {
-                            font-size: 1.5rem;
-                        }
                     }
                 }
 
@@ -113,7 +87,9 @@
                     .info-row {
                         display: flex;
                         flex-direction: row;
+                        align-items: flex-end;
                         justify-content: space-between;
+                        max-width: 60rem;
                         margin: 1rem 0;
 
                         &.purchase-total {
@@ -123,61 +99,18 @@
                         }
 
                         .info-row-label {
-                            width: 16rem;
+                            width: calc(100% - 12rem);
                         }
 
                         .info-row-amount {
+                            width: 12rem;
                             margin-left: auto;
+                            text-align: right;
 
                             @media @desktopWidth {
                                 margin-left: unset;
                             }
                         }
-                    }
-                }
-            }
-
-            .finalize-purchase-core-container {
-                padding: 0 2rem 2rem 2rem;
-                border-radius: 20px;
-                background-color: @white;
-
-                @media @tabletWidth {
-                    width: 38rem;
-                    padding: 0 4rem 4rem 4rem;
-                    border-radius: 20px 0 0 20px;
-                }
-
-                @media @desktopWidth {
-                    width: 56rem;
-                }
-
-                .finalize-purchase-title-row {
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: space-between;
-                    margin-top: 4rem;
-                    margin-bottom: 2rem;
-
-                    :deep(.collapse-caret-button) {
-                        svg {
-                            width: 2.4rem;
-                            height: 1.4rem;
-                            stroke: @primaryColor;
-                        }
-                    }
-                }
-
-                .payment-core-form {
-                    display: flex;
-                    justify-content: center;
-                    margin-top: 4rem;
-
-                    .accept-ui {
-                        display: flex;
-                        flex-direction: column;
-                        align-items: center;
                     }
                 }
             }

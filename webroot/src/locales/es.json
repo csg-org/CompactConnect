@@ -510,6 +510,7 @@
     },
     "payment": {
         "payment": "Pago",
+        "paymentSummary": "Resumen de pagos",
         "creditCardTitle": "Tarjeta de Crédito",
         "fullNameOnCard": "Nombre en la tarjeta",
         "enterFullNameOnCard": "Introduzca el nombre en la tarjeta",

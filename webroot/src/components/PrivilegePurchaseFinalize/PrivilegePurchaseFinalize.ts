@@ -48,7 +48,6 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
     //
     // Data
     //
-    shouldShowPaymentSection = true;
     formErrorMessage = '';
 
     //
@@ -282,10 +281,6 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
             }),
         });
         this.watchFormInputs();
-    }
-
-    togglePaymentCollapsed(): void {
-        this.shouldShowPaymentSection = !this.shouldShowPaymentSection;
     }
 
     async acceptUiSuccessResponse(response: AcceptUiResponse): Promise<void> {

@@ -511,6 +511,7 @@
     },
     "payment": {
         "payment": "Payment",
+        "paymentSummary": "Payment summary",
         "enterPaymentDetails": "Securely enter your payment details",
         "enterCardDetails": "Credit card information",
         "confirmCardDetails": "Complete purchase",
