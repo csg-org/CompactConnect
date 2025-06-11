@@ -99,7 +99,21 @@ export default class LicenseeProof extends Vue {
         const compactType = this.currentCompactType;
 
         if (licenseeId && compactType) {
-            url = `${domain}/Search/${compactType}/${licenseeId}`;
+            try {
+                const resolved = this.$router.resolve({
+                    name: 'LicenseeDetailPublic',
+                    params: {
+                        compact: compactType,
+                        licenseeId
+                    }
+                });
+
+                const urlObj = new URL(`${domain}${resolved.href}`);
+
+                url = urlObj.toString();
+            } catch {
+                url = '';
+            }
         }
 
         return url;
@@ -128,7 +142,6 @@ export default class LicenseeProof extends Vue {
                     }
                 });
             } catch (error) {
-                console.error('Error generating QR code:', error);
                 this.qrCodeDataUrl = '';
             }
         }
