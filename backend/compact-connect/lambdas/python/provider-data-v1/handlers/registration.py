@@ -230,70 +230,108 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
             compact=matching_record.compact, provider_id=matching_record.providerId
         )
         if provider_record.compactConnectRegisteredEmailAddress is not None:
-            # Check if the registered email matches the provided email
-            if provider_record.compactConnectRegisteredEmailAddress == body['email']:
-                # Same email, check Cognito user status
-                try:
-                    cognito_user = config.cognito_client.admin_get_user(
-                        UserPoolId=config.provider_user_pool_id,
-                        Username=body['email']
+            # Get the Cognito user associated with the registered email address
+            try:
+                cognito_user = config.cognito_client.admin_get_user(
+                    UserPoolId=config.provider_user_pool_id,
+                    Username=provider_record.compactConnectRegisteredEmailAddress
+                )
+                
+                user_create_date = cognito_user['UserCreateDate']
+                user_last_modified_date = cognito_user['UserLastModifiedDate']
+                user_status = cognito_user['UserStatus']
+                
+                # Check if user never completed registration flow and registration is over 1 day old
+                never_logged_in = user_create_date == user_last_modified_date
+                created_over_one_day_ago = (config.current_standard_datetime - user_create_date) > timedelta(days=1)
+                in_force_change_password = user_status == 'FORCE_CHANGE_PASSWORD'
+                
+                if never_logged_in and created_over_one_day_ago and in_force_change_password:
+                    # User never completed registration flow, allow re-registration with new email
+                    logger.info(
+                        'User never completed registration flow, allowing re-registration',
+                        compact=matching_record.compact,
+                        provider_id=matching_record.providerId,
+                        original_email=provider_record.compactConnectRegisteredEmailAddress,
+                        new_email=body['email'],
+                        user_create_date=user_create_date.isoformat(),
+                        user_last_modified_date=user_last_modified_date.isoformat(),
+                        user_status=user_status
                     )
-                    user_status = cognito_user['UserStatus']
-                    
-                    if user_status == 'FORCE_CHANGE_PASSWORD':
-                        # User needs password reset, resend the temporary password
-                        logger.info(
-                            'User is in FORCE_CHANGE_PASSWORD status, resending temporary password',
-                            compact=matching_record.compact,
-                            provider_id=matching_record.providerId,
-                            email=body['email']
-                        )
+                    if provider_record.compactConnectRegisteredEmailAddress == body['email']:
+                        logger.info('User re-registering with same email address. Resending invite.')
                         config.cognito_client.admin_create_user(
                             UserPoolId=config.provider_user_pool_id,
-                            Username=body['email'],
+                            Username=provider_record.compactConnectRegisteredEmailAddress,
                             MessageAction='RESEND'
                         )
                         metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=1)
                         return {'message': 'request processed'}
                     else:
-                        # User exists and is in good standing, send notification email
-                        logger.info(
-                            'User attempted to register with existing email',
-                            compact=body['compact'],
-                            email=body['email'],
-                            user_status=user_status
-                        )
-                        config.email_service_client.send_provider_multiple_registration_attempt_email(
-                            compact=body['compact'],
-                            provider_email=body['email']
-                        )
-                        metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
-                        return {'message': 'request processed'}
-                except ClientError as cognito_e:
-                    error_code = cognito_e.response['Error']['Code']
-                    if error_code == 'UserNotFoundException':
-                        # Cognito user doesn't exist but provider record shows registered email
-                        # This is an inconsistent state, log and continue with registration
-                        logger.warning(
-                            'Provider record shows registered email but Cognito user not found',
-                            compact=matching_record.compact,
-                            provider_id=matching_record.providerId,
-                            email=body['email']
-                        )
-                    else:
-                        logger.error('Failed to check Cognito user status', error=str(cognito_e))
-                        raise CCInternalException('Failed to check user registration status') from cognito_e
-            else:
-                # Different email, log warning and return as before
-                logger.warning(
-                    'This provider is already registered in the system with a different email',
-                    compact=matching_record.compact,
-                    provider_id=matching_record.providerId,
-                    registered_email=provider_record.compactConnectRegisteredEmailAddress,
-                    attempted_email=body['email']
-                )
-                metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
-                return {'message': 'request processed'}
+                        # Delete the old Cognito user to prevent two cognito users with same provider id attribute
+                        try:
+                            logger.info('User never completed registration flow for previous email, deleting old Cognito user',
+                                        previous_email=provider_record.compactConnectRegisteredEmailAddress,
+                                        new_email=body['email'],
+                                        user_create_date=user_create_date.isoformat(),
+                                        user_last_modified_date=user_last_modified_date.isoformat(),
+                                        user_status=user_status
+                                        )
+                            config.cognito_client.admin_delete_user(
+                                UserPoolId=config.provider_user_pool_id,
+                                Username=provider_record.compactConnectRegisteredEmailAddress
+                            )
+                            logger.info(
+                                'Deleted old Cognito user for re-registration',
+                                old_email=provider_record.compactConnectRegisteredEmailAddress
+                            )
+                        except ClientError as delete_e:
+                            logger.error(
+                                'Failed to delete old Cognito user during re-registration',
+                                error=str(delete_e),
+                                old_email=provider_record.compactConnectRegisteredEmailAddress
+                            )
+                            # Continue with registration anyway, as the new email might still work
+                    
+                    # Continue with normal registration flow (don't return here)
+                else:
+                    # User exists and has already logged in once, send notification email
+                    logger.warning(
+                        'User attempted to register for account with existing registered email.',
+                        compact=matching_record.compact,
+                        provider_id=matching_record.providerId,
+                        registered_email=provider_record.compactConnectRegisteredEmailAddress,
+                        attempted_email=body['email'],
+                        user_create_date=user_create_date.isoformat(),
+                        user_last_modified_date=user_last_modified_date.isoformat(),
+                        user_status=user_status,
+                        never_logged_in=never_logged_in,
+                        over_one_day_old=created_over_one_day_ago,
+                        in_force_change_password=in_force_change_password
+                    )
+                    config.email_service_client.send_provider_multiple_registration_attempt_email(
+                        compact=body['compact'],
+                        provider_email=body['email']
+                    )
+                    metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
+                    return {'message': 'request processed'}
+            
+            except ClientError as cognito_e:
+                error_code = cognito_e.response['Error']['Code']
+                if error_code == 'UserNotFoundException':
+                    # Cognito user doesn't exist but provider record shows registered email
+                    # This is an inconsistent state, log and continue with registration
+                    logger.error(
+                        'Provider record shows registered email but Cognito user not found, continuing with registration',
+                        compact=matching_record.compact,
+                        provider_id=matching_record.providerId,
+                        existing_registered_email=provider_record.compactConnectRegisteredEmailAddress,
+                        attempted_email=body['email']
+                    )
+                    # Continue with normal registration flow
+                else:
+                    logger.error('Failed to check Cognito user status', error=str(cognito_e))
+                    raise CCInternalException('Failed to check user registration status') from cognito_e
     except CCNotFoundException as e:
         logger.error(
             'Provider license record was found, but no provider record was found.',
