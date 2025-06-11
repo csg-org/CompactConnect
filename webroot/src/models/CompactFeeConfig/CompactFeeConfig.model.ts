@@ -35,7 +35,7 @@ export class CompactFeeConfig implements InterfaceCompactFeeConfigCreate {
     public compactCommissionFeeType? = null;
     public perPrivilegeTransactionFeeAmount? = 0;
     public isPerPrivilegeTransactionFeeActive? = false;
-    public paymentSdkConfig? = {};
+    public paymentSdkConfig: PaymentSdkConfig = {};
 
     constructor(data?: InterfaceCompactFeeConfigCreate) {
         const cleanDataObject = deleteUndefinedProperties(data);

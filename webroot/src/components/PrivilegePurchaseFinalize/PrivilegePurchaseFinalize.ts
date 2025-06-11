@@ -14,7 +14,6 @@ import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputText from '@components/Forms/InputText/InputText.vue';
 import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
 import InputCheckbox from '@components/Forms/InputCheckbox/InputCheckbox.vue';
-import InputCreditCard from '@components/Forms/InputCreditCard/InputCreditCard.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import MockPopulate from '@components/Forms/MockPopulate/MockPopulate.vue';
 import { Compact } from '@models/Compact/Compact.model';
@@ -38,7 +37,6 @@ import Joi from 'joi';
         InputCheckbox,
         InputSubmit,
         InputButton,
-        InputCreditCard,
         CollapseCaretButton
     }
 })
