@@ -230,13 +230,70 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
             compact=matching_record.compact, provider_id=matching_record.providerId
         )
         if provider_record.compactConnectRegisteredEmailAddress is not None:
-            logger.warning(
-                'This provider is already registered in the system',
-                compact=matching_record.compact,
-                provider_id=matching_record.providerId,
-            )
-            metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
-            return {'message': 'request processed'}
+            # Check if the registered email matches the provided email
+            if provider_record.compactConnectRegisteredEmailAddress == body['email']:
+                # Same email, check Cognito user status
+                try:
+                    cognito_user = config.cognito_client.admin_get_user(
+                        UserPoolId=config.provider_user_pool_id,
+                        Username=body['email']
+                    )
+                    user_status = cognito_user['UserStatus']
+                    
+                    if user_status == 'FORCE_CHANGE_PASSWORD':
+                        # User needs password reset, resend the temporary password
+                        logger.info(
+                            'User is in FORCE_CHANGE_PASSWORD status, resending temporary password',
+                            compact=matching_record.compact,
+                            provider_id=matching_record.providerId,
+                            email=body['email']
+                        )
+                        config.cognito_client.admin_create_user(
+                            UserPoolId=config.provider_user_pool_id,
+                            Username=body['email'],
+                            MessageAction='RESEND'
+                        )
+                        metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=1)
+                        return {'message': 'request processed'}
+                    else:
+                        # User exists and is in good standing, send notification email
+                        logger.info(
+                            'User attempted to register with existing email',
+                            compact=body['compact'],
+                            email=body['email'],
+                            user_status=user_status
+                        )
+                        config.email_service_client.send_provider_multiple_registration_attempt_email(
+                            compact=body['compact'],
+                            provider_email=body['email']
+                        )
+                        metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
+                        return {'message': 'request processed'}
+                except ClientError as cognito_e:
+                    error_code = cognito_e.response['Error']['Code']
+                    if error_code == 'UserNotFoundException':
+                        # Cognito user doesn't exist but provider record shows registered email
+                        # This is an inconsistent state, log and continue with registration
+                        logger.warning(
+                            'Provider record shows registered email but Cognito user not found',
+                            compact=matching_record.compact,
+                            provider_id=matching_record.providerId,
+                            email=body['email']
+                        )
+                    else:
+                        logger.error('Failed to check Cognito user status', error=str(cognito_e))
+                        raise CCInternalException('Failed to check user registration status') from cognito_e
+            else:
+                # Different email, log warning and return as before
+                logger.warning(
+                    'This provider is already registered in the system with a different email',
+                    compact=matching_record.compact,
+                    provider_id=matching_record.providerId,
+                    registered_email=provider_record.compactConnectRegisteredEmailAddress,
+                    attempted_email=body['email']
+                )
+                metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
+                return {'message': 'request processed'}
     except CCNotFoundException as e:
         logger.error(
             'Provider license record was found, but no provider record was found.',
@@ -261,6 +318,27 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
                 {'Name': 'email_verified', 'Value': 'true'},
             ],
         )
+    except ClientError as e:
+        error_code = e.response['Error']['Code']
+        if error_code == 'UsernameExistsException':
+            # User already exists in Cognito but not properly registered in our system
+            # Send notification email about the registration attempt
+            logger.info(
+                'User attempted to register with existing Cognito email for different license',
+                compact=body['compact'],
+                email=body['email'],
+                license_type=body['licenseType']
+            )
+            config.email_service_client.send_provider_multiple_registration_attempt_email(
+                compact=body['compact'],
+                provider_email=body['email']
+            )
+            metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
+            return {'message': 'request processed'}
+        else:
+            logger.error('Failed to create Cognito user', error=str(e))
+            metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
+            raise CCInternalException('Failed to create user account') from e
     except Exception as e:
         logger.error('Failed to create Cognito user', error=str(e))
         metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
