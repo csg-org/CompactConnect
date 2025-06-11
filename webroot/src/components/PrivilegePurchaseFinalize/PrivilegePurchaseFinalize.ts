@@ -184,8 +184,8 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
         return this.currentCompact?.privilegePurchaseOptions || [];
     }
 
-    get currentCompactPaymentSdkConfig(): PaymentSdkConfig {
-        return this.currentCompact?.fees?.paymentSdkConfig || {};
+    get currentCompactPaymentSdkConfig(): PaymentSdkConfig | null {
+        return this.currentCompact?.fees?.paymentSdkConfig || null;
     }
 
     get currentCompactCommissionFee(): number | null {
