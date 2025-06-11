@@ -59,7 +59,7 @@
                 class="row"
             >
                 <div class="cell">
-                    <span>{{ license.displayName(', ') }}</span>
+                    <span class="cell-display-name">{{ license.displayName(', ') }}</span>
                 </div>
                 <div class="cell max-gap">
                     <span class="cell-title">{{ $t('licensing.activeDate') }}</span>
@@ -82,7 +82,8 @@
                 class="row"
             >
                 <div class="cell">
-                    <span>{{ privilege.displayName(', ') }}</span>
+                    <span class="cell-display-name">{{ privilege.displayName(', ') }}</span>
+                    <span class="cell-id">{{ privilege.privilegeId }}</span>
                 </div>
                 <div class="cell max-gap">
                     <span class="cell-title">{{ $t('licensing.activeDate') }}</span>

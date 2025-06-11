@@ -70,7 +70,13 @@ export default class LicenseeProof extends Vue {
 
     get licenseePrivileges(): Array<License> {
         return this.licensee.privileges?.filter((privilege: License) =>
-            privilege.status === LicenseStatus.ACTIVE) || [];
+            privilege.status === LicenseStatus.ACTIVE)
+            .sort((a: License, b: License) => {
+                const dateA = moment(a.issueDate);
+                const dateB = moment(b.issueDate);
+
+                return dateB.valueOf() - dateA.valueOf(); // Most recent first
+            }) || [];
     }
 
     //

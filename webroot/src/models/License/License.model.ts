@@ -141,8 +141,10 @@ export class License implements InterfaceLicense {
         return upperCaseAbbrev;
     }
 
-    public displayName(delimiter = ' - '): string {
-        return `${this.issueState?.name() || ''}${this.issueState?.name() && this.licenseTypeAbbreviation() ? delimiter : ''}${this.licenseTypeAbbreviation()}`;
+    public displayName(delimiter = ' - ', displayAbbrev = false): string {
+        const licenseTypeToShow = displayAbbrev ? this.licenseTypeAbbreviation() : this.licenseType;
+
+        return `${this.issueState?.name() || ''}${this.issueState?.name() && licenseTypeToShow ? delimiter : ''}${licenseTypeToShow || ''}`;
     }
 
     public historyWithFabricatedEvents(): Array<LicenseHistoryItem> {
