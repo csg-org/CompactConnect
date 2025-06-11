@@ -5,8 +5,18 @@
 //  Created by InspiringApps on 1/14/2025.
 //
 
-import { Component, mixins, toNative } from 'vue-facing-decorator';
-import { reactive, computed, ComputedRef } from 'vue';
+import {
+    Component,
+    mixins,
+    toNative,
+    Watch
+} from 'vue-facing-decorator';
+import {
+    reactive,
+    computed,
+    ComputedRef,
+    nextTick
+} from 'vue';
 import { stateList } from '@/app.config';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import Section from '@components/Section/Section.vue';
@@ -15,11 +25,16 @@ import InputText from '@components/Forms/InputText/InputText.vue';
 import InputDate from '@components/Forms/InputDate/InputDate.vue';
 import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
+import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import CheckCircle from '@components/Icons/CheckCircle/CheckCircle.vue';
 import MockPopulate from '@components/Forms/MockPopulate/MockPopulate.vue';
 import { State } from '@models/State/State.model';
 import { FormInput } from '@models/FormInput/FormInput.model';
 import Joi from 'joi';
+import {
+    formatDateInput,
+    serverFormatToDateInput
+} from '@models/_formatters/date';
 
 interface SelectOption {
     value: string | number;
@@ -36,6 +51,7 @@ interface SelectOption {
         InputDate,
         InputSelect,
         InputSubmit,
+        InputButton,
         CheckCircle,
         MockPopulate,
     }
@@ -45,6 +61,7 @@ class RegisterLicensee extends mixins(MixinForm) {
     // Data
     //
     isFinalError = false;
+    isConfirmationScreen = false;
 
     //
     // Lifecycle
@@ -115,6 +132,27 @@ class RegisterLicensee extends mixins(MixinForm) {
         return (this.$envConfig.isTest) ? '' : 'out-in';
     }
 
+    get selectedState(): State | null {
+        const selectedOption = this.stateOptions.find((option) => option.value === this.formData.licenseState.value);
+
+        return (selectedOption && typeof selectedOption.value === 'string')
+            ? new State({ abbrev: selectedOption.value.toUpperCase() })
+            : null;
+    }
+
+    get formattedDob(): string {
+        let formattedDob = '';
+        const dobValue = this.formData.dob.value as string;
+
+        if (dobValue) {
+            const numericDate = serverFormatToDateInput(dobValue);
+
+            formattedDob = formatDateInput(numericDate);
+        }
+
+        return formattedDob;
+    }
+
     //
     // Methods
     //
@@ -181,10 +219,12 @@ class RegisterLicensee extends mixins(MixinForm) {
     initExtraFields(): void { // See Auth -> Registration section of README
         const passwordInput: HTMLElement = this.$refs.password as HTMLElement;
 
-        passwordInput.style.display = 'inline-block';
-        passwordInput.style.height = '1px';
-        passwordInput.style.width = '1px';
-        passwordInput.style.overflow = 'hidden';
+        if (passwordInput) {
+            passwordInput.style.display = 'inline-block';
+            passwordInput.style.height = '1px';
+            passwordInput.style.width = '1px';
+            passwordInput.style.overflow = 'hidden';
+        }
     }
 
     initRecaptcha(): void {
@@ -256,6 +296,33 @@ class RegisterLicensee extends mixins(MixinForm) {
 
             this.endFormLoading();
         }
+    }
+
+    async handleProceedToConfirmation(): Promise<void> {
+        this.validateAll({ asTouched: true });
+
+        if (this.isFormValid) {
+            this.isConfirmationScreen = true;
+
+            // Wait for DOM to update, then scroll to confirmation screen
+            await nextTick();
+
+            this.scrollIntoView('summary-heading');
+        }
+    }
+
+    scrollIntoView(elementId: string): void {
+        const element = document.getElementById(elementId);
+
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+
+    handleBackToForm(): void {
+        this.isConfirmationScreen = false;
+
+        this.scrollIntoView('register-licensee-form');
     }
 
     handleMissingCompactType(): void {
@@ -343,6 +410,7 @@ class RegisterLicensee extends mixins(MixinForm) {
         this.formData.licenseType.value = '';
         this.isFormLoading = false;
         this.isFormSuccessful = false;
+        this.isConfirmationScreen = false;
         this.isFormError = false;
         this.updateFormSubmitSuccess('');
         this.updateFormSubmitError('');
@@ -357,6 +425,23 @@ class RegisterLicensee extends mixins(MixinForm) {
         this.formData.licenseState.value = this.stateOptions[1]?.value || 'co';
         this.formData.licenseType.value = this.licenseTypeOptions[1]?.value || 'audiologist';
         this.validateAll({ asTouched: true });
+    }
+
+    //
+    // Watchers
+    //
+    @Watch('isFormError') isFormErrorChanged(): void {
+        if (this.isFormError && !this.isFinalError) {
+            this.handleBackToForm();
+        }
+    }
+
+    @Watch('isConfirmationScreen') onConfirmationScreenChange(newValue: boolean): void {
+        if (!newValue) { // Back to form
+            this.$nextTick(() => {
+                this.initExtraFields();
+            });
+        }
     }
 }
 

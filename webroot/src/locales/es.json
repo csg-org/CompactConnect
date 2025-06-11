@@ -753,7 +753,6 @@
             "inactive": "Inactivo",
             "pending": "Pendiente"
         },
-        "resendInvite": "Reenviar invitación",
         "userSearchLabel": "Introduzca un nombre",
         "userActions": "Acciones del usuario",
         "edit": "Editar",
@@ -767,7 +766,9 @@
         "deactivated": "Desactivado",
         "confirmUserReinviteTitle": "¿Está seguro de que desea volver a enviar la invitación a {name}?",
         "confirmUserReinviteSubtext": "Se enviará un correo electrónico a {email} y el usuario deberá establecer una nueva contraseña.",
-        "confirmUserDeactivate": "¿Está seguro de que desea desactivar {name} de este acuerdo? No se puede deshacer."
+        "confirmUserDeactivate": "¿Está seguro de que desea desactivar {name} de este acuerdo? No se puede deshacer.",
+        "accountSummary": "Resumen de cuenta",
+        "accountSummarySubtext": "Esta es la información que ha enviado para su registración. Si sus datos no coinciden exactamente con los de nuestro sistema, el registro no se realizará correctamente."
     },
     "recaptcha": {
         "googleDesc": "Este sitio está protegido por reCAPTCHA y se aplican las políticas de privacidad de Google.",

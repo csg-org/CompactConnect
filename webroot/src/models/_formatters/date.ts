@@ -153,9 +153,9 @@ const dateInputToServerFormat = (value: string): string => {
  */
 const serverFormatToDateInput = (value: string): string => {
     let dateInput = '';
-    const isDateValid = moment(value, 'YYYY-MM-DD', true);
+    const parsedDate = moment(value, 'YYYY-MM-DD', true);
 
-    if (value && isDateValid) {
+    if (value && parsedDate.isValid()) {
         const dateParts = value.split('-');
 
         if (dateParts.length === 3) {

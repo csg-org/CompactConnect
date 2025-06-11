@@ -754,7 +754,6 @@
             "inactive": "Inactive",
             "pending": "Pending"
         },
-        "resendInvite": "Resend invite",
         "userSearchLabel": "Enter a name",
         "userActions": "User actions",
         "edit": "Edit",
@@ -768,7 +767,9 @@
         "deactivated": "Deactivated",
         "confirmUserReinviteTitle": "Are you sure you want to resend the invitation to {name}?",
         "confirmUserReinviteSubtext": "An email will be sent to {email} and the user will be forced to set a new password.",
-        "confirmUserDeactivate": "Are you sure you want to deactivate {name} from this compact? This cannot be undone."
+        "confirmUserDeactivate": "Are you sure you want to deactivate {name} from this compact? This cannot be undone.",
+        "accountSummary": "Account summary",
+        "accountSummarySubtext": "Here is the information you submitted for your registration. If your information does not match exactly with the information in our system, the registration will not be successful."
     },
     "recaptcha": {
         "googleDesc": "This site is protected by reCAPTCHA and the Google",
