@@ -26,8 +26,10 @@ import QRCode from 'qrcode';
     }
 })
 export default class LicenseeProof extends Vue {
+    //
     // Data
-    public qrCodeDataUrl = '';
+    //
+    qrCodeDataUrl = '';
 
     //
     // Lifecycle

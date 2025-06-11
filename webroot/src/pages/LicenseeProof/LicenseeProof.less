@@ -164,11 +164,14 @@
             align-items: center;
             margin-top: 2rem;
             padding: 2rem;
-            page-break-inside: avoid;
-            break-inside: avoid;
+
+            @media print {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
 
             .qr-code-label {
-                margin: 2rem 0 4rem 0;
+                margin: 2rem 0 4rem;
                 color: @primaryColor;
                 font-weight: @fontWeightMedium;
                 font-size: @fontSizeMedium;
@@ -178,10 +181,6 @@
                     font-weight: @fontWeightBold;
                     text-decoration: underline;
                 }
-            }
-
-            .qr-code-image {
-                border-radius: 8px;
             }
         }
     }
