@@ -11,12 +11,19 @@ import { deleteUndefinedProperties } from '@models/_helpers';
 // ========================================================
 // =                       Interface                      =
 // ========================================================
+export interface PaymentSdkConfig {
+    loginId?: string;
+    clientKey?: string;
+    isProductionMode?: boolean;
+}
+
 export interface InterfaceCompactFeeConfigCreate {
     compactAbbr?: string
     compactCommissionFee?: number;
     compactCommissionFeeType?: FeeTypes | null;
     perPrivilegeTransactionFeeAmount?: number;
     isPerPrivilegeTransactionFeeActive?: boolean;
+    paymentSdkConfig?: PaymentSdkConfig;
 }
 
 // ========================================================
@@ -28,6 +35,7 @@ export class CompactFeeConfig implements InterfaceCompactFeeConfigCreate {
     public compactCommissionFeeType? = null;
     public perPrivilegeTransactionFeeAmount? = 0;
     public isPerPrivilegeTransactionFeeActive? = false;
+    public paymentSdkConfig? = {};
 
     constructor(data?: InterfaceCompactFeeConfigCreate) {
         const cleanDataObject = deleteUndefinedProperties(data);
@@ -44,7 +52,13 @@ export class CompactFeeConfig implements InterfaceCompactFeeConfigCreate {
 // ========================================================
 export class CompactFeeConfigSerializer {
     static fromServer(json: any): CompactFeeConfig {
-        const { compactAbbr, compactCommissionFee, transactionFeeConfiguration } = json;
+        const {
+            compactAbbr,
+            compactCommissionFee,
+            transactionFeeConfiguration,
+            paymentProcessorPublicFields,
+            isSandbox
+        } = json;
         const { licenseeCharges } = transactionFeeConfiguration || {};
 
         const compactFeeConfigData = {
@@ -53,7 +67,12 @@ export class CompactFeeConfigSerializer {
             compactCommissionFee: compactCommissionFee?.feeAmount,
             perPrivilegeTransactionFeeAmount: licenseeCharges?.chargeAmount,
             isPerPrivilegeTransactionFeeActive: licenseeCharges?.active
-                && licenseeCharges?.chargeType === FeeTypes.FLAT_FEE_PER_PRIVILEGE
+                && licenseeCharges?.chargeType === FeeTypes.FLAT_FEE_PER_PRIVILEGE,
+            paymentSdkConfig: {
+                loginId: paymentProcessorPublicFields?.apiLoginId || '',
+                clientKey: paymentProcessorPublicFields?.publicClientKey || '',
+                isProductionMode: (typeof isSandbox === 'boolean') ? !isSandbox : false,
+            },
         };
 
         return new CompactFeeConfig(compactFeeConfigData);

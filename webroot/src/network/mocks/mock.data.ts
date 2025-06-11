@@ -150,7 +150,12 @@ export const privilegePurchaseOptionsResponse = {
                     chargeAmount: 2
                 }
             },
-            type: 'compact'
+            type: 'compact',
+            isSandbox: true,
+            paymentProcessorPublicFields: {
+                apiLoginId: process.env.VUE_APP_MOCK_API_PAYMENT_LOGIN_ID,
+                publicClientKey: process.env.VUE_APP_MOCK_API_PAYMENT_CLIENT_KEY,
+            },
         },
         {
             jurisdictionName: 'kentucky',

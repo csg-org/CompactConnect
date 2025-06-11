@@ -11,7 +11,7 @@ import {
     mixins,
     Prop
 } from 'vue-facing-decorator';
-import { reactive } from 'vue';
+import { reactive, nextTick } from 'vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import SelectedStatePurchaseInformation from '@components/SelectedStatePurchaseInformation/SelectedStatePurchaseInformation.vue';
 import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
@@ -462,6 +462,11 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
                 });
             }
         });
+
+        await nextTick();
+        const formButtons = document.getElementById('button-row');
+
+        formButtons?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     @Watch('disabledPrivilegeStateChoices.length') reInitForm() {
