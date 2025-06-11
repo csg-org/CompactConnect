@@ -854,6 +854,8 @@ class ApiModel:
                         'compactName',
                         'compactCommissionFee',
                         'transactionFeeConfiguration',
+                        'paymentProcessorPublicFields',
+                        'isSandbox',
                     ],
                     properties={
                         'type': JsonSchema(type=JsonSchemaType.STRING, enum=['compact']),
@@ -895,6 +897,24 @@ class ApiModel:
                                     },
                                 ),
                             },
+                        ),
+                        'paymentProcessorPublicFields': JsonSchema(
+                            type=JsonSchemaType.OBJECT,
+                            required=['publicClientKey', 'apiLoginId'],
+                            properties={
+                                'publicClientKey': JsonSchema(
+                                    type=JsonSchemaType.STRING,
+                                    description='The public client key for the payment processor',
+                                ),
+                                'apiLoginId': JsonSchema(
+                                    type=JsonSchemaType.STRING,
+                                    description='The API login ID for the payment processor',
+                                ),
+                            },
+                        ),
+                        'isSandbox': JsonSchema(
+                            type=JsonSchemaType.BOOLEAN,
+                            description='Whether the compact is in sandbox mode',
                         ),
                     },
                 ),
