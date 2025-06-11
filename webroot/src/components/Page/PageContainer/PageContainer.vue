@@ -7,7 +7,8 @@
 
 <template>
     <div class="page-container" :class="{
-        'no-top-pad': !shouldPadTop
+        'no-top-pad': !shouldPadTop,
+        'no-page-header': !includePageHeader
     }">
         <header>
             <PageHeader v-if="includePageHeader"></PageHeader>

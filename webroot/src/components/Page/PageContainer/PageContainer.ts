@@ -47,6 +47,7 @@ class PageContainer extends Vue {
     get includePageHeader(): boolean {
         const nonHeaderRouteNames: Array<string> = [
             'Logout',
+            'LicenseeVerification',
         ];
 
         return (this.isPhone && !nonHeaderRouteNames.includes(this.currentRouteName));
