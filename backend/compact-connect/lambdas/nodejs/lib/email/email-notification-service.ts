@@ -336,4 +336,35 @@ export class EmailNotificationService extends BaseEmailService {
 
         await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send provider privilege purchase notification email' });
     }
+
+    /**
+     * Sends an email notification to a provider when someone attempts to register with their email address
+     * @param compact - The compact name
+     * @param specificEmails - The email address to send the notification to
+     */
+    public async sendMultipleRegistrationAttemptNotificationEmail(
+        compact: string,
+        specificEmails: string[] = []
+    ): Promise<void> {
+        this.logger.info('Sending multiple registration attempt notification email', { compact: compact, recipients: specificEmails });
+
+        const recipients = specificEmails;
+
+        if (recipients.length === 0) {
+            throw new Error(`No recipients found for multiple registration attempt notification email`);
+        }
+
+        const report = this.getNewEmailTemplate();
+        const subject = `Registration Attempt Notification - Compact Connect`;
+        const loginUrl = `${environmentVariableService.getUiBasePathUrl()}/Dashboard`;
+        const bodyText = `A registration attempt was made in the Compact Connect system using this email address. This email address is already associated with an active account in our system.\n\nIf this registration attempt was made by you, please log in to your existing account using the link below:\n\n${loginUrl}\n\nIf you did not attempt to register and believe this may be an unauthorized attempt, please contact our support team immediately.\n\nFor your security, we recommend that you log in to your account to verify your account information and ensure your account remains secure.`;
+
+        this.insertHeader(report, subject);
+        this.insertMarkdownBody(report, bodyText);
+        this.insertFooter(report);
+
+        const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
+
+        await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send multiple registration attempt notification email' });
+    }
 }
