@@ -17,6 +17,7 @@ from stacks import persistent_stack as ps
 # Importing module level to allow lazy loading for typing
 from stacks.api_stack import cc_api
 from stacks.persistent_stack import ProviderTable
+from stacks.provider_users import ProviderUsersStack
 
 from .api_model import ApiModel
 
@@ -27,6 +28,7 @@ class ProviderUsers:
         *,
         resource: Resource,
         persistent_stack: ps.PersistentStack,
+        provider_users_stack: ProviderUsersStack,
         api_model: ApiModel,
     ):
         super().__init__()
@@ -42,9 +44,10 @@ class ProviderUsers:
             'PROV_DATE_OF_UPDATE_INDEX_NAME': 'providerDateOfUpdate',
             'PROVIDER_USER_BUCKET_NAME': persistent_stack.provider_users_bucket.bucket_name,
             'LICENSE_GSI_NAME': persistent_stack.provider_table.license_gsi_name,
-            'PROVIDER_USER_POOL_ID': persistent_stack.provider_users.user_pool_id,
+            'PROVIDER_USER_POOL_ID': provider_users_stack.provider_users.user_pool_id,
             'RATE_LIMITING_TABLE_NAME': persistent_stack.rate_limiting_table.table_name,
             'COMPACT_CONFIGURATION_TABLE_NAME': persistent_stack.compact_configuration_table.table_name,
+            'EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME': persistent_stack.email_notification_service_lambda.function_name,
             **stack.common_env_vars,
         }
 
@@ -53,6 +56,7 @@ class ProviderUsers:
         self._add_provider_registration(
             provider_data_table=persistent_stack.provider_table,
             persistent_stack=persistent_stack,
+            provider_users_stack=provider_users_stack,
             lambda_environment=lambda_environment,
         )
 
@@ -193,6 +197,7 @@ class ProviderUsers:
         self,
         provider_data_table: ProviderTable,
         persistent_stack: ps.PersistentStack,
+        provider_users_stack: ProviderUsersStack,
         lambda_environment: dict,
     ):
         stack = Stack.of(self.provider_users_resource)
@@ -219,8 +224,14 @@ class ProviderUsers:
         provider_data_table.grant_read_write_data(self.provider_registration_handler)
         persistent_stack.compact_configuration_table.grant_read_data(self.provider_registration_handler)
         recaptcha_secret.grant_read(self.provider_registration_handler)
-        persistent_stack.provider_users.grant(self.provider_registration_handler, 'cognito-idp:AdminCreateUser')
+        provider_users_stack.provider_users.grant(self.provider_registration_handler, 'cognito-idp:AdminCreateUser')
+        provider_users_stack.provider_users.grant(self.provider_registration_handler, 'cognito-idp:AdminGetUser')
+        # This is granted to allow the registration handler to clean up user accounts that were never logged into and
+        # need to be re-registered under a different email (ie mistyped their email address during the first
+        # registration)
+        provider_users_stack.provider_users.grant(self.provider_registration_handler, 'cognito-idp:AdminDeleteUser')
         persistent_stack.rate_limiting_table.grant_read_write_data(self.provider_registration_handler)
+        persistent_stack.email_notification_service_lambda.grant_invoke(self.provider_registration_handler)
         self.api.log_groups.append(self.provider_registration_handler.log_group)
 
         # Create metrics for registration attempts and successes

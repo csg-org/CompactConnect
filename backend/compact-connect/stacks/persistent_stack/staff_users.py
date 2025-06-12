@@ -217,6 +217,7 @@ class StaffUsers(UserPool):
                 'FROM_ADDRESS': from_address,
                 'COMPACT_CONFIGURATION_TABLE_NAME': stack.compact_configuration_table.table_name,
                 'UI_BASE_PATH_URL': stack.get_ui_base_path_url(),
+                'USER_POOL_TYPE': 'staff',
                 **stack.common_env_vars,
             },
         )

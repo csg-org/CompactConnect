@@ -21,6 +21,7 @@ from pipeline import BackendStage, FrontendStage
 from stacks.api_stack import ApiStack
 from stacks.frontend_deployment_stack import FrontendDeploymentStack
 from stacks.persistent_stack import PersistentStack
+from stacks.provider_users import ProviderUsersStack
 
 
 class TstAppABC(ABC):
@@ -94,6 +95,56 @@ class TstAppABC(ABC):
                 overwrite_snapshot=False,
             )
 
+    def _inspect_provider_users_stack(
+        self,
+        provider_users_stack: ProviderUsersStack,
+        *,
+        domain_name: str = None,
+        allow_local_ui: bool = False,
+        local_ui_port: str = None,
+    ):
+        with self.subTest(provider_users_stack.stack_name):
+            # Make sure our local port ui setting overrides the default
+            provider_users_stack_template = Template.from_stack(provider_users_stack)
+            callbacks = []
+            if domain_name is not None:
+                callbacks.append(f'https://{domain_name}/auth/callback')
+            if allow_local_ui:
+                # 3018 is default
+                local_ui_port = '3018' if not local_ui_port else local_ui_port
+                callbacks.append(f'http://localhost:{local_ui_port}/auth/callback')
+
+            # Ensure our provider user pool is created with expected custom attributes
+            provider_users_user_pool = self.get_resource_properties_by_logical_id(
+                provider_users_stack.get_logical_id(provider_users_stack.provider_users.node.default_child),
+                provider_users_stack_template.find_resources(CfnUserPool.CFN_RESOURCE_TYPE_NAME),
+            )
+
+            # assert that both custom attributes are in schema
+            self.assertIn(
+                {'AttributeDataType': 'String', 'Mutable': False, 'Name': 'providerId'},
+                provider_users_user_pool['Schema'],
+            )
+            self.assertIn(
+                {'AttributeDataType': 'String', 'Mutable': False, 'Name': 'compact'}, provider_users_user_pool['Schema']
+            )
+
+            # ensure we have one user pool for providers
+            provider_users_stack_template.resource_count_is(CfnUserPool.CFN_RESOURCE_TYPE_NAME, 1)
+
+            # Ensure our Provider user pool app client is created with expected values
+            provider_users_user_pool_app_client = self.get_resource_properties_by_logical_id(
+                provider_users_stack.get_logical_id(provider_users_stack.provider_users.ui_client.node.default_child),
+                provider_users_stack_template.find_resources(CfnUserPoolClient.CFN_RESOURCE_TYPE_NAME),
+            )
+
+            self.assertEqual(provider_users_user_pool_app_client['CallbackURLs'], callbacks)
+            self.assertEqual(
+                provider_users_user_pool_app_client['ReadAttributes'],
+                ['custom:compact', 'custom:providerId', 'email'],
+            )
+            self.assertEqual(provider_users_user_pool_app_client['WriteAttributes'], ['email'])
+
     def _inspect_persistent_stack(
         self,
         persistent_stack: PersistentStack,
@@ -115,23 +166,9 @@ class TstAppABC(ABC):
                 callbacks.append(f'http://localhost:{local_ui_port}/auth/callback')
 
             # ensure we have two user pools, one for staff users and one for providers
-            # Temporarily setting to 3 to account for the standby provider user pool, during migration
-            persistent_stack_template.resource_count_is(CfnUserPool.CFN_RESOURCE_TYPE_NAME, 3)
+            # TODO - this will go down to one when we finish provider user migration  # noqa: FIX002
+            persistent_stack_template.resource_count_is(CfnUserPool.CFN_RESOURCE_TYPE_NAME, 2)
 
-            # Ensure our provider user pool is created with expected custom attributes
-            provider_users_user_pool = self.get_resource_properties_by_logical_id(
-                persistent_stack.get_logical_id(persistent_stack.provider_users.node.default_child),
-                persistent_stack_template.find_resources(CfnUserPool.CFN_RESOURCE_TYPE_NAME),
-            )
-
-            # assert that both custom attributes are in schema
-            self.assertIn(
-                {'AttributeDataType': 'String', 'Mutable': False, 'Name': 'providerId'},
-                provider_users_user_pool['Schema'],
-            )
-            self.assertIn(
-                {'AttributeDataType': 'String', 'Mutable': False, 'Name': 'compact'}, provider_users_user_pool['Schema']
-            )
             # Ensure our Staff user pool app client is configured with the expected callbacks and read/write attributes
             staff_users_user_pool_app_client = self.get_resource_properties_by_logical_id(
                 persistent_stack.get_logical_id(persistent_stack.staff_users.ui_client.node.default_child),
@@ -141,20 +178,6 @@ class TstAppABC(ABC):
             self.assertEqual(staff_users_user_pool_app_client['ReadAttributes'], ['email'])
             self.assertEqual(staff_users_user_pool_app_client['WriteAttributes'], ['email'])
 
-            # Ensure our Provider user pool app client is created with expected values
-            provider_users_user_pool_app_client = self.get_resource_properties_by_logical_id(
-                persistent_stack.get_logical_id(persistent_stack.provider_users.ui_client.node.default_child),
-                persistent_stack_template.find_resources(CfnUserPoolClient.CFN_RESOURCE_TYPE_NAME),
-            )
-
-            self.assertEqual(provider_users_user_pool_app_client['CallbackURLs'], callbacks)
-            self.assertEqual(
-                provider_users_user_pool_app_client['ReadAttributes'],
-                ['custom:compact', 'custom:providerId', 'email', 'family_name', 'given_name'],
-            )
-            self.assertEqual(
-                provider_users_user_pool_app_client['WriteAttributes'], ['email', 'family_name', 'given_name']
-            )
             self._inspect_data_events_table(persistent_stack, persistent_stack_template)
             self._inspect_ssn_table(persistent_stack, persistent_stack_template)
 

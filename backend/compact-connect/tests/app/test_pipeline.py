@@ -67,6 +67,23 @@ class TestBackendPipeline(TstAppABC, TestCase):
             self.app.prod_backend_pipeline_stack.prod_stage.persistent_stack, domain_name='app.compactconnect.org'
         )
 
+        self._inspect_provider_users_stack(
+            self.app.test_backend_pipeline_stack.test_stage.provider_users_stack,
+            domain_name='app.test.compactconnect.org',
+            allow_local_ui=True,
+        )
+
+        self._inspect_provider_users_stack(
+            self.app.beta_backend_pipeline_stack.beta_backend_stage.provider_users_stack,
+            domain_name='app.beta.compactconnect.org',
+            allow_local_ui=False,
+        )
+
+        self._inspect_provider_users_stack(
+            self.app.prod_backend_pipeline_stack.prod_stage.provider_users_stack,
+            domain_name='app.compactconnect.org',
+        )
+
     def _when_testing_compact_resource_servers(self, persistent_stack):
         persistent_stack_template = Template.from_stack(persistent_stack)
 
@@ -144,41 +161,46 @@ class TestBackendPipeline(TstAppABC, TestCase):
         )
 
     def test_cognito_using_recommended_security_in_prod(self):
-        stack = self.app.prod_backend_pipeline_stack.prod_stage.persistent_stack
-        template = Template.from_stack(stack)
+        persistent_stack = self.app.prod_backend_pipeline_stack.prod_stage.persistent_stack
+        persistent_stack_template = Template.from_stack(persistent_stack)
+        provider_users_stack = self.app.prod_backend_pipeline_stack.prod_stage.provider_users_stack
+        provider_users_stack_template = Template.from_stack(provider_users_stack)
 
-        # Make sure both user pools match the security settings above
-        user_pools = template.find_resources(
-            CfnUserPool.CFN_RESOURCE_TYPE_NAME,
-            props={'Properties': {'UserPoolAddOns': {'AdvancedSecurityMode': 'ENFORCED'}, 'MfaConfiguration': 'ON'}},
-        )
-        number_of_user_pools = len(user_pools)
+        for template in [persistent_stack_template, provider_users_stack_template]:
+            # Make sure both user pools match the security settings above
+            user_pools = template.find_resources(
+                CfnUserPool.CFN_RESOURCE_TYPE_NAME,
+                props={
+                    'Properties': {'UserPoolAddOns': {'AdvancedSecurityMode': 'ENFORCED'}, 'MfaConfiguration': 'ON'}
+                },
+            )
+            number_of_user_pools = len(user_pools)
 
-        # Check risk configurations
-        risk_configurations = template.find_resources(
-            CfnUserPoolRiskConfigurationAttachment.CFN_RESOURCE_TYPE_NAME,
-            props={
-                'Properties': {
-                    'AccountTakeoverRiskConfiguration': {
-                        'Actions': {
-                            'HighAction': {'EventAction': 'BLOCK', 'Notify': True},
-                            'LowAction': {'EventAction': 'BLOCK', 'Notify': True},
-                            'MediumAction': {'EventAction': 'BLOCK', 'Notify': True},
-                        }
-                    },
-                    'CompromisedCredentialsRiskConfiguration': {'Actions': {'EventAction': 'BLOCK'}},
-                }
-            },
-        )
-        # Every user pool should have this risk configuration
-        self.assertEqual(number_of_user_pools, len(risk_configurations))
+            # Check risk configurations
+            risk_configurations = template.find_resources(
+                CfnUserPoolRiskConfigurationAttachment.CFN_RESOURCE_TYPE_NAME,
+                props={
+                    'Properties': {
+                        'AccountTakeoverRiskConfiguration': {
+                            'Actions': {
+                                'HighAction': {'EventAction': 'BLOCK', 'Notify': True},
+                                'LowAction': {'EventAction': 'BLOCK', 'Notify': True},
+                                'MediumAction': {'EventAction': 'BLOCK', 'Notify': True},
+                            }
+                        },
+                        'CompromisedCredentialsRiskConfiguration': {'Actions': {'EventAction': 'BLOCK'}},
+                    }
+                },
+            )
+            # Every user pool should have this risk configuration
+            self.assertEqual(number_of_user_pools, len(risk_configurations))
 
-        # Verify that we're not allowing the implicit grant flow in any of our clients
-        implicit_grant_clients = template.find_resources(
-            CfnUserPoolClient.CFN_RESOURCE_TYPE_NAME,
-            props={'Properties': {'AllowedOAuthFlows': Match.array_with(['implicit'])}},
-        )
-        self.assertEqual(0, len(implicit_grant_clients))
+            # Verify that we're not allowing the implicit grant flow in any of our clients
+            implicit_grant_clients = template.find_resources(
+                CfnUserPoolClient.CFN_RESOURCE_TYPE_NAME,
+                props={'Properties': {'AllowedOAuthFlows': Match.array_with(['implicit'])}},
+            )
+            self.assertEqual(0, len(implicit_grant_clients))
 
     def test_synth_generates_python_lambda_layer_with_ssm_parameter(self):
         persistent_stack = self.app.test_backend_pipeline_stack.test_stage.persistent_stack

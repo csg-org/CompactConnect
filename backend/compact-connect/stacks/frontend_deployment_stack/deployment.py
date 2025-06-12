@@ -11,6 +11,7 @@ from common_constructs.frontend_app_config_utility import (
     COGNITO_AUTH_DOMAIN_SUFFIX,
     HTTPS_PREFIX,
     PersistentStackFrontendAppConfigValues,
+    ProviderUsersStackFrontendAppConfigValues,
 )
 from constructs import Construct
 
@@ -23,7 +24,8 @@ class CompactConnectUIBucketDeployment(BucketDeployment):
         *,
         ui_bucket: IBucket,
         environment_context: dict,
-        ui_app_config_values: PersistentStackFrontendAppConfigValues,
+        persistent_stack_app_config_values: PersistentStackFrontendAppConfigValues,
+        provider_users_stack_app_config_values: ProviderUsersStackFrontendAppConfigValues,
     ):
         stack = Stack.of(scope)
         # Get environment-specific values from context
@@ -41,7 +43,7 @@ class CompactConnectUIBucketDeployment(BucketDeployment):
                 Source.asset(
                     # we need to back up two parent directories to get to root
                     os.path.join('..', '..', 'webroot')
-                    if ui_app_config_values.should_bundle
+                    if persistent_stack_app_config_values.should_bundle
                     else os.path.join('tests', 'resources', 'test_ui_directory'),
                     # This will take a long time to run because it installs a bunch of packages
                     # into a docker container before building the UI, every time
@@ -54,16 +56,16 @@ class CompactConnectUIBucketDeployment(BucketDeployment):
                             image=DockerImage('public.ecr.aws/lts/ubuntu:22.04_stable'),
                             environment={
                                 'BASE_URL': '/',
-                                'VUE_APP_DOMAIN': f'{HTTPS_PREFIX}{ui_app_config_values.ui_domain_name}',
+                                'VUE_APP_DOMAIN': f'{HTTPS_PREFIX}{persistent_stack_app_config_values.ui_domain_name}',
                                 'VUE_APP_ROBOTS_META': robots_meta,
-                                'VUE_APP_API_STATE_ROOT': f'{HTTPS_PREFIX}{ui_app_config_values.api_domain_name}',
-                                'VUE_APP_API_LICENSE_ROOT': f'{HTTPS_PREFIX}{ui_app_config_values.api_domain_name}',
-                                'VUE_APP_API_USER_ROOT': f'{HTTPS_PREFIX}{ui_app_config_values.api_domain_name}',
+                                'VUE_APP_API_STATE_ROOT': f'{HTTPS_PREFIX}{persistent_stack_app_config_values.api_domain_name}',
+                                'VUE_APP_API_LICENSE_ROOT': f'{HTTPS_PREFIX}{persistent_stack_app_config_values.api_domain_name}',
+                                'VUE_APP_API_USER_ROOT': f'{HTTPS_PREFIX}{persistent_stack_app_config_values.api_domain_name}',
                                 'VUE_APP_COGNITO_REGION': 'us-east-1',
-                                'VUE_APP_COGNITO_AUTH_DOMAIN_STAFF': f'{HTTPS_PREFIX}{ui_app_config_values.staff_cognito_domain}{COGNITO_AUTH_DOMAIN_SUFFIX}',
-                                'VUE_APP_COGNITO_CLIENT_ID_STAFF': ui_app_config_values.staff_cognito_client_id,
-                                'VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE': f'{HTTPS_PREFIX}{ui_app_config_values.provider_cognito_domain}{COGNITO_AUTH_DOMAIN_SUFFIX}',
-                                'VUE_APP_COGNITO_CLIENT_ID_LICENSEE': ui_app_config_values.provider_cognito_client_id,
+                                'VUE_APP_COGNITO_AUTH_DOMAIN_STAFF': f'{HTTPS_PREFIX}{persistent_stack_app_config_values.staff_cognito_domain}{COGNITO_AUTH_DOMAIN_SUFFIX}',
+                                'VUE_APP_COGNITO_CLIENT_ID_STAFF': persistent_stack_app_config_values.staff_cognito_client_id,
+                                'VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE': f'{HTTPS_PREFIX}{provider_users_stack_app_config_values.provider_cognito_domain}{COGNITO_AUTH_DOMAIN_SUFFIX}',
+                                'VUE_APP_COGNITO_CLIENT_ID_LICENSEE': provider_users_stack_app_config_values.provider_cognito_client_id,
                                 'VUE_APP_RECAPTCHA_KEY': recaptcha_public_key,
                             },
                             entrypoint=['bash'],
@@ -72,7 +74,7 @@ class CompactConnectUIBucketDeployment(BucketDeployment):
                             user='root',
                         )
                     }
-                    if ui_app_config_values.should_bundle
+                    if persistent_stack_app_config_values.should_bundle
                     else {},
                 )
             ],

@@ -5,6 +5,7 @@ from common_constructs.stack import AppStack
 from constructs import Construct
 
 from stacks.persistent_stack import PersistentStack
+from stacks.provider_users import ProviderUsersStack
 
 
 class ManagedLoginStack(AppStack):
@@ -26,6 +27,7 @@ class ManagedLoginStack(AppStack):
         construct_id: str,
         *,
         persistent_stack: PersistentStack,
+        provider_users_stack: ProviderUsersStack,
         **kwargs,
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
@@ -34,7 +36,7 @@ class ManagedLoginStack(AppStack):
         self._create_managed_login_for_staff_users(persistent_stack)
 
         # Create managed login branding for provider users
-        self._create_managed_login_for_provider_users(persistent_stack)
+        self._create_managed_login_for_provider_users(provider_users_stack)
 
     def _create_managed_login_for_staff_users(self, persistent_stack: PersistentStack):
         """Create managed login branding for staff users"""
@@ -61,14 +63,14 @@ class ManagedLoginStack(AppStack):
             use_cognito_provided_values=False,
         )
 
-    def _create_managed_login_for_provider_users(self, persistent_stack: PersistentStack):
+    def _create_managed_login_for_provider_users(self, provider_users_stack: ProviderUsersStack):
         """Create managed login branding for provider users"""
         # Load the style settings
         with open('resources/provider_managed_login_style_settings.json') as f:
             branding_settings = json.load(f)
 
         # Prepare the assets
-        branding_assets = persistent_stack.provider_users.prepare_assets_for_managed_login_ui(
+        branding_assets = provider_users_stack.provider_users.prepare_assets_for_managed_login_ui(
             ico_filepath='resources/assets/favicon.ico', logo_filepath='resources/assets/compact-connect-logo.png'
         )
 
@@ -76,9 +78,9 @@ class ManagedLoginStack(AppStack):
         CfnManagedLoginBranding(
             self,
             'ProviderManagedLoginBranding',
-            user_pool_id=persistent_stack.provider_users.user_pool_id,
+            user_pool_id=provider_users_stack.provider_users.user_pool_id,
             assets=branding_assets,
-            client_id=persistent_stack.provider_users.ui_client.user_pool_client_id,
+            client_id=provider_users_stack.provider_users.ui_client.user_pool_client_id,
             return_merged_resources=False,
             settings=branding_settings,
             use_cognito_provided_values=False,
