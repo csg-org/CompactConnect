@@ -291,10 +291,16 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
     async acceptUiErrorResponse(): Promise<void> {
         this.isFormError = true;
         this.formErrorMessage = this.$t('payment.confirmCardDetailsError');
-        await nextTick();
-        const formMessageElement = document.getElementById('button-row');
+        await this.scrollIntoView('button-row');
+    }
 
-        formMessageElement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    async scrollIntoView(id: string): Promise<void> {
+        const formMessageElement = document.getElementById(id);
+
+        if (formMessageElement?.scrollIntoView) {
+            await nextTick();
+            formMessageElement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
     }
 
     async handleSubmitOverride(opaqueData: object): Promise<void> {
@@ -332,6 +338,7 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
             } else if (purchaseServerEvent?.message) {
                 this.isFormError = true;
                 this.formErrorMessage = purchaseServerEvent?.message;
+                await this.scrollIntoView('button-row');
             }
         } else {
             this.isFormError = true;
