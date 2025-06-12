@@ -165,33 +165,37 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
             }
 
             return includes;
-        }).map((option) =>
-            ({ ...option, isMilitaryDiscountActive: option.isMilitaryDiscountActive && this.licensee?.isMilitary() }));
+        });
     }
 
     get selectedStatePurchaseDisplayDataList(): Array<object> {
         const licenseTypeKey = this.licenseTypeSelected;
 
         return this.selectedStatePurchaseDataList.map((state) => {
-            const stateFeeText = `${state?.jurisdiction?.name()} ${this.$t('payment.compactPrivilegeStateFee')}`;
-            const stateMilitaryPurchaseText = `${state?.jurisdiction?.name()} ${this.$t('military.militaryDiscountText')}`;
+            const feeConfig = state?.fees?.[licenseTypeKey];
+
+            let stateFeeText = '';
             let stateFeeDisplay = '';
-            let stateMilitaryDiscountAmountDisplay = '';
 
-            if (state?.fees?.[licenseTypeKey]) {
-                stateFeeDisplay = state.fees[licenseTypeKey].toFixed(2);
-            }
+            if (feeConfig) {
+                const shouldUseMilitaryRate = this.shouldUseMilitaryRate(feeConfig);
 
-            if (state?.militaryDiscountAmount) {
-                stateMilitaryDiscountAmountDisplay = state.militaryDiscountAmount.toFixed(2);
+                stateFeeText = `${state?.jurisdiction?.name()} ${shouldUseMilitaryRate
+                    ? this.$t('payment.compactPrivilegeStateFeeMilitary')
+                    : this.$t('payment.compactPrivilegeStateFee')
+                }`;
+
+                if (shouldUseMilitaryRate) {
+                    stateFeeDisplay = feeConfig.militaryRate.toFixed(2);
+                } else {
+                    stateFeeDisplay = (feeConfig?.baseRate || 0).toFixed(2);
+                }
             }
 
             return {
                 ...state,
                 stateFeeDisplay,
-                stateMilitaryDiscountAmountDisplay,
                 stateFeeText,
-                stateMilitaryPurchaseText
             };
         });
     }
@@ -224,12 +228,16 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
         const licenseTypeKey = this.licenseTypeSelected;
 
         this.selectedStatePurchaseDataList.forEach((stateSelected) => {
-            if (stateSelected?.fees?.[licenseTypeKey]) {
-                total += stateSelected.fees[licenseTypeKey];
-            }
+            const feeConfig = stateSelected?.fees?.[licenseTypeKey];
 
-            if (stateSelected?.isMilitaryDiscountActive && stateSelected?.militaryDiscountAmount) {
-                total -= stateSelected.militaryDiscountAmount;
+            if (feeConfig) {
+                const shouldUseMilitaryRate = this.shouldUseMilitaryRate(feeConfig);
+
+                if (shouldUseMilitaryRate) {
+                    total += feeConfig.militaryRate;
+                } else {
+                    total += feeConfig.baseRate;
+                }
             }
         });
 
@@ -531,6 +539,13 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
     handleZipInput(formInput): void {
         // Remove all non-numerals
         formInput.value = formInput.value.replace(/[^\d]/g, '');
+    }
+
+    shouldUseMilitaryRate(feeConfig) {
+        const { militaryRate } = feeConfig || {};
+        const hasMilitaryRate = Boolean(militaryRate || militaryRate === 0);
+
+        return Boolean(hasMilitaryRate && this.licensee?.isMilitaryStatusActive());
     }
 
     mockPopulate(): void {

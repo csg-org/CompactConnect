@@ -529,6 +529,7 @@
         "expirationDate": "Fecha de vencimiento",
         "continueToPurchase": "Continuar comprando",
         "compactPrivilegeStateFee": "Quota Estatal de Privilegio Compacto",
+        "compactPrivilegeStateFeeMilitary": "Compact Privilege State Fee (Tasa Militar)",
         "compactCommissionFee": "Tarifa Administrativa",
         "purchaseSuccessful": "Compra exitosa",
         "purchaseSuccessfulMessage": "Tu compra fue exitosa. Sus privilegios aparecerán en su página de perfil dentro de segundos. Si envió documentos incorrectos, el personal compacto se comunicará con usted."
@@ -594,6 +595,7 @@
         "jurisprudenceConfirmation": "Confirmación de jurisprudencia",
         "adminFee": "Administración Cuota",
         "jurisdictionFee": "Jurisdicción Cuota",
+        "jurisdictionFeeMilitary": "Jurisdicción Cuota (Militar)",
         "disciplineStatus": "Estado de disciplina",
         "jurisprudenceExplanationText": "Doy fe de haber completado el examen de jurisprudencia requerido.",
         "scopeAttestTitle": "Alcance de la certificación de práctica",
@@ -609,7 +611,8 @@
         "militaryAffiliation": "Afiliación militar",
         "statusOptions": {
             "active": "Activo",
-            "inactive": "Inactivo"
+            "inactive": "Inactivo",
+            "initializing": "Inicializando"
         },
         "privilegeActions": "Acciones de privilegio",
         "privilegeActionsNone": "No hay acciones disponibles",
@@ -719,7 +722,8 @@
         "submitFail": "Error al cargar el documento",
         "fileInstructions": "Sólo 1 archivo (sólo PDF, docx, png, jpeg)",
         "fileName": "Nombre del archivo",
-        "dateUploaded": "Fecha de carga"
+        "dateUploaded": "Fecha de carga",
+        "initializingMessage": "Su documento está en un estado de inicialización. Esto puede indicar que hubo un error de carga. No puede comprar privilegios en este estado. Si este estado persiste, intente cargar su documento nuevamente o haga clic en finalizar afiliación militar y luego actualice la página."
     },
     "account": {
         "requestAccount": "Solicitar cuenta",
