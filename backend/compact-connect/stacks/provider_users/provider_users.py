@@ -63,7 +63,7 @@ class ProviderUsers(UserPool):
         self.ui_client = self.add_ui_client(
             ui_domain_name=persistent_stack.ui_domain_name,
             environment_context=environment_context,
-            # For now, we are allowing the user to read and update their email, given name, and family name.
+            # For now, we are allowing the user to read and update their email.
             # we only allow the user to be able to see their providerId and compact, which are custom attributes.
             # If we ever want other attributes to be read or written, they must be added here.
             read_attributes=ClientAttributes()
