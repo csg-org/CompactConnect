@@ -6,9 +6,9 @@ This guide provides step-by-step instructions for Compact and State administrati
 - [Initial Setup and Login](#initial-setup-and-login)
 - [User Management](#user-management)
 - [System Configuration](#system-configuration)
-- [Privilege and License Management](#privilege-and-license-management)
 - [General User Functions](#general-user-functions)
 - [Data Upload](#data-upload)
+- [Privilege and License Management](#privilege-and-license-management)
 
 ---
 
@@ -55,21 +55,13 @@ Navigate to **"Manage Users"** in the left navigation panel to access user manag
    - Required permissions (see [Permissions](#permissions) section below)
 3. Click **"Send Invite"** to dispatch the email invitation
 
-*Screenshot placeholder: User invitation form*
-![User Invitation Form](images/user-invitation-form.png)
+![User Invitation Form](images/invite_user_form.png)
 
 ### Permissions
 
 The Compact Connect system uses role-based permissions that can be granted at either the compact or state level:
 
 #### Available Permissions:
-
-**Admin**
-- Manage other users within their respective Compact or State scope
-- Define privilege fee rates
-- Configure system notification recipients
-- **Compact Admins**: Can deactivate privileges
-- **State Admins**: Can set encumbrances on licenses and privileges
 
 **Read Private**
 - Access to non-public practitioner information (e.g., date of birth)
@@ -79,12 +71,16 @@ The Compact Connect system uses role-based permissions that can be granted at ei
 - Access to full Social Security Numbers of practitioners
 - ⚠️ **Critical**: This permission should only be granted when absolutely required for job responsibilities
 
+**Admin**
+- Manage other users within their respective Compact or State scope
+- Define privilege fee rates
+- Configure system notification recipients
+- **Compact Admins**: Can deactivate privileges
+- **State Admins**: Can set encumbrances on licenses and privileges
+- Includes both Read Private and Read SSN permissions
+
 **Write** *(State-level only)*
 - Upload licensure data for a specific state
-- Modify existing license information
-
-*Screenshot placeholder: Permissions selection interface*
-![Permissions Interface](images/permissions-interface.png)
 
 ### Managing Existing Users
 
@@ -112,9 +108,6 @@ When a staff member leaves their position:
 2. Select **"Deactivate"**
 3. Confirm the deactivation
 
-*Screenshot placeholder: User action menu*
-![User Actions Menu](images/user-actions-menu.png)
-
 ---
 
 ## System Configuration
@@ -122,47 +115,112 @@ When a staff member leaves their position:
 ### Compact and State Settings
 Administrators can configure system settings through the **"Settings"** page in the navigation menu.
 
+![Settings Page](images/settings_tab.png)
+
+
 *Note: Detailed configuration instructions will be added in a future update.*
 
-*Screenshot placeholder: Settings page*
-![Settings Page](images/settings-page.png)
+## General User Functions
+
+### Searching License Data
+
+#### Accessing the Search Function
+Select **"Search Licensing Data"** from the left navigation panel.
+
+![Search Interface](images/license_search_tab.png)
+
+#### Search Criteria
+You can search using the following parameters:
+- **State/Jurisdiction**: Select from dropdown menu. This will filter the results to only display practitioners that have a license or privilege in the specified jurisdiction.
+- **Practitioner Name**: Enter full first and last name
+- **Combined Search**: Use both state and name criteria
+
+⚠️ **Note**: Partial name searches are not currently supported. You must enter the complete first and last name.
+
+#### Performing a Search
+1. Enter your search criteria
+2. Click **"Search"**
+3. Review results on the License Listing page
+4. Click any row to view detailed practitioner information
+
+![Search Results](images/license_list_view.png)
+
+### Practitioner Details Page
+
+The practitioner details page displays comprehensive license and privilege information for individual practitioners.
+
+![Practitioner Details](images/practitioner_details_page.png)
+
+#### Available Information:
+- Licenses and their current status
+- Privileges and their current statis
+- Privilege history and timeline
+
+#### Viewing Privilege History
+Click **"View Details"** on any privilege card to access:
+- Complete privilege timeline, including status changes such as deactivation and encumbrance.
+- Status change history
+
+![Privilege Timeline](images/privilege_summary.png)
+
+---
+
+## Data Upload
+
+### License Information Upload
+**This feature is available to staff users with write permissions only.**
+
+#### Uploading License Data
+1. Select **"Upload Data"** from the left navigation panel
+2. Click **"Choose File"** to select your CSV document
+3. Ensure your CSV file follows the required data schema, see 
+4. Click **"Submit"** to process the upload
+
+#### CSV File Requirements
+Your CSV file must include all required license data fields as specified in the [License Data Schema Documentation](../backend/compact-connect/docs/README.md).
+
+![Data Upload](images/license_upload.png)
+
+#### Upload Validation
+The system will validate your data and provide weekly email feedback on:
+- Successful imports
+- Data formatting errors
+- Missing required fields
+
+These email notifications will be sent to whichever email addresses have been set by the state admin for your respective state's Operations notification recipients.
 
 ---
 
 ## Privilege and License Management
 
 ### Deactivating Privileges
-**Available to**: Compact Administrators only
+**This feature is available to Compact Administrators only.**
 
 #### Steps to Deactivate a Privilege:
 1. Navigate to the practitioner's detail page (see [Practitioner Details](#practitioner-details-page))
 2. Locate the privilege requiring deactivation
 3. Click the three-dot menu (⋮) in the top-right corner of the privilege card
+![Privilege Actions](images/privilege_action_menu.png)
 4. Select **"Deactivate"**
 5. Complete the notes section explaining the reason for deactivation
 6. Click **"Deactivate Privilege"**
 
 ⚠️ **Important**: Deactivating privileges is different from encumbering them due to adverse actions. Encumbrance procedures are described below.
 
-*Screenshot placeholder: Privilege card with action menu*
-![Privilege Actions](images/privilege-actions.png)
 
 ### Encumbering Privileges and Licenses
-**Available to**: State Administrators only
-
-> **Note**: This feature is currently in development and will be available soon.
+**This feature is available to State Administrators only.**
 
 #### Steps to Add an Encumbrance:
-1. Navigate to the practitioner's detail page
+1. Navigate to the practitioner's detail page(see [Practitioner Details](#practitioner-details-page))
 2. Locate the privilege or license requiring encumbrance
 3. Click the three-dot menu (⋮) in the top-right corner of the card
+![Privilege Actions](images/privilege_action_menu.png)
 4. Select **"Encumber"**
 5. Complete the encumbrance form with required information
 6. Click **"Encumber Privilege"** or **"Encumber License"**
 
 #### Removing Encumbrances
-> **Note**: This feature is currently in development and will be available soon.
-
 To remove an existing encumbrance:
 1. Navigate to the practitioner's detail page
 2. Locate the encumbered privilege or license
@@ -176,95 +234,9 @@ To remove an existing encumbrance:
 
 ---
 
-## General User Functions
-
-### Searching License Data
-
-#### Accessing the Search Function
-Select **"Search Licensing Data"** from the left navigation panel.
-
-*Screenshot placeholder: Search page interface*
-![Search Interface](images/search-interface.png)
-
-#### Search Criteria
-You can search using the following parameters:
-- **State/Jurisdiction**: Select from dropdown menu
-- **Practitioner Name**: Enter full first and last name
-- **Combined Search**: Use both state and name criteria
-
-⚠️ **Note**: Partial name searches are not currently supported. You must enter the complete first and last name.
-
-#### Performing a Search
-1. Enter your search criteria
-2. Click **"Search"**
-3. Review results on the License Listing page
-4. Click any row to view detailed practitioner information
-
-*Screenshot placeholder: Search results page*
-![Search Results](images/search-results.png)
-
-### Practitioner Details Page
-
-The practitioner details page displays comprehensive license and privilege information for individual practitioners.
-
-#### Available Information:
-- Current license status
-- Active privileges
-- Privilege history and timeline
-- Encumbrance information (when applicable)
-
-#### Viewing Privilege Details
-Click **"View Details"** on any privilege card to access:
-- Complete privilege timeline
-- All recorded system events
-- Status change history
-
-*Screenshot placeholder: Practitioner details page*
-![Practitioner Details](images/practitioner-details.png)
-
-*Screenshot placeholder: Privilege timeline view*
-![Privilege Timeline](images/privilege-timeline.png)
-
----
-
-## Data Upload
-
-### License Information Upload
-**Available to**: Users with "Write" permission only
-
-#### Uploading License Data
-1. Select **"Upload Data"** from the left navigation panel
-2. Click **"Choose File"** to select your CSV document
-3. Ensure your CSV file follows the required data schema
-4. Click **"Submit"** to process the upload
-
-#### CSV File Requirements
-Your CSV file must include all required license data fields as specified in the [License Data Schema Documentation](link-to-schema-documentation).
-
-*Screenshot placeholder: Data upload interface*
-![Data Upload](images/data-upload.png)
-
-#### Upload Validation
-The system will validate your data and provide feedback on:
-- Successful imports
-- Data formatting errors
-- Missing required fields
-- Duplicate records
-
-*Screenshot placeholder: Upload results/validation*
-![Upload Validation](images/upload-validation.png)
-
----
-
 ## Support and Contact Information
 
 For technical support or questions about the onboarding process, please contact the Compact Connect team at [support-email].
 
-### Additional Resources
-- [License Data Schema Documentation](link-to-schema-docs)
-- [System Status Page](link-to-status-page)
-- [User Training Materials](link-to-training-materials)
-
 ---
 
-*This documentation is maintained by the Compact Connect development team. Last updated: [Date]*
