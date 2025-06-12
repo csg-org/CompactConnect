@@ -147,7 +147,7 @@ export default class LicenseeProof extends Vue {
         }
     }
 
-    @Watch('publicProfileUrl') async onPublicProfileUrlChange() {
+    @Watch('publicProfileUrl') async onPublicProfileUrlChange(): Promise<void> {
         await this.generateQRCode();
     }
 }
