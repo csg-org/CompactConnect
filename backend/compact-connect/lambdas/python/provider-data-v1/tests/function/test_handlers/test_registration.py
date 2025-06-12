@@ -239,7 +239,8 @@ class TestProviderRegistration(TstFunction):
     @patch('handlers.registration.verify_recaptcha')
     @patch('handlers.registration.config.email_service_client')
     def test_registration_sends_registration_attempt_email_if_provider_already_registered_in_confirmed_state(
-            self, mock_email_service_client, mock_verify_recaptcha):
+        self, mock_email_service_client, mock_verify_recaptcha
+    ):
         mock_verify_recaptcha.return_value = True
         self._add_mock_provider_records(is_registered=True)
         from handlers.registration import register_provider
@@ -247,17 +248,19 @@ class TestProviderRegistration(TstFunction):
         with patch('handlers.registration.config.cognito_client') as mock_cognito:
             creation_date = datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP) - timedelta(days=2)
 
-            self._when_testing_user_that_is_already_registered(mock_cognito, overrides={
-                'UserStatus': 'CONFIRMED',
-                'UserCreateDate': creation_date,
-                'UserLastModifiedDate': creation_date
-            })
+            self._when_testing_user_that_is_already_registered(
+                mock_cognito,
+                overrides={
+                    'UserStatus': 'CONFIRMED',
+                    'UserCreateDate': creation_date,
+                    'UserLastModifiedDate': creation_date,
+                },
+            )
             response = register_provider(self._get_test_event(), self.mock_context)
             mock_cognito.admin_create_user.assert_not_called()
             mock_cognito.admin_delete_user.assert_not_called()
             mock_email_service_client.send_provider_multiple_registration_attempt_email.assert_called_with(
-                compact=TEST_COMPACT_ABBR,
-                provider_email=MOCK_COMPACT_CONNECT_REGISTERED_EMAIL_ADDRESS
+                compact=TEST_COMPACT_ABBR, provider_email=MOCK_COMPACT_CONNECT_REGISTERED_EMAIL_ADDRESS
             )
 
         self.assertEqual(200, response['statusCode'])
@@ -266,7 +269,8 @@ class TestProviderRegistration(TstFunction):
     @patch('handlers.registration.verify_recaptcha')
     @patch('handlers.registration.config.email_service_client')
     def test_registration_sends_registration_attempt_email_if_provider_already_registered_less_than_one_day_ago(
-            self, mock_email_service_client, mock_verify_recaptcha):
+        self, mock_email_service_client, mock_verify_recaptcha
+    ):
         mock_verify_recaptcha.return_value = True
         self._add_mock_provider_records(is_registered=True)
         from handlers.registration import register_provider
@@ -277,8 +281,7 @@ class TestProviderRegistration(TstFunction):
             mock_cognito.admin_create_user.assert_not_called()
             mock_cognito.admin_delete_user.assert_not_called()
             mock_email_service_client.send_provider_multiple_registration_attempt_email.assert_called_with(
-                compact=TEST_COMPACT_ABBR,
-                provider_email=MOCK_COMPACT_CONNECT_REGISTERED_EMAIL_ADDRESS
+                compact=TEST_COMPACT_ABBR, provider_email=MOCK_COMPACT_CONNECT_REGISTERED_EMAIL_ADDRESS
             )
 
         self.assertEqual(200, response['statusCode'])
@@ -286,7 +289,8 @@ class TestProviderRegistration(TstFunction):
 
     @patch('handlers.registration.verify_recaptcha')
     def test_registration_allows_user_to_register_again_if_provider_registered_without_login_more_than_one_day_ago(
-            self, mock_verify_recaptcha):
+        self, mock_verify_recaptcha
+    ):
         mock_verify_recaptcha.return_value = True
         self._add_mock_provider_records(is_registered=True)
         from handlers.registration import register_provider
@@ -294,23 +298,22 @@ class TestProviderRegistration(TstFunction):
         with patch('handlers.registration.config.cognito_client') as mock_cognito:
             creation_date = datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP) - timedelta(days=2)
             self._when_testing_user_that_is_already_registered(
-                mock_cognito, overrides={
-                    'UserCreateDate': creation_date,
-                    'UserLastModifiedDate': creation_date
-                })
+                mock_cognito, overrides={'UserCreateDate': creation_date, 'UserLastModifiedDate': creation_date}
+            )
             response = register_provider(self._get_test_event(), self.mock_context)
             mock_cognito.admin_create_user.assert_called_with(
                 UserPoolId=self.config.provider_user_pool_id,
                 Username=MOCK_COMPACT_CONNECT_REGISTERED_EMAIL_ADDRESS,
-                MessageAction='RESEND'
+                MessageAction='RESEND',
             )
 
         self.assertEqual(200, response['statusCode'])
         self.assertEqual({'message': 'request processed'}, json.loads(response['body']))
 
     @patch('handlers.registration.verify_recaptcha')
-    def test_registration_cleans_up_old_user_if_never_logged_in_and_user_registers_with_new_license(self,
-                                                                                                    mock_verify_recaptcha):
+    def test_registration_cleans_up_old_user_if_never_logged_in_and_user_registers_with_new_license(
+        self, mock_verify_recaptcha
+    ):
         mock_verify_recaptcha.return_value = True
         provider_data, license_data = self._add_mock_provider_records(is_registered=True)
         from handlers.registration import register_provider
@@ -318,25 +321,23 @@ class TestProviderRegistration(TstFunction):
         with patch('handlers.registration.config.cognito_client') as mock_cognito:
             creation_date = datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP) - timedelta(days=2)
             self._when_testing_user_that_is_already_registered(
-                mock_cognito, overrides={
-                    'UserCreateDate': creation_date,
-                    'UserLastModifiedDate': creation_date
-                })
-            response = register_provider(self._get_test_event(body_overrides={'email': 'some-other-email@test.com'}),
-                                         self.mock_context)
+                mock_cognito, overrides={'UserCreateDate': creation_date, 'UserLastModifiedDate': creation_date}
+            )
+            response = register_provider(
+                self._get_test_event(body_overrides={'email': 'some-other-email@test.com'}), self.mock_context
+            )
             mock_cognito.admin_delete_user.assert_called_with(
-                UserPoolId=self.config.provider_user_pool_id,
-                Username=MOCK_COMPACT_CONNECT_REGISTERED_EMAIL_ADDRESS
+                UserPoolId=self.config.provider_user_pool_id, Username=MOCK_COMPACT_CONNECT_REGISTERED_EMAIL_ADDRESS
             )
             mock_cognito.admin_create_user.assert_called_with(
                 UserPoolId=self.config.provider_user_pool_id,
                 Username='some-other-email@test.com',
                 UserAttributes=[
-                {'Name': 'custom:compact', 'Value': TEST_COMPACT_ABBR.lower()},
-                {'Name': 'custom:providerId', 'Value': provider_data['providerId']},
-                {'Name': 'email', 'Value': 'some-other-email@test.com'},
-                {'Name': 'email_verified', 'Value': 'true'},
-            ],
+                    {'Name': 'custom:compact', 'Value': TEST_COMPACT_ABBR.lower()},
+                    {'Name': 'custom:providerId', 'Value': provider_data['providerId']},
+                    {'Name': 'email', 'Value': 'some-other-email@test.com'},
+                    {'Name': 'email_verified', 'Value': 'true'},
+                ],
             )
 
         self.assertEqual(200, response['statusCode'])
@@ -344,7 +345,8 @@ class TestProviderRegistration(TstFunction):
 
         # verify the email address was updated on the provider record.
         provider_user_records = self.config.data_client.get_provider_user_records(
-            compact=TEST_COMPACT_ABBR, provider_id=provider_data['providerId'])
+            compact=TEST_COMPACT_ABBR, provider_id=provider_data['providerId']
+        )
 
         provider_record = provider_user_records.get_provider_record()
 
