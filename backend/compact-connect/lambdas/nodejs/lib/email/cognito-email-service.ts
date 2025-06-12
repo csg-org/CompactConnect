@@ -60,19 +60,18 @@ export class CognitoEmailService extends BaseEmailService {
         const template = this.getNewEmailTemplate();
 
         this.insertHeader(template, subject);
-        this.insertMarkdownBody(template,
-            `Your temporary password is: \n\n${codeParameter}\n\nYour username is: \n\n${usernameParameter}\n\n`
-        );
+
 
         const userPoolType = environmentVariableService.getUserPoolType();
 
         if (userPoolType === 'provider') {
             this.insertMarkdownBody(template,
-                `This temporary password is valid for 24 hours. Please sign in at ${environmentVariableService.getUiBasePathUrl()}/Dashboard within the next 24 hours and change your password when prompted.`
-            );
+            `Your temporary password is: \n\n${codeParameter}\n\nYour username is: \n\n${usernameParameter}\n\nThis temporary password is valid for 24 hours. Please sign in at ${environmentVariableService.getUiBasePathUrl()}/Dashboard within the next 24 hours and change your password when prompted.`
+
+        );
         } else {
             this.insertMarkdownBody(template,
-                `Please sign in at ${environmentVariableService.getUiBasePathUrl()}/Dashboard and change your password when prompted.`
+                `Your temporary password is: \n\n${codeParameter}\n\nYour username is: \n\n${usernameParameter}\n\nPlease sign in at ${environmentVariableService.getUiBasePathUrl()}/Dashboard and change your password when prompted.`
             );
         }
 
