@@ -136,6 +136,9 @@ export class Lambda implements LambdaInterface {
             );
             break;
         case 'multipleRegistrationAttemptNotification':
+            if (!event.specificEmails?.length) {
+                throw new Error('No recipients found for multiple registration attempt notification email');
+            }
             await this.emailService.sendMultipleRegistrationAttemptNotificationEmail(
                 event.compact,
                 event.specificEmails
