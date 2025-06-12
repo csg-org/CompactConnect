@@ -82,25 +82,28 @@ export default class LicenseeProof extends Vue {
     }
 
     get licenseePrivileges(): Array<License> {
-        return this.licensee.privileges?.filter((privilege: License) =>
-            privilege.status === LicenseStatus.ACTIVE)
+        const sortedPrivileges = (this.licensee.privileges ?? [])
+            .filter((privilege: License) =>
+                privilege.status === LicenseStatus.ACTIVE)
             .sort((a: License, b: License) => {
                 const dateA = moment(a.issueDate);
                 const dateB = moment(b.issueDate);
 
-                return dateB.valueOf() - dateA.valueOf(); // Most recent first
-            }) || [];
+                return dateB.valueOf() - dateA.valueOf(); // Most recent issueDate first
+            });
+
+        return sortedPrivileges;
     }
 
     get publicProfileUrl(): string {
         let url = '';
-        const { domain } = this.$envConfig;
+        const { domain } = this.$envConfig || {};
         const licenseeId = this.licensee.id;
         const compactType = this.currentCompactType;
 
         if (licenseeId && compactType) {
             try {
-                const resolved = this.$router.resolve({
+                const { href } = this.$router.resolve({
                     name: 'LicenseeDetailPublic',
                     params: {
                         compact: compactType,
@@ -108,9 +111,7 @@ export default class LicenseeProof extends Vue {
                     }
                 });
 
-                const urlObj = new URL(`${domain}${resolved.href}`);
-
-                url = urlObj.toString();
+                url = new URL(href, domain).toString();
             } catch {
                 url = '';
             }

@@ -500,9 +500,7 @@
         "confirmSaveCompactYes": "Sí, marcar como en vivo",
         "saveSuccessfulCompact": "Los cambios compactos se guardaron correctamente",
         "saveSuccessfulState": "Los cambios de estado se guardaron correctamente",
-        "privilegeProofFooter": "Este documento es generado oficialmente por Compact Connect y sirve como prueba de las licencias y privilegios actuales del profesional.",
-        "publicProfileLink": "Ver perfil público en",
-        "qrCodeAlt": "Código QR que enlaza al perfil público"
+        "privilegeProofFooter": "Este documento es generado oficialmente por Compact Connect y sirve como prueba de las licencias y privilegios actuales del profesional."
     },
     "stateUpload": {
         "formTitle": "Carga de datos compacta",
@@ -686,7 +684,9 @@
         "practitionerInformation": "Información para profesionales",
         "homeStateLicenses": "Licencias del estado de origen",
         "activeDate": "Fecha activa",
-        "privilegeProofFooter": "Este documento es generado oficialmente por Compact Connect y sirve como prueba de las licencias y privilegios actuales del profesional."
+        "privilegeProofFooter": "Este documento es generado oficialmente por Compact Connect y sirve como prueba de las licencias y privilegios actuales del profesional.",
+        "publicProfileLink": "Ver perfil público en",
+        "qrCodeAlt": "Código QR que enlaza al perfil público"
     },
     "military": {
         "militaryStatusTitle": "Estado militar",

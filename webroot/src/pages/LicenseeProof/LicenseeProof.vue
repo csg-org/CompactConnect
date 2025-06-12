@@ -83,7 +83,7 @@
             >
                 <div class="cell">
                     <span class="cell-display-name">{{ privilege.displayName(', ') }}</span>
-                    <span class="cell-id">{{ privilege.privilegeId }}</span>
+                    <span v-if="privilege.privilegeId" class="cell-id">{{ privilege.privilegeId }}</span>
                 </div>
                 <div class="cell max-gap">
                     <span class="cell-title">{{ $t('licensing.activeDate') }}</span>
@@ -102,7 +102,7 @@
                 />
                 <div class="qr-code-label">
                     {{ $t('licensing.publicProfileLink') }}
-                    <a :href="publicProfileUrl" target="_blank">
+                    <a :href="publicProfileUrl" target="_blank" rel="noopener noreferrer">
                         {{ publicProfileUrl }}
                     </a>
                 </div>
