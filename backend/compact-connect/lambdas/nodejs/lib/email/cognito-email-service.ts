@@ -65,6 +65,7 @@ export class CognitoEmailService extends BaseEmailService {
         );
 
         const userPoolType = environmentVariableService.getUserPoolType();
+
         if (userPoolType === 'provider') {
             this.insertMarkdownBody(template,
                 `This temporary password is valid for 24 hours. Please sign in at ${environmentVariableService.getUiBasePathUrl()}/Dashboard within the next 24 hours and change your password when prompted.`
