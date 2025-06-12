@@ -199,19 +199,19 @@ export class Licensee implements InterfaceLicensee {
     public isMilitaryStatusActive(): boolean {
         // The API does not return the affiliations in the get-all endpoint therefore all users will appear unaffiliated
         // if only that endpoint has been called
-        return this.militaryAffiliations?.some((affiliation) => ((affiliation as MilitaryAffiliation).status as any) === 'active') || false;
+        return this.militaryAffiliations?.some((affiliation: MilitaryAffiliation) => affiliation.status as any === 'active') || false;
     }
 
     public isMilitaryStatusInitializing(): boolean {
-        // The API does not return the affiliations in the get-all endpoint therefore all users will appear unaffiliated
-        // if only that endpoint has been called
-        return this.militaryAffiliations?.some((affiliation) => ((affiliation as MilitaryAffiliation).status as any) === 'initializing') || false;
+        // The API does not return the affiliations in the get-all endpoint therefore this will always return false
+        // if only that endpoint has been called even if the user has initializing affiliations
+        return this.militaryAffiliations?.some((affiliation: MilitaryAffiliation) => affiliation.status as any === 'initializing') || false;
     }
 
     public activeMilitaryAffiliation(): MilitaryAffiliation | null {
-        // The API does not return the affiliations in the get-all endpoint therefore all users will appear unaffiliated
-        // if only that endpoint has been called
-        return this.militaryAffiliations?.find((affiliation) => ((affiliation as MilitaryAffiliation).status as any) === 'active') || null;
+        // The API does not return the affiliations in the get-all endpoint therefore this will always return null
+        // if only that endpoint has been called even if the user has active affiliations
+        return this.militaryAffiliations?.find((affiliation: MilitaryAffiliation) => affiliation.status as any === 'active') || null;
     }
 
     public homeJurisdictionLicenses(): Array<License> {

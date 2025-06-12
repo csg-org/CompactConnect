@@ -191,7 +191,7 @@ class MilitaryAffiliationInfoBlock extends mixins(MixinForm) {
     }
 
     focusOnModalCancelButton() {
-        const buttonComponent = this.$refs.noBackButton as any;
+        const buttonComponent = this.$refs.noBackButton as InstanceType<typeof InputButton>;
         const button = buttonComponent.$refs.button as HTMLElement;
 
         button.focus();
