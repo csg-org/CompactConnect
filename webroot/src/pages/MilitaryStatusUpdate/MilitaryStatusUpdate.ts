@@ -88,8 +88,8 @@ export default class MilitaryStatusUpdate extends mixins(MixinForm) {
                 fileConfig: {
                     accepts: [`application/pdf`, `application/vnd.openxmlformats-officedocument.wordprocessingml.document`, `image/png`, `image/jpeg`],
                     allowMultiple: false,
-                    maxSizeMbPer: 100,
-                    maxSizeMbAll: 100,
+                    maxSizeMbPer: 9,
+                    maxSizeMbAll: 9,
                 },
             }),
             submit: new FormInput({
@@ -129,11 +129,19 @@ export default class MilitaryStatusUpdate extends mixins(MixinForm) {
 
             this.endFormLoading();
 
-            this.resetForm(uploadResponse?.status === 204);
+            if (uploadResponse?.status === 204) {
+                this.resetForm(true);
+            } else {
+                const parser = new DOMParser();
+                const xmlData = parser.parseFromString(uploadResponse?.response?.data || '', 'text/xml');
+                const xmlErrorMessage = xmlData.getElementsByTagName('Message')[0]?.innerHTML || '';
+
+                this.resetForm(false, xmlErrorMessage);
+            }
         }
     }
 
-    resetForm(isSuccessful) {
+    resetForm(isSuccessful, xmlErrorMessage = '') {
         this.formData.document.value.length = 0;
         this.formData.affiliationType.value = null;
         this.isFormLoading = false;
@@ -146,7 +154,8 @@ export default class MilitaryStatusUpdate extends mixins(MixinForm) {
             });
         } else {
             this.$nextTick(() => {
-                this.updateFormSubmitError(this.$t('military.submitFail'));
+                this.updateFormSubmitError(xmlErrorMessage || this.$t('military.submitFail'));
+                this.$store.dispatch('user/getLicenseeAccountRequest');
             });
         }
     }

@@ -528,6 +528,7 @@
         "expirationDate": "Expiration date",
         "continueToPurchase": "Continue to purchase",
         "compactPrivilegeStateFee": "Compact Privilege State Fee",
+        "compactPrivilegeStateFeeMilitary": "Compact Privilege State Fee (Military Rate)",
         "compactCommissionFee": "Administrative Fee",
         "purchaseSuccessful": "Purchase Successful",
         "purchaseSuccessfulMessage": "Your purchase was successful. Your privileges will appear on your profile page within seconds. If you submitted incorrect documents, you will be contacted by compact staff."
@@ -577,6 +578,7 @@
         "deselectState": "Deselect state",
         "adminFee": "Administration Fee",
         "jurisdictionFee": "Jurisdiction Fee",
+        "jurisdictionFeeMilitary": "Jurisdiction Fee (Military)",
         "licenseTypeSearch": "Profession type",
         "licenseType": "License type",
         "adverseActions": "Adverse actions",
@@ -608,7 +610,8 @@
         "houseIcon": "House icon",
         "statusOptions": {
             "active": "Active",
-            "inactive": "Inactive"
+            "inactive": "Inactive",
+            "initializing": "Initializing"
         },
         "privilegeActions": "Privilege actions",
         "privilegeActionsNone": "No available actions",
@@ -718,7 +721,8 @@
         "submitFail": "Error uploading document",
         "fileInstructions": "Only 1 file (PDF, docx, png, jpeg only)",
         "fileName": "File name",
-        "dateUploaded": "Date uploaded"
+        "dateUploaded": "Date uploaded",
+        "initializingMessage": "Your document is in an initializing state. This may indicate that there was an error uploading. You cannot purchase privileges in this state. If this status persists, try uploading your document again or clicking end military affiliation and then refreshing the page."
     },
     "account": {
         "requestAccount": "Request account",
