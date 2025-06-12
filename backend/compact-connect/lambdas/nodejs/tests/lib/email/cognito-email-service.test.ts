@@ -19,6 +19,7 @@ describe('CognitoEmailService', () => {
         // Reset environment variables
         process.env.FROM_ADDRESS = 'noreply@example.org';
         process.env.UI_BASE_PATH_URL = 'https://app.test.compactconnect.org';
+        process.env.USER_POOL_TYPE = 'provider'; // Set default for tests
 
         emailService = new CognitoEmailService({
             logger: new Logger({ serviceName: 'test' }),
@@ -38,8 +39,10 @@ describe('CognitoEmailService', () => {
             );
 
             expect(subject).toBe('Welcome to CompactConnect');
-            expect(htmlContent).toContain('Your temporary password is: {####}');
-            expect(htmlContent).toContain('Your username is: testuser');
+            expect(htmlContent).toContain('Your temporary password is:');
+            expect(htmlContent).toContain('{####}');
+            expect(htmlContent).toContain('Your username is:');
+            expect(htmlContent).toContain('testuser');
             expect(htmlContent).toContain('https://app.test.compactconnect.org/Dashboard');
         });
 

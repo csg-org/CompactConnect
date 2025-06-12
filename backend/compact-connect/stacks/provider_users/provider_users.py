@@ -128,6 +128,7 @@ class ProviderUsers(UserPool):
                 'COMPACT_CONFIGURATION_TABLE_NAME': stack.compact_configuration_table.table_name,
                 'UI_BASE_PATH_URL': stack.get_ui_base_path_url(),
                 'ENVIRONMENT_NAME': environment_name,
+                'USER_POOL_TYPE': 'provider',
                 **stack.common_env_vars,
             },
         )
