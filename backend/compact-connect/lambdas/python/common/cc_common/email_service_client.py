@@ -122,7 +122,7 @@ class EmailServiceClient:
         reporting_cycle: str,
         start_date: datetime,
         end_date: datetime,
-    ) -> dict[str, str]:
+    ) -> dict[str, Any]:
         """
         Send a compact transaction report email.
 
