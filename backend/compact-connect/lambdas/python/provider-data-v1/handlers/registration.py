@@ -326,7 +326,6 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
                         'User attempted to register for account with existing registered email.',
                         compact=matching_record.compact,
                         provider_id=matching_record.providerId,
-                        registered_email=registered_email,
                         user_create_date=cognito_user['UserCreateDate'].isoformat(),
                         user_last_modified_date=cognito_user['UserLastModifiedDate'].isoformat(),
                         user_status=cognito_user['UserStatus'],
@@ -339,9 +338,7 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
                     logger.error(
                         'Provider record shows registered email but Cognito user not found, continuing with registration',
                         compact=matching_record.compact,
-                        provider_id=matching_record.providerId,
-                        existing_registered_email=registered_email,
-                        attempted_email=body['email']
+                        provider_id=matching_record.providerId
                     )
                     # Continue with normal registration flow
                 else:
@@ -377,7 +374,7 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
             logger.info(
                 'User attempted to register with existing Cognito email for different license',
                 compact=body['compact'],
-                email=body['email'],
+                provider_id=matching_record.providerId,
                 license_type=body['licenseType']
             )
             return _send_registration_attempt_notification_and_complete(registered_email=body['email'],
