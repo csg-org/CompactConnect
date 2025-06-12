@@ -237,21 +237,36 @@ class TestProviderRegistration(TstFunction):
         mock_cognito.admin_get_user.return_value = get_user_response
 
     @patch('handlers.registration.verify_recaptcha')
-    def test_registration_returns_200_if_provider_already_registered(self, mock_verify_recaptcha):
+    @patch('handlers.registration.config.email_service_client')
+    def test_registration_sends_registration_attempt_email_if_provider_already_registered_in_confirmed_state(
+            self, mock_email_service_client, mock_verify_recaptcha):
         mock_verify_recaptcha.return_value = True
         self._add_mock_provider_records(is_registered=True)
         from handlers.registration import register_provider
 
         with patch('handlers.registration.config.cognito_client') as mock_cognito:
-            self._when_testing_user_that_is_already_registered(mock_cognito, overrides={'UserStatus': 'CONFIRMED'})
+            creation_date = datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP) - timedelta(days=2)
+
+            self._when_testing_user_that_is_already_registered(mock_cognito, overrides={
+                'UserStatus': 'CONFIRMED',
+                'UserCreateDate': creation_date,
+                'UserLastModifiedDate': creation_date
+            })
             response = register_provider(self._get_test_event(), self.mock_context)
             mock_cognito.admin_create_user.assert_not_called()
+            mock_cognito.admin_delete_user.assert_not_called()
+            mock_email_service_client.send_provider_multiple_registration_attempt_email.assert_called_with(
+                compact=TEST_COMPACT_ABBR,
+                provider_email=MOCK_COMPACT_CONNECT_REGISTERED_EMAIL_ADDRESS
+            )
 
         self.assertEqual(200, response['statusCode'])
         self.assertEqual({'message': 'request processed'}, json.loads(response['body']))
 
     @patch('handlers.registration.verify_recaptcha')
-    def test_registration_does_not_send_email_if_provider_already_registered_less_than_one_day_ago(self, mock_verify_recaptcha):
+    @patch('handlers.registration.config.email_service_client')
+    def test_registration_sends_registration_attempt_email_if_provider_already_registered_less_than_one_day_ago(
+            self, mock_email_service_client, mock_verify_recaptcha):
         mock_verify_recaptcha.return_value = True
         self._add_mock_provider_records(is_registered=True)
         from handlers.registration import register_provider
@@ -260,13 +275,18 @@ class TestProviderRegistration(TstFunction):
             self._when_testing_user_that_is_already_registered(mock_cognito)
             response = register_provider(self._get_test_event(), self.mock_context)
             mock_cognito.admin_create_user.assert_not_called()
+            mock_cognito.admin_delete_user.assert_not_called()
+            mock_email_service_client.send_provider_multiple_registration_attempt_email.assert_called_with(
+                compact=TEST_COMPACT_ABBR,
+                provider_email=MOCK_COMPACT_CONNECT_REGISTERED_EMAIL_ADDRESS
+            )
 
         self.assertEqual(200, response['statusCode'])
         self.assertEqual({'message': 'request processed'}, json.loads(response['body']))
 
     @patch('handlers.registration.verify_recaptcha')
-    def test_registration_allows_user_to_register_again_if_provider_already_registered_more_than_one_day_ago(self,
-                                                                                                mock_verify_recaptcha):
+    def test_registration_allows_user_to_register_again_if_provider_registered_without_login_more_than_one_day_ago(
+            self, mock_verify_recaptcha):
         mock_verify_recaptcha.return_value = True
         self._add_mock_provider_records(is_registered=True)
         from handlers.registration import register_provider
