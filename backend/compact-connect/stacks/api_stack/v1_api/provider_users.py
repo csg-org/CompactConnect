@@ -47,6 +47,7 @@ class ProviderUsers:
             'PROVIDER_USER_POOL_ID': provider_users_stack.provider_users.user_pool_id,
             'RATE_LIMITING_TABLE_NAME': persistent_stack.rate_limiting_table.table_name,
             'COMPACT_CONFIGURATION_TABLE_NAME': persistent_stack.compact_configuration_table.table_name,
+            'EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME': persistent_stack.email_notification_service_lambda.function_name,
             **stack.common_env_vars,
         }
 
@@ -224,7 +225,13 @@ class ProviderUsers:
         persistent_stack.compact_configuration_table.grant_read_data(self.provider_registration_handler)
         recaptcha_secret.grant_read(self.provider_registration_handler)
         provider_users_stack.provider_users.grant(self.provider_registration_handler, 'cognito-idp:AdminCreateUser')
+        provider_users_stack.provider_users.grant(self.provider_registration_handler, 'cognito-idp:AdminGetUser')
+        # This is granted to allow the registration handler to clean up user accounts that were never logged into and
+        # need to be re-registered under a different email (ie mistyped their email address during the first
+        # registration)
+        provider_users_stack.provider_users.grant(self.provider_registration_handler, 'cognito-idp:AdminDeleteUser')
         persistent_stack.rate_limiting_table.grant_read_write_data(self.provider_registration_handler)
+        persistent_stack.email_notification_service_lambda.grant_invoke(self.provider_registration_handler)
         self.api.log_groups.append(self.provider_registration_handler.log_group)
 
         # Create metrics for registration attempts and successes
