@@ -46,7 +46,7 @@ Navigate to **"Manage Users"** in the left navigation panel to access user manag
 
 ### Inviting New Staff Users
 
-#### Steps to Invite Users:
+#### Steps to Invite Users
 1. Click the **"Invite"** button in the top-right corner of the User Management page
 2. Complete the invitation form with the following information:
    - User's email address
@@ -61,7 +61,7 @@ Navigate to **"Manage Users"** in the left navigation panel to access user manag
 
 The Compact Connect system uses role-based permissions that can be granted at either the compact or state level:
 
-#### Available Permissions:
+#### Available Permissions
 
 **Read Private**
 - Access to non-public practitioner information (e.g., date of birth)
@@ -127,7 +127,7 @@ State administrators have access to jurisdiction-specific configuration options 
 
 State administrators must configure the fees that their jurisdiction charges for compact privileges. These fees are set per license type offered by the compact.
 
-**Configuration Steps:**
+**Configuration Steps**
 1. Navigate to the Jurisdiction Settings section
 2. Locate the "Privilege Fees" section
 3. Set the standard fee amount for each license type
@@ -181,7 +181,7 @@ Compact administrators have access to compact-wide configuration options that af
 
 The Compact Administration Fee is a standardized fee collected for every privilege purchase that supports compact operations:
 
-**Configuration Steps:**
+**Configuration Steps**
 1. Navigate to the Compact Settings section
 2. Locate the "Commission Administration Fee" section
 3. Set the flat rate amount (e.g., $50)
@@ -195,7 +195,7 @@ The Compact Administration Fee is a standardized fee collected for every privile
 
 Compact administrators can configure whether licensees are charged fees to cover payment processor costs
 
-**Licensee Transaction Charges:**
+**Licensee Transaction Charges**
 1. Enable/disable transaction fee charging
 2. Set the fee amount to help cover transaction costs
 3. This fee is applied once per privilege purchased
@@ -228,7 +228,7 @@ Compact administrators can enable licensee registration at the compact level. Th
 
 Compact administrators can configure Authorize.net payment processing credentials (this must be done after setting up the compact related fees):
 
-**Setup Steps:**
+**Setup Steps**
 1. Generate API credentials in your Authorize.net account ([view documentation](https://support.authorize.net/knowledgebase/Knowledgearticle/?code=000001271))
 2. Navigate to the "Authorize.net Credentials" section in Compact Settings
 3. Enter your credentials:
@@ -327,7 +327,7 @@ These email notifications will be sent to whichever email addresses have been se
 ### Deactivating Privileges
 **This feature is available to Compact Administrators only.**
 
-#### Steps to Deactivate a Privilege:
+#### Steps to Deactivate a Privilege
 1. Navigate to the practitioner's detail page (see [Practitioner Details](#practitioner-details-page))
 2. Locate the privilege requiring deactivation
 3. Click the three-dot menu (⋮) in the top-right corner of the privilege card
@@ -342,7 +342,7 @@ These email notifications will be sent to whichever email addresses have been se
 ### Encumbering Privileges and Licenses
 **This feature is available to State Administrators only.**
 
-#### Steps to Add an Encumbrance:
+#### Steps to Add an Encumbrance
 1. Navigate to the practitioner's detail page(see [Practitioner Details](#practitioner-details-page))
 2. Locate the privilege or license requiring encumbrance
 3. Click the three-dot menu (⋮) in the top-right corner of the card
@@ -362,10 +362,3 @@ To remove an existing encumbrance:
 
 
 ---
-
-## Support and Contact Information
-
-For technical support or questions about the onboarding process, please contact the Compact Connect team representative that invited you to the system.
-
----
-
