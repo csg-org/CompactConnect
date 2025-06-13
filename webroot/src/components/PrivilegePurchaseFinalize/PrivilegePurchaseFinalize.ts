@@ -277,7 +277,7 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
         this.watchFormInputs();
     }
 
-    shouldUseMilitaryRate(feeConfig) {
+    shouldUseMilitaryRate(feeConfig): boolean {
         const { militaryRate } = feeConfig || {};
         const hasMilitaryRate = Boolean(militaryRate || militaryRate === 0);
 
