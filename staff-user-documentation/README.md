@@ -8,6 +8,7 @@ This guide provides step-by-step instructions for Compact and State administrati
 - [System Configuration](#system-configuration)
 - [General User Functions](#general-user-functions)
 - [Data Upload](#data-upload)
+- [Automated License Data Upload for IT Departments](#automated-license-data-upload-for-it-departments)
 - [Privilege and License Management](#privilege-and-license-management)
 
 ---
@@ -319,6 +320,15 @@ The system will validate your data and provide weekly email feedback on:
 - Missing required fields
 
 These email notifications will be sent to whichever email addresses have been set by the state admin for your respective state's Operations notification recipients.
+
+---
+
+## Automated License Data Upload for IT Departments
+
+### Overview
+State IT departments can set up automated license data uploads to CompactConnect through the API, eliminating the need for manual CSV uploads and ensuring timely data synchronization between state licensing systems and CompactConnect. For more information about this setup, see the following document:
+
+**[Automated License Data Upload Onboarding Instructions](../backend/compact-connect/app_clients/it_staff_onboarding_instructions/README.md)**
 
 ---
 
