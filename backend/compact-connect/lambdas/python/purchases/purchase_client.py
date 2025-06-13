@@ -32,7 +32,7 @@ MAXIMUM_TRANSACTION_API_LIMIT = 1000
 # likely caused by the user. These include issues such as an invalid or unsupported card number, the expiration date
 # being expired, or the card being declined. You can review the description of these codes by searching for them at
 # https://developer.authorize.net/api/reference/responseCodes.html
-AUTHORIZE_NET_CARD_USER_ERROR_CODES = ['2', '5', '6', '7', '8', '11', '17']
+AUTHORIZE_NET_CARD_USER_ERROR_CODES = ['2', '5', '6', '7', '8', '11', '17', '65']
 
 # The authorizenet SDK emits many warnings due to a Pyxb issue that they will not address,
 # see https://github.com/AuthorizeNet/sdk-python/issues/133,
@@ -243,15 +243,24 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                 logger.warning(
                     logger_message, transaction_error_code=error_code, transaction_error_message=error_message
                 )
-                raise CCInvalidRequestException('Duplicate transaction detected for previously successful transaction.')
+                raise CCInvalidRequestException(
+                    f'Failed to process transaction. Error code: {error_code}, Error message: {error_message}'
+                )
             logger.error(logger_message, transaction_error_code=error_code, transaction_error_message=error_message)
 
         else:
             error_code = response.messages.message[0]['code'].text
             error_message = response.messages.message[0]['text'].text
-            logger.error(logger_message, error_code=error_code, error_message=error_message)
+            if error_code in AUTHORIZE_NET_CARD_USER_ERROR_CODES:
+                logger.warning(
+                    logger_message, transaction_error_code=error_code, transaction_error_message=error_message
+                )
+                raise CCInvalidRequestException(
+                    f'Failed to process transaction. Error code: {error_code}, Error message: {error_message}'
+                )
 
-        raise CCInternalException(logger_message)
+            logger.error(logger_message, error_code=error_code, error_message=error_message)
+            raise CCInternalException(logger_message)
 
     def void_unsettled_charge_on_credit_card(
         self,
@@ -490,6 +499,11 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                         error_code=error_code,
                         error_message=error_message,
                     )
+                    # Provide specific error message for CVV validation failures
+                    if str(error_code) == '65':
+                        error_message += (
+                            ' Please verify that you have entered a valid CVV (security code) for your credit card.'  # noqa: E501
+                        )
                     raise CCFailedTransactionException(
                         f'Failed to process transaction. Error code: {error_code}, Error message: {error_message}'
                     )
