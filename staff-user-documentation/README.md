@@ -178,6 +178,28 @@ State administrators can enable licensee registration for their jurisdiction. Th
 
 Compact administrators have access to compact-wide configuration options that affect all participating jurisdictions.
 
+#### Card Code Verification (CCV) Setup in Authorize.net Account
+
+> ⚠️ **Important**: Before configuring payment processing credentials, you must first set up the Card Code Verification (CCV) security feature in your Authorize.net account to ensure secure payment processing, described in this section.
+
+**Setup Steps**
+1. Log into your Authorize.net merchant account
+2. Navigate to Account Settings by clicking the **Settings** button in the main navigation
+
+![Authorize.net Settings Button](images/authorize_net_home_settings.png)
+
+3. From the Settings page, locate and click **"Enhanced Card Code Verification"**
+
+![Enhanced Card Code Verification Option](images/authorize_net_settings_eccv.png)
+
+4. Configure your CCV settings to match the recommended security configuration shown below and select the save button:
+
+![CCV Configuration Settings](images/eccv_filter_settings.png)
+
+> **🔒 Security Note**: Proper CCV configuration is essential for payment security and fraud prevention. These settings help protect both your organization and licensees during payment processing.
+
+---
+
 #### Compact Administration Fee
 
 The Compact Administration Fee is a standardized fee collected for every privilege purchase that supports compact operations:
