@@ -143,7 +143,7 @@ export class License implements InterfaceLicense {
 
     public displayName(delimiter = ' - ', displayAbbrev = false): string {
         const stateName = this.issueState?.name() || '';
-        const licenseTypeToShow = displayAbbrev ? this.licenseTypeAbbreviation() : this.licenseType;
+        const licenseTypeToShow = (displayAbbrev) ? this.licenseTypeAbbreviation() : this.licenseType;
 
         return `${stateName}${stateName && licenseTypeToShow ? delimiter : ''}${licenseTypeToShow || ''}`;
     }

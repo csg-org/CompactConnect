@@ -130,15 +130,15 @@ export default class LicenseeProof extends Vue {
     async generateQRCode(): Promise<void> {
         if (this.publicProfileUrl) {
             try {
-                // Get the primary color from CSS custom properties
+                // Get the primary color from CSS custom properties with fallback
                 const primaryColor = getComputedStyle(document.documentElement)
-                    .getPropertyValue('--primary-color').trim();
+                    .getPropertyValue('--primary-color').trim() || '#2459a9';
 
                 this.qrCodeDataUrl = await QRCode.toDataURL(this.publicProfileUrl, {
                     width: 150,
                     margin: 1,
                     color: {
-                        dark: primaryColor || '#2459a9', // Fallback to hardcoded value
+                        dark: primaryColor,
                         light: '#ffffff'
                     }
                 });
