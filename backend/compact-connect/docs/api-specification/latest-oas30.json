@@ -5787,7 +5787,9 @@
                     "compactCommissionFee",
                     "compactName",
                     "transactionFeeConfiguration",
-                    "type"
+                    "type",
+                    "paymentProcessorPublicFields",
+                    "isSandbox"
                   ],
                   "type": "object",
                   "properties": {
@@ -5855,6 +5857,27 @@
                     "compactName": {
                       "type": "string",
                       "description": "The full name of the compact"
+                    },
+                    "paymentProcessorPublicFields": {
+                      "required": [
+                        "publicClientKey",
+                        "apiLoginId"
+                      ],
+                      "type": "object",
+                      "properties": {
+                        "publicClientKey": {
+                          "type": "string",
+                          "description": "The public client key for the payment processor"
+                        },
+                        "apiLoginId": {
+                          "type": "string",
+                          "description": "The API login ID for the payment processor"
+                        }
+                      }
+                    },
+                    "isSandbox": {
+                      "type": "boolean",
+                      "description": "Whether the compact is in sandbox mode"
                     }
                   }
                 },

@@ -10,6 +10,7 @@ from cc_common.data_model.schema.compact.common import (
     CompactCommissionFeeSchema,
     CompactFeeType,
     LicenseeChargesSchema,
+    PaymentProcessorPublicFieldsSchema,
 )
 from cc_common.data_model.schema.fields import PositiveDecimal
 
@@ -28,6 +29,8 @@ class CompactOptionsResponseSchema(ForgivingSchema):
     compactCommissionFee = Nested(CompactCommissionFeeSchema(), required=True, allow_none=False)
     transactionFeeConfiguration = Nested(TransactionFeeConfigurationResponseSchema(), required=False, allow_none=False)
     type = String(required=True, allow_none=False, validate=OneOf([COMPACT_TYPE]))
+    paymentProcessorPublicFields = Nested(PaymentProcessorPublicFieldsSchema(), required=True, allow_none=False)
+    isSandbox = Boolean(required=True, allow_none=False)
 
 
 class CompactCommissionResponseFeeSchema(Schema):

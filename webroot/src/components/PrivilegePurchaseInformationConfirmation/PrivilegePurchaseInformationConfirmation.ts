@@ -11,7 +11,7 @@ import {
     Watch,
     Prop
 } from 'vue-facing-decorator';
-import { reactive } from 'vue';
+import { reactive, nextTick } from 'vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import SelectedLicenseInfo from '@components/SelectedLicenseInfo/SelectedLicenseInfo.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
@@ -264,6 +264,10 @@ export default class PrivilegePurchaseInformationConfirmation extends mixins(Mix
         this.formData.homeState.value = true;
 
         this.validateAll({ asTouched: true });
+        await nextTick();
+        const formButtons = document.getElementById('button-row');
+
+        formButtons?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     //

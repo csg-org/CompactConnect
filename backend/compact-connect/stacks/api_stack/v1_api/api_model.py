@@ -679,73 +679,21 @@ class ApiModel:
                     ),
                     'orderInformation': JsonSchema(
                         type=JsonSchemaType.OBJECT,
-                        required=['card', 'billing'],
+                        required=['opaqueData'],
                         properties={
-                            'card': JsonSchema(
+                            'opaqueData': JsonSchema(
                                 type=JsonSchemaType.OBJECT,
-                                required=['number', 'expiration', 'cvv'],
+                                required=['dataDescriptor', 'dataValue'],
                                 properties={
-                                    'number': JsonSchema(
+                                    'dataDescriptor': JsonSchema(
                                         type=JsonSchemaType.STRING,
-                                        description='The card number',
-                                        max_length=19,
-                                        # set a min length of acceptable card numbers
-                                        min_length=13,
-                                    ),
-                                    'expiration': JsonSchema(
-                                        type=JsonSchemaType.STRING,
-                                        description='The card expiration date',
-                                        max_length=7,
-                                        min_length=7,
-                                    ),
-                                    'cvv': JsonSchema(
-                                        type=JsonSchemaType.STRING,
-                                        description='The card cvv',
-                                        max_length=4,
-                                        min_length=3,
-                                    ),
-                                },
-                            ),
-                            'billing': JsonSchema(
-                                type=JsonSchemaType.OBJECT,
-                                required=['firstName', 'lastName', 'streetAddress', 'state', 'zip'],
-                                properties={
-                                    'firstName': JsonSchema(
-                                        type=JsonSchemaType.STRING,
-                                        description='The first name on the card',
+                                        description='The opaque data descriptor returned by Authorize.Net Accept UI',
                                         max_length=100,
-                                        min_length=1,
                                     ),
-                                    'lastName': JsonSchema(
+                                    'dataValue': JsonSchema(
                                         type=JsonSchemaType.STRING,
-                                        description='The last name on the card',
-                                        max_length=100,
-                                        min_length=1,
-                                    ),
-                                    'streetAddress': JsonSchema(
-                                        type=JsonSchemaType.STRING,
-                                        description='The street address for the card',
-                                        max_length=150,
-                                        # just make sure the value is not empty
-                                        min_length=2,
-                                    ),
-                                    'streetAddress2': JsonSchema(
-                                        type=JsonSchemaType.STRING,
-                                        description='The second street address for the card',
-                                        max_length=150,
-                                    ),
-                                    'state': JsonSchema(
-                                        type=JsonSchemaType.STRING,
-                                        description='The state postal abbreviation for the card',
-                                        max_length=2,
-                                        min_length=2,
-                                    ),
-                                    'zip': JsonSchema(
-                                        type=JsonSchemaType.STRING,
-                                        description='The zip code for the card',
-                                        # account for extended zip codes with possible dash
-                                        max_length=10,
-                                        min_length=5,
+                                        description='The opaque data value token returned by Authorize.Net Accept UI',
+                                        max_length=1000,
                                     ),
                                 },
                             ),
@@ -906,6 +854,8 @@ class ApiModel:
                         'compactName',
                         'compactCommissionFee',
                         'transactionFeeConfiguration',
+                        'paymentProcessorPublicFields',
+                        'isSandbox',
                     ],
                     properties={
                         'type': JsonSchema(type=JsonSchemaType.STRING, enum=['compact']),
@@ -947,6 +897,24 @@ class ApiModel:
                                     },
                                 ),
                             },
+                        ),
+                        'paymentProcessorPublicFields': JsonSchema(
+                            type=JsonSchemaType.OBJECT,
+                            required=['publicClientKey', 'apiLoginId'],
+                            properties={
+                                'publicClientKey': JsonSchema(
+                                    type=JsonSchemaType.STRING,
+                                    description='The public client key for the payment processor',
+                                ),
+                                'apiLoginId': JsonSchema(
+                                    type=JsonSchemaType.STRING,
+                                    description='The API login ID for the payment processor',
+                                ),
+                            },
+                        ),
+                        'isSandbox': JsonSchema(
+                            type=JsonSchemaType.BOOLEAN,
+                            description='Whether the compact is in sandbox mode',
                         ),
                     },
                 ),

@@ -28,11 +28,11 @@ const environmentValues = {
 
 /**
  * Helper function to replace placeholders in the Lambda code with test values
- * 
+ *
  * At deploy time, there are placeholders in the Lambda code that are replaced with the actual values.
  * from the CDK deployment. To run these tests, we need to replace the placeholders
  * with test values.
- * 
+ *
  * @returns {string} The relative path to the prepared Lambda file for testing
  */
 const prepareLambdaForTest = () => {
@@ -51,17 +51,17 @@ const prepareLambdaForTest = () => {
         '##COGNITO_STAFF##': environmentValues.cognitoStaff,
         '##COGNITO_PROVIDER##': environmentValues.cognitoProvider,
     };
-    
+
     // Apply all replacements to the Lambda code
     Object.entries(replacements).forEach(([placeholder, value]) => {
         lambdaCode = lambdaCode.replace(new RegExp(placeholder, 'g'), value);
     });
-    
+
     // Write the modified Lambda code to the temporary test file
     fs.writeFileSync(testLambdaPath, lambdaCode);
-    
+
     console.log(`Created temporary Lambda test file at: ${testLambdaPath}`);
-    
+
     // Return a relative path that will work correctly with the lambdaPath function in config
     // lambdaPath joins with __dirname, '../..' so this needs to be a path relative to the lambda root
     return 'test/temp-index.js';
@@ -86,11 +86,15 @@ const buildCspHeaders = (environment) => {
         '\'self\'',
         'https://www.google.com/recaptcha/',
         'https://www.gstatic.com/recaptcha/',
+        'https://jstest.authorize.net/',
+        'https://js.authorize.net/',
     ].join(' ');
     const cspScriptSrcElem = [
         '\'self\'',
         'https://www.google.com/recaptcha/',
         'https://www.gstatic.com/recaptcha/',
+        'https://jstest.authorize.net/',
+        'https://js.authorize.net/',
     ].join(' ');
     const cspScriptSrcAttr = [
         '\'self\'',
@@ -106,6 +110,9 @@ const buildCspHeaders = (environment) => {
     const cspStyleSrcElem = [
         '\'self\'',
         'https://fonts.googleapis.com',
+        'https://jstest.authorize.net/',
+        'https://js.authorize.net/',
+        '\'sha256-YwWQHXh4Vw0oD2Oo8pV9huEF2sE9mD8i5nZUuHzEg9A=\'', // <style> tag injected by authorize.net widget
     ].join(' ');
     const cspStyleSrcAttr = [
         '\'self\'',
@@ -128,6 +135,8 @@ const buildCspHeaders = (environment) => {
         '\'self\'',
         'https://www.google.com/recaptcha/',
         'https://recaptcha.google.com/recaptcha/',
+        'https://jstest.authorize.net/',
+        'https://js.authorize.net/',
     ].join(' ');
     const cspFrameAncestorsSrc = [
         '\'none\'',
@@ -191,22 +200,22 @@ const checkLambdaResult = (result) => {
 describe(testFilename(__filename), () => {
     // Prepare the Lambda test file once before all tests
     let testLambdaPath;
-    
+
     before(() => {
         testLambdaPath = prepareLambdaForTest();
     });
-    
+
     // Clean up the test Lambda file after all tests
     after(() => {
         // Get the full path to the file for deletion
         const fullPath = path.join(__dirname, 'temp-index.js');
-        
+
         if (fs.existsSync(fullPath)) {
             fs.unlinkSync(fullPath);
             console.log(`Removed temporary test file: ${fullPath}`);
         }
     });
-    
+
     describe('Cloudfront security headers', () => {
         it('should successfully return the security headers', async () => {
             const request = {

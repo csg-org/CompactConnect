@@ -14,17 +14,25 @@ from authorizenet.apicontrollers import (
 from authorizenet.constants import constants
 from cc_common.config import config, logger
 from cc_common.data_model.schema.compact import Compact
-from cc_common.data_model.schema.compact.common import CompactFeeType, TransactionFeeChargeType
+from cc_common.data_model.schema.compact.common import CompactFeeType, PaymentProcessorType, TransactionFeeChargeType
 from cc_common.data_model.schema.jurisdiction import Jurisdiction
 from cc_common.exceptions import (
     CCFailedTransactionException,
     CCInternalException,
     CCInvalidRequestException,
+    CCNotFoundException,
 )
 
-AUTHORIZE_DOT_NET_CLIENT_TYPE = 'authorize.net'
 OK_TRANSACTION_MESSAGE_RESULT_CODE = 'Ok'
 MAXIMUM_TRANSACTION_API_LIMIT = 1000
+
+# Authorize.net does not have a clear way to distinguish between an error that is caused by an issue with the card
+# information passed in by the user, and an internal issue caused by the API itself. To account for this, we
+# pulled the list of known issues from their transaction response code lookup and put the list of error codes that are
+# likely caused by the user. These include issues such as an invalid or unsupported card number, the expiration date
+# being expired, or the card being declined. You can review the description of these codes by searching for them at
+# https://developer.authorize.net/api/reference/responseCodes.html
+AUTHORIZE_NET_CARD_USER_ERROR_CODES = ['2', '5', '6', '7', '8', '11', '17', '65']
 
 # The authorizenet SDK emits many warnings due to a Pyxb issue that they will not address,
 # see https://github.com/AuthorizeNet/sdk-python/issues/133,
@@ -222,7 +230,7 @@ class PaymentProcessorClient(ABC):
 
 class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
     def __init__(self, api_login_id: str, transaction_key: str):
-        super().__init__(AUTHORIZE_DOT_NET_CLIENT_TYPE)
+        super().__init__(PaymentProcessorType.AUTHORIZE_DOT_NET_TYPE)
         self.api_login_id = api_login_id
         self.transaction_key = transaction_key
 
@@ -231,19 +239,28 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         if hasattr(response, 'transactionResponse') and hasattr(response.transactionResponse, 'errors'):
             error_code = response.transactionResponse.errors.error[0].errorCode
             error_message = response.transactionResponse.errors.error[0].errorText
-            if error_code == '11' or error_message == 'A duplicate transaction has been submitted.':
-                # This occurs if the user submitted duplicate transactions within the duplicate window
-                # we log the warning and return it as a user error
-                logger.warning(logger_message, error_code=error_code, error_message=error_message)
-                raise CCInvalidRequestException('Duplicate transaction detected for previously successful transaction.')
-            logger.error(logger_message, error_code=error_code, error_message=error_message)
+            if str(error_code) in AUTHORIZE_NET_CARD_USER_ERROR_CODES:
+                logger.warning(
+                    logger_message, transaction_error_code=error_code, transaction_error_message=error_message
+                )
+                raise CCInvalidRequestException(
+                    f'Failed to process transaction. Error code: {error_code}, Error message: {error_message}'
+                )
+            logger.error(logger_message, transaction_error_code=error_code, transaction_error_message=error_message)
 
         else:
             error_code = response.messages.message[0]['code'].text
             error_message = response.messages.message[0]['text'].text
-            logger.error(logger_message, error_code=error_code, error_message=error_message)
+            if error_code in AUTHORIZE_NET_CARD_USER_ERROR_CODES:
+                logger.warning(
+                    logger_message, transaction_error_code=error_code, transaction_error_message=error_message
+                )
+                raise CCInvalidRequestException(
+                    f'Failed to process transaction. Error code: {error_code}, Error message: {error_message}'
+                )
 
-        raise CCInternalException(logger_message)
+            logger.error(logger_message, error_code=error_code, error_message=error_message)
+            raise CCInternalException(logger_message)
 
     def void_unsettled_charge_on_credit_card(
         self,
@@ -320,15 +337,14 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         merchant_auth.name = self.api_login_id
         merchant_auth.transactionKey = self.transaction_key
 
-        # Create the payment data for a credit card
-        credit_card = apicontractsv1.creditCardType()
-        credit_card.cardNumber = order_information['card']['number']
-        credit_card.expirationDate = order_information['card']['expiration']
-        credit_card.cardCode = order_information['card']['cvv']
+        # Create the payment data using opaqueData (Accept.js payment nonce)
+        opaque_data = apicontractsv1.opaqueDataType()
+        opaque_data.dataDescriptor = order_information['opaqueData']['dataDescriptor']
+        opaque_data.dataValue = order_information['opaqueData']['dataValue']
 
         # Add the payment data to a paymentType object
         payment = apicontractsv1.paymentType()
-        payment.creditCard = credit_card
+        payment.opaqueData = opaque_data
 
         # Create order information
         order = apicontractsv1.orderType()
@@ -395,16 +411,6 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
             transaction_fee_line_item.unitPrice = _calculate_transaction_fee(compact_configuration, 1)
             line_items.lineItem.append(transaction_fee_line_item)
 
-        # Set the customer's Bill To address
-        customer_address = apicontractsv1.customerAddressType()
-        customer_address.firstName = order_information['billing']['firstName']
-        customer_address.lastName = order_information['billing']['lastName']
-        customer_address.address = (
-            f'{order_information["billing"]["streetAddress"]} {order_information["billing"].get("streetAddress2", "")}'
-        ).strip()
-        customer_address.state = order_information['billing']['state']
-        customer_address.zip = order_information['billing']['zip']
-
         # Add values for transaction settings
         duplicate_window_setting = apicontractsv1.settingType()
         duplicate_window_setting.settingName = 'duplicateWindow'
@@ -423,7 +429,6 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         )
         transaction_request.currencyCode = 'USD'
         transaction_request.payment = payment
-        transaction_request.billTo = customer_address
         transaction_request.transactionSettings = settings
         transaction_request.order = order
         transaction_request.lineItems = line_items
@@ -494,6 +499,11 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                         error_code=error_code,
                         error_message=error_message,
                     )
+                    # Provide specific error message for CVV validation failures
+                    if str(error_code) == '65':
+                        error_message += (
+                            ' Please verify that you have entered a valid CVV (security code) for your credit card.'  # noqa: E501
+                        )
                     raise CCFailedTransactionException(
                         f'Failed to process transaction. Error code: {error_code}, Error message: {error_message}'
                     )
@@ -535,7 +545,11 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                 message_code=response.messages.message[0].code,
                 message_text=response.messages.message[0].text,
             )
-            return {'message': 'Successfully verified credentials'}
+            return {
+                'message': 'Successfully verified credentials',
+                'publicClientKey': str(response.publicClientKey),
+                'apiLoginId': self.api_login_id,
+            }
 
         logger_message = 'Failed to verify credentials.'
         error_code = response.messages.message[0]['code'].text
@@ -813,7 +827,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                                 },
                                 'lineItems': line_items,
                                 # this defines the type of transaction processor that processed the transaction
-                                'transactionProcessor': AUTHORIZE_DOT_NET_CLIENT_TYPE,
+                                'transactionProcessor': PaymentProcessorType.AUTHORIZE_DOT_NET_TYPE,
                             }
                             transactions.append(transaction_data)
                             processed_transaction_count += 1
@@ -854,7 +868,7 @@ class PaymentProcessorClientFactory:
     @staticmethod
     def create_payment_processor_client(credentials: dict) -> PaymentProcessorClient:
         processor_type: str = credentials.get('processor')
-        if processor_type.lower() == AUTHORIZE_DOT_NET_CLIENT_TYPE:
+        if processor_type.lower() == PaymentProcessorType.AUTHORIZE_DOT_NET_TYPE.lower():
             return AuthorizeNetPaymentProcessorClient(
                 api_login_id=credentials.get('api_login_id'), transaction_key=credentials.get('transaction_key')
             )
@@ -917,7 +931,7 @@ class PurchaseClient:
         Process a charge on a credit card for a list of privileges within a compact.
 
         :param licensee_id: The Licensee user ID.
-        :param order_information: A dictionary containing the order information (billing, card, etc.)
+        :param order_information: A dictionary containing the order information (payment nonce, etc.)
         :param compact_configuration: The compact configuration.
         :param selected_jurisdictions: A list of selected jurisdictions to purchase privileges for.
         :param license_type_abbreviation: The license type abbreviation used to generate line item id.
@@ -962,7 +976,7 @@ class PurchaseClient:
         :return: A response indicating the credentials were validated and stored successfully
         :raises CCInvalidRequestException: If the credentials are invalid
         """
-        if credentials['processor'] != AUTHORIZE_DOT_NET_CLIENT_TYPE:
+        if credentials['processor'] != PaymentProcessorType.AUTHORIZE_DOT_NET_TYPE:
             raise CCInvalidRequestException('Invalid payment processor')
 
         # call payment processor test endpoint to validate the credentials
@@ -975,7 +989,24 @@ class PurchaseClient:
         # this will raise an exception if the credentials are invalid
         response = PaymentProcessorClientFactory().create_payment_processor_client(secret_value).validate_credentials()
 
-        # no exceptions were raised, so the credentials are valid
+        # No exceptions were raised, so the credentials are valid
+        # Store the public fields in the compact configuration for frontend use
+        if credentials['processor'] == PaymentProcessorType.AUTHORIZE_DOT_NET_TYPE:
+            logger.info('Storing payment processor public fields in compact configuration', compact_abbr=compact_abbr)
+            try:
+                config.compact_configuration_client.set_compact_authorize_net_public_values(
+                    compact=compact_abbr,
+                    api_login_id=response['apiLoginId'],
+                    public_client_key=response['publicClientKey'],
+                )
+            except CCNotFoundException as e:
+                logger.info('Compact configuration has not been configured yet', compact_abbr=compact_abbr)
+                raise CCInvalidRequestException(
+                    'Compact Fee configuration has not been configured yet. '
+                    'Please configure the compact fee values and then upload your '
+                    'credentials again.'
+                ) from e
+
         # first check to see if secret already exists
         try:
             self.secrets_manager_client.describe_secret(
@@ -996,7 +1027,7 @@ class PurchaseClient:
                 SecretString=json.dumps(secret_value),
             )
 
-        return response
+        return {'message': 'Successfully verified credentials'}
 
     def get_settled_transactions(
         self,

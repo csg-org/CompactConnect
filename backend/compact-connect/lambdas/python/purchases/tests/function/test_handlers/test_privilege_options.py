@@ -7,11 +7,22 @@ from .. import TstFunction
 TEST_COMPACT = 'aslp'
 TEST_PROVIDER_ID = 'some-provider-id'
 
+MOCK_PUBLIC_CLIENT_KEY = 'some-public-client-key'
+MOCK_API_LOGIN_ID = 'some-api-login-id'
+
 
 @mock_aws
 class TestGetPurchasePrivilegeOptions(TstFunction):
     def _when_testing_provider_user_event_with_custom_claims(self, test_compact=TEST_COMPACT):
-        self._load_compact_configuration_data()
+        self.test_data_generator.put_default_compact_configuration_in_configuration_table(
+            value_overrides={
+                'paymentProcessorPublicFields': {
+                    'publicClientKey': MOCK_PUBLIC_CLIENT_KEY,
+                    'apiLoginId': MOCK_API_LOGIN_ID,
+                }
+            }
+        )
+        self.test_data_generator.put_default_jurisdiction_configuration_in_configuration_table()
         self._load_provider_data()
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
@@ -30,25 +41,28 @@ class TestGetPurchasePrivilegeOptions(TstFunction):
         self.assertEqual(200, resp['statusCode'])
         privilege_options = json.loads(resp['body'])
 
-        with open('../common/tests/resources/dynamo/jurisdiction.json') as f:
-            expected_jurisdiction_option = json.load(f)
-            expected_jurisdiction_option.pop('pk')
-            expected_jurisdiction_option.pop('sk')
-            # we should not be returning email information in the response
-            expected_jurisdiction_option.pop('jurisdictionOperationsTeamEmails')
-            expected_jurisdiction_option.pop('jurisdictionAdverseActionsNotificationEmails')
-            expected_jurisdiction_option.pop('jurisdictionSummaryReportNotificationEmails')
-            # we also do not return the registration toggle
-            expected_jurisdiction_option.pop('licenseeRegistrationEnabled')
-            # remove date fields as they are not needed in the response
-            expected_jurisdiction_option.pop('dateOfUpdate')
-
         # the jurisdiction configuration is stored in the dynamo db as part of the
         # parent TstFunction setup, so we can compare the response directly
         jurisdiction_options = [option for option in privilege_options['items'] if option['type'] == 'jurisdiction']
         self.assertEqual(1, len(jurisdiction_options))
         jurisdiction_option = jurisdiction_options[0]
-        self.assertEqual(expected_jurisdiction_option, jurisdiction_option)
+        self.assertEqual(
+            {
+                'compact': 'aslp',
+                'jurisdictionName': 'Kentucky',
+                'jurisprudenceRequirements': {
+                    'linkToDocumentation': 'https://example.com/jurisprudence',
+                    'required': True,
+                },
+                'postalAbbreviation': 'ky',
+                'privilegeFees': [
+                    {'amount': 50, 'licenseTypeAbbreviation': 'slp', 'militaryRate': 50},
+                    {'amount': 50, 'licenseTypeAbbreviation': 'aud', 'militaryRate': 50},
+                ],
+                'type': 'jurisdiction',
+            },
+            jurisdiction_option,
+        )
 
     def test_get_purchase_privilege_options_returns_expected_compact_option(self):
         from handlers.privileges import get_purchase_privilege_options
@@ -60,16 +74,29 @@ class TestGetPurchasePrivilegeOptions(TstFunction):
         self.assertEqual(200, resp['statusCode'])
         privilege_options = json.loads(resp['body'])
 
-        with open('../common/tests/resources/api/compact-configuration-response.json') as f:
-            expected_compact_option = json.load(f)
-
         # the compact configuration is stored in the dynamo db as part of the
         # parent TstFunction setup, so we can compare the response directly
         compact_options = [option for option in privilege_options['items'] if option['type'] == 'compact']
         # there should only be one compact option for a given user, since the cognito user is tied to a compact
         self.assertEqual(1, len(compact_options))
         compact_option = compact_options[0]
-        self.assertEqual(expected_compact_option, compact_option)
+        self.assertEqual(
+            {
+                'compactAbbr': 'aslp',
+                'compactCommissionFee': {'feeAmount': 10, 'feeType': 'FLAT_RATE'},
+                'compactName': 'Audiology and Speech Language Pathology',
+                'isSandbox': True,
+                'paymentProcessorPublicFields': {
+                    'apiLoginId': 'some-api-login-id',
+                    'publicClientKey': 'some-public-client-key',
+                },
+                'transactionFeeConfiguration': {
+                    'licenseeCharges': {'active': True, 'chargeAmount': 10, 'chargeType': 'FLAT_FEE_PER_PRIVILEGE'}
+                },
+                'type': 'compact',
+            },
+            compact_option,
+        )
 
     def test_get_purchase_privilege_options_returns_400_if_api_call_made_without_proper_claims(self):
         from handlers.privileges import get_purchase_privilege_options
@@ -95,3 +122,55 @@ class TestGetPurchasePrivilegeOptions(TstFunction):
         privilege_options = json.loads(resp['body'])
 
         self.assertEqual([], privilege_options['items'])
+
+    def test_get_purchase_privilege_options_filters_out_jurisdictions_with_licensee_registration_disabled(self):
+        from handlers.privileges import get_purchase_privilege_options
+
+        # Set up compact configuration
+        self.test_data_generator.put_default_compact_configuration_in_configuration_table(
+            value_overrides={
+                'paymentProcessorPublicFields': {
+                    'publicClientKey': MOCK_PUBLIC_CLIENT_KEY,
+                    'apiLoginId': MOCK_API_LOGIN_ID,
+                }
+            }
+        )
+
+        # Create jurisdiction with licenseeRegistrationEnabled = True
+        self.test_data_generator.put_default_jurisdiction_configuration_in_configuration_table(
+            value_overrides={
+                'postalAbbreviation': 'ky',
+                'jurisdictionName': 'Kentucky',
+                'licenseeRegistrationEnabled': True,
+            }
+        )
+
+        # Create jurisdiction with licenseeRegistrationEnabled = False
+        self.test_data_generator.put_default_jurisdiction_configuration_in_configuration_table(
+            value_overrides={
+                'postalAbbreviation': 'oh',
+                'jurisdictionName': 'Ohio',
+                'licenseeRegistrationEnabled': False,
+            }
+        )
+
+        self._load_provider_data()
+
+        event = self._when_testing_provider_user_event_with_custom_claims()
+
+        resp = get_purchase_privilege_options(event, self.mock_context)
+
+        self.assertEqual(200, resp['statusCode'])
+        privilege_options = json.loads(resp['body'])
+
+        # ensure the compact and privilege were returned
+        self.assertEqual(2, len(privilege_options['items']))
+
+        # Filter to only jurisdiction options
+        jurisdiction_options = [option for option in privilege_options['items'] if option['type'] == 'jurisdiction']
+
+        # Should only return the jurisdiction with licenseeRegistrationEnabled = True
+        self.assertEqual(1, len(jurisdiction_options))
+        returned_jurisdiction = jurisdiction_options[0]
+        self.assertEqual('ky', returned_jurisdiction['postalAbbreviation'])
+        self.assertEqual('Kentucky', returned_jurisdiction['jurisdictionName'])

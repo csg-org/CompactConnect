@@ -217,7 +217,7 @@ def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  
     # for more information on how settlement errors are reprocessed.
     transactions = [t for t in transactions if t.get('transactionStatus') != SETTLEMENT_ERROR_STATE]
 
-    # Get compact configuration and jurisdictions
+    # Get compact configuration and jurisdictions that are live for licensee registration
     compact_configuration_options = compact_configuration_client.get_privilege_purchase_options(compact=compact)
 
     compact_configuration = next(

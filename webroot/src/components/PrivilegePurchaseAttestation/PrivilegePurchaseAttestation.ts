@@ -11,7 +11,12 @@ import {
     Watch,
     Prop
 } from 'vue-facing-decorator';
-import { reactive, computed, ComputedRef } from 'vue';
+import {
+    reactive,
+    computed,
+    ComputedRef,
+    nextTick
+} from 'vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
 import SelectedLicenseInfo from '@components/SelectedLicenseInfo/SelectedLicenseInfo.vue';
@@ -133,7 +138,7 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
     }
 
     get submitLabel(): string {
-        return this.$t('payment.continueToPurchase');
+        return this.$t('common.next');
     }
 
     get isMockPopulateEnabled(): boolean {
@@ -298,6 +303,10 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
         }
 
         this.validateAll({ asTouched: true });
+        await nextTick();
+        const formButtons = document.getElementById('button-row');
+
+        formButtons?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     //

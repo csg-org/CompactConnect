@@ -17,12 +17,13 @@
                 </div>
                 <LoadingSpinner v-if="isLoading"></LoadingSpinner>
                 <div v-else>
+                    <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
                     <div class="select-container">
                         <InputSelect :formInput="formData.licenseSelect" class="license-select" />
                     </div>
                 </div>
             </div>
-            <div class="button-row">
+            <div id="button-row" class="button-row">
                 <div class="form-nav-buttons">
                     <InputSubmit
                         :formInput="formData.submit"

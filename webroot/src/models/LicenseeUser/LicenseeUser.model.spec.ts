@@ -234,22 +234,7 @@ describe('User model', () => {
         expect(user.accountStatusDisplay()).to.equal('Inactive');
     });
     it('should serialize a privilege purchase request for transmission', () => {
-        const formValues = {
-            firstName: 'first',
-            lastName: 'last',
-            expMonth: '12',
-            expYear: '25',
-            cvv: '900',
-            creditCard: '9999 9999 9999 9999',
-            streetAddress1: '123 Street st',
-            streetAddress2: 'Unit 101',
-            noRefunds: true,
-            stateSelect: 'ct',
-            zip: '90210'
-        };
-
         const statesSelected = ['ne', 'ky'];
-
         const attestationsSelected = [
             new AcceptedAttestationToSend({
                 attestationId: 'id',
@@ -260,31 +245,25 @@ describe('User model', () => {
                 version: '1'
             })
         ];
-
         const selectedPurchaseLicense = new License({
             id: 'test-id',
             licenseType: LicenseType.AUDIOLOGIST,
         });
-
+        const opaqueData = {
+            dataDescriptor: `test-dataDescriptor`,
+            dataValue: `test-dataValue`,
+        };
         const requestData = LicenseeUserPurchaseSerializer.toServer({
             statesSelected,
-            formValues,
             attestationsSelected,
-            selectedPurchaseLicense
+            selectedPurchaseLicense,
+            opaqueData
         });
 
         expect(requestData.selectedJurisdictions).to.matchPattern(['ne', 'ky']);
         expect(requestData.attestations).to.matchPattern(attestationsSelected);
-        expect(requestData.orderInformation.card.number).to.equal(formValues.creditCard.replace(/\s+/g, ''));
-        expect(requestData.orderInformation.card.expiration).to.equal(`20${formValues.expYear}-${formValues.expMonth}`);
-        expect(requestData.orderInformation.card.cvv).to.equal(formValues.cvv);
-        expect(requestData.orderInformation.billing.firstName).to.equal(formValues.firstName);
-        expect(requestData.orderInformation.billing.lastName).to.equal(formValues.lastName);
-        expect(requestData.orderInformation.billing.streetAddress).to.equal(formValues.streetAddress1);
-        expect(requestData.orderInformation.billing.streetAddress2).to.equal(formValues.streetAddress2);
-        expect(requestData.orderInformation.billing.state).to.equal(formValues.stateSelect.toUpperCase());
-        expect(requestData.orderInformation.billing.zip).to.equal(formValues.zip);
         expect(requestData.licenseType).to.equal(selectedPurchaseLicense.licenseType);
         expect(requestData.attestations.length).to.equal(2);
+        expect(requestData.orderInformation.opaqueData).to.matchPattern(opaqueData);
     });
 });

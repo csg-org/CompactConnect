@@ -84,7 +84,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="button-row">
+                <div id="button-row" class="button-row">
                     <div class="form-nav-buttons">
                         <InputSubmit
                             :formInput="formData.submit"

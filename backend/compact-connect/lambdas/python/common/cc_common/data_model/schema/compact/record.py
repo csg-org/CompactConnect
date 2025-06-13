@@ -8,6 +8,7 @@ from cc_common.data_model.schema.base_record import BaseRecordSchema
 from cc_common.data_model.schema.compact.common import (
     COMPACT_TYPE,
     CompactCommissionFeeSchema,
+    PaymentProcessorPublicFieldsSchema,
     TransactionFeeConfigurationSchema,
 )
 
@@ -37,6 +38,9 @@ class CompactRecordSchema(BaseRecordSchema):
         allow_none=False,
     )
     licenseeRegistrationEnabled = Boolean(required=True, allow_none=False)
+    # This is not set until a compact admin uploads credentials for their payment processor
+    # These fields are used by the frontend to generate a payment collection form
+    paymentProcessorPublicFields = Nested(PaymentProcessorPublicFieldsSchema(), required=False, allow_none=False)
 
     # Generated fields
     pk = String(required=True, allow_none=False)

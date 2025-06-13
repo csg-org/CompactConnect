@@ -109,6 +109,12 @@
     - **`VUE_APP_MOCK_API`** :arrow_heading_down:
         - Only used for local development
         - `true` if mock API should be used
+    - **`VUE_APP_MOCK_API_PAYMENT_LOGIN_ID`** :arrow_heading_down:
+        - Only used for local development
+        - Public login ID from payment gateway, if payment testing locally using mock API
+    - **`VUE_APP_MOCK_API_PAYMENT_CLIENT_KEY`** :arrow_heading_down:
+        - Only used for local development
+        - Public client ID from payment gateway, if payment testing locally using mock API
     - **`LOCAL_DEV_PORT`** :arrow_heading_down:
         - `3018`
 
