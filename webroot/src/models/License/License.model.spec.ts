@@ -129,7 +129,8 @@ describe('License model', () => {
         expect(license.isDeactivated()).to.equal(false);
         expect(license.isCompactEligible()).to.equal(true);
         expect(license.licenseTypeAbbreviation()).to.equal('AUD');
-        expect(license.displayName()).to.equal('Unknown - AUD');
+        expect(license.displayName()).to.equal('Unknown - audiologist');
+        expect(license.displayName(', ', true)).to.equal('Unknown, AUD');
         expect(license.historyWithFabricatedEvents()).to.matchPattern([
             {
                 type: 'fabricatedEvent',
@@ -156,7 +157,8 @@ describe('License model', () => {
         expect(license).to.be.an.instanceof(License);
 
         // Test methods
-        expect(license.displayName(' ... ')).to.equal('Colorado ... AUD');
+        expect(license.displayName(' ... ')).to.equal('Colorado ... audiologist');
+        expect(license.displayName(' ... ', true)).to.equal('Colorado ... AUD');
     });
     it('should create a License with specific values through serializer', () => {
         const data = {
@@ -212,7 +214,8 @@ describe('License model', () => {
         expect(license.isExpired()).to.equal(true);
         expect(license.isDeactivated()).to.equal(false);
         expect(license.isCompactEligible()).to.equal(true);
-        expect(license.displayName()).to.equal('Alabama - AUD');
+        expect(license.displayName()).to.equal('Alabama - audiologist');
+        expect(license.displayName(', ', true)).to.equal('Alabama, AUD');
         expect(license.licenseTypeAbbreviation()).to.equal('AUD');
         expect(license.historyWithFabricatedEvents()).to.matchPattern([
             {
@@ -559,7 +562,8 @@ describe('License model', () => {
         expect(license.isExpired()).to.equal(true);
         expect(license.isDeactivated()).to.equal(false);
         expect(license.isCompactEligible()).to.equal(false);
-        expect(license.displayName()).to.equal('Nebraska - OTA');
+        expect(license.displayName()).to.equal('Nebraska - occupational therapy assistant');
+        expect(license.displayName(', ', true)).to.equal('Nebraska, OTA');
         expect(license.licenseTypeAbbreviation()).to.equal('OTA');
         expect(license.historyWithFabricatedEvents().length).to.equal(6);
         expect(license.historyWithFabricatedEvents()[0].updateType).to.equal('purchased');

@@ -7,6 +7,7 @@
 
 <template>
     <div class="page-container" :class="{
+        'no-page-header': !includePageHeader,
         'no-top-pad': !shouldPadTop
     }">
         <header>

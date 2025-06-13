@@ -59,7 +59,7 @@
                 class="row"
             >
                 <div class="cell">
-                    <span>{{ license.displayName(', ') }}</span>
+                    <span class="cell-display-name">{{ license.displayName(', ') }}</span>
                 </div>
                 <div class="cell max-gap">
                     <span class="cell-title">{{ $t('licensing.activeDate') }}</span>
@@ -82,7 +82,8 @@
                 class="row"
             >
                 <div class="cell">
-                    <span>{{ privilege.displayName(', ') }}</span>
+                    <span class="cell-display-name">{{ privilege.displayName(', ') }}</span>
+                    <span v-if="privilege.privilegeId" class="cell-id">{{ privilege.privilegeId }}</span>
                 </div>
                 <div class="cell max-gap">
                     <span class="cell-title">{{ $t('licensing.activeDate') }}</span>
@@ -91,6 +92,19 @@
                 <div class="cell">
                     <span class="cell-title">{{ $t('licensing.expiration') }}</span>
                     <span class="date-text">{{ privilege.expireDateDisplay() }}</span>
+                </div>
+            </div>
+            <div class="qr-code-section" v-if="qrCodeDataUrl">
+                <img
+                    :src="qrCodeDataUrl"
+                    :alt="$t('licensing.qrCodeAlt')"
+                    class="qr-code-image"
+                />
+                <div class="qr-code-label">
+                    {{ $t('licensing.publicProfileLink') }}
+                    <a :href="publicProfileUrl" target="_blank" rel="noopener noreferrer">
+                        {{ publicProfileUrl }}
+                    </a>
                 </div>
             </div>
         </div>
