@@ -10,9 +10,9 @@
 // ============================================================================
 /**
  * Configuration of supported domains.
- * 
- * These values are injected into the lambda function at build time. See the 
- * `generate_csp_lambda_code` function in 
+ *
+ * These values are injected into the lambda function at build time. See the
+ * `generate_csp_lambda_code` function in
  * backend/compact-connect/stacks/frontend_deployment_stack/distribution.py
  * @type {object}
  */
@@ -197,6 +197,9 @@ const setCspHeader = (headers = {}) => {
             buildSrcString('style-src-elem', [
                 'self',
                 'https://fonts.googleapis.com',
+                'https://jstest.authorize.net/',
+                'https://js.authorize.net/',
+                'sha256-YwWQHXh4Vw0oD2Oo8pV9huEF2sE9mD8i5nZUuHzEg9A=', // <style> tag injected by authorize.net widget
             ]),
             buildSrcString('style-src-attr', [
                 'self',
