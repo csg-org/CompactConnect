@@ -122,3 +122,55 @@ class TestGetPurchasePrivilegeOptions(TstFunction):
         privilege_options = json.loads(resp['body'])
 
         self.assertEqual([], privilege_options['items'])
+
+    def test_get_purchase_privilege_options_filters_out_jurisdictions_with_licensee_registration_disabled(self):
+        from handlers.privileges import get_purchase_privilege_options
+
+        # Set up compact configuration
+        self.test_data_generator.put_default_compact_configuration_in_configuration_table(
+            value_overrides={
+                'paymentProcessorPublicFields': {
+                    'publicClientKey': MOCK_PUBLIC_CLIENT_KEY,
+                    'apiLoginId': MOCK_API_LOGIN_ID,
+                }
+            }
+        )
+
+        # Create jurisdiction with licenseeRegistrationEnabled = True
+        self.test_data_generator.put_default_jurisdiction_configuration_in_configuration_table(
+            value_overrides={
+                'postalAbbreviation': 'ky',
+                'jurisdictionName': 'Kentucky',
+                'licenseeRegistrationEnabled': True,
+            }
+        )
+
+        # Create jurisdiction with licenseeRegistrationEnabled = False
+        self.test_data_generator.put_default_jurisdiction_configuration_in_configuration_table(
+            value_overrides={
+                'postalAbbreviation': 'oh',
+                'jurisdictionName': 'Ohio',
+                'licenseeRegistrationEnabled': False,
+            }
+        )
+
+        self._load_provider_data()
+
+        event = self._when_testing_provider_user_event_with_custom_claims()
+
+        resp = get_purchase_privilege_options(event, self.mock_context)
+
+        self.assertEqual(200, resp['statusCode'])
+        privilege_options = json.loads(resp['body'])
+
+        # ensure the compact and privilege were returned
+        self.assertEqual(2, len(privilege_options['items']))
+
+        # Filter to only jurisdiction options
+        jurisdiction_options = [option for option in privilege_options['items'] if option['type'] == 'jurisdiction']
+
+        # Should only return the jurisdiction with licenseeRegistrationEnabled = True
+        self.assertEqual(1, len(jurisdiction_options))
+        returned_jurisdiction = jurisdiction_options[0]
+        self.assertEqual('ky', returned_jurisdiction['postalAbbreviation'])
+        self.assertEqual('Kentucky', returned_jurisdiction['jurisdictionName'])

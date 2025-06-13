@@ -1,4 +1,4 @@
-from boto3.dynamodb.conditions import Key
+from boto3.dynamodb.conditions import Attr, Key
 
 from cc_common.config import _Config, logger
 from cc_common.data_model.query_paginator import paginated_query
@@ -183,6 +183,7 @@ class CompactConfigurationClient:
         return self.config.compact_configuration_table.query(
             Select='ALL_ATTRIBUTES',
             KeyConditionExpression=Key('pk').eq(f'{compact}#CONFIGURATION'),
+            FilterExpression=Attr('licenseeRegistrationEnabled').eq(True),
             **dynamo_pagination,
         )
 
