@@ -1,4 +1,4 @@
-# Compact Connect: Administrative Staff Onboarding Guide
+# Compact Connect: Staff Onboarding Guide
 
 This guide provides step-by-step instructions for Compact and State administrative staff to onboard into the Compact Connect Production and Beta environments.
 
