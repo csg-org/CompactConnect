@@ -63,15 +63,15 @@ The Compact Connect system uses role-based permissions that can be granted at ei
 
 #### Available Permissions
 
-**Read Private**
+##### Read Private
 - Access to non-public practitioner information (e.g., date of birth)
 - Should only be granted when necessary for job responsibilities
 
-**Read SSN**
+##### Read SSN
 - Access to full Social Security Numbers of practitioners
-> ⚠️ **Critical**: This permission should only be granted when absolutely required for job responsibilities
+> ⚠️ **Critical**: Grant this permission only when necessary for job responsibilities
 
-**Admin**
+##### Admin
 - Manage other users within their respective Compact or State scope
 - Define privilege fee rates
 - Configure system notification recipients
@@ -79,7 +79,7 @@ The Compact Connect system uses role-based permissions that can be granted at ei
 - **State Admins**: Can set encumbrances on licenses and privileges
 - Includes both Read Private and Read SSN permissions
 
-**Write** *(State-level only)*
+##### Write (State-level only)
 - Upload licensure data for a specific state
 
 ### Managing Existing Users
