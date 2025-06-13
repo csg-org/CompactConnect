@@ -112,7 +112,7 @@ const buildCspHeaders = (environment) => {
         'https://fonts.googleapis.com',
         'https://jstest.authorize.net/',
         'https://js.authorize.net/',
-        'sha256-YwWQHXh4Vw0oD2Oo8pV9huEF2sE9mD8i5nZUuHzEg9A=', // <style> tag injected by authorize.net widget
+        '\'sha256-YwWQHXh4Vw0oD2Oo8pV9huEF2sE9mD8i5nZUuHzEg9A=\'', // <style> tag injected by authorize.net widget
     ].join(' ');
     const cspStyleSrcAttr = [
         '\'self\'',
