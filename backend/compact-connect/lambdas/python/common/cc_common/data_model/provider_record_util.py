@@ -1,14 +1,24 @@
 from collections.abc import Callable, Iterable
+from datetime import datetime
 from enum import StrEnum
 
-from cc_common.config import logger
+from cc_common.config import config, logger
 from cc_common.data_model.schema.adverse_action import AdverseActionData
-from cc_common.data_model.schema.common import ActiveInactiveStatus, AdverseActionAgainstEnum, CompactEligibilityStatus
+from cc_common.data_model.schema.common import (
+    ActiveInactiveStatus,
+    AdverseActionAgainstEnum,
+    CompactEligibilityStatus,
+    UpdateCategory,
+)
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
 from cc_common.data_model.schema.license.api import LicenseUpdatePreviousResponseSchema
 from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationData
 from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
-from cc_common.data_model.schema.privilege.api import PrivilegeUpdatePreviousGeneralResponseSchema
+from cc_common.data_model.schema.privilege.api import(
+    PrivilegeUpdatePreviousGeneralResponseSchema,
+    PrivilegeHistoryEventPublicResponseSchema,
+    PrivilegeHistoryPublicResponseSchema
+)
 from cc_common.data_model.schema.provider import ProviderData, ProviderUpdateData
 from cc_common.exceptions import CCInternalException
 
@@ -227,6 +237,155 @@ class ProviderRecordUtility:
             }
         return provider
 
+    @classmethod
+    def get_enriched_history_with_synthetic_updates_from_privilege(cls, license_or_priv: dict) -> list [dict]:
+        """
+        Enrich the license or privilege history with 'synthetic updates'.
+        Synthetic updates are what we're calling critical pieces of history that are not explicitly recorded in the data
+        system, because they occur passively, such as when a license or privilege expires or that we do not participate
+        in, like when a license is issued. These 'synthetic updates' do not have a corresponding record in the
+        database, but we can deduce their existence based on the license's other data. Because these events are
+        'synthetic', they have no actual changes in record values associated with them.
+        Example issuance event:
+        {
+            'type': 'licenseUpdate',
+            'updateType': 'issuance',
+            'providerId': <provider_id>,
+            'compact': <compact>,
+            'jurisdiction': <jurisdiction>,
+            'licenseType': <license_type>,
+            'dateOfUpdate': <date_of_update>,
+            'previous': {
+                <full license details>
+            },
+            'updatedValues': {},
+        }
+        :param license_or_priv: The license or privilege API object to enrich
+        :return: The enriched license or privilege API object
+        """
+        object_type = license_or_priv['type']
+
+        original_history = license_or_priv['history']
+        history_and_license = (*original_history, license_or_priv)
+        behind_details = cls._get_details_ahead(history_and_license[0], object_type)
+        enriched_history = cls._insert_synthetic_update(
+            UpdateCategory.ISSUANCE, history_and_license[0], [], object_type
+        )
+
+        # We loop over updates and the current license as snapshots 'ahead' and 'behind' in time, inserting our
+        # synthetic updates between them
+        behind_update = None
+        for ahead_update in history_and_license:
+            ahead_details = cls._get_details_ahead(ahead_update, object_type)
+
+            # If the license was renewed after it expired, we add an expiration update
+            # renewals can be datetime for privileges, but date for licenses. We need to handle both
+            if isinstance(ahead_details['dateOfRenewal'], datetime):
+                ahead_date_of_renewal = (
+                    ahead_details['dateOfRenewal'].astimezone(config.expiration_resolution_timezone).date()
+                )
+            else:
+                ahead_date_of_renewal = ahead_details['dateOfRenewal']
+            was_renewed = ahead_date_of_renewal != behind_details['dateOfRenewal']
+            was_expired = ahead_date_of_renewal > behind_details['dateOfExpiration']
+            if was_renewed and was_expired:
+                enriched_history = cls._insert_synthetic_update(
+                    UpdateCategory.EXPIRATION, behind_update, enriched_history, object_type
+                )
+
+            # Copy over the existing history entries 'behind', only after any synthetic updates
+            # Note: If a renewal was after expiration above, the renewal event is the 'behind' update: we just
+            # calculated the license 'behind_date_of_expiration' from the 'previous' field in the renewal update,
+            # which represents the state of the license _just before_ the renewal happened. In that case, we're
+            # adding the renewal event to the history now, just after we added our synthetic expiration update.
+            if behind_update is not None:
+                enriched_history.append(behind_update)
+
+            behind_update = ahead_update
+            behind_details = ahead_details
+
+        # If the license has expired since its last update, we add an expiration update
+        is_expired = config.expiration_resolution_date > behind_details['dateOfExpiration']
+        if is_expired:
+            enriched_history = cls._insert_synthetic_update(
+                UpdateCategory.EXPIRATION, ahead_update, enriched_history, object_type
+            )
+
+        return enriched_history
+
+    @classmethod
+    def _get_details_ahead(cls, next_update: dict, object_type: str) -> dict:
+        """
+        We use the next-newer update to determine the latest fields for the synthetic update, so we have to
+        read ahead, chronologically, at the update.previous field or the license itself
+        """
+        if object_type == 'privilege':
+            schema = cls.privilege_previous_update_schema
+        else:
+            schema = cls.license_previous_update_schema
+
+        if next_update.get('previous'):
+            return schema.load(next_update['previous'], partial=True)
+        if next_update['type'] == object_type:
+            return schema.load(next_update, partial=True)
+        raise CCInternalException('Unexpected value')
+
+    @classmethod
+    def _insert_synthetic_update(
+        cls, update_type: UpdateCategory, next_entry: dict, history: list[dict], object_type: str
+    ) -> list[dict]:
+        """
+        Insert a synthetic update into the history.
+        :param update_type: The type of update to insert (UpdateCategory enum value)
+        :param next_entry: The next entry in the history or the license object itself
+        :param history: The history to insert the update into
+        :return: The updated history
+        """
+        ahead_details = cls._get_details_ahead(next_entry, object_type)
+
+        history.append(
+            {
+                'type': 'licenseUpdate',
+                'updateType': update_type,
+                'providerId': next_entry['providerId'],
+                'compact': next_entry['compact'],
+                'jurisdiction': next_entry['jurisdiction'],
+                'licenseType': next_entry['licenseType'],
+                'previous': ahead_details,
+                'updatedValues': {},
+                'dateOfUpdate': next_entry['dateOfUpdate'],
+            }
+        )
+        return history
+
+    @classmethod
+    def construct_simplified_public_privilege_history_object(cls, privilege: dict) -> dict:
+        enriched_history = cls.get_enriched_history_with_synthetic_updates_from_privilege(privilege)
+        events = cls.calculate_and_inject_events_activation_status(enriched_history)
+
+
+        event_schema = PrivilegeHistoryEventPublicResponseSchema()
+        history_schema = PrivilegeHistoryPublicResponseSchema()
+
+
+        sanitized_events = [event_schema.load(event) for event in events]
+        unsanitized_history = {
+                'providerId': next_entry['providerId'],
+                'compact': next_entry['compact'],
+                'jurisdiction': next_entry['jurisdiction'],
+                'licenseType': next_entry['licenseType'],
+                'privilegeId': 'privilegeId',
+                'events': sanitized_events,
+        }
+
+        return history_schema.load(unsanitized_history)
+
+    @classmethod
+    def calculate_and_inject_events_activation_status(cls, events: list [dict]) -> list:
+
+
+        return events
+
 
 class ProviderUserRecords:
     """
@@ -431,3 +590,4 @@ class ProviderUserRecords:
         )[0]
 
         return latest_military_affiliation.status
+

@@ -330,6 +330,8 @@ class TestDataGenerator:
             'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
             'licenseType': DEFAULT_LICENSE_TYPE,
             'previous': previous_privilege.to_dict(),
+            'createDate': DEFAULT_PRIVILEGE_UPDATE_DATE_OF_UPDATE,
+            'effectiveDte': DEFAULT_PRIVILEGE_UPDATE_DATE_OF_UPDATE,
             'updatedValues': {
                 'dateOfRenewal': datetime.fromisoformat(DEFAULT_PRIVILEGE_RENEWAL_DATETIME),
                 'dateOfExpiration': date.fromisoformat(DEFAULT_PRIVILEGE_EXPIRATION_DATE),

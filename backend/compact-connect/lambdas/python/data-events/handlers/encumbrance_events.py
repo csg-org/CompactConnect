@@ -15,12 +15,14 @@ def license_encumbrance_listener(message: dict):
     provider_id = detail['providerId']
     jurisdiction = detail['jurisdiction']
     license_type_abbreviation = detail['licenseTypeAbbreviation']
+    effective_date = detail['effectiveDate']
 
     with logger.append_context_keys(
         compact=compact,
         provider_id=provider_id,
         jurisdiction=jurisdiction,
         license_type_abbreviation=license_type_abbreviation,
+        effective_date=effective_date,
     ):
         logger.info('Processing license encumbrance event')
 
@@ -30,6 +32,7 @@ def license_encumbrance_listener(message: dict):
             provider_id=provider_id,
             jurisdiction=jurisdiction,
             license_type_abbreviation=license_type_abbreviation,
+            effective_date=effective_date,
         )
 
         logger.info('Successfully processed license encumbrance event')
@@ -49,12 +52,14 @@ def license_encumbrance_lifted_listener(message: dict):
     provider_id = detail['providerId']
     jurisdiction = detail['jurisdiction']
     license_type_abbreviation = detail['licenseTypeAbbreviation']
+    effective_date = detail['effectiveDate']
 
     with logger.append_context_keys(
         compact=compact,
         provider_id=provider_id,
         jurisdiction=jurisdiction,
         license_type_abbreviation=license_type_abbreviation,
+        effective_date=effective_date,
     ):
         logger.info('Processing license encumbrance lifting event')
 
@@ -64,6 +69,7 @@ def license_encumbrance_lifted_listener(message: dict):
             provider_id=provider_id,
             jurisdiction=jurisdiction,
             license_type_abbreviation=license_type_abbreviation,
+            effective_date=effective_date,
         )
 
         logger.info('Successfully processed license encumbrance lifting event')

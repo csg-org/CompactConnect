@@ -135,6 +135,7 @@ def handle_license_encumbrance(event: dict) -> dict:
         provider_id=adverse_action.providerId,
         jurisdiction=adverse_action.jurisdiction,
         license_type_abbreviation=adverse_action.licenseTypeAbbreviation,
+        effective_date=adverse_action.effectiveStartDate,
     )
 
     return {'message': 'OK'}
@@ -229,6 +230,7 @@ def handle_license_encumbrance_lifting(event: dict) -> dict:
             provider_id=provider_id,
             jurisdiction=jurisdiction,
             license_type_abbreviation=license_type_abbreviation,
+            effective_date=lift_date,
         )
 
         return {'message': 'OK'}

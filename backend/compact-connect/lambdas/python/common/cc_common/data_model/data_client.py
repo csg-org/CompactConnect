@@ -417,6 +417,8 @@ class DataClient:
 
                 privileges.append(privilege_record)
 
+                now = config.current_standard_datetime.isoformat()
+
                 # Create privilege update record if this is updating an existing privilege
                 if original_privilege:
                     update_record = PrivilegeUpdateData.create_new(
@@ -428,6 +430,8 @@ class DataClient:
                             'jurisdiction': postal_abbreviation.lower(),
                             'licenseType': license_type,
                             'previous': original_privilege.to_dict(),
+                            'effectiveDate': now,
+                            'createDate': now,
                             'updatedValues': {
                                 'dateOfRenewal': privilege_record.dateOfRenewal,
                                 'dateOfExpiration': privilege_record.dateOfExpiration,
@@ -909,6 +913,34 @@ class DataClient:
             )
 
     @logger_inject_kwargs(logger, 'compact', 'provider_id', 'jurisdiction', 'license_type')
+    def get_privilege(
+        self, *, compact: str, provider_id: str, jurisdiction: str, license_type_abbr: str
+    ) -> dict:
+        """
+        Deactivate a privilege for a provider in a jurisdiction.
+
+        This will update the privilege record to have a administratorSetStatus of 'inactive'.
+
+        :param str compact: The compact to deactivate the privilege for
+        :param str provider_id: The provider to deactivate the privilege for
+        :param str jurisdiction: The jurisdiction to deactivate the privilege for
+        :param str license_type_abbr: The license type abbreviation to deactivate the privilege for
+        :raises CCNotFoundException: If the privilege record is not found
+        """
+        # Get the privilege record
+        try:
+            privilege_record = self.config.provider_table.get_item(
+                Key={
+                    'pk': f'{compact}#PROVIDER#{provider_id}',
+                    'sk': f'{compact}#PROVIDER#privilege/{jurisdiction}/{license_type_abbr}#',
+                },
+            )['Item']
+        except KeyError as e:
+            raise CCNotFoundException(f'Privilege not found for jurisdiction {jurisdiction}') from e
+
+        return privilege_record
+
+    @logger_inject_kwargs(logger, 'compact', 'provider_id', 'jurisdiction', 'license_type')
     def deactivate_privilege(
         self, *, compact: str, provider_id: str, jurisdiction: str, license_type_abbr: str, deactivation_details: dict
     ) -> None:
@@ -925,15 +957,7 @@ class DataClient:
         :raises CCNotFoundException: If the privilege record is not found
         """
         # Get the privilege record
-        try:
-            privilege_record = self.config.provider_table.get_item(
-                Key={
-                    'pk': f'{compact}#PROVIDER#{provider_id}',
-                    'sk': f'{compact}#PROVIDER#privilege/{jurisdiction}/{license_type_abbr}#',
-                },
-            )['Item']
-        except KeyError as e:
-            raise CCNotFoundException(f'Privilege not found for jurisdiction {jurisdiction}') from e
+        privilege_record = self.get_privilege(compact, provider_id, jurisdiction, license_type_abbr)
 
         # Find the main privilege record (not history records)
         privilege_record_schema = PrivilegeRecordSchema()
@@ -944,6 +968,8 @@ class DataClient:
             logger.info('Provider already inactive. Doing nothing.')
             raise CCInvalidRequestException('Privilege already deactivated')
 
+        now = config.current_standard_datetime.isoformat()
+
         # Create the update record
         # Use the schema to generate the update record with proper pk/sk
         privilege_update_record = PrivilegeUpdateRecordSchema().dump(
@@ -953,6 +979,8 @@ class DataClient:
                 'providerId': provider_id,
                 'compact': compact,
                 'jurisdiction': jurisdiction,
+                'createDate': now,
+                'effectiveDate': now,
                 'licenseType': privilege_record['licenseType'],
                 'deactivationDetails': deactivation_details,
                 'previous': {
@@ -1308,6 +1336,8 @@ class DataClient:
                     'compact': adverse_action.compact,
                     'jurisdiction': adverse_action.jurisdiction,
                     'licenseType': privilege_data.licenseType,
+                    'createDate': config.current_standard_datetime.isoformat(),
+                    'effectiveDate': adverse_action.effectiveStartDate,
                     'previous': {
                         # We're relying on the schema to trim out unneeded fields
                         **privilege_data.to_dict(),
@@ -1540,6 +1570,8 @@ class DataClient:
                         'compact': compact,
                         'jurisdiction': jurisdiction,
                         'licenseType': privilege_data.licenseType,
+                        'createDate': config.current_standard_datetime.isoformat(),
+                        'effectiveDate': effective_lift_date,
                         'previous': privilege_data.to_dict(),
                         'updatedValues': {
                             'encumberedStatus': PrivilegeEncumberedStatusEnum.UNENCUMBERED,
@@ -2080,6 +2112,8 @@ class DataClient:
 
         transactions = []
 
+        now = config.current_standard_datetime.isoformat()
+
         for privilege in privileges:
             # Create update record
             privilege_update_record = PrivilegeUpdateData.create_new(
@@ -2090,6 +2124,8 @@ class DataClient:
                     'compact': compact,
                     'jurisdiction': privilege.jurisdiction,
                     'licenseType': privilege.licenseType,
+                    'createDate': now,
+                    'effectiveDate': now,
                     'previous': privilege.to_dict(),
                     'updatedValues': {
                         'homeJurisdictionChangeStatus': HomeJurisdictionChangeStatusEnum.INACTIVE,
@@ -2297,6 +2333,8 @@ class DataClient:
                 )
                 updated_values['encumberedStatus'] = PrivilegeEncumberedStatusEnum.LICENSE_ENCUMBERED
 
+            now = config.current_standard_datetime.isoformat()
+
             # Create update record
             privilege_update_record = PrivilegeUpdateData.create_new(
                 {
@@ -2305,6 +2343,8 @@ class DataClient:
                     'providerId': provider_id,
                     'compact': compact,
                     'jurisdiction': privilege.jurisdiction,
+                    'createDate': now,
+                    'effectiveDate': now,
                     'licenseType': privilege.licenseType,
                     'previous': privilege.to_dict(),
                     'updatedValues': updated_values,
@@ -2364,6 +2404,7 @@ class DataClient:
         provider_id: str,
         jurisdiction: str,
         license_type_abbreviation: str,
+        effective_date: str,
     ) -> None:
         """
         Encumber all unencumbered privileges associated with a home jurisdiction license.
@@ -2375,6 +2416,7 @@ class DataClient:
         :param str provider_id: The provider ID.
         :param str jurisdiction: The jurisdiction of the license.
         :param str license_type_abbreviation: The license type abbreviation
+        :param str effective_date: effective date of the encumbrance on the license and therefore privilege
         """
         # Get all provider records
         provider_user_records: ProviderUserRecords = self.get_provider_user_records(
@@ -2415,6 +2457,8 @@ class DataClient:
                     'compact': compact,
                     'jurisdiction': privilege_data.jurisdiction,
                     'licenseType': privilege_data.licenseType,
+                    'createDate': config.current_standard_datetime.isoformat(),
+                    'effectiveDate': effective_date,
                     'previous': privilege_data.to_dict(),
                     'updatedValues': {
                         'encumberedStatus': PrivilegeEncumberedStatusEnum.LICENSE_ENCUMBERED,
@@ -2454,6 +2498,7 @@ class DataClient:
         provider_id: str,
         jurisdiction: str,
         license_type_abbreviation: str,
+        effective_date: str,
     ) -> None:
         """
         Lift encumbrances from privileges that were encumbered due to a home jurisdiction license encumbrance.
@@ -2465,6 +2510,7 @@ class DataClient:
         :param str provider_id: The provider ID.
         :param str jurisdiction: The jurisdiction of the license.
         :param str license_type_abbreviation: The license type abbreviation
+        :param str effective_date: effective lift date of the encumbrance on the license and therefore privilege
         """
         # Get all provider records
         provider_user_records = self.get_provider_user_records(
@@ -2519,6 +2565,8 @@ class DataClient:
                     'compact': compact,
                     'jurisdiction': privilege_data.jurisdiction,
                     'licenseType': privilege_data.licenseType,
+                    'createDate': config.current_standard_datetime.isoformat(),
+                    'effectiveDate': effective_date,
                     'previous': privilege_data.to_dict(),
                     'updatedValues': {
                         'encumberedStatus': PrivilegeEncumberedStatusEnum.UNENCUMBERED,

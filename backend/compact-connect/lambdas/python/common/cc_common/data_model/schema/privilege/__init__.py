@@ -121,6 +121,14 @@ class PrivilegeUpdateData(CCDataClass):
         return self._data['updatedValues']
 
     @property
+    def createDate(self) -> datetime:
+        return self._data['createDate']
+
+    @property
+    def effectiveDate(self) -> datetime:
+        return self._data['effectiveDate']
+
+    @property
     def deactivationDetails(self) -> dict | None:
         """
         This property is only present if the update type is a deactivation.

@@ -120,6 +120,7 @@ class EventBusClient:
         provider_id: str,
         jurisdiction: str,
         license_type_abbreviation: str,
+        effective_date: str,
     ):
         """
         Publish a license encumbrance event to the event bus.
@@ -129,12 +130,14 @@ class EventBusClient:
         :param provider_id: The provider ID
         :param jurisdiction: The jurisdiction of the license
         :param license_type_abbreviation: The license type abbreviation
+        :param effective_date: The effective start date of the encumbrance
         """
         event_detail = {
             'compact': compact,
             'providerId': provider_id,
             'jurisdiction': jurisdiction,
             'licenseTypeAbbreviation': license_type_abbreviation,
+            'effectiveDate': effective_date,
             'eventTime': config.current_standard_datetime.isoformat(),
         }
 
@@ -147,6 +150,7 @@ class EventBusClient:
         provider_id: str,
         jurisdiction: str,
         license_type_abbreviation: str,
+        effective_date: str,
     ):
         """
         Publish a license encumbrance lifting event to the event bus.
@@ -156,12 +160,14 @@ class EventBusClient:
         :param provider_id: The provider ID
         :param jurisdiction: The jurisdiction of the license
         :param license_type_abbreviation: The license type abbreviation
+        :param effective_date: The effective lift date of the encumbrance
         """
         event_detail = {
             'compact': compact,
             'providerId': provider_id,
             'jurisdiction': jurisdiction,
             'licenseTypeAbbreviation': license_type_abbreviation,
+            'effectiveDate': effective_date,
             'eventTime': config.current_standard_datetime.isoformat(),
         }
 

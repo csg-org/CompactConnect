@@ -2,7 +2,7 @@
 from datetime import date
 
 from marshmallow import Schema, ValidationError, post_dump, post_load, pre_dump, pre_load, validates_schema
-from marshmallow.fields import UUID, Date, DateTime, List, Nested, String
+from marshmallow.fields import UUID, Date, DateTime, List, Nested, Raw, String
 from marshmallow.validate import Length
 
 from cc_common.config import config
@@ -190,6 +190,8 @@ class PrivilegeUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin, ValidatesLi
     licenseType = String(required=True, allow_none=False)
     compactTransactionIdGSIPK = String(required=True, allow_none=False)
     previous = Nested(PrivilegeUpdatePreviousRecordSchema, required=True, allow_none=False)
+    createDate = Raw(required=True, allow_none=False)
+    effectiveDate = Raw(required=True, allow_none=False)
     # We'll allow any fields that can show up in the previous field to be here as well, but none are required
     updatedValues = Nested(PrivilegeUpdatePreviousRecordSchema(partial=True), required=True, allow_none=False)
     # optional field that is only included if the update was a deactivation
