@@ -177,7 +177,7 @@ class UserAccount extends mixins(MixinForm) {
         }
     }
 
-    viewMilitaryStatus() {
+    viewMilitaryStatus(): void {
         const route = { name: 'MilitaryStatus' } as any;
 
         if (this.currentCompactType) {
