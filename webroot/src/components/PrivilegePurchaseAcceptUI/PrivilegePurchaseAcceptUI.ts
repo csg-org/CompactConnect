@@ -123,6 +123,9 @@ class PrivilegePurchaseAcceptUI extends Vue {
     }
 
     adjustFramePosition(): void {
+        // The AcceptUI.js widget will sometimes pop up partially or fully off-screen if the
+        // launching page's <body> height is significantly taller than the viewport.
+        // This is a simple adjustment to start the pop up near our content.
         const acceptUiContainer = document.getElementById('AcceptUIContainer');
 
         if (acceptUiContainer) {
