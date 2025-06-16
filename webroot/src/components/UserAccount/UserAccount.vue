@@ -23,8 +23,10 @@
                 />
             </form>
             <ChangePassword />
-            <div class="military-status-container">
-                <div class="form-title">{{ $t('military.militaryStatusTitle') }}</div>
+            <section class="military-status-container" aria-labelledby="military-status-title">
+                <h2 class="form-title" id="military-status-title">
+                    {{ $t('military.militaryStatusTitle') }}
+                </h2>
                 <div class="btn-container military-status-btn">
                     <InputButton
                         :label="militaryStatusLabel"
@@ -34,7 +36,7 @@
                         @click="viewMilitaryStatus"
                     />
                 </div>
-            </div>
+            </section>
         </Card>
     </div>
 </template>
