@@ -178,10 +178,13 @@ class UserAccount extends mixins(MixinForm) {
     }
 
     viewMilitaryStatus() {
-        this.$router.push({
-            name: 'MilitaryStatus',
-            params: { compact: this.currentCompactType }
-        });
+        const route = { name: 'MilitaryStatus' } as any;
+
+        if (this.currentCompactType) {
+            route.params = { compact: this.currentCompactType };
+        }
+
+        this.$router.push(route);
     }
 
     //
