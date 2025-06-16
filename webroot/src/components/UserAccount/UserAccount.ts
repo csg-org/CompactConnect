@@ -13,6 +13,7 @@ import {
 } from 'vue-facing-decorator';
 import { reactive, computed } from 'vue';
 import { AuthTypes } from '@/app.config';
+import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import Card from '@components/Card/Card.vue';
 import InputText from '@components/Forms/InputText/InputText.vue';
@@ -28,6 +29,7 @@ import Joi from 'joi';
 @Component({
     name: 'UserAccount',
     components: {
+        InputButton,
         Card,
         InputText,
         InputSubmit,
@@ -86,6 +88,14 @@ class UserAccount extends mixins(MixinForm) {
         });
 
         return enabledInputKeys.length > 0;
+    }
+
+    get militaryStatusLabel(): string {
+        return `${this.$t('common.add')}/${this.$t('common.edit')}`;
+    }
+
+    get currentCompactType(): string | null {
+        return this.userStore?.currentCompact?.type || null;
     }
 
     //
@@ -165,6 +175,13 @@ class UserAccount extends mixins(MixinForm) {
                     this.setError(err.message);
                 });
         }
+    }
+
+    viewMilitaryStatus() {
+        this.$router.push({
+            name: 'MilitaryStatus',
+            params: { compact: this.currentCompactType }
+        });
     }
 
     //

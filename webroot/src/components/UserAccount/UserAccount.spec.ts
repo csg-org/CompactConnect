@@ -16,4 +16,11 @@ describe('UserAccount component', async () => {
         expect(wrapper.exists()).to.equal(true);
         expect(wrapper.findComponent(UserAccount).exists()).to.equal(true);
     });
+
+    it('should render the military status container', async () => {
+        const wrapper = await mountShallow(UserAccount);
+        const militaryStatusContainer = wrapper.find('.military-status-container');
+
+        expect(militaryStatusContainer.exists()).to.equal(true);
+    });
 });

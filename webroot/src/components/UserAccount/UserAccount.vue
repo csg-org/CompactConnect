@@ -23,6 +23,18 @@
                 />
             </form>
             <ChangePassword />
+            <div class="military-status-container">
+                <div class="form-title">{{ $t('military.militaryStatusTitle') }}</div>
+                <div class="btn-container military-status-btn">
+                    <InputButton
+                        :label="militaryStatusLabel"
+                        :aria-label="militaryStatusLabel"
+                        :isTransparent="false"
+                        class="btn view-military-btn"
+                        @click="viewMilitaryStatus"
+                    />
+                </div>
+            </div>
         </Card>
     </div>
 </template>
