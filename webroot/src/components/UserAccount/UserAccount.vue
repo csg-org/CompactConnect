@@ -24,7 +24,7 @@
             </form>
             <ChangePassword />
             <section
-                v-if="isLicensee&& currentCompactType"
+                v-if="isLicensee && currentCompactType"
                 class="military-status-container"
                 aria-labelledby="military-status-title"
             >
