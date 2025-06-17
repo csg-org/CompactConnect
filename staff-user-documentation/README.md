@@ -200,7 +200,12 @@ Compact administrators have access to compact-wide configuration options that af
 
 ---
 
+
+> ⚠️ **Important**: After completing the CVV configuration setup in the Authorize.net account, return to the Compact Connect settings page to complete the following configuration settings.
+> 
 #### Compact Administration Fee
+
+
 
 The Compact Administration Fee is a standardized fee collected for every privilege purchase that supports compact operations:
 
