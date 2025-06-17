@@ -88,7 +88,7 @@ def get_purchase_privilege_options(event: dict, context: LambdaContext):  # noqa
             serlialized_options.append(JurisdictionOptionsResponseSchema().load(item))
         elif item['type'] == COMPACT_TYPE:
             # we determine at run-time if the payment processor is running in sandbox mode
-            item['isSandbox'] = True if config.environment_name != 'prod' else False
+            item['isSandbox'] = config.environment_name != 'prod'
             serlialized_options.append(CompactOptionsResponseSchema().load(item))
 
     options_response['items'] = serlialized_options
