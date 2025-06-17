@@ -625,6 +625,13 @@
         "deactivateNotesPlaceholder": "Introduzca notas aquí",
         "confirmPrivilegeDeactivateSubmit": "Sí, desactivar privilegio",
         "encumber": "Cargar",
+        "encumbered": "Gravado",
+        "confirmPrivilegeEncumberTitle": "¿Estás seguro de que quieres gravar este privilegio?",
+        "confirmPrivilegeEncumberSubtext": "El practicante ya no podrá utilizar este privilegio.",
+        "npdbCategoryLabel": "Categoría NPDB",
+        "encumberStartDate": "Inicio de la acción adversa",
+        "confirmPrivilegeEncumberSubmit": "Sí, gravar el privilegio",
+        "confirmPrivilegeEncumberSuccess": "Este privilegio ha sido obstaculizado.",
         "expiringIn": "Expirando en",
         "licenseEvents": [
             {
@@ -674,6 +681,40 @@
                 "key": "licensed professional counselor",
                 "compactKey": "coun",
                 "abbrev": "lpc"
+            }
+        ],
+        "npdbTypes": [
+            {
+                "name": "Incumplimiento de los requisitos",
+                "key": "Non-compliance With Requirements"
+            },
+            {
+                "name": "Condena o sentencia penal",
+                "key": "Criminal Conviction or Adjudication"
+            },
+            {
+                "name": "Violaciones de confidencialidad, consentimiento o divulgación",
+                "key": "Confidentiality, Consent or Disclosure Violations"
+            },
+            {
+                "name": "Mala conducta o abuso",
+                "key": "Misconduct or Abuse"
+            },
+            {
+                "name": "Fraude, engaño o tergiversación",
+                "key": "Fraud, Deception, or Misrepresentation"
+            },
+            {
+                "name": "Prácticas inseguras o atención deficiente",
+                "key": "Unsafe Practice or Substandard Care"
+            },
+            {
+                "name": "Supervisión inadecuada o autorización de prácticas sin licencia",
+                "key": "Improper Supervision or Allowing Unlicensed Practice"
+            },
+            {
+                "name": "Otro",
+                "key": "Other"
             }
         ],
         "privilegePurchaseTitle": "Compra privada",

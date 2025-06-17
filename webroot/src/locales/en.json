@@ -626,6 +626,13 @@
         "deactivateNotesPlaceholder": "Enter notes here",
         "confirmPrivilegeDeactivateSubmit": "Yes, deactivate privilege",
         "encumber": "Encumber",
+        "encumbered": "Encumbered",
+        "confirmPrivilegeEncumberTitle": "Are you sure you want to encumber this privilege?",
+        "confirmPrivilegeEncumberSubtext": "The practitioner will no longer be able to use this privilege.",
+        "npdbCategoryLabel": "NPDB category",
+        "encumberStartDate": "Beginning of adverse action",
+        "confirmPrivilegeEncumberSubmit": "Yes, encumber privilege",
+        "confirmPrivilegeEncumberSuccess": "This privilege has been encumbered.",
         "expiringIn": "Expiring in",
         "licenseEvents": [
             {
@@ -675,6 +682,40 @@
                 "key": "licensed professional counselor",
                 "compactKey": "coun",
                 "abbrev": "lpc"
+            }
+        ],
+        "npdbTypes": [
+            {
+                "name": "Non-compliance With Requirements",
+                "key": "Non-compliance With Requirements"
+            },
+            {
+                "name": "Criminal Conviction or Adjudication",
+                "key": "Criminal Conviction or Adjudication"
+            },
+            {
+                "name": "Confidentiality, Consent or Disclosure Violations",
+                "key": "Confidentiality, Consent or Disclosure Violations"
+            },
+            {
+                "name": "Misconduct or Abuse",
+                "key": "Misconduct or Abuse"
+            },
+            {
+                "name": "Fraud, Deception, or Misrepresentation",
+                "key": "Fraud, Deception, or Misrepresentation"
+            },
+            {
+                "name": "Unsafe Practice or Substandard Care",
+                "key": "Unsafe Practice or Substandard Care"
+            },
+            {
+                "name": "Improper Supervision or Allowing Unlicensed Practice",
+                "key": "Improper Supervision or Allowing Unlicensed Practice"
+            },
+            {
+                "name": "Other",
+                "key": "Other"
             }
         ],
         "privilegePurchaseTitle": "Privilege purchase",

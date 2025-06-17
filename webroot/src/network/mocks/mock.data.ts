@@ -53,6 +53,14 @@ export const staffAccount = {
                         readSsn: true,
                     },
                 },
+                ne: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                        readPrivate: true,
+                        readSsn: true,
+                    },
+                },
             },
         },
         aslp: {

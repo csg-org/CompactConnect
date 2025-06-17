@@ -275,6 +275,57 @@ export class LicenseDataApi implements DataApiInterface {
     }
 
     /**
+     * POST Encumber Privilege for a licensee.
+     * @param  {string}           compact        The compact string ID (aslp, otcp, coun).
+     * @param  {string}           licenseeId     The Licensee ID.
+     * @param  {string}           privilegeState The 2-character state abbreviation for the Privilege.
+     * @param  {string}           licenseType    The license type.
+     * @param  {string}           npdbCategory   The NPDB category name.
+     * @param  {string}           startDate      The encumber start date.
+     * @return {Promise<object>}                 The server response.
+     */
+    public async encumberPrivilege(
+        compact: string,
+        licenseeId: string,
+        privilegeState: string,
+        licenseType: string,
+        npdbCategory: string,
+        startDate: string
+    ) {
+        const serverResponse: any = await this.api.post(`/v1/compacts/${compact}/providers/${licenseeId}/privileges/jurisdiction/${privilegeState}/licenseType/${licenseType}/encumbrance`, {
+            clinicalPrivilegeActionCategory: npdbCategory,
+            encumbranceEffectiveDate: startDate,
+        });
+
+        return serverResponse;
+    }
+
+    /**
+     * PATCH Un-encumber Privilege for a licensee.
+     * @param  {string}           compact        The compact string ID (aslp, otcp, coun).
+     * @param  {string}           licenseeId     The Licensee ID.
+     * @param  {string}           privilegeState The 2-character state abbreviation for the Privilege.
+     * @param  {string}           licenseType    The license type.
+     * @param  {string}           encumbranceId  The Encumbrance ID.
+     * @param  {string}           endDate        The encumber end date.
+     * @return {Promise<object>}                 The server response.
+     */
+    public async unencumberPrivilege(
+        compact: string,
+        licenseeId: string,
+        privilegeState: string,
+        licenseType: string,
+        encumbranceId: string,
+        endDate: string
+    ) {
+        const serverResponse: any = await this.api.patch(`/v1/compacts/${compact}/providers/${licenseeId}/privileges/jurisdiction/${privilegeState}/licenseType/${licenseType}/encumbrance/${encumbranceId}`, {
+            effectiveLiftDate: endDate,
+        });
+
+        return serverResponse;
+    }
+
+    /**
      * GET SSN for licensee by ID.
      * @param  {string}          licenseeId A licensee ID.
      * @return {Promise<object>}            The server response.

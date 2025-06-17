@@ -47,7 +47,10 @@
                         <li
                             v-if="isCurrentUserPrivilegeStateAdmin"
                             class="privilege-menu-item"
-                            :class="{ 'disabled': true }"
+                            role="button"
+                            @click="toggleEncumberPrivilegeModal"
+                            @keyup.enter="toggleEncumberPrivilegeModal"
+                            tabindex="0"
                         >
                             {{ $t('licensing.encumber') }}
                         </li>
@@ -57,7 +60,7 @@
         </div>
         <div class="privilege-info-grid">
             <div class="info-item-container">
-                <div class="info-item-title">{{issuedTitle}}</div>
+                <div class="info-item-title">{{ $t('licensing.issued') }}</div>
                 <div class="info-item">{{issuedContent}}</div>
             </div>
            <div class="info-item-container">
@@ -69,13 +72,13 @@
                 <div class="info-item" >{{privilegeId}}</div>
             </div>
             <div class="info-item-container discipline-item">
-                <div class="info-item-title">{{disciplineTitle}}</div>
+                <div class="info-item-title">{{ $t('licensing.disciplineStatus') }}</div>
                 <div class="info-item">{{disciplineContent}}</div>
             </div>
         </div>
         <InputButton
-            :label="viewDetails"
-            :aria-label="viewDetails"
+            :label="$t('common.viewDetails')"
+            :aria-label="$t('common.viewDetails')"
             class="view-details-button"
             :isTransparent="true"
             @click="goToPrivilegeDetailsPage"
@@ -96,7 +99,7 @@
                             <div class="form-row">
                                 <InputTextarea
                                     class="deactivation-notes"
-                                    :formInput="formData.submitModalNotes"
+                                    :formInput="formData.deactivateModalNotes"
                                     :shouldResizeY="true"
                                 />
                             </div>
@@ -111,10 +114,55 @@
                                 />
                                 <InputSubmit
                                     class="action-button submit-button continue-button"
-                                    :formInput="formData.submitModalContinue"
+                                    :formInput="formData.deactivateModalContinue"
                                     :label="(isFormLoading)
                                         ? $t('common.loading')
                                         : $t('licensing.confirmPrivilegeDeactivateSubmit')"
+                                    :isWarning="true"
+                                    :isEnabled="isFormValid && !isFormLoading"
+                                />
+                            </div>
+                        </form>
+                    </div>
+                </template>
+            </Modal>
+            <Modal
+                v-if="isEncumberPrivilegeModalDisplayed"
+                class="encumber-privilege-modal"
+                :title="$t('licensing.confirmPrivilegeEncumberTitle')"
+                :showActions="false"
+                @keydown.tab="focusTrapEncumberPrivilegeModal($event)"
+                @keyup.esc="closeEncumberPrivilegeModal"
+            >
+                <template v-slot:content>
+                    <div class="modal-content encumber-modal-content">
+                        {{ $t('licensing.confirmPrivilegeEncumberSubtext') }}
+                        <form @submit.prevent="submitEncumberPrivilege">
+                            <div class="form-row">
+                                <InputSelect :formInput="formData.encumberModalNpdbCategory" />
+                                <InputDate
+                                    :formInput="formData.encumberModalStartDate"
+                                    :yearRange="[new Date().getFullYear() - 5, new Date().getFullYear() + 5]"
+                                    :preventMinMaxNavigation="true"
+                                    :textInput="{ format: 'MM/dd/yyyy', openMenu: false }"
+                                    :startDate="new Date(1975, 0, 1)"
+                                />
+                            </div>
+                            <div v-if="modalErrorMessage" class="modal-error">{{ modalErrorMessage }}</div>
+                            <div class="action-button-row">
+                                <InputButton
+                                    id="encumber-modal-cancel-button"
+                                    class="action-button cancel-button"
+                                    :label="$t('common.cancel')"
+                                    :isTransparent="true"
+                                    :onClick="closeEncumberPrivilegeModal"
+                                />
+                                <InputSubmit
+                                    class="action-button submit-button continue-button"
+                                    :formInput="formData.encumberModalContinue"
+                                    :label="(isFormLoading)
+                                        ? $t('common.loading')
+                                        : $t('licensing.confirmPrivilegeEncumberSubmit')"
                                     :isWarning="true"
                                     :isEnabled="isFormValid && !isFormLoading"
                                 />

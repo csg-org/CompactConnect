@@ -13,6 +13,8 @@ import {
 import { reactive, computed, nextTick } from 'vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import InputTextarea from '@components/Forms/InputTextarea/InputTextarea.vue';
+import InputDate from '@components/Forms/InputDate/InputDate.vue';
+import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import Modal from '@components/Modal/Modal.vue';
@@ -28,6 +30,8 @@ import Joi from 'joi';
     name: 'PrivilegeCard',
     components: {
         InputTextarea,
+        InputDate,
+        InputSelect,
         InputButton,
         InputSubmit,
         Modal,
@@ -43,14 +47,15 @@ class PrivilegeCard extends mixins(MixinForm) {
     //
     isPrivilegeActionMenuDisplayed = false;
     isDeactivatePrivilegeModalDisplayed = false;
+    isEncumberPrivilegeModalDisplayed = false;
     modalErrorMessage = '';
 
     //
     // Lifecycle
     //
-    created(): void {
-        this.initFormInputs();
-    }
+    // created(): void {
+    //     this.initFormInputs();
+    // }
 
     //
     // Computed
@@ -96,6 +101,22 @@ class PrivilegeCard extends mixins(MixinForm) {
         return this.isCurrentUserCompactAdmin || this.isCurrentUserPrivilegeStateAdmin;
     }
 
+    get privilegeId(): string {
+        return this.privilege?.privilegeId || '';
+    }
+
+    get licenseeId(): string {
+        return this.privilege?.licenseeId || '';
+    }
+
+    get privilegeTypeAbbrev(): string {
+        return this.privilege?.licenseTypeAbbreviation() || '';
+    }
+
+    get isActive(): boolean {
+        return this.privilege?.status === LicenseStatus.ACTIVE;
+    }
+
     get statusDisplay(): string {
         let licenseStatus = this.$t('licensing.statusOptions.inactive');
 
@@ -104,14 +125,6 @@ class PrivilegeCard extends mixins(MixinForm) {
         }
 
         return licenseStatus;
-    }
-
-    get isActive(): boolean {
-        return this.privilege?.status === LicenseStatus.ACTIVE;
-    }
-
-    get stateTitle(): string {
-        return this.$t('licensing.state');
     }
 
     get state(): State | null {
@@ -126,12 +139,12 @@ class PrivilegeCard extends mixins(MixinForm) {
         return this.state?.name() || '';
     }
 
-    get issuedTitle(): string {
-        return this.$t('licensing.issued');
-    }
-
     get issuedContent(): string {
         return this.privilege?.issueDateDisplay() || '';
+    }
+
+    get isExpired(): boolean {
+        return Boolean(this.privilege?.isExpired());
     }
 
     get expiresTitle(): string {
@@ -142,58 +155,76 @@ class PrivilegeCard extends mixins(MixinForm) {
         return this.privilege?.isDeactivated() ? this.$t('licensing.deactivated') : this.privilege?.expireDateDisplay() || '';
     }
 
-    get disciplineTitle(): string {
-        return this.$t('licensing.disciplineStatus');
-    }
-
     get disciplineContent(): string {
         return this.$t('licensing.noDiscipline');
     }
 
-    get viewDetails(): string {
-        return this.$t('common.viewDetails');
-    }
+    get npdbCategoryOptions(): Array<{ value: string, name: string }> {
+        const options = this.$tm('licensing.npdbTypes').map((npdbType) => ({
+            value: npdbType.key,
+            name: npdbType.name,
+        }));
 
-    get isExpired(): boolean {
-        return Boolean(this.privilege?.isExpired());
-    }
+        options.unshift({
+            value: '',
+            name: computed(() => this.$t('common.selectOption')),
+        });
 
-    get privilegeId(): string {
-        return this.privilege?.privilegeId || '';
-    }
-
-    get licenseeId(): string {
-        return this.privilege?.licenseeId || '';
-    }
-
-    get privilegeTypeAbbrev(): string {
-        return this.privilege?.licenseTypeAbbreviation() || '';
+        return options;
     }
 
     //
     // Methods
     //
     initFormInputs(): void {
-        this.formData = reactive({
-            submitModalNotes: new FormInput({
-                id: 'notes',
-                name: 'notes',
-                label: computed(() => this.$t('licensing.deactivateNotesTitle')),
-                placeholder: computed(() => this.$t('licensing.deactivateNotesPlaceholder')),
-                validation: Joi.string().required().max(256).messages(this.joiMessages.string),
-                enforceMax: true,
-            }),
-            submitModalContinue: new FormInput({
-                isSubmitInput: true,
-                id: 'submit-modal-continue',
-            }),
-        });
-
-        this.watchFormInputs(); // Important if you want automated form validation
+        if (this.isDeactivatePrivilegeModalDisplayed) {
+            this.formData = reactive({
+                deactivateModalNotes: new FormInput({
+                    id: 'notes',
+                    name: 'notes',
+                    label: computed(() => this.$t('licensing.deactivateNotesTitle')),
+                    placeholder: computed(() => this.$t('licensing.deactivateNotesPlaceholder')),
+                    validation: Joi.string().required().max(256).messages(this.joiMessages.string),
+                    enforceMax: true,
+                }),
+                deactivateModalContinue: new FormInput({
+                    isSubmitInput: true,
+                    id: 'submit-modal-continue',
+                }),
+            });
+            this.watchFormInputs();
+        } else if (this.isEncumberPrivilegeModalDisplayed) {
+            this.formData = reactive({
+                encumberModalNpdbCategory: new FormInput({
+                    id: 'npdb-category',
+                    name: 'npdb-category',
+                    label: computed(() => this.$t('licensing.npdbCategoryLabel')),
+                    validation: Joi.string().required().messages(this.joiMessages.string),
+                    valueOptions: this.npdbCategoryOptions,
+                }),
+                encumberModalStartDate: new FormInput({
+                    id: 'deactivate-start',
+                    name: 'deactivate-start',
+                    label: computed(() => this.$t('licensing.encumberStartDate')),
+                    placeholder: computed(() => 'MM/DD/YYYY'),
+                    validation: Joi.string().required().messages(this.joiMessages.string),
+                }),
+                encumberModalContinue: new FormInput({
+                    isSubmitInput: true,
+                    id: 'submit-modal-continue',
+                }),
+            });
+            this.watchFormInputs();
+        }
     }
 
-    togglePrivilegeActionMenu(): void {
-        this.isPrivilegeActionMenuDisplayed = !this.isPrivilegeActionMenuDisplayed;
+    resetForm(): void {
+        this.isFormLoading = false;
+        this.isFormSuccessful = false;
+        this.isFormError = false;
+        this.modalErrorMessage = '';
+        this.updateFormSubmitSuccess('');
+        this.updateFormSubmitError('');
     }
 
     goToPrivilegeDetailsPage(): void {
@@ -211,16 +242,27 @@ class PrivilegeCard extends mixins(MixinForm) {
         );
     }
 
+    togglePrivilegeActionMenu(): void {
+        this.isPrivilegeActionMenuDisplayed = !this.isPrivilegeActionMenuDisplayed;
+    }
+
     closePrivilegeActionMenu(): void {
         this.isPrivilegeActionMenuDisplayed = false;
     }
 
+    // =======================================================
+    //                      DEACTIVATE
+    // =======================================================
     async toggleDeactivatePrivilegeModal(): Promise<void> {
         if (this.isActive) {
             this.resetForm();
             this.isDeactivatePrivilegeModalDisplayed = !this.isDeactivatePrivilegeModalDisplayed;
-            await nextTick();
-            document.getElementById('deactivate-modal-cancel-button')?.focus();
+
+            if (this.isDeactivatePrivilegeModalDisplayed) {
+                this.initFormInputs();
+                await nextTick();
+                document.getElementById('deactivate-modal-cancel-button')?.focus();
+            }
         }
     }
 
@@ -231,7 +273,7 @@ class PrivilegeCard extends mixins(MixinForm) {
     focusTrapDeactivatePrivilegeModal(event: KeyboardEvent): void {
         const firstTabIndex = document.getElementById('notes');
         const lastTabIndex = (this.isFormValid && !this.isFormLoading)
-            ? document.getElementById(this.formData.submitModalContinue.id)
+            ? document.getElementById(this.formData.deactivateModalContinue.id)
             : document.getElementById('deactivate-modal-cancel-button');
 
         if (event.shiftKey) {
@@ -266,7 +308,7 @@ class PrivilegeCard extends mixins(MixinForm) {
                 licenseeId,
                 privilegeState: stateAbbrev,
                 licenseType: privilegeTypeAbbrev.toLowerCase(),
-                notes: this.formData.submitModalNotes.value,
+                notes: this.formData.deactivateModalNotes.value,
             }).catch((err) => {
                 this.modalErrorMessage = err?.message || this.$t('common.error');
                 this.isFormError = true;
@@ -282,14 +324,82 @@ class PrivilegeCard extends mixins(MixinForm) {
         }
     }
 
-    resetForm(): void {
-        this.isFormLoading = false;
-        this.isFormSuccessful = false;
-        this.isFormError = false;
-        this.modalErrorMessage = '';
-        this.updateFormSubmitSuccess('');
-        this.updateFormSubmitError('');
+    // =======================================================
+    //                       ENCUMBER
+    // =======================================================
+    async toggleEncumberPrivilegeModal(): Promise<void> {
+        this.resetForm();
+        this.isEncumberPrivilegeModalDisplayed = !this.isEncumberPrivilegeModalDisplayed;
+
+        if (this.isEncumberPrivilegeModalDisplayed) {
+            this.initFormInputs();
+            await nextTick();
+            document.getElementById('encumber-modal-cancel-button')?.focus();
+        }
     }
+
+    closeEncumberPrivilegeModal(): void {
+        this.isEncumberPrivilegeModalDisplayed = false;
+    }
+
+    focusTrapEncumberPrivilegeModal(event: KeyboardEvent): void {
+        const firstTabIndex = document.getElementById('notes');
+        const lastTabIndex = (this.isFormValid && !this.isFormLoading)
+            ? document.getElementById(this.formData.encumberModalContinue.id)
+            : document.getElementById('encumber-modal-cancel-button');
+
+        if (event.shiftKey) {
+            // shift + tab to last input
+            if (document.activeElement === firstTabIndex) {
+                lastTabIndex?.focus();
+                event.preventDefault();
+            }
+        } else if (document.activeElement === lastTabIndex) {
+            // Tab to first input
+            firstTabIndex?.focus();
+            event.preventDefault();
+        }
+    }
+
+    async submitEncumberPrivilege(): Promise<void> {
+        this.validateAll({ asTouched: true });
+
+        if (this.isFormValid) {
+            this.startFormLoading();
+            this.modalErrorMessage = '';
+
+            const {
+                currentCompactType: compactType,
+                licenseeId,
+                stateAbbrev,
+                privilegeTypeAbbrev
+            } = this;
+
+            await this.$store.dispatch(`users/encumberPrivilegeRequest`, {
+                compact: compactType,
+                licenseeId,
+                privilegeState: stateAbbrev,
+                licenseType: privilegeTypeAbbrev.toLowerCase(),
+                npdbCategory: this.formData.encumberModalNpdbCategory.value,
+                startDate: this.formData.encumberModalStartDate.value,
+            }).catch((err) => {
+                this.modalErrorMessage = err?.message || this.$t('common.error');
+                this.isFormError = true;
+            });
+
+            if (!this.isFormError) {
+                this.isFormSuccessful = true;
+                await this.$store.dispatch('license/getLicenseeRequest', { compact: compactType, licenseeId });
+                this.closeEncumberPrivilegeModal();
+            }
+
+            this.endFormLoading();
+        }
+    }
+
+    // =======================================================
+    //                      UN-ENCUMBER
+    // =======================================================
 }
 
 export default toNative(PrivilegeCard);
