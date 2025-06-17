@@ -1,5 +1,6 @@
 # following timestamp can be used for consistent mocking of dateOfUpdate timestamps
 DEFAULT_DATE_OF_UPDATE_TIMESTAMP = '2024-11-08T23:59:59+00:00'
+DEFAULT_EFFECTIVE_DATE = '2024-11-08'
 
 # Default values used throughout tests
 DEFAULT_PROVIDER_ID = '89a6377e-c3a5-40e5-bca5-317ec854c570'

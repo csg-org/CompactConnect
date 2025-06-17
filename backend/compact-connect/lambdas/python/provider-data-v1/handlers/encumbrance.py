@@ -117,6 +117,16 @@ def handle_privilege_encumbrance(event: dict) -> dict:
     logger.info('Processing adverse action updates for privilege record')
     config.data_client.encumber_privilege(adverse_action)
 
+    # Publish privilege encumbrance event
+    config.event_bus_client.publish_privilege_encumbrance_event(
+        source='provider-data-v1',
+        compact=adverse_action.compact,
+        provider_id=adverse_action.providerId,
+        jurisdiction=adverse_action.jurisdiction,
+        license_type_abbreviation=adverse_action.licenseTypeAbbreviation,
+        effective_start_date=adverse_action.effectiveStartDate.strftime('%Y-%m-%d'),
+    )
+
     return {'message': 'OK'}
 
 
@@ -135,6 +145,7 @@ def handle_license_encumbrance(event: dict) -> dict:
         provider_id=adverse_action.providerId,
         jurisdiction=adverse_action.jurisdiction,
         license_type_abbreviation=adverse_action.licenseTypeAbbreviation,
+        effective_start_date=adverse_action.effectiveStartDate.strftime('%Y-%m-%d'),
     )
 
     return {'message': 'OK'}
@@ -177,6 +188,16 @@ def handle_privilege_encumbrance_lifting(event: dict) -> dict:
             adverse_action_id=encumbrance_id,
             effective_lift_date=lift_date,
             lifting_user=cognito_sub,
+        )
+
+        # Publish privilege encumbrance lifting event
+        config.event_bus_client.publish_privilege_encumbrance_lifting_event(
+            source='provider-data-v1',
+            compact=compact,
+            provider_id=provider_id,
+            jurisdiction=jurisdiction,
+            license_type_abbreviation=license_type_abbreviation,
+            effective_lift_date=lift_date.strftime('%Y-%m-%d'),
         )
 
         return {'message': 'OK'}
@@ -229,6 +250,7 @@ def handle_license_encumbrance_lifting(event: dict) -> dict:
             provider_id=provider_id,
             jurisdiction=jurisdiction,
             license_type_abbreviation=license_type_abbreviation,
+            effective_lift_date=lift_date.strftime('%Y-%m-%d'),
         )
 
         return {'message': 'OK'}

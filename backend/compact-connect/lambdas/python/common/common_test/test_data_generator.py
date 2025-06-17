@@ -360,13 +360,6 @@ class TestDataGenerator:
             'familyName': DEFAULT_FAMILY_NAME,
             'dateOfExpiration': date.fromisoformat(DEFAULT_LICENSE_EXPIRATION_DATE),
             'dateOfBirth': date.fromisoformat(DEFAULT_DATE_OF_BIRTH),
-            'homeAddressStreet1': DEFAULT_HOME_ADDRESS_STREET1,
-            'homeAddressStreet2': DEFAULT_HOME_ADDRESS_STREET2,
-            'homeAddressCity': DEFAULT_HOME_ADDRESS_CITY,
-            'homeAddressState': DEFAULT_HOME_ADDRESS_STATE,
-            'homeAddressPostalCode': DEFAULT_HOME_ADDRESS_POSTAL_CODE,
-            'emailAddress': DEFAULT_EMAIL_ADDRESS,
-            'phoneNumber': DEFAULT_PHONE_NUMBER,
         }
 
         if is_registered:

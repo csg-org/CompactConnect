@@ -1102,11 +1102,7 @@ class DataClient:
         :return: The full license type name
         :raises CCInvalidRequestException: If the license type abbreviation is invalid
         """
-        license_type = LicenseUtility.get_license_type_by_abbreviation(compact, license_type_abbreviation)
-        if license_type is None:
-            logger.info('Invalid license type abbreviation provided.')
-            raise CCInvalidRequestException(f'Invalid license type abbreviation: {license_type_abbreviation}')
-        return license_type.name
+        return LicenseUtility.get_license_type_by_abbreviation(compact, license_type_abbreviation).name
 
     def _find_and_validate_adverse_action(
         self, adverse_action_records: list[AdverseActionData], adverse_action_id: str
@@ -2377,7 +2373,7 @@ class DataClient:
         provider_id: str,
         jurisdiction: str,
         license_type_abbreviation: str,
-    ) -> None:
+    ) -> list[PrivilegeData]:
         """
         Encumber all unencumbered privileges associated with a home jurisdiction license.
 
@@ -2409,7 +2405,7 @@ class DataClient:
 
         if not unencumbered_privileges_associated_with_license:
             logger.info('No unencumbered privileges found for this license.')
-            return
+            return []
 
         logger.info(
             'Found privileges to encumber', privilege_count=len(unencumbered_privileges_associated_with_license)
@@ -2460,6 +2456,7 @@ class DataClient:
                 raise CCAwsServiceException('Failed to encumber privileges for license') from e
 
         logger.info('Successfully encumbered associated privileges for license')
+        return unencumbered_privileges_associated_with_license
 
     def lift_home_jurisdiction_license_privilege_encumbrances(
         self,
@@ -2467,7 +2464,7 @@ class DataClient:
         provider_id: str,
         jurisdiction: str,
         license_type_abbreviation: str,
-    ) -> None:
+    ) -> list[PrivilegeData]:
         """
         Lift encumbrances from privileges that were encumbered due to a home jurisdiction license encumbrance.
 
@@ -2499,7 +2496,7 @@ class DataClient:
                 'License is still encumbered. Not lifting privilege encumbrances. '
                 'Privileges will remain LICENSE_ENCUMBERED until all license encumbrances are lifted.'
             )
-            return
+            return []
 
         logger.info('License is unencumbered. Proceeding to lift privilege encumbrances.')
 
@@ -2515,7 +2512,7 @@ class DataClient:
 
         if not matching_privileges:
             logger.info('No license-encumbered privileges found for this license')
-            return
+            return []
 
         logger.info('Found license-encumbered privileges to unencumber', privilege_count=len(matching_privileges))
 
@@ -2564,3 +2561,4 @@ class DataClient:
                 raise CCAwsServiceException('Failed to unencumber privileges for license') from e
 
         logger.info('Successfully unencumbered all license-encumbered privileges for license')
+        return matching_privileges

@@ -4,7 +4,7 @@ from cc_common.data_model.schema.fields import (
     Compact,
     Jurisdiction,
 )
-from marshmallow.fields import UUID, DateTime, Email, List, Nested, String
+from marshmallow.fields import UUID, Date, DateTime, Email, List, Nested, String
 from marshmallow.validate import Length
 
 
@@ -44,3 +44,27 @@ class PrivilegeIssuanceDetailSchema(DataEventDetailBaseSchema):
 
 class PrivilegeRenewalDetailSchema(DataEventDetailBaseSchema):
     providerEmail = Email(required=False, allow_none=False)
+
+
+class LicenseEncumbranceDetailSchema(DataEventDetailBaseSchema):
+    providerId = UUID(required=True, allow_none=False)
+    licenseTypeAbbreviation = String(required=True, allow_none=False)
+    effectiveStartDate = Date(required=True, allow_none=False)
+
+
+class LicenseEncumbranceLiftingDetailSchema(DataEventDetailBaseSchema):
+    providerId = UUID(required=True, allow_none=False)
+    licenseTypeAbbreviation = String(required=True, allow_none=False)
+    effectiveLiftDate = Date(required=True, allow_none=False)
+
+
+class PrivilegeEncumbranceDetailSchema(DataEventDetailBaseSchema):
+    providerId = UUID(required=True, allow_none=False)
+    licenseTypeAbbreviation = String(required=True, allow_none=False)
+    effectiveStartDate = Date(required=True, allow_none=False)
+
+
+class PrivilegeEncumbranceLiftingDetailSchema(DataEventDetailBaseSchema):
+    providerId = UUID(required=True, allow_none=False)
+    licenseTypeAbbreviation = String(required=True, allow_none=False)
+    effectiveLiftDate = Date(required=True, allow_none=False)

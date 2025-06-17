@@ -31,11 +31,8 @@ class SSMParameterUtility:
         the event bus ARN in SSM Parameter Store rather than using a direct reference,
         which helps avoid issues with CloudFormation stack updates.
 
-        Args:
-            scope: The CDK construct scope
-
-        Returns:
-            The EventBus construct
+        :param scope: The CDK construct scope
+        :return: The EventBus construct
         """
         data_event_bus_arn = StringParameter.from_string_parameter_name(
             scope,
