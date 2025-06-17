@@ -357,7 +357,7 @@ export class EmailNotificationService extends BaseEmailService {
         const report = this.getNewEmailTemplate();
         const subject = `Registration Attempt Notification - Compact Connect`;
         const loginUrl = `${environmentVariableService.getUiBasePathUrl()}/Dashboard`;
-        const bodyText = `A registration attempt was made in the Compact Connect system for an account associated with this email address. This email address is already registered in our system.\n\nIf this registration attempt was made by you, please log in to your existing account using the link below:\n\n${loginUrl}\n\nFor your security, we recommend that you log in to your account to verify your account information and ensure your account remains secure.`;
+        const bodyText = `A registration attempt was made in the Compact Connect system for an account associated with this email address. This email address is already registered in our system.\n\nIf you originally registered within the past 24 hours, make sure to login with your temporary password sent to this same email address. You may log in to your existing account using the link below:\n\n${loginUrl}\n\nFor your security, we recommend that you log in to your account to verify your account information and ensure your account remains secure.`;
 
         this.insertHeader(report, 'Registration Attempt');
         this.insertMarkdownBody(report, bodyText);
