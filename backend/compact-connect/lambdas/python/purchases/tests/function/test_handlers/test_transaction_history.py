@@ -300,11 +300,12 @@ class TestProcessSettledTransactions(TstFunction):
     def test_process_settled_transactions_does_not_duplicate_identical_transaction_records(
         self, mock_purchase_client_constructor
     ):
-        """Test that transactions are stored in DynamoDB."""
+        """Test that identical transactions do not create duplicate records in DynamoDB."""
         from handlers.transaction_history import process_settled_transactions
 
-        # in this test, there is one transaction, and one privilege. These should map together using the default
-        # transaction id and privilege id
+        # In this test, there is one transaction associated with the purchase of one privilege, and the workflow is
+        # run twice (simulating developers rerunning the transaction collection process after fixing a bug).
+        # This same transaction should map to the exact same pk/sk pattern in an idempotent manner.
         self._when_purchase_client_returns_transactions(mock_purchase_client_constructor)
         self._add_mock_privilege_to_database()
 

@@ -56,6 +56,7 @@ MOCK_SETTLEMENT_TIME_UTC_2 = '2024-12-26T15:15:20.007Z'
 MOCK_SETTLEMENT_TIME_LOCAL_2 = '2024-12-26T11:15:20.007Z'
 
 # mock order information
+# common descriptor returned by authorize.net
 MOCK_DATA_DESCRIPTOR = 'COMMON.ACCEPT.INAPP.PAYMENT'
 MOCK_DATA_VALUE = 'eyJjbMockDataValue'
 
