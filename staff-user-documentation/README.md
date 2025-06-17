@@ -276,7 +276,7 @@ After making any configuration changes:
 
 ⚠️ **Important Notes:**
 - Configuration changes may affect billing and fee collection immediately
-- It is recommended to test any configuration changes in a non-production environment first
+- It is recommended to test any configuration changes in the Beta environment before making changes in the Production environment.
 
 ## General User Functions
 
@@ -358,6 +358,8 @@ State IT departments can set up automated license data uploads to CompactConnect
 
 ### Deactivating Privileges
 **This feature is available to Compact Administrators only.**
+
+Privileges may be deactivated by Compact Administrators. This may be needed in cases where the practitioner does not want to have an active privilege in a particular jurisdiction for whatever reason (for example, they accidentally purchased a privilege they didn't intend to).
 
 #### Steps to Deactivate a Privilege
 1. Navigate to the practitioner's detail page (see [Practitioner Details](#practitioner-details-page))
