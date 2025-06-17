@@ -957,7 +957,12 @@ class DataClient:
         :raises CCNotFoundException: If the privilege record is not found
         """
         # Get the privilege record
-        privilege_record = self.get_privilege(compact, provider_id, jurisdiction, license_type_abbr)
+        privilege_record = self.get_privilege(
+            compact=compact,
+            provider_id=provider_id,
+            jurisdiction=jurisdiction,
+            license_type_abbr=license_type_abbr
+        )
 
         # Find the main privilege record (not history records)
         privilege_record_schema = PrivilegeRecordSchema()

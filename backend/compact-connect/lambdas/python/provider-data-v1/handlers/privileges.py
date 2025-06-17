@@ -186,7 +186,12 @@ def get_privilege_history(event: dict):
             logger.warning('Invalid license type abbreviation')
             raise CCInvalidRequestException(f'Invalid license type abbreviation: {license_type_abbr}')
 
-    privilege = config.data_client.get_privilege(compact, provider_id, jurisdiction, license_type_abbr)
+    privilege = config.data_client.get_privilege(
+        compact=compact,
+        provider_id=provider_id,
+        jurisdiction=jurisdiction,
+        license_type_abbr=license_type_abbr
+    )
 
     return ProviderRecordUtility.construct_simplified_public_privilege_history_object(privilege)
 

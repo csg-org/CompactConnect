@@ -9,6 +9,8 @@
   "licenseType": "speech-language pathologist",
   "compactTransactionIdGSIPK": "COMPACT#aslp#TX#0123456789#",
   "dateOfUpdate": "2020-05-05T12:59:59+00:00",
+  "createDate": "2020-05-05T12:59:59+00:00",
+  "effectiveDate": "2020-05-05T12:59:59+00:00",
   "previous": {
     "attestations": [
       {"attestationId": "jurisprudence-confirmation", "version": "1"}
