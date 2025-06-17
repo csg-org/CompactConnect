@@ -23,15 +23,17 @@
                 />
             </form>
             <ChangePassword />
-            <section class="military-status-container" aria-labelledby="military-status-title">
+            <section
+                v-if="isLicensee&& currentCompactType"
+                class="military-status-container"
+                aria-labelledby="military-status-title"
+            >
                 <h2 class="section-title" id="military-status-title">
                     {{ $t('military.militaryStatusTitle') }}
                 </h2>
                 <div class="btn-container military-status-btn">
                     <InputButton
-                        :label="militaryStatusLabel"
-                        :aria-label="militaryStatusLabel"
-                        :isTransparent="false"
+                        :label="`${this.$t('common.add')}/${this.$t('common.edit')}`"
                         class="btn view-military-btn"
                         @click="viewMilitaryStatus"
                     />

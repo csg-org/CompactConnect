@@ -55,6 +55,10 @@ class UserAccount extends mixins(MixinForm) {
         return this.$store.state.user;
     }
 
+    get currentCompactType(): string | null {
+        return this.userStore?.currentCompact?.type || null;
+    }
+
     get authType(): AuthTypes {
         return this.globalStore.authType;
     }
@@ -88,14 +92,6 @@ class UserAccount extends mixins(MixinForm) {
         });
 
         return enabledInputKeys.length > 0;
-    }
-
-    get militaryStatusLabel(): string {
-        return `${this.$t('common.add')}/${this.$t('common.edit')}`;
-    }
-
-    get currentCompactType(): string | null {
-        return this.userStore?.currentCompact?.type || null;
     }
 
     //
@@ -178,13 +174,9 @@ class UserAccount extends mixins(MixinForm) {
     }
 
     viewMilitaryStatus(): void {
-        const route = { name: 'MilitaryStatus' } as any;
-
         if (this.currentCompactType) {
-            route.params = { compact: this.currentCompactType };
+            this.$router.push({ name: 'MilitaryStatus', params: { compact: this.currentCompactType }});
         }
-
-        this.$router.push(route);
     }
 
     //
