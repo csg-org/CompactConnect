@@ -77,8 +77,8 @@ class PrivilegePurchaseAcceptUI extends Vue {
         return this.paymentSdkConfig?.clientKey || '';
     }
 
-    get isProductionMode(): boolean {
-        return this.paymentSdkConfig?.isProductionMode || false;
+    get isSandboxMode(): boolean {
+        return this.paymentSdkConfig?.isSandboxMode || false;
     }
 
     get buttonLabelText(): string {
@@ -89,9 +89,9 @@ class PrivilegePurchaseAcceptUI extends Vue {
     // Methods
     //
     initPaymentDetailsUi(): void {
-        const scriptSrc = (this.isProductionMode)
-            ? 'https://js.authorize.net/v3/AcceptUI.js'
-            : 'https://jstest.authorize.net/v3/AcceptUI.js';
+        const scriptSrc = (this.isSandboxMode)
+            ? 'https://jstest.authorize.net/v3/AcceptUI.js'
+            : 'https://js.authorize.net/v3/AcceptUI.js';
         const componentContainer = document.getElementById('finalize-privilege-purchase-container');
         const script = document.createElement('script');
 

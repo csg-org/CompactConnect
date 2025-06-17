@@ -37,7 +37,7 @@ describe('CompactFeeConfig model', () => {
             paymentSdkConfig: {
                 loginId: 'test-loginId',
                 clientKey: 'test-clientKey',
-                isProductionMode: true,
+                isSandboxMode: true,
             },
         };
         const compactFeeConfiguration = new CompactFeeConfig(data);
@@ -52,7 +52,7 @@ describe('CompactFeeConfig model', () => {
         expect(compactFeeConfiguration.paymentSdkConfig).to.matchPattern({
             loginId: data.paymentSdkConfig.loginId,
             clientKey: data.paymentSdkConfig.clientKey,
-            isProductionMode: true,
+            isSandboxMode: true,
         });
     });
     it('should create a CompactFeeConfig with specific values through serializer', () => {
@@ -88,7 +88,7 @@ describe('CompactFeeConfig model', () => {
         expect(compactFeeConfiguration.paymentSdkConfig).to.matchPattern({
             loginId: data.paymentProcessorPublicFields.apiLoginId,
             clientKey: data.paymentProcessorPublicFields.publicClientKey,
-            isProductionMode: false,
+            isSandboxMode: true,
         });
     });
     it('should create a CompactFeeConfig with specific values through serializer (missing transactionFeeConfiguration & payment gateway info)', () => {
@@ -112,7 +112,7 @@ describe('CompactFeeConfig model', () => {
         expect(compactFeeConfiguration.paymentSdkConfig).to.matchPattern({
             loginId: '',
             clientKey: '',
-            isProductionMode: false,
+            isSandboxMode: false,
         });
     });
 });

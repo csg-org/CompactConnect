@@ -14,7 +14,7 @@ import { deleteUndefinedProperties } from '@models/_helpers';
 export interface PaymentSdkConfig {
     loginId?: string;
     clientKey?: string;
-    isProductionMode?: boolean;
+    isSandboxMode?: boolean;
 }
 
 export interface InterfaceCompactFeeConfigCreate {
@@ -71,7 +71,7 @@ export class CompactFeeConfigSerializer {
             paymentSdkConfig: {
                 loginId: paymentProcessorPublicFields?.apiLoginId || '',
                 clientKey: paymentProcessorPublicFields?.publicClientKey || '',
-                isProductionMode: (typeof isSandbox === 'boolean') ? !isSandbox : false,
+                isSandboxMode: (typeof isSandbox === 'boolean') ? isSandbox : false,
             },
         };
 
