@@ -685,8 +685,10 @@
         "privilegeVerification": "Verificación de privilegios",
         "practitionerInformation": "Información para profesionales",
         "homeStateLicenses": "Licencias del estado de origen",
-        "activeDate": "Fecha activa",
-        "privilegeProofFooter": "Este documento es generado oficialmente por Compact Connect y sirve como prueba de las licencias y privilegios actuales del profesional."
+        "activeDate": "Activa",
+        "privilegeProofFooter": "Este documento es generado oficialmente por Compact Connect y sirve como prueba de las licencias y privilegios actuales del profesional.",
+        "publicProfileLink": "Ver perfil público en",
+        "qrCodeAlt": "Código QR que enlaza al perfil público"
     },
     "military": {
         "militaryStatusTitle": "Estado militar",

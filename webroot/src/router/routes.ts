@@ -131,7 +131,7 @@ const routes: Array<RouteConfig> = [
     {
         path: '/:compact/LicenseeVerification',
         name: 'LicenseeVerification',
-        component: () => import(/* webpackChunkName: "licenseeDashboard" */ '@pages/LicenseeProof/LicenseeProof.vue'),
+        component: () => import(/* webpackChunkName: "licenseeProof" */ '@pages/LicenseeProof/LicenseeProof.vue'),
         meta: { requiresAuth: true, licenseeAccess: true, },
     },
     {
