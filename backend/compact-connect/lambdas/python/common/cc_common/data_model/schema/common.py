@@ -299,6 +299,18 @@ class HomeJurisdictionChangeStatusEnum(CCEnum):
     INACTIVE = 'inactive'
 
 
+class LicenseDeactivatedStatusEnum(CCEnum):
+    """
+    This is only used if the provider's privilege is deactivated due to their home state license
+    being deactivated by the jurisdiction.
+
+    This field will never be present for an 'active' privilege, hence the only allowed value for this
+    field is 'LICENSE_DEACTIVATED'.
+    """
+
+    LICENSE_DEACTIVATED = 'licenseDeactivated'
+
+
 class StaffUserStatus(CCEnum):
     ACTIVE = 'active'
     INACTIVE = 'inactive'
