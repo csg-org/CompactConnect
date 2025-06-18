@@ -15,14 +15,65 @@ export class EncumbranceNotificationService extends BaseEmailService {
         const recipients = jurisdictionConfig.jurisdictionAdverseActionsNotificationEmails;
 
         if (recipients.length === 0) {
-            this.logger.error('No adverse action notification recipients found for jurisdiction', {
+            // If the state hasn't provided a contact for adverse actions, we note it and move on, perferring to
+            // continue with other notifications, rather than failing the entire notification process.
+            this.logger.warn('No adverse action notification recipients found for jurisdiction', {
                 compact: jurisdictionConfig.compact,
                 jurisdiction: jurisdictionConfig.postalAbbreviation
             });
-            throw new Error(`No adverse action notification recipients found for jurisdiction ${jurisdictionConfig.postalAbbreviation} in compact ${jurisdictionConfig.compact}`);
+            return [];
         }
 
         return recipients;
+    }
+
+    /**
+     * Gets jurisdiction configurations and adverse action recipients for state notifications,
+     * handling errors gracefully by logging warnings and continuing
+     * @param compact - The compact name
+     * @param notifyingJurisdiction - The jurisdiction that should be notified
+     * @param affectedJurisdiction - The jurisdiction where the encumbrance/lifting occurred
+     * @param context - Context for logging (e.g., 'license encumbrance', 'privilege lifting')
+     * @returns Object containing recipients and affected jurisdiction config, or empty if error occurred
+     */
+    private async getStateNotificationData(
+        compact: string,
+        notifyingJurisdiction: string,
+        affectedJurisdiction: string,
+        context: string
+    ): Promise<{
+        recipients: string[];
+        affectedJurisdictionConfig: IJurisdiction | undefined;
+    }> {
+        let affectedJurisdictionConfig: IJurisdiction | undefined;
+        let recipients: string[] = [];
+
+        try {
+            const notifyingJurisdictionConfig = await this.jurisdictionClient.getJurisdictionConfiguration(
+                compact, notifyingJurisdiction
+            );
+
+            if (notifyingJurisdictionConfig.postalAbbreviation !== affectedJurisdiction) {
+                affectedJurisdictionConfig = await this.jurisdictionClient.getJurisdictionConfiguration(
+                    compact, affectedJurisdiction
+                );
+            } else {
+                affectedJurisdictionConfig = notifyingJurisdictionConfig;
+            }
+
+            recipients = await this.getJurisdictionAdverseActionRecipients(notifyingJurisdictionConfig);
+        } catch (error) {
+            // If we have missing jurisdiction configuration, we note it and move on, preferring to
+            // continue, rather than failing the entire notification process.
+            this.logger.warn(`Error getting jurisdiction configuration for state ${context} notification email`, {
+                compact: compact,
+                notifyingJurisdiction: notifyingJurisdiction,
+                affectedJurisdiction: affectedJurisdiction,
+                error: error
+            });
+        }
+
+        return { recipients, affectedJurisdictionConfig };
     }
 
     /**
@@ -97,33 +148,27 @@ export class EncumbranceNotificationService extends BaseEmailService {
             jurisdiction: jurisdiction
         });
 
-        let encumberedJurisdictionConfig: IJurisdiction;
-        const jurisdictionConfig = await this.jurisdictionClient.getJurisdictionConfiguration(compact, jurisdiction);
-        const compactConfig = await this.compactConfigurationClient.getCompactConfiguration(compact);
+        const { recipients, affectedJurisdictionConfig } = await this.getStateNotificationData(
+            compact, jurisdiction, encumberedJurisdiction, 'license encumbrance'
+        );
 
-        if (jurisdictionConfig.postalAbbreviation != encumberedJurisdiction) {
-            encumberedJurisdictionConfig = await this.jurisdictionClient.getJurisdictionConfiguration(
-                compact, encumberedJurisdiction
-            );
-        } else {
-            encumberedJurisdictionConfig = jurisdictionConfig;
+        if (recipients.length > 0 && affectedJurisdictionConfig !== undefined) {
+            const compactConfig = await this.compactConfigurationClient.getCompactConfiguration(compact);
+            const report = this.getNewEmailTemplate();
+            const subject = `License Encumbrance Notification - ${providerFirstName} ${providerLastName}`;
+            const bodyText = `This message is to notify you that the *${licenseType}* license held by ${providerFirstName} ${providerLastName} ` +
+                `in ${affectedJurisdictionConfig.jurisdictionName} was encumbered, effective ${effectiveStartDate}.\n\n` +
+                `Provider Details: ${environmentVariableService.getUiBasePathUrl()}/${compact}/Licensing/${providerId}\n\n` +
+                `This encumbrance restricts the provider's ability to practice under the ${compactConfig.compactName} compact.`;
+
+            this.insertHeader(report, subject);
+            this.insertBody(report, bodyText, 'center', true);
+            this.insertFooter(report);
+
+            const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
+
+            await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send state license encumbrance notification email' });
         }
-        const recipients = await this.getJurisdictionAdverseActionRecipients(jurisdictionConfig);
-
-        const report = this.getNewEmailTemplate();
-        const subject = `License Encumbrance Notification - ${providerFirstName} ${providerLastName}`;
-        const bodyText = `This message is to notify you that the *${licenseType}* license held by ${providerFirstName} ${providerLastName} ` +
-            `in ${encumberedJurisdictionConfig.jurisdictionName} was encumbered, effective ${effectiveStartDate}.\n\n` +
-            `Provider Details: ${environmentVariableService.getUiBasePathUrl()}/${compact}/Licensing/${providerId}\n\n` +
-            `This encumbrance restricts the provider's ability to practice under the ${compactConfig.compactName} compact.`;
-
-        this.insertHeader(report, subject);
-        this.insertBody(report, bodyText, 'center', true);
-        this.insertFooter(report);
-
-        const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
-
-        await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send state license encumbrance notification email' });
     }
 
     /**
@@ -198,33 +243,27 @@ export class EncumbranceNotificationService extends BaseEmailService {
             jurisdiction: jurisdiction
         });
 
-        let liftedJurisdictionConfig: IJurisdiction;
-        const jurisdictionConfig = await this.jurisdictionClient.getJurisdictionConfiguration(compact, jurisdiction);
-        const compactConfig = await this.compactConfigurationClient.getCompactConfiguration(compact);
+        const { recipients, affectedJurisdictionConfig } = await this.getStateNotificationData(
+            compact, jurisdiction, liftedJurisdiction, 'license lifting'
+        );
 
-        if (jurisdictionConfig.postalAbbreviation != liftedJurisdiction) {
-            liftedJurisdictionConfig = await this.jurisdictionClient.getJurisdictionConfiguration(
-                compact, liftedJurisdiction
-            );
-        } else {
-            liftedJurisdictionConfig = jurisdictionConfig;
+        if (recipients.length > 0 && affectedJurisdictionConfig !== undefined) {
+            const compactConfig = await this.compactConfigurationClient.getCompactConfiguration(compact);
+            const report = this.getNewEmailTemplate();
+            const subject = `License Encumbrance Lifted Notification - ${providerFirstName} ${providerLastName}`;
+            const bodyText = `This message is to notify you that the encumbrance on the *${licenseType}* license held by ${providerFirstName} ${providerLastName} ` +
+                `in ${affectedJurisdictionConfig.jurisdictionName} was lifted, effective ${effectiveLiftDate}.\n\n` +
+                `Provider Details: ${environmentVariableService.getUiBasePathUrl()}/${compact}/Licensing/${providerId}\n\n` +
+                `The encumbrance no longer restricts the provider's ability to practice under the ${compactConfig.compactName} compact.`;
+
+            this.insertHeader(report, subject);
+            this.insertBody(report, bodyText, 'center', true);
+            this.insertFooter(report);
+
+            const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
+
+            await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send state license encumbrance lifting notification email' });
         }
-        const recipients = await this.getJurisdictionAdverseActionRecipients(jurisdictionConfig);
-
-        const report = this.getNewEmailTemplate();
-        const subject = `License Encumbrance Lifted Notification - ${providerFirstName} ${providerLastName}`;
-        const bodyText = `This message is to notify you that the encumbrance on the *${licenseType}* license held by ${providerFirstName} ${providerLastName} ` +
-            `in ${liftedJurisdictionConfig.jurisdictionName} was lifted, effective ${effectiveLiftDate}.\n\n` +
-            `Provider Details: ${environmentVariableService.getUiBasePathUrl()}/${compact}/Licensing/${providerId}\n\n` +
-            `The encumbrance no longer restricts the provider's ability to practice under the ${compactConfig.compactName} compact.`;
-
-        this.insertHeader(report, subject);
-        this.insertBody(report, bodyText, 'center', true);
-        this.insertFooter(report);
-
-        const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
-
-        await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send state license encumbrance lifting notification email' });
     }
 
     /**
@@ -299,35 +338,27 @@ export class EncumbranceNotificationService extends BaseEmailService {
             jurisdiction: jurisdiction
         });
 
-        let encumberedJurisdictionConfig: IJurisdiction;
-        const jurisdictionConfig = await this.jurisdictionClient.getJurisdictionConfiguration(compact, jurisdiction);
-        const compactConfig = await this.compactConfigurationClient.getCompactConfiguration(compact);
+        const { recipients, affectedJurisdictionConfig } = await this.getStateNotificationData(
+            compact, jurisdiction, encumberedJurisdiction, 'privilege encumbrance'
+        );
 
-        if (jurisdictionConfig.postalAbbreviation != encumberedJurisdiction) {
-            encumberedJurisdictionConfig = await this.jurisdictionClient.getJurisdictionConfiguration(
-                compact, encumberedJurisdiction
-            );
-        } else {
-            encumberedJurisdictionConfig = jurisdictionConfig;
+        if (recipients.length > 0 && affectedJurisdictionConfig !== undefined) {
+            const compactConfig = await this.compactConfigurationClient.getCompactConfiguration(compact);
+            const report = this.getNewEmailTemplate();
+            const subject = `Privilege Encumbrance Notification - ${providerFirstName} ${providerLastName}`;
+            const bodyText = `This message is to notify you that the *${licenseType}* privilege held by ${providerFirstName} ${providerLastName} ` +
+                `in ${affectedJurisdictionConfig.jurisdictionName} was encumbered, effective ${effectiveStartDate}.\n\n` +
+                `Provider Details: ${environmentVariableService.getUiBasePathUrl()}/${compact}/Licensing/${providerId}\n\n` +
+                `This encumbrance restricts the provider's ability to practice in ${affectedJurisdictionConfig.jurisdictionName} under the ${compactConfig.compactName} compact.`;
+
+            this.insertHeader(report, subject);
+            this.insertBody(report, bodyText, 'center', true);
+            this.insertFooter(report);
+
+            const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
+
+            await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send state privilege encumbrance notification email' });
         }
-        const recipients = await this.getJurisdictionAdverseActionRecipients(jurisdictionConfig);
-
-
-
-        const report = this.getNewEmailTemplate();
-        const subject = `Privilege Encumbrance Notification - ${providerFirstName} ${providerLastName}`;
-        const bodyText = `This message is to notify you that the *${licenseType}* privilege held by ${providerFirstName} ${providerLastName} ` +
-            `in ${encumberedJurisdictionConfig.jurisdictionName} was encumbered, effective ${effectiveStartDate}.\n\n` +
-            `Provider Details: ${environmentVariableService.getUiBasePathUrl()}/${compact}/Licensing/${providerId}\n\n` +
-            `This encumbrance restricts the provider's ability to practice in ${encumberedJurisdictionConfig.jurisdictionName} under the ${compactConfig.compactName} compact.`;
-
-        this.insertHeader(report, subject);
-        this.insertBody(report, bodyText, 'center', true);
-        this.insertFooter(report);
-
-        const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
-
-        await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send state privilege encumbrance notification email' });
     }
 
     /**
@@ -402,32 +433,26 @@ export class EncumbranceNotificationService extends BaseEmailService {
             jurisdiction: jurisdiction
         });
 
-        let liftedJurisdictionConfig: IJurisdiction;
-        const jurisdictionConfig = await this.jurisdictionClient.getJurisdictionConfiguration(compact, jurisdiction);
-        const compactConfig = await this.compactConfigurationClient.getCompactConfiguration(compact);
+        const { recipients, affectedJurisdictionConfig } = await this.getStateNotificationData(
+            compact, jurisdiction, liftedJurisdiction, 'privilege lifting'
+        );
 
-        if (jurisdictionConfig.postalAbbreviation != liftedJurisdiction) {
-            liftedJurisdictionConfig = await this.jurisdictionClient.getJurisdictionConfiguration(
-                compact, liftedJurisdiction
-            );
-        } else {
-            liftedJurisdictionConfig = jurisdictionConfig;
+        if (recipients.length > 0 && affectedJurisdictionConfig !== undefined) {
+            const compactConfig = await this.compactConfigurationClient.getCompactConfiguration(compact);
+            const report = this.getNewEmailTemplate();
+            const subject = `Privilege Encumbrance Lifted Notification - ${providerFirstName} ${providerLastName}`;
+            const bodyText = `This message is to notify you that the encumbrance on the *${licenseType}* privilege held by ${providerFirstName} ${providerLastName} ` +
+                `in ${affectedJurisdictionConfig.jurisdictionName} was lifted, effective ${effectiveLiftDate}.\n\n` +
+                `Provider Details: ${environmentVariableService.getUiBasePathUrl()}/${compact}/Licensing/${providerId}\n\n` +
+                `The encumbrance no longer restricts the provider's ability to practice in ${affectedJurisdictionConfig.jurisdictionName} under the ${compactConfig.compactName} compact.`;
+
+            this.insertHeader(report, subject);
+            this.insertBody(report, bodyText, 'center', true);
+            this.insertFooter(report);
+
+            const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
+
+            await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send state privilege encumbrance lifting notification email' });
         }
-        const recipients = await this.getJurisdictionAdverseActionRecipients(jurisdictionConfig);
-
-        const report = this.getNewEmailTemplate();
-        const subject = `Privilege Encumbrance Lifted Notification - ${providerFirstName} ${providerLastName}`;
-        const bodyText = `This message is to notify you that the encumbrance on the *${licenseType}* privilege held by ${providerFirstName} ${providerLastName} ` +
-            `in ${liftedJurisdictionConfig.jurisdictionName} was lifted, effective ${effectiveLiftDate}.\n\n` +
-            `Provider Details: ${environmentVariableService.getUiBasePathUrl()}/${compact}/Licensing/${providerId}\n\n` +
-            `The encumbrance no longer restricts the provider's ability to practice in ${liftedJurisdictionConfig.jurisdictionName} under the ${compactConfig.compactName} compact.`;
-
-        this.insertHeader(report, subject);
-        this.insertBody(report, bodyText, 'center', true);
-        this.insertFooter(report);
-
-        const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
-
-        await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send state privilege encumbrance lifting notification email' });
     }
 }

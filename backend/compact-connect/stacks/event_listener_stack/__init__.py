@@ -30,12 +30,13 @@ class EventListenerStack(AppStack):
     ):
         super().__init__(scope, construct_id, environment_name=environment_name, **kwargs)
         data_event_bus = SSMParameterUtility.load_data_event_bus_from_ssm_parameter(self)
-        self._add_license_encumbrance_listener(persistent_stack, data_event_bus)
-        self._add_lifting_license_encumbrance_listener(persistent_stack, data_event_bus)
-        self._add_license_encumbrance_notification_listener(persistent_stack, data_event_bus)
+        self.event_processors = {}
         self._add_license_encumbrance_lifting_notification_listener(persistent_stack, data_event_bus)
-        self._add_privilege_encumbrance_listener(persistent_stack, data_event_bus)
+        self._add_license_encumbrance_listener(persistent_stack, data_event_bus)
+        self._add_license_encumbrance_notification_listener(persistent_stack, data_event_bus)
+        self._add_lifting_license_encumbrance_listener(persistent_stack, data_event_bus)
         self._add_lifting_privilege_encumbrance_listener(persistent_stack, data_event_bus)
+        self._add_privilege_encumbrance_listener(persistent_stack, data_event_bus)
 
     def _add_license_encumbrance_listener(self, persistent_stack: ps.PersistentStack, data_event_bus: EventBus):
         """Add the license encumbrance listener lambda, queues, and event rules."""
@@ -76,7 +77,7 @@ class EventListenerStack(AppStack):
             ],
         )
 
-        self.license_encumbrance_event_listener = QueueEventListener(
+        self.event_processors[construct_id_prefix] = QueueEventListener(
             self,
             construct_id=construct_id_prefix,
             data_event_bus=data_event_bus,
@@ -122,7 +123,7 @@ class EventListenerStack(AppStack):
             ],
         )
 
-        self.lifting_license_encumbrance_event_listener = QueueEventListener(
+        self.event_processors[construct_id_prefix] = QueueEventListener(
             self,
             construct_id=construct_id_prefix,
             data_event_bus=data_event_bus,
@@ -131,19 +132,28 @@ class EventListenerStack(AppStack):
             persistent_stack=persistent_stack,
         )
 
-    def _add_license_encumbrance_notification_listener(
-        self, persistent_stack: ps.PersistentStack, data_event_bus: EventBus
+    def _add_emailer_event_listener(
+        self,
+        construct_id_prefix: str,
+        *,
+        index: str,
+        handler: str,
+        listener_detail_type: str,
+        persistent_stack: ps.PersistentStack,
+        data_event_bus: EventBus,
     ):
-        """Add the license encumbrance notification listener lambda, queues, and event rules."""
-        # Create the Lambda function handler that listens for license encumbrance events and sends notifications
-        construct_id_prefix = 'LicenseEncumbranceNotificationListener'
-        license_encumbrance_notification_listener_handler = PythonFunction(
+        """
+        Add a listener lambda, queues, and event rules, that listens for events from the data event bus and sends
+        emails.
+        """
+        # Create the Lambda function handler that listens for privilege encumbrance events
+        emailer_event_listener_handler = PythonFunction(
             self,
             f'{construct_id_prefix}Handler',
-            description='License Encumbrance Notification Listener Handler',
+            description=f'{construct_id_prefix} Emailer Event Listener Handler',
             lambda_dir='data-events',
-            index=os.path.join('handlers', 'encumbrance_events.py'),
-            handler='license_encumbrance_notification_listener',
+            index=os.path.join('handlers', index),
+            handler=handler,
             timeout=Duration.minutes(1),
             environment={
                 'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
@@ -154,14 +164,12 @@ class EventListenerStack(AppStack):
         )
 
         # Grant necessary permissions
-        persistent_stack.provider_table.grant_read_data(license_encumbrance_notification_listener_handler)
-        persistent_stack.email_notification_service_lambda.grant_invoke(
-            license_encumbrance_notification_listener_handler
-        )
+        persistent_stack.provider_table.grant_read_data(emailer_event_listener_handler)
+        persistent_stack.email_notification_service_lambda.grant_invoke(emailer_event_listener_handler)
 
         NagSuppressions.add_resource_suppressions_by_path(
             self,
-            f'{license_encumbrance_notification_listener_handler.node.path}/ServiceRole/DefaultPolicy/Resource',
+            f'{emailer_event_listener_handler.node.path}/ServiceRole/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
@@ -174,161 +182,61 @@ class EventListenerStack(AppStack):
             ],
         )
 
-        self.license_encumbrance_notification_event_listener = QueueEventListener(
+        self.event_processors[construct_id_prefix] = QueueEventListener(
             self,
             construct_id=construct_id_prefix,
             data_event_bus=data_event_bus,
-            listener_function=license_encumbrance_notification_listener_handler,
+            listener_function=emailer_event_listener_handler,
+            listener_detail_type=listener_detail_type,
+            persistent_stack=persistent_stack,
+        )
+
+    def _add_license_encumbrance_notification_listener(
+        self, persistent_stack: ps.PersistentStack, data_event_bus: EventBus
+    ):
+        """Add the license encumbrance notification listener lambda, queues, and event rules."""
+        self._add_emailer_event_listener(
+            construct_id_prefix='LicenseEncumbranceNotificationListener',
+            index='encumbrance_events.py',
+            handler='license_encumbrance_notification_listener',
             listener_detail_type='license.encumbrance',
             persistent_stack=persistent_stack,
+            data_event_bus=data_event_bus,
         )
 
     def _add_license_encumbrance_lifting_notification_listener(
         self, persistent_stack: ps.PersistentStack, data_event_bus: EventBus
     ):
         """Add the license encumbrance lifting notification listener lambda, queues, and event rules."""
-        # Create the Lambda function handler that listens for license encumbrance lifting events and sends notifications
-        construct_id_prefix = 'LicenseEncumbranceLiftingNotificationListener'
-        license_encumbrance_lifting_notification_listener_handler = PythonFunction(
-            self,
-            f'{construct_id_prefix}Handler',
-            description='License Encumbrance Lifting Notification Listener Handler',
-            lambda_dir='data-events',
-            index=os.path.join('handlers', 'encumbrance_events.py'),
+        self._add_emailer_event_listener(
+            construct_id_prefix='LicenseEncumbranceLiftingNotificationListener',
+            index='encumbrance_events.py',
             handler='license_encumbrance_lifting_notification_listener',
-            timeout=Duration.minutes(1),
-            environment={
-                'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
-                'EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME': persistent_stack.email_notification_service_lambda.function_name,  # noqa: E501 line-too-long
-                **self.common_env_vars,
-            },
-            alarm_topic=persistent_stack.alarm_topic,
-        )
-
-        # Grant necessary permissions
-        persistent_stack.provider_table.grant_read_data(license_encumbrance_lifting_notification_listener_handler)
-        persistent_stack.email_notification_service_lambda.grant_invoke(
-            license_encumbrance_lifting_notification_listener_handler
-        )
-
-        NagSuppressions.add_resource_suppressions_by_path(
-            self,
-            f'{license_encumbrance_lifting_notification_listener_handler.node.path}/ServiceRole/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': """
-                    This policy contains wild-carded actions and resources but they are scoped to the
-                    specific actions, KMS key, Table, and Email Service Lambda that this lambda specifically
-                    needs access to.
-                    """,
-                },
-            ],
-        )
-
-        self.license_encumbrance_lifting_notification_event_listener = QueueEventListener(
-            self,
-            construct_id=construct_id_prefix,
-            data_event_bus=data_event_bus,
-            listener_function=license_encumbrance_lifting_notification_listener_handler,
             listener_detail_type='license.encumbranceLifted',
             persistent_stack=persistent_stack,
+            data_event_bus=data_event_bus,
         )
 
     def _add_privilege_encumbrance_listener(self, persistent_stack: ps.PersistentStack, data_event_bus: EventBus):
         """Add the privilege encumbrance listener lambda, queues, and event rules."""
-        # Create the Lambda function handler that listens for privilege encumbrance events
-        construct_id_prefix = 'PrivilegeEncumbranceListener'
-        privilege_encumbrance_listener_handler = PythonFunction(
-            self,
-            f'{construct_id_prefix}Handler',
-            description='Privilege Encumbrance Listener Handler',
-            lambda_dir='data-events',
-            index=os.path.join('handlers', 'encumbrance_events.py'),
+        self._add_emailer_event_listener(
+            construct_id_prefix='PrivilegeEncumbranceListener',
+            index='encumbrance_events.py',
             handler='privilege_encumbrance_listener',
-            timeout=Duration.minutes(1),
-            environment={
-                'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
-                'EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME': persistent_stack.email_notification_service_lambda.function_name,  # noqa: E501 line-too-long
-                **self.common_env_vars,
-            },
-            alarm_topic=persistent_stack.alarm_topic,
-        )
-
-        # Grant necessary permissions
-        persistent_stack.provider_table.grant_read_data(privilege_encumbrance_listener_handler)
-        persistent_stack.email_notification_service_lambda.grant_invoke(privilege_encumbrance_listener_handler)
-
-        NagSuppressions.add_resource_suppressions_by_path(
-            self,
-            f'{privilege_encumbrance_listener_handler.node.path}/ServiceRole/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': """
-                    This policy contains wild-carded actions and resources but they are scoped to the
-                    specific actions, KMS key, Table, and Email Service Lambda that this lambda specifically
-                    needs access to.
-                    """,
-                },
-            ],
-        )
-
-        self.privilege_encumbrance_event_listener = QueueEventListener(
-            self,
-            construct_id=construct_id_prefix,
-            data_event_bus=data_event_bus,
-            listener_function=privilege_encumbrance_listener_handler,
             listener_detail_type='privilege.encumbrance',
             persistent_stack=persistent_stack,
+            data_event_bus=data_event_bus,
         )
 
     def _add_lifting_privilege_encumbrance_listener(
         self, persistent_stack: ps.PersistentStack, data_event_bus: EventBus
     ):
         """Add the privilege encumbrance lifting listener lambda, queues, and event rules."""
-        # Create the Lambda function handler that listens for privilege encumbrance lifting events
-        construct_id_prefix = 'PrivilegeEncumbranceLiftingListener'
-        privilege_encumbrance_lifting_listener_handler = PythonFunction(
-            self,
-            f'{construct_id_prefix}Handler',
-            description='Privilege Encumbrance Lifting Listener Handler',
-            lambda_dir='data-events',
-            index=os.path.join('handlers', 'encumbrance_events.py'),
+        self._add_emailer_event_listener(
+            construct_id_prefix='PrivilegeEncumbranceLiftingListener',
+            index='encumbrance_events.py',
             handler='privilege_encumbrance_lifting_listener',
-            timeout=Duration.minutes(1),
-            environment={
-                'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
-                'EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME': persistent_stack.email_notification_service_lambda.function_name,  # noqa: E501 line-too-long
-                **self.common_env_vars,
-            },
-            alarm_topic=persistent_stack.alarm_topic,
-        )
-
-        # Grant necessary permissions
-        persistent_stack.provider_table.grant_read_data(privilege_encumbrance_lifting_listener_handler)
-        persistent_stack.email_notification_service_lambda.grant_invoke(privilege_encumbrance_lifting_listener_handler)
-
-        NagSuppressions.add_resource_suppressions_by_path(
-            self,
-            f'{privilege_encumbrance_lifting_listener_handler.node.path}/ServiceRole/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': """
-                    This policy contains wild-carded actions and resources but they are scoped to the
-                    specific actions, KMS key, Table, and Email Service Lambda that this lambda specifically
-                    needs access to.
-                    """,
-                },
-            ],
-        )
-
-        self.lifting_privilege_encumbrance_event_listener = QueueEventListener(
-            self,
-            construct_id=construct_id_prefix,
-            data_event_bus=data_event_bus,
-            listener_function=privilege_encumbrance_lifting_listener_handler,
             listener_detail_type='privilege.encumbranceLifted',
             persistent_stack=persistent_stack,
+            data_event_bus=data_event_bus,
         )

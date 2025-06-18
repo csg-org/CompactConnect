@@ -271,7 +271,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
         # Verify event was published with correct details
         mock_publish_event.assert_called_once()
         call_args = mock_publish_event.call_args[1]
-        self.assertEqual('provider-data-v1', call_args['source'])
+        self.assertEqual('org.compactconnect.provider-data', call_args['source'])
         self.assertEqual('privilege.encumbrance', call_args['detail_type'])
         self.assertEqual(test_privilege_record.compact, call_args['detail']['compact'])
         self.assertEqual(str(test_privilege_record.providerId), call_args['detail']['providerId'])
@@ -826,7 +826,7 @@ class TestPatchPrivilegeEncumbranceLifting(TstFunction):
         # Verify event was published with correct details
         mock_publish_event.assert_called_once()
         call_args = mock_publish_event.call_args[1]
-        self.assertEqual('provider-data-v1', call_args['source'])
+        self.assertEqual('org.compactconnect.provider-data', call_args['source'])
         self.assertEqual('privilege.encumbranceLifted', call_args['detail_type'])
         self.assertEqual(privilege_record.compact, call_args['detail']['compact'])
         self.assertEqual(str(privilege_record.providerId), call_args['detail']['providerId'])

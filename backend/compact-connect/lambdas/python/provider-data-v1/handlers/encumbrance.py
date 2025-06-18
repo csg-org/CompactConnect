@@ -119,7 +119,7 @@ def handle_privilege_encumbrance(event: dict) -> dict:
 
     # Publish privilege encumbrance event
     config.event_bus_client.publish_privilege_encumbrance_event(
-        source='provider-data-v1',
+        source='org.compactconnect.provider-data',
         compact=adverse_action.compact,
         provider_id=adverse_action.providerId,
         jurisdiction=adverse_action.jurisdiction,
@@ -140,7 +140,7 @@ def handle_license_encumbrance(event: dict) -> dict:
     # Publish license encumbrance event
     event_bus_client = EventBusClient()
     event_bus_client.publish_license_encumbrance_event(
-        source='compact-connect.encumbrance',
+        source='org.compactconnect.provider-data',
         compact=adverse_action.compact,
         provider_id=adverse_action.providerId,
         jurisdiction=adverse_action.jurisdiction,
@@ -192,7 +192,7 @@ def handle_privilege_encumbrance_lifting(event: dict) -> dict:
 
         # Publish privilege encumbrance lifting event
         config.event_bus_client.publish_privilege_encumbrance_lifting_event(
-            source='provider-data-v1',
+            source='org.compactconnect.provider-data',
             compact=compact,
             provider_id=provider_id,
             jurisdiction=jurisdiction,
@@ -245,7 +245,7 @@ def handle_license_encumbrance_lifting(event: dict) -> dict:
         # Publish license encumbrance lifting event
         event_bus_client = EventBusClient()
         event_bus_client.publish_license_encumbrance_lifting_event(
-            source='compact-connect.encumbrance',
+            source='org.compactconnect.provider-data',
             compact=compact,
             provider_id=provider_id,
             jurisdiction=jurisdiction,

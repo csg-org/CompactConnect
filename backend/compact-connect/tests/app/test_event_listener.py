@@ -36,7 +36,9 @@ class TestEventListenerStack(TstAppABC, TestCase):
 
         # Verify the lambda function is created
         license_encumbrance_handler_logical_id = event_listener_stack.get_logical_id(
-            event_listener_stack.license_encumbrance_event_listener.queue_processor.process_function.node.default_child
+            event_listener_stack.event_processors[
+                'LicenseEncumbranceListener'
+            ].queue_processor.process_function.node.default_child
         )
         license_encumbrance_handler = TestEventListenerStack.get_resource_properties_by_logical_id(
             license_encumbrance_handler_logical_id,
@@ -49,14 +51,14 @@ class TestEventListenerStack(TstAppABC, TestCase):
 
         # Verify SQS queue is created for the license encumbrance listener
         listener_queue_logical_id = event_listener_stack.get_logical_id(
-            event_listener_stack.license_encumbrance_event_listener.queue_processor.queue.node.default_child
+            event_listener_stack.event_processors['LicenseEncumbranceListener'].queue_processor.queue.node.default_child
         )
         license_encumbrance_listener_queue = TestEventListenerStack.get_resource_properties_by_logical_id(
             listener_queue_logical_id, resources=event_listener_template.find_resources(CfnQueue.CFN_RESOURCE_TYPE_NAME)
         )
 
         dlq_logical_id = event_listener_stack.get_logical_id(
-            event_listener_stack.license_encumbrance_event_listener.queue_processor.dlq.node.default_child
+            event_listener_stack.event_processors['LicenseEncumbranceListener'].queue_processor.dlq.node.default_child
         )
 
         # remove dynamic field
@@ -74,7 +76,7 @@ class TestEventListenerStack(TstAppABC, TestCase):
         # Verify EventBridge rule is created with correct detail type
         license_encumbrance_listener_event_bridge_rule = TestEventListenerStack.get_resource_properties_by_logical_id(
             event_listener_stack.get_logical_id(
-                event_listener_stack.license_encumbrance_event_listener.event_rule.node.default_child
+                event_listener_stack.event_processors['LicenseEncumbranceListener'].event_rule.node.default_child
             ),
             resources=event_listener_template.find_resources(CfnRule.CFN_RESOURCE_TYPE_NAME),
         )
@@ -108,7 +110,9 @@ class TestEventListenerStack(TstAppABC, TestCase):
         # Verify event source mapping between SQS queue and Lambda function
         event_source_mapping = TestEventListenerStack.get_resource_properties_by_logical_id(
             event_listener_stack.get_logical_id(
-                event_listener_stack.license_encumbrance_event_listener.queue_processor.event_source_mapping.node.default_child
+                event_listener_stack.event_processors[
+                    'LicenseEncumbranceListener'
+                ].queue_processor.event_source_mapping.node.default_child
             ),
             resources=event_listener_template.find_resources(CfnEventSourceMapping.CFN_RESOURCE_TYPE_NAME),
         )
@@ -133,7 +137,9 @@ class TestEventListenerStack(TstAppABC, TestCase):
 
         # Verify the lambda function is created
         lifting_encumbrance_handler_logical_id = event_listener_stack.get_logical_id(
-            event_listener_stack.lifting_license_encumbrance_event_listener.queue_processor.process_function.node.default_child
+            event_listener_stack.event_processors[
+                'LiftedLicenseEncumbranceListener'
+            ].queue_processor.process_function.node.default_child
         )
         lifting_encumbrance_handler = TestEventListenerStack.get_resource_properties_by_logical_id(
             lifting_encumbrance_handler_logical_id,
@@ -146,7 +152,9 @@ class TestEventListenerStack(TstAppABC, TestCase):
 
         # Verify SQS queue is created for the license encumbrance lifting listener
         lifting_listener_queue_logical_id = event_listener_stack.get_logical_id(
-            event_listener_stack.lifting_license_encumbrance_event_listener.queue_processor.queue.node.default_child
+            event_listener_stack.event_processors[
+                'LiftedLicenseEncumbranceListener'
+            ].queue_processor.queue.node.default_child
         )
         lifting_encumbrance_listener_queue = TestEventListenerStack.get_resource_properties_by_logical_id(
             lifting_listener_queue_logical_id,
@@ -154,7 +162,9 @@ class TestEventListenerStack(TstAppABC, TestCase):
         )
 
         dlq_logical_id = event_listener_stack.get_logical_id(
-            event_listener_stack.lifting_license_encumbrance_event_listener.queue_processor.dlq.node.default_child
+            event_listener_stack.event_processors[
+                'LiftedLicenseEncumbranceListener'
+            ].queue_processor.dlq.node.default_child
         )
 
         # remove dynamic field
@@ -172,7 +182,7 @@ class TestEventListenerStack(TstAppABC, TestCase):
         # Verify EventBridge rule is created with correct detail type
         lifting_encumbrance_listener_event_bridge_rule = TestEventListenerStack.get_resource_properties_by_logical_id(
             event_listener_stack.get_logical_id(
-                event_listener_stack.lifting_license_encumbrance_event_listener.event_rule.node.default_child
+                event_listener_stack.event_processors['LiftedLicenseEncumbranceListener'].event_rule.node.default_child
             ),
             resources=event_listener_template.find_resources(CfnRule.CFN_RESOURCE_TYPE_NAME),
         )
@@ -206,7 +216,9 @@ class TestEventListenerStack(TstAppABC, TestCase):
         # Verify event source mapping between SQS queue and Lambda function
         event_source_mapping = TestEventListenerStack.get_resource_properties_by_logical_id(
             event_listener_stack.get_logical_id(
-                event_listener_stack.lifting_license_encumbrance_event_listener.queue_processor.event_source_mapping.node.default_child
+                event_listener_stack.event_processors[
+                    'LiftedLicenseEncumbranceListener'
+                ].queue_processor.event_source_mapping.node.default_child
             ),
             resources=event_listener_template.find_resources(CfnEventSourceMapping.CFN_RESOURCE_TYPE_NAME),
         )
@@ -231,7 +243,9 @@ class TestEventListenerStack(TstAppABC, TestCase):
 
         # Verify the lambda function is created
         privilege_encumbrance_handler_logical_id = event_listener_stack.get_logical_id(
-            event_listener_stack.privilege_encumbrance_event_listener.queue_processor.process_function.node.default_child
+            event_listener_stack.event_processors[
+                'PrivilegeEncumbranceListener'
+            ].queue_processor.process_function.node.default_child
         )
         privilege_encumbrance_handler = TestEventListenerStack.get_resource_properties_by_logical_id(
             privilege_encumbrance_handler_logical_id,
@@ -244,14 +258,16 @@ class TestEventListenerStack(TstAppABC, TestCase):
 
         # Verify SQS queue is created for the privilege encumbrance listener
         listener_queue_logical_id = event_listener_stack.get_logical_id(
-            event_listener_stack.privilege_encumbrance_event_listener.queue_processor.queue.node.default_child
+            event_listener_stack.event_processors[
+                'PrivilegeEncumbranceListener'
+            ].queue_processor.queue.node.default_child
         )
         privilege_encumbrance_listener_queue = TestEventListenerStack.get_resource_properties_by_logical_id(
             listener_queue_logical_id, resources=event_listener_template.find_resources(CfnQueue.CFN_RESOURCE_TYPE_NAME)
         )
 
         dlq_logical_id = event_listener_stack.get_logical_id(
-            event_listener_stack.privilege_encumbrance_event_listener.queue_processor.dlq.node.default_child
+            event_listener_stack.event_processors['PrivilegeEncumbranceListener'].queue_processor.dlq.node.default_child
         )
 
         # remove dynamic field
@@ -269,7 +285,7 @@ class TestEventListenerStack(TstAppABC, TestCase):
         # Verify EventBridge rule is created with correct detail type
         privilege_encumbrance_listener_event_bridge_rule = TestEventListenerStack.get_resource_properties_by_logical_id(
             event_listener_stack.get_logical_id(
-                event_listener_stack.privilege_encumbrance_event_listener.event_rule.node.default_child
+                event_listener_stack.event_processors['PrivilegeEncumbranceListener'].event_rule.node.default_child
             ),
             resources=event_listener_template.find_resources(CfnRule.CFN_RESOURCE_TYPE_NAME),
         )
@@ -303,7 +319,9 @@ class TestEventListenerStack(TstAppABC, TestCase):
         # Verify event source mapping between SQS queue and Lambda function
         event_source_mapping = TestEventListenerStack.get_resource_properties_by_logical_id(
             event_listener_stack.get_logical_id(
-                event_listener_stack.privilege_encumbrance_event_listener.queue_processor.event_source_mapping.node.default_child
+                event_listener_stack.event_processors[
+                    'PrivilegeEncumbranceListener'
+                ].queue_processor.event_source_mapping.node.default_child
             ),
             resources=event_listener_template.find_resources(CfnEventSourceMapping.CFN_RESOURCE_TYPE_NAME),
         )
@@ -328,7 +346,9 @@ class TestEventListenerStack(TstAppABC, TestCase):
 
         # Verify the lambda function is created
         privilege_encumbrance_lifting_handler_logical_id = event_listener_stack.get_logical_id(
-            event_listener_stack.lifting_privilege_encumbrance_event_listener.queue_processor.process_function.node.default_child
+            event_listener_stack.event_processors[
+                'PrivilegeEncumbranceLiftingListener'
+            ].queue_processor.process_function.node.default_child
         )
         privilege_encumbrance_lifting_handler = TestEventListenerStack.get_resource_properties_by_logical_id(
             privilege_encumbrance_lifting_handler_logical_id,
@@ -342,7 +362,9 @@ class TestEventListenerStack(TstAppABC, TestCase):
 
         # Verify SQS queue is created for the privilege encumbrance lifting listener
         lifting_listener_queue_logical_id = event_listener_stack.get_logical_id(
-            event_listener_stack.lifting_privilege_encumbrance_event_listener.queue_processor.queue.node.default_child
+            event_listener_stack.event_processors[
+                'PrivilegeEncumbranceLiftingListener'
+            ].queue_processor.queue.node.default_child
         )
         privilege_encumbrance_lifting_listener_queue = TestEventListenerStack.get_resource_properties_by_logical_id(
             lifting_listener_queue_logical_id,
@@ -350,7 +372,9 @@ class TestEventListenerStack(TstAppABC, TestCase):
         )
 
         dlq_logical_id = event_listener_stack.get_logical_id(
-            event_listener_stack.lifting_privilege_encumbrance_event_listener.queue_processor.dlq.node.default_child
+            event_listener_stack.event_processors[
+                'PrivilegeEncumbranceLiftingListener'
+            ].queue_processor.dlq.node.default_child
         )
 
         # remove dynamic field
@@ -369,7 +393,9 @@ class TestEventListenerStack(TstAppABC, TestCase):
         privilege_encumbrance_lifting_listener_event_bridge_rule = (
             TestEventListenerStack.get_resource_properties_by_logical_id(
                 event_listener_stack.get_logical_id(
-                    event_listener_stack.lifting_privilege_encumbrance_event_listener.event_rule.node.default_child
+                    event_listener_stack.event_processors[
+                        'PrivilegeEncumbranceLiftingListener'
+                    ].event_rule.node.default_child
                 ),
                 resources=event_listener_template.find_resources(CfnRule.CFN_RESOURCE_TYPE_NAME),
             )
@@ -404,7 +430,9 @@ class TestEventListenerStack(TstAppABC, TestCase):
         # Verify event source mapping between SQS queue and Lambda function
         event_source_mapping = TestEventListenerStack.get_resource_properties_by_logical_id(
             event_listener_stack.get_logical_id(
-                event_listener_stack.lifting_privilege_encumbrance_event_listener.queue_processor.event_source_mapping.node.default_child
+                event_listener_stack.event_processors[
+                    'PrivilegeEncumbranceLiftingListener'
+                ].queue_processor.event_source_mapping.node.default_child
             ),
             resources=event_listener_template.find_resources(CfnEventSourceMapping.CFN_RESOURCE_TYPE_NAME),
         )
@@ -429,7 +457,9 @@ class TestEventListenerStack(TstAppABC, TestCase):
 
         # Verify the lambda function is created
         license_encumbrance_notification_handler_logical_id = event_listener_stack.get_logical_id(
-            event_listener_stack.license_encumbrance_notification_event_listener.queue_processor.process_function.node.default_child
+            event_listener_stack.event_processors[
+                'LicenseEncumbranceNotificationListener'
+            ].queue_processor.process_function.node.default_child
         )
         license_encumbrance_notification_handler = TestEventListenerStack.get_resource_properties_by_logical_id(
             license_encumbrance_notification_handler_logical_id,
@@ -443,7 +473,9 @@ class TestEventListenerStack(TstAppABC, TestCase):
 
         # Verify SQS queue is created for the license encumbrance notification listener
         notification_listener_queue_logical_id = event_listener_stack.get_logical_id(
-            event_listener_stack.license_encumbrance_notification_event_listener.queue_processor.queue.node.default_child
+            event_listener_stack.event_processors[
+                'LicenseEncumbranceNotificationListener'
+            ].queue_processor.queue.node.default_child
         )
         license_encumbrance_notification_listener_queue = TestEventListenerStack.get_resource_properties_by_logical_id(
             notification_listener_queue_logical_id,
@@ -451,7 +483,9 @@ class TestEventListenerStack(TstAppABC, TestCase):
         )
 
         dlq_logical_id = event_listener_stack.get_logical_id(
-            event_listener_stack.license_encumbrance_notification_event_listener.queue_processor.dlq.node.default_child
+            event_listener_stack.event_processors[
+                'LicenseEncumbranceNotificationListener'
+            ].queue_processor.dlq.node.default_child
         )
 
         # remove dynamic field
@@ -470,7 +504,9 @@ class TestEventListenerStack(TstAppABC, TestCase):
         license_encumbrance_notification_listener_event_bridge_rule = (
             TestEventListenerStack.get_resource_properties_by_logical_id(
                 event_listener_stack.get_logical_id(
-                    event_listener_stack.license_encumbrance_notification_event_listener.event_rule.node.default_child
+                    event_listener_stack.event_processors[
+                        'LicenseEncumbranceNotificationListener'
+                    ].event_rule.node.default_child
                 ),
                 resources=event_listener_template.find_resources(CfnRule.CFN_RESOURCE_TYPE_NAME),
             )
@@ -505,7 +541,9 @@ class TestEventListenerStack(TstAppABC, TestCase):
         # Verify event source mapping between SQS queue and Lambda function
         event_source_mapping = TestEventListenerStack.get_resource_properties_by_logical_id(
             event_listener_stack.get_logical_id(
-                event_listener_stack.license_encumbrance_notification_event_listener.queue_processor.event_source_mapping.node.default_child
+                event_listener_stack.event_processors[
+                    'LicenseEncumbranceNotificationListener'
+                ].queue_processor.event_source_mapping.node.default_child
             ),
             resources=event_listener_template.find_resources(CfnEventSourceMapping.CFN_RESOURCE_TYPE_NAME),
         )
@@ -530,7 +568,9 @@ class TestEventListenerStack(TstAppABC, TestCase):
 
         # Verify the lambda function is created
         license_encumbrance_lifting_notification_handler_logical_id = event_listener_stack.get_logical_id(
-            event_listener_stack.license_encumbrance_lifting_notification_event_listener.queue_processor.process_function.node.default_child
+            event_listener_stack.event_processors[
+                'LicenseEncumbranceLiftingNotificationListener'
+            ].queue_processor.process_function.node.default_child
         )
         license_encumbrance_lifting_notification_handler = TestEventListenerStack.get_resource_properties_by_logical_id(
             license_encumbrance_lifting_notification_handler_logical_id,
@@ -544,7 +584,9 @@ class TestEventListenerStack(TstAppABC, TestCase):
 
         # Verify SQS queue is created for the license encumbrance lifting notification listener
         lifting_notification_listener_queue_logical_id = event_listener_stack.get_logical_id(
-            event_listener_stack.license_encumbrance_lifting_notification_event_listener.queue_processor.queue.node.default_child
+            event_listener_stack.event_processors[
+                'LicenseEncumbranceLiftingNotificationListener'
+            ].queue_processor.queue.node.default_child
         )
         license_encumbrance_lifting_notification_listener_queue = (
             TestEventListenerStack.get_resource_properties_by_logical_id(
@@ -554,7 +596,9 @@ class TestEventListenerStack(TstAppABC, TestCase):
         )
 
         dlq_logical_id = event_listener_stack.get_logical_id(
-            event_listener_stack.license_encumbrance_lifting_notification_event_listener.queue_processor.dlq.node.default_child
+            event_listener_stack.event_processors[
+                'LicenseEncumbranceLiftingNotificationListener'
+            ].queue_processor.dlq.node.default_child
         )
 
         # remove dynamic field
@@ -570,12 +614,15 @@ class TestEventListenerStack(TstAppABC, TestCase):
         )
 
         # Verify EventBridge rule is created with correct detail type
-        license_encumbrance_lifting_notification_listener_event_bridge_rule = \
+        license_encumbrance_lifting_notification_listener_event_bridge_rule = (
             TestEventListenerStack.get_resource_properties_by_logical_id(
-            event_listener_stack.get_logical_id(
-                event_listener_stack.license_encumbrance_lifting_notification_event_listener.event_rule.node.default_child
-            ),
-            resources=event_listener_template.find_resources(CfnRule.CFN_RESOURCE_TYPE_NAME),
+                event_listener_stack.get_logical_id(
+                    event_listener_stack.event_processors[
+                        'LicenseEncumbranceLiftingNotificationListener'
+                    ].event_rule.node.default_child
+                ),
+                resources=event_listener_template.find_resources(CfnRule.CFN_RESOURCE_TYPE_NAME),
+            )
         )
 
         self.assertEqual(
@@ -607,7 +654,9 @@ class TestEventListenerStack(TstAppABC, TestCase):
         # Verify event source mapping between SQS queue and Lambda function
         event_source_mapping = TestEventListenerStack.get_resource_properties_by_logical_id(
             event_listener_stack.get_logical_id(
-                event_listener_stack.license_encumbrance_lifting_notification_event_listener.queue_processor.event_source_mapping.node.default_child
+                event_listener_stack.event_processors[
+                    'LicenseEncumbranceLiftingNotificationListener'
+                ].queue_processor.event_source_mapping.node.default_child
             ),
             resources=event_listener_template.find_resources(CfnEventSourceMapping.CFN_RESOURCE_TYPE_NAME),
         )

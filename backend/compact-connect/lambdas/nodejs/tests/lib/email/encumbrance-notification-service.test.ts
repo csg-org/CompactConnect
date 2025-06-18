@@ -173,13 +173,13 @@ describe('EncumbranceNotificationService', () => {
             });
         });
 
-        it('should throw error when no recipients found', async () => {
+        it('should log warning and continue when no recipients found', async () => {
             mockJurisdictionClient.getJurisdictionConfiguration.mockResolvedValue({
                 ...SAMPLE_JURISDICTION_CONFIG,
                 jurisdictionAdverseActionsNotificationEmails: []
             });
 
-            await expect(encumbranceService.sendLicenseEncumbranceStateNotificationEmail(
+            await encumbranceService.sendLicenseEncumbranceStateNotificationEmail(
                 'aslp',
                 'oh',
                 'John',
@@ -188,7 +188,30 @@ describe('EncumbranceNotificationService', () => {
                 'OH',
                 'Audiologist',
                 '2024-01-15'
-            )).rejects.toThrow('No adverse action notification recipients found for jurisdiction oh in compact aslp');
+            );
+
+            // Should not send email when no recipients
+            expect(mockSESClient).not.toHaveReceivedCommand(SendEmailCommand);
+        });
+
+        it('should log warning and continue when jurisdiction configuration is missing', async () => {
+            mockJurisdictionClient.getJurisdictionConfiguration.mockRejectedValue(
+                new Error('Jurisdiction configuration not found for oh')
+            );
+
+            await encumbranceService.sendLicenseEncumbranceStateNotificationEmail(
+                'aslp',
+                'oh',
+                'John',
+                'Doe',
+                'provider-123',
+                'OH',
+                'Audiologist',
+                '2024-01-15'
+            );
+
+            // Should not send email when jurisdiction config is missing
+            expect(mockSESClient).not.toHaveReceivedCommand(SendEmailCommand);
         });
     });
 
@@ -281,13 +304,13 @@ describe('EncumbranceNotificationService', () => {
             );
         });
 
-        it('should throw error when no recipients found for jurisdiction', async () => {
+        it('should log warning and continue when no recipients found for jurisdiction', async () => {
             mockJurisdictionClient.getJurisdictionConfiguration.mockResolvedValue({
                 ...SAMPLE_JURISDICTION_CONFIG,
                 jurisdictionAdverseActionsNotificationEmails: []
             });
 
-            await expect(encumbranceService.sendLicenseEncumbranceLiftingStateNotificationEmail(
+            await encumbranceService.sendLicenseEncumbranceLiftingStateNotificationEmail(
                 'aslp',
                 'oh',
                 'John',
@@ -296,7 +319,30 @@ describe('EncumbranceNotificationService', () => {
                 'OH',
                 'Audiologist',
                 '2024-02-15'
-            )).rejects.toThrow('No adverse action notification recipients found for jurisdiction oh in compact aslp');
+            );
+
+            // Should not send email when no recipients
+            expect(mockSESClient).not.toHaveReceivedCommand(SendEmailCommand);
+        });
+
+        it('should log warning and continue when jurisdiction configuration is missing', async () => {
+            mockJurisdictionClient.getJurisdictionConfiguration.mockRejectedValue(
+                new Error('Jurisdiction configuration not found for oh')
+            );
+
+            await encumbranceService.sendLicenseEncumbranceLiftingStateNotificationEmail(
+                'aslp',
+                'oh',
+                'John',
+                'Doe',
+                'provider-123',
+                'OH',
+                'Audiologist',
+                '2024-02-15'
+            );
+
+            // Should not send email when jurisdiction config is missing
+            expect(mockSESClient).not.toHaveReceivedCommand(SendEmailCommand);
         });
     });
 
@@ -413,13 +459,13 @@ describe('EncumbranceNotificationService', () => {
             expect(emailContent).toContain('This encumbrance restricts the provider&#x27;s ability to practice in Ohio under the Audiology and Speech Language Pathology compact');
         });
 
-        it('should throw error when no recipients found for jurisdiction', async () => {
+        it('should log warning and continue when no recipients found for jurisdiction', async () => {
             mockJurisdictionClient.getJurisdictionConfiguration.mockResolvedValue({
                 ...SAMPLE_JURISDICTION_CONFIG,
                 jurisdictionAdverseActionsNotificationEmails: []
             });
 
-            await expect(encumbranceService.sendPrivilegeEncumbranceStateNotificationEmail(
+            await encumbranceService.sendPrivilegeEncumbranceStateNotificationEmail(
                 'aslp',
                 'oh',
                 'John',
@@ -428,7 +474,30 @@ describe('EncumbranceNotificationService', () => {
                 'OH',
                 'Audiologist',
                 '2024-01-15'
-            )).rejects.toThrow('No adverse action notification recipients found for jurisdiction oh in compact aslp');
+            );
+
+            // Should not send email when no recipients
+            expect(mockSESClient).not.toHaveReceivedCommand(SendEmailCommand);
+        });
+
+        it('should log warning and continue when jurisdiction configuration is missing', async () => {
+            mockJurisdictionClient.getJurisdictionConfiguration.mockRejectedValue(
+                new Error('Jurisdiction configuration not found for oh')
+            );
+
+            await encumbranceService.sendPrivilegeEncumbranceStateNotificationEmail(
+                'aslp',
+                'oh',
+                'John',
+                'Doe',
+                'provider-123',
+                'OH',
+                'Audiologist',
+                '2024-01-15'
+            );
+
+            // Should not send email when jurisdiction config is missing
+            expect(mockSESClient).not.toHaveReceivedCommand(SendEmailCommand);
         });
     });
 
@@ -527,13 +596,13 @@ describe('EncumbranceNotificationService', () => {
             expect(emailContent).toContain('The encumbrance no longer restricts the provider&#x27;s ability to practice in Ohio under the Audiology and Speech Language Pathology compact');
         });
 
-        it('should throw error when no recipients found for jurisdiction', async () => {
+        it('should log warning and continue when no recipients found for jurisdiction', async () => {
             mockJurisdictionClient.getJurisdictionConfiguration.mockResolvedValue({
                 ...SAMPLE_JURISDICTION_CONFIG,
                 jurisdictionAdverseActionsNotificationEmails: []
             });
 
-            await expect(encumbranceService.sendPrivilegeEncumbranceLiftingStateNotificationEmail(
+            await encumbranceService.sendPrivilegeEncumbranceLiftingStateNotificationEmail(
                 'aslp',
                 'oh',
                 'John',
@@ -542,7 +611,30 @@ describe('EncumbranceNotificationService', () => {
                 'OH',
                 'Audiologist',
                 '2024-02-15'
-            )).rejects.toThrow('No adverse action notification recipients found for jurisdiction oh in compact aslp');
+            );
+
+            // Should not send email when no recipients
+            expect(mockSESClient).not.toHaveReceivedCommand(SendEmailCommand);
+        });
+
+        it('should log warning and continue when jurisdiction configuration is missing', async () => {
+            mockJurisdictionClient.getJurisdictionConfiguration.mockRejectedValue(
+                new Error('Jurisdiction configuration not found for oh')
+            );
+
+            await encumbranceService.sendPrivilegeEncumbranceLiftingStateNotificationEmail(
+                'aslp',
+                'oh',
+                'John',
+                'Doe',
+                'provider-123',
+                'OH',
+                'Audiologist',
+                '2024-02-15'
+            );
+
+            // Should not send email when jurisdiction config is missing
+            expect(mockSESClient).not.toHaveReceivedCommand(SendEmailCommand);
         });
     });
 });

@@ -117,7 +117,7 @@ class TestEncumbranceEvents(TstFunction):
         # Now verify the rest with comprehensive assertion
         self.assertEqual(
             {
-                'source': 'data-events.license-encumbrance',
+                'source': 'org.compactconnect.data-events',
                 'detail_type': 'privilege.encumbrance',
                 'detail': {
                     'compact': DEFAULT_COMPACT,
@@ -315,7 +315,7 @@ class TestEncumbranceEvents(TstFunction):
         # Now verify the rest with comprehensive assertion
         self.assertEqual(
             {
-                'source': 'data-events.license-encumbrance-lifting',
+                'source': 'org.compactconnect.data-events',
                 'detail_type': 'privilege.encumbranceLifted',
                 'detail': {
                     'compact': DEFAULT_COMPACT,
@@ -468,7 +468,7 @@ class TestEncumbranceEvents(TstFunction):
 
             # Now verify the rest with comprehensive assertion
             expected_call_args = {
-                'source': 'data-events.license-encumbrance',
+                'source': 'org.compactconnect.data-events',
                 'detail_type': 'privilege.encumbrance',
                 'detail': {
                     'compact': DEFAULT_COMPACT,

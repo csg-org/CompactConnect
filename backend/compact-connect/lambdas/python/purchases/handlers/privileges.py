@@ -362,7 +362,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             total_cost = total_cost + float(line_item['unitPrice']) * int(line_item['quantity'])
 
         config.event_bus_client.publish_privilege_purchase_event(
-            source='post_purchase_privileges',
+            source='org.compactconnect.purchases',
             jurisdiction=license_jurisdiction,
             compact=compact_abbr,
             provider_email=provider_email,
@@ -385,7 +385,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
 
         for privilege_jurisdiction_issued in privilege_jurisdictions_issued:
             config.event_bus_client.publish_privilege_issued_event(
-                source='post_purchase_privileges',
+                source='org.compactconnect.purchases',
                 jurisdiction=privilege_jurisdiction_issued,
                 compact=compact_abbr,
                 provider_email=provider_email,
@@ -393,7 +393,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
 
         for privilege_jurisdiction_renewed in privilege_jurisdictions_renewed:
             config.event_bus_client.publish_privilege_renewed_event(
-                source='post_purchase_privileges',
+                source='org.compactconnect.purchases',
                 jurisdiction=privilege_jurisdiction_renewed,
                 compact=compact_abbr,
                 provider_email=provider_email,
