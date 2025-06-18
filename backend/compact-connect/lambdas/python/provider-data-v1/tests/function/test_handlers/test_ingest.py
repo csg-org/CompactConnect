@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import datetime, date
 from unittest.mock import patch
 
 from moto import mock_aws
@@ -329,12 +329,62 @@ class TestIngest(TstFunction):
                             'compact': 'aslp',
                             'jurisdiction': 'oh',
                             'providerId': provider_id,
+                            'licenseType': 'speech-language pathologist'
                         }
                     ),
                     'EventBusName': 'license-data-events',
                 }
             },
         )
+
+    @patch('handlers.ingest.EventBatchWriter', autospec=True)
+    def test_expired_license_deactivation_does_not_send_event(self, mock_event_writer):
+        """Test that license deactivation event is NOT sent when the license is expired."""
+        from handlers.ingest import ingest_license_message
+        from common_test.test_constants import (
+            DEFAULT_COMPACT,
+            DEFAULT_LICENSE_JURISDICTION,
+            DEFAULT_LICENSE_TYPE,
+            DEFAULT_PROVIDER_ID,
+        )
+
+        # Set up test data with an expired license that gets deactivated
+        self.test_data_generator.put_default_provider_record_in_provider_table()
+
+        # Create a license that is expired (dateOfExpiration before current date)
+        self.test_data_generator.put_default_license_record_in_provider_table(
+            value_overrides={
+                'providerId': DEFAULT_PROVIDER_ID,
+                'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                'licenseType': DEFAULT_LICENSE_TYPE,
+                'dateOfExpiration': date.fromisoformat('2024-11-05'),  # expired compared to mock test date of 2024-11-08
+                'jurisdictionUploadedLicenseStatus': 'active',  # Currently active, will be deactivated
+                'jurisdictionUploadedCompactEligibility': 'eligible',
+            }
+        )
+
+        # Create the ingest message to deactivate the expired license
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            message = json.load(f)
+
+        message['detail'].update({
+            'compact': DEFAULT_COMPACT,
+            'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+            'licenseType': DEFAULT_LICENSE_TYPE,
+            'providerId': DEFAULT_PROVIDER_ID,
+            'dateOfExpiration': '2024-11-05',  # expired compared to mock test date of 2024-11-08
+            'licenseStatus': 'inactive',  # Being deactivated by jurisdiction
+            'compactEligibility': 'ineligible',
+        })
+
+        event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
+
+        # Execute the ingest
+        resp = ingest_license_message(event, self.mock_context)
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        # Verify that NO license deactivation event was sent because the license is expired
+        mock_event_writer.return_value.__enter__.return_value.put_event.assert_not_called()
 
     def test_existing_provider_renewal(self):
         from handlers.ingest import ingest_license_message

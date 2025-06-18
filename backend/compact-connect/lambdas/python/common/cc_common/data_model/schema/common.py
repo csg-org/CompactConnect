@@ -263,6 +263,8 @@ class UpdateCategory(CCEnum):
     HOME_JURISDICTION_CHANGE = 'homeJurisdictionChange'
     REGISTRATION = 'registration'
     LIFTING_ENCUMBRANCE = 'lifting_encumbrance'
+    # this is specific to privileges that are deactivated due to a state license deactivation
+    LICENSE_DEACTIVATION = 'licenseDeactivation'
 
 
 class ActiveInactiveStatus(CCEnum):
