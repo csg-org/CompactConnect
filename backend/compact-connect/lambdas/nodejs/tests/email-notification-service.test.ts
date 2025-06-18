@@ -589,12 +589,12 @@ describe('EmailNotificationServiceLambda', () => {
                     Body: {
                         Html: {
                             Charset: 'UTF-8',
-                            Data: expect.stringContaining('Your Audiologist license in OH is encumbered')
+                            Data: expect.stringContaining('Your Audiologist license in Ohio is encumbered')
                         }
                     },
                     Subject: {
                         Charset: 'UTF-8',
-                        Data: 'Your Audiologist license in OH is encumbered'
+                        Data: 'Your Audiologist license in Ohio is encumbered'
                     }
                 },
                 Source: 'Compact Connect <noreply@example.org>'
@@ -745,12 +745,12 @@ describe('EmailNotificationServiceLambda', () => {
                     Body: {
                         Html: {
                             Charset: 'UTF-8',
-                            Data: expect.stringContaining('Your Audiologist license in OH is no longer encumbered')
+                            Data: expect.stringContaining('Your Audiologist license in Ohio is no longer encumbered')
                         }
                     },
                     Subject: {
                         Charset: 'UTF-8',
-                        Data: 'Your Audiologist license in OH is no longer encumbered'
+                        Data: 'Your Audiologist license in Ohio is no longer encumbered'
                     }
                 },
                 Source: 'Compact Connect <noreply@example.org>'
@@ -879,12 +879,12 @@ describe('EmailNotificationServiceLambda', () => {
                     Body: {
                         Html: {
                             Charset: 'UTF-8',
-                            Data: expect.stringContaining('Your Audiologist privilege in OH is encumbered')
+                            Data: expect.stringContaining('Your Audiologist privilege in Ohio is encumbered')
                         }
                     },
                     Subject: {
                         Charset: 'UTF-8',
-                        Data: 'Your Audiologist privilege in OH is encumbered'
+                        Data: 'Your Audiologist privilege in Ohio is encumbered'
                     }
                 },
                 Source: 'Compact Connect <noreply@example.org>'
@@ -1013,12 +1013,12 @@ describe('EmailNotificationServiceLambda', () => {
                     Body: {
                         Html: {
                             Charset: 'UTF-8',
-                            Data: expect.stringContaining('Your Audiologist privilege in OH is no longer encumbered')
+                            Data: expect.stringContaining('Your Audiologist privilege in Ohio is no longer encumbered')
                         }
                     },
                     Subject: {
                         Charset: 'UTF-8',
-                        Data: 'Your Audiologist privilege in OH is no longer encumbered'
+                        Data: 'Your Audiologist privilege in Ohio is no longer encumbered'
                     }
                 },
                 Source: 'Compact Connect <noreply@example.org>'

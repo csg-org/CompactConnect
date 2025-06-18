@@ -254,10 +254,11 @@ def test_license_encumbrance_workflow():
 
     # Get the first license for testing
     licenses = provider_data.get('licenses', [])
+    license_jurisdiction = provider_data['licenseJurisdiction']
     if not licenses:
         raise SmokeTestFailureException('No licenses found for provider')
 
-    license_record = licenses[0]
+    license_record = [lic for lic in licenses if lic['jurisdiction'] == license_jurisdiction][0]
     jurisdiction = license_record['jurisdiction']
     license_type = license_record['licenseType']
     license_type_abbreviation = get_license_type_abbreviation(license_type)

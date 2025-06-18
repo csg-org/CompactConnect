@@ -60,11 +60,15 @@ export class CognitoEmailService extends BaseEmailService {
         const template = this.getNewEmailTemplate();
 
         this.insertHeader(template, subject);
-        this.insertMarkdownBody(template,
-            `Your temporary password is: ${codeParameter}\n\nYour username is: ${usernameParameter}`
+        this.insertBody(template,
+            `Your temporary password is: ${codeParameter}\n\nYour username is: ${usernameParameter}`,
+            'center',
+            true
         );
-        this.insertMarkdownBody(template,
-            `Please sign in at ${environmentVariableService.getUiBasePathUrl()}/Dashboard and change your password when prompted.`
+        this.insertBody(template,
+            `Please sign in at ${environmentVariableService.getUiBasePathUrl()}/Dashboard and change your password when prompted.`,
+            'center',
+            true
         );
         this.insertFooter(template);
 
@@ -83,8 +87,10 @@ export class CognitoEmailService extends BaseEmailService {
         const template = this.getNewEmailTemplate();
 
         this.insertHeader(template, subject);
-        this.insertMarkdownBody(template,
-            'You requested to reset your password. Enter the following code to proceed:'
+        this.insertBody(template,
+            'You requested to reset your password. Enter the following code to proceed:',
+            'center',
+            true
         );
         this.insertSubHeading(template, codeParameter);
         this.insertFooter(template);
@@ -104,8 +110,10 @@ export class CognitoEmailService extends BaseEmailService {
         const template = this.getNewEmailTemplate();
 
         this.insertHeader(template, subject);
-        this.insertMarkdownBody(template,
-            'Please verify your new email address by entering the following code:'
+        this.insertBody(template,
+            'Please verify your new email address by entering the following code:',
+            'center',
+            true
         );
         this.insertSubHeading(template, codeParameter);
         this.insertFooter(template);
@@ -126,8 +134,10 @@ export class CognitoEmailService extends BaseEmailService {
         const template = this.getNewEmailTemplate();
 
         this.insertHeader(template, subject);
-        this.insertMarkdownBody(template,
-            'Please verify your email address by entering the following code:'
+        this.insertBody(template,
+            'Please verify your email address by entering the following code:',
+            'center',
+            true
         );
         this.insertSubHeading(template, codeParameter);
         this.insertFooter(template);
@@ -148,8 +158,10 @@ export class CognitoEmailService extends BaseEmailService {
         const template = this.getNewEmailTemplate();
 
         this.insertHeader(template, subject);
-        this.insertMarkdownBody(template,
-            'Your new verification code is:'
+        this.insertBody(template,
+            'Your new verification code is:',
+            'center',
+            true
         );
         this.insertSubHeading(template, codeParameter);
         this.insertFooter(template);
@@ -170,8 +182,10 @@ export class CognitoEmailService extends BaseEmailService {
         const template = this.getNewEmailTemplate();
 
         this.insertHeader(template, subject);
-        this.insertMarkdownBody(template,
-            'Please verify your email address by entering the following code:'
+        this.insertBody(template,
+            'Please verify your email address by entering the following code:',
+            'center',
+            true
         );
         this.insertSubHeading(template, codeParameter);
         this.insertFooter(template);

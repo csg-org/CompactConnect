@@ -189,7 +189,7 @@ export class EmailNotificationService extends BaseEmailService {
             '- Transaction Detail Report - A detailed list of all settled transactions';
 
         this.insertHeader(report, subject);
-        this.insertMarkdownBody(report, bodyText);
+        this.insertBody(report, bodyText, 'left', true);
         this.insertFooter(report);
 
         const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });

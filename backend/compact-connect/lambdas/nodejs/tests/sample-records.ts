@@ -270,7 +270,7 @@ export const SAMPLE_JURISDICTION_CONFIGURATION = {
         ]
     },
     'jurisdictionName': {
-        'S': 'ohio'
+        'S': 'Ohio'
     },
     'jurisdictionOperationsTeamEmails': {
         'L': [
@@ -313,7 +313,7 @@ export const SAMPLE_UNMARSHALLED_JURISDICTION_CONFIGURATION = {
             'amount': '100'
         }
     ],
-    'jurisdictionName': 'ohio',
+    'jurisdictionName': 'Ohio',
     'jurisdictionOperationsTeamEmails': [ 'justin@inspiringapps.com' ],
     'jurisdictionSummaryReportNotificationEmails': [],
     'jurisprudenceRequirements': {

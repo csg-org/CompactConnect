@@ -7,12 +7,30 @@ import { EncumbranceNotificationService } from '../../../lib/email';
 import { CompactConfigurationClient } from '../../../lib/compact-configuration-client';
 import { JurisdictionClient } from '../../../lib/jurisdiction-client';
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { Compact } from '../../../lib/models/compact';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+
+const SAMPLE_COMPACT_CONFIG: Compact = {
+    pk: 'aslp#CONFIGURATION',
+    sk: 'aslp#CONFIGURATION',
+    compactAdverseActionsNotificationEmails: ['adverse@example.com'],
+    compactCommissionFee: {
+        feeAmount: 3.5,
+        feeType: 'FLAT_RATE'
+    },
+    compactAbbr: 'aslp',
+    compactName: 'Audiology and Speech Language Pathology',
+    compactOperationsTeamEmails: ['operations@example.com'],
+    compactSummaryReportNotificationEmails: ['summary@example.com'],
+    dateOfUpdate: '2024-12-10T19:27:28+00:00',
+    type: 'compact'
+};
 
 const SAMPLE_JURISDICTION_CONFIG = {
     pk: 'aslp#CONFIGURATION',
-    sk: 'aslp#JURISDICTION#OH',
+    sk: 'aslp#JURISDICTION#oh',
     jurisdictionName: 'Ohio',
-    postalAbbreviation: 'OH',
+    postalAbbreviation: 'oh',
     compact: 'aslp',
     jurisdictionOperationsTeamEmails: ['oh-ops@example.com'],
     jurisdictionAdverseActionsNotificationEmails: ['oh-adverse@example.com'],
@@ -25,20 +43,31 @@ const asSESClient = (mock: ReturnType<typeof mockClient>) =>
 const asS3Client = (mock: ReturnType<typeof mockClient>) =>
     mock as unknown as S3Client;
 
+class MockCompactConfigurationClient extends CompactConfigurationClient {
+    constructor() {
+        super({
+            logger: new Logger({ serviceName: 'test' }),
+            dynamoDBClient: {} as DynamoDBClient
+        });
+    }
+
+    public async getCompactConfiguration(compact: string): Promise<Compact> {
+        return SAMPLE_COMPACT_CONFIG;
+    }
+}
+
 describe('EncumbranceNotificationService', () => {
     let encumbranceService: EncumbranceNotificationService;
     let mockSESClient: ReturnType<typeof mockClient>;
     let mockS3Client: ReturnType<typeof mockClient>;
-    let mockCompactConfigurationClient: jest.Mocked<CompactConfigurationClient>;
+    let mockCompactConfigurationClient: MockCompactConfigurationClient;
     let mockJurisdictionClient: jest.Mocked<JurisdictionClient>;
 
     beforeEach(() => {
         jest.clearAllMocks();
         mockSESClient = mockClient(SESClient);
         mockS3Client = mockClient(S3Client);
-        mockCompactConfigurationClient = {
-            getCompactConfiguration: jest.fn()
-        } as any;
+        mockCompactConfigurationClient = new MockCompactConfigurationClient();
         mockJurisdictionClient = {
             getJurisdictionConfigurations: jest.fn(),
             getJurisdictionConfiguration: jest.fn()
@@ -65,7 +94,7 @@ describe('EncumbranceNotificationService', () => {
     });
 
     describe('License Encumbrance Provider Notification', () => {
-        it('should send license encumbrance provider notification email with correct content', async () => {
+        it('should send license encumbrance provider notification email', async () => {
             await encumbranceService.sendLicenseEncumbranceProviderNotificationEmail(
                 'aslp',
                 ['provider@example.com'],
@@ -76,27 +105,24 @@ describe('EncumbranceNotificationService', () => {
                 '2024-01-15'
             );
 
-            expect(mockSESClient).toHaveReceivedCommandWith(
-                SendEmailCommand,
-                {
-                    Destination: {
-                        ToAddresses: ['provider@example.com']
-                    },
-                    Message: {
-                        Body: {
-                            Html: {
-                                Charset: 'UTF-8',
-                                Data: expect.stringContaining('Your Audiologist license in OH is encumbered')
-                            }
-                        },
-                        Subject: {
+            expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
+                Destination: {
+                    ToAddresses: ['provider@example.com']
+                },
+                Message: {
+                    Body: {
+                        Html: {
                             Charset: 'UTF-8',
-                            Data: 'Your Audiologist license in OH is encumbered'
+                            Data: expect.stringContaining('Your Audiologist license in Ohio is encumbered')
                         }
                     },
-                    Source: 'Compact Connect <noreply@example.org>'
-                }
-            );
+                    Subject: {
+                        Charset: 'UTF-8',
+                        Data: 'Your Audiologist license in Ohio is encumbered'
+                    }
+                },
+                Source: 'Compact Connect <noreply@example.org>'
+            });
         });
 
         it('should throw error when no recipients provided', async () => {
@@ -113,15 +139,12 @@ describe('EncumbranceNotificationService', () => {
     });
 
     describe('License Encumbrance State Notification', () => {
-        it('should send jurisdiction license encumbrance state notification email', async () => {
-            mockJurisdictionClient.getJurisdictionConfiguration.mockResolvedValue({
-                ...SAMPLE_JURISDICTION_CONFIG,
-                jurisdictionAdverseActionsNotificationEmails: ['state-adverse@example.com']
-            });
+        it('should send license encumbrance state notification email', async () => {
+            mockJurisdictionClient.getJurisdictionConfiguration.mockResolvedValue(SAMPLE_JURISDICTION_CONFIG);
 
             await encumbranceService.sendLicenseEncumbranceStateNotificationEmail(
                 'aslp',
-                'ca',
+                'oh',
                 'John',
                 'Doe',
                 'provider-123',
@@ -130,30 +153,27 @@ describe('EncumbranceNotificationService', () => {
                 '2024-01-15'
             );
 
-            expect(mockSESClient).toHaveReceivedCommandWith(
-                SendEmailCommand,
-                {
-                    Destination: {
-                        ToAddresses: ['state-adverse@example.com']
-                    },
-                    Message: {
-                        Body: {
-                            Html: {
-                                Charset: 'UTF-8',
-                                Data: expect.stringContaining('License Encumbrance Notification - John Doe')
-                            }
-                        },
-                        Subject: {
+            expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
+                Destination: {
+                    ToAddresses: ['oh-adverse@example.com']
+                },
+                Message: {
+                    Body: {
+                        Html: {
                             Charset: 'UTF-8',
-                            Data: 'License Encumbrance Notification - John Doe'
+                            Data: expect.stringContaining('License Encumbrance Notification - John Doe')
                         }
                     },
-                    Source: 'Compact Connect <noreply@example.org>'
-                }
-            );
+                    Subject: {
+                        Charset: 'UTF-8',
+                        Data: 'License Encumbrance Notification - John Doe'
+                    }
+                },
+                Source: 'Compact Connect <noreply@example.org>'
+            });
         });
 
-        it('should throw error when no recipients found for jurisdiction', async () => {
+        it('should throw error when no recipients found', async () => {
             mockJurisdictionClient.getJurisdictionConfiguration.mockResolvedValue({
                 ...SAMPLE_JURISDICTION_CONFIG,
                 jurisdictionAdverseActionsNotificationEmails: []
@@ -192,15 +212,15 @@ describe('EncumbranceNotificationService', () => {
                     },
                     Message: {
                         Body: {
-                            Html: {
-                                Charset: 'UTF-8',
-                                Data: expect.stringContaining('Your Audiologist license in OH is no longer encumbered')
-                            }
-                        },
-                        Subject: {
+                                                    Html: {
                             Charset: 'UTF-8',
-                            Data: 'Your Audiologist license in OH is no longer encumbered'
+                            Data: expect.stringContaining('Your Audiologist license in Ohio is no longer encumbered')
                         }
+                    },
+                    Subject: {
+                        Charset: 'UTF-8',
+                        Data: 'Your Audiologist license in Ohio is no longer encumbered'
+                    }
                     },
                     Source: 'Compact Connect <noreply@example.org>'
                 }
@@ -300,15 +320,15 @@ describe('EncumbranceNotificationService', () => {
                     },
                     Message: {
                         Body: {
-                            Html: {
-                                Charset: 'UTF-8',
-                                Data: expect.stringContaining('Your Audiologist privilege in OH is encumbered')
-                            }
-                        },
-                        Subject: {
+                                                    Html: {
                             Charset: 'UTF-8',
-                            Data: 'Your Audiologist privilege in OH is encumbered'
+                            Data: expect.stringContaining('Your Audiologist privilege in Ohio is encumbered')
                         }
+                    },
+                    Subject: {
+                        Charset: 'UTF-8',
+                        Data: 'Your Audiologist privilege in Ohio is encumbered'
+                    }
                     },
                     Source: 'Compact Connect <noreply@example.org>'
                 }
@@ -369,7 +389,7 @@ describe('EncumbranceNotificationService', () => {
             );
 
             const emailContent = mockSESClient.commandCalls(SendEmailCommand)[0].args[0].input.Message?.Body?.Html?.Data;
-            expect(emailContent).toContain('This encumbrance restricts the provider&#x27;s ability to practice in OH under the ASLP Compact');
+            expect(emailContent).toContain('This encumbrance restricts the provider&#x27;s ability to practice in Ohio under the Audiology and Speech Language Pathology compact');
         });
 
         it('should include provider detail link in email content', async () => {
@@ -379,14 +399,14 @@ describe('EncumbranceNotificationService', () => {
                 'John',
                 'Doe',
                 'provider-123',
-                'OH',
+                'oh',
                 'Audiologist',
                 '2024-01-15'
             );
 
             const emailContent = mockSESClient.commandCalls(SendEmailCommand)[0].args[0].input.Message?.Body?.Html?.Data;
             expect(emailContent).toContain('Provider Details: https://app.test.compactconnect.org/aslp/Licensing/provider-123');
-            expect(emailContent).toContain('This encumbrance restricts the provider&#x27;s ability to practice in OH under the ASLP Compact');
+            expect(emailContent).toContain('This encumbrance restricts the provider&#x27;s ability to practice in Ohio under the Audiology and Speech Language Pathology compact');
         });
 
         it('should throw error when no recipients found for jurisdiction', async () => {
@@ -428,15 +448,15 @@ describe('EncumbranceNotificationService', () => {
                     },
                     Message: {
                         Body: {
-                            Html: {
-                                Charset: 'UTF-8',
-                                Data: expect.stringContaining('Your Audiologist privilege in OH is no longer encumbered')
-                            }
-                        },
-                        Subject: {
+                                                    Html: {
                             Charset: 'UTF-8',
-                            Data: 'Your Audiologist privilege in OH is no longer encumbered'
+                            Data: expect.stringContaining('Your Audiologist privilege in Ohio is no longer encumbered')
                         }
+                    },
+                    Subject: {
+                        Charset: 'UTF-8',
+                        Data: 'Your Audiologist privilege in Ohio is no longer encumbered'
+                    }
                     },
                     Source: 'Compact Connect <noreply@example.org>'
                 }
@@ -498,7 +518,7 @@ describe('EncumbranceNotificationService', () => {
 
             const emailContent = mockSESClient.commandCalls(SendEmailCommand)[0].args[0].input.Message?.Body?.Html?.Data;
             expect(emailContent).toContain('Provider Details: https://app.test.compactconnect.org/aslp/Licensing/provider-123');
-            expect(emailContent).toContain('The encumbrance no longer restricts the provider&#x27;s ability to practice in OH under the ASLP Compact');
+            expect(emailContent).toContain('The encumbrance no longer restricts the provider&#x27;s ability to practice in Ohio under the Audiology and Speech Language Pathology compact');
         });
 
         it('should throw error when no recipients found for jurisdiction', async () => {

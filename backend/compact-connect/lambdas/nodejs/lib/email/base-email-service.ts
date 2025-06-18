@@ -313,7 +313,9 @@ export abstract class BaseEmailService {
     protected insertBody(
         report: TReaderDocument,
         bodyText: string,
-        textAlign: 'center' | 'right' | 'left' | null = null) {
+        textAlign: 'center' | 'right' | 'left' | null = null,
+        markdown: boolean = false
+    ) {
         const blockId = `block-${crypto.randomUUID()}`;
 
         report[blockId] = {
@@ -331,7 +333,8 @@ export abstract class BaseEmailService {
                     }
                 },
                 'props': {
-                    'text': bodyText
+                    'text': bodyText,
+                    'markdown': markdown
                 }
             }
         };
@@ -536,34 +539,6 @@ export abstract class BaseEmailService {
         }
 
         report['root']['data']['childrenIds'].push(containerId);
-    }
-
-    protected insertMarkdownBody(report: TReaderDocument, bodyText: string) {
-        const blockId = `block-${crypto.randomUUID()}`;
-
-        report[blockId] = {
-            'type': 'Text',
-            'data': {
-                'style': {
-                    'fontSize': 16,
-                    'fontWeight': 'normal',
-                    'textAlign': 'left',
-                    'color': '#09122B',
-                    'padding': {
-                        'top': 24,
-                        'bottom': 24,
-                        'right': 40,
-                        'left': 40
-                    }
-                },
-                'props': {
-                    'markdown': true,
-                    'text': bodyText
-                }
-            }
-        };
-
-        report['root']['data']['childrenIds'].push(blockId);
     }
 
     protected insertFooter(report: TReaderDocument) {

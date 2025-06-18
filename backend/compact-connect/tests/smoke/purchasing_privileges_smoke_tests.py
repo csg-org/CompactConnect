@@ -174,7 +174,7 @@ def test_purchasing_privilege(delete_current_privilege: bool = True):
             'card': {
                 # This test card number is defined in authorize.net's testing documentation
                 # https://developer.authorize.net/hello_world/testing_guide.html
-                'number': '4007000000027',
+                'number': '4007000000000027',
                 'cvv': '123',
                 'expiration': '2050-12',
             },
