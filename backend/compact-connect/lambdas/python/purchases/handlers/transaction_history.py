@@ -1,5 +1,5 @@
 import json
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
@@ -25,6 +25,7 @@ def process_settled_transactions(event: dict, context: LambdaContext) -> dict:  
 
     :param event: Lambda event containing:
         - compact: The compact name
+        - scheduledTime: The scheduled execution time from EventBridge for replay-ability
         - lastProcessedTransactionId: Optional last processed transaction ID
         - currentBatchId: Optional current batch ID being processed
         - processedBatchIds: Optional list of batch IDs that have been processed, this ensures we don't process the same
@@ -33,14 +34,16 @@ def process_settled_transactions(event: dict, context: LambdaContext) -> dict:  
     :return: Dictionary indicating processing status and optional pagination info
     """
     compact = event['compact']
+    scheduled_time = event['scheduledTime']
     last_processed_transaction_id = event.get('lastProcessedTransactionId')
     current_batch_id = event.get('currentBatchId')
     processed_batch_ids = event.get('processedBatchIds', [])
 
+    # Use the scheduled time from EventBridge for replay-ability
     # By default, the authorize.net accounts batch settlements at 4:00pm Pacific Time.
     # This daily collector runs an hour later (5pm PST, which is 1am UTC) to collect
     # all settled transaction for the last 24 hours.
-    end_time = config.current_standard_datetime.replace(hour=1, minute=0, second=0, microsecond=0)
+    end_time = datetime.fromisoformat(scheduled_time).replace(hour=1, minute=0, second=0, microsecond=0)
     start_time = end_time - timedelta(days=1)
 
     # Format timestamps for API call
@@ -81,6 +84,7 @@ def process_settled_transactions(event: dict, context: LambdaContext) -> dict:  
     # Return appropriate response based on whether there are more transactions to process
     response = {
         'compact': compact,  # Always include the compact name
+        'scheduledTime': scheduled_time,  # Preserve scheduled time for subsequent iterations
         'status': 'IN_PROGRESS' if not _all_transactions_processed(transaction_response) else 'COMPLETE',
         'processedBatchIds': transaction_response['processedBatchIds'],
     }

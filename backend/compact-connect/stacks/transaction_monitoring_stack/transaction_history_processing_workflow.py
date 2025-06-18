@@ -18,7 +18,6 @@ from aws_cdk.aws_stepfunctions import (
     LogLevel,
     LogOptions,
     Pass,
-    Result,
     StateMachine,
     Succeed,
     TaskInput,
@@ -98,11 +97,16 @@ class TransactionHistoryProcessingWorkflow(Construct):
         )
 
         # Create Step Function definition
-        # set initial values for the process task to use
+        # Transform EventBridge input to extract time and create payload for replay-ability
         self.initialize_state = Pass(
             self,
             f'{compact}-InitializeState',
-            result=Result.from_object({'Payload': {'compact': compact, 'processedBatchIds': []}}),
+            parameters={
+                'compact': compact,
+                'scheduledTime.$': '$.time',  # Extract time from EventBridge event
+                'processedBatchIds': [],
+            },
+            result_path='$.Payload',
         )
 
         self.processor_task = LambdaInvoke(

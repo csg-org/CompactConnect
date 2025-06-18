@@ -69,6 +69,27 @@
                   "licenseeCharges"
                 ],
                 "type": "object"
+              },
+              "paymentProcessorPublicFields": {
+                "properties": {
+                  "publicClientKey": {
+                    "description": "The public client key for the payment processor",
+                    "type": "string"
+                  },
+                  "apiLoginId": {
+                    "description": "The API login ID for the payment processor",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "publicClientKey",
+                  "apiLoginId"
+                ],
+                "type": "object"
+              },
+              "isSandbox": {
+                "description": "Whether the compact is in sandbox mode",
+                "type": "boolean"
               }
             },
             "required": [
@@ -76,7 +97,9 @@
               "compactAbbr",
               "compactName",
               "compactCommissionFee",
-              "transactionFeeConfiguration"
+              "transactionFeeConfiguration",
+              "paymentProcessorPublicFields",
+              "isSandbox"
             ],
             "type": "object"
           },
