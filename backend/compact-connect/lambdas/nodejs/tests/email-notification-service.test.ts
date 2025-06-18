@@ -689,6 +689,7 @@ describe('EmailNotificationServiceLambda', () => {
             await lambda.handler(SAMPLE_LICENSE_ENCUMBRANCE_STATE_NOTIFICATION_EVENT, {} as any);
 
             const emailData = mockSESClient.commandCalls(SendEmailCommand)[0].args[0].input.Message?.Body?.Html?.Data;
+
             expect(emailData).toContain('Provider Details: https://app.test.compactconnect.org/aslp/Licensing/provider-123');
         });
 
@@ -731,7 +732,9 @@ describe('EmailNotificationServiceLambda', () => {
         };
 
         it('should successfully send license encumbrance lifting provider notification email', async () => {
-            const response = await lambda.handler(SAMPLE_LICENSE_ENCUMBRANCE_LIFTING_PROVIDER_NOTIFICATION_EVENT, {} as any);
+            const response = await lambda.handler(
+                SAMPLE_LICENSE_ENCUMBRANCE_LIFTING_PROVIDER_NOTIFICATION_EVENT, {} as any
+            );
 
             expect(response).toEqual({
                 message: 'Email message sent'
@@ -800,7 +803,9 @@ describe('EmailNotificationServiceLambda', () => {
                 return Promise.resolve({ Item: SAMPLE_COMPACT_CONFIGURATION });
             });
 
-            const response = await lambda.handler(SAMPLE_LICENSE_ENCUMBRANCE_LIFTING_STATE_NOTIFICATION_EVENT, {} as any);
+            const response = await lambda.handler(
+                SAMPLE_LICENSE_ENCUMBRANCE_LIFTING_STATE_NOTIFICATION_EVENT, {} as any
+            );
 
             expect(response).toEqual({
                 message: 'Email message sent'
@@ -999,7 +1004,9 @@ describe('EmailNotificationServiceLambda', () => {
         };
 
         it('should successfully send privilege encumbrance lifting provider notification email', async () => {
-            const response = await lambda.handler(SAMPLE_PRIVILEGE_ENCUMBRANCE_LIFTING_PROVIDER_NOTIFICATION_EVENT, {} as any);
+            const response = await lambda.handler(
+                SAMPLE_PRIVILEGE_ENCUMBRANCE_LIFTING_PROVIDER_NOTIFICATION_EVENT, {} as any
+            );
 
             expect(response).toEqual({
                 message: 'Email message sent'
@@ -1068,7 +1075,9 @@ describe('EmailNotificationServiceLambda', () => {
                 return Promise.resolve({ Item: SAMPLE_COMPACT_CONFIGURATION });
             });
 
-            const response = await lambda.handler(SAMPLE_PRIVILEGE_ENCUMBRANCE_LIFTING_STATE_NOTIFICATION_EVENT, {} as any);
+            const response = await lambda.handler(
+                SAMPLE_PRIVILEGE_ENCUMBRANCE_LIFTING_STATE_NOTIFICATION_EVENT, {} as any
+            );
 
             expect(response).toEqual({
                 message: 'Email message sent'

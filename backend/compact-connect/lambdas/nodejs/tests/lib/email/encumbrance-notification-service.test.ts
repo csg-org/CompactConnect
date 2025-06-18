@@ -212,15 +212,15 @@ describe('EncumbranceNotificationService', () => {
                     },
                     Message: {
                         Body: {
-                                                    Html: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.stringContaining('Your Audiologist license in Ohio is no longer encumbered')
+                            }
+                        },
+                        Subject: {
                             Charset: 'UTF-8',
-                            Data: expect.stringContaining('Your Audiologist license in Ohio is no longer encumbered')
+                            Data: 'Your Audiologist license in Ohio is no longer encumbered'
                         }
-                    },
-                    Subject: {
-                        Charset: 'UTF-8',
-                        Data: 'Your Audiologist license in Ohio is no longer encumbered'
-                    }
                     },
                     Source: 'Compact Connect <noreply@example.org>'
                 }
@@ -320,15 +320,15 @@ describe('EncumbranceNotificationService', () => {
                     },
                     Message: {
                         Body: {
-                                                    Html: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.stringContaining('Your Audiologist privilege in Ohio is encumbered')
+                            }
+                        },
+                        Subject: {
                             Charset: 'UTF-8',
-                            Data: expect.stringContaining('Your Audiologist privilege in Ohio is encumbered')
+                            Data: 'Your Audiologist privilege in Ohio is encumbered'
                         }
-                    },
-                    Subject: {
-                        Charset: 'UTF-8',
-                        Data: 'Your Audiologist privilege in Ohio is encumbered'
-                    }
                     },
                     Source: 'Compact Connect <noreply@example.org>'
                 }
@@ -388,7 +388,9 @@ describe('EncumbranceNotificationService', () => {
                 }
             );
 
-            const emailContent = mockSESClient.commandCalls(SendEmailCommand)[0].args[0].input.Message?.Body?.Html?.Data;
+            const emailContent = mockSESClient.commandCalls(SendEmailCommand)[0]
+                .args[0].input.Message?.Body?.Html?.Data;
+
             expect(emailContent).toContain('This encumbrance restricts the provider&#x27;s ability to practice in Ohio under the Audiology and Speech Language Pathology compact');
         });
 
@@ -404,7 +406,9 @@ describe('EncumbranceNotificationService', () => {
                 '2024-01-15'
             );
 
-            const emailContent = mockSESClient.commandCalls(SendEmailCommand)[0].args[0].input.Message?.Body?.Html?.Data;
+            const emailContent = mockSESClient.commandCalls(SendEmailCommand)[0].args[0]
+                .input.Message?.Body?.Html?.Data;
+
             expect(emailContent).toContain('Provider Details: https://app.test.compactconnect.org/aslp/Licensing/provider-123');
             expect(emailContent).toContain('This encumbrance restricts the provider&#x27;s ability to practice in Ohio under the Audiology and Speech Language Pathology compact');
         });
@@ -448,15 +452,15 @@ describe('EncumbranceNotificationService', () => {
                     },
                     Message: {
                         Body: {
-                                                    Html: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.stringContaining('Your Audiologist privilege in Ohio is no longer encumbered')
+                            }
+                        },
+                        Subject: {
                             Charset: 'UTF-8',
-                            Data: expect.stringContaining('Your Audiologist privilege in Ohio is no longer encumbered')
+                            Data: 'Your Audiologist privilege in Ohio is no longer encumbered'
                         }
-                    },
-                    Subject: {
-                        Charset: 'UTF-8',
-                        Data: 'Your Audiologist privilege in Ohio is no longer encumbered'
-                    }
                     },
                     Source: 'Compact Connect <noreply@example.org>'
                 }
@@ -516,7 +520,9 @@ describe('EncumbranceNotificationService', () => {
                 }
             );
 
-            const emailContent = mockSESClient.commandCalls(SendEmailCommand)[0].args[0].input.Message?.Body?.Html?.Data;
+            const emailContent = mockSESClient.commandCalls(SendEmailCommand)[0]
+                .args[0].input.Message?.Body?.Html?.Data;
+
             expect(emailContent).toContain('Provider Details: https://app.test.compactconnect.org/aslp/Licensing/provider-123');
             expect(emailContent).toContain('The encumbrance no longer restricts the provider&#x27;s ability to practice in Ohio under the Audiology and Speech Language Pathology compact');
         });

@@ -50,7 +50,9 @@ export class EncumbranceNotificationService extends BaseEmailService {
             throw new Error('No recipients specified for provider license encumbrance notification email');
         }
 
-        const encumberedJurisdictionConfig = await this.jurisdictionClient.getJurisdictionConfiguration(compact, encumberedJurisdiction);
+        const encumberedJurisdictionConfig = await this.jurisdictionClient.getJurisdictionConfiguration(
+            compact, encumberedJurisdiction
+        );
         const compactConfig = await this.compactConfigurationClient.getCompactConfiguration(compact);
 
         const report = this.getNewEmailTemplate();
@@ -100,7 +102,9 @@ export class EncumbranceNotificationService extends BaseEmailService {
         const compactConfig = await this.compactConfigurationClient.getCompactConfiguration(compact);
 
         if (jurisdictionConfig.postalAbbreviation != encumberedJurisdiction) {
-            encumberedJurisdictionConfig = await this.jurisdictionClient.getJurisdictionConfiguration(compact, encumberedJurisdiction);
+            encumberedJurisdictionConfig = await this.jurisdictionClient.getJurisdictionConfiguration(
+                compact, encumberedJurisdiction
+            );
         } else {
             encumberedJurisdictionConfig = jurisdictionConfig;
         }
@@ -147,7 +151,9 @@ export class EncumbranceNotificationService extends BaseEmailService {
             throw new Error('No recipients specified for provider license encumbrance lifting notification email');
         }
 
-        const liftedJurisdictionConfig = await this.jurisdictionClient.getJurisdictionConfiguration(compact, liftedJurisdiction);
+        const liftedJurisdictionConfig = await this.jurisdictionClient.getJurisdictionConfiguration(
+            compact, liftedJurisdiction
+        );
         const compactConfig = await this.compactConfigurationClient.getCompactConfiguration(compact);
 
         const report = this.getNewEmailTemplate();
@@ -197,7 +203,9 @@ export class EncumbranceNotificationService extends BaseEmailService {
         const compactConfig = await this.compactConfigurationClient.getCompactConfiguration(compact);
 
         if (jurisdictionConfig.postalAbbreviation != liftedJurisdiction) {
-            liftedJurisdictionConfig = await this.jurisdictionClient.getJurisdictionConfiguration(compact, liftedJurisdiction);
+            liftedJurisdictionConfig = await this.jurisdictionClient.getJurisdictionConfiguration(
+                compact, liftedJurisdiction
+            );
         } else {
             liftedJurisdictionConfig = jurisdictionConfig;
         }
@@ -244,7 +252,9 @@ export class EncumbranceNotificationService extends BaseEmailService {
             throw new Error('No recipients specified for provider privilege encumbrance notification email');
         }
 
-        const encumberedJurisdictionConfig = await this.jurisdictionClient.getJurisdictionConfiguration(compact, encumberedJurisdiction);
+        const encumberedJurisdictionConfig = await this.jurisdictionClient.getJurisdictionConfiguration(
+            compact, encumberedJurisdiction
+        );
         const compactConfig = await this.compactConfigurationClient.getCompactConfiguration(compact);
 
         const report = this.getNewEmailTemplate();
@@ -294,7 +304,9 @@ export class EncumbranceNotificationService extends BaseEmailService {
         const compactConfig = await this.compactConfigurationClient.getCompactConfiguration(compact);
 
         if (jurisdictionConfig.postalAbbreviation != encumberedJurisdiction) {
-            encumberedJurisdictionConfig = await this.jurisdictionClient.getJurisdictionConfiguration(compact, encumberedJurisdiction);
+            encumberedJurisdictionConfig = await this.jurisdictionClient.getJurisdictionConfiguration(
+                compact, encumberedJurisdiction
+            );
         } else {
             encumberedJurisdictionConfig = jurisdictionConfig;
         }
@@ -343,7 +355,9 @@ export class EncumbranceNotificationService extends BaseEmailService {
             throw new Error('No recipients specified for provider privilege encumbrance lifting notification email');
         }
 
-        const liftedJurisdictionConfig = await this.jurisdictionClient.getJurisdictionConfiguration(compact, liftedJurisdiction);
+        const liftedJurisdictionConfig = await this.jurisdictionClient.getJurisdictionConfiguration(
+            compact, liftedJurisdiction
+        );
         const compactConfig = await this.compactConfigurationClient.getCompactConfiguration(compact);
 
         const report = this.getNewEmailTemplate();
@@ -393,7 +407,9 @@ export class EncumbranceNotificationService extends BaseEmailService {
         const compactConfig = await this.compactConfigurationClient.getCompactConfiguration(compact);
 
         if (jurisdictionConfig.postalAbbreviation != liftedJurisdiction) {
-            liftedJurisdictionConfig = await this.jurisdictionClient.getJurisdictionConfiguration(compact, liftedJurisdiction);
+            liftedJurisdictionConfig = await this.jurisdictionClient.getJurisdictionConfiguration(
+                compact, liftedJurisdiction
+            );
         } else {
             liftedJurisdictionConfig = jurisdictionConfig;
         }
