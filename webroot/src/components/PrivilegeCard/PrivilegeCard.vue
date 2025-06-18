@@ -86,7 +86,7 @@
         <TransitionGroup>
             <Modal
                 v-if="isDeactivatePrivilegeModalDisplayed"
-                class="deactivate-privilege-modal"
+                class="privilege-edit-modal deactivate-privilege-modal"
                 :title="$t('licensing.confirmPrivilegeDeactivateTitle')"
                 :showActions="false"
                 @keydown.tab="focusTrapDeactivatePrivilegeModal($event)"
@@ -95,7 +95,8 @@
                 <template v-slot:content>
                     <div class="modal-content deactivate-modal-content">
                         {{ $t('licensing.confirmPrivilegeDeactivateSubtext') }}
-                        <form @submit.prevent="submitDeactivatePrivilege">
+                        <form class="privilege-edit-form" @submit.prevent="submitDeactivatePrivilege">
+                            <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
                             <div class="form-row">
                                 <InputTextarea
                                     class="deactivation-notes"
@@ -128,25 +129,49 @@
             </Modal>
             <Modal
                 v-if="isEncumberPrivilegeModalDisplayed"
-                class="encumber-privilege-modal"
-                :title="$t('licensing.confirmPrivilegeEncumberTitle')"
+                class="privilege-edit-modal encumber-privilege-modal"
+                :title="!isEncumberPrivilegeModalSuccess ? $t('licensing.confirmPrivilegeEncumberTitle') : ' '"
                 :showActions="false"
                 @keydown.tab="focusTrapEncumberPrivilegeModal($event)"
                 @keyup.esc="closeEncumberPrivilegeModal"
             >
                 <template v-slot:content>
-                    <div class="modal-content encumber-modal-content">
+                    <div v-if="!isEncumberPrivilegeModalSuccess" class="modal-content encumber-modal-content">
                         {{ $t('licensing.confirmPrivilegeEncumberSubtext') }}
-                        <form @submit.prevent="submitEncumberPrivilege">
+                        <form
+                            class="privilege-edit-form encumber-privilege-form"
+                            @submit.prevent="submitEncumberPrivilege"
+                        >
+                            <div class="encumber-privilege-form-input-container">
+                            <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
+                            <div class="form-row input-container static-input">
+                                <div class="input-label static-label">{{ $t('licensing.practitionerName') }}</div>
+                                <div class="static-value">{{ licenseeName }}</div>
+                            </div>
+                            <div class="form-row input-container static-input">
+                                <div class="input-label static-label">{{ $t('common.state') }}</div>
+                                <div class="static-value">{{ stateContent }}</div>
+                            </div>
+                            <div class="form-row input-container static-input">
+                                <div class="input-label static-label">{{ $t('licensing.privilegeId') }}</div>
+                                <div class="static-value">{{ privilegeId }}</div>
+                            </div>
+                            <div class="form-row input-container static-input">
+                                <div class="input-label static-label">{{ $t('licensing.privilegeType') }}</div>
+                                <div class="static-value">{{ privilegeTypeAbbrev }}</div>
+                            </div>
                             <div class="form-row">
                                 <InputSelect :formInput="formData.encumberModalNpdbCategory" />
+                            </div>
+                            <div class="form-row">
                                 <InputDate
                                     :formInput="formData.encumberModalStartDate"
                                     :yearRange="[new Date().getFullYear() - 5, new Date().getFullYear() + 5]"
                                     :preventMinMaxNavigation="true"
                                     :textInput="{ format: 'MM/dd/yyyy', openMenu: false }"
-                                    :startDate="new Date(1975, 0, 1)"
+                                    :startDate="new Date()"
                                 />
+                            </div>
                             </div>
                             <div v-if="modalErrorMessage" class="modal-error">{{ modalErrorMessage }}</div>
                             <div class="action-button-row">
@@ -168,6 +193,20 @@
                                 />
                             </div>
                         </form>
+                    </div>
+                    <div v-else class="modal-content encumber-modal-content modal-content-success">
+                        <div class="icon-container"><CheckCircle /></div>
+                        <h1 class="modal-title">{{ $t('licensing.confirmPrivilegeEncumberSuccess') }}</h1>
+                        <div class="success-container">
+                            <div class="input-label static-label">{{ licenseeName }}</div>
+                            <div class="static-value">{{ privilegeId }}</div>
+                        </div>
+                        <InputButton
+                            id="encumber-modal-cancel-button"
+                            class="encumber-modal-cancel-button"
+                            :label="$t('common.close')"
+                            :onClick="closeEncumberPrivilegeModal"
+                        />
                     </div>
                 </template>
             </Modal>

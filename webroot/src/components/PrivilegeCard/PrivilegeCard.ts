@@ -17,6 +17,8 @@ import InputDate from '@components/Forms/InputDate/InputDate.vue';
 import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
+import CheckCircle from '@components/Icons/CheckCircle/CheckCircle.vue';
+import MockPopulate from '@components/Forms/MockPopulate/MockPopulate.vue';
 import Modal from '@components/Modal/Modal.vue';
 import { License, LicenseStatus } from '@/models/License/License.model';
 import { Licensee } from '@/models/Licensee/Licensee.model';
@@ -25,16 +27,19 @@ import { State } from '@/models/State/State.model';
 import { StaffUser, CompactPermission } from '@models/StaffUser/StaffUser.model';
 import { FormInput } from '@/models/FormInput/FormInput.model';
 import Joi from 'joi';
+import moment from 'moment';
 
 @Component({
     name: 'PrivilegeCard',
     components: {
+        MockPopulate,
         InputTextarea,
         InputDate,
         InputSelect,
         InputButton,
         InputSubmit,
         Modal,
+        CheckCircle,
     }
 })
 class PrivilegeCard extends mixins(MixinForm) {
@@ -48,6 +53,7 @@ class PrivilegeCard extends mixins(MixinForm) {
     isPrivilegeActionMenuDisplayed = false;
     isDeactivatePrivilegeModalDisplayed = false;
     isEncumberPrivilegeModalDisplayed = false;
+    isEncumberPrivilegeModalSuccess = false;
     modalErrorMessage = '';
 
     //
@@ -107,6 +113,10 @@ class PrivilegeCard extends mixins(MixinForm) {
 
     get licenseeId(): string {
         return this.privilege?.licenseeId || '';
+    }
+
+    get licenseeName(): string {
+        return this.licensee?.nameDisplay() || '';
     }
 
     get privilegeTypeAbbrev(): string {
@@ -171,6 +181,10 @@ class PrivilegeCard extends mixins(MixinForm) {
         });
 
         return options;
+    }
+
+    get isMockPopulateEnabled(): boolean {
+        return Boolean(this.$envConfig.isDevelopment);
     }
 
     //
@@ -340,11 +354,13 @@ class PrivilegeCard extends mixins(MixinForm) {
 
     closeEncumberPrivilegeModal(): void {
         this.isEncumberPrivilegeModalDisplayed = false;
+        this.isEncumberPrivilegeModalSuccess = false;
     }
 
     focusTrapEncumberPrivilegeModal(event: KeyboardEvent): void {
-        const firstTabIndex = document.getElementById('notes');
-        const lastTabIndex = (this.isFormValid && !this.isFormLoading)
+        const firstTabIndex = document.getElementById('npdb-category')
+            || document.getElementById('encumber-modal-cancel-button');
+        const lastTabIndex = (this.isFormValid && !this.isFormLoading && !this.isEncumberPrivilegeModalSuccess)
             ? document.getElementById(this.formData.encumberModalContinue.id)
             : document.getElementById('encumber-modal-cancel-button');
 
@@ -390,7 +406,9 @@ class PrivilegeCard extends mixins(MixinForm) {
             if (!this.isFormError) {
                 this.isFormSuccessful = true;
                 await this.$store.dispatch('license/getLicenseeRequest', { compact: compactType, licenseeId });
-                this.closeEncumberPrivilegeModal();
+                this.isEncumberPrivilegeModalSuccess = true;
+                await nextTick();
+                document.getElementById('encumber-modal-cancel-button')?.focus();
             }
 
             this.endFormLoading();
@@ -400,6 +418,16 @@ class PrivilegeCard extends mixins(MixinForm) {
     // =======================================================
     //                      UN-ENCUMBER
     // =======================================================
+    mockPopulate(): void {
+        if (this.isDeactivatePrivilegeModalDisplayed) {
+            this.formData.deactivateModalNotes.value = `Sample note`;
+            this.validateAll({ asTouched: true });
+        } else if (this.isEncumberPrivilegeModalDisplayed) {
+            this.formData.encumberModalNpdbCategory.value = this.npdbCategoryOptions[1]?.value;
+            this.formData.encumberModalStartDate.value = moment().format('YYYY-MM-DD');
+            this.validateAll({ asTouched: true });
+        }
+    }
 }
 
 export default toNative(PrivilegeCard);

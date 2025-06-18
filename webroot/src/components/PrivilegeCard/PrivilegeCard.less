@@ -141,7 +141,7 @@
         }
     }
 
-    .deactivate-privilege-modal {
+    .privilege-edit-modal {
         :deep(.modal-container) {
             width: 95%;
             max-width: 60rem;
@@ -152,15 +152,36 @@
             }
 
             .modal-content {
-                padding-top: 1rem;
-
-                .deactivation-notes {
+                .privilege-edit-form {
                     margin-top: 1.8rem;
+
+                    .form-row {
+                        margin-bottom: 1.6rem;
+                    }
+
+                    .encumber-privilege-form-input-container {
+                        padding: 1.6rem;
+                        border-radius: 8px;
+                        background-color: @veryLightGrey;
+                    }
 
                     #notes {
                         min-height: 12rem;
                         border-color: @fontColor;
                     }
+                }
+
+                .static-label {
+                    margin-bottom: 0.2rem;
+                    font-weight: @fontWeightBold;
+                }
+
+                .static-value {
+                    font-size: 1.7rem;
+                }
+
+                .form-field-error {
+                    font-size: @fontSize;
                 }
 
                 .modal-error {
@@ -200,8 +221,44 @@
                         }
                     }
                 }
+
+                &.modal-content-success {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+
+                    .icon-container {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        width: 6.4rem;
+                        height: 6.4rem;
+                        margin-bottom: 1.6rem;
+                        border-radius: 50%;
+                        overflow: hidden;
+                        background-color: @lightGreen;
+
+                        .icon-check-circle {
+                            width: 100%;
+                            fill: @white;
+                        }
+                    }
+
+                    .modal-title {
+                        margin: 1.6rem 0 2.4rem 0;
+                        text-align: center;
+                    }
+
+                    .success-container {
+                        margin-bottom: 2.4rem;
+                    }
+                }
             }
         }
+    }
+
+    .mock-populate {
+        font-size: @fontSize;
     }
 
     .input-container {

@@ -724,7 +724,10 @@
         "compactEligible": "Elegible Compacto",
         "notCompactEligible": "No Compacto Elegible",
         "privilegeVerification": "Verificación de privilegios",
+        "privilegeId": "Identificación de privilegio",
+        "privilegeType": "Tipo de privilegio",
         "practitionerInformation": "Información para profesionales",
+        "practitionerName": "Nombre del profesional",
         "homeStateLicenses": "Licencias del estado de origen",
         "activeDate": "Fecha activa",
         "privilegeProofFooter": "Este documento es generado oficialmente por Compact Connect y sirve como prueba de las licencias y privilegios actuales del profesional."
