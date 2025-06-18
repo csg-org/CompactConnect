@@ -9,6 +9,7 @@ from common_test.test_constants import (
     DEFAULT_LICENSE_JURISDICTION,
     DEFAULT_LICENSE_TYPE,
     DEFAULT_LICENSE_TYPE_ABBREVIATION,
+    DEFAULT_LIFT_EFFECTIVE_DATE,
     DEFAULT_PRIVILEGE_JURISDICTION,
     DEFAULT_PROVIDER_ID,
 )
@@ -31,6 +32,7 @@ class TestEncumbranceEvents(TstFunction):
                 'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
                 'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
                 'eventTime': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
+                'effectiveDate': DEFAULT_LIFT_EFFECTIVE_DATE,
             }
         }
         if message_overrides:

@@ -127,6 +127,8 @@ class PrivilegeUpdatePublicResponseSchema(ForgivingSchema):
     providerId = Raw(required=True, allow_none=False)
     compact = Compact(required=True, allow_none=False)
     jurisdiction = Jurisdiction(required=True, allow_none=False)
+    createDate = Raw(required=True, allow_none=False)
+    effectiveDate = Raw(required=True, allow_none=False)
     licenseType = String(required=True, allow_none=False)
     dateOfUpdate = Raw(required=True, allow_none=False)
     previous = Nested(PrivilegeUpdatePreviousPublicResponseSchema(), required=True, allow_none=False)

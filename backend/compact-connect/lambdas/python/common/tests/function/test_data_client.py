@@ -352,7 +352,7 @@ class TestDataClient(TstFunction):
                     'licenseType': 'audiologist',
                     'dateOfUpdate': '2024-11-08T23:59:59+00:00',
                     'createDate': '2024-11-08T23:59:59+00:00',
-                    'effectiveDate': '2024-11-08T23:59:59+00:00',
+                    'effectiveDate': '2024-11-08',
                     'previous': {
                         'dateOfIssuance': '2023-11-08T23:59:59+00:00',
                         'dateOfRenewal': '2023-11-08T23:59:59+00:00',
@@ -797,7 +797,7 @@ class TestDataClient(TstFunction):
                     'licenseType': 'audiologist',
                     'dateOfUpdate': '2024-11-08T23:59:59+00:00',
                     'createDate': '2024-11-08T23:59:59+00:00',
-                    'effectiveDate': '2024-11-08T23:59:59+00:00',
+                    'effectiveDate': '2024-11-08',
                     'deactivationDetails': {
                         'note': 'test deactivation note',
                         'deactivatedByStaffUserId': 'a4182428-d061-701c-82e5-a3d1d547d797',

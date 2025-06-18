@@ -1,5 +1,5 @@
 import time
-from datetime import date
+from datetime import date, datetime
 from urllib.parse import quote
 from uuid import uuid4
 
@@ -417,7 +417,7 @@ class DataClient:
 
                 privileges.append(privilege_record)
 
-                now = config.current_standard_datetime.isoformat()
+                now = config.current_standard_datetime
 
                 # Create privilege update record if this is updating an existing privilege
                 if original_privilege:
@@ -973,7 +973,7 @@ class DataClient:
             logger.info('Provider already inactive. Doing nothing.')
             raise CCInvalidRequestException('Privilege already deactivated')
 
-        now = config.current_standard_datetime.isoformat()
+        now = config.current_standard_datetime
 
         # Create the update record
         # Use the schema to generate the update record with proper pk/sk
@@ -1341,7 +1341,7 @@ class DataClient:
                     'compact': adverse_action.compact,
                     'jurisdiction': adverse_action.jurisdiction,
                     'licenseType': privilege_data.licenseType,
-                    'createDate': config.current_standard_datetime.isoformat(),
+                    'createDate': config.current_standard_datetime,
                     'effectiveDate': adverse_action.effectiveStartDate,
                     'previous': {
                         # We're relying on the schema to trim out unneeded fields
@@ -1575,7 +1575,7 @@ class DataClient:
                         'compact': compact,
                         'jurisdiction': jurisdiction,
                         'licenseType': privilege_data.licenseType,
-                        'createDate': config.current_standard_datetime.isoformat(),
+                        'createDate': config.current_standard_datetime,
                         'effectiveDate': effective_lift_date,
                         'previous': privilege_data.to_dict(),
                         'updatedValues': {
@@ -2117,7 +2117,7 @@ class DataClient:
 
         transactions = []
 
-        now = config.current_standard_datetime.isoformat()
+        now = config.current_standard_datetime
 
         for privilege in privileges:
             # Create update record
@@ -2338,7 +2338,7 @@ class DataClient:
                 )
                 updated_values['encumberedStatus'] = PrivilegeEncumberedStatusEnum.LICENSE_ENCUMBERED
 
-            now = config.current_standard_datetime.isoformat()
+            now = config.current_standard_datetime
 
             # Create update record
             privilege_update_record = PrivilegeUpdateData.create_new(
@@ -2462,8 +2462,8 @@ class DataClient:
                     'compact': compact,
                     'jurisdiction': privilege_data.jurisdiction,
                     'licenseType': privilege_data.licenseType,
-                    'createDate': config.current_standard_datetime.isoformat(),
-                    'effectiveDate': effective_date,
+                    'createDate': config.current_standard_datetime,
+                    'effectiveDate': datetime.fromisoformat(effective_date),
                     'previous': privilege_data.to_dict(),
                     'updatedValues': {
                         'encumberedStatus': PrivilegeEncumberedStatusEnum.LICENSE_ENCUMBERED,
@@ -2570,8 +2570,8 @@ class DataClient:
                     'compact': compact,
                     'jurisdiction': privilege_data.jurisdiction,
                     'licenseType': privilege_data.licenseType,
-                    'createDate': config.current_standard_datetime.isoformat(),
-                    'effectiveDate': effective_date,
+                    'createDate': config.current_standard_datetime,
+                    'effectiveDate': datetime.fromisoformat(effective_date),
                     'previous': privilege_data.to_dict(),
                     'updatedValues': {
                         'encumberedStatus': PrivilegeEncumberedStatusEnum.UNENCUMBERED,
