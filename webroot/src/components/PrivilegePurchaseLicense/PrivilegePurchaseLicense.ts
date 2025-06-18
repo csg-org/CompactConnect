@@ -12,12 +12,13 @@ import {
     Prop,
     Watch
 } from 'vue-facing-decorator';
-import { reactive, computed } from 'vue';
+import { reactive, computed, nextTick } from 'vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
+import MockPopulate from '@components/Forms/MockPopulate/MockPopulate.vue';
 import { Compact } from '@models/Compact/Compact.model';
 import { FormInput } from '@/models/FormInput/FormInput.model';
 import { License } from '@/models/License/License.model';
@@ -29,6 +30,7 @@ import Joi from 'joi';
 @Component({
     name: 'PrivilegePurchaseLicense',
     components: {
+        MockPopulate,
         InputSelect,
         InputSubmit,
         InputButton,
@@ -113,6 +115,10 @@ class PrivilegePurchaseLicense extends mixins(MixinForm) {
         return label;
     }
 
+    get isMockPopulateEnabled(): boolean {
+        return Boolean(this.$envConfig.isDevelopment);
+    }
+
     //
     // Methods
     //
@@ -188,6 +194,17 @@ class PrivilegePurchaseLicense extends mixins(MixinForm) {
                 params: { compact: this.currentCompactType }
             });
         }
+    }
+
+    async mockPopulate(): Promise<void> {
+        if (this.licenseOptions.length > 1) {
+            this.formData.licenseSelect.value = this.licenseOptions[1].value;
+        }
+
+        await nextTick();
+        const formButtons = document.getElementById('button-row');
+
+        formButtons?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     //

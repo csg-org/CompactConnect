@@ -102,6 +102,72 @@ def verify_recaptcha(token: str) -> bool:
         return False
 
 
+def _should_allow_reregistration(cognito_user: dict) -> bool:
+    """Check if a user should be allowed to re-register based on their Cognito status.
+
+    :param cognito_user: Cognito user response from admin_get_user
+    :return: True if re-registration should be allowed
+    """
+    user_last_modified_date = cognito_user['UserLastModifiedDate']
+    user_status = cognito_user['UserStatus']
+
+    updated_over_one_day_ago = (config.current_standard_datetime - user_last_modified_date) > timedelta(days=1)
+    in_force_change_password = user_status == 'FORCE_CHANGE_PASSWORD'
+
+    return updated_over_one_day_ago and in_force_change_password
+
+
+def _resend_invitation_and_complete(email: str) -> dict:
+    """Resend invitation to existing user with same email and return response.
+
+    :param email: Email address to resend invitation to
+    :return: Response dictionary
+    """
+    logger.info('User re-registering with same email address. Resending invite.')
+    config.cognito_client.admin_create_user(
+        UserPoolId=config.provider_user_pool_id, Username=email, MessageAction='RESEND'
+    )
+    metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=1)
+    return {'message': 'request processed'}
+
+
+def _cleanup_old_registration(old_email: str, cognito_user: dict) -> None:
+    """Delete old Cognito user to allow new registration.
+
+    :param old_email: Email of the old registration to clean up
+    :param cognito_user: Cognito user data for logging
+    """
+    try:
+        logger.info(
+            'User never completed registration flow for previous email and has provided new email for registration, '
+            'deleting old Cognito user associated with previous email.',
+            previous_email=old_email,
+            user_create_date=cognito_user['UserCreateDate'].isoformat(),
+            user_last_modified_date=cognito_user['UserLastModifiedDate'].isoformat(),
+            user_status=cognito_user['UserStatus'],
+        )
+        config.cognito_client.admin_delete_user(UserPoolId=config.provider_user_pool_id, Username=old_email)
+    except ClientError as delete_e:
+        logger.error(
+            'Failed to delete old Cognito user during re-registration', error=str(delete_e), old_email=old_email
+        )
+        # Continue with registration anyway
+
+
+def _send_registration_attempt_notification_and_complete(registered_email: str, compact: str) -> dict:
+    """Send registration attempt notification email and return completed response.
+
+    :param registered_email: Email address registered in system
+    :param compact: Compact name
+    :return: Response dictionary
+    """
+    config.email_service_client.send_provider_multiple_registration_attempt_email(
+        compact=compact, provider_email=registered_email
+    )
+    metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
+    return {'message': 'request processed'}
+
+
 @api_handler
 def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """Endpoint for a practitioner to register an account with the system.
@@ -224,19 +290,53 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
         metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
         return {'message': 'request processed'}
 
-    # First check if the provider is already registered
+    # Check if provider already has registered email
     try:
         provider_record: ProviderData = config.data_client.get_provider_top_level_record(
             compact=matching_record.compact, provider_id=matching_record.providerId
         )
+
         if provider_record.compactConnectRegisteredEmailAddress is not None:
-            logger.warning(
-                'This provider is already registered in the system',
-                compact=matching_record.compact,
-                provider_id=matching_record.providerId,
-            )
-            metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
-            return {'message': 'request processed'}
+            registered_email = provider_record.compactConnectRegisteredEmailAddress
+
+            # Get Cognito user to check status
+            try:
+                cognito_user = config.cognito_client.admin_get_user(
+                    UserPoolId=config.provider_user_pool_id, Username=registered_email
+                )
+
+                if _should_allow_reregistration(cognito_user):
+                    # Same email: resend invitation and complete
+                    if registered_email == body['email']:
+                        return _resend_invitation_and_complete(body['email'])
+
+                    # Different email: cleanup account and then proceed with registration for provided email
+                    _cleanup_old_registration(registered_email, cognito_user)
+                else:
+                    logger.warning(
+                        'User attempted to register for account with existing registered email.',
+                        compact=matching_record.compact,
+                        provider_id=matching_record.providerId,
+                        user_create_date=cognito_user['UserCreateDate'].isoformat(),
+                        user_last_modified_date=cognito_user['UserLastModifiedDate'].isoformat(),
+                        user_status=cognito_user['UserStatus'],
+                        in_force_change_password=cognito_user['UserStatus'] == 'FORCE_CHANGE_PASSWORD',
+                    )
+                    return _send_registration_attempt_notification_and_complete(registered_email, body['compact'])
+
+            except ClientError as cognito_e:
+                if cognito_e.response['Error']['Code'] == 'UserNotFoundException':
+                    logger.error(
+                        'Provider record shows registered email but Cognito user not found, '
+                        'continuing with registration.',
+                        compact=matching_record.compact,
+                        provider_id=matching_record.providerId,
+                    )
+                    # Continue with normal registration flow
+                else:
+                    logger.error('Failed to check Cognito user status', error=str(cognito_e))
+                    raise CCInternalException('Failed to check user registration status') from cognito_e
+
     except CCNotFoundException as e:
         logger.error(
             'Provider license record was found, but no provider record was found.',
@@ -261,6 +361,21 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
                 {'Name': 'email_verified', 'Value': 'true'},
             ],
         )
+    except ClientError as e:
+        if e.response['Error']['Code'] == 'UsernameExistsException':
+            logger.info(
+                'User attempted to register with existing Cognito email for different license.',
+                compact=body['compact'],
+                provider_id=matching_record.providerId,
+                license_type=body['licenseType'],
+            )
+            return _send_registration_attempt_notification_and_complete(
+                registered_email=body['email'], compact=body['compact']
+            )
+
+        logger.error('Failed to create Cognito user', error=str(e))
+        metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
+        raise CCInternalException('Failed to create user account') from e
     except Exception as e:
         logger.error('Failed to create Cognito user', error=str(e))
         metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)

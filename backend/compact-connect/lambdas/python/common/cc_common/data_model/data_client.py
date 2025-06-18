@@ -906,7 +906,6 @@ class DataClient:
                         'Put': {
                             'TableName': self.config.provider_table_name,
                             'Item': TypeSerializer().serialize(provider_record.serialize_to_database_record())['M'],
-                            'ConditionExpression': 'attribute_not_exists(compactConnectRegisteredEmailAddress)',
                         }
                     },
                     # Create provider update record

@@ -122,7 +122,7 @@ class EmailServiceClient:
         reporting_cycle: str,
         start_date: datetime,
         end_date: datetime,
-    ) -> dict[str, str]:
+    ) -> dict[str, Any]:
         """
         Send a compact transaction report email.
 
@@ -215,4 +215,28 @@ class EmailServiceClient:
                 'costLineItems': cost_line_items,
             },
         }
+        return self._invoke_lambda(payload)
+
+    def send_provider_multiple_registration_attempt_email(
+        self,
+        compact: str,
+        provider_email: str,
+    ) -> dict[str, str]:
+        """
+        Send a notification email to a provider when someone attempts to register with their email address.
+
+        :param compact: Compact name
+        :param provider_email: Email address of the provider
+        :return: Response from the email notification service
+        """
+        payload = {
+            'compact': compact,
+            'template': 'multipleRegistrationAttemptNotification',
+            'recipientType': 'SPECIFIC',
+            'specificEmails': [
+                provider_email,
+            ],
+            'templateVariables': {},
+        }
+
         return self._invoke_lambda(payload)
