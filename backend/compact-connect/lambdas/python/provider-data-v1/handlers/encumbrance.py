@@ -12,7 +12,6 @@ from cc_common.data_model.schema.common import (
     CCPermissionsAction,
     ClinicalPrivilegeActionCategory,
 )
-from cc_common.event_bus_client import EventBusClient
 from cc_common.exceptions import CCInvalidRequestException
 from cc_common.license_util import LicenseUtility
 from cc_common.utils import api_handler, authorize_state_level_only_action
@@ -124,7 +123,7 @@ def handle_privilege_encumbrance(event: dict) -> dict:
         provider_id=adverse_action.providerId,
         jurisdiction=adverse_action.jurisdiction,
         license_type_abbreviation=adverse_action.licenseTypeAbbreviation,
-        effective_start_date=adverse_action.effectiveStartDate.strftime('%Y-%m-%d'),
+        effective_date=adverse_action.effectiveStartDate,
     )
 
     return {'message': 'OK'}
@@ -138,14 +137,13 @@ def handle_license_encumbrance(event: dict) -> dict:
     config.data_client.encumber_license(adverse_action)
 
     # Publish license encumbrance event
-    event_bus_client = EventBusClient()
-    event_bus_client.publish_license_encumbrance_event(
+    config.event_bus_client.publish_license_encumbrance_event(
         source='org.compactconnect.provider-data',
         compact=adverse_action.compact,
         provider_id=adverse_action.providerId,
         jurisdiction=adverse_action.jurisdiction,
         license_type_abbreviation=adverse_action.licenseTypeAbbreviation,
-        effective_start_date=adverse_action.effectiveStartDate.strftime('%Y-%m-%d'),
+        effective_date=adverse_action.effectiveStartDate,
     )
 
     return {'message': 'OK'}
@@ -197,7 +195,7 @@ def handle_privilege_encumbrance_lifting(event: dict) -> dict:
             provider_id=provider_id,
             jurisdiction=jurisdiction,
             license_type_abbreviation=license_type_abbreviation,
-            effective_lift_date=lift_date.strftime('%Y-%m-%d'),
+            effective_date=lift_date,
         )
 
         return {'message': 'OK'}
@@ -243,14 +241,13 @@ def handle_license_encumbrance_lifting(event: dict) -> dict:
         )
 
         # Publish license encumbrance lifting event
-        event_bus_client = EventBusClient()
-        event_bus_client.publish_license_encumbrance_lifting_event(
+        config.event_bus_client.publish_license_encumbrance_lifting_event(
             source='org.compactconnect.provider-data',
             compact=compact,
             provider_id=provider_id,
             jurisdiction=jurisdiction,
             license_type_abbreviation=license_type_abbreviation,
-            effective_lift_date=lift_date.strftime('%Y-%m-%d'),
+            effective_date=lift_date,
         )
 
         return {'message': 'OK'}

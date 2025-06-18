@@ -1,11 +1,10 @@
 import json
+from datetime import date
+from uuid import UUID
 
 from cc_common.config import config
 from cc_common.data_model.schema.data_event.api import (
-    LicenseEncumbranceDetailSchema,
-    LicenseEncumbranceLiftingDetailSchema,
-    PrivilegeEncumbranceDetailSchema,
-    PrivilegeEncumbranceLiftingDetailSchema,
+    EncumbranceEventDetailSchema,
     PrivilegeIssuanceDetailSchema,
     PrivilegePurchaseEventDetailSchema,
     PrivilegeRenewalDetailSchema,
@@ -139,10 +138,10 @@ class EventBusClient:
         self,
         source: str,
         compact: str,
-        provider_id: str,
+        provider_id: UUID,
         jurisdiction: str,
         license_type_abbreviation: str,
-        effective_start_date: str,
+        effective_date: date,
         event_batch_writer: EventBatchWriter | None = None,
     ):
         """
@@ -153,7 +152,7 @@ class EventBusClient:
         :param provider_id: The provider ID
         :param jurisdiction: The jurisdiction of the license
         :param license_type_abbreviation: The license type abbreviation
-        :param effective_start_date: The date when the encumbrance became effective
+        :param effective_date: The date when the encumbrance became effective
         :param event_batch_writer: Optional EventBatchWriter for efficient batch publishing
         """
         event_detail = {
@@ -161,14 +160,13 @@ class EventBusClient:
             'providerId': provider_id,
             'jurisdiction': jurisdiction,
             'licenseTypeAbbreviation': license_type_abbreviation,
-            'effectiveStartDate': effective_start_date,
-            'eventTime': config.current_standard_datetime.isoformat(),
+            'effectiveDate': effective_date,
+            'eventTime': config.current_standard_datetime,
         }
 
-        license_encumbrance_detail_schema = LicenseEncumbranceDetailSchema()
+        encumbrance_detail_schema = EncumbranceEventDetailSchema()
 
-        loaded_detail = license_encumbrance_detail_schema.load(event_detail)
-        deserialized_detail = license_encumbrance_detail_schema.dump(loaded_detail)
+        deserialized_detail = encumbrance_detail_schema.dump(event_detail)
 
         self._publish_event(
             source=source,
@@ -181,10 +179,10 @@ class EventBusClient:
         self,
         source: str,
         compact: str,
-        provider_id: str,
+        provider_id: UUID,
         jurisdiction: str,
         license_type_abbreviation: str,
-        effective_lift_date: str,
+        effective_date: date,
         event_batch_writer: EventBatchWriter | None = None,
     ):
         """
@@ -195,7 +193,7 @@ class EventBusClient:
         :param provider_id: The provider ID
         :param jurisdiction: The jurisdiction of the license
         :param license_type_abbreviation: The license type abbreviation
-        :param effective_lift_date: The date when the encumbrance was lifted
+        :param effective_date: The date when the encumbrance was lifted
         :param event_batch_writer: Optional EventBatchWriter for efficient batch publishing
         """
         event_detail = {
@@ -203,14 +201,13 @@ class EventBusClient:
             'providerId': provider_id,
             'jurisdiction': jurisdiction,
             'licenseTypeAbbreviation': license_type_abbreviation,
-            'effectiveLiftDate': effective_lift_date,
-            'eventTime': config.current_standard_datetime.isoformat(),
+            'effectiveDate': effective_date,
+            'eventTime': config.current_standard_datetime,
         }
 
-        license_encumbrance_lifting_detail_schema = LicenseEncumbranceLiftingDetailSchema()
+        encumbrance_detail_schema = EncumbranceEventDetailSchema()
 
-        loaded_detail = license_encumbrance_lifting_detail_schema.load(event_detail)
-        deserialized_detail = license_encumbrance_lifting_detail_schema.dump(loaded_detail)
+        deserialized_detail = encumbrance_detail_schema.dump(event_detail)
 
         self._publish_event(
             source=source,
@@ -223,10 +220,10 @@ class EventBusClient:
         self,
         source: str,
         compact: str,
-        provider_id: str,
+        provider_id: UUID,
         jurisdiction: str,
         license_type_abbreviation: str,
-        effective_start_date: str,
+        effective_date: date,
         event_batch_writer: EventBatchWriter | None = None,
     ):
         """
@@ -237,7 +234,7 @@ class EventBusClient:
         :param provider_id: The provider ID
         :param jurisdiction: The jurisdiction of the privilege
         :param license_type_abbreviation: The license type abbreviation
-        :param effective_start_date: The date when the encumbrance became effective
+        :param effective_date: The date when the encumbrance became effective
         :param event_batch_writer: Optional EventBatchWriter for efficient batch publishing
         """
         event_detail = {
@@ -245,14 +242,13 @@ class EventBusClient:
             'providerId': provider_id,
             'jurisdiction': jurisdiction,
             'licenseTypeAbbreviation': license_type_abbreviation,
-            'effectiveStartDate': effective_start_date,
-            'eventTime': config.current_standard_datetime.isoformat(),
+            'effectiveDate': effective_date,
+            'eventTime': config.current_standard_datetime,
         }
 
-        privilege_encumbrance_detail_schema = PrivilegeEncumbranceDetailSchema()
+        encumbrance_detail_schema = EncumbranceEventDetailSchema()
 
-        loaded_detail = privilege_encumbrance_detail_schema.load(event_detail)
-        deserialized_detail = privilege_encumbrance_detail_schema.dump(loaded_detail)
+        deserialized_detail = encumbrance_detail_schema.dump(event_detail)
 
         self._publish_event(
             source=source,
@@ -265,10 +261,10 @@ class EventBusClient:
         self,
         source: str,
         compact: str,
-        provider_id: str,
+        provider_id: UUID,
         jurisdiction: str,
         license_type_abbreviation: str,
-        effective_lift_date: str,
+        effective_date: date,
         event_batch_writer: EventBatchWriter | None = None,
     ):
         """
@@ -279,7 +275,7 @@ class EventBusClient:
         :param provider_id: The provider ID
         :param jurisdiction: The jurisdiction of the privilege
         :param license_type_abbreviation: The license type abbreviation
-        :param effective_lift_date: The date when the encumbrance was lifted
+        :param effective_date: The date when the encumbrance was lifted
         :param event_batch_writer: Optional EventBatchWriter for efficient batch publishing
         """
         event_detail = {
@@ -287,14 +283,13 @@ class EventBusClient:
             'providerId': provider_id,
             'jurisdiction': jurisdiction,
             'licenseTypeAbbreviation': license_type_abbreviation,
-            'effectiveLiftDate': effective_lift_date,
-            'eventTime': config.current_standard_datetime.isoformat(),
+            'effectiveDate': effective_date,
+            'eventTime': config.current_standard_datetime,
         }
 
-        privilege_encumbrance_lifting_detail_schema = PrivilegeEncumbranceLiftingDetailSchema()
+        encumbrance_detail_schema = EncumbranceEventDetailSchema()
 
-        loaded_detail = privilege_encumbrance_lifting_detail_schema.load(event_detail)
-        deserialized_detail = privilege_encumbrance_lifting_detail_schema.dump(loaded_detail)
+        deserialized_detail = encumbrance_detail_schema.dump(event_detail)
 
         self._publish_event(
             source=source,

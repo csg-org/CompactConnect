@@ -1,6 +1,7 @@
 import json
-from datetime import datetime
+from datetime import date, datetime
 from unittest.mock import patch
+from uuid import UUID
 
 from boto3.dynamodb.conditions import Key
 from common_test.test_constants import (
@@ -32,7 +33,7 @@ class TestEncumbranceEvents(TstFunction):
                 'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
                 'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
                 'eventTime': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
-                'effectiveStartDate': DEFAULT_EFFECTIVE_DATE,
+                'effectiveDate': DEFAULT_EFFECTIVE_DATE,
             }
         }
         if message_overrides:
@@ -42,8 +43,7 @@ class TestEncumbranceEvents(TstFunction):
     def _generate_license_encumbrance_lifting_message(self, message_overrides=None):
         """Generate a test SQS message for license encumbrance lifting events."""
         message = self._generate_license_encumbrance_message(message_overrides)
-        message['detail'].pop('effectiveStartDate')
-        message['detail']['effectiveLiftDate'] = DEFAULT_EFFECTIVE_DATE
+        # effectiveDate is already set correctly from the base message
         return message
 
     def _create_sqs_event(self, message):
@@ -124,7 +124,7 @@ class TestEncumbranceEvents(TstFunction):
                     'providerId': DEFAULT_PROVIDER_ID,
                     'jurisdiction': 'ne',  # The privilege jurisdiction
                     'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
-                    'effectiveStartDate': DEFAULT_EFFECTIVE_DATE,
+                    'effectiveDate': DEFAULT_EFFECTIVE_DATE,
                     'eventTime': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
                 },
             },
@@ -322,7 +322,7 @@ class TestEncumbranceEvents(TstFunction):
                     'providerId': DEFAULT_PROVIDER_ID,
                     'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,  # The privilege jurisdiction
                     'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
-                    'effectiveLiftDate': DEFAULT_EFFECTIVE_DATE,
+                    'effectiveDate': DEFAULT_EFFECTIVE_DATE,
                     'eventTime': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
                 },
             },
@@ -475,7 +475,7 @@ class TestEncumbranceEvents(TstFunction):
                     'providerId': DEFAULT_PROVIDER_ID,
                     'jurisdiction': call_args['detail']['jurisdiction'],  # Will be either 'ne' or 'ky'
                     'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
-                    'effectiveStartDate': DEFAULT_EFFECTIVE_DATE,
+                    'effectiveDate': DEFAULT_EFFECTIVE_DATE,
                     'eventTime': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
                 },
             }
@@ -819,7 +819,7 @@ class TestEncumbranceEvents(TstFunction):
                 'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
                 'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
                 'eventTime': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
-                'effectiveStartDate': DEFAULT_EFFECTIVE_DATE,
+                'effectiveDate': DEFAULT_EFFECTIVE_DATE,
             }
         }
         if message_overrides:
@@ -829,8 +829,7 @@ class TestEncumbranceEvents(TstFunction):
     def _generate_privilege_encumbrance_lifting_message(self, message_overrides=None):
         """Generate a test SQS message for privilege encumbrance lifting events."""
         message = self._generate_privilege_encumbrance_message(message_overrides)
-        message['detail'].pop('effectiveStartDate')
-        message['detail']['effectiveLiftDate'] = DEFAULT_EFFECTIVE_DATE
+        # effectiveDate is already set correctly from the base message
         return message
 
     @patch('cc_common.email_service_client.EmailServiceClient.send_privilege_encumbrance_state_notification_email')
@@ -839,6 +838,7 @@ class TestEncumbranceEvents(TstFunction):
         self, mock_provider_email, mock_state_email
     ):
         """Test that privilege encumbrance listener processes events for registered providers."""
+        from cc_common.email_service_client import EncumbranceNotificationTemplateVariables
         from handlers.encumbrance_events import privilege_encumbrance_listener
 
         # Set up test data with registered provider
@@ -873,50 +873,63 @@ class TestEncumbranceEvents(TstFunction):
         self.assertEqual({'batchItemFailures': []}, result)
 
         # Verify provider notification
-        mock_provider_email.assert_called_once_with(
-            compact=DEFAULT_COMPACT,
-            provider_email='provider@example.com',
+        expected_template_variables = EncumbranceNotificationTemplateVariables(
             provider_first_name='Björk',
             provider_last_name='Guðmundsdóttir',
             encumbered_jurisdiction='ne',
             license_type='speech-language pathologist',
-            effective_start_date=DEFAULT_EFFECTIVE_DATE,
+            effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+            provider_id=None,
+        )
+        mock_provider_email.assert_called_once_with(
+            compact=DEFAULT_COMPACT,
+            provider_email='provider@example.com',
+            template_variables=expected_template_variables,
         )
 
         # Verify state notifications (encumbered state + other states with active licenses/privileges)
+        expected_template_variables_ne = EncumbranceNotificationTemplateVariables(
+            provider_first_name='Björk',
+            provider_last_name='Guðmundsdóttir',
+            encumbered_jurisdiction='ne',
+            license_type='speech-language pathologist',
+            effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+            provider_id=UUID(DEFAULT_PROVIDER_ID),
+        )
+        expected_template_variables_co = EncumbranceNotificationTemplateVariables(
+            provider_first_name='Björk',
+            provider_last_name='Guðmundsdóttir',
+            encumbered_jurisdiction='ne',
+            license_type='speech-language pathologist',
+            effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+            provider_id=UUID(DEFAULT_PROVIDER_ID),
+        )
+        expected_template_variables_ky = EncumbranceNotificationTemplateVariables(
+            provider_first_name='Björk',
+            provider_last_name='Guðmundsdóttir',
+            encumbered_jurisdiction='ne',
+            license_type='speech-language pathologist',
+            effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+            provider_id=UUID(DEFAULT_PROVIDER_ID),
+        )
         expected_state_calls = [
             # State 'ne' (encumbered jurisdiction)
             {
                 'compact': DEFAULT_COMPACT,
                 'jurisdiction': 'ne',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'encumbered_jurisdiction': 'ne',
-                'license_type': 'speech-language pathologist',
-                'effective_start_date': DEFAULT_EFFECTIVE_DATE,
+                'template_variables': expected_template_variables_ne,
             },
             # State 'co' (active license jurisdiction)
             {
                 'compact': DEFAULT_COMPACT,
                 'jurisdiction': 'co',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'encumbered_jurisdiction': 'ne',
-                'license_type': 'speech-language pathologist',
-                'effective_start_date': DEFAULT_EFFECTIVE_DATE,
+                'template_variables': expected_template_variables_co,
             },
             # State 'ky' (active privilege jurisdiction)
             {
                 'compact': DEFAULT_COMPACT,
                 'jurisdiction': 'ky',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'encumbered_jurisdiction': 'ne',
-                'license_type': 'speech-language pathologist',
-                'effective_start_date': DEFAULT_EFFECTIVE_DATE,
+                'template_variables': expected_template_variables_ky,
             },
         ]
 
@@ -936,6 +949,7 @@ class TestEncumbranceEvents(TstFunction):
         self, mock_provider_email, mock_state_email
     ):
         """Test that privilege encumbrance listener handles unregistered providers."""
+        from cc_common.email_service_client import EncumbranceNotificationTemplateVariables
         from handlers.encumbrance_events import privilege_encumbrance_listener
 
         # Set up test data with unregistered provider (no email)
@@ -964,41 +978,26 @@ class TestEncumbranceEvents(TstFunction):
         # Verify no provider notification is sent (provider not registered)
         mock_provider_email.assert_not_called()
 
-        # Verify state notifications are sent to encumbered jurisdiction and active license jurisdiction
-        expected_state_calls = [
-            # State 'ne' (encumbered jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'ne',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'encumbered_jurisdiction': 'ne',
-                'license_type': 'speech-language pathologist',
-                'effective_start_date': DEFAULT_EFFECTIVE_DATE,
-            },
-            # State 'co' (active license jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'co',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'encumbered_jurisdiction': 'ne',
-                'license_type': 'speech-language pathologist',
-                'effective_start_date': DEFAULT_EFFECTIVE_DATE,
-            },
-        ]
-
         # Verify state notifications were sent
         self.assertEqual(2, mock_state_email.call_count)
-        actual_state_calls = [call.kwargs for call in mock_state_email.call_args_list]
 
-        # Sort both lists for comparison
-        expected_state_calls_sorted = sorted(expected_state_calls, key=lambda x: x['jurisdiction'])
-        actual_state_calls_sorted = sorted(actual_state_calls, key=lambda x: x['jurisdiction'])
+        # Check each call individually since they have different provider_id values
+        calls = mock_state_email.call_args_list
+        call_jurisdictions = [call.kwargs['jurisdiction'] for call in calls]
+        self.assertEqual(sorted(call_jurisdictions), ['co', 'ne'])
 
-        self.assertEqual(expected_state_calls_sorted, actual_state_calls_sorted)
+        # Verify all calls have the correct template_variables structure
+        for call in calls:
+            self.assertEqual(call.kwargs['compact'], DEFAULT_COMPACT)
+            self.assertIsInstance(call.kwargs['template_variables'], EncumbranceNotificationTemplateVariables)
+            template_vars = call.kwargs['template_variables']
+            self.assertEqual(template_vars.provider_first_name, 'Björk')
+            self.assertEqual(template_vars.provider_last_name, 'Guðmundsdóttir')
+            self.assertEqual(template_vars.encumbered_jurisdiction, 'ne')
+            self.assertEqual(template_vars.license_type, 'speech-language pathologist')
+            self.assertEqual(template_vars.effective_date, date.fromisoformat(DEFAULT_EFFECTIVE_DATE))
+            # provider_id should be UUID for all state notifications
+            self.assertEqual(template_vars.provider_id, UUID(DEFAULT_PROVIDER_ID))
 
     @patch('cc_common.email_service_client.EmailServiceClient.send_privilege_encumbrance_state_notification_email')
     @patch('cc_common.email_service_client.EmailServiceClient.send_privilege_encumbrance_provider_notification_email')
@@ -1006,6 +1005,7 @@ class TestEncumbranceEvents(TstFunction):
         self, mock_provider_email, mock_state_email
     ):
         """Test that privilege encumbrance listener correctly identifies states to notify."""
+        from cc_common.email_service_client import EncumbranceNotificationTemplateVariables
         from handlers.encumbrance_events import privilege_encumbrance_listener
 
         # Set up test data
@@ -1049,73 +1049,40 @@ class TestEncumbranceEvents(TstFunction):
         self.assertEqual({'batchItemFailures': []}, result)
 
         # Verify provider notification
-        mock_provider_email.assert_called_once_with(
-            compact=DEFAULT_COMPACT,
-            provider_email='provider@example.com',
+        expected_template_variables = EncumbranceNotificationTemplateVariables(
             provider_first_name='Björk',
             provider_last_name='Guðmundsdóttir',
             encumbered_jurisdiction='ne',
             license_type='speech-language pathologist',
-            effective_start_date=DEFAULT_EFFECTIVE_DATE,
+            effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+            provider_id=None,
+        )
+        mock_provider_email.assert_called_once_with(
+            compact=DEFAULT_COMPACT,
+            provider_email='provider@example.com',
+            template_variables=expected_template_variables,
         )
 
-        # Verify state notifications are sent to all relevant jurisdictions
-        expected_state_calls = [
-            # State 'ne' (encumbered jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'ne',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'encumbered_jurisdiction': 'ne',
-                'license_type': 'speech-language pathologist',
-                'effective_start_date': DEFAULT_EFFECTIVE_DATE,
-            },
-            # State 'co' (active license jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'co',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'encumbered_jurisdiction': 'ne',
-                'license_type': 'speech-language pathologist',
-                'effective_start_date': DEFAULT_EFFECTIVE_DATE,
-            },
-            # State 'ky' (active license jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'ky',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'encumbered_jurisdiction': 'ne',
-                'license_type': 'speech-language pathologist',
-                'effective_start_date': DEFAULT_EFFECTIVE_DATE,
-            },
-            # State 'tx' (active privilege jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'tx',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'encumbered_jurisdiction': 'ne',
-                'license_type': 'speech-language pathologist',
-                'effective_start_date': DEFAULT_EFFECTIVE_DATE,
-            },
-        ]
-
-        # Verify all state notifications were sent
+        # Verify state notifications were sent to all relevant jurisdictions
         self.assertEqual(4, mock_state_email.call_count)
-        actual_state_calls = [call.kwargs for call in mock_state_email.call_args_list]
 
-        # Sort both lists for comparison
-        expected_state_calls_sorted = sorted(expected_state_calls, key=lambda x: x['jurisdiction'])
-        actual_state_calls_sorted = sorted(actual_state_calls, key=lambda x: x['jurisdiction'])
+        # Check each call individually since they have different provider_id values
+        calls = mock_state_email.call_args_list
+        call_jurisdictions = [call.kwargs['jurisdiction'] for call in calls]
+        self.assertEqual(sorted(call_jurisdictions), ['co', 'ky', 'ne', 'tx'])
 
-        self.assertEqual(expected_state_calls_sorted, actual_state_calls_sorted)
+        # Verify all calls have the correct template_variables structure
+        for call in calls:
+            self.assertEqual(call.kwargs['compact'], DEFAULT_COMPACT)
+            self.assertIsInstance(call.kwargs['template_variables'], EncumbranceNotificationTemplateVariables)
+            template_vars = call.kwargs['template_variables']
+            self.assertEqual(template_vars.provider_first_name, 'Björk')
+            self.assertEqual(template_vars.provider_last_name, 'Guðmundsdóttir')
+            self.assertEqual(template_vars.encumbered_jurisdiction, 'ne')
+            self.assertEqual(template_vars.license_type, 'speech-language pathologist')
+            self.assertEqual(template_vars.effective_date, date.fromisoformat(DEFAULT_EFFECTIVE_DATE))
+            # provider_id should be UUID for all state notifications
+            self.assertEqual(template_vars.provider_id, UUID(DEFAULT_PROVIDER_ID))
 
     def test_privilege_encumbrance_listener_handles_provider_retrieval_failure(self):
         """Test that privilege encumbrance listener handles provider retrieval failures."""
@@ -1138,6 +1105,7 @@ class TestEncumbranceEvents(TstFunction):
         self, mock_provider_email, mock_state_email
     ):
         """Test that the jurisdiction where encumbrance occurred is not duplicated in notifications."""
+        from cc_common.email_service_client import EncumbranceNotificationTemplateVariables
         from handlers.encumbrance_events import privilege_encumbrance_listener
 
         # Set up test data
@@ -1181,62 +1149,40 @@ class TestEncumbranceEvents(TstFunction):
         self.assertEqual({'batchItemFailures': []}, result)
 
         # Verify provider notification
-        mock_provider_email.assert_called_once_with(
-            compact=DEFAULT_COMPACT,
-            provider_email='provider@example.com',
+        expected_template_variables = EncumbranceNotificationTemplateVariables(
             provider_first_name='Björk',
             provider_last_name='Guðmundsdóttir',
             encumbered_jurisdiction='ne',
             license_type='speech-language pathologist',
-            effective_start_date=DEFAULT_EFFECTIVE_DATE,
+            effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+            provider_id=None,
         )
-
-        # Verify state notifications - ne should appear only once, not duplicated
-        expected_state_calls = [
-            # State 'ne' (encumbered jurisdiction) - exactly once
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'ne',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'encumbered_jurisdiction': 'ne',
-                'license_type': 'speech-language pathologist',
-                'effective_start_date': DEFAULT_EFFECTIVE_DATE,
-            },
-            # State 'co' (active license jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'co',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'encumbered_jurisdiction': 'ne',
-                'license_type': 'speech-language pathologist',
-                'effective_start_date': DEFAULT_EFFECTIVE_DATE,
-            },
-            # State 'ky' (active privilege jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'ky',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'encumbered_jurisdiction': 'ne',
-                'license_type': 'speech-language pathologist',
-                'effective_start_date': DEFAULT_EFFECTIVE_DATE,
-            },
-        ]
+        mock_provider_email.assert_called_once_with(
+            compact=DEFAULT_COMPACT,
+            provider_email='provider@example.com',
+            template_variables=expected_template_variables,
+        )
 
         # Verify exactly 3 notifications (ne appears only once, not duplicated)
         self.assertEqual(3, mock_state_email.call_count)
-        actual_state_calls = [call.kwargs for call in mock_state_email.call_args_list]
 
-        # Sort both lists for comparison
-        expected_state_calls_sorted = sorted(expected_state_calls, key=lambda x: x['jurisdiction'])
-        actual_state_calls_sorted = sorted(actual_state_calls, key=lambda x: x['jurisdiction'])
+        # Check each call individually since they have different provider_id values
+        calls = mock_state_email.call_args_list
+        call_jurisdictions = [call.kwargs['jurisdiction'] for call in calls]
+        self.assertEqual(sorted(call_jurisdictions), ['co', 'ky', 'ne'])
 
-        self.assertEqual(expected_state_calls_sorted, actual_state_calls_sorted)
+        # Verify all calls have the correct template_variables structure
+        for call in calls:
+            self.assertEqual(call.kwargs['compact'], DEFAULT_COMPACT)
+            self.assertIsInstance(call.kwargs['template_variables'], EncumbranceNotificationTemplateVariables)
+            template_vars = call.kwargs['template_variables']
+            self.assertEqual(template_vars.provider_first_name, 'Björk')
+            self.assertEqual(template_vars.provider_last_name, 'Guðmundsdóttir')
+            self.assertEqual(template_vars.encumbered_jurisdiction, 'ne')
+            self.assertEqual(template_vars.license_type, 'speech-language pathologist')
+            self.assertEqual(template_vars.effective_date, date.fromisoformat(DEFAULT_EFFECTIVE_DATE))
+            # provider_id should be UUID for all state notifications
+            self.assertEqual(template_vars.provider_id, UUID(DEFAULT_PROVIDER_ID))
 
     @patch('cc_common.email_service_client.EmailServiceClient.send_privilege_encumbrance_state_notification_email')
     @patch('cc_common.email_service_client.EmailServiceClient.send_privilege_encumbrance_provider_notification_email')
@@ -1244,6 +1190,7 @@ class TestEncumbranceEvents(TstFunction):
         self, mock_provider_email, mock_state_email
     ):
         """Test that only active licenses and privileges generate notifications."""
+        from cc_common.email_service_client import EncumbranceNotificationTemplateVariables
         from handlers.encumbrance_events import privilege_encumbrance_listener
 
         # Set up test data
@@ -1288,51 +1235,40 @@ class TestEncumbranceEvents(TstFunction):
         self.assertEqual({'batchItemFailures': []}, result)
 
         # Verify provider notification
-        mock_provider_email.assert_called_once_with(
-            compact=DEFAULT_COMPACT,
-            provider_email='provider@example.com',
+        expected_template_variables = EncumbranceNotificationTemplateVariables(
             provider_first_name='Björk',
             provider_last_name='Guðmundsdóttir',
             encumbered_jurisdiction='ne',
             license_type='speech-language pathologist',
-            effective_start_date=DEFAULT_EFFECTIVE_DATE,
+            effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+            provider_id=None,
         )
-
-        # Verify state notifications - only active jurisdictions
-        expected_state_calls = [
-            # State 'ne' (encumbered jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'ne',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'encumbered_jurisdiction': 'ne',
-                'license_type': 'speech-language pathologist',
-                'effective_start_date': DEFAULT_EFFECTIVE_DATE,
-            },
-            # State 'tx' (active license jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'tx',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'encumbered_jurisdiction': 'ne',
-                'license_type': 'speech-language pathologist',
-                'effective_start_date': DEFAULT_EFFECTIVE_DATE,
-            },
-        ]
+        mock_provider_email.assert_called_once_with(
+            compact=DEFAULT_COMPACT,
+            provider_email='provider@example.com',
+            template_variables=expected_template_variables,
+        )
 
         # Verify only 2 notifications (NOT to inactive 'co' or 'ky')
         self.assertEqual(2, mock_state_email.call_count)
-        actual_state_calls = [call.kwargs for call in mock_state_email.call_args_list]
 
-        # Sort both lists for comparison
-        expected_state_calls_sorted = sorted(expected_state_calls, key=lambda x: x['jurisdiction'])
-        actual_state_calls_sorted = sorted(actual_state_calls, key=lambda x: x['jurisdiction'])
+        # Check each call individually since they have different provider_id values
+        calls = mock_state_email.call_args_list
+        call_jurisdictions = [call.kwargs['jurisdiction'] for call in calls]
+        self.assertEqual(sorted(call_jurisdictions), ['ne', 'tx'])
 
-        self.assertEqual(expected_state_calls_sorted, actual_state_calls_sorted)
+        # Verify all calls have the correct template_variables structure
+        for call in calls:
+            self.assertEqual(call.kwargs['compact'], DEFAULT_COMPACT)
+            self.assertIsInstance(call.kwargs['template_variables'], EncumbranceNotificationTemplateVariables)
+            template_vars = call.kwargs['template_variables']
+            self.assertEqual(template_vars.provider_first_name, 'Björk')
+            self.assertEqual(template_vars.provider_last_name, 'Guðmundsdóttir')
+            self.assertEqual(template_vars.encumbered_jurisdiction, 'ne')
+            self.assertEqual(template_vars.license_type, 'speech-language pathologist')
+            self.assertEqual(template_vars.effective_date, date.fromisoformat(DEFAULT_EFFECTIVE_DATE))
+            # provider_id should be UUID for all state notifications
+            self.assertEqual(template_vars.provider_id, UUID(DEFAULT_PROVIDER_ID))
 
     @patch(
         'cc_common.email_service_client.EmailServiceClient.send_privilege_encumbrance_lifting_state_notification_email'
@@ -1344,6 +1280,7 @@ class TestEncumbranceEvents(TstFunction):
         self, mock_provider_email, mock_state_email
     ):
         """Test that privilege encumbrance lifting listener processes events for registered providers."""
+        from cc_common.email_service_client import EncumbranceNotificationTemplateVariables
         from handlers.encumbrance_events import privilege_encumbrance_lifting_listener
 
         # Set up test data with registered provider
@@ -1378,62 +1315,42 @@ class TestEncumbranceEvents(TstFunction):
         self.assertEqual({'batchItemFailures': []}, result)
 
         # Verify provider notification
+        expected_template_variables = EncumbranceNotificationTemplateVariables(
+            provider_first_name='Björk',
+            provider_last_name='Guðmundsdóttir',
+            encumbered_jurisdiction='ne',
+            license_type='speech-language pathologist',
+            effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+            provider_id=None,
+        )
         mock_provider_email.assert_called_once_with(
             compact=DEFAULT_COMPACT,
             provider_email='provider@example.com',
-            provider_first_name='Björk',
-            provider_last_name='Guðmundsdóttir',
-            lifted_jurisdiction='ne',
-            license_type='speech-language pathologist',
-            effective_lift_date=DEFAULT_EFFECTIVE_DATE,
+            template_variables=expected_template_variables,
         )
 
-        # Verify state notifications
-        expected_state_calls = [
-            # State 'ne' (lifting jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'ne',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'lifted_jurisdiction': 'ne',
-                'license_type': 'speech-language pathologist',
-                'effective_lift_date': DEFAULT_EFFECTIVE_DATE,
-            },
-            # State 'co' (active license jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'co',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'lifted_jurisdiction': 'ne',
-                'license_type': 'speech-language pathologist',
-                'effective_lift_date': DEFAULT_EFFECTIVE_DATE,
-            },
-            # State 'ky' (active privilege jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'ky',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'lifted_jurisdiction': 'ne',
-                'license_type': 'speech-language pathologist',
-                'effective_lift_date': DEFAULT_EFFECTIVE_DATE,
-            },
-        ]
-
-        # Verify all state notifications were sent
+        # Verify state notifications were sent
         self.assertEqual(3, mock_state_email.call_count)
-        actual_state_calls = [call.kwargs for call in mock_state_email.call_args_list]
 
-        # Sort both lists for comparison
-        expected_state_calls_sorted = sorted(expected_state_calls, key=lambda x: x['jurisdiction'])
-        actual_state_calls_sorted = sorted(actual_state_calls, key=lambda x: x['jurisdiction'])
+        # Check each call individually since they have different provider_id values
+        calls = mock_state_email.call_args_list
+        call_jurisdictions = [call.kwargs['jurisdiction'] for call in calls]
+        self.assertEqual(sorted(call_jurisdictions), ['co', 'ky', 'ne'])
 
-        self.assertEqual(expected_state_calls_sorted, actual_state_calls_sorted)
+        # Verify all calls have the correct template_variables structure
+        for call in calls:
+            self.assertEqual(call.kwargs['compact'], DEFAULT_COMPACT)
+            self.assertIsInstance(call.kwargs['template_variables'], EncumbranceNotificationTemplateVariables)
+            template_vars = call.kwargs['template_variables']
+            self.assertEqual(template_vars.provider_first_name, 'Björk')
+            self.assertEqual(template_vars.provider_last_name, 'Guðmundsdóttir')
+            self.assertEqual(
+                template_vars.encumbered_jurisdiction, 'ne'
+            )  # Note: uses encumbered_jurisdiction for lifting too
+            self.assertEqual(template_vars.license_type, 'speech-language pathologist')
+            self.assertEqual(template_vars.effective_date, date.fromisoformat(DEFAULT_EFFECTIVE_DATE))
+            # provider_id should be UUID for all state notifications
+            self.assertEqual(template_vars.provider_id, UUID(DEFAULT_PROVIDER_ID))
 
     @patch(
         'cc_common.email_service_client.EmailServiceClient.send_privilege_encumbrance_lifting_state_notification_email'
@@ -1445,6 +1362,7 @@ class TestEncumbranceEvents(TstFunction):
         self, mock_provider_email, mock_state_email
     ):
         """Test that privilege encumbrance lifting listener handles unregistered providers."""
+        from cc_common.email_service_client import EncumbranceNotificationTemplateVariables
         from handlers.encumbrance_events import privilege_encumbrance_lifting_listener
 
         # Set up test data with unregistered provider (no email)
@@ -1473,41 +1391,28 @@ class TestEncumbranceEvents(TstFunction):
         # Verify no provider notification is sent (provider not registered)
         mock_provider_email.assert_not_called()
 
-        # Verify state notifications are still sent
-        expected_state_calls = [
-            # State 'ne' (lifting jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'ne',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'lifted_jurisdiction': 'ne',
-                'license_type': 'speech-language pathologist',
-                'effective_lift_date': DEFAULT_EFFECTIVE_DATE,
-            },
-            # State 'co' (active license jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'co',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'lifted_jurisdiction': 'ne',
-                'license_type': 'speech-language pathologist',
-                'effective_lift_date': DEFAULT_EFFECTIVE_DATE,
-            },
-        ]
-
         # Verify state notifications were sent
         self.assertEqual(2, mock_state_email.call_count)
-        actual_state_calls = [call.kwargs for call in mock_state_email.call_args_list]
 
-        # Sort both lists for comparison
-        expected_state_calls_sorted = sorted(expected_state_calls, key=lambda x: x['jurisdiction'])
-        actual_state_calls_sorted = sorted(actual_state_calls, key=lambda x: x['jurisdiction'])
+        # Check each call individually since they have different provider_id values
+        calls = mock_state_email.call_args_list
+        call_jurisdictions = [call.kwargs['jurisdiction'] for call in calls]
+        self.assertEqual(sorted(call_jurisdictions), ['co', 'ne'])
 
-        self.assertEqual(expected_state_calls_sorted, actual_state_calls_sorted)
+        # Verify all calls have the correct template_variables structure
+        for call in calls:
+            self.assertEqual(call.kwargs['compact'], DEFAULT_COMPACT)
+            self.assertIsInstance(call.kwargs['template_variables'], EncumbranceNotificationTemplateVariables)
+            template_vars = call.kwargs['template_variables']
+            self.assertEqual(template_vars.provider_first_name, 'Björk')
+            self.assertEqual(template_vars.provider_last_name, 'Guðmundsdóttir')
+            self.assertEqual(
+                template_vars.encumbered_jurisdiction, 'ne'
+            )  # Note: uses encumbered_jurisdiction for lifting too
+            self.assertEqual(template_vars.license_type, 'speech-language pathologist')
+            self.assertEqual(template_vars.effective_date, date.fromisoformat(DEFAULT_EFFECTIVE_DATE))
+            # provider_id should be UUID for all state notifications
+            self.assertEqual(template_vars.provider_id, UUID(DEFAULT_PROVIDER_ID))
 
     @patch(
         'cc_common.email_service_client.EmailServiceClient.send_privilege_encumbrance_lifting_state_notification_email'
@@ -1519,6 +1424,7 @@ class TestEncumbranceEvents(TstFunction):
         self, mock_provider_email, mock_state_email
     ):
         """Test that privilege encumbrance lifting listener correctly identifies states to notify."""
+        from cc_common.email_service_client import EncumbranceNotificationTemplateVariables
         from handlers.encumbrance_events import privilege_encumbrance_lifting_listener
 
         # Set up test data
@@ -1562,73 +1468,42 @@ class TestEncumbranceEvents(TstFunction):
         self.assertEqual({'batchItemFailures': []}, result)
 
         # Verify provider notification
+        expected_template_variables = EncumbranceNotificationTemplateVariables(
+            provider_first_name='Björk',
+            provider_last_name='Guðmundsdóttir',
+            encumbered_jurisdiction='ne',
+            license_type='speech-language pathologist',
+            effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+            provider_id=None,
+        )
         mock_provider_email.assert_called_once_with(
             compact=DEFAULT_COMPACT,
             provider_email='provider@example.com',
-            provider_first_name='Björk',
-            provider_last_name='Guðmundsdóttir',
-            lifted_jurisdiction='ne',
-            license_type='speech-language pathologist',
-            effective_lift_date=DEFAULT_EFFECTIVE_DATE,
+            template_variables=expected_template_variables,
         )
 
-        # Verify state notifications to all relevant jurisdictions
-        expected_state_calls = [
-            # State 'ne' (lifting jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'ne',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'lifted_jurisdiction': 'ne',
-                'license_type': 'speech-language pathologist',
-                'effective_lift_date': DEFAULT_EFFECTIVE_DATE,
-            },
-            # State 'co' (active license jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'co',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'lifted_jurisdiction': 'ne',
-                'license_type': 'speech-language pathologist',
-                'effective_lift_date': DEFAULT_EFFECTIVE_DATE,
-            },
-            # State 'ky' (active license jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'ky',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'lifted_jurisdiction': 'ne',
-                'license_type': 'speech-language pathologist',
-                'effective_lift_date': DEFAULT_EFFECTIVE_DATE,
-            },
-            # State 'tx' (active privilege jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'tx',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'lifted_jurisdiction': 'ne',
-                'license_type': 'speech-language pathologist',
-                'effective_lift_date': DEFAULT_EFFECTIVE_DATE,
-            },
-        ]
-
-        # Verify all state notifications were sent
+        # Verify state notifications were sent to all relevant jurisdictions
         self.assertEqual(4, mock_state_email.call_count)
-        actual_state_calls = [call.kwargs for call in mock_state_email.call_args_list]
 
-        # Sort both lists for comparison
-        expected_state_calls_sorted = sorted(expected_state_calls, key=lambda x: x['jurisdiction'])
-        actual_state_calls_sorted = sorted(actual_state_calls, key=lambda x: x['jurisdiction'])
+        # Check each call individually since they have different provider_id values
+        calls = mock_state_email.call_args_list
+        call_jurisdictions = [call.kwargs['jurisdiction'] for call in calls]
+        self.assertEqual(sorted(call_jurisdictions), ['co', 'ky', 'ne', 'tx'])
 
-        self.assertEqual(expected_state_calls_sorted, actual_state_calls_sorted)
+        # Verify all calls have the correct template_variables structure
+        for call in calls:
+            self.assertEqual(call.kwargs['compact'], DEFAULT_COMPACT)
+            self.assertIsInstance(call.kwargs['template_variables'], EncumbranceNotificationTemplateVariables)
+            template_vars = call.kwargs['template_variables']
+            self.assertEqual(template_vars.provider_first_name, 'Björk')
+            self.assertEqual(template_vars.provider_last_name, 'Guðmundsdóttir')
+            self.assertEqual(
+                template_vars.encumbered_jurisdiction, 'ne'
+            )  # Note: uses encumbered_jurisdiction for lifting too
+            self.assertEqual(template_vars.license_type, 'speech-language pathologist')
+            self.assertEqual(template_vars.effective_date, date.fromisoformat(DEFAULT_EFFECTIVE_DATE))
+            # provider_id should be UUID for all state notifications
+            self.assertEqual(template_vars.provider_id, UUID(DEFAULT_PROVIDER_ID))
 
     def test_privilege_encumbrance_lifting_listener_handles_provider_retrieval_failure(self):
         """Test that privilege encumbrance lifting listener handles provider retrieval failures."""
@@ -1654,11 +1529,12 @@ class TestEncumbranceEvents(TstFunction):
     @patch('cc_common.email_service_client.EmailServiceClient.send_privilege_encumbrance_state_notification_email')
     @patch('cc_common.email_service_client.EmailServiceClient.send_privilege_encumbrance_provider_notification_email')
     def test_privilege_encumbrance_listeners_handle_no_additional_jurisdictions(
-        self, mock_priv_enc_provider, mock_priv_enc_state, mock_priv_lift_provider, mock_priv_lift_state
+        self, mock_priv_enc_provider, mock_priv_enc_state, mock_lift_provider, mock_lift_state
     ):
         """
         Test that privilege encumbrance listeners handle case where provider has no other active licenses/privileges.
         """
+        from cc_common.email_service_client import EncumbranceNotificationTemplateVariables
         from handlers.encumbrance_events import privilege_encumbrance_lifting_listener, privilege_encumbrance_listener
 
         # Set up test data with only provider record
@@ -1697,46 +1573,56 @@ class TestEncumbranceEvents(TstFunction):
         mock_priv_enc_provider.assert_called_once_with(
             compact=DEFAULT_COMPACT,
             provider_email='provider@example.com',
-            provider_first_name='Björk',
-            provider_last_name='Guðmundsdóttir',
-            encumbered_jurisdiction='ne',
-            license_type='speech-language pathologist',
-            effective_start_date=DEFAULT_EFFECTIVE_DATE,
+            template_variables=EncumbranceNotificationTemplateVariables(
+                provider_first_name='Björk',
+                provider_last_name='Guðmundsdóttir',
+                encumbered_jurisdiction='ne',
+                license_type='speech-language pathologist',
+                effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                provider_id=None,
+            ),
         )
 
         # Only state 'ne' should be notified (no other jurisdictions)
         mock_priv_enc_state.assert_called_once_with(
             compact=DEFAULT_COMPACT,
             jurisdiction='ne',
-            provider_first_name='Björk',
-            provider_last_name='Guðmundsdóttir',
-            provider_id=DEFAULT_PROVIDER_ID,
-            encumbered_jurisdiction='ne',
-            license_type='speech-language pathologist',
-            effective_start_date=DEFAULT_EFFECTIVE_DATE,
+            template_variables=EncumbranceNotificationTemplateVariables(
+                provider_first_name='Björk',
+                provider_last_name='Guðmundsdóttir',
+                encumbered_jurisdiction='ne',
+                license_type='speech-language pathologist',
+                effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                provider_id=UUID(DEFAULT_PROVIDER_ID),
+            ),
         )
 
         # Verify privilege lifting notifications
-        mock_priv_lift_provider.assert_called_once_with(
+        mock_lift_provider.assert_called_once_with(
             compact=DEFAULT_COMPACT,
             provider_email='provider@example.com',
-            provider_first_name='Björk',
-            provider_last_name='Guðmundsdóttir',
-            lifted_jurisdiction='ne',
-            license_type='speech-language pathologist',
-            effective_lift_date=DEFAULT_EFFECTIVE_DATE,
+            template_variables=EncumbranceNotificationTemplateVariables(
+                provider_first_name='Björk',
+                provider_last_name='Guðmundsdóttir',
+                encumbered_jurisdiction='ne',
+                license_type='speech-language pathologist',
+                effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                provider_id=None,
+            ),
         )
 
         # Only state 'ne' should be notified (no other jurisdictions)
-        mock_priv_lift_state.assert_called_once_with(
+        mock_lift_state.assert_called_once_with(
             compact=DEFAULT_COMPACT,
             jurisdiction='ne',
-            provider_first_name='Björk',
-            provider_last_name='Guðmundsdóttir',
-            provider_id=DEFAULT_PROVIDER_ID,
-            lifted_jurisdiction='ne',
-            license_type='speech-language pathologist',
-            effective_lift_date=DEFAULT_EFFECTIVE_DATE,
+            template_variables=EncumbranceNotificationTemplateVariables(
+                provider_first_name='Björk',
+                provider_last_name='Guðmundsdóttir',
+                encumbered_jurisdiction='ne',
+                license_type='speech-language pathologist',
+                effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                provider_id=UUID(DEFAULT_PROVIDER_ID),
+            ),
         )
 
     @patch('cc_common.email_service_client.EmailServiceClient.send_license_encumbrance_state_notification_email')
@@ -1745,6 +1631,7 @@ class TestEncumbranceEvents(TstFunction):
         self, mock_provider_email, mock_state_email
     ):
         """Test that license encumbrance notification listener processes events for registered providers."""
+        from cc_common.email_service_client import EncumbranceNotificationTemplateVariables
         from handlers.encumbrance_events import license_encumbrance_notification_listener
 
         # Set up test data with registered provider
@@ -1779,62 +1666,40 @@ class TestEncumbranceEvents(TstFunction):
         self.assertEqual({'batchItemFailures': []}, result)
 
         # Verify provider notification
-        mock_provider_email.assert_called_once_with(
-            compact=DEFAULT_COMPACT,
-            provider_email='provider@example.com',
+        expected_template_variables = EncumbranceNotificationTemplateVariables(
             provider_first_name='Björk',
             provider_last_name='Guðmundsdóttir',
             encumbered_jurisdiction='oh',
             license_type='speech-language pathologist',
-            effective_start_date=DEFAULT_EFFECTIVE_DATE,
+            effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+            provider_id=None,
+        )
+        mock_provider_email.assert_called_once_with(
+            compact=DEFAULT_COMPACT,
+            provider_email='provider@example.com',
+            template_variables=expected_template_variables,
         )
 
-        # Verify state notifications (encumbered state + other states with active licenses/privileges)
-        expected_state_calls = [
-            # State 'oh' (encumbered jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'oh',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'encumbered_jurisdiction': 'oh',
-                'license_type': 'speech-language pathologist',
-                'effective_start_date': DEFAULT_EFFECTIVE_DATE,
-            },
-            # State 'ne' (active license jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'ne',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'encumbered_jurisdiction': 'oh',
-                'license_type': 'speech-language pathologist',
-                'effective_start_date': DEFAULT_EFFECTIVE_DATE,
-            },
-            # State 'ky' (active privilege jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'ky',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'encumbered_jurisdiction': 'oh',
-                'license_type': 'speech-language pathologist',
-                'effective_start_date': DEFAULT_EFFECTIVE_DATE,
-            },
-        ]
-
-        # Verify all state notifications were sent
+        # Verify state notifications were sent
         self.assertEqual(3, mock_state_email.call_count)
-        actual_state_calls = [call.kwargs for call in mock_state_email.call_args_list]
 
-        # Sort both lists for comparison
-        expected_state_calls_sorted = sorted(expected_state_calls, key=lambda x: x['jurisdiction'])
-        actual_state_calls_sorted = sorted(actual_state_calls, key=lambda x: x['jurisdiction'])
+        # Check each call individually since they have different provider_id values
+        calls = mock_state_email.call_args_list
+        call_jurisdictions = [call.kwargs['jurisdiction'] for call in calls]
+        self.assertEqual(sorted(call_jurisdictions), ['ky', 'ne', 'oh'])
 
-        self.assertEqual(expected_state_calls_sorted, actual_state_calls_sorted)
+        # Verify all calls have the correct template_variables structure
+        for call in calls:
+            self.assertEqual(call.kwargs['compact'], DEFAULT_COMPACT)
+            self.assertIsInstance(call.kwargs['template_variables'], EncumbranceNotificationTemplateVariables)
+            template_vars = call.kwargs['template_variables']
+            self.assertEqual(template_vars.provider_first_name, 'Björk')
+            self.assertEqual(template_vars.provider_last_name, 'Guðmundsdóttir')
+            self.assertEqual(template_vars.encumbered_jurisdiction, 'oh')
+            self.assertEqual(template_vars.license_type, 'speech-language pathologist')
+            self.assertEqual(template_vars.effective_date, date.fromisoformat(DEFAULT_EFFECTIVE_DATE))
+            # provider_id should be UUID for all state notifications
+            self.assertEqual(template_vars.provider_id, UUID(DEFAULT_PROVIDER_ID))
 
     @patch('cc_common.email_service_client.EmailServiceClient.send_license_encumbrance_state_notification_email')
     @patch('cc_common.email_service_client.EmailServiceClient.send_license_encumbrance_provider_notification_email')
@@ -1842,6 +1707,7 @@ class TestEncumbranceEvents(TstFunction):
         self, mock_provider_email, mock_state_email
     ):
         """Test that license encumbrance notification listener handles unregistered providers."""
+        from cc_common.email_service_client import EncumbranceNotificationTemplateVariables
         from handlers.encumbrance_events import license_encumbrance_notification_listener
 
         # Set up test data with unregistered provider (no email)
@@ -1870,41 +1736,26 @@ class TestEncumbranceEvents(TstFunction):
         # Verify no provider notification is sent (provider not registered)
         mock_provider_email.assert_not_called()
 
-        # Verify state notifications are sent to encumbered jurisdiction and active license jurisdiction
-        expected_state_calls = [
-            # State 'oh' (encumbered jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'oh',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'encumbered_jurisdiction': 'oh',
-                'license_type': 'speech-language pathologist',
-                'effective_start_date': DEFAULT_EFFECTIVE_DATE,
-            },
-            # State 'ne' (active license jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'ne',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'encumbered_jurisdiction': 'oh',
-                'license_type': 'speech-language pathologist',
-                'effective_start_date': DEFAULT_EFFECTIVE_DATE,
-            },
-        ]
-
         # Verify state notifications were sent
         self.assertEqual(2, mock_state_email.call_count)
-        actual_state_calls = [call.kwargs for call in mock_state_email.call_args_list]
 
-        # Sort both lists for comparison
-        expected_state_calls_sorted = sorted(expected_state_calls, key=lambda x: x['jurisdiction'])
-        actual_state_calls_sorted = sorted(actual_state_calls, key=lambda x: x['jurisdiction'])
+        # Check each call individually since they have different provider_id values
+        calls = mock_state_email.call_args_list
+        call_jurisdictions = [call.kwargs['jurisdiction'] for call in calls]
+        self.assertEqual(sorted(call_jurisdictions), ['ne', 'oh'])
 
-        self.assertEqual(expected_state_calls_sorted, actual_state_calls_sorted)
+        # Verify all calls have the correct template_variables structure
+        for call in calls:
+            self.assertEqual(call.kwargs['compact'], DEFAULT_COMPACT)
+            self.assertIsInstance(call.kwargs['template_variables'], EncumbranceNotificationTemplateVariables)
+            template_vars = call.kwargs['template_variables']
+            self.assertEqual(template_vars.provider_first_name, 'Björk')
+            self.assertEqual(template_vars.provider_last_name, 'Guðmundsdóttir')
+            self.assertEqual(template_vars.encumbered_jurisdiction, 'oh')
+            self.assertEqual(template_vars.license_type, 'speech-language pathologist')
+            self.assertEqual(template_vars.effective_date, date.fromisoformat(DEFAULT_EFFECTIVE_DATE))
+            # provider_id should be UUID for all state notifications
+            self.assertEqual(template_vars.provider_id, UUID(DEFAULT_PROVIDER_ID))
 
     @patch('cc_common.email_service_client.EmailServiceClient.send_license_encumbrance_state_notification_email')
     @patch('cc_common.email_service_client.EmailServiceClient.send_license_encumbrance_provider_notification_email')
@@ -1912,6 +1763,7 @@ class TestEncumbranceEvents(TstFunction):
         self, mock_provider_email, mock_state_email
     ):
         """Test that license encumbrance notification listener correctly identifies states to notify."""
+        from cc_common.email_service_client import EncumbranceNotificationTemplateVariables
         from handlers.encumbrance_events import license_encumbrance_notification_listener
 
         # Set up test data
@@ -1955,73 +1807,40 @@ class TestEncumbranceEvents(TstFunction):
         self.assertEqual({'batchItemFailures': []}, result)
 
         # Verify provider notification
-        mock_provider_email.assert_called_once_with(
-            compact=DEFAULT_COMPACT,
-            provider_email='provider@example.com',
+        expected_template_variables = EncumbranceNotificationTemplateVariables(
             provider_first_name='Björk',
             provider_last_name='Guðmundsdóttir',
             encumbered_jurisdiction='oh',
             license_type='speech-language pathologist',
-            effective_start_date=DEFAULT_EFFECTIVE_DATE,
+            effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+            provider_id=None,
+        )
+        mock_provider_email.assert_called_once_with(
+            compact=DEFAULT_COMPACT,
+            provider_email='provider@example.com',
+            template_variables=expected_template_variables,
         )
 
-        # Verify state notifications are sent to all relevant jurisdictions
-        expected_state_calls = [
-            # State 'oh' (encumbered jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'oh',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'encumbered_jurisdiction': 'oh',
-                'license_type': 'speech-language pathologist',
-                'effective_start_date': DEFAULT_EFFECTIVE_DATE,
-            },
-            # State 'ne' (active license jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'ne',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'encumbered_jurisdiction': 'oh',
-                'license_type': 'speech-language pathologist',
-                'effective_start_date': DEFAULT_EFFECTIVE_DATE,
-            },
-            # State 'ky' (active license jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'ky',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'encumbered_jurisdiction': 'oh',
-                'license_type': 'speech-language pathologist',
-                'effective_start_date': DEFAULT_EFFECTIVE_DATE,
-            },
-            # State 'tx' (active privilege jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'tx',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'encumbered_jurisdiction': 'oh',
-                'license_type': 'speech-language pathologist',
-                'effective_start_date': DEFAULT_EFFECTIVE_DATE,
-            },
-        ]
-
-        # Verify all state notifications were sent
+        # Verify state notifications were sent to all relevant jurisdictions
         self.assertEqual(4, mock_state_email.call_count)
-        actual_state_calls = [call.kwargs for call in mock_state_email.call_args_list]
 
-        # Sort both lists for comparison
-        expected_state_calls_sorted = sorted(expected_state_calls, key=lambda x: x['jurisdiction'])
-        actual_state_calls_sorted = sorted(actual_state_calls, key=lambda x: x['jurisdiction'])
+        # Check each call individually since they have different provider_id values
+        calls = mock_state_email.call_args_list
+        call_jurisdictions = [call.kwargs['jurisdiction'] for call in calls]
+        self.assertEqual(sorted(call_jurisdictions), ['ky', 'ne', 'oh', 'tx'])
 
-        self.assertEqual(expected_state_calls_sorted, actual_state_calls_sorted)
+        # Verify all calls have the correct template_variables structure
+        for call in calls:
+            self.assertEqual(call.kwargs['compact'], DEFAULT_COMPACT)
+            self.assertIsInstance(call.kwargs['template_variables'], EncumbranceNotificationTemplateVariables)
+            template_vars = call.kwargs['template_variables']
+            self.assertEqual(template_vars.provider_first_name, 'Björk')
+            self.assertEqual(template_vars.provider_last_name, 'Guðmundsdóttir')
+            self.assertEqual(template_vars.encumbered_jurisdiction, 'oh')
+            self.assertEqual(template_vars.license_type, 'speech-language pathologist')
+            self.assertEqual(template_vars.effective_date, date.fromisoformat(DEFAULT_EFFECTIVE_DATE))
+            # provider_id should be UUID for all state notifications
+            self.assertEqual(template_vars.provider_id, UUID(DEFAULT_PROVIDER_ID))
 
     def test_license_encumbrance_notification_listener_handles_provider_retrieval_failure(self):
         """Test that license encumbrance notification listener handles provider retrieval failures."""
@@ -2044,6 +1863,7 @@ class TestEncumbranceEvents(TstFunction):
         self, mock_provider_email, mock_state_email
     ):
         """Test that the jurisdiction where license encumbrance occurred is not duplicated in notifications."""
+        from cc_common.email_service_client import EncumbranceNotificationTemplateVariables
         from handlers.encumbrance_events import license_encumbrance_notification_listener
 
         # Set up test data
@@ -2087,62 +1907,40 @@ class TestEncumbranceEvents(TstFunction):
         self.assertEqual({'batchItemFailures': []}, result)
 
         # Verify provider notification
-        mock_provider_email.assert_called_once_with(
-            compact=DEFAULT_COMPACT,
-            provider_email='provider@example.com',
+        expected_template_variables = EncumbranceNotificationTemplateVariables(
             provider_first_name='Björk',
             provider_last_name='Guðmundsdóttir',
             encumbered_jurisdiction='oh',
             license_type='speech-language pathologist',
-            effective_start_date=DEFAULT_EFFECTIVE_DATE,
+            effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+            provider_id=None,
         )
-
-        # Verify state notifications - oh should appear only once, not duplicated
-        expected_state_calls = [
-            # State 'oh' (encumbered jurisdiction) - exactly once
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'oh',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'encumbered_jurisdiction': 'oh',
-                'license_type': 'speech-language pathologist',
-                'effective_start_date': DEFAULT_EFFECTIVE_DATE,
-            },
-            # State 'ne' (active license jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'ne',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'encumbered_jurisdiction': 'oh',
-                'license_type': 'speech-language pathologist',
-                'effective_start_date': DEFAULT_EFFECTIVE_DATE,
-            },
-            # State 'ky' (active privilege jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'ky',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'encumbered_jurisdiction': 'oh',
-                'license_type': 'speech-language pathologist',
-                'effective_start_date': DEFAULT_EFFECTIVE_DATE,
-            },
-        ]
+        mock_provider_email.assert_called_once_with(
+            compact=DEFAULT_COMPACT,
+            provider_email='provider@example.com',
+            template_variables=expected_template_variables,
+        )
 
         # Verify exactly 3 notifications (oh appears only once, not duplicated)
         self.assertEqual(3, mock_state_email.call_count)
-        actual_state_calls = [call.kwargs for call in mock_state_email.call_args_list]
 
-        # Sort both lists for comparison
-        expected_state_calls_sorted = sorted(expected_state_calls, key=lambda x: x['jurisdiction'])
-        actual_state_calls_sorted = sorted(actual_state_calls, key=lambda x: x['jurisdiction'])
+        # Check each call individually since they have different provider_id values
+        calls = mock_state_email.call_args_list
+        call_jurisdictions = [call.kwargs['jurisdiction'] for call in calls]
+        self.assertEqual(sorted(call_jurisdictions), ['ky', 'ne', 'oh'])
 
-        self.assertEqual(expected_state_calls_sorted, actual_state_calls_sorted)
+        # Verify all calls have the correct template_variables structure
+        for call in calls:
+            self.assertEqual(call.kwargs['compact'], DEFAULT_COMPACT)
+            self.assertIsInstance(call.kwargs['template_variables'], EncumbranceNotificationTemplateVariables)
+            template_vars = call.kwargs['template_variables']
+            self.assertEqual(template_vars.provider_first_name, 'Björk')
+            self.assertEqual(template_vars.provider_last_name, 'Guðmundsdóttir')
+            self.assertEqual(template_vars.encumbered_jurisdiction, 'oh')
+            self.assertEqual(template_vars.license_type, 'speech-language pathologist')
+            self.assertEqual(template_vars.effective_date, date.fromisoformat(DEFAULT_EFFECTIVE_DATE))
+            # provider_id should be UUID for all state notifications
+            self.assertEqual(template_vars.provider_id, UUID(DEFAULT_PROVIDER_ID))
 
     @patch('cc_common.email_service_client.EmailServiceClient.send_license_encumbrance_state_notification_email')
     @patch('cc_common.email_service_client.EmailServiceClient.send_license_encumbrance_provider_notification_email')
@@ -2150,6 +1948,7 @@ class TestEncumbranceEvents(TstFunction):
         self, mock_provider_email, mock_state_email
     ):
         """Test that only active licenses and privileges generate notifications."""
+        from cc_common.email_service_client import EncumbranceNotificationTemplateVariables
         from handlers.encumbrance_events import license_encumbrance_notification_listener
 
         # Set up test data
@@ -2194,51 +1993,40 @@ class TestEncumbranceEvents(TstFunction):
         self.assertEqual({'batchItemFailures': []}, result)
 
         # Verify provider notification
-        mock_provider_email.assert_called_once_with(
-            compact=DEFAULT_COMPACT,
-            provider_email='provider@example.com',
+        expected_template_variables = EncumbranceNotificationTemplateVariables(
             provider_first_name='Björk',
             provider_last_name='Guðmundsdóttir',
             encumbered_jurisdiction='oh',
             license_type='speech-language pathologist',
-            effective_start_date=DEFAULT_EFFECTIVE_DATE,
+            effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+            provider_id=None,
         )
-
-        # Verify state notifications - only active jurisdictions
-        expected_state_calls = [
-            # State 'oh' (encumbered jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'oh',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'encumbered_jurisdiction': 'oh',
-                'license_type': 'speech-language pathologist',
-                'effective_start_date': DEFAULT_EFFECTIVE_DATE,
-            },
-            # State 'tx' (active license jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'tx',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'encumbered_jurisdiction': 'oh',
-                'license_type': 'speech-language pathologist',
-                'effective_start_date': DEFAULT_EFFECTIVE_DATE,
-            },
-        ]
+        mock_provider_email.assert_called_once_with(
+            compact=DEFAULT_COMPACT,
+            provider_email='provider@example.com',
+            template_variables=expected_template_variables,
+        )
 
         # Verify only 2 notifications (NOT to inactive 'ne' or 'ky')
         self.assertEqual(2, mock_state_email.call_count)
-        actual_state_calls = [call.kwargs for call in mock_state_email.call_args_list]
 
-        # Sort both lists for comparison
-        expected_state_calls_sorted = sorted(expected_state_calls, key=lambda x: x['jurisdiction'])
-        actual_state_calls_sorted = sorted(actual_state_calls, key=lambda x: x['jurisdiction'])
+        # Check each call individually since they have different provider_id values
+        calls = mock_state_email.call_args_list
+        call_jurisdictions = [call.kwargs['jurisdiction'] for call in calls]
+        self.assertEqual(sorted(call_jurisdictions), ['oh', 'tx'])
 
-        self.assertEqual(expected_state_calls_sorted, actual_state_calls_sorted)
+        # Verify all calls have the correct template_variables structure
+        for call in calls:
+            self.assertEqual(call.kwargs['compact'], DEFAULT_COMPACT)
+            self.assertIsInstance(call.kwargs['template_variables'], EncumbranceNotificationTemplateVariables)
+            template_vars = call.kwargs['template_variables']
+            self.assertEqual(template_vars.provider_first_name, 'Björk')
+            self.assertEqual(template_vars.provider_last_name, 'Guðmundsdóttir')
+            self.assertEqual(template_vars.encumbered_jurisdiction, 'oh')
+            self.assertEqual(template_vars.license_type, 'speech-language pathologist')
+            self.assertEqual(template_vars.effective_date, date.fromisoformat(DEFAULT_EFFECTIVE_DATE))
+            # provider_id should be UUID for all state notifications
+            self.assertEqual(template_vars.provider_id, UUID(DEFAULT_PROVIDER_ID))
 
     @patch(
         'cc_common.email_service_client.EmailServiceClient.send_license_encumbrance_lifting_state_notification_email'
@@ -2250,6 +2038,7 @@ class TestEncumbranceEvents(TstFunction):
         self, mock_provider_email, mock_state_email
     ):
         """Test that license encumbrance lifting notification listener processes events for registered providers."""
+        from cc_common.email_service_client import EncumbranceNotificationTemplateVariables
         from handlers.encumbrance_events import license_encumbrance_lifting_notification_listener
 
         # Set up test data with registered provider
@@ -2284,62 +2073,42 @@ class TestEncumbranceEvents(TstFunction):
         self.assertEqual({'batchItemFailures': []}, result)
 
         # Verify provider notification
+        expected_template_variables = EncumbranceNotificationTemplateVariables(
+            provider_first_name='Björk',
+            provider_last_name='Guðmundsdóttir',
+            encumbered_jurisdiction='oh',
+            license_type='speech-language pathologist',
+            effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+            provider_id=None,
+        )
         mock_provider_email.assert_called_once_with(
             compact=DEFAULT_COMPACT,
             provider_email='provider@example.com',
-            provider_first_name='Björk',
-            provider_last_name='Guðmundsdóttir',
-            lifted_jurisdiction='oh',
-            license_type='speech-language pathologist',
-            effective_lift_date=DEFAULT_EFFECTIVE_DATE,
+            template_variables=expected_template_variables,
         )
 
-        # Verify state notifications
-        expected_state_calls = [
-            # State 'oh' (lifting jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'oh',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'lifted_jurisdiction': 'oh',
-                'license_type': 'speech-language pathologist',
-                'effective_lift_date': DEFAULT_EFFECTIVE_DATE,
-            },
-            # State 'ne' (active license jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'ne',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'lifted_jurisdiction': 'oh',
-                'license_type': 'speech-language pathologist',
-                'effective_lift_date': DEFAULT_EFFECTIVE_DATE,
-            },
-            # State 'ky' (active privilege jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'ky',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'lifted_jurisdiction': 'oh',
-                'license_type': 'speech-language pathologist',
-                'effective_lift_date': DEFAULT_EFFECTIVE_DATE,
-            },
-        ]
-
-        # Verify all state notifications were sent
+        # Verify state notifications were sent
         self.assertEqual(3, mock_state_email.call_count)
-        actual_state_calls = [call.kwargs for call in mock_state_email.call_args_list]
 
-        # Sort both lists for comparison
-        expected_state_calls_sorted = sorted(expected_state_calls, key=lambda x: x['jurisdiction'])
-        actual_state_calls_sorted = sorted(actual_state_calls, key=lambda x: x['jurisdiction'])
+        # Check each call individually since they have different provider_id values
+        calls = mock_state_email.call_args_list
+        call_jurisdictions = [call.kwargs['jurisdiction'] for call in calls]
+        self.assertEqual(sorted(call_jurisdictions), ['ky', 'ne', 'oh'])
 
-        self.assertEqual(expected_state_calls_sorted, actual_state_calls_sorted)
+        # Verify all calls have the correct template_variables structure
+        for call in calls:
+            self.assertEqual(call.kwargs['compact'], DEFAULT_COMPACT)
+            self.assertIsInstance(call.kwargs['template_variables'], EncumbranceNotificationTemplateVariables)
+            template_vars = call.kwargs['template_variables']
+            self.assertEqual(template_vars.provider_first_name, 'Björk')
+            self.assertEqual(template_vars.provider_last_name, 'Guðmundsdóttir')
+            self.assertEqual(
+                template_vars.encumbered_jurisdiction, 'oh'
+            )  # Note: uses encumbered_jurisdiction for lifting too
+            self.assertEqual(template_vars.license_type, 'speech-language pathologist')
+            self.assertEqual(template_vars.effective_date, date.fromisoformat(DEFAULT_EFFECTIVE_DATE))
+            # provider_id should be UUID for all state notifications
+            self.assertEqual(template_vars.provider_id, UUID(DEFAULT_PROVIDER_ID))
 
     @patch(
         'cc_common.email_service_client.EmailServiceClient.send_license_encumbrance_lifting_state_notification_email'
@@ -2351,6 +2120,7 @@ class TestEncumbranceEvents(TstFunction):
         self, mock_provider_email, mock_state_email
     ):
         """Test that license encumbrance lifting notification listener handles unregistered providers."""
+        from cc_common.email_service_client import EncumbranceNotificationTemplateVariables
         from handlers.encumbrance_events import license_encumbrance_lifting_notification_listener
 
         # Set up test data with unregistered provider (no email)
@@ -2379,41 +2149,28 @@ class TestEncumbranceEvents(TstFunction):
         # Verify no provider notification is sent (provider not registered)
         mock_provider_email.assert_not_called()
 
-        # Verify state notifications are still sent
-        expected_state_calls = [
-            # State 'oh' (lifting jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'oh',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'lifted_jurisdiction': 'oh',
-                'license_type': 'speech-language pathologist',
-                'effective_lift_date': DEFAULT_EFFECTIVE_DATE,
-            },
-            # State 'ne' (active license jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'ne',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'lifted_jurisdiction': 'oh',
-                'license_type': 'speech-language pathologist',
-                'effective_lift_date': DEFAULT_EFFECTIVE_DATE,
-            },
-        ]
-
         # Verify state notifications were sent
         self.assertEqual(2, mock_state_email.call_count)
-        actual_state_calls = [call.kwargs for call in mock_state_email.call_args_list]
 
-        # Sort both lists for comparison
-        expected_state_calls_sorted = sorted(expected_state_calls, key=lambda x: x['jurisdiction'])
-        actual_state_calls_sorted = sorted(actual_state_calls, key=lambda x: x['jurisdiction'])
+        # Check each call individually since they have different provider_id values
+        calls = mock_state_email.call_args_list
+        call_jurisdictions = [call.kwargs['jurisdiction'] for call in calls]
+        self.assertEqual(sorted(call_jurisdictions), ['ne', 'oh'])
 
-        self.assertEqual(expected_state_calls_sorted, actual_state_calls_sorted)
+        # Verify all calls have the correct template_variables structure
+        for call in calls:
+            self.assertEqual(call.kwargs['compact'], DEFAULT_COMPACT)
+            self.assertIsInstance(call.kwargs['template_variables'], EncumbranceNotificationTemplateVariables)
+            template_vars = call.kwargs['template_variables']
+            self.assertEqual(template_vars.provider_first_name, 'Björk')
+            self.assertEqual(template_vars.provider_last_name, 'Guðmundsdóttir')
+            self.assertEqual(
+                template_vars.encumbered_jurisdiction, 'oh'
+            )  # Note: uses encumbered_jurisdiction for lifting too
+            self.assertEqual(template_vars.license_type, 'speech-language pathologist')
+            self.assertEqual(template_vars.effective_date, date.fromisoformat(DEFAULT_EFFECTIVE_DATE))
+            # provider_id should be UUID for all state notifications
+            self.assertEqual(template_vars.provider_id, UUID(DEFAULT_PROVIDER_ID))
 
     @patch(
         'cc_common.email_service_client.EmailServiceClient.send_license_encumbrance_lifting_state_notification_email'
@@ -2425,6 +2182,7 @@ class TestEncumbranceEvents(TstFunction):
         self, mock_provider_email, mock_state_email
     ):
         """Test that license encumbrance lifting notification listener correctly identifies states to notify."""
+        from cc_common.email_service_client import EncumbranceNotificationTemplateVariables
         from handlers.encumbrance_events import license_encumbrance_lifting_notification_listener
 
         # Set up test data
@@ -2468,73 +2226,42 @@ class TestEncumbranceEvents(TstFunction):
         self.assertEqual({'batchItemFailures': []}, result)
 
         # Verify provider notification
+        expected_template_variables = EncumbranceNotificationTemplateVariables(
+            provider_first_name='Björk',
+            provider_last_name='Guðmundsdóttir',
+            encumbered_jurisdiction='oh',
+            license_type='speech-language pathologist',
+            effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+            provider_id=None,
+        )
         mock_provider_email.assert_called_once_with(
             compact=DEFAULT_COMPACT,
             provider_email='provider@example.com',
-            provider_first_name='Björk',
-            provider_last_name='Guðmundsdóttir',
-            lifted_jurisdiction='oh',
-            license_type='speech-language pathologist',
-            effective_lift_date=DEFAULT_EFFECTIVE_DATE,
+            template_variables=expected_template_variables,
         )
 
-        # Verify state notifications to all relevant jurisdictions
-        expected_state_calls = [
-            # State 'oh' (lifting jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'oh',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'lifted_jurisdiction': 'oh',
-                'license_type': 'speech-language pathologist',
-                'effective_lift_date': DEFAULT_EFFECTIVE_DATE,
-            },
-            # State 'ne' (active license jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'ne',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'lifted_jurisdiction': 'oh',
-                'license_type': 'speech-language pathologist',
-                'effective_lift_date': DEFAULT_EFFECTIVE_DATE,
-            },
-            # State 'ky' (active license jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'ky',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'lifted_jurisdiction': 'oh',
-                'license_type': 'speech-language pathologist',
-                'effective_lift_date': DEFAULT_EFFECTIVE_DATE,
-            },
-            # State 'tx' (active privilege jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'tx',
-                'provider_first_name': 'Björk',
-                'provider_last_name': 'Guðmundsdóttir',
-                'provider_id': DEFAULT_PROVIDER_ID,
-                'lifted_jurisdiction': 'oh',
-                'license_type': 'speech-language pathologist',
-                'effective_lift_date': DEFAULT_EFFECTIVE_DATE,
-            },
-        ]
-
-        # Verify all state notifications were sent
+        # Verify state notifications were sent to all relevant jurisdictions
         self.assertEqual(4, mock_state_email.call_count)
-        actual_state_calls = [call.kwargs for call in mock_state_email.call_args_list]
 
-        # Sort both lists for comparison
-        expected_state_calls_sorted = sorted(expected_state_calls, key=lambda x: x['jurisdiction'])
-        actual_state_calls_sorted = sorted(actual_state_calls, key=lambda x: x['jurisdiction'])
+        # Check each call individually since they have different provider_id values
+        calls = mock_state_email.call_args_list
+        call_jurisdictions = [call.kwargs['jurisdiction'] for call in calls]
+        self.assertEqual(sorted(call_jurisdictions), ['ky', 'ne', 'oh', 'tx'])
 
-        self.assertEqual(expected_state_calls_sorted, actual_state_calls_sorted)
+        # Verify all calls have the correct template_variables structure
+        for call in calls:
+            self.assertEqual(call.kwargs['compact'], DEFAULT_COMPACT)
+            self.assertIsInstance(call.kwargs['template_variables'], EncumbranceNotificationTemplateVariables)
+            template_vars = call.kwargs['template_variables']
+            self.assertEqual(template_vars.provider_first_name, 'Björk')
+            self.assertEqual(template_vars.provider_last_name, 'Guðmundsdóttir')
+            self.assertEqual(
+                template_vars.encumbered_jurisdiction, 'oh'
+            )  # Note: uses encumbered_jurisdiction for lifting too
+            self.assertEqual(template_vars.license_type, 'speech-language pathologist')
+            self.assertEqual(template_vars.effective_date, date.fromisoformat(DEFAULT_EFFECTIVE_DATE))
+            # provider_id should be UUID for all state notifications
+            self.assertEqual(template_vars.provider_id, UUID(DEFAULT_PROVIDER_ID))
 
     def test_license_encumbrance_lifting_notification_listener_handles_provider_retrieval_failure(self):
         """Test that license encumbrance lifting notification listener handles provider retrieval failures."""
@@ -2604,47 +2331,59 @@ class TestEncumbranceEvents(TstFunction):
         self.assertEqual({'batchItemFailures': []}, result)
 
         # Verify license encumbrance notifications
+        from cc_common.email_service_client import EncumbranceNotificationTemplateVariables
+
         mock_enc_provider.assert_called_once_with(
             compact=DEFAULT_COMPACT,
             provider_email='provider@example.com',
-            provider_first_name='Björk',
-            provider_last_name='Guðmundsdóttir',
-            encumbered_jurisdiction='oh',
-            license_type='speech-language pathologist',
-            effective_start_date=DEFAULT_EFFECTIVE_DATE,
+            template_variables=EncumbranceNotificationTemplateVariables(
+                provider_first_name='Björk',
+                provider_last_name='Guðmundsdóttir',
+                encumbered_jurisdiction='oh',
+                license_type='speech-language pathologist',
+                effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                provider_id=None,
+            ),
         )
 
         # Only state 'oh' should be notified (no other jurisdictions)
         mock_enc_state.assert_called_once_with(
             compact=DEFAULT_COMPACT,
             jurisdiction='oh',
-            provider_first_name='Björk',
-            provider_last_name='Guðmundsdóttir',
-            provider_id=DEFAULT_PROVIDER_ID,
-            encumbered_jurisdiction='oh',
-            license_type='speech-language pathologist',
-            effective_start_date=DEFAULT_EFFECTIVE_DATE,
+            template_variables=EncumbranceNotificationTemplateVariables(
+                provider_first_name='Björk',
+                provider_last_name='Guðmundsdóttir',
+                encumbered_jurisdiction='oh',
+                license_type='speech-language pathologist',
+                effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                provider_id=UUID(DEFAULT_PROVIDER_ID),
+            ),
         )
 
         # Verify license lifting notifications
         mock_lift_provider.assert_called_once_with(
             compact=DEFAULT_COMPACT,
             provider_email='provider@example.com',
-            provider_first_name='Björk',
-            provider_last_name='Guðmundsdóttir',
-            lifted_jurisdiction='oh',
-            license_type='speech-language pathologist',
-            effective_lift_date=DEFAULT_EFFECTIVE_DATE,
+            template_variables=EncumbranceNotificationTemplateVariables(
+                provider_first_name='Björk',
+                provider_last_name='Guðmundsdóttir',
+                encumbered_jurisdiction='oh',
+                license_type='speech-language pathologist',
+                effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                provider_id=None,
+            ),
         )
 
         # Only state 'oh' should be notified (no other jurisdictions)
         mock_lift_state.assert_called_once_with(
             compact=DEFAULT_COMPACT,
             jurisdiction='oh',
-            provider_first_name='Björk',
-            provider_last_name='Guðmundsdóttir',
-            provider_id=DEFAULT_PROVIDER_ID,
-            lifted_jurisdiction='oh',
-            license_type='speech-language pathologist',
-            effective_lift_date=DEFAULT_EFFECTIVE_DATE,
+            template_variables=EncumbranceNotificationTemplateVariables(
+                provider_first_name='Björk',
+                provider_last_name='Guðmundsdóttir',
+                encumbered_jurisdiction='oh',
+                license_type='speech-language pathologist',
+                effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                provider_id=UUID(DEFAULT_PROVIDER_ID),
+            ),
         )

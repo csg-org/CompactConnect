@@ -1,8 +1,10 @@
-from collections.abc import Callable
-
 from cc_common.config import config, logger
 from cc_common.data_model.provider_record_util import ProviderData, ProviderUserRecords
 from cc_common.data_model.schema.common import ActiveInactiveStatus
+from cc_common.data_model.schema.data_event.api import (
+    EncumbranceEventDetailSchema,
+)
+from cc_common.email_service_client import EncumbranceNotificationTemplateVariables, ProviderNotificationMethod
 from cc_common.event_batch_writer import EventBatchWriter
 from cc_common.event_bus_client import EventBusClient
 from cc_common.license_util import LicenseUtility
@@ -42,9 +44,10 @@ def _get_provider_records_and_validate(compact: str, provider_id: str) -> tuple[
 
 
 def _send_provider_notification(
-    provider_record: ProviderData,
-    notification_method: Callable,
+    notification_method: ProviderNotificationMethod,
     notification_type: str,
+    *,
+    provider_record: ProviderData,
     compact: str,
     **notification_kwargs,
 ) -> None:
@@ -64,9 +67,11 @@ def _send_provider_notification(
             notification_method(
                 compact=compact,
                 provider_email=provider_email,
-                provider_first_name=provider_record.givenName,
-                provider_last_name=provider_record.familyName,
-                **notification_kwargs,
+                template_variables=EncumbranceNotificationTemplateVariables(
+                    provider_first_name=provider_record.givenName,
+                    provider_last_name=provider_record.familyName,
+                    **notification_kwargs,
+                ),
             )
         except Exception as e:
             logger.error('Failed to send provider notification', exception=str(e))
@@ -76,10 +81,10 @@ def _send_provider_notification(
 
 
 def _send_primary_state_notification(
-    notification_method: Callable,
+    notification_method: ProviderNotificationMethod,
     notification_type: str,
+    *,
     provider_record: ProviderData,
-    provider_id: str,
     jurisdiction: str,
     compact: str,
     **notification_kwargs,
@@ -100,10 +105,11 @@ def _send_primary_state_notification(
         notification_method(
             compact=compact,
             jurisdiction=jurisdiction,
-            provider_first_name=provider_record.givenName,
-            provider_last_name=provider_record.familyName,
-            provider_id=provider_id,
-            **notification_kwargs,
+            template_variables=EncumbranceNotificationTemplateVariables(
+                provider_first_name=provider_record.givenName,
+                provider_last_name=provider_record.familyName,
+                **notification_kwargs,
+            ),
         )
     except Exception as e:
         logger.error('Failed to send state notification', jurisdiction=jurisdiction, exception=str(e))
@@ -111,9 +117,10 @@ def _send_primary_state_notification(
 
 
 def _send_additional_state_notifications(
-    provider_records: ProviderUserRecords,
-    notification_method: Callable,
+    notification_method: ProviderNotificationMethod,
     notification_type: str,
+    *,
+    provider_records: ProviderUserRecords,
     provider_record: ProviderData,
     provider_id: str,
     excluded_jurisdiction: str,
@@ -150,6 +157,12 @@ def _send_additional_state_notifications(
             notification_jurisdictions.add(privilege_record.jurisdiction)
 
     # Send notifications to all other states with provider licenses or privileges
+    template_variables = EncumbranceNotificationTemplateVariables(
+        provider_first_name=provider_record.givenName,
+        provider_last_name=provider_record.familyName,
+        provider_id=provider_id,
+        **notification_kwargs,
+    )
     for notification_jurisdiction in notification_jurisdictions:
         logger.info(
             f'Sending {notification_type} notification to other state',
@@ -159,10 +172,7 @@ def _send_additional_state_notifications(
             notification_method(
                 compact=compact,
                 jurisdiction=notification_jurisdiction,
-                provider_first_name=provider_record.givenName,
-                provider_last_name=provider_record.familyName,
-                provider_id=provider_id,
-                **notification_kwargs,
+                template_variables=template_variables,
             )
         except Exception as e:
             logger.error(
@@ -182,12 +192,14 @@ def license_encumbrance_listener(message: dict):
     all privileges associated with the encumbered license, then publishes privilege
     encumbrance events for each affected privilege.
     """
-    detail = message['detail']
+    detail_schema = EncumbranceEventDetailSchema()
+    detail = detail_schema.load(message['detail'])
+
     compact = detail['compact']
     provider_id = detail['providerId']
     jurisdiction = detail['jurisdiction']
     license_type_abbreviation = detail['licenseTypeAbbreviation']
-    effective_start_date = detail['effectiveStartDate']
+    effective_date = detail['effectiveDate']
 
     with logger.append_context_keys(
         compact=compact,
@@ -220,7 +232,7 @@ def license_encumbrance_listener(message: dict):
                         provider_id=provider_id,
                         jurisdiction=privilege.jurisdiction,  # The privilege jurisdiction, not the license jurisdiction
                         license_type_abbreviation=license_type_abbreviation,
-                        effective_start_date=effective_start_date,
+                        effective_date=effective_date,
                         event_batch_writer=event_batch_writer,
                     )
 
@@ -237,12 +249,14 @@ def license_encumbrance_lifted_listener(message: dict):
     their own separate encumbrances), then publishes privilege encumbrance lifting events
     for each affected privilege.
     """
-    detail = message['detail']
+    detail_schema = EncumbranceEventDetailSchema()
+    detail = detail_schema.load(message['detail'])
+
     compact = detail['compact']
     provider_id = detail['providerId']
     jurisdiction = detail['jurisdiction']
     license_type_abbreviation = detail['licenseTypeAbbreviation']
-    effective_lift_date = detail['effectiveLiftDate']
+    effective_date = detail['effectiveDate']
 
     with logger.append_context_keys(
         compact=compact,
@@ -275,7 +289,7 @@ def license_encumbrance_lifted_listener(message: dict):
                         provider_id=provider_id,
                         jurisdiction=privilege.jurisdiction,  # The privilege jurisdiction, not the license jurisdiction
                         license_type_abbreviation=license_type_abbreviation,
-                        effective_lift_date=effective_lift_date,
+                        effective_date=effective_date,
                         event_batch_writer=event_batch_writer,
                     )
 
@@ -292,12 +306,14 @@ def privilege_encumbrance_listener(message: dict):
     This handler processes 'privilege.encumbrance' events and sends notifications
     to the affected provider and relevant states.
     """
-    detail = message['detail']
+    detail_schema = EncumbranceEventDetailSchema()
+    detail = detail_schema.load(message['detail'])
+
     compact = detail['compact']
     provider_id = detail['providerId']
     jurisdiction = detail['jurisdiction']
     license_type_abbreviation = detail['licenseTypeAbbreviation']
-    effective_start_date = detail['effectiveStartDate']
+    effective_date = detail['effectiveDate']
     event_time = detail['eventTime']
 
     with logger.append_context_keys(
@@ -317,13 +333,13 @@ def privilege_encumbrance_listener(message: dict):
 
         # Provider Notification
         _send_provider_notification(
-            provider_record,
             config.email_service_client.send_privilege_encumbrance_provider_notification_email,
             'privilege encumbrance',
-            compact,
+            provider_record=provider_record,
+            compact=compact,
             encumbered_jurisdiction=jurisdiction,
             license_type=license_type_name,
-            effective_start_date=effective_start_date,
+            effective_date=effective_date,
         )
 
         # State Notifications
@@ -331,27 +347,27 @@ def privilege_encumbrance_listener(message: dict):
         _send_primary_state_notification(
             config.email_service_client.send_privilege_encumbrance_state_notification_email,
             'privilege encumbrance',
-            provider_record,
-            provider_id,
-            jurisdiction,
-            compact,
+            provider_record=provider_record,
+            provider_id=provider_id,
+            jurisdiction=jurisdiction,
+            compact=compact,
             encumbered_jurisdiction=jurisdiction,
             license_type=license_type_name,
-            effective_start_date=effective_start_date,
+            effective_date=effective_date,
         )
 
         # Send notifications to all other states with provider licenses or privileges
         _send_additional_state_notifications(
-            provider_records,
             config.email_service_client.send_privilege_encumbrance_state_notification_email,
             'privilege encumbrance',
-            provider_record,
-            provider_id,
-            jurisdiction,
-            compact,
+            provider_records=provider_records,
+            provider_record=provider_record,
+            provider_id=provider_id,
+            excluded_jurisdiction=jurisdiction,
+            compact=compact,
             encumbered_jurisdiction=jurisdiction,
             license_type=license_type_name,
-            effective_start_date=effective_start_date,
+            effective_date=effective_date,
         )
 
         logger.info('Successfully processed privilege encumbrance event')
@@ -365,12 +381,14 @@ def privilege_encumbrance_lifting_listener(message: dict):
     This handler processes 'privilege.encumbranceLifted' events and sends notifications
     to the affected provider and relevant states.
     """
-    detail = message['detail']
+    detail_schema = EncumbranceEventDetailSchema()
+    detail = detail_schema.load(message['detail'])
+
     compact = detail['compact']
     provider_id = detail['providerId']
     jurisdiction = detail['jurisdiction']
     license_type_abbreviation = detail['licenseTypeAbbreviation']
-    effective_lift_date = detail['effectiveLiftDate']
+    effective_date = detail['effectiveDate']
     event_time = detail['eventTime']
 
     with logger.append_context_keys(
@@ -390,13 +408,13 @@ def privilege_encumbrance_lifting_listener(message: dict):
 
         # Provider Notification
         _send_provider_notification(
-            provider_record,
             config.email_service_client.send_privilege_encumbrance_lifting_provider_notification_email,
             'privilege encumbrance lifting',
-            compact,
-            lifted_jurisdiction=jurisdiction,
+            provider_record=provider_record,
+            compact=compact,
+            encumbered_jurisdiction=jurisdiction,
             license_type=license_type_name,
-            effective_lift_date=effective_lift_date,
+            effective_date=effective_date,
         )
 
         # State Notifications
@@ -404,27 +422,27 @@ def privilege_encumbrance_lifting_listener(message: dict):
         _send_primary_state_notification(
             config.email_service_client.send_privilege_encumbrance_lifting_state_notification_email,
             'privilege encumbrance lifting',
-            provider_record,
-            provider_id,
-            jurisdiction,
-            compact,
-            lifted_jurisdiction=jurisdiction,
+            provider_record=provider_record,
+            provider_id=provider_id,
+            jurisdiction=jurisdiction,
+            compact=compact,
+            encumbered_jurisdiction=jurisdiction,
             license_type=license_type_name,
-            effective_lift_date=effective_lift_date,
+            effective_date=effective_date,
         )
 
         # Send notifications to all other states with provider licenses or privileges
         _send_additional_state_notifications(
-            provider_records,
             config.email_service_client.send_privilege_encumbrance_lifting_state_notification_email,
             'privilege encumbrance lifting',
-            provider_record,
-            provider_id,
-            jurisdiction,
-            compact,
-            lifted_jurisdiction=jurisdiction,
+            provider_records=provider_records,
+            provider_record=provider_record,
+            provider_id=provider_id,
+            excluded_jurisdiction=jurisdiction,
+            compact=compact,
+            encumbered_jurisdiction=jurisdiction,
             license_type=license_type_name,
-            effective_lift_date=effective_lift_date,
+            effective_date=effective_date,
         )
 
         logger.info('Successfully processed privilege encumbrance lifting event')
@@ -438,12 +456,14 @@ def license_encumbrance_notification_listener(message: dict):
     This handler processes 'license.encumbrance' events and sends notifications
     to the affected provider and relevant states. It does NOT perform any data operations.
     """
-    detail = message['detail']
+    detail_schema = EncumbranceEventDetailSchema()
+    detail = detail_schema.load(message['detail'])
+
     compact = detail['compact']
     provider_id = detail['providerId']
     jurisdiction = detail['jurisdiction']
     license_type_abbreviation = detail['licenseTypeAbbreviation']
-    effective_start_date = detail['effectiveStartDate']
+    effective_date = detail['effectiveDate']
     event_time = detail['eventTime']
 
     with logger.append_context_keys(
@@ -463,13 +483,13 @@ def license_encumbrance_notification_listener(message: dict):
 
         # Provider Notification
         _send_provider_notification(
-            provider_record,
             config.email_service_client.send_license_encumbrance_provider_notification_email,
             'license encumbrance',
-            compact,
+            provider_record=provider_record,
+            compact=compact,
             encumbered_jurisdiction=jurisdiction,
             license_type=license_type_name,
-            effective_start_date=effective_start_date,
+            effective_date=effective_date,
         )
 
         # State Notifications
@@ -477,27 +497,27 @@ def license_encumbrance_notification_listener(message: dict):
         _send_primary_state_notification(
             config.email_service_client.send_license_encumbrance_state_notification_email,
             'license encumbrance',
-            provider_record,
-            provider_id,
-            jurisdiction,
-            compact,
+            provider_record=provider_record,
+            provider_id=provider_id,
+            jurisdiction=jurisdiction,
+            compact=compact,
             encumbered_jurisdiction=jurisdiction,
             license_type=license_type_name,
-            effective_start_date=effective_start_date,
+            effective_date=effective_date,
         )
 
         # Send notifications to all other states with provider licenses or privileges
         _send_additional_state_notifications(
-            provider_records,
             config.email_service_client.send_license_encumbrance_state_notification_email,
             'license encumbrance',
-            provider_record,
-            provider_id,
-            jurisdiction,
-            compact,
+            provider_records=provider_records,
+            provider_record=provider_record,
+            provider_id=provider_id,
+            excluded_jurisdiction=jurisdiction,
+            compact=compact,
             encumbered_jurisdiction=jurisdiction,
             license_type=license_type_name,
-            effective_start_date=effective_start_date,
+            effective_date=effective_date,
         )
 
         logger.info('Successfully processed license encumbrance notification event')
@@ -511,12 +531,14 @@ def license_encumbrance_lifting_notification_listener(message: dict):
     This handler processes 'license.encumbranceLifted' events and sends notifications
     to the affected provider and relevant states. It does NOT perform any data operations.
     """
-    detail = message['detail']
+    detail_schema = EncumbranceEventDetailSchema()
+    detail = detail_schema.load(message['detail'])
+
     compact = detail['compact']
     provider_id = detail['providerId']
     jurisdiction = detail['jurisdiction']
     license_type_abbreviation = detail['licenseTypeAbbreviation']
-    effective_lift_date = detail['effectiveLiftDate']
+    effective_date = detail['effectiveDate']
     event_time = detail['eventTime']
 
     with logger.append_context_keys(
@@ -536,13 +558,13 @@ def license_encumbrance_lifting_notification_listener(message: dict):
 
         # Provider Notification
         _send_provider_notification(
-            provider_record,
             config.email_service_client.send_license_encumbrance_lifting_provider_notification_email,
             'license encumbrance lifting',
-            compact,
-            lifted_jurisdiction=jurisdiction,
+            provider_record=provider_record,
+            compact=compact,
+            encumbered_jurisdiction=jurisdiction,
             license_type=license_type_name,
-            effective_lift_date=effective_lift_date,
+            effective_date=effective_date,
         )
 
         # State Notifications
@@ -550,27 +572,27 @@ def license_encumbrance_lifting_notification_listener(message: dict):
         _send_primary_state_notification(
             config.email_service_client.send_license_encumbrance_lifting_state_notification_email,
             'license encumbrance lifting',
-            provider_record,
-            provider_id,
-            jurisdiction,
-            compact,
-            lifted_jurisdiction=jurisdiction,
+            provider_record=provider_record,
+            provider_id=provider_id,
+            jurisdiction=jurisdiction,
+            compact=compact,
+            encumbered_jurisdiction=jurisdiction,
             license_type=license_type_name,
-            effective_lift_date=effective_lift_date,
+            effective_date=effective_date,
         )
 
         # Send notifications to all other states with provider licenses or privileges
         _send_additional_state_notifications(
-            provider_records,
             config.email_service_client.send_license_encumbrance_lifting_state_notification_email,
             'license encumbrance lifting',
-            provider_record,
-            provider_id,
-            jurisdiction,
-            compact,
-            lifted_jurisdiction=jurisdiction,
+            provider_records=provider_records,
+            provider_record=provider_record,
+            provider_id=provider_id,
+            excluded_jurisdiction=jurisdiction,
+            compact=compact,
+            encumbered_jurisdiction=jurisdiction,
             license_type=license_type_name,
-            effective_lift_date=effective_lift_date,
+            effective_date=effective_date,
         )
 
         logger.info('Successfully processed license encumbrance lifting notification event')

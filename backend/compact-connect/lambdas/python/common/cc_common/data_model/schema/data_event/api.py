@@ -46,25 +46,7 @@ class PrivilegeRenewalDetailSchema(DataEventDetailBaseSchema):
     providerEmail = Email(required=False, allow_none=False)
 
 
-class LicenseEncumbranceDetailSchema(DataEventDetailBaseSchema):
+class EncumbranceEventDetailSchema(DataEventDetailBaseSchema):
     providerId = UUID(required=True, allow_none=False)
     licenseTypeAbbreviation = String(required=True, allow_none=False)
-    effectiveStartDate = Date(required=True, allow_none=False)
-
-
-class LicenseEncumbranceLiftingDetailSchema(DataEventDetailBaseSchema):
-    providerId = UUID(required=True, allow_none=False)
-    licenseTypeAbbreviation = String(required=True, allow_none=False)
-    effectiveLiftDate = Date(required=True, allow_none=False)
-
-
-class PrivilegeEncumbranceDetailSchema(DataEventDetailBaseSchema):
-    providerId = UUID(required=True, allow_none=False)
-    licenseTypeAbbreviation = String(required=True, allow_none=False)
-    effectiveStartDate = Date(required=True, allow_none=False)
-
-
-class PrivilegeEncumbranceLiftingDetailSchema(DataEventDetailBaseSchema):
-    providerId = UUID(required=True, allow_none=False)
-    licenseTypeAbbreviation = String(required=True, allow_none=False)
-    effectiveLiftDate = Date(required=True, allow_none=False)
+    effectiveDate = Date(required=True, allow_none=False)

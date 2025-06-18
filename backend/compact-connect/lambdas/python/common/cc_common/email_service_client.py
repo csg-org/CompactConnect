@@ -1,11 +1,34 @@
 import json
-from datetime import datetime
-from typing import Any
+from dataclasses import dataclass
+from datetime import date, datetime
+from typing import Any, Protocol
 
 import boto3
 from aws_lambda_powertools.logging import Logger
 
 from cc_common.exceptions import CCInternalException
+
+
+@dataclass
+class EncumbranceNotificationTemplateVariables:
+    """
+    Template variables for encumbrance notification emails.
+    """
+
+    provider_first_name: str
+    provider_last_name: str
+    encumbered_jurisdiction: str
+    license_type: str
+    effective_date: date
+    provider_id: str | None = None
+
+
+class ProviderNotificationMethod(Protocol):
+    """Protocol for provider encumbrance notification methods."""
+
+    def __call__(
+        self, *, compact: str, provider_email: str, template_variables: EncumbranceNotificationTemplateVariables
+    ) -> dict[str, Any]: ...
 
 
 class EmailServiceClient:
@@ -219,24 +242,17 @@ class EmailServiceClient:
 
     def send_license_encumbrance_provider_notification_email(
         self,
+        *,
         compact: str,
         provider_email: str,
-        provider_first_name: str,
-        provider_last_name: str,
-        encumbered_jurisdiction: str,
-        license_type: str,
-        effective_start_date: str,
+        template_variables: EncumbranceNotificationTemplateVariables,
     ) -> dict[str, str]:
         """
         Send a license encumbrance notification email to a provider.
 
         :param compact: Compact name
         :param provider_email: Email address of the provider
-        :param provider_first_name: First name of the provider
-        :param provider_last_name: Last name of the provider
-        :param encumbered_jurisdiction: Jurisdiction where the license was encumbered
-        :param license_type: Type of license that was encumbered
-        :param effective_start_date: Date when the encumbrance became effective
+        :param template_variables: Template variables for the email
         :return: Response from the email notification service
         """
         payload = {
@@ -245,37 +261,28 @@ class EmailServiceClient:
             'recipientType': 'SPECIFIC',
             'specificEmails': [provider_email],
             'templateVariables': {
-                'providerFirstName': provider_first_name,
-                'providerLastName': provider_last_name,
-                'encumberedJurisdiction': encumbered_jurisdiction,
-                'licenseType': license_type,
-                'effectiveStartDate': effective_start_date,
+                'providerFirstName': template_variables.provider_first_name,
+                'providerLastName': template_variables.provider_last_name,
+                'encumberedJurisdiction': template_variables.encumbered_jurisdiction,
+                'licenseType': template_variables.license_type,
+                'effectiveStartDate': template_variables.effective_date.strftime('%B %d, %Y'),
             },
         }
         return self._invoke_lambda(payload)
 
     def send_license_encumbrance_state_notification_email(
         self,
+        *,
         compact: str,
         jurisdiction: str,
-        provider_first_name: str,
-        provider_last_name: str,
-        provider_id: str,
-        encumbered_jurisdiction: str,
-        license_type: str,
-        effective_start_date: str,
+        template_variables: EncumbranceNotificationTemplateVariables,
     ) -> dict[str, str]:
         """
         Send a license encumbrance notification email to a state.
 
         :param compact: Compact name
         :param jurisdiction: Jurisdiction to notify
-        :param provider_first_name: First name of the provider
-        :param provider_last_name: Last name of the provider
-        :param provider_id: Provider ID
-        :param encumbered_jurisdiction: Jurisdiction where the license was encumbered
-        :param license_type: Type of license that was encumbered
-        :param effective_start_date: Date when the encumbrance became effective
+        :param template_variables: Template variables for the email
         :return: Response from the email notification service
         """
         payload = {
@@ -284,36 +291,29 @@ class EmailServiceClient:
             'template': 'licenseEncumbranceStateNotification',
             'recipientType': 'JURISDICTION_ADVERSE_ACTIONS',
             'templateVariables': {
-                'providerFirstName': provider_first_name,
-                'providerLastName': provider_last_name,
-                'providerId': provider_id,
-                'encumberedJurisdiction': encumbered_jurisdiction,
-                'licenseType': license_type,
-                'effectiveStartDate': effective_start_date,
+                'providerFirstName': template_variables.provider_first_name,
+                'providerLastName': template_variables.provider_last_name,
+                'providerId': template_variables.provider_id,
+                'encumberedJurisdiction': template_variables.encumbered_jurisdiction,
+                'licenseType': template_variables.license_type,
+                'effectiveStartDate': template_variables.effective_date.strftime('%B %d, %Y'),
             },
         }
         return self._invoke_lambda(payload)
 
     def send_license_encumbrance_lifting_provider_notification_email(
         self,
+        *,
         compact: str,
         provider_email: str,
-        provider_first_name: str,
-        provider_last_name: str,
-        lifted_jurisdiction: str,
-        license_type: str,
-        effective_lift_date: str,
+        template_variables: EncumbranceNotificationTemplateVariables,
     ) -> dict[str, str]:
         """
         Send a license encumbrance lifting notification email to a provider.
 
         :param compact: Compact name
         :param provider_email: Email address of the provider
-        :param provider_first_name: First name of the provider
-        :param provider_last_name: Last name of the provider
-        :param lifted_jurisdiction: Jurisdiction where the license encumbrance was lifted
-        :param license_type: Type of license that had encumbrance lifted
-        :param effective_lift_date: Date when the encumbrance was lifted
+        :param template_variables: Template variables for the email
         :return: Response from the email notification service
         """
         payload = {
@@ -322,37 +322,28 @@ class EmailServiceClient:
             'recipientType': 'SPECIFIC',
             'specificEmails': [provider_email],
             'templateVariables': {
-                'providerFirstName': provider_first_name,
-                'providerLastName': provider_last_name,
-                'liftedJurisdiction': lifted_jurisdiction,
-                'licenseType': license_type,
-                'effectiveLiftDate': effective_lift_date,
+                'providerFirstName': template_variables.provider_first_name,
+                'providerLastName': template_variables.provider_last_name,
+                'liftedJurisdiction': template_variables.encumbered_jurisdiction,
+                'licenseType': template_variables.license_type,
+                'effectiveLiftDate': template_variables.effective_date.strftime('%B %d, %Y'),
             },
         }
         return self._invoke_lambda(payload)
 
     def send_license_encumbrance_lifting_state_notification_email(
         self,
+        *,
         compact: str,
         jurisdiction: str,
-        provider_first_name: str,
-        provider_last_name: str,
-        provider_id: str,
-        lifted_jurisdiction: str,
-        license_type: str,
-        effective_lift_date: str,
+        template_variables: EncumbranceNotificationTemplateVariables,
     ) -> dict[str, str]:
         """
         Send a license encumbrance lifting notification email to a state.
 
         :param compact: Compact name
         :param jurisdiction: Jurisdiction to notify
-        :param provider_first_name: First name of the provider
-        :param provider_last_name: Last name of the provider
-        :param provider_id: Provider ID
-        :param lifted_jurisdiction: Jurisdiction where the license encumbrance was lifted
-        :param license_type: Type of license that had encumbrance lifted
-        :param effective_lift_date: Date when the encumbrance was lifted
+        :param template_variables: Template variables for the email
         :return: Response from the email notification service
         """
         payload = {
@@ -361,36 +352,29 @@ class EmailServiceClient:
             'template': 'licenseEncumbranceLiftingStateNotification',
             'recipientType': 'JURISDICTION_ADVERSE_ACTIONS',
             'templateVariables': {
-                'providerFirstName': provider_first_name,
-                'providerLastName': provider_last_name,
-                'providerId': provider_id,
-                'liftedJurisdiction': lifted_jurisdiction,
-                'licenseType': license_type,
-                'effectiveLiftDate': effective_lift_date,
+                'providerFirstName': template_variables.provider_first_name,
+                'providerLastName': template_variables.provider_last_name,
+                'providerId': template_variables.provider_id,
+                'liftedJurisdiction': template_variables.encumbered_jurisdiction,
+                'licenseType': template_variables.license_type,
+                'effectiveLiftDate': template_variables.effective_date.strftime('%B %d, %Y'),
             },
         }
         return self._invoke_lambda(payload)
 
     def send_privilege_encumbrance_provider_notification_email(
         self,
+        *,
         compact: str,
         provider_email: str,
-        provider_first_name: str,
-        provider_last_name: str,
-        encumbered_jurisdiction: str,
-        license_type: str,
-        effective_start_date: str,
+        template_variables: EncumbranceNotificationTemplateVariables,
     ) -> dict[str, str]:
         """
         Send a privilege encumbrance notification email to a provider.
 
         :param compact: Compact name
         :param provider_email: Email address of the provider
-        :param provider_first_name: First name of the provider
-        :param provider_last_name: Last name of the provider
-        :param encumbered_jurisdiction: Jurisdiction where the privilege was encumbered
-        :param license_type: Type of license/privilege that was encumbered
-        :param effective_start_date: Date when the encumbrance became effective
+        :param template_variables: Template variables for the email
         :return: Response from the email notification service
         """
         payload = {
@@ -399,37 +383,28 @@ class EmailServiceClient:
             'recipientType': 'SPECIFIC',
             'specificEmails': [provider_email],
             'templateVariables': {
-                'providerFirstName': provider_first_name,
-                'providerLastName': provider_last_name,
-                'encumberedJurisdiction': encumbered_jurisdiction,
-                'licenseType': license_type,
-                'effectiveStartDate': effective_start_date,
+                'providerFirstName': template_variables.provider_first_name,
+                'providerLastName': template_variables.provider_last_name,
+                'encumberedJurisdiction': template_variables.encumbered_jurisdiction,
+                'licenseType': template_variables.license_type,
+                'effectiveStartDate': template_variables.effective_date.strftime('%B %d, %Y'),
             },
         }
         return self._invoke_lambda(payload)
 
     def send_privilege_encumbrance_state_notification_email(
         self,
+        *,
         compact: str,
         jurisdiction: str,
-        provider_first_name: str,
-        provider_last_name: str,
-        provider_id: str,
-        encumbered_jurisdiction: str,
-        license_type: str,
-        effective_start_date: str,
+        template_variables: EncumbranceNotificationTemplateVariables,
     ) -> dict[str, str]:
         """
         Send a privilege encumbrance notification email to a state.
 
         :param compact: Compact name
         :param jurisdiction: Jurisdiction to notify
-        :param provider_first_name: First name of the provider
-        :param provider_last_name: Last name of the provider
-        :param provider_id: Provider ID
-        :param encumbered_jurisdiction: Jurisdiction where the privilege was encumbered
-        :param license_type: Type of license/privilege that was encumbered
-        :param effective_start_date: Date when the encumbrance became effective
+        :param template_variables: Template variables for the email
         :return: Response from the email notification service
         """
         payload = {
@@ -438,36 +413,29 @@ class EmailServiceClient:
             'template': 'privilegeEncumbranceStateNotification',
             'recipientType': 'JURISDICTION_ADVERSE_ACTIONS',
             'templateVariables': {
-                'providerFirstName': provider_first_name,
-                'providerLastName': provider_last_name,
-                'providerId': provider_id,
-                'encumberedJurisdiction': encumbered_jurisdiction,
-                'licenseType': license_type,
-                'effectiveStartDate': effective_start_date,
+                'providerFirstName': template_variables.provider_first_name,
+                'providerLastName': template_variables.provider_last_name,
+                'providerId': template_variables.provider_id,
+                'encumberedJurisdiction': template_variables.encumbered_jurisdiction,
+                'licenseType': template_variables.license_type,
+                'effectiveStartDate': template_variables.effective_date.strftime('%B %d, %Y'),
             },
         }
         return self._invoke_lambda(payload)
 
     def send_privilege_encumbrance_lifting_provider_notification_email(
         self,
+        *,
         compact: str,
         provider_email: str,
-        provider_first_name: str,
-        provider_last_name: str,
-        lifted_jurisdiction: str,
-        license_type: str,
-        effective_lift_date: str,
+        template_variables: EncumbranceNotificationTemplateVariables,
     ) -> dict[str, str]:
         """
         Send a privilege encumbrance lifting notification email to a provider.
 
         :param compact: Compact name
         :param provider_email: Email address of the provider
-        :param provider_first_name: First name of the provider
-        :param provider_last_name: Last name of the provider
-        :param lifted_jurisdiction: Jurisdiction where the privilege encumbrance was lifted
-        :param license_type: Type of license/privilege that had encumbrance lifted
-        :param effective_lift_date: Date when the encumbrance was lifted
+        :param template_variables: Template variables for the email
         :return: Response from the email notification service
         """
         payload = {
@@ -476,37 +444,28 @@ class EmailServiceClient:
             'recipientType': 'SPECIFIC',
             'specificEmails': [provider_email],
             'templateVariables': {
-                'providerFirstName': provider_first_name,
-                'providerLastName': provider_last_name,
-                'liftedJurisdiction': lifted_jurisdiction,
-                'licenseType': license_type,
-                'effectiveLiftDate': effective_lift_date,
+                'providerFirstName': template_variables.provider_first_name,
+                'providerLastName': template_variables.provider_last_name,
+                'liftedJurisdiction': template_variables.encumbered_jurisdiction,
+                'licenseType': template_variables.license_type,
+                'effectiveLiftDate': template_variables.effective_date.strftime('%B %d, %Y'),
             },
         }
         return self._invoke_lambda(payload)
 
     def send_privilege_encumbrance_lifting_state_notification_email(
         self,
+        *,
         compact: str,
         jurisdiction: str,
-        provider_first_name: str,
-        provider_last_name: str,
-        provider_id: str,
-        lifted_jurisdiction: str,
-        license_type: str,
-        effective_lift_date: str,
+        template_variables: EncumbranceNotificationTemplateVariables,
     ) -> dict[str, str]:
         """
         Send a privilege encumbrance lifting notification email to a state.
 
         :param compact: Compact name
         :param jurisdiction: Jurisdiction to notify
-        :param provider_first_name: First name of the provider
-        :param provider_last_name: Last name of the provider
-        :param provider_id: Provider ID
-        :param lifted_jurisdiction: Jurisdiction where the privilege encumbrance was lifted
-        :param license_type: Type of license/privilege that had encumbrance lifted
-        :param effective_lift_date: Date when the encumbrance was lifted
+        :param template_variables: Template variables for the email
         :return: Response from the email notification service
         """
         payload = {
@@ -515,12 +474,12 @@ class EmailServiceClient:
             'template': 'privilegeEncumbranceLiftingStateNotification',
             'recipientType': 'JURISDICTION_ADVERSE_ACTIONS',
             'templateVariables': {
-                'providerFirstName': provider_first_name,
-                'providerLastName': provider_last_name,
-                'providerId': provider_id,
-                'liftedJurisdiction': lifted_jurisdiction,
-                'licenseType': license_type,
-                'effectiveLiftDate': effective_lift_date,
+                'providerFirstName': template_variables.provider_first_name,
+                'providerLastName': template_variables.provider_last_name,
+                'providerId': template_variables.provider_id,
+                'liftedJurisdiction': template_variables.encumbered_jurisdiction,
+                'licenseType': template_variables.license_type,
+                'effectiveLiftDate': template_variables.effective_date.strftime('%B %d, %Y'),
             },
         }
         return self._invoke_lambda(payload)
