@@ -76,7 +76,7 @@ pyproject-hooks==1.2.0
     # via
     #   build
     #   pip-tools
-pytest==8.4.0
+pytest==8.4.1
     # via
     #   -r compact-connect/requirements-dev.in
     #   pytest-cov
@@ -98,7 +98,7 @@ sortedcontainers==2.4.0
     # via cyclonedx-python-lib
 toml==0.10.2
     # via pip-audit
-urllib3==2.4.0
+urllib3==2.5.0
     # via requests
 wheel==0.45.1
     # via pip-tools

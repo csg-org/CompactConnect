@@ -109,7 +109,7 @@ export class EncumbranceNotificationService extends BaseEmailService {
         const report = this.getNewEmailTemplate();
         const subject = `Your ${licenseType} license in ${encumberedJurisdictionConfig.jurisdictionName} is encumbered`;
         const bodyText = `${providerFirstName} ${providerLastName},\n\n` +
-            `This message is to notify you that your *${licenseType}* license in ${encumberedJurisdictionConfig.jurisdictionName} was encumbered, effective ${effectiveStartDate}. ` +
+            `This message is to notify you that your *${licenseType}* license in ${encumberedJurisdictionConfig.jurisdictionName} was encumbered, effective **${effectiveStartDate}**. ` +
             `This encumbrance restricts your ability to practice under the ${compactConfig.compactName} compact.\n\n` +
             `Please contact the licensing board in ${encumberedJurisdictionConfig.jurisdictionName} for more information about this encumbrance.`;
 
@@ -157,9 +157,10 @@ export class EncumbranceNotificationService extends BaseEmailService {
             const report = this.getNewEmailTemplate();
             const subject = `License Encumbrance Notification - ${providerFirstName} ${providerLastName}`;
             const bodyText = `This message is to notify you that the *${licenseType}* license held by ${providerFirstName} ${providerLastName} ` +
-                `in ${affectedJurisdictionConfig.jurisdictionName} was encumbered, effective ${effectiveStartDate}.\n\n` +
+                `in ${affectedJurisdictionConfig.jurisdictionName} was encumbered, effective **${effectiveStartDate}**.\n\n` +
+                `This encumbrance restricts the provider's ability to practice under the ${compactConfig.compactName} compact.` +
                 `Provider Details: ${environmentVariableService.getUiBasePathUrl()}/${compact}/Licensing/${providerId}\n\n` +
-                `This encumbrance restricts the provider's ability to practice under the ${compactConfig.compactName} compact.`;
+                'If the above link does not work, you can copy and paste the url into a browser tab, where you are already logged in.';
 
             this.insertHeader(report, subject);
             this.insertBody(report, bodyText, 'center', true);
@@ -204,7 +205,7 @@ export class EncumbranceNotificationService extends BaseEmailService {
         const report = this.getNewEmailTemplate();
         const subject = `Your ${licenseType} license in ${liftedJurisdictionConfig.jurisdictionName} is no longer encumbered`;
         const bodyText = `${providerFirstName} ${providerLastName},\n\n` +
-            `This message is to notify you that the encumbrance on your *${licenseType}* license in ${liftedJurisdictionConfig.jurisdictionName} was lifted, effective ${effectiveLiftDate}. ` +
+            `This message is to notify you that an encumbrance on your *${licenseType}* license in ${liftedJurisdictionConfig.jurisdictionName} was lifted, effective **${effectiveLiftDate}**. ` +
             `This encumbrance no longer restricts your ability to practice under the ${compactConfig.compactName} compact.\n\n` +
             `Please contact the licensing board in ${liftedJurisdictionConfig.jurisdictionName} if you have any questions about this change.`;
 
@@ -251,10 +252,11 @@ export class EncumbranceNotificationService extends BaseEmailService {
             const compactConfig = await this.compactConfigurationClient.getCompactConfiguration(compact);
             const report = this.getNewEmailTemplate();
             const subject = `License Encumbrance Lifted Notification - ${providerFirstName} ${providerLastName}`;
-            const bodyText = `This message is to notify you that the encumbrance on the *${licenseType}* license held by ${providerFirstName} ${providerLastName} ` +
-                `in ${affectedJurisdictionConfig.jurisdictionName} was lifted, effective ${effectiveLiftDate}.\n\n` +
+            const bodyText = `This message is to notify you that an encumbrance on the *${licenseType}* license held by ${providerFirstName} ${providerLastName} ` +
+                `in ${affectedJurisdictionConfig.jurisdictionName} was lifted, effective **${effectiveLiftDate}**.\n\n` +
+                `The encumbrance no longer restricts the provider's ability to practice under the ${compactConfig.compactName} compact.\n\n` +
                 `Provider Details: ${environmentVariableService.getUiBasePathUrl()}/${compact}/Licensing/${providerId}\n\n` +
-                `The encumbrance no longer restricts the provider's ability to practice under the ${compactConfig.compactName} compact.`;
+                'If the above link does not work, you can copy and paste the url into a browser tab, where you are already logged in.';
 
             this.insertHeader(report, subject);
             this.insertBody(report, bodyText, 'center', true);
@@ -299,7 +301,7 @@ export class EncumbranceNotificationService extends BaseEmailService {
         const report = this.getNewEmailTemplate();
         const subject = `Your ${licenseType} privilege in ${encumberedJurisdictionConfig.jurisdictionName} is encumbered`;
         const bodyText = `${providerFirstName} ${providerLastName},\n\n` +
-            `This message is to notify you that your *${licenseType}* privilege in ${encumberedJurisdictionConfig.jurisdictionName} has been encumbered, effective ${effectiveStartDate}. ` +
+            `This message is to notify you that your *${licenseType}* privilege in ${encumberedJurisdictionConfig.jurisdictionName} has been encumbered, effective **${effectiveStartDate}**. ` +
             `This encumbrance restricts your ability to practice in ${encumberedJurisdictionConfig.jurisdictionName} under the ${compactConfig.compactName} compact.\n\n` +
             `Please contact the licensing board in ${encumberedJurisdictionConfig.jurisdictionName} for more information about this encumbrance.`;
 
@@ -347,9 +349,10 @@ export class EncumbranceNotificationService extends BaseEmailService {
             const report = this.getNewEmailTemplate();
             const subject = `Privilege Encumbrance Notification - ${providerFirstName} ${providerLastName}`;
             const bodyText = `This message is to notify you that the *${licenseType}* privilege held by ${providerFirstName} ${providerLastName} ` +
-                `in ${affectedJurisdictionConfig.jurisdictionName} was encumbered, effective ${effectiveStartDate}.\n\n` +
+                `in ${affectedJurisdictionConfig.jurisdictionName} was encumbered, effective **${effectiveStartDate}**.\n\n` +
+                `This encumbrance restricts the provider's ability to practice in ${affectedJurisdictionConfig.jurisdictionName} under the ${compactConfig.compactName} compact.\n\n` +
                 `Provider Details: ${environmentVariableService.getUiBasePathUrl()}/${compact}/Licensing/${providerId}\n\n` +
-                `This encumbrance restricts the provider's ability to practice in ${affectedJurisdictionConfig.jurisdictionName} under the ${compactConfig.compactName} compact.`;
+                'If the above link does not work, you can copy and paste the url into a browser tab, where you are already logged in.';
 
             this.insertHeader(report, subject);
             this.insertBody(report, bodyText, 'center', true);
@@ -394,7 +397,7 @@ export class EncumbranceNotificationService extends BaseEmailService {
         const report = this.getNewEmailTemplate();
         const subject = `Your ${licenseType} privilege in ${liftedJurisdictionConfig.jurisdictionName} is no longer encumbered`;
         const bodyText = `${providerFirstName} ${providerLastName},\n\n` +
-            `This message is to notify you that the encumbrance on your *${licenseType}* privilege in ${liftedJurisdictionConfig.jurisdictionName} was lifted, effective ${effectiveLiftDate}. ` +
+            `This message is to notify you that an encumbrance on your *${licenseType}* privilege in ${liftedJurisdictionConfig.jurisdictionName} was lifted, effective **${effectiveLiftDate}**. ` +
             `The encumbrance no longer restricts your ability to practice in ${liftedJurisdictionConfig.jurisdictionName} under the ${compactConfig.compactName} compact.\n\n` +
             `Please contact the licensing board in ${liftedJurisdictionConfig.jurisdictionName} if you have any questions.`;
 
@@ -441,10 +444,11 @@ export class EncumbranceNotificationService extends BaseEmailService {
             const compactConfig = await this.compactConfigurationClient.getCompactConfiguration(compact);
             const report = this.getNewEmailTemplate();
             const subject = `Privilege Encumbrance Lifted Notification - ${providerFirstName} ${providerLastName}`;
-            const bodyText = `This message is to notify you that the encumbrance on the *${licenseType}* privilege held by ${providerFirstName} ${providerLastName} ` +
-                `in ${affectedJurisdictionConfig.jurisdictionName} was lifted, effective ${effectiveLiftDate}.\n\n` +
+            const bodyText = `This message is to notify you that an encumbrance on the *${licenseType}* privilege held by ${providerFirstName} ${providerLastName} ` +
+                `in ${affectedJurisdictionConfig.jurisdictionName} was lifted, effective **${effectiveLiftDate}**.\n\n` +
+                `The encumbrance no longer restricts the provider's ability to practice in ${affectedJurisdictionConfig.jurisdictionName} under the ${compactConfig.compactName} compact.\n\n` +
                 `Provider Details: ${environmentVariableService.getUiBasePathUrl()}/${compact}/Licensing/${providerId}\n\n` +
-                `The encumbrance no longer restricts the provider's ability to practice in ${affectedJurisdictionConfig.jurisdictionName} under the ${compactConfig.compactName} compact.`;
+                'If the above link does not work, you can copy and paste the url into a browser tab, where you are already logged in.';
 
             this.insertHeader(report, subject);
             this.insertBody(report, bodyText, 'center', true);

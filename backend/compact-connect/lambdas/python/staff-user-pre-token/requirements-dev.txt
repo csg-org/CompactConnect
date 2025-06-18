@@ -4,9 +4,9 @@
 #
 #    pip-compile --no-emit-index-url compact-connect/lambdas/python/staff-user-pre-token/requirements-dev.in
 #
-boto3==1.38.37
+boto3==1.38.38
     # via moto
-botocore==1.38.37
+botocore==1.38.38
     # via
     #   boto3
     #   moto
@@ -58,7 +58,7 @@ s3transfer==0.13.0
     # via boto3
 six==1.17.0
     # via python-dateutil
-urllib3==2.4.0
+urllib3==2.5.0
     # via
     #   botocore
     #   docker

@@ -570,7 +570,7 @@ describe('EmailNotificationServiceLambda', () => {
                 providerLastName: 'Doe',
                 encumberedJurisdiction: 'OH',
                 licenseType: 'Audiologist',
-                effectiveStartDate: '2024-01-15'
+                effectiveStartDate: 'January 15, 2024'
             }
         };
 
@@ -625,7 +625,7 @@ describe('EmailNotificationServiceLambda', () => {
                 providerId: 'provider-123',
                 encumberedJurisdiction: 'OH',
                 licenseType: 'Audiologist',
-                effectiveStartDate: '2024-01-15'
+                effectiveStartDate: 'January 15, 2024'
             }
         };
 
@@ -727,7 +727,7 @@ describe('EmailNotificationServiceLambda', () => {
                 providerLastName: 'Doe',
                 liftedJurisdiction: 'OH',
                 licenseType: 'Audiologist',
-                effectiveLiftDate: '2024-02-15'
+                effectiveLiftDate: 'February 15, 2024'
             }
         };
 
@@ -784,7 +784,7 @@ describe('EmailNotificationServiceLambda', () => {
                 providerId: 'provider-123',
                 liftedJurisdiction: 'OH',
                 licenseType: 'Audiologist',
-                effectiveLiftDate: '2024-02-15'
+                effectiveLiftDate: 'February 15, 2024'
             }
         };
 
@@ -865,7 +865,7 @@ describe('EmailNotificationServiceLambda', () => {
                 providerLastName: 'Doe',
                 encumberedJurisdiction: 'OH',
                 licenseType: 'Audiologist',
-                effectiveStartDate: '2024-01-15'
+                effectiveStartDate: 'January 15, 2024'
             }
         };
 
@@ -920,7 +920,7 @@ describe('EmailNotificationServiceLambda', () => {
                 providerId: 'provider-123',
                 encumberedJurisdiction: 'OH',
                 licenseType: 'Audiologist',
-                effectiveStartDate: '2024-01-15'
+                effectiveStartDate: 'January 15, 2024'
             }
         };
 
@@ -999,7 +999,7 @@ describe('EmailNotificationServiceLambda', () => {
                 providerLastName: 'Doe',
                 liftedJurisdiction: 'OH',
                 licenseType: 'Audiologist',
-                effectiveLiftDate: '2024-02-15'
+                effectiveLiftDate: 'February 15, 2024'
             }
         };
 
@@ -1056,7 +1056,7 @@ describe('EmailNotificationServiceLambda', () => {
                 providerId: 'provider-123',
                 liftedJurisdiction: 'OH',
                 licenseType: 'Audiologist',
-                effectiveLiftDate: '2024-02-15'
+                effectiveLiftDate: 'February 15, 2024'
             }
         };
 
