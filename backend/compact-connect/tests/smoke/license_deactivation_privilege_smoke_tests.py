@@ -48,16 +48,16 @@ def get_provider_details_from_api(staff_headers: dict, compact: str, provider_id
         Provider details from the API including privileges list
     """
     import requests
-    
+
     response = requests.get(
         url=f'{config.api_base_url}/v1/compacts/{compact}/providers/{provider_id}',
         headers=staff_headers,
         timeout=10,
     )
-    
+
     if response.status_code != 200:
         raise SmokeTestFailureException(f'Failed to get provider details. Response: {response.json()}')
-    
+
     return response.json()
 
 
@@ -110,12 +110,9 @@ def validate_privilege_deactivation(
 
             if not matching_privilege:
                 logger.warning(f'Attempt {attempts}/{max_attempts}: No matching privilege found')
-                logger.info(f'Available privileges: {[p.get("jurisdiction") + "/" + p.get("licenseType", "unknown") for p in privileges]}')
             else:
                 privilege_status = matching_privilege.get('status')
-                logger.info(
-                    f'Attempt {attempts}/{max_attempts}: privilege status = {privilege_status}'
-                )
+                logger.info(f'Attempt {attempts}/{max_attempts}: privilege status = {privilege_status}')
 
                 # Check if privilege is properly deactivated
                 if privilege_status == 'inactive':
@@ -128,7 +125,7 @@ def validate_privilege_deactivation(
                 logger.info(f'Waiting {check_interval} seconds before next check...')
                 time.sleep(check_interval)
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f'Attempt {attempts}/{max_attempts}: Error checking privilege: {e}')
             if attempts < max_attempts:
                 time.sleep(check_interval)
@@ -209,7 +206,7 @@ def test_license_deactivation_privilege_workflow():
         # Verify privilege was created and is active
         provider_data = get_provider_details_from_api(staff_headers, TEST_COMPACT, provider_id)
         privileges = provider_data.get('privileges', [])
-        
+
         test_privilege = None
         for privilege in privileges:
             if (
@@ -222,12 +219,9 @@ def test_license_deactivation_privilege_workflow():
         if not test_privilege:
             raise SmokeTestFailureException('Test privilege record was not created successfully')
 
-
-
         if test_privilege.get('status') != 'active':
             raise SmokeTestFailureException(
-                f'Test privilege should have status "active" initially, '
-                f'but found: {test_privilege.get("status")}'
+                f'Test privilege should have status "active" initially, but found: {test_privilege.get("status")}'
             )
 
         logger.info('✅ Test privilege record created successfully and is in expected initial state (active status)')

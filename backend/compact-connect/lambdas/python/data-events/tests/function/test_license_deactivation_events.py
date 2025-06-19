@@ -47,7 +47,8 @@ class TestLicenseDeactivationEvents(TstFunction):
         # Set up test data
         self.test_data_generator.put_default_provider_record_in_provider_table()
 
-        # Create privileges with matching license jurisdiction and type - one active, another already license-deactivated
+        # Create privileges with matching license jurisdiction and type - one active,
+        # another already license-deactivated
         self.test_data_generator.put_default_privilege_record_in_provider_table(
             value_overrides={
                 'licenseJurisdiction': DEFAULT_LICENSE_JURISDICTION,

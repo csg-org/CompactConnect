@@ -281,7 +281,9 @@ def upload_license_record(staff_headers: dict, compact: str, jurisdiction: str, 
 
     post_body = [default_license_data]
 
-    logger.info(f'Uploading license record for {jurisdiction} with status "{default_license_data.get("licenseStatus")}"')
+    logger.info(
+        f'Uploading license record for {jurisdiction} with status "{default_license_data.get("licenseStatus")}"'
+    )
 
     post_response = requests.post(
         url=f'{config.api_base_url}/v1/compacts/{compact}/jurisdictions/{jurisdiction}/licenses',
@@ -400,7 +402,7 @@ def create_test_privilege_record(
         The created privilege record data
     """
     import uuid
-    from datetime import date, datetime
+    from datetime import UTC, date, datetime
 
     # Get the license type abbreviation to match the expected sort key format
     license_type_abbr = get_license_type_abbreviation(license_type)
@@ -420,10 +422,10 @@ def create_test_privilege_record(
         'jurisdiction': jurisdiction,
         'licenseJurisdiction': license_jurisdiction,
         'licenseType': license_type,
-        'dateOfIssuance': datetime.now().isoformat(),
-        'dateOfRenewal': datetime.now().isoformat(),
+        'dateOfIssuance': datetime.now(tz=UTC).isoformat(),
+        'dateOfRenewal': datetime.now(tz=UTC).isoformat(),
         'dateOfExpiration': date(2050, 1, 1).isoformat(),
-        'dateOfUpdate': datetime.now().isoformat(),
+        'dateOfUpdate': datetime.now(tz=UTC).isoformat(),
         'compactTransactionId': transaction_id,
         'compactTransactionIdGSIPK': f'COMPACT#{compact}#TX#{transaction_id}#',
         'privilegeId': f'test-privilege-{provider_id}-{jurisdiction}-{license_type_abbr}',
@@ -433,7 +435,10 @@ def create_test_privilege_record(
 
     # Insert the privilege record
     config.provider_user_dynamodb_table.put_item(Item=privilege_data)
-    logger.info(f'Created test privilege record for provider {provider_id} in jurisdiction {jurisdiction} with license type {license_type} ({license_type_abbr})')
+    logger.info(
+        f'Created test privilege record for provider {provider_id} in jurisdiction '
+        f'{jurisdiction} with license type {license_type} ({license_type_abbr})'
+    )
 
     return privilege_data
 
@@ -460,7 +465,7 @@ def cleanup_test_provider_records(provider_id: str, compact: str):
 
         logger.info(f'Successfully deleted {deleted_count} provider records from provider table')
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f'Error during cleanup: {str(e)}')
 
 
