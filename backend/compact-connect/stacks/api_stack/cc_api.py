@@ -34,6 +34,7 @@ from constructs import Construct
 
 from stacks import persistent_stack as ps
 from stacks.api_stack.v1_api import V1Api
+from stacks.provider_users import ProviderUsersStack
 
 MD_FORMAT = '^[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$'
 YMD_FORMAT = '^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$'
@@ -73,6 +74,7 @@ class CCApi(RestApi):
         environment_name: str,
         security_profile: SecurityProfile = SecurityProfile.RECOMMENDED,
         persistent_stack: ps.PersistentStack,
+        provider_users_stack: ProviderUsersStack,
         **kwargs,
     ):
         stack: AppStack = AppStack.of(scope)
@@ -169,6 +171,7 @@ class CCApi(RestApi):
         self.alarm_topic = persistent_stack.alarm_topic
 
         self._persistent_stack = persistent_stack
+        self._provider_users_stack = provider_users_stack
 
         self.web_acl = WebACL(self, 'WebACL', acl_scope=WebACLScope.REGIONAL, security_profile=security_profile)
         self.web_acl.associate_stage(self.deployment_stage)
@@ -200,7 +203,7 @@ class CCApi(RestApi):
             templates={'application/json': '{"message": "Access denied"}'},
         )
 
-        self.v1_api = V1Api(self.root, persistent_stack=persistent_stack)
+        self.v1_api = V1Api(self.root, persistent_stack=persistent_stack, provider_users_stack=provider_users_stack)
 
         QueryDefinition(
             self,
@@ -255,7 +258,7 @@ class CCApi(RestApi):
     @cached_property
     def provider_users_authorizer(self):
         return CognitoUserPoolsAuthorizer(
-            self, 'ProviderUsersPoolAuthorizer', cognito_user_pools=[self._persistent_stack.provider_users]
+            self, 'ProviderUsersPoolAuthorizer', cognito_user_pools=[self._provider_users_stack.provider_users]
         )
 
     @cached_property

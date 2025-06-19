@@ -137,6 +137,15 @@
                     margin-left: auto;
                 }
 
+                .cell-display-name {
+                    text-transform: capitalize;
+                }
+
+                .cell-id {
+                    font-weight: @fontWeightBold;
+                    font-size: 1.5rem;
+                }
+
                 .cell-title {
                     color: @lightText;
                     font-weight: @fontWeight;
@@ -145,6 +154,37 @@
 
                 .date-text {
                     font-size: @fontSize;
+                }
+            }
+        }
+
+        .qr-code-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 2rem;
+            padding: 2rem;
+
+            img {
+                max-width: 100%;
+                height: auto;
+            }
+
+            @media print {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+
+            .qr-code-label {
+                margin: 2rem 0 4rem;
+                color: @primaryColor;
+                font-weight: @fontWeightMedium;
+                font-size: @fontSizeMedium;
+                text-align: center;
+
+                a {
+                    font-weight: @fontWeightBold;
+                    text-decoration: underline;
                 }
             }
         }

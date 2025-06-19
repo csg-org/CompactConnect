@@ -1,14 +1,13 @@
 # ruff: noqa: BLE001 allowing broad exception catching for load testing script
 #!/usr/bin/env python3
-import random
 import time
 
 import requests
 from config import config, logger
-from faker import Faker
 from smoke_common import (
     SmokeTestFailureException,
     call_provider_users_me_endpoint,
+    generate_opaque_data,
     get_license_type_abbreviation,
     get_provider_user_auth_headers_cached,
 )
@@ -24,11 +23,6 @@ from smoke_common import (
 # and the 'Transaction IP Velocity Filter', which you can do through the Account Settings under the
 # 'Fraud Detection Suite'
 
-name_faker = Faker(['en_US'])
-faker = Faker(['en_US'])
-
-AMEX_CARD_NUMBER = '370000000000002'
-
 # List of valid test card numbers from Authorize.net documentation
 # https://developer.authorize.net/hello_world/testing_guide.html
 TEST_CARD_NUMBERS = [
@@ -38,14 +32,12 @@ TEST_CARD_NUMBERS = [
     '5424000000000015',  # Mastercard
     '2223000010309703',  # Mastercard
     '2223000010309711',  # Mastercard
-    AMEX_CARD_NUMBER,  # American Express
     '6011000000000012',  # Discover
-    '3088000000000017',  # JCB
 ]
 
 
-def delete_existing_privileges():
-    """Delete all existing privileges for the current user."""
+def deactivate_existing_privileges():
+    """Deactivate all existing privileges for the current user by setting administratorSetStatus to 'inactive'."""
     provider_data = call_provider_users_me_endpoint()
     privileges = provider_data.get('privileges')
     if not privileges:
@@ -59,12 +51,13 @@ def delete_existing_privileges():
         license_type_abbreviation = get_license_type_abbreviation(privilege['licenseType'])
         privilege_pk = f'{compact}#PROVIDER#{provider_id}'
         privilege_sk = f'{compact}#PROVIDER#privilege/{privilege["jurisdiction"]}/{license_type_abbreviation}#'
-        logger.info(f'Deleting privilege record:\n{privilege_pk}\n{privilege_sk}')
-        dynamodb_table.delete_item(
-            Key={
-                'pk': privilege_pk,
-                'sk': privilege_sk,
-            }
+        logger.info(f'Deactivating privilege record:\n{privilege_pk}\n{privilege_sk}')
+
+        # Update the privilege record to set administratorSetStatus to 'inactive'
+        dynamodb_table.update_item(
+            Key={'pk': privilege_pk, 'sk': privilege_sk},
+            UpdateExpression='SET administratorSetStatus = :status',
+            ExpressionAttributeValues={':status': 'inactive'},
         )
     # give dynamodb time to propagate
     time.sleep(0.5)
@@ -111,25 +104,11 @@ def get_required_attestations(provider_data: dict) -> list[dict]:
 
 def purchase_privilege(jurisdiction: str, card_number: str, attestations: list[dict], license_type: str) -> str:
     """Purchase a privilege for the given jurisdiction using the specified card number."""
+    # Generate opaque data using the card number
+    payment_nonce = generate_opaque_data(card_number)
+
     post_body = {
-        'orderInformation': {
-            'card': {
-                'number': card_number,
-                # this needs to be a random 3-digit number for everything but American Express,
-                # which is 4 digits
-                'cvv': str(random.randint(100, 999))
-                if card_number != AMEX_CARD_NUMBER
-                else str(random.randint(1000, 9999)),
-                'expiration': '2050-12',
-            },
-            'billing': {
-                'zip': '44628',
-                'firstName': name_faker.first_name(),
-                'lastName': name_faker.last_name(),
-                'streetAddress': faker.street_address(),
-                'state': faker.state_abbr(include_territories=False, include_freely_associated_states=False),
-            },
-        },
+        'orderInformation': {'opaqueData': payment_nonce},
         'selectedJurisdictions': [jurisdiction],
         'attestations': attestations,
         'licenseType': license_type,
@@ -165,8 +144,8 @@ def run_load_test(num_iterations: int):
         logger.info(f'Starting iteration {iteration + 1} of {num_iterations}')
 
         try:
-            # Delete existing privileges
-            delete_existing_privileges()
+            # Deactivate existing privileges
+            deactivate_existing_privileges()
 
             # Use different card numbers for each jurisdiction
             card_index = iteration % len(TEST_CARD_NUMBERS)

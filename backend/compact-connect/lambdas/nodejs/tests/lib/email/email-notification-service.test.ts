@@ -531,6 +531,104 @@ describe('EmailNotificationService', () => {
         });
     });
 
+    describe('Multiple Registration Attempt Notification', () => {
+        it('should send multiple registration attempt notification email with expected content', async () => {
+            await emailService.sendMultipleRegistrationAttemptNotificationEmail(
+                'aslp',
+                ['user@example.com']
+            );
+
+            expect(mockSESClient).toHaveReceivedCommandWith(
+                SendEmailCommand,
+                {
+                    Destination: {
+                        ToAddresses: ['user@example.com']
+                    },
+                    Message: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.stringContaining(
+                                    'A registration attempt was made in the Compact Connect system ')
+                            }
+                        },
+                        Subject: {
+                            Charset: 'UTF-8',
+                            Data: 'Registration Attempt Notification - Compact Connect'
+                        }
+                    },
+                    Source: 'Compact Connect <noreply@example.org>'
+                }
+            );
+        });
+
+        it('should include login URL in email content', async () => {
+            await emailService.sendMultipleRegistrationAttemptNotificationEmail(
+                'aslp',
+                ['user@example.com']
+            );
+
+            expect(mockSESClient).toHaveReceivedCommandWith(
+                SendEmailCommand,
+                {
+                    Destination: {
+                        ToAddresses: ['user@example.com']
+                    },
+                    Message: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.stringContaining('https://app.test.compactconnect.org/Dashboard')
+                            }
+                        },
+                        Subject: expect.any(Object)
+                    },
+                    Source: 'Compact Connect <noreply@example.org>'
+                }
+            );
+        });
+
+        it('should include registration temp login instructions', async () => {
+            await emailService.sendMultipleRegistrationAttemptNotificationEmail(
+                'aslp',
+                ['user@example.com']
+            );
+
+            expect(mockSESClient).toHaveReceivedCommandWith(
+                SendEmailCommand,
+                {
+                    Destination: {
+                        ToAddresses: ['user@example.com']
+                    },
+                    Message: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.stringContaining('If you originally registered within the past 24 hours, make sure to login with your temporary password sent to this same email address.')
+                            }
+                        },
+                        Subject: expect.any(Object)
+                    },
+                    Source: 'Compact Connect <noreply@example.org>'
+                }
+            );
+        });
+
+        it('should throw error when no recipients provided', async () => {
+            await expect(emailService.sendMultipleRegistrationAttemptNotificationEmail(
+                'aslp',
+                []
+            )).rejects.toThrow('No recipients found for multiple registration attempt notification email');
+        });
+
+        it('should throw error when recipients is undefined', async () => {
+            await expect(emailService.sendMultipleRegistrationAttemptNotificationEmail(
+                'aslp',
+                undefined
+            )).rejects.toThrow('No recipients found for multiple registration attempt notification email');
+        });
+    });
+
     describe('Privilege Purchase Provider Notification', () => {
         it('should send privilege purchase provider notification email with correct content', async () => {
             await emailService.sendPrivilegePurchaseProviderNotificationEmail(

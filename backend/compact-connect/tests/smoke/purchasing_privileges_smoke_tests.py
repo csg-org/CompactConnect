@@ -9,11 +9,13 @@ from boto3.dynamodb.conditions import Key
 from compact_configuration_smoke_tests import (
     test_compact_configuration,
     test_jurisdiction_configuration,
+    test_upload_payment_processor_credentials,
 )
 from config import config, logger
 from smoke_common import (
     SmokeTestFailureException,
     call_provider_users_me_endpoint,
+    generate_opaque_data,
     get_provider_user_auth_headers_cached,
     load_smoke_test_env,
 )
@@ -24,12 +26,27 @@ from smoke_common import (
 # 'smoke_tests_env_example.json' file as a template.
 
 
+def _generate_post_body(attestations_from_system, license_type):
+    # Generate a payment nonce for testing using the default test card
+    payment_nonce = generate_opaque_data('4111111111111111')
+
+    return {
+        'orderInformation': {'opaqueData': payment_nonce},
+        'selectedJurisdictions': ['ne'],
+        'attestations': attestations_from_system,
+        'licenseType': license_type,
+    }
+
+
 def test_purchase_privilege_options():
     """Test the GET /v1/purchases/privileges/options endpoint."""
     # First, ensure we have known configuration by calling the configuration tests
     # These will set up the configurations and return them for verification
     compact_config = test_compact_configuration()
     jurisdiction_config = test_jurisdiction_configuration()
+
+    # Upload payment processor credentials to ensure they are available
+    test_upload_payment_processor_credentials()
 
     # Now test the purchase privilege options endpoint
     headers = get_provider_user_auth_headers_cached()
@@ -53,6 +70,7 @@ def test_purchase_privilege_options():
         'compactName': compact_config['compactName'],
         'compactAbbr': compact_config['compactAbbr'],
         'compactCommissionFee': compact_config['compactCommissionFee'],
+        'isSandbox': True,  # Should always be True in sandbox environment
     }
 
     # Add transaction fee config if it exists
@@ -65,6 +83,23 @@ def test_purchase_privilege_options():
             raise SmokeTestFailureException(f'Key {key} not found in compact data')
         if compact_data[key] != value:
             raise SmokeTestFailureException(f'Value mismatch for key {key}. Expected {value}, got {compact_data[key]}')
+
+    # Verify paymentProcessorPublicFields are present and contain expected values
+    if 'paymentProcessorPublicFields' not in compact_data:
+        raise SmokeTestFailureException('paymentProcessorPublicFields not found in compact data')
+
+    payment_fields = compact_data['paymentProcessorPublicFields']
+
+    # Verify apiLoginId matches what we uploaded
+    if payment_fields.get('apiLoginId') != config.sandbox_authorize_net_api_login_id:
+        raise SmokeTestFailureException(
+            f'apiLoginId mismatch. Expected {config.sandbox_authorize_net_api_login_id}, '
+            f'got {payment_fields.get("apiLoginId")}'
+        )
+
+    # Verify publicClientKey is present (we don't verify the exact value since it's from authorize.net)
+    if not payment_fields.get('publicClientKey'):
+        raise SmokeTestFailureException('publicClientKey is not present')
 
     # Verify the jurisdiction data (Kentucky) based on what was set in test_jurisdiction_configuration
     jurisdiction = jurisdiction_config['postalAbbreviation']
@@ -169,28 +204,7 @@ def test_purchasing_privilege(delete_current_privilege: bool = True):
 
     license_type = original_provider_data['licenses'][0]['licenseType']
 
-    post_body = {
-        'orderInformation': {
-            'card': {
-                # This test card number is defined in authorize.net's testing documentation
-                # https://developer.authorize.net/hello_world/testing_guide.html
-                'number': '4007000000000027',
-                'cvv': '123',
-                'expiration': '2050-12',
-            },
-            'billing': {
-                'zip': '44628',
-                'firstName': 'Joe',
-                'lastName': 'Dokes',
-                'streetAddress': '14 Main Street',
-                'streetAddress2': 'Apt. 12J',
-                'state': 'TX',
-            },
-        },
-        'selectedJurisdictions': ['ne'],
-        'attestations': attestations_from_system,
-        'licenseType': license_type,
-    }
+    post_body = _generate_post_body(attestations_from_system, license_type)
 
     headers = get_provider_user_auth_headers_cached()
     post_api_response = requests.post(

@@ -6,6 +6,7 @@ from constructs import Construct
 
 from stacks import persistent_stack as ps
 from stacks.api_stack.cc_api import CCApi
+from stacks.provider_users import ProviderUsersStack
 
 
 class ApiStack(AppStack):
@@ -17,6 +18,7 @@ class ApiStack(AppStack):
         environment_name: str,
         environment_context: dict,
         persistent_stack: ps.PersistentStack,
+        provider_users_stack: ProviderUsersStack,
         **kwargs,
     ):
         super().__init__(
@@ -31,4 +33,5 @@ class ApiStack(AppStack):
             environment_name=environment_name,
             security_profile=security_profile,
             persistent_stack=persistent_stack,
+            provider_users_stack=provider_users_stack,
         )

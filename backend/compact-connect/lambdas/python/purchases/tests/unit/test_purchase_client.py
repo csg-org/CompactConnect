@@ -1,10 +1,13 @@
 # ruff: noqa: ARG001 unused-argument
 import json
+import os
 from decimal import Decimal
 from unittest.mock import MagicMock, patch
 
+import boto3
 from cc_common.config import config
 from cc_common.exceptions import CCFailedTransactionException, CCInternalException, CCInvalidRequestException
+from moto import mock_aws
 
 from tests import TstLambdas
 
@@ -52,6 +55,14 @@ MOCK_SETTLEMENT_TIME_LOCAL = '2024-12-27T13:49:20.757'
 MOCK_SETTLEMENT_TIME_UTC_2 = '2024-12-26T15:15:20.007Z'
 MOCK_SETTLEMENT_TIME_LOCAL_2 = '2024-12-26T11:15:20.007Z'
 
+# mock order information
+# common descriptor returned by authorize.net
+MOCK_DATA_DESCRIPTOR = 'COMMON.ACCEPT.INAPP.PAYMENT'
+MOCK_DATA_VALUE = 'eyJjbMockDataValue'
+
+# mock public key for getMerchantsDetails call
+MOCK_PUBLIC_CLIENT_KEY = 'mockPublicClientKey'
+
 
 def json_to_magic_mock(json_obj):
     """
@@ -72,16 +83,7 @@ def json_to_magic_mock(json_obj):
 
 
 def _generate_default_order_information():
-    return {
-        'card': {'number': '4111111111111112', 'expiration': '2035-10', 'cvv': '125'},
-        'billing': {
-            'firstName': 'testFirstName',
-            'lastName': 'testLastName',
-            'streetAddress': '123 Test St',
-            'state': 'OH',
-            'zip': '12345',
-        },
-    }
+    return {'opaqueData': {'dataDescriptor': MOCK_DATA_DESCRIPTOR, 'dataValue': MOCK_DATA_VALUE}}
 
 
 def _generate_aslp_compact_configuration(include_licensee_charges: bool = False):
@@ -129,8 +131,39 @@ def _generate_selected_jurisdictions(jurisdiction_items: list[dict] = None):
     return jurisdiction_configurations
 
 
+@mock_aws
 class TestAuthorizeDotNetPurchaseClient(TstLambdas):
     """Testing that the purchase client works with authorize.net SDK as expected."""
+
+    def setUp(self):  # noqa: N801 invalid-name
+        super().setUp()
+
+        self.create_compact_configuration_table()
+        self.addCleanup(self.delete_resources)
+
+        import cc_common.config
+        from common_test.test_data_generator import TestDataGenerator
+
+        cc_common.config.config = cc_common.config._Config()  # noqa: SLF001 protected-access
+        self.config = cc_common.config.config
+        self.test_data_generator = TestDataGenerator
+
+    def create_compact_configuration_table(self):
+        self._compact_configuration_table = boto3.resource('dynamodb').create_table(
+            AttributeDefinitions=[
+                {'AttributeName': 'pk', 'AttributeType': 'S'},
+                {'AttributeName': 'sk', 'AttributeType': 'S'},
+            ],
+            TableName=os.environ['COMPACT_CONFIGURATION_TABLE_NAME'],
+            KeySchema=[{'AttributeName': 'pk', 'KeyType': 'HASH'}, {'AttributeName': 'sk', 'KeyType': 'RANGE'}],
+            BillingMode='PAY_PER_REQUEST',
+        )
+
+    def delete_resources(self):
+        self._compact_configuration_table.delete()
+
+        waiter = self._compact_configuration_table.meta.client.get_waiter('table_not_exists')
+        waiter.wait(TableName=self._compact_configuration_table.name)
 
     def _generate_mock_secrets_manager_client(self):
         mock_secrets_manager_client = MagicMock()
@@ -305,19 +338,13 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         # authentication fields
         self.assertEqual(MOCK_LOGIN_ID, api_contract_v1_obj.merchantAuthentication.name)
         self.assertEqual(MOCK_TRANSACTION_KEY, api_contract_v1_obj.merchantAuthentication.transactionKey)
-        # credit card payment fields
-        self.assertEqual('4111111111111112', api_contract_v1_obj.transactionRequest.payment.creditCard.cardNumber)
-        self.assertEqual('2035-10', api_contract_v1_obj.transactionRequest.payment.creditCard.expirationDate)
-        self.assertEqual('125', api_contract_v1_obj.transactionRequest.payment.creditCard.cardCode)
+        # opaque data fields
+        self.assertEqual(MOCK_DATA_DESCRIPTOR, api_contract_v1_obj.transactionRequest.payment.opaqueData.dataDescriptor)
+        self.assertEqual(MOCK_DATA_VALUE, api_contract_v1_obj.transactionRequest.payment.opaqueData.dataValue)
         # transaction billing fields
         expected_total_fee_amount = 150.50
         self.assertEqual(expected_total_fee_amount, api_contract_v1_obj.transactionRequest.amount)
         self.assertEqual('USD', api_contract_v1_obj.transactionRequest.currencyCode)
-        self.assertEqual('OH', api_contract_v1_obj.transactionRequest.billTo.state)
-        self.assertEqual('12345', api_contract_v1_obj.transactionRequest.billTo.zip)
-        self.assertEqual('123 Test St', api_contract_v1_obj.transactionRequest.billTo.address)
-        self.assertEqual('testFirstName', api_contract_v1_obj.transactionRequest.billTo.firstName)
-        self.assertEqual('testLastName', api_contract_v1_obj.transactionRequest.billTo.lastName)
         # transaction settings
         self.assertEqual('35', api_contract_v1_obj.transactionRequest.transactionSettings.setting[0].settingValue)
         self.assertEqual(
@@ -681,9 +708,16 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
             'transactionKey': MOCK_TRANSACTION_KEY,
         }
 
+    def _when_compact_configuration_exists(self, value_overrides: dict | None = None):
+        self.test_data_generator.put_default_compact_configuration_in_configuration_table(value_overrides)
+
     def _when_authorize_dot_net_credentials_are_valid(self, mock_create_transaction_controller):
         mock_success_response = {
-            'messages': {'resultCode': 'Ok', 'message': [{'code': 'I00001', 'text': 'Successful.'}]}
+            'messages': {
+                'resultCode': 'Ok',
+                'message': [{'code': 'I00001', 'text': 'Successful.'}],
+            },
+            'publicClientKey': MOCK_PUBLIC_CLIENT_KEY,
         }
 
         return self._setup_mock_transaction_controller(mock_create_transaction_controller, mock_success_response)
@@ -708,6 +742,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         self._when_authorize_dot_net_credentials_are_valid(
             mock_create_transaction_controller=mock_get_merchant_details_controller
         )
+        self._when_compact_configuration_exists()
 
         test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
 
@@ -730,6 +765,11 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         mock_secrets_manager_client = self._generate_mock_secrets_manager_client()
         self._when_authorize_dot_net_credentials_are_valid(
             mock_create_transaction_controller=mock_get_merchant_details_controller
+        )
+        self._when_compact_configuration_exists(
+            value_overrides={
+                'compactAbbr': 'octp',
+            }
         )
 
         test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
@@ -759,6 +799,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         self._when_authorize_dot_net_credentials_are_valid(
             mock_create_transaction_controller=mock_get_merchant_details_controller
         )
+        self._when_compact_configuration_exists()
 
         test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
 
@@ -780,6 +821,36 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
                 }
             ),
         )
+
+    @patch('purchase_client.getMerchantDetailsController')
+    def test_purchase_client_raises_exception_when_validating_credentials_and_compact_configuration_does_not_exist(
+        self, mock_get_merchant_details_controller
+    ):
+        from purchase_client import PurchaseClient
+
+        mock_secrets_manager_client = self._generate_mock_secrets_manager_client()
+        self._when_authorize_dot_net_credentials_are_valid(
+            mock_create_transaction_controller=mock_get_merchant_details_controller
+        )
+        test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
+
+        # In this case, the 'aslp' compact has not configured their compact configuration, which is a pre-requisite to
+        # setting the payment processor public values, as we store these fields in that object.
+        # The exception message should give them clear instructions to set that configuration up and then try
+        # to upload the credentials again.
+        with self.assertRaises(CCInvalidRequestException) as context:
+            test_purchase_client.validate_and_store_credentials(
+                compact_abbr='aslp', credentials=self._generate_test_credentials_object()
+            )
+
+        self.assertEqual(
+            'Compact Fee configuration has not been configured yet. '
+            'Please configure the compact fee values and then upload your '
+            'credentials again.',
+            str(context.exception.message),
+        )
+
+        mock_secrets_manager_client.put_secret_value.assert_not_called()
 
     @patch('purchase_client.getMerchantDetailsController')
     def test_purchase_client_raises_exception_if_invalid_processor(self, mock_get_merchant_details_controller):

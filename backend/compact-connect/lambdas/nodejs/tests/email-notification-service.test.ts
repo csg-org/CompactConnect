@@ -559,6 +559,55 @@ describe('EmailNotificationServiceLambda', () => {
         });
     });
 
+    describe('Multiple Registration Attempt Notification', () => {
+        const SAMPLE_MULTIPLE_REGISTRATION_ATTEMPT_NOTIFICATION_EVENT: EmailNotificationEvent = {
+            template: 'multipleRegistrationAttemptNotification',
+            recipientType: 'SPECIFIC',
+            compact: 'aslp',
+            specificEmails: ['user@example.com'],
+            templateVariables: {}
+        };
+
+        it('should successfully send multiple registration attempt notification email', async () => {
+            const response = await lambda.handler(SAMPLE_MULTIPLE_REGISTRATION_ATTEMPT_NOTIFICATION_EVENT, {} as any);
+
+            expect(response).toEqual({
+                message: 'Email message sent'
+            });
+
+            // Verify email was sent with correct parameters
+            expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
+                Destination: {
+                    ToAddresses: ['user@example.com']
+                },
+                Message: {
+                    Body: {
+                        Html: {
+                            Charset: 'UTF-8',
+                            Data: expect.stringContaining('<!DOCTYPE html>')
+                        }
+                    },
+                    Subject: {
+                        Charset: 'UTF-8',
+                        Data: 'Registration Attempt Notification - Compact Connect'
+                    }
+                },
+                Source: 'Compact Connect <noreply@example.org>'
+            });
+        });
+
+        it('should throw error when no recipients found', async () => {
+            const eventWithNoRecipients: EmailNotificationEvent = {
+                ...SAMPLE_MULTIPLE_REGISTRATION_ATTEMPT_NOTIFICATION_EVENT,
+                specificEmails: []
+            };
+
+            await expect(lambda.handler(eventWithNoRecipients, {} as any))
+                .rejects
+                .toThrow('No recipients found for multiple registration attempt notification email');
+        });
+    });
+
     describe('License Encumbrance Provider Notification', () => {
         const SAMPLE_LICENSE_ENCUMBRANCE_PROVIDER_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'licenseEncumbranceProviderNotification',

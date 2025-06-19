@@ -11,6 +11,7 @@ from stacks.api_stack.v1_api.bulk_upload_url import BulkUploadUrl
 from stacks.api_stack.v1_api.provider_management import ProviderManagement
 from stacks.api_stack.v1_api.provider_users import ProviderUsers
 from stacks.api_stack.v1_api.purchases import Purchases
+from stacks.provider_users import ProviderUsersStack
 
 from .api_model import ApiModel
 from .compact_configuration_api import CompactConfigurationApi
@@ -23,7 +24,7 @@ from .staff_users import StaffUsers
 class V1Api:
     """v1 of the Provider Data API"""
 
-    def __init__(self, root: IResource, persistent_stack: ps.PersistentStack):
+    def __init__(self, root: IResource, persistent_stack: ps.PersistentStack, provider_users_stack: ProviderUsersStack):
         super().__init__()
         self.root = root
         self.resource = root.add_resource('v1')
@@ -101,6 +102,7 @@ class V1Api:
         self.provider_users = ProviderUsers(
             resource=self.provider_users_resource,
             persistent_stack=persistent_stack,
+            provider_users_stack=provider_users_stack,
             api_model=self.api_model,
         )
 
@@ -133,6 +135,7 @@ class V1Api:
         self.credentials = Credentials(
             resource=credentials_resource,
             method_options=admin_auth_method_options,
+            persistent_stack=persistent_stack,
             api_model=self.api_model,
         )
 

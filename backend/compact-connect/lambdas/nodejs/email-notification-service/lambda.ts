@@ -308,6 +308,15 @@ export class Lambda implements LambdaInterface {
                 event.templateVariables.effectiveLiftDate
             );
             break;
+        case 'multipleRegistrationAttemptNotification':
+            if (!event.specificEmails?.length) {
+                throw new Error('No recipients found for multiple registration attempt notification email');
+            }
+            await this.emailService.sendMultipleRegistrationAttemptNotificationEmail(
+                event.compact,
+                event.specificEmails
+            );
+            break;
         default:
             logger.info('Unsupported email template provided', { template: event.template });
             throw new Error(`Unsupported email template: ${event.template}`);

@@ -4,6 +4,7 @@ from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.bucket import Bucket
 from common_constructs.frontend_app_config_utility import (
     PersistentStackFrontendAppConfigValues,
+    ProviderUsersStackFrontendAppConfigValues,
 )
 from common_constructs.security_profile import SecurityProfile
 from common_constructs.stack import AppStack
@@ -34,18 +35,26 @@ class FrontendDeploymentStack(AppStack):
         # If we delete this stack, retain the resource (orphan but prevent data loss) or destroy it (clean up)?
         removal_policy = RemovalPolicy.RETAIN if environment_name == 'prod' else RemovalPolicy.DESTROY
 
-        # Load the app configuration if bundling is required
+        # Load the app configuration from both stacks
         persistent_stack_frontend_app_config_values = (
             PersistentStackFrontendAppConfigValues.load_persistent_stack_values_from_ssm_parameter(self)
         )
+        provider_users_stack_frontend_app_config_values = (
+            ProviderUsersStackFrontendAppConfigValues.load_provider_users_stack_values_from_ssm_parameter(self)
+        )
 
-        # If this parameter could not be found, it means that the app_configuration values have not been deployed to
+        # If these parameters could not be found, it means that the app_configuration values have not been deployed to
         # SSM we will fail the bucket deployment until the parameters have been put into place, to avoid deploying
         # without the needed values.
         if persistent_stack_frontend_app_config_values is None:
             raise ValueError(
                 'Persistent Stack App Configuration not found in SSM. '
                 'Make sure Persistent Stack resources have been deployed.'
+            )
+        if provider_users_stack_frontend_app_config_values is None:
+            raise ValueError(
+                'Provider Users Stack App Configuration not found in SSM. '
+                'Make sure Provider Users Stack resources have been deployed.'
             )
 
         security_profile = SecurityProfile[environment_context.get('security_profile', 'RECOMMENDED')]
@@ -90,7 +99,8 @@ class FrontendDeploymentStack(AppStack):
             'CompactConnectUIDeployment',
             ui_bucket=self.ui_bucket,
             environment_context=environment_context,
-            ui_app_config_values=persistent_stack_frontend_app_config_values,
+            persistent_stack_app_config_values=persistent_stack_frontend_app_config_values,
+            provider_users_stack_app_config_values=provider_users_stack_frontend_app_config_values,
         )
 
         self.distribution = UIDistribution(
@@ -100,4 +110,5 @@ class FrontendDeploymentStack(AppStack):
             security_profile=security_profile,
             access_logs_bucket=self.frontend_access_logs_bucket,
             persistent_stack_frontend_app_config_values=persistent_stack_frontend_app_config_values,
+            provider_users_stack_frontend_app_config_values=provider_users_stack_frontend_app_config_values,
         )
