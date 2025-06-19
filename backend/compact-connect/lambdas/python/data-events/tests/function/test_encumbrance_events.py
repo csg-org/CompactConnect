@@ -42,9 +42,7 @@ class TestEncumbranceEvents(TstFunction):
 
     def _generate_license_encumbrance_lifting_message(self, message_overrides=None):
         """Generate a test SQS message for license encumbrance lifting events."""
-        message = self._generate_license_encumbrance_message(message_overrides)
-        # effectiveDate is already set correctly from the base message
-        return message
+        return self._generate_license_encumbrance_message(message_overrides)
 
     def _create_sqs_event(self, message):
         """Create a proper SQS event structure with the message in the body."""
@@ -828,9 +826,7 @@ class TestEncumbranceEvents(TstFunction):
 
     def _generate_privilege_encumbrance_lifting_message(self, message_overrides=None):
         """Generate a test SQS message for privilege encumbrance lifting events."""
-        message = self._generate_privilege_encumbrance_message(message_overrides)
-        # effectiveDate is already set correctly from the base message
-        return message
+        return self._generate_privilege_encumbrance_message(message_overrides)
 
     @patch('cc_common.email_service_client.EmailServiceClient.send_privilege_encumbrance_state_notification_email')
     @patch('cc_common.email_service_client.EmailServiceClient.send_privilege_encumbrance_provider_notification_email')
