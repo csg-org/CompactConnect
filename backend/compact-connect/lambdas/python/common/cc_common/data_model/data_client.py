@@ -2603,7 +2603,7 @@ class DataClient:
         compact: str,
         provider_id: str,
         jurisdiction: str,
-        license_type_abbreviation: str,
+        license_type: str,
     ) -> None:
         """
         Deactivate all privileges associated with a home jurisdiction license due to license deactivation.
@@ -2614,22 +2614,19 @@ class DataClient:
         :param str compact: The compact name.
         :param str provider_id: The provider ID.
         :param str jurisdiction: The jurisdiction of the license.
-        :param str license_type_abbreviation: The license type abbreviation
+        :param str license_type: The license type
         """
         # Get all provider records
         provider_user_records: ProviderUserRecords = self.get_provider_user_records(
             compact=compact, provider_id=provider_id, consistent_read=True
         )
 
-        # Validate the license type abbreviation
-        self._validate_license_type_abbreviation(compact, license_type_abbreviation)
-
         # Find privileges associated with the license that was deactivated, which themselves are not currently
         # license-deactivated
         active_privileges_associated_with_license = provider_user_records.get_privilege_records(
             filter_condition=lambda p: (
                 p.licenseJurisdiction == jurisdiction
-                and p.licenseTypeAbbreviation == license_type_abbreviation
+                and p.licenseType == license_type
                 and p.licenseDeactivatedStatus is None
             )
         )

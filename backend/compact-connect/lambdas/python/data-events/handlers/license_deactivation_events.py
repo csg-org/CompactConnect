@@ -17,14 +17,12 @@ def license_deactivation_listener(message: dict):
     license_type = detail['licenseType']
 
     # Convert license type to abbreviation
-    license_type_abbreviation = config.license_type_abbreviations[compact][license_type]
 
     with logger.append_context_keys(
         compact=compact,
         provider_id=provider_id,
         jurisdiction=jurisdiction,
-        license_type=license_type,
-        license_type_abbreviation=license_type_abbreviation,
+        license_type=license_type
     ):
         logger.info('Processing license deactivation event')
 
@@ -33,7 +31,7 @@ def license_deactivation_listener(message: dict):
             compact=compact,
             provider_id=provider_id,
             jurisdiction=jurisdiction,
-            license_type_abbreviation=license_type_abbreviation,
+            license_type=license_type,
         )
 
         logger.info('Successfully processed license deactivation event')
