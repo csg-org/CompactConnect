@@ -448,9 +448,16 @@ class DataClient:
                         }
                     )
                     # if this privilege was previously deactivated due to a home jurisdiction change
-                    # we remove this value when the privilege is renewed. Noting that removal here.
+                    # or license deactivation, we remove those deactivation values when the privilege is renewed.
+                    # We add those existing fields to the removedValues which will be stored with the update record.
+                    removed_values = []
                     if original_privilege.homeJurisdictionChangeStatus is not None:
-                        update_record.update({'removedValues': ['homeJurisdictionChangeStatus']})
+                        removed_values.append('homeJurisdictionChangeStatus')
+                    if original_privilege.licenseDeactivatedStatus is not None:
+                        removed_values.append('licenseDeactivatedStatus')
+
+                    if removed_values:
+                        update_record.update({'removedValues': removed_values})
 
                     privilege_update_records.append(update_record)
                     transactions.append(
