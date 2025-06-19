@@ -158,15 +158,15 @@ class PrivilegeCard extends mixins(MixinForm) {
     }
 
     get expiresTitle(): string {
-        return this.isExpired ? this.$t('licensing.expired') : this.$t('licensing.expires');
+        return (this.isExpired) ? this.$t('licensing.expired') : this.$t('licensing.expires');
     }
 
     get expiresContent(): string {
-        return this.privilege?.isDeactivated() ? this.$t('licensing.deactivated') : this.privilege?.expireDateDisplay() || '';
+        return (this.privilege?.isDeactivated()) ? this.$t('licensing.deactivated') : this.privilege?.expireDateDisplay() || '';
     }
 
     get disciplineContent(): string {
-        return this.$t('licensing.noDiscipline');
+        return (this.privilege?.isEncumbered()) ? this.$t('licensing.encumbered') : this.$t('licensing.noDiscipline');
     }
 
     get npdbCategoryOptions(): Array<{ value: string, name: string }> {
