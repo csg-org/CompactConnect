@@ -503,6 +503,7 @@ class PrivilegeCard extends mixins(MixinForm) {
             if (adverseAction.endDate) {
                 await nextTick();
                 this.formData[`adverse-action-end-date-${adverseActionId}`].value = adverseAction.endDate;
+                adverseActionEndDateInput.validate();
             }
             this.watchFormInputs();
             this.validateAll();
@@ -581,6 +582,7 @@ class PrivilegeCard extends mixins(MixinForm) {
                 stateAbbrev,
                 privilegeTypeAbbrev
             } = this;
+            const errorMessages: Array<string> = [];
 
             await Promise.all(this.selectedEncumbrances.map(async (adverseAction: AdverseAction) => {
                 const adverseActionId = adverseAction.id;
@@ -592,11 +594,15 @@ class PrivilegeCard extends mixins(MixinForm) {
                     licenseType: privilegeTypeAbbrev.toLowerCase(),
                     encumbranceId: adverseActionId,
                     endDate: this.formData[`adverse-action-end-date-${adverseActionId}`].value,
+                }).catch((err) => {
+                    errorMessages.push(err?.message || this.$t('common.error'));
                 });
-            })).catch((err) => {
-                this.modalErrorMessage = err?.message || this.$t('common.error');
+            }));
+
+            if (errorMessages.length) {
+                this.modalErrorMessage = errorMessages.join('; ');
                 this.isFormError = true;
-            });
+            }
 
             if (!this.isFormError) {
                 this.isFormSuccessful = true;
