@@ -260,10 +260,6 @@ class PrivilegeCard extends mixins(MixinForm) {
 
                 this.formData[`adverse-action-data-${adverseActionId}`] = adverseActionInput;
                 this.encumbranceInputs.push(adverseActionInput);
-
-                // if (adverseAction.endDate) {
-                //     this.addUnencumberFormData(adverseAction);
-                // }
             });
         }
     }
