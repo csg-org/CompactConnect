@@ -39,3 +39,4 @@ class TestUtils(TstLambdas):
         )
 
         self.assertEqual([f'licenseNumber-{i}' for i in range(5)], failed_license_numbers)
+

@@ -8,7 +8,7 @@ from cc_common.data_model.schema.common import (
     ActiveInactiveStatus,
     AdverseActionAgainstEnum,
     CompactEligibilityStatus,
-    UpdateCategory,
+    UpdateCategory
 )
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
 from cc_common.data_model.schema.license.api import LicenseUpdatePreviousResponseSchema
@@ -266,7 +266,8 @@ class ProviderRecordUtility:
         object_type = license_or_priv['type']
 
         original_history = license_or_priv['history']
-        history_and_license = (*original_history, license_or_priv)
+        effective_date_sorted_original_history = sorted(original_history, key=lambda x: x['effectiveDate'])
+        history_and_license = (*effective_date_sorted_original_history, license_or_priv)
         behind_details = cls._get_details_ahead(history_and_license[0], object_type)
         enriched_history = cls._insert_synthetic_update(
             UpdateCategory.ISSUANCE, history_and_license[0], [], object_type
@@ -360,21 +361,21 @@ class ProviderRecordUtility:
 
     @classmethod
     def construct_simplified_public_privilege_history_object(cls, privilege: dict) -> dict:
-        enriched_history = cls.get_enriched_history_with_synthetic_updates_from_privilege(privilege)
+        enriched_history =(
+            cls.get_enriched_history_with_synthetic_updates_from_privilege(privilege))
         events = cls.calculate_and_inject_events_activation_status(enriched_history)
 
 
         event_schema = PrivilegeHistoryEventPublicResponseSchema()
         history_schema = PrivilegeHistoryPublicResponseSchema()
 
-
         sanitized_events = [event_schema.load(event) for event in events]
         unsanitized_history = {
-                'providerId': next_entry['providerId'],
-                'compact': next_entry['compact'],
-                'jurisdiction': next_entry['jurisdiction'],
-                'licenseType': next_entry['licenseType'],
-                'privilegeId': 'privilegeId',
+                'providerId': privilege['providerId'],
+                'compact': privilege['compact'],
+                'jurisdiction': privilege['jurisdiction'],
+                'licenseType': privilege['licenseType'],
+                'privilegeId': privilege['privilegeId'],
                 'events': sanitized_events,
         }
 
