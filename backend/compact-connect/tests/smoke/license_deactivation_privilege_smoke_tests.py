@@ -11,7 +11,6 @@ This test creates its own test data from scratch and cleans up after itself.
 
 import time
 
-from boto3.dynamodb.conditions import Key
 from smoke_common import (
     SmokeTestFailureException,
     cleanup_test_provider_records,
@@ -36,52 +35,34 @@ TEST_FAMILY_NAME = 'LicenseDeactivation'
 TEST_SSN = '999-99-9999'  # Test SSN for license uploads
 
 
-def update_provider_registration(provider_id: str, compact: str, license_jurisdiction: str, email: str):
+def get_provider_details_from_api(staff_headers: dict, compact: str, provider_id: str):
     """
-    Update the provider record to set registration details.
+    Get provider details from the staff API endpoint.
 
     Args:
-        provider_id: The provider's ID
+        staff_headers: Authentication headers for staff user
         compact: The compact abbreviation
-        license_jurisdiction: The license jurisdiction to set as home
-        email: The email address to set for compact connect registration
-    """
-    # Update the provider record with registration information
-    pk = f'{compact}#PROVIDER#{provider_id}'
-    sk = f'{compact}#PROVIDER#'
-
-    config.provider_user_dynamodb_table.update_item(
-        Key={'pk': pk, 'sk': sk},
-        UpdateExpression='SET compactConnectRegisteredEmailAddress = :email, currentHomeJurisdiction = :jurisdiction',
-        ExpressionAttributeValues={
-            ':email': email,
-            ':jurisdiction': license_jurisdiction,
-        },
-    )
-
-    logger.info(f'Updated provider {provider_id} with registration email and home jurisdiction {license_jurisdiction}')
-
-
-def get_provider_privilege_records(provider_id: str, compact: str):
-    """
-    Get all privilege records for a provider.
-
-    Args:
         provider_id: The provider's ID
-        compact: The compact abbreviation
 
     Returns:
-        List of privilege records
+        Provider details from the API including privileges list
     """
-    query_result = config.provider_user_dynamodb_table.query(
-        KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}')
-        & Key('sk').begins_with(f'{compact}#PROVIDER#privilege/')
+    import requests
+    
+    response = requests.get(
+        url=f'{config.api_base_url}/v1/compacts/{compact}/providers/{provider_id}',
+        headers=staff_headers,
+        timeout=10,
     )
-
-    return query_result.get('Items', [])
+    
+    if response.status_code != 200:
+        raise SmokeTestFailureException(f'Failed to get provider details. Response: {response.json()}')
+    
+    return response.json()
 
 
 def validate_privilege_deactivation(
+    staff_headers: dict,
     provider_id: str,
     compact: str,
     license_jurisdiction: str,
@@ -93,6 +74,7 @@ def validate_privilege_deactivation(
     Validate that privilege is deactivated due to license deactivation.
 
     Args:
+        staff_headers: Authentication headers for staff user
         provider_id: The provider's ID
         compact: The compact abbreviation
         license_jurisdiction: The license jurisdiction
@@ -113,27 +95,30 @@ def validate_privilege_deactivation(
         attempts += 1
 
         try:
-            privilege_records = get_provider_privilege_records(provider_id, compact)
+            provider_data = get_provider_details_from_api(staff_headers, compact, provider_id)
+            privileges = provider_data.get('privileges', [])
 
             # Find the privilege that matches our test criteria
             matching_privilege = None
-            for record in privilege_records:
+            for privilege in privileges:
                 if (
-                    record.get('licenseJurisdiction') == license_jurisdiction
-                    and record.get('licenseType') == license_type
+                    privilege.get('licenseJurisdiction') == license_jurisdiction
+                    and privilege.get('licenseType') == license_type
                 ):
-                    matching_privilege = record
+                    matching_privilege = privilege
                     break
 
             if not matching_privilege:
                 logger.warning(f'Attempt {attempts}/{max_attempts}: No matching privilege found')
+                logger.info(f'Available privileges: {[p.get("jurisdiction") + "/" + p.get("licenseType", "unknown") for p in privileges]}')
             else:
-                license_deactivated_status = matching_privilege.get('licenseDeactivatedStatus')
+                privilege_status = matching_privilege.get('status')
                 logger.info(
-                    f'Attempt {attempts}/{max_attempts}: licenseDeactivatedStatus = {license_deactivated_status}'
+                    f'Attempt {attempts}/{max_attempts}: privilege status = {privilege_status}'
                 )
 
-                if license_deactivated_status == 'LICENSE_DEACTIVATED':
+                # Check if privilege is properly deactivated
+                if privilege_status == 'inactive':
                     elapsed_time = time.time() - start_time
                     logger.info(f'✅ Privilege deactivation validation successful after {elapsed_time:.1f} seconds')
                     return matching_privilege
@@ -152,7 +137,7 @@ def validate_privilege_deactivation(
     elapsed_time = time.time() - start_time
     raise SmokeTestFailureException(
         f'Privilege deactivation validation failed after {elapsed_time:.1f} seconds. '
-        f'Expected licenseDeactivatedStatus to be "LICENSE_DEACTIVATED" but it was not set within {max_wait_time} seconds.'
+        f'Expected privilege status to be "inactive" but it was not set within {max_wait_time} seconds.'
     )
 
 
@@ -196,7 +181,7 @@ def test_license_deactivation_privilege_workflow():
                 'familyName': TEST_FAMILY_NAME,
                 'licenseType': TEST_LICENSE_TYPE,
                 'ssn': TEST_SSN,
-                'status': 'active',
+                'licenseStatus': 'active',
                 'compactEligibility': 'eligible',
             },
         )
@@ -207,9 +192,9 @@ def test_license_deactivation_privilege_workflow():
             compact=TEST_COMPACT,
             given_name=TEST_GIVEN_NAME,
             family_name=TEST_FAMILY_NAME,
-            max_wait_time=300,  # 5 minutes
+            max_wait_time=660,  # 11 minutes (to account for message batch windows)
         )
-        
+
         # Step 2: Create a test privilege record
         logger.info('Step 2: Creating test privilege record...')
 
@@ -222,26 +207,30 @@ def test_license_deactivation_privilege_workflow():
         )
 
         # Verify privilege was created and is active
-        privilege_records = get_provider_privilege_records(provider_id, TEST_COMPACT)
+        provider_data = get_provider_details_from_api(staff_headers, TEST_COMPACT, provider_id)
+        privileges = provider_data.get('privileges', [])
+        
         test_privilege = None
-        for record in privilege_records:
+        for privilege in privileges:
             if (
-                record.get('licenseJurisdiction') == TEST_JURISDICTION
-                and record.get('licenseType') == TEST_LICENSE_TYPE
+                privilege.get('licenseJurisdiction') == TEST_JURISDICTION
+                and privilege.get('licenseType') == TEST_LICENSE_TYPE
             ):
-                test_privilege = record
+                test_privilege = privilege
                 break
 
         if not test_privilege:
             raise SmokeTestFailureException('Test privilege record was not created successfully')
 
-        if test_privilege.get('licenseDeactivatedStatus') is not None:
+
+
+        if test_privilege.get('status') != 'active':
             raise SmokeTestFailureException(
-                f'Test privilege should not have licenseDeactivatedStatus set initially, '
-                f'but found: {test_privilege.get("licenseDeactivatedStatus")}'
+                f'Test privilege should have status "active" initially, '
+                f'but found: {test_privilege.get("status")}'
             )
 
-        logger.info('✅ Test privilege record created successfully and is in expected initial state')
+        logger.info('✅ Test privilege record created successfully and is in expected initial state (active status)')
 
         # Step 3: Upload the same license with inactive status
         logger.info('Step 3: Uploading license with inactive status to trigger deactivation...')
@@ -255,7 +244,7 @@ def test_license_deactivation_privilege_workflow():
                 'familyName': TEST_FAMILY_NAME,
                 'licenseType': TEST_LICENSE_TYPE,
                 'ssn': TEST_SSN,
-                'status': 'inactive',
+                'licenseStatus': 'inactive',
                 'compactEligibility': 'ineligible',
             },
         )
@@ -263,23 +252,17 @@ def test_license_deactivation_privilege_workflow():
         # Step 4: Validate that the privilege is automatically deactivated
         logger.info('Step 4: Validating automatic privilege deactivation...')
 
-        deactivated_privilege = validate_privilege_deactivation(
+        validate_privilege_deactivation(
+            staff_headers=staff_headers,
             provider_id=provider_id,
             compact=TEST_COMPACT,
             license_jurisdiction=TEST_JURISDICTION,
             license_type=TEST_LICENSE_TYPE,
-            max_wait_time=120,  # 2 minutes
+            max_wait_time=660,  # 11 minutes (to account for message batch windows)
             check_interval=15,
         )
 
-        # Additional validation
-        if deactivated_privilege.get('licenseDeactivatedStatus') != 'LICENSE_DEACTIVATED':
-            raise SmokeTestFailureException(
-                f'Expected licenseDeactivatedStatus to be "LICENSE_DEACTIVATED", '
-                f'but found: {deactivated_privilege.get("licenseDeactivatedStatus")}'
-            )
-
-        logger.info('✅ Privilege was automatically deactivated with correct licenseDeactivatedStatus')
+        logger.info('✅ Privilege was automatically deactivated with status "inactive"')
         logger.info('✅ License deactivation privilege workflow test completed successfully!')
 
     finally:

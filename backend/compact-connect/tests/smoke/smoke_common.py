@@ -265,11 +265,11 @@ def upload_license_record(staff_headers: dict, compact: str, jurisdiction: str, 
         'dateOfIssuance': '2020-01-01',
         'ssn': '999-99-9999',
         'licenseType': 'speech-language pathologist',
-        'dateOfExpiration': '2030-01-01',
+        'dateOfExpiration': '2050-01-01',
         'homeAddressState': 'ne',
         'dateOfRenewal': '2025-01-01',
         'homeAddressCity': 'Omaha',
-        'status': 'active',
+        'licenseStatus': 'active',
         'compactEligibility': 'eligible',
         'emailAddress': 'test-license@example.com',
         'phoneNumber': '+15551234567',
@@ -281,7 +281,7 @@ def upload_license_record(staff_headers: dict, compact: str, jurisdiction: str, 
 
     post_body = [default_license_data]
 
-    logger.info(f'Uploading license record for {jurisdiction} with status "{default_license_data.get("status")}"')
+    logger.info(f'Uploading license record for {jurisdiction} with status "{default_license_data.get("licenseStatus")}"')
 
     post_response = requests.post(
         url=f'{config.api_base_url}/v1/compacts/{compact}/jurisdictions/{jurisdiction}/licenses',
@@ -293,7 +293,7 @@ def upload_license_record(staff_headers: dict, compact: str, jurisdiction: str, 
     if post_response.status_code != 200:
         raise SmokeTestFailureException(f'Failed to upload license record. Response: {post_response.json()}')
 
-    logger.info(f'License record successfully uploaded with status "{default_license_data.get("status")}"')
+    logger.info(f'License record successfully uploaded with status "{default_license_data.get("licenseStatus")}"')
     return post_response.json()
 
 

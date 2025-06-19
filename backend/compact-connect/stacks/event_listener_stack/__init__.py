@@ -51,7 +51,7 @@ class EventListenerStack(AppStack):
             lambda_dir='data-events',
             index=os.path.join('handlers', 'encumbrance_events.py'),
             handler='license_encumbrance_listener',
-            timeout=Duration.minutes(15),
+            timeout=Duration.minutes(2),
             environment={
                 'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
                 'EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME': persistent_stack.email_notification_service_lambda.function_name,  # noqa: E501 line-too-long
@@ -100,7 +100,7 @@ class EventListenerStack(AppStack):
             lambda_dir='data-events',
             index=os.path.join('handlers', 'encumbrance_events.py'),
             handler='license_encumbrance_lifted_listener',
-            timeout=Duration.minutes(15),
+            timeout=Duration.minutes(2),
             environment={
                 'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
                 **self.common_env_vars,
@@ -147,7 +147,7 @@ class EventListenerStack(AppStack):
             lambda_dir='data-events',
             index=os.path.join('handlers', 'license_deactivation_events.py'),
             handler='license_deactivation_listener',
-            timeout=Duration.minutes(15),
+            timeout=Duration.minutes(2),
             environment={
                 'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
                 **self.common_env_vars,
