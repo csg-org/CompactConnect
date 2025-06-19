@@ -34,6 +34,7 @@
             :text-input="textInput"
             :disabled="isDisabled"
             :inline="isInline"
+            :position="position"
             :auto-apply="isAutoApply"
             :clearable="isClearable"
             :no-today="!isTodayHighlighted"
@@ -112,6 +113,7 @@
                     </div>
                 </div>
             </template>
+            <template #clear-icon="{}"></template>
         </VueDatePicker>
         <span
             v-if="formInput.errorMessage && !formInput.shouldHideErrorMessage"

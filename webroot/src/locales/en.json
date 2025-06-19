@@ -631,6 +631,13 @@
         "encumberStartDate": "Beginning of adverse action",
         "confirmPrivilegeEncumberSubmit": "Yes, encumber privilege",
         "confirmPrivilegeEncumberSuccess": "This privilege has been encumbered.",
+        "unencumber": "Unencumber",
+        "unencumbered": "Unencumbered",
+        "confirmPrivilegeUnencumberTitle": "Select encumbrance(s) to remove",
+        "confirmPrivilegeUnencumberEndDate": "Select an end date",
+        "confirmPrivilegeUnencumberSubmit": "Confirm removal(s)",
+        "confirmPrivilegeUnencumberSuccess": "These encumbrances are set to be removed.",
+        "confirmPrivilegeUnencumberSuccessEndDate": "End date",
         "expiringIn": "Expiring in",
         "licenseEvents": [
             {

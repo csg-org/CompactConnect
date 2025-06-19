@@ -15,16 +15,19 @@ import MixinForm from '@components/Forms/_mixins/form.mixin';
 import InputTextarea from '@components/Forms/InputTextarea/InputTextarea.vue';
 import InputDate from '@components/Forms/InputDate/InputDate.vue';
 import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
+import InputCheckbox from '@components/Forms/InputCheckbox/InputCheckbox.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import CheckCircle from '@components/Icons/CheckCircle/CheckCircle.vue';
 import MockPopulate from '@components/Forms/MockPopulate/MockPopulate.vue';
 import Modal from '@components/Modal/Modal.vue';
+import { dateDisplay } from '@models/_formatters/date';
 import { License, LicenseStatus } from '@/models/License/License.model';
 import { Licensee } from '@/models/Licensee/Licensee.model';
 import { Compact } from '@models/Compact/Compact.model';
 import { State } from '@/models/State/State.model';
 import { StaffUser, CompactPermission } from '@models/StaffUser/StaffUser.model';
+import { AdverseAction } from '@/models/AdverseAction/AdverseAction.model';
 import { FormInput } from '@/models/FormInput/FormInput.model';
 import Joi from 'joi';
 import moment from 'moment';
@@ -36,6 +39,7 @@ import moment from 'moment';
         InputTextarea,
         InputDate,
         InputSelect,
+        InputCheckbox,
         InputButton,
         InputSubmit,
         Modal,
@@ -54,14 +58,11 @@ class PrivilegeCard extends mixins(MixinForm) {
     isDeactivatePrivilegeModalDisplayed = false;
     isEncumberPrivilegeModalDisplayed = false;
     isEncumberPrivilegeModalSuccess = false;
+    isUnencumberPrivilegeModalDisplayed = false;
+    isUnencumberPrivilegeModalSuccess = false;
+    encumbranceInputs: Array<FormInput> = [];
+    selectedEncumbrances: Array<AdverseAction> = [];
     modalErrorMessage = '';
-
-    //
-    // Lifecycle
-    //
-    // created(): void {
-    //     this.initFormInputs();
-    // }
 
     //
     // Computed
@@ -165,8 +166,16 @@ class PrivilegeCard extends mixins(MixinForm) {
         return (this.privilege?.isDeactivated()) ? this.$t('licensing.deactivated') : this.privilege?.expireDateDisplay() || '';
     }
 
+    get isEncumbered(): boolean {
+        return this.privilege?.isEncumbered() || false;
+    }
+
     get disciplineContent(): string {
-        return (this.privilege?.isEncumbered()) ? this.$t('licensing.encumbered') : this.$t('licensing.noDiscipline');
+        return (this.isEncumbered) ? this.$t('licensing.encumbered') : this.$t('licensing.noDiscipline');
+    }
+
+    get adverseActions(): Array<AdverseAction> {
+        return this.privilege?.adverseActions || [];
     }
 
     get npdbCategoryOptions(): Array<{ value: string, name: string }> {
@@ -181,6 +190,10 @@ class PrivilegeCard extends mixins(MixinForm) {
         });
 
         return options;
+    }
+
+    get isUnencumberSubmitEnabled(): boolean {
+        return Boolean(this.isFormValid && !this.isFormLoading && this.selectedEncumbrances.length);
     }
 
     get isMockPopulateEnabled(): boolean {
@@ -229,6 +242,29 @@ class PrivilegeCard extends mixins(MixinForm) {
                 }),
             });
             this.watchFormInputs();
+        } else if (this.isUnencumberPrivilegeModalDisplayed) {
+            this.formData = reactive({
+                unencumberModalContinue: new FormInput({
+                    isSubmitInput: true,
+                    id: 'submit-modal-continue',
+                }),
+            });
+
+            this.adverseActions.forEach((adverseAction: AdverseAction) => {
+                const adverseActionId = adverseAction.id;
+                const adverseActionInput = new FormInput({
+                    id: `adverse-action-data-${adverseActionId}`,
+                    name: `adverse-action-data-${adverseActionId}`,
+                    label: adverseAction.npdbTypeName(),
+                });
+
+                this.formData[`adverse-action-data-${adverseActionId}`] = adverseActionInput;
+                this.encumbranceInputs.push(adverseActionInput);
+
+                // if (adverseAction.endDate) {
+                //     this.addUnencumberFormData(adverseAction);
+                // }
+            });
         }
     }
 
@@ -418,13 +454,187 @@ class PrivilegeCard extends mixins(MixinForm) {
     // =======================================================
     //                      UN-ENCUMBER
     // =======================================================
-    mockPopulate(): void {
+    clickUnencumberItem(adverseAction: AdverseAction, event?: PointerEvent | KeyboardEvent): void {
+        const { srcElement, type } = event || {};
+        const adverseActionId = adverseAction?.id;
+        const nodeType = (srcElement as Element)?.nodeName;
+
+        // Handle wrapped checkbox input so that the wrapper events act the same as the nested checkbox input
+        if (nodeType === 'INPUT') {
+            if (type === 'keyup') {
+                event?.preventDefault();
+            }
+            event?.stopPropagation();
+        } else if (nodeType === 'LABEL') {
+            event?.preventDefault();
+        }
+
+        if (adverseActionId) {
+            const formInput = this.formData[`adverse-action-data-${adverseActionId}`];
+            const existingValue = Boolean(formInput?.value);
+
+            if (formInput) {
+                formInput.value = !existingValue;
+
+                if (formInput.value) {
+                    this.addUnencumberFormData(adverseAction);
+                } else {
+                    this.removeUnencumberFormData(adverseActionId);
+                }
+            }
+        }
+    }
+
+    async addUnencumberFormData(adverseAction: AdverseAction): Promise<void> {
+        const adverseActionId = adverseAction.id;
+
+        if (adverseActionId) {
+            const adverseActionEndDateInput = new FormInput({
+                id: `adverse-action-${adverseActionId}`,
+                name: `adverse-action-${adverseActionId}`,
+                label: computed(() => this.$t('licensing.confirmPrivilegeUnencumberEndDate')),
+                validation: Joi.string().required().messages(this.joiMessages.string),
+            });
+
+            this.formData[`adverse-action-end-date-${adverseActionId}`] = adverseActionEndDateInput;
+            if (!this.selectedEncumbrances.find((selectedAction) => selectedAction.id === adverseActionId)) {
+                this.selectedEncumbrances.push(adverseAction);
+            }
+            if (adverseAction.endDate) {
+                await nextTick();
+                this.formData[`adverse-action-end-date-${adverseActionId}`].value = adverseAction.endDate;
+            }
+            this.watchFormInputs();
+            this.validateAll();
+        }
+    }
+
+    removeUnencumberFormData(adverseActionId: string): void {
+        delete this.formData[`adverse-action-end-date-${adverseActionId}`];
+        this.selectedEncumbrances = this.selectedEncumbrances.filter((adverseAction: AdverseAction) =>
+            (adverseAction.id || '') !== adverseActionId);
+        this.watchFormInputs();
+        this.validateAll();
+    }
+
+    getFirstEnabledFormInputId(): string {
+        const { formData } = this;
+        const firstEnabledFormInput: string = Object.keys(formData)
+            .filter((key) => key !== 'unencumberModalContinue')
+            .find((key) => !formData[key].isDisabled) || '';
+        const firstEnabledInputId = formData[firstEnabledFormInput]?.id || 'unencumber-modal-cancel-button';
+
+        return firstEnabledInputId;
+    }
+
+    async toggleUnencumberPrivilegeModal(): Promise<void> {
+        this.resetForm();
+        this.isUnencumberPrivilegeModalDisplayed = !this.isUnencumberPrivilegeModalDisplayed;
+
+        if (this.isUnencumberPrivilegeModalDisplayed) {
+            this.initFormInputs();
+            await nextTick();
+            const firstEnabledInputId = this.getFirstEnabledFormInputId();
+            const firstTabIndex = document.getElementById(firstEnabledInputId);
+
+            firstTabIndex?.focus();
+        }
+    }
+
+    closeUnencumberPrivilegeModal(): void {
+        this.selectedEncumbrances = [];
+        this.isUnencumberPrivilegeModalDisplayed = false;
+        this.isUnencumberPrivilegeModalSuccess = false;
+    }
+
+    focusTrapUnencumberPrivilegeModal(event: KeyboardEvent): void {
+        const { isUnencumberSubmitEnabled } = this;
+        const firstEnabledInputId = this.getFirstEnabledFormInputId();
+        const firstTabIndex = document.getElementById(firstEnabledInputId);
+        const lastTabIndex = (isUnencumberSubmitEnabled)
+            ? document.getElementById('submit-modal-continue')
+            : document.getElementById('unencumber-modal-cancel-button');
+
+        if (event.shiftKey) {
+            // shift + tab to last input
+            if (document.activeElement === firstTabIndex) {
+                lastTabIndex?.focus();
+                event.preventDefault();
+            }
+        } else if (document.activeElement === lastTabIndex) {
+            // Tab to first input
+            firstTabIndex?.focus();
+            event.preventDefault();
+        }
+    }
+
+    async submitUnencumberPrivilege(): Promise<void> {
+        this.validateAll({ asTouched: true });
+
+        if (this.isFormValid) {
+            this.startFormLoading();
+            this.modalErrorMessage = '';
+
+            const {
+                currentCompactType: compactType,
+                licenseeId,
+                stateAbbrev,
+                privilegeTypeAbbrev
+            } = this;
+
+            await Promise.all(this.selectedEncumbrances.map(async (adverseAction: AdverseAction) => {
+                const adverseActionId = adverseAction.id;
+
+                await this.$store.dispatch(`users/unencumberPrivilegeRequest`, {
+                    compact: compactType,
+                    licenseeId,
+                    privilegeState: stateAbbrev,
+                    licenseType: privilegeTypeAbbrev.toLowerCase(),
+                    encumbranceId: adverseActionId,
+                    endDate: this.formData[`adverse-action-end-date-${adverseActionId}`].value,
+                });
+            })).catch((err) => {
+                this.modalErrorMessage = err?.message || this.$t('common.error');
+                this.isFormError = true;
+            });
+
+            if (!this.isFormError) {
+                this.isFormSuccessful = true;
+                await this.$store.dispatch('license/getLicenseeRequest', { compact: compactType, licenseeId });
+                this.isUnencumberPrivilegeModalSuccess = true;
+                await nextTick();
+                document.getElementById('unencumber-modal-cancel-button')?.focus();
+            }
+
+            this.endFormLoading();
+        }
+    }
+
+    isEncumbranceSelected(adverseAction: AdverseAction): boolean {
+        return this.selectedEncumbrances.some((selected: AdverseAction) => selected.id === adverseAction.id);
+    }
+
+    dateDisplayFormat(unformattedDate: string): string {
+        return dateDisplay(unformattedDate);
+    }
+
+    async mockPopulate(): Promise<void> {
         if (this.isDeactivatePrivilegeModalDisplayed) {
             this.formData.deactivateModalNotes.value = `Sample note`;
             this.validateAll({ asTouched: true });
         } else if (this.isEncumberPrivilegeModalDisplayed) {
             this.formData.encumberModalNpdbCategory.value = this.npdbCategoryOptions[1]?.value;
             this.formData.encumberModalStartDate.value = moment().format('YYYY-MM-DD');
+            this.validateAll({ asTouched: true });
+        } else if (this.isUnencumberPrivilegeModalDisplayed) {
+            this.selectedEncumbrances.forEach((selected) => {
+                this.clickUnencumberItem(selected);
+            });
+            await Promise.all(this.adverseActions.map(async (adverseAction) => {
+                this.clickUnencumberItem(adverseAction);
+                await nextTick();
+                this.formData[`adverse-action-end-date-${adverseAction.id}`].value = moment().format('YYYY-MM-DD');
+            }));
             this.validateAll({ asTouched: true });
         }
     }

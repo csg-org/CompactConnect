@@ -630,6 +630,13 @@
         "encumberStartDate": "Inicio de la acción adversa",
         "confirmPrivilegeEncumberSubmit": "Sí, gravar el privilegio",
         "confirmPrivilegeEncumberSuccess": "Este privilegio ha sido obstaculizado.",
+        "unencumber": "Liberarse",
+        "unencumbered": "Libre de cargas",
+        "confirmPrivilegeUnencumberTitle": "Seleccione los gravámenes que desea eliminar",
+        "confirmPrivilegeUnencumberEndDate": "Seleccione una fecha de finalización",
+        "confirmPrivilegeUnencumberSubmit": "Confirmar eliminación(es)",
+        "confirmPrivilegeUnencumberSuccess": "Está previsto que estos gravámenes se eliminen.",
+        "confirmPrivilegeUnencumberSuccessEndDate": "Fecha de finalización",
         "expiringIn": "Expirando en",
         "licenseEvents": [
             {

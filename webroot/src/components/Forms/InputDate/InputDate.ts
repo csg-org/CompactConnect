@@ -41,6 +41,7 @@ class InputDate extends mixins(MixinInput) {
     @Prop({ default: false }) isDisabled?: boolean;
     @Prop({ default: false }) isReadOnly?: boolean;
     @Prop({ default: false }) isInline?: boolean;
+    @Prop({ default: 'center' }) position?: string;
     @Prop({ default: 'off' }) isAutoComplete?: boolean;
     @Prop({ default: true }) isAutoApply?: boolean;
     @Prop({ default: true }) isClearable?: boolean;

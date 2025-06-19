@@ -54,6 +54,16 @@
                         >
                             {{ $t('licensing.encumber') }}
                         </li>
+                        <li
+                            v-if="isCurrentUserPrivilegeStateAdmin && isEncumbered"
+                            class="privilege-menu-item"
+                            role="button"
+                            @click="toggleUnencumberPrivilegeModal"
+                            @keyup.enter="toggleUnencumberPrivilegeModal"
+                            tabindex="0"
+                        >
+                            {{ $t('licensing.unencumber') }}
+                        </li>
                     </ul>
                 </transition>
             </div>
@@ -206,6 +216,99 @@
                             class="encumber-modal-cancel-button"
                             :label="$t('common.close')"
                             :onClick="closeEncumberPrivilegeModal"
+                        />
+                    </div>
+                </template>
+            </Modal>
+            <Modal
+                v-if="isUnencumberPrivilegeModalDisplayed"
+                class="privilege-edit-modal unencumber-privilege-modal"
+                :title="!isUnencumberPrivilegeModalSuccess ? $t('licensing.confirmPrivilegeUnencumberTitle') : ' '"
+                :showActions="false"
+                @keydown.tab="focusTrapUnencumberPrivilegeModal($event)"
+                @keyup.esc="closeUnencumberPrivilegeModal"
+            >
+                <template v-slot:content>
+                    <div v-if="!isUnencumberPrivilegeModalSuccess" class="modal-content unencumber-modal-content">
+                        <form
+                            class="privilege-edit-form unencumber-privilege-form"
+                            @submit.prevent="submitUnencumberPrivilege"
+                        >
+                            <div class="unencumber-privilege-form-input-container">
+                            <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
+                            <div
+                                v-for="(adverseAction, index) in adverseActions"
+                                :key="adverseAction.id || index"
+                                class="form-row unencumber-row"
+                            >
+                                <div
+                                    class="unencumber-select"
+                                    :class="{ 'selected': isEncumbranceSelected(adverseAction) }"
+                                    @click="clickUnencumberItem(adverseAction, $event)"
+                                    @keyup.space="clickUnencumberItem(adverseAction, $event)"
+                                >
+                                    <InputCheckbox
+                                        :formInput="formData[`adverse-action-data-${adverseAction.id}`]"
+                                        class="unencumber-checkbox-input"
+                                    />
+                                    <div class="encumbrance-start-date">
+                                        {{ adverseAction.startDateDisplay() }}
+                                    </div>
+                                </div>
+                                <InputDate
+                                    v-if="formData[`adverse-action-end-date-${adverseAction.id}`]"
+                                    :formInput="formData[`adverse-action-end-date-${adverseAction.id}`]"
+                                    :yearRange="[new Date().getFullYear() - 5, new Date().getFullYear() + 5]"
+                                    :preventMinMaxNavigation="true"
+                                    :textInput="{ format: 'MM/dd/yyyy', openMenu: false }"
+                                    :startDate="new Date()"
+                                    position="right"
+                                    class="encumbrance-end-date"
+                                />
+                            </div>
+                            </div>
+                            <div v-if="modalErrorMessage" class="modal-error">{{ modalErrorMessage }}</div>
+                            <div class="action-button-row">
+                                <InputButton
+                                    id="unencumber-modal-cancel-button"
+                                    class="action-button cancel-button"
+                                    :label="$t('common.cancel')"
+                                    :isTransparent="true"
+                                    :onClick="closeUnencumberPrivilegeModal"
+                                />
+                                <InputSubmit
+                                    class="action-button submit-button continue-button"
+                                    :formInput="formData.unencumberModalContinue"
+                                    :label="(isFormLoading)
+                                        ? $t('common.loading')
+                                        : $t('licensing.confirmPrivilegeUnencumberSubmit')"
+                                    :isWarning="true"
+                                    :isEnabled="isFormValid && !isFormLoading && selectedEncumbrances.length"
+                                />
+                            </div>
+                        </form>
+                    </div>
+                    <div v-else class="modal-content unencumber-modal-content modal-content-success">
+                        <div class="icon-container"><CheckCircle /></div>
+                        <h1 class="modal-title">{{ $t('licensing.confirmPrivilegeUnencumberSuccess') }}</h1>
+                        <div class="success-container">
+                            <div
+                                v-for="(selected) in selectedEncumbrances"
+                                :key="selected.id"
+                                class="removed-encumbrance"
+                            >
+                                <div class="input-label static-label">{{ selected.npdbTypeName() }}</div>
+                                <div class="static-value">
+                                    {{ $t('licensing.confirmPrivilegeUnencumberSuccessEndDate') }}:
+                                    {{ dateDisplayFormat(formData[`adverse-action-end-date-${selected.id}`].value) }}
+                                </div>
+                            </div>
+                        </div>
+                        <InputButton
+                            id="unencumber-modal-cancel-button"
+                            class="unencumber-modal-cancel-button"
+                            :label="$t('common.close')"
+                            :onClick="closeUnencumberPrivilegeModal"
                         />
                     </div>
                 </template>
