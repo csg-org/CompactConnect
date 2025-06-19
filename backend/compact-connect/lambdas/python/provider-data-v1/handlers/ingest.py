@@ -240,9 +240,12 @@ def _process_license_update(*, existing_license: dict, new_license: dict, dynamo
         # Expired licenses are handled separately, and we want to distinguish between
         # jurisdiction deactivation vs natural expiration
         is_expired = new_license['dateOfExpiration'] < config.expiration_resolution_date
-        
+
         if not is_expired:
-            logger.info('License is not expired, but is set to inactive. Publishing license deactivation event.', date_of_expiration=new_license['dateOfExpiration'])
+            logger.info(
+                'License is not expired, but is set to inactive. Publishing license deactivation event.',
+                date_of_expiration=new_license['dateOfExpiration'],
+            )
             data_events.append(
                 {
                     'Source': 'org.compactconnect.provider-data',
@@ -260,7 +263,10 @@ def _process_license_update(*, existing_license: dict, new_license: dict, dynamo
                 }
             )
         else:
-            logger.info('License is expired, skipping license deactivation event.', date_of_expiration=new_license['dateOfExpiration'])
+            logger.info(
+                'License is expired, skipping license deactivation event.',
+                date_of_expiration=new_license['dateOfExpiration'],
+            )
 
     dynamo_transactions.append(
         {'Put': {'TableName': config.provider_table_name, 'Item': TypeSerializer().serialize(update_record)['M']}}

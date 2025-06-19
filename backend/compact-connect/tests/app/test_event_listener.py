@@ -251,7 +251,8 @@ class TestEventListenerStack(TstAppABC, TestCase):
         )
 
         self.assertEqual(
-            'handlers.license_deactivation_events.license_deactivation_listener', license_deactivation_handler['Handler']
+            'handlers.license_deactivation_events.license_deactivation_listener',
+            license_deactivation_handler['Handler'],
         )
 
         # Verify SQS queue is created for the license deactivation listener

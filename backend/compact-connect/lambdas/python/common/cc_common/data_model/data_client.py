@@ -2631,9 +2631,7 @@ class DataClient:
             logger.info('No active privileges found for this license to deactivate.')
             return
 
-        logger.info(
-            'Found privileges to deactivate', privilege_count=len(active_privileges_associated_with_license)
-        )
+        logger.info('Found privileges to deactivate', privilege_count=len(active_privileges_associated_with_license))
 
         # Build transaction items for all privileges
         transaction_items = []

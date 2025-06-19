@@ -307,4 +307,4 @@ class TestLicenseDeactivationEvents(TstFunction):
             self.assertEqual(1, len(privilege_update_records['Items']))
             update_record = privilege_update_records['Items'][0]
             self.assertEqual('licenseDeactivation', update_record['updateType'])
-            self.assertEqual({'licenseDeactivatedStatus': 'licenseDeactivated'}, update_record['updatedValues']) 
+            self.assertEqual({'licenseDeactivatedStatus': 'licenseDeactivated'}, update_record['updatedValues'])

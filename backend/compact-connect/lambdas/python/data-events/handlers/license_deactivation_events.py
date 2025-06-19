@@ -36,4 +36,4 @@ def license_deactivation_listener(message: dict):
             license_type_abbreviation=license_type_abbreviation,
         )
 
-        logger.info('Successfully processed license deactivation event') 
+        logger.info('Successfully processed license deactivation event')
