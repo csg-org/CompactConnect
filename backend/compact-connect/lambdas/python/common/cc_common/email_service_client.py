@@ -2,6 +2,7 @@ import json
 from dataclasses import dataclass
 from datetime import date, datetime
 from typing import Any, Protocol
+from uuid import UUID
 
 import boto3
 from aws_lambda_powertools.logging import Logger
@@ -20,7 +21,7 @@ class EncumbranceNotificationTemplateVariables:
     encumbered_jurisdiction: str
     license_type: str
     effective_date: date
-    provider_id: str | None = None
+    provider_id: UUID | None = None
 
 
 class ProviderNotificationMethod(Protocol):
@@ -293,7 +294,7 @@ class EmailServiceClient:
             'templateVariables': {
                 'providerFirstName': template_variables.provider_first_name,
                 'providerLastName': template_variables.provider_last_name,
-                'providerId': template_variables.provider_id,
+                'providerId': str(template_variables.provider_id),
                 'encumberedJurisdiction': template_variables.encumbered_jurisdiction,
                 'licenseType': template_variables.license_type,
                 'effectiveStartDate': template_variables.effective_date.strftime('%B %d, %Y'),
@@ -354,7 +355,7 @@ class EmailServiceClient:
             'templateVariables': {
                 'providerFirstName': template_variables.provider_first_name,
                 'providerLastName': template_variables.provider_last_name,
-                'providerId': template_variables.provider_id,
+                'providerId': str(template_variables.provider_id),
                 'liftedJurisdiction': template_variables.encumbered_jurisdiction,
                 'licenseType': template_variables.license_type,
                 'effectiveLiftDate': template_variables.effective_date.strftime('%B %d, %Y'),
@@ -415,7 +416,7 @@ class EmailServiceClient:
             'templateVariables': {
                 'providerFirstName': template_variables.provider_first_name,
                 'providerLastName': template_variables.provider_last_name,
-                'providerId': template_variables.provider_id,
+                'providerId': str(template_variables.provider_id),
                 'encumberedJurisdiction': template_variables.encumbered_jurisdiction,
                 'licenseType': template_variables.license_type,
                 'effectiveStartDate': template_variables.effective_date.strftime('%B %d, %Y'),
@@ -476,7 +477,7 @@ class EmailServiceClient:
             'templateVariables': {
                 'providerFirstName': template_variables.provider_first_name,
                 'providerLastName': template_variables.provider_last_name,
-                'providerId': template_variables.provider_id,
+                'providerId': str(template_variables.provider_id),
                 'liftedJurisdiction': template_variables.encumbered_jurisdiction,
                 'licenseType': template_variables.license_type,
                 'effectiveLiftDate': template_variables.effective_date.strftime('%B %d, %Y'),

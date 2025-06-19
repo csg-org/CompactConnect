@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from cc_common.config import config, logger
 from cc_common.data_model.provider_record_util import ProviderData, ProviderUserRecords
 from cc_common.data_model.schema.common import ActiveInactiveStatus
@@ -122,7 +124,7 @@ def _send_additional_state_notifications(
     *,
     provider_records: ProviderUserRecords,
     provider_record: ProviderData,
-    provider_id: str,
+    provider_id: UUID,
     excluded_jurisdiction: str,
     compact: str,
     **notification_kwargs,
