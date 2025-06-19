@@ -2598,7 +2598,7 @@ class DataClient:
         logger.info('Successfully unencumbered all license-encumbered privileges for license')
         return matching_privileges
 
-    def deactivate_home_jurisdiction_license_privileges(
+    def deactivate_license_privileges(
         self,
         compact: str,
         provider_id: str,
@@ -2606,7 +2606,7 @@ class DataClient:
         license_type: str,
     ) -> None:
         """
-        Deactivate all privileges associated with a home jurisdiction license due to license deactivation.
+        Deactivate all privileges associated with a license due to license deactivation.
 
         This method finds all privileges for the given license that are not already license-deactivated
         and sets their licenseDeactivatedStatus to LICENSE_DEACTIVATED, along with creating privilege update records.

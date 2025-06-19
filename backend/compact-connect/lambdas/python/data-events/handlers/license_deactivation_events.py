@@ -24,7 +24,7 @@ def license_deactivation_listener(message: dict):
         logger.info('Processing license deactivation event')
 
         # Deactivate the privileges using the data client method
-        config.data_client.deactivate_home_jurisdiction_license_privileges(
+        config.data_client.deactivate_license_privileges(
             compact=compact,
             provider_id=provider_id,
             jurisdiction=jurisdiction,
