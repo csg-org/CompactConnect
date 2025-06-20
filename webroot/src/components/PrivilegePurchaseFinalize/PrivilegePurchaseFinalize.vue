@@ -55,7 +55,7 @@
             <div v-if="formErrorMessage" class="form-error-message">{{formErrorMessage}}</div>
             <div id="button-row" class="button-row">
                 <div class="form-nav-buttons">
-                    <div class="payment-button-container" style="position: relative;">
+                    <div class="payment-button-container">
                         <InputButton
                             v-if="!isSubmitEnabled"
                             :label="$t('payment.payment')"

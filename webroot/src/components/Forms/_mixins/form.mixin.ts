@@ -247,26 +247,17 @@ class MixinForm extends Vue {
             // Check if this is a radio button group by looking for radio inputs inside
             const radioInputs = element.querySelectorAll('input[type="radio"]');
 
-            console.log('radioInputs', radioInputs);
-
             if (radioInputs.length > 0) {
                 // This is a radio button group, focus on the first radio input
                 const firstRadioInput = document.getElementById(`${formInput.id}-1`);
 
                 if (firstRadioInput) {
-                    console.log('firstRadioInput', firstRadioInput);
-
                     firstRadioInput.focus();
                 } else {
-                    console.log('fallback to first radio input');
-
                     // Fallback to the first radio input found
                     (radioInputs[0] as HTMLElement).focus();
                 }
             } else {
-                console.log('non-radio button group, focus on the input');
-
-                // Non-radio button group, focus on the input
                 element.focus();
             }
         }
