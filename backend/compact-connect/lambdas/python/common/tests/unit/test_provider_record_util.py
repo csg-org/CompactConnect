@@ -2,7 +2,7 @@ import json
 from datetime import date, datetime
 from unittest.mock import patch
 
-from cc_common.data_model.schema.privilege.record import PrivilegeRecordSchema
+# from cc_common.data_model.schema.privilege.record import PrivilegeRecordSchema
 
 from tests import TstLambdas
 
@@ -36,16 +36,7 @@ class TestProviderRecordUtility(TstLambdas):
                 'dateOfRenewal': '2025-04-23T15:47:14+00:00',
                 'dateOfExpiration': '2027-02-12',
                 'compactTransactionId': '120061887030',
-                'attestations': [
-                    {'attestationId': 'personal-information-address-attestation', 'version': '3'},
-                    {'attestationId': 'personal-information-home-state-attestation', 'version': '1'},
-                    {'attestationId': 'jurisprudence-confirmation', 'version': '1'},
-                    {'attestationId': 'scope-of-practice-attestation', 'version': '1'},
-                    {'attestationId': 'not-under-investigation-attestation', 'version': '1'},
-                    {'attestationId': 'discipline-no-current-encumbrance-attestation', 'version': '1'},
-                    {'attestationId': 'discipline-no-prior-encumbrance-attestation', 'version': '1'},
-                    {'attestationId': 'provision-of-true-information-attestation', 'version': '1'},
-                ],
+                'attestations': [],
                 'privilegeId': 'OTA-AL-12',
                 'administratorSetStatus': 'active',
                 'status': 'active',
@@ -172,107 +163,201 @@ class TestProviderRecordUtility(TstLambdas):
         self.assertEqual(best_license['dateOfIssuance'], '2024-01-01')
         self.assertEqual(best_license['compactEligibility'], CompactEligibilityStatus.ELIGIBLE)
 
-    # @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-03-15T00:00:00+00:00'))
-    # def test_enrich_privilege_history_with_synthetic_issuance(self):
-    #     """Test that enrich_license_history_with_synthetic_updates adds an issuance update."""
-    #     from cc_common.data_model.provider_record_util import ProviderRecordUtility
-    #
-    #     # Create a privilege with no history
-    #     privilege_record = {
-    #         **self.base_privilege,
-    #         'providerId': 'test-provider-id',
-    #         'dateOfIssuance': date.fromisoformat('2024-01-01'),
-    #         'dateOfExpiration': date.fromisoformat('2025-01-01'),
-    #         'dateOfRenewal': date.fromisoformat('2024-12-01'),
-    #         'dateOfUpdate': datetime.fromisoformat('2024-03-15T00:00:00+00:00'),
-    #         # 'history': [],
-    #     }
-    #
-    #     # Enrich the license history
-    #     enriched_license =(
-    #         ProviderRecordUtility.get_enriched_history_with_synthetic_updates_from_privilege(privilege_record))
-    #
-    #     # Define the expected issuance update
-    #     expected_issuance_update = {
-    #         'type': 'licenseUpdate',
-    #         'updateType': 'issuance',
-    #         'providerId': 'test-provider-id',
-    #         'compact': 'aslp',
-    #         'jurisdiction': 'oh',
-    #         'licenseType': 'physician',
-    #         'dateOfUpdate': datetime.fromisoformat('2024-03-15T00:00:00+00:00'),
-    #         'previous': {
-    #             'dateOfIssuance': date.fromisoformat('2024-01-01'),
-    #             'dateOfExpiration': date.fromisoformat('2025-01-01'),
-    #             'dateOfRenewal': date.fromisoformat('2024-12-01'),
-    #             'licenseNumber': '12345',
-    #             'dateOfUpdate': datetime.fromisoformat('2024-03-15T00:00:00+00:00'),
-    #         },
-    #         'updatedValues': {},
-    #     }
-    #
-    #     # Check that the history contains exactly one update with the expected values
-    #     self.maxDiff = None
-    #     self.assertEqual([expected_issuance_update], enriched_license['history'])
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-03-15T00:00:00+00:00'))
+    def test_enrich_privilege_history_with_synthetic_issuance(self):
+        """Test that enrich_license_history_with_synthetic_updates adds an issuance update."""
+        from cc_common.data_model.provider_record_util import ProviderRecordUtility
 
-    # @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-03-15T00:00:00+00:00'))
-    # def test_enrich_license_history_with_synthetic_expiration(self):
-    #     """Test that enrich_license_history_with_synthetic_updates adds an expiration update."""
-    #     from cc_common.data_model.provider_record_util import ProviderRecordUtility
-    #
-    #     # Create a license that was issued in 2021, expired in 2023, and not renewed
-    #     license_record = {
-    #         **self.base_prvi,
-    #         'providerId': 'test-provider-id',
-    #         'dateOfIssuance': date.fromisoformat('2021-01-01'),
-    #         'dateOfExpiration': date.fromisoformat('2023-01-01'),  # License expired in 2023
-    #         'dateOfRenewal': date.fromisoformat('2021-01-01'),  # Not renewed (renewal date matches issuance date)
-    #         'history': [],
-    #     }
-    #
-    #     # Enrich the license history
-    #     enriched_license = ProviderRecordUtility.get_enriched_history_with_synthetic_updates_from_privilege(license_record)
-    #
-    #     # Define the expected updates
-    #     expected_issuance_update = {
-    #         'type': 'licenseUpdate',
-    #         'updateType': 'issuance',
-    #         'providerId': 'test-provider-id',
-    #         'compact': 'aslp',
-    #         'jurisdiction': 'oh',
-    #         'licenseType': 'physician',
-    #         'dateOfUpdate': datetime.fromisoformat('2024-03-15T00:00:00+00:00'),
-    #         'previous': {
-    #             'dateOfIssuance': date.fromisoformat('2021-01-01'),
-    #             'dateOfExpiration': date.fromisoformat('2023-01-01'),
-    #             'dateOfRenewal': date.fromisoformat('2021-01-01'),
-    #             'licenseNumber': '12345',
-    #             'dateOfUpdate': datetime.fromisoformat('2024-03-15T00:00:00+00:00'),
-    #         },
-    #         'updatedValues': {},
-    #     }
-    #
-    #     expected_expiration_update = {
-    #         'type': 'licenseUpdate',
-    #         'updateType': 'expiration',
-    #         'providerId': 'test-provider-id',
-    #         'compact': 'aslp',
-    #         'jurisdiction': 'oh',
-    #         'licenseType': 'physician',
-    #         'dateOfUpdate': datetime.fromisoformat('2024-03-15T00:00:00+00:00'),
-    #         'previous': {
-    #             'dateOfIssuance': date.fromisoformat('2021-01-01'),
-    #             'dateOfExpiration': date.fromisoformat('2023-01-01'),
-    #             'dateOfRenewal': date.fromisoformat('2021-01-01'),
-    #             'licenseNumber': '12345',
-    #             'dateOfUpdate': datetime.fromisoformat('2024-03-15T00:00:00+00:00'),
-    #         },
-    #         'updatedValues': {},
-    #     }
-    #
-    #     # Check that the history contains exactly two updates with the expected values
-    #     self.maxDiff = None
-    #     self.assertEqual([expected_issuance_update, expected_expiration_update], enriched_license['history'])
+        # Create a privilege with no history
+        privilege_record = {
+            **self.base_privilege,
+            'providerId': 'test-provider-id',
+            'dateOfIssuance': date.fromisoformat('2024-01-01'),
+            'dateOfExpiration': date.fromisoformat('2025-01-01'),
+            'dateOfRenewal': date.fromisoformat('2024-12-01'),
+            'dateOfUpdate': datetime.fromisoformat('2024-03-15T00:00:00+00:00'),
+            # 'history': [],
+        }
+
+        # Enrich the license history
+        enriched_history =(
+            ProviderRecordUtility.get_enriched_history_with_synthetic_updates_from_privilege(privilege_record))
+
+        # Define the expected issuance update
+        expected_issuance_update = {
+            'compact': 'octp',
+            'dateOfUpdate': datetime.fromisoformat('2024-03-15T00:00:00+00:00'),
+            'effectiveDate': date.fromisoformat('2024-01-01'),
+            'jurisdiction': 'al',
+            'licenseType': 'occupational therapy assistant',
+            'previous': {
+                'administratorSetStatus': 'active',
+                'attestations': [],
+                'compactTransactionId': '120061887030',
+                'dateOfIssuance': date.fromisoformat('2024-01-01'),
+                'dateOfExpiration': date.fromisoformat('2025-01-01'),
+                'dateOfRenewal': date.fromisoformat('2024-12-01'),
+                'dateOfUpdate': datetime.fromisoformat('2024-03-15T00:00:00+00:00'),
+                'licenseJurisdiction': 'ky',
+                'privilegeId': 'OTA-AL-12',
+            },
+            'providerId': 'test-provider-id',
+            'type': 'privilegeUpdate',
+            'updateType': 'issuance',
+            'updatedValues': {},
+        }
+
+        # Check that the history contains exactly one update with the expected values
+        self.maxDiff = None
+        self.assertEqual([expected_issuance_update], enriched_history)
+
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-03-15T00:00:00+00:00'))
+    def test_enrich_license_history_with_synthetic_expiration(self):
+        """Test that enrich_license_history_with_synthetic_updates adds an expiration update in the correct location.
+        The order we care about is by effectiveDate, and this is not always the same as the chronological order of when
+        update entered our system. This test uses a real world example of an uploaded license encumbrance's
+        effectiveDate being backdated to before a renewal event occurred
+        """
+        from cc_common.data_model.provider_record_util import ProviderRecordUtility
+
+        # Create a privilege
+        privilege_record = {
+            **self.base_privilege,
+            'providerId': 'test-provider-id',
+            'dateOfIssuance': date.fromisoformat('2021-01-01'),
+            'dateOfExpiration': date.fromisoformat('2023-01-01'),
+            'dateOfRenewal': date.fromisoformat('2021-12-01'),
+            'dateOfUpdate': datetime.fromisoformat('2023-03-15T00:00:00+00:00'),
+            'history': [
+                {
+                    'compact': 'octp',
+                    'dateOfUpdate': datetime.fromisoformat('2024-03-15T00:00:00+00:00'),
+                    'jurisdiction': 'al',
+                    'licenseType': 'occupational therapy assistant',
+                    'previous': {
+                        'administratorSetStatus': 'active',
+                        'attestations': [],
+                        'compactTransactionId': '120061887030',
+                        'dateOfIssuance': date.fromisoformat('2021-01-01'),
+                        'dateOfExpiration': date.fromisoformat('2023-01-01'),
+                        'dateOfRenewal': date.fromisoformat('2021-12-01'),
+                        'dateOfUpdate': datetime.fromisoformat('2023-03-15T00:00:00+00:00'),
+                        'licenseJurisdiction': 'ky',
+                        'privilegeId': 'OTA-AL-12',
+                    },
+                    'providerId': 'test-provider-id',
+                    'type': 'licenseUpdate',
+                    'updateType': 'encumbrance',
+                    'updatedValues': {'encumberedStatus': 'licenseEncumbered'},
+                },
+                {
+                    'dateOfUpdate': '2022-08-19T19:03:56+00:00',
+                    'type': 'privilegeUpdate',
+                    'updateType': 'renewal',
+                    'providerId': 'test-provider-id',
+                    'compact': 'octp',
+                    'jurisdiction': 'al',
+                    'licenseType': 'occupational therapy assistant',
+                    'previous': {
+                        'administratorSetStatus': 'active',
+                        'attestations': [],
+                        'compactTransactionId': '120059525522',
+                        'dateOfIssuance': date.fromisoformat('2021-01-01'),
+                        'dateOfExpiration': date.fromisoformat('2023-01-01'),
+                        'dateOfRenewal': date.fromisoformat('2021-12-01'),
+                        'dateOfUpdate': datetime.fromisoformat('2023-03-15T00:00:00+00:00'),
+                        'licenseJurisdiction': 'ky',
+                        'privilegeId': 'OTA-AL-12',
+                    },
+                    'updatedValues': {
+                        'administratorSetStatus': 'active',
+                        'attestations': [],
+                        'compactTransactionId': '120060004893',
+                        'dateOfExpiration': date.fromisoformat('2023-01-01'),
+                        'dateOfRenewal': date.fromisoformat('2021-12-01'),
+                        'privilegeId': 'OTA-AL-12',
+                    },
+                },
+                {
+                    'compact': 'octp',
+                    'dateOfUpdate': datetime.fromisoformat('2024-03-15T00:00:00+00:00'),
+                    'jurisdiction': 'al',
+                    'licenseType': 'occupational therapy assistant',
+                    'previous': {
+                        'administratorSetStatus': 'active',
+                        'attestations': [],
+                        'compactTransactionId': '120061887030',
+                        'dateOfIssuance': date.fromisoformat('2021-01-01'),
+                        'dateOfExpiration': date.fromisoformat('2023-01-01'),
+                        'dateOfRenewal': date.fromisoformat('2021-12-01'),
+                        'dateOfUpdate': datetime.fromisoformat('2023-03-15T00:00:00+00:00'),
+                        'licenseJurisdiction': 'ky',
+                        'privilegeId': 'OTA-AL-12',
+                    },
+                    'providerId': 'test-provider-id',
+                    'type': 'licenseUpdate',
+                    'updateType': 'encumbrance',
+                    'updatedValues': {'encumberedStatus': 'licenseEncumbered'},
+                },
+            ],
+        }
+
+        # Enrich the license history
+        enriched_history = ProviderRecordUtility.get_enriched_history_with_synthetic_updates_from_privilege(
+            privilege_record
+        )
+
+        # Define the expected issuance update
+        expected_updates = [
+            {
+                'compact': 'octp',
+                'dateOfUpdate': datetime.fromisoformat('2024-03-15T00:00:00+00:00'),
+                'jurisdiction': 'al',
+                'licenseType': 'occupational therapy assistant',
+                'previous': {
+                    'administratorSetStatus': 'active',
+                    'attestations': [],
+                    'compactTransactionId': '120061887030',
+                    'dateOfIssuance': date.fromisoformat('2024-01-01'),
+                    'dateOfExpiration': date.fromisoformat('2025-01-01'),
+                    'dateOfRenewal': date.fromisoformat('2024-12-01'),
+                    'dateOfUpdate': datetime.fromisoformat('2024-03-15T00:00:00+00:00'),
+                    'licenseJurisdiction': 'ky',
+                    'privilegeId': 'OTA-AL-12',
+                },
+                'providerId': 'test-provider-id',
+                'type': 'licenseUpdate',
+                'updateType': 'issuance',
+                'updatedValues': {},
+            },
+            {
+                'compact': 'octp',
+                'dateOfUpdate': datetime.fromisoformat('2024-03-15T00:00:00+00:00'),
+                'jurisdiction': 'al',
+                'licenseType': 'occupational therapy assistant',
+                'previous': {
+                    'administratorSetStatus': 'active',
+                    'attestations': [],
+                    'compactTransactionId': '120061887030',
+                    'dateOfIssuance': date.fromisoformat('2024-01-01'),
+                    'dateOfExpiration': date.fromisoformat('2025-01-01'),
+                    'dateOfRenewal': date.fromisoformat('2024-12-01'),
+                    'dateOfUpdate': datetime.fromisoformat('2024-03-15T00:00:00+00:00'),
+                    'licenseJurisdiction': 'ky',
+                    'privilegeId': 'OTA-AL-12',
+                },
+                'providerId': 'test-provider-id',
+                'type': 'licenseUpdate',
+                'updateType': 'encumbrance',
+                'updatedValues': {
+                    'encumberedStatus': 'licenseEncumbered'
+                },
+            },
+        ]
+
+        # Check that the history contains exactly one update with the expected values
+        self.maxDiff = None
+        self.assertEqual([expected_issuance_update], enriched_history)
     #
     # @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2025-06-01T00:00:00+00:00'))
     # def test_enrich_license_history_with_existing_updates(self):

@@ -238,7 +238,7 @@ class ProviderRecordUtility:
         return provider
 
     @classmethod
-    def get_enriched_history_with_synthetic_updates_from_privilege(cls, license_or_priv: dict) -> list [dict]:
+    def get_enriched_history_with_synthetic_updates_from_privilege(cls, privilege: dict) -> list [dict]:
         """
         Enrich the license or privilege history with 'synthetic updates'.
         Synthetic updates are what we're calling critical pieces of history that are not explicitly recorded in the data
@@ -263,15 +263,18 @@ class ProviderRecordUtility:
         :param license_or_priv: The license or privilege API object to enrich
         :return: The enriched license or privilege API object
         """
-        object_type = license_or_priv['type']
+        object_type = privilege['type']
 
-        original_history = license_or_priv['history']
+        original_history = privilege['history']
         effective_date_sorted_original_history = sorted(original_history, key=lambda x: x['effectiveDate'])
-        history_and_license = (*effective_date_sorted_original_history, license_or_priv)
-        behind_details = cls._get_details_ahead(history_and_license[0], object_type)
+        history_and_license = (*effective_date_sorted_original_history, privilege)
+
         enriched_history = cls._insert_synthetic_update(
-            UpdateCategory.ISSUANCE, history_and_license[0], [], object_type
+            UpdateCategory.ISSUANCE, privilege['dateOfIssuance'], history_and_license[0], [], object_type
         )
+
+        behind_details = cls._get_details_ahead(history_and_license[0], object_type)
+
 
         # We loop over updates and the current license as snapshots 'ahead' and 'behind' in time, inserting our
         # synthetic updates between them
@@ -279,19 +282,14 @@ class ProviderRecordUtility:
         for ahead_update in history_and_license:
             ahead_details = cls._get_details_ahead(ahead_update, object_type)
 
-            # If the license was renewed after it expired, we add an expiration update
-            # renewals can be datetime for privileges, but date for licenses. We need to handle both
-            if isinstance(ahead_details['dateOfRenewal'], datetime):
-                ahead_date_of_renewal = (
-                    ahead_details['dateOfRenewal'].astimezone(config.expiration_resolution_timezone).date()
-                )
-            else:
-                ahead_date_of_renewal = ahead_details['dateOfRenewal']
-            was_renewed = ahead_date_of_renewal != behind_details['dateOfRenewal']
-            was_expired = ahead_date_of_renewal > behind_details['dateOfExpiration']
-            if was_renewed and was_expired:
+            was_expired = ahead_details['effectiveDate'] > behind_details['dateOfExpiration']
+            if was_expired:
                 enriched_history = cls._insert_synthetic_update(
-                    UpdateCategory.EXPIRATION, behind_update, enriched_history, object_type
+                    UpdateCategory.EXPIRATION,
+                    behind_details['dateOfExpiration'],
+                    behind_update,
+                    enriched_history,
+                    object_type
                 )
 
             # Copy over the existing history entries 'behind', only after any synthetic updates
@@ -309,7 +307,11 @@ class ProviderRecordUtility:
         is_expired = config.expiration_resolution_date > behind_details['dateOfExpiration']
         if is_expired:
             enriched_history = cls._insert_synthetic_update(
-                UpdateCategory.EXPIRATION, ahead_update, enriched_history, object_type
+                UpdateCategory.EXPIRATION,
+                behind_details['dateOfExpiration'],
+                ahead_update,
+                enriched_history,
+                object_type
             )
 
         return enriched_history
@@ -322,8 +324,6 @@ class ProviderRecordUtility:
         """
         if object_type == 'privilege':
             schema = cls.privilege_previous_update_schema
-        else:
-            schema = cls.license_previous_update_schema
 
         if next_update.get('previous'):
             return schema.load(next_update['previous'], partial=True)
@@ -333,7 +333,7 @@ class ProviderRecordUtility:
 
     @classmethod
     def _insert_synthetic_update(
-        cls, update_type: UpdateCategory, next_entry: dict, history: list[dict], object_type: str
+        cls, update_type: UpdateCategory, effective_date: str, next_entry: dict, history: list[dict], object_type: str
     ) -> list[dict]:
         """
         Insert a synthetic update into the history.
@@ -346,12 +346,13 @@ class ProviderRecordUtility:
 
         history.append(
             {
-                'type': 'licenseUpdate',
+                'type': 'privilegeUpdate',
                 'updateType': update_type,
                 'providerId': next_entry['providerId'],
                 'compact': next_entry['compact'],
                 'jurisdiction': next_entry['jurisdiction'],
                 'licenseType': next_entry['licenseType'],
+                'effectiveDate': effective_date,
                 'previous': ahead_details,
                 'updatedValues': {},
                 'dateOfUpdate': next_entry['dateOfUpdate'],
