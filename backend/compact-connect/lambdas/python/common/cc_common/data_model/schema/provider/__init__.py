@@ -83,6 +83,33 @@ class ProviderData(CCDataClass):
         return self._data.get('compactConnectRegisteredEmailAddress')
 
     @property
+    def pendingEmailAddress(self) -> str | None:
+        """
+        The new email address that the provider is trying to verify.
+        
+        Only present if the provider has requested an email change and is in the verification process.
+        """
+        return self._data.get('pendingEmailAddress')
+
+    @property
+    def emailVerificationCode(self) -> str | None:
+        """
+        The 4-digit verification code for email change.
+        
+        Only present if the provider has requested an email change and is in the verification process.
+        """
+        return self._data.get('emailVerificationCode')
+
+    @property
+    def emailVerificationExpiry(self) -> str | None:
+        """
+        The expiry datetime for the email verification code.
+        
+        Only present if the provider has requested an email change and is in the verification process.
+        """
+        return self._data.get('emailVerificationExpiry')
+
+    @property
     def birthMonthDay(self) -> str | None:
         return self._data.get('birthMonthDay')
 
