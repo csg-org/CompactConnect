@@ -237,6 +237,7 @@ class ProviderRecordUtility:
             }
         return provider
 
+
 class ProviderUserRecords:
     """
     A collection of provider records for a single provider.

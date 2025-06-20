@@ -160,8 +160,3 @@ class PrivilegePublicResponseSchema(ForgivingSchema):
     # the human-friendly identifier for this privilege
     privilegeId = String(required=True, allow_none=False)
     status = ActiveInactive(required=True, allow_none=False)
-
-
-
-
-

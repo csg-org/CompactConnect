@@ -917,14 +917,12 @@ class DataClient:
         self, *, compact: str, provider_id: str, jurisdiction: str, license_type_abbr: str
     ) -> dict:
         """
-        Deactivate a privilege for a provider in a jurisdiction.
+        Get a privilege for a provider in a jurisdiction of the license type
 
-        This will update the privilege record to have a administratorSetStatus of 'inactive'.
-
-        :param str compact: The compact to deactivate the privilege for
-        :param str provider_id: The provider to deactivate the privilege for
-        :param str jurisdiction: The jurisdiction to deactivate the privilege for
-        :param str license_type_abbr: The license type abbreviation to deactivate the privilege for
+        :param str compact: The compact of the privilege
+        :param str provider_id: The provider of the privilege
+        :param str jurisdiction: The jurisdiction of the privilege
+        :param str license_type_abbr: The license type abbreviation of the privilege
         :raises CCNotFoundException: If the privilege record is not found
         """
         # Get the privilege record
