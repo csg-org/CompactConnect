@@ -109,7 +109,11 @@
                             @submit.prevent="submitEncumberLicense"
                         >
                             <div class="encumber-license-form-input-container">
-                            <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
+                            <MockPopulate
+                                v-if="isMockPopulateEnabled"
+                                :isEnabled="isMockPopulateEnabled"
+                                @selected="mockPopulate"
+                            />
                             <div class="form-row input-container static-input">
                                 <div class="input-label static-label">{{ $t('licensing.practitionerName') }}</div>
                                 <div class="static-value">{{ licenseeName }}</div>
@@ -147,6 +151,7 @@
                                     :label="$t('common.cancel')"
                                     :isTransparent="true"
                                     :onClick="closeEncumberLicenseModal"
+                                    :isEnabled="!isFormLoading"
                                 />
                                 <InputSubmit
                                     class="action-button submit-button continue-button"
@@ -192,7 +197,11 @@
                             @submit.prevent="submitUnencumberLicense"
                         >
                             <div class="unencumber-license-form-input-container">
-                            <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
+                            <MockPopulate
+                                v-if="isMockPopulateEnabled"
+                                :isEnabled="isMockPopulateEnabled"
+                                @selected="mockPopulate"
+                            />
                             <div
                                 v-for="(adverseAction, index) in adverseActions"
                                 :key="adverseAction.id || index"
@@ -232,6 +241,7 @@
                                     :label="$t('common.cancel')"
                                     :isTransparent="true"
                                     :onClick="closeUnencumberLicenseModal"
+                                    :isEnabled="!isFormLoading"
                                 />
                                 <InputSubmit
                                     class="action-button submit-button continue-button"

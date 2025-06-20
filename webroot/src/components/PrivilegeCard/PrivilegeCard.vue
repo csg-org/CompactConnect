@@ -106,7 +106,11 @@
                     <div class="modal-content deactivate-modal-content">
                         {{ $t('licensing.confirmPrivilegeDeactivateSubtext') }}
                         <form class="privilege-edit-form" @submit.prevent="submitDeactivatePrivilege">
-                            <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
+                            <MockPopulate
+                                v-if="isMockPopulateEnabled"
+                                :isEnabled="isMockPopulateEnabled"
+                                @selected="mockPopulate"
+                            />
                             <div class="form-row">
                                 <InputTextarea
                                     class="deactivation-notes"
@@ -155,7 +159,11 @@
                             @submit.prevent="submitEncumberPrivilege"
                         >
                             <div class="encumber-privilege-form-input-container">
-                            <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
+                            <MockPopulate
+                                v-if="isMockPopulateEnabled"
+                                :isEnabled="isMockPopulateEnabled"
+                                @selected="mockPopulate"
+                            />
                             <div class="form-row input-container static-input">
                                 <div class="input-label static-label">{{ $t('licensing.practitionerName') }}</div>
                                 <div class="static-value">{{ licenseeName }}</div>
@@ -239,7 +247,11 @@
                             @submit.prevent="submitUnencumberPrivilege"
                         >
                             <div class="unencumber-privilege-form-input-container">
-                            <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
+                            <MockPopulate
+                                v-if="isMockPopulateEnabled"
+                                :isEnabled="isMockPopulateEnabled"
+                                @selected="mockPopulate"
+                            />
                             <div
                                 v-for="(adverseAction, index) in adverseActions"
                                 :key="adverseAction.id || index"
