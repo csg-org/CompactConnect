@@ -122,6 +122,7 @@
                                     :label="$t('common.cancel')"
                                     :isTransparent="true"
                                     :onClick="closeDeactivatePrivilegeModal"
+                                    :isEnabled="!isFormLoading"
                                 />
                                 <InputSubmit
                                     class="action-button submit-button continue-button"
@@ -149,6 +150,7 @@
                     <div v-if="!isEncumberPrivilegeModalSuccess" class="modal-content encumber-modal-content">
                         {{ $t('licensing.confirmPrivilegeEncumberSubtext') }}
                         <form
+                            id="encumber-modal-form"
                             class="privilege-edit-form encumber-privilege-form"
                             @submit.prevent="submitEncumberPrivilege"
                         >
@@ -191,6 +193,7 @@
                                     :label="$t('common.cancel')"
                                     :isTransparent="true"
                                     :onClick="closeEncumberPrivilegeModal"
+                                    :isEnabled="!isFormLoading"
                                 />
                                 <InputSubmit
                                     class="action-button submit-button continue-button"
@@ -205,7 +208,7 @@
                         </form>
                     </div>
                     <div v-else class="modal-content encumber-modal-content modal-content-success">
-                        <div class="icon-container"><CheckCircle /></div>
+                        <div class="icon-container"><CheckCircleIcon /></div>
                         <h1 class="modal-title">{{ $t('licensing.confirmPrivilegeEncumberSuccess') }}</h1>
                         <div class="success-container">
                             <div class="input-label static-label">{{ licenseeName }}</div>
@@ -231,6 +234,7 @@
                 <template v-slot:content>
                     <div v-if="!isUnencumberPrivilegeModalSuccess" class="modal-content unencumber-modal-content">
                         <form
+                            id="unencumber-modal-form"
                             class="privilege-edit-form unencumber-privilege-form"
                             @submit.prevent="submitUnencumberPrivilege"
                         >
@@ -275,6 +279,7 @@
                                     :label="$t('common.cancel')"
                                     :isTransparent="true"
                                     :onClick="closeUnencumberPrivilegeModal"
+                                    :isEnabled="!isFormLoading"
                                 />
                                 <InputSubmit
                                     class="action-button submit-button continue-button"
@@ -289,7 +294,7 @@
                         </form>
                     </div>
                     <div v-else class="modal-content unencumber-modal-content modal-content-success">
-                        <div class="icon-container"><CheckCircle /></div>
+                        <div class="icon-container"><CheckCircleIcon /></div>
                         <h1 class="modal-title">{{ $t('licensing.confirmPrivilegeUnencumberSuccess') }}</h1>
                         <div class="success-container">
                             <div

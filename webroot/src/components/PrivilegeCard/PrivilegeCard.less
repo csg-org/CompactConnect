@@ -142,6 +142,8 @@
     }
 
     .mock-populate {
+        display: inline-block;
+        padding-bottom: 0.4rem;
         font-size: @fontSize;
     }
 
@@ -159,6 +161,8 @@
     }
 
     .privilege-edit-modal {
+        color: @fontColor;
+
         :deep(.modal-container) {
             width: 95%;
             max-width: 60rem;
@@ -322,6 +326,9 @@
                     }
 
                     .success-container {
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
                         margin-bottom: 2.4rem;
 
                         .removed-encumbrance {
@@ -329,6 +336,7 @@
                             flex-direction: column;
                             align-items: center;
                             margin-bottom: 2rem;
+                            text-align: center;
                         }
                     }
                 }

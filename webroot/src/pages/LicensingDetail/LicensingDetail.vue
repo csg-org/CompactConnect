@@ -150,6 +150,7 @@
                     >
                         <LicenseCard
                             :license="license"
+                            :licensee="licensee"
                             :homeState="homeState"
                         />
                         <div v-if="!isLicenseActive(license)" class="license-expired-message">

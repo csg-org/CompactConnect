@@ -193,10 +193,44 @@ export class DataApi {
         return wait(500).then(() => response);
     }
 
+    // Encumber License for a licensee.
+    public encumberLicense(compact, licenseeId, licenseState, licenseType, npdbCategory, startDate) {
+        if (!compact) {
+            return Promise.reject(new Error('failed license encumber'));
+        }
+
+        return wait(500).then(() => ({
+            message: 'success',
+            compact,
+            licenseeId,
+            licenseState,
+            licenseType,
+            npdbCategory,
+            startDate,
+        }));
+    }
+
+    // Unencumber License for a licensee.
+    public unencumberLicense(compact, licenseeId, licenseState, licenseType, encumbranceId, endDate) {
+        if (!compact) {
+            return Promise.reject(new Error('failed license unencumber'));
+        }
+
+        return wait(500).then(() => ({
+            message: 'success',
+            compact,
+            licenseeId,
+            licenseState,
+            licenseType,
+            encumbranceId,
+            endDate,
+        }));
+    }
+
     // Delete Privilege for a licensee.
     public deletePrivilege(compact, licenseeId, privilegeState, licenseType) {
         if (!compact) {
-            return Promise.reject(new Error('failed delete'));
+            return Promise.reject(new Error('failed privilege delete'));
         }
 
         return wait(500).then(() => ({
@@ -211,7 +245,7 @@ export class DataApi {
     // Encumber Privilege for a licensee.
     public encumberPrivilege(compact, licenseeId, privilegeState, licenseType, npdbCategory, startDate) {
         if (!compact) {
-            return Promise.reject(new Error('failed encumber'));
+            return Promise.reject(new Error('failed privilege encumber'));
         }
 
         return wait(500).then(() => ({
@@ -228,7 +262,7 @@ export class DataApi {
     // Unencumber Privilege for a licensee.
     public unencumberPrivilege(compact, licenseeId, privilegeState, licenseType, encumbranceId, endDate) {
         if (!compact) {
-            return Promise.reject(new Error('failed unencumber'));
+            return Promise.reject(new Error('failed privilege unencumber'));
         }
 
         return wait(500).then(() => ({

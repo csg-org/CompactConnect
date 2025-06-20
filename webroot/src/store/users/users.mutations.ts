@@ -28,6 +28,12 @@ export enum MutationTypes {
     DELETE_USER_REQUEST = '[Users] Delete User Request',
     DELETE_USER_FAILURE = '[Users] Delete User Failure',
     DELETE_USER_SUCCESS = '[Users] Delete User Success',
+    ENCUMBER_LICENSE_REQUEST = '[Users] Encumber License Request',
+    ENCUMBER_LICENSE_FAILURE = '[Users] Encumber License Failure',
+    ENCUMBER_LICENSE_SUCCESS = '[Users] Encumber License Success',
+    UNENCUMBER_LICENSE_REQUEST = '[Users] Unencumber License Request',
+    UNENCUMBER_LICENSE_FAILURE = '[Users] Unencumber License Failure',
+    UNENCUMBER_LICENSE_SUCCESS = '[Users] Unencumber License Success',
     DELETE_PRIVILEGE_REQUEST = '[Users] Delete Privilege Request',
     DELETE_PRIVILEGE_FAILURE = '[Users] Delete Privilege Failure',
     DELETE_PRIVILEGE_SUCCESS = '[Users] Delete Privilege Success',
@@ -124,6 +130,30 @@ export default {
         state.error = null; // State is handled locally for this to avoid triggering unwanted actions
     },
     [MutationTypes.DELETE_USER_SUCCESS]: (state: any) => {
+        state.isLoading = false;
+        state.error = null;
+    },
+    [MutationTypes.ENCUMBER_LICENSE_REQUEST]: (state: any) => {
+        state.isLoading = true;
+        state.error = null;
+    },
+    [MutationTypes.ENCUMBER_LICENSE_FAILURE]: (state: any, error: Error) => {
+        state.isLoading = false;
+        state.error = error;
+    },
+    [MutationTypes.ENCUMBER_LICENSE_SUCCESS]: (state: any) => {
+        state.isLoading = false;
+        state.error = null;
+    },
+    [MutationTypes.UNENCUMBER_LICENSE_REQUEST]: (state: any) => {
+        state.isLoading = true;
+        state.error = null;
+    },
+    [MutationTypes.UNENCUMBER_LICENSE_FAILURE]: (state: any, error: Error) => {
+        state.isLoading = false;
+        state.error = error;
+    },
+    [MutationTypes.UNENCUMBER_LICENSE_SUCCESS]: (state: any) => {
         state.isLoading = false;
         state.error = null;
     },

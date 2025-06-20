@@ -18,7 +18,7 @@ import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
 import InputCheckbox from '@components/Forms/InputCheckbox/InputCheckbox.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
-import CheckCircle from '@components/Icons/CheckCircle/CheckCircle.vue';
+import CheckCircleIcon from '@components/Icons/CheckCircle/CheckCircle.vue';
 import MockPopulate from '@components/Forms/MockPopulate/MockPopulate.vue';
 import Modal from '@components/Modal/Modal.vue';
 import { dateDisplay } from '@models/_formatters/date';
@@ -43,7 +43,7 @@ import moment from 'moment';
         InputButton,
         InputSubmit,
         Modal,
-        CheckCircle,
+        CheckCircleIcon,
     }
 })
 class PrivilegeCard extends mixins(MixinForm) {
@@ -205,63 +205,75 @@ class PrivilegeCard extends mixins(MixinForm) {
     //
     initFormInputs(): void {
         if (this.isDeactivatePrivilegeModalDisplayed) {
-            this.formData = reactive({
-                deactivateModalNotes: new FormInput({
-                    id: 'notes',
-                    name: 'notes',
-                    label: computed(() => this.$t('licensing.deactivateNotesTitle')),
-                    placeholder: computed(() => this.$t('licensing.deactivateNotesPlaceholder')),
-                    validation: Joi.string().required().max(256).messages(this.joiMessages.string),
-                    enforceMax: true,
-                }),
-                deactivateModalContinue: new FormInput({
-                    isSubmitInput: true,
-                    id: 'submit-modal-continue',
-                }),
-            });
-            this.watchFormInputs();
+            this.initFormInputsDeactivatePrivilege();
         } else if (this.isEncumberPrivilegeModalDisplayed) {
-            this.formData = reactive({
-                encumberModalNpdbCategory: new FormInput({
-                    id: 'npdb-category',
-                    name: 'npdb-category',
-                    label: computed(() => this.$t('licensing.npdbCategoryLabel')),
-                    validation: Joi.string().required().messages(this.joiMessages.string),
-                    valueOptions: this.npdbCategoryOptions,
-                }),
-                encumberModalStartDate: new FormInput({
-                    id: 'deactivate-start',
-                    name: 'deactivate-start',
-                    label: computed(() => this.$t('licensing.encumberStartDate')),
-                    placeholder: computed(() => 'MM/DD/YYYY'),
-                    validation: Joi.string().required().messages(this.joiMessages.string),
-                }),
-                encumberModalContinue: new FormInput({
-                    isSubmitInput: true,
-                    id: 'submit-modal-continue',
-                }),
-            });
-            this.watchFormInputs();
+            this.initFormInputsEncumberPrivilege();
         } else if (this.isUnencumberPrivilegeModalDisplayed) {
-            this.formData = reactive({
-                unencumberModalContinue: new FormInput({
-                    isSubmitInput: true,
-                    id: 'submit-modal-continue',
-                }),
-            });
-
-            this.adverseActions.forEach((adverseAction: AdverseAction) => {
-                const adverseActionId = adverseAction.id;
-                const adverseActionInput = new FormInput({
-                    id: `adverse-action-data-${adverseActionId}`,
-                    name: `adverse-action-data-${adverseActionId}`,
-                    label: adverseAction.npdbTypeName(),
-                });
-
-                this.formData[`adverse-action-data-${adverseActionId}`] = adverseActionInput;
-                this.encumbranceInputs.push(adverseActionInput);
-            });
+            this.initFormInputsUnencumberPrivilege();
         }
+    }
+
+    initFormInputsDeactivatePrivilege(): void {
+        this.formData = reactive({
+            deactivateModalNotes: new FormInput({
+                id: 'notes',
+                name: 'notes',
+                label: computed(() => this.$t('licensing.deactivateNotesTitle')),
+                placeholder: computed(() => this.$t('licensing.deactivateNotesPlaceholder')),
+                validation: Joi.string().required().max(256).messages(this.joiMessages.string),
+                enforceMax: true,
+            }),
+            deactivateModalContinue: new FormInput({
+                isSubmitInput: true,
+                id: 'submit-modal-continue',
+            }),
+        });
+        this.watchFormInputs();
+    }
+
+    initFormInputsEncumberPrivilege(): void {
+        this.formData = reactive({
+            encumberModalNpdbCategory: new FormInput({
+                id: 'npdb-category',
+                name: 'npdb-category',
+                label: computed(() => this.$t('licensing.npdbCategoryLabel')),
+                validation: Joi.string().required().messages(this.joiMessages.string),
+                valueOptions: this.npdbCategoryOptions,
+            }),
+            encumberModalStartDate: new FormInput({
+                id: 'encumber-start',
+                name: 'encumber-start',
+                label: computed(() => this.$t('licensing.encumberStartDate')),
+                placeholder: computed(() => 'MM/DD/YYYY'),
+                validation: Joi.string().required().messages(this.joiMessages.string),
+            }),
+            encumberModalContinue: new FormInput({
+                isSubmitInput: true,
+                id: 'submit-modal-continue',
+            }),
+        });
+        this.watchFormInputs();
+    }
+
+    initFormInputsUnencumberPrivilege(): void {
+        this.formData = reactive({
+            unencumberModalContinue: new FormInput({
+                isSubmitInput: true,
+                id: 'submit-modal-continue',
+            }),
+        });
+
+        this.adverseActions.forEach((adverseAction: AdverseAction) => {
+            const adverseActionId = adverseAction.id;
+            const adverseActionInput = new FormInput({
+                id: `adverse-action-data-${adverseActionId}`,
+                name: `adverse-action-data-${adverseActionId}`,
+                label: adverseAction.npdbTypeName(),
+            });
+
+            this.formData[`adverse-action-data-${adverseActionId}`] = adverseActionInput;
+            this.encumbranceInputs.push(adverseActionInput);
+        });
     }
 
     resetForm(): void {
@@ -307,12 +319,13 @@ class PrivilegeCard extends mixins(MixinForm) {
             if (this.isDeactivatePrivilegeModalDisplayed) {
                 this.initFormInputs();
                 await nextTick();
-                document.getElementById('deactivate-modal-cancel-button')?.focus();
+                document.getElementById(this.formData.deactivateModalNotes.id)?.focus();
             }
         }
     }
 
-    closeDeactivatePrivilegeModal(): void {
+    closeDeactivatePrivilegeModal(event?: Event): void {
+        event?.preventDefault();
         this.isDeactivatePrivilegeModalDisplayed = false;
     }
 
@@ -380,11 +393,12 @@ class PrivilegeCard extends mixins(MixinForm) {
         if (this.isEncumberPrivilegeModalDisplayed) {
             this.initFormInputs();
             await nextTick();
-            document.getElementById('encumber-modal-cancel-button')?.focus();
+            document.getElementById(this.formData.encumberModalNpdbCategory.id)?.focus();
         }
     }
 
-    closeEncumberPrivilegeModal(): void {
+    closeEncumberPrivilegeModal(event?: Event): void {
+        event?.preventDefault();
         this.isEncumberPrivilegeModalDisplayed = false;
         this.isEncumberPrivilegeModalSuccess = false;
     }
@@ -538,7 +552,8 @@ class PrivilegeCard extends mixins(MixinForm) {
         }
     }
 
-    closeUnencumberPrivilegeModal(): void {
+    closeUnencumberPrivilegeModal(event?: Event): void {
+        event?.preventDefault();
         this.selectedEncumbrances = [];
         this.isUnencumberPrivilegeModalDisplayed = false;
         this.isUnencumberPrivilegeModalSuccess = false;
