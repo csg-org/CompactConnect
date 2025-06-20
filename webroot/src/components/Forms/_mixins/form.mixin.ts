@@ -211,6 +211,67 @@ class MixinForm extends Vue {
         this.updateFormSubmitError(errorMessage);
     }
 
+    showInvalidFormError(): void {
+        const { formData } = this;
+
+        // Find the first required invalid input
+        const firstInvalidKey = this.formKeys.find((key) => {
+            const formInput = formData[key];
+
+            // Skip submit inputs
+            if (formInput.isSubmitInput) {
+                return false;
+            }
+
+            const isInvalid = !formInput.isValid;
+
+            return isInvalid;
+        });
+
+        // If we found an invalid input, scroll to it
+        if (firstInvalidKey) {
+            this.scrollToInput(formData[firstInvalidKey]);
+        }
+    }
+
+    protected scrollToInput(formInput: FormInput): void {
+        const element = document.getElementById(formInput.id);
+
+        if (element) {
+            // Scroll to the element
+            element.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+
+            // Check if this is a radio button group by looking for radio inputs inside
+            const radioInputs = element.querySelectorAll('input[type="radio"]');
+
+            console.log('radioInputs', radioInputs);
+
+            if (radioInputs.length > 0) {
+                // This is a radio button group, focus on the first radio input
+                const firstRadioInput = document.getElementById(`${formInput.id}-1`);
+
+                if (firstRadioInput) {
+                    console.log('firstRadioInput', firstRadioInput);
+
+                    firstRadioInput.focus();
+                } else {
+                    console.log('fallback to first radio input');
+
+                    // Fallback to the first radio input found
+                    (radioInputs[0] as HTMLElement).focus();
+                }
+            } else {
+                console.log('non-radio button group, focus on the input');
+
+                // Non-radio button group, focus on the input
+                element.focus();
+            }
+        }
+    }
+
     @Watch('locale') localeChanged() {
         // @TODO: For now we just brute force the form re-init on language change. Making all the layers reactive (messages inside Joi schemas, etc) was messy.
         this.initFormInputs();

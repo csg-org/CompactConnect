@@ -222,6 +222,8 @@ export default class PrivilegePurchaseInformationConfirmation extends mixins(Mix
             }
 
             this.endFormLoading();
+        } else {
+            this.showInvalidFormError();
         }
     }
 

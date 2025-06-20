@@ -361,6 +361,8 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
                 name: 'PrivilegePurchaseAttestation',
                 params: { compact: this.currentCompactType }
             });
+        } else if (!this.areAllAttesationsConfirmed) {
+            this.scrollToFirstInvalidAttestation();
         }
     }
 
@@ -471,5 +473,69 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
 
     @Watch('disabledPrivilegeStateChoices.length') reInitForm() {
         this.initFormInputs();
+    }
+
+    scrollToFirstInvalidAttestation(): void {
+        const { formData } = this;
+
+        // Get selected states in their visual order (same as stateCheckList)
+        const selectedStates = this.stateCheckList.filter((state) => state.value);
+        let firstInvalidInput: FormInput | undefined;
+
+        // Set error messages for all selected states and find first invalid
+        selectedStates.forEach((state) => {
+            const stateAbbrev = state.id;
+            const jurisprudenceInput = formData.jurisprudenceConfirmations?.[stateAbbrev];
+            const scopeInput = formData.scopeOfPracticeConfirmations[stateAbbrev];
+
+            // Handle jurisprudence confirmation first (if it exists)
+            if (jurisprudenceInput) {
+                if (!jurisprudenceInput.value) {
+                    jurisprudenceInput.isTouched = true;
+                    jurisprudenceInput.errorMessage = this.$t('inputErrors.required');
+                } else {
+                    jurisprudenceInput.errorMessage = '';
+                }
+            }
+
+            // Handle scope of practice confirmation
+            if (scopeInput) {
+                if (!scopeInput.value) {
+                    scopeInput.isTouched = true;
+                    scopeInput.errorMessage = this.$t('inputErrors.required');
+                } else {
+                    scopeInput.errorMessage = '';
+                }
+            }
+        });
+
+        // Find the first invalid input in visual order
+        const stateWithInvalidInput = selectedStates.find((state) => {
+            const stateAbbrev = state.id;
+            const jurisprudenceInput = formData.jurisprudenceConfirmations?.[stateAbbrev];
+            const scopeInput = formData.scopeOfPracticeConfirmations[stateAbbrev];
+
+            // Check if this state has any invalid inputs
+            return (jurisprudenceInput && !jurisprudenceInput.value) || (scopeInput && !scopeInput.value);
+        });
+
+        // Get the specific invalid input from the state
+        if (stateWithInvalidInput) {
+            const stateAbbrev = stateWithInvalidInput.id;
+            const jurisprudenceInput = formData.jurisprudenceConfirmations?.[stateAbbrev];
+            const scopeInput = formData.scopeOfPracticeConfirmations[stateAbbrev];
+
+            // Return the first invalid input (jurisprudence takes priority)
+            if (jurisprudenceInput && !jurisprudenceInput.value) {
+                firstInvalidInput = jurisprudenceInput;
+            } else if (scopeInput && !scopeInput.value) {
+                firstInvalidInput = scopeInput;
+            }
+        }
+
+        // If we found an invalid input, scroll to it with better positioning for long forms
+        if (firstInvalidInput) {
+            this.scrollToInput(firstInvalidInput);
+        }
     }
 }

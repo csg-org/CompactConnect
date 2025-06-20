@@ -90,7 +90,7 @@
                             :formInput="formData.submit"
                             class="form-nav-button"
                             :label="submitLabel"
-                            :isEnabled="!isFormLoading && isAtLeastOnePrivilegeChosen && areAllAttesationsConfirmed"
+                            :isEnabled="!isFormLoading && isAtLeastOnePrivilegeChosen"
                         />
                         <InputButton
                             :label="backText"

@@ -17,7 +17,7 @@
     >
         <label
             v-if="!formInput.shouldHideLabel"
-            :for="`dp-input-${formInput.id}`"
+            :for="formInput.id"
         >
             {{ formInput.label }}
             <span v-if="isRequired" class="required-indicator">*</span>
@@ -63,7 +63,7 @@
             >
                 <div class="dp__input_wrap">
                     <input
-                        :id="`dp-input-${formInput.id}`"
+                        :id="formInput.id"
                         type="text"
                         v-model="localValue"
                         @input="onInput"

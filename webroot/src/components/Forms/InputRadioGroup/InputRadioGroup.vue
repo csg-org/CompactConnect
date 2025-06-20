@@ -12,6 +12,7 @@
             'has-error': !!formInput.errorMessage,
             'disabled': formInput.isDisabled,
         }"
+        :id="formInput.id"
     >
         <div
             v-if="!formInput.shouldHideLabel"

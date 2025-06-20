@@ -55,14 +55,23 @@
             <div v-if="formErrorMessage" class="form-error-message">{{formErrorMessage}}</div>
             <div id="button-row" class="button-row">
                 <div class="form-nav-buttons">
-                    <PrivilegePurchaseAcceptUI
-                        class="form-nav-button accept-ui"
-                        :paymentSdkConfig="currentCompactPaymentSdkConfig"
-                        :buttonLabel="$t('common.next')"
-                        :isEnabled="!isFormLoading && isSubmitEnabled"
-                        @success="acceptUiSuccessResponse"
-                        @error="acceptUiErrorResponse"
-                    />
+                    <div class="payment-button-container" style="position: relative;">
+                        <InputButton
+                            v-if="!isSubmitEnabled"
+                            :label="$t('payment.payment')"
+                            :isDisabled="isFormLoading || !isSubmitEnabled"
+                            class="payment-overlay-button"
+                            @click="handlePaymentButtonClick"
+                        />
+                        <PrivilegePurchaseAcceptUI
+                            class="form-nav-button accept-ui"
+                            :paymentSdkConfig="currentCompactPaymentSdkConfig"
+                            :buttonLabel="$t('payment.payment')"
+                            :isEnabled="!isFormLoading && isSubmitEnabled"
+                            @success="acceptUiSuccessResponse"
+                            @error="acceptUiErrorResponse"
+                        />
+                    </div>
                     <InputButton
                         :label="$t('common.back')"
                         :isTransparent="true"

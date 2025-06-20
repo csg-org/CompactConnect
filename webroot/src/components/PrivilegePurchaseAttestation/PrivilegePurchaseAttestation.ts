@@ -257,6 +257,8 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
             }
 
             this.endFormLoading();
+        } else {
+            this.showInvalidFormError();
         }
     }
 
