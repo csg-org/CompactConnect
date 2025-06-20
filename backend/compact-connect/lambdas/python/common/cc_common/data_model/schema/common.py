@@ -265,6 +265,7 @@ class UpdateCategory(CCEnum):
     LIFTING_ENCUMBRANCE = 'lifting_encumbrance'
     # this is specific to privileges that are deactivated due to a state license deactivation
     LICENSE_DEACTIVATION = 'licenseDeactivation'
+    EMAIL_CHANGE = 'emailChange'
 
 
 class ActiveInactiveStatus(CCEnum):

@@ -2155,7 +2155,7 @@ class ApiModel:
         """Request model for PATCH /v1/provider-users/me/email"""
         if hasattr(self.api, '_v1_patch_provider_email_request_model'):
             return self.api._v1_patch_provider_email_request_model
-        
+
         self.api._v1_patch_provider_email_request_model = self.api.add_model(
             'V1PatchProviderEmailRequestModel',
             description='Patch provider email request model',
@@ -2169,7 +2169,7 @@ class ApiModel:
                         format='email',
                         min_length=5,
                         max_length=100,
-                        description='The new email address to set for the provider'
+                        description='The new email address to set for the provider',
                     ),
                 },
             ),
@@ -2181,7 +2181,7 @@ class ApiModel:
         """Request model for POST /v1/provider-users/me/email/verify"""
         if hasattr(self.api, '_v1_post_provider_email_verify_request_model'):
             return self.api._v1_post_provider_email_verify_request_model
-        
+
         self.api._v1_post_provider_email_verify_request_model = self.api.add_model(
             'V1PostProviderEmailVerifyRequestModel',
             description='Post provider email verify request model',
@@ -2191,9 +2191,7 @@ class ApiModel:
                 required=['verificationCode'],
                 properties={
                     'verificationCode': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        pattern='^[0-9]{4}$',
-                        description='4-digit verification code'
+                        type=JsonSchemaType.STRING, pattern='^[0-9]{4}$', description='4-digit verification code'
                     ),
                 },
             ),

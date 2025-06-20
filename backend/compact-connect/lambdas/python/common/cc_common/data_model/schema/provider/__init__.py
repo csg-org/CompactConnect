@@ -86,7 +86,7 @@ class ProviderData(CCDataClass):
     def pendingEmailAddress(self) -> str | None:
         """
         The new email address that the provider is trying to verify.
-        
+
         Only present if the provider has requested an email change and is in the verification process.
         """
         return self._data.get('pendingEmailAddress')
@@ -95,7 +95,7 @@ class ProviderData(CCDataClass):
     def emailVerificationCode(self) -> str | None:
         """
         The 4-digit verification code for email change.
-        
+
         Only present if the provider has requested an email change and is in the verification process.
         """
         return self._data.get('emailVerificationCode')
@@ -104,7 +104,7 @@ class ProviderData(CCDataClass):
     def emailVerificationExpiry(self) -> str | None:
         """
         The expiry datetime for the email verification code.
-        
+
         Only present if the provider has requested an email change and is in the verification process.
         """
         return self._data.get('emailVerificationExpiry')

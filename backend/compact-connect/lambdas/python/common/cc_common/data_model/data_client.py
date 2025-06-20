@@ -2682,3 +2682,158 @@ class DataClient:
                 raise CCAwsServiceException('Failed to deactivate privileges for license') from e
 
         logger.info('Successfully deactivated associated privileges for license')
+
+    @logger_inject_kwargs(logger, 'compact', 'provider_id')
+    def update_provider_email_verification_data(
+        self,
+        *,
+        compact: str,
+        provider_id: str,
+        pending_email_address: str,
+        verification_code: str,
+        verification_expiry,
+    ) -> None:
+        """
+        Update the provider record with email verification data.
+
+        :param compact: The compact name
+        :param provider_id: The provider ID
+        :param pending_email_address: The new email address being verified
+        :param verification_code: The 4-digit verification code
+        :param verification_expiry: When the verification code expires
+        """
+        logger.info('Updating provider email verification data with pending values.')
+
+        try:
+            self.config.provider_table.update_item(
+                Key={'pk': f'{compact}#PROVIDER#{provider_id}', 'sk': f'{compact}#PROVIDER'},
+                UpdateExpression=(
+                    'SET pendingEmailAddress = :pending_email, '
+                    'emailVerificationCode = :verification_code, '
+                    'emailVerificationExpiry = :verification_expiry, '
+                    'dateOfUpdate = :date_of_update'
+                ),
+                ExpressionAttributeValues={
+                    ':pending_email': pending_email_address,
+                    ':verification_code': verification_code,
+                    ':verification_expiry': verification_expiry.isoformat(),
+                    ':date_of_update': self.config.current_standard_datetime.isoformat(),
+                },
+                # Ensure the provider record exists before updating
+                ConditionExpression='attribute_exists(pk)',
+            )
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
+                logger.error('Provider not found', error=str(e))
+                raise CCInternalException('Provider not found') from e
+            logger.error('Failed to update provider email verification data', error=str(e))
+            raise CCAwsServiceException('Failed to update provider email verification data') from e
+
+    @logger_inject_kwargs(logger, 'compact', 'provider_id')
+    def clear_provider_email_verification_data(
+        self,
+        *,
+        compact: str,
+        provider_id: str,
+    ) -> None:
+        """
+        Clear email verification data from the provider record.
+
+        :param compact: The compact name
+        :param provider_id: The provider ID
+        """
+        logger.info('Clearing provider email verification data')
+
+        try:
+            self.config.provider_table.update_item(
+                Key={'pk': f'{compact}#PROVIDER#{provider_id}', 'sk': f'{compact}#PROVIDER'},
+                UpdateExpression=(
+                    'REMOVE pendingEmailAddress, emailVerificationCode, emailVerificationExpiry '
+                    'SET dateOfUpdate = :date_of_update'
+                ),
+                ExpressionAttributeValues={
+                    ':date_of_update': self.config.current_standard_datetime.isoformat(),
+                },
+                # Ensure the provider record exists before updating
+                ConditionExpression='attribute_exists(pk)',
+            )
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
+                raise CCNotFoundException('Provider not found') from e
+            logger.error('Failed to clear provider email verification data', error=str(e))
+            raise CCAwsServiceException('Failed to clear provider email verification data') from e
+
+    @logger_inject_kwargs(logger, 'compact', 'provider_id', 'new_email_address')
+    def complete_provider_email_update(
+        self,
+        *,
+        compact: str,
+        provider_id: str,
+        new_email_address: str,
+    ) -> None:
+        """
+        Complete the email update process by updating the registered email and clearing verification data.
+        Creates a provider update record to track the email change.
+
+        :param compact: The compact name
+        :param provider_id: The provider ID
+        :param new_email_address: The new verified email address
+        """
+        logger.info('Completing provider email update')
+
+        # Get current provider record to capture the "previous" state
+        current_provider_record = self.get_provider_top_level_record(compact=compact, provider_id=provider_id)
+
+        # Create provider update record to track the email change
+        provider_update_record = ProviderUpdateData.create_new(
+            {
+                'type': 'providerUpdate',
+                'updateType': UpdateCategory.EMAIL_CHANGE,
+                'providerId': provider_id,
+                'compact': compact,
+                'previous': current_provider_record.to_dict(),
+                'updatedValues': {
+                    'compactConnectRegisteredEmailAddress': new_email_address,
+                },
+            }
+        )
+
+        try:
+            # Use a transaction to ensure both operations succeed together
+            self.config.dynamodb_client.transact_write_items(
+                TransactItems=[
+                    # Update the provider record with new email and clear verification data
+                    {
+                        'Update': {
+                            'TableName': self.config.provider_table_name,
+                            'Key': {
+                                'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
+                                'sk': {'S': f'{compact}#PROVIDER'},
+                            },
+                            'UpdateExpression': (
+                                'SET compactConnectRegisteredEmailAddress = :new_email, '
+                                'dateOfUpdate = :date_of_update '
+                                'REMOVE pendingEmailAddress, emailVerificationCode, emailVerificationExpiry'
+                            ),
+                            'ExpressionAttributeValues': {
+                                ':new_email': {'S': new_email_address},
+                                ':date_of_update': {'S': self.config.current_standard_datetime.isoformat()},
+                            },
+                            # Ensure the provider record exists before updating
+                            'ConditionExpression': 'attribute_exists(pk)',
+                        }
+                    },
+                    # Create provider update record
+                    {
+                        'Put': {
+                            'TableName': self.config.provider_table_name,
+                            'Item': TypeSerializer().serialize(provider_update_record.serialize_to_database_record())[
+                                'M'
+                            ],
+                        }
+                    },
+                ]
+            )
+        except ClientError as e:
+            logger.error('Failed to complete provider email update transaction', error=str(e))
+            raise CCAwsServiceException('Failed to complete provider email update') from e

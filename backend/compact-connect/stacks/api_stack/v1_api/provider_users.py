@@ -68,6 +68,7 @@ class ProviderUsers:
             data_encryption_key=persistent_stack.shared_encryption_key,
             provider_data_table=persistent_stack.provider_table,
             persistent_stack=persistent_stack,
+            provider_users_stack=provider_users_stack,
             lambda_environment=lambda_environment,
         )
 
@@ -103,6 +104,7 @@ class ProviderUsers:
         data_encryption_key: IKey,
         provider_data_table: ProviderTable,
         persistent_stack: ps.PersistentStack,
+        provider_users_stack: ProviderUsersStack,
         lambda_environment: dict,
     ) -> PythonFunction:
         stack = Stack.of(self.provider_users_resource)
@@ -121,6 +123,10 @@ class ProviderUsers:
         data_encryption_key.grant_decrypt(handler)
         provider_data_table.grant_read_write_data(handler)
         persistent_stack.provider_users_bucket.grant_read_write(handler)
+        persistent_stack.email_notification_service_lambda.grant_invoke(handler)
+        # Grant Cognito permissions for email update operations
+        provider_users_stack.provider_users.grant(handler, 'cognito-idp:AdminGetUser')
+        provider_users_stack.provider_users.grant(handler, 'cognito-idp:AdminUpdateUserAttributes')
         self.api.log_groups.append(handler.log_group)
 
         NagSuppressions.add_resource_suppressions_by_path(

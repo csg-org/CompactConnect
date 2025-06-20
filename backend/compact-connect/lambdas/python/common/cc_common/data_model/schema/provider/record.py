@@ -201,12 +201,12 @@ class ProviderUpdatePreviousRecordSchema(ForgivingSchema):
     dateOfExpiration = Date(required=True, allow_none=False)
     dateOfBirth = Date(required=True, allow_none=False)
     compactConnectRegisteredEmailAddress = Email(required=False, allow_none=False)
-    
+
     # Optional Email verification fields (only present if the provider has requested an email change)
     pendingEmailAddress = Email(required=False, allow_none=False)
     emailVerificationCode = String(required=False, allow_none=False, validate=Length(4, 4))
     emailVerificationExpiry = DateTime(required=False, allow_none=False)
-    
+
     currentHomeJurisdiction = CurrentHomeJurisdictionField(required=False, allow_none=False)
     dateOfUpdate = DateTime(required=True, allow_none=False)
 
