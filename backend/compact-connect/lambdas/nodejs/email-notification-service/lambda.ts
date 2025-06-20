@@ -317,6 +317,32 @@ export class Lambda implements LambdaInterface {
                 event.specificEmails
             );
             break;
+        case 'providerEmailVerificationCode':
+            if (!event.specificEmails?.length) {
+                throw new Error('No recipients found for provider email verification code email');
+            }
+            if (!event.templateVariables?.verificationCode) {
+                throw new Error('Missing required template variables for providerEmailVerificationCode template');
+            }
+            await this.emailService.sendProviderEmailVerificationCode(
+                event.compact,
+                event.specificEmails[0],
+                event.templateVariables.verificationCode
+            );
+            break;
+        case 'providerEmailChangeNotification':
+            if (!event.specificEmails?.length) {
+                throw new Error('No recipients found for provider email change notification email');
+            }
+            if (!event.templateVariables?.newEmailAddress) {
+                throw new Error('Missing required template variables for providerEmailChangeNotification template');
+            }
+            await this.emailService.sendProviderEmailChangeNotification(
+                event.compact,
+                event.specificEmails[0],
+                event.templateVariables.newEmailAddress
+            );
+            break;
         default:
             logger.info('Unsupported email template provided', { template: event.template });
             throw new Error(`Unsupported email template: ${event.template}`);

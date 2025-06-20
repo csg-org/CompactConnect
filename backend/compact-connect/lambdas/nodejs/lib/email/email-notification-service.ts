@@ -367,4 +367,60 @@ export class EmailNotificationService extends BaseEmailService {
 
         await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send multiple registration attempt notification email' });
     }
+
+    /**
+     * Sends a verification code to a provider's new email address during email change process
+     * @param compact - The compact name
+     * @param providerEmail - The new email address to send the verification code to
+     * @param verificationCode - The 4-digit verification code
+     */
+    public async sendProviderEmailVerificationCode(
+        compact: string,
+        providerEmail: string,
+        verificationCode: string
+    ): Promise<void> {
+        this.logger.info('Sending provider email verification code', { compact: compact, providerEmail: providerEmail });
+
+        const recipients = [providerEmail];
+
+        const report = this.getNewEmailTemplate();
+        const subject = `Verify Your New Email Address - Compact Connect`;
+        const bodyText = `Your verification code is: ${verificationCode}\n\nThis code will expire in 15 minutes.\n\nIf you did not request this email change, please contact support immediately.`;
+
+        this.insertHeader(report, 'Email Update Verification');
+        this.insertBody(report, bodyText);
+        this.insertFooter(report);
+
+        const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
+
+        await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send email verification code' });
+    }
+
+    /**
+     * Sends a notification to the old email address when a provider's email is successfully changed
+     * @param compact - The compact name
+     * @param oldEmailAddress - The previous email address to notify
+     * @param newEmailAddress - The new email address that was set
+     */
+    public async sendProviderEmailChangeNotification(
+        compact: string,
+        oldEmailAddress: string,
+        newEmailAddress: string
+    ): Promise<void> {
+        this.logger.info('Sending provider email change notification', { compact: compact, oldEmailAddress: oldEmailAddress });
+
+        const recipients = [oldEmailAddress];
+
+        const report = this.getNewEmailTemplate();
+        const subject = `Email Address Changed - Compact Connect`;
+        const bodyText = `This is to notify you that your Compact Connect account email address has been changed to: ${newEmailAddress}\n\n Please use the new email address to login to your account from now on. If you did not make this change, please contact support immediately.`;
+
+        this.insertHeader(report, 'Email Address Changed');
+        this.insertBody(report, bodyText);
+        this.insertFooter(report);
+
+        const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
+
+        await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send email change notification' });
+    }
 }

@@ -698,4 +698,230 @@ describe('EmailNotificationService', () => {
             )).rejects.toThrow('No recipients found');
         });
     });
+
+    describe('Provider Email Verification Code', () => {
+        it('should send email verification code with expected content', async () => {
+            await emailService.sendProviderEmailVerificationCode(
+                'aslp',
+                'newuser@example.com',
+                '1234'
+            );
+
+            expect(mockSESClient).toHaveReceivedCommandWith(
+                SendEmailCommand,
+                {
+                    Destination: {
+                        ToAddresses: ['newuser@example.com']
+                    },
+                    Message: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.stringContaining('Your verification code is: 1234')
+                            }
+                        },
+                        Subject: {
+                            Charset: 'UTF-8',
+                            Data: 'Verify Your New Email Address - Compact Connect'
+                        }
+                    },
+                    Source: 'Compact Connect <noreply@example.org>'
+                }
+            );
+        });
+
+        it('should include expiry warning in verification code email', async () => {
+            await emailService.sendProviderEmailVerificationCode(
+                'aslp',
+                'newuser@example.com',
+                '5678'
+            );
+
+            expect(mockSESClient).toHaveReceivedCommandWith(
+                SendEmailCommand,
+                {
+                    Destination: {
+                        ToAddresses: ['newuser@example.com']
+                    },
+                    Message: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.stringContaining('This code will expire in 15 minutes.')
+                            }
+                        },
+                        Subject: expect.any(Object)
+                    },
+                    Source: 'Compact Connect <noreply@example.org>'
+                }
+            );
+        });
+
+        it('should include security warning in verification code email', async () => {
+            await emailService.sendProviderEmailVerificationCode(
+                'aslp',
+                'newuser@example.com',
+                '9999'
+            );
+
+            expect(mockSESClient).toHaveReceivedCommandWith(
+                SendEmailCommand,
+                {
+                    Destination: {
+                        ToAddresses: ['newuser@example.com']
+                    },
+                    Message: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.stringContaining('If you did not request this email change, please contact support immediately.')
+                            }
+                        },
+                        Subject: expect.any(Object)
+                    },
+                    Source: 'Compact Connect <noreply@example.org>'
+                }
+            );
+        });
+
+        it('should use correct header for verification code email', async () => {
+            await emailService.sendProviderEmailVerificationCode(
+                'aslp',
+                'newuser@example.com',
+                '1111'
+            );
+
+            expect(mockSESClient).toHaveReceivedCommandWith(
+                SendEmailCommand,
+                {
+                    Destination: {
+                        ToAddresses: ['newuser@example.com']
+                    },
+                    Message: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.stringContaining('Email Update Verification')
+                            }
+                        },
+                        Subject: expect.any(Object)
+                    },
+                    Source: 'Compact Connect <noreply@example.org>'
+                }
+            );
+        });
+    });
+
+    describe('Provider Email Change Notification', () => {
+        it('should send email change notification with expected content', async () => {
+            await emailService.sendProviderEmailChangeNotification(
+                'aslp',
+                'olduser@example.com',
+                'newuser@example.com'
+            );
+
+            expect(mockSESClient).toHaveReceivedCommandWith(
+                SendEmailCommand,
+                {
+                    Destination: {
+                        ToAddresses: ['olduser@example.com']
+                    },
+                    Message: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.stringContaining('This is to notify you that your Compact Connect account email address has been changed to: newuser@example.com')
+                            }
+                        },
+                        Subject: {
+                            Charset: 'UTF-8',
+                            Data: 'Email Address Changed - Compact Connect'
+                        }
+                    },
+                    Source: 'Compact Connect <noreply@example.org>'
+                }
+            );
+        });
+
+        it('should include login instruction in email change notification', async () => {
+            await emailService.sendProviderEmailChangeNotification(
+                'aslp',
+                'olduser@example.com',
+                'newuser@example.com'
+            );
+
+            expect(mockSESClient).toHaveReceivedCommandWith(
+                SendEmailCommand,
+                {
+                    Destination: {
+                        ToAddresses: ['olduser@example.com']
+                    },
+                    Message: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.stringContaining('Please use the new email address to login to your account from now on.')
+                            }
+                        },
+                        Subject: expect.any(Object)
+                    },
+                    Source: 'Compact Connect <noreply@example.org>'
+                }
+            );
+        });
+
+        it('should include security warning in email change notification', async () => {
+            await emailService.sendProviderEmailChangeNotification(
+                'aslp',
+                'olduser@example.com',
+                'newuser@example.com'
+            );
+
+            expect(mockSESClient).toHaveReceivedCommandWith(
+                SendEmailCommand,
+                {
+                    Destination: {
+                        ToAddresses: ['olduser@example.com']
+                    },
+                    Message: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.stringContaining('If you did not make this change, please contact support immediately.')
+                            }
+                        },
+                        Subject: expect.any(Object)
+                    },
+                    Source: 'Compact Connect <noreply@example.org>'
+                }
+            );
+        });
+
+        it('should use correct header for email change notification', async () => {
+            await emailService.sendProviderEmailChangeNotification(
+                'aslp',
+                'olduser@example.com',
+                'newuser@example.com'
+            );
+
+            expect(mockSESClient).toHaveReceivedCommandWith(
+                SendEmailCommand,
+                {
+                    Destination: {
+                        ToAddresses: ['olduser@example.com']
+                    },
+                    Message: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.stringContaining('Email Address Changed')
+                            }
+                        },
+                        Subject: expect.any(Object)
+                    },
+                    Source: 'Compact Connect <noreply@example.org>'
+                }
+            );
+        });
+    });
 });

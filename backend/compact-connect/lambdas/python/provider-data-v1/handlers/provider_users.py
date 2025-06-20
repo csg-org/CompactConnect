@@ -369,7 +369,7 @@ def _post_provider_email_verify(event: dict, context: LambdaContext):  # noqa: A
                 new_email_address=new_email,
             )
             logger.info('Email address updated successfully', compact=compact, provider_id=provider_id)
-        except Exception as e: # noqa BLE001
+        except Exception as e:  # noqa BLE001
             # Don't fail the whole operation if notification fails
             # log the error and continue
             logger.error(

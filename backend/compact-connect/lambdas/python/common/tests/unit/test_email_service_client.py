@@ -140,3 +140,55 @@ class TestEmailServiceClient(TstLambdas):
                 }
             ),
         )
+
+    def test_provider_email_verification_code_should_invoke_lambda_client_with_expected_parameters(self):
+        mock_lambda_client = MagicMock()
+        test_model = self._generate_test_model(mock_lambda_client)
+
+        test_model.send_provider_email_verification_code(
+            compact=TEST_COMPACT, provider_email='newuser@example.com', verification_code='1234'
+        )
+
+        mock_lambda_client.invoke.assert_called_once_with(
+            FunctionName='test-lambda-name',
+            InvocationType='RequestResponse',
+            Payload=json.dumps(
+                {
+                    'compact': TEST_COMPACT,
+                    'template': 'providerEmailVerificationCode',
+                    'recipientType': 'SPECIFIC',
+                    'specificEmails': [
+                        'newuser@example.com',
+                    ],
+                    'templateVariables': {
+                        'verificationCode': '1234',
+                    },
+                }
+            ),
+        )
+
+    def test_provider_email_change_notification_should_invoke_lambda_client_with_expected_parameters(self):
+        mock_lambda_client = MagicMock()
+        test_model = self._generate_test_model(mock_lambda_client)
+
+        test_model.send_provider_email_change_notification(
+            compact=TEST_COMPACT, old_email_address='olduser@example.com', new_email_address='newuser@example.com'
+        )
+
+        mock_lambda_client.invoke.assert_called_once_with(
+            FunctionName='test-lambda-name',
+            InvocationType='RequestResponse',
+            Payload=json.dumps(
+                {
+                    'compact': TEST_COMPACT,
+                    'template': 'providerEmailChangeNotification',
+                    'recipientType': 'SPECIFIC',
+                    'specificEmails': [
+                        'olduser@example.com',
+                    ],
+                    'templateVariables': {
+                        'newEmailAddress': 'newuser@example.com',
+                    },
+                }
+            ),
+        )

@@ -1174,4 +1174,128 @@ describe('EmailNotificationServiceLambda', () => {
                 .toThrow('Missing required jurisdiction field for privilegeEncumbranceLiftingStateNotification template.');
         });
     });
+
+    describe('Provider Email Verification Code', () => {
+        const SAMPLE_PROVIDER_EMAIL_VERIFICATION_CODE_EVENT: EmailNotificationEvent = {
+            template: 'providerEmailVerificationCode',
+            recipientType: 'SPECIFIC',
+            compact: 'aslp',
+            specificEmails: ['newuser@example.com'],
+            templateVariables: {
+                verificationCode: '1234'
+            }
+        };
+
+        it('should successfully send provider email verification code email', async () => {
+            const response = await lambda.handler(SAMPLE_PROVIDER_EMAIL_VERIFICATION_CODE_EVENT, {} as any);
+
+            expect(response).toEqual({
+                message: 'Email message sent'
+            });
+
+            // Verify email was sent with correct parameters
+            expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
+                Destination: {
+                    ToAddresses: ['newuser@example.com']
+                },
+                Message: {
+                    Body: {
+                        Html: {
+                            Charset: 'UTF-8',
+                            Data: expect.stringContaining('Your verification code is: 1234')
+                        }
+                    },
+                    Subject: {
+                        Charset: 'UTF-8',
+                        Data: 'Verify Your New Email Address - Compact Connect'
+                    }
+                },
+                Source: 'Compact Connect <noreply@example.org>'
+            });
+        });
+
+        it('should throw error when no recipients found', async () => {
+            const eventWithNoRecipients: EmailNotificationEvent = {
+                ...SAMPLE_PROVIDER_EMAIL_VERIFICATION_CODE_EVENT,
+                specificEmails: []
+            };
+
+            await expect(lambda.handler(eventWithNoRecipients, {} as any))
+                .rejects
+                .toThrow('No recipients found for provider email verification code email');
+        });
+
+        it('should throw error when verification code is missing', async () => {
+            const eventWithMissingCode: EmailNotificationEvent = {
+                ...SAMPLE_PROVIDER_EMAIL_VERIFICATION_CODE_EVENT,
+                templateVariables: {}
+            };
+
+            await expect(lambda.handler(eventWithMissingCode, {} as any))
+                .rejects
+                .toThrow('Missing required template variables for providerEmailVerificationCode template');
+        });
+    });
+
+    describe('Provider Email Change Notification', () => {
+        const SAMPLE_PROVIDER_EMAIL_CHANGE_NOTIFICATION_EVENT: EmailNotificationEvent = {
+            template: 'providerEmailChangeNotification',
+            recipientType: 'SPECIFIC',
+            compact: 'aslp',
+            specificEmails: ['olduser@example.com'],
+            templateVariables: {
+                newEmailAddress: 'newuser@example.com'
+            }
+        };
+
+        it('should successfully send provider email change notification email', async () => {
+            const response = await lambda.handler(SAMPLE_PROVIDER_EMAIL_CHANGE_NOTIFICATION_EVENT, {} as any);
+
+            expect(response).toEqual({
+                message: 'Email message sent'
+            });
+
+            // Verify email was sent with correct parameters
+            expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
+                Destination: {
+                    ToAddresses: ['olduser@example.com']
+                },
+                Message: {
+                    Body: {
+                        Html: {
+                            Charset: 'UTF-8',
+                            Data: expect.stringContaining('This is to notify you that your Compact Connect account email address has been changed to: newuser@example.com')
+                        }
+                    },
+                    Subject: {
+                        Charset: 'UTF-8',
+                        Data: 'Email Address Changed - Compact Connect'
+                    }
+                },
+                Source: 'Compact Connect <noreply@example.org>'
+            });
+        });
+
+        it('should throw error when no recipients found', async () => {
+            const eventWithNoRecipients: EmailNotificationEvent = {
+                ...SAMPLE_PROVIDER_EMAIL_CHANGE_NOTIFICATION_EVENT,
+                specificEmails: []
+            };
+
+            await expect(lambda.handler(eventWithNoRecipients, {} as any))
+                .rejects
+                .toThrow('No recipients found for provider email change notification email');
+        });
+
+        it('should throw error when new email address is missing', async () => {
+            const eventWithMissingEmail: EmailNotificationEvent = {
+                ...SAMPLE_PROVIDER_EMAIL_CHANGE_NOTIFICATION_EVENT,
+                templateVariables: {}
+            };
+
+            await expect(lambda.handler(eventWithMissingEmail, {} as any))
+                .rejects
+                .toThrow('Missing required template variables for providerEmailChangeNotification template');
+        });
+    });
 });
