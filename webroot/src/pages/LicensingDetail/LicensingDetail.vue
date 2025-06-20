@@ -153,7 +153,7 @@
                             :licensee="licensee"
                             :homeState="homeState"
                         />
-                        <div v-if="!isLicenseActive(license)" class="license-expired-message">
+                        <div v-if="isLicenseExpired(license)" class="license-expired-message">
                             {{licenseExpiredMessage}}
                         </div>
                     </div>
