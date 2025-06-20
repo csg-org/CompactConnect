@@ -4,7 +4,6 @@ from datetime import datetime
 from aws_lambda_powertools.metrics import MetricUnit
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger, metrics
-from cc_common.data_model.provider_record_util import ProviderRecordUtility
 from cc_common.data_model.schema.common import CCPermissionsAction
 from cc_common.event_batch_writer import EventBatchWriter
 from cc_common.exceptions import CCInternalException, CCInvalidRequestException
@@ -164,7 +163,3 @@ def privilege_purchase_message_handler(message: dict):
         # If there were any errors, raise an exception to trigger a retry
         if error_messages:
             raise CCInternalException('; '.join(error_messages))
-
-
-
-

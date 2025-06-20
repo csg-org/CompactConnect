@@ -913,9 +913,7 @@ class DataClient:
             )
 
     @logger_inject_kwargs(logger, 'compact', 'provider_id', 'jurisdiction', 'license_type')
-    def get_privilege(
-        self, *, compact: str, provider_id: str, jurisdiction: str, license_type_abbr: str
-    ) -> dict:
+    def get_privilege(self, *, compact: str, provider_id: str, jurisdiction: str, license_type_abbr: str) -> dict:
         """
         Get a privilege for a provider in a jurisdiction of the license type
 
@@ -956,10 +954,7 @@ class DataClient:
         """
         # Get the privilege record
         privilege_record = self.get_privilege(
-            compact=compact,
-            provider_id=provider_id,
-            jurisdiction=jurisdiction,
-            license_type_abbr=license_type_abbr
+            compact=compact, provider_id=provider_id, jurisdiction=jurisdiction, license_type_abbr=license_type_abbr
         )
 
         # Find the main privilege record (not history records)

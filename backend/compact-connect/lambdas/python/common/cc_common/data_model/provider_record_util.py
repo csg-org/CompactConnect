@@ -1,24 +1,18 @@
 from collections.abc import Callable, Iterable
-from datetime import datetime
 from enum import StrEnum
 
-from cc_common.config import config, logger
+from cc_common.config import logger
 from cc_common.data_model.schema.adverse_action import AdverseActionData
 from cc_common.data_model.schema.common import (
     ActiveInactiveStatus,
     AdverseActionAgainstEnum,
     CompactEligibilityStatus,
-    UpdateCategory,
 )
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
 from cc_common.data_model.schema.license.api import LicenseUpdatePreviousResponseSchema
 from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationData
 from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
-from cc_common.data_model.schema.privilege.api import(
-    PrivilegeUpdatePreviousGeneralResponseSchema,
-    PrivilegeHistoryEventPublicResponseSchema,
-    PrivilegeHistoryPublicResponseSchema
-)
+from cc_common.data_model.schema.privilege.api import PrivilegeUpdatePreviousGeneralResponseSchema
 from cc_common.data_model.schema.provider import ProviderData, ProviderUpdateData
 from cc_common.exceptions import CCInternalException
 
@@ -441,4 +435,3 @@ class ProviderUserRecords:
         )[0]
 
         return latest_military_affiliation.status
-
