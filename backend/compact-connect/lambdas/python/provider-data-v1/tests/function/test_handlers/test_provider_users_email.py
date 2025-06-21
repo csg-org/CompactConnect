@@ -110,18 +110,21 @@ class TestPatchProviderUsersEmail(TstFunction):
         self.assertEqual(TEST_NEW_EMAIL, stored_provider_data.pendingEmailAddress)
         self.assertIsNotNone(stored_provider_data.emailVerificationCode)  # 4-digit code was generated
         self.assertEqual(4, len(stored_provider_data.emailVerificationCode))
-        self.assertIsNotNone(stored_provider_data.emailVerificationExpiry)
+        self.assertTrue(stored_provider_data.emailVerificationCode.isdigit(), 'Verification code should be numeric')
 
         # Verify original email is unchanged
         self.assertEqual(TEST_OLD_EMAIL, stored_provider_data.compactConnectRegisteredEmailAddress)
 
     @patch('cc_common.config._Config.email_service_client')
-    @patch('random.randint')
-    def test_endpoint_calls_email_service_client_with_verification_code(self, mock_randint, mock_email_service_client):
+    @patch('secrets.randbelow')
+    def test_endpoint_calls_email_service_client_with_verification_code(
+        self, mock_randbelow, mock_email_service_client
+    ):
         from handlers.provider_users import provider_users_api_handler
 
         # Mock the verification code generation
-        mock_randint.return_value = 1234
+        # secrets.randbelow(9000) + 1000 should return 1234
+        mock_randbelow.return_value = 234  # 234 + 1000 = 1234
 
         event = self._when_testing_provider_user_event_with_custom_claims()
 

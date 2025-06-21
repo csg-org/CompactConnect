@@ -145,3 +145,29 @@ class ProviderRegistrationRequestSchema(Schema):
     licenseType = String(required=True, allow_none=False)
     compact = String(required=True, allow_none=False)
     token = String(required=True, allow_none=False)
+
+
+class ProviderEmailUpdateRequestSchema(Schema):
+    """
+    Schema for provider email update requests.
+
+    This schema is used to validate incoming requests to the provider email update API endpoint.
+
+    Serialization direction:
+    API -> load() -> Python
+    """
+
+    newEmailAddress = Email(required=True, allow_none=False)
+
+
+class ProviderEmailVerificationRequestSchema(Schema):
+    """
+    Schema for provider email verification requests.
+
+    This schema is used to validate incoming requests to the provider email verification API endpoint.
+
+    Serialization direction:
+    API -> load() -> Python
+    """
+
+    verificationCode = String(required=True, allow_none=False, validate=Length(min=4, max=4))

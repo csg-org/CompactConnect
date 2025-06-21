@@ -1,5 +1,5 @@
 import json
-import random
+import secrets
 import uuid
 from datetime import timedelta
 
@@ -14,8 +14,13 @@ from cc_common.data_model.schema.military_affiliation.common import (
     MilitaryAffiliationType,
 )
 from cc_common.data_model.schema.military_affiliation.record import MilitaryAffiliationRecordSchema
+from cc_common.data_model.schema.provider.api import (
+    ProviderEmailUpdateRequestSchema,
+    ProviderEmailVerificationRequestSchema,
+)
 from cc_common.exceptions import CCInternalException, CCInvalidRequestException, CCNotFoundException
 from cc_common.utils import api_handler
+from marshmallow import ValidationError
 
 from . import get_provider_information
 
@@ -215,15 +220,19 @@ def _patch_provider_email(event: dict, context: LambdaContext):  # noqa: ARG001 
     """
     compact, provider_id = _check_provider_user_attributes(event)
 
-    # Parse the request body
-    event_body = json.loads(event['body'])
-    new_email_address = event_body['newEmailAddress'].strip()
+    # Parse and validate the request body
+    try:
+        event_body = json.loads(event['body'])
+        # Trim whitespace from email before validation
+        if 'newEmailAddress' in event_body:
+            event_body['newEmailAddress'] = event_body['newEmailAddress'].strip()
+        validated_data = ProviderEmailUpdateRequestSchema().load(event_body)
+        new_email_address = validated_data['newEmailAddress']
+    except (json.JSONDecodeError, ValidationError) as e:
+        logger.warning('Invalid request body for email update', error=str(e))
+        raise CCInvalidRequestException('Invalid email address format') from e
 
     logger.info('Handling request to update provider email address', compact=compact, provider_id=provider_id)
-
-    # Validate email format (additional validation beyond API Gateway schema)
-    if '@' not in new_email_address or len(new_email_address.split('@')) != 2:
-        raise CCInvalidRequestException('Invalid email address format')
 
     # Check if the new email is already in use in Cognito
     try:
@@ -244,7 +253,7 @@ def _patch_provider_email(event: dict, context: LambdaContext):  # noqa: ARG001 
         # UserNotFoundException is expected - email is not in use, which is what we want
 
     # Generate a 4-digit verification code string
-    verification_code = f'{random.randint(1000, 9999)}'
+    verification_code = f'{secrets.randbelow(9000) + 1000}'
 
     # Set expiry time (15 minutes from now)
     expiry_time = config.current_standard_datetime + timedelta(minutes=15)
@@ -292,16 +301,16 @@ def _post_provider_email_verify(event: dict, context: LambdaContext):  # noqa: A
     """
     compact, provider_id = _check_provider_user_attributes(event)
 
-    # Parse the request body
-    event_body = json.loads(event['body'])
-    verification_code = event_body['verificationCode']
+    # Parse and validate the request body
+    try:
+        event_body = json.loads(event['body'])
+        validated_data = ProviderEmailVerificationRequestSchema().load(event_body)
+        verification_code = validated_data['verificationCode']
+    except (json.JSONDecodeError, ValidationError) as e:
+        logger.warning('Invalid request body for email verification', error=str(e))
+        raise CCInvalidRequestException('Invalid request format') from e
 
-    logger.info(
-        'Handling request to verify provider email address',
-        compact=compact,
-        provider_id=provider_id,
-        verification_code=verification_code,
-    )
+    logger.info('Handling request to verify provider email address', compact=compact, provider_id=provider_id)
 
     try:
         # Get current provider data to check verification state
