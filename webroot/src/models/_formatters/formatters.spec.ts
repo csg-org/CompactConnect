@@ -16,7 +16,10 @@ import {
     dateDisplay,
     datetimeDisplay,
     relativeFromNowDisplay,
-    dateDiff
+    dateDiff,
+    formatDateInput,
+    dateInputToServerFormat,
+    serverFormatToDateInput
 } from '@models/_formatters/date';
 import { singleDelimeterPhoneFormatter, formatPhoneNumber, stripPhoneNumber } from '@models/_formatters/phone';
 import { formatCurrencyInput, formatCurrencyBlur } from '@models/_formatters/currency';
@@ -61,6 +64,78 @@ describe('Date formatters', () => {
         const diff = Math.round(dateDiff(date1, date2, 'days'));
 
         expect(diff).to.equal(5);
+    });
+    it('should format raw date input to MM/dd/yyyy display format', () => {
+        const formatted = formatDateInput('12252024');
+
+        expect(formatted).to.equal('12/25/2024');
+    });
+    it('should format partial date input correctly', () => {
+        const formatted1 = formatDateInput('12');
+        const formatted2 = formatDateInput('1225');
+        const formatted3 = formatDateInput('122520');
+
+        expect(formatted1).to.equal('12/');
+        expect(formatted2).to.equal('12/25/');
+        expect(formatted3).to.equal('12/25/20');
+    });
+    it('should format already formatted date input', () => {
+        const formatted = formatDateInput('12/25/2024');
+
+        expect(formatted).to.equal('12/25/2024');
+    });
+    it('should handle empty input for formatDateInput', () => {
+        const formatted = formatDateInput('');
+
+        expect(formatted).to.equal('');
+    });
+    it('should strip non-numeric characters from date input', () => {
+        const formatted = formatDateInput('12a25b2024c');
+
+        expect(formatted).to.equal('12/25/2024');
+    });
+    it('should convert valid date input to server format', () => {
+        const serverFormat = dateInputToServerFormat('12252024');
+
+        expect(serverFormat).to.equal('2024-12-25');
+    });
+    it('should convert formatted date input to server format', () => {
+        const serverFormat = dateInputToServerFormat('12/25/2024');
+
+        expect(serverFormat).to.equal('2024-12-25');
+    });
+    it('should return empty string for invalid date input to server format', () => {
+        const serverFormat1 = dateInputToServerFormat('13252024'); // Invalid month
+        const serverFormat2 = dateInputToServerFormat('12322024'); // Invalid day
+        const serverFormat3 = dateInputToServerFormat('1225'); // Incomplete date
+
+        expect(serverFormat1).to.equal('');
+        expect(serverFormat2).to.equal('');
+        expect(serverFormat3).to.equal('');
+    });
+    it('should handle empty input for dateInputToServerFormat', () => {
+        const serverFormat = dateInputToServerFormat('');
+
+        expect(serverFormat).to.equal('');
+    });
+    it('should convert server format date to numeric input format', () => {
+        const dateInput = serverFormatToDateInput('2024-12-25');
+
+        expect(dateInput).to.equal('12252024');
+    });
+    it('should handle invalid server format date', () => {
+        const dateInput1 = serverFormatToDateInput('2024-13-25'); // Invalid month
+        const dateInput2 = serverFormatToDateInput('invalid-date');
+        const dateInput3 = serverFormatToDateInput('2024/12/25'); // Wrong format
+
+        expect(dateInput1).to.equal('');
+        expect(dateInput2).to.equal('');
+        expect(dateInput3).to.equal('');
+    });
+    it('should handle empty input for serverFormatToDateInput', () => {
+        const dateInput = serverFormatToDateInput('');
+
+        expect(dateInput).to.equal('');
     });
 });
 describe('Phone formatters', () => {
