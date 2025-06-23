@@ -389,6 +389,29 @@ class PersistentStack(AppStack):
             ],
         )
 
+        update_dates_migration = DataMigration(
+            self,
+            '2CreateEffectiveDate',
+            migration_dir='create_effective_date_2',
+            lambda_environment={
+                'PROVIDER_TABLE_NAME': self.provider_table.table_name,
+                **self.common_env_vars,
+            },
+        )
+        self.provider_table.grant_read_write_data(update_dates_migration)
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            f'{update_dates_migration.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'This policy contains wild-carded actions and resources but they are scoped to the '
+                    'specific actions, Table and Key that this lambda needs access to in order to perform the'
+                    'migration.',
+                },
+            ],
+        )
+
         QueryDefinition(
             self,
             'Migrations',
@@ -399,9 +422,10 @@ class PersistentStack(AppStack):
                 sort='@timestamp desc',
             ),
             log_groups=[
-                home_jurisdiction_migration.migration_function.log_group,
+                home_jurisdiction_migration.migration_function.log_group, update_dates_migration.migration_function.log_group,
             ],
         )
+
 
     def _create_email_notification_service(self) -> None:
         """This lambda is intended to be a general purpose email notification service.
