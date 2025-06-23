@@ -2383,6 +2383,7 @@ class DataClient:
         :param str provider_id: The provider ID.
         :param str jurisdiction: The jurisdiction of the license.
         :param str license_type_abbreviation: The license type abbreviation
+        :return: List of privileges that were encumbered
         """
         # Get all provider records
         provider_user_records: ProviderUserRecords = self.get_provider_user_records(
@@ -2474,6 +2475,7 @@ class DataClient:
         :param str provider_id: The provider ID.
         :param str jurisdiction: The jurisdiction of the license.
         :param str license_type_abbreviation: The license type abbreviation
+        :return: List of privileges that were unencumbered
         """
         # Get all provider records
         provider_user_records = self.get_provider_user_records(

@@ -2,7 +2,6 @@ from uuid import UUID
 
 from cc_common.config import config, logger
 from cc_common.data_model.provider_record_util import ProviderData, ProviderUserRecords
-from cc_common.data_model.schema.common import ActiveInactiveStatus
 from cc_common.data_model.schema.data_event.api import (
     EncumbranceEventDetailSchema,
 )
@@ -130,7 +129,7 @@ def _send_additional_state_notifications(
     **notification_kwargs,
 ) -> None:
     """
-    Send notifications to all other states where the provider has active licenses or privileges.
+    Send notifications to all other states where the provider has licenses or privileges.
 
     :param provider_records: The provider records collection
     :param notification_method: The email service method to call
@@ -141,20 +140,16 @@ def _send_additional_state_notifications(
     :param compact: The compact identifier
     :param notification_kwargs: Additional arguments for the notification method
     """
-    # Query provider's records to find all states where they hold active licenses or privileges
-    active_licenses = provider_records.get_license_records(
-        filter_condition=lambda license_record: license_record.licenseStatus == ActiveInactiveStatus.ACTIVE
-    )
-    active_privileges = provider_records.get_privilege_records(
-        filter_condition=lambda privilege_record: privilege_record.status == ActiveInactiveStatus.ACTIVE
-    )
+    # Query provider's records to find all states where they hold or have held licenses or privileges
+    all_licenses = provider_records.get_license_records()
+    all_privileges = provider_records.get_privilege_records()
 
     # Get unique jurisdictions (excluding the one already notified)
     notification_jurisdictions = set()
-    for license_record in active_licenses:
+    for license_record in all_licenses:
         if license_record.jurisdiction != excluded_jurisdiction:
             notification_jurisdictions.add(license_record.jurisdiction)
-    for privilege_record in active_privileges:
+    for privilege_record in all_privileges:
         if privilege_record.jurisdiction != excluded_jurisdiction:
             notification_jurisdictions.add(privilege_record.jurisdiction)
 
@@ -301,7 +296,7 @@ def license_encumbrance_lifted_listener(message: dict):
 
 
 @sqs_handler
-def privilege_encumbrance_listener(message: dict):
+def privilege_encumbrance_notification_listener(message: dict):
     """
     Handle privilege encumbrance events by sending notifications.
 
@@ -376,7 +371,7 @@ def privilege_encumbrance_listener(message: dict):
 
 
 @sqs_handler
-def privilege_encumbrance_lifting_listener(message: dict):
+def privilege_encumbrance_lifting_notification_listener(message: dict):
     """
     Handle privilege encumbrance lifting events by sending notifications.
 
