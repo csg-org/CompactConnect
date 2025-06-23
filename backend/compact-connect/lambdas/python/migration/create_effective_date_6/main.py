@@ -26,13 +26,11 @@ on_event = CreateEffectiveDateMigration('create-effective-date-1')
 def do_migration(_properties: dict) -> None:
     """
     This migration performs the following:
-    - Scans the provider table for all history records
-    - For each homeJurisdictionSelection record, updates the associated provider record's
-      currentHomeJurisdiction field with the selected jurisdiction
-    - Deletes the homeJurisdictionSelection records
+    - Scans the provider table for all privilege update records
+    - For each update record, adds effectiveDate and createDate equal to that updates dateOfUpdate
     - Handles batching for cases where there are more than 100 records to update
     """
-    logger.info('Starting home jurisdiction selection migration')
+    logger.info('Starting privilege selection migration')
 
     # Scan for all homeJurisdictionSelection records
     privilege_updates = []
@@ -43,7 +41,7 @@ def do_migration(_properties: dict) -> None:
             FilterExpression=Attr('sk').contains('privilege') & Attr('sk').contains('UPDATE'),
             **scan_pagination,
         )
-        
+
 
         items = response.get('Items', [])
         privilege_updates.extend(items)
@@ -56,7 +54,7 @@ def do_migration(_properties: dict) -> None:
 
         scan_pagination = {'ExclusiveStartKey': last_evaluated_key}
 
-    logger.info(f'Found {len(privilege_updates)} total homeJurisdictionSelection records to process')
+    logger.info(f'Found {len(privilege_updates)} total update records to process')
 
     if not privilege_updates:
         logger.info('No privilege update records found, migration complete')
