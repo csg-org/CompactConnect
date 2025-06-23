@@ -325,10 +325,13 @@ class ClinicalPrivilegeActionCategory(CCEnum):
     https://www.npdb.hrsa.gov/software/CodeLists.pdf, Tables 41-45
     """
 
+    NON_COMPLIANCE = 'Non-compliance With Requirements'
+    CRIMINAL_CONVICTION = 'Criminal Conviction or Adjudication'
+    CONFIDENTIALITY_VIOLATION = 'Confidentiality, Consent or Disclosure Violations'
+    MISCONDUCT_ABUSE = 'Misconduct or Abuse'
     FRAUD = 'Fraud, Deception, or Misrepresentation'
     UNSAFE_PRACTICE = 'Unsafe Practice or Substandard Care'
     IMPROPER_SUPERVISION = 'Improper Supervision or Allowing Unlicensed Practice'
-    IMPROPER_MEDICATION = 'Improper Prescribing, Dispensing, Administering Medication/Drug Violation'
     OTHER = 'Other'
 
 
