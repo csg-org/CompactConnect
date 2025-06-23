@@ -309,3 +309,24 @@ class TestLicenseDeactivationEvents(TstFunction):
             update_record = privilege_update_records['Items'][0]
             self.assertEqual('licenseDeactivation', update_record['updateType'])
             self.assertEqual({'licenseDeactivatedStatus': 'licenseDeactivated'}, update_record['updatedValues'])
+
+    def test_license_deactivation_listener_fails_with_missing_required_fields(self):
+        """Test that license deactivation event handler fails when required fields are missing."""
+        from handlers.license_deactivation_events import license_deactivation_listener
+
+        # Create message missing required licenseType field
+        message = {
+            'detail': {
+                'compact': DEFAULT_COMPACT,
+                'providerId': DEFAULT_PROVIDER_ID,
+                'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                'eventTime': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
+                # Missing 'licenseType' field
+            }
+        }
+        event = self._create_sqs_event(message)
+
+        # Execute the handler and expect error
+        resp = license_deactivation_listener(event, self.mock_context)
+
+        self.assertEqual({'batchItemFailures': [{'itemIdentifier': '123'}]}, resp)
