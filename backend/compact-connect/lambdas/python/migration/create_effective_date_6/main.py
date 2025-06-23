@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import datetime
 
 from boto3.dynamodb.conditions import Attr
 from cc_common.config import config, logger

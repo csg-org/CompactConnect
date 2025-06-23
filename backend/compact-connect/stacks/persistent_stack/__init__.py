@@ -416,7 +416,7 @@ class PersistentStack(AppStack):
                 sort='@timestamp desc',
             ),
             log_groups=[
-                home_jurisdiction_migration.migration_function.log_group, 
+                home_jurisdiction_migration.migration_function.log_group,
                 update_dates_migration.migration_function.log_group,
                 self.provider_user_pool_migration.migration_function.log_group,
             ],
