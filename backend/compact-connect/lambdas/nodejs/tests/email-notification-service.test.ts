@@ -1193,7 +1193,7 @@ describe('EmailNotificationServiceLambda', () => {
                 message: 'Email message sent'
             });
 
-            // Verify email was sent with correct parameters
+            // Verify email was sent
             expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
                 Destination: {
                     ToAddresses: ['newuser@example.com']
@@ -1202,7 +1202,7 @@ describe('EmailNotificationServiceLambda', () => {
                     Body: {
                         Html: {
                             Charset: 'UTF-8',
-                            Data: expect.stringContaining('Your verification code is: 1234')
+                            Data: expect.any(String)
                         }
                     },
                     Subject: {
@@ -1212,6 +1212,17 @@ describe('EmailNotificationServiceLambda', () => {
                 },
                 Source: 'Compact Connect <noreply@example.org>'
             });
+
+            // Get the actual HTML content for detailed validation
+            const emailCall = mockSESClient.commandCalls(SendEmailCommand)[0];
+            const htmlContent = emailCall.args[0].input.Message?.Body?.Html?.Data;
+
+            expect(htmlContent).toBeDefined();
+            expect(htmlContent).toContain('Please use the following verification code to complete your email address change');
+            expect(htmlContent).toContain('<strong>1234</strong>');
+            expect(htmlContent).toContain('This code will expire in 15 minutes');
+            expect(htmlContent).toContain('If you did not request this email change, please contact support immediately');
+            expect(htmlContent).toContain('Email Update Verification');
         });
 
         it('should throw error when no recipients found', async () => {

@@ -717,7 +717,7 @@ describe('EmailNotificationService', () => {
                         Body: {
                             Html: {
                                 Charset: 'UTF-8',
-                                Data: expect.stringContaining('Your verification code is: 1234')
+                                Data: expect.stringContaining('Please use the following verification code to complete your email address change')
                             }
                         },
                         Subject: {
