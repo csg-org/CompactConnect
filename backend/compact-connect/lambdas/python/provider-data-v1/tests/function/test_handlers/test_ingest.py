@@ -318,16 +318,15 @@ class TestIngest(TstFunction):
         mock_event_writer.return_value.__enter__.return_value.put_event.assert_called_once()
         call_kwargs = mock_event_writer.return_value.__enter__.return_value.put_event.call_args.kwargs
         self.assertEqual(
-            call_kwargs,
             {
                 'Entry': {
                     'Source': 'org.compactconnect.provider-data',
                     'DetailType': 'license.deactivation',
                     'Detail': json.dumps(
                         {
-                            'eventTime': '2024-11-08T23:59:59+00:00',
                             'compact': 'aslp',
                             'jurisdiction': 'oh',
+                            'eventTime': '2024-11-08T23:59:59+00:00',
                             'providerId': provider_id,
                             'licenseType': 'speech-language pathologist',
                         }
@@ -335,6 +334,7 @@ class TestIngest(TstFunction):
                     'EventBusName': 'license-data-events',
                 }
             },
+            call_kwargs,
         )
 
     @patch('handlers.ingest.EventBatchWriter', autospec=True)

@@ -246,22 +246,12 @@ def _process_license_update(*, existing_license: dict, new_license: dict, dynamo
                 'License is not expired, but is set to inactive. Publishing license deactivation event.',
                 date_of_expiration=new_license['dateOfExpiration'],
             )
-            data_events.append(
-                {
-                    'Source': 'org.compactconnect.provider-data',
-                    'DetailType': 'license.deactivation',
-                    'Detail': json.dumps(
-                        {
-                            'eventTime': config.current_standard_datetime.isoformat(),
-                            'compact': existing_license['compact'],
-                            'jurisdiction': existing_license['jurisdiction'],
-                            'providerId': str(existing_license['providerId']),
-                            'licenseType': existing_license['licenseType'],
-                        }
-                    ),
-                    'EventBusName': config.event_bus_name,
-                }
+            # Use EventBusClient to generate the event
+            license_deactivation_event = config.event_bus_client.generate_license_deactivation_event(
+                source='org.compactconnect.provider-data',
+                existing_license=existing_license,
             )
+            data_events.append(license_deactivation_event)
         else:
             logger.info(
                 'License is expired, skipping license deactivation event.',

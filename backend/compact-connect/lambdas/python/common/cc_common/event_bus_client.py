@@ -5,6 +5,7 @@ from uuid import UUID
 from cc_common.config import config
 from cc_common.data_model.schema.data_event.api import (
     EncumbranceEventDetailSchema,
+    LicenseDeactivationDetailSchema,
     PrivilegeIssuanceDetailSchema,
     PrivilegePurchaseEventDetailSchema,
     PrivilegeRenewalDetailSchema,
@@ -46,6 +47,33 @@ class EventBusClient:
         else:
             # If no event batch writer is provided, we'll use the default event bus client
             config.events_client.put_events(Entries=[event_entry])
+
+    def generate_license_deactivation_event(self, source: str, existing_license: dict) -> dict:
+        """
+        Generate a license deactivation event entry for use with batch writers.
+
+        :param source: The source of the event
+        :param existing_license: The existing license record dict containing event details
+        :returns: Event entry dict that can be used with EventBatchWriter
+        """
+        event_detail = {
+            'eventTime': config.current_standard_datetime.isoformat(),
+            'compact': existing_license['compact'],
+            'jurisdiction': existing_license['jurisdiction'],
+            'providerId': str(existing_license['providerId']),
+            'licenseType': existing_license['licenseType'],
+        }
+
+        # Validate the event detail using the schema
+        license_deactivation_schema = LicenseDeactivationDetailSchema()
+        loaded_detail = license_deactivation_schema.load(event_detail)
+
+        return {
+            'Source': source,
+            'DetailType': 'license.deactivation',
+            'Detail': json.dumps(loaded_detail, cls=ResponseEncoder),
+            'EventBusName': config.event_bus_name,
+        }
 
     def publish_privilege_purchase_event(
         self,
