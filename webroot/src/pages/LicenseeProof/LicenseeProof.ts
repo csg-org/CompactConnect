@@ -5,7 +5,7 @@
 //  Created by InspiringApps on 5/2/2025.
 //
 
-import { Component, Vue } from 'vue-facing-decorator';
+import { Component, Vue, Watch } from 'vue-facing-decorator';
 import LicenseHomeIcon from '@components/Icons/LicenseHome/LicenseHome.vue';
 import PrivilegesIcon from '@components/Icons/LicenseeUser/LicenseeUser.vue';
 import UserIcon from '@components/Icons/User/User.vue';
@@ -15,6 +15,7 @@ import { Licensee } from '@models/Licensee/Licensee.model';
 import { State } from '@models/State/State.model';
 import { LicenseeUser } from '@/models/LicenseeUser/LicenseeUser.model';
 import moment from 'moment';
+import QRCode from 'qrcode';
 
 @Component({
     name: 'LicenseeProof',
@@ -25,6 +26,18 @@ import moment from 'moment';
     }
 })
 export default class LicenseeProof extends Vue {
+    //
+    // Data
+    //
+    qrCodeDataUrl = '';
+
+    //
+    // Lifecycle
+    //
+    async mounted() {
+        await this.generateQRCode();
+    }
+
     //
     // Computed
     //
@@ -69,8 +82,42 @@ export default class LicenseeProof extends Vue {
     }
 
     get licenseePrivileges(): Array<License> {
-        return this.licensee.privileges?.filter((privilege: License) =>
-            privilege.status === LicenseStatus.ACTIVE) || [];
+        const sortedPrivileges = (this.licensee.privileges ?? [])
+            .filter((privilege: License) =>
+                privilege.status === LicenseStatus.ACTIVE)
+            .sort((a: License, b: License) => {
+                const dateA = moment(a.issueDate);
+                const dateB = moment(b.issueDate);
+
+                return dateB.valueOf() - dateA.valueOf(); // Most recent issueDate first
+            });
+
+        return sortedPrivileges;
+    }
+
+    get publicProfileUrl(): string {
+        let url = '';
+        const { domain } = this.$envConfig || {};
+        const licenseeId = this.licensee.id;
+        const compactType = this.currentCompactType;
+
+        if (licenseeId && compactType) {
+            try {
+                const { href } = this.$router.resolve({
+                    name: 'LicenseeDetailPublic',
+                    params: {
+                        compact: compactType,
+                        licenseeId
+                    }
+                });
+
+                url = new URL(href, domain).toString();
+            } catch {
+                url = '';
+            }
+        }
+
+        return url;
     }
 
     //
@@ -78,5 +125,30 @@ export default class LicenseeProof extends Vue {
     //
     printHandler(): void {
         window.print();
+    }
+
+    async generateQRCode(): Promise<void> {
+        if (this.publicProfileUrl) {
+            try {
+                // Get the primary color from CSS custom properties with fallback
+                const primaryColor = getComputedStyle(document.documentElement)
+                    .getPropertyValue('--primary-color').trim() || '#2459a9';
+
+                this.qrCodeDataUrl = await QRCode.toDataURL(this.publicProfileUrl, {
+                    width: 150,
+                    margin: 1,
+                    color: {
+                        dark: primaryColor,
+                        light: '#ffffff'
+                    }
+                });
+            } catch (error) {
+                this.qrCodeDataUrl = '';
+            }
+        }
+    }
+
+    @Watch('publicProfileUrl') async onPublicProfileUrlChange(): Promise<void> {
+        await this.generateQRCode();
     }
 }

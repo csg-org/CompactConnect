@@ -60,12 +60,7 @@ export default class MilitaryStatus extends mixins(MixinForm) {
         return this.$t('licensing.status').toUpperCase();
     }
 
-    goBack() {
-        if (this.currentCompactType) {
-            this.$router.push({
-                name: 'LicenseeDashboard',
-                params: { compact: this.currentCompactType }
-            });
-        }
+    goBack(): void {
+        this.$router.push({ name: 'Account' });
     }
 }

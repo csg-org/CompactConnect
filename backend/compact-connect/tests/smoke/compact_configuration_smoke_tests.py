@@ -3,6 +3,7 @@
 import json
 
 import requests
+from config import config
 from smoke_common import (
     COMPACTS,
     SmokeTestFailureException,
@@ -270,8 +271,69 @@ def test_jurisdiction_configuration():
             delete_test_staff_user(test_email, user_sub, compact)
 
 
+def test_upload_payment_processor_credentials():
+    """
+    Test that a compact admin can upload payment processor credentials.
+    """
+    print('Testing upload payment processor credentials...')
+
+    # Create a test compact admin user
+    compact = COMPACTS[0]  # Use the first compact for testing
+    test_email = f'test-compact-admin-credentials-{compact}@ccSmokeTestFakeEmail.com'
+    permissions = {'actions': {'admin'}, 'jurisdictions': {}}
+
+    user_sub = None
+    try:
+        # Create the test user
+        user_sub = create_test_staff_user(
+            email=test_email,
+            compact=compact,
+            jurisdiction=None,
+            permissions=permissions,
+        )
+
+        # Get auth headers for the test user
+        headers = get_staff_user_auth_headers(test_email)
+
+        # Create test payment processor credentials
+        credentials = {
+            'processor': 'authorize.net',
+            'apiLoginId': config.sandbox_authorize_net_api_login_id,
+            'transactionKey': config.sandbox_authorize_net_transaction_key,
+        }
+
+        # POST the payment processor credentials
+        response = requests.post(
+            url=f'{get_api_base_url()}/v1/compacts/{compact}/credentials/payment-processor',
+            headers=headers,
+            json=credentials,
+            timeout=30,  # Give this more time as it makes external API calls to authorize.net
+        )
+
+        if response.status_code != 200:
+            raise SmokeTestFailureException(
+                f'Failed to POST payment processor credentials for compact {compact}. '
+                f'Status: {response.status_code}, Response: {response.text}'
+            )
+
+        # Verify the response contains a success message
+        response_data = response.json()
+        if 'message' not in response_data or 'Successfully verified credentials' not in response_data['message']:
+            raise SmokeTestFailureException(
+                f'Unexpected response when uploading payment processor credentials: {response_data}'
+            )
+
+        print(f'Successfully uploaded and verified payment processor credentials for {compact}')
+
+    finally:
+        # Clean up the test user
+        if user_sub:
+            delete_test_staff_user(test_email, user_sub, compact)
+
+
 if __name__ == '__main__':
     load_smoke_test_env()
     test_active_member_jurisdictions()
     test_compact_configuration()
     test_jurisdiction_configuration()
+    test_upload_payment_processor_credentials()

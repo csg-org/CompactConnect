@@ -6,70 +6,13 @@
 -->
 
 <template>
-    <div class="finalize-privilege-purchase-container">
-        <form class="complete-purchase-form" @submit.prevent="handleSubmit">
+    <div id="finalize-privilege-purchase-container" class="finalize-privilege-purchase-container">
+        <form class="complete-purchase-form" @submit.prevent="() => null">
             <div class="finalize-purchase-container">
-                <div class="finalize-purchase-core-container">
-                    <div class="finalize-purchase-title-row">
-                        <h1 class="finalize-purchase-title">{{$t('payment.payment')}}</h1>
-                        <CollapseCaretButton v-if="isPhone" @toggleCollapse="togglePaymentCollapsed" />
-                    </div>
-                    <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
-                    <div v-if="shouldShowPaymentSection || !isPhone" class="payment-core-form">
-                        <div class="credit-card-section">
-                            <div class="credit-card-title">{{$t('payment.creditCardTitle')}}</div>
-                            <div class="form-row">
-                                <InputCreditCard :formInput="formData.creditCard" @input="formatCreditCard()" />
-                            </div>
-                            <div class="cc-dets form-row">
-                                <div class="exp-chunk">
-                                    <div class="exp-chunk-title">{{$t('payment.expirationDate')}} *</div>
-                                    <div class="exp-chunk-input">
-                                        <InputText
-                                            :formInput="formData.expMonth"
-                                            @input="handleExpMonthInput(formData.expMonth)"
-                                        />
-                                        <div class="slash">/</div>
-                                        <InputText
-                                            :formInput="formData.expYear"
-                                            @input="handleExpYearInput(formData.expYear)"
-                                            @emitInputRef="handleExpYearRefEmitted"
-                                        />
-                                    </div>
-                                </div>
-                                <div class="cvv-container">
-                                    <InputText
-                                        :formInput="formData.cvv"
-                                        @input="handleCVVInput(formData.cvv)"
-                                        @emitInputRef="handleCVVRefEmitted"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                        <div class="billing-address-section">
-                            <div class="billing-address-title">{{$t('payment.billingAddressTitle')}}</div>
-                            <div class="form-row">
-                                <InputText :formInput="formData.firstName" />
-                            </div>
-                            <div class="form-row">
-                                <InputText :formInput="formData.lastName" />
-                            </div>
-                            <div class="form-row">
-                                <InputText :formInput="formData.streetAddress1" />
-                            </div>
-                            <div class="form-row">
-                                <InputText :formInput="formData.streetAddress2" />
-                            </div>
-                            <div class="state-zip-line form-row">
-                                <InputSelect :formInput="formData.stateSelect" class="state-select" />
-                                <InputText
-                                    :formInput="formData.zip"
-                                    @input="handleZipInput(formData.cvv)"
-                                />
-                            </div>
-                        </div>
-                    </div>
+                <div class="finalize-purchase-title-row">
+                    <h1 class="finalize-purchase-title">{{$t('payment.payment')}}</h1>
                 </div>
+                <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
                 <div class="cost-breakdown-container">
                     <div class="cost-listing-block">
                         <div class="cost-section">
@@ -110,13 +53,15 @@
                 </div>
             </div>
             <div v-if="formErrorMessage" class="form-error-message">{{formErrorMessage}}</div>
-            <div class="button-row">
+            <div id="button-row" class="button-row">
                 <div class="form-nav-buttons">
-                    <InputSubmit
-                        :formInput="formData.submit"
-                        class="form-nav-button"
-                        :label="$t('payment.completePurchase')"
+                    <PrivilegePurchaseAcceptUI
+                        class="form-nav-button accept-ui"
+                        :paymentSdkConfig="currentCompactPaymentSdkConfig"
+                        :buttonLabel="$t('common.next')"
                         :isEnabled="!isFormLoading && isSubmitEnabled"
+                        @success="acceptUiSuccessResponse"
+                        @error="acceptUiErrorResponse"
                     />
                     <InputButton
                         :label="$t('common.back')"

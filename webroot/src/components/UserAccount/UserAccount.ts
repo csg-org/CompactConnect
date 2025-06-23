@@ -13,6 +13,7 @@ import {
 } from 'vue-facing-decorator';
 import { reactive, computed } from 'vue';
 import { AuthTypes } from '@/app.config';
+import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import Card from '@components/Card/Card.vue';
 import InputText from '@components/Forms/InputText/InputText.vue';
@@ -28,6 +29,7 @@ import Joi from 'joi';
 @Component({
     name: 'UserAccount',
     components: {
+        InputButton,
         Card,
         InputText,
         InputSubmit,
@@ -51,6 +53,10 @@ class UserAccount extends mixins(MixinForm) {
 
     get userStore() {
         return this.$store.state.user;
+    }
+
+    get currentCompactType(): string | null {
+        return this.userStore?.currentCompact?.type || null;
     }
 
     get authType(): AuthTypes {
@@ -164,6 +170,12 @@ class UserAccount extends mixins(MixinForm) {
                 .catch((err) => {
                     this.setError(err.message);
                 });
+        }
+    }
+
+    viewMilitaryStatus(): void {
+        if (this.currentCompactType) {
+            this.$router.push({ name: 'MilitaryStatus', params: { compact: this.currentCompactType }});
         }
     }
 
