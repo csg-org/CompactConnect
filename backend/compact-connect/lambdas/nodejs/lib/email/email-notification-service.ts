@@ -385,7 +385,7 @@ export class EmailNotificationService extends BaseEmailService {
 
         const report = this.getNewEmailTemplate();
         const subject = `Verify Your New Email Address - Compact Connect`;
-        const bodyText = `Please use the following verification code to complete your email address change:\n\n**${verificationCode}**\n\nThis code will expire in 15 minutes.\n\nIf you did not request this email change, please contact support immediately.`;
+        const bodyText = `Please use the following verification code to complete your email address change:\n\n## ${verificationCode}\n\nThis code will expire in 15 minutes.\n\nIf you did not request this email change, please contact support immediately.`;
 
         this.insertHeader(report, 'Email Update Verification');
         this.insertMarkdownBody(report, bodyText);
@@ -413,10 +413,10 @@ export class EmailNotificationService extends BaseEmailService {
 
         const report = this.getNewEmailTemplate();
         const subject = `Email Address Changed - Compact Connect`;
-        const bodyText = `This is to notify you that your Compact Connect account email address has been changed to: ${newEmailAddress}\n\n Please use the new email address to login to your account from now on. If you did not make this change, please contact support immediately.`;
+        const bodyText = `This is to notify you that your Compact Connect account email address has been changed to the following:\n\n${newEmailAddress}\n\nPlease use the new email address to login to your account from now on. If you did not make this change, please contact support immediately.`;
 
         this.insertHeader(report, 'Email Address Changed');
-        this.insertBody(report, bodyText);
+        this.insertMarkdownBody(report, bodyText);
         this.insertFooter(report);
 
         const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });

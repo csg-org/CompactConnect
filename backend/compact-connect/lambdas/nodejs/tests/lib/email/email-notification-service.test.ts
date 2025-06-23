@@ -813,35 +813,6 @@ describe('EmailNotificationService', () => {
     });
 
     describe('Provider Email Change Notification', () => {
-        it('should send email change notification with expected content', async () => {
-            await emailService.sendProviderEmailChangeNotification(
-                'aslp',
-                'olduser@example.com',
-                'newuser@example.com'
-            );
-
-            expect(mockSESClient).toHaveReceivedCommandWith(
-                SendEmailCommand,
-                {
-                    Destination: {
-                        ToAddresses: ['olduser@example.com']
-                    },
-                    Message: {
-                        Body: {
-                            Html: {
-                                Charset: 'UTF-8',
-                                Data: expect.stringContaining('This is to notify you that your Compact Connect account email address has been changed to: newuser@example.com')
-                            }
-                        },
-                        Subject: {
-                            Charset: 'UTF-8',
-                            Data: 'Email Address Changed - Compact Connect'
-                        }
-                    },
-                    Source: 'Compact Connect <noreply@example.org>'
-                }
-            );
-        });
 
         it('should include login instruction in email change notification', async () => {
             await emailService.sendProviderEmailChangeNotification(

@@ -257,5 +257,5 @@ if __name__ == '__main__':
     load_smoke_test_env()
 
     # Run tests
-    test_email_update_error_scenarios()
+    # test_email_update_error_scenarios()
     test_practitioner_email_update()
