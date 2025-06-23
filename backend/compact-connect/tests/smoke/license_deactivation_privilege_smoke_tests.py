@@ -2,11 +2,11 @@
 """
 Smoke tests for license deactivation privilege functionality.
 
-This script tests the end-to-end license deactivation workflow where privileges
+This module contains end-to-end tests for the license deactivation workflow where privileges
 are automatically deactivated when their associated home state license is
 deactivated by a jurisdiction.
 
-This test creates its own test data from scratch and cleans up after itself.
+The tests create their own test data from scratch and clean up after themselves.
 """
 
 import time
@@ -39,13 +39,11 @@ def get_provider_details_from_api(staff_headers: dict, compact: str, provider_id
     """
     Get provider details from the staff API endpoint.
 
-    Args:
-        staff_headers: Authentication headers for staff user
-        compact: The compact abbreviation
-        provider_id: The provider's ID
-
-    Returns:
-        Provider details from the API including privileges list
+    :param staff_headers: Authentication headers for staff user
+    :param compact: The compact abbreviation
+    :param provider_id: The provider's ID
+    :returns: Provider details from the API including privileges list
+    :raises SmokeTestFailureException: If the API request fails
     """
     import requests
 
@@ -73,17 +71,19 @@ def validate_privilege_deactivation(
     """
     Validate that privilege is deactivated due to license deactivation.
 
-    Args:
-        staff_headers: Authentication headers for staff user
-        provider_id: The provider's ID
-        compact: The compact abbreviation
-        license_jurisdiction: The license jurisdiction
-        license_type: The license type
-        max_wait_time: Maximum time to wait in seconds
-        check_interval: Time between checks in seconds
+    This function polls the API to check if a privilege has been automatically
+    deactivated after its associated license was deactivated. It retries
+    multiple times within the specified time window.
 
-    Raises:
-        SmokeTestFailureException: If privilege is not properly deactivated
+    :param staff_headers: Authentication headers for staff user
+    :param provider_id: The provider's ID
+    :param compact: The compact abbreviation
+    :param license_jurisdiction: The license jurisdiction
+    :param license_type: The license type
+    :param max_wait_time: Maximum time to wait in seconds (default: 120)
+    :param check_interval: Time between checks in seconds (default: 15)
+    :returns: The matching privilege record if validation succeeds
+    :raises SmokeTestFailureException: If privilege is not properly deactivated within the time limit
     """
     logger.info(f'Validating privilege deactivation for provider {provider_id}...')
 
@@ -140,13 +140,20 @@ def validate_privilege_deactivation(
 
 def test_license_deactivation_privilege_workflow():
     """
-    Test the complete license deactivation privilege workflow:
+    The test validates that when a home state license is deactivated,
+    any privileges associated with that license are automatically
+    deactivated as well.
+
+    This test performs the following steps:
+
     1. Upload an active license and wait for provider creation
     2. Update provider registration details
     3. Create a test privilege record
     4. Upload the same license with inactive status
     5. Validate that the privilege is automatically deactivated
     6. Clean up all test data
+
+    :raises SmokeTestFailureException: If any step of the workflow fails
     """
     logger.info('Starting license deactivation privilege workflow test...')
 
