@@ -48,20 +48,25 @@ class EventBusClient:
             # If no event batch writer is provided, we'll use the default event bus client
             config.events_client.put_events(Entries=[event_entry])
 
-    def generate_license_deactivation_event(self, source: str, existing_license: dict) -> dict:
+    def generate_license_deactivation_event(
+        self, source: str, compact: str, jurisdiction: str, provider_id: UUID, license_type: str
+    ) -> dict:
         """
         Generate a license deactivation event entry for use with batch writers.
 
         :param source: The source of the event
-        :param existing_license: The existing license record dict containing event details
+        :param compact: The compact abbreviation
+        :param jurisdiction: The jurisdiction where the license was deactivated
+        :param provider_id: The provider's unique identifier
+        :param license_type: The type of license that was deactivated
         :returns: Event entry dict that can be used with EventBatchWriter
         """
         event_detail = {
             'eventTime': config.current_standard_datetime.isoformat(),
-            'compact': existing_license['compact'],
-            'jurisdiction': existing_license['jurisdiction'],
-            'providerId': str(existing_license['providerId']),
-            'licenseType': existing_license['licenseType'],
+            'compact': compact,
+            'jurisdiction': jurisdiction,
+            'providerId': str(provider_id),
+            'licenseType': license_type,
         }
 
         # Validate the event detail using the schema

@@ -249,7 +249,10 @@ def _process_license_update(*, existing_license: dict, new_license: dict, dynamo
             # Use EventBusClient to generate the event
             license_deactivation_event = config.event_bus_client.generate_license_deactivation_event(
                 source='org.compactconnect.provider-data',
-                existing_license=existing_license,
+                compact=existing_license['compact'],
+                jurisdiction=existing_license['jurisdiction'],
+                provider_id=existing_license['providerId'],
+                license_type=existing_license['licenseType'],
             )
             data_events.append(license_deactivation_event)
         else:
