@@ -12,7 +12,9 @@ from smoke_common import (
 )
 
 # This script tests the practitioner email update functionality against a sandbox environment.
-# It requires manual input from the developer since it tests actual email verification.
+# IMPORTANT: This smoke tests requires manual input from the developer since it sends email verification codes
+# via email.
+
 # To run this script, create a smoke_tests_env.json file in the same directory as this script using the
 # 'smoke_tests_env_example.json' file as a template.
 
@@ -257,5 +259,5 @@ if __name__ == '__main__':
     load_smoke_test_env()
 
     # Run tests
-    # test_email_update_error_scenarios()
+    test_email_update_error_scenarios()
     test_practitioner_email_update()

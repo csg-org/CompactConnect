@@ -1289,6 +1289,7 @@ describe('EmailNotificationServiceLambda', () => {
             // Get the actual HTML content for detailed validation
             const emailCall = mockSESClient.commandCalls(SendEmailCommand)[0];
             const htmlContent = emailCall.args[0].input.Message?.Body?.Html?.Data;
+
             expect(htmlContent).toBeDefined();
             expect(htmlContent).toContain('This is to notify you that your Compact Connect account email address has been changed to the following:');
             expect(htmlContent).toContain('newuser@example.com');
