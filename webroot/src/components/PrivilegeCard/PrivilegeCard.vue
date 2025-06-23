@@ -275,10 +275,14 @@
                                     v-if="formData[`adverse-action-end-date-${adverseAction.id}`]"
                                     :formInput="formData[`adverse-action-end-date-${adverseAction.id}`]"
                                     :yearRange="[new Date().getFullYear() - 5, new Date().getFullYear() + 5]"
-                                    :preventMinMaxNavigation="true"
+                                    :preventMinMaxNavigation="false"
                                     :textInput="{ format: 'MM/dd/yyyy', openMenu: false }"
                                     :startDate="new Date()"
                                     position="right"
+                                    :teleport="true"
+                                    @open="((formInput) => focusTrapTeleportedDatepicker(formInput, true))"
+                                    @close="((formInput) => focusTrapTeleportedDatepicker(formInput, false))"
+                                    @keyup.esc.stop
                                     class="encumbrance-end-date"
                                 />
                             </div>

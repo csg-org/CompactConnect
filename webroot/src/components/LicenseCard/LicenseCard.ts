@@ -574,6 +574,15 @@ class LicenseCard extends mixins(MixinForm) {
         }
     }
 
+    async focusTrapTeleportedDatepicker(formInput: FormInput, isOpen: boolean): Promise<void> {
+        if (isOpen) {
+            await nextTick();
+            document.getElementById(`dp-menu-${formInput.id}`)?.focus();
+        } else {
+            document.getElementById(`dp-input-icon-open-${formInput.id}`)?.focus();
+        }
+    }
+
     isEncumbranceSelected(adverseAction: AdverseAction): boolean {
         return this.selectedEncumbrances.some((selected: AdverseAction) => selected.id === adverseAction.id);
     }

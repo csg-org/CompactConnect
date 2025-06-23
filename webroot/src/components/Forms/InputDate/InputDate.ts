@@ -15,6 +15,7 @@ import {
 import MixinInput from '@components/Forms/_mixins/input.mixin';
 import VueDatePicker, { DatePickerMarker } from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
+import { FormInput } from '@/models/FormInput/FormInput.model';
 import {
     formatDateInput,
     dateInputToServerFormat,
@@ -26,6 +27,7 @@ import {
     components: {
         VueDatePicker,
     },
+    emits: ['open', 'close'],
 })
 class InputDate extends mixins(MixinInput) {
     //
@@ -42,6 +44,7 @@ class InputDate extends mixins(MixinInput) {
     @Prop({ default: false }) isReadOnly?: boolean;
     @Prop({ default: false }) isInline?: boolean;
     @Prop({ default: 'center' }) position?: string;
+    @Prop({ default: false }) teleport?: boolean;
     @Prop({ default: 'off' }) isAutoComplete?: boolean;
     @Prop({ default: true }) isAutoApply?: boolean;
     @Prop({ default: true }) isClearable?: boolean;
@@ -110,6 +113,10 @@ class InputDate extends mixins(MixinInput) {
     //
     // Methods
     //
+    onOpen(formInput: FormInput): void {
+        this.$emit('open', formInput);
+    }
+
     onInput(): void {
         const currentLength = this.localValue.length;
         const isDeleting = currentLength < this.previousLength;
@@ -140,6 +147,11 @@ class InputDate extends mixins(MixinInput) {
 
     focus(): void {
         (this.$refs.datepicker as any)?.openMenu();
+    }
+
+    onClose(formInput: FormInput): void {
+        this.$emit('close', formInput);
+        this.blur();
     }
 
     onInputBlur(): void {
