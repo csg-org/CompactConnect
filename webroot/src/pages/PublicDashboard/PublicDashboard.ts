@@ -6,7 +6,12 @@
 //
 
 import { Component, Vue } from 'vue-facing-decorator';
-import { AuthTypes } from '@/app.config';
+import {
+    authStorage,
+    AuthTypes,
+    AUTH_LOGIN_GOTO_PATH,
+    AUTH_LOGIN_GOTO_PATH_AUTH_TYPE
+} from '@/app.config';
 import SearchIcon from '@components/Icons/Search/Search.vue';
 import RegisterIcon from '@components/Icons/RegisterAlt/RegisterAlt.vue';
 import StaffUserIcon from '@components/Icons/StaffUser/StaffUser.vue';
@@ -81,6 +86,8 @@ export default class DashboardPublic extends Vue {
     }
 
     async mockStaffLogin(): Promise<void> {
+        const goto = authStorage.getItem(AUTH_LOGIN_GOTO_PATH);
+        const gotoAuthType = authStorage.getItem(AUTH_LOGIN_GOTO_PATH_AUTH_TYPE);
         const data = {
             access_token: 'mock_access_token',
             token_type: 'Bearer',
@@ -89,13 +96,21 @@ export default class DashboardPublic extends Vue {
             refresh_token: 'mock_refresh_token'
         };
 
+        authStorage.removeItem(AUTH_LOGIN_GOTO_PATH);
+        authStorage.removeItem(AUTH_LOGIN_GOTO_PATH_AUTH_TYPE);
         await this.$store.dispatch('user/updateAuthTokens', { tokenResponse: data, authType: AuthTypes.STAFF });
         this.$store.dispatch('user/loginSuccess', AuthTypes.STAFF);
 
-        this.$router.push({ name: 'Home' });
+        if (goto && (!gotoAuthType || gotoAuthType === AuthTypes.STAFF)) {
+            this.$router.push({ path: goto });
+        } else {
+            this.$router.push({ name: 'Home' });
+        }
     }
 
     async mockLicenseeLogin(): Promise<void> {
+        const goto = authStorage.getItem(AUTH_LOGIN_GOTO_PATH);
+        const gotoAuthType = authStorage.getItem(AUTH_LOGIN_GOTO_PATH_AUTH_TYPE);
         const data = {
             access_token: 'mock_access_token',
             token_type: 'Bearer',
@@ -104,9 +119,15 @@ export default class DashboardPublic extends Vue {
             refresh_token: 'mock_refresh_token'
         };
 
+        authStorage.removeItem(AUTH_LOGIN_GOTO_PATH);
+        authStorage.removeItem(AUTH_LOGIN_GOTO_PATH_AUTH_TYPE);
         await this.$store.dispatch('user/updateAuthTokens', { tokenResponse: data, authType: AuthTypes.LICENSEE });
         this.$store.dispatch('user/loginSuccess', AuthTypes.LICENSEE);
 
-        this.$router.push({ name: 'Home' });
+        if (goto && (!gotoAuthType || gotoAuthType === AuthTypes.LICENSEE)) {
+            this.$router.push({ path: goto });
+        } else {
+            this.$router.push({ name: 'Home' });
+        }
     }
 }

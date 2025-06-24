@@ -48,7 +48,11 @@ router.beforeEach(async (to, from, next) => {
         const { isLoggedIn } = store.getters['user/state'];
 
         if (!isLoggedIn) {
-            next({ name: 'Logout' });
+            if (to?.path) {
+                next({ name: 'Logout', query: { goto: to.path }});
+            } else {
+                next({ name: 'Logout' });
+            }
         } else if ((isLicenseeRoute && isStaffRoute)
         || (isLicenseeRoute && authStorage.getItem(AUTH_TYPE) === AuthTypes.LICENSEE)
         || (isStaffRoute && authStorage.getItem(AUTH_TYPE) === AuthTypes.STAFF)) {
