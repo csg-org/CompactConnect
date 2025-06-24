@@ -30,15 +30,15 @@ def do_migration(_properties: dict) -> None:
     - For each update record, adds effectiveDate and createDate equal to that updates dateOfUpdate
     - Handles batching for cases where there are more than 100 records to update
     """
-    logger.info('Starting privilege selection migration')
+    logger.info('Starting privilege update date fields migration')
 
-    # Scan for all homeJurisdictionSelection records
+    # Scan for all privilege update records
     privilege_updates = []
     scan_pagination = {}
 
     while True:
         response = config.provider_table.scan(
-            FilterExpression=Attr('sk').contains('privilege') & Attr('sk').contains('UPDATE'),
+            FilterExpression=Attr('type').eq('privilegeUpdate'),
             **scan_pagination,
         )
 
@@ -95,7 +95,7 @@ def _process_batch(privilege_updates: list[dict]) -> None:
 
     for update_record in privilege_updates:
         try:
-            # Extract the selected jurisdiction from the homeJurisdictionSelection record
+            # Extract the dateOfUpdate from the privilegeUpdate record
             datetime_of_update = update_record.get('dateOfUpdate')
             date_of_update = datetime.fromisoformat(datetime_of_update).date().isoformat()
             if not datetime_of_update:
