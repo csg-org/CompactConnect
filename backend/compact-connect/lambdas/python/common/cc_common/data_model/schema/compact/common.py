@@ -49,7 +49,6 @@ class ConfiguredStateSchema(Schema):
     and are tracked for live status management.
     """
 
-    jurisdictionName = String(required=True, allow_none=False)
     postalAbbreviation = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
     isLive = Boolean(required=True, allow_none=False)
 

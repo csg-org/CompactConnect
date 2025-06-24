@@ -1584,12 +1584,8 @@ class ApiModel:
                         description='List of states that have submitted configurations and their live status',
                         items=JsonSchema(
                             type=JsonSchemaType.OBJECT,
-                            required=['jurisdictionName', 'postalAbbreviation', 'isLive'],
+                            required=['postalAbbreviation', 'isLive'],
                             properties={
-                                'jurisdictionName': JsonSchema(
-                                    type=JsonSchemaType.STRING,
-                                    description='The name of the jurisdiction',
-                                ),
                                 'postalAbbreviation': JsonSchema(
                                     type=JsonSchemaType.STRING,
                                     description='The postal abbreviation of the jurisdiction',
@@ -1695,12 +1691,8 @@ class ApiModel:
                         items=JsonSchema(
                             type=JsonSchemaType.OBJECT,
                             additional_properties=False,
-                            required=['jurisdictionName', 'postalAbbreviation', 'isLive'],
+                            required=['postalAbbreviation', 'isLive'],
                             properties={
-                                'jurisdictionName': JsonSchema(
-                                    type=JsonSchemaType.STRING,
-                                    description='The name of the jurisdiction',
-                                ),
                                 'postalAbbreviation': JsonSchema(
                                     type=JsonSchemaType.STRING,
                                     description='The postal abbreviation of the jurisdiction',

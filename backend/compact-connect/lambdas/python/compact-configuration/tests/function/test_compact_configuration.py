@@ -474,8 +474,8 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         event, original_config = self._when_testing_put_compact_configuration()
         body = json.loads(event['body'])
         body['configuredStates'] = [
-            {'jurisdictionName': 'Kentucky', 'postalAbbreviation': 'ky', 'isLive': False},
-            {'jurisdictionName': 'Ohio', 'postalAbbreviation': 'oh', 'isLive': True},
+            {'postalAbbreviation': 'ky', 'isLive': False},
+            {'postalAbbreviation': 'oh', 'isLive': True},
         ]
         event['body'] = json.dumps(body)
 
@@ -486,7 +486,7 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         event, _ = self._when_testing_put_compact_configuration()
         body = json.loads(event['body'])
         body['configuredStates'] = [
-            {'jurisdictionName': 'Kentucky', 'postalAbbreviation': 'ky', 'isLive': False},
+            {'postalAbbreviation': 'ky', 'isLive': False},
             # Removed Ohio
         ]
         event['body'] = json.dumps(body)
@@ -506,8 +506,8 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         event, original_config = self._when_testing_put_compact_configuration()
         body = json.loads(event['body'])
         body['configuredStates'] = [
-            {'jurisdictionName': 'Kentucky', 'postalAbbreviation': 'ky', 'isLive': True},
-            {'jurisdictionName': 'Ohio', 'postalAbbreviation': 'oh', 'isLive': False},
+            {'postalAbbreviation': 'ky', 'isLive': True},
+            {'postalAbbreviation': 'oh', 'isLive': False},
         ]
         event['body'] = json.dumps(body)
 
@@ -518,8 +518,8 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         event, _ = self._when_testing_put_compact_configuration()
         body = json.loads(event['body'])
         body['configuredStates'] = [
-            {'jurisdictionName': 'Kentucky', 'postalAbbreviation': 'ky', 'isLive': False},  # Changed to false
-            {'jurisdictionName': 'Ohio', 'postalAbbreviation': 'oh', 'isLive': False},
+            {'postalAbbreviation': 'ky', 'isLive': False},  # Changed to false
+            {'postalAbbreviation': 'oh', 'isLive': False},
         ]
         event['body'] = json.dumps(body)
 
@@ -538,7 +538,7 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         event, original_config = self._when_testing_put_compact_configuration()
         body = json.loads(event['body'])
         body['configuredStates'] = [
-            {'jurisdictionName': 'Kentucky', 'postalAbbreviation': 'ky', 'isLive': False},
+            {'postalAbbreviation': 'ky', 'isLive': False},
         ]
         event['body'] = json.dumps(body)
 
@@ -549,7 +549,7 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         event, _ = self._when_testing_put_compact_configuration()
         body = json.loads(event['body'])
         body['configuredStates'] = [
-            {'jurisdictionName': 'Kentucky', 'postalAbbreviation': 'ky', 'isLive': True},  # Changed to true
+            {'postalAbbreviation': 'ky', 'isLive': True},  # Changed to true
         ]
         event['body'] = json.dumps(body)
 
@@ -575,7 +575,7 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         event, original_config = self._when_testing_put_compact_configuration()
         body = json.loads(event['body'])
         body['configuredStates'] = [
-            {'jurisdictionName': 'Kentucky', 'postalAbbreviation': 'ky', 'isLive': False},
+            {'postalAbbreviation': 'ky', 'isLive': False},
         ]
         event['body'] = json.dumps(body)
 
@@ -586,8 +586,8 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         event, _ = self._when_testing_put_compact_configuration()
         body = json.loads(event['body'])
         body['configuredStates'] = [
-            {'jurisdictionName': 'Kentucky', 'postalAbbreviation': 'ky', 'isLive': False},
-            {'jurisdictionName': 'Ohio', 'postalAbbreviation': 'oh', 'isLive': True},  # New state
+            {'postalAbbreviation': 'ky', 'isLive': False},
+            {'postalAbbreviation': 'oh', 'isLive': True},  # New state
         ]
         event['body'] = json.dumps(body)
 
@@ -605,9 +605,9 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         event, original_config = self._when_testing_put_compact_configuration()
         body = json.loads(event['body'])
         body['configuredStates'] = [
-            {'jurisdictionName': 'Kentucky', 'postalAbbreviation': 'ky', 'isLive': False},
-            {'jurisdictionName': 'Ohio', 'postalAbbreviation': 'oh', 'isLive': True},
-            {'jurisdictionName': 'Kentucky', 'postalAbbreviation': 'ky', 'isLive': True},  # Duplicate
+            {'postalAbbreviation': 'ky', 'isLive': False},
+            {'postalAbbreviation': 'oh', 'isLive': True},
+            {'postalAbbreviation': 'ky', 'isLive': True},  # Duplicate
         ]
         event['body'] = json.dumps(body)
 

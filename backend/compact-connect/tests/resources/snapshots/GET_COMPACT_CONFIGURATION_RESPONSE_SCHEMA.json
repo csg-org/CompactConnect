@@ -58,10 +58,6 @@
       "description": "List of states that have submitted configurations and their live status",
       "items": {
         "properties": {
-          "jurisdictionName": {
-            "description": "The name of the jurisdiction",
-            "type": "string"
-          },
           "postalAbbreviation": {
             "description": "The postal abbreviation of the jurisdiction",
             "enum": [
@@ -127,7 +123,6 @@
           }
         },
         "required": [
-          "jurisdictionName",
           "postalAbbreviation",
           "isLive"
         ],

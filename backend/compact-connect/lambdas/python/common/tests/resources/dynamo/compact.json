@@ -21,12 +21,10 @@
   "licenseeRegistrationEnabled": true,
   "configuredStates": [
     {
-      "jurisdictionName": "Alabama",
       "postalAbbreviation": "al",
       "isLive": true
     },
     {
-      "jurisdictionName": "Alaska",
       "postalAbbreviation": "ak",
       "isLive": false
     }
