@@ -489,18 +489,7 @@ class TestDataGenerator:
             'compactAdverseActionsNotificationEmails': ['adverse@example.com'],
             'compactSummaryReportNotificationEmails': ['summary@example.com'],
             'licenseeRegistrationEnabled': True,
-            'configuredStates': [
-                {
-                    'jurisdictionName': 'Kentucky',
-                    'postalAbbreviation': 'ky',
-                    'isLive': True,
-                },
-                {
-                    'jurisdictionName': 'Ohio',
-                    'postalAbbreviation': 'oh',
-                    'isLive': False,
-                },
-            ],
+            'configuredStates': [],
             'transactionFeeConfiguration': {
                 'licenseeCharges': {
                     'active': True,

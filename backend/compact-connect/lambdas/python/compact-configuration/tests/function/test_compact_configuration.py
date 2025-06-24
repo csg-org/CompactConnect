@@ -466,6 +466,159 @@ class TestStaffUsersCompactConfiguration(TstFunction):
             response_body['message'],
         )
 
+    def test_put_compact_configuration_rejects_removing_configured_states(self):
+        """Test that removing states from configuredStates is rejected."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        # First, create a compact configuration with some configured states
+        event, original_config = self._when_testing_put_compact_configuration()
+        body = json.loads(event['body'])
+        body['configuredStates'] = [
+            {'jurisdictionName': 'Kentucky', 'postalAbbreviation': 'ky', 'isLive': False},
+            {'jurisdictionName': 'Ohio', 'postalAbbreviation': 'oh', 'isLive': True},
+        ]
+        event['body'] = json.dumps(body)
+
+        # Submit the configuration
+        compact_configuration_api_handler(event, self.mock_context)
+
+        # Now attempt to remove one of the states
+        event, _ = self._when_testing_put_compact_configuration()
+        body = json.loads(event['body'])
+        body['configuredStates'] = [
+            {'jurisdictionName': 'Kentucky', 'postalAbbreviation': 'ky', 'isLive': False},
+            # Removed Ohio
+        ]
+        event['body'] = json.dumps(body)
+
+        # Should be rejected with a 400 error
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        response_body = json.loads(response['body'])
+        self.assertIn('States cannot be removed from configuredStates', response_body['message'])
+        self.assertIn('oh', response_body['message'])
+
+    def test_put_compact_configuration_rejects_downgrading_is_live_status(self):
+        """Test that changing isLive from true to false is rejected."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        # First, create a compact configuration with a live state
+        event, original_config = self._when_testing_put_compact_configuration()
+        body = json.loads(event['body'])
+        body['configuredStates'] = [
+            {'jurisdictionName': 'Kentucky', 'postalAbbreviation': 'ky', 'isLive': True},
+            {'jurisdictionName': 'Ohio', 'postalAbbreviation': 'oh', 'isLive': False},
+        ]
+        event['body'] = json.dumps(body)
+
+        # Submit the configuration
+        compact_configuration_api_handler(event, self.mock_context)
+
+        # Now attempt to change Kentucky from live to non-live
+        event, _ = self._when_testing_put_compact_configuration()
+        body = json.loads(event['body'])
+        body['configuredStates'] = [
+            {'jurisdictionName': 'Kentucky', 'postalAbbreviation': 'ky', 'isLive': False},  # Changed to false
+            {'jurisdictionName': 'Ohio', 'postalAbbreviation': 'oh', 'isLive': False},
+        ]
+        event['body'] = json.dumps(body)
+
+        # Should be rejected with a 400 error
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        response_body = json.loads(response['body'])
+        self.assertIn('cannot be changed from live to non-live status', response_body['message'])
+        self.assertIn('ky', response_body['message'])
+
+    def test_put_compact_configuration_allows_upgrading_is_live_status(self):
+        """Test that changing isLive from false to true is allowed."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        # First, create a compact configuration with a non-live state
+        event, original_config = self._when_testing_put_compact_configuration()
+        body = json.loads(event['body'])
+        body['configuredStates'] = [
+            {'jurisdictionName': 'Kentucky', 'postalAbbreviation': 'ky', 'isLive': False},
+        ]
+        event['body'] = json.dumps(body)
+
+        # Submit the configuration
+        compact_configuration_api_handler(event, self.mock_context)
+
+        # Now change Kentucky from non-live to live
+        event, _ = self._when_testing_put_compact_configuration()
+        body = json.loads(event['body'])
+        body['configuredStates'] = [
+            {'jurisdictionName': 'Kentucky', 'postalAbbreviation': 'ky', 'isLive': True},  # Changed to true
+        ]
+        event['body'] = json.dumps(body)
+
+        # Should be accepted
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'])
+
+        # Verify the state was updated in the database
+        stored_compact_data = self.config.compact_configuration_client.get_compact_configuration(
+            original_config.compactAbbr
+        )
+        configured_states = stored_compact_data.configuredStates
+
+        self.assertEqual(len(configured_states), 1)
+        self.assertEqual(configured_states[0]['postalAbbreviation'], 'ky')
+        self.assertTrue(configured_states[0]['isLive'])
+
+    def test_put_compact_configuration_rejects_adding_new_states(self):
+        """Test that adding new states to configuredStates is rejected."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        # First, create a compact configuration with one state
+        event, original_config = self._when_testing_put_compact_configuration()
+        body = json.loads(event['body'])
+        body['configuredStates'] = [
+            {'jurisdictionName': 'Kentucky', 'postalAbbreviation': 'ky', 'isLive': False},
+        ]
+        event['body'] = json.dumps(body)
+
+        # Submit the configuration
+        compact_configuration_api_handler(event, self.mock_context)
+
+        # Now attempt to add a new state
+        event, _ = self._when_testing_put_compact_configuration()
+        body = json.loads(event['body'])
+        body['configuredStates'] = [
+            {'jurisdictionName': 'Kentucky', 'postalAbbreviation': 'ky', 'isLive': False},
+            {'jurisdictionName': 'Ohio', 'postalAbbreviation': 'oh', 'isLive': True},  # New state
+        ]
+        event['body'] = json.dumps(body)
+
+        # Should be rejected with a 400 error
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        response_body = json.loads(response['body'])
+        self.assertIn('States cannot be manually added to configuredStates', response_body['message'])
+        self.assertIn('oh', response_body['message'])
+
+    def test_put_compact_configuration_rejects_duplicate_configured_states(self):
+        """Test that duplicate states in configuredStates are rejected."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        event, original_config = self._when_testing_put_compact_configuration()
+        body = json.loads(event['body'])
+        body['configuredStates'] = [
+            {'jurisdictionName': 'Kentucky', 'postalAbbreviation': 'ky', 'isLive': False},
+            {'jurisdictionName': 'Ohio', 'postalAbbreviation': 'oh', 'isLive': True},
+            {'jurisdictionName': 'Kentucky', 'postalAbbreviation': 'ky', 'isLive': True},  # Duplicate
+        ]
+        event['body'] = json.dumps(body)
+
+        # Should be rejected with a 400 error
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        response_body = json.loads(response['body'])
+        self.assertIn('Duplicate states found in configuredStates', response_body['message'])
+        self.assertIn('ky', response_body['message'])
+        self.assertIn('Each state can only appear once', response_body['message'])
+
 
 TEST_MILITARY_RATE = Decimal('40.00')
 
