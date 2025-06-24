@@ -1545,6 +1545,7 @@ class ApiModel:
                     'compactAdverseActionsNotificationEmails',
                     'compactSummaryReportNotificationEmails',
                     'licenseeRegistrationEnabled',
+                    'configuredStates',
                 ],
                 properties={
                     'compactAbbr': JsonSchema(
@@ -1577,6 +1578,29 @@ class ApiModel:
                     'licenseeRegistrationEnabled': JsonSchema(
                         type=JsonSchemaType.BOOLEAN,
                         description='Denotes whether licensee registration is enabled',
+                    ),
+                    'configuredStates': JsonSchema(
+                        type=JsonSchemaType.ARRAY,
+                        description='List of states that have submitted configurations and their live status',
+                        items=JsonSchema(
+                            type=JsonSchemaType.OBJECT,
+                            required=['jurisdictionName', 'postalAbbreviation', 'isLive'],
+                            properties={
+                                'jurisdictionName': JsonSchema(
+                                    type=JsonSchemaType.STRING,
+                                    description='The name of the jurisdiction',
+                                ),
+                                'postalAbbreviation': JsonSchema(
+                                    type=JsonSchemaType.STRING,
+                                    description='The postal abbreviation of the jurisdiction',
+                                    enum=self.api.node.get_context('jurisdictions'),
+                                ),
+                                'isLive': JsonSchema(
+                                    type=JsonSchemaType.BOOLEAN,
+                                    description='Whether the state is live and available for registrations.',
+                                ),
+                            },
+                        ),
                     ),
                     'transactionFeeConfiguration': JsonSchema(
                         type=JsonSchemaType.OBJECT,
@@ -1625,6 +1649,7 @@ class ApiModel:
                     'compactAdverseActionsNotificationEmails',
                     'compactSummaryReportNotificationEmails',
                     'licenseeRegistrationEnabled',
+                    'configuredStates',
                 ],
                 properties={
                     'compactCommissionFee': JsonSchema(
@@ -1663,6 +1688,30 @@ class ApiModel:
                     'licenseeRegistrationEnabled': JsonSchema(
                         type=JsonSchemaType.BOOLEAN,
                         description='Denotes whether licensee registration is enabled',
+                    ),
+                    'configuredStates': JsonSchema(
+                        type=JsonSchemaType.ARRAY,
+                        description='List of states that have submitted configurations and their live status',
+                        items=JsonSchema(
+                            type=JsonSchemaType.OBJECT,
+                            additional_properties=False,
+                            required=['jurisdictionName', 'postalAbbreviation', 'isLive'],
+                            properties={
+                                'jurisdictionName': JsonSchema(
+                                    type=JsonSchemaType.STRING,
+                                    description='The name of the jurisdiction',
+                                ),
+                                'postalAbbreviation': JsonSchema(
+                                    type=JsonSchemaType.STRING,
+                                    description='The postal abbreviation of the jurisdiction',
+                                    enum=self.api.node.get_context('jurisdictions'),
+                                ),
+                                'isLive': JsonSchema(
+                                    type=JsonSchemaType.BOOLEAN,
+                                    description='Whether the state is live and available for registrations.',
+                                ),
+                            },
+                        ),
                     ),
                     'transactionFeeConfiguration': JsonSchema(
                         type=JsonSchemaType.OBJECT,

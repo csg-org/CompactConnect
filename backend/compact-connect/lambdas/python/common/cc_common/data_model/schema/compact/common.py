@@ -3,6 +3,7 @@ from marshmallow import Schema
 from marshmallow.fields import Boolean, Nested, String
 from marshmallow.validate import OneOf
 
+from cc_common.config import config
 from cc_common.data_model.schema.common import CCEnum
 from cc_common.data_model.schema.fields import PositiveDecimal
 
@@ -38,6 +39,19 @@ class TransactionFeeConfigurationSchema(Schema):
     """Schema for the transaction fee configuration"""
 
     licenseeCharges = Nested(LicenseeChargesSchema(), required=False, allow_none=True)
+
+
+class ConfiguredStateSchema(Schema):
+    """
+    Schema for individual configured state entries in a compact configuration.
+
+    This schema defines the structure for states that have submitted configurations
+    and are tracked for live status management.
+    """
+
+    jurisdictionName = String(required=True, allow_none=False)
+    postalAbbreviation = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
+    isLive = Boolean(required=True, allow_none=False)
 
 
 class PaymentProcessorPublicFieldsSchema(Schema):

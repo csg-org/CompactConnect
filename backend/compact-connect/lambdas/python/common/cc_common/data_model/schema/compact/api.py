@@ -9,6 +9,7 @@ from cc_common.data_model.schema.compact.common import (
     COMPACT_TYPE,
     CompactCommissionFeeSchema,
     CompactFeeType,
+    ConfiguredStateSchema,
     LicenseeChargesSchema,
     PaymentProcessorPublicFieldsSchema,
 )
@@ -57,6 +58,7 @@ class CompactConfigurationResponseSchema(ForgivingSchema):
         allow_none=False,
     )
     licenseeRegistrationEnabled = Boolean(required=True, allow_none=False)
+    configuredStates = List(Nested(ConfiguredStateSchema()), required=True, allow_none=False)
 
 
 class PutCompactConfigurationRequestSchema(Schema):
@@ -74,3 +76,4 @@ class PutCompactConfigurationRequestSchema(Schema):
         Email(required=True, allow_none=False), required=True, allow_none=False, validate=Length(min=1)
     )
     licenseeRegistrationEnabled = Boolean(required=True, allow_none=False)
+    configuredStates = List(Nested(ConfiguredStateSchema()), required=True, allow_none=False)

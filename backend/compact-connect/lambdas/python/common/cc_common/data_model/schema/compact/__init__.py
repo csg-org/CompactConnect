@@ -134,3 +134,7 @@ class CompactConfigurationData(CCDataClass):
     @property
     def paymentProcessorPublicFields(self) -> dict | None:
         return self._data.get('paymentProcessorPublicFields')
+
+    @property
+    def configuredStates(self) -> list[dict]:
+        return self._data.get('configuredStates', [])

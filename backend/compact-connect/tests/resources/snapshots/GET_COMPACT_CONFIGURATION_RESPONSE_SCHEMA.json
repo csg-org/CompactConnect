@@ -54,6 +54,87 @@
       "description": "Denotes whether licensee registration is enabled",
       "type": "boolean"
     },
+    "configuredStates": {
+      "description": "List of states that have submitted configurations and their live status",
+      "items": {
+        "properties": {
+          "jurisdictionName": {
+            "description": "The name of the jurisdiction",
+            "type": "string"
+          },
+          "postalAbbreviation": {
+            "description": "The postal abbreviation of the jurisdiction",
+            "enum": [
+              "al",
+              "ak",
+              "az",
+              "ar",
+              "ca",
+              "co",
+              "ct",
+              "de",
+              "dc",
+              "fl",
+              "ga",
+              "hi",
+              "id",
+              "il",
+              "in",
+              "ia",
+              "ks",
+              "ky",
+              "la",
+              "me",
+              "md",
+              "ma",
+              "mi",
+              "mn",
+              "ms",
+              "mo",
+              "mt",
+              "ne",
+              "nv",
+              "nh",
+              "nj",
+              "nm",
+              "ny",
+              "nc",
+              "nd",
+              "oh",
+              "ok",
+              "or",
+              "pa",
+              "pr",
+              "ri",
+              "sc",
+              "sd",
+              "tn",
+              "tx",
+              "ut",
+              "vt",
+              "va",
+              "vi",
+              "wa",
+              "wv",
+              "wi",
+              "wy"
+            ],
+            "type": "string"
+          },
+          "isLive": {
+            "description": "Whether the state is live and available for registrations.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "jurisdictionName",
+          "postalAbbreviation",
+          "isLive"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
     "transactionFeeConfiguration": {
       "properties": {
         "licenseeCharges": {
@@ -92,7 +173,8 @@
     "compactOperationsTeamEmails",
     "compactAdverseActionsNotificationEmails",
     "compactSummaryReportNotificationEmails",
-    "licenseeRegistrationEnabled"
+    "licenseeRegistrationEnabled",
+    "configuredStates"
   ],
   "type": "object",
   "$schema": "http://json-schema.org/draft-04/schema#"

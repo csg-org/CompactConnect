@@ -19,5 +19,17 @@
   "compactAdverseActionsNotificationEmails": ["<email address>"],
   "compactSummaryReportNotificationEmails": ["<email address>"],
   "licenseeRegistrationEnabled": true,
+  "configuredStates": [
+    {
+      "jurisdictionName": "Alabama",
+      "postalAbbreviation": "al",
+      "isLive": true
+    },
+    {
+      "jurisdictionName": "Alaska",
+      "postalAbbreviation": "ak",
+      "isLive": false
+    }
+  ],
   "dateOfUpdate": "2024-10-04T12:34:56+00:00"
 }

@@ -152,6 +152,7 @@ def _get_staff_users_compact_configuration(event: dict, context: LambdaContext):
                 'compactOperationsTeamEmails': [],
                 'compactAdverseActionsNotificationEmails': [],
                 'compactSummaryReportNotificationEmails': [],
+                'configuredStates': [],
             }
         ).to_dict()
         # we explicitly set this value to None (null) to denote it has not been set.
