@@ -10,7 +10,12 @@ import {
     toNative,
     Prop
 } from 'vue-facing-decorator';
-import { reactive, computed, nextTick } from 'vue';
+import {
+    reactive,
+    computed,
+    ComputedRef,
+    nextTick
+} from 'vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import InputTextarea from '@components/Forms/InputTextarea/InputTextarea.vue';
 import InputDate from '@components/Forms/InputDate/InputDate.vue';
@@ -178,7 +183,7 @@ class PrivilegeCard extends mixins(MixinForm) {
         return this.privilege?.adverseActions || [];
     }
 
-    get npdbCategoryOptions(): Array<{ value: string, name: string }> {
+    get npdbCategoryOptions(): Array<{ value: string, name: string | ComputedRef<string> }> {
         const options = this.$tm('licensing.npdbTypes').map((npdbType) => ({
             value: npdbType.key,
             name: npdbType.name,
