@@ -946,3 +946,106 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
         self.assertEqual(400, response['statusCode'])
         response_body = json.loads(response['body'])
         self.assertIn('Once licensee registration has been enabled, it cannot be disabled', response_body['message'])
+
+    def test_put_jurisdiction_configuration_adds_state_to_configured_states_when_enabling_registration(self):
+        """Test that enabling licensee registration automatically adds the state to compact's configuredStates."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        # First, create a compact configuration with empty configuredStates
+        compact_config = self.test_data_generator.put_default_compact_configuration_in_configuration_table(
+            value_overrides={'configuredStates': []}
+        )
+
+        # Create a jurisdiction configuration with licenseeRegistrationEnabled=True
+        event, jurisdiction_config = self._when_testing_put_jurisdiction_configuration()
+        body = json.loads(event['body'])
+        body['licenseeRegistrationEnabled'] = True
+        event['body'] = json.dumps(body)
+
+        # Submit the configuration
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'])
+
+        # Verify the state was added to the compact's configuredStates
+        updated_compact_config = self.config.compact_configuration_client.get_compact_configuration(
+            compact_config.compactAbbr
+        )
+        configured_states = updated_compact_config.configuredStates
+
+        self.assertEqual(len(configured_states), 1)
+        self.assertEqual(configured_states[0]['postalAbbreviation'], jurisdiction_config.postalAbbreviation)
+        self.assertFalse(configured_states[0]['isLive'])
+
+    def test_put_jurisdiction_configuration_does_not_add_duplicate_state_to_configured_states(self):
+        """Test that a state is not added to configuredStates if it already exists."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        # First, create a compact configuration with the state already in configuredStates
+        compact_config = self.test_data_generator.put_default_compact_configuration_in_configuration_table(
+            value_overrides={'configuredStates': [{'postalAbbreviation': 'ky', 'isLive': True}]}
+        )
+
+        # Create a jurisdiction configuration for the same state with licenseeRegistrationEnabled=True
+        event, jurisdiction_config = self._when_testing_put_jurisdiction_configuration()
+        body = json.loads(event['body'])
+        body['licenseeRegistrationEnabled'] = True
+        event['body'] = json.dumps(body)
+
+        # Submit the configuration
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'])
+
+        # Verify the configuredStates list is unchanged (no duplicate added)
+        updated_compact_config = self.config.compact_configuration_client.get_compact_configuration(
+            compact_config.compactAbbr
+        )
+        configured_states = updated_compact_config.configuredStates
+
+        self.assertEqual(len(configured_states), 1)
+        self.assertEqual(configured_states[0]['postalAbbreviation'], 'ky')
+        self.assertTrue(configured_states[0]['isLive'])  # Should preserve existing isLive status
+
+    def test_put_jurisdiction_configuration_only_adds_state_to_compact_when_changing_from_false_to_true(self):
+        """Test that changing licenseeRegistrationEnabled from false to true adds the state to configuredStates."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        # First, create a compact configuration with empty configuredStates
+        compact_config = self.test_data_generator.put_default_compact_configuration_in_configuration_table(
+            value_overrides={'configuredStates': []}
+        )
+
+        # Create a jurisdiction configuration with licenseeRegistrationEnabled=False
+        event, jurisdiction_config = self._when_testing_put_jurisdiction_configuration()
+        body = json.loads(event['body'])
+        body['licenseeRegistrationEnabled'] = False
+        event['body'] = json.dumps(body)
+
+        # Submit the initial configuration
+        compact_configuration_api_handler(event, self.mock_context)
+
+        # Verify the state was not added to configuredStates
+        updated_compact_config = self.config.compact_configuration_client.get_compact_configuration(
+            compact_config.compactAbbr
+        )
+        configured_states = updated_compact_config.configuredStates
+        self.assertEqual(len(configured_states), 0)
+
+        # Now update to enable licensee registration
+        event, _ = self._when_testing_put_jurisdiction_configuration()
+        body = json.loads(event['body'])
+        body['licenseeRegistrationEnabled'] = True
+        event['body'] = json.dumps(body)
+
+        # Submit the updated configuration
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'])
+
+        # Verify the state was added to configuredStates
+        updated_compact_config = self.config.compact_configuration_client.get_compact_configuration(
+            compact_config.compactAbbr
+        )
+        configured_states = updated_compact_config.configuredStates
+
+        self.assertEqual(len(configured_states), 1)
+        self.assertEqual(configured_states[0]['postalAbbreviation'], jurisdiction_config.postalAbbreviation)
+        self.assertFalse(configured_states[0]['isLive'])
