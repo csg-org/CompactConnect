@@ -10,7 +10,7 @@
         <form class="complete-purchase-form" @submit.prevent="() => null">
             <div class="finalize-purchase-container">
                 <div class="finalize-purchase-title-row">
-                    <h1 class="finalize-purchase-title">{{$t('payment.payment')}}</h1>
+                    <h1 class="finalize-purchase-title">{{$t('payment.paymentSummary')}}</h1>
                 </div>
                 <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
                 <div class="cost-breakdown-container">
