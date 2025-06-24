@@ -36,7 +36,7 @@
                     >
                         <li
                             v-if="isCurrentUserLicenseStateAdmin"
-                            class="license-menu-item"
+                            class="license-menu-item danger"
                             role="button"
                             @click="toggleEncumberLicenseModal"
                             @keyup.enter="toggleEncumberLicenseModal"

@@ -46,7 +46,7 @@
                         </li>
                         <li
                             v-if="isCurrentUserPrivilegeStateAdmin"
-                            class="privilege-menu-item"
+                            class="privilege-menu-item danger"
                             role="button"
                             @click="toggleEncumberPrivilegeModal"
                             @keyup.enter="toggleEncumberPrivilegeModal"
