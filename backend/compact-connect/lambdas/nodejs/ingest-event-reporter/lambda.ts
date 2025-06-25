@@ -63,7 +63,15 @@ export class Lambda implements LambdaInterface {
 
         // Loop over each compact the system knows about
         for (const compact of environmentVariables.getCompacts()) {
-            const compactConfig = await this.compactConfigurationClient.getCompactConfiguration(compact);
+            let compactConfig;
+            try {
+                compactConfig = await this.compactConfigurationClient.getCompactConfiguration(compact);
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                logger.warn('Compact configuration not found, skipping compact', { compact, error: errorMessage });
+                continue;
+            }
+
             const jurisdictionConfigs = await this.jurisdictionClient.getJurisdictionConfigurations(compact);
 
             // Loop over each jurisdiction that we have contacts configured for

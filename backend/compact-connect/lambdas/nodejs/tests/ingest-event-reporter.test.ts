@@ -245,7 +245,13 @@ describe('Nightly runs', () => {
         const mockDynamoDBClient = mockClient(DynamoDBClient);
         const mockS3Client = mockClient(S3Client);
 
-        mockDynamoDBClient.on(GetItemCommand).rejects(new Error('DynamoDB error'));
+        // Mock GetItemCommand to succeed (compact config found)
+        mockDynamoDBClient.on(GetItemCommand).resolves({
+            Item: SAMPLE_COMPACT_CONFIGURATION
+        });
+
+        // Mock QueryCommand to fail (jurisdictions query fails)
+        mockDynamoDBClient.on(QueryCommand).rejects(new Error('DynamoDB error'));
 
         lambda = new Lambda({
             dynamoDBClient: asDynamoDBClient(mockDynamoDBClient),
@@ -258,6 +264,31 @@ describe('Nightly runs', () => {
             SAMPLE_NIGHTLY_EVENT,
             SAMPLE_CONTEXT
         )).rejects.toThrow('DynamoDB error');
+    });
+
+    it('should skip compact and continue processing when compact configuration is not found', async () => {
+        const mockDynamoDBClient = mockClient(DynamoDBClient);
+        const mockS3Client = mockClient(S3Client);
+
+        // Mock GetItemCommand to reject with "not found" error for compact configuration
+        mockDynamoDBClient.on(GetItemCommand).rejects(new Error('No configuration found for compact: aslp'));
+
+        lambda = new Lambda({
+            dynamoDBClient: asDynamoDBClient(mockDynamoDBClient),
+            s3Client: asS3Client(mockS3Client),
+            sesClient: asSESClient(mockSESClient)
+        });
+
+        // Should not throw an error, should complete successfully
+        await expect(lambda.handler(
+            SAMPLE_NIGHTLY_EVENT,
+            SAMPLE_CONTEXT
+        )).resolves.toBeUndefined();
+
+        // Verify no emails were sent since we skipped all compacts
+        expect(mockSendReportEmail).not.toHaveBeenCalled();
+        expect(mockSendAllsWellEmail).not.toHaveBeenCalled();
+        expect(mockSendNoLicenseUpdatesEmail).not.toHaveBeenCalled();
     });
 });
 
