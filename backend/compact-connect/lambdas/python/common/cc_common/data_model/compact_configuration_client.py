@@ -344,9 +344,7 @@ class CompactConfigurationClient:
                 },
             }
 
-        message = (
-            'Compact configuration not found or has no configuredStates when filtering privilege purchase options'
-        )
+        message = 'Compact configuration not found or has no configuredStates when filtering privilege purchase options'
         logger.info(
             message,
             compact_config_found=compact_config_item is not None,
