@@ -171,8 +171,6 @@ class PrivilegePurchaseLicense extends mixins(MixinForm) {
             });
 
             this.endFormLoading();
-        } else {
-            this.showInvalidFormError();
         }
     }
 
