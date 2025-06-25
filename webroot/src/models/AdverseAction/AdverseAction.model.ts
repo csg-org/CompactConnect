@@ -76,6 +76,7 @@ export class AdverseAction implements InterfaceAdverseActionCreate {
     }
 
     public isActive(): boolean {
+        // Determine whether the adverse action is currently in effect
         const { startDate, endDate } = this;
         const startDateMoment = (startDate) ? moment(startDate, serverDateFormat) : null;
         const endDateMoment = (endDate) ? moment(endDate, serverDateFormat) : null;
