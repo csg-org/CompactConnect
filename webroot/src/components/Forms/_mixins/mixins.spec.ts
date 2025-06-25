@@ -9,6 +9,7 @@ import { mountShallow } from '@tests/helpers/setup';
 import FormMixin from '@components/Forms/_mixins/form.mixin';
 import InputMixin from '@components/Forms/_mixins/input.mixin';
 import { FormInput } from '@models/FormInput/FormInput.model';
+import Joi from 'joi';
 
 const chaiMatchPattern = require('chai-match-pattern');
 const chai = require('chai').use(chaiMatchPattern);
@@ -129,9 +130,10 @@ describe('Form mixin', async () => {
         const component = wrapper.vm;
         const formInput = new FormInput();
 
-        formInput.id = 'test-input';
+        formInput.name = 'test-input';
         formInput.isValid = false;
         formInput.isSubmitInput = false;
+        formInput.validation = Joi.string().required();
         component.formData.testInput = formInput;
 
         // Mock scrollToInput method to verify it gets called
@@ -150,7 +152,7 @@ describe('Form mixin', async () => {
         const component = wrapper.vm;
         const formInput = new FormInput();
 
-        formInput.id = 'test-input';
+        formInput.name = 'test-input';
         formInput.isValid = true;
         formInput.isSubmitInput = false;
         component.formData.testInput = formInput;
@@ -175,10 +177,12 @@ describe('Form mixin', async () => {
         submitInput.name = 'submit-input';
         submitInput.isValid = false;
         submitInput.isSubmitInput = true;
+        submitInput.validation = Joi.string().required();
 
         regularInput.name = 'regular-input';
         regularInput.isValid = false;
         regularInput.isSubmitInput = false;
+        regularInput.validation = Joi.string().required();
 
         component.formData.submitInput = submitInput;
         component.formData.regularInput = regularInput;

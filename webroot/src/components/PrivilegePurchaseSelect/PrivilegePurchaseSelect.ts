@@ -32,6 +32,7 @@ import { PurchaseFlowStep } from '@/models/PurchaseFlowStep/PurchaseFlowStep.mod
 import { State } from '@/models/State/State.model';
 import { dataApi } from '@network/data.api';
 import moment from 'moment';
+import Joi from 'joi';
 
 @Component({
     name: 'PrivilegePurchaseSelect',
@@ -317,8 +318,6 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
     initFormInputs(): void {
         const initFormData: any = {
             stateCheckList: [],
-            jurisprudenceConfirmations: {},
-            scopeOfPracticeConfirmations: {},
             submit: new FormInput({
                 isSubmitInput: true,
                 id: 'submit',
@@ -346,8 +345,61 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
         this.formData = reactive(initFormData);
     }
 
+    // Add attestation FormInputs as top-level properties
+    addStateAttestationInputs(stateAbbrev: string) {
+        // Find the state object in purchaseDataList
+        const stateObj = this.purchaseDataList.find(
+            (option) => option.jurisdiction?.abbrev === stateAbbrev
+        );
+
+        // Only add jurisprudence attestation if required
+        if (stateObj?.isJurisprudenceRequired) {
+            this.formData[`jurisprudence-${stateAbbrev}`] = new FormInput({
+                id: `jurisprudence-${stateAbbrev}`,
+                name: `jurisprudence-${stateAbbrev}`,
+                label: this.jurisprudenceExplanationText,
+                value: false,
+                validation: Joi.boolean().invalid(false).required().messages(this.joiMessages.boolean),
+            });
+        } else {
+            delete this.formData[`jurisprudence-${stateAbbrev}`];
+        }
+
+        // Always add scope attestation (or add a check if that's conditional)
+        this.formData[`scope-${stateAbbrev}`] = new FormInput({
+            id: `scope-${stateAbbrev}`,
+            name: `scope-${stateAbbrev}`,
+            label: this.scopeOfPracticeText,
+            value: false,
+            validation: Joi.boolean().invalid(false).required().messages(this.joiMessages.boolean),
+        });
+    }
+
+    // Remove attestation FormInputs from top-level properties
+    removeStateAttestationInputs(stateAbbrev: string) {
+        delete this.formData[`jurisprudence-${stateAbbrev}`];
+        delete this.formData[`scope-${stateAbbrev}`];
+    }
+
+    // Update state selection logic
+    toggleStateSelected(stateFormInput) {
+        const newStateFormInputValue = !stateFormInput.value;
+        const stateAbbrev = stateFormInput.id;
+
+        stateFormInput.value = newStateFormInputValue;
+
+        if (newStateFormInputValue) {
+            this.addStateAttestationInputs(stateAbbrev);
+        } else {
+            this.removeStateAttestationInputs(stateAbbrev);
+        }
+    }
+
     handleSubmit() {
-        if (this.isAtLeastOnePrivilegeChosen && this.areAllAttesationsConfirmed) {
+        // Always validate all before checking isFormValid
+        this.validateAll({ asTouched: true });
+
+        if (this.isAtLeastOnePrivilegeChosen && this.isFormValid) {
             const selectedStates = this.formData.stateCheckList.filter((input) => input.value).map((input) => input.id);
             const attestationData = this.prepareAttestations();
 
@@ -361,8 +413,6 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
                 name: 'PrivilegePurchaseAttestation',
                 params: { compact: this.currentCompactType }
             });
-        } else if (!this.areAllAttesationsConfirmed) {
-            this.scrollToFirstInvalidAttestation();
         }
     }
 
@@ -397,36 +447,6 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
         this.formData.stateCheckList.find((checkBox) => (checkBox.id === stateAbbrev)).value = false;
         delete this.formData.jurisprudenceConfirmations[stateAbbrev];
         delete this.formData.scopeOfPracticeConfirmations[stateAbbrev];
-    }
-
-    toggleStateSelected(stateFormInput) {
-        const newStateFormInputValue = !stateFormInput.value;
-        const stateAbbrev = stateFormInput.id;
-
-        stateFormInput.value = newStateFormInputValue;
-
-        if (newStateFormInputValue) {
-            if (stateAbbrev) {
-                this.formData.scopeOfPracticeConfirmations[stateAbbrev] = new FormInput({
-                    id: `${stateAbbrev}-scope`,
-                    name: `${stateAbbrev}-scope`,
-                    label: this.scopeOfPracticeText,
-                    value: false
-                });
-
-                if (this.selectedStatesWithJurisprudenceRequired.includes(stateAbbrev)) {
-                    this.formData.jurisprudenceConfirmations[stateAbbrev] = new FormInput({
-                        id: `${stateAbbrev}-jurisprudence`,
-                        name: `${stateAbbrev}-jurisprudence`,
-                        label: this.jurisprudenceExplanationText,
-                        value: false
-                    });
-                }
-            }
-        } else {
-            delete this.formData.jurisprudenceConfirmations[stateAbbrev];
-            delete this.formData.scopeOfPracticeConfirmations[stateAbbrev];
-        }
     }
 
     isStateSelectDisabled(state): boolean {
@@ -473,69 +493,5 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
 
     @Watch('disabledPrivilegeStateChoices.length') reInitForm() {
         this.initFormInputs();
-    }
-
-    scrollToFirstInvalidAttestation(): void {
-        const { formData } = this;
-
-        // Get selected states in their visual order (same as stateCheckList)
-        const selectedStates = this.stateCheckList.filter((state) => state.value);
-        let firstInvalidInput: FormInput | undefined;
-
-        // Set error messages for all selected states and find first invalid
-        selectedStates.forEach((state) => {
-            const stateAbbrev = state.id;
-            const jurisprudenceInput = formData.jurisprudenceConfirmations?.[stateAbbrev];
-            const scopeInput = formData.scopeOfPracticeConfirmations[stateAbbrev];
-
-            // Handle jurisprudence confirmation first (if it exists)
-            if (jurisprudenceInput) {
-                if (!jurisprudenceInput.value) {
-                    jurisprudenceInput.isTouched = true;
-                    jurisprudenceInput.errorMessage = this.$t('inputErrors.required');
-                } else {
-                    jurisprudenceInput.errorMessage = '';
-                }
-            }
-
-            // Handle scope of practice confirmation
-            if (scopeInput) {
-                if (!scopeInput.value) {
-                    scopeInput.isTouched = true;
-                    scopeInput.errorMessage = this.$t('inputErrors.required');
-                } else {
-                    scopeInput.errorMessage = '';
-                }
-            }
-        });
-
-        // Find the first invalid input in visual order
-        const stateWithInvalidInput = selectedStates.find((state) => {
-            const stateAbbrev = state.id;
-            const jurisprudenceInput = formData.jurisprudenceConfirmations?.[stateAbbrev];
-            const scopeInput = formData.scopeOfPracticeConfirmations[stateAbbrev];
-
-            // Check if this state has any invalid inputs
-            return (jurisprudenceInput && !jurisprudenceInput.value) || (scopeInput && !scopeInput.value);
-        });
-
-        // Get the specific invalid input from the state
-        if (stateWithInvalidInput) {
-            const stateAbbrev = stateWithInvalidInput.id;
-            const jurisprudenceInput = formData.jurisprudenceConfirmations?.[stateAbbrev];
-            const scopeInput = formData.scopeOfPracticeConfirmations[stateAbbrev];
-
-            // Return the first invalid input (jurisprudence takes priority)
-            if (jurisprudenceInput && !jurisprudenceInput.value) {
-                firstInvalidInput = jurisprudenceInput;
-            } else if (scopeInput && !scopeInput.value) {
-                firstInvalidInput = scopeInput;
-            }
-        }
-
-        // If we found an invalid input, scroll to it with better positioning for long forms
-        if (firstInvalidInput) {
-            this.scrollToInput(firstInvalidInput);
-        }
     }
 }

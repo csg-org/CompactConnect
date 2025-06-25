@@ -158,11 +158,13 @@ class MixinForm extends Vue {
         const { formData } = this;
 
         this.formKeys.forEach((key) => {
-            if (config.asTouched) {
-                formData[key].isTouched = true;
+            // Only validate if it's a FormInput (has a validate function)
+            if (formData[key] && typeof formData[key].validate === 'function') {
+                if (config.asTouched) {
+                    formData[key].isTouched = true;
+                }
+                formData[key].validate();
             }
-
-            formData[key].validate();
         });
 
         this.checkValidForAll();
@@ -176,7 +178,9 @@ class MixinForm extends Vue {
     checkValidForAll(): void {
         const { formData } = this;
 
-        this.isFormValid = this.formKeys.every((key) => formData[key].isValid);
+        this.isFormValid = this.formKeys
+            .filter((key) => formData[key] && typeof formData[key].validate === 'function')
+            .every((key) => formData[key].isValid);
     }
 
     updateFormSubmitSuccess(message: string): void {
@@ -219,11 +223,16 @@ class MixinForm extends Vue {
     showInvalidFormError(): void {
         const { formData } = this;
 
-        // Find the first required invalid input
+        // Find the first required invalid input that has a validation schema
         const firstInvalidKey = this.formKeys.find((key) => {
             const formInput = formData[key];
 
-            return !formInput.isSubmitInput && !formInput.isValid;
+            return (
+                !formInput.isSubmitInput
+                && !formInput.isValid
+                && typeof formInput.validate === 'function'
+                && formInput.validation // Only consider inputs with validation
+            );
         });
 
         // If we found an invalid input, try to scroll to and focus its input by name
