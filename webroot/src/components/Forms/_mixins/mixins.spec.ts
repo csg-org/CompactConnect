@@ -195,6 +195,55 @@ describe('Form mixin', async () => {
         expect(scrollToInputCalledWith).to.not.be.null;
         expect((scrollToInputCalledWith as any).name).to.equal(regularInput.name);
     });
+    it('should scroll to input element when element exists', async () => {
+        const wrapper = await mountShallow(FormMixin);
+        const component = wrapper.vm;
+        const formInput = new FormInput();
+
+        formInput.name = 'test-input';
+
+        // Mock DOM element and its methods
+        const mockElement = {
+            scrollIntoView: () => { /* mock implementation */ },
+            focus: () => { /* mock implementation */ }
+        } as unknown as HTMLElement;
+
+        // Mock document.getElementsByName
+        const originalGetElementsByName = document.getElementsByName;
+
+        document.getElementsByName = (name: string): NodeListOf<HTMLElement> => {
+            if (name === 'test-input') {
+                // Return a NodeList-like object with one element
+                return {
+                    length: 1,
+                    0: mockElement,
+                    item: (index: number) => (index === 0 ? mockElement : null),
+                } as unknown as NodeListOf<HTMLElement>;
+            }
+            return {
+                length: 0,
+                item: () => null,
+            } as unknown as NodeListOf<HTMLElement>;
+        };
+
+        let scrollIntoViewCalled = false;
+        let focusCalled = false;
+
+        (mockElement as any).scrollIntoView = () => {
+            scrollIntoViewCalled = true;
+        };
+        (mockElement as any).focus = () => {
+            focusCalled = true;
+        };
+
+        component.scrollToInput(formInput);
+
+        expect(scrollIntoViewCalled).to.equal(true);
+        expect(focusCalled).to.equal(true);
+
+        // Restore original method
+        document.getElementsByName = originalGetElementsByName;
+    });
 });
 describe('Input mixin', async () => {
     it('should mount the component', async () => {
