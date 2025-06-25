@@ -64,10 +64,12 @@ export class Lambda implements LambdaInterface {
         // Loop over each compact the system knows about
         for (const compact of environmentVariables.getCompacts()) {
             let compactConfig;
+
             try {
                 compactConfig = await this.compactConfigurationClient.getCompactConfiguration(compact);
             } catch (error) {
                 const errorMessage = error instanceof Error ? error.message : String(error);
+
                 logger.warn('Compact configuration not found, skipping compact', { compact, error: errorMessage });
                 continue;
             }
@@ -141,7 +143,10 @@ export class Lambda implements LambdaInterface {
                             const messageId = await this.emailService.sendNoLicenseUpdatesEmail(
                                 compactConfig.compactName,
                                 jurisdictionConfig.jurisdictionName,
-                                [...jurisdictionConfig.jurisdictionOperationsTeamEmails, ...compactConfig.compactOperationsTeamEmails]
+                                [
+                                    ...jurisdictionConfig.jurisdictionOperationsTeamEmails,
+                                    ...compactConfig.compactOperationsTeamEmails
+                                ]
                             );
 
                             logger.warn(

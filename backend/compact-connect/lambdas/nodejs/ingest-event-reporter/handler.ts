@@ -9,4 +9,5 @@ const lambda = new Lambda({
     s3Client: new S3Client(),
     sesClient: new SESClient(),
 });
+
 export const collectEvents = lambda.handler.bind(lambda);
