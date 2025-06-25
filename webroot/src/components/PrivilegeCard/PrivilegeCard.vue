@@ -116,7 +116,7 @@
                                         ? $t('common.loading')
                                         : $t('licensing.confirmPrivilegeDeactivateSubmit')"
                                     :isWarning="true"
-                                    :isEnabled="isFormValid && !isFormLoading"
+                                    :isEnabled="!isFormLoading"
                                 />
                             </div>
                         </form>

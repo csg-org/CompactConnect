@@ -166,6 +166,11 @@ class MixinForm extends Vue {
         });
 
         this.checkValidForAll();
+
+        // Scroll to first invalid input unless explicitly skipped
+        if (!this.isFormValid && !config.skipErrorScroll) {
+            this.showInvalidFormError();
+        }
     }
 
     checkValidForAll(): void {
@@ -218,46 +223,30 @@ class MixinForm extends Vue {
         const firstInvalidKey = this.formKeys.find((key) => {
             const formInput = formData[key];
 
-            // Skip submit inputs
-            if (formInput.isSubmitInput) {
-                return false;
-            }
-
-            const isInvalid = !formInput.isValid;
-
-            return isInvalid;
+            return !formInput.isSubmitInput && !formInput.isValid;
         });
 
-        // If we found an invalid input, scroll to it
+        // If we found an invalid input, try to scroll to and focus its input by name
         if (firstInvalidKey) {
-            this.scrollToInput(formData[firstInvalidKey]);
+            const formInput = formData[firstInvalidKey];
+
+            this.scrollToInput(formInput);
         }
     }
 
     protected scrollToInput(formInput: FormInput): void {
-        const element = document.getElementById(formInput.id);
+        const elements = document.getElementsByName(formInput.name);
 
-        if (element) {
-            // Scroll to the element
-            element.scrollIntoView({
-                behavior: 'smooth',
-                block: 'center'
-            });
+        if (elements.length > 0) {
+            const element = elements[0] as HTMLElement;
 
-            // Check if this is a radio button group by looking for radio inputs inside
-            const radioInputs = element.querySelectorAll('input[type="radio"]');
+            if (element) {
+                // Scroll to the element
+                element.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
 
-            if (radioInputs.length > 0) {
-                // This is a radio button group, focus on the first radio input
-                const firstRadioInput = document.getElementById(`${formInput.id}-1`);
-
-                if (firstRadioInput) {
-                    firstRadioInput.focus();
-                } else {
-                    // Fallback to the first radio input found
-                    (radioInputs[0] as HTMLElement).focus();
-                }
-            } else {
                 element.focus();
             }
         }
