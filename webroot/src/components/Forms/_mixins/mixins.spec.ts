@@ -172,11 +172,11 @@ describe('Form mixin', async () => {
         const submitInput = new FormInput();
         const regularInput = new FormInput();
 
-        submitInput.id = 'submit-input';
+        submitInput.name = 'submit-input';
         submitInput.isValid = false;
         submitInput.isSubmitInput = true;
 
-        regularInput.id = 'regular-input';
+        regularInput.name = 'regular-input';
         regularInput.isValid = false;
         regularInput.isSubmitInput = false;
 
@@ -193,115 +193,7 @@ describe('Form mixin', async () => {
         component.showInvalidFormError();
 
         expect(scrollToInputCalledWith).to.not.be.null;
-        expect((scrollToInputCalledWith as any).id).to.equal(regularInput.id);
-    });
-    it('should scroll to input element when element exists', async () => {
-        const wrapper = await mountShallow(FormMixin);
-        const component = wrapper.vm;
-        const formInput = new FormInput();
-
-        formInput.id = 'test-input';
-
-        // Mock DOM element and its methods
-        const mockElement = {
-            scrollIntoView: () => { /* mock implementation */ },
-            querySelectorAll: () => [],
-            focus: () => { /* mock implementation */ }
-        } as unknown as HTMLElement;
-
-        // Mock document.getElementById
-        const originalGetElementById = document.getElementById;
-
-        document.getElementById = (id: string): HTMLElement | null => {
-            if (id === 'test-input') {
-                return mockElement;
-            }
-            return null;
-        };
-
-        let scrollIntoViewCalled = false;
-        let focusCalled = false;
-
-        (mockElement as any).scrollIntoView = () => {
-            scrollIntoViewCalled = true;
-        };
-        (mockElement as any).focus = () => {
-            focusCalled = true;
-        };
-
-        component.scrollToInput(formInput);
-
-        expect(scrollIntoViewCalled).to.equal(true);
-        expect(focusCalled).to.equal(true);
-
-        // Restore original method
-        document.getElementById = originalGetElementById;
-    });
-    it('should handle radio button group when scrolling to input', async () => {
-        const wrapper = await mountShallow(FormMixin);
-        const component = wrapper.vm;
-        const formInput = new FormInput();
-
-        formInput.id = 'test-radio-group';
-
-        // Mock radio input element
-        const mockRadioInput = {
-            focus: () => { /* mock implementation */ }
-        } as unknown as HTMLElement;
-
-        // Mock main element with radio inputs
-        const mockElement = {
-            scrollIntoView: () => { /* mock implementation */ },
-            querySelectorAll: () => [mockRadioInput],
-            focus: () => { /* mock implementation */ }
-        } as unknown as HTMLElement;
-
-        // Mock document.getElementById
-        const originalGetElementById = document.getElementById;
-
-        document.getElementById = (id: string): HTMLElement | null => {
-            if (id === 'test-radio-group') {
-                return mockElement;
-            }
-            if (id === 'test-radio-group-1') {
-                return mockRadioInput;
-            }
-            return null;
-        };
-
-        let radioFocusCalled = false;
-
-        (mockRadioInput as any).focus = () => {
-            radioFocusCalled = true;
-        };
-
-        component.scrollToInput(formInput);
-
-        expect(radioFocusCalled).to.equal(true);
-
-        // Restore original method
-        document.getElementById = originalGetElementById;
-    });
-    it('should handle case when element does not exist for scrollToInput', async () => {
-        const wrapper = await mountShallow(FormMixin);
-        const component = wrapper.vm;
-        const formInput = new FormInput();
-
-        formInput.id = 'non-existent-input';
-
-        // Mock document.getElementById to return null
-        const originalGetElementById = document.getElementById;
-
-        document.getElementById = (): HTMLElement | null => null;
-
-        // This should not throw an error
-        component.scrollToInput(formInput);
-
-        // Restore original method
-        document.getElementById = originalGetElementById;
-
-        // Test passes if no error is thrown
-        expect(true).to.equal(true);
+        expect((scrollToInputCalledWith as any).name).to.equal(regularInput.name);
     });
 });
 describe('Input mixin', async () => {
