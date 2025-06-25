@@ -6,6 +6,7 @@ from cc_common.data_model.schema.compact import CompactConfigurationData
 from cc_common.data_model.schema.compact.common import COMPACT_TYPE
 from cc_common.data_model.schema.compact.record import CompactRecordSchema
 from cc_common.data_model.schema.jurisdiction import JurisdictionConfigurationData
+from cc_common.data_model.schema.jurisdiction.common import JURISDICTION_TYPE
 from cc_common.data_model.schema.jurisdiction.record import JurisdictionRecordSchema
 from cc_common.exceptions import CCNotFoundException
 from cc_common.utils import logger_inject_kwargs
@@ -311,51 +312,49 @@ class CompactConfigurationClient:
             live_jurisdictions = {
                 state['postalAbbreviation'] for state in compact_config_item['configuredStates'] if state.get('isLive')
             }
+
+            if not live_jurisdictions:
+                logger.info('No live jurisdictions found for compact. Returning empty list')
+                # in this case, there is nothing to return, so we return an empty list, and let the caller decide to
+                # raise an exception or not.
+                return {'items': []}
+
             logger.info(
                 'Filtering privilege purchase options by live jurisdictions',
                 live_jurisdictions=list(live_jurisdictions),
             )
-        else:
-            message = (
-                'Compact configuration not found or has no configuredStates when filtering privilege purchase options'
-            )
-            logger.error(
-                message,
-                compact_config_found=compact_config_item is not None,
-                configured_states=compact_config_item.get('configuredStates') if compact_config_item else None,
-            )
-            # in this case, there is nothing to return, so we return an empty list, and let the caller decide to raise
-            # an exception or not.
-            return {'items': []}
+            # Filter jurisdictions to only include live ones
+            filtered_items = [
+                item
+                for item in all_items
+                if item.get('type') == COMPACT_TYPE
+                or (
+                    item.get('type') == JURISDICTION_TYPE
+                    and item.get('postalAbbreviation', '').lower() in live_jurisdictions
+                )
+            ]
 
-        # Filter the response items to only include live jurisdictions
-        filtered_items = []
-        for item in all_items:
-            # Always include compact configuration records
-            if item.get('type') == COMPACT_TYPE:
-                filtered_items.append(item)
-            # Only include jurisdiction records that are live
-            elif item.get('type') == 'jurisdiction':
-                jurisdiction_postal = item.get('postalAbbreviation', '').lower()
-                if jurisdiction_postal in live_jurisdictions:
-                    filtered_items.append(item)
-                else:
-                    logger.debug(
-                        'Filtering out non-live jurisdiction from privilege purchase options',
-                        compact=compact,
-                        jurisdiction=jurisdiction_postal,
-                        is_live=False,
-                    )
+            # Return in the expected format for backward compatibility
+            return {
+                'items': filtered_items,
+                'pagination': {
+                    'pageSize': len(filtered_items),
+                    'prevLastKey': None,
+                    'lastKey': None,
+                },
+            }
 
-        # Return in the expected format for backward compatibility
-        return {
-            'items': filtered_items,
-            'pagination': {
-                'pageSize': len(filtered_items),
-                'prevLastKey': None,
-                'lastKey': None,
-            },
-        }
+        message = (
+            'Compact configuration not found or has no configuredStates when filtering privilege purchase options'
+        )
+        logger.info(
+            message,
+            compact_config_found=compact_config_item is not None,
+            configured_states=compact_config_item.get('configuredStates') if compact_config_item else None,
+        )
+        # in this case, there is nothing to return, so we return an empty list, and let the caller decide to raise
+        # an exception or not.
+        return {'items': []}
 
     def set_compact_authorize_net_public_values(self, compact: str, api_login_id: str, public_client_key: str) -> None:
         """

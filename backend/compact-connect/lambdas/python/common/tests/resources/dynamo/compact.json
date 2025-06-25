@@ -21,12 +21,16 @@
   "licenseeRegistrationEnabled": true,
   "configuredStates": [
     {
-      "postalAbbreviation": "al",
+      "postalAbbreviation": "ky",
       "isLive": true
     },
     {
-      "postalAbbreviation": "ak",
-      "isLive": false
+      "postalAbbreviation": "oh",
+      "isLive": true
+    },
+        {
+      "postalAbbreviation": "ne",
+      "isLive": true
     }
   ],
   "dateOfUpdate": "2024-10-04T12:34:56+00:00"
