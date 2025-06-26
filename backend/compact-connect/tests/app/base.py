@@ -24,6 +24,28 @@ from stacks.persistent_stack import PersistentStack
 from stacks.provider_users import ProviderUsersStack
 
 
+class _AppSynthesizer:
+    """
+    A helper class to cache apps based on context.
+    This is useful to avoid re-synthesizing the app for each test.
+    """
+    def __init__(self):
+        super().__init__()
+        self._cached_apps: dict[str, CompactConnectApp] = {}
+
+    def get_app(self, context: Mapping) -> CompactConnectApp:
+        context_hash = self._get_context_hash(context)
+        if context_hash not in self._cached_apps.keys():
+            self._cached_apps[context_hash] = CompactConnectApp(context=context)
+        return self._cached_apps[context_hash]
+
+    def _get_context_hash(self, context: Mapping) -> str:
+        return hash(json.dumps(context, sort_keys=True))
+
+
+_app_synthesizer = _AppSynthesizer()
+
+
 class TstAppABC(ABC):
     """
     Base class for common test elements across configurations.
@@ -43,7 +65,7 @@ class TstAppABC(ABC):
         We build the app once per TestCase, to save compute time in the test suite
         """
         cls.context = cls.get_context()
-        cls.app = CompactConnectApp(context=cls.context)
+        cls.app = _app_synthesizer.get_app(cls.context)
 
     def test_no_compact_jurisdiction_name_clash(self):
         """
