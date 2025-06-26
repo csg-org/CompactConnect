@@ -37,7 +37,6 @@ def do_migration(_properties: dict) -> None:
 
     success_count = 0
     error_count = 0
-    already_migrated_count = 0
 
     for compact in compacts:
         try:
@@ -86,10 +85,7 @@ def do_migration(_properties: dict) -> None:
             error_count += 1
 
     # Log final statistics
-    logger.info(
-        f'Migration completed: {success_count} compacts migrated successfully, '
-        f'{already_migrated_count} compacts already migrated, {error_count} errors'
-    )
+    logger.info(f'Migration completed: {success_count} compacts migrated successfully, {error_count} errors')
 
     if error_count > 0:
         raise RuntimeError(f'Compact configuredStates migration completed with {error_count} errors')

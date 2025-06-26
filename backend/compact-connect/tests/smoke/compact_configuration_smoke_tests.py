@@ -3,6 +3,7 @@
 import json
 
 import requests
+from botocore.exceptions import ClientError
 from config import config
 from smoke_common import (
     COMPACTS,
@@ -36,7 +37,7 @@ def cleanup_compact_configuration(compact: str):
         config.compact_configuration_dynamodb_table.delete_item(Key={'pk': pk, 'sk': sk})
         print(f'Cleaned up compact configuration for {compact}')
 
-    except Exception as e:  # noqa: BLE001
+    except ClientError as e:
         print(f'Warning: Error cleaning up compact configuration for {compact}: {e}')
 
 
@@ -56,7 +57,7 @@ def cleanup_jurisdiction_configuration(compact: str, jurisdiction: str):
         config.compact_configuration_dynamodb_table.delete_item(Key={'pk': pk, 'sk': sk})
         print(f'Cleaned up jurisdiction configuration for {jurisdiction} in {compact}')
 
-    except Exception as e:  # noqa: BLE001
+    except ClientError as e:
         print(f'Warning: Error cleaning up jurisdiction configuration for {jurisdiction} in {compact}: {e}')
 
 
