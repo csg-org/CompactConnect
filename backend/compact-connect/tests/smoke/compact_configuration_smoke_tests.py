@@ -21,6 +21,45 @@ from smoke_common import (
 # 'smoke_tests_env_example.json' file as a template.
 
 
+def cleanup_compact_configuration(compact: str):
+    """
+    Clean up compact configuration record for testing using direct DynamoDB calls.
+
+    Args:
+        compact: The compact abbreviation
+    """
+    try:
+        # Delete the compact configuration record directly from DynamoDB
+        pk = f'{compact}#CONFIGURATION'
+        sk = f'{compact}#CONFIGURATION'
+
+        config.compact_configuration_dynamodb_table.delete_item(Key={'pk': pk, 'sk': sk})
+        print(f'Cleaned up compact configuration for {compact}')
+
+    except Exception as e:  # noqa: BLE001
+        print(f'Warning: Error cleaning up compact configuration for {compact}: {e}')
+
+
+def cleanup_jurisdiction_configuration(compact: str, jurisdiction: str):
+    """
+    Clean up jurisdiction configuration record for testing using direct DynamoDB calls.
+
+    Args:
+        compact: The compact abbreviation
+        jurisdiction: The jurisdiction postal abbreviation
+    """
+    try:
+        # Delete the jurisdiction configuration record directly from DynamoDB
+        pk = f'{compact}#CONFIGURATION'
+        sk = f'{compact}#JURISDICTION#{jurisdiction.lower()}'
+
+        config.compact_configuration_dynamodb_table.delete_item(Key={'pk': pk, 'sk': sk})
+        print(f'Cleaned up jurisdiction configuration for {jurisdiction} in {compact}')
+
+    except Exception as e:  # noqa: BLE001
+        print(f'Warning: Error cleaning up jurisdiction configuration for {jurisdiction} in {compact}: {e}')
+
+
 def test_active_member_jurisdictions():
     """
     Test that the active member jurisdictions from cdk.json match the jurisdictions returned by the API.
@@ -87,6 +126,9 @@ def test_compact_configuration():
         # Get auth headers for the test user
         headers = get_staff_user_auth_headers(test_email)
 
+        # Clean up any existing compact configuration from previous test runs
+        cleanup_compact_configuration(compact)
+
         # Create test compact configuration data
         compact_config = {
             'compactCommissionFee': {'feeAmount': 15.00, 'feeType': 'FLAT_RATE'},
@@ -94,6 +136,7 @@ def test_compact_configuration():
             'compactOperationsTeamEmails': ['ops-test@ccSmokeTestFakeEmail.com'],
             'compactAdverseActionsNotificationEmails': ['adverse-test@ccSmokeTestFakeEmail.com'],
             'compactSummaryReportNotificationEmails': ['summary-test@ccSmokeTestFakeEmail.com'],
+            'configuredStates': [],
             'transactionFeeConfiguration': {
                 'licenseeCharges': {'chargeAmount': 10.00, 'chargeType': 'FLAT_FEE_PER_PRIVILEGE', 'active': True}
             },
@@ -161,11 +204,11 @@ def test_jurisdiction_configuration():
     """
     print('Testing jurisdiction configuration...')
 
-    # Create a test state admin user
+    # Create a test state admin user with compact admin permissions for simplicity
     compact = COMPACTS[0]  # Use the first compact for testing
     jurisdiction = 'ky'  # Use Kentucky for testing
     test_email = f'test-state-admin-{jurisdiction}@ccSmokeTestFakeEmail.com'
-    permissions = {'actions': {}, 'jurisdictions': {'ky': {'admin'}}}
+    permissions = {'actions': {'admin'}, 'jurisdictions': {'ky': {'admin'}}}
 
     user_sub = None
     try:
@@ -179,6 +222,9 @@ def test_jurisdiction_configuration():
 
         # Get auth headers for the test user
         headers = get_staff_user_auth_headers(test_email)
+
+        # Clean up any existing configurations from previous test runs
+        cleanup_jurisdiction_configuration(compact, jurisdiction)
 
         # Get license types for the compact
         with open('cdk.json') as context_file:
@@ -263,6 +309,45 @@ def test_jurisdiction_configuration():
             )
 
         print(f'Successfully verified jurisdiction configuration for {jurisdiction} in {compact}')
+
+        # Verify that the jurisdiction was automatically added to the compact's configuredStates
+        # since we set licenseeRegistrationEnabled: True
+        print(f'Verifying that {jurisdiction} was added to compact configuredStates...')
+
+        # Use the same user (which also has compact admin permissions) to check the compact configuration
+        compact_get_response = requests.get(
+            url=f'{get_api_base_url()}/v1/compacts/{compact}', headers=headers, timeout=10
+        )
+
+        if compact_get_response.status_code != 200:
+            raise SmokeTestFailureException(
+                f'Failed to GET compact configuration for verification. Response: {compact_get_response.json()}'
+            )
+
+        compact_config_data = compact_get_response.json()
+        configured_states = compact_config_data.get('configuredStates', [])
+
+        # Check if our jurisdiction was added with isLive: False
+        jurisdiction_found = False
+        for state in configured_states:
+            if state.get('postalAbbreviation') == jurisdiction.lower():
+                jurisdiction_found = True
+                if state.get('isLive') is not False:
+                    raise SmokeTestFailureException(
+                        f'Expected jurisdiction {jurisdiction} to have isLive: false in configuredStates, '
+                        f'but got isLive: {state.get("isLive")}'
+                    )
+                break
+
+        if not jurisdiction_found:
+            raise SmokeTestFailureException(
+                f'Expected jurisdiction {jurisdiction} to be automatically added to configuredStates '
+                f'when licenseeRegistrationEnabled was set to true, but it was not found. '
+                f'configuredStates: {configured_states}'
+            )
+
+        print(f'Successfully verified that {jurisdiction} was added to configuredStates with isLive: false')
+
         # return the config response to be used in other tests
         return config_response
     finally:
