@@ -42,6 +42,12 @@ class MixinForm extends Vue {
         return values;
     }
 
+    get formInputs(): Array<FormInput> {
+        return this.formKeys
+            .map((key) => this.formData[key])
+            .filter((input) => input instanceof FormInput);
+    }
+
     get formSubmitInputs(): Array<FormInput> {
         const { formData } = this;
 
@@ -155,16 +161,11 @@ class MixinForm extends Vue {
     }
 
     validateAll(config: any = {}): void {
-        const { formData } = this;
-
-        this.formKeys.forEach((key) => {
-            // Only validate if it's a FormInput
-            if (formData[key] instanceof FormInput) {
-                if (config.asTouched) {
-                    formData[key].isTouched = true;
-                }
-                formData[key].validate();
+        this.formInputs.forEach((input) => {
+            if (config.asTouched) {
+                input.isTouched = true;
             }
+            input.validate();
         });
 
         this.checkValidForAll();
@@ -176,11 +177,7 @@ class MixinForm extends Vue {
     }
 
     checkValidForAll(): void {
-        const { formData } = this;
-
-        this.isFormValid = this.formKeys
-            .filter((key) => formData[key] instanceof FormInput)
-            .every((key) => formData[key].isValid);
+        this.isFormValid = this.formInputs.every((input) => input.isValid);
     }
 
     updateFormSubmitSuccess(message: string): void {
@@ -221,22 +218,13 @@ class MixinForm extends Vue {
     }
 
     showInvalidFormError(): void {
-        const { formData } = this;
-
-        // Find the first invalid input that has a validation schema
-        const firstInvalidKey = this.formKeys.find((key) => {
-            const formInput = formData[key];
-
-            return (
-                !formInput.isSubmitInput
-                && !formInput.isValid
-                && formInput instanceof FormInput
-            );
-        });
+        // Find the first required invalid input that has a validation schema
+        const firstInvalidInput = this.formInputs.find((input) =>
+            !input.isSubmitInput && !input.isValid);
 
         // If we found an invalid input, try to scroll to and focus its input by name
-        if (firstInvalidKey) {
-            this.scrollToInput(formData[firstInvalidKey]);
+        if (firstInvalidInput) {
+            this.scrollToInput(firstInvalidInput);
         }
     }
 
