@@ -37,6 +37,7 @@ class InputDate extends mixins(MixinInput) {
     lastDatePickerValue = '';
     previousLength = 0;
 
+    // https://vue3datepicker.com
     // https://vue3datepicker.com/props/modes/
     @Prop({ default: 'yyyy-MM-dd' }) modelFormat?: string; // https://date-fns.org/v2.16.1/docs/format
     @Prop({ default: null }) textInput?: { format?: string; openMenu?: boolean } | null;
