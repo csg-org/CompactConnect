@@ -1,0 +1,16 @@
+{
+  "backup_account_id": "000011114444",
+  "organization_id": "o-example123456",
+  "backup_region": "us-west-2",
+  "source_account_ids": [
+    "000011115555",
+    "000011116666",
+    "000011117777"
+  ],
+  "backup_vault_name": "CompactConnectBackupVault",
+  "ssn_backup_vault_name": "CompactConnectBackupVault-SSN",
+  "tags": {
+    "Project": "CompactConnect",
+    "Environment": "Backups"
+  }
+}

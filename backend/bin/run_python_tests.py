@@ -34,6 +34,7 @@ TEST_DIRS = (
     'compact-connect',  # CDK tests
     'multi-account/control-tower',
     'multi-account/log-aggregation',
+    'multi-account/backups',  # Data retention backup infrastructure
 )
 
 
