@@ -10,6 +10,7 @@ import FormMixin from '@components/Forms/_mixins/form.mixin';
 import InputMixin from '@components/Forms/_mixins/input.mixin';
 import { FormInput } from '@models/FormInput/FormInput.model';
 import Joi from 'joi';
+import sinon from 'sinon';
 
 const chaiMatchPattern = require('chai-match-pattern');
 const chai = require('chai').use(chaiMatchPattern);
@@ -136,16 +137,12 @@ describe('Form mixin', async () => {
         formInput.validation = Joi.string().required();
         component.formData.testInput = formInput;
 
-        // Mock scrollToInput method to verify it gets called
-        let scrollToInputCalled = false;
+        const spy = sinon.spy();
 
-        component.scrollToInput = () => {
-            scrollToInputCalled = true;
-        };
-
+        component.scrollToInput = spy;
         component.showInvalidFormError();
 
-        expect(scrollToInputCalled).to.equal(true);
+        expect(spy.calledOnce).to.equal(true);
     });
     it('should not call scrollToInput when all inputs are valid', async () => {
         const wrapper = await mountShallow(FormMixin);
@@ -157,16 +154,12 @@ describe('Form mixin', async () => {
         formInput.isSubmitInput = false;
         component.formData.testInput = formInput;
 
-        // Mock scrollToInput method to verify it doesn't get called
-        let scrollToInputCalled = false;
+        const spy = sinon.spy();
 
-        component.scrollToInput = () => {
-            scrollToInputCalled = true;
-        };
-
+        component.scrollToInput = spy;
         component.showInvalidFormError();
 
-        expect(scrollToInputCalled).to.equal(false);
+        expect(spy.notCalled).to.equal(true);
     });
     it('should skip submit inputs when finding invalid form inputs', async () => {
         const wrapper = await mountShallow(FormMixin);
@@ -187,17 +180,13 @@ describe('Form mixin', async () => {
         component.formData.submitInput = submitInput;
         component.formData.regularInput = regularInput;
 
-        // Mock scrollToInput method to verify it gets called with the regular input
-        let scrollToInputCalledWith = null;
+        const spy = sinon.spy();
 
-        component.scrollToInput = (input) => {
-            scrollToInputCalledWith = input;
-        };
-
+        component.scrollToInput = spy;
         component.showInvalidFormError();
 
-        expect(scrollToInputCalledWith).to.not.be.null;
-        expect((scrollToInputCalledWith as any).name).to.equal(regularInput.name);
+        expect(spy.calledOnce).to.equal(true);
+        expect(spy.firstCall.args[0].name).to.equal(regularInput.name);
     });
     it('should scroll to input element when element exists', async () => {
         const wrapper = await mountShallow(FormMixin);
@@ -207,17 +196,15 @@ describe('Form mixin', async () => {
         formInput.name = 'test-input';
 
         // Mock DOM element and its methods
+        const scrollSpy = sinon.spy();
+        const focusSpy = sinon.spy();
         const mockElement = {
-            scrollIntoView: () => { /* mock implementation */ },
-            focus: () => { /* mock implementation */ }
+            scrollIntoView: scrollSpy,
+            focus: focusSpy
         } as unknown as HTMLElement;
 
-        // Mock document.getElementsByName
-        const originalGetElementsByName = document.getElementsByName;
-
-        document.getElementsByName = (name: string): NodeListOf<HTMLElement> => {
+        sinon.stub(document, 'getElementsByName').callsFake((name: string) => {
             if (name === 'test-input') {
-                // Return a NodeList-like object with one element
                 return {
                     length: 1,
                     0: mockElement,
@@ -228,25 +215,12 @@ describe('Form mixin', async () => {
                 length: 0,
                 item: () => null,
             } as unknown as NodeListOf<HTMLElement>;
-        };
-
-        let scrollIntoViewCalled = false;
-        let focusCalled = false;
-
-        (mockElement as any).scrollIntoView = () => {
-            scrollIntoViewCalled = true;
-        };
-        (mockElement as any).focus = () => {
-            focusCalled = true;
-        };
+        });
 
         component.scrollToInput(formInput);
 
-        expect(scrollIntoViewCalled).to.equal(true);
-        expect(focusCalled).to.equal(true);
-
-        // Restore original method
-        document.getElementsByName = originalGetElementsByName;
+        expect(scrollSpy.calledOnce).to.be.true;
+        expect(focusSpy.calledOnce).to.be.true;
     });
 });
 describe('Input mixin', async () => {

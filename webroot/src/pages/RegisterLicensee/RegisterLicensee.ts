@@ -308,8 +308,6 @@ class RegisterLicensee extends mixins(MixinForm) {
             await nextTick();
 
             this.scrollIntoView('summary-heading');
-        } else {
-            this.showInvalidFormError();
         }
     }
 

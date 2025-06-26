@@ -158,8 +158,8 @@ class MixinForm extends Vue {
         const { formData } = this;
 
         this.formKeys.forEach((key) => {
-            // Only validate if it's a FormInput (has a validate function)
-            if (formData[key] && typeof formData[key].validate === 'function') {
+            // Only validate if it's a FormInput
+            if (formData[key] instanceof FormInput) {
                 if (config.asTouched) {
                     formData[key].isTouched = true;
                 }
@@ -179,7 +179,7 @@ class MixinForm extends Vue {
         const { formData } = this;
 
         this.isFormValid = this.formKeys
-            .filter((key) => formData[key] && typeof formData[key].validate === 'function')
+            .filter((key) => formData[key] instanceof FormInput)
             .every((key) => formData[key].isValid);
     }
 
@@ -223,41 +223,34 @@ class MixinForm extends Vue {
     showInvalidFormError(): void {
         const { formData } = this;
 
-        // Find the first required invalid input that has a validation schema
+        // Find the first invalid input that has a validation schema
         const firstInvalidKey = this.formKeys.find((key) => {
             const formInput = formData[key];
 
             return (
                 !formInput.isSubmitInput
                 && !formInput.isValid
-                && typeof formInput.validate === 'function'
-                && formInput.validation // Only consider inputs with validation
+                && formInput instanceof FormInput
             );
         });
 
         // If we found an invalid input, try to scroll to and focus its input by name
         if (firstInvalidKey) {
-            const formInput = formData[firstInvalidKey];
-
-            this.scrollToInput(formInput);
+            this.scrollToInput(formData[firstInvalidKey]);
         }
     }
 
     protected scrollToInput(formInput: FormInput): void {
-        const elements = document.getElementsByName(formInput.name);
+        const element = document.getElementsByName(formInput.name)[0] as HTMLElement | undefined;
 
-        if (elements.length > 0) {
-            const element = elements[0] as HTMLElement;
+        if (element) {
+            // Scroll to the element
+            element.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
 
-            if (element) {
-                // Scroll to the element
-                element.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'center'
-                });
-
-                element.focus();
-            }
+            element.focus();
         }
     }
 
