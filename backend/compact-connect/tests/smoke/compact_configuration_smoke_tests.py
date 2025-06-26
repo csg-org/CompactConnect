@@ -207,9 +207,9 @@ def test_jurisdiction_configuration():
 
     # Create a test state admin user with compact admin permissions for simplicity
     compact = COMPACTS[0]  # Use the first compact for testing
-    jurisdiction = 'ky'  # Use Kentucky for testing
+    jurisdiction = 'ne'  # Use Nebraska for testing
     test_email = f'test-state-admin-{jurisdiction}@ccSmokeTestFakeEmail.com'
-    permissions = {'actions': {'admin'}, 'jurisdictions': {'ky': {'admin'}}}
+    permissions = {'actions': {'admin'}, 'jurisdictions': {'ne': {'admin'}}}
 
     user_sub = None
     try:
@@ -348,6 +348,43 @@ def test_jurisdiction_configuration():
             )
 
         print(f'Successfully verified that {jurisdiction} was added to configuredStates with isLive: false')
+
+        # Now set the jurisdiction to live for use by other smoke tests
+        print(f'Setting {jurisdiction} to live in configuredStates...')
+
+        # Update the configuredStates to set our jurisdiction to live
+        updated_configured_states = []
+        for state in configured_states:
+            if state.get('postalAbbreviation') == jurisdiction.lower():
+                # Set this jurisdiction to live
+                updated_state = state.copy()
+                updated_state['isLive'] = True
+                updated_configured_states.append(updated_state)
+            else:
+                updated_configured_states.append(state)
+
+        # Prepare the compact configuration update with the jurisdiction set to live
+        compact_config_data['configuredStates'] = updated_configured_states
+
+        # remove fields not expected by PUT endpoint
+        del compact_config_data['compactName']
+        del compact_config_data['compactAbbr']
+
+        # PUT the updated compact configuration
+        compact_put_response = requests.put(
+            url=f'{get_api_base_url()}/v1/compacts/{compact}',
+            headers=headers,
+            json=compact_config_data,
+            timeout=10,
+        )
+
+        if compact_put_response.status_code != 200:
+            raise SmokeTestFailureException(
+                f'Failed to PUT compact configuration to set {jurisdiction} to live. '
+                f'Response: {compact_put_response.json()}'
+            )
+
+        print(f'Successfully updated compact configuration to set {jurisdiction} to live')
 
         # return the config response to be used in other tests
         return config_response
