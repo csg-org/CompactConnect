@@ -351,14 +351,34 @@ def _post_provider_email_verify(event: dict, context: LambdaContext):  # noqa: A
         new_email = provider_data.pendingEmailAddress
 
         # Update email in Cognito
-        config.cognito_client.admin_update_user_attributes(
-            UserPoolId=config.provider_user_pool_id,
-            Username=current_email,  # Current username (email)
-            UserAttributes=[
-                {'Name': 'email', 'Value': new_email},
-                {'Name': 'email_verified', 'Value': 'true'},
-            ],
-        )
+        try:
+            config.cognito_client.admin_update_user_attributes(
+                UserPoolId=config.provider_user_pool_id,
+                Username=current_email,  # Current username (email)
+                UserAttributes=[
+                    {'Name': 'email', 'Value': new_email},
+                    {'Name': 'email_verified', 'Value': 'true'},
+                ],
+            )
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'AliasExistsException':
+                # Another user was created with this email between verification start and finish
+                logger.warning(
+                    'Email address became unavailable during verification process',
+                    compact=compact,
+                    provider_id=provider_id,
+                    new_email=new_email,
+                )
+                # Clear the verification data since the email is no longer available
+                config.data_client.clear_provider_email_verification_data(
+                    compact=compact,
+                    provider_id=provider_id,
+                )
+                raise CCInvalidRequestException(
+                    'Email address is no longer available. Please try again with a different email address.'
+                ) from e
+            # Re-raise other Cognito errors
+            raise
 
         # Update the provider record with new email and clear verification data
         config.data_client.complete_provider_email_update(

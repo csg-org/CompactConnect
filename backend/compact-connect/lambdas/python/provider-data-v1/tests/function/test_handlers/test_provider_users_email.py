@@ -507,3 +507,58 @@ class TestPostProviderUsersEmailVerify(TstFunction):
         mock_email_service_client.send_provider_email_change_notification.assert_called_once_with(
             compact=DEFAULT_COMPACT, old_email_address=TEST_OLD_EMAIL, new_email_address=TEST_NEW_EMAIL
         )
+
+    @patch('cc_common.config._Config.email_service_client')
+    def test_endpoint_returns_400_if_new_email_becomes_unavailable_during_verification(self, mock_email_service_client):
+        from cc_common.data_model.schema.provider import ProviderData
+        from handlers.provider_users import provider_users_api_handler
+
+        # First create the old email user in Cognito so we can update it
+        self.config.cognito_client.admin_create_user(
+            UserPoolId=self.config.provider_user_pool_id,
+            Username=TEST_OLD_EMAIL,
+            UserAttributes=[
+                {'Name': 'email', 'Value': TEST_OLD_EMAIL},
+                {'Name': 'email_verified', 'Value': 'true'},
+                {'Name': 'custom:compact', 'Value': DEFAULT_COMPACT},
+                {'Name': 'custom:providerId', 'Value': DEFAULT_PROVIDER_ID},
+            ],
+            MessageAction='SUPPRESS',
+        )
+
+        # Create another user with the new email address to simulate it becoming unavailable
+        # This simulates someone else registering with this email between verification start and finish
+        self.config.cognito_client.admin_create_user(
+            UserPoolId=self.config.provider_user_pool_id,
+            Username=TEST_NEW_EMAIL,
+            UserAttributes=[
+                {'Name': 'email', 'Value': TEST_NEW_EMAIL},
+                {'Name': 'email_verified', 'Value': 'true'},
+            ],
+            MessageAction='SUPPRESS',
+        )
+
+        event = self._when_testing_provider_user_event_with_custom_claims()
+
+        resp = provider_users_api_handler(event, self.mock_context)
+
+        self.assertEqual(400, resp['statusCode'])
+        resp_body = json.loads(resp['body'])
+        self.assertEqual(
+            'Email address is no longer available. Please try again with a different email address.',
+            resp_body['message'],
+        )
+
+        # Verify pending fields were cleared from the provider record
+        test_provider_record = self.test_data_generator.generate_default_provider()
+        stored_provider_data = ProviderData.from_database_record(
+            self.test_data_generator.load_provider_data_record_from_database(test_provider_record)
+        )
+
+        # Pending fields should be cleared
+        self.assertIsNone(stored_provider_data.pendingEmailAddress)
+        self.assertIsNone(stored_provider_data.emailVerificationCode)
+        self.assertIsNone(stored_provider_data.emailVerificationExpiry)
+
+        # Original email should remain unchanged
+        self.assertEqual(TEST_OLD_EMAIL, stored_provider_data.compactConnectRegisteredEmailAddress)
