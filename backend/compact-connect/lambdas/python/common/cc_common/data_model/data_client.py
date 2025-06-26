@@ -1,5 +1,5 @@
 import time
-from datetime import date
+from datetime import date, datetime
 from urllib.parse import quote
 from uuid import uuid4
 
@@ -2691,7 +2691,7 @@ class DataClient:
         provider_id: str,
         pending_email_address: str,
         verification_code: str,
-        verification_expiry,
+        verification_expiry: datetime,
     ) -> None:
         """
         Update the provider record with email verification data.

@@ -4,6 +4,7 @@ from marshmallow.fields import Date, Email, List, Nested, Raw, String
 from marshmallow.validate import Length, Regexp
 
 from cc_common.data_model.schema.base_record import ForgivingSchema
+from cc_common.data_model.schema.common import CCRequestSchema
 from cc_common.data_model.schema.fields import (
     ActiveInactive,
     Compact,
@@ -147,7 +148,7 @@ class ProviderRegistrationRequestSchema(Schema):
     token = String(required=True, allow_none=False)
 
 
-class ProviderEmailUpdateRequestSchema(Schema):
+class ProviderEmailUpdateRequestSchema(CCRequestSchema):
     """
     Schema for provider email update requests.
 
@@ -160,7 +161,7 @@ class ProviderEmailUpdateRequestSchema(Schema):
     newEmailAddress = Email(required=True, allow_none=False)
 
 
-class ProviderEmailVerificationRequestSchema(Schema):
+class ProviderEmailVerificationRequestSchema(CCRequestSchema):
     """
     Schema for provider email verification requests.
 

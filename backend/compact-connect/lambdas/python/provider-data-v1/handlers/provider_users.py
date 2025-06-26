@@ -223,9 +223,6 @@ def _patch_provider_email(event: dict, context: LambdaContext):  # noqa: ARG001 
     # Parse and validate the request body
     try:
         event_body = json.loads(event['body'])
-        # Trim whitespace from email before validation
-        if 'newEmailAddress' in event_body:
-            event_body['newEmailAddress'] = event_body['newEmailAddress'].strip()
         validated_data = ProviderEmailUpdateRequestSchema().load(event_body)
         new_email_address = validated_data['newEmailAddress']
     except (json.JSONDecodeError, ValidationError) as e:
