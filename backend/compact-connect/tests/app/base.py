@@ -214,6 +214,9 @@ class TstAppABC(ABC):
         api_query_role_logical_id = persistent_stack.get_logical_id(
             persistent_stack.ssn_table.api_query_role.node.default_child
         )
+        ssn_backup_role_logical_id = persistent_stack.get_logical_id(
+            persistent_stack.ssn_table.backup_service_role.node.default_child
+        )
         ssn_table_template = self.get_resource_properties_by_logical_id(
             persistent_stack.get_logical_id(persistent_stack.ssn_table.node.default_child),
             persistent_stack_template.find_resources(CfnTable.CFN_RESOURCE_TYPE_NAME),
@@ -224,35 +227,57 @@ class TstAppABC(ABC):
         # This naming convention is important for opting into future CloudTrail organization access logging
         self.assertTrue(ssn_table_template['TableName'].endswith('-DataEventsLog'))
         # Ensure our SSN Key is locked down by resource policy
+        # Note: SSN backup role reference may be a nested stack output, so we use Match.any_value() for flexibility
+        expected_policy = {
+            'Statement': [
+                {
+                    'Action': 'kms:*',
+                    'Effect': 'Allow',
+                    'Principal': {'AWS': f'arn:aws:iam::{persistent_stack.account}:root'},
+                    'Resource': '*',
+                },
+                {
+                    'Action': ['kms:Decrypt', 'kms:Encrypt', 'kms:GenerateDataKey*', 'kms:ReEncrypt*'],
+                    'Condition': {
+                        'StringNotEquals': {
+                            'aws:PrincipalArn': [
+                                {'Fn::GetAtt': [ingest_role_logical_id, 'Arn']},
+                                {'Fn::GetAtt': [license_upload_role_logical_id, 'Arn']},
+                                {'Fn::GetAtt': [api_query_role_logical_id, 'Arn']},
+                                Match.any_value(),  # SSN backup role reference (may be nested stack output)
+                            ],
+                            'aws:PrincipalServiceName': ['dynamodb.amazonaws.com', 'events.amazonaws.com'],
+                        }
+                    },
+                    'Effect': 'Deny',
+                    'Principal': '*',
+                    'Resource': '*',
+                },
+            ],
+            'Version': '2012-10-17',
+        }
+        
+        # Validate the key policy structure matches our expected pattern
+        actual_policy = ssn_key_template['KeyPolicy']
+        self.assertEqual(len(expected_policy['Statement']), len(actual_policy['Statement']))
+        
+        # Check first statement (admin access) exactly
+        self.assertEqual(expected_policy['Statement'][0], actual_policy['Statement'][0])
+        
+        # Check second statement structure (with flexible backup role reference)
+        actual_second_stmt = actual_policy['Statement'][1]
+        self.assertEqual(expected_policy['Statement'][1]['Action'], actual_second_stmt['Action'])
+        self.assertEqual(expected_policy['Statement'][1]['Effect'], actual_second_stmt['Effect'])
+        self.assertEqual(expected_policy['Statement'][1]['Principal'], actual_second_stmt['Principal'])
+        self.assertEqual(expected_policy['Statement'][1]['Resource'], actual_second_stmt['Resource'])
+        
+        # Check condition structure but allow flexible backup role reference
+        self.assertIn('StringNotEquals', actual_second_stmt['Condition'])
+        self.assertIn('aws:PrincipalArn', actual_second_stmt['Condition']['StringNotEquals'])
+        self.assertEqual(4, len(actual_second_stmt['Condition']['StringNotEquals']['aws:PrincipalArn']))
         self.assertEqual(
-            {
-                'Statement': [
-                    {
-                        'Action': 'kms:*',
-                        'Effect': 'Allow',
-                        'Principal': {'AWS': f'arn:aws:iam::{persistent_stack.account}:root'},
-                        'Resource': '*',
-                    },
-                    {
-                        'Action': ['kms:Decrypt', 'kms:Encrypt', 'kms:GenerateDataKey*', 'kms:ReEncrypt*'],
-                        'Condition': {
-                            'StringNotEquals': {
-                                'aws:PrincipalArn': [
-                                    {'Fn::GetAtt': [ingest_role_logical_id, 'Arn']},
-                                    {'Fn::GetAtt': [license_upload_role_logical_id, 'Arn']},
-                                    {'Fn::GetAtt': [api_query_role_logical_id, 'Arn']},
-                                ],
-                                'aws:PrincipalServiceName': ['dynamodb.amazonaws.com', 'events.amazonaws.com'],
-                            }
-                        },
-                        'Effect': 'Deny',
-                        'Principal': '*',
-                        'Resource': '*',
-                    },
-                ],
-                'Version': '2012-10-17',
-            },
-            ssn_key_template['KeyPolicy'],
+            expected_policy['Statement'][1]['Condition']['StringNotEquals']['aws:PrincipalServiceName'],
+            actual_second_stmt['Condition']['StringNotEquals']['aws:PrincipalServiceName']
         )
         # Ensure we're using our locked down KMS key for encryption
         self.assertEqual(

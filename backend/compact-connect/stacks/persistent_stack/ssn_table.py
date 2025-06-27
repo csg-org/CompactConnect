@@ -140,6 +140,9 @@ class SSNTable(Table):
             backup_policy=environment_context['backup_policies']['ssn_data'],
         )
 
+        # Store backup service role for KMS key policy configuration
+        self.backup_service_role = backup_infrastructure_stack.ssn_backup_service_role
+
         self._configure_access()
 
         # Initialize the license preprocessor
@@ -199,6 +202,7 @@ class SSNTable(Table):
                             self.ingest_role.role_arn,
                             self.license_upload_role.role_arn,
                             self.api_query_role.role_arn,
+                            self.backup_service_role.role_arn,  # Allow SSN backup service role
                         ],
                         'aws:PrincipalServiceName': ['dynamodb.amazonaws.com', 'events.amazonaws.com'],
                     }

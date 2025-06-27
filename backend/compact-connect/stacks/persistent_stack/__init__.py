@@ -19,6 +19,7 @@ from common_constructs.ssm_parameter_utility import SSMParameterUtility
 from common_constructs.stack import AppStack
 from constructs import Construct
 
+from common_constructs.backup_plan import TableBackupPlan
 from stacks.backup_infrastructure_stack import BackupInfrastructureStack
 from stacks.persistent_stack.bulk_uploads_bucket import BulkUploadsBucket
 from stacks.persistent_stack.compact_configuration_table import CompactConfigurationTable
@@ -51,7 +52,6 @@ class PersistentStack(AppStack):
         app_name: str,
         environment_name: str,
         environment_context: dict,
-        backup_infrastructure_stack: BackupInfrastructureStack,
         **kwargs,
     ) -> None:
         super().__init__(
@@ -111,6 +111,17 @@ class PersistentStack(AppStack):
             slack_subscriptions=notifications.get('slack', []),
         )
 
+        # Create backup infrastructure as a nested stack
+        # backup_config is in the ssm_context from the CDK context file
+        backup_config = self.node.get_context('ssm_context').get('backup_config', {})
+        self.backup_infrastructure_stack = BackupInfrastructureStack(
+            self,
+            'BackupInfrastructureStack',
+            environment_name=environment_name,
+            backup_config=backup_config,
+            alarm_topic=self.alarm_topic,
+        )
+
         self.access_logs_bucket = AccessLogsBucket(
             self,
             'AccessLogsBucket',
@@ -136,7 +147,7 @@ class PersistentStack(AppStack):
             self, self._data_event_bus
         )
 
-        self._add_data_resources(removal_policy=removal_policy, backup_infrastructure_stack=backup_infrastructure_stack)
+        self._add_data_resources(removal_policy=removal_policy, backup_infrastructure_stack=self.backup_infrastructure_stack)
         self._add_migrations()
 
         self.compact_configuration_upload = CompactConfigurationUpload(

@@ -1,4 +1,4 @@
-from aws_cdk import ArnFormat, Duration, RemovalPolicy, Stack
+from aws_cdk import ArnFormat, Duration, NestedStack, RemovalPolicy
 from aws_cdk.aws_backup import BackupVault, IBackupVault
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Metric, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
@@ -14,10 +14,11 @@ from aws_cdk.aws_iam import (
 )
 from aws_cdk.aws_kms import Alias, Key
 from aws_cdk.aws_sns import ITopic
+from cdk_nag import NagSuppressions
 from constructs import Construct
 
 
-class BackupInfrastructureStack(Stack):
+class BackupInfrastructureStack(NestedStack):
     """
     Stack that creates the backup infrastructure within each environment account.
 
@@ -64,6 +65,9 @@ class BackupInfrastructureStack(Stack):
         
         # Create backup monitoring alarms and EventBridge rules
         self._create_backup_monitoring()
+        
+        # Add CDK NAG suppressions for expected AWS managed policies in backup service roles
+        self._add_cdk_nag_suppressions()
 
     def _create_local_backup_encryption_key(self) -> None:
         """Create a local KMS key for general backup encryption."""
@@ -71,6 +75,7 @@ class BackupInfrastructureStack(Stack):
             self,
             'LocalBackupEncryptionKey',
             description=f'Local KMS key for CompactConnect {self.environment_name} backup encryption',
+            enable_key_rotation=True,
             removal_policy=self.removal_policy,
         )
 
@@ -88,6 +93,7 @@ class BackupInfrastructureStack(Stack):
             self,
             'LocalSSNBackupEncryptionKey',
             description=f'Local KMS key for CompactConnect {self.environment_name} SSN backup encryption',
+            enable_key_rotation=True,
             removal_policy=self.removal_policy,
         )
 
@@ -415,4 +421,45 @@ class BackupInfrastructureStack(Stack):
                 }
             ),
             targets=[SnsTopic(self.alarm_topic)],
+        )
+
+    def _add_cdk_nag_suppressions(self) -> None:
+        """Add CDK NAG suppressions for expected patterns in backup infrastructure."""
+        
+        # Add stack-level suppression for inline policies (same reasoning as main Stack class)
+        NagSuppressions.add_stack_suppressions(
+            self,
+            [
+                {
+                    'id': 'HIPAA.Security-IAMNoInlinePolicy',
+                    'reason': 'CDK allows for granular permissions crafting that is attached to policies directly to each resource, '
+                             'by virtue of its Resource.grant_* methods. This approach results in an improvement in the principle '
+                             'of least privilege, because each resource has permissions specifically crafted for that resource '
+                             'and only allows exactly what it needs to do, rather than sharing more coarse managed policies.'
+                },
+            ],
+        )
+        
+        # Suppress AWS managed policy warnings for backup service roles
+        # These are the standard AWS managed policies required for AWS Backup service functionality
+        NagSuppressions.add_resource_suppressions(
+            self.backup_service_role,
+            [
+                {
+                    'id': 'AwsSolutions-IAM4',
+                    'reason': 'AWS Backup service requires these standard AWS managed policies for backup and restore operations. '
+                             'These are the minimal required permissions for backup service functionality.'
+                },
+            ],
+        )
+        
+        NagSuppressions.add_resource_suppressions(
+            self.ssn_backup_service_role,
+            [
+                {
+                    'id': 'AwsSolutions-IAM4',
+                    'reason': 'AWS Backup service requires these standard AWS managed policies for backup and restore operations. '
+                             'SSN backup role uses the same base policies with additional customer-managed security restrictions.'
+                },
+            ],
         )
