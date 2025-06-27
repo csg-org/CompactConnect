@@ -19,13 +19,19 @@
         "security_profile": "VULNERABLE",
         "recaptcha_public_key": "123-KFEUsjehfuejILDVUKkRnAF9SSzb8o9uv5lY7Ih",
         "robots_meta": "noindex,nofollow",
-        "notifications": {
+                "notifications": {
           "ses_operations_support_email": "justin@example.com",
           "email": [
             "justin@example.com"
           ]
         }
       }
+    },
+    "backup_config": {
+      "backup_account_id": "111122223333",
+      "backup_region": "us-west-2",
+      "general_vault_name": "CompactConnectBackupVault",
+      "ssn_vault_name": "CompactConnectBackupVault-SSN"
     }
   }
 }

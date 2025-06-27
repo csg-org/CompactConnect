@@ -28,6 +28,12 @@
           ]
         }
       }
+    },
+    "backup_config": {
+      "backup_account_id": "111122223333",
+      "backup_region": "us-west-2",
+      "general_vault_name": "CompactConnectBackupVault",
+      "ssn_vault_name": "CompactConnectBackupVault-SSN"
     }
   }
 }
