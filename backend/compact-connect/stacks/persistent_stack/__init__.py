@@ -19,6 +19,7 @@ from common_constructs.ssm_parameter_utility import SSMParameterUtility
 from common_constructs.stack import AppStack
 from constructs import Construct
 
+from stacks.backup_infrastructure_stack import BackupInfrastructureStack
 from stacks.persistent_stack.bulk_uploads_bucket import BulkUploadsBucket
 from stacks.persistent_stack.compact_configuration_table import CompactConfigurationTable
 from stacks.persistent_stack.compact_configuration_upload import CompactConfigurationUpload
@@ -50,6 +51,7 @@ class PersistentStack(AppStack):
         app_name: str,
         environment_name: str,
         environment_context: dict,
+        backup_infrastructure_stack: BackupInfrastructureStack,
         **kwargs,
     ) -> None:
         super().__init__(
@@ -134,7 +136,7 @@ class PersistentStack(AppStack):
             self, self._data_event_bus
         )
 
-        self._add_data_resources(removal_policy=removal_policy)
+        self._add_data_resources(removal_policy=removal_policy, backup_infrastructure_stack=backup_infrastructure_stack)
         self._add_migrations()
 
         self.compact_configuration_upload = CompactConfigurationUpload(
@@ -235,7 +237,7 @@ class PersistentStack(AppStack):
         # This parameter is used to store the frontend app config values for use in the frontend deployment stack
         self._create_frontend_app_config_parameter()
 
-    def _add_data_resources(self, removal_policy: RemovalPolicy):
+    def _add_data_resources(self, removal_policy: RemovalPolicy, backup_infrastructure_stack: BackupInfrastructureStack):
         # Create the ssn related resources before other resources which are dependent on them
         self.ssn_table = SSNTable(
             self,
@@ -243,6 +245,8 @@ class PersistentStack(AppStack):
             removal_policy=removal_policy,
             data_event_bus=self._data_event_bus,
             alarm_topic=self.alarm_topic,
+            backup_infrastructure_stack=backup_infrastructure_stack,
+            environment_context=self.environment_context,
         )
 
         self.bulk_uploads_bucket = BulkUploadsBucket(
@@ -279,7 +283,12 @@ class PersistentStack(AppStack):
         )
 
         self.provider_table = ProviderTable(
-            self, 'ProviderTable', encryption_key=self.shared_encryption_key, removal_policy=removal_policy
+            self, 
+            'ProviderTable', 
+            encryption_key=self.shared_encryption_key, 
+            removal_policy=removal_policy,
+            backup_infrastructure_stack=backup_infrastructure_stack,
+            environment_context=self.environment_context,
         )
 
         # The api query role needs access to the provider table to associate a provider with

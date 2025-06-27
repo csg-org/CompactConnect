@@ -4,6 +4,8 @@ from unittest import TestCase
 from aws_cdk import ArnFormat
 from aws_cdk.assertions import Match, Template
 from aws_cdk.aws_backup import CfnBackupVault
+from aws_cdk.aws_cloudwatch import CfnAlarm
+from aws_cdk.aws_events import CfnRule
 from aws_cdk.aws_iam import CfnRole
 from aws_cdk.aws_kms import CfnAlias, CfnKey
 
@@ -42,6 +44,10 @@ class TestBackupInfrastructureStack(TstAppABC, TestCase):
 
         # Should create 2 IAM roles (general backup service role and SSN backup service role)
         self.template.resource_count_is(CfnRole.CFN_RESOURCE_TYPE_NAME, 2)
+
+        # Should create monitoring resources (alarms and EventBridge rules)
+        self.template.resource_count_is(CfnAlarm.CFN_RESOURCE_TYPE_NAME, 6)  # 6 CloudWatch alarms
+        self.template.resource_count_is(CfnRule.CFN_RESOURCE_TYPE_NAME, 6)  # 6 EventBridge rules
 
     def test_general_backup_vault_configuration(self):
         """Test the general backup vault is configured correctly."""
@@ -159,9 +165,9 @@ class TestBackupInfrastructureStack(TstAppABC, TestCase):
             },
         )
 
-    def test_cross_account_vault_arn_properties(self):
-        """Test that cross-account vault ARN properties are correctly formatted."""
-        # Test the property methods return correctly formatted ARNs from the backup config context
+    def test_cross_account_vault_references(self):
+        """Test that cross-account vault references are correctly created."""
+        # Test that the vault objects are created and have the expected ARNs
         backup_config = self.backup_stack.backup_config
         expected_general_arn = self.backup_stack.format_arn(
             arn_format=ArnFormat.COLON_RESOURCE_NAME,
@@ -180,8 +186,11 @@ class TestBackupInfrastructureStack(TstAppABC, TestCase):
             resource_name=backup_config['ssn_vault_name'],
         )
 
-        self.assertEqual(expected_general_arn, self.backup_stack.cross_account_backup_vault_arn)
-        self.assertEqual(expected_ssn_arn, self.backup_stack.cross_account_ssn_backup_vault_arn)
+        # Test that the vault objects exist and have the correct ARNs
+        self.assertIsNotNone(self.backup_stack.cross_account_backup_vault)
+        self.assertIsNotNone(self.backup_stack.cross_account_ssn_backup_vault)
+        self.assertEqual(expected_general_arn, self.backup_stack.cross_account_backup_vault.backup_vault_arn)
+        self.assertEqual(expected_ssn_arn, self.backup_stack.cross_account_ssn_backup_vault.backup_vault_arn)
 
     def test_removal_policy_set_for_sandbox_environment(self):
         """Test that all resources have RemovalPolicy.DESTROY in sandbox environment for development cleanup."""
@@ -218,6 +227,74 @@ class TestBackupInfrastructureStack(TstAppABC, TestCase):
 
         # Validate that all expected backup infrastructure resources are created
         self._check_no_backend_stage_annotations(self.app.sandbox_backend_stage)
+
+    def test_backup_monitoring_configuration(self):
+        """Test that backup monitoring alarms and rules are correctly configured."""
+        environment_name = self.app.sandbox_backend_stage.backup_infrastructure_stack.environment_name
+
+        # Test general backup vault failure alarm
+        self.template.has_resource_properties(
+            CfnAlarm.CFN_RESOURCE_TYPE_NAME,
+            {
+                'MetricName': 'NumberOfBackupJobsFailed',
+                'Namespace': 'AWS/Backup',
+                'Dimensions': [{'Name': 'BackupVaultName', 'Value': f'CompactConnect-{environment_name}-BackupVault'}],
+                'Threshold': 1,
+                'ComparisonOperator': 'GreaterThanOrEqualToThreshold',
+            },
+        )
+
+        # Test SSN backup vault failure alarm (critical)
+        self.template.has_resource_properties(
+            CfnAlarm.CFN_RESOURCE_TYPE_NAME,
+            {
+                'MetricName': 'NumberOfBackupJobsFailed',
+                'Namespace': 'AWS/Backup',
+                'Dimensions': [
+                    {'Name': 'BackupVaultName', 'Value': f'CompactConnect-{environment_name}-SSNBackupVault'}
+                ],
+                'Threshold': 1,
+                'ComparisonOperator': 'GreaterThanOrEqualToThreshold',
+                'AlarmDescription': Match.string_like_regexp('.*CRITICAL.*'),
+            },
+        )
+
+        # Test copy job failure alarm
+        self.template.has_resource_properties(
+            CfnAlarm.CFN_RESOURCE_TYPE_NAME,
+            {
+                'MetricName': 'NumberOfCopyJobsFailed',
+                'Namespace': 'AWS/Backup',
+                'Threshold': 1,
+                'ComparisonOperator': 'GreaterThanOrEqualToThreshold',
+            },
+        )
+
+        # Test backup job failure EventBridge rule
+        self.template.has_resource_properties(
+            CfnRule.CFN_RESOURCE_TYPE_NAME,
+            {
+                'EventPattern': {
+                    'source': ['aws.backup'],
+                    'detail-type': ['Backup Job State Change'],
+                    'detail': {'state': ['FAILED', 'ABORTED']},
+                },
+                'Targets': Match.any_value(),
+            },
+        )
+
+        # Test copy job failure EventBridge rule
+        self.template.has_resource_properties(
+            CfnRule.CFN_RESOURCE_TYPE_NAME,
+            {
+                'EventPattern': {
+                    'source': ['aws.backup'],
+                    'detail-type': ['Copy Job State Change'],
+                    'detail': {'state': ['FAILED']},
+                },
+                'Targets': Match.any_value(),
+            },
+        )
 
 
 class TestBackupInfrastructureStackProduction(TstAppABC, TestCase):

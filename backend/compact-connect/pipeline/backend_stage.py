@@ -31,6 +31,17 @@ class BackendStage(Stage):
 
         environment = Environment(account=environment_context['account_id'], region=environment_context['region'])
 
+        # Create backup infrastructure for data retention first (will get alarm topic after persistent stack)
+        self.backup_infrastructure_stack = BackupInfrastructureStack(
+            self,
+            'BackupInfrastructureStack',
+            env=environment,
+            environment_name=environment_name,
+            backup_config=backup_config,
+            alarm_topic=None,  # Will be set after persistent stack creation
+            tags=standard_tags,
+        )
+
         self.persistent_stack = PersistentStack(
             self,
             'PersistentStack',
@@ -39,17 +50,13 @@ class BackendStage(Stage):
             standard_tags=standard_tags,
             app_name=app_name,
             environment_name=environment_name,
+            backup_infrastructure_stack=self.backup_infrastructure_stack,
         )
 
-        # Create backup infrastructure for data retention
-        self.backup_infrastructure_stack = BackupInfrastructureStack(
-            self,
-            'BackupInfrastructureStack',
-            env=environment,
-            environment_name=environment_name,
-            backup_config=backup_config,
-            tags=standard_tags,
-        )
+        # Now set the alarm topic on the backup infrastructure stack for monitoring
+        self.backup_infrastructure_stack.alarm_topic = self.persistent_stack.alarm_topic
+        # Create the monitoring resources now that we have the alarm topic
+        self.backup_infrastructure_stack._create_backup_monitoring()
 
         self.provider_users_stack = ProviderUsersStack(
             self,

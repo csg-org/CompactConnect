@@ -26,6 +26,18 @@
               "workspace_id": "T01234567"
             }
           ]
+        },
+        "backup_policies": {
+          "critical_data": {
+            "schedule": "cron(0 5 * * 0 *)",
+            "delete_after_days": 365,
+            "cold_storage_after_days": 30
+          },
+          "ssn_data": {
+            "schedule": "cron(0 5 * * 0 *)",
+            "delete_after_days": 365,
+            "cold_storage_after_days": 30
+          }
         }
       }
     },

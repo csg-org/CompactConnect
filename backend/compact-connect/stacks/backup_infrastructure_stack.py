@@ -1,5 +1,9 @@
-from aws_cdk import ArnFormat, RemovalPolicy, Stack
-from aws_cdk.aws_backup import BackupVault
+from aws_cdk import ArnFormat, Duration, RemovalPolicy, Stack
+from aws_cdk.aws_backup import BackupVault, IBackupVault
+from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Metric, TreatMissingData
+from aws_cdk.aws_cloudwatch_actions import SnsAction
+from aws_cdk.aws_events import EventPattern, Rule
+from aws_cdk.aws_events_targets import SnsTopic
 from aws_cdk.aws_iam import (
     Effect,
     ManagedPolicy,
@@ -9,6 +13,7 @@ from aws_cdk.aws_iam import (
     ServicePrincipal,
 )
 from aws_cdk.aws_kms import Alias, Key
+from aws_cdk.aws_sns import ITopic
 from constructs import Construct
 
 
@@ -30,11 +35,12 @@ class BackupInfrastructureStack(Stack):
     """
 
     def __init__(
-        self, scope: Construct, construct_id: str, environment_name: str, backup_config: dict, **kwargs
+        self, scope: Construct, construct_id: str, environment_name: str, backup_config: dict, alarm_topic: ITopic, **kwargs
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
         self.environment_name = environment_name
+        self.alarm_topic = alarm_topic
 
         # If we delete this stack, retain the resource (orphan but prevent data loss) or destroy it (clean up)?
         self.removal_policy = RemovalPolicy.RETAIN if environment_name == 'prod' else RemovalPolicy.DESTROY
@@ -45,6 +51,9 @@ class BackupInfrastructureStack(Stack):
         self._create_local_backup_encryption_key()
         self._create_local_ssn_backup_encryption_key()
 
+        # Create references to cross-account backup vaults (needed for SSN backup service role policy)
+        self._create_cross_account_vault_references()
+
         # Create IAM roles for backup operations
         self._create_backup_service_role()
         self._create_ssn_backup_service_role()
@@ -52,6 +61,9 @@ class BackupInfrastructureStack(Stack):
         # Create local backup vaults
         self._create_local_backup_vault()
         self._create_local_ssn_backup_vault()
+        
+        # Create backup monitoring alarms and EventBridge rules
+        self._create_backup_monitoring()
 
     def _create_local_backup_encryption_key(self) -> None:
         """Create a local KMS key for general backup encryption."""
@@ -109,7 +121,7 @@ class BackupInfrastructureStack(Stack):
             effect=Effect.DENY,
             actions=['backup:CopyIntoBackupVault', 'backup:StartCopyJob'],
             resources=['*'],
-            conditions={'StringNotEquals': {'backup:CopyTargets': [self.cross_account_ssn_backup_vault_arn]}},
+            conditions={'StringNotEquals': {'backup:CopyTargets': [self.cross_account_ssn_backup_vault.backup_vault_arn]}},
         )
 
         self.ssn_backup_service_role = Role(
@@ -146,10 +158,10 @@ class BackupInfrastructureStack(Stack):
             removal_policy=self.removal_policy,
         )
 
-    @property
-    def cross_account_backup_vault_arn(self) -> str:
-        """Get the cross-account backup vault ARN from context configuration."""
-        return self.format_arn(
+    def _create_cross_account_vault_references(self) -> None:
+        """Create references to cross-account backup vaults."""
+        # Create reference to general cross-account backup vault
+        general_vault_arn = self.format_arn(
             account=self.backup_config['backup_account_id'],
             region=self.backup_config['backup_region'],
             service='backup',
@@ -157,15 +169,250 @@ class BackupInfrastructureStack(Stack):
             resource_name=self.backup_config['general_vault_name'],
             arn_format=ArnFormat.COLON_RESOURCE_NAME,
         )
+        self.cross_account_backup_vault = BackupVault.from_backup_vault_arn(
+            self, "CrossAccountBackupVault", general_vault_arn
+        )
 
-    @property
-    def cross_account_ssn_backup_vault_arn(self) -> str:
-        """Get the cross-account SSN backup vault ARN from context configuration."""
-        return self.format_arn(
+        # Create reference to SSN cross-account backup vault
+        ssn_vault_arn = self.format_arn(
             account=self.backup_config['backup_account_id'],
             region=self.backup_config['backup_region'],
             service='backup',
             resource='backup-vault',
             resource_name=self.backup_config['ssn_vault_name'],
             arn_format=ArnFormat.COLON_RESOURCE_NAME,
+        )
+        self.cross_account_ssn_backup_vault = BackupVault.from_backup_vault_arn(
+            self, "CrossAccountSSNBackupVault", ssn_vault_arn
+        )
+
+    def _create_backup_monitoring(self) -> None:
+        """Create comprehensive backup monitoring using CloudWatch alarms and EventBridge rules."""
+        
+        # CloudWatch Metric-based Alarms
+        self._create_backup_job_failure_alarms()
+        self._create_copy_job_failure_alarms()
+        self._create_recovery_point_alarms()
+        
+        # EventBridge Rules for real-time monitoring
+        self._create_backup_event_rules()
+        self._create_operational_security_rules()
+
+    def _create_backup_job_failure_alarms(self) -> None:
+        """Create alarms for backup job failures across all backup vaults."""
+        
+        # General backup job failures
+        general_backup_failures = Alarm(
+            self,
+            'GeneralBackupJobFailures',
+            metric=Metric(
+                namespace='AWS/Backup',
+                metric_name='NumberOfBackupJobsFailed',
+                dimensions_map={
+                    'BackupVaultName': self.local_backup_vault.backup_vault_name
+                },
+                statistic='Sum',
+                period=Duration.minutes(5),
+            ),
+            threshold=1,
+            evaluation_periods=1,
+            comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+            treat_missing_data=TreatMissingData.NOT_BREACHING,
+            alarm_description='One or more backup jobs have failed in the general backup vault. '
+                            'Investigation required to ensure data protection is maintained.',
+        )
+        general_backup_failures.add_alarm_action(SnsAction(self.alarm_topic))
+
+        # SSN backup job failures (critical)
+        ssn_backup_failures = Alarm(
+            self,
+            'SSNBackupJobFailures',
+            metric=Metric(
+                namespace='AWS/Backup',
+                metric_name='NumberOfBackupJobsFailed',
+                dimensions_map={
+                    'BackupVaultName': self.local_ssn_backup_vault.backup_vault_name
+                },
+                statistic='Sum',
+                period=Duration.minutes(5),
+            ),
+            threshold=1,
+            evaluation_periods=1,
+            comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+            treat_missing_data=TreatMissingData.NOT_BREACHING,
+            alarm_description='CRITICAL: SSN backup job has failed. Immediate investigation required '
+                            'as this affects sensitive data protection compliance.',
+        )
+        ssn_backup_failures.add_alarm_action(SnsAction(self.alarm_topic))
+
+        # Backup job expiration monitoring
+        backup_job_expired = Alarm(
+            self,
+            'BackupJobsExpired',
+            metric=Metric(
+                namespace='AWS/Backup',
+                metric_name='NumberOfBackupJobsExpired',
+                statistic='Sum',
+                period=Duration.hours(1),
+            ),
+            threshold=1,
+            evaluation_periods=1,
+            comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+            treat_missing_data=TreatMissingData.NOT_BREACHING,
+            alarm_description='Backup jobs have expired without starting. This may indicate '
+                            'resource conflicts or scheduling issues.',
+        )
+        backup_job_expired.add_alarm_action(SnsAction(self.alarm_topic))
+
+    def _create_copy_job_failure_alarms(self) -> None:
+        """Create alarms for cross-account copy job failures."""
+        
+        copy_job_failures = Alarm(
+            self,
+            'CrossAccountCopyJobFailures',
+            metric=Metric(
+                namespace='AWS/Backup',
+                metric_name='NumberOfCopyJobsFailed',
+                statistic='Sum',
+                period=Duration.minutes(15),
+            ),
+            threshold=1,
+            evaluation_periods=1,
+            comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+            treat_missing_data=TreatMissingData.NOT_BREACHING,
+            alarm_description='Cross-account copy jobs have failed. This affects disaster recovery '
+                            'capability and requires immediate investigation.',
+        )
+        copy_job_failures.add_alarm_action(SnsAction(self.alarm_topic))
+
+    def _create_recovery_point_alarms(self) -> None:
+        """Create alarms for recovery point issues."""
+        
+        # Partial recovery points
+        partial_recovery_points = Alarm(
+            self,
+            'PartialRecoveryPoints',
+            metric=Metric(
+                namespace='AWS/Backup',
+                metric_name='NumberOfRecoveryPointsPartial',
+                statistic='Sum',
+                period=Duration.hours(1),
+            ),
+            threshold=1,
+            evaluation_periods=1,
+            comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+            treat_missing_data=TreatMissingData.NOT_BREACHING,
+            alarm_description='Partial recovery points detected. These backups may be incomplete '
+                            'and could affect restore capabilities.',
+        )
+        partial_recovery_points.add_alarm_action(SnsAction(self.alarm_topic))
+
+        # Expired recovery points that couldn't be deleted
+        expired_recovery_points = Alarm(
+            self,
+            'ExpiredRecoveryPoints',
+            metric=Metric(
+                namespace='AWS/Backup',
+                metric_name='NumberOfRecoveryPointsExpired',
+                statistic='Sum',
+                period=Duration.hours(24),
+            ),
+            threshold=5,
+            evaluation_periods=1,
+            comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+            treat_missing_data=TreatMissingData.NOT_BREACHING,
+            alarm_description='Multiple recovery points have expired but could not be deleted. '
+                            'This may cause unexpected storage costs.',
+        )
+        expired_recovery_points.add_alarm_action(SnsAction(self.alarm_topic))
+
+    def _create_backup_event_rules(self) -> None:
+        """Create EventBridge rules for real-time backup failure events."""
+        
+        # Backup job failure events
+        backup_job_failure_rule = Rule(
+            self,
+            'BackupJobFailureRule',
+            event_pattern=EventPattern(
+                source=['aws.backup'],
+                detail_type=['Backup Job State Change'],
+                detail={
+                    'state': ['FAILED', 'ABORTED'],
+                }
+            ),
+            targets=[SnsTopic(self.alarm_topic)],
+        )
+
+        # Copy job failure events
+        copy_job_failure_rule = Rule(
+            self,
+            'CopyJobFailureRule',
+            event_pattern=EventPattern(
+                source=['aws.backup'],
+                detail_type=['Copy Job State Change'],
+                detail={
+                    'state': ['FAILED'],
+                }
+            ),
+            targets=[SnsTopic(self.alarm_topic)],
+        )
+
+        # Recovery point partial/failed events
+        recovery_point_issues_rule = Rule(
+            self,
+            'RecoveryPointIssuesRule',
+            event_pattern=EventPattern(
+                source=['aws.backup'],
+                detail_type=['Recovery Point State Change'],
+                detail={
+                    'status': ['PARTIAL', 'EXPIRED'],
+                }
+            ),
+            targets=[SnsTopic(self.alarm_topic)],
+        )
+
+    def _create_operational_security_rules(self) -> None:
+        """Create EventBridge rules for operational security monitoring."""
+        
+        # Manual backup deletion monitoring
+        manual_deletion_rule = Rule(
+            self,
+            'ManualBackupDeletionRule',
+            event_pattern=EventPattern(
+                source=['aws.backup'],
+                detail_type=['Recovery Point State Change'],
+                detail={
+                    'status': ['DELETED'],
+                    # Monitor for manual deletions which may indicate security issues
+                }
+            ),
+            targets=[SnsTopic(self.alarm_topic)],
+        )
+
+        # Backup vault modifications
+        vault_modification_rule = Rule(
+            self,
+            'BackupVaultModificationRule',
+            event_pattern=EventPattern(
+                source=['aws.backup'],
+                detail_type=['Backup Vault State Change'],
+                detail={
+                    'state': ['MODIFIED', 'DELETED'],
+                }
+            ),
+            targets=[SnsTopic(self.alarm_topic)],
+        )
+
+        # Backup plan modifications/deletions
+        backup_plan_changes_rule = Rule(
+            self,
+            'BackupPlanChangesRule',
+            event_pattern=EventPattern(
+                source=['aws.backup'],
+                detail_type=['Backup Plan State Change'],
+                detail={
+                    'state': ['MODIFIED', 'DELETED'],
+                }
+            ),
+            targets=[SnsTopic(self.alarm_topic)],
         )

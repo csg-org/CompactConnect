@@ -265,6 +265,76 @@ class TstAppABC(ABC):
             overwrite_snapshot=False,
         )
 
+    def _inspect_backup_resources(self, persistent_stack: PersistentStack, persistent_stack_template: Template):
+        """Validate that backup resources are created for tables with backup plans."""
+        from aws_cdk.aws_backup import CfnBackupPlan, CfnBackupSelection
+        
+        # Should have 2 backup plans (one for provider table, one for SSN table)
+        persistent_stack_template.resource_count_is(CfnBackupPlan.CFN_RESOURCE_TYPE_NAME, 2)
+        
+        # Should have 2 backup selections (one for provider table, one for SSN table)
+        persistent_stack_template.resource_count_is(CfnBackupSelection.CFN_RESOURCE_TYPE_NAME, 2)
+        
+        # Validate provider table backup plan exists
+        provider_backup_plan_logical_id = persistent_stack.get_logical_id(
+            persistent_stack.provider_table.backup_plan.backup_plan.node.default_child
+        )
+        provider_backup_selection_logical_id = persistent_stack.get_logical_id(
+            persistent_stack.provider_table.backup_plan.backup_selection.node.default_child
+        )
+        
+        # Validate SSN table backup plan exists
+        ssn_backup_plan_logical_id = persistent_stack.get_logical_id(
+            persistent_stack.ssn_table.backup_plan.backup_plan.node.default_child
+        )
+        ssn_backup_selection_logical_id = persistent_stack.get_logical_id(
+            persistent_stack.ssn_table.backup_plan.backup_selection.node.default_child
+        )
+        
+        # Verify backup plan configurations exist
+        provider_backup_plan = self.get_resource_properties_by_logical_id(
+            provider_backup_plan_logical_id,
+            persistent_stack_template.find_resources(CfnBackupPlan.CFN_RESOURCE_TYPE_NAME),
+        )
+        ssn_backup_plan = self.get_resource_properties_by_logical_id(
+            ssn_backup_plan_logical_id,
+            persistent_stack_template.find_resources(CfnBackupPlan.CFN_RESOURCE_TYPE_NAME),
+        )
+        
+        # Verify backup selection configurations reference the correct tables
+        provider_backup_selection = self.get_resource_properties_by_logical_id(
+            provider_backup_selection_logical_id,
+            persistent_stack_template.find_resources(CfnBackupSelection.CFN_RESOURCE_TYPE_NAME),
+        )
+        ssn_backup_selection = self.get_resource_properties_by_logical_id(
+            ssn_backup_selection_logical_id,
+            persistent_stack_template.find_resources(CfnBackupSelection.CFN_RESOURCE_TYPE_NAME),
+        )
+        
+        # Validate that backup selections reference DynamoDB resources
+        self.assertIn('BackupSelection', provider_backup_selection)
+        self.assertIn('Resources', provider_backup_selection['BackupSelection'])
+        self.assertIn('BackupSelection', ssn_backup_selection)
+        self.assertIn('Resources', ssn_backup_selection['BackupSelection'])
+        
+        # Verify backup plans have proper structure (environment-agnostic validation)
+        for backup_plan, table_name in [(provider_backup_plan, 'provider'), (ssn_backup_plan, 'SSN')]:
+            self.assertIn('BackupPlan', backup_plan)
+            self.assertIn('BackupPlanRule', backup_plan['BackupPlan'])
+            rules = backup_plan['BackupPlan']['BackupPlanRule']
+            self.assertEqual(len(rules), 1, f'{table_name} table should have exactly one backup rule')
+            
+            rule = rules[0]
+            # Verify basic structure without checking specific values (since they vary by environment)
+            self.assertIn('ScheduleExpression', rule, f'{table_name} table backup rule should have a schedule')
+            self.assertIn('Lifecycle', rule, f'{table_name} table backup rule should have lifecycle configuration')
+            self.assertIn('DeleteAfterDays', rule['Lifecycle'], f'{table_name} table backup should have retention period')
+            self.assertIn('MoveToColdStorageAfterDays', rule['Lifecycle'], f'{table_name} table backup should have cold storage transition')
+            
+            # Verify copy actions exist for cross-account replication
+            self.assertIn('CopyActions', rule, f'{table_name} table backup should have copy actions for cross-account replication')
+            self.assertEqual(len(rule['CopyActions']), 1, f'{table_name} table should have one copy action')
+
     def _inspect_data_events_table(self, persistent_stack: PersistentStack, persistent_stack_template: Template):
         # Ensure our DataEventTable and queues are created
         event_bus_logical_id = persistent_stack.get_logical_id(persistent_stack._data_event_bus.node.default_child)  # noqa: SLF001 private_member_access
