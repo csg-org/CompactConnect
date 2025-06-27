@@ -869,18 +869,17 @@ class TestEncumbranceEvents(TstFunction):
         self.assertEqual({'batchItemFailures': []}, result)
 
         # Verify provider notification
-        expected_template_variables = EncumbranceNotificationTemplateVariables(
-            provider_first_name='Björk',
-            provider_last_name='Guðmundsdóttir',
-            encumbered_jurisdiction='ne',
-            license_type='speech-language pathologist',
-            effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
-            provider_id=None,
-        )
         mock_provider_email.assert_called_once_with(
             compact=DEFAULT_COMPACT,
             provider_email='provider@example.com',
-            template_variables=expected_template_variables,
+            template_variables=EncumbranceNotificationTemplateVariables(
+                provider_first_name='Björk',
+                provider_last_name='Guðmundsdóttir',
+                encumbered_jurisdiction='ne',
+                license_type='speech-language pathologist',
+                effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                provider_id=None,
+            ),
         )
 
         # Verify state notifications (encumbered state + other states with active licenses/privileges)
@@ -985,15 +984,17 @@ class TestEncumbranceEvents(TstFunction):
         # Verify all calls have the correct template_variables structure
         for call in calls:
             self.assertEqual(call.kwargs['compact'], DEFAULT_COMPACT)
-            self.assertIsInstance(call.kwargs['template_variables'], EncumbranceNotificationTemplateVariables)
-            template_vars = call.kwargs['template_variables']
-            self.assertEqual(template_vars.provider_first_name, 'Björk')
-            self.assertEqual(template_vars.provider_last_name, 'Guðmundsdóttir')
-            self.assertEqual(template_vars.encumbered_jurisdiction, 'ne')
-            self.assertEqual(template_vars.license_type, 'speech-language pathologist')
-            self.assertEqual(template_vars.effective_date, date.fromisoformat(DEFAULT_EFFECTIVE_DATE))
-            # provider_id should be UUID for all state notifications
-            self.assertEqual(template_vars.provider_id, UUID(DEFAULT_PROVIDER_ID))
+            self.assertEqual(
+                call.kwargs['template_variables'],
+                EncumbranceNotificationTemplateVariables(
+                    provider_first_name='Björk',
+                    provider_last_name='Guðmundsdóttir',
+                    encumbered_jurisdiction='ne',
+                    license_type='speech-language pathologist',
+                    effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                    provider_id=UUID(DEFAULT_PROVIDER_ID),
+                ),
+            )
 
     @patch('cc_common.email_service_client.EmailServiceClient.send_privilege_encumbrance_state_notification_email')
     @patch('cc_common.email_service_client.EmailServiceClient.send_privilege_encumbrance_provider_notification_email')
@@ -1045,18 +1046,17 @@ class TestEncumbranceEvents(TstFunction):
         self.assertEqual({'batchItemFailures': []}, result)
 
         # Verify provider notification
-        expected_template_variables = EncumbranceNotificationTemplateVariables(
-            provider_first_name='Björk',
-            provider_last_name='Guðmundsdóttir',
-            encumbered_jurisdiction='ne',
-            license_type='speech-language pathologist',
-            effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
-            provider_id=None,
-        )
         mock_provider_email.assert_called_once_with(
             compact=DEFAULT_COMPACT,
             provider_email='provider@example.com',
-            template_variables=expected_template_variables,
+            template_variables=EncumbranceNotificationTemplateVariables(
+                provider_first_name='Björk',
+                provider_last_name='Guðmundsdóttir',
+                encumbered_jurisdiction='ne',
+                license_type='speech-language pathologist',
+                effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                provider_id=None,
+            ),
         )
 
         # Verify state notifications were sent to all relevant jurisdictions
@@ -1070,15 +1070,17 @@ class TestEncumbranceEvents(TstFunction):
         # Verify all calls have the correct template_variables structure
         for call in calls:
             self.assertEqual(call.kwargs['compact'], DEFAULT_COMPACT)
-            self.assertIsInstance(call.kwargs['template_variables'], EncumbranceNotificationTemplateVariables)
-            template_vars = call.kwargs['template_variables']
-            self.assertEqual(template_vars.provider_first_name, 'Björk')
-            self.assertEqual(template_vars.provider_last_name, 'Guðmundsdóttir')
-            self.assertEqual(template_vars.encumbered_jurisdiction, 'ne')
-            self.assertEqual(template_vars.license_type, 'speech-language pathologist')
-            self.assertEqual(template_vars.effective_date, date.fromisoformat(DEFAULT_EFFECTIVE_DATE))
-            # provider_id should be UUID for all state notifications
-            self.assertEqual(template_vars.provider_id, UUID(DEFAULT_PROVIDER_ID))
+            self.assertEqual(
+                call.kwargs['template_variables'],
+                EncumbranceNotificationTemplateVariables(
+                    provider_first_name='Björk',
+                    provider_last_name='Guðmundsdóttir',
+                    encumbered_jurisdiction='ne',
+                    license_type='speech-language pathologist',
+                    effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                    provider_id=UUID(DEFAULT_PROVIDER_ID),
+                ),
+            )
 
     def test_privilege_encumbrance_listener_handles_provider_retrieval_failure(self):
         """Test that privilege encumbrance listener handles provider retrieval failures."""
@@ -1145,18 +1147,17 @@ class TestEncumbranceEvents(TstFunction):
         self.assertEqual({'batchItemFailures': []}, result)
 
         # Verify provider notification
-        expected_template_variables = EncumbranceNotificationTemplateVariables(
-            provider_first_name='Björk',
-            provider_last_name='Guðmundsdóttir',
-            encumbered_jurisdiction='ne',
-            license_type='speech-language pathologist',
-            effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
-            provider_id=None,
-        )
         mock_provider_email.assert_called_once_with(
             compact=DEFAULT_COMPACT,
             provider_email='provider@example.com',
-            template_variables=expected_template_variables,
+            template_variables=EncumbranceNotificationTemplateVariables(
+                provider_first_name='Björk',
+                provider_last_name='Guðmundsdóttir',
+                encumbered_jurisdiction='ne',
+                license_type='speech-language pathologist',
+                effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                provider_id=None,
+            ),
         )
 
         # Verify exactly 3 notifications (ne appears only once, not duplicated)
@@ -1170,15 +1171,17 @@ class TestEncumbranceEvents(TstFunction):
         # Verify all calls have the correct template_variables structure
         for call in calls:
             self.assertEqual(call.kwargs['compact'], DEFAULT_COMPACT)
-            self.assertIsInstance(call.kwargs['template_variables'], EncumbranceNotificationTemplateVariables)
-            template_vars = call.kwargs['template_variables']
-            self.assertEqual(template_vars.provider_first_name, 'Björk')
-            self.assertEqual(template_vars.provider_last_name, 'Guðmundsdóttir')
-            self.assertEqual(template_vars.encumbered_jurisdiction, 'ne')
-            self.assertEqual(template_vars.license_type, 'speech-language pathologist')
-            self.assertEqual(template_vars.effective_date, date.fromisoformat(DEFAULT_EFFECTIVE_DATE))
-            # provider_id should be UUID for all state notifications
-            self.assertEqual(template_vars.provider_id, UUID(DEFAULT_PROVIDER_ID))
+            self.assertEqual(
+                call.kwargs['template_variables'],
+                EncumbranceNotificationTemplateVariables(
+                    provider_first_name='Björk',
+                    provider_last_name='Guðmundsdóttir',
+                    encumbered_jurisdiction='ne',
+                    license_type='speech-language pathologist',
+                    effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                    provider_id=UUID(DEFAULT_PROVIDER_ID),
+                ),
+            )
 
     @patch('cc_common.email_service_client.EmailServiceClient.send_privilege_encumbrance_state_notification_email')
     @patch('cc_common.email_service_client.EmailServiceClient.send_privilege_encumbrance_provider_notification_email')
@@ -1231,18 +1234,17 @@ class TestEncumbranceEvents(TstFunction):
         self.assertEqual({'batchItemFailures': []}, result)
 
         # Verify provider notification
-        expected_template_variables = EncumbranceNotificationTemplateVariables(
-            provider_first_name='Björk',
-            provider_last_name='Guðmundsdóttir',
-            encumbered_jurisdiction='ne',
-            license_type='speech-language pathologist',
-            effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
-            provider_id=None,
-        )
         mock_provider_email.assert_called_once_with(
             compact=DEFAULT_COMPACT,
             provider_email='provider@example.com',
-            template_variables=expected_template_variables,
+            template_variables=EncumbranceNotificationTemplateVariables(
+                provider_first_name='Björk',
+                provider_last_name='Guðmundsdóttir',
+                encumbered_jurisdiction='ne',
+                license_type='speech-language pathologist',
+                effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                provider_id=None,
+            ),
         )
 
         # Verify 4 notifications (to inactive 'co', 'ky', and active 'tx', 'ne')
@@ -1256,15 +1258,17 @@ class TestEncumbranceEvents(TstFunction):
         # Verify all calls have the correct template_variables structure
         for call in calls:
             self.assertEqual(call.kwargs['compact'], DEFAULT_COMPACT)
-            self.assertIsInstance(call.kwargs['template_variables'], EncumbranceNotificationTemplateVariables)
-            template_vars = call.kwargs['template_variables']
-            self.assertEqual(template_vars.provider_first_name, 'Björk')
-            self.assertEqual(template_vars.provider_last_name, 'Guðmundsdóttir')
-            self.assertEqual(template_vars.encumbered_jurisdiction, 'ne')
-            self.assertEqual(template_vars.license_type, 'speech-language pathologist')
-            self.assertEqual(template_vars.effective_date, date.fromisoformat(DEFAULT_EFFECTIVE_DATE))
-            # provider_id should be UUID for all state notifications
-            self.assertEqual(template_vars.provider_id, UUID(DEFAULT_PROVIDER_ID))
+            self.assertEqual(
+                call.kwargs['template_variables'],
+                EncumbranceNotificationTemplateVariables(
+                    provider_first_name='Björk',
+                    provider_last_name='Guðmundsdóttir',
+                    encumbered_jurisdiction='ne',
+                    license_type='speech-language pathologist',
+                    effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                    provider_id=UUID(DEFAULT_PROVIDER_ID),
+                ),
+            )
 
     @patch(
         'cc_common.email_service_client.EmailServiceClient.send_privilege_encumbrance_lifting_state_notification_email'
@@ -1311,18 +1315,17 @@ class TestEncumbranceEvents(TstFunction):
         self.assertEqual({'batchItemFailures': []}, result)
 
         # Verify provider notification
-        expected_template_variables = EncumbranceNotificationTemplateVariables(
-            provider_first_name='Björk',
-            provider_last_name='Guðmundsdóttir',
-            encumbered_jurisdiction='ne',
-            license_type='speech-language pathologist',
-            effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
-            provider_id=None,
-        )
         mock_provider_email.assert_called_once_with(
             compact=DEFAULT_COMPACT,
             provider_email='provider@example.com',
-            template_variables=expected_template_variables,
+            template_variables=EncumbranceNotificationTemplateVariables(
+                provider_first_name='Björk',
+                provider_last_name='Guðmundsdóttir',
+                encumbered_jurisdiction='ne',
+                license_type='speech-language pathologist',
+                effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                provider_id=None,
+            ),
         )
 
         # Verify state notifications were sent
@@ -1336,17 +1339,17 @@ class TestEncumbranceEvents(TstFunction):
         # Verify all calls have the correct template_variables structure
         for call in calls:
             self.assertEqual(call.kwargs['compact'], DEFAULT_COMPACT)
-            self.assertIsInstance(call.kwargs['template_variables'], EncumbranceNotificationTemplateVariables)
-            template_vars = call.kwargs['template_variables']
-            self.assertEqual(template_vars.provider_first_name, 'Björk')
-            self.assertEqual(template_vars.provider_last_name, 'Guðmundsdóttir')
             self.assertEqual(
-                template_vars.encumbered_jurisdiction, 'ne'
-            )  # Note: uses encumbered_jurisdiction for lifting too
-            self.assertEqual(template_vars.license_type, 'speech-language pathologist')
-            self.assertEqual(template_vars.effective_date, date.fromisoformat(DEFAULT_EFFECTIVE_DATE))
-            # provider_id should be UUID for all state notifications
-            self.assertEqual(template_vars.provider_id, UUID(DEFAULT_PROVIDER_ID))
+                call.kwargs['template_variables'],
+                EncumbranceNotificationTemplateVariables(
+                    provider_first_name='Björk',
+                    provider_last_name='Guðmundsdóttir',
+                    encumbered_jurisdiction='ne',
+                    license_type='speech-language pathologist',
+                    effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                    provider_id=UUID(DEFAULT_PROVIDER_ID),
+                ),
+            )
 
     @patch(
         'cc_common.email_service_client.EmailServiceClient.send_privilege_encumbrance_lifting_state_notification_email'
@@ -1398,17 +1401,17 @@ class TestEncumbranceEvents(TstFunction):
         # Verify all calls have the correct template_variables structure
         for call in calls:
             self.assertEqual(call.kwargs['compact'], DEFAULT_COMPACT)
-            self.assertIsInstance(call.kwargs['template_variables'], EncumbranceNotificationTemplateVariables)
-            template_vars = call.kwargs['template_variables']
-            self.assertEqual(template_vars.provider_first_name, 'Björk')
-            self.assertEqual(template_vars.provider_last_name, 'Guðmundsdóttir')
             self.assertEqual(
-                template_vars.encumbered_jurisdiction, 'ne'
-            )  # Note: uses encumbered_jurisdiction for lifting too
-            self.assertEqual(template_vars.license_type, 'speech-language pathologist')
-            self.assertEqual(template_vars.effective_date, date.fromisoformat(DEFAULT_EFFECTIVE_DATE))
-            # provider_id should be UUID for all state notifications
-            self.assertEqual(template_vars.provider_id, UUID(DEFAULT_PROVIDER_ID))
+                call.kwargs['template_variables'],
+                EncumbranceNotificationTemplateVariables(
+                    provider_first_name='Björk',
+                    provider_last_name='Guðmundsdóttir',
+                    encumbered_jurisdiction='ne',
+                    license_type='speech-language pathologist',
+                    effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                    provider_id=UUID(DEFAULT_PROVIDER_ID),
+                ),
+            )
 
     @patch(
         'cc_common.email_service_client.EmailServiceClient.send_privilege_encumbrance_lifting_state_notification_email'
@@ -1464,18 +1467,17 @@ class TestEncumbranceEvents(TstFunction):
         self.assertEqual({'batchItemFailures': []}, result)
 
         # Verify provider notification
-        expected_template_variables = EncumbranceNotificationTemplateVariables(
-            provider_first_name='Björk',
-            provider_last_name='Guðmundsdóttir',
-            encumbered_jurisdiction='ne',
-            license_type='speech-language pathologist',
-            effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
-            provider_id=None,
-        )
         mock_provider_email.assert_called_once_with(
             compact=DEFAULT_COMPACT,
             provider_email='provider@example.com',
-            template_variables=expected_template_variables,
+            template_variables=EncumbranceNotificationTemplateVariables(
+                provider_first_name='Björk',
+                provider_last_name='Guðmundsdóttir',
+                encumbered_jurisdiction='ne',
+                license_type='speech-language pathologist',
+                effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                provider_id=None,
+            ),
         )
 
         # Verify state notifications were sent to all relevant jurisdictions
@@ -1489,17 +1491,17 @@ class TestEncumbranceEvents(TstFunction):
         # Verify all calls have the correct template_variables structure
         for call in calls:
             self.assertEqual(call.kwargs['compact'], DEFAULT_COMPACT)
-            self.assertIsInstance(call.kwargs['template_variables'], EncumbranceNotificationTemplateVariables)
-            template_vars = call.kwargs['template_variables']
-            self.assertEqual(template_vars.provider_first_name, 'Björk')
-            self.assertEqual(template_vars.provider_last_name, 'Guðmundsdóttir')
             self.assertEqual(
-                template_vars.encumbered_jurisdiction, 'ne'
-            )  # Note: uses encumbered_jurisdiction for lifting too
-            self.assertEqual(template_vars.license_type, 'speech-language pathologist')
-            self.assertEqual(template_vars.effective_date, date.fromisoformat(DEFAULT_EFFECTIVE_DATE))
-            # provider_id should be UUID for all state notifications
-            self.assertEqual(template_vars.provider_id, UUID(DEFAULT_PROVIDER_ID))
+                call.kwargs['template_variables'],
+                EncumbranceNotificationTemplateVariables(
+                    provider_first_name='Björk',
+                    provider_last_name='Guðmundsdóttir',
+                    encumbered_jurisdiction='ne',
+                    license_type='speech-language pathologist',
+                    effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                    provider_id=UUID(DEFAULT_PROVIDER_ID),
+                ),
+            )
 
     def test_privilege_encumbrance_lifting_notification_listener_handles_provider_retrieval_failure(self):
         """Test that privilege encumbrance lifting listener handles provider retrieval failures."""
@@ -1665,18 +1667,17 @@ class TestEncumbranceEvents(TstFunction):
         self.assertEqual({'batchItemFailures': []}, result)
 
         # Verify provider notification
-        expected_template_variables = EncumbranceNotificationTemplateVariables(
-            provider_first_name='Björk',
-            provider_last_name='Guðmundsdóttir',
-            encumbered_jurisdiction='oh',
-            license_type='speech-language pathologist',
-            effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
-            provider_id=None,
-        )
         mock_provider_email.assert_called_once_with(
             compact=DEFAULT_COMPACT,
             provider_email='provider@example.com',
-            template_variables=expected_template_variables,
+            template_variables=EncumbranceNotificationTemplateVariables(
+                provider_first_name='Björk',
+                provider_last_name='Guðmundsdóttir',
+                encumbered_jurisdiction='oh',
+                license_type='speech-language pathologist',
+                effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                provider_id=None,
+            ),
         )
 
         # Verify state notifications were sent
@@ -1690,15 +1691,17 @@ class TestEncumbranceEvents(TstFunction):
         # Verify all calls have the correct template_variables structure
         for call in calls:
             self.assertEqual(call.kwargs['compact'], DEFAULT_COMPACT)
-            self.assertIsInstance(call.kwargs['template_variables'], EncumbranceNotificationTemplateVariables)
-            template_vars = call.kwargs['template_variables']
-            self.assertEqual(template_vars.provider_first_name, 'Björk')
-            self.assertEqual(template_vars.provider_last_name, 'Guðmundsdóttir')
-            self.assertEqual(template_vars.encumbered_jurisdiction, 'oh')
-            self.assertEqual(template_vars.license_type, 'speech-language pathologist')
-            self.assertEqual(template_vars.effective_date, date.fromisoformat(DEFAULT_EFFECTIVE_DATE))
-            # provider_id should be UUID for all state notifications
-            self.assertEqual(template_vars.provider_id, UUID(DEFAULT_PROVIDER_ID))
+            self.assertEqual(
+                call.kwargs['template_variables'],
+                EncumbranceNotificationTemplateVariables(
+                    provider_first_name='Björk',
+                    provider_last_name='Guðmundsdóttir',
+                    encumbered_jurisdiction='oh',
+                    license_type='speech-language pathologist',
+                    effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                    provider_id=UUID(DEFAULT_PROVIDER_ID),
+                ),
+            )
 
     @patch('cc_common.email_service_client.EmailServiceClient.send_license_encumbrance_state_notification_email')
     @patch('cc_common.email_service_client.EmailServiceClient.send_license_encumbrance_provider_notification_email')
@@ -1746,15 +1749,17 @@ class TestEncumbranceEvents(TstFunction):
         # Verify all calls have the correct template_variables structure
         for call in calls:
             self.assertEqual(call.kwargs['compact'], DEFAULT_COMPACT)
-            self.assertIsInstance(call.kwargs['template_variables'], EncumbranceNotificationTemplateVariables)
-            template_vars = call.kwargs['template_variables']
-            self.assertEqual(template_vars.provider_first_name, 'Björk')
-            self.assertEqual(template_vars.provider_last_name, 'Guðmundsdóttir')
-            self.assertEqual(template_vars.encumbered_jurisdiction, 'oh')
-            self.assertEqual(template_vars.license_type, 'speech-language pathologist')
-            self.assertEqual(template_vars.effective_date, date.fromisoformat(DEFAULT_EFFECTIVE_DATE))
-            # provider_id should be UUID for all state notifications
-            self.assertEqual(template_vars.provider_id, UUID(DEFAULT_PROVIDER_ID))
+            self.assertEqual(
+                call.kwargs['template_variables'],
+                EncumbranceNotificationTemplateVariables(
+                    provider_first_name='Björk',
+                    provider_last_name='Guðmundsdóttir',
+                    encumbered_jurisdiction='oh',
+                    license_type='speech-language pathologist',
+                    effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                    provider_id=UUID(DEFAULT_PROVIDER_ID),
+                ),
+            )
 
     @patch('cc_common.email_service_client.EmailServiceClient.send_license_encumbrance_state_notification_email')
     @patch('cc_common.email_service_client.EmailServiceClient.send_license_encumbrance_provider_notification_email')
@@ -1806,18 +1811,17 @@ class TestEncumbranceEvents(TstFunction):
         self.assertEqual({'batchItemFailures': []}, result)
 
         # Verify provider notification
-        expected_template_variables = EncumbranceNotificationTemplateVariables(
-            provider_first_name='Björk',
-            provider_last_name='Guðmundsdóttir',
-            encumbered_jurisdiction='oh',
-            license_type='speech-language pathologist',
-            effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
-            provider_id=None,
-        )
         mock_provider_email.assert_called_once_with(
             compact=DEFAULT_COMPACT,
             provider_email='provider@example.com',
-            template_variables=expected_template_variables,
+            template_variables=EncumbranceNotificationTemplateVariables(
+                provider_first_name='Björk',
+                provider_last_name='Guðmundsdóttir',
+                encumbered_jurisdiction='oh',
+                license_type='speech-language pathologist',
+                effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                provider_id=None,
+            ),
         )
 
         # Verify state notifications were sent to all relevant jurisdictions
@@ -1831,15 +1835,17 @@ class TestEncumbranceEvents(TstFunction):
         # Verify all calls have the correct template_variables structure
         for call in calls:
             self.assertEqual(call.kwargs['compact'], DEFAULT_COMPACT)
-            self.assertIsInstance(call.kwargs['template_variables'], EncumbranceNotificationTemplateVariables)
-            template_vars = call.kwargs['template_variables']
-            self.assertEqual(template_vars.provider_first_name, 'Björk')
-            self.assertEqual(template_vars.provider_last_name, 'Guðmundsdóttir')
-            self.assertEqual(template_vars.encumbered_jurisdiction, 'oh')
-            self.assertEqual(template_vars.license_type, 'speech-language pathologist')
-            self.assertEqual(template_vars.effective_date, date.fromisoformat(DEFAULT_EFFECTIVE_DATE))
-            # provider_id should be UUID for all state notifications
-            self.assertEqual(template_vars.provider_id, UUID(DEFAULT_PROVIDER_ID))
+            self.assertEqual(
+                call.kwargs['template_variables'],
+                EncumbranceNotificationTemplateVariables(
+                    provider_first_name='Björk',
+                    provider_last_name='Guðmundsdóttir',
+                    encumbered_jurisdiction='oh',
+                    license_type='speech-language pathologist',
+                    effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                    provider_id=UUID(DEFAULT_PROVIDER_ID),
+                ),
+            )
 
     def test_license_encumbrance_notification_listener_handles_provider_retrieval_failure(self):
         """Test that license encumbrance notification listener handles provider retrieval failures."""
@@ -1906,18 +1912,17 @@ class TestEncumbranceEvents(TstFunction):
         self.assertEqual({'batchItemFailures': []}, result)
 
         # Verify provider notification
-        expected_template_variables = EncumbranceNotificationTemplateVariables(
-            provider_first_name='Björk',
-            provider_last_name='Guðmundsdóttir',
-            encumbered_jurisdiction='oh',
-            license_type='speech-language pathologist',
-            effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
-            provider_id=None,
-        )
         mock_provider_email.assert_called_once_with(
             compact=DEFAULT_COMPACT,
             provider_email='provider@example.com',
-            template_variables=expected_template_variables,
+            template_variables=EncumbranceNotificationTemplateVariables(
+                provider_first_name='Björk',
+                provider_last_name='Guðmundsdóttir',
+                encumbered_jurisdiction='oh',
+                license_type='speech-language pathologist',
+                effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                provider_id=None,
+            ),
         )
 
         # Verify exactly 3 notifications (oh appears only once, not duplicated)
@@ -1931,15 +1936,17 @@ class TestEncumbranceEvents(TstFunction):
         # Verify all calls have the correct template_variables structure
         for call in calls:
             self.assertEqual(call.kwargs['compact'], DEFAULT_COMPACT)
-            self.assertIsInstance(call.kwargs['template_variables'], EncumbranceNotificationTemplateVariables)
-            template_vars = call.kwargs['template_variables']
-            self.assertEqual(template_vars.provider_first_name, 'Björk')
-            self.assertEqual(template_vars.provider_last_name, 'Guðmundsdóttir')
-            self.assertEqual(template_vars.encumbered_jurisdiction, 'oh')
-            self.assertEqual(template_vars.license_type, 'speech-language pathologist')
-            self.assertEqual(template_vars.effective_date, date.fromisoformat(DEFAULT_EFFECTIVE_DATE))
-            # provider_id should be UUID for all state notifications
-            self.assertEqual(template_vars.provider_id, UUID(DEFAULT_PROVIDER_ID))
+            self.assertEqual(
+                call.kwargs['template_variables'],
+                EncumbranceNotificationTemplateVariables(
+                    provider_first_name='Björk',
+                    provider_last_name='Guðmundsdóttir',
+                    encumbered_jurisdiction='oh',
+                    license_type='speech-language pathologist',
+                    effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                    provider_id=UUID(DEFAULT_PROVIDER_ID),
+                ),
+            )
 
     @patch('cc_common.email_service_client.EmailServiceClient.send_license_encumbrance_state_notification_email')
     @patch('cc_common.email_service_client.EmailServiceClient.send_license_encumbrance_provider_notification_email')
@@ -1992,18 +1999,17 @@ class TestEncumbranceEvents(TstFunction):
         self.assertEqual({'batchItemFailures': []}, result)
 
         # Verify provider notification
-        expected_template_variables = EncumbranceNotificationTemplateVariables(
-            provider_first_name='Björk',
-            provider_last_name='Guðmundsdóttir',
-            encumbered_jurisdiction='oh',
-            license_type='speech-language pathologist',
-            effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
-            provider_id=None,
-        )
         mock_provider_email.assert_called_once_with(
             compact=DEFAULT_COMPACT,
             provider_email='provider@example.com',
-            template_variables=expected_template_variables,
+            template_variables=EncumbranceNotificationTemplateVariables(
+                provider_first_name='Björk',
+                provider_last_name='Guðmundsdóttir',
+                encumbered_jurisdiction='oh',
+                license_type='speech-language pathologist',
+                effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                provider_id=None,
+            ),
         )
 
         # Verify 4 notifications (including to inactive 'ne' and 'ky')
@@ -2017,15 +2023,17 @@ class TestEncumbranceEvents(TstFunction):
         # Verify all calls have the correct template_variables structure
         for call in calls:
             self.assertEqual(call.kwargs['compact'], DEFAULT_COMPACT)
-            self.assertIsInstance(call.kwargs['template_variables'], EncumbranceNotificationTemplateVariables)
-            template_vars = call.kwargs['template_variables']
-            self.assertEqual(template_vars.provider_first_name, 'Björk')
-            self.assertEqual(template_vars.provider_last_name, 'Guðmundsdóttir')
-            self.assertEqual(template_vars.encumbered_jurisdiction, 'oh')
-            self.assertEqual(template_vars.license_type, 'speech-language pathologist')
-            self.assertEqual(template_vars.effective_date, date.fromisoformat(DEFAULT_EFFECTIVE_DATE))
-            # provider_id should be UUID for all state notifications
-            self.assertEqual(template_vars.provider_id, UUID(DEFAULT_PROVIDER_ID))
+            self.assertEqual(
+                call.kwargs['template_variables'],
+                EncumbranceNotificationTemplateVariables(
+                    provider_first_name='Björk',
+                    provider_last_name='Guðmundsdóttir',
+                    encumbered_jurisdiction='oh',
+                    license_type='speech-language pathologist',
+                    effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                    provider_id=UUID(DEFAULT_PROVIDER_ID),
+                ),
+            )
 
     @patch(
         'cc_common.email_service_client.EmailServiceClient.send_license_encumbrance_lifting_state_notification_email'
@@ -2072,18 +2080,17 @@ class TestEncumbranceEvents(TstFunction):
         self.assertEqual({'batchItemFailures': []}, result)
 
         # Verify provider notification
-        expected_template_variables = EncumbranceNotificationTemplateVariables(
-            provider_first_name='Björk',
-            provider_last_name='Guðmundsdóttir',
-            encumbered_jurisdiction='oh',
-            license_type='speech-language pathologist',
-            effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
-            provider_id=None,
-        )
         mock_provider_email.assert_called_once_with(
             compact=DEFAULT_COMPACT,
             provider_email='provider@example.com',
-            template_variables=expected_template_variables,
+            template_variables=EncumbranceNotificationTemplateVariables(
+                provider_first_name='Björk',
+                provider_last_name='Guðmundsdóttir',
+                encumbered_jurisdiction='oh',
+                license_type='speech-language pathologist',
+                effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                provider_id=None,
+            ),
         )
 
         # Verify state notifications were sent
@@ -2097,17 +2104,17 @@ class TestEncumbranceEvents(TstFunction):
         # Verify all calls have the correct template_variables structure
         for call in calls:
             self.assertEqual(call.kwargs['compact'], DEFAULT_COMPACT)
-            self.assertIsInstance(call.kwargs['template_variables'], EncumbranceNotificationTemplateVariables)
-            template_vars = call.kwargs['template_variables']
-            self.assertEqual(template_vars.provider_first_name, 'Björk')
-            self.assertEqual(template_vars.provider_last_name, 'Guðmundsdóttir')
             self.assertEqual(
-                template_vars.encumbered_jurisdiction, 'oh'
-            )  # Note: uses encumbered_jurisdiction for lifting too
-            self.assertEqual(template_vars.license_type, 'speech-language pathologist')
-            self.assertEqual(template_vars.effective_date, date.fromisoformat(DEFAULT_EFFECTIVE_DATE))
-            # provider_id should be UUID for all state notifications
-            self.assertEqual(template_vars.provider_id, UUID(DEFAULT_PROVIDER_ID))
+                call.kwargs['template_variables'],
+                EncumbranceNotificationTemplateVariables(
+                    provider_first_name='Björk',
+                    provider_last_name='Guðmundsdóttir',
+                    encumbered_jurisdiction='oh',
+                    license_type='speech-language pathologist',
+                    effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                    provider_id=UUID(DEFAULT_PROVIDER_ID),
+                ),
+            )
 
     @patch(
         'cc_common.email_service_client.EmailServiceClient.send_license_encumbrance_lifting_state_notification_email'
@@ -2159,17 +2166,17 @@ class TestEncumbranceEvents(TstFunction):
         # Verify all calls have the correct template_variables structure
         for call in calls:
             self.assertEqual(call.kwargs['compact'], DEFAULT_COMPACT)
-            self.assertIsInstance(call.kwargs['template_variables'], EncumbranceNotificationTemplateVariables)
-            template_vars = call.kwargs['template_variables']
-            self.assertEqual(template_vars.provider_first_name, 'Björk')
-            self.assertEqual(template_vars.provider_last_name, 'Guðmundsdóttir')
             self.assertEqual(
-                template_vars.encumbered_jurisdiction, 'oh'
-            )  # Note: uses encumbered_jurisdiction for lifting too
-            self.assertEqual(template_vars.license_type, 'speech-language pathologist')
-            self.assertEqual(template_vars.effective_date, date.fromisoformat(DEFAULT_EFFECTIVE_DATE))
-            # provider_id should be UUID for all state notifications
-            self.assertEqual(template_vars.provider_id, UUID(DEFAULT_PROVIDER_ID))
+                call.kwargs['template_variables'],
+                EncumbranceNotificationTemplateVariables(
+                    provider_first_name='Björk',
+                    provider_last_name='Guðmundsdóttir',
+                    encumbered_jurisdiction='oh',
+                    license_type='speech-language pathologist',
+                    effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                    provider_id=UUID(DEFAULT_PROVIDER_ID),
+                ),
+            )
 
     @patch(
         'cc_common.email_service_client.EmailServiceClient.send_license_encumbrance_lifting_state_notification_email'
@@ -2225,18 +2232,17 @@ class TestEncumbranceEvents(TstFunction):
         self.assertEqual({'batchItemFailures': []}, result)
 
         # Verify provider notification
-        expected_template_variables = EncumbranceNotificationTemplateVariables(
-            provider_first_name='Björk',
-            provider_last_name='Guðmundsdóttir',
-            encumbered_jurisdiction='oh',
-            license_type='speech-language pathologist',
-            effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
-            provider_id=None,
-        )
         mock_provider_email.assert_called_once_with(
             compact=DEFAULT_COMPACT,
             provider_email='provider@example.com',
-            template_variables=expected_template_variables,
+            template_variables=EncumbranceNotificationTemplateVariables(
+                provider_first_name='Björk',
+                provider_last_name='Guðmundsdóttir',
+                encumbered_jurisdiction='oh',
+                license_type='speech-language pathologist',
+                effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                provider_id=None,
+            ),
         )
 
         # Verify state notifications were sent to all relevant jurisdictions
@@ -2250,17 +2256,17 @@ class TestEncumbranceEvents(TstFunction):
         # Verify all calls have the correct template_variables structure
         for call in calls:
             self.assertEqual(call.kwargs['compact'], DEFAULT_COMPACT)
-            self.assertIsInstance(call.kwargs['template_variables'], EncumbranceNotificationTemplateVariables)
-            template_vars = call.kwargs['template_variables']
-            self.assertEqual(template_vars.provider_first_name, 'Björk')
-            self.assertEqual(template_vars.provider_last_name, 'Guðmundsdóttir')
             self.assertEqual(
-                template_vars.encumbered_jurisdiction, 'oh'
-            )  # Note: uses encumbered_jurisdiction for lifting too
-            self.assertEqual(template_vars.license_type, 'speech-language pathologist')
-            self.assertEqual(template_vars.effective_date, date.fromisoformat(DEFAULT_EFFECTIVE_DATE))
-            # provider_id should be UUID for all state notifications
-            self.assertEqual(template_vars.provider_id, UUID(DEFAULT_PROVIDER_ID))
+                call.kwargs['template_variables'],
+                EncumbranceNotificationTemplateVariables(
+                    provider_first_name='Björk',
+                    provider_last_name='Guðmundsdóttir',
+                    encumbered_jurisdiction='oh',
+                    license_type='speech-language pathologist',
+                    effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                    provider_id=UUID(DEFAULT_PROVIDER_ID),
+                ),
+            )
 
     def test_license_encumbrance_lifting_notification_listener_handles_provider_retrieval_failure(self):
         """Test that license encumbrance lifting notification listener handles provider retrieval failures."""
