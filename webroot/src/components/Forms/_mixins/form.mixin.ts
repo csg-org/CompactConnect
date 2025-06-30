@@ -218,7 +218,7 @@ class MixinForm extends Vue {
     }
 
     showInvalidFormError(): void {
-        // Find the first required invalid input that has a validation schema
+        // Find the first invalid input that has a validation schema
         const firstInvalidInput = this.formInputs.find((input) =>
             !input.isSubmitInput && !input.isValid);
 

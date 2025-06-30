@@ -365,7 +365,7 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
             delete this.formData[`jurisprudence-${stateAbbrev}`];
         }
 
-        // Always add scope attestation (or add a check if that's conditional)
+        // Always add scope attestation
         this.formData[`scope-${stateAbbrev}`] = new FormInput({
             id: `scope-${stateAbbrev}`,
             name: `scope-${stateAbbrev}`,

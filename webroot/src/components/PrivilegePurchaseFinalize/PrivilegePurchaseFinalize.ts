@@ -265,7 +265,7 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
                 id: 'no-refunds-check',
                 name: 'no-refunds-check',
                 label: this.$t('licensing.noRefundsMessage'),
-                validation: Joi.boolean().invalid(false).messages(this.joiMessages.boolean),
+                validation: Joi.boolean().invalid(false).required().messages(this.joiMessages.boolean),
                 value: false,
                 isDisabled: false
             }),
