@@ -943,7 +943,12 @@ class TestEncumbranceEvents(TstFunction):
     def test_privilege_encumbrance_listener_processes_event_with_unregistered_provider(
         self, mock_provider_email, mock_state_email
     ):
-        """Test that privilege encumbrance listener handles unregistered providers."""
+        """
+        Test that privilege encumbrance listener handles unregistered providers.
+
+        Note: An unregistered provider holding a privilege should not be possible in our system.
+        This test is just stressing the limits of our encumbrance logic, to make sure it handles it gracefully.
+        """
         from cc_common.email_service_client import EncumbranceNotificationTemplateVariables
         from handlers.encumbrance_events import privilege_encumbrance_notification_listener
 

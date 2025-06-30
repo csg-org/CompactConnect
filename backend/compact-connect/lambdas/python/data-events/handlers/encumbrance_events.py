@@ -23,7 +23,7 @@ def _get_license_type_name(compact: str, license_type_abbreviation: str) -> str:
     return LicenseUtility.get_license_type_by_abbreviation(compact, license_type_abbreviation).name
 
 
-def _get_provider_records_and_validate(compact: str, provider_id: str) -> tuple[ProviderUserRecords, ProviderData]:
+def _get_provider_records(compact: str, provider_id: str) -> tuple[ProviderUserRecords, ProviderData]:
     """
     Retrieve and validate provider records for notification processing.
 
@@ -326,7 +326,7 @@ def privilege_encumbrance_notification_listener(message: dict):
         license_type_name = _get_license_type_name(compact, license_type_abbreviation)
 
         # Get provider records to gather notification targets and provider information
-        provider_records, provider_record = _get_provider_records_and_validate(compact, provider_id)
+        provider_records, provider_record = _get_provider_records(compact, provider_id)
 
         # Provider Notification
         _send_provider_notification(
@@ -401,7 +401,7 @@ def privilege_encumbrance_lifting_notification_listener(message: dict):
         license_type_name = _get_license_type_name(compact, license_type_abbreviation)
 
         # Get provider records to gather notification targets and provider information
-        provider_records, provider_record = _get_provider_records_and_validate(compact, provider_id)
+        provider_records, provider_record = _get_provider_records(compact, provider_id)
 
         # Provider Notification
         _send_provider_notification(
@@ -476,7 +476,7 @@ def license_encumbrance_notification_listener(message: dict):
         license_type_name = _get_license_type_name(compact, license_type_abbreviation)
 
         # Get provider records to gather notification targets and provider information
-        provider_records, provider_record = _get_provider_records_and_validate(compact, provider_id)
+        provider_records, provider_record = _get_provider_records(compact, provider_id)
 
         # Provider Notification
         _send_provider_notification(
@@ -551,7 +551,7 @@ def license_encumbrance_lifting_notification_listener(message: dict):
         license_type_name = _get_license_type_name(compact, license_type_abbreviation)
 
         # Get provider records to gather notification targets and provider information
-        provider_records, provider_record = _get_provider_records_and_validate(compact, provider_id)
+        provider_records, provider_record = _get_provider_records(compact, provider_id)
 
         # Provider Notification
         _send_provider_notification(
