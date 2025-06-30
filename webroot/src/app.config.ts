@@ -4,7 +4,7 @@
 //
 //  Created by InspiringApps on 4/27/21.
 //
-import sessionStorage from '@store/session.storage';
+import localStorage from '@store/local.storage';
 
 // =========================
 // =  Authorization Types  =
@@ -37,7 +37,7 @@ export enum FeeTypes {
 // ====================
 // =   Auth storage   =
 // ====================
-export const authStorage = sessionStorage;
+export const authStorage = localStorage;
 export const tokens = {
     staff: {
         AUTH_TOKEN: 'auth_token_staff',
@@ -54,8 +54,9 @@ export const tokens = {
         REFRESH_TOKEN: 'refresh_token_licensee',
     },
 };
-export const AUTH_LOGIN_GOTO_PATH = 'login_goto';
 export const AUTH_TYPE = 'auth_type';
+export const AUTH_LOGIN_GOTO_PATH = 'login_goto';
+export const AUTH_LOGIN_GOTO_PATH_AUTH_TYPE = 'login_goto_auth_type';
 
 // ====================
 // =  User Languages  =
