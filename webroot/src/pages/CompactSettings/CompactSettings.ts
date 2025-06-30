@@ -8,20 +8,31 @@
 import { Component, Vue, Watch } from 'vue-facing-decorator';
 import { AuthTypes } from '@/app.config';
 import Section from '@components/Section/Section.vue';
+import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
 import PaymentProcessorConfig from '@components/PaymentProcessorConfig/PaymentProcessorConfig.vue';
 import CompactSettingsConfig from '@components/CompactSettingsConfig/CompactSettingsConfig.vue';
-import { Compact } from '@models/Compact/Compact.model';
+import { Compact, CompactType } from '@models/Compact/Compact.model';
 import { CompactPermission, StatePermission } from '@models/StaffUser/StaffUser.model';
+import { State } from '@/models/State/State.model';
+import { dataApi } from '@network/data.api';
 
 @Component({
     name: 'CompactSettings',
     components: {
         Section,
-        PaymentProcessorConfig,
         CompactSettingsConfig,
+        PaymentProcessorConfig,
+        LoadingSpinner,
     }
 })
 export default class CompactSettings extends Vue {
+    //
+    // Data
+    //
+    isCompactConfigLoading = false;
+    compactConfigLoadingErrorMessage = '';
+    compactConfigStates: Array<{abbrev: string, isLive: boolean}> = [];
+
     //
     // Lifecycle
     //
@@ -46,6 +57,10 @@ export default class CompactSettings extends Vue {
 
     get currentCompact(): Compact | null {
         return this.userStore.currentCompact;
+    }
+
+    get compactType(): CompactType | null {
+        return this.currentCompact?.type || null;
     }
 
     get user() {
@@ -88,8 +103,60 @@ export default class CompactSettings extends Vue {
         return this.isLoggedInAsStaff && this.statePermissionsAdmin.length === 1;
     }
 
+    get stateConfigRowPermissions(): Array<any> {
+        const userCompactAdminStates = this.compactConfigStates;
+        const userPermissionAdminStates = this.statePermissionsAdmin;
+        let rowPermissions: Array<any> = [];
+
+        // State row permissions are based on 2 different permission lists that we merge here
+
+        // Compact-level admin states
+        userCompactAdminStates.forEach((compactAdminState) => {
+            rowPermissions.push({
+                state: new State({ abbrev: compactAdminState.abbrev }),
+                isLiveForCompact: compactAdminState.isLive,
+                isCompactAdmin: true,
+                isStateAdmin: false,
+            });
+        });
+
+        // State-level admin states
+        userPermissionAdminStates.forEach((permissionAdminState) => {
+            const existing = rowPermissions.find((existingState) =>
+                existingState.state.abbrev === permissionAdminState.state.abbrev);
+
+            if (existing) {
+                existing.isStateAdmin = true;
+            } else {
+                rowPermissions.push({
+                    state: new State({ abbrev: permissionAdminState.state.abbrev }),
+                    isLiveForCompact: false,
+                    isCompactAdmin: false,
+                    isStateAdmin: true,
+                });
+            }
+        });
+
+        // Sort the results for clarity
+        rowPermissions = rowPermissions.sort((a, b) => {
+            const stateNameA = a.state.name();
+            const stateNameB = b.state.name();
+            let sort = 0;
+
+            if (stateNameA > stateNameB) {
+                sort = 1;
+            } else if (stateNameA < stateNameB) {
+                sort = -1;
+            }
+
+            return sort;
+        });
+
+        return rowPermissions;
+    }
+
     get shouldShowStateList(): boolean {
-        return (this.isCompactAdmin && this.isStateAdminAny) || this.isStateAdminMultiple;
+        return this.isCompactAdmin || this.isStateAdminMultiple;
     }
 
     //
@@ -97,6 +164,7 @@ export default class CompactSettings extends Vue {
     //
     init(): void {
         this.permissionRedirectCheck();
+        this.initCompactConfig();
     }
 
     permissionRedirectCheck(): void {
@@ -129,14 +197,38 @@ export default class CompactSettings extends Vue {
         }
     }
 
+    async initCompactConfig(): Promise<void> {
+        if (this.compactType && this.isCompactAdmin) {
+            this.isCompactConfigLoading = true;
+
+            const compact = this.compactType || '';
+            const compactConfig: any = await dataApi.getCompactConfig(compact).catch((err) => {
+                this.compactConfigLoadingErrorMessage = err?.message || this.$t('serverErrors.networkError');
+            });
+
+            if (Array.isArray(compactConfig.configuredStates)) {
+                compactConfig.configuredStates.forEach((serverState) => {
+                    this.compactConfigStates.push({
+                        abbrev: serverState.postalAbbreviation || '',
+                        isLive: serverState.isLive || false,
+                    });
+                });
+            }
+
+            this.isCompactConfigLoading = false;
+        }
+    }
+
     //
     // Watch
     //
     @Watch('currentCompact') currentCompactUpdate() {
         this.permissionRedirectCheck();
+        this.initCompactConfig();
     }
 
     @Watch('user') userUpdate() {
         this.permissionRedirectCheck();
+        this.initCompactConfig();
     }
 }

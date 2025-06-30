@@ -47,7 +47,7 @@ export const staffAccount = {
                 },
                 ky: {
                     actions: {
-                        admin: true,
+                        admin: false,
                         write: true,
                         readPrivate: true,
                         readSsn: true,
@@ -55,7 +55,7 @@ export const staffAccount = {
                 },
                 ne: {
                     actions: {
-                        admin: true,
+                        admin: false,
                         write: true,
                         readPrivate: true,
                         readSsn: true,
@@ -63,7 +63,7 @@ export const staffAccount = {
                 },
                 oh: {
                     actions: {
-                        admin: true,
+                        admin: false,
                         write: true,
                         readPrivate: true,
                         readSsn: true,
@@ -2221,6 +2221,28 @@ export const compactConfig = {
             chargeAmount: 5,
         },
     },
+    configuredStates: [
+        {
+            postalAbbreviation: 'al',
+            isLive: false,
+        },
+        {
+            postalAbbreviation: 'co',
+            isLive: true,
+        },
+        {
+            postalAbbreviation: 'ky',
+            isLive: false,
+        },
+        {
+            postalAbbreviation: 'ne',
+            isLive: false,
+        },
+        {
+            postalAbbreviation: 'oh',
+            isLive: true,
+        },
+    ],
 };
 
 export const stateConfig = {

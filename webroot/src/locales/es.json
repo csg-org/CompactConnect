@@ -39,6 +39,7 @@
         "subtotal": "Total parcial",
         "total": "Total",
         "history": "Historia",
+        "status": "Estado",
         "success": "Correcto",
         "error": "Error",
         "somethingWentWrong": "Algo salió mal",
@@ -499,7 +500,9 @@
         "confirmSaveCompactTitle": "¿Estás seguro de que deseas marcar este estado como activo?",
         "confirmSaveCompactYes": "Sí, marcar como en vivo",
         "saveSuccessfulCompact": "Los cambios compactos se guardaron correctamente",
-        "saveSuccessfulState": "Los cambios de estado se guardaron correctamente"
+        "saveSuccessfulState": "Los cambios de estado se guardaron correctamente",
+        "enable": "Permitir",
+        "live": "Vivir"
     },
     "stateUpload": {
         "formTitle": "Carga de datos compacta",

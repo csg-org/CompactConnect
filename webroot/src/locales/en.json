@@ -44,6 +44,7 @@
         "subtotal": "Subtotal",
         "total": "Total",
         "history": "History",
+        "status": "Status",
         "saving": "Saving...",
         "loading": "Loading...",
         "viewing": "Viewing",
@@ -500,7 +501,9 @@
         "confirmSaveCompactTitle": "Are you sure you want to mark this state as live?",
         "confirmSaveCompactYes": "Yes, mark as live",
         "saveSuccessfulCompact": "Compact changes saved successfully",
-        "saveSuccessfulState": "State changes saved successfully"
+        "saveSuccessfulState": "State changes saved successfully",
+        "enable": "Enable",
+        "live": "Live"
     },
     "stateUpload": {
         "formTitle": "Compact data upload",

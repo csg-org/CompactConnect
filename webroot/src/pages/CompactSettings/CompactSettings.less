@@ -31,10 +31,22 @@
         border-radius: 8px;
         background-color: @white;
 
+        .compact-loading-error {
+            padding: 0.4rem 1.6rem;
+            color: @midRed;
+            font-weight: @fontWeightBold;
+            text-align: center;
+        }
+
         .state-row {
             display: flex;
+            flex-direction: column;
             min-height: 6.4rem;
             padding: 1.6rem;
+
+            @media @desktopWidth {
+                flex-direction: row;
+            }
 
             &.header-row {
                 font-weight: @fontWeightBold;
@@ -48,8 +60,46 @@
                 display: flex;
                 align-items: center;
 
+                &.state {
+                    font-weight: @fontWeightBold;
+
+                    @media @desktopWidth {
+                        width: 40%;
+
+                        &:not(.header-cell) {
+                            font-weight: @fontWeightLight;
+                        }
+                    }
+                }
+
                 &.actions {
-                    margin-left: auto;
+                    width: 100%;
+                    margin-bottom: 0.8rem;
+
+                    &.compact-enable {
+                        width: 100%;
+
+                        @media @desktopWidth {
+                            width: 20%;
+
+                            &.is-last-column {
+                                margin-left: auto;
+                            }
+                        }
+                    }
+
+                    &.state-edit {
+                        width: 100%;
+
+                        @media @desktopWidth {
+                            width: 20%;
+                            margin-left: auto;
+                        }
+                    }
+
+                    .state-action-btn {
+                        width: 100%;
+                    }
                 }
             }
         }
