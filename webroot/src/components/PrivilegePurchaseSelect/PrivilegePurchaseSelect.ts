@@ -32,6 +32,7 @@ import { PurchaseFlowStep } from '@/models/PurchaseFlowStep/PurchaseFlowStep.mod
 import { State } from '@/models/State/State.model';
 import { dataApi } from '@network/data.api';
 import moment from 'moment';
+import Joi from 'joi';
 
 @Component({
     name: 'PrivilegePurchaseSelect',
@@ -317,8 +318,6 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
     initFormInputs(): void {
         const initFormData: any = {
             stateCheckList: [],
-            jurisprudenceConfirmations: {},
-            scopeOfPracticeConfirmations: {},
             submit: new FormInput({
                 isSubmitInput: true,
                 id: 'submit',
@@ -346,8 +345,61 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
         this.formData = reactive(initFormData);
     }
 
+    // Add attestation FormInputs as top-level properties
+    addStateAttestationInputs(stateAbbrev: string) {
+        // Find the state object in purchaseDataList
+        const stateObj = this.purchaseDataList.find(
+            (option) => option.jurisdiction?.abbrev === stateAbbrev
+        );
+
+        // Only add jurisprudence attestation if required
+        if (stateObj?.isJurisprudenceRequired) {
+            this.formData[`jurisprudence-${stateAbbrev}`] = new FormInput({
+                id: `jurisprudence-${stateAbbrev}`,
+                name: `jurisprudence-${stateAbbrev}`,
+                label: this.jurisprudenceExplanationText,
+                value: false,
+                validation: Joi.boolean().invalid(false).required().messages(this.joiMessages.boolean),
+            });
+        } else {
+            delete this.formData[`jurisprudence-${stateAbbrev}`];
+        }
+
+        // Always add scope attestation
+        this.formData[`scope-${stateAbbrev}`] = new FormInput({
+            id: `scope-${stateAbbrev}`,
+            name: `scope-${stateAbbrev}`,
+            label: this.scopeOfPracticeText,
+            value: false,
+            validation: Joi.boolean().invalid(false).required().messages(this.joiMessages.boolean),
+        });
+    }
+
+    // Remove attestation FormInputs from top-level properties
+    removeStateAttestationInputs(stateAbbrev: string) {
+        delete this.formData[`jurisprudence-${stateAbbrev}`];
+        delete this.formData[`scope-${stateAbbrev}`];
+    }
+
+    // Update state selection logic
+    toggleStateSelected(stateFormInput) {
+        const newStateFormInputValue = !stateFormInput.value;
+        const stateAbbrev = stateFormInput.id;
+
+        stateFormInput.value = newStateFormInputValue;
+
+        if (newStateFormInputValue) {
+            this.addStateAttestationInputs(stateAbbrev);
+        } else {
+            this.removeStateAttestationInputs(stateAbbrev);
+        }
+    }
+
     handleSubmit() {
-        if (this.isAtLeastOnePrivilegeChosen && this.areAllAttesationsConfirmed) {
+        // Always validate all before checking isFormValid
+        this.validateAll({ asTouched: true });
+
+        if (this.isAtLeastOnePrivilegeChosen && this.isFormValid) {
             const selectedStates = this.formData.stateCheckList.filter((input) => input.value).map((input) => input.id);
             const attestationData = this.prepareAttestations();
 
@@ -395,36 +447,6 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
         this.formData.stateCheckList.find((checkBox) => (checkBox.id === stateAbbrev)).value = false;
         delete this.formData.jurisprudenceConfirmations[stateAbbrev];
         delete this.formData.scopeOfPracticeConfirmations[stateAbbrev];
-    }
-
-    toggleStateSelected(stateFormInput) {
-        const newStateFormInputValue = !stateFormInput.value;
-        const stateAbbrev = stateFormInput.id;
-
-        stateFormInput.value = newStateFormInputValue;
-
-        if (newStateFormInputValue) {
-            if (stateAbbrev) {
-                this.formData.scopeOfPracticeConfirmations[stateAbbrev] = new FormInput({
-                    id: `${stateAbbrev}-scope`,
-                    name: `${stateAbbrev}-scope`,
-                    label: this.scopeOfPracticeText,
-                    value: false
-                });
-
-                if (this.selectedStatesWithJurisprudenceRequired.includes(stateAbbrev)) {
-                    this.formData.jurisprudenceConfirmations[stateAbbrev] = new FormInput({
-                        id: `${stateAbbrev}-jurisprudence`,
-                        name: `${stateAbbrev}-jurisprudence`,
-                        label: this.jurisprudenceExplanationText,
-                        value: false
-                    });
-                }
-            }
-        } else {
-            delete this.formData.jurisprudenceConfirmations[stateAbbrev];
-            delete this.formData.scopeOfPracticeConfirmations[stateAbbrev];
-        }
     }
 
     isStateSelectDisabled(state): boolean {

@@ -510,7 +510,7 @@
     },
     "payment": {
         "payment": "Pago",
-        "paymentSummary": "Payment summary",
+        "paymentSummary": "Resumen de pagos",
         "enterPaymentDetails": "Ingrese de forma segura sus datos de pago",
         "enterCardDetails": "Información de la tarjeta de crédito",
         "confirmCardDetails": "Completar compra",

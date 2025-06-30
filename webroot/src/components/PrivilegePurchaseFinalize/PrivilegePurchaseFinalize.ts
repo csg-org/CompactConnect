@@ -265,7 +265,7 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
                 id: 'no-refunds-check',
                 name: 'no-refunds-check',
                 label: this.$t('licensing.noRefundsMessage'),
-                validation: Joi.boolean().required(),
+                validation: Joi.boolean().invalid(false).required().messages(this.joiMessages.boolean),
                 value: false,
                 isDisabled: false
             }),
@@ -381,5 +381,14 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
         const formButtons = document.getElementById('button-row');
 
         formButtons?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    handlePaymentButtonClick(): void {
+        // Validate all inputs first to ensure we have current validation state
+        this.validateAll({ asTouched: true });
+
+        if (!this.isFormValid) {
+            this.showInvalidFormError();
+        }
     }
 }
