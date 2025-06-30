@@ -10,7 +10,7 @@
         <form class="complete-purchase-form" @submit.prevent="() => null">
             <div class="finalize-purchase-container">
                 <div class="finalize-purchase-title-row">
-                    <h1 class="finalize-purchase-title">{{$t('payment.payment')}}</h1>
+                    <h1 class="finalize-purchase-title">{{$t('payment.paymentSummary')}}</h1>
                 </div>
                 <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
                 <div class="cost-breakdown-container">
@@ -55,14 +55,23 @@
             <div v-if="formErrorMessage" class="form-error-message">{{formErrorMessage}}</div>
             <div id="button-row" class="button-row">
                 <div class="form-nav-buttons">
-                    <PrivilegePurchaseAcceptUI
-                        class="form-nav-button accept-ui"
-                        :paymentSdkConfig="currentCompactPaymentSdkConfig"
-                        :buttonLabel="$t('common.next')"
-                        :isEnabled="!isFormLoading && isSubmitEnabled"
-                        @success="acceptUiSuccessResponse"
-                        @error="acceptUiErrorResponse"
-                    />
+                    <div class="payment-button-container">
+                        <InputButton
+                            v-if="!isSubmitEnabled"
+                            :label="$t('payment.payment')"
+                            :isDisabled="isFormLoading || !isSubmitEnabled"
+                            class="payment-overlay-button"
+                            @click="handlePaymentButtonClick"
+                        />
+                        <PrivilegePurchaseAcceptUI
+                            class="form-nav-button accept-ui"
+                            :paymentSdkConfig="currentCompactPaymentSdkConfig"
+                            :buttonLabel="$t('payment.payment')"
+                            :isEnabled="!isFormLoading && isSubmitEnabled"
+                            @success="acceptUiSuccessResponse"
+                            @error="acceptUiErrorResponse"
+                        />
+                    </div>
                     <InputButton
                         :label="$t('common.back')"
                         :isTransparent="true"

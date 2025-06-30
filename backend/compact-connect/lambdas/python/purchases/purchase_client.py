@@ -262,7 +262,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
             logger.error(logger_message, error_code=error_code, error_message=error_message)
             raise CCInternalException(logger_message)
 
-    def void_unsettled_charge_on_credit_card(  # noqa: RET503
+    def void_unsettled_charge_on_credit_card(  # noqa: RET503 this branch raises an exception
         self,
         order_information: dict,
     ) -> dict:
@@ -323,7 +323,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
 
         self._handle_api_error(response)
 
-    def process_charge_on_credit_card_for_privilege_purchase(  # noqa: RET503
+    def process_charge_on_credit_card_for_privilege_purchase(  # noqa: RET503 this branch raises an exception
         self,
         licensee_id: str,
         order_information: dict,

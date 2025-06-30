@@ -510,7 +510,7 @@
     },
     "payment": {
         "payment": "Pago",
-        "paymentSummary": "Payment summary",
+        "paymentSummary": "Resumen de pagos",
         "enterPaymentDetails": "Ingrese de forma segura sus datos de pago",
         "enterCardDetails": "Información de la tarjeta de crédito",
         "confirmCardDetails": "Completar compra",
@@ -612,6 +612,7 @@
             "inactive": "Inactivo",
             "initializing": "Inicializando"
         },
+        "licenseActions": "Acciones de licencia",
         "privilegeActions": "Acciones de privilegio",
         "privilegeActionsNone": "No hay acciones disponibles",
         "deactivate": "Desactivar",
@@ -623,6 +624,29 @@
         "deactivateNotesPlaceholder": "Introduzca notas aquí",
         "confirmPrivilegeDeactivateSubmit": "Sí, desactivar privilegio",
         "encumber": "Cargar",
+        "encumbered": "Gravado",
+        "npdbCategoryLabel": "Categoría NPDB",
+        "encumberStartDate": "Inicio de la acción adversa",
+        "confirmLicenseEncumberTitle": "¿Estás seguro de que quieres gravar esta licencia?",
+        "confirmLicenseEncumberSubtext": "El profesional ya no podrá utilizar esta licencia.",
+        "confirmLicenseEncumberSubmit": "Sí, gravar la licencia",
+        "confirmLicenseEncumberSuccess": "Esta licencia ha sido gravada.",
+        "confirmPrivilegeEncumberTitle": "¿Estás seguro de que quieres gravar este privilegio?",
+        "confirmPrivilegeEncumberSubtext": "El practicante ya no podrá utilizar este privilegio.",
+        "confirmPrivilegeEncumberSubmit": "Sí, gravar el privilegio",
+        "confirmPrivilegeEncumberSuccess": "Este privilegio ha sido obstaculizado.",
+        "unencumber": "Liberarse",
+        "unencumbered": "Libre de cargas",
+        "confirmLicenseUnencumberTitle": "Seleccione los gravámenes que desea eliminar",
+        "confirmLicenseUnencumberEndDate": "Seleccione una fecha de finalización",
+        "confirmLicenseUnencumberSubmit": "Confirmar eliminación(es)",
+        "confirmLicenseUnencumberSuccess": "Está previsto que estos gravámenes se eliminen.",
+        "confirmLicenseUnencumberSuccessEndDate": "Fecha de finalización",
+        "confirmPrivilegeUnencumberTitle": "Seleccione los gravámenes que desea eliminar",
+        "confirmPrivilegeUnencumberEndDate": "Seleccione una fecha de finalización",
+        "confirmPrivilegeUnencumberSubmit": "Confirmar eliminación(es)",
+        "confirmPrivilegeUnencumberSuccess": "Está previsto que estos gravámenes se eliminen.",
+        "confirmPrivilegeUnencumberSuccessEndDate": "Fecha de finalización",
         "expiringIn": "Expirando en",
         "licenseEvents": [
             {
@@ -674,6 +698,40 @@
                 "abbrev": "lpc"
             }
         ],
+        "npdbTypes": [
+            {
+                "name": "Incumplimiento de los requisitos",
+                "key": "Non-compliance With Requirements"
+            },
+            {
+                "name": "Condena o sentencia penal",
+                "key": "Criminal Conviction or Adjudication"
+            },
+            {
+                "name": "Violaciones de confidencialidad, consentimiento o divulgación",
+                "key": "Confidentiality, Consent or Disclosure Violations"
+            },
+            {
+                "name": "Mala conducta o abuso",
+                "key": "Misconduct or Abuse"
+            },
+            {
+                "name": "Fraude, engaño o tergiversación",
+                "key": "Fraud, Deception, or Misrepresentation"
+            },
+            {
+                "name": "Prácticas inseguras o atención deficiente",
+                "key": "Unsafe Practice or Substandard Care"
+            },
+            {
+                "name": "Supervisión inadecuada o autorización de prácticas sin licencia",
+                "key": "Improper Supervision or Allowing Unlicensed Practice"
+            },
+            {
+                "name": "Otro",
+                "key": "Other"
+            }
+        ],
         "privilegePurchaseTitle": "Compra privada",
         "personalInfoTitle": "Información personal",
         "eventNodeLabel": "Evento: {eventNameDisplay} en {eventDate}",
@@ -681,7 +739,11 @@
         "compactEligible": "Elegible Compacto",
         "notCompactEligible": "No Compacto Elegible",
         "privilegeVerification": "Verificación de privilegios",
+        "licenseNumber": "Número de licencia",
+        "privilegeId": "Identificación de privilegio",
+        "privilegeType": "Tipo de privilegio",
         "practitionerInformation": "Información para profesionales",
+        "practitionerName": "Nombre del profesional",
         "homeStateLicenses": "Licencias del estado de origen",
         "activeDate": "Activa",
         "privilegeProofFooter": "Este documento es generado oficialmente por Compact Connect y sirve como prueba de las licencias y privilegios actuales del profesional.",

@@ -172,13 +172,6 @@ class RegisterLicensee extends mixins(MixinForm) {
                 autocomplete: 'family-name',
                 validation: Joi.string().required().messages(this.joiMessages.string),
             }),
-            email: new FormInput({
-                id: 'email',
-                name: 'email',
-                label: computed(() => this.$t('common.emailAddress')),
-                autocomplete: 'email',
-                validation: Joi.string().required().email({ tlds: false }).messages(this.joiMessages.string),
-            }),
             ssnLastFour: new FormInput({
                 id: 'ssn-last-four',
                 name: 'ssn-last-four',
@@ -207,6 +200,13 @@ class RegisterLicensee extends mixins(MixinForm) {
                 label: computed(() => this.$t('licensing.licenseType')),
                 validation: Joi.string().required().messages(this.joiMessages.string),
                 valueOptions: this.licenseTypeOptions,
+            }),
+            email: new FormInput({
+                id: 'email',
+                name: 'email',
+                label: computed(() => this.$t('common.emailAddress')),
+                autocomplete: 'email',
+                validation: Joi.string().required().email({ tlds: false }).messages(this.joiMessages.string),
             }),
             submit: new FormInput({
                 isSubmitInput: true,

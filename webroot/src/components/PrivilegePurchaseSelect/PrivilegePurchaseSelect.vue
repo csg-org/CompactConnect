@@ -57,8 +57,8 @@
                                             v-if="isPhone && findStatePurchaseInformation(state)"
                                             class="selected-state-block"
                                             :selectedStatePurchaseData="findStatePurchaseInformation(state)"
-                                            :jurisprudenceCheckInput="formData.jurisprudenceConfirmations[state.id]"
-                                            :scopeOfPracticeCheckInput="formData.scopeOfPracticeConfirmations[state.id]"
+                                            :jurisprudenceCheckInput="formData[`jurisprudence-${state.id}`]"
+                                            :scopeOfPracticeCheckInput="formData[`scope-${state.id}`]"
                                             :scopeAttestation="scopeAttestation"
                                             :jurisprudenceAttestation="jurisprudenceAttestation"
                                             @exOutState="deselectState"
@@ -72,10 +72,8 @@
                                     :key="state.jurisdiction.abbrev"
                                     class="selected-state-block"
                                     :selectedStatePurchaseData="state"
-                                    :jurisprudenceCheckInput="formData
-                                        .jurisprudenceConfirmations[state.jurisdiction.abbrev]"
-                                    :scopeOfPracticeCheckInput="formData
-                                        .scopeOfPracticeConfirmations[state.jurisdiction.abbrev]"
+                                    :jurisprudenceCheckInput="formData[`jurisprudence-${state.jurisdiction.abbrev}`]"
+                                    :scopeOfPracticeCheckInput="formData[`scope-${state.jurisdiction.abbrev}`]"
                                     :scopeAttestation="scopeAttestation"
                                     :jurisprudenceAttestation="jurisprudenceAttestation"
                                     @exOutState="deselectState"
@@ -90,7 +88,7 @@
                             :formInput="formData.submit"
                             class="form-nav-button"
                             :label="submitLabel"
-                            :isEnabled="!isFormLoading && isAtLeastOnePrivilegeChosen && areAllAttesationsConfirmed"
+                            :isEnabled="!isFormLoading && isAtLeastOnePrivilegeChosen"
                         />
                         <InputButton
                             :label="backText"
