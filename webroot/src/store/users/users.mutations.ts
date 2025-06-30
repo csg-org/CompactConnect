@@ -28,9 +28,21 @@ export enum MutationTypes {
     DELETE_USER_REQUEST = '[Users] Delete User Request',
     DELETE_USER_FAILURE = '[Users] Delete User Failure',
     DELETE_USER_SUCCESS = '[Users] Delete User Success',
+    ENCUMBER_LICENSE_REQUEST = '[Users] Encumber License Request',
+    ENCUMBER_LICENSE_FAILURE = '[Users] Encumber License Failure',
+    ENCUMBER_LICENSE_SUCCESS = '[Users] Encumber License Success',
+    UNENCUMBER_LICENSE_REQUEST = '[Users] Unencumber License Request',
+    UNENCUMBER_LICENSE_FAILURE = '[Users] Unencumber License Failure',
+    UNENCUMBER_LICENSE_SUCCESS = '[Users] Unencumber License Success',
     DELETE_PRIVILEGE_REQUEST = '[Users] Delete Privilege Request',
     DELETE_PRIVILEGE_FAILURE = '[Users] Delete Privilege Failure',
     DELETE_PRIVILEGE_SUCCESS = '[Users] Delete Privilege Success',
+    ENCUMBER_PRIVILEGE_REQUEST = '[Users] Encumber Privilege Request',
+    ENCUMBER_PRIVILEGE_FAILURE = '[Users] Encumber Privilege Failure',
+    ENCUMBER_PRIVILEGE_SUCCESS = '[Users] Encumber Privilege Success',
+    UNENCUMBER_PRIVILEGE_REQUEST = '[Users] Unencumber Privilege Request',
+    UNENCUMBER_PRIVILEGE_FAILURE = '[Users] Unencumber Privilege Failure',
+    UNENCUMBER_PRIVILEGE_SUCCESS = '[Users] Unencumber Privilege Success',
     STORE_UPDATE_USER = '[Users] Updated User in store',
     STORE_REMOVE_USER = '[Users] Remove User from store',
     STORE_RESET_USERS = '[Users] Reset users store',
@@ -121,6 +133,30 @@ export default {
         state.isLoading = false;
         state.error = null;
     },
+    [MutationTypes.ENCUMBER_LICENSE_REQUEST]: (state: any) => {
+        state.isLoading = true;
+        state.error = null;
+    },
+    [MutationTypes.ENCUMBER_LICENSE_FAILURE]: (state: any, error: Error) => {
+        state.isLoading = false;
+        state.error = error;
+    },
+    [MutationTypes.ENCUMBER_LICENSE_SUCCESS]: (state: any) => {
+        state.isLoading = false;
+        state.error = null;
+    },
+    [MutationTypes.UNENCUMBER_LICENSE_REQUEST]: (state: any) => {
+        state.isLoading = true;
+        state.error = null;
+    },
+    [MutationTypes.UNENCUMBER_LICENSE_FAILURE]: (state: any, error: Error) => {
+        state.isLoading = false;
+        state.error = error;
+    },
+    [MutationTypes.UNENCUMBER_LICENSE_SUCCESS]: (state: any) => {
+        state.isLoading = false;
+        state.error = null;
+    },
     [MutationTypes.DELETE_PRIVILEGE_REQUEST]: (state: any) => {
         state.isLoading = true;
         state.error = null;
@@ -130,6 +166,30 @@ export default {
         state.error = error;
     },
     [MutationTypes.DELETE_PRIVILEGE_SUCCESS]: (state: any) => {
+        state.isLoading = false;
+        state.error = null;
+    },
+    [MutationTypes.ENCUMBER_PRIVILEGE_REQUEST]: (state: any) => {
+        state.isLoading = true;
+        state.error = null;
+    },
+    [MutationTypes.ENCUMBER_PRIVILEGE_FAILURE]: (state: any, error: Error) => {
+        state.isLoading = false;
+        state.error = error;
+    },
+    [MutationTypes.ENCUMBER_PRIVILEGE_SUCCESS]: (state: any) => {
+        state.isLoading = false;
+        state.error = null;
+    },
+    [MutationTypes.UNENCUMBER_PRIVILEGE_REQUEST]: (state: any) => {
+        state.isLoading = true;
+        state.error = null;
+    },
+    [MutationTypes.UNENCUMBER_PRIVILEGE_FAILURE]: (state: any, error: Error) => {
+        state.isLoading = false;
+        state.error = error;
+    },
+    [MutationTypes.UNENCUMBER_PRIVILEGE_SUCCESS]: (state: any) => {
         state.isLoading = false;
         state.error = null;
     },

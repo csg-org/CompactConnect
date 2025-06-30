@@ -34,6 +34,8 @@
             :text-input="textInput"
             :disabled="isDisabled"
             :inline="isInline"
+            :position="position"
+            :teleport="teleport"
             :auto-apply="isAutoApply"
             :clearable="isClearable"
             :no-today="!isTodayHighlighted"
@@ -52,7 +54,8 @@
             :max-time="maxTime"
             :is-24="isTime24"
             @focus="focus"
-            @closed="blur(formInput)"
+            @open="onOpen(formInput)"
+            @closed="onClose(formInput)"
             @update:model-value="input(formInput)"
             :loading="isLoading"
             :locale="$i18n.locale"
@@ -67,7 +70,8 @@
                         type="text"
                         v-model="localValue"
                         @input="onInput"
-                        @keydown.enter="onEnter"
+                        @keydown.enter.stop="onEnter"
+                        @keyup.enter.stop
                         @keydown.tab="onTab"
                         @blur="onInputBlur"
                         @keypress="onKeypress"
@@ -87,6 +91,7 @@
                             xmlns="http://www.w3.org/2000/svg"
                             viewBox="0 0 32 32"
                             fill="currentColor"
+                            :id="`dp-input-icon-open-${formInput.id}`"
                             class="dp__icon dp__input_icon dp__input_icons"
                             @click="openMenu"
                             @keydown.enter="openMenu"
@@ -112,6 +117,7 @@
                     </div>
                 </div>
             </template>
+            <template #clear-icon="{}"></template>
         </VueDatePicker>
         <span
             v-if="formInput.errorMessage && !formInput.shouldHideErrorMessage"

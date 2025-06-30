@@ -196,6 +196,56 @@ describe('Users Store Mutations', () => {
         expect(state.isLoading).to.equal(false);
         expect(state.error).to.equal(null);
     });
+    it('should successfully encumber license request', () => {
+        const state = {};
+
+        mutations[MutationTypes.ENCUMBER_LICENSE_REQUEST](state);
+
+        expect(state.isLoading).to.equal(true);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully encumber license failure', () => {
+        const state = {};
+        const error = new Error();
+
+        mutations[MutationTypes.ENCUMBER_LICENSE_FAILURE](state, error);
+
+        expect(state.isLoading).to.equal(false);
+        expect(state.error).to.equal(error);
+    });
+    it('should successfully encumber license success', () => {
+        const state = {};
+
+        mutations[MutationTypes.ENCUMBER_LICENSE_SUCCESS](state);
+
+        expect(state.isLoading).to.equal(false);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully unencumber license request', () => {
+        const state = {};
+
+        mutations[MutationTypes.UNENCUMBER_LICENSE_REQUEST](state);
+
+        expect(state.isLoading).to.equal(true);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully unencumber license failure', () => {
+        const state = {};
+        const error = new Error();
+
+        mutations[MutationTypes.UNENCUMBER_LICENSE_FAILURE](state, error);
+
+        expect(state.isLoading).to.equal(false);
+        expect(state.error).to.equal(error);
+    });
+    it('should successfully unencumber license success', () => {
+        const state = {};
+
+        mutations[MutationTypes.UNENCUMBER_LICENSE_SUCCESS](state);
+
+        expect(state.isLoading).to.equal(false);
+        expect(state.error).to.equal(null);
+    });
     it('should successfully delete privilege request', () => {
         const state = {};
 
@@ -217,6 +267,56 @@ describe('Users Store Mutations', () => {
         const state = {};
 
         mutations[MutationTypes.DELETE_PRIVILEGE_SUCCESS](state);
+
+        expect(state.isLoading).to.equal(false);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully encumber privilege request', () => {
+        const state = {};
+
+        mutations[MutationTypes.ENCUMBER_PRIVILEGE_REQUEST](state);
+
+        expect(state.isLoading).to.equal(true);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully encumber privilege failure', () => {
+        const state = {};
+        const error = new Error();
+
+        mutations[MutationTypes.ENCUMBER_PRIVILEGE_FAILURE](state, error);
+
+        expect(state.isLoading).to.equal(false);
+        expect(state.error).to.equal(error);
+    });
+    it('should successfully encumber privilege success', () => {
+        const state = {};
+
+        mutations[MutationTypes.ENCUMBER_PRIVILEGE_SUCCESS](state);
+
+        expect(state.isLoading).to.equal(false);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully unencumber privilege request', () => {
+        const state = {};
+
+        mutations[MutationTypes.UNENCUMBER_PRIVILEGE_REQUEST](state);
+
+        expect(state.isLoading).to.equal(true);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully unencumber privilege failure', () => {
+        const state = {};
+        const error = new Error();
+
+        mutations[MutationTypes.UNENCUMBER_PRIVILEGE_FAILURE](state, error);
+
+        expect(state.isLoading).to.equal(false);
+        expect(state.error).to.equal(error);
+    });
+    it('should successfully unencumber privilege success', () => {
+        const state = {};
+
+        mutations[MutationTypes.UNENCUMBER_PRIVILEGE_SUCCESS](state);
 
         expect(state.isLoading).to.equal(false);
         expect(state.error).to.equal(null);
@@ -524,6 +624,102 @@ describe('Users Store Actions', async () => {
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.DELETE_USER_SUCCESS]);
     });
+    it('should successfully start encumber-license request', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const compact = 'aslp';
+        const licenseeId = '1';
+        const licenseState = 'co';
+        const licenseType = 'test';
+        const npdbCategory = 'test';
+        const startDate = 'test';
+
+        await actions.encumberLicenseRequest({ commit, dispatch }, {
+            compact, licenseeId, licenseState, licenseType, npdbCategory, startDate
+        });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.ENCUMBER_LICENSE_REQUEST]);
+        expect(dispatch.calledOnce).to.equal(true);
+    });
+    it('should successfully start encumber-license request (intentional error)', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+
+        await actions.encumberLicenseRequest({ commit, dispatch }, {}).catch((error) => {
+            expect(error).to.be.an('error').with.property('message', 'failed license encumber');
+        });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.ENCUMBER_LICENSE_REQUEST]);
+        expect(dispatch.calledOnce).to.equal(true);
+        expect(dispatch.firstCall.args[0]).to.equal('encumberLicenseFailure');
+    });
+    it('should successfully start encumber-license failure', () => {
+        const commit = sinon.spy();
+        const error = new Error();
+
+        actions.encumberLicenseFailure({ commit }, error);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.ENCUMBER_LICENSE_FAILURE, error]);
+    });
+    it('should successfully start encumber-license success', () => {
+        const commit = sinon.spy();
+
+        actions.encumberLicenseSuccess({ commit });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.ENCUMBER_LICENSE_SUCCESS]);
+    });
+    it('should successfully start unencumber-license request', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const compact = 'aslp';
+        const licenseeId = '1';
+        const licenseState = 'co';
+        const licenseType = 'test';
+        const encumbranceId = 'test';
+        const endDate = 'test';
+
+        await actions.unencumberLicenseRequest({ commit, dispatch }, {
+            compact, licenseeId, licenseState, licenseType, encumbranceId, endDate
+        });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.UNENCUMBER_LICENSE_REQUEST]);
+        expect(dispatch.calledOnce).to.equal(true);
+    });
+    it('should successfully start unencumber-license request (intentional error)', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+
+        await actions.unencumberLicenseRequest({ commit, dispatch }, {}).catch((error) => {
+            expect(error).to.be.an('error').with.property('message', 'failed license unencumber');
+        });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.UNENCUMBER_LICENSE_REQUEST]);
+        expect(dispatch.calledOnce).to.equal(true);
+        expect(dispatch.firstCall.args[0]).to.equal('unencumberLicenseFailure');
+    });
+    it('should successfully start unencumber-license failure', () => {
+        const commit = sinon.spy();
+        const error = new Error();
+
+        actions.unencumberLicenseFailure({ commit }, error);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.UNENCUMBER_LICENSE_FAILURE, error]);
+    });
+    it('should successfully start unencumber-license success', () => {
+        const commit = sinon.spy();
+
+        actions.unencumberLicenseSuccess({ commit });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.UNENCUMBER_LICENSE_SUCCESS]);
+    });
     it('should successfully start delete-privilege request', async () => {
         const commit = sinon.spy();
         const dispatch = sinon.spy();
@@ -531,14 +727,28 @@ describe('Users Store Actions', async () => {
         const licenseeId = '1';
         const privilegeState = 'co';
         const licenseType = 'test';
+        const notes = 'test';
 
         await actions.deletePrivilegeRequest({ commit, dispatch }, {
-            compact, licenseeId, privilegeState, licenseType
+            compact, licenseeId, privilegeState, licenseType, notes
         });
 
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.DELETE_PRIVILEGE_REQUEST]);
         expect(dispatch.calledOnce).to.equal(true);
+    });
+    it('should successfully start delete-privilege request (intentional error)', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+
+        await actions.deletePrivilegeRequest({ commit, dispatch }, {}).catch((error) => {
+            expect(error).to.be.an('error').with.property('message', 'failed privilege delete');
+        });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.DELETE_PRIVILEGE_REQUEST]);
+        expect(dispatch.calledOnce).to.equal(true);
+        expect(dispatch.firstCall.args[0]).to.equal('deletePrivilegeFailure');
     });
     it('should successfully start delete-privilege failure', () => {
         const commit = sinon.spy();
@@ -556,6 +766,102 @@ describe('Users Store Actions', async () => {
 
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.DELETE_PRIVILEGE_SUCCESS]);
+    });
+    it('should successfully start encumber-privilege request', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const compact = 'aslp';
+        const licenseeId = '1';
+        const privilegeState = 'co';
+        const licenseType = 'test';
+        const npdbCategory = 'test';
+        const startDate = 'test';
+
+        await actions.encumberPrivilegeRequest({ commit, dispatch }, {
+            compact, licenseeId, privilegeState, licenseType, npdbCategory, startDate
+        });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.ENCUMBER_PRIVILEGE_REQUEST]);
+        expect(dispatch.calledOnce).to.equal(true);
+    });
+    it('should successfully start encumber-privilege request (intentional error)', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+
+        await actions.encumberPrivilegeRequest({ commit, dispatch }, {}).catch((error) => {
+            expect(error).to.be.an('error').with.property('message', 'failed privilege encumber');
+        });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.ENCUMBER_PRIVILEGE_REQUEST]);
+        expect(dispatch.calledOnce).to.equal(true);
+        expect(dispatch.firstCall.args[0]).to.equal('encumberPrivilegeFailure');
+    });
+    it('should successfully start encumber-privilege failure', () => {
+        const commit = sinon.spy();
+        const error = new Error();
+
+        actions.encumberPrivilegeFailure({ commit }, error);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.ENCUMBER_PRIVILEGE_FAILURE, error]);
+    });
+    it('should successfully start encumber-privilege success', () => {
+        const commit = sinon.spy();
+
+        actions.encumberPrivilegeSuccess({ commit });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.ENCUMBER_PRIVILEGE_SUCCESS]);
+    });
+    it('should successfully start unencumber-privilege request', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const compact = 'aslp';
+        const licenseeId = '1';
+        const privilegeState = 'co';
+        const licenseType = 'test';
+        const encumbranceId = 'test';
+        const endDate = 'test';
+
+        await actions.unencumberPrivilegeRequest({ commit, dispatch }, {
+            compact, licenseeId, privilegeState, licenseType, encumbranceId, endDate
+        });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.UNENCUMBER_PRIVILEGE_REQUEST]);
+        expect(dispatch.calledOnce).to.equal(true);
+    });
+    it('should successfully start unencumber-privilege request (intentional error)', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+
+        await actions.unencumberPrivilegeRequest({ commit, dispatch }, {}).catch((error) => {
+            expect(error).to.be.an('error').with.property('message', 'failed privilege unencumber');
+        });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.UNENCUMBER_PRIVILEGE_REQUEST]);
+        expect(dispatch.calledOnce).to.equal(true);
+        expect(dispatch.firstCall.args[0]).to.equal('unencumberPrivilegeFailure');
+    });
+    it('should successfully start unencumber-privilege failure', () => {
+        const commit = sinon.spy();
+        const error = new Error();
+
+        actions.unencumberPrivilegeFailure({ commit }, error);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.UNENCUMBER_PRIVILEGE_FAILURE, error]);
+    });
+    it('should successfully start unencumber-privilege success', () => {
+        const commit = sinon.spy();
+
+        actions.unencumberPrivilegeSuccess({ commit });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.UNENCUMBER_PRIVILEGE_SUCCESS]);
     });
     it('should successfully set user', () => {
         const commit = sinon.spy();

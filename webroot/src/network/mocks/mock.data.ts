@@ -4,7 +4,7 @@
 //
 //  Created by InspiringApps on 5/6/20.
 //
-import { serverDateFormat } from '@/app.config';
+import { serverDateFormat, serverDatetimeFormat } from '@/app.config';
 import moment from 'moment';
 
 export const userData = {
@@ -46,6 +46,30 @@ export const staffAccount = {
                     },
                 },
                 ky: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                        readPrivate: true,
+                        readSsn: true,
+                    },
+                },
+                ne: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                        readPrivate: true,
+                        readSsn: true,
+                    },
+                },
+                oh: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                        readPrivate: true,
+                        readSsn: true,
+                    },
+                },
+                nv: {
                     actions: {
                         admin: true,
                         write: true,
@@ -1112,8 +1136,355 @@ export const licensees = {
                                 ]
                             }
                         }
-                    ]
-                }
+                    ],
+                    adverseActions: [
+                        {
+                            providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
+                            compact: 'octp',
+                            type: 'adverseAction',
+                            jurisdiction: 'oh',
+                            licenseTypeAbbreviation: 'ota',
+                            licenseType: 'occupational therapy assistant',
+                            actionAgainst: 'privilege',
+                            clinicalPrivilegeActionCategory: 'Non-compliance With Requirements',
+                            effectiveStartDate: moment().subtract(1, 'month').format(serverDateFormat),
+                            submittingUser: '1',
+                            creationDate: moment().subtract(1, 'week').format(serverDatetimeFormat),
+                            adverseActionId: '12345-ABC',
+                            effectiveLiftDate: moment().add(11, 'months').format(serverDateFormat),
+                            liftingUser: '1',
+                        },
+                    ],
+                },
+                {
+                    dateOfUpdate: '2025-03-26T16:19:09+00:00',
+                    type: 'privilege',
+                    providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
+                    compact: 'octp',
+                    jurisdiction: 'al',
+                    licenseJurisdiction: 'ky',
+                    licenseType: 'occupational therapy assistant',
+                    dateOfIssuance: '2022-03-19T21:51:26+00:00',
+                    dateOfRenewal: '2025-03-26T16:19:09+00:00',
+                    dateOfExpiration: '2025-05-12',
+                    compactTransactionId: '120060088901',
+                    attestations: [
+                        {
+                            attestationId: 'personal-information-address-attestation',
+                            version: '3'
+                        },
+                        {
+                            attestationId: 'personal-information-home-state-attestation',
+                            version: '1'
+                        },
+                        {
+                            attestationId: 'jurisprudence-confirmation',
+                            version: '1'
+                        },
+                        {
+                            attestationId: 'scope-of-practice-attestation',
+                            version: '1'
+                        },
+                        {
+                            attestationId: 'not-under-investigation-attestation',
+                            version: '1'
+                        },
+                        {
+                            attestationId: 'discipline-no-current-encumbrance-attestation',
+                            version: '1'
+                        },
+                        {
+                            attestationId: 'discipline-no-prior-encumbrance-attestation',
+                            version: '1'
+                        },
+                        {
+                            attestationId: 'provision-of-true-information-attestation',
+                            version: '1'
+                        }
+                    ],
+                    privilegeId: 'OTA-AL-10',
+                    persistedStatus: 'active',
+                    status: 'active',
+                    history: [
+                        {
+                            dateOfUpdate: '2022-03-19T22:02:17+00:00',
+                            type: 'privilegeUpdate',
+                            updateType: 'deactivation',
+                            providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
+                            compact: 'octp',
+                            jurisdiction: 'al',
+                            licenseType: 'occupational therapy assistant',
+                            previous: {
+                                dateOfIssuance: '2025-03-19T21:51:26+00:00',
+                                dateOfRenewal: '2025-03-19T21:51:26+00:00',
+                                dateOfExpiration: '2026-02-12',
+                                dateOfUpdate: '2022-03-19T21:51:26+00:00',
+                                privilegeId: 'OTA-NE-10',
+                                compactTransactionId: '120059525522',
+                                attestations: [
+                                    {
+                                        attestationId: 'personal-information-address-attestation',
+                                        version: '3'
+                                    },
+                                    {
+                                        attestationId: 'personal-information-home-state-attestation',
+                                        version: '1'
+                                    },
+                                    {
+                                        attestationId: 'jurisprudence-confirmation',
+                                        version: '1'
+                                    },
+                                    {
+                                        attestationId: 'scope-of-practice-attestation',
+                                        version: '1'
+                                    },
+                                    {
+                                        attestationId: 'not-under-investigation-attestation',
+                                        version: '1'
+                                    },
+                                    {
+                                        attestationId: 'discipline-no-current-encumbrance-attestation',
+                                        version: '1'
+                                    },
+                                    {
+                                        attestationId: 'discipline-no-prior-encumbrance-attestation',
+                                        version: '1'
+                                    },
+                                    {
+                                        attestationId: 'provision-of-true-information-attestation',
+                                        version: '1'
+                                    }
+                                ],
+                                persistedStatus: 'active',
+                                licenseJurisdiction: 'ky'
+                            },
+                            updatedValues: {
+                                persistedStatus: 'inactive'
+                            }
+                        },
+                        {
+                            dateOfUpdate: '2022-08-19T19:03:56+00:00',
+                            type: 'privilegeUpdate',
+                            updateType: 'renewal',
+                            providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
+                            compact: 'octp',
+                            jurisdiction: 'al',
+                            licenseType: 'occupational therapy assistant',
+                            previous: {
+                                dateOfIssuance: '2025-03-19T21:51:26+00:00',
+                                dateOfRenewal: '2022-08-19T19:03:56+00:00',
+                                dateOfExpiration: '2026-02-12',
+                                dateOfUpdate: '2022-03-19T22:02:17+00:00',
+                                privilegeId: 'OTA-AL-10',
+                                compactTransactionId: '120059525522',
+                                attestations: [
+                                    {
+                                        attestationId: 'personal-information-address-attestation',
+                                        version: '3'
+                                    },
+                                    {
+                                        attestationId: 'personal-information-home-state-attestation',
+                                        version: '1'
+                                    },
+                                    {
+                                        attestationId: 'jurisprudence-confirmation',
+                                        version: '1'
+                                    },
+                                    {
+                                        attestationId: 'scope-of-practice-attestation',
+                                        version: '1'
+                                    },
+                                    {
+                                        attestationId: 'not-under-investigation-attestation',
+                                        version: '1'
+                                    },
+                                    {
+                                        attestationId: 'discipline-no-current-encumbrance-attestation',
+                                        version: '1'
+                                    },
+                                    {
+                                        attestationId: 'discipline-no-prior-encumbrance-attestation',
+                                        version: '1'
+                                    },
+                                    {
+                                        attestationId: 'provision-of-true-information-attestation',
+                                        version: '1'
+                                    }
+                                ],
+                                persistedStatus: 'inactive',
+                                licenseJurisdiction: 'ky'
+                            },
+                            updatedValues: {
+                                dateOfRenewal: '2025-03-25T19:03:56+00:00',
+                                dateOfExpiration: '2026-02-12',
+                                privilegeId: 'OTA-AL-10',
+                                compactTransactionId: '120060004893',
+                                attestations: [
+                                    {
+                                        attestationId: 'personal-information-address-attestation',
+                                        version: '3'
+                                    },
+                                    {
+                                        attestationId: 'personal-information-home-state-attestation',
+                                        version: '1'
+                                    },
+                                    {
+                                        attestationId: 'jurisprudence-confirmation',
+                                        version: '1'
+                                    },
+                                    {
+                                        attestationId: 'scope-of-practice-attestation',
+                                        version: '1'
+                                    },
+                                    {
+                                        attestationId: 'not-under-investigation-attestation',
+                                        version: '1'
+                                    },
+                                    {
+                                        attestationId: 'discipline-no-current-encumbrance-attestation',
+                                        version: '1'
+                                    },
+                                    {
+                                        attestationId: 'discipline-no-prior-encumbrance-attestation',
+                                        version: '1'
+                                    },
+                                    {
+                                        attestationId: 'provision-of-true-information-attestation',
+                                        version: '1'
+                                    }
+                                ],
+                                persistedStatus: 'active'
+                            }
+                        },
+                        {
+                            dateOfUpdate: '2024-03-01T16:19:09+00:00',
+                            type: 'privilegeUpdate',
+                            updateType: 'renewal',
+                            providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
+                            compact: 'octp',
+                            jurisdiction: 'al',
+                            licenseType: 'occupational therapy assistant',
+                            previous: {
+                                dateOfIssuance: '2022-03-19T21:51:26+00:00',
+                                dateOfRenewal: '2024-03-01T16:19:09+00:00',
+                                dateOfExpiration: '2026-02-12',
+                                dateOfUpdate: '2024-03-25T19:03:56+00:00',
+                                privilegeId: 'OTA-AL-10',
+                                compactTransactionId: '120060004893',
+                                attestations: [
+                                    {
+                                        attestationId: 'personal-information-address-attestation',
+                                        version: '3'
+                                    },
+                                    {
+                                        attestationId: 'personal-information-home-state-attestation',
+                                        version: '1'
+                                    },
+                                    {
+                                        attestationId: 'jurisprudence-confirmation',
+                                        version: '1'
+                                    },
+                                    {
+                                        attestationId: 'scope-of-practice-attestation',
+                                        version: '1'
+                                    },
+                                    {
+                                        attestationId: 'not-under-investigation-attestation',
+                                        version: '1'
+                                    },
+                                    {
+                                        attestationId: 'discipline-no-current-encumbrance-attestation',
+                                        version: '1'
+                                    },
+                                    {
+                                        attestationId: 'discipline-no-prior-encumbrance-attestation',
+                                        version: '1'
+                                    },
+                                    {
+                                        attestationId: 'provision-of-true-information-attestation',
+                                        version: '1'
+                                    }
+                                ],
+                                persistedStatus: 'active',
+                                licenseJurisdiction: 'ky'
+                            },
+                            updatedValues: {
+                                dateOfRenewal: '2025-03-26T16:19:09+00:00',
+                                dateOfExpiration: '2027-02-12',
+                                privilegeId: 'OTA-AL-10',
+                                compactTransactionId: '120060088901',
+                                attestations: [
+                                    {
+                                        attestationId: 'personal-information-address-attestation',
+                                        version: '3'
+                                    },
+                                    {
+                                        attestationId: 'personal-information-home-state-attestation',
+                                        version: '1'
+                                    },
+                                    {
+                                        attestationId: 'jurisprudence-confirmation',
+                                        version: '1'
+                                    },
+                                    {
+                                        attestationId: 'scope-of-practice-attestation',
+                                        version: '1'
+                                    },
+                                    {
+                                        attestationId: 'not-under-investigation-attestation',
+                                        version: '1'
+                                    },
+                                    {
+                                        attestationId: 'discipline-no-current-encumbrance-attestation',
+                                        version: '1'
+                                    },
+                                    {
+                                        attestationId: 'discipline-no-prior-encumbrance-attestation',
+                                        version: '1'
+                                    },
+                                    {
+                                        attestationId: 'provision-of-true-information-attestation',
+                                        version: '1'
+                                    }
+                                ]
+                            }
+                        }
+                    ],
+                    adverseActions: [
+                        {
+                            providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
+                            compact: 'octp',
+                            type: 'adverseAction',
+                            jurisdiction: 'al',
+                            licenseTypeAbbreviation: 'ota',
+                            licenseType: 'occupational therapy assistant',
+                            actionAgainst: 'privilege',
+                            clinicalPrivilegeActionCategory: 'Non-compliance With Requirements',
+                            effectiveStartDate: moment().subtract(1, 'month').format(serverDateFormat),
+                            submittingUser: '1',
+                            creationDate: moment().subtract(1, 'week').format(serverDatetimeFormat),
+                            adverseActionId: '12345-DEF',
+                            effectiveLiftDate: moment().add(11, 'months').format(serverDateFormat),
+                            liftingUser: '1',
+                        },
+                        {
+                            providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
+                            compact: 'octp',
+                            type: 'adverseAction',
+                            jurisdiction: 'al',
+                            licenseTypeAbbreviation: 'ota',
+                            licenseType: 'occupational therapy assistant',
+                            actionAgainst: 'privilege',
+                            clinicalPrivilegeActionCategory: 'Unsafe Practice or Substandard Care',
+                            effectiveStartDate: moment().subtract(3, 'months').format(serverDateFormat),
+                            submittingUser: '1',
+                            creationDate: moment().subtract(1, 'week').format(serverDatetimeFormat),
+                            adverseActionId: '12345-GHI',
+                            effectiveLiftDate: null,
+                            liftingUser: null,
+                        },
+                    ],
+                },
             ],
             licenseJurisdiction: 'co',
             compact: 'octp',
@@ -1270,6 +1641,24 @@ export const licensees = {
                     licenseStatus: 'inactive',
                     licenseStatusName: '',
                     compactEligibility: 'ineligible',
+                    adverseActions: [
+                        {
+                            providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
+                            compact: 'octp',
+                            type: 'adverseAction',
+                            jurisdiction: 'nv',
+                            licenseTypeAbbreviation: 'ota',
+                            licenseType: 'occupational therapy assistant',
+                            actionAgainst: 'privilege',
+                            clinicalPrivilegeActionCategory: 'Non-compliance With Requirements',
+                            effectiveStartDate: moment().subtract(1, 'month').format(serverDateFormat),
+                            submittingUser: '1',
+                            creationDate: moment().subtract(1, 'week').format(serverDatetimeFormat),
+                            adverseActionId: '12345-JKL',
+                            effectiveLiftDate: null,
+                            liftingUser: null,
+                        },
+                    ],
                 },
                 {
                     compact: 'octp',
@@ -1296,6 +1685,40 @@ export const licensees = {
                     licenseStatus: 'inactive',
                     licenseStatusName: '',
                     compactEligibility: 'ineligible',
+                    adverseActions: [
+                        {
+                            providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
+                            compact: 'octp',
+                            type: 'adverseAction',
+                            jurisdiction: 'al',
+                            licenseTypeAbbreviation: 'ota',
+                            licenseType: 'occupational therapy assistant',
+                            actionAgainst: 'privilege',
+                            clinicalPrivilegeActionCategory: 'Non-compliance With Requirements',
+                            effectiveStartDate: moment().subtract(1, 'month').format(serverDateFormat),
+                            submittingUser: '1',
+                            creationDate: moment().subtract(1, 'week').format(serverDatetimeFormat),
+                            adverseActionId: '12345-MNO',
+                            effectiveLiftDate: moment().add(11, 'months').format(serverDateFormat),
+                            liftingUser: '1',
+                        },
+                        {
+                            providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
+                            compact: 'octp',
+                            type: 'adverseAction',
+                            jurisdiction: 'al',
+                            licenseTypeAbbreviation: 'ota',
+                            licenseType: 'occupational therapy assistant',
+                            actionAgainst: 'privilege',
+                            clinicalPrivilegeActionCategory: 'Unsafe Practice or Substandard Care',
+                            effectiveStartDate: moment().subtract(3, 'months').format(serverDateFormat),
+                            submittingUser: '1',
+                            creationDate: moment().subtract(1, 'week').format(serverDatetimeFormat),
+                            adverseActionId: '12345-PQR',
+                            effectiveLiftDate: null,
+                            liftingUser: null,
+                        },
+                    ],
                 }
             ],
             dateOfExpiration: '2024-08-29',
