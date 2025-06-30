@@ -154,7 +154,9 @@ class TestBackupInfrastructureStack(TstAppABC, TestCase):
                                             'Effect': 'Deny',
                                             'Action': ['backup:CopyIntoBackupVault', 'backup:StartCopyJob'],
                                             'Resource': '*',
-                                            'Condition': {'StringNotEquals': {'backup:CopyTargets': Match.any_value()}},
+                                            'Condition': {
+                                                'ForAnyValue:ArnNotEquals': {'backup:CopyTargets': Match.any_value()}
+                                            },
                                         }
                                     ]
                                 ),
@@ -224,7 +226,7 @@ class TestBackupInfrastructureStack(TstAppABC, TestCase):
         # Validate that the stack is properly configured as a nested stack
         # NestedStacks have token-based names so we check that it's not None instead of exact match
         self.assertIsNotNone(self.backup_stack.stack_name)
-        
+
         # Validate that all expected backup infrastructure resources are created
         self._check_no_backend_stage_annotations(self.app.sandbox_backend_stage)
 
@@ -250,9 +252,7 @@ class TestBackupInfrastructureStack(TstAppABC, TestCase):
             {
                 'MetricName': 'NumberOfBackupJobsFailed',
                 'Namespace': 'AWS/Backup',
-                'Dimensions': [
-                    {'Name': 'BackupVaultName', 'Value': Match.any_value()}
-                ],
+                'Dimensions': [{'Name': 'BackupVaultName', 'Value': Match.any_value()}],
                 'Threshold': 1,
                 'ComparisonOperator': 'GreaterThanOrEqualToThreshold',
                 'AlarmDescription': Match.string_like_regexp('.*CRITICAL.*'),

@@ -39,6 +39,7 @@ class StaffUsers(UserPool):
         encryption_key: IKey,
         user_pool_email: UserPoolEmail,
         removal_policy,
+        backup_infrastructure_stack: BackupInfrastructureStack = None,
         **kwargs,
     ):
         super().__init__(
@@ -55,7 +56,14 @@ class StaffUsers(UserPool):
         )
         stack: ps.PersistentStack = ps.PersistentStack.of(self)
 
-        self.user_table = UsersTable(self, 'UsersTable', encryption_key=encryption_key, removal_policy=removal_policy)
+        self.user_table = UsersTable(
+            self,
+            'UsersTable',
+            encryption_key=encryption_key,
+            removal_policy=removal_policy,
+            backup_infrastructure_stack=backup_infrastructure_stack,
+            environment_context=environment_context,
+        )
         self._add_resource_servers(stack=stack)
         self._add_scope_customization(stack=stack)
         self._add_custom_message_lambda(stack=stack)

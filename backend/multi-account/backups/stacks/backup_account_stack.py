@@ -1,4 +1,4 @@
-from aws_cdk import CfnOutput, RemovalPolicy, Stack
+from aws_cdk import ArnFormat, CfnOutput, RemovalPolicy, Stack
 from aws_cdk.aws_backup import BackupVault
 from aws_cdk.aws_iam import (
     AccountPrincipal,
@@ -29,12 +29,30 @@ class BackupAccountStack(Stack):
     """
 
     def __init__(
-        self, scope: Construct, construct_id: str, organization_id: str, source_account_ids: list[str], **kwargs
+        self,
+        scope: Construct,
+        construct_id: str,
+        organization_id: str,
+        source_account_ids: list[str],
+        source_regions: list[str],
+        **kwargs,
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
         self.organization_id = organization_id
         self.source_account_ids = source_account_ids
+        self.source_regions = source_regions
+
+        # Build list of allowed services across all source regions and backup region
+        # This is used in KMS key policies to allow cross-region backup operations
+        self.allowed_services = []
+        for region in self.source_regions + [self.region]:
+            self.allowed_services.extend(
+                [
+                    f'backup.{region}.amazonaws.com',
+                    f'dynamodb.{region}.amazonaws.com',
+                ]
+            )
 
         # Create the KMS key for backup encryption
         self._create_backup_encryption_key()
@@ -78,6 +96,7 @@ class BackupAccountStack(Stack):
                     'kms:GenerateDataKeyWithoutPlaintext',
                 ],
                 resources=['*'],
+                conditions={'StringLike': {'kms:ViaService': self.allowed_services}},
             ),
             # Allow attachment of persistent resources
             PolicyStatement(
@@ -138,14 +157,7 @@ class BackupAccountStack(Stack):
                     'kms:GenerateDataKeyWithoutPlaintext',
                 ],
                 resources=['*'],
-                conditions={
-                    'StringLike': {
-                        'kms:ViaService': [
-                            f'backup.{self.region}.amazonaws.com',
-                            f'dynamodb.{self.region}.amazonaws.com',
-                        ]
-                    }
-                },
+                conditions={'StringLike': {'kms:ViaService': self.allowed_services}},
             ),
             # Allow attachment of persistent resources with strict conditions
             PolicyStatement(
@@ -159,18 +171,6 @@ class BackupAccountStack(Stack):
                 ],
                 resources=['*'],
                 conditions={'Bool': {'kms:GrantIsForAWSResource': 'true'}},
-            ),
-            # Deny all decrypt/restore operations except for AWS services - break-glass approach
-            # This requires explicit policy modification for emergency SSN data restoration
-            PolicyStatement(
-                sid='DenySSNKeyDecryptOperations',
-                effect=Effect.DENY,
-                actions=['kms:Decrypt', 'kms:GenerateDataKey', 'kms:GenerateDataKeyWithoutPlaintext'],
-                principals=[StarPrincipal()],
-                resources=['*'],
-                conditions={
-                    'StringNotEquals': {'aws:PrincipalServiceName': ['backup.amazonaws.com', 'dynamodb.amazonaws.com']}
-                },
             ),
         ]
 
@@ -224,6 +224,9 @@ class BackupAccountStack(Stack):
         """
         Create the dedicated SSN backup vault with enhanced access controls for SSN data protection.
         """
+        # Get SSN vault name from context or use default
+        ssn_vault_name = self.node.get_context('ssn_backup_vault_name')
+
         # Create enhanced access policy for the SSN backup vault
         ssn_vault_access_policy = PolicyDocument(
             statements=[
@@ -234,12 +237,32 @@ class BackupAccountStack(Stack):
                     resources=['*'],
                     principals=[AccountPrincipal(account_id) for account_id in self.source_account_ids],
                     conditions={'StringEquals': {'aws:PrincipalOrgID': self.organization_id}},
-                )
+                ),
+                # We only allow copies _into_ this vault, not out of it under normal circumstances
+                PolicyStatement(
+                    sid='OnlyCopyIntoThisVault',
+                    effect=Effect.DENY,
+                    actions=['backup:CopyIntoBackupVault', 'backup:StartCopyJob'],
+                    resources=['*'],
+                    principals=[StarPrincipal()],
+                    conditions={
+                        'ForAnyValue:ArnNotEquals': {
+                            'backup:CopyTargets': [
+                                self.format_arn(
+                                    arn_format=ArnFormat.COLON_RESOURCE_NAME,
+                                    partition=self.partition,
+                                    service='backup',
+                                    region=self.region,
+                                    account=self.account,
+                                    resource='backup-vault',
+                                    resource_name=ssn_vault_name,
+                                )
+                            ]
+                        }
+                    },
+                ),
             ]
         )
-
-        # Get SSN vault name from context or use default
-        ssn_vault_name = self.node.get_context('ssn_backup_vault_name')
 
         self.ssn_backup_vault = BackupVault(
             self,

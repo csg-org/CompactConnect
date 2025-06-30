@@ -2,7 +2,6 @@ from aws_cdk import Environment, Stage
 from common_constructs.stack import StandardTags
 from constructs import Construct
 from stacks.api_stack import ApiStack
-from stacks.backup_infrastructure_stack import BackupInfrastructureStack
 from stacks.event_listener_stack import EventListenerStack
 from stacks.ingest_stack import IngestStack
 from stacks.managed_login_stack import ManagedLoginStack
@@ -39,6 +38,7 @@ class BackendStage(Stage):
             standard_tags=standard_tags,
             app_name=app_name,
             environment_name=environment_name,
+            backup_config=backup_config,
         )
 
         # Backup infrastructure is now created as a nested stack within PersistentStack

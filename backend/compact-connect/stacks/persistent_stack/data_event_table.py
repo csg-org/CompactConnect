@@ -11,6 +11,7 @@ from aws_cdk.aws_events_targets import SqsQueue
 from aws_cdk.aws_kms import IKey
 from aws_cdk.aws_sns import ITopic
 from cdk_nag import NagSuppressions
+from common_constructs.backup_plan import TableBackupPlan
 from common_constructs.python_function import PythonFunction
 from common_constructs.queued_lambda_processor import QueuedLambdaProcessor
 from constructs import Construct
@@ -32,6 +33,8 @@ class DataEventTable(Table):
         removal_policy: RemovalPolicy,
         event_bus: IEventBus,
         alarm_topic: ITopic,
+        backup_infrastructure_stack: BackupInfrastructureStack,
+        environment_context: dict,
         **kwargs,
     ):
         super().__init__(
@@ -128,13 +131,13 @@ class DataEventTable(Table):
             treat_missing_data=TreatMissingData.NOT_BREACHING,
         ).add_alarm_action(SnsAction(stack.alarm_topic))
 
-        NagSuppressions.add_resource_suppressions(
+        # Set up backup plan
+        self.backup_plan = TableBackupPlan(
             self,
-            suppressions=[
-                {
-                    'id': 'HIPAA.Security-DynamoDBInBackupPlan',
-                    'reason': 'We will implement data back-ups after we better understand regulatory data deletion'
-                    ' requirements',
-                }
-            ],
+            'DataEventTableBackup',
+            table=self,
+            backup_vault=backup_infrastructure_stack.local_backup_vault,
+            backup_service_role=backup_infrastructure_stack.backup_service_role,
+            cross_account_backup_vault=backup_infrastructure_stack.cross_account_backup_vault,
+            backup_policy=environment_context['backup_policies']['frequent_updates'],
         )

@@ -1,0 +1,46 @@
+---
+AWSTemplateFormatVersion:           "2010-09-09"
+
+Description:                        >
+  This template creates the IAM role required for the "How to secure recovery with cross-account backup and cross-Region copy using AWS Backuap" blog in each member account.
+Metadata:
+  'AWS::CloudFormation::Interface':
+    ParameterGroups:
+      - Label:
+          default:                  IAM Configuration
+        Parameters:
+          - cabrole
+    ParameterLabels:
+      cabrole:
+        default:                    Allows AWS Backup to call AWS services on your behalf.
+
+Parameters:
+  cabrole:
+    Type:                           String
+    Default:                        cabrole
+
+
+Resources:
+  mycabrole:
+    Type:                           'AWS::IAM::Role'
+    Properties:
+      Description:                  Allows AWS Backup to call AWS services on your behalf.
+      AssumeRolePolicyDocument:
+        Version:                    2012-10-17
+        Statement:
+          - Effect:                 Allow
+            Principal:
+              Service:
+                - backup.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path:                         /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSBackupServiceRolePolicyForBackup
+        - arn:aws:iam::aws:policy/service-role/AWSBackupServiceRolePolicyForRestores
+      RoleName:                     !Ref cabrole
+
+Outputs:
+  cabrole:
+    Value:
+      Ref:                          cabrole

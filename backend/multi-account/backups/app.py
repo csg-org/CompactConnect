@@ -36,6 +36,7 @@ class BackupsApp(App):
             tags=tags,
             organization_id=organization_id,
             source_account_ids=self.node.get_context('source_account_ids'),
+            source_regions=self.node.get_context('source_regions'),
         )
 
 

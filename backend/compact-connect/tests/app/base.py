@@ -29,6 +29,7 @@ class _AppSynthesizer:
     A helper class to cache apps based on context.
     This is useful to avoid re-synthesizing the app for each test.
     """
+
     def __init__(self):
         super().__init__()
         self._cached_apps: dict[str, CompactConnectApp] = {}
@@ -200,8 +201,9 @@ class TstAppABC(ABC):
             self.assertEqual(staff_users_user_pool_app_client['ReadAttributes'], ['email'])
             self.assertEqual(staff_users_user_pool_app_client['WriteAttributes'], ['email'])
 
-            self._inspect_data_events_table(persistent_stack, persistent_stack_template)
-            self._inspect_ssn_table(persistent_stack, persistent_stack_template)
+        self._inspect_data_events_table(persistent_stack, persistent_stack_template)
+        self._inspect_ssn_table(persistent_stack, persistent_stack_template)
+        self._inspect_backup_resources(persistent_stack, persistent_stack_template)
 
     def _inspect_ssn_table(self, persistent_stack: PersistentStack, persistent_stack_template: Template):
         ssn_key_logical_id = persistent_stack.get_logical_id(persistent_stack.ssn_table.key.node.default_child)
@@ -256,28 +258,28 @@ class TstAppABC(ABC):
             ],
             'Version': '2012-10-17',
         }
-        
+
         # Validate the key policy structure matches our expected pattern
         actual_policy = ssn_key_template['KeyPolicy']
         self.assertEqual(len(expected_policy['Statement']), len(actual_policy['Statement']))
-        
+
         # Check first statement (admin access) exactly
         self.assertEqual(expected_policy['Statement'][0], actual_policy['Statement'][0])
-        
+
         # Check second statement structure (with flexible backup role reference)
         actual_second_stmt = actual_policy['Statement'][1]
         self.assertEqual(expected_policy['Statement'][1]['Action'], actual_second_stmt['Action'])
         self.assertEqual(expected_policy['Statement'][1]['Effect'], actual_second_stmt['Effect'])
         self.assertEqual(expected_policy['Statement'][1]['Principal'], actual_second_stmt['Principal'])
         self.assertEqual(expected_policy['Statement'][1]['Resource'], actual_second_stmt['Resource'])
-        
+
         # Check condition structure but allow flexible backup role reference
         self.assertIn('StringNotEquals', actual_second_stmt['Condition'])
         self.assertIn('aws:PrincipalArn', actual_second_stmt['Condition']['StringNotEquals'])
         self.assertEqual(4, len(actual_second_stmt['Condition']['StringNotEquals']['aws:PrincipalArn']))
         self.assertEqual(
             expected_policy['Statement'][1]['Condition']['StringNotEquals']['aws:PrincipalServiceName'],
-            actual_second_stmt['Condition']['StringNotEquals']['aws:PrincipalServiceName']
+            actual_second_stmt['Condition']['StringNotEquals']['aws:PrincipalServiceName'],
         )
         # Ensure we're using our locked down KMS key for encryption
         self.assertEqual(
@@ -293,13 +295,13 @@ class TstAppABC(ABC):
     def _inspect_backup_resources(self, persistent_stack: PersistentStack, persistent_stack_template: Template):
         """Validate that backup resources are created for tables with backup plans."""
         from aws_cdk.aws_backup import CfnBackupPlan, CfnBackupSelection
-        
-        # Should have 2 backup plans (one for provider table, one for SSN table)
-        persistent_stack_template.resource_count_is(CfnBackupPlan.CFN_RESOURCE_TYPE_NAME, 2)
-        
-        # Should have 2 backup selections (one for provider table, one for SSN table)
-        persistent_stack_template.resource_count_is(CfnBackupSelection.CFN_RESOURCE_TYPE_NAME, 2)
-        
+
+        # Should have 6 backup plans (provider, SSN, compact config, transaction history, data event, staff users)
+        persistent_stack_template.resource_count_is(CfnBackupPlan.CFN_RESOURCE_TYPE_NAME, 6)
+
+        # Should have 6 backup selections (provider, SSN, compact config, transaction history, data event, staff users)
+        persistent_stack_template.resource_count_is(CfnBackupSelection.CFN_RESOURCE_TYPE_NAME, 6)
+
         # Validate provider table backup plan exists
         provider_backup_plan_logical_id = persistent_stack.get_logical_id(
             persistent_stack.provider_table.backup_plan.backup_plan.node.default_child
@@ -307,7 +309,7 @@ class TstAppABC(ABC):
         provider_backup_selection_logical_id = persistent_stack.get_logical_id(
             persistent_stack.provider_table.backup_plan.backup_selection.node.default_child
         )
-        
+
         # Validate SSN table backup plan exists
         ssn_backup_plan_logical_id = persistent_stack.get_logical_id(
             persistent_stack.ssn_table.backup_plan.backup_plan.node.default_child
@@ -315,7 +317,39 @@ class TstAppABC(ABC):
         ssn_backup_selection_logical_id = persistent_stack.get_logical_id(
             persistent_stack.ssn_table.backup_plan.backup_selection.node.default_child
         )
-        
+
+        # Validate compact configuration table backup plan exists
+        compact_config_backup_plan_logical_id = persistent_stack.get_logical_id(
+            persistent_stack.compact_configuration_table.backup_plan.backup_plan.node.default_child
+        )
+        compact_config_backup_selection_logical_id = persistent_stack.get_logical_id(
+            persistent_stack.compact_configuration_table.backup_plan.backup_selection.node.default_child
+        )
+
+        # Validate transaction history table backup plan exists
+        transaction_history_backup_plan_logical_id = persistent_stack.get_logical_id(
+            persistent_stack.transaction_history_table.backup_plan.backup_plan.node.default_child
+        )
+        transaction_history_backup_selection_logical_id = persistent_stack.get_logical_id(
+            persistent_stack.transaction_history_table.backup_plan.backup_selection.node.default_child
+        )
+
+        # Validate data event table backup plan exists
+        data_event_backup_plan_logical_id = persistent_stack.get_logical_id(
+            persistent_stack.data_event_table.backup_plan.backup_plan.node.default_child
+        )
+        data_event_backup_selection_logical_id = persistent_stack.get_logical_id(
+            persistent_stack.data_event_table.backup_plan.backup_selection.node.default_child
+        )
+
+        # Validate staff users table backup plan exists
+        staff_users_backup_plan_logical_id = persistent_stack.get_logical_id(
+            persistent_stack.staff_users.user_table.backup_plan.backup_plan.node.default_child
+        )
+        staff_users_backup_selection_logical_id = persistent_stack.get_logical_id(
+            persistent_stack.staff_users.user_table.backup_plan.backup_selection.node.default_child
+        )
+
         # Verify backup plan configurations exist
         provider_backup_plan = self.get_resource_properties_by_logical_id(
             provider_backup_plan_logical_id,
@@ -325,7 +359,23 @@ class TstAppABC(ABC):
             ssn_backup_plan_logical_id,
             persistent_stack_template.find_resources(CfnBackupPlan.CFN_RESOURCE_TYPE_NAME),
         )
-        
+        compact_config_backup_plan = self.get_resource_properties_by_logical_id(
+            compact_config_backup_plan_logical_id,
+            persistent_stack_template.find_resources(CfnBackupPlan.CFN_RESOURCE_TYPE_NAME),
+        )
+        transaction_history_backup_plan = self.get_resource_properties_by_logical_id(
+            transaction_history_backup_plan_logical_id,
+            persistent_stack_template.find_resources(CfnBackupPlan.CFN_RESOURCE_TYPE_NAME),
+        )
+        data_event_backup_plan = self.get_resource_properties_by_logical_id(
+            data_event_backup_plan_logical_id,
+            persistent_stack_template.find_resources(CfnBackupPlan.CFN_RESOURCE_TYPE_NAME),
+        )
+        staff_users_backup_plan = self.get_resource_properties_by_logical_id(
+            staff_users_backup_plan_logical_id,
+            persistent_stack_template.find_resources(CfnBackupPlan.CFN_RESOURCE_TYPE_NAME),
+        )
+
         # Verify backup selection configurations reference the correct tables
         provider_backup_selection = self.get_resource_properties_by_logical_id(
             provider_backup_selection_logical_id,
@@ -335,29 +385,70 @@ class TstAppABC(ABC):
             ssn_backup_selection_logical_id,
             persistent_stack_template.find_resources(CfnBackupSelection.CFN_RESOURCE_TYPE_NAME),
         )
-        
+        compact_config_backup_selection = self.get_resource_properties_by_logical_id(
+            compact_config_backup_selection_logical_id,
+            persistent_stack_template.find_resources(CfnBackupSelection.CFN_RESOURCE_TYPE_NAME),
+        )
+        transaction_history_backup_selection = self.get_resource_properties_by_logical_id(
+            transaction_history_backup_selection_logical_id,
+            persistent_stack_template.find_resources(CfnBackupSelection.CFN_RESOURCE_TYPE_NAME),
+        )
+        data_event_backup_selection = self.get_resource_properties_by_logical_id(
+            data_event_backup_selection_logical_id,
+            persistent_stack_template.find_resources(CfnBackupSelection.CFN_RESOURCE_TYPE_NAME),
+        )
+        staff_users_backup_selection = self.get_resource_properties_by_logical_id(
+            staff_users_backup_selection_logical_id,
+            persistent_stack_template.find_resources(CfnBackupSelection.CFN_RESOURCE_TYPE_NAME),
+        )
+
         # Validate that backup selections reference DynamoDB resources
-        self.assertIn('BackupSelection', provider_backup_selection)
-        self.assertIn('Resources', provider_backup_selection['BackupSelection'])
-        self.assertIn('BackupSelection', ssn_backup_selection)
-        self.assertIn('Resources', ssn_backup_selection['BackupSelection'])
-        
+        for selection_name, selection in [
+            ('provider', provider_backup_selection),
+            ('SSN', ssn_backup_selection),
+            ('compact_config', compact_config_backup_selection),
+            ('transaction_history', transaction_history_backup_selection),
+            ('data_event', data_event_backup_selection),
+            ('staff_users', staff_users_backup_selection),
+        ]:
+            self.assertIn(
+                'BackupSelection', selection, f'{selection_name} backup selection should have BackupSelection'
+            )
+            self.assertIn(
+                'Resources', selection['BackupSelection'], f'{selection_name} backup selection should have Resources'
+            )
+
         # Verify backup plans have proper structure (environment-agnostic validation)
-        for backup_plan, table_name in [(provider_backup_plan, 'provider'), (ssn_backup_plan, 'SSN')]:
+        for backup_plan, table_name in [
+            (provider_backup_plan, 'provider'),
+            (ssn_backup_plan, 'SSN'),
+            (compact_config_backup_plan, 'compact_config'),
+            (transaction_history_backup_plan, 'transaction_history'),
+            (data_event_backup_plan, 'data_event'),
+            (staff_users_backup_plan, 'staff_users'),
+        ]:
             self.assertIn('BackupPlan', backup_plan)
             self.assertIn('BackupPlanRule', backup_plan['BackupPlan'])
             rules = backup_plan['BackupPlan']['BackupPlanRule']
             self.assertEqual(len(rules), 1, f'{table_name} table should have exactly one backup rule')
-            
+
             rule = rules[0]
             # Verify basic structure without checking specific values (since they vary by environment)
             self.assertIn('ScheduleExpression', rule, f'{table_name} table backup rule should have a schedule')
             self.assertIn('Lifecycle', rule, f'{table_name} table backup rule should have lifecycle configuration')
-            self.assertIn('DeleteAfterDays', rule['Lifecycle'], f'{table_name} table backup should have retention period')
-            self.assertIn('MoveToColdStorageAfterDays', rule['Lifecycle'], f'{table_name} table backup should have cold storage transition')
-            
+            self.assertIn(
+                'DeleteAfterDays', rule['Lifecycle'], f'{table_name} table backup should have retention period'
+            )
+            self.assertIn(
+                'MoveToColdStorageAfterDays',
+                rule['Lifecycle'],
+                f'{table_name} table backup should have cold storage transition',
+            )
+
             # Verify copy actions exist for cross-account replication
-            self.assertIn('CopyActions', rule, f'{table_name} table backup should have copy actions for cross-account replication')
+            self.assertIn(
+                'CopyActions', rule, f'{table_name} table backup should have copy actions for cross-account replication'
+            )
             self.assertEqual(len(rule['CopyActions']), 1, f'{table_name} table should have one copy action')
 
     def _inspect_data_events_table(self, persistent_stack: PersistentStack, persistent_stack_template: Template):
@@ -529,6 +620,57 @@ class TstAppABC(ABC):
 
     def _check_no_frontend_stage_annotations(self, stage: FrontendStage):
         self._check_no_stack_annotations(stage.frontend_deployment_stack)
+
+    def _count_stack_resources(self, stack: Stack) -> int:
+        """
+        Count the number of resources in a CloudFormation stack.
+
+        :param stack: The CDK Stack to analyze
+        :returns: Number of resources in the stack
+        """
+        template = Template.from_stack(stack)
+        # Get template as dictionary and count resources
+        template_dict = template.to_json()
+        resources = template_dict.get('Resources', {})
+        return len(resources)
+
+    def _check_backend_stage_resource_counts(self, stage: BackendStage):
+        """
+        Check resource counts for all stacks in a BackendStage and emit warnings/errors.
+
+        Emits a warning if any stack has more than 400 resources.
+        Fails the test if any stack has more than 475 resources.
+
+        :param stage: The BackendStage containing stacks to check
+        """
+        stacks_to_check = [
+            ('persistent_stack', stage.persistent_stack),
+            ('api_stack', stage.api_stack),
+            ('ingest_stack', stage.ingest_stack),
+            ('transaction_monitoring_stack', stage.transaction_monitoring_stack),
+        ]
+
+        # Add reporting stack if it exists (only when hosted zone is configured)
+        if stage.persistent_stack.hosted_zone:
+            stacks_to_check.append(('reporting_stack', stage.reporting_stack))
+
+        for stack_name, stack in stacks_to_check:
+            with self.subTest(f'Resource Count: {stack.stack_name}'):
+                resource_count = self._count_stack_resources(stack)
+
+                if resource_count > 475:
+                    self.fail(
+                        f'{stack.stack_name} has {resource_count} resources, which exceeds the '
+                        'error threshold of 475. Consider splitting this stack or reducing resource count.'
+                    )
+                elif resource_count > 400:
+                    sys.stderr.write(
+                        f'WARNING: {stack.stack_name} has {resource_count} resources, which exceeds the '
+                        'warning threshold of 400. Consider monitoring for future growth.\n'
+                    )
+
+                # Also log the count for visibility in test output
+                sys.stdout.write(f'INFO: {stack.stack_name} has {resource_count} resources\n')
 
     def compare_snapshot(self, actual: Mapping | list, snapshot_name: str, overwrite_snapshot: bool = False):
         """

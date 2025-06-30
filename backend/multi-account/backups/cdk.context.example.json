@@ -7,6 +7,9 @@
     "000011116666",
     "000011117777"
   ],
+  "source_regions": [
+    "us-east-1"
+  ],
   "backup_vault_name": "CompactConnectBackupVault",
   "ssn_backup_vault_name": "CompactConnectBackupVault-SSN",
   "tags": {

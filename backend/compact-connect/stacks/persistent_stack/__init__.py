@@ -10,6 +10,7 @@ from aws_cdk.aws_logs import QueryDefinition, QueryString
 from cdk_nag import NagSuppressions
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.alarm_topic import AlarmTopic
+from common_constructs.backup_plan import TableBackupPlan
 from common_constructs.data_migration import DataMigration
 from common_constructs.frontend_app_config_utility import PersistentStackFrontendAppConfigUtility
 from common_constructs.nodejs_function import NodejsFunction
@@ -19,7 +20,6 @@ from common_constructs.ssm_parameter_utility import SSMParameterUtility
 from common_constructs.stack import AppStack
 from constructs import Construct
 
-from common_constructs.backup_plan import TableBackupPlan
 from stacks.backup_infrastructure_stack import BackupInfrastructureStack
 from stacks.persistent_stack.bulk_uploads_bucket import BulkUploadsBucket
 from stacks.persistent_stack.compact_configuration_table import CompactConfigurationTable
@@ -52,6 +52,7 @@ class PersistentStack(AppStack):
         app_name: str,
         environment_name: str,
         environment_context: dict,
+        backup_config: dict,
         **kwargs,
     ) -> None:
         super().__init__(
@@ -112,8 +113,6 @@ class PersistentStack(AppStack):
         )
 
         # Create backup infrastructure as a nested stack
-        # backup_config is in the ssm_context from the CDK context file
-        backup_config = self.node.get_context('ssm_context').get('backup_config', {})
         self.backup_infrastructure_stack = BackupInfrastructureStack(
             self,
             'BackupInfrastructureStack',
@@ -147,7 +146,9 @@ class PersistentStack(AppStack):
             self, self._data_event_bus
         )
 
-        self._add_data_resources(removal_policy=removal_policy, backup_infrastructure_stack=self.backup_infrastructure_stack)
+        self._add_data_resources(
+            removal_policy=removal_policy, backup_infrastructure_stack=self.backup_infrastructure_stack
+        )
         self._add_migrations()
 
         self.compact_configuration_upload = CompactConfigurationUpload(
@@ -189,6 +190,7 @@ class PersistentStack(AppStack):
             user_pool_email=user_pool_email_settings,
             security_profile=security_profile,
             removal_policy=removal_policy,
+            backup_infrastructure_stack=self.backup_infrastructure_stack,
         )
 
         # This user pool is deprecated and will be removed once we've cut over to the green user pool
@@ -248,7 +250,9 @@ class PersistentStack(AppStack):
         # This parameter is used to store the frontend app config values for use in the frontend deployment stack
         self._create_frontend_app_config_parameter()
 
-    def _add_data_resources(self, removal_policy: RemovalPolicy, backup_infrastructure_stack: BackupInfrastructureStack):
+    def _add_data_resources(
+        self, removal_policy: RemovalPolicy, backup_infrastructure_stack: BackupInfrastructureStack
+    ):
         # Create the ssn related resources before other resources which are dependent on them
         self.ssn_table = SSNTable(
             self,
@@ -294,9 +298,9 @@ class PersistentStack(AppStack):
         )
 
         self.provider_table = ProviderTable(
-            self, 
-            'ProviderTable', 
-            encryption_key=self.shared_encryption_key, 
+            self,
+            'ProviderTable',
+            encryption_key=self.shared_encryption_key,
             removal_policy=removal_policy,
             backup_infrastructure_stack=backup_infrastructure_stack,
             environment_context=self.environment_context,
@@ -325,6 +329,8 @@ class PersistentStack(AppStack):
             event_bus=self._data_event_bus,
             alarm_topic=self.alarm_topic,
             removal_policy=removal_policy,
+            backup_infrastructure_stack=backup_infrastructure_stack,
+            environment_context=self.environment_context,
         )
 
         self.compact_configuration_table = CompactConfigurationTable(
@@ -332,6 +338,8 @@ class PersistentStack(AppStack):
             construct_id='CompactConfigurationTable',
             encryption_key=self.shared_encryption_key,
             removal_policy=removal_policy,
+            backup_infrastructure_stack=backup_infrastructure_stack,
+            environment_context=self.environment_context,
         )
 
         self.transaction_history_table = TransactionHistoryTable(
@@ -339,6 +347,8 @@ class PersistentStack(AppStack):
             construct_id='TransactionHistoryTable',
             encryption_key=self.shared_encryption_key,
             removal_policy=removal_policy,
+            backup_infrastructure_stack=backup_infrastructure_stack,
+            environment_context=self.environment_context,
         )
 
         # bucket for holding documentation for providers
