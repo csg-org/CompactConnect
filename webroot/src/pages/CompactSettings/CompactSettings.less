@@ -7,10 +7,15 @@
 
 .compact-settings-container {
     justify-content: center;
+    min-width: 90%;
     max-width: 60rem;
     min-height: ~"calc(100vh - @{appHeaderHeight} - @{appFooterHeight})";
     margin: 0 auto;
     padding: 1.6rem;
+
+    @media @desktopWidth {
+        min-width: unset;
+    }
 
     .compact-settings-title {
         margin-bottom: 3.2rem;
@@ -21,87 +26,6 @@
 
         @media @desktopWidth {
             min-width: 50rem;
-        }
-    }
-
-    .state-list {
-        display: flex;
-        flex-direction: column;
-        margin-bottom: 2.4rem;
-        border-radius: 8px;
-        background-color: @white;
-
-        .compact-loading-error {
-            padding: 0.4rem 1.6rem;
-            color: @midRed;
-            font-weight: @fontWeightBold;
-            text-align: center;
-        }
-
-        .state-row {
-            display: flex;
-            flex-direction: column;
-            min-height: 6.4rem;
-            padding: 1.6rem;
-
-            @media @desktopWidth {
-                flex-direction: row;
-            }
-
-            &.header-row {
-                font-weight: @fontWeightBold;
-            }
-
-            &:not(.header-row) {
-                border-top: 1px solid @veryLightGrey;
-            }
-
-            .state-cell {
-                display: flex;
-                align-items: center;
-
-                &.state {
-                    font-weight: @fontWeightBold;
-
-                    @media @desktopWidth {
-                        width: 40%;
-
-                        &:not(.header-cell) {
-                            font-weight: @fontWeightLight;
-                        }
-                    }
-                }
-
-                &.actions {
-                    width: 100%;
-                    margin-bottom: 0.8rem;
-
-                    &.compact-enable {
-                        width: 100%;
-
-                        @media @desktopWidth {
-                            width: 20%;
-
-                            &.is-last-column {
-                                margin-left: auto;
-                            }
-                        }
-                    }
-
-                    &.state-edit {
-                        width: 100%;
-
-                        @media @desktopWidth {
-                            width: 20%;
-                            margin-left: auto;
-                        }
-                    }
-
-                    .state-action-btn {
-                        width: 100%;
-                    }
-                }
-            }
         }
     }
 }

@@ -100,6 +100,20 @@ export class DataApi {
         }));
     }
 
+    // Put compact level config for state
+    public updateCompactConfigState(compact: string, state: string, config: object) {
+        if (!compact) {
+            return wait(500).then(() => Promise.reject(new Error('failed compact config for state')));
+        }
+
+        return wait(500).then(() => ({
+            message: 'success',
+            compact,
+            state,
+            config,
+        }));
+    }
+
     // Get state config
     public getCompactStateConfig(compact: string, state: string) {
         return wait(500).then(() => ({

@@ -76,6 +76,17 @@ export class DataApi {
     }
 
     /**
+     * PUT Compact level config for state.
+     * @param  {string}          compact The compact string ID (aslp, octp, coun).
+     * @param  {string}          state   The 2-character state abbreviation.
+     * @param  {object}          config  The compact config data.
+     * @return {Promise<object>}         The server response.
+     */
+    public updateCompactConfigState(compact: string, state: string, config: object) {
+        return stateDataApi.updateCompactConfigState(compact, state, config);
+    }
+
+    /**
      * GET State config.
      * @param  {string}          compact The compact string ID (aslp, octp, coun).
      * @param  {string}          state   The 2-character state abbreviation.
