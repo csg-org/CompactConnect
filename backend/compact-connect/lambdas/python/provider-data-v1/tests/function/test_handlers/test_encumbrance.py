@@ -258,6 +258,39 @@ class TestPostPrivilegeEncumbrance(TstFunction):
             response_body,
         )
 
+    @patch('cc_common.event_bus_client.EventBusClient._publish_event')
+    def test_privilege_encumbrance_handler_publishes_event(self, mock_publish_event):
+        """Test that privilege encumbrance handler publishes the correct event."""
+        from handlers.encumbrance import encumbrance_handler
+
+        event, test_privilege_record = self._when_testing_privilege_encumbrance()
+
+        response = encumbrance_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'])
+
+        # Verify event was published with correct details
+        mock_publish_event.assert_called_once()
+        call_args = mock_publish_event.call_args[1]
+        self.assertEqual('org.compactconnect.provider-data', call_args['source'])
+        self.assertEqual('privilege.encumbrance', call_args['detail_type'])
+        self.assertEqual(test_privilege_record.compact, call_args['detail']['compact'])
+        self.assertEqual(str(test_privilege_record.providerId), call_args['detail']['providerId'])
+        self.assertEqual(test_privilege_record.jurisdiction, call_args['detail']['jurisdiction'])
+        self.assertEqual(test_privilege_record.licenseTypeAbbreviation, call_args['detail']['licenseTypeAbbreviation'])
+        self.assertEqual(DEFAULT_DATE_OF_UPDATE_TIMESTAMP, call_args['detail']['eventTime'])
+
+    @patch('cc_common.event_bus_client.EventBusClient._publish_event')
+    def test_privilege_encumbrance_handler_handles_event_publishing_failure(self, mock_publish_event):
+        """Test that privilege encumbrance handler fails when event publishing fails."""
+        from handlers.encumbrance import encumbrance_handler
+
+        event, _ = self._when_testing_privilege_encumbrance()
+        mock_publish_event.side_effect = Exception('Event publishing failed')
+
+        with self.assertRaises(Exception) as context:
+            encumbrance_handler(event, self.mock_context)
+        self.assertEqual('Event publishing failed', str(context.exception))
+
 
 @mock_aws
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP))
@@ -778,6 +811,41 @@ class TestPatchPrivilegeEncumbranceLifting(TstFunction):
             {'message': 'Access denied'},
             response_body,
         )
+
+    @patch('cc_common.event_bus_client.EventBusClient._publish_event')
+    def test_privilege_encumbrance_lifting_handler_publishes_event(self, mock_publish_event):
+        """Test that privilege encumbrance lifting handler publishes the correct event."""
+        from handlers.encumbrance import encumbrance_handler
+
+        privilege_record, adverse_action = self._setup_privilege_with_adverse_action()
+        event = self._generate_lift_encumbrance_event(privilege_record, adverse_action)
+
+        response = encumbrance_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'])
+
+        # Verify event was published with correct details
+        mock_publish_event.assert_called_once()
+        call_args = mock_publish_event.call_args[1]
+        self.assertEqual('org.compactconnect.provider-data', call_args['source'])
+        self.assertEqual('privilege.encumbranceLifted', call_args['detail_type'])
+        self.assertEqual(privilege_record.compact, call_args['detail']['compact'])
+        self.assertEqual(str(privilege_record.providerId), call_args['detail']['providerId'])
+        self.assertEqual(privilege_record.jurisdiction, call_args['detail']['jurisdiction'])
+        self.assertEqual(privilege_record.licenseTypeAbbreviation, call_args['detail']['licenseTypeAbbreviation'])
+        self.assertEqual(DEFAULT_DATE_OF_UPDATE_TIMESTAMP, call_args['detail']['eventTime'])
+
+    @patch('cc_common.event_bus_client.EventBusClient._publish_event')
+    def test_privilege_encumbrance_lifting_handler_handles_event_publishing_failure(self, mock_publish_event):
+        """Test that privilege encumbrance lifting handler fails when event publishing fails."""
+        from handlers.encumbrance import encumbrance_handler
+
+        privilege_record, adverse_action = self._setup_privilege_with_adverse_action()
+        event = self._generate_lift_encumbrance_event(privilege_record, adverse_action)
+        mock_publish_event.side_effect = Exception('Event publishing failed')
+
+        with self.assertRaises(Exception) as context:
+            encumbrance_handler(event, self.mock_context)
+        self.assertEqual('Event publishing failed', str(context.exception))
 
 
 @mock_aws

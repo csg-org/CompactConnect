@@ -607,4 +607,571 @@ describe('EmailNotificationServiceLambda', () => {
                 .toThrow('No recipients found for multiple registration attempt notification email');
         });
     });
+
+    describe('License Encumbrance Provider Notification', () => {
+        const SAMPLE_LICENSE_ENCUMBRANCE_PROVIDER_NOTIFICATION_EVENT: EmailNotificationEvent = {
+            template: 'licenseEncumbranceProviderNotification',
+            recipientType: 'SPECIFIC',
+            compact: 'aslp',
+            specificEmails: ['provider@example.com'],
+            templateVariables: {
+                providerFirstName: 'John',
+                providerLastName: 'Doe',
+                encumberedJurisdiction: 'OH',
+                licenseType: 'Audiologist',
+                effectiveStartDate: 'January 15, 2024'
+            }
+        };
+
+        it('should successfully send license encumbrance provider notification email', async () => {
+            const response = await lambda.handler(SAMPLE_LICENSE_ENCUMBRANCE_PROVIDER_NOTIFICATION_EVENT, {} as any);
+
+            expect(response).toEqual({
+                message: 'Email message sent'
+            });
+
+            expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
+                Destination: {
+                    ToAddresses: ['provider@example.com']
+                },
+                Message: {
+                    Body: {
+                        Html: {
+                            Charset: 'UTF-8',
+                            Data: expect.stringContaining('Your Audiologist license in Ohio is encumbered')
+                        }
+                    },
+                    Subject: {
+                        Charset: 'UTF-8',
+                        Data: 'Your Audiologist license in Ohio is encumbered'
+                    }
+                },
+                Source: 'Compact Connect <noreply@example.org>'
+            });
+        });
+
+        it('should throw error when required template variables are missing', async () => {
+            const eventWithMissingVariables: EmailNotificationEvent = {
+                ...SAMPLE_LICENSE_ENCUMBRANCE_PROVIDER_NOTIFICATION_EVENT,
+                templateVariables: {}
+            };
+
+            await expect(lambda.handler(eventWithMissingVariables, {} as any))
+                .rejects
+                .toThrow('Missing required template variables for licenseEncumbranceProviderNotification template.');
+        });
+    });
+
+    describe('License Encumbrance State Notification', () => {
+        const SAMPLE_LICENSE_ENCUMBRANCE_STATE_NOTIFICATION_EVENT: EmailNotificationEvent = {
+            template: 'licenseEncumbranceStateNotification',
+            recipientType: 'JURISDICTION_ADVERSE_ACTIONS',
+            compact: 'aslp',
+            jurisdiction: 'ca',
+            templateVariables: {
+                providerFirstName: 'John',
+                providerLastName: 'Doe',
+                providerId: 'provider-123',
+                encumberedJurisdiction: 'OH',
+                licenseType: 'Audiologist',
+                effectiveStartDate: 'January 15, 2024'
+            }
+        };
+
+        it('should successfully send license encumbrance state notification email', async () => {
+            const mockJurisdictionConfig = {
+                'pk': { S: 'aslp#CONFIGURATION' },
+                'sk': { S: 'aslp#JURISDICTION#ca' },
+                'jurisdictionName': { S: 'California' },
+                'jurisdictionAdverseActionsNotificationEmails': { L: [{ S: 'ca-adverse@example.com' }]},
+                'type': { S: 'jurisdiction' }
+            };
+
+            mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
+                if (input.Key.sk.S === 'aslp#JURISDICTION#ca') {
+                    return Promise.resolve({ Item: mockJurisdictionConfig });
+                }
+                return Promise.resolve({ Item: SAMPLE_COMPACT_CONFIGURATION });
+            });
+
+            const response = await lambda.handler(SAMPLE_LICENSE_ENCUMBRANCE_STATE_NOTIFICATION_EVENT, {} as any);
+
+            expect(response).toEqual({
+                message: 'Email message sent'
+            });
+
+            expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
+                Destination: {
+                    ToAddresses: ['ca-adverse@example.com']
+                },
+                Message: {
+                    Body: {
+                        Html: {
+                            Charset: 'UTF-8',
+                            Data: expect.stringContaining('License Encumbrance Notification - John Doe')
+                        }
+                    },
+                    Subject: {
+                        Charset: 'UTF-8',
+                        Data: 'License Encumbrance Notification - John Doe'
+                    }
+                },
+                Source: 'Compact Connect <noreply@example.org>'
+            });
+        });
+
+        it('should include provider detail link with correct environment URL', async () => {
+            const mockJurisdictionConfig = {
+                'pk': { S: 'aslp#CONFIGURATION' },
+                'sk': { S: 'aslp#JURISDICTION#ca' },
+                'jurisdictionAdverseActionsNotificationEmails': { L: [{ S: 'ca-adverse@example.com' }]},
+                'type': { S: 'jurisdiction' }
+            };
+
+            mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
+                if (input.Key.sk.S === 'aslp#JURISDICTION#ca') {
+                    return Promise.resolve({ Item: mockJurisdictionConfig });
+                }
+                return Promise.resolve({ Item: SAMPLE_COMPACT_CONFIGURATION });
+            });
+
+            await lambda.handler(SAMPLE_LICENSE_ENCUMBRANCE_STATE_NOTIFICATION_EVENT, {} as any);
+
+            const emailData = mockSESClient.commandCalls(SendEmailCommand)[0].args[0].input.Message?.Body?.Html?.Data;
+
+            expect(emailData).toContain('Provider Details: https://app.test.compactconnect.org/aslp/Licensing/provider-123');
+        });
+
+        it('should throw error when required template variables are missing', async () => {
+            const eventWithMissingVariables: EmailNotificationEvent = {
+                ...SAMPLE_LICENSE_ENCUMBRANCE_STATE_NOTIFICATION_EVENT,
+                templateVariables: {}
+            };
+
+            await expect(lambda.handler(eventWithMissingVariables, {} as any))
+                .rejects
+                .toThrow('Missing required template variables for licenseEncumbranceStateNotification template.');
+        });
+
+        it('should throw error when jurisdiction is missing', async () => {
+            const eventWithMissingJurisdiction: EmailNotificationEvent = {
+                ...SAMPLE_LICENSE_ENCUMBRANCE_STATE_NOTIFICATION_EVENT,
+                jurisdiction: undefined
+            };
+
+            await expect(lambda.handler(eventWithMissingJurisdiction, {} as any))
+                .rejects
+                .toThrow('Missing required jurisdiction field for licenseEncumbranceStateNotification template.');
+        });
+    });
+
+    describe('License Encumbrance Lifting Provider Notification', () => {
+        const SAMPLE_LICENSE_ENCUMBRANCE_LIFTING_PROVIDER_NOTIFICATION_EVENT: EmailNotificationEvent = {
+            template: 'licenseEncumbranceLiftingProviderNotification',
+            recipientType: 'SPECIFIC',
+            compact: 'aslp',
+            specificEmails: ['provider@example.com'],
+            templateVariables: {
+                providerFirstName: 'John',
+                providerLastName: 'Doe',
+                liftedJurisdiction: 'OH',
+                licenseType: 'Audiologist',
+                effectiveLiftDate: 'February 15, 2024'
+            }
+        };
+
+        it('should successfully send license encumbrance lifting provider notification email', async () => {
+            const response = await lambda.handler(
+                SAMPLE_LICENSE_ENCUMBRANCE_LIFTING_PROVIDER_NOTIFICATION_EVENT, {} as any
+            );
+
+            expect(response).toEqual({
+                message: 'Email message sent'
+            });
+
+            expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
+                Destination: {
+                    ToAddresses: ['provider@example.com']
+                },
+                Message: {
+                    Body: {
+                        Html: {
+                            Charset: 'UTF-8',
+                            Data: expect.stringContaining('Your Audiologist license in Ohio is no longer encumbered')
+                        }
+                    },
+                    Subject: {
+                        Charset: 'UTF-8',
+                        Data: 'Your Audiologist license in Ohio is no longer encumbered'
+                    }
+                },
+                Source: 'Compact Connect <noreply@example.org>'
+            });
+        });
+
+        it('should throw error when required template variables are missing', async () => {
+            const eventWithMissingVariables: EmailNotificationEvent = {
+                ...SAMPLE_LICENSE_ENCUMBRANCE_LIFTING_PROVIDER_NOTIFICATION_EVENT,
+                templateVariables: {}
+            };
+
+            await expect(lambda.handler(eventWithMissingVariables, {} as any))
+                .rejects
+                .toThrow('Missing required template variables for licenseEncumbranceLiftingProviderNotification template.');
+        });
+    });
+
+    describe('License Encumbrance Lifting State Notification', () => {
+        const SAMPLE_LICENSE_ENCUMBRANCE_LIFTING_STATE_NOTIFICATION_EVENT: EmailNotificationEvent = {
+            template: 'licenseEncumbranceLiftingStateNotification',
+            recipientType: 'JURISDICTION_ADVERSE_ACTIONS',
+            compact: 'aslp',
+            jurisdiction: 'ca',
+            templateVariables: {
+                providerFirstName: 'John',
+                providerLastName: 'Doe',
+                providerId: 'provider-123',
+                liftedJurisdiction: 'OH',
+                licenseType: 'Audiologist',
+                effectiveLiftDate: 'February 15, 2024'
+            }
+        };
+
+        it('should successfully send license encumbrance lifting state notification email', async () => {
+            const mockJurisdictionConfig = {
+                'pk': { S: 'aslp#CONFIGURATION' },
+                'sk': { S: 'aslp#JURISDICTION#ca' },
+                'jurisdictionAdverseActionsNotificationEmails': { L: [{ S: 'ca-adverse@example.com' }]},
+                'type': { S: 'jurisdiction' }
+            };
+
+            mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
+                if (input.Key.sk.S === 'aslp#JURISDICTION#ca') {
+                    return Promise.resolve({ Item: mockJurisdictionConfig });
+                }
+                return Promise.resolve({ Item: SAMPLE_COMPACT_CONFIGURATION });
+            });
+
+            const response = await lambda.handler(
+                SAMPLE_LICENSE_ENCUMBRANCE_LIFTING_STATE_NOTIFICATION_EVENT, {} as any
+            );
+
+            expect(response).toEqual({
+                message: 'Email message sent'
+            });
+
+            expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
+                Destination: {
+                    ToAddresses: ['ca-adverse@example.com']
+                },
+                Message: {
+                    Body: {
+                        Html: {
+                            Charset: 'UTF-8',
+                            Data: expect.stringContaining('License Encumbrance Lifted Notification - John Doe')
+                        }
+                    },
+                    Subject: {
+                        Charset: 'UTF-8',
+                        Data: 'License Encumbrance Lifted Notification - John Doe'
+                    }
+                },
+                Source: 'Compact Connect <noreply@example.org>'
+            });
+        });
+
+        it('should throw error when required template variables are missing', async () => {
+            const eventWithMissingVariables: EmailNotificationEvent = {
+                ...SAMPLE_LICENSE_ENCUMBRANCE_LIFTING_STATE_NOTIFICATION_EVENT,
+                templateVariables: {}
+            };
+
+            await expect(lambda.handler(eventWithMissingVariables, {} as any))
+                .rejects
+                .toThrow('Missing required template variables for licenseEncumbranceLiftingStateNotification template.');
+        });
+
+        it('should throw error when jurisdiction is missing', async () => {
+            const eventWithMissingJurisdiction: EmailNotificationEvent = {
+                ...SAMPLE_LICENSE_ENCUMBRANCE_LIFTING_STATE_NOTIFICATION_EVENT,
+                jurisdiction: undefined
+            };
+
+            await expect(lambda.handler(eventWithMissingJurisdiction, {} as any))
+                .rejects
+                .toThrow('Missing required jurisdiction field for licenseEncumbranceLiftingStateNotification template.');
+        });
+    });
+
+    describe('Privilege Encumbrance Provider Notification', () => {
+        const SAMPLE_PRIVILEGE_ENCUMBRANCE_PROVIDER_NOTIFICATION_EVENT: EmailNotificationEvent = {
+            template: 'privilegeEncumbranceProviderNotification',
+            recipientType: 'SPECIFIC',
+            compact: 'aslp',
+            specificEmails: ['provider@example.com'],
+            templateVariables: {
+                providerFirstName: 'John',
+                providerLastName: 'Doe',
+                encumberedJurisdiction: 'OH',
+                licenseType: 'Audiologist',
+                effectiveStartDate: 'January 15, 2024'
+            }
+        };
+
+        it('should successfully send privilege encumbrance provider notification email', async () => {
+            const response = await lambda.handler(SAMPLE_PRIVILEGE_ENCUMBRANCE_PROVIDER_NOTIFICATION_EVENT, {} as any);
+
+            expect(response).toEqual({
+                message: 'Email message sent'
+            });
+
+            expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
+                Destination: {
+                    ToAddresses: ['provider@example.com']
+                },
+                Message: {
+                    Body: {
+                        Html: {
+                            Charset: 'UTF-8',
+                            Data: expect.stringContaining('Your Audiologist privilege in Ohio is encumbered')
+                        }
+                    },
+                    Subject: {
+                        Charset: 'UTF-8',
+                        Data: 'Your Audiologist privilege in Ohio is encumbered'
+                    }
+                },
+                Source: 'Compact Connect <noreply@example.org>'
+            });
+        });
+
+        it('should throw error when required template variables are missing', async () => {
+            const eventWithMissingVariables: EmailNotificationEvent = {
+                ...SAMPLE_PRIVILEGE_ENCUMBRANCE_PROVIDER_NOTIFICATION_EVENT,
+                templateVariables: {}
+            };
+
+            await expect(lambda.handler(eventWithMissingVariables, {} as any))
+                .rejects
+                .toThrow('Missing required template variables for privilegeEncumbranceProviderNotification template.');
+        });
+    });
+
+    describe('Privilege Encumbrance State Notification', () => {
+        const SAMPLE_PRIVILEGE_ENCUMBRANCE_STATE_NOTIFICATION_EVENT: EmailNotificationEvent = {
+            template: 'privilegeEncumbranceStateNotification',
+            recipientType: 'JURISDICTION_ADVERSE_ACTIONS',
+            compact: 'aslp',
+            jurisdiction: 'ca',
+            templateVariables: {
+                providerFirstName: 'John',
+                providerLastName: 'Doe',
+                providerId: 'provider-123',
+                encumberedJurisdiction: 'OH',
+                licenseType: 'Audiologist',
+                effectiveStartDate: 'January 15, 2024'
+            }
+        };
+
+        it('should successfully send privilege encumbrance state notification email', async () => {
+            const mockJurisdictionConfig = {
+                'pk': { S: 'aslp#CONFIGURATION' },
+                'sk': { S: 'aslp#JURISDICTION#ca' },
+                'jurisdictionAdverseActionsNotificationEmails': { L: [{ S: 'ca-adverse@example.com' }]},
+                'type': { S: 'jurisdiction' }
+            };
+
+            mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
+                if (input.Key.sk.S === 'aslp#JURISDICTION#ca') {
+                    return Promise.resolve({ Item: mockJurisdictionConfig });
+                }
+                return Promise.resolve({ Item: SAMPLE_COMPACT_CONFIGURATION });
+            });
+
+            const response = await lambda.handler(SAMPLE_PRIVILEGE_ENCUMBRANCE_STATE_NOTIFICATION_EVENT, {} as any);
+
+            expect(response).toEqual({
+                message: 'Email message sent'
+            });
+
+            expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
+                Destination: {
+                    ToAddresses: ['ca-adverse@example.com']
+                },
+                Message: {
+                    Body: {
+                        Html: {
+                            Charset: 'UTF-8',
+                            Data: expect.stringContaining('Privilege Encumbrance Notification - John Doe')
+                        }
+                    },
+                    Subject: {
+                        Charset: 'UTF-8',
+                        Data: 'Privilege Encumbrance Notification - John Doe'
+                    }
+                },
+                Source: 'Compact Connect <noreply@example.org>'
+            });
+        });
+
+        it('should throw error when required template variables are missing', async () => {
+            const eventWithMissingVariables: EmailNotificationEvent = {
+                ...SAMPLE_PRIVILEGE_ENCUMBRANCE_STATE_NOTIFICATION_EVENT,
+                templateVariables: {}
+            };
+
+            await expect(lambda.handler(eventWithMissingVariables, {} as any))
+                .rejects
+                .toThrow('Missing required template variables for privilegeEncumbranceStateNotification template.');
+        });
+
+        it('should throw error when jurisdiction is missing', async () => {
+            const eventWithMissingJurisdiction: EmailNotificationEvent = {
+                ...SAMPLE_PRIVILEGE_ENCUMBRANCE_STATE_NOTIFICATION_EVENT,
+                jurisdiction: undefined
+            };
+
+            await expect(lambda.handler(eventWithMissingJurisdiction, {} as any))
+                .rejects
+                .toThrow('Missing required jurisdiction field for privilegeEncumbranceStateNotification template.');
+        });
+    });
+
+    describe('Privilege Encumbrance Lifting Provider Notification', () => {
+        const SAMPLE_PRIVILEGE_ENCUMBRANCE_LIFTING_PROVIDER_NOTIFICATION_EVENT: EmailNotificationEvent = {
+            template: 'privilegeEncumbranceLiftingProviderNotification',
+            recipientType: 'SPECIFIC',
+            compact: 'aslp',
+            specificEmails: ['provider@example.com'],
+            templateVariables: {
+                providerFirstName: 'John',
+                providerLastName: 'Doe',
+                liftedJurisdiction: 'OH',
+                licenseType: 'Audiologist',
+                effectiveLiftDate: 'February 15, 2024'
+            }
+        };
+
+        it('should successfully send privilege encumbrance lifting provider notification email', async () => {
+            const response = await lambda.handler(
+                SAMPLE_PRIVILEGE_ENCUMBRANCE_LIFTING_PROVIDER_NOTIFICATION_EVENT, {} as any
+            );
+
+            expect(response).toEqual({
+                message: 'Email message sent'
+            });
+
+            expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
+                Destination: {
+                    ToAddresses: ['provider@example.com']
+                },
+                Message: {
+                    Body: {
+                        Html: {
+                            Charset: 'UTF-8',
+                            Data: expect.stringContaining('Your Audiologist privilege in Ohio is no longer encumbered')
+                        }
+                    },
+                    Subject: {
+                        Charset: 'UTF-8',
+                        Data: 'Your Audiologist privilege in Ohio is no longer encumbered'
+                    }
+                },
+                Source: 'Compact Connect <noreply@example.org>'
+            });
+        });
+
+        it('should throw error when required template variables are missing', async () => {
+            const eventWithMissingVariables: EmailNotificationEvent = {
+                ...SAMPLE_PRIVILEGE_ENCUMBRANCE_LIFTING_PROVIDER_NOTIFICATION_EVENT,
+                templateVariables: {}
+            };
+
+            await expect(lambda.handler(eventWithMissingVariables, {} as any))
+                .rejects
+                .toThrow('Missing required template variables for privilegeEncumbranceLiftingProviderNotification template.');
+        });
+    });
+
+    describe('Privilege Encumbrance Lifting State Notification', () => {
+        const SAMPLE_PRIVILEGE_ENCUMBRANCE_LIFTING_STATE_NOTIFICATION_EVENT: EmailNotificationEvent = {
+            template: 'privilegeEncumbranceLiftingStateNotification',
+            recipientType: 'JURISDICTION_ADVERSE_ACTIONS',
+            compact: 'aslp',
+            jurisdiction: 'ca',
+            templateVariables: {
+                providerFirstName: 'John',
+                providerLastName: 'Doe',
+                providerId: 'provider-123',
+                liftedJurisdiction: 'OH',
+                licenseType: 'Audiologist',
+                effectiveLiftDate: 'February 15, 2024'
+            }
+        };
+
+        it('should successfully send privilege encumbrance lifting state notification email', async () => {
+            const mockJurisdictionConfig = {
+                'pk': { S: 'aslp#CONFIGURATION' },
+                'sk': { S: 'aslp#JURISDICTION#ca' },
+                'jurisdictionAdverseActionsNotificationEmails': { L: [{ S: 'ca-adverse@example.com' }]},
+                'type': { S: 'jurisdiction' }
+            };
+
+            mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
+                if (input.Key.sk.S === 'aslp#JURISDICTION#ca') {
+                    return Promise.resolve({ Item: mockJurisdictionConfig });
+                }
+                return Promise.resolve({ Item: SAMPLE_COMPACT_CONFIGURATION });
+            });
+
+            const response = await lambda.handler(
+                SAMPLE_PRIVILEGE_ENCUMBRANCE_LIFTING_STATE_NOTIFICATION_EVENT, {} as any
+            );
+
+            expect(response).toEqual({
+                message: 'Email message sent'
+            });
+
+            expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
+                Destination: {
+                    ToAddresses: ['ca-adverse@example.com']
+                },
+                Message: {
+                    Body: {
+                        Html: {
+                            Charset: 'UTF-8',
+                            Data: expect.stringContaining('Privilege Encumbrance Lifted Notification - John Doe')
+                        }
+                    },
+                    Subject: {
+                        Charset: 'UTF-8',
+                        Data: 'Privilege Encumbrance Lifted Notification - John Doe'
+                    }
+                },
+                Source: 'Compact Connect <noreply@example.org>'
+            });
+        });
+
+        it('should throw error when required template variables are missing', async () => {
+            const eventWithMissingVariables: EmailNotificationEvent = {
+                ...SAMPLE_PRIVILEGE_ENCUMBRANCE_LIFTING_STATE_NOTIFICATION_EVENT,
+                templateVariables: {}
+            };
+
+            await expect(lambda.handler(eventWithMissingVariables, {} as any))
+                .rejects
+                .toThrow('Missing required template variables for privilegeEncumbranceLiftingStateNotification template.');
+        });
+
+        it('should throw error when jurisdiction is missing', async () => {
+            const eventWithMissingJurisdiction: EmailNotificationEvent = {
+                ...SAMPLE_PRIVILEGE_ENCUMBRANCE_LIFTING_STATE_NOTIFICATION_EVENT,
+                jurisdiction: undefined
+            };
+
+            await expect(lambda.handler(eventWithMissingJurisdiction, {} as any))
+                .rejects
+                .toThrow('Missing required jurisdiction field for privilegeEncumbranceLiftingStateNotification template.');
+        });
+    });
 });

@@ -88,7 +88,7 @@ describe('CognitoEmailsLambda', () => {
 
     it('should process AdminCreateUser event for provider users with 24-hour message', async () => {
         process.env.USER_POOL_TYPE = 'provider';
-        
+
         const response = await lambda.handler(SAMPLE_COGNITO_EVENT, SAMPLE_CONTEXT);
 
         expect(response.response.emailSubject).toBe('Welcome to CompactConnect');
@@ -104,7 +104,7 @@ describe('CognitoEmailsLambda', () => {
 
     it('should process AdminCreateUser event for staff users without time constraint message', async () => {
         process.env.USER_POOL_TYPE = 'staff';
-        
+
         const response = await lambda.handler(SAMPLE_COGNITO_EVENT, SAMPLE_CONTEXT);
 
         expect(response.response.emailSubject).toBe('Welcome to CompactConnect');
@@ -119,7 +119,7 @@ describe('CognitoEmailsLambda', () => {
 
     it('should process AdminCreateUser event for unknown user pool type without time constraint message', async () => {
         process.env.USER_POOL_TYPE = 'unknown';
-        
+
         const response = await lambda.handler(SAMPLE_COGNITO_EVENT, SAMPLE_CONTEXT);
 
         expect(response.response.emailSubject).toBe('Welcome to CompactConnect');
@@ -147,7 +147,7 @@ describe('CognitoEmailsLambda', () => {
 
     it('should handle missing code parameter', async () => {
         process.env.USER_POOL_TYPE = 'provider';
-        
+
         const eventWithoutCode = {
             ...SAMPLE_COGNITO_EVENT,
             request: {

@@ -160,7 +160,7 @@ State administrators must provide email addresses for three types of system noti
 **3. Summary Report Notification Recipients**
 - Email addresses added to this list will receive weekly and monthly financial summary reports
 - These reports show the settled transaction details for transactions involving privileges purchased in your state
-- Reports provide insights into privilege purchasing activity and revenue within your jurisdiction 
+- Reports provide insights into privilege purchasing activity and revenue within your jurisdiction
 
 >⚠️ **Important**: Transactions made through Authorize.net, the payment processor used by the system, take up to 24 hours to settle. Since financial reports only include settled transactions, there may be a timing discrepancy between when privileges are purchased and when they appear in financial reports. For example, privileges purchased near the end of a reporting period may not appear in that period's report if the transactions haven't settled yet, while privileges purchased during the previous period may appear if their transactions settled during the current reporting period.
 
@@ -211,7 +211,7 @@ Compact administrators have access to compact-wide configuration options that af
 
 
 > ⚠️ **Important**: After completing the CVV configuration setup in the Authorize.net account, return to the Compact Connect settings page to complete the following configuration settings.
-> 
+>
 #### Compact Administration Fee
 
 
