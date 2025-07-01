@@ -42,6 +42,12 @@ class MixinForm extends Vue {
         return values;
     }
 
+    get formInputs(): Array<FormInput> {
+        return this.formKeys
+            .map((key) => this.formData[key])
+            .filter((input) => input instanceof FormInput);
+    }
+
     get formSubmitInputs(): Array<FormInput> {
         const { formData } = this;
 
@@ -155,23 +161,23 @@ class MixinForm extends Vue {
     }
 
     validateAll(config: any = {}): void {
-        const { formData } = this;
-
-        this.formKeys.forEach((key) => {
+        this.formInputs.forEach((input) => {
             if (config.asTouched) {
-                formData[key].isTouched = true;
+                input.isTouched = true;
             }
-
-            formData[key].validate();
+            input.validate();
         });
 
         this.checkValidForAll();
+
+        // Scroll to first invalid input unless explicitly skipped
+        if (!this.isFormValid && !config.skipErrorScroll) {
+            this.showInvalidFormError();
+        }
     }
 
     checkValidForAll(): void {
-        const { formData } = this;
-
-        this.isFormValid = this.formKeys.every((key) => formData[key].isValid);
+        this.isFormValid = this.formInputs.every((input) => input.isValid);
     }
 
     updateFormSubmitSuccess(message: string): void {
@@ -209,6 +215,31 @@ class MixinForm extends Vue {
     setError(errorMessage = ''): void {
         this.isFormError = true;
         this.updateFormSubmitError(errorMessage);
+    }
+
+    showInvalidFormError(): void {
+        // Find the first invalid input that has a validation schema
+        const firstInvalidInput = this.formInputs.find((input) =>
+            !input.isSubmitInput && !input.isValid);
+
+        // If we found an invalid input, try to scroll to and focus its input by name
+        if (firstInvalidInput) {
+            this.scrollToInput(firstInvalidInput);
+        }
+    }
+
+    protected scrollToInput(formInput: FormInput): void {
+        const element = document.getElementsByName(formInput.name)[0] as HTMLElement | undefined;
+
+        if (element) {
+            // Scroll to the element
+            element.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+
+            element.focus();
+        }
     }
 
     @Watch('locale') localeChanged() {

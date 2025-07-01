@@ -312,12 +312,14 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
     setJurisprudenceInputValue(newValue): void {
         if (this.jurisprudenceCheckInput) {
             (this.jurisprudenceCheckInput.value as any) = newValue; // any use required here because of outstanding ts bug regarding union type inference
+            this.jurisprudenceCheckInput.validate();
         }
     }
 
     setScopeInputValue(newValue): void {
         if (this.scopeOfPracticeCheckInput) {
             (this.scopeOfPracticeCheckInput.value as any) = newValue; // any use required here because of outstanding ts bug regarding union type inference
+            this.scopeOfPracticeCheckInput.validate();
         }
     }
 

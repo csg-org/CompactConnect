@@ -9,7 +9,13 @@ import { nextTick } from 'vue';
 import { Component, Vue } from 'vue-facing-decorator';
 import Section from '@components/Section/Section.vue';
 import Card from '@components/Card/Card.vue';
-import { authStorage, AuthTypes, AUTH_LOGIN_GOTO_PATH } from '@/app.config';
+import {
+    authStorage,
+    AuthTypes,
+    AUTH_TYPE,
+    AUTH_LOGIN_GOTO_PATH,
+    AUTH_LOGIN_GOTO_PATH_AUTH_TYPE
+} from '@/app.config';
 import axios from 'axios';
 
 @Component({
@@ -124,9 +130,13 @@ export default class AuthCallback extends Vue {
 
     async redirectUser(): Promise<void> {
         const goto = authStorage.getItem(AUTH_LOGIN_GOTO_PATH);
+        const gotoAuthType = authStorage.getItem(AUTH_LOGIN_GOTO_PATH_AUTH_TYPE);
+        const currentAuthType = authStorage.getItem(AUTH_TYPE);
 
-        if (goto) {
-            authStorage.removeItem(AUTH_LOGIN_GOTO_PATH);
+        authStorage.removeItem(AUTH_LOGIN_GOTO_PATH);
+        authStorage.removeItem(AUTH_LOGIN_GOTO_PATH_AUTH_TYPE);
+
+        if (goto && (!gotoAuthType || gotoAuthType === currentAuthType)) {
             this.$router.push({ path: goto });
         } else {
             await nextTick();

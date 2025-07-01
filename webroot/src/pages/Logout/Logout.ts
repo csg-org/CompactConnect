@@ -8,8 +8,10 @@
 import { Component, Vue } from 'vue-facing-decorator';
 import {
     authStorage,
-    AUTH_LOGIN_GOTO_PATH,
     AuthTypes,
+    AUTH_TYPE,
+    AUTH_LOGIN_GOTO_PATH,
+    AUTH_LOGIN_GOTO_PATH_AUTH_TYPE,
     tokens
 } from '@/app.config';
 
@@ -81,23 +83,28 @@ export default class Logout extends Vue {
             await this.logoutChecklist(isRemoteLoggedInAsLicenseeOnly);
             this.beginLogoutRedirectChain(isRemoteLoggedInAsLicenseeOnly);
         } else {
+            await this.logoutChecklist(false);
             window.location.replace(this.loginURL);
         }
     }
 
     async logoutChecklist(isRemoteLoggedInAsLicenseeOnly): Promise<void> {
-        const authType = isRemoteLoggedInAsLicenseeOnly ? AuthTypes.LICENSEE : AuthTypes.STAFF;
+        const authType = (isRemoteLoggedInAsLicenseeOnly) ? AuthTypes.LICENSEE : AuthTypes.STAFF;
 
-        this.$store.dispatch('user/clearRefreshTokenTimeout');
         this.stashWorkingUri();
+        this.$store.dispatch('user/clearRefreshTokenTimeout');
         await this.$store.dispatch('user/logoutRequest', authType);
     }
 
     stashWorkingUri(): void {
         const { workingUri } = this;
+        const authType = authStorage.getItem(AUTH_TYPE);
 
         if (workingUri) {
             authStorage.setItem(AUTH_LOGIN_GOTO_PATH, workingUri);
+            if (authType) {
+                authStorage.setItem(AUTH_LOGIN_GOTO_PATH_AUTH_TYPE, authType);
+            }
         }
     }
 

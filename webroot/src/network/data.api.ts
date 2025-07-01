@@ -158,6 +158,48 @@ export class DataApi {
     }
 
     /**
+     * POST Encumber License for a licensee.
+     * @param  {string}           compact      The compact string ID (aslp, otcp, coun).
+     * @param  {string}           licenseeId   The Licensee ID.
+     * @param  {string}           licenseState The 2-character state abbreviation for the License.
+     * @param  {string}           licenseType  The license type.
+     * @param  {string}           npdbCategory The NPDB category name.
+     * @param  {string}           startDate    The encumber start date.
+     * @return {Promise<object>}               The server response.
+     */
+    public encumberLicense(compact, licenseeId, licenseState, licenseType, npdbCategory, startDate) {
+        return licenseDataApi.encumberLicense(
+            compact,
+            licenseeId,
+            licenseState,
+            licenseType,
+            npdbCategory,
+            startDate
+        );
+    }
+
+    /**
+     * PATCH Un-encumber License for a licensee.
+     * @param  {string}           compact        The compact string ID (aslp, otcp, coun).
+     * @param  {string}           licenseeId     The Licensee ID.
+     * @param  {string}           licenseState The 2-character state abbreviation for the License.
+     * @param  {string}           licenseType    The license type.
+     * @param  {string}           encumbranceId  The Encumbrance ID.
+     * @param  {string}           endDate        The encumber end date.
+     * @return {Promise<object>}                 The server response.
+     */
+    public unencumberLicense(compact, licenseeId, licenseState, licenseType, encumbranceId, endDate) {
+        return licenseDataApi.unencumberLicense(
+            compact,
+            licenseeId,
+            licenseState,
+            licenseType,
+            encumbranceId,
+            endDate
+        );
+    }
+
+    /**
      * DELETE Privilege for a licensee.
      * @param  {string}           compact        The compact string ID (aslp, otcp, coun).
      * @param  {string}           licenseeId     The Licensee ID.
@@ -168,6 +210,48 @@ export class DataApi {
      */
     public deletePrivilege(compact, licenseeId, privilegeState, licenseType, notes) {
         return licenseDataApi.deletePrivilege(compact, licenseeId, privilegeState, licenseType, notes);
+    }
+
+    /**
+     * POST Encumber Privilege for a licensee.
+     * @param  {string}           compact        The compact string ID (aslp, otcp, coun).
+     * @param  {string}           licenseeId     The Licensee ID.
+     * @param  {string}           privilegeState The 2-character state abbreviation for the Privilege.
+     * @param  {string}           licenseType    The license type.
+     * @param  {string}           npdbCategory   The NPDB category name.
+     * @param  {string}           startDate      The encumber start date.
+     * @return {Promise<object>}                 The server response.
+     */
+    public encumberPrivilege(compact, licenseeId, privilegeState, licenseType, npdbCategory, startDate) {
+        return licenseDataApi.encumberPrivilege(
+            compact,
+            licenseeId,
+            privilegeState,
+            licenseType,
+            npdbCategory,
+            startDate
+        );
+    }
+
+    /**
+     * PATCH Un-encumber Privilege for a licensee.
+     * @param  {string}           compact        The compact string ID (aslp, otcp, coun).
+     * @param  {string}           licenseeId     The Licensee ID.
+     * @param  {string}           privilegeState The 2-character state abbreviation for the Privilege.
+     * @param  {string}           licenseType    The license type.
+     * @param  {string}           encumbranceId  The Encumbrance ID.
+     * @param  {string}           endDate        The encumber end date.
+     * @return {Promise<object>}                 The server response.
+     */
+    public unencumberPrivilege(compact, licenseeId, privilegeState, licenseType, encumbranceId, endDate) {
+        return licenseDataApi.unencumberPrivilege(
+            compact,
+            licenseeId,
+            privilegeState,
+            licenseType,
+            encumbranceId,
+            endDate
+        );
     }
 
     /**

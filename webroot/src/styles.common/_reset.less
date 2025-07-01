@@ -36,6 +36,8 @@ html {
 }
 
 body {
+    --dp-font-size: @fontSize; // Set datepicker vars in cases where it gets teleported to the body tag
+
     min-height: 100vh;
     color: @fontColor;         // So there is an explicit root color definition to inherit
     font-weight: @fontWeightLight;  // So there is an explicit root font-weight definition to inherit

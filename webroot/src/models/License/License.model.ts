@@ -12,6 +12,7 @@ import { Compact } from '@models/Compact/Compact.model';
 import { State } from '@models/State/State.model';
 import { LicenseHistoryItem, LicenseHistoryItemSerializer } from '@models/LicenseHistoryItem/LicenseHistoryItem.model';
 import { Address, AddressSerializer } from '@models/Address/Address.model';
+import { AdverseAction, AdverseActionSerializer } from '@models/AdverseAction/AdverseAction.model';
 import moment from 'moment';
 
 // ========================================================
@@ -59,6 +60,7 @@ export interface InterfaceLicense {
     status?: LicenseStatus,
     statusDescription?: string | null,
     eligibility?: EligibilityStatus,
+    adverseActions?: Array<AdverseAction>,
 }
 
 // ========================================================
@@ -84,6 +86,7 @@ export class License implements InterfaceLicense {
     public status? = LicenseStatus.INACTIVE;
     public statusDescription? = null;
     public eligibility? = EligibilityStatus.INELIGIBLE;
+    public adverseActions? = [];
 
     constructor(data?: InterfaceLicense) {
         const cleanDataObject = deleteUndefinedProperties(data);
@@ -187,6 +190,10 @@ export class License implements InterfaceLicense {
 
         return historyWithFabricatedEvents;
     }
+
+    public isEncumbered(): boolean {
+        return this.adverseActions?.some((adverseAction: AdverseAction) => adverseAction.isActive()) || false;
+    }
 }
 
 // ========================================================
@@ -220,11 +227,18 @@ export class LicenseSerializer {
             eligibility: (json.type === 'license' || json.type === 'license-home')
                 ? json.compactEligibility
                 : EligibilityStatus.NA,
+            adverseActions: [] as Array<AdverseAction>,
         };
 
         if (Array.isArray(json.history)) {
             json.history.forEach((serverHistoryItem) => {
                 licenseData.history.push(LicenseHistoryItemSerializer.fromServer(serverHistoryItem));
+            });
+        }
+
+        if (Array.isArray(json.adverseActions)) {
+            json.adverseActions.forEach((serverAdverseAction) => {
+                licenseData.adverseActions.push(AdverseActionSerializer.fromServer(serverAdverseAction));
             });
         }
 

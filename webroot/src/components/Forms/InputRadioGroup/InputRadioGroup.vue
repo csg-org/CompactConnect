@@ -7,6 +7,7 @@
 
 <template>
     <div
+        :id="formInput.id"
         class="input-container radio-group-container"
         :class="{
             'has-error': !!formInput.errorMessage,

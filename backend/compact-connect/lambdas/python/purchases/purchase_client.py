@@ -262,7 +262,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
             logger.error(logger_message, error_code=error_code, error_message=error_message)
             raise CCInternalException(logger_message)
 
-    def void_unsettled_charge_on_credit_card(
+    def void_unsettled_charge_on_credit_card(  # noqa: RET503 this branch raises an exception
         self,
         order_information: dict,
     ) -> dict:
@@ -321,9 +321,9 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                     f'Failed to void transaction. Error code: {error_code}, Error message: {error_message}'
                 )
 
-        self._handle_api_error(response)  # noqa: RET503 this branch raises an exception
+        self._handle_api_error(response)
 
-    def process_charge_on_credit_card_for_privilege_purchase(
+    def process_charge_on_credit_card_for_privilege_purchase(  # noqa: RET503 this branch raises an exception
         self,
         licensee_id: str,
         order_information: dict,
@@ -487,7 +487,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                         'transactionId': str(response.transactionResponse.transId),
                     }
                 logger.warning('Failed Transaction.')
-                if hasattr(response.transactionResponse, 'errors'):  # noqa: RET503 this branch raises an exception
+                if hasattr(response.transactionResponse, 'errors'):
                     # Although their API presents this as a list, it seems to only ever have one element
                     # so we only access the first one
                     error_code = response.transactionResponse.errors.error[0].errorCode
@@ -508,7 +508,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                         f'Failed to process transaction. Error code: {error_code}, Error message: {error_message}'
                     )
         # API request wasn't successful
-        self._handle_api_error(response)  # noqa: RET503 this branch raises an exception
+        self._handle_api_error(response)
 
     def validate_credentials(self) -> dict:
         """
