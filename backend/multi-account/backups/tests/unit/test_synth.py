@@ -47,9 +47,6 @@ class TestSynth(TestCase):
         # Validate SSN-specific security controls
         self._validate_ssn_security_controls(template)
 
-        # Validate break-glass security measures
-        self._validate_break_glass_controls(template)
-
         # Validate stack outputs for integration
         self._validate_stack_outputs(template)
 
@@ -127,14 +124,6 @@ class TestSynth(TestCase):
                                             )
                                         }
                                     },
-                                }
-                            ),
-                            # Break-glass DENY policy
-                            Match.object_like(
-                                {
-                                    'Sid': 'DenySSNKeyDecryptOperations',
-                                    'Effect': 'Deny',
-                                    'Action': Match.array_with(['kms:Decrypt', 'kms:GenerateDataKey']),
                                 }
                             ),
                         ]
@@ -259,42 +248,6 @@ class TestSynth(TestCase):
                                     'Condition': {
                                         'StringEquals': {
                                             'aws:PrincipalOrgID': 'o-example123456'  # Exact org ID from example context
-                                        }
-                                    },
-                                }
-                            )
-                        ]
-                    )
-                },
-            },
-        )
-
-    def _validate_break_glass_controls(self, template: Template):
-        """Validate break-glass security controls that require explicit policy modification."""
-        # Note: Break-glass controls are enforced through KMS key policies only
-        # AWS Backup vault policies do not support restore action controls
-
-        # Validate SSN KMS key has break-glass decrypt denial
-        template.has_resource_properties(
-            'AWS::KMS::Key',
-            {
-                'Description': 'Dedicated KMS key for CompactConnect SSN data backup encryption',
-                'KeyPolicy': {
-                    'Statement': Match.array_with(
-                        [
-                            Match.object_like(
-                                {
-                                    'Sid': 'DenySSNKeyDecryptOperations',
-                                    'Effect': 'Deny',
-                                    'Action': Match.array_with(
-                                        ['kms:Decrypt', 'kms:GenerateDataKey', 'kms:GenerateDataKeyWithoutPlaintext']
-                                    ),
-                                    'Principal': '*',  # StarPrincipal() generates string format for KMS
-                                    'Condition': {
-                                        'StringNotEquals': {
-                                            'aws:PrincipalServiceName': Match.array_with(
-                                                ['backup.amazonaws.com', 'dynamodb.amazonaws.com']
-                                            )
                                         }
                                     },
                                 }

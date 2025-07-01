@@ -413,7 +413,7 @@ class BackupInfrastructureStack(NestedStack):
         """Create EventBridge rules for real-time backup failure events."""
 
         # Backup job failure events
-        backup_job_failure_rule = Rule(
+        Rule(
             self,
             'BackupJobFailureRule',
             event_pattern=EventPattern(
@@ -427,7 +427,7 @@ class BackupInfrastructureStack(NestedStack):
         )
 
         # Copy job failure events
-        copy_job_failure_rule = Rule(
+        Rule(
             self,
             'CopyJobFailureRule',
             event_pattern=EventPattern(
@@ -441,7 +441,7 @@ class BackupInfrastructureStack(NestedStack):
         )
 
         # Recovery point partial/failed events
-        recovery_point_issues_rule = Rule(
+        Rule(
             self,
             'RecoveryPointIssuesRule',
             event_pattern=EventPattern(
@@ -458,7 +458,7 @@ class BackupInfrastructureStack(NestedStack):
         """Create EventBridge rules for operational security monitoring."""
 
         # Manual backup deletion monitoring
-        manual_deletion_rule = Rule(
+        Rule(
             self,
             'ManualBackupDeletionRule',
             event_pattern=EventPattern(
@@ -473,7 +473,7 @@ class BackupInfrastructureStack(NestedStack):
         )
 
         # Backup vault modifications
-        vault_modification_rule = Rule(
+        Rule(
             self,
             'BackupVaultModificationRule',
             event_pattern=EventPattern(
@@ -487,7 +487,7 @@ class BackupInfrastructureStack(NestedStack):
         )
 
         # Backup plan modifications/deletions
-        backup_plan_changes_rule = Rule(
+        Rule(
             self,
             'BackupPlanChangesRule',
             event_pattern=EventPattern(
@@ -509,10 +509,13 @@ class BackupInfrastructureStack(NestedStack):
             [
                 {
                     'id': 'HIPAA.Security-IAMNoInlinePolicy',
-                    'reason': 'CDK allows for granular permissions crafting that is attached to policies directly to each resource, '
-                    'by virtue of its Resource.grant_* methods. This approach results in an improvement in the principle '
-                    'of least privilege, because each resource has permissions specifically crafted for that resource '
-                    'and only allows exactly what it needs to do, rather than sharing more coarse managed policies.',
+                    'reason': (
+                        'CDK allows for granular permissions crafting that is attached to policies '
+                        'directly to each resource, by virtue of its Resource.grant_* methods. '
+                        'This approach results in an improvement in the principle of least privilege, '
+                        'because each resource has permissions specifically crafted for that resource '
+                        'and only allows exactly what it needs to do, rather than sharing more coarse managed policies.'
+                    ),
                 },
             ],
         )
@@ -524,8 +527,11 @@ class BackupInfrastructureStack(NestedStack):
             [
                 {
                     'id': 'AwsSolutions-IAM4',
-                    'reason': 'AWS Backup service requires these standard AWS managed policies for backup and restore operations. '
-                    'These are the minimal required permissions for backup service functionality.',
+                    'reason': (
+                        'AWS Backup service requires these standard AWS managed policies for backup '
+                        'and restore operations. These are the minimal required permissions for '
+                        'backup service functionality.'
+                    ),
                 },
             ],
         )
@@ -535,8 +541,11 @@ class BackupInfrastructureStack(NestedStack):
             [
                 {
                     'id': 'AwsSolutions-IAM4',
-                    'reason': 'AWS Backup service requires these standard AWS managed policies for backup and restore operations. '
-                    'SSN backup role uses the same base policies with additional customer-managed security restrictions.',
+                    'reason': (
+                        'AWS Backup service requires these standard AWS managed policies for backup '
+                        'and restore operations. SSN backup role uses the same base policies with '
+                        'additional customer-managed security restrictions.'
+                    ),
                 },
             ],
         )

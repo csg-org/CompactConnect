@@ -10,7 +10,6 @@ from aws_cdk.aws_logs import QueryDefinition, QueryString
 from cdk_nag import NagSuppressions
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.alarm_topic import AlarmTopic
-from common_constructs.backup_plan import TableBackupPlan
 from common_constructs.data_migration import DataMigration
 from common_constructs.frontend_app_config_utility import PersistentStackFrontendAppConfigUtility
 from common_constructs.nodejs_function import NodejsFunction
@@ -359,6 +358,8 @@ class PersistentStack(AppStack):
             encryption_key=self.shared_encryption_key,
             provider_table=self.provider_table,
             removal_policy=removal_policy,
+            backup_infrastructure_stack=backup_infrastructure_stack,
+            environment_context=self.environment_context,
         )
 
     def _add_migrations(self):

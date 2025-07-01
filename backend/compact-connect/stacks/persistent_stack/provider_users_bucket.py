@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 
 from aws_cdk import Duration
+from aws_cdk.aws_backup import BackupResource
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Stats, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_dynamodb import Table
@@ -12,11 +13,13 @@ from aws_cdk.aws_s3 import BucketEncryption, CorsRule, EventType, HttpMethods
 from aws_cdk.aws_s3_notifications import LambdaDestination
 from cdk_nag import NagSuppressions
 from common_constructs.access_logs_bucket import AccessLogsBucket
+from common_constructs.backup_plan import CCBackupPlan
 from common_constructs.bucket import Bucket
 from common_constructs.python_function import PythonFunction
 from constructs import Construct
 
 import stacks.persistent_stack as ps
+from stacks.backup_infrastructure_stack import BackupInfrastructureStack
 
 
 class ProviderUsersBucket(Bucket):
@@ -32,6 +35,8 @@ class ProviderUsersBucket(Bucket):
         access_logs_bucket: AccessLogsBucket,
         encryption_key: IKey,
         provider_table: Table,
+        backup_infrastructure_stack: BackupInfrastructureStack,
+        environment_context: dict,
         **kwargs,
     ):
         super().__init__(
@@ -54,6 +59,17 @@ class ProviderUsersBucket(Bucket):
 
         self._add_v1_object_events(provider_table, encryption_key)
 
+        self.backup_plan = CCBackupPlan(
+            self,
+            'ProviderUsersBucketBackup',
+            backup_plan_name_prefix=self.bucket_name,
+            backup_resources=[BackupResource.from_arn(self.bucket_arn)],
+            backup_vault=backup_infrastructure_stack.local_backup_vault,
+            backup_service_role=backup_infrastructure_stack.backup_service_role,
+            cross_account_backup_vault=backup_infrastructure_stack.cross_account_backup_vault,
+            backup_policy=environment_context['backup_policies']['document_storage'],
+        )
+
         QueryDefinition(
             self,
             'RuntimeQuery',
@@ -68,10 +84,12 @@ class ProviderUsersBucket(Bucket):
 
         NagSuppressions.add_resource_suppressions(
             self,
-            suppressions=[
+            [
                 {
                     'id': 'HIPAA.Security-S3BucketReplicationEnabled',
-                    'reason': 'TODO - determine if this bucket should be replicated',
+                    'reason': (
+                        'This bucket is protected by AWS Backup with cross-account replication for disaster recovery.'
+                    ),
                 },
             ],
         )

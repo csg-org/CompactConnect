@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 
 from aws_cdk import Duration, RemovalPolicy
+from aws_cdk.aws_backup import BackupResource
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Metric, Stats, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_dynamodb import Attribute, AttributeType, BillingMode, Table, TableEncryption
@@ -11,12 +12,13 @@ from aws_cdk.aws_events_targets import SqsQueue
 from aws_cdk.aws_kms import IKey
 from aws_cdk.aws_sns import ITopic
 from cdk_nag import NagSuppressions
-from common_constructs.backup_plan import TableBackupPlan
+from common_constructs.backup_plan import CCBackupPlan
 from common_constructs.python_function import PythonFunction
 from common_constructs.queued_lambda_processor import QueuedLambdaProcessor
 from constructs import Construct
 
 from stacks import persistent_stack as ps
+from stacks.backup_infrastructure_stack import BackupInfrastructureStack
 
 
 class DataEventTable(Table):
@@ -132,10 +134,11 @@ class DataEventTable(Table):
         ).add_alarm_action(SnsAction(stack.alarm_topic))
 
         # Set up backup plan
-        self.backup_plan = TableBackupPlan(
+        self.backup_plan = CCBackupPlan(
             self,
             'DataEventTableBackup',
-            table=self,
+            backup_plan_name_prefix=self.table_name,
+            backup_resources=[BackupResource.from_dynamo_db_table(self)],
             backup_vault=backup_infrastructure_stack.local_backup_vault,
             backup_service_role=backup_infrastructure_stack.backup_service_role,
             cross_account_backup_vault=backup_infrastructure_stack.cross_account_backup_vault,

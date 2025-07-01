@@ -182,7 +182,7 @@ class BackupSmokeTest:
             logger.info(f'Backup smoke test completed successfully for {self.table_type} table')
             return results
 
-        except Exception as e:
+        except (SmokeTestFailureException, ClientError, ValueError) as e:
             results['error'] = str(e)
             results['end_time'] = datetime.now(UTC).isoformat()
             logger.error(f'Backup smoke test failed for {self.table_type} table: {str(e)}')
@@ -218,7 +218,7 @@ class BackupSmokeTest:
             return backup_job_id, recovery_point_arn
 
         except ClientError as e:
-            raise SmokeTestFailureException(f'Failed to initiate backup: {str(e)}')
+            raise SmokeTestFailureException(f'Failed to initiate backup: {str(e)}') from e
 
     def _wait_for_backup_completion(self, backup_job_id: str, max_wait_minutes: int = 10) -> bool:
         """Wait for backup job to complete and return success status."""
@@ -278,7 +278,7 @@ class BackupSmokeTest:
             return copy_job_id
 
         except ClientError as e:
-            raise SmokeTestFailureException(f'Failed to initiate copy job: {str(e)}')
+            raise SmokeTestFailureException(f'Failed to initiate copy job: {str(e)}') from e
 
     def _wait_for_copy_completion(self, copy_job_id: str, max_wait_minutes: int = 15) -> bool:
         """Wait for copy job to complete and return success status."""
@@ -342,37 +342,37 @@ def main():
         backup_test = BackupSmokeTest(args.table_type)
         results = backup_test.run_backup_test()
 
-        # Print results
-        print('\n' + '=' * 60)
-        print(f'BACKUP SMOKE TEST RESULTS - {args.table_type.upper()} TABLE')
-        print('=' * 60)
-        print(f'Table Name: {results["table_name"]}')
-        print(f'Start Time: {results["start_time"]}')
-        print(f'End Time: {results.get("end_time", "N/A")}')
-        print(f'Overall Success: {results["success"]}')
+        # Log results using logger instead of print
+        logger.info('\n' + '=' * 60)
+        logger.info(f'BACKUP SMOKE TEST RESULTS - {args.table_type.upper()} TABLE')
+        logger.info('=' * 60)
+        logger.info(f'Table Name: {results["table_name"]}')
+        logger.info(f'Start Time: {results["start_time"]}')
+        logger.info(f'End Time: {results.get("end_time", "N/A")}')
+        logger.info(f'Overall Success: {results["success"]}')
 
         if results.get('error'):
-            print(f'Error: {results["error"]}')
+            logger.error(f'Error: {results["error"]}')
 
-        print('\nBackup Job:')
+        logger.info('\nBackup Job:')
         backup_job = results.get('backup_job', {})
-        print(f'  Job ID: {backup_job.get("job_id", "N/A")}')
-        print(f'  Recovery Point ARN: {backup_job.get("recovery_point_arn", "N/A")}')
-        print(f'  Success: {backup_job.get("success", "N/A")}')
+        logger.info(f'  Job ID: {backup_job.get("job_id", "N/A")}')
+        logger.info(f'  Recovery Point ARN: {backup_job.get("recovery_point_arn", "N/A")}')
+        logger.info(f'  Success: {backup_job.get("success", "N/A")}')
 
-        print('\nCopy Job:')
+        logger.info('\nCopy Job:')
         copy_job = results.get('copy_job', {})
-        print(f'  Job ID: {copy_job.get("job_id", "N/A")}')
-        print(f'  Success: {copy_job.get("success", "N/A")}')
+        logger.info(f'  Job ID: {copy_job.get("job_id", "N/A")}')
+        logger.info(f'  Success: {copy_job.get("success", "N/A")}')
 
-        print('=' * 60)
+        logger.info('=' * 60)
 
         # Exit with appropriate code
         sys.exit(0 if results['success'] else 1)
 
-    except Exception as e:
+    except (SmokeTestFailureException, ValueError, FileNotFoundError) as e:
         logger.error(f'Backup smoke test failed with exception: {str(e)}')
-        print(f'\nERROR: {str(e)}')
+        logger.error(f'\nERROR: {str(e)}')
         sys.exit(1)
 
 

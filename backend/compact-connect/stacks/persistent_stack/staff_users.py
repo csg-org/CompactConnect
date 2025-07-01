@@ -22,6 +22,7 @@ from common_constructs.user_pool import UserPool
 from constructs import Construct
 
 from stacks import persistent_stack as ps
+from stacks.backup_infrastructure_stack import BackupInfrastructureStack
 from stacks.persistent_stack.users_table import UsersTable
 
 
@@ -39,7 +40,7 @@ class StaffUsers(UserPool):
         encryption_key: IKey,
         user_pool_email: UserPoolEmail,
         removal_policy,
-        backup_infrastructure_stack: BackupInfrastructureStack = None,
+        backup_infrastructure_stack: BackupInfrastructureStack,
         **kwargs,
     ):
         super().__init__(

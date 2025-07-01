@@ -232,7 +232,6 @@ class TestBackupInfrastructureStack(TstAppABC, TestCase):
 
     def test_backup_monitoring_configuration(self):
         """Test that backup monitoring alarms and rules are correctly configured."""
-        environment_name = self.app.sandbox_backend_stage.backup_infrastructure_stack.environment_name
 
         # Test general backup vault failure alarm (uses CloudFormation reference for vault name)
         self.template.has_resource_properties(

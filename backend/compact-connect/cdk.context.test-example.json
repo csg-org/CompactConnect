@@ -43,6 +43,11 @@
             "schedule": "cron(0 6 * * ? *)",
             "delete_after_days": 365,
             "cold_storage_after_days": 30
+          },
+          "document_storage": {
+            "schedule": "cron(0 5 * * ? *)",
+            "delete_after_days": 365,
+            "cold_storage_after_days": 30
           }
         }
       }
