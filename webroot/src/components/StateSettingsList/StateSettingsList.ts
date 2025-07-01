@@ -295,7 +295,7 @@ class StateSettingsList extends mixins(MixinForm) {
             console.log(payload);
 
             // Call the server API to update
-            await dataApi.updateCompactConfigState('', state, payload).catch((err) => {
+            await dataApi.updateCompactConfigState(compactType, state, payload).catch((err) => {
                 this.modalErrorMessage = err?.message || this.$t('common.error');
                 this.isFormError = true;
             });
