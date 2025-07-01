@@ -16,6 +16,7 @@ from aws_cdk.aws_cognito import (
 )
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
+from common_constructs.cognito_user_backup import CognitoUserBackup
 from common_constructs.nodejs_function import NodejsFunction
 from common_constructs.python_function import PythonFunction
 from common_constructs.user_pool import UserPool
@@ -78,6 +79,18 @@ class StaffUsers(UserPool):
             write_attributes=ClientAttributes().with_standard_attributes(email=True),
             # We want to limit the attributes that this app can read and write so only email is visible.
             read_attributes=ClientAttributes().with_standard_attributes(email=True),
+        )
+
+        # Set up Cognito backup system for this user pool
+        self.backup_system = CognitoUserBackup(
+            self,
+            'StaffUserBackup',
+            user_pool_id=self.user_pool_id,
+            access_logs_bucket=stack.access_logs_bucket,
+            encryption_key=encryption_key,
+            removal_policy=removal_policy,
+            backup_infrastructure_stack=backup_infrastructure_stack,
+            alarm_topic=stack.alarm_topic,
         )
 
     def _generate_resource_server_scopes_list_for_compact(self, compact: str):

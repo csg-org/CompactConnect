@@ -29,23 +29,25 @@
         },
         "backup_policies": {
           "general_data": {
-            "schedule": "cron(0 5 * * ? *)",
-            "delete_after_days": 365,
-            "cold_storage_after_days": 30
-          },
-          "ssn_data": {
-            "schedule": "cron(0 5 * * ? *)",
-            "delete_after_days": 365,
+            "schedule": {
+              "year": "*",
+              "month": "*",
+              "day": "*",
+              "hour": "5",
+              "minute": "0"
+            },
+            "delete_after_days": 730,
             "cold_storage_after_days": 30
           },
           "frequent_updates": {
-            "schedule": "cron(0 * ? * * *)",
-            "delete_after_days": 365,
-            "cold_storage_after_days": 30
-          },
-          "document_storage": {
-            "schedule": "cron(0 5 * * ? *)",
-            "delete_after_days": 365,
+            "schedule": {
+              "year": "*",
+              "month": "*",
+              "day": "*",
+              "hour": "*",
+              "minute": "0"
+            },
+            "delete_after_days": 730,
             "cold_storage_after_days": 30
           }
         }
@@ -54,8 +56,8 @@
     "backup_config": {
       "backup_account_id": "111122223333",
       "backup_region": "us-west-2",
-      "general_vault_name": "CompactConnectBackupVault",
-      "ssn_vault_name": "CompactConnectBackupVault-SSN"
+      "general_vault_name": "CompactConnect-prod-BackupVault",
+      "ssn_vault_name": "CompactConnect-prod-SSNBackupVault"
     }
   }
 }

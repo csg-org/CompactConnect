@@ -6,6 +6,8 @@ pip-compile --no-emit-index-url --upgrade --no-strip-extras multi-account/log-ag
 pip-compile --no-emit-index-url --upgrade --no-strip-extras multi-account/log-aggregation/requirements.in
 pip-compile --no-emit-index-url --upgrade --no-strip-extras compact-connect/requirements-dev.in
 pip-compile --no-emit-index-url --upgrade --no-strip-extras compact-connect/requirements.in
+pip-compile --no-emit-index-url --upgrade --no-strip-extras compact-connect/lambdas/python/cognito-backup/requirements-dev.in
+pip-compile --no-emit-index-url --upgrade --no-strip-extras compact-connect/lambdas/python/cognito-backup/requirements.in
 pip-compile --no-emit-index-url --upgrade --no-strip-extras compact-connect/lambdas/python/compact-configuration/requirements-dev.in
 pip-compile --no-emit-index-url --upgrade --no-strip-extras compact-connect/lambdas/python/compact-configuration/requirements.in
 pip-compile --no-emit-index-url --upgrade --no-strip-extras compact-connect/lambdas/python/common/requirements-dev.in

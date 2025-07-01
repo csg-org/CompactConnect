@@ -23,14 +23,15 @@ BACKEND_DIR = Path(__file__).parent.parent.absolute()
 # Define the test directories to include
 TEST_DIRS = (
     'compact-connect/lambdas/python/common',
+    'compact-connect/lambdas/python/cognito-backup',
     'compact-connect/lambdas/python/compact-configuration',
-    'compact-connect/lambdas/python/provider-data-v1',
-    'compact-connect/lambdas/python/purchases',
-    'compact-connect/lambdas/python/staff-users',
-    'compact-connect/lambdas/python/staff-user-pre-token',
     'compact-connect/lambdas/python/custom-resources',
     'compact-connect/lambdas/python/data-events',
     'compact-connect/lambdas/python/migration',
+    'compact-connect/lambdas/python/provider-data-v1',
+    'compact-connect/lambdas/python/purchases',
+    'compact-connect/lambdas/python/staff-user-pre-token',
+    'compact-connect/lambdas/python/staff-users',
     'compact-connect',  # CDK tests
     'multi-account/control-tower',
     'multi-account/log-aggregation',

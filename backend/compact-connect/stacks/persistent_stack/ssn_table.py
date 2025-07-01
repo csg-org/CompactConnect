@@ -139,7 +139,7 @@ class SSNTable(Table):
             backup_vault=backup_infrastructure_stack.local_ssn_backup_vault,
             backup_service_role=backup_infrastructure_stack.ssn_backup_service_role,
             cross_account_backup_vault=backup_infrastructure_stack.cross_account_ssn_backup_vault,
-            backup_policy=environment_context['backup_policies']['ssn_data'],
+            backup_policy=environment_context['backup_policies']['general_data'],
         )
 
         # Store backup service role for KMS key policy configuration

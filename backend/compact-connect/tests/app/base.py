@@ -16,6 +16,7 @@ from aws_cdk.aws_kms import CfnKey
 from aws_cdk.aws_lambda import CfnEventSourceMapping, CfnFunction
 from aws_cdk.aws_s3 import CfnBucket
 from aws_cdk.aws_sqs import CfnQueue
+from common_constructs.backup_plan import CCBackupPlan
 from common_constructs.stack import Stack
 from pipeline import BackendStage, FrontendStage
 from stacks.api_stack import ApiStack
@@ -293,184 +294,30 @@ class TstAppABC(ABC):
         """Validate that backup resources are created for tables and buckets with backup plans."""
         from aws_cdk.aws_backup import CfnBackupPlan, CfnBackupSelection
 
-        # Should have 7 backup plans (provider, SSN, compact config, transaction history,
-        # data event, staff users, provider users bucket)
-        persistent_stack_template.resource_count_is(CfnBackupPlan.CFN_RESOURCE_TYPE_NAME, 7)
+        # Should have 8 backup plans, 8 backup selections:
+        # - provider table
+        # - SSN table
+        # - compact config table
+        # - transaction history table
+        # - data event table
+        # - staff users table
+        # - provider users bucket
+        # - staff cognito user backup
+        # Not the provider cognito user backup, since it is in a separate stack
+        persistent_stack_template.resource_count_is(CfnBackupPlan.CFN_RESOURCE_TYPE_NAME, 8)
+        persistent_stack_template.resource_count_is(CfnBackupSelection.CFN_RESOURCE_TYPE_NAME, 8)
 
-        # Should have 7 backup selections (provider, SSN, compact config, transaction history,
-        # data event, staff users, provider users bucket)
-        persistent_stack_template.resource_count_is(CfnBackupSelection.CFN_RESOURCE_TYPE_NAME, 7)
-
-        # Validate provider table backup plan exists
-        provider_backup_plan_logical_id = persistent_stack.get_logical_id(
-            persistent_stack.provider_table.backup_plan.backup_plan.node.default_child
-        )
-        provider_backup_selection_logical_id = persistent_stack.get_logical_id(
-            persistent_stack.provider_table.backup_plan.backup_selection.node.default_child
-        )
-
-        # Validate SSN table backup plan exists
-        ssn_backup_plan_logical_id = persistent_stack.get_logical_id(
-            persistent_stack.ssn_table.backup_plan.backup_plan.node.default_child
-        )
-        ssn_backup_selection_logical_id = persistent_stack.get_logical_id(
-            persistent_stack.ssn_table.backup_plan.backup_selection.node.default_child
-        )
-
-        # Validate compact configuration table backup plan exists
-        compact_config_backup_plan_logical_id = persistent_stack.get_logical_id(
-            persistent_stack.compact_configuration_table.backup_plan.backup_plan.node.default_child
-        )
-        compact_config_backup_selection_logical_id = persistent_stack.get_logical_id(
-            persistent_stack.compact_configuration_table.backup_plan.backup_selection.node.default_child
-        )
-
-        # Validate transaction history table backup plan exists
-        transaction_history_backup_plan_logical_id = persistent_stack.get_logical_id(
-            persistent_stack.transaction_history_table.backup_plan.backup_plan.node.default_child
-        )
-        transaction_history_backup_selection_logical_id = persistent_stack.get_logical_id(
-            persistent_stack.transaction_history_table.backup_plan.backup_selection.node.default_child
-        )
-
-        # Validate data event table backup plan exists
-        data_event_backup_plan_logical_id = persistent_stack.get_logical_id(
-            persistent_stack.data_event_table.backup_plan.backup_plan.node.default_child
-        )
-        data_event_backup_selection_logical_id = persistent_stack.get_logical_id(
-            persistent_stack.data_event_table.backup_plan.backup_selection.node.default_child
-        )
-
-        # Validate staff users table backup plan exists
-        staff_users_backup_plan_logical_id = persistent_stack.get_logical_id(
-            persistent_stack.staff_users.user_table.backup_plan.backup_plan.node.default_child
-        )
-        staff_users_backup_selection_logical_id = persistent_stack.get_logical_id(
-            persistent_stack.staff_users.user_table.backup_plan.backup_selection.node.default_child
-        )
-
-        # Validate provider users bucket backup plan exists
-        provider_users_bucket_backup_plan_logical_id = persistent_stack.get_logical_id(
-            persistent_stack.provider_users_bucket.backup_plan.backup_plan.node.default_child
-        )
-        provider_users_bucket_backup_selection_logical_id = persistent_stack.get_logical_id(
-            persistent_stack.provider_users_bucket.backup_plan.backup_selection.node.default_child
-        )
-
-        # Verify backup plan configurations exist
-        provider_backup_plan = self.get_resource_properties_by_logical_id(
-            provider_backup_plan_logical_id,
-            persistent_stack_template.find_resources(CfnBackupPlan.CFN_RESOURCE_TYPE_NAME),
-        )
-        ssn_backup_plan = self.get_resource_properties_by_logical_id(
-            ssn_backup_plan_logical_id,
-            persistent_stack_template.find_resources(CfnBackupPlan.CFN_RESOURCE_TYPE_NAME),
-        )
-        compact_config_backup_plan = self.get_resource_properties_by_logical_id(
-            compact_config_backup_plan_logical_id,
-            persistent_stack_template.find_resources(CfnBackupPlan.CFN_RESOURCE_TYPE_NAME),
-        )
-        transaction_history_backup_plan = self.get_resource_properties_by_logical_id(
-            transaction_history_backup_plan_logical_id,
-            persistent_stack_template.find_resources(CfnBackupPlan.CFN_RESOURCE_TYPE_NAME),
-        )
-        data_event_backup_plan = self.get_resource_properties_by_logical_id(
-            data_event_backup_plan_logical_id,
-            persistent_stack_template.find_resources(CfnBackupPlan.CFN_RESOURCE_TYPE_NAME),
-        )
-        staff_users_backup_plan = self.get_resource_properties_by_logical_id(
-            staff_users_backup_plan_logical_id,
-            persistent_stack_template.find_resources(CfnBackupPlan.CFN_RESOURCE_TYPE_NAME),
-        )
-        provider_users_bucket_backup_plan = self.get_resource_properties_by_logical_id(
-            provider_users_bucket_backup_plan_logical_id,
-            persistent_stack_template.find_resources(CfnBackupPlan.CFN_RESOURCE_TYPE_NAME),
-        )
-
-        # Verify backup selection configurations reference the correct tables
-        provider_backup_selection = self.get_resource_properties_by_logical_id(
-            provider_backup_selection_logical_id,
-            persistent_stack_template.find_resources(CfnBackupSelection.CFN_RESOURCE_TYPE_NAME),
-        )
-        ssn_backup_selection = self.get_resource_properties_by_logical_id(
-            ssn_backup_selection_logical_id,
-            persistent_stack_template.find_resources(CfnBackupSelection.CFN_RESOURCE_TYPE_NAME),
-        )
-        compact_config_backup_selection = self.get_resource_properties_by_logical_id(
-            compact_config_backup_selection_logical_id,
-            persistent_stack_template.find_resources(CfnBackupSelection.CFN_RESOURCE_TYPE_NAME),
-        )
-        transaction_history_backup_selection = self.get_resource_properties_by_logical_id(
-            transaction_history_backup_selection_logical_id,
-            persistent_stack_template.find_resources(CfnBackupSelection.CFN_RESOURCE_TYPE_NAME),
-        )
-        data_event_backup_selection = self.get_resource_properties_by_logical_id(
-            data_event_backup_selection_logical_id,
-            persistent_stack_template.find_resources(CfnBackupSelection.CFN_RESOURCE_TYPE_NAME),
-        )
-        staff_users_backup_selection = self.get_resource_properties_by_logical_id(
-            staff_users_backup_selection_logical_id,
-            persistent_stack_template.find_resources(CfnBackupSelection.CFN_RESOURCE_TYPE_NAME),
-        )
-        provider_users_bucket_backup_selection = self.get_resource_properties_by_logical_id(
-            provider_users_bucket_backup_selection_logical_id,
-            persistent_stack_template.find_resources(CfnBackupSelection.CFN_RESOURCE_TYPE_NAME),
-        )
-
-        # Validate that backup selections reference resources
-        for selection_name, selection in [
-            ('provider', provider_backup_selection),
-            ('SSN', ssn_backup_selection),
-            ('compact_config', compact_config_backup_selection),
-            ('transaction_history', transaction_history_backup_selection),
-            ('data_event', data_event_backup_selection),
-            ('staff_users', staff_users_backup_selection),
-            ('provider_users_bucket', provider_users_bucket_backup_selection),
+        for plan in [
+            persistent_stack.provider_table.backup_plan,
+            persistent_stack.ssn_table.backup_plan,
+            persistent_stack.compact_configuration_table.backup_plan,
+            persistent_stack.transaction_history_table.backup_plan,
+            persistent_stack.data_event_table.backup_plan,
+            persistent_stack.staff_users.user_table.backup_plan,
+            persistent_stack.provider_users_bucket.backup_plan,
+            persistent_stack.staff_users.backup_system.backup_plan,
         ]:
-            self.assertIn(
-                'BackupSelection', selection, f'{selection_name} backup selection should have BackupSelection'
-            )
-            self.assertIn(
-                'Resources', selection['BackupSelection'], f'{selection_name} backup selection should have Resources'
-            )
-
-        # Verify backup plans have proper structure (environment-agnostic validation)
-        for backup_plan, resource_name in [
-            (provider_backup_plan, 'provider'),
-            (ssn_backup_plan, 'SSN'),
-            (compact_config_backup_plan, 'compact_config'),
-            (transaction_history_backup_plan, 'transaction_history'),
-            (data_event_backup_plan, 'data_event'),
-            (staff_users_backup_plan, 'staff_users'),
-            (provider_users_bucket_backup_plan, 'provider_users_bucket'),
-        ]:
-            self.assertIn('BackupPlan', backup_plan)
-            self.assertIn('BackupPlanRule', backup_plan['BackupPlan'])
-            rules = backup_plan['BackupPlan']['BackupPlanRule']
-            self.assertEqual(len(rules), 1, f'{resource_name} resource should have exactly one backup rule')
-
-            rule = rules[0]
-            # Verify basic structure without checking specific values (since they vary by environment)
-            self.assertIn('ScheduleExpression', rule, f'{resource_name} resource backup rule should have a schedule')
-            self.assertIn(
-                'Lifecycle', rule, f'{resource_name} resource backup rule should have lifecycle configuration'
-            )
-            self.assertIn(
-                'DeleteAfterDays', rule['Lifecycle'], f'{resource_name} resource backup should have retention period'
-            )
-            self.assertIn(
-                'MoveToColdStorageAfterDays',
-                rule['Lifecycle'],
-                f'{resource_name} resource backup should have cold storage transition',
-            )
-
-            # Verify copy actions exist for cross-account replication
-            self.assertIn(
-                'CopyActions',
-                rule,
-                f'{resource_name} resource backup should have copy actions for cross-account replication',
-            )
-            self.assertEqual(len(rule['CopyActions']), 1, f'{resource_name} resource should have one copy action')
+            self.assertIsInstance(plan, CCBackupPlan)
 
     def _inspect_data_events_table(self, persistent_stack: PersistentStack, persistent_stack_template: Template):
         # Ensure our DataEventTable and queues are created

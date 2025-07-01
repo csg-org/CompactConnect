@@ -46,7 +46,7 @@ class CCBackupPlan(Construct):
                 BackupPlanRule(
                     rule_name=f'{backup_plan_name_prefix}-Backup',
                     backup_vault=backup_vault,
-                    schedule_expression=Schedule.expression(backup_policy['schedule']),
+                    schedule_expression=Schedule.cron(**backup_policy['schedule']),
                     delete_after=Duration.days(backup_policy['delete_after_days']),
                     move_to_cold_storage_after=Duration.days(backup_policy['cold_storage_after_days']),
                     copy_actions=[
