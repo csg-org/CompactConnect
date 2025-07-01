@@ -216,7 +216,12 @@ class StateSettingsConfig extends mixins(MixinForm) {
             this.formData[licenseType] = new FormInput({
                 id: `${licenseType}-fee`,
                 name: `${licenseType}-fee`,
-                label: computed(() => `${privilegeFee.name} ${this.$t('compact.fee')}`),
+                label: computed(() => {
+                    const name = privilegeFee.name ?? '';
+                    const capitalized = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+
+                    return `${capitalized} ${this.$t('compact.fee')}`;
+                }),
                 validation: Joi.number().required().min(0).messages(this.joiMessages.currency),
                 value: privilegeFee.amount,
             });
@@ -229,7 +234,7 @@ class StateSettingsConfig extends mixins(MixinForm) {
             this.formData[licenseTypeMilitary] = new FormInput({
                 id: `${licenseType}-fee-military`,
                 name: `${licenseType}-fee-military`,
-                label: computed(() => `${this.$t('compact.militaryAffiliated')} ${privilegeFee.name} ${this.$t('compact.fee')}`),
+                label: computed(() => `${this.$t('compact.militaryAffiliated')} ${privilegeFee.name?.toLowerCase()} ${this.$t('compact.fee')}`),
                 validation: Joi.number().min(0).allow(null, '').messages(this.joiMessages.currency),
                 value: privilegeFee.militaryRate,
             });
