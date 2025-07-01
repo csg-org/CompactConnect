@@ -47,7 +47,10 @@ export enum MutationTypes {
     END_MILITARY_AFFILIATION_SUCCESS = '[User] Patch Military Affiliation Success',
     END_MILITARY_AFFILIATION_FAILURE = '[User] Patch Military Affiliation Failure',
     RESET_TO_PURCHASE_FLOW_STEP = '[User] Reset Purchase Flow State to input flow step',
-    SAVE_PURCHASE_FLOW_STEP = '[User] Save a Purchase Flow Step to the Store'
+    SAVE_PURCHASE_FLOW_STEP = '[User] Save a Purchase Flow Step to the Store',
+    UPDATE_HOME_JURISDICTION_REQUEST = '[User] Update Home Jurisdiction Request',
+    UPDATE_HOME_JURISDICTION_FAILURE = '[User] Update Home Jurisdiction Failure',
+    UPDATE_HOME_JURISDICTION_SUCCESS = '[User] Update Home Jurisdiction Success'
 }
 
 export default {
@@ -209,5 +212,17 @@ export default {
             ...state.purchase.steps,
             flowStep
         ];
+    },
+    [MutationTypes.UPDATE_HOME_JURISDICTION_REQUEST]: (state: any) => {
+        state.isLoading = true;
+        state.error = null;
+    },
+    [MutationTypes.UPDATE_HOME_JURISDICTION_FAILURE]: (state: any, error: Error) => {
+        state.isLoading = false;
+        state.error = error;
+    },
+    [MutationTypes.UPDATE_HOME_JURISDICTION_SUCCESS]: (state: any) => {
+        state.isLoading = false;
+        state.error = null;
     }
 };

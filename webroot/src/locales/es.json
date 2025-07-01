@@ -887,5 +887,17 @@
         "loadingSpinner": "Indicador de funcionamiento",
         "showSpinner": "Mostrar el indicador",
         "mobileStoreLinks": "Enlaces de tiendas móviles"
+    },
+    "homeStateChange": {
+        "formTitle": "Cambiar estado de residencia",
+        "currentHomeStateLabel": "Estado de residencia actual",
+        "newHomeStateLabel": "Nuevo estado de residencia",
+        "inputSubtext": "Esta selección significa que sus privilegios compactos actuales serán desactivados y ya no podrá ejercer bajo ellos.",
+        "updateButton": "Actualizar estado de residencia",
+        "modalTitle": "¿Está seguro de que desea cambiar {newState} como su nuevo estado de residencia?",
+        "modalSubtext": "Cambiar su estado de residencia puede afectar sus privilegios. Si ya tiene una licencia elegible para el compacto en su nuevo estado de residencia, sus privilegios se transferirán. Si no tiene una licencia en su nuevo estado de residencia, o su licencia no es elegible, sus privilegios serán desactivados.",
+        "modalConfirm": "Confirmar nuevo estado de residencia",
+        "successTitle": "Ha cambiado exitosamente su estado de residencia.",
+        "successSubtext": "Su antiguo estado de residencia y el nuevo serán notificados automáticamente de este cambio."
     }
 }

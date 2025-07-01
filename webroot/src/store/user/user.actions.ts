@@ -372,4 +372,24 @@ export default {
     saveFlowStep: ({ commit }, flowStep: PurchaseFlowStep) => {
         commit(MutationTypes.SAVE_PURCHASE_FLOW_STEP, flowStep);
     },
+    updateHomeJurisdictionRequest: async ({ commit, dispatch }, { data }: any) => {
+        commit(MutationTypes.UPDATE_HOME_JURISDICTION_REQUEST);
+        return dataApi.updateHomeJurisdiction(data).then(async (response) => {
+            // Fetch the latest user info after updating home jurisdiction
+            const updatedUser = await dataApi.getAuthenticatedLicenseeUser();
+
+            await dispatch('setStoreUser', updatedUser);
+            dispatch('updateHomeJurisdictionSuccess', updatedUser);
+            return response;
+        }).catch((error) => {
+            dispatch('updateHomeJurisdictionFailure', error);
+            throw error;
+        });
+    },
+    updateHomeJurisdictionSuccess: ({ commit }) => {
+        commit(MutationTypes.UPDATE_HOME_JURISDICTION_SUCCESS);
+    },
+    updateHomeJurisdictionFailure: ({ commit }, error: Error) => {
+        commit(MutationTypes.UPDATE_HOME_JURISDICTION_FAILURE, error);
+    },
 };

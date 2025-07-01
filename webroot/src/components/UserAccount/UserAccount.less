@@ -32,6 +32,45 @@
         }
     }
 
+    .home-state-change-section {
+        margin-bottom: 2.5rem;
+        padding-bottom: 2.5rem;
+        border-bottom: 1px solid @lightGrey;
+
+        .section-title {
+            margin-bottom: 1.5rem;
+            font-weight: @fontWeightBold;
+            font-size: @fontSizeLarge;
+        }
+
+        .current-home-state-block {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+
+            .input-label {
+                margin-right: 1rem;
+                font-weight: @fontWeightBold;
+            }
+
+            .static-value {
+                color: @midGrey;
+                font-size: 1.7rem;
+            }
+        }
+
+        .input-label-subtext {
+            margin-bottom: 1.5rem;
+            color: @midGrey;
+            font-size: 1.3rem;
+        }
+
+        .update-home-state-btn {
+            min-width: 18rem;
+            margin-top: 1.5rem;
+        }
+    }
+
     .military-status-container {
         margin-top: 2rem;
         padding-top: 3rem;
@@ -43,4 +82,26 @@
             font-size: @fontSizeLarge;
         }
     }
+}
+
+.action-button-row {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 2.5rem;
+}
+
+.cancel-btn {
+    border: 1px solid @primaryColor;
+    color: @primaryColor;
+    background: @white;
+}
+
+.close-btn {
+    min-width: 10rem;
+}
+
+.submit-btn {
+    min-width: 16rem;
 }

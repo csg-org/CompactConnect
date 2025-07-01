@@ -353,6 +353,17 @@ export class UserDataApi implements DataApiInterface {
 
         return serverResponse;
     }
+
+    /**
+     * UPDATE Home Jurisdiction for Authenticated Licensee User.
+     * @param  {object} data The request data (e.g., { jurisdiction: 'CO' }).
+     * @return {Promise<object>} Server response.
+     */
+    public async updateHomeJurisdiction(data: { jurisdiction: string }) {
+        const serverResponse: any = await this.api.put(`/v1/provider-users/me/home-jurisdiction`, data);
+
+        return serverResponse;
+    }
 }
 
 export const userDataApi = new UserDataApi();

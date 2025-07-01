@@ -888,5 +888,17 @@
         "loadingSpinner": "Loading Spinner",
         "showSpinner": "Show Spinner",
         "mobileStoreLinks": "Mobile Store Links"
+    },
+    "homeStateChange": {
+        "formTitle": "Change home state",
+        "currentHomeStateLabel": "Current home state",
+        "newHomeStateLabel": "New home state",
+        "inputSubtext": "This selection means your current compact privileges will be deactivated and you will no longer be able to practice under them.",
+        "updateButton": "Update home state",
+        "modalTitle": "Are you sure you want to change {newState} to your new home state?",
+        "modalSubtext": "Changing your home state may affect your privileges. If you already have a compact-eligible license in your new home state, your privileges will transfer. If you do not have a license in your new home state, or your license is not eligible, your privileges will be deactivated.",
+        "modalConfirm": "Confirm new home state",
+        "successTitle": "You have successfully changed your home state.",
+        "successSubtext": "Your former home state and new home state will be automatically notified of this change."
     }
 }

@@ -21,7 +21,8 @@ export const requestSuccess = () => async (requestConfig) => {
         '/v1/provider-users/me',
         '/v1/purchases/privileges/options',
         '/v1/purchases/privileges',
-        '/v1/provider-users/me/military-affiliation'
+        '/v1/provider-users/me/military-affiliation',
+        '/v1/provider-users/me/home-jurisdiction'
     ];
     const { headers, url } = requestConfig;
     let authToken;
