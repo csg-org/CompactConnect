@@ -4,6 +4,7 @@ import json
 from datetime import datetime
 from unittest.mock import patch
 
+from cc_common.exceptions import CCInternalException
 from common_test.test_constants import DEFAULT_COMPACT, DEFAULT_PROVIDER_ID
 from moto import mock_aws
 
@@ -562,3 +563,82 @@ class TestPostProviderUsersEmailVerify(TstFunction):
 
         # Original email should remain unchanged
         self.assertEqual(TEST_OLD_EMAIL, stored_provider_data.compactConnectRegisteredEmailAddress)
+
+
+@mock_aws
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
+class TestPostProviderUsersEmailVerifyRollback(TstFunction):
+    """
+    Separate test class for rollback functionality to avoid cached property issues with data_client mocking.
+    """
+
+    def _when_testing_provider_user_event_with_custom_claims(
+        self, code=TEST_VERIFICATION_CODE, expiration=TEST_TOKEN_EXPIRATION
+    ):
+        self.test_data_generator.put_default_provider_record_in_provider_table(
+            value_overrides={
+                'compactConnectRegisteredEmailAddress': TEST_OLD_EMAIL,
+                'pendingEmailAddress': TEST_NEW_EMAIL,
+                'emailVerificationCode': '1234',
+                'emailVerificationExpiry': expiration,
+            }
+        )
+
+        event = self.test_data_generator.generate_test_api_event()
+        event['httpMethod'] = 'POST'
+        event['resource'] = '/v1/provider-users/me/email/verify'
+        event['requestContext']['authorizer']['claims']['custom:providerId'] = DEFAULT_PROVIDER_ID
+        event['requestContext']['authorizer']['claims']['custom:compact'] = DEFAULT_COMPACT
+        event['body'] = json.dumps({'verificationCode': code})
+
+        return event
+
+    @patch('cc_common.config._Config.email_service_client')
+    @patch('handlers.provider_users.config.data_client.complete_provider_email_update')
+    def test_endpoint_rolls_back_cognito_change_when_dynamo_update_fails(
+        self, mock_complete_email_update, mock_email_service_client
+    ):
+        from handlers.provider_users import provider_users_api_handler
+
+        # First create the old email user in Cognito so we can update it
+        self.config.cognito_client.admin_create_user(
+            UserPoolId=self.config.provider_user_pool_id,
+            Username=TEST_OLD_EMAIL,
+            UserAttributes=[
+                {'Name': 'email', 'Value': TEST_OLD_EMAIL},
+                {'Name': 'email_verified', 'Value': 'true'},
+                {'Name': 'custom:compact', 'Value': DEFAULT_COMPACT},
+                {'Name': 'custom:providerId', 'Value': DEFAULT_PROVIDER_ID},
+            ],
+            MessageAction='SUPPRESS',
+        )
+
+        # Mock the DynamoDB update method to fail
+        mock_complete_email_update.side_effect = Exception('DynamoDB connection error')
+
+        event = self._when_testing_provider_user_event_with_custom_claims()
+
+        # Should raise CCInternalException to trigger an alert
+        with self.assertRaises(CCInternalException) as context:
+            provider_users_api_handler(event, self.mock_context)
+
+        # Verify the exception message
+        self.assertEqual('Failed to complete email update. Please try again later.', str(context.exception))
+
+        # Verify the Cognito user's email was rolled back to the original email
+        cognito_users = self.config.cognito_client.list_users(
+            UserPoolId=self.config.provider_user_pool_id, Filter=f'email = "{TEST_OLD_EMAIL}"'
+        )
+
+        self.assertEqual(1, len(cognito_users['Users']))
+        user_attributes = {attr['Name']: attr['Value'] for attr in cognito_users['Users'][0]['Attributes']}
+
+        # Verify the email was rolled back
+        self.assertEqual(TEST_OLD_EMAIL, user_attributes['email'])
+        self.assertEqual('true', user_attributes['email_verified'])
+
+        # Verify no user exists with the new email address (rollback succeeded)
+        new_email_users = self.config.cognito_client.list_users(
+            UserPoolId=self.config.provider_user_pool_id, Filter=f'email = "{TEST_NEW_EMAIL}"'
+        )
+        self.assertEqual(0, len(new_email_users['Users']))

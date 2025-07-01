@@ -381,11 +381,48 @@ def _post_provider_email_verify(event: dict, context: LambdaContext):  # noqa: A
             raise
 
         # Update the provider record with new email and clear verification data
-        config.data_client.complete_provider_email_update(
-            compact=compact,
-            provider_id=provider_id,
-            new_email_address=new_email,
-        )
+        try:
+            config.data_client.complete_provider_email_update(
+                compact=compact,
+                provider_id=provider_id,
+                new_email_address=new_email,
+            )
+        except Exception as dynamo_error:
+            # If DynamoDB update fails, we need to roll back the Cognito change
+            logger.error(
+                'DynamoDB update failed after Cognito update succeeded, rolling back Cognito changes',
+                compact=compact,
+                provider_id=provider_id,
+                error=str(dynamo_error),
+            )
+            try:
+                # Roll back the Cognito email change
+                config.cognito_client.admin_update_user_attributes(
+                    UserPoolId=config.provider_user_pool_id,
+                    Username=new_email,  # Current username is now the new email
+                    UserAttributes=[
+                        {'Name': 'email', 'Value': current_email},
+                        {'Name': 'email_verified', 'Value': 'true'},
+                    ],
+                )
+                logger.info(
+                    'Successfully rolled back Cognito email change',
+                    compact=compact,
+                    provider_id=provider_id,
+                )
+            except ClientError as rollback_error:
+                logger.error(
+                    'Failed to roll back Cognito email change - user may be in inconsistent state',
+                    compact=compact,
+                    provider_id=provider_id,
+                    original_error=str(dynamo_error),
+                    rollback_error=str(rollback_error.response),
+                )
+
+            # Raise internal exception to trigger alert
+            raise CCInternalException(
+                'Failed to complete email update - system may be in inconsistent state'
+            ) from dynamo_error
 
         # Send notification to old email address
         try:
@@ -417,4 +454,4 @@ def _post_provider_email_verify(event: dict, context: LambdaContext):  # noqa: A
             provider_id=provider_id,
             error=str(e),
         )
-        raise CCInternalException('Failed to verify email address') from e
+        raise CCInternalException('Failed to complete email update. Please try again later.') from e
