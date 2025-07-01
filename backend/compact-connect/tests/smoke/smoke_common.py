@@ -11,9 +11,7 @@ from config import config, logger
 
 
 class SmokeTestFailureException(Exception):
-    """
-    Custom exception to raise when a smoke test fails.
-    """
+    """Custom exception to raise when a smoke test fails."""
 
     def __init__(self, message):
         super().__init__(message)
@@ -80,9 +78,12 @@ def _create_staff_user_in_cognito(*, email: str) -> str:
         raise e
 
 
-def delete_test_staff_user(email, user_sub: str, compact: str):
-    """
-    Deletes a test staff user from Cognito.
+def delete_test_staff_user(email: str, user_sub: str, compact: str):
+    """Deletes a test staff user from Cognito.
+
+    :param email: The email address of the staff user to delete
+    :param user_sub: The user's sub ID
+    :param compact: The compact identifier
     """
     try:
         logger.info(f"Deleting staff user from cognito, '{email}'")
@@ -99,8 +100,13 @@ def delete_test_staff_user(email, user_sub: str, compact: str):
 
 
 def create_test_staff_user(*, email: str, compact: str, jurisdiction: str, permissions: dict):
-    """
-    Creates a test staff user in Cognito, stores their data in DynamoDB, and returns their user sub id.
+    """Creates a test staff user in Cognito, stores their data in DynamoDB, and returns their user sub id.
+
+    :param email: The email address of the staff user to create
+    :param compact: The compact identifier
+    :param jurisdiction: The jurisdiction identifier
+    :param permissions: The permissions dictionary for the user
+    :return: The staff user's sub ID
     """
     logger.info(f"Creating staff user, '{email}', in {compact}/{jurisdiction}")
     user_attributes = {'email': email, 'familyName': 'Dokes', 'givenName': 'Joe'}
@@ -241,17 +247,13 @@ def get_all_provider_database_records():
 
 
 def upload_license_record(staff_headers: dict, compact: str, jurisdiction: str, data_overrides: dict = None):
-    """
-    Upload a license record using the API with default test data that can be overridden.
+    """Upload a license record using the API with default test data that can be overridden.
 
-    Args:
-        staff_headers: Authentication headers for staff user
-        compact: The compact abbreviation
-        jurisdiction: The jurisdiction abbreviation
-        data_overrides: Dict of fields to override in the default license data
-
-    Returns:
-        The API response JSON
+    :param staff_headers: Authentication headers for staff user
+    :param compact: The compact abbreviation
+    :param jurisdiction: The jurisdiction abbreviation
+    :param data_overrides: Dict of fields to override in the default license data
+    :return: The API response JSON
     """
     # Default test license data
     default_license_data = {
@@ -300,17 +302,13 @@ def upload_license_record(staff_headers: dict, compact: str, jurisdiction: str, 
 
 
 def query_provider_by_name(staff_headers: dict, compact: str, given_name: str, family_name: str):
-    """
-    Query for a provider by name and return the provider ID if found.
+    """Query for a provider by name and return the provider ID if found.
 
-    Args:
-        staff_headers: Authentication headers for staff user
-        compact: The compact abbreviation
-        given_name: Provider's given name
-        family_name: Provider's family name
-
-    Returns:
-        The provider ID if found, None otherwise
+    :param staff_headers: Authentication headers for staff user
+    :param compact: The compact abbreviation
+    :param given_name: Provider's given name
+    :param family_name: Provider's family name
+    :return: The provider ID if found, None otherwise
     """
     query_body = {'query': {'familyName': family_name, 'givenName': given_name}}
 
@@ -327,10 +325,8 @@ def query_provider_by_name(staff_headers: dict, compact: str, given_name: str, f
 
     providers = query_response.json().get('providers', [])
     if providers:
-        # Find our test provider in the results
-        for provider in providers:
-            if provider.get('givenName') == given_name and provider.get('familyName') == family_name:
-                return provider.get('providerId')
+        # Return the first provider id in the list (leave it to the smoke tests to uniquely name their test users)
+        return providers[0].get('providerId')
 
     return None
 
@@ -338,21 +334,15 @@ def query_provider_by_name(staff_headers: dict, compact: str, given_name: str, f
 def wait_for_provider_creation(
     staff_headers: dict, compact: str, given_name: str, family_name: str, max_wait_time: int = 300
 ):
-    """
-    Poll for provider creation after license upload.
+    """Poll for provider creation after license upload.
 
-    Args:
-        staff_headers: Authentication headers for staff user
-        compact: The compact abbreviation
-        given_name: Provider's given name
-        family_name: Provider's family name
-        max_wait_time: Maximum time to wait in seconds (default: 300 = 5 minutes)
-
-    Returns:
-        The provider ID when found
-
-    Raises:
-        SmokeTestFailureException: If provider not found within max_wait_time
+    :param staff_headers: Authentication headers for staff user
+    :param compact: The compact abbreviation
+    :param given_name: Provider's given name
+    :param family_name: Provider's family name
+    :param max_wait_time: Maximum time to wait in seconds (default: 300 = 5 minutes)
+    :return: The provider ID when found
+    :raises SmokeTestFailureException: If provider not found within max_wait_time
     """
     import time
 
@@ -388,18 +378,14 @@ def wait_for_provider_creation(
 def create_test_privilege_record(
     provider_id: str, compact: str, jurisdiction: str, license_jurisdiction: str, license_type: str
 ):
-    """
-    Create a test privilege record in the database for testing license deactivation.
+    """Create a test privilege record in the database for testing license deactivation.
 
-    Args:
-        provider_id: The provider's ID
-        compact: The compact abbreviation
-        jurisdiction: The privilege jurisdiction
-        license_jurisdiction: The license jurisdiction (home state)
-        license_type: The license type
-
-    Returns:
-        The created privilege record data
+    :param provider_id: The provider's ID
+    :param compact: The compact abbreviation
+    :param jurisdiction: The privilege jurisdiction
+    :param license_jurisdiction: The license jurisdiction (home state)
+    :param license_type: The license type
+    :return: The created privilege record data
     """
     import uuid
     from datetime import UTC, date, datetime
@@ -444,12 +430,10 @@ def create_test_privilege_record(
 
 
 def cleanup_test_provider_records(provider_id: str, compact: str):
-    """
-    Clean up all test records for a provider.
+    """Clean up all test records for a provider.
 
-    Args:
-        provider_id: The provider's ID
-        compact: The compact abbreviation
+    :param provider_id: The provider's ID
+    :param compact: The compact abbreviation
     """
     try:
         # Query for all provider records
@@ -470,8 +454,8 @@ def cleanup_test_provider_records(provider_id: str, compact: str):
 
 
 def generate_opaque_data(card_number: str):
-    """
-    Generate a payment nonce using Authorize.Net's Secure Payment Container API.
+    """Generate a payment nonce using Authorize.Net's Secure Payment Container API.
+
     This allows us to create payment nonces programmatically for testing.
 
     :param card_number: The test card number to use for generating the opaque data

@@ -23,6 +23,7 @@ class QueueEventListener(Construct):
     - An EventBridge rule to route events to the queue
     - CloudWatch alarms for monitoring failures
     """
+
     default_visibility_timeout = Duration.minutes(5)
     default_retention_period = Duration.hours(12)
     default_max_batching_window = Duration.seconds(15)

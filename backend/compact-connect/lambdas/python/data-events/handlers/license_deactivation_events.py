@@ -20,8 +20,6 @@ def license_deactivation_listener(message: dict):
     jurisdiction = validated_detail['jurisdiction']
     license_type = validated_detail['licenseType']
 
-    # Convert license type to abbreviation
-
     with logger.append_context_keys(
         compact=compact, provider_id=provider_id, jurisdiction=jurisdiction, license_type=license_type
     ):
