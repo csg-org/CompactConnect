@@ -178,5 +178,6 @@ class EventListenerStack(AppStack):
             data_event_bus=data_event_bus,
             listener_function=license_deactivation_listener_handler,
             listener_detail_type='license.deactivation',
-            persistent_stack=persistent_stack,
+            encryption_key=persistent_stack.shared_encryption_key,
+            alarm_topic=persistent_stack.alarm_topic,
         )
