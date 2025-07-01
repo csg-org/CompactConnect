@@ -270,7 +270,7 @@ export const SAMPLE_JURISDICTION_CONFIGURATION = {
         ]
     },
     'jurisdictionName': {
-        'S': 'ohio'
+        'S': 'Ohio'
     },
     'jurisdictionOperationsTeamEmails': {
         'L': [
@@ -313,7 +313,7 @@ export const SAMPLE_UNMARSHALLED_JURISDICTION_CONFIGURATION = {
             'amount': '100'
         }
     ],
-    'jurisdictionName': 'ohio',
+    'jurisdictionName': 'Ohio',
     'jurisdictionOperationsTeamEmails': [ 'justin@inspiringapps.com' ],
     'jurisdictionSummaryReportNotificationEmails': [],
     'jurisprudenceRequirements': {
@@ -321,4 +321,38 @@ export const SAMPLE_UNMARSHALLED_JURISDICTION_CONFIGURATION = {
     },
     'postalAbbreviation': 'oh',
     'type': 'jurisdiction',
+};
+
+export const SAMPLE_COMPACT_CONFIGURATION = {
+    'pk': { 'S': 'aslp#CONFIGURATION' },
+    'sk': { 'S': 'aslp#CONFIGURATION' },
+    'compactAdverseActionsNotificationEmails': { 'L': [{ 'S': 'adverse@example.com' }]},
+    'compactCommissionFee': {
+        'M': {
+            'feeAmount': { 'N': '3.5' },
+            'feeType': { 'S': 'FLAT_RATE' }
+        }
+    },
+    'compactAbbr': { 'S': 'aslp' },
+    'compactName': { 'S': 'Audiology and Speech Language Pathology' },
+    'compactOperationsTeamEmails': { 'L': [{ 'S': 'compact-ops@example.com' }]},
+    'compactSummaryReportNotificationEmails': { 'L': [{ 'S': 'summary@example.com' }]},
+    'dateOfUpdate': { 'S': '2024-12-10T19:27:28+00:00' },
+    'type': { 'S': 'compact' }
+};
+
+export const SAMPLE_UNMARSHALLED_COMPACT_CONFIGURATION = {
+    'pk': 'aslp#CONFIGURATION',
+    'sk': 'aslp#CONFIGURATION',
+    'compactAdverseActionsNotificationEmails': ['adverse@example.com'],
+    'compactCommissionFee': {
+        'feeAmount': 3.5,
+        'feeType': 'FLAT_RATE'
+    },
+    'compactAbbr': 'aslp',
+    'compactName': 'Audiology and Speech Language Pathology',
+    'compactOperationsTeamEmails': ['compact-ops@example.com'],
+    'compactSummaryReportNotificationEmails': ['summary@example.com'],
+    'dateOfUpdate': '2024-12-10T19:27:28+00:00',
+    'type': 'compact'
 };

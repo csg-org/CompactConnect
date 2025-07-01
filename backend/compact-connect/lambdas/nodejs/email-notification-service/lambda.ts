@@ -8,7 +8,7 @@ import { Context } from 'aws-lambda';
 import { EnvironmentVariablesService } from '../lib/environment-variables-service';
 import { CompactConfigurationClient } from '../lib/compact-configuration-client';
 import { JurisdictionClient } from '../lib/jurisdiction-client';
-import { EmailNotificationService } from '../lib/email';
+import { EmailNotificationService, EncumbranceNotificationService } from '../lib/email';
 import { EmailNotificationEvent, EmailNotificationResponse } from '../lib/models/email-notification-service-event';
 
 const environmentVariables = new EnvironmentVariablesService();
@@ -22,6 +22,7 @@ interface LambdaProperties {
 
 export class Lambda implements LambdaInterface {
     private readonly emailService: EmailNotificationService;
+    private readonly encumbranceService: EncumbranceNotificationService;
 
     constructor(props: LambdaProperties) {
         const compactConfigurationClient = new CompactConfigurationClient({
@@ -35,6 +36,14 @@ export class Lambda implements LambdaInterface {
         });
 
         this.emailService = new EmailNotificationService({
+            logger: logger,
+            sesClient: props.sesClient,
+            s3Client: props.s3Client,
+            compactConfigurationClient: compactConfigurationClient,
+            jurisdictionClient: jurisdictionClient
+        });
+
+        this.encumbranceService = new EncumbranceNotificationService({
             logger: logger,
             sesClient: props.sesClient,
             s3Client: props.s3Client,
@@ -77,8 +86,8 @@ export class Lambda implements LambdaInterface {
             if (!event.jurisdiction) {
                 throw new Error('Missing required jurisdiction field.');
             }
-            if (!event.templateVariables.privilegeId 
-                || !event.templateVariables.providerFirstName 
+            if (!event.templateVariables.privilegeId
+                || !event.templateVariables.providerFirstName
                 || !event.templateVariables.providerLastName) {
                 throw new Error('Missing required template variables for privilegeDeactivationJurisdictionNotification template.');
             }
@@ -133,6 +142,170 @@ export class Lambda implements LambdaInterface {
                 event.templateVariables.totalCost,
                 event.templateVariables.costLineItems,
                 event.specificEmails
+            );
+            break;
+        case 'licenseEncumbranceProviderNotification':
+            if (!event.templateVariables.providerFirstName
+                || !event.templateVariables.providerLastName
+                || !event.templateVariables.encumberedJurisdiction
+                || !event.templateVariables.licenseType
+                || !event.templateVariables.effectiveStartDate) {
+                throw new Error('Missing required template variables for licenseEncumbranceProviderNotification template.');
+            }
+            await this.encumbranceService.sendLicenseEncumbranceProviderNotificationEmail(
+                event.compact,
+                event.specificEmails || [],
+                event.templateVariables.providerFirstName,
+                event.templateVariables.providerLastName,
+                event.templateVariables.encumberedJurisdiction,
+                event.templateVariables.licenseType,
+                event.templateVariables.effectiveStartDate
+            );
+            break;
+        case 'licenseEncumbranceStateNotification':
+            if (!event.jurisdiction) {
+                throw new Error('Missing required jurisdiction field for licenseEncumbranceStateNotification template.');
+            }
+            if (!event.templateVariables.providerFirstName
+                || !event.templateVariables.providerLastName
+                || !event.templateVariables.providerId
+                || !event.templateVariables.encumberedJurisdiction
+                || !event.templateVariables.licenseType
+                || !event.templateVariables.effectiveStartDate) {
+                throw new Error('Missing required template variables for licenseEncumbranceStateNotification template.');
+            }
+            await this.encumbranceService.sendLicenseEncumbranceStateNotificationEmail(
+                event.compact,
+                event.jurisdiction,
+                event.templateVariables.providerFirstName,
+                event.templateVariables.providerLastName,
+                event.templateVariables.providerId,
+                event.templateVariables.encumberedJurisdiction,
+                event.templateVariables.licenseType,
+                event.templateVariables.effectiveStartDate
+            );
+            break;
+        case 'licenseEncumbranceLiftingProviderNotification':
+            if (!event.templateVariables.providerFirstName
+                || !event.templateVariables.providerLastName
+                || !event.templateVariables.liftedJurisdiction
+                || !event.templateVariables.licenseType
+                || !event.templateVariables.effectiveLiftDate) {
+                throw new Error('Missing required template variables for licenseEncumbranceLiftingProviderNotification template.');
+            }
+            await this.encumbranceService.sendLicenseEncumbranceLiftingProviderNotificationEmail(
+                event.compact,
+                event.specificEmails || [],
+                event.templateVariables.providerFirstName,
+                event.templateVariables.providerLastName,
+                event.templateVariables.liftedJurisdiction,
+                event.templateVariables.licenseType,
+                event.templateVariables.effectiveLiftDate
+            );
+            break;
+        case 'licenseEncumbranceLiftingStateNotification':
+            if (!event.jurisdiction) {
+                throw new Error('Missing required jurisdiction field for licenseEncumbranceLiftingStateNotification template.');
+            }
+            if (!event.templateVariables.providerFirstName
+                || !event.templateVariables.providerLastName
+                || !event.templateVariables.providerId
+                || !event.templateVariables.liftedJurisdiction
+                || !event.templateVariables.licenseType
+                || !event.templateVariables.effectiveLiftDate) {
+                throw new Error('Missing required template variables for licenseEncumbranceLiftingStateNotification template.');
+            }
+            await this.encumbranceService.sendLicenseEncumbranceLiftingStateNotificationEmail(
+                event.compact,
+                event.jurisdiction,
+                event.templateVariables.providerFirstName,
+                event.templateVariables.providerLastName,
+                event.templateVariables.providerId,
+                event.templateVariables.liftedJurisdiction,
+                event.templateVariables.licenseType,
+                event.templateVariables.effectiveLiftDate
+            );
+            break;
+        case 'privilegeEncumbranceProviderNotification':
+            if (!event.templateVariables.providerFirstName
+                || !event.templateVariables.providerLastName
+                || !event.templateVariables.encumberedJurisdiction
+                || !event.templateVariables.licenseType
+                || !event.templateVariables.effectiveStartDate) {
+                throw new Error('Missing required template variables for privilegeEncumbranceProviderNotification template.');
+            }
+            await this.encumbranceService.sendPrivilegeEncumbranceProviderNotificationEmail(
+                event.compact,
+                event.specificEmails || [],
+                event.templateVariables.providerFirstName,
+                event.templateVariables.providerLastName,
+                event.templateVariables.encumberedJurisdiction,
+                event.templateVariables.licenseType,
+                event.templateVariables.effectiveStartDate
+            );
+            break;
+        case 'privilegeEncumbranceStateNotification':
+            if (!event.jurisdiction) {
+                throw new Error('Missing required jurisdiction field for privilegeEncumbranceStateNotification template.');
+            }
+            if (!event.templateVariables.providerFirstName
+                || !event.templateVariables.providerLastName
+                || !event.templateVariables.providerId
+                || !event.templateVariables.encumberedJurisdiction
+                || !event.templateVariables.licenseType
+                || !event.templateVariables.effectiveStartDate) {
+                throw new Error('Missing required template variables for privilegeEncumbranceStateNotification template.');
+            }
+            await this.encumbranceService.sendPrivilegeEncumbranceStateNotificationEmail(
+                event.compact,
+                event.jurisdiction,
+                event.templateVariables.providerFirstName,
+                event.templateVariables.providerLastName,
+                event.templateVariables.providerId,
+                event.templateVariables.encumberedJurisdiction,
+                event.templateVariables.licenseType,
+                event.templateVariables.effectiveStartDate
+            );
+            break;
+        case 'privilegeEncumbranceLiftingProviderNotification':
+            if (!event.templateVariables.providerFirstName
+                || !event.templateVariables.providerLastName
+                || !event.templateVariables.liftedJurisdiction
+                || !event.templateVariables.licenseType
+                || !event.templateVariables.effectiveLiftDate) {
+                throw new Error('Missing required template variables for privilegeEncumbranceLiftingProviderNotification template.');
+            }
+            await this.encumbranceService.sendPrivilegeEncumbranceLiftingProviderNotificationEmail(
+                event.compact,
+                event.specificEmails || [],
+                event.templateVariables.providerFirstName,
+                event.templateVariables.providerLastName,
+                event.templateVariables.liftedJurisdiction,
+                event.templateVariables.licenseType,
+                event.templateVariables.effectiveLiftDate
+            );
+            break;
+        case 'privilegeEncumbranceLiftingStateNotification':
+            if (!event.jurisdiction) {
+                throw new Error('Missing required jurisdiction field for privilegeEncumbranceLiftingStateNotification template.');
+            }
+            if (!event.templateVariables.providerFirstName
+                || !event.templateVariables.providerLastName
+                || !event.templateVariables.providerId
+                || !event.templateVariables.liftedJurisdiction
+                || !event.templateVariables.licenseType
+                || !event.templateVariables.effectiveLiftDate) {
+                throw new Error('Missing required template variables for privilegeEncumbranceLiftingStateNotification template.');
+            }
+            await this.encumbranceService.sendPrivilegeEncumbranceLiftingStateNotificationEmail(
+                event.compact,
+                event.jurisdiction,
+                event.templateVariables.providerFirstName,
+                event.templateVariables.providerLastName,
+                event.templateVariables.providerId,
+                event.templateVariables.liftedJurisdiction,
+                event.templateVariables.licenseType,
+                event.templateVariables.effectiveLiftDate
             );
             break;
         case 'multipleRegistrationAttemptNotification':

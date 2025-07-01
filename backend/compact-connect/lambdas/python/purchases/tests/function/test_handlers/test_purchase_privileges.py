@@ -277,7 +277,7 @@ class TestPostPurchasePrivileges(TstFunction):
 
         post_purchase_privileges(event, self.mock_context)
         mock_event_bus.publish_privilege_purchase_event.assert_called_once_with(
-            source='post_purchase_privileges',
+            source='org.compactconnect.purchases',
             jurisdiction='oh',
             compact='aslp',
             provider_email='björkRegisteredEmail@example.com',
@@ -310,7 +310,7 @@ class TestPostPurchasePrivileges(TstFunction):
 
         post_purchase_privileges(event, self.mock_context)
         mock_event_bus.publish_privilege_issued_event.assert_called_once_with(
-            source='post_purchase_privileges',
+            source='org.compactconnect.purchases',
             jurisdiction='ky',
             compact='aslp',
             provider_email='björkRegisteredEmail@example.com',
@@ -353,7 +353,7 @@ class TestPostPurchasePrivileges(TstFunction):
 
         post_purchase_privileges(event, self.mock_context)
         mock_event_bus.publish_privilege_renewed_event.assert_called_once_with(
-            source='post_purchase_privileges',
+            source='org.compactconnect.purchases',
             jurisdiction='ky',
             compact='aslp',
             provider_email='björkRegisteredEmail@example.com',

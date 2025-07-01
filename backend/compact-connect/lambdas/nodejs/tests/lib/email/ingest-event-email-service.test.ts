@@ -46,7 +46,7 @@ describe('IngestEventEmailService', () => {
                 validationErrors: [ SAMPLE_UNMARSHALLED_VALIDATION_ERROR_RECORD ]
             },
             'aslp',
-            'ohio'
+            'Ohio'
         );
 
         // Any HTML document would start with a '<' and end with a '>'
@@ -61,7 +61,7 @@ describe('IngestEventEmailService', () => {
                 validationErrors: [ SAMPLE_UNMARSHALLED_VALIDATION_ERROR_RECORD ]
             },
             'aslp',
-            'ohio',
+            'Ohio',
             [
                 'operations@example.com'
             ]
@@ -83,7 +83,7 @@ describe('IngestEventEmailService', () => {
                     },
                     Subject: {
                         Charset: 'UTF-8',
-                        Data: 'License Data Error Summary: aslp / ohio'
+                        Data: 'License Data Error Summary: aslp / Ohio'
                     }
                 },
                 Source: 'Compact Connect <noreply@example.org>'
@@ -108,7 +108,7 @@ describe('IngestEventEmailService', () => {
     it('should send an alls well email', async () => {
         const messageId = await emailService.sendAllsWellEmail(
             'aslp',
-            'ohio',
+            'Ohio',
             [ 'operations@example.com' ]
         );
 
@@ -128,7 +128,7 @@ describe('IngestEventEmailService', () => {
                     },
                     Subject: {
                         Charset: 'UTF-8',
-                        Data: 'License Data Summary: aslp / ohio'
+                        Data: 'License Data Summary: aslp / Ohio'
                     }
                 },
                 Source: 'Compact Connect <noreply@example.org>'
@@ -139,7 +139,7 @@ describe('IngestEventEmailService', () => {
     it('should send a "no license updates" email with expected image url', async () => {
         const messageId = await emailService.sendNoLicenseUpdatesEmail(
             'aslp',
-            'ohio',
+            'Ohio',
             [ 'operations@example.com' ]
         );
 
@@ -159,7 +159,7 @@ describe('IngestEventEmailService', () => {
                     },
                     Subject: {
                         Charset: 'UTF-8',
-                        Data: 'No License Updates for Last 7 Days: aslp / ohio'
+                        Data: 'No License Updates for Last 7 Days: aslp / Ohio'
                     }
                 },
                 Source: 'Compact Connect <noreply@example.org>'

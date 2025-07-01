@@ -94,8 +94,26 @@ if [ -n "$files" ]; then
     ruff check $files || exit "$?"
 fi
 
+
 # Check dependencies for known vulnerabilities
 pip-audit || exit "$?"
+
+# Lint all typescript files
+
+files=$(git diff-index \
+    --cached \
+    --name-only \
+    $against \
+    --relative \
+    --no-renames \
+    --diff-filter=dr \
+    -- '*.ts')
+if [ -n "$files" ]; then
+    (
+        cd compact-connect/lambdas/nodejs/
+        yarn lint:ingest || exit "$?"
+    ) || exit "$?"
+fi
 
 # Run the back-end tests
 bin/run_tests.sh -no || exit "$?"

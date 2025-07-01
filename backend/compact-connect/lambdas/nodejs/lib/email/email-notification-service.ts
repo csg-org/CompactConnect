@@ -189,7 +189,7 @@ export class EmailNotificationService extends BaseEmailService {
             '- Transaction Detail Report - A detailed list of all settled transactions';
 
         this.insertHeader(report, subject);
-        this.insertMarkdownBody(report, bodyText);
+        this.insertBody(report, bodyText, 'left', true);
         this.insertFooter(report);
 
         const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
@@ -360,7 +360,7 @@ export class EmailNotificationService extends BaseEmailService {
         const bodyText = `A registration attempt was made in the Compact Connect system for an account associated with this email address. This email address is already registered in our system.\n\nIf you originally registered within the past 24 hours, make sure to login with your temporary password sent to this same email address. You may log in to your existing account using the link below:\n\n${loginUrl}\n\nFor your security, we recommend that you log in to your account to verify your account information and ensure your account remains secure.`;
 
         this.insertHeader(report, 'Registration Attempt');
-        this.insertMarkdownBody(report, bodyText);
+        this.insertBody(report, bodyText, 'center', true);
         this.insertFooter(report);
 
         const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });

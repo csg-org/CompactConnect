@@ -161,15 +161,14 @@ def _validate_privilege_encumbered_status(
     for up to max_wait_time seconds, checking if the privilege has the expected
     encumberedStatus. This accounts for eventual consistency in downstream processing.
 
-    Args:
-        expected_status: The expected encumberedStatus value ('licenseEncumbered', 'unencumbered', etc.)
-        test_jurisdiction: The jurisdiction of the license that was encumbered/unencumbered
-        test_license_type: The license type that was encumbered/unencumbered
-        max_wait_time: Maximum time to wait in seconds (default: 60)
-        check_interval: Time between checks in seconds (default: 10)
+    :param expected_status: The expected encumberedStatus value ('licenseEncumbered', 'unencumbered', etc.)
+    :param test_jurisdiction: The jurisdiction of the license that was encumbered/unencumbered
+    :param test_license_type: The license type that was encumbered/unencumbered
+    :param max_wait_time: Maximum time to wait in seconds (default: 60)
+    :param check_interval: Time between checks in seconds (default: 10)
 
-    Raises:
-        SmokeTestFailureException: If the privilege status doesn't match within max_wait_time
+    :raises:
+        :class:`~smoke_common.SmokeTestFailureException`: If the privilege status doesn't match within max_wait_time
     """
     logger.info(
         f'Validating privilege encumbered status is "{expected_status}" for jurisdiction "{test_jurisdiction}"...'
@@ -255,10 +254,11 @@ def test_license_encumbrance_workflow():
 
     # Get the first license for testing
     licenses = provider_data.get('licenses', [])
+    license_jurisdiction = provider_data['licenseJurisdiction']
     if not licenses:
         raise SmokeTestFailureException('No licenses found for provider')
 
-    license_record = licenses[0]
+    license_record = [lic for lic in licenses if lic['jurisdiction'] == license_jurisdiction][0]
     jurisdiction = license_record['jurisdiction']
     license_type = license_record['licenseType']
     license_type_abbreviation = get_license_type_abbreviation(license_type)
