@@ -46,7 +46,6 @@
     }
 
     .update-home-jurisdiction-btn {
-        min-width: 18rem;
         margin-top: 1.5rem;
     }
 
@@ -66,7 +65,6 @@
 
             .modal-content {
                 padding-top: 1rem;
-                // overflow-y: hidden;
 
                 .modal-subtext {
                     margin-bottom: 2rem;
@@ -81,6 +79,16 @@
                     display: flex;
                     flex-direction: row;
                     justify-content: flex-end;
+
+                    &.initial-action-buttons {
+                        flex-direction: column-reverse;
+                        align-items: center;
+
+                        @media @tabletWidth {
+                            flex-direction: row;
+                            align-items: flex-end;
+                        }
+                    }
 
                     .cancel-btn {
                         .input-button {

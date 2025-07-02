@@ -57,7 +57,7 @@
                 </template>
             </template>
             <template v-slot:actions>
-                <div v-if="!isSuccess && !isError" class="action-button-row">
+                <div v-if="!isSuccess && !isError" class="action-button-row initial-action-buttons">
                     <InputButton
                         :label="$t('common.cancel')"
                         class="cancel-btn"
