@@ -1,5 +1,5 @@
 # ruff: noqa: N801, N815, ARG002 invalid-name unused-kwargs
-from marshmallow import pre_dump
+from marshmallow import pre_dump, validates_schema
 from marshmallow.fields import Boolean, List, Nested, String
 from marshmallow.validate import Length, OneOf
 
@@ -11,6 +11,7 @@ from cc_common.data_model.schema.compact.common import (
     ConfiguredStateSchema,
     PaymentProcessorPublicFieldsSchema,
     TransactionFeeConfigurationSchema,
+    validate_no_duplicates_in_configured_states,
 )
 
 
@@ -48,6 +49,11 @@ class CompactRecordSchema(BaseRecordSchema):
     # Generated fields
     pk = String(required=True, allow_none=False)
     sk = String(required=True, allow_none=False, validate=Length(2, 100))
+
+    @validates_schema
+    def validate_no_duplicates_in_configured_states(self, data, **kwargs):  # noqa: ARG001 unused-argument
+        """Validate that configuredStates list contains no duplicate postal abbreviations."""
+        validate_no_duplicates_in_configured_states(data)
 
     @pre_dump
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument

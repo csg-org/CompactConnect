@@ -1,5 +1,5 @@
 # ruff: noqa: N801, N815, ARG002 invalid-name unused-kwargs
-from marshmallow import Schema
+from marshmallow import Schema, validates_schema
 from marshmallow.fields import Boolean, Email, List, Nested, String
 from marshmallow.validate import Length, OneOf
 
@@ -12,6 +12,7 @@ from cc_common.data_model.schema.compact.common import (
     ConfiguredStateSchema,
     LicenseeChargesSchema,
     PaymentProcessorPublicFieldsSchema,
+    validate_no_duplicates_in_configured_states,
 )
 from cc_common.data_model.schema.fields import PositiveDecimal
 
@@ -77,3 +78,8 @@ class PutCompactConfigurationRequestSchema(Schema):
     )
     licenseeRegistrationEnabled = Boolean(required=True, allow_none=False)
     configuredStates = List(Nested(ConfiguredStateSchema()), required=True, allow_none=False)
+
+    @validates_schema
+    def validate_no_duplicates_in_configured_states(self, data, **kwargs):  # noqa: ARG001 unused-argument
+        """Validate that configuredStates list contains no duplicate postal abbreviations."""
+        validate_no_duplicates_in_configured_states(data)

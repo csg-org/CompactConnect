@@ -186,11 +186,6 @@ def _put_compact_configuration(event: dict, context: LambdaContext):  # noqa: AR
             raise CCInvalidRequestException(f'Invalid compact abbreviation: {compact}')
         validated_data['compactName'] = compact_name
 
-        # Check for duplicate states in the configured states list
-        _validate_for_duplicate_configured_states(
-            compact=compact, submitting_user_id=submitting_user_id, validated_data=validated_data
-        )
-
         # Check if licenseeRegistrationEnabled is being changed from true to false
         try:
             existing_config = config.compact_configuration_client.get_compact_configuration(compact=compact)
@@ -250,21 +245,6 @@ def _put_compact_configuration(event: dict, context: LambdaContext):  # noqa: AR
     except ValidationError as e:
         logger.info('Invalid compact configuration', compact=compact, error=e)
         raise CCInvalidRequestException('Invalid compact configuration: ' + str(e)) from e
-
-
-def _validate_for_duplicate_configured_states(compact: str, submitting_user_id: str, validated_data: dict):
-    configured_state_postal_abbrs = [state['postalAbbreviation'] for state in validated_data['configuredStates']]
-    if len(set(configured_state_postal_abbrs)) != len(configured_state_postal_abbrs):
-        logger.warning(
-            'Duplicate states found in configuredStates',
-            compact=compact,
-            submitting_user_id=submitting_user_id,
-            provided_states=list(configured_state_postal_abbrs),
-        )
-        raise CCInvalidRequestException(
-            f'Duplicate states found in configuredStates: {", ".join(sorted(configured_state_postal_abbrs))}. '
-            f'Each state can only appear once in the list.'
-        )
 
 
 def _validate_configured_states_transitions(
