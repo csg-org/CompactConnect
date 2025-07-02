@@ -242,6 +242,50 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         }
         return self._setup_mock_transaction_controller(mock_create_transaction_controller, mock_response)
 
+    def _when_authorize_dot_net_has_api_error_code(self, mock_create_transaction_controller, error_code, error_text):
+        # Create a specific mock for the E00114 error that handles the SDK's inconsistent access patterns
+        mock_response_data = {
+            'messages': {
+                'resultCode': 'Error',
+                'message': [
+                    {
+                        'code': error_code,
+                        'text': error_text,
+                    }
+                ],
+            }
+        }
+        mock_response = json_to_magic_mock(mock_response_data)
+
+        # Create a message mock that supports both attribute and dictionary access
+        message_mock = MagicMock()
+
+        # Set up the 'code' field to support message['code']
+        code_mock = MagicMock()
+        code_mock.text = 'E00114'
+
+        # Set up the 'text' field
+        text_mock = MagicMock()
+        text_mock.text = 'Invalid OTS Token.'
+
+        # Add dictionary-style access for message['text']
+        def message_getitem_with_text_attribute(self, key):
+            if key == 'code':
+                return code_mock
+            if key == 'text':
+                return text_mock
+            raise KeyError(key)
+
+        message_mock.__getitem__ = message_getitem_with_text_attribute
+
+        mock_response.messages.message = [message_mock]
+
+        mock_transaction_controller = MagicMock()
+        mock_transaction_controller.getresponse.return_value = mock_response
+
+        mock_create_transaction_controller.return_value = mock_transaction_controller
+        return mock_transaction_controller
+
     @patch('purchase_client.createTransactionController')
     def test_purchase_client_returns_transaction_id_in_response(self, mock_create_transaction_controller):
         from purchase_client import PurchaseClient
@@ -633,6 +677,38 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
                 license_type_abbreviation=MOCK_LICENSE_TYPE_ABBR,
                 user_active_military=False,
             )
+
+    @patch('purchase_client.createTransactionController')
+    def test_purchase_client_raises_invalid_request_exception_when_suspicious_activity_filter_triggers(
+        self, mock_create_transaction_controller
+    ):
+        from purchase_client import PurchaseClient
+
+        mock_secrets_manager_client = self._generate_mock_secrets_manager_client()
+        self._when_authorize_dot_net_has_api_error_code(
+            mock_create_transaction_controller=mock_create_transaction_controller,
+            error_code='E00114',
+            error_text='Invalid OTS Token.',
+        )
+
+        test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
+
+        with self.assertRaises(CCInvalidRequestException) as context:
+            test_purchase_client.process_charge_for_licensee_privileges(
+                licensee_id=MOCK_LICENSEE_ID,
+                order_information=_generate_default_order_information(),
+                compact_configuration=_generate_aslp_compact_configuration(),
+                selected_jurisdictions=_generate_selected_jurisdictions(),
+                license_type_abbreviation=MOCK_LICENSE_TYPE_ABBR,
+                user_active_military=False,
+            )
+
+        # Verify that the specific user-friendly message is returned
+        self.assertEqual(
+            "The transaction was declined by the payment processor's security filters. "
+            'Please wait a moment and try your transaction again.',
+            str(context.exception.message),
+        )
 
     @patch('purchase_client.createTransactionController')
     def test_purchase_client_voids_transaction_using_authorize_net_processor(self, mock_create_transaction_controller):
