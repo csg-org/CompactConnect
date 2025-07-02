@@ -262,11 +262,11 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
 
         # Set up the 'code' field to support message['code']
         code_mock = MagicMock()
-        code_mock.text = 'E00114'
+        code_mock.text = error_code
 
         # Set up the 'text' field
         text_mock = MagicMock()
-        text_mock.text = 'Invalid OTS Token.'
+        text_mock.text = error_text
 
         # Add dictionary-style access for message['text']
         def message_getitem_with_text_attribute(self, key):
