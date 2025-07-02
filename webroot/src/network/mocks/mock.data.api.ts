@@ -409,7 +409,7 @@ export class DataApi {
     }
 
     // Put Home Jurisdiction State
-    public updateHomeJurisdiction(data: { jurisdiction: string }) {
+    public updateHomeJurisdiction() {
         return wait(500).then(() => ({
             message: 'success',
         }));
