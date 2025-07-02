@@ -7,7 +7,7 @@
 
 <template>
     <div class="state-config-list-container">
-        <LoadingSpinner v-if="this.isLoading" />
+        <LoadingSpinner v-if="isLoading" />
         <div v-if="loadingErrorMessage" class="compact-loading-error">{{ loadingErrorMessage }}</div>
         <div v-if="$matches.desktop.min" class="state-row header-row">
             <div class="state-cell header-cell state">{{ $t('common.state') }}</div>

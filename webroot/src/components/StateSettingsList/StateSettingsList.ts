@@ -292,8 +292,8 @@ class StateSettingsList extends mixins(MixinForm) {
             const payload = { ...this.initialCompactConfig };
 
             // For enabling a state, the server requires the entire compact config, minus a couple props
-            delete payload.compactName;
-            delete payload.compactAbbr;
+            payload.compactName = undefined;
+            payload.compactAbbr = undefined;
 
             // Update the selected state to live / enabled
             payload.configuredStates?.forEach((configuredState) => {

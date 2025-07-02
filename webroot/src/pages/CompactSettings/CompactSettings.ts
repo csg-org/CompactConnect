@@ -11,7 +11,7 @@ import Section from '@components/Section/Section.vue';
 import PaymentProcessorConfig from '@components/PaymentProcessorConfig/PaymentProcessorConfig.vue';
 import CompactSettingsConfig from '@components/CompactSettingsConfig/CompactSettingsConfig.vue';
 import StateSettingsList from '@components/StateSettingsList/StateSettingsList.vue';
-import { Compact, CompactType } from '@models/Compact/Compact.model';
+import { Compact } from '@models/Compact/Compact.model';
 import { CompactPermission, StatePermission } from '@models/StaffUser/StaffUser.model';
 
 @Component({
@@ -48,10 +48,6 @@ export default class CompactSettings extends Vue {
 
     get currentCompact(): Compact | null {
         return this.userStore.currentCompact;
-    }
-
-    get compactType(): CompactType | null {
-        return this.currentCompact?.type || null;
     }
 
     get user() {

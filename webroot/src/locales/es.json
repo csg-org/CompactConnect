@@ -502,7 +502,7 @@
         "saveSuccessfulCompact": "Los cambios compactos se guardaron correctamente",
         "saveSuccessfulState": "Los cambios de estado se guardaron correctamente",
         "enable": "Permitir",
-        "live": "Vivir"
+        "live": "En vivo"
     },
     "stateUpload": {
         "formTitle": "Carga de datos compacta",
