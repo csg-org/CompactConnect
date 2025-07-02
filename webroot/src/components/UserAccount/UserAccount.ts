@@ -25,7 +25,7 @@ import { StaffUser } from '@models/StaffUser/StaffUser.model';
 import { FormInput } from '@models/FormInput/FormInput.model';
 import { dataApi } from '@network/data.api';
 import Joi from 'joi';
-import UpdateHomeJurisdiction from '@components/UserAccount/UpdateHomeJurisdiction.vue';
+import UpdateHomeJurisdiction from '@components/UpdateHomeJurisdiction/UpdateHomeJurisdiction.vue';
 
 @Component({
     name: 'UserAccount',

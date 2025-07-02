@@ -1,3 +1,10 @@
+//
+//  UpdateHomeJurisdiction.ts
+//  CompactConnect
+//
+//  Created by InspiringApps on 7/1/2025.
+//
+
 import {
     Component,
     mixins,
@@ -9,6 +16,7 @@ import { stateList } from '@/app.config';
 import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
+import CheckCircleIcon from '@components/Icons/CheckCircle/CheckCircle.vue';
 import Modal from '@components/Modal/Modal.vue';
 import { FormInput } from '@models/FormInput/FormInput.model';
 import Joi from 'joi';
@@ -30,14 +38,15 @@ interface SelectOption {
         InputSelect,
         InputButton,
         InputSubmit,
+        CheckCircleIcon,
         Modal,
     }
 })
 class UpdateHomeJurisdiction extends mixins(MixinForm) {
-    isHomeStateModalVisible = false;
-    isHomeStateSuccess = false;
-    isHomeStateError = false;
-    homeStateErrorMessage = '';
+    isModalVisible = false;
+    isSuccess = false;
+    isError = false;
+    errorMessage = '';
     formData: any = {};
 
     get userStore() {
@@ -54,7 +63,7 @@ class UpdateHomeJurisdiction extends mixins(MixinForm) {
         return licensee?.homeJurisdiction?.name() || '';
     }
 
-    get homeStateOptions(): Array<SelectOption> {
+    get homeJurisdictionOptions(): Array<SelectOption> {
         const options = [{ value: '', name: `- ${this.$t('common.select')} -`, isDisabled: true }];
 
         stateList?.forEach((state) => {
@@ -70,22 +79,22 @@ class UpdateHomeJurisdiction extends mixins(MixinForm) {
     }
 
     created() {
-        this.initHomeStateForm();
+        this.initHomeJurisdictionForm();
     }
 
-    initHomeStateForm(): void {
+    initHomeJurisdictionForm(): void {
         this.formData = reactive({
-            newHomeState: new FormInput({
-                id: 'new-home-state',
-                name: 'new-home-state',
-                label: computed(() => this.$t('homeStateChange.newHomeStateLabel')),
-                valueOptions: this.homeStateOptions,
+            newHomeJurisdiction: new FormInput({
+                id: 'new-home-jurisdiction',
+                name: 'new-home-jurisdiction',
+                label: computed(() => this.$t('homeJurisdictionChange.newHomeJurisdictionLabel')),
+                valueOptions: this.homeJurisdictionOptions,
                 validation: Joi.string().required().messages(this.joiMessages.string),
                 value: ''
             }),
             submit: new FormInput({
                 isSubmitInput: true,
-                id: 'submit-home-state',
+                id: 'submit-home-jurisdiction',
             })
         });
     }
@@ -94,41 +103,42 @@ class UpdateHomeJurisdiction extends mixins(MixinForm) {
         this.validateAll({ asTouched: true });
 
         if (this.isFormValid) {
-            this.openHomeStateModal();
+            this.openModal();
         }
     }
 
-    openHomeStateModal(): void {
-        this.isHomeStateModalVisible = true;
-        this.isHomeStateSuccess = false;
-        this.isHomeStateError = false;
-        this.homeStateErrorMessage = '';
+    openModal(): void {
+        this.isModalVisible = true;
+        this.isSuccess = false;
+        this.isError = false;
+        this.errorMessage = '';
     }
 
-    closeHomeStateModal(): void {
-        this.isHomeStateModalVisible = false;
-        this.isHomeStateSuccess = false;
-        this.isHomeStateError = false;
-        this.homeStateErrorMessage = '';
-        this.formData.newHomeState.value = '';
+    closeModal(): void {
+        this.isModalVisible = false;
+        this.isSuccess = false;
+        this.isError = false;
+        this.errorMessage = '';
+        this.formData.newHomeJurisdiction.value = '';
     }
 
-    async submitHomeStateChange(): Promise<void> {
-        this.formData.newHomeState.validate({ asTouched: true });
+    async submitHomeJurisdictionChange(): Promise<void> {
+        this.formData.newHomeJurisdiction.validate({ asTouched: true });
 
-        if (this.formData.newHomeState.isValid) {
+        if (this.formData.newHomeJurisdiction.isValid) {
             this.isFormLoading = true;
-            this.isHomeStateError = false;
-            this.homeStateErrorMessage = '';
-            const newHomeState = this.formData.newHomeState.value;
+            this.isError = false;
+            this.errorMessage = '';
+            const newHomeJurisdiction = this.formData.newHomeJurisdiction.value;
+            const jurisdictionUpdateData = {
+                jurisdiction: newHomeJurisdiction
+            };
 
-            await this.$store.dispatch('user/updateHomeJurisdictionRequest', {
-                data: { jurisdiction: newHomeState }
-            }).then(() => {
-                this.isHomeStateSuccess = true;
+            await this.$store.dispatch('user/updateHomeJurisdictionRequest', jurisdictionUpdateData).then(() => {
+                this.isSuccess = true;
             }).catch((err: any) => {
-                this.isHomeStateError = true;
-                this.homeStateErrorMessage = err?.message || this.$t('common.somethingWentWrong');
+                this.isError = true;
+                this.errorMessage = err?.message || this.$t('common.tryAgain');
             });
 
             this.isFormLoading = false;
@@ -136,8 +146,8 @@ class UpdateHomeJurisdiction extends mixins(MixinForm) {
     }
 
     @Watch('userStore.model') onUserChanged() {
-        if (this.formData?.newHomeState) {
-            this.formData.newHomeState.value = '';
+        if (this.formData?.newHomeJurisdiction) {
+            this.formData.newHomeJurisdiction.value = '';
         }
     }
 }

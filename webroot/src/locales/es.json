@@ -42,6 +42,7 @@
         "success": "Correcto",
         "error": "Error",
         "somethingWentWrong": "Algo salió mal",
+        "tryAgain": "Por favor, inténtelo de nuevo",
         "saveAndContinue": "Guardar y continuar",
         "saveAndClose": "Guardar y cerrar",
         "saving": "Guardando...",
@@ -888,10 +889,11 @@
         "showSpinner": "Mostrar el indicador",
         "mobileStoreLinks": "Enlaces de tiendas móviles"
     },
-    "homeStateChange": {
+    "homeJurisdictionChange": {
         "formTitle": "Cambiar estado de residencia",
-        "currentHomeStateLabel": "Estado de residencia actual",
-        "newHomeStateLabel": "Nuevo estado de residencia",
+        "formSubtext": "Cambiar de estado de residencia puede afectar a sus atribuciones. Si ya tiene una licencia apta para el convenio en su nuevo estado de residencia, sus atribuciones se transferirán. Si no tiene una licencia en su nuevo estado de residencia, o su licencia no es elegible, sus atribuciones se desactivarán.",
+        "currentHomeJurisdictionLabel": "Estado de residencia actual",
+        "newHomeJurisdictionLabel": "Nuevo estado de residencia",
         "inputSubtext": "Esta selección significa que sus privilegios compactos actuales serán desactivados y ya no podrá ejercer bajo ellos.",
         "updateButton": "Actualizar estado de residencia",
         "modalTitle": "¿Está seguro de que desea cambiar {newState} como su nuevo estado de residencia?",

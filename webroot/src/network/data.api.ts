@@ -423,10 +423,10 @@ export class DataApi {
 
     /**
      * UPDATE Home Jurisdiction for Authenticated Licensee User.
-     * @param  {object} data The request data (e.g., { jurisdiction: 'CO' }).
-     * @return {Promise<object>} Server response.
+     * @param  {object}          data   The request data.
+     * @return {Promise<object>}        Server response.
      */
-    public async updateHomeJurisdiction(data: { jurisdiction: string }) {
+    public async updateHomeJurisdiction(data: any) {
         return userDataApi.updateHomeJurisdiction(data);
     }
 

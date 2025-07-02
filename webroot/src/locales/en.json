@@ -39,6 +39,7 @@
         "success": "Success",
         "error": "Error",
         "somethingWentWrong": "Something went wrong",
+        "tryAgain": "Please Try again",
         "saveAndContinue": "Save & Continue",
         "saveAndClose": "Save & Close",
         "subtotal": "Subtotal",
@@ -889,10 +890,11 @@
         "showSpinner": "Show Spinner",
         "mobileStoreLinks": "Mobile Store Links"
     },
-    "homeStateChange": {
+    "homeJurisdictionChange": {
         "formTitle": "Change home state",
-        "currentHomeStateLabel": "Current home state",
-        "newHomeStateLabel": "New home state",
+        "formSubtext": "If you have changed your state of residence or otherwise need to update your home state, please do so here. Your old and new home states, if they are compact members, will be notified of the change.",
+        "currentHomeJurisdictionLabel": "Current home state",
+        "newHomeJurisdictionLabel": "New home state",
         "inputSubtext": "This selection means your current compact privileges will be deactivated and you will no longer be able to practice under them.",
         "updateButton": "Update home state",
         "modalTitle": "Are you sure you want to change {newState} to your new home state?",
