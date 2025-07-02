@@ -26,8 +26,7 @@ def cleanup_compact_configuration(compact: str):
     """
     Clean up compact configuration record for testing using direct DynamoDB calls.
 
-    Args:
-        compact: The compact abbreviation
+    :param compact: The compact abbreviation
     """
     try:
         # Delete the compact configuration record directly from DynamoDB
@@ -45,9 +44,8 @@ def cleanup_jurisdiction_configuration(compact: str, jurisdiction: str):
     """
     Clean up jurisdiction configuration record for testing using direct DynamoDB calls.
 
-    Args:
-        compact: The compact abbreviation
-        jurisdiction: The jurisdiction postal abbreviation
+    :param compact: The compact abbreviation
+    :param jurisdiction: The jurisdiction postal abbreviation
     """
     try:
         # Delete the jurisdiction configuration record directly from DynamoDB
@@ -64,6 +62,8 @@ def cleanup_jurisdiction_configuration(compact: str, jurisdiction: str):
 def test_active_member_jurisdictions():
     """
     Test that the active member jurisdictions from cdk.json match the jurisdictions returned by the API.
+
+    :raises SmokeTestFailureException: If the test fails
     """
     print('Testing active member jurisdictions...')
 
@@ -106,6 +106,9 @@ def test_active_member_jurisdictions():
 def test_compact_configuration():
     """
     Test that a compact admin can update and retrieve compact configuration.
+
+    :return: The compact configuration response for use in other tests
+    :raises SmokeTestFailureException: If the test fails
     """
     print('Testing compact configuration...')
 
@@ -202,6 +205,9 @@ def test_compact_configuration():
 def test_jurisdiction_configuration():
     """
     Test that a state admin can update and retrieve jurisdiction configuration.
+
+    :return: The jurisdiction configuration response for use in other tests
+    :raises SmokeTestFailureException: If the test fails
     """
     print('Testing jurisdiction configuration...')
 
@@ -397,6 +403,8 @@ def test_jurisdiction_configuration():
 def test_upload_payment_processor_credentials():
     """
     Test that a compact admin can upload payment processor credentials.
+
+    :raises SmokeTestFailureException: If the test fails
     """
     print('Testing upload payment processor credentials...')
 
