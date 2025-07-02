@@ -46,6 +46,7 @@ class StateSettingsList extends mixins(MixinForm) {
     //
     isLoading = false;
     loadingErrorMessage = '';
+    initialCompactConfig: any = {};
     compactConfigStates: Array<{abbrev: string, isLive: boolean}> = [];
     isStateLiveModalDisplayed = false;
     selectedState: State | null = null;
@@ -185,6 +186,8 @@ class StateSettingsList extends mixins(MixinForm) {
                 this.loadingErrorMessage = err?.message || this.$t('serverErrors.networkError');
             });
 
+            this.initialCompactConfig = compactConfig;
+
             if (Array.isArray(compactConfig.configuredStates)) {
                 this.compactConfigStates = [];
                 compactConfig.configuredStates.forEach((serverState) => {
@@ -285,17 +288,22 @@ class StateSettingsList extends mixins(MixinForm) {
             this.modalErrorMessage = '';
 
             const { compactType, selectedState } = this;
-            const state = selectedState?.abbrev || '';
-            const payload = {
-                isLive: true,
-            };
+            const selectedStateAbbrev = selectedState?.abbrev || '';
+            const payload = { ...this.initialCompactConfig };
 
-            // @TODO
-            console.log(`${compactType}: ${state}`);
-            console.log(payload);
+            // For enabling a state, the server requires the entire compact config, minus a couple props
+            delete payload.compactName;
+            delete payload.compactAbbr;
+
+            // Update the selected state to live / enabled
+            payload.configuredStates?.forEach((configuredState) => {
+                if (configuredState.postalAbbreviation === selectedStateAbbrev) {
+                    configuredState.isLive = true;
+                }
+            });
 
             // Call the server API to update
-            await dataApi.updateCompactConfigState(compactType, state, payload).catch((err) => {
+            await dataApi.updateCompactConfig(compactType, payload).catch((err) => {
                 this.modalErrorMessage = err?.message || this.$t('common.error');
                 this.isFormError = true;
             });
