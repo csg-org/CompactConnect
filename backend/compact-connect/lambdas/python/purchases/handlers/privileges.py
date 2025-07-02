@@ -8,6 +8,7 @@ from cc_common.data_model.schema.common import (
     ActiveInactiveStatus,
     CompactEligibilityStatus,
     HomeJurisdictionChangeStatusEnum,
+    LicenseDeactivatedStatusEnum,
     LicenseEncumberedStatusEnum,
 )
 from cc_common.data_model.schema.compact import Compact
@@ -293,6 +294,9 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             # Similar here, if the user's privilege was deactivated previously due to changing their home jurisdiction
             # to where they had no license, but now they have an eligible license, they can renew their privilege.
             and privilege.homeJurisdictionChangeStatus != HomeJurisdictionChangeStatusEnum.INACTIVE
+            # Likewise, if the user's privilege was deactivated previously due to a license deactivation, and then the
+            # license was reactivated, they can renew their privilege.
+            and privilege.licenseDeactivatedStatus != LicenseDeactivatedStatusEnum.LICENSE_DEACTIVATED
         ):
             raise CCInvalidRequestException(
                 f"Selected privilege jurisdiction '{privilege.jurisdiction.lower()}'"

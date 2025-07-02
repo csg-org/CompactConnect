@@ -236,21 +236,30 @@ def _process_license_update(*, existing_license: dict, new_license: dict, dynamo
     )
     # We'll fire off events for updates of particular importance
     if update_record['updateType'] == UpdateCategory.DEACTIVATION:
-        data_events.append(
-            {
-                'Source': 'org.compactconnect.provider-data',
-                'DetailType': 'license.deactivation',
-                'Detail': json.dumps(
-                    {
-                        'eventTime': config.current_standard_datetime.isoformat(),
-                        'compact': existing_license['compact'],
-                        'jurisdiction': existing_license['jurisdiction'],
-                        'providerId': str(existing_license['providerId']),
-                    }
-                ),
-                'EventBusName': config.event_bus_name,
-            }
-        )
+        # Only publish license deactivation event if the license is not expired
+        # Expired licenses are handled separately, and we want to distinguish between
+        # jurisdiction deactivation vs natural expiration
+        is_expired = new_license['dateOfExpiration'] < config.expiration_resolution_date
+
+        if not is_expired:
+            logger.info(
+                'License is not expired, but is set to inactive. Publishing license deactivation event.',
+                date_of_expiration=new_license['dateOfExpiration'],
+            )
+            # Use EventBusClient to generate the event
+            license_deactivation_event = config.event_bus_client.generate_license_deactivation_event(
+                source='org.compactconnect.provider-data',
+                compact=existing_license['compact'],
+                jurisdiction=existing_license['jurisdiction'],
+                provider_id=existing_license['providerId'],
+                license_type=existing_license['licenseType'],
+            )
+            data_events.append(license_deactivation_event)
+        else:
+            logger.info(
+                'License is expired, skipping license deactivation event.',
+                date_of_expiration=new_license['dateOfExpiration'],
+            )
 
     dynamo_transactions.append(
         {'Put': {'TableName': config.provider_table_name, 'Item': TypeSerializer().serialize(update_record)['M']}}

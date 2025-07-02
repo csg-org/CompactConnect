@@ -61,6 +61,12 @@ class CompactConfigUtility:
         'wi': 'Wisconsin',
         'wy': 'Wyoming',
         'dc': 'District of Columbia',
+        # U.S. Territories
+        'as': 'American Samoa',
+        'gu': 'Guam',
+        'mp': 'Northern Mariana Islands',
+        'pr': 'Puerto Rico',
+        'vi': 'U.S. Virgin Islands',
     }
 
     @classmethod

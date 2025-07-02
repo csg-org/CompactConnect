@@ -263,6 +263,8 @@ class UpdateCategory(CCEnum):
     HOME_JURISDICTION_CHANGE = 'homeJurisdictionChange'
     REGISTRATION = 'registration'
     LIFTING_ENCUMBRANCE = 'lifting_encumbrance'
+    # this is specific to privileges that are deactivated due to a state license deactivation
+    LICENSE_DEACTIVATION = 'licenseDeactivation'
 
 
 class ActiveInactiveStatus(CCEnum):
@@ -297,6 +299,18 @@ class HomeJurisdictionChangeStatusEnum(CCEnum):
     """
 
     INACTIVE = 'inactive'
+
+
+class LicenseDeactivatedStatusEnum(CCEnum):
+    """
+    This is only used if the provider's privilege is deactivated due to their home state license
+    being deactivated by the jurisdiction.
+
+    This field will never be present for an 'active' privilege, hence the only allowed value for this
+    field is 'LICENSE_DEACTIVATED'.
+    """
+
+    LICENSE_DEACTIVATED = 'licenseDeactivated'
 
 
 class StaffUserStatus(CCEnum):
