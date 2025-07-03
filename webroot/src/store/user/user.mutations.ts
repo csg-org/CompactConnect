@@ -214,15 +214,15 @@ export default {
         ];
     },
     [MutationTypes.UPDATE_HOME_JURISDICTION_REQUEST]: (state: any) => {
-        state.isLoading = true;
+        state.isLoadingAccount = true;
         state.error = null;
     },
     [MutationTypes.UPDATE_HOME_JURISDICTION_FAILURE]: (state: any, error: Error) => {
-        state.isLoading = false;
+        state.isLoadingAccount = false;
         state.error = error;
     },
     [MutationTypes.UPDATE_HOME_JURISDICTION_SUCCESS]: (state: any) => {
-        state.isLoading = false;
+        state.isLoadingAccount = false;
         state.error = null;
     }
 };

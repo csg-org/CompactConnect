@@ -46,6 +46,7 @@ class UpdateHomeJurisdiction extends mixins(MixinForm) {
     isModalVisible = false;
     isSuccess = false;
     isError = false;
+    isFormLoading = false;
     errorMessage = '';
     formData: any = {};
 
@@ -58,7 +59,8 @@ class UpdateHomeJurisdiction extends mixins(MixinForm) {
     }
 
     get homeJurisdictionName(): string {
-        const licensee = this.userStore.model?.licensee;
+        const user = this.userStore.model;
+        const licensee = (user && 'licensee' in user) ? user.licensee : undefined;
 
         return licensee?.homeJurisdiction?.name() || '';
     }

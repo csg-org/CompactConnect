@@ -379,7 +379,7 @@ export default {
             const updatedUser = await dataApi.getAuthenticatedLicenseeUser();
 
             await dispatch('setStoreUser', updatedUser);
-            dispatch('updateHomeJurisdictionSuccess', updatedUser);
+            dispatch('updateHomeJurisdictionSuccess');
             return response;
         }).catch((error) => {
             dispatch('updateHomeJurisdictionFailure', error);
