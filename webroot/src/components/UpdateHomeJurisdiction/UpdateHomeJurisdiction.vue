@@ -26,10 +26,10 @@
             :isEnabled="!isFormLoading"
         />
         <Modal
-            v-if="isModalVisible"
+            v-if="isConfirmJurisdictionModalOpen"
             class="home-jurisdiction-modal"
             :class="{ 'is-success': isSuccess }"
-            :title="modalTitle"
+            :title="jurisdictionModalTitle"
             :isErrorModal="isError"
             :showActions="true"
             @keydown.tab="focusTrapJurisdiction($event)"

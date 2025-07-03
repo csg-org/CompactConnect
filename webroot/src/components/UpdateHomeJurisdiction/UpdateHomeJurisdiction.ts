@@ -50,7 +50,6 @@ class UpdateHomeJurisdiction extends mixins(MixinForm) {
     isError = false;
     isFormLoading = false;
     errorMessage = '';
-    formData: any = {};
 
     //
     // Lifecycle
@@ -97,7 +96,7 @@ class UpdateHomeJurisdiction extends mixins(MixinForm) {
         return options;
     }
 
-    get modalTitle(): string {
+    get jurisdictionModalTitle(): string {
         let title = '';
 
         if (!this.isSuccess) {
