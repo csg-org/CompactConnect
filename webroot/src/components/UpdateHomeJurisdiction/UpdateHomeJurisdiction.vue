@@ -41,7 +41,6 @@
                 : ' '"
             :isErrorModal="isError"
             :showActions="true"
-            @keyup.esc="closeModal"
         >
             <template v-slot:content>
                 <template v-if="!isSuccess && !isError">
