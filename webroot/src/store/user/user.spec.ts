@@ -369,6 +369,30 @@ describe('Use Store Mutations', () => {
 
         expect(state.purchase.steps.length).to.equal(2);
     });
+    it('should handle UPDATE_HOME_JURISDICTION_REQUEST', () => {
+        const state: any = {};
+
+        mutations[MutationTypes.UPDATE_HOME_JURISDICTION_REQUEST](state);
+        expect(state.isLoadingAccount).to.equal(true);
+        expect(state.error).to.equal(null);
+    });
+
+    it('should handle UPDATE_HOME_JURISDICTION_FAILURE', () => {
+        const state: any = {};
+        const error = new Error('Test error');
+
+        mutations[MutationTypes.UPDATE_HOME_JURISDICTION_FAILURE](state, error);
+        expect(state.isLoadingAccount).to.equal(false);
+        expect(state.error).to.equal(error);
+    });
+
+    it('should handle UPDATE_HOME_JURISDICTION_SUCCESS', () => {
+        const state: any = {};
+
+        mutations[MutationTypes.UPDATE_HOME_JURISDICTION_SUCCESS](state);
+        expect(state.isLoadingAccount).to.equal(false);
+        expect(state.error).to.equal(null);
+    });
 });
 describe('User Store Actions', async () => {
     it('should successfully start login request', () => {
@@ -844,6 +868,35 @@ describe('User Store Actions', async () => {
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.STORE_UPDATE_CURRENT_COMPACT, compact]);
         expect(dispatch.callCount, 'dispatch').to.equal(1);
         expect([dispatch.firstCall.args[0]]).to.matchPattern(['getCompactStatesRequest']);
+    });
+    it('should successfully start updateHomeJurisdictionRequest', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.stub();
+        const data = { jurisdiction: 'co' };
+
+        dispatch.withArgs('setStoreUser').resolves();
+        dispatch.withArgs('updateHomeJurisdictionSuccess').resolves();
+
+        await actions.updateHomeJurisdictionRequest({ commit, dispatch }, data);
+
+        expect(commit.calledWith(MutationTypes.UPDATE_HOME_JURISDICTION_REQUEST)).to.equal(true);
+        expect(dispatch.calledWith('setStoreUser')).to.equal(true);
+        expect(dispatch.calledWith('updateHomeJurisdictionSuccess')).to.equal(true);
+    });
+
+    it('should successfully start updateHomeJurisdictionSuccess', () => {
+        const commit = sinon.spy();
+
+        actions.updateHomeJurisdictionSuccess({ commit });
+        expect(commit.calledWith(MutationTypes.UPDATE_HOME_JURISDICTION_SUCCESS)).to.equal(true);
+    });
+
+    it('should successfully start updateHomeJurisdictionFailure', () => {
+        const commit = sinon.spy();
+        const error = new Error('Test error');
+
+        actions.updateHomeJurisdictionFailure({ commit }, error);
+        expect(commit.calledWith(MutationTypes.UPDATE_HOME_JURISDICTION_FAILURE, error)).to.equal(true);
     });
 });
 describe('User Store Getters', async () => {

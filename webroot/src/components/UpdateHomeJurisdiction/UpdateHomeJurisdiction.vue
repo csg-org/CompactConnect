@@ -29,18 +29,10 @@
             v-if="isModalVisible"
             class="home-jurisdiction-modal"
             :class="{ 'is-success': isSuccess }"
-            :title="!isSuccess
-                ? (isError
-                    ? $t('common.somethingWentWrong')
-                    : $t('homeJurisdictionChange.modalTitle',
-                        { newState: $tm('common.states')
-                            .find((s) => s.abbrev.toLowerCase() === formData.newHomeJurisdiction.value)?.full
-                            || formData.newHomeJurisdiction.value
-                        })
-                  )
-                : ' '"
+            :title="modalTitle"
             :isErrorModal="isError"
             :showActions="true"
+            @keydown.tab="focusTrapJurisdiction($event)"
         >
             <template v-slot:content>
                 <template v-if="!isSuccess && !isError">
@@ -59,14 +51,16 @@
                 <div v-if="!isSuccess && !isError" class="action-button-row initial-action-buttons">
                     <InputButton
                         :label="$t('common.cancel')"
+                        id="jurisdiction-cancel-btn"
                         class="cancel-btn"
-                        @click="closeModal"
+                        @click="closeConfirmJurisdictionModal"
                     />
                     <InputSubmit
                         :formInput="formData.submit"
                         :label="$t('homeJurisdictionChange.modalConfirm')"
                         :isEnabled="!isFormLoading"
                         class="submit-btn"
+                        id="jurisdiction-submit-btn"
                         @click="submitHomeJurisdictionChange"
                     />
                 </div>
@@ -74,7 +68,7 @@
                     <InputButton
                         :label="$t('common.close')"
                         class="close-btn"
-                        @click="closeModal"
+                        @click="closeConfirmJurisdictionModal"
                     />
                 </div>
             </template>
