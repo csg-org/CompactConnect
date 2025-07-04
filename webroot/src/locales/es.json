@@ -900,6 +900,8 @@
         "modalSubtext": "Cambiar su estado de residencia puede afectar sus privilegios. Si ya tiene una licencia elegible para el compacto en su nuevo estado de residencia, sus privilegios se transferirán. Si no tiene una licencia en su nuevo estado de residencia, o su licencia no es elegible, sus privilegios serán desactivados.",
         "modalConfirm": "Confirmar nuevo estado de residencia",
         "successTitle": "Ha cambiado exitosamente su estado de residencia.",
-        "successSubtext": "Su antiguo estado de residencia y el nuevo serán notificados automáticamente de este cambio."
+        "successSubtext": "Su antiguo estado de residencia y el nuevo serán notificados automáticamente de este cambio.",
+        "eligibleLicenseOption": "{state} (licencia {licenseType} elegible) \u2713",
+        "noEligibleLicenseOption": "{state} (sin licencia elegible)"
     }
 }

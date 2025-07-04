@@ -32,7 +32,9 @@
             :title="jurisdictionModalTitle"
             :isErrorModal="isError"
             :showActions="true"
+            @close-modal="closeConfirmJurisdictionModal"
             @keydown.tab="focusTrapJurisdiction($event)"
+            @keyup.esc="closeConfirmJurisdictionModal"
         >
             <template v-slot:content>
                 <template v-if="!isSuccess && !isError">
@@ -50,17 +52,18 @@
             <template v-slot:actions>
                 <div v-if="!isSuccess && !isError" class="action-button-row initial-action-buttons">
                     <InputButton
-                        :label="$t('common.cancel')"
                         id="jurisdiction-cancel-btn"
                         class="cancel-btn"
-                        @click="closeConfirmJurisdictionModal"
+                        :label="$t('common.cancel')"
+                        :isTransparent="true"
+                        :onClick="closeConfirmJurisdictionModal"
                     />
                     <InputSubmit
+                        id="jurisdiction-submit-btn"
+                        class="submit-btn"
                         :formInput="formData.submit"
                         :label="$t('homeJurisdictionChange.modalConfirm')"
                         :isEnabled="!isFormLoading"
-                        class="submit-btn"
-                        id="jurisdiction-submit-btn"
                         @click="submitHomeJurisdictionChange"
                     />
                 </div>

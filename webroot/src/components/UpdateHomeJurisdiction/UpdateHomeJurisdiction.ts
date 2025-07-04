@@ -13,17 +13,18 @@ import {
 } from 'vue-facing-decorator';
 import { reactive, computed, ComputedRef } from 'vue';
 import { stateList } from '@/app.config';
+import MixinForm from '@components/Forms/_mixins/form.mixin';
 import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import CheckCircleIcon from '@components/Icons/CheckCircle/CheckCircle.vue';
 import Modal from '@components/Modal/Modal.vue';
 import { FormInput } from '@models/FormInput/FormInput.model';
-import Joi from 'joi';
 import { State } from '@models/State/State.model';
 import { LicenseeUser } from '@/models/LicenseeUser/LicenseeUser.model';
+import { License } from '@/models/License/License.model';
 import { Licensee } from '@models/Licensee/Licensee.model';
-import MixinForm from '@components/Forms/_mixins/form.mixin';
+import Joi from 'joi';
 
 interface SelectOption {
     value: string | number;
@@ -73,6 +74,10 @@ class UpdateHomeJurisdiction extends mixins(MixinForm) {
         return this.user?.licensee || new Licensee();
     }
 
+    get purchaseEligibleLicenses(): Array<License> {
+        return this.licensee?.purchaseEligibleLicenses() || [];
+    }
+
     get homeJurisdiction(): State | null {
         return this.licensee?.homeJurisdiction || null;
     }
@@ -82,7 +87,11 @@ class UpdateHomeJurisdiction extends mixins(MixinForm) {
     }
 
     get homeJurisdictionOptions(): Array<SelectOption> {
-        const options = [{ value: '', name: `- ${this.$t('common.select')} -`, isDisabled: true }];
+        const options = [{
+            value: '',
+            name: `- ${this.$t('common.select')} -`,
+            isDisabled: true
+        }];
 
         stateList?.forEach((state) => {
             const stateObject = new State({ abbrev: state });
@@ -90,21 +99,49 @@ class UpdateHomeJurisdiction extends mixins(MixinForm) {
             const name = stateObject?.name();
 
             if (name && value) {
-                options.push({ value, name, isDisabled: false });
+                let label = '';
+                // Find eligible license for this state
+                const eligibleLicense = this.purchaseEligibleLicenses.find(
+                    (license: License) => license.issueState?.abbrev?.toLowerCase() === value
+                );
+
+                if (eligibleLicense) {
+                    const licenseTypeName = (eligibleLicense.licenseType) ? (
+                        eligibleLicense.$tm?.('licensing.licenseTypes')?.find((type: any) =>
+                            type.key === eligibleLicense.licenseType)?.abbrev.toUpperCase()
+                            || eligibleLicense.licenseType
+                    ) : '';
+
+                    label = this.$t('homeJurisdictionChange.eligibleLicenseOption', {
+                        state: name,
+                        licenseType: licenseTypeName
+                    });
+                } else {
+                    label = this.$t('homeJurisdictionChange.noEligibleLicenseOption', {
+                        state: name
+                    });
+                }
+
+                options.push({
+                    value,
+                    name: label,
+                    isDisabled: false
+                });
             }
         });
+
         return options;
     }
 
     get jurisdictionModalTitle(): string {
-        let title = '';
+        let title = ' ';
 
         if (!this.isSuccess) {
             if (this.isError) {
                 title = this.$t('common.somethingWentWrong');
             } else {
-                const newState = this.$tm('common.states')
-                    .find((s) => s.abbrev.toLowerCase() === this.formData.newHomeJurisdiction.value)?.full
+                const newState = this.$tm('common.states').find((state) =>
+                    state.abbrev.toLowerCase() === this.formData.newHomeJurisdiction.value)?.full
                     || this.formData.newHomeJurisdiction.value;
 
                 title = this.$t('homeJurisdictionChange.modalTitle', { newState });
@@ -157,7 +194,7 @@ class UpdateHomeJurisdiction extends mixins(MixinForm) {
     }
 
     async submitHomeJurisdictionChange(): Promise<void> {
-        this.formData.newHomeJurisdiction.validate({ asTouched: true });
+        this.validateAll({ asTouched: true });
 
         if (this.formData.newHomeJurisdiction.isValid) {
             this.isFormLoading = true;
@@ -180,7 +217,6 @@ class UpdateHomeJurisdiction extends mixins(MixinForm) {
     }
 
     focusTrapJurisdiction(event: KeyboardEvent): void {
-        // IDs must match those used in the template
         const firstTabIndex = document.getElementById('jurisdiction-cancel-btn');
         const lastTabIndex = document.getElementById('jurisdiction-submit-btn');
 
@@ -198,9 +234,7 @@ class UpdateHomeJurisdiction extends mixins(MixinForm) {
     }
 
     @Watch('user') onUserChanged() {
-        if (this.formData?.newHomeJurisdiction) {
-            this.formData.newHomeJurisdiction.value = '';
-        }
+        this.initHomeJurisdictionForm();
     }
 }
 
