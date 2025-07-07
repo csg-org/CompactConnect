@@ -330,6 +330,7 @@
             }
         ],
         "stateUnknown": "Desconocido",
+        "stateNotListed": "No listado",
         "communicationPreference": "Preferencias de comunicación",
         "communicationPreferenceOptions": {
             "email": "Correo electrónico",
@@ -902,7 +903,6 @@
         "successTitle": "Ha cambiado exitosamente su estado de residencia.",
         "successSubtext": "Su antiguo estado de residencia y el nuevo serán notificados automáticamente de este cambio.",
         "eligibleLicenseOption": "{state} (licencia {licenseType} elegible) \u2713",
-        "noEligibleLicenseOption": "{state} (sin licencia elegible)",
-        "notListedOption": "No listado"
+        "noEligibleLicenseOption": "{state} (sin licencia elegible)"
     }
 }

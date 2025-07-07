@@ -101,7 +101,7 @@ class UpdateHomeJurisdiction extends mixins(MixinForm) {
             },
             {
                 value: this.otherStateOption,
-                name: `${this.$t('homeJurisdictionChange.notListedOption')}`,
+                name: `${this.$t('common.stateNotListed')}`,
                 isDisabled: false,
             }
         ];
@@ -159,7 +159,7 @@ class UpdateHomeJurisdiction extends mixins(MixinForm) {
         } else if (!this.isSuccess) {
             const selectedState = this.formData.newHomeJurisdiction.value;
 
-            const newState = (selectedState === this.otherStateOption) ? this.$t('homeJurisdictionChange.notListedOption') : new State({ abbrev: selectedState }).name();
+            const newState = (selectedState === this.otherStateOption) ? this.$t('common.stateNotListed') : new State({ abbrev: selectedState }).name();
 
             title = this.$t('homeJurisdictionChange.modalTitle', { newState });
         }
