@@ -99,15 +99,48 @@ class CompactConfigurationClient:
 
     def save_compact_configuration(self, compact_configuration: CompactConfigurationData) -> None:
         """
-        Save the compact configuration.
+        Save the compact configuration, preserving existing fields like paymentProcessorPublicFields.
+        If a record exists, it merges the new values with the existing record to preserve all fields.
 
         :param compact_configuration: The compact configuration data
         """
         logger.info('Saving compact configuration', compactAbbr=compact_configuration.compactAbbr)
 
-        serialized_compact = compact_configuration.serialize_to_database_record()
+        try:
+            existing_compact_config = self.get_compact_configuration(compact_configuration.compactAbbr)
+        except CCNotFoundException:
+            logger.info('Existing compact configuration not found.', compact=compact_configuration.compactAbbr)
+            existing_compact_config = None
 
-        self.config.compact_configuration_table.put_item(Item=serialized_compact)
+        if existing_compact_config:
+            # Record exists - merge with existing data to preserve fields like paymentProcessorPublicFields
+            logger.info('Updating existing compact configuration record', compactAbbr=compact_configuration.compactAbbr)
+
+            # Load the existing record into a data class to get the existing data
+            existing_data = existing_compact_config.to_dict()
+
+            # Get the new data
+            new_data = compact_configuration.to_dict()
+
+            # Merge the data - new values override existing ones, but existing fields not in new_data are preserved
+            merged_data = existing_data.copy()
+            merged_data.update(new_data)
+
+            # Handle the special case where transactionFeeConfiguration should be removed
+            # If the new configuration doesn't have transactionFeeConfiguration, remove it from merged data
+            if 'transactionFeeConfiguration' not in new_data and 'transactionFeeConfiguration' in merged_data:
+                del merged_data['transactionFeeConfiguration']
+
+            # Create a new CompactConfigurationData with the merged data
+            merged_config = CompactConfigurationData.create_new(merged_data)
+            final_serialized = merged_config.serialize_to_database_record()
+        else:
+            # First time creation - use the new data directly
+            logger.info('Creating new compact configuration record', compactAbbr=compact_configuration.compactAbbr)
+            final_serialized = compact_configuration.serialize_to_database_record()
+
+        # Use put_item to save the final record
+        self.config.compact_configuration_table.put_item(Item=final_serialized)
 
     def get_active_compact_jurisdictions(self, compact: str) -> list[dict]:
         """
