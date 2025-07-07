@@ -56,6 +56,7 @@ class UpdateHomeJurisdiction extends mixins(MixinForm) {
     isError = false;
     isFormLoading = false;
     errorMessage = '';
+    otherStateOption = 'other';
 
     //
     // Lifecycle
@@ -92,11 +93,18 @@ class UpdateHomeJurisdiction extends mixins(MixinForm) {
     }
 
     get homeJurisdictionOptions(): Array<SelectOption> {
-        const options = [{
-            value: '',
-            name: `- ${this.$t('common.select')} -`,
-            isDisabled: true
-        }];
+        const options = [
+            {
+                value: '',
+                name: `- ${this.$t('common.select')} -`,
+                isDisabled: true,
+            },
+            {
+                value: this.otherStateOption,
+                name: `${this.$t('homeJurisdictionChange.notListedOption')}`,
+                isDisabled: false,
+            }
+        ];
 
         stateList?.forEach((state) => {
             const stateObject = new State({ abbrev: state });
@@ -111,11 +119,16 @@ class UpdateHomeJurisdiction extends mixins(MixinForm) {
                 );
 
                 if (eligibleLicense) {
-                    const licenseTypeName = (eligibleLicense.licenseType) ? (
-                        eligibleLicense.$tm?.('licensing.licenseTypes')?.find((type: any) =>
-                            type.key === eligibleLicense.licenseType)?.abbrev.toUpperCase()
-                            || eligibleLicense.licenseType
-                    ) : '';
+                    let licenseTypeName = '';
+
+                    if (eligibleLicense.licenseType) {
+                        const licenseTypeKey = eligibleLicense.licenseType;
+                        const licenseTypes = eligibleLicense.$tm?.('licensing.licenseTypes');
+                        const matchedType = licenseTypes?.find((type) => type.key === licenseTypeKey);
+                        const matchedAbbrev = matchedType?.abbrev?.toUpperCase();
+
+                        licenseTypeName = matchedAbbrev || licenseTypeKey;
+                    }
 
                     label = this.$t('homeJurisdictionChange.eligibleLicenseOption', {
                         state: name,
@@ -141,16 +154,14 @@ class UpdateHomeJurisdiction extends mixins(MixinForm) {
     get jurisdictionModalTitle(): string {
         let title = ' ';
 
-        if (!this.isSuccess) {
-            if (this.isError) {
-                title = this.$t('common.somethingWentWrong');
-            } else {
-                const newState = this.$tm('common.states').find((state) =>
-                    state.abbrev.toLowerCase() === this.formData.newHomeJurisdiction.value)?.full
-                    || this.formData.newHomeJurisdiction.value;
+        if (this.isError) {
+            title = this.$t('common.somethingWentWrong');
+        } else if (!this.isSuccess) {
+            const selectedState = this.formData.newHomeJurisdiction.value;
 
-                title = this.$t('homeJurisdictionChange.modalTitle', { newState });
-            }
+            const newState = (selectedState === this.otherStateOption) ? this.$t('homeJurisdictionChange.notListedOption') : new State({ abbrev: selectedState }).name();
+
+            title = this.$t('homeJurisdictionChange.modalTitle', { newState });
         }
 
         return title;
@@ -183,7 +194,7 @@ class UpdateHomeJurisdiction extends mixins(MixinForm) {
         }
     }
 
-    async openConfirmJurisdictionModal() {
+    async openConfirmJurisdictionModal(): Promise<void> {
         this.isConfirmJurisdictionModalOpen = true;
         this.isSuccess = false;
         this.isError = false;
@@ -212,8 +223,10 @@ class UpdateHomeJurisdiction extends mixins(MixinForm) {
                 jurisdiction: newHomeJurisdiction
             };
 
-            await this.$store.dispatch('user/updateHomeJurisdictionRequest', jurisdictionUpdateData).then(() => {
+            await this.$store.dispatch('user/updateHomeJurisdictionRequest', jurisdictionUpdateData).then(async () => {
                 this.isSuccess = true;
+                await nextTick();
+                document.getElementById('jurisdiction-close-btn')?.focus();
             }).catch((err: any) => {
                 this.isError = true;
                 this.errorMessage = err?.message || this.$t('common.tryAgain');
@@ -228,8 +241,10 @@ class UpdateHomeJurisdiction extends mixins(MixinForm) {
 
         if (modal) {
             const focusableSelectors = [
-                'a[href]', 'area[href]', 'input:not([disabled])', 'select:not([disabled])',
-                'textarea:not([disabled])', 'button:not([disabled])', '[tabindex]:not([tabindex="-1"])'
+                'button:not([disabled])',
+                'input[type="button"]:not([disabled])',
+                'input[type="submit"]:not([disabled])',
+                '[tabindex]:not([tabindex="-1"])'
             ];
             const focusableElements = Array.from(
                 modal.querySelectorAll(focusableSelectors.join(','))

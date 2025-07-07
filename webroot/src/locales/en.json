@@ -903,6 +903,7 @@
         "successTitle": "You have successfully changed your home state.",
         "successSubtext": "Your former home state and new home state will be automatically notified of this change.",
         "eligibleLicenseOption": "{state} (eligible {licenseType} license) \u2713",
-        "noEligibleLicenseOption": "{state} (no eligible license)"
+        "noEligibleLicenseOption": "{state} (no eligible license)",
+        "notListedOption": "Not listed"
     }
 }

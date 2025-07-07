@@ -6,25 +6,28 @@
 -->
 
 <template>
-    <form
-        class="home-jurisdiction-change-section"
-        @submit.prevent="handleSubmit"
-        aria-labelledby="home-jurisdiction-change-title"
-    >
-        <h2 class="section-title" id="home-jurisdiction-change-title">{{ $t('homeJurisdictionChange.formTitle') }}</h2>
-        <p class="section-subtext">{{ $t('homeJurisdictionChange.formSubtext') }}</p>
-        <div class="current-home-jurisdiction-container">
-            <div class="input-label">{{ $t('homeJurisdictionChange.currentHomeJurisdictionLabel') }}</div>
-            <div class="current-home-jurisdiction">{{ homeJurisdictionName }}</div>
-        </div>
-        <InputSelect :formInput="formData.newHomeJurisdiction" class="home-jurisdiction-select" />
-        <div class="input-label-subtext">{{ $t('homeJurisdictionChange.inputSubtext') }}</div>
-        <InputSubmit
-            :formInput="formData.submit"
-            class="update-home-jurisdiction-btn"
-            :label="$t('homeJurisdictionChange.updateButton')"
-            :isEnabled="!isFormLoading"
-        />
+    <div class="home-jurisdiction-change-section">
+        <form
+            @submit.prevent="handleSubmit"
+            aria-labelledby="home-jurisdiction-change-title"
+        >
+            <h2 class="section-title" id="home-jurisdiction-change-title">
+                {{ $t('homeJurisdictionChange.formTitle') }}
+            </h2>
+            <p class="section-subtext">{{ $t('homeJurisdictionChange.formSubtext') }}</p>
+            <div class="current-home-jurisdiction-container">
+                <div class="input-label">{{ $t('homeJurisdictionChange.currentHomeJurisdictionLabel') }}</div>
+                <div class="current-home-jurisdiction">{{ homeJurisdictionName }}</div>
+            </div>
+            <InputSelect :formInput="formData.newHomeJurisdiction" class="home-jurisdiction-select" />
+            <div class="input-label-subtext">{{ $t('homeJurisdictionChange.inputSubtext') }}</div>
+            <InputSubmit
+                :formInput="formData.submit"
+                class="update-home-jurisdiction-btn"
+                :label="$t('homeJurisdictionChange.updateButton')"
+                :isEnabled="!isFormLoading"
+            />
+        </form>
         <Modal
             v-if="isConfirmJurisdictionModalOpen"
             id="home-jurisdiction-modal"
@@ -70,14 +73,15 @@
                 </div>
                 <div v-else class="action-button-row">
                     <InputButton
-                        :label="$t('common.close')"
+                        id="jurisdiction-close-btn"
                         class="close-btn"
+                        :label="$t('common.close')"
                         @click="closeConfirmJurisdictionModal"
                     />
                 </div>
             </template>
         </Modal>
-    </form>
+    </div>
 </template>
 
 <script lang="ts" src="./UpdateHomeJurisdiction.ts"></script>
