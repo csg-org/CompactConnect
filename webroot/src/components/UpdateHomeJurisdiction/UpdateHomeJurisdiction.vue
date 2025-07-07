@@ -27,6 +27,7 @@
         />
         <Modal
             v-if="isConfirmJurisdictionModalOpen"
+            id="home-jurisdiction-modal"
             class="home-jurisdiction-modal"
             :class="{ 'is-success': isSuccess }"
             :title="jurisdictionModalTitle"

@@ -11,7 +11,12 @@ import {
     toNative,
     Watch
 } from 'vue-facing-decorator';
-import { reactive, computed, ComputedRef } from 'vue';
+import {
+    reactive,
+    computed,
+    ComputedRef,
+    nextTick
+} from 'vue';
 import { stateList } from '@/app.config';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
@@ -178,11 +183,13 @@ class UpdateHomeJurisdiction extends mixins(MixinForm) {
         }
     }
 
-    openConfirmJurisdictionModal(): void {
+    async openConfirmJurisdictionModal() {
         this.isConfirmJurisdictionModalOpen = true;
         this.isSuccess = false;
         this.isError = false;
         this.errorMessage = '';
+        await nextTick();
+        document.getElementById('jurisdiction-cancel-btn')?.focus();
     }
 
     closeConfirmJurisdictionModal(): void {
@@ -217,19 +224,31 @@ class UpdateHomeJurisdiction extends mixins(MixinForm) {
     }
 
     focusTrapJurisdiction(event: KeyboardEvent): void {
-        const firstTabIndex = document.getElementById('jurisdiction-cancel-btn');
-        const lastTabIndex = document.getElementById('jurisdiction-submit-btn');
+        const modal = document.getElementById('home-jurisdiction-modal');
 
-        if (event.shiftKey) {
-            // shift + tab to last input
-            if (document.activeElement === firstTabIndex) {
-                lastTabIndex?.focus();
-                event.preventDefault();
+        if (modal) {
+            const focusableSelectors = [
+                'a[href]', 'area[href]', 'input:not([disabled])', 'select:not([disabled])',
+                'textarea:not([disabled])', 'button:not([disabled])', '[tabindex]:not([tabindex="-1"])'
+            ];
+            const focusableElements = Array.from(
+                modal.querySelectorAll(focusableSelectors.join(','))
+            ).filter((element) => (element as HTMLElement).offsetParent !== null) as HTMLElement[];
+
+            if (focusableElements.length > 0) {
+                const firstElement = focusableElements[0];
+                const lastElement = focusableElements[focusableElements.length - 1];
+
+                if (event.key === 'Tab') {
+                    if (event.shiftKey && document.activeElement === firstElement) {
+                        lastElement.focus();
+                        event.preventDefault();
+                    } else if (document.activeElement === lastElement) {
+                        firstElement.focus();
+                        event.preventDefault();
+                    }
+                }
             }
-        } else if (document.activeElement === lastTabIndex) {
-            // Tab to first input
-            firstTabIndex?.focus();
-            event.preventDefault();
         }
     }
 
