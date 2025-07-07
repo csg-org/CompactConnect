@@ -89,7 +89,9 @@ class UpdateHomeJurisdiction extends mixins(MixinForm) {
     }
 
     get homeJurisdictionName(): string {
-        return this.homeJurisdiction?.name() || '';
+        return (this.homeJurisdiction?.abbrev?.toLowerCase() === this.otherStateOption)
+            ? this.$t('common.stateNotListed')
+            : this.homeJurisdiction?.name() || '';
     }
 
     get homeJurisdictionOptions(): Array<SelectOption> {
