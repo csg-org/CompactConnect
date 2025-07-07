@@ -700,199 +700,86 @@ describe('EmailNotificationService', () => {
     });
 
     describe('Provider Email Verification Code', () => {
-        it('should send email verification code with expected content', async () => {
+        it('should send email verification code with all expected content', async () => {
+            const verificationCode = '1234';
+            
             await emailService.sendProviderEmailVerificationCode(
                 'aslp',
                 'newuser@example.com',
-                '1234'
+                verificationCode
             );
 
-            expect(mockSESClient).toHaveReceivedCommandWith(
-                SendEmailCommand,
-                {
-                    Destination: {
-                        ToAddresses: ['newuser@example.com']
-                    },
-                    Message: {
-                        Body: {
-                            Html: {
-                                Charset: 'UTF-8',
-                                Data: expect.stringContaining('Please use the following verification code to complete your email address change')
-                            }
-                        },
-                        Subject: {
+            // Check overall email structure and each content piece
+            // Verify email was sent
+            expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
+                Destination: {
+                    ToAddresses: ['newuser@example.com']
+                },
+                Message: {
+                    Body: {
+                        Html: {
                             Charset: 'UTF-8',
-                            Data: 'Verify Your New Email Address - Compact Connect'
+                            Data: expect.any(String)
                         }
                     },
-                    Source: 'Compact Connect <noreply@example.org>'
-                }
-            );
-        });
+                    Subject: {
+                        Charset: 'UTF-8',
+                        Data: 'Verify Your New Email Address - Compact Connect'
+                    }
+                },
+                Source: 'Compact Connect <noreply@example.org>'
+            });
 
-        it('should include expiry warning in verification code email', async () => {
-            await emailService.sendProviderEmailVerificationCode(
-                'aslp',
-                'newuser@example.com',
-                '5678'
-            );
+            // Get the actual HTML content for detailed validation
+            const emailCall = mockSESClient.commandCalls(SendEmailCommand)[0];
+            const htmlContent = emailCall.args[0].input.Message?.Body?.Html?.Data;
 
-            expect(mockSESClient).toHaveReceivedCommandWith(
-                SendEmailCommand,
-                {
-                    Destination: {
-                        ToAddresses: ['newuser@example.com']
-                    },
-                    Message: {
-                        Body: {
-                            Html: {
-                                Charset: 'UTF-8',
-                                Data: expect.stringContaining('This code will expire in 15 minutes.')
-                            }
-                        },
-                        Subject: expect.any(Object)
-                    },
-                    Source: 'Compact Connect <noreply@example.org>'
-                }
-            );
-        });
-
-        it('should include security warning in verification code email', async () => {
-            await emailService.sendProviderEmailVerificationCode(
-                'aslp',
-                'newuser@example.com',
-                '9999'
-            );
-
-            expect(mockSESClient).toHaveReceivedCommandWith(
-                SendEmailCommand,
-                {
-                    Destination: {
-                        ToAddresses: ['newuser@example.com']
-                    },
-                    Message: {
-                        Body: {
-                            Html: {
-                                Charset: 'UTF-8',
-                                Data: expect.stringContaining('If you did not request this email change, please contact support immediately.')
-                            }
-                        },
-                        Subject: expect.any(Object)
-                    },
-                    Source: 'Compact Connect <noreply@example.org>'
-                }
-            );
-        });
-
-        it('should use correct header for verification code email', async () => {
-            await emailService.sendProviderEmailVerificationCode(
-                'aslp',
-                'newuser@example.com',
-                '1111'
-            );
-
-            expect(mockSESClient).toHaveReceivedCommandWith(
-                SendEmailCommand,
-                {
-                    Destination: {
-                        ToAddresses: ['newuser@example.com']
-                    },
-                    Message: {
-                        Body: {
-                            Html: {
-                                Charset: 'UTF-8',
-                                Data: expect.stringContaining('Email Update Verification')
-                            }
-                        },
-                        Subject: expect.any(Object)
-                    },
-                    Source: 'Compact Connect <noreply@example.org>'
-                }
-            );
+            expect(htmlContent).toBeDefined();
+            expect(htmlContent).toContain('Please use the following verification code to complete your email address change');
+            expect(htmlContent).toContain(`<h2>${verificationCode}</h2>`);
+            expect(htmlContent).toContain('This code will expire in 15 minutes');
+            expect(htmlContent).toContain('If you did not request this email change, please contact support immediately');
+            expect(htmlContent).toContain('Email Update Verification');
         });
     });
 
     describe('Provider Email Change Notification', () => {
-
-        it('should include login instruction in email change notification', async () => {
+        it('should send email change notification with all expected content', async () => {
             await emailService.sendProviderEmailChangeNotification(
                 'aslp',
                 'olduser@example.com',
                 'newuser@example.com'
             );
 
-            expect(mockSESClient).toHaveReceivedCommandWith(
-                SendEmailCommand,
-                {
-                    Destination: {
-                        ToAddresses: ['olduser@example.com']
+            // Verify email was sent
+            expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
+                Destination: {
+                    ToAddresses: ['olduser@example.com']
+                },
+                Message: {
+                    Body: {
+                        Html: {
+                            Charset: 'UTF-8',
+                            Data: expect.any(String)
+                        }
                     },
-                    Message: {
-                        Body: {
-                            Html: {
-                                Charset: 'UTF-8',
-                                Data: expect.stringContaining('Please use the new email address to login to your account from now on.')
-                            }
-                        },
-                        Subject: expect.any(Object)
-                    },
-                    Source: 'Compact Connect <noreply@example.org>'
-                }
-            );
-        });
+                    Subject: {
+                        Charset: 'UTF-8',
+                        Data: 'Email Address Changed - Compact Connect'
+                    }
+                },
+                Source: 'Compact Connect <noreply@example.org>'
+            });
 
-        it('should include security warning in email change notification', async () => {
-            await emailService.sendProviderEmailChangeNotification(
-                'aslp',
-                'olduser@example.com',
-                'newuser@example.com'
-            );
+            // Get the actual HTML content for detailed validation
+            const emailCall = mockSESClient.commandCalls(SendEmailCommand)[0];
+            const htmlContent = emailCall.args[0].input.Message?.Body?.Html?.Data;
 
-            expect(mockSESClient).toHaveReceivedCommandWith(
-                SendEmailCommand,
-                {
-                    Destination: {
-                        ToAddresses: ['olduser@example.com']
-                    },
-                    Message: {
-                        Body: {
-                            Html: {
-                                Charset: 'UTF-8',
-                                Data: expect.stringContaining('If you did not make this change, please contact support immediately.')
-                            }
-                        },
-                        Subject: expect.any(Object)
-                    },
-                    Source: 'Compact Connect <noreply@example.org>'
-                }
-            );
-        });
-
-        it('should use correct header for email change notification', async () => {
-            await emailService.sendProviderEmailChangeNotification(
-                'aslp',
-                'olduser@example.com',
-                'newuser@example.com'
-            );
-
-            expect(mockSESClient).toHaveReceivedCommandWith(
-                SendEmailCommand,
-                {
-                    Destination: {
-                        ToAddresses: ['olduser@example.com']
-                    },
-                    Message: {
-                        Body: {
-                            Html: {
-                                Charset: 'UTF-8',
-                                Data: expect.stringContaining('Email Address Changed')
-                            }
-                        },
-                        Subject: expect.any(Object)
-                    },
-                    Source: 'Compact Connect <noreply@example.org>'
-                }
-            );
+            expect(htmlContent).toBeDefined();
+            expect(htmlContent).toContain('Please use the new email address to login to your account from now on.');
+            expect(htmlContent).toContain('If you did not make this change, please contact support immediately.');
+            expect(htmlContent).toContain('Email Address Changed');
+            expect(htmlContent).toContain('newuser@example.com');
         });
     });
 });
