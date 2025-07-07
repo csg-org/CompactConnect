@@ -123,8 +123,8 @@ class UpdateHomeJurisdiction extends mixins(MixinForm) {
 
                     if (eligibleLicense.licenseType) {
                         const licenseTypeKey = eligibleLicense.licenseType;
-                        const licenseTypes = eligibleLicense.$tm?.('licensing.licenseTypes');
-                        const matchedType = licenseTypes?.find((type) => type.key === licenseTypeKey);
+                        const licenseTypes = eligibleLicense.$tm?.('licensing.licenseTypes') || [];
+                        const matchedType = licenseTypes.find((type) => type.key === licenseTypeKey);
                         const matchedAbbrev = matchedType?.abbrev?.toUpperCase();
 
                         licenseTypeName = matchedAbbrev || licenseTypeKey;
