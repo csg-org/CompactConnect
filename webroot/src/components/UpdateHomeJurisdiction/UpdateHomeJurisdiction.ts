@@ -237,31 +237,24 @@ class UpdateHomeJurisdiction extends mixins(MixinForm) {
     }
 
     focusTrapJurisdiction(event: KeyboardEvent): void {
-        const modal = document.getElementById('home-jurisdiction-modal');
+        const firstTabIndex = document.getElementById('jurisdiction-cancel-btn');
+        const lastTabIndex = document.getElementById('jurisdiction-submit-btn');
 
-        if (modal) {
-            const focusableSelectors = [
-                'button:not([disabled])',
-                'input[type="button"]:not([disabled])',
-                'input[type="submit"]:not([disabled])',
-                '[tabindex]:not([tabindex="-1"])'
-            ];
-            const focusableElements = Array.from(
-                modal.querySelectorAll(focusableSelectors.join(','))
-            ).filter((element) => (element as HTMLElement).offsetParent !== null) as HTMLElement[];
-
-            if (focusableElements.length > 0) {
-                const firstElement = focusableElements[0];
-                const lastElement = focusableElements[focusableElements.length - 1];
-
-                if (event.key === 'Tab') {
-                    if (event.shiftKey && document.activeElement === firstElement) {
-                        lastElement.focus();
-                        event.preventDefault();
-                    } else if (document.activeElement === lastElement) {
-                        firstElement.focus();
-                        event.preventDefault();
-                    }
+        if (event.key === 'Tab') {
+            if (firstTabIndex && lastTabIndex) {
+                // If Shift+Tab on first, cycle to last
+                if (event.shiftKey && document.activeElement === firstTabIndex) {
+                    lastTabIndex.focus();
+                    event.preventDefault();
+                } else if (!event.shiftKey && document.activeElement === lastTabIndex) {
+                    firstTabIndex.focus();
+                    event.preventDefault();
+                } else if (
+                    document.activeElement !== firstTabIndex
+                    && document.activeElement !== lastTabIndex
+                ) {
+                    firstTabIndex.focus();
+                    event.preventDefault();
                 }
             }
         }
