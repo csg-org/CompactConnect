@@ -40,16 +40,16 @@ export class State implements InterfaceStateCreate {
     // Helper methods
     public name(): string {
         let stateName = '';
-        const abbreviated = this.abbrev || '';
+        const abbrev = this.abbrev || '';
 
-        if (abbreviated.toLowerCase() === 'other') {
+        if (abbrev.toLowerCase() === 'other') {
             stateName = this.$t('common.stateNotListed');
         } else {
-            const abbreviatedUpper = abbreviated.toUpperCase() || '';
+            const abbrevUpper = abbrev.toUpperCase() || '';
             const states = this.$tm('common.states') || [];
-            const state = states.find((st) => st.abbrev === abbreviatedUpper);
+            const stateFound = states.find((state) => state.abbrev === abbrevUpper);
 
-            stateName = state?.full || this.$t('common.stateUnknown');
+            stateName = stateFound?.full || this.$t('common.stateUnknown');
         }
 
         return stateName;
