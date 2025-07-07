@@ -132,5 +132,5 @@ class CompactConfigurationData(CCDataClass):
         return self._data.get('licenseeRegistrationEnabled', False)
 
     @property
-    def paymentProcessorPublicFields(self) -> dict:
+    def paymentProcessorPublicFields(self) -> dict | None:
         return self._data.get('paymentProcessorPublicFields')
