@@ -234,7 +234,7 @@ class CompactConfigurationClient:
             current_configured_states = compact_config.configuredStates.copy()
 
             # Check if jurisdiction is already in configuredStates
-            existing_postal_abbrs = {state['postalAbbreviation'] for state in current_configured_states}
+            existing_postal_abbrs = {state['postalAbbreviation'].lower() for state in current_configured_states}
             jurisdiction_postal = jurisdiction_config.postalAbbreviation.lower()
 
             if jurisdiction_postal not in existing_postal_abbrs:
