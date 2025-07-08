@@ -65,17 +65,18 @@
                     <InputSubmit
                         id="jurisdiction-submit-btn"
                         class="submit-btn"
-                        :formInput="formData.submit"
+                        :formInput="formData.confirm"
                         :label="$t('homeJurisdictionChange.modalConfirm')"
                         :isEnabled="!isFormLoading"
                         @click="submitHomeJurisdictionChange"
                     />
                 </div>
                 <div v-else class="action-button-row">
-                    <InputButton
-                        id="jurisdiction-close-btn"
+                    <InputSubmit
                         class="close-btn"
+                        :formInput="formData.close"
                         :label="$t('common.close')"
+                        :isEnabled="!isFormLoading && isSuccess"
                         @click="closeConfirmJurisdictionModal"
                     />
                 </div>

@@ -20,7 +20,7 @@
                     role="dialog"
                 >
                     <div class="header-container">
-                        <h1 class="modal-title">{{ displayTitle }}</h1>
+                        <h1 v-if="title" class="modal-title">{{ displayTitle }}</h1>
                         <InputButton
                             label="X"
                             v-if="hasCloseIcon"

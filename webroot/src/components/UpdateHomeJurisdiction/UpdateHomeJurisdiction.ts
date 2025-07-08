@@ -154,7 +154,7 @@ class UpdateHomeJurisdiction extends mixins(MixinForm) {
     }
 
     get jurisdictionModalTitle(): string {
-        let title = ' ';
+        let title = '';
 
         if (this.isError) {
             title = this.$t('common.somethingWentWrong');
@@ -184,6 +184,14 @@ class UpdateHomeJurisdiction extends mixins(MixinForm) {
             submit: new FormInput({
                 isSubmitInput: true,
                 id: 'submit-home-jurisdiction',
+            }),
+            confirm: new FormInput({
+                isSubmitInput: true,
+                id: 'confirm-home-jurisdiction',
+            }),
+            close: new FormInput({
+                isSubmitInput: true,
+                id: 'jurisdiction-close-btn',
             })
         });
     }
@@ -227,14 +235,14 @@ class UpdateHomeJurisdiction extends mixins(MixinForm) {
 
             await this.$store.dispatch('user/updateHomeJurisdictionRequest', jurisdictionUpdateData).then(async () => {
                 this.isSuccess = true;
+                this.isFormLoading = false;
                 await nextTick();
                 document.getElementById('jurisdiction-close-btn')?.focus();
             }).catch((err: any) => {
                 this.isError = true;
                 this.errorMessage = err?.message || this.$t('common.tryAgain');
+                this.isFormLoading = false;
             });
-
-            this.isFormLoading = false;
         }
     }
 
