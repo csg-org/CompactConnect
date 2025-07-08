@@ -222,6 +222,7 @@ class TestStaffUsersCompactConfiguration(TstFunction):
                 'compactOperationsTeamEmails': compact_config.compactOperationsTeamEmails,
                 'compactAdverseActionsNotificationEmails': compact_config.compactAdverseActionsNotificationEmails,
                 'compactSummaryReportNotificationEmails': compact_config.compactSummaryReportNotificationEmails,
+                'configuredStates': compact_config.configuredStates,
                 'transactionFeeConfiguration': compact_config.transactionFeeConfiguration
                 if not transaction_fee_zero
                 else {
