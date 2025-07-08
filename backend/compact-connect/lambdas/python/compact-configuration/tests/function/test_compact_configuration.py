@@ -1,8 +1,11 @@
 # ruff: noqa: E501 line-too-long
 import json
+from datetime import datetime
 from decimal import Decimal
+from unittest.mock import patch
 
 from cc_common.exceptions import CCInternalException
+from common_test.test_constants import DEFAULT_DATE_OF_UPDATE_TIMESTAMP
 from moto import mock_aws
 
 from . import TstFunction
@@ -111,6 +114,7 @@ class TestGetStaffUsersCompactJurisdictions(TstFunction):
 
 
 @mock_aws
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP))
 class TestGetPublicCompactJurisdictions(TstFunction):
     """Test suite for get compact jurisdiction endpoints."""
 
@@ -186,6 +190,7 @@ class TestGetPublicCompactJurisdictions(TstFunction):
 
 
 @mock_aws
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP))
 class TestStaffUsersCompactConfiguration(TstFunction):
     """Test suite for managing compact configurations."""
 
@@ -385,7 +390,12 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         stored_compact_data = CompactConfigurationData.from_database_record(response['Item'])
         # the compact_config variable has the 'paymentProcessorPublicFields' field, which we expect to also be
         # present in the stored_compact_data
-        self.assertEqual(compact_config.to_dict(), stored_compact_data.to_dict())
+        self.assertEqual(
+            compact_config.to_dict(),
+            stored_compact_data.to_dict(),
+            msg=f'expected config and actual do not match. Expected\n {compact_config.to_dict()}\n'
+            f'actual:\n {stored_compact_data.to_dict()}',
+        )
 
     def test_put_compact_configuration_removes_transaction_fee_when_zero(self):
         """Test that when a transaction fee of 0 is provided, the transaction fee configuration is removed."""
@@ -626,6 +636,7 @@ TEST_MILITARY_RATE = Decimal('40.00')
 
 
 @mock_aws
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP))
 class TestStaffUsersJurisdictionConfiguration(TstFunction):
     """Test suite for managing jurisdiction configurations."""
 
