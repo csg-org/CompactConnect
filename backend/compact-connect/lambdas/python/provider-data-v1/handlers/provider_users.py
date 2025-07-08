@@ -209,6 +209,15 @@ def _patch_provider_military_affiliation(event, context):  # noqa: ARG001 unused
     return {'message': 'Military affiliation updated successfully'}
 
 
+def _get_cognito_user_if_exists(email: str) -> dict | None:
+    try:
+        return config.cognito_client.admin_get_user(UserPoolId=config.provider_user_pool_id, Username=email)
+    except ClientError as e:
+        if e.response['Error']['Code'] == 'UserNotFoundException':
+            return None
+        raise
+
+
 def _patch_provider_email(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """
     Handle the PATCH method for updating a provider's email address.
@@ -233,21 +242,19 @@ def _patch_provider_email(event: dict, context: LambdaContext):  # noqa: ARG001 
 
     # Check if the new email is already in use in Cognito
     try:
-        config.cognito_client.admin_get_user(UserPoolId=config.provider_user_pool_id, Username=new_email_address)
-        # If we get here, the email is already in use
-        logger.warning('Email address already in use', compact=compact, provider_id=provider_id)
-        raise CCInvalidRequestException('Email address is already in use')
+        user = _get_cognito_user_if_exists(new_email_address)
+        # if the user was found, the email address is already in use
+        if user:
+            logger.warning('Email address already in use', compact=compact, provider_id=provider_id)
+            raise CCInvalidRequestException('Email address is already in use')
     except ClientError as e:
-        if e.response['Error']['Code'] != 'UserNotFoundException':
-            # Unexpected error
-            logger.error(
-                'Error checking email uniqueness in Cognito',
-                compact=compact,
-                provider_id=provider_id,
-                error=str(e),
-            )
-            raise CCInternalException('Unable to verify email uniqueness') from e
-        # UserNotFoundException is expected - email is not in use, which is what we want
+        logger.error(
+            'Error checking email uniqueness in Cognito',
+            compact=compact,
+            provider_id=provider_id,
+            error=str(e),
+        )
+        raise CCInternalException('Unable to verify email uniqueness') from e
 
     # Generate a 4-digit verification code string
     verification_code = f'{secrets.randbelow(9000) + 1000}'

@@ -71,24 +71,27 @@ def test_practitioner_email_update():
 
     # Step 3.5: Test invalid verification code (wrong code but correct format)
     logger.info('Testing invalid verification code with correct format')
-    
+
     invalid_verify_response = requests.post(
         url=f'{config.api_base_url}/v1/provider-users/me/email/verify',
         headers=headers,
         json={'verificationCode': '9999'},  # Wrong code but valid format
         timeout=10,
     )
-    
+
     if invalid_verify_response.status_code != 400:
-        raise SmokeTestFailureException(f'Expected 400 for invalid verification code, got {invalid_verify_response.status_code}')
-    
+        raise SmokeTestFailureException(
+            f'Expected 400 for invalid verification code, got {invalid_verify_response.status_code}'
+        )
+
     invalid_response_body = invalid_verify_response.json()
     expected_invalid_message = 'Invalid verification code.'
     if invalid_response_body.get('message') != expected_invalid_message:
         raise SmokeTestFailureException(
-            f'Unexpected error message for invalid code. Expected: "{expected_invalid_message}", Got: "{invalid_response_body.get("message")}"'
+            f'Unexpected error message for invalid code. Expected: "{expected_invalid_message}", '
+            f'Got: "{invalid_response_body.get("message")}"'
         )
-    
+
     logger.info('Invalid verification code test passed')
 
     # Step 4: Ask developer for verification code from email
