@@ -220,7 +220,9 @@ class StateSettingsConfig extends mixins(MixinForm) {
                     const name = privilegeFee.name ?? '';
                     const capitalized = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
 
-                    return `${capitalized} ${this.$t('compact.fee')}`;
+                    return (name)
+                        ? `${capitalized} ${this.$t('compact.fee')}`
+                        : this.$t('compact.fee');
                 }),
                 validation: Joi.number().required().min(0).messages(this.joiMessages.currency),
                 value: privilegeFee.amount,
