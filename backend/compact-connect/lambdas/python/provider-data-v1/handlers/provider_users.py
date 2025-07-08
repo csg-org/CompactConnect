@@ -1,7 +1,10 @@
 import json
+import secrets
 import uuid
+from datetime import timedelta
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
+from botocore.exceptions import ClientError
 from cc_common.config import config, logger
 from cc_common.data_model.schema.fields import OTHER_JURISDICTION
 from cc_common.data_model.schema.military_affiliation.api import PostMilitaryAffiliationResponseSchema
@@ -11,8 +14,13 @@ from cc_common.data_model.schema.military_affiliation.common import (
     MilitaryAffiliationType,
 )
 from cc_common.data_model.schema.military_affiliation.record import MilitaryAffiliationRecordSchema
+from cc_common.data_model.schema.provider.api import (
+    ProviderEmailUpdateRequestSchema,
+    ProviderEmailVerificationRequestSchema,
+)
 from cc_common.exceptions import CCInternalException, CCInvalidRequestException, CCNotFoundException
 from cc_common.utils import api_handler
+from marshmallow import ValidationError
 
 from . import get_provider_information
 
@@ -41,6 +49,10 @@ def provider_users_api_handler(event: dict, context: LambdaContext):
             return _patch_provider_military_affiliation(event, context)
         case ('PUT', '/v1/provider-users/me/home-jurisdiction'):
             return _put_provider_home_jurisdiction(event, context)
+        case ('PATCH', '/v1/provider-users/me/email'):
+            return _patch_provider_email(event, context)
+        case ('POST', '/v1/provider-users/me/email/verify'):
+            return _post_provider_email_verify(event, context)
 
     # If we get here, the method/resource combination is not supported
     raise CCInvalidRequestException(f'Unsupported method or resource: {http_method} {resource_path}')
@@ -195,3 +207,258 @@ def _patch_provider_military_affiliation(event, context):  # noqa: ARG001 unused
     config.data_client.inactivate_military_affiliation_status(compact=compact, provider_id=provider_id)
 
     return {'message': 'Military affiliation updated successfully'}
+
+
+def _get_cognito_user_if_exists(email: str) -> dict | None:
+    try:
+        return config.cognito_client.admin_get_user(UserPoolId=config.provider_user_pool_id, Username=email)
+    except ClientError as e:
+        if e.response['Error']['Code'] == 'UserNotFoundException':
+            return None
+        raise
+
+
+def _patch_provider_email(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
+    """
+    Handle the PATCH method for updating a provider's email address.
+    Initiates the email verification process by generating a verification code and sending it to the new email.
+
+    :param event: API Gateway event
+    :param context: Lambda context
+    :return: Success message
+    """
+    compact, provider_id = _check_provider_user_attributes(event)
+
+    # Parse and validate the request body
+    try:
+        event_body = json.loads(event['body'])
+        validated_data = ProviderEmailUpdateRequestSchema().load(event_body)
+        new_email_address = validated_data['newEmailAddress']
+    except (json.JSONDecodeError, ValidationError) as e:
+        logger.warning('Invalid request body for email update', error=str(e))
+        raise CCInvalidRequestException('Invalid email address format') from e
+
+    logger.info('Handling request to update provider email address', compact=compact, provider_id=provider_id)
+
+    # Check if the new email is already in use in Cognito
+    try:
+        user = _get_cognito_user_if_exists(new_email_address)
+        # if the user was found, the email address is already in use
+        if user:
+            logger.warning('Email address already in use', compact=compact, provider_id=provider_id)
+            raise CCInvalidRequestException('Email address is already in use')
+    except ClientError as e:
+        logger.error(
+            'Error checking email uniqueness in Cognito',
+            compact=compact,
+            provider_id=provider_id,
+            error=str(e),
+        )
+        raise CCInternalException('Unable to verify email uniqueness') from e
+
+    # Generate a 4-digit verification code string
+    verification_code = f'{secrets.randbelow(9000) + 1000}'
+
+    # Set expiry time (15 minutes from now)
+    expiry_time = config.current_standard_datetime + timedelta(minutes=15)
+
+    try:
+        # Store verification data on the provider record
+        config.data_client.update_provider_email_verification_data(
+            compact=compact,
+            provider_id=provider_id,
+            pending_email_address=new_email_address,
+            verification_code=verification_code,
+            verification_expiry=expiry_time,
+        )
+
+        # Send verification email
+        config.email_service_client.send_provider_email_verification_code(
+            compact=compact,
+            provider_email=new_email_address,
+            verification_code=verification_code,
+        )
+
+        logger.info('Email verification code sent successfully', compact=compact, provider_id=provider_id)
+
+        return {'message': 'Verification code sent to new email address'}
+
+    except Exception as e:
+        logger.error(
+            'Failed to initiate email verification process',
+            compact=compact,
+            provider_id=provider_id,
+            error=str(e),
+        )
+
+        raise CCInternalException('Failed to initiate email verification process') from e
+
+
+def _post_provider_email_verify(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
+    """
+    Handle the POST method for verifying a provider's email address change.
+    Validates the verification code and completes the email update process.
+
+    :param event: API Gateway event
+    :param context: Lambda context
+    :return: Success message
+    """
+    compact, provider_id = _check_provider_user_attributes(event)
+
+    # Parse and validate the request body
+    try:
+        event_body = json.loads(event['body'])
+        validated_data = ProviderEmailVerificationRequestSchema().load(event_body)
+        verification_code = validated_data['verificationCode']
+    except (json.JSONDecodeError, ValidationError) as e:
+        logger.warning('Invalid request body for email verification', error=str(e))
+        raise CCInvalidRequestException('Invalid request format') from e
+
+    logger.info('Handling request to verify provider email address', compact=compact, provider_id=provider_id)
+
+    try:
+        # Get current provider data to check verification state
+        provider_data = config.data_client.get_provider_top_level_record(compact=compact, provider_id=provider_id)
+
+        if not provider_data.pendingEmailAddress:
+            raise CCInvalidRequestException(
+                'No email verification in progress. Please submit a new email address first.'
+            )
+
+        # Check if verification code has expired
+        if (
+            not provider_data.emailVerificationExpiry
+            or config.current_standard_datetime > provider_data.emailVerificationExpiry
+        ):
+            logger.warning(
+                'Email verification code has expired',
+                compact=compact,
+                provider_id=provider_id,
+            )
+            # Clear expired verification data
+            config.data_client.clear_provider_email_verification_data(
+                compact=compact,
+                provider_id=provider_id,
+            )
+            raise CCInvalidRequestException(
+                'Verification code has expired. Please submit another email update request.'
+            )
+
+        # Verify the code matches
+        if verification_code != provider_data.emailVerificationCode:
+            logger.warning(
+                'Invalid verification code provided',
+                compact=compact,
+                provider_id=provider_id,
+            )
+            raise CCInvalidRequestException('Invalid verification code.')
+
+        # Get the current email for notification purposes
+        current_email = provider_data.compactConnectRegisteredEmailAddress
+        new_email = provider_data.pendingEmailAddress
+
+        # Update email in Cognito
+        try:
+            config.cognito_client.admin_update_user_attributes(
+                UserPoolId=config.provider_user_pool_id,
+                Username=current_email,  # Current username (email)
+                UserAttributes=[
+                    {'Name': 'email', 'Value': new_email},
+                    {'Name': 'email_verified', 'Value': 'true'},
+                ],
+            )
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'AliasExistsException':
+                # Another user was created with this email between verification start and finish
+                logger.warning(
+                    'Email address became unavailable during verification process',
+                    compact=compact,
+                    provider_id=provider_id,
+                    new_email=new_email,
+                )
+                # Clear the verification data since the email is no longer available
+                config.data_client.clear_provider_email_verification_data(
+                    compact=compact,
+                    provider_id=provider_id,
+                )
+                raise CCInvalidRequestException(
+                    'Email address is no longer available. Please try again with a different email address.'
+                ) from e
+            # Re-raise other Cognito errors
+            raise
+
+        # Update the provider record with new email and clear verification data
+        try:
+            config.data_client.complete_provider_email_update(
+                compact=compact,
+                provider_id=provider_id,
+                new_email_address=new_email,
+            )
+        except Exception as dynamo_error:
+            # If DynamoDB update fails, we need to roll back the Cognito change
+            logger.error(
+                'DynamoDB update failed after Cognito update succeeded, rolling back Cognito changes',
+                compact=compact,
+                provider_id=provider_id,
+                error=str(dynamo_error),
+            )
+            try:
+                # Roll back the Cognito email change
+                config.cognito_client.admin_update_user_attributes(
+                    UserPoolId=config.provider_user_pool_id,
+                    Username=new_email,  # Current username is now the new email
+                    UserAttributes=[
+                        {'Name': 'email', 'Value': current_email},
+                        {'Name': 'email_verified', 'Value': 'true'},
+                    ],
+                )
+                logger.info(
+                    'Successfully rolled back Cognito email change',
+                    compact=compact,
+                    provider_id=provider_id,
+                )
+            except ClientError as rollback_error:
+                logger.error(
+                    'Failed to roll back Cognito email change - user may be in inconsistent state',
+                    compact=compact,
+                    provider_id=provider_id,
+                    original_error=str(dynamo_error),
+                    rollback_error=str(rollback_error.response),
+                )
+
+            # Raise internal exception to trigger alert
+            raise CCInternalException(
+                'Failed to complete email update - system may be in inconsistent state'
+            ) from dynamo_error
+
+        # Send notification to old email address
+        try:
+            config.email_service_client.send_provider_email_change_notification(
+                compact=compact,
+                old_email_address=current_email,
+                new_email_address=new_email,
+            )
+            logger.info('Email address updated successfully', compact=compact, provider_id=provider_id)
+        except Exception as e:  # noqa BLE001
+            # Don't fail the whole operation if notification fails
+            # log the error and continue
+            logger.error(
+                'Failed to send email change notification to old address',
+                compact=compact,
+                provider_id=provider_id,
+                error=str(e),
+            )
+
+        return {'message': 'Email address updated successfully'}
+
+    except CCInvalidRequestException:
+        # Re-raise validation errors as-is
+        raise
+    except Exception as e:
+        logger.error(
+            'Failed to verify email address',
+            compact=compact,
+            provider_id=provider_id,
+            error=str(e),
+        )
+        raise CCInternalException('Failed to complete email update. Please try again later.') from e
