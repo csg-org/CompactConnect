@@ -248,7 +248,7 @@ class UpdateHomeJurisdiction extends mixins(MixinForm) {
 
     focusTrapJurisdiction(event: KeyboardEvent): void {
         const firstTabIndex = document.getElementById('jurisdiction-cancel-btn');
-        const lastTabIndex = document.getElementById('jurisdiction-submit-btn');
+        const lastTabIndex = document.getElementById('confirm-home-jurisdiction');
 
         if (event.key === 'Tab') {
             if (firstTabIndex && lastTabIndex) {

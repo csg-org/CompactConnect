@@ -63,7 +63,6 @@
                         :onClick="closeConfirmJurisdictionModal"
                     />
                     <InputSubmit
-                        id="jurisdiction-submit-btn"
                         class="submit-btn"
                         :formInput="formData.confirm"
                         :label="$t('homeJurisdictionChange.modalConfirm')"
