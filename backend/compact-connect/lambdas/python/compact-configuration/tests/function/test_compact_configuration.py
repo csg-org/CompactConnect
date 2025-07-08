@@ -4,6 +4,7 @@ from decimal import Decimal
 
 from moto import mock_aws
 
+from cc_common.exceptions import CCInternalException
 from . import TstFunction
 
 STAFF_USERS_COMPACT_JURISDICTION_ENDPOINT_RESOURCE = '/v1/compacts/{compact}/jurisdictions'
@@ -976,6 +977,21 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
         self.assertEqual(len(configured_states), 1)
         self.assertEqual(configured_states[0]['postalAbbreviation'], jurisdiction_config.postalAbbreviation)
         self.assertFalse(configured_states[0]['isLive'])
+
+    def test_put_jurisdiction_configuration_raises_exception_if_compact_configuration_not_found(self):
+        """Test the unlikely but possible scenario that a state sets its status to live
+        and the compact config can't be found."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        # Create a jurisdiction configuration with licenseeRegistrationEnabled=True, without a compact config
+        event, jurisdiction_config = self._when_testing_put_jurisdiction_configuration()
+        body = json.loads(event['body'])
+        body['licenseeRegistrationEnabled'] = True
+        event['body'] = json.dumps(body)
+
+        # In this case, we raise an exception to fire an alert since the compact config should be present
+        with self.assertRaises(CCInternalException):
+            compact_configuration_api_handler(event, self.mock_context)
 
     def test_put_jurisdiction_configuration_does_not_add_duplicate_state_to_configured_states(self):
         """Test that a state is not added to configuredStates if it already exists."""

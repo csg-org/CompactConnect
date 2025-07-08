@@ -8,7 +8,7 @@ from cc_common.data_model.schema.compact.record import CompactRecordSchema
 from cc_common.data_model.schema.jurisdiction import JurisdictionConfigurationData
 from cc_common.data_model.schema.jurisdiction.common import JURISDICTION_TYPE
 from cc_common.data_model.schema.jurisdiction.record import JurisdictionRecordSchema
-from cc_common.exceptions import CCNotFoundException
+from cc_common.exceptions import CCNotFoundException, CCInternalException
 from cc_common.utils import logger_inject_kwargs
 
 
@@ -267,14 +267,18 @@ class CompactConfigurationClient:
                     jurisdiction=jurisdiction_config.postalAbbreviation,
                 )
 
-        except CCNotFoundException:
-            # This is possible if jurisdiction admins submit state config before compact admins
-            # log the warning and continue
-            logger.warning(
-                'Compact configuration not found when trying to ensure jurisdiction in configuredStates',
+        except CCNotFoundException as e:
+            # This is unlikely, but possible if jurisdiction admins submit state config before compact admins have
+            # submitted their own configurations for the first time
+            # After the initial onboarding phase, if this occurs it is more likely the result of an error that needs
+            # to be investigated, so we raise an exception here
+            message = 'Compact configuration not found when trying to ensure jurisdiction in configuredStates'
+            logger.error(
+                message,
                 compact=jurisdiction_config.compact,
                 jurisdiction=jurisdiction_config.postalAbbreviation,
             )
+            raise CCInternalException(message) from e
 
     @logger_inject_kwargs(logger, 'compact')
     def get_privilege_purchase_options(self, *, compact: str):
