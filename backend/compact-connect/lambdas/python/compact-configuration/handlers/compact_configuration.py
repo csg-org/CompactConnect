@@ -186,21 +186,44 @@ def _put_compact_configuration(event: dict, context: LambdaContext):  # noqa: AR
         validated_data['compactName'] = compact_name
 
         # Check if licenseeRegistrationEnabled is being changed from true to false
-        if validated_data.get('licenseeRegistrationEnabled') is False:
-            try:
-                existing_config = config.compact_configuration_client.get_compact_configuration(compact=compact)
-                if existing_config.licenseeRegistrationEnabled is True:
-                    logger.info(
-                        'attempt to disable licensee registration after it was enabled.',
-                        compact=compact,
-                        submitting_user_id=submitting_user_id,
-                    )
-                    raise CCInvalidRequestException(
-                        'Once licensee registration has been enabled, it cannot be disabled.'
-                    )
-            except CCNotFoundException:
-                # No existing configuration, so this is the first time setting this field
-                logger.info('No existing configuration, so this is the first time setting this field', compact=compact)
+        try:
+            existing_config = config.compact_configuration_client.get_compact_configuration(compact=compact)
+            if (
+                existing_config.licenseeRegistrationEnabled is True
+                and validated_data.get('licenseeRegistrationEnabled') is False
+            ):
+                logger.info(
+                    'attempt to disable licensee registration after it was enabled.',
+                    compact=compact,
+                    submitting_user_id=submitting_user_id,
+                )
+                raise CCInvalidRequestException('Once licensee registration has been enabled, it cannot be disabled.')
+            if (
+                validated_data.get('licenseeRegistrationEnabled') is True
+                and not existing_config.paymentProcessorPublicFields
+            ):
+                logger.info(
+                    'licensee registration set to live without payment processor credentials.',
+                    compact=compact,
+                    submitting_user_id=submitting_user_id,
+                )
+                raise CCInvalidRequestException(
+                    'Authorize.net credentials not configured for compact. '
+                    'Please upload valid Authorize.net credentials.'
+                )
+        except CCNotFoundException as e:
+            # No existing configuration, so this is the first time setting this field
+            logger.info('No existing configuration, so this is the first time setting this field', compact=compact)
+            if validated_data.get('licenseeRegistrationEnabled') is True:
+                logger.info(
+                    'attempt to enable licensee registration without existing configuration.',
+                    compact=compact,
+                    submitting_user_id=submitting_user_id,
+                )
+                raise CCInvalidRequestException(
+                    'Authorize.net credentials need to be uploaded before the compact can be marked as live. '
+                    'Please submit all configuration values before setting the compact as live.'
+                ) from e
 
         # Handle special case for transaction fee of 0
         if validated_data.get('transactionFeeConfiguration', {}).get('licenseeCharges', {}).get('chargeAmount') == 0:
