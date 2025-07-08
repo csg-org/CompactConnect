@@ -172,6 +172,7 @@ class TestProviderRegistration(TstFunction):
     def test_registration_returns_400_if_jurisdiction_configuration_not_present(self, mock_verify_recaptcha):
         mock_verify_recaptcha.return_value = True
         from handlers.registration import register_provider
+
         # in this case, Ohio state admins have not specified their configuration values yet, so registration cannot
         # be completed
         response = register_provider(self._get_test_event(body_overrides={'jurisdiction': 'oh'}), self.mock_context)

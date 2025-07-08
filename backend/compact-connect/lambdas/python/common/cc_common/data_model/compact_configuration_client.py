@@ -8,7 +8,7 @@ from cc_common.data_model.schema.compact.record import CompactRecordSchema
 from cc_common.data_model.schema.jurisdiction import JurisdictionConfigurationData
 from cc_common.data_model.schema.jurisdiction.common import JURISDICTION_TYPE
 from cc_common.data_model.schema.jurisdiction.record import JurisdictionRecordSchema
-from cc_common.exceptions import CCNotFoundException, CCInternalException
+from cc_common.exceptions import CCInternalException, CCNotFoundException
 from cc_common.utils import logger_inject_kwargs
 
 

@@ -2,9 +2,9 @@
 import json
 from decimal import Decimal
 
+from cc_common.exceptions import CCInternalException
 from moto import mock_aws
 
-from cc_common.exceptions import CCInternalException
 from . import TstFunction
 
 STAFF_USERS_COMPACT_JURISDICTION_ENDPOINT_RESOURCE = '/v1/compacts/{compact}/jurisdictions'
@@ -629,8 +629,11 @@ TEST_MILITARY_RATE = Decimal('40.00')
 class TestStaffUsersJurisdictionConfiguration(TstFunction):
     """Test suite for managing jurisdiction configurations."""
 
-    def _when_testing_put_jurisdiction_configuration(self):
+    def _when_testing_put_jurisdiction_configuration(self, create_compact=True):
         from cc_common.utils import ResponseEncoder
+
+        if create_compact:
+            self.test_data_generator.put_default_compact_configuration_in_configuration_table()
 
         jurisdiction_config = self.test_data_generator.generate_default_jurisdiction_configuration()
         event = generate_test_event('PUT', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE)
@@ -984,7 +987,7 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
         from handlers.compact_configuration import compact_configuration_api_handler
 
         # Create a jurisdiction configuration with licenseeRegistrationEnabled=True, without a compact config
-        event, jurisdiction_config = self._when_testing_put_jurisdiction_configuration()
+        event, jurisdiction_config = self._when_testing_put_jurisdiction_configuration(create_compact=False)
         body = json.loads(event['body'])
         body['licenseeRegistrationEnabled'] = True
         event['body'] = json.dumps(body)
@@ -997,16 +1000,16 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
         """Test that a state is not added to configuredStates if it already exists."""
         from handlers.compact_configuration import compact_configuration_api_handler
 
-        # First, create a compact configuration with the state already in configuredStates
-        compact_config = self.test_data_generator.put_default_compact_configuration_in_configuration_table(
-            value_overrides={'configuredStates': [{'postalAbbreviation': 'ky', 'isLive': True}]}
-        )
-
         # Create a jurisdiction configuration for the same state with licenseeRegistrationEnabled=True
         event, jurisdiction_config = self._when_testing_put_jurisdiction_configuration()
         body = json.loads(event['body'])
         body['licenseeRegistrationEnabled'] = True
         event['body'] = json.dumps(body)
+
+        # Create a compact configuration with the state already in configuredStates
+        compact_config = self.test_data_generator.put_default_compact_configuration_in_configuration_table(
+            value_overrides={'configuredStates': [{'postalAbbreviation': 'ky', 'isLive': True}]}
+        )
 
         # Submit the configuration
         response = compact_configuration_api_handler(event, self.mock_context)
