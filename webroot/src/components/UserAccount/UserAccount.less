@@ -21,6 +21,7 @@
         flex-direction: column;
         flex-grow: 1;
         width: 100%;
+        margin-bottom: 2rem;
 
         @media @desktopWidth {
             max-width: 60rem;
@@ -28,6 +29,18 @@
 
         .account-submit.not-visible {
             .visually-hidden();
+        }
+    }
+
+    .military-status-container {
+        margin-top: 2rem;
+        padding-top: 3rem;
+        border-top: 1px solid @lightGrey;
+
+        .section-title {
+            margin-bottom: 2rem;
+            font-weight: @fontWeightBold;
+            font-size: @fontSizeLarge;
         }
     }
 }

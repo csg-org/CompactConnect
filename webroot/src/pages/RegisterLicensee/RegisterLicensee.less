@@ -39,20 +39,70 @@
 
     .register-licensee-title {
         margin-bottom: 1rem;
+
+        &.summary-title {
+            text-align: center;
+        }
     }
 
     .register-licensee-subtext {
         margin-bottom: 1.8rem;
         font-size: 1.4rem;
         text-align: center;
+
+        &.summary-subtext {
+            font-size: @fontSizeMedium;
+        }
     }
 
     .register-licensee-card {
         width: 100%;
+
+        .register-licensee-summary-row {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.6rem;
+
+            .register-licensee-summary-row-label {
+                font-weight: @fontWeightBold;
+            }
+
+            .register-licensee-summary-row-value {
+                &.license-type-value {
+                    text-transform: capitalize;
+                }
+            }
+        }
+
+        .register-licensee-summary-row-button-container {
+            display: flex;
+            flex-direction: row;
+            gap: 1.4rem;
+            align-items: flex-end;
+            justify-content: center;
+            width: 100%;
+
+            .input-container {
+                margin: 0;
+            }
+        }
     }
 
     .register-licensee-form-container {
         width: 100%;
+
+        &:deep(.register-licensee-continue-to-confirmation-button) {
+            width: 100%;
+            margin-top: 1.8rem;
+        }
+
+        .register-licensee-form-error {
+            margin-bottom: 1.6rem;
+            color: @midRed;
+            font-size: @fontSizeMedium;
+        }
     }
 
     .input-email-component {

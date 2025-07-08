@@ -9,7 +9,7 @@ from cc_common.data_model.schema.license.api import LicenseUpdatePreviousRespons
 from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationData
 from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
 from cc_common.data_model.schema.privilege.api import PrivilegeUpdatePreviousGeneralResponseSchema
-from cc_common.data_model.schema.provider import ProviderData
+from cc_common.data_model.schema.provider import ProviderData, ProviderUpdateData
 from cc_common.exceptions import CCInternalException
 
 
@@ -19,6 +19,7 @@ class ProviderRecordType(StrEnum):
     """
 
     PROVIDER = 'provider'
+    PROVIDER_UPDATE = 'providerUpdate'
     LICENSE = 'license'
     LICENSE_UPDATE = 'licenseUpdate'
     PRIVILEGE = 'privilege'
@@ -243,6 +244,7 @@ class ProviderUserRecords:
         self._license_records: list[LicenseData] = []
         self._adverse_action_records: list[AdverseActionData] = []
         self._provider_records: list[ProviderData] = []
+        self._provider_update_records: list[ProviderUpdateData] = []
         self._military_affiliation_records: list[MilitaryAffiliationData] = []
         self._license_update_records: list[LicenseUpdateData] = []
         self._privilege_update_records: list[PrivilegeUpdateData] = []
@@ -258,6 +260,8 @@ class ProviderUserRecords:
                 self._adverse_action_records.append(AdverseActionData.from_database_record(record))
             elif record_type == ProviderRecordType.PROVIDER:
                 self._provider_records.append(ProviderData.from_database_record(record))
+            elif record_type == ProviderRecordType.PROVIDER_UPDATE:
+                self._provider_update_records.append(ProviderUpdateData.from_database_record(record))
             elif record_type == ProviderRecordType.MILITARY_AFFILIATION:
                 self._military_affiliation_records.append(MilitaryAffiliationData.from_database_record(record))
             elif record_type == ProviderRecordType.LICENSE_UPDATE:
@@ -267,6 +271,23 @@ class ProviderUserRecords:
             else:
                 # log the warning, but continue with initialization
                 logger.warning('Unrecognized record type found.', record_type=record_type)
+
+    def get_specific_license_record(self, jurisdiction: str, license_abbreviation: str) -> LicenseData | None:
+        """
+        Get a specific license record from a list of provider records.
+
+        :param jurisdiction: The jurisdiction of the license.
+        :param license_abbreviation: The abbreviation of the license type.
+        :return: The license record if found, else None.
+        """
+        return next(
+            (
+                record
+                for record in self._license_records
+                if record.jurisdiction == jurisdiction and record.licenseTypeAbbreviation == license_abbreviation
+            ),
+            None,
+        )
 
     def get_privilege_records(
         self,
@@ -286,6 +307,42 @@ class ProviderUserRecords:
         Get all license records from a list of provider records.
         """
         return [record for record in self._license_records if filter_condition is None or filter_condition(record)]
+
+    def get_adverse_action_records_for_license(
+        self,
+        license_jurisdiction: str,
+        license_type_abbreviation: str,
+        filter_condition: Callable[[AdverseActionData], bool] | None = None,
+    ) -> list[AdverseActionData]:
+        """
+        Get all adverse action records for a given license.
+        """
+        return [
+            record
+            for record in self._adverse_action_records
+            if record.actionAgainst == AdverseActionAgainstEnum.LICENSE
+            and record.jurisdiction == license_jurisdiction
+            and record.licenseTypeAbbreviation == license_type_abbreviation
+            and (filter_condition is None or filter_condition(record))
+        ]
+
+    def get_adverse_action_records_for_privilege(
+        self,
+        privilege_jurisdiction: str,
+        privilege_license_type_abbreviation: str,
+        filter_condition: Callable[[AdverseActionData], bool] | None = None,
+    ) -> list[AdverseActionData]:
+        """
+        Get all adverse action records for a given privilege.
+        """
+        return [
+            record
+            for record in self._adverse_action_records
+            if record.actionAgainst == AdverseActionAgainstEnum.PRIVILEGE
+            and record.jurisdiction == privilege_jurisdiction
+            and record.licenseTypeAbbreviation == privilege_license_type_abbreviation
+            and (filter_condition is None or filter_condition(record))
+        ]
 
     def get_provider_record(self) -> ProviderData:
         """

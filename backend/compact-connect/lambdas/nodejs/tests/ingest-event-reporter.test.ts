@@ -1,7 +1,7 @@
 import { mockClient } from 'aws-sdk-client-mock';
 import 'aws-sdk-client-mock-jest';
 import { Context, EventBridgeEvent } from 'aws-lambda';
-import { DynamoDBClient, QueryCommand } from '@aws-sdk/client-dynamodb';
+import { DynamoDBClient, QueryCommand, GetItemCommand } from '@aws-sdk/client-dynamodb';
 import { SendEmailCommand, SESClient } from '@aws-sdk/client-ses';
 import { S3Client } from '@aws-sdk/client-s3';
 
@@ -12,7 +12,8 @@ import {
     SAMPLE_INGEST_FAILURE_ERROR_RECORD,
     SAMPLE_JURISDICTION_CONFIGURATION,
     SAMPLE_VALIDATION_ERROR_RECORD,
-    SAMPLE_INGEST_SUCCESS_RECORD
+    SAMPLE_INGEST_SUCCESS_RECORD,
+    SAMPLE_COMPACT_CONFIGURATION
 } from './sample-records';
 
 
@@ -134,6 +135,11 @@ describe('Nightly runs', () => {
             }
         });
 
+        // Mock GetItemCommand for compact configuration
+        mockDynamoDBClient.on(GetItemCommand).resolves({
+            Item: SAMPLE_COMPACT_CONFIGURATION
+        });
+
         lambda = new Lambda({
             dynamoDBClient: asDynamoDBClient(mockDynamoDBClient),
             s3Client: asS3Client(mockS3Client),
@@ -162,8 +168,16 @@ describe('Nightly runs', () => {
             }
         );
 
-        // Verify an event report was sent
-        expect(mockSendReportEmail).toHaveBeenCalled();
+        // Verify an event report was sent with correct parameters
+        expect(mockSendReportEmail).toHaveBeenCalledWith(
+            expect.objectContaining({
+                ingestFailures: [expect.objectContaining({ eventType: 'license.ingest-failure' })],
+                validationErrors: [expect.objectContaining({ eventType: 'license.validation-error' })]
+            }),
+            'Audiology and Speech Language Pathology', // compactName instead of abbreviation
+            'Ohio', // jurisdictionName
+            ['justin@inspiringapps.com'] // jurisdiction operations emails
+        );
         expect(mockSendAllsWellEmail).not.toHaveBeenCalled();
     });
 
@@ -186,6 +200,11 @@ describe('Nightly runs', () => {
             default:
                 throw Error(`Table does not exist: ${tableName}`);
             }
+        });
+
+        // Mock GetItemCommand for compact configuration
+        mockDynamoDBClient.on(GetItemCommand).resolves({
+            Item: SAMPLE_COMPACT_CONFIGURATION
         });
 
         lambda = new Lambda({
@@ -226,6 +245,12 @@ describe('Nightly runs', () => {
         const mockDynamoDBClient = mockClient(DynamoDBClient);
         const mockS3Client = mockClient(S3Client);
 
+        // Mock GetItemCommand to succeed (compact config found)
+        mockDynamoDBClient.on(GetItemCommand).resolves({
+            Item: SAMPLE_COMPACT_CONFIGURATION
+        });
+
+        // Mock QueryCommand to fail (jurisdictions query fails)
         mockDynamoDBClient.on(QueryCommand).rejects(new Error('DynamoDB error'));
 
         lambda = new Lambda({
@@ -239,6 +264,31 @@ describe('Nightly runs', () => {
             SAMPLE_NIGHTLY_EVENT,
             SAMPLE_CONTEXT
         )).rejects.toThrow('DynamoDB error');
+    });
+
+    it('should skip compact and continue processing when compact configuration is not found', async () => {
+        const mockDynamoDBClient = mockClient(DynamoDBClient);
+        const mockS3Client = mockClient(S3Client);
+
+        // Mock GetItemCommand to reject with "not found" error for compact configuration
+        mockDynamoDBClient.on(GetItemCommand).rejects(new Error('No configuration found for compact: aslp'));
+
+        lambda = new Lambda({
+            dynamoDBClient: asDynamoDBClient(mockDynamoDBClient),
+            s3Client: asS3Client(mockS3Client),
+            sesClient: asSESClient(mockSESClient)
+        });
+
+        // Should not throw an error, should complete successfully
+        await expect(lambda.handler(
+            SAMPLE_NIGHTLY_EVENT,
+            SAMPLE_CONTEXT
+        )).resolves.toBeUndefined();
+
+        // Verify no emails were sent since we skipped all compacts
+        expect(mockSendReportEmail).not.toHaveBeenCalled();
+        expect(mockSendAllsWellEmail).not.toHaveBeenCalled();
+        expect(mockSendNoLicenseUpdatesEmail).not.toHaveBeenCalled();
     });
 });
 
@@ -307,6 +357,11 @@ describe('Weekly runs', () => {
             }
         });
 
+        // Mock GetItemCommand for compact configuration
+        mockDynamoDBClient.on(GetItemCommand).resolves({
+            Item: SAMPLE_COMPACT_CONFIGURATION
+        });
+
         lambda = new Lambda({
             dynamoDBClient: asDynamoDBClient(mockDynamoDBClient),
             s3Client: asS3Client(mockS3Client),
@@ -326,9 +381,13 @@ describe('Weekly runs', () => {
             }
         );
 
-        // Verify an "All's Well" email was sent
+        // Verify an "All's Well" email was sent with correct parameters
         expect(mockSendReportEmail).not.toHaveBeenCalled();
-        expect(mockSendAllsWellEmail).toHaveBeenCalled();
+        expect(mockSendAllsWellEmail).toHaveBeenCalledWith(
+            'Audiology and Speech Language Pathology', // compactName instead of abbreviation
+            'Ohio', // jurisdictionName
+            ['justin@inspiringapps.com'] // jurisdiction operations emails
+        );
         expect(mockSendNoLicenseUpdatesEmail).not.toHaveBeenCalled();
     });
 
@@ -354,6 +413,11 @@ describe('Weekly runs', () => {
             }
         });
 
+        // Mock GetItemCommand for compact configuration
+        mockDynamoDBClient.on(GetItemCommand).resolves({
+            Item: SAMPLE_COMPACT_CONFIGURATION
+        });
+
         lambda = new Lambda({
             dynamoDBClient: asDynamoDBClient(mockDynamoDBClient),
             s3Client: asS3Client(mockS3Client),
@@ -373,10 +437,26 @@ describe('Weekly runs', () => {
             }
         );
 
-        // Verify an "All's Well" email was sent
+        // Verify the compact configuration was fetched
+        expect(mockDynamoDBClient).toHaveReceivedCommandWith(
+            GetItemCommand,
+            {
+                TableName: 'compact-table',
+                Key: {
+                    'pk': { S: 'aslp#CONFIGURATION' },
+                    'sk': { S: 'aslp#CONFIGURATION' }
+                }
+            }
+        );
+
+        // Verify no license updates email was sent with correct parameters
         expect(mockSendReportEmail).not.toHaveBeenCalled();
         expect(mockSendAllsWellEmail).not.toHaveBeenCalled();
-        expect(mockSendNoLicenseUpdatesEmail).toHaveBeenCalled();
+        expect(mockSendNoLicenseUpdatesEmail).toHaveBeenCalledWith(
+            'Audiology and Speech Language Pathology', // compactName instead of abbreviation
+            'Ohio', // jurisdictionName
+            ['justin@inspiringapps.com', 'compact-ops@example.com'] // combined jurisdiction and compact operations emails
+        );
     });
 
     it('should send a report email and not an alls well, when there were errors', async () => {
@@ -417,6 +497,11 @@ describe('Weekly runs', () => {
             default:
                 throw Error(`Table does not exist: ${tableName}`);
             }
+        });
+
+        // Mock GetItemCommand for compact configuration
+        mockDynamoDBClient.on(GetItemCommand).resolves({
+            Item: SAMPLE_COMPACT_CONFIGURATION
         });
 
         lambda = new Lambda({

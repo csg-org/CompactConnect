@@ -511,13 +511,11 @@
     },
     "payment": {
         "payment": "Payment",
-        "creditCardTitle": "Credit Card",
-        "fullNameOnCard": "Name on card",
-        "enterFullNameOnCard": "Enter name on card",
-        "cardNumber": "Card number",
-        "cardExpirationMonth": "Expiration month",
-        "cardExpirationYear": "Expiration year",
-        "cvv": "CVV",
+        "paymentSummary": "Payment summary",
+        "enterPaymentDetails": "Securely enter your payment details",
+        "enterCardDetails": "Credit card information",
+        "confirmCardDetails": "Complete purchase",
+        "confirmCardDetailsError": "There was an error confirming your payment details. Please try again.",
         "ccTransactionFees": "Credit card transaction fees",
         "enterFirstName": "Enter first name",
         "enterLastName": "Enter last name",
@@ -530,6 +528,7 @@
         "expirationDate": "Expiration date",
         "continueToPurchase": "Continue to purchase",
         "compactPrivilegeStateFee": "Compact Privilege State Fee",
+        "compactPrivilegeStateFeeMilitary": "Compact Privilege State Fee (Military Rate)",
         "compactCommissionFee": "Administrative Fee",
         "purchaseSuccessful": "Purchase Successful",
         "purchaseSuccessfulMessage": "Your purchase was successful. Your privileges will appear on your profile page within seconds. If you submitted incorrect documents, you will be contacted by compact staff."
@@ -579,6 +578,7 @@
         "deselectState": "Deselect state",
         "adminFee": "Administration Fee",
         "jurisdictionFee": "Jurisdiction Fee",
+        "jurisdictionFeeMilitary": "Jurisdiction Fee (Military)",
         "licenseTypeSearch": "Profession type",
         "licenseType": "License type",
         "adverseActions": "Adverse actions",
@@ -610,8 +610,10 @@
         "houseIcon": "House icon",
         "statusOptions": {
             "active": "Active",
-            "inactive": "Inactive"
+            "inactive": "Inactive",
+            "initializing": "Initializing"
         },
+        "licenseActions": "License actions",
         "privilegeActions": "Privilege actions",
         "privilegeActionsNone": "No available actions",
         "deactivate": "Deactivate",
@@ -623,6 +625,29 @@
         "deactivateNotesPlaceholder": "Enter notes here",
         "confirmPrivilegeDeactivateSubmit": "Yes, deactivate privilege",
         "encumber": "Encumber",
+        "encumbered": "Encumbered",
+        "npdbCategoryLabel": "NPDB category",
+        "encumberStartDate": "Beginning of adverse action",
+        "confirmLicenseEncumberTitle": "Are you sure you want to encumber this license?",
+        "confirmLicenseEncumberSubtext": "The practitioner will no longer be able to use this license.",
+        "confirmLicenseEncumberSubmit": "Yes, encumber license",
+        "confirmLicenseEncumberSuccess": "This license has been encumbered.",
+        "confirmPrivilegeEncumberTitle": "Are you sure you want to encumber this privilege?",
+        "confirmPrivilegeEncumberSubtext": "The practitioner will no longer be able to use this privilege.",
+        "confirmPrivilegeEncumberSubmit": "Yes, encumber privilege",
+        "confirmPrivilegeEncumberSuccess": "This privilege has been encumbered.",
+        "unencumber": "Unencumber",
+        "unencumbered": "Unencumbered",
+        "confirmLicenseUnencumberTitle": "Select encumbrance(s) to remove",
+        "confirmLicenseUnencumberEndDate": "Select an end date",
+        "confirmLicenseUnencumberSubmit": "Confirm removal(s)",
+        "confirmLicenseUnencumberSuccess": "These encumbrances are set to be removed.",
+        "confirmLicenseUnencumberSuccessEndDate": "End date",
+        "confirmPrivilegeUnencumberTitle": "Select encumbrance(s) to remove",
+        "confirmPrivilegeUnencumberEndDate": "Select an end date",
+        "confirmPrivilegeUnencumberSubmit": "Confirm removal(s)",
+        "confirmPrivilegeUnencumberSuccess": "These encumbrances are set to be removed.",
+        "confirmPrivilegeUnencumberSuccessEndDate": "End date",
         "expiringIn": "Expiring in",
         "licenseEvents": [
             {
@@ -674,6 +699,40 @@
                 "abbrev": "lpc"
             }
         ],
+        "npdbTypes": [
+            {
+                "name": "Non-compliance With Requirements",
+                "key": "Non-compliance With Requirements"
+            },
+            {
+                "name": "Criminal Conviction or Adjudication",
+                "key": "Criminal Conviction or Adjudication"
+            },
+            {
+                "name": "Confidentiality, Consent or Disclosure Violations",
+                "key": "Confidentiality, Consent or Disclosure Violations"
+            },
+            {
+                "name": "Misconduct or Abuse",
+                "key": "Misconduct or Abuse"
+            },
+            {
+                "name": "Fraud, Deception, or Misrepresentation",
+                "key": "Fraud, Deception, or Misrepresentation"
+            },
+            {
+                "name": "Unsafe Practice or Substandard Care",
+                "key": "Unsafe Practice or Substandard Care"
+            },
+            {
+                "name": "Improper Supervision or Allowing Unlicensed Practice",
+                "key": "Improper Supervision or Allowing Unlicensed Practice"
+            },
+            {
+                "name": "Other",
+                "key": "Other"
+            }
+        ],
         "privilegePurchaseTitle": "Privilege purchase",
         "personalInfoTitle": "Personal information",
         "eventNodeLabel": "Event: {eventNameDisplay} on {eventDate}",
@@ -681,10 +740,16 @@
         "compactEligible": "Compact Eligible",
         "notCompactEligible": "Not Compact Eligible",
         "privilegeVerification": "Privilege Verification",
+        "licenseNumber": "License number",
+        "privilegeId": "Privilege ID",
+        "privilegeType": "Privilege type",
         "practitionerInformation": "Practitioner Information",
+        "practitionerName": "Practitioner name",
         "homeStateLicenses": "Home State Licenses",
-        "activeDate": "Active date",
-        "privilegeProofFooter": "This document is officially generated by Compact Connect and serves as proof of the practitioner's current licenses and privileges."
+        "activeDate": "Active",
+        "privilegeProofFooter": "This document is officially generated by Compact Connect and serves as proof of the practitioner's current licenses and privileges.",
+        "publicProfileLink": "View public profile at",
+        "qrCodeAlt": "QR code linking to public profile"
     },
     "military": {
         "militaryStatusTitle": "Military status",
@@ -720,7 +785,8 @@
         "submitFail": "Error uploading document",
         "fileInstructions": "Only 1 file (PDF, docx, png, jpeg only)",
         "fileName": "File name",
-        "dateUploaded": "Date uploaded"
+        "dateUploaded": "Date uploaded",
+        "initializingMessage": "Your document is in an initializing state. This may indicate that there was an error uploading. You cannot purchase privileges in this state. If this status persists, try uploading your document again or clicking end military affiliation and then refreshing the page."
     },
     "account": {
         "requestAccount": "Request account",
@@ -754,7 +820,6 @@
             "inactive": "Inactive",
             "pending": "Pending"
         },
-        "resendInvite": "Resend invite",
         "userSearchLabel": "Enter a name",
         "userActions": "User actions",
         "edit": "Edit",
@@ -768,7 +833,9 @@
         "deactivated": "Deactivated",
         "confirmUserReinviteTitle": "Are you sure you want to resend the invitation to {name}?",
         "confirmUserReinviteSubtext": "An email will be sent to {email} and the user will be forced to set a new password.",
-        "confirmUserDeactivate": "Are you sure you want to deactivate {name} from this compact? This cannot be undone."
+        "confirmUserDeactivate": "Are you sure you want to deactivate {name} from this compact? This cannot be undone.",
+        "accountSummary": "Account summary",
+        "accountSummarySubtext": "Here is the information you submitted for your registration. If your information does not match exactly with the information in our system, the registration will not be successful."
     },
     "recaptcha": {
         "googleDesc": "This site is protected by reCAPTCHA and the Google",

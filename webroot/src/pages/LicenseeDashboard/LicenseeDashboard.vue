@@ -23,15 +23,6 @@
                 </div>
                 <div class="btn-container">
                     <InputButton
-                        :label="$t('military.viewMilitaryStatus')"
-                        :aria-label="$t('military.viewMilitaryStatus')"
-                        :isTransparent="true"
-                        class="btn view-military-btn"
-                        @click="viewMilitaryStatus"
-                    />
-                </div>
-                <div class="btn-container">
-                    <InputButton
                         :label="`+ ${this.$t('licensing.obtainPrivileges')}`"
                         :aria-label="$t('licensing.obtainPrivileges')"
                         class="btn obtain-priv-btn"
@@ -54,6 +45,7 @@
             >
                 <LicenseCard
                     :license="license"
+                    :licensee="licensee"
                     :homeState="homeJurisdiction"
                     :shouldIncludeLogo="true"
                 />

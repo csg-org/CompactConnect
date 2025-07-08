@@ -510,28 +510,27 @@
     },
     "payment": {
         "payment": "Pago",
-        "creditCardTitle": "Tarjeta de Crédito",
-        "fullNameOnCard": "Nombre en la tarjeta",
-        "enterFullNameOnCard": "Introduzca el nombre en la tarjeta",
-        "cardNumber": "Número de tarjeta",
-        "cardExpirationMonth": "Mes de vencimiento",
-        "cardExpirationYear": "Año de vencimiento",
-        "cvv": "CVV",
-        "ccTransactionFees": "Tarifas de transacción con tarjeta de crédito",
-        "enterFirstName": "Introduzca el nombre",
+        "paymentSummary": "Resumen de pagos",
+        "enterPaymentDetails": "Ingrese de forma segura sus datos de pago",
+        "enterCardDetails": "Información de la tarjeta de crédito",
+        "confirmCardDetails": "Completar compra",
+        "confirmCardDetailsError": "Se produjo un error al confirmar los datos de pago. Inténtalo de nuevo.",
+        "ccTransactionFees": "Tarifas de transacciones con tarjeta de crédito",
+        "enterFirstName": "Ingrese el nombre",
         "enterLastName": "Introduzca el apellido",
         "billingAddressTitle": "Dirección de Envio",
-        "enterStreetAddress": "Introduzca dirección",
-        "apptUnitNumber": "Número de apto",
-        "streetAddress": "Dirección",
-        "streetAddress2": "Dirección 2",
-        "completePurchase": "Finalizar compra",
-        "expirationDate": "Fecha de vencimiento",
+        "enterStreetAddress": "Introduzca la dirección de la calle",
+        "apptUnitNumber": "Número de apartamento/unidad",
+        "streetAddress": "Dirección de la calle",
+        "streetAddress2": "Dirección de la calle 2",
+        "completePurchase": "Compra completa",
+        "expirationDate": "Fecha de expiración",
         "continueToPurchase": "Continuar comprando",
-        "compactPrivilegeStateFee": "Quota Estatal de Privilegio Compacto",
-        "compactCommissionFee": "Tarifa Administrativa",
+        "compactPrivilegeStateFee": "Tarifa estatal de privilegio compacto",
+        "compactPrivilegeStateFeeMilitary": "Tarifa estatal de privilegio compacto (tarifa militar)",
+        "compactCommissionFee": "Tarifa administrativa",
         "purchaseSuccessful": "Compra exitosa",
-        "purchaseSuccessfulMessage": "Tu compra fue exitosa. Sus privilegios aparecerán en su página de perfil dentro de segundos. Si envió documentos incorrectos, el personal compacto se comunicará con usted."
+        "purchaseSuccessfulMessage": "Tu compra fue exitosa. Tus privilegios aparecerán en tu perfil en segundos. Si enviaste documentos incorrectos, el personal de Compact se pondrá en contacto contigo."
     },
     "licensing": {
         "licensingListTitle": "Datos de licencia",
@@ -594,6 +593,7 @@
         "jurisprudenceConfirmation": "Confirmación de jurisprudencia",
         "adminFee": "Administración Cuota",
         "jurisdictionFee": "Jurisdicción Cuota",
+        "jurisdictionFeeMilitary": "Jurisdicción Cuota (Militar)",
         "disciplineStatus": "Estado de disciplina",
         "jurisprudenceExplanationText": "Doy fe de haber completado el examen de jurisprudencia requerido.",
         "scopeAttestTitle": "Alcance de la certificación de práctica",
@@ -609,8 +609,10 @@
         "militaryAffiliation": "Afiliación militar",
         "statusOptions": {
             "active": "Activo",
-            "inactive": "Inactivo"
+            "inactive": "Inactivo",
+            "initializing": "Inicializando"
         },
+        "licenseActions": "Acciones de licencia",
         "privilegeActions": "Acciones de privilegio",
         "privilegeActionsNone": "No hay acciones disponibles",
         "deactivate": "Desactivar",
@@ -622,6 +624,29 @@
         "deactivateNotesPlaceholder": "Introduzca notas aquí",
         "confirmPrivilegeDeactivateSubmit": "Sí, desactivar privilegio",
         "encumber": "Cargar",
+        "encumbered": "Gravado",
+        "npdbCategoryLabel": "Categoría NPDB",
+        "encumberStartDate": "Inicio de la acción adversa",
+        "confirmLicenseEncumberTitle": "¿Estás seguro de que quieres gravar esta licencia?",
+        "confirmLicenseEncumberSubtext": "El profesional ya no podrá utilizar esta licencia.",
+        "confirmLicenseEncumberSubmit": "Sí, gravar la licencia",
+        "confirmLicenseEncumberSuccess": "Esta licencia ha sido gravada.",
+        "confirmPrivilegeEncumberTitle": "¿Estás seguro de que quieres gravar este privilegio?",
+        "confirmPrivilegeEncumberSubtext": "El practicante ya no podrá utilizar este privilegio.",
+        "confirmPrivilegeEncumberSubmit": "Sí, gravar el privilegio",
+        "confirmPrivilegeEncumberSuccess": "Este privilegio ha sido obstaculizado.",
+        "unencumber": "Liberarse",
+        "unencumbered": "Libre de cargas",
+        "confirmLicenseUnencumberTitle": "Seleccione los gravámenes que desea eliminar",
+        "confirmLicenseUnencumberEndDate": "Seleccione una fecha de finalización",
+        "confirmLicenseUnencumberSubmit": "Confirmar eliminación(es)",
+        "confirmLicenseUnencumberSuccess": "Está previsto que estos gravámenes se eliminen.",
+        "confirmLicenseUnencumberSuccessEndDate": "Fecha de finalización",
+        "confirmPrivilegeUnencumberTitle": "Seleccione los gravámenes que desea eliminar",
+        "confirmPrivilegeUnencumberEndDate": "Seleccione una fecha de finalización",
+        "confirmPrivilegeUnencumberSubmit": "Confirmar eliminación(es)",
+        "confirmPrivilegeUnencumberSuccess": "Está previsto que estos gravámenes se eliminen.",
+        "confirmPrivilegeUnencumberSuccessEndDate": "Fecha de finalización",
         "expiringIn": "Expirando en",
         "licenseEvents": [
             {
@@ -673,6 +698,40 @@
                 "abbrev": "lpc"
             }
         ],
+        "npdbTypes": [
+            {
+                "name": "Incumplimiento de los requisitos",
+                "key": "Non-compliance With Requirements"
+            },
+            {
+                "name": "Condena o sentencia penal",
+                "key": "Criminal Conviction or Adjudication"
+            },
+            {
+                "name": "Violaciones de confidencialidad, consentimiento o divulgación",
+                "key": "Confidentiality, Consent or Disclosure Violations"
+            },
+            {
+                "name": "Mala conducta o abuso",
+                "key": "Misconduct or Abuse"
+            },
+            {
+                "name": "Fraude, engaño o tergiversación",
+                "key": "Fraud, Deception, or Misrepresentation"
+            },
+            {
+                "name": "Prácticas inseguras o atención deficiente",
+                "key": "Unsafe Practice or Substandard Care"
+            },
+            {
+                "name": "Supervisión inadecuada o autorización de prácticas sin licencia",
+                "key": "Improper Supervision or Allowing Unlicensed Practice"
+            },
+            {
+                "name": "Otro",
+                "key": "Other"
+            }
+        ],
         "privilegePurchaseTitle": "Compra privada",
         "personalInfoTitle": "Información personal",
         "eventNodeLabel": "Evento: {eventNameDisplay} en {eventDate}",
@@ -680,10 +739,16 @@
         "compactEligible": "Elegible Compacto",
         "notCompactEligible": "No Compacto Elegible",
         "privilegeVerification": "Verificación de privilegios",
+        "licenseNumber": "Número de licencia",
+        "privilegeId": "Identificación de privilegio",
+        "privilegeType": "Tipo de privilegio",
         "practitionerInformation": "Información para profesionales",
+        "practitionerName": "Nombre del profesional",
         "homeStateLicenses": "Licencias del estado de origen",
-        "activeDate": "Fecha activa",
-        "privilegeProofFooter": "Este documento es generado oficialmente por Compact Connect y sirve como prueba de las licencias y privilegios actuales del profesional."
+        "activeDate": "Activa",
+        "privilegeProofFooter": "Este documento es generado oficialmente por Compact Connect y sirve como prueba de las licencias y privilegios actuales del profesional.",
+        "publicProfileLink": "Ver perfil público en",
+        "qrCodeAlt": "Código QR que enlaza al perfil público"
     },
     "military": {
         "militaryStatusTitle": "Estado militar",
@@ -719,7 +784,8 @@
         "submitFail": "Error al cargar el documento",
         "fileInstructions": "Sólo 1 archivo (sólo PDF, docx, png, jpeg)",
         "fileName": "Nombre del archivo",
-        "dateUploaded": "Fecha de carga"
+        "dateUploaded": "Fecha de carga",
+        "initializingMessage": "Su documento está en un estado de inicialización. Esto puede indicar que hubo un error de carga. No puede comprar privilegios en este estado. Si este estado persiste, intente cargar su documento nuevamente o haga clic en finalizar afiliación militar y luego actualice la página."
     },
     "account": {
         "requestAccount": "Solicitar cuenta",
@@ -753,7 +819,6 @@
             "inactive": "Inactivo",
             "pending": "Pendiente"
         },
-        "resendInvite": "Reenviar invitación",
         "userSearchLabel": "Introduzca un nombre",
         "userActions": "Acciones del usuario",
         "edit": "Editar",
@@ -767,7 +832,9 @@
         "deactivated": "Desactivado",
         "confirmUserReinviteTitle": "¿Está seguro de que desea volver a enviar la invitación a {name}?",
         "confirmUserReinviteSubtext": "Se enviará un correo electrónico a {email} y el usuario deberá establecer una nueva contraseña.",
-        "confirmUserDeactivate": "¿Está seguro de que desea desactivar {name} de este acuerdo? No se puede deshacer."
+        "confirmUserDeactivate": "¿Está seguro de que desea desactivar {name} de este acuerdo? No se puede deshacer.",
+        "accountSummary": "Resumen de cuenta",
+        "accountSummarySubtext": "Esta es la información que ha enviado para su registración. Si sus datos no coinciden exactamente con los de nuestro sistema, el registro no se realizará correctamente."
     },
     "recaptcha": {
         "googleDesc": "Este sitio está protegido por reCAPTCHA y se aplican las políticas de privacidad de Google.",

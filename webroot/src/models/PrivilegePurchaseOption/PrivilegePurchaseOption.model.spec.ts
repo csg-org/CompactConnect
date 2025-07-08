@@ -4,7 +4,6 @@
 //
 //  Created by InspiringApps on 7/8/2024.
 //
-import { FeeTypes } from '@/app.config';
 import {
     PrivilegePurchaseOption,
     PrivilegePurchaseOptionSerializer
@@ -40,9 +39,6 @@ describe('PrivilegePurchaseOption model', () => {
         expect(privilegePurchaseOption.jurisdiction.abbrev).to.equal('');
         expect(privilegePurchaseOption.compactType).to.equal(null);
         expect(privilegePurchaseOption.fees).to.matchPattern({});
-        expect(privilegePurchaseOption.isMilitaryDiscountActive).to.equal(false);
-        expect(privilegePurchaseOption.militaryDiscountType).to.equal(null);
-        expect(privilegePurchaseOption.militaryDiscountAmount).to.equal(0);
         expect(privilegePurchaseOption.isJurisprudenceRequired).to.equal(false);
     });
     it('should create a PrivilegePurchaseOption with specific values', () => {
@@ -50,12 +46,14 @@ describe('PrivilegePurchaseOption model', () => {
             jurisdiction: new State({ abbrev: 'ca' }),
             compactType: 'aslp',
             fees: {
-                aud: '200',
-                slp: '100'
+                aud: {
+                    baseRate: 100,
+                    militaryRate: 50
+                },
+                slp: {
+                    baseRate: 100,
+                }
             },
-            isMilitaryDiscountActive: true,
-            militaryDiscountType: FeeTypes.FLAT_RATE,
-            militaryDiscountAmount: 10,
             isJurisprudenceRequired: true,
         };
         const privilegePurchaseOption = new PrivilegePurchaseOption(data);
@@ -65,12 +63,14 @@ describe('PrivilegePurchaseOption model', () => {
         expect(privilegePurchaseOption.jurisdiction.abbrev).to.equal('ca');
         expect(privilegePurchaseOption.compactType).to.equal(data.compactType);
         expect(privilegePurchaseOption.fees).to.matchPattern({
-            aud: '200',
-            slp: '100'
+            aud: {
+                baseRate: 100,
+                militaryRate: 50
+            },
+            slp: {
+                baseRate: 100,
+            }
         });
-        expect(privilegePurchaseOption.isMilitaryDiscountActive).to.equal(true);
-        expect(privilegePurchaseOption.militaryDiscountType).to.equal(FeeTypes.FLAT_RATE);
-        expect(privilegePurchaseOption.militaryDiscountAmount).to.equal(10);
         expect(privilegePurchaseOption.isJurisprudenceRequired).to.equal(true);
     });
     it('should create a PrivilegePurchaseOption with specific values through serializer', () => {
@@ -81,7 +81,8 @@ describe('PrivilegePurchaseOption model', () => {
             privilegeFees: [
                 {
                     licenseTypeAbbreviation: 'aud',
-                    amount: 200
+                    amount: 200,
+                    militaryRate: 150
                 },
                 {
                     licenseTypeAbbreviation: 'slp',
@@ -107,27 +108,24 @@ describe('PrivilegePurchaseOption model', () => {
         expect(privilegePurchaseOption.jurisdiction.abbrev).to.equal('ky');
         expect(privilegePurchaseOption.compactType).to.equal('aslp');
         expect(privilegePurchaseOption.fees).to.matchPattern({
-            aud: 200,
-            slp: 100
+            aud: {
+                baseRate: 200,
+                militaryRate: 150
+            },
+            slp: {
+                baseRate: 100,
+            }
         });
-        expect(privilegePurchaseOption.isMilitaryDiscountActive).to.equal(true);
-        expect(privilegePurchaseOption.militaryDiscountType).to.equal(FeeTypes.FLAT_RATE);
-        expect(privilegePurchaseOption.militaryDiscountAmount).to.equal(10);
         expect(privilegePurchaseOption.isJurisprudenceRequired).to.equal(true);
     });
-    it('should create a PrivilegePurchaseOption with specific values and null military discount object through serializer', () => {
+    it('should create a PrivilegePurchaseOption with specific values and not throw errors for malformed fee object', () => {
         const data = {
             jurisdictionName: 'kentucky',
             postalAbbreviation: 'ky',
             compact: 'aslp',
             privilegeFees: [
                 {
-                    licenseTypeAbbreviation: 'aud',
-                    amount: 200
-                },
-                {
-                    licenseTypeAbbreviation: 'slp',
-                    amount: 100
+                    licenseTypeAbbreviation: 'aud'
                 }
             ],
             militaryDiscount: null,
@@ -145,12 +143,10 @@ describe('PrivilegePurchaseOption model', () => {
         expect(privilegePurchaseOption.jurisdiction.abbrev).to.equal('ky');
         expect(privilegePurchaseOption.compactType).to.equal('aslp');
         expect(privilegePurchaseOption.fees).to.matchPattern({
-            aud: 200,
-            slp: 100
+            aud: {
+                baseRate: 0
+            }
         });
-        expect(privilegePurchaseOption.isMilitaryDiscountActive).to.equal(false);
-        expect(privilegePurchaseOption.militaryDiscountType).to.equal(null);
-        expect(privilegePurchaseOption.militaryDiscountAmount).to.equal(null);
         expect(privilegePurchaseOption.isJurisprudenceRequired).to.equal(true);
     });
 });

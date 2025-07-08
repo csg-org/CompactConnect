@@ -9,6 +9,8 @@ import { mountShallow } from '@tests/helpers/setup';
 import FormMixin from '@components/Forms/_mixins/form.mixin';
 import InputMixin from '@components/Forms/_mixins/input.mixin';
 import { FormInput } from '@models/FormInput/FormInput.model';
+import Joi from 'joi';
+import sinon from 'sinon';
 
 const chaiMatchPattern = require('chai-match-pattern');
 const chai = require('chai').use(chaiMatchPattern);
@@ -123,6 +125,96 @@ describe('Form mixin', async () => {
         component.setError();
 
         expect(component.isFormError).to.equal(true);
+    });
+    it('should show invalid form error when there is an invalid input', async () => {
+        const wrapper = await mountShallow(FormMixin);
+        const component = wrapper.vm;
+        const formInput = new FormInput({
+            name: 'test-input',
+            isValid: false,
+            isSubmitInput: false,
+            validation: Joi.string().required()
+        });
+        const spy = sinon.spy();
+
+        component.formData.testInput = formInput;
+        component.scrollToInput = spy;
+        component.showInvalidFormError();
+
+        expect(spy.calledOnce).to.equal(true);
+    });
+    it('should not call scrollToInput when all inputs are valid', async () => {
+        const wrapper = await mountShallow(FormMixin);
+        const component = wrapper.vm;
+        const formInput = new FormInput({
+            name: 'test-input',
+            isValid: true,
+            isSubmitInput: false,
+        });
+        const spy = sinon.spy();
+
+        component.formData.testInput = formInput;
+        component.scrollToInput = spy;
+        component.showInvalidFormError();
+
+        expect(spy.notCalled).to.equal(true);
+    });
+    it('should skip submit inputs when finding invalid form inputs', async () => {
+        const wrapper = await mountShallow(FormMixin);
+        const component = wrapper.vm;
+        const submitInput = new FormInput({
+            name: 'submit-input',
+            isValid: false,
+            isSubmitInput: true,
+            validation: Joi.string().required()
+        });
+        const regularInput = new FormInput({
+            name: 'regular-input',
+            isValid: false,
+            isSubmitInput: false,
+            validation: Joi.string().required()
+        });
+        const spy = sinon.spy();
+
+        component.formData.submitInput = submitInput;
+        component.formData.regularInput = regularInput;
+        component.scrollToInput = spy;
+        component.showInvalidFormError();
+
+        expect(spy.calledOnce).to.equal(true);
+        expect(spy.firstCall.args[0].name).to.equal(regularInput.name);
+    });
+    it('should scroll to input element when element exists', async () => {
+        const wrapper = await mountShallow(FormMixin);
+        const component = wrapper.vm;
+        const formInput = new FormInput({
+            name: 'test-input',
+        });
+        const scrollSpy = sinon.spy();
+        const focusSpy = sinon.spy();
+        const mockElement = {
+            scrollIntoView: scrollSpy,
+            focus: focusSpy
+        } as unknown as HTMLElement;
+
+        sinon.stub(document, 'getElementsByName').callsFake((name: string) => {
+            if (name === 'test-input') {
+                return {
+                    length: 1,
+                    0: mockElement,
+                    item: (index: number) => (index === 0 ? mockElement : null),
+                } as unknown as NodeListOf<HTMLElement>;
+            }
+            return {
+                length: 0,
+                item: () => null,
+            } as unknown as NodeListOf<HTMLElement>;
+        });
+
+        component.scrollToInput(formInput);
+
+        expect(scrollSpy.calledOnce).to.be.true;
+        expect(focusSpy.calledOnce).to.be.true;
     });
 });
 describe('Input mixin', async () => {

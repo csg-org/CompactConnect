@@ -7,6 +7,7 @@ from cc_common.data_model.schema.common import (
     ClinicalPrivilegeActionCategory,
     CompactEligibilityStatus,
     HomeJurisdictionChangeStatusEnum,
+    LicenseDeactivatedStatusEnum,
     LicenseEncumberedStatusEnum,
     PrivilegeEncumberedStatusEnum,
     UpdateCategory,
@@ -81,6 +82,11 @@ class PrivilegeEncumberedStatusField(String):
 class HomeJurisdictionChangeStatusField(String):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, validate=OneOf([entry.value for entry in HomeJurisdictionChangeStatusEnum]), **kwargs)
+
+
+class LicenseDeactivatedStatusField(String):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, validate=OneOf([entry.value for entry in LicenseDeactivatedStatusEnum]), **kwargs)
 
 
 class CurrentHomeJurisdictionField(String):

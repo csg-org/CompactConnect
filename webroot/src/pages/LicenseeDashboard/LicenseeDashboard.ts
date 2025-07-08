@@ -98,13 +98,6 @@ export default class LicenseeDashboard extends Vue {
         });
     }
 
-    viewMilitaryStatus() {
-        this.$router.push({
-            name: 'MilitaryStatus',
-            params: { compact: this.currentCompactType }
-        });
-    }
-
     viewLicenseeProof() {
         this.$router.push({
             name: 'LicenseeVerification',

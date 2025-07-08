@@ -18,6 +18,7 @@ import { Compact, CompactType } from '@models/Compact/Compact.model';
 import { State } from '@models/State/State.model';
 import { Address } from '@models/Address/Address.model';
 import { LicenseHistoryItem } from '@models/LicenseHistoryItem/LicenseHistoryItem.model';
+import { AdverseAction } from '@models/AdverseAction/AdverseAction.model';
 import i18n from '@/i18n';
 import moment from 'moment';
 
@@ -61,6 +62,7 @@ describe('License model', () => {
         expect(license.status).to.equal(LicenseStatus.INACTIVE);
         expect(license.statusDescription).to.equal(null);
         expect(license.eligibility).to.equal(EligibilityStatus.INELIGIBLE);
+        expect(license.adverseActions).to.matchPattern([]);
 
         // Test methods
         expect(license.issueDateDisplay()).to.equal('');
@@ -77,6 +79,7 @@ describe('License model', () => {
             dateOfUpdate: null,
             '...': '',
         }]);
+        expect(license.isEncumbered()).to.equal(false);
     });
     it('should create a License with specific values', () => {
         const data = {
@@ -98,6 +101,7 @@ describe('License model', () => {
             status: LicenseStatus.ACTIVE,
             statusDescription: 'test-status-desc',
             eligibility: EligibilityStatus.ELIGIBLE,
+            adverseActions: [new AdverseAction()],
         };
         const license = new License(data);
 
@@ -120,6 +124,7 @@ describe('License model', () => {
         expect(license.status).to.equal(data.status);
         expect(license.statusDescription).to.equal(data.statusDescription);
         expect(license.eligibility).to.equal(data.eligibility);
+        expect(license.adverseActions[0]).to.be.an.instanceof(AdverseAction);
 
         // Test methods
         expect(license.issueDateDisplay()).to.equal('Invalid date');
@@ -129,7 +134,8 @@ describe('License model', () => {
         expect(license.isDeactivated()).to.equal(false);
         expect(license.isCompactEligible()).to.equal(true);
         expect(license.licenseTypeAbbreviation()).to.equal('AUD');
-        expect(license.displayName()).to.equal('Unknown - AUD');
+        expect(license.displayName()).to.equal('Unknown - audiologist');
+        expect(license.displayName(', ', true)).to.equal('Unknown, AUD');
         expect(license.historyWithFabricatedEvents()).to.matchPattern([
             {
                 type: 'fabricatedEvent',
@@ -144,6 +150,7 @@ describe('License model', () => {
                 '...': '',
             },
         ]);
+        expect(license.isEncumbered()).to.equal(false);
     });
     it('should create a License with specific values (custom displayName delimiter)', () => {
         const data = {
@@ -156,7 +163,8 @@ describe('License model', () => {
         expect(license).to.be.an.instanceof(License);
 
         // Test methods
-        expect(license.displayName(' ... ')).to.equal('Colorado ... AUD');
+        expect(license.displayName(' ... ')).to.equal('Colorado ... audiologist');
+        expect(license.displayName(' ... ', true)).to.equal('Colorado ... AUD');
     });
     it('should create a License with specific values through serializer', () => {
         const data = {
@@ -179,6 +187,13 @@ describe('License model', () => {
             licenseStatus: LicenseStatus.ACTIVE,
             licenseStatusName: 'test-status-desc',
             compactEligibility: EligibilityStatus.ELIGIBLE,
+            adverseActions: [
+                {
+                    adverseActionId: 'test-id',
+                    effectiveStartDate: moment().subtract(1, 'day').format(serverDateFormat),
+                    effectiveLiftDate: moment().add(1, 'day').format(serverDateFormat),
+                },
+            ],
         };
         const license = LicenseSerializer.fromServer(data);
 
@@ -198,6 +213,8 @@ describe('License model', () => {
         expect(license.status).to.equal(data.licenseStatus);
         expect(license.statusDescription).to.equal(data.licenseStatusName);
         expect(license.eligibility).to.equal(data.compactEligibility);
+        expect(license.adverseActions).to.be.an('array').with.length(1);
+        expect(license.adverseActions[0]).to.be.an.instanceof(AdverseAction);
 
         // Test methods
         expect(license.issueDateDisplay()).to.equal(
@@ -212,7 +229,8 @@ describe('License model', () => {
         expect(license.isExpired()).to.equal(true);
         expect(license.isDeactivated()).to.equal(false);
         expect(license.isCompactEligible()).to.equal(true);
-        expect(license.displayName()).to.equal('Alabama - AUD');
+        expect(license.displayName()).to.equal('Alabama - audiologist');
+        expect(license.displayName(', ', true)).to.equal('Alabama, AUD');
         expect(license.licenseTypeAbbreviation()).to.equal('AUD');
         expect(license.historyWithFabricatedEvents()).to.matchPattern([
             {
@@ -228,6 +246,7 @@ describe('License model', () => {
                 '...': '',
             },
         ]);
+        expect(license.isEncumbered()).to.equal(true);
     });
     it('should create a privilege with specific values through serializer', () => {
         const data = {
@@ -242,6 +261,12 @@ describe('License model', () => {
             dateOfRenewal: '2025-03-26T16:19:09+00:00',
             dateOfExpiration: '2025-02-12',
             compactTransactionId: '120060088901',
+            adverseActions: [
+                {
+                    adverseActionId: 'test-id',
+                    effectiveLiftDate: moment().subtract(1, 'day').format(serverDateFormat),
+                },
+            ],
             attestations: [
                 {
                     attestationId: 'personal-information-address-attestation',
@@ -545,6 +570,8 @@ describe('License model', () => {
         expect(license.status).to.equal(data.status);
         expect(license.statusDescription).to.equal(null);
         expect(license.eligibility).to.equal(EligibilityStatus.NA);
+        expect(license.adverseActions).to.be.an('array').with.length(1);
+        expect(license.adverseActions[0]).to.be.an.instanceof(AdverseAction);
 
         // Test methods
         expect(license.issueDateDisplay()).to.equal(
@@ -559,7 +586,8 @@ describe('License model', () => {
         expect(license.isExpired()).to.equal(true);
         expect(license.isDeactivated()).to.equal(false);
         expect(license.isCompactEligible()).to.equal(false);
-        expect(license.displayName()).to.equal('Nebraska - OTA');
+        expect(license.displayName()).to.equal('Nebraska - occupational therapy assistant');
+        expect(license.displayName(', ', true)).to.equal('Nebraska, OTA');
         expect(license.licenseTypeAbbreviation()).to.equal('OTA');
         expect(license.historyWithFabricatedEvents().length).to.equal(6);
         expect(license.historyWithFabricatedEvents()[0].updateType).to.equal('purchased');
@@ -568,6 +596,7 @@ describe('License model', () => {
         expect(license.historyWithFabricatedEvents()[3].updateType).to.equal('expired');
         expect(license.historyWithFabricatedEvents()[4].updateType).to.equal('renewal');
         expect(license.historyWithFabricatedEvents()[5].updateType).to.equal('expired');
+        expect(license.isEncumbered()).to.equal(false);
     });
     it('should create a privilege with specific values through serializer (deactivated)', () => {
         const data = {

@@ -121,6 +121,20 @@ class CCDataClass:
         """
         return self._data['dateOfUpdate']
 
+    @property
+    def licenseTypeAbbreviation(self) -> str | None:
+        """
+        Computed property that returns the license type abbreviation if the instance
+        has both 'compact' and 'licenseType' fields, otherwise returns None.
+        """
+        if 'compact' in self._data and 'licenseType' in self._data:
+            license_type_abbr = config.license_type_abbreviations.get(self._data['compact'], {}).get(
+                self._data['licenseType']
+            )
+            return license_type_abbr.lower() if license_type_abbr else None
+
+        return None
+
     def to_dict(self) -> dict[str, Any]:
         """Return the internal data dictionary
 
@@ -248,6 +262,9 @@ class UpdateCategory(CCEnum):
     ENCUMBRANCE = 'encumbrance'
     HOME_JURISDICTION_CHANGE = 'homeJurisdictionChange'
     REGISTRATION = 'registration'
+    LIFTING_ENCUMBRANCE = 'lifting_encumbrance'
+    # this is specific to privileges that are deactivated due to a state license deactivation
+    LICENSE_DEACTIVATION = 'licenseDeactivation'
 
 
 class ActiveInactiveStatus(CCEnum):
@@ -284,6 +301,18 @@ class HomeJurisdictionChangeStatusEnum(CCEnum):
     INACTIVE = 'inactive'
 
 
+class LicenseDeactivatedStatusEnum(CCEnum):
+    """
+    This is only used if the provider's privilege is deactivated due to their home state license
+    being deactivated by the jurisdiction.
+
+    This field will never be present for an 'active' privilege, hence the only allowed value for this
+    field is 'LICENSE_DEACTIVATED'.
+    """
+
+    LICENSE_DEACTIVATED = 'licenseDeactivated'
+
+
 class StaffUserStatus(CCEnum):
     ACTIVE = 'active'
     INACTIVE = 'inactive'
@@ -295,10 +324,13 @@ class ClinicalPrivilegeActionCategory(CCEnum):
     https://www.npdb.hrsa.gov/software/CodeLists.pdf, Tables 41-45
     """
 
+    NON_COMPLIANCE = 'Non-compliance With Requirements'
+    CRIMINAL_CONVICTION = 'Criminal Conviction or Adjudication'
+    CONFIDENTIALITY_VIOLATION = 'Confidentiality, Consent or Disclosure Violations'
+    MISCONDUCT_ABUSE = 'Misconduct or Abuse'
     FRAUD = 'Fraud, Deception, or Misrepresentation'
     UNSAFE_PRACTICE = 'Unsafe Practice or Substandard Care'
     IMPROPER_SUPERVISION = 'Improper Supervision or Allowing Unlicensed Practice'
-    IMPROPER_MEDICATION = 'Improper Prescribing, Dispensing, Administering Medication/Drug Violation'
     OTHER = 'Other'
 
 

@@ -12,5 +12,7 @@
   "CC_TEST_COGNITO_PROVIDER_USER_POOL_CLIENT_ID": "72612345",
   "CC_TEST_PROVIDER_USER_USERNAME": "example@example.com",
   "CC_TEST_PROVIDER_USER_PASSWORD": "examplePassword",
-  "ENVIRONMENT_NAME": "sandboxEnvironmentNamePlaceholder"
+  "ENVIRONMENT_NAME": "sandboxEnvironmentNamePlaceholder",
+  "SANDBOX_AUTHORIZE_NET_API_LOGIN_ID": "your_sandbox_api_login_id",
+  "SANDBOX_AUTHORIZE_NET_TRANSACTION_KEY": "your_sandbox_transaction_key"
 }

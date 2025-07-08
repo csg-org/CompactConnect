@@ -114,10 +114,6 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
         return this.$t('licensing.adminFee');
     }
 
-    get jurisdictionFeeText(): string {
-        return this.$t('licensing.jurisdictionFee');
-    }
-
     get subtotalText(): string {
         return this.$t('common.subtotal');
     }
@@ -142,16 +138,32 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
         return this.$t('licensing.iUnderstand');
     }
 
-    get basePurchasePrice(): number {
-        return this.selectedStatePurchaseData?.fees?.[this.selectedLicenseTypeAbbrev] || 0;
+    get licenseTypeFees(): any {
+        return this.selectedStatePurchaseData?.fees?.[this.selectedLicenseTypeAbbrev];
     }
 
-    get feeDisplay(): string {
+    get basePurchasePrice(): number {
+        return this.licenseTypeFees?.baseRate || 0;
+    }
+
+    get militaryPurchasePrice(): number {
+        return this.licenseTypeFees?.militaryRate || 0;
+    }
+
+    get hasMilitaryRate(): boolean {
+        return this.licenseTypeFees?.militaryRate || this.licenseTypeFees?.militaryRate === 0;
+    }
+
+    get baseFeeDisplay(): string {
         return this.basePurchasePrice.toFixed(2);
     }
 
-    get militaryDiscountAmountDisplay(): string {
-        return this.selectedStatePurchaseData?.militaryDiscountAmount?.toFixed(2) || '';
+    get militaryFeeDisplay(): string {
+        return this.militaryPurchasePrice.toFixed(2) || '';
+    }
+
+    get feeDisplay(): string {
+        return this.shouldUseMilitaryRate ? this.militaryFeeDisplay : this.baseFeeDisplay;
     }
 
     get currentCompact(): Compact | null {
@@ -166,23 +178,22 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
         return this.currentCompactCommissionFee.toFixed(2);
     }
 
-    get isMilitaryDiscountActive(): boolean {
-        return this.selectedStatePurchaseData?.isMilitaryDiscountActive || false;
+    get shouldUseMilitaryRate(): boolean {
+        return Boolean(this.hasMilitaryRate && this.licensee?.isMilitaryStatusActive());
     }
 
-    get shouldApplyMilitaryDiscount(): boolean {
-        return Boolean(this.isMilitaryDiscountActive && this.licensee?.isMilitary());
+    get jurisdictionFeeText(): string {
+        return this.shouldUseMilitaryRate ? this.$t('licensing.jurisdictionFeeMilitary') : this.$t('licensing.jurisdictionFee');
     }
 
     get subTotal(): string {
-        const militaryDiscount = this.shouldApplyMilitaryDiscount
-            && this.selectedStatePurchaseData?.militaryDiscountAmount
-            ? this.selectedStatePurchaseData.militaryDiscountAmount : 0;
+        const effectiveRate = this.shouldUseMilitaryRate
+            ? this.militaryPurchasePrice
+            : this.basePurchasePrice;
 
         const total = (
-            (this.basePurchasePrice)
+            (effectiveRate)
             + (this.currentCompactCommissionFee)
-            - (militaryDiscount)
         );
 
         return total.toFixed(2);
@@ -301,12 +312,14 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
     setJurisprudenceInputValue(newValue): void {
         if (this.jurisprudenceCheckInput) {
             (this.jurisprudenceCheckInput.value as any) = newValue; // any use required here because of outstanding ts bug regarding union type inference
+            this.jurisprudenceCheckInput.validate();
         }
     }
 
     setScopeInputValue(newValue): void {
         if (this.scopeOfPracticeCheckInput) {
             (this.scopeOfPracticeCheckInput.value as any) = newValue; // any use required here because of outstanding ts bug regarding union type inference
+            this.scopeOfPracticeCheckInput.validate();
         }
     }
 

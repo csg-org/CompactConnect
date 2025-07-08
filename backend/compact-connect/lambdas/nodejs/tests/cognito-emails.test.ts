@@ -57,19 +57,6 @@ const asSESClient = (mock: ReturnType<typeof mockClient>) =>
 const asS3Client = (mock: ReturnType<typeof mockClient>) =>
     mock as unknown as S3Client;
 
-const mockGenerateCognitoMessage = jest.fn().mockImplementation((triggerSource, codeParameter, usernameParameter) => ({
-    subject: 'Test Subject',
-    htmlContent: '<html>Test Content</html>'
-}));
-
-jest.mock('../lib/email/cognito-email-service', () => {
-    return {
-        CognitoEmailService: jest.fn().mockImplementation(() => ({
-            generateCognitoMessage: mockGenerateCognitoMessage
-        }))
-    };
-});
-
 describe('CognitoEmailsLambda', () => {
     let lambda: Lambda;
     let mockDynamoDBClient: ReturnType<typeof mockClient>;
@@ -99,37 +86,68 @@ describe('CognitoEmailsLambda', () => {
         });
     });
 
-    it('should process AdminCreateUser event successfully', async () => {
+    it('should process AdminCreateUser event for provider users with 24-hour message', async () => {
+        process.env.USER_POOL_TYPE = 'provider';
+
         const response = await lambda.handler(SAMPLE_COGNITO_EVENT, SAMPLE_CONTEXT);
 
-        expect(response).toEqual({
-            ...SAMPLE_COGNITO_EVENT,
-            response: {
-                smsMessage: 'unchanged',
-                emailMessage: '<html>Test Content</html>',
-                emailSubject: 'Test Subject'
-            }
-        });
+        expect(response.response.emailSubject).toBe('Welcome to CompactConnect');
+        expect(response.response.emailMessage).toContain('Your temporary password is:');
+        expect(response.response.emailMessage).toContain('TEST-CODE-123');
+        expect(response.response.emailMessage).toContain('Your username is:');
+        expect(response.response.emailMessage).toContain('testuser');
+        expect(response.response.emailMessage).toContain('This temporary password is valid for 24 hours');
+        expect(response.response.emailMessage).toContain('within the next 24 hours');
 
-        // Verify CognitoEmailService was called with correct parameters
-        expect(mockGenerateCognitoMessage).toHaveBeenCalledWith(
-            'CustomMessage_AdminCreateUser',
-            'TEST-CODE-123',
-            'testuser'
-        );
+
     });
 
-    it('should let errors escape', async () => {
-        mockGenerateCognitoMessage.mockImplementationOnce(() => {
-            throw new Error('Test error');
-        });
+    it('should process AdminCreateUser event for staff users without time constraint message', async () => {
+        process.env.USER_POOL_TYPE = 'staff';
 
-        await expect(lambda.handler(SAMPLE_COGNITO_EVENT, SAMPLE_CONTEXT))
-            .rejects
-            .toThrow('Test error');
+        const response = await lambda.handler(SAMPLE_COGNITO_EVENT, SAMPLE_CONTEXT);
+
+        expect(response.response.emailSubject).toBe('Welcome to CompactConnect');
+        expect(response.response.emailMessage).toContain('Your temporary password is:');
+        expect(response.response.emailMessage).toContain('TEST-CODE-123');
+        expect(response.response.emailMessage).toContain('Your username is:');
+        expect(response.response.emailMessage).toContain('testuser');
+        expect(response.response.emailMessage).not.toContain('24 hours');
+        expect(response.response.emailMessage).toContain('Please sign in at');
+        expect(response.response.emailMessage).toContain('and change your password when prompted');
+    });
+
+    it('should process AdminCreateUser event for unknown user pool type without time constraint message', async () => {
+        process.env.USER_POOL_TYPE = 'unknown';
+
+        const response = await lambda.handler(SAMPLE_COGNITO_EVENT, SAMPLE_CONTEXT);
+
+        expect(response.response.emailSubject).toBe('Welcome to CompactConnect');
+        expect(response.response.emailMessage).toContain('Your temporary password is:');
+        expect(response.response.emailMessage).toContain('TEST-CODE-123');
+        expect(response.response.emailMessage).toContain('Your username is:');
+        expect(response.response.emailMessage).toContain('testuser');
+        expect(response.response.emailMessage).not.toContain('24 hours');
+        expect(response.response.emailMessage).toContain('Please sign in at');
+        expect(response.response.emailMessage).toContain('and change your password when prompted');
+    });
+
+    it('should handle ForgotPassword event', async () => {
+        const forgotPasswordEvent = {
+            ...SAMPLE_COGNITO_EVENT,
+            triggerSource: 'CustomMessage_ForgotPassword'
+        };
+
+        const response = await lambda.handler(forgotPasswordEvent, SAMPLE_CONTEXT);
+
+        expect(response.response.emailSubject).toBe('Reset your password');
+        expect(response.response.emailMessage).toContain('You requested to reset your password');
+        expect(response.response.emailMessage).toContain('TEST-CODE-123');
     });
 
     it('should handle missing code parameter', async () => {
+        process.env.USER_POOL_TYPE = 'provider';
+
         const eventWithoutCode = {
             ...SAMPLE_COGNITO_EVENT,
             request: {
@@ -140,20 +158,23 @@ describe('CognitoEmailsLambda', () => {
 
         const response = await lambda.handler(eventWithoutCode, SAMPLE_CONTEXT);
 
-        expect(response).toEqual({
-            ...eventWithoutCode,
-            response: {
-                smsMessage: 'unchanged',
-                emailMessage: '<html>Test Content</html>',
-                emailSubject: 'Test Subject'
-            }
-        });
+        expect(response.response.emailSubject).toBe('Welcome to CompactConnect');
+        expect(response.response.emailMessage).toContain('Your temporary password is:');
+        expect(response.response.emailMessage).toContain('undefined'); // Since codeParameter is undefined
+        expect(response.response.emailMessage).toContain('Your username is:');
+        expect(response.response.emailMessage).toContain('testuser');
+        expect(response.response.emailMessage).toContain('This temporary password is valid for 24 hours');
 
-        // Verify CognitoEmailService was called with correct parameters
-        expect(mockGenerateCognitoMessage).toHaveBeenCalledWith(
-            'CustomMessage_AdminCreateUser',
-            undefined,
-            'testuser'
-        );
+    });
+
+    it('should handle unsupported trigger source', async () => {
+        const unsupportedEvent = {
+            ...SAMPLE_COGNITO_EVENT,
+            triggerSource: 'UnsupportedTrigger'
+        };
+
+        await expect(lambda.handler(unsupportedEvent, SAMPLE_CONTEXT))
+            .rejects
+            .toThrow('Unsupported Cognito trigger source: UnsupportedTrigger');
     });
 });

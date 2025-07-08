@@ -208,7 +208,11 @@ export default class LicensingDetail extends Vue {
     }
 
     isLicenseActive(license: License): boolean {
-        return license && license.status === LicenseStatus.ACTIVE;
+        return license?.status === LicenseStatus.ACTIVE;
+    }
+
+    isLicenseExpired(license: License): boolean {
+        return license?.isExpired() || false;
     }
 
     togglePersonalInfoCollapsed(): void {

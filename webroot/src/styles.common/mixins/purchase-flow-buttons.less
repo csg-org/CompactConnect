@@ -34,6 +34,7 @@
     .form-nav-buttons {
         display: flex;
         flex-direction: row-reverse;
+        gap: 1rem;
         width: 100%;
 
         @media @tabletWidth {
@@ -57,12 +58,17 @@
             :deep(.input-submit) {
                 width: 100%;
             }
+
+            :deep(button) {
+                width: 100%;
+                min-height: 4rem;
+            }
         }
     }
 
     .form-override-buttons {
         .form-override-button {
-            margin-bottom: 0.8rem;
+            margin-bottom: 0;
 
             :deep(.input-button) {
                 font-weight: @fontWeight;
