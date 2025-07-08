@@ -173,20 +173,44 @@ class TestGetPurchasePrivilegeOptions(TstFunction):
         self.assertEqual(200, resp['statusCode'])
         privilege_options = json.loads(resp['body'])
 
-        # ensure the compact and privilege were returned
-        self.assertEqual(2, len(privilege_options['items']))
-
-        # Filter to only jurisdiction options
-        jurisdiction_options = [option for option in privilege_options['items'] if option['type'] == 'jurisdiction']
-
-        # Should only return the jurisdiction with licenseeRegistrationEnabled = True
-        self.assertEqual(1, len(jurisdiction_options))
-        returned_jurisdiction = jurisdiction_options[0]
-        self.assertEqual('ky', returned_jurisdiction['postalAbbreviation'])
-        self.assertEqual('Kentucky', returned_jurisdiction['jurisdictionName'])
+        # ensure the compact and kentucky were returned
+        self.assertEqual(
+            [
+                {
+                    'compactAbbr': 'aslp',
+                    'compactCommissionFee': {'feeAmount': 10, 'feeType': 'FLAT_RATE'},
+                    'compactName': 'Audiology and Speech Language Pathology',
+                    'isSandbox': True,
+                    'paymentProcessorPublicFields': {
+                        'apiLoginId': 'some-api-login-id',
+                        'publicClientKey': 'some-public-client-key',
+                    },
+                    'transactionFeeConfiguration': {
+                        'licenseeCharges': {'active': True, 'chargeAmount': 10, 'chargeType': 'FLAT_FEE_PER_PRIVILEGE'}
+                    },
+                    'type': 'compact',
+                },
+                {
+                    'compact': 'aslp',
+                    'jurisdictionName': 'Kentucky',
+                    'jurisprudenceRequirements': {
+                        'linkToDocumentation': 'https://example.com/jurisprudence',
+                        'required': True,
+                    },
+                    'postalAbbreviation': 'ky',
+                    'privilegeFees': [
+                        {'amount': 50, 'licenseTypeAbbreviation': 'slp', 'militaryRate': 50},
+                        {'amount': 50, 'licenseTypeAbbreviation': 'aud', 'militaryRate': 50},
+                    ],
+                    'type': 'jurisdiction',
+                },
+            ],
+            privilege_options['items'],
+        )
 
     def test_get_purchase_privilege_options_raises_exception_if_no_live_configured_states(self):
-        """Test that jurisdictions not in configuredStates are filtered out."""
+        """Test that the API raises an exception if an authenticated user
+        calls this endpoint before any state are live."""
         from handlers.privileges import get_purchase_privilege_options
 
         event = self._when_testing_provider_user_event_with_custom_claims()
@@ -211,6 +235,8 @@ class TestGetPurchasePrivilegeOptions(TstFunction):
             }
         )
 
+        # In this case, we raise an exception because we should not have any authenticated users able to call this
+        # endpoint before at least one state is live. We need our API alerting to fire so developers can investigate
         with self.assertRaises(CCInternalException):
             get_purchase_privilege_options(event, self.mock_context)
 

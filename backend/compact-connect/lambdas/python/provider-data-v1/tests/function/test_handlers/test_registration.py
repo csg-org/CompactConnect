@@ -169,10 +169,11 @@ class TestProviderRegistration(TstFunction):
         )
 
     @patch('handlers.registration.verify_recaptcha')
-    def test_registration_returns_400_if_jurisdiction_is_not_configured_for_registration(self, mock_verify_recaptcha):
+    def test_registration_returns_400_if_jurisdiction_configuration_not_present(self, mock_verify_recaptcha):
         mock_verify_recaptcha.return_value = True
         from handlers.registration import register_provider
-
+        # in this case, Ohio state admins have not specified their configuration values yet, so registration cannot
+        # be completed
         response = register_provider(self._get_test_event(body_overrides={'jurisdiction': 'oh'}), self.mock_context)
         self.assertEqual(400, response['statusCode'])
         self.assertEqual(
@@ -181,11 +182,12 @@ class TestProviderRegistration(TstFunction):
         )
 
     @patch('handlers.registration.verify_recaptcha')
-    def test_registration_returns_400_if_jurisdiction_not_in_configured_states(self, mock_verify_recaptcha):
+    def test_registration_returns_400_if_jurisdiction_not_in_compact_configured_states(self, mock_verify_recaptcha):
         """Test that registration is rejected if jurisdiction is not in compact's configuredStates."""
         mock_verify_recaptcha.return_value = True
 
-        # Update compact configuration to have empty configuredStates
+        # in this case, the compact does not have the requested state in their list of configuredStates, so registration
+        # cannot be completed
         compact_config_overrides = generate_default_compact_config_overrides()
         compact_config_overrides.update({'configuredStates': []})
         self._load_compact_configuration(overrides=compact_config_overrides)
