@@ -189,10 +189,7 @@ def _put_compact_configuration(event: dict, context: LambdaContext):  # noqa: AR
         # Check if licenseeRegistrationEnabled is being changed from true to false
         try:
             existing_config = config.compact_configuration_client.get_compact_configuration(compact=compact)
-            if (
-                existing_config.licenseeRegistrationEnabled is True
-                and validated_data.get('licenseeRegistrationEnabled') is False
-            ):
+            if existing_config.licenseeRegistrationEnabled and not validated_data.get('licenseeRegistrationEnabled'):
                 logger.info(
                     'attempt to disable licensee registration after it was enabled.',
                     compact=compact,
@@ -298,7 +295,7 @@ def _validate_configured_states_transitions(
     for postal_abbr, existing_state in existing_states_by_postal.items():
         if postal_abbr in new_states_by_postal:
             new_state = new_states_by_postal[postal_abbr]
-            if existing_state['isLive'] is True and new_state['isLive'] is False:
+            if existing_state['isLive'] and not new_state['isLive']:
                 logger.warning(
                     'Attempt to change isLive from true to false',
                     compact=compact,

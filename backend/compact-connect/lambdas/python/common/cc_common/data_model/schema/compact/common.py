@@ -70,9 +70,9 @@ def validate_no_duplicates_in_configured_states(data):  # noqa: ARG001 unused-ar
 
     configured_state_postal_abbrs = [state['postalAbbreviation'] for state in configured_states]
     if len(set(configured_state_postal_abbrs)) != len(configured_state_postal_abbrs):
-        duplicate_states = sorted(configured_state_postal_abbrs)
+        sorted_states = sorted(configured_state_postal_abbrs)
         raise ValidationError(
-            f'Duplicate states found in configuredStates: {", ".join(duplicate_states)}. '
+            f'Duplicate states found in configuredStates: {", ".join(sorted_states)}. '
             f'Each state can only appear once in the list.',
             field_name='configuredStates',
         )
