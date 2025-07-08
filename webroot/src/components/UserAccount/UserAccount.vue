@@ -9,19 +9,56 @@
     <div class="account-area-container">
         <h1 class="card-title">{{ $t('account.accountTitle') }}</h1>
         <Card class="account-area">
-            <form @submit.prevent="handleSubmit">
+            <form @submit.prevent.stop="handleSubmit">
                 <InputText :formInput="formData.firstName" />
                 <InputText :formInput="formData.lastName" />
                 <InputText :formInput="formData.email" />
                 <InputSubmit
-                    :formInput="formData.submit"
+                    :formInput="formData.submitUserUpdate"
                     class="account-submit"
-                    :class="{ 'not-visible': !isSubmitVisible }"
                     :label="submitLabel"
                     :isEnabled="!isFormLoading"
-                    :tabindex="(isSubmitVisible) ? 0 : -1"
                 />
             </form>
+            <TransitionGroup>
+                <Modal
+                    v-if="isEmailVerificationModalDisplayed"
+                    class="confirm-email-modal"
+                    :title="$t('compact.confirmSaveCompactTitle')"
+                    :showActions="false"
+                    @keydown.tab="focusTrapEmailVerificationModal($event)"
+                    @keyup.esc="closeEmailVerificationModal"
+                >
+                    <template v-slot:content>
+                        <div class="modal-content confirm-modal-content">
+                            {{ $t('common.cannotBeUndone') }}
+                            <InputText
+                                :formInput="formData.emailVerificationCode"
+                                class="verification-code-input-container"
+                            />
+                            <div class="action-button-row">
+                                <InputButton
+                                    id="confirm-modal-cancel-button"
+                                    class="action-button cancel-button"
+                                    :label="$t('common.cancel')"
+                                    :isTransparent="true"
+                                    :onClick="closeEmailVerificationModal"
+                                />
+                                <InputSubmit
+                                    :formInput="formData.submitEmailVerification"
+                                    @click="submitEmailVerificationModal"
+                                    class="action-button submit-button continue-button"
+                                    :label="(isFormLoading)
+                                        ? $t('common.loading')
+                                        : $t('common.submit')"
+                                    :isTransparent="true"
+                                    :isEnabled="!isFormLoading"
+                                />
+                            </div>
+                        </div>
+                    </template>
+                </Modal>
+            </TransitionGroup>
             <ChangePassword />
             <section
                 v-if="isLicensee && currentCompactType"

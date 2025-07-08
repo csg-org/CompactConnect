@@ -11,7 +11,7 @@ import {
     Watch,
     toNative
 } from 'vue-facing-decorator';
-import { reactive, computed } from 'vue';
+import { reactive, computed, nextTick } from 'vue';
 import { AuthTypes } from '@/app.config';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
@@ -19,6 +19,8 @@ import Card from '@components/Card/Card.vue';
 import InputText from '@components/Forms/InputText/InputText.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import ChangePassword from '@components/ChangePassword/ChangePassword.vue';
+import Modal from '@components/Modal/Modal.vue';
+import MockPopulate from '@components/Forms/MockPopulate/MockPopulate.vue';
 import { User } from '@models/User/User.model';
 import { LicenseeUser } from '@models/LicenseeUser/LicenseeUser.model';
 import { StaffUser } from '@models/StaffUser/StaffUser.model';
@@ -29,14 +31,22 @@ import Joi from 'joi';
 @Component({
     name: 'UserAccount',
     components: {
+        MockPopulate,
         InputButton,
         Card,
         InputText,
         InputSubmit,
+        Modal,
         ChangePassword,
     }
 })
 class UserAccount extends mixins(MixinForm) {
+    //
+    // Data
+    //
+    initialUserEmail = '';
+    isEmailVerificationModalDisplayed = false;
+
     //
     // Lifecycle
     //
@@ -83,86 +93,108 @@ class UserAccount extends mixins(MixinForm) {
         return (this.isFormLoading) ? this.$t('common.saving') : this.$t('common.saveChanges');
     }
 
-    get isSubmitVisible(): boolean {
-        const { formData } = this;
-        const enabledInputKeys = this.formKeys.filter((key) => {
-            const { isSubmitInput, isDisabled } = formData[key];
-
-            return !isSubmitInput && !isDisabled;
-        });
-
-        return enabledInputKeys.length > 0;
-    }
-
     //
     // Methods
     //
     initFormInputs(): void {
-        this.formData = reactive({
-            firstName: new FormInput({
-                id: 'first-name',
-                name: 'last-name',
-                label: computed(() => this.$t('common.firstName')),
-                placeholder: computed(() => this.$t('common.firstName')),
-                autocomplete: 'given-name',
-                value: this.user.firstName,
-                validation: Joi.string().required().messages(this.joiMessages.string),
-                isDisabled: this.isLicensee,
-            }),
-            lastName: new FormInput({
-                id: 'last-name',
-                name: 'last-name',
-                label: computed(() => this.$t('common.lastName')),
-                placeholder: computed(() => this.$t('common.lastName')),
-                autocomplete: 'family-name',
-                value: this.user.lastName,
-                validation: Joi.string().required().messages(this.joiMessages.string),
-                isDisabled: this.isLicensee,
-            }),
-            email: new FormInput({
-                id: 'email',
-                name: 'email',
-                label: computed(() => this.$t('common.emailAddress')),
-                placeholder: computed(() => this.$t('common.emailAddress')),
-                autocomplete: 'email',
-                value: this.email,
-                validation: Joi.string().email({ tlds: false }).messages(this.joiMessages.string),
-                isDisabled: true,
-            }),
-            submit: new FormInput({
-                isSubmitInput: true,
-                id: 'submit-user-info',
-            }),
-        });
+        if (this.isEmailVerificationModalDisplayed) {
+            this.formData = reactive({
+                emailVerificationCode: new FormInput({
+                    id: 'verification-code',
+                    name: 'verification-code',
+                    label: computed(() => this.$t('common.firstName')), // @TODO
+                    validation: Joi.string().required().messages(this.joiMessages.string),
+                }),
+                submitEmailVerification: new FormInput({
+                    isSubmitInput: true,
+                    id: 'confirm-modal-submit-button',
+                }),
+            });
+        } else {
+            this.formData = reactive({
+                firstName: new FormInput({
+                    id: 'first-name',
+                    name: 'first-name',
+                    label: computed(() => this.$t('common.firstName')),
+                    placeholder: computed(() => this.$t('common.firstName')),
+                    autocomplete: 'given-name',
+                    value: this.user.firstName,
+                    validation: Joi.string().required().messages(this.joiMessages.string),
+                    isDisabled: this.isLicensee,
+                }),
+                lastName: new FormInput({
+                    id: 'last-name',
+                    name: 'last-name',
+                    label: computed(() => this.$t('common.lastName')),
+                    placeholder: computed(() => this.$t('common.lastName')),
+                    autocomplete: 'family-name',
+                    value: this.user.lastName,
+                    validation: Joi.string().required().messages(this.joiMessages.string),
+                    isDisabled: this.isLicensee,
+                }),
+                email: new FormInput({
+                    id: 'email',
+                    name: 'email',
+                    label: computed(() => this.$t('common.emailAddress')),
+                    placeholder: computed(() => this.$t('common.emailAddress')),
+                    autocomplete: 'email',
+                    value: this.email,
+                    validation: Joi.string().email({ tlds: false }).messages(this.joiMessages.string),
+                    isDisabled: this.isStaff,
+                }),
+                submitUserUpdate: new FormInput({
+                    isSubmitInput: true,
+                    id: 'submit-user-info',
+                }),
+            });
+        }
         this.watchFormInputs(); // Important if you want automated form validation
     }
 
     async handleSubmit(): Promise<void> {
         this.validateAll({ asTouched: true });
+        await nextTick();
 
         if (this.isFormValid) {
-            this.startFormLoading();
-            await this.updateUserRequest();
+            const {
+                isStaff,
+                isLicensee,
+                formValues,
+                initialUserEmail
+            } = this;
+            const isEmailChanged = (isLicensee) ? formValues.email !== initialUserEmail : false;
 
-            if (!this.isFormError) {
-                this.isFormSuccessful = true;
-                this.updateFormSubmitSuccess(this.$t('common.success'));
+            if (isStaff) {
+                this.startFormLoading();
+                await this.updateUserRequest();
+
+                if (!this.isFormError) {
+                    this.isFormSuccessful = true;
+                    this.updateFormSubmitSuccess(this.$t('common.success'));
+                }
+
+                this.endFormLoading();
+            } else if (isEmailChanged) {
+                this.startFormLoading();
+                await this.updateUserRequest();
+                await this.openEmailVerificationModal();
+                this.endFormLoading();
+            } else {
+                this.setError('TODO');
             }
-
-            this.endFormLoading();
         }
     }
 
     async updateUserRequest(): Promise<void> {
-        const { firstName, lastName } = this.formValues;
-        const requestData = {
-            attributes: {
-                givenName: firstName,
-                familyName: lastName,
-            },
-        };
-
         if (this.isStaff) {
+            const { firstName, lastName } = this.formValues;
+            const requestData = {
+                attributes: {
+                    givenName: firstName,
+                    familyName: lastName,
+                },
+            };
+
             await dataApi.updateAuthenticatedStaffUser(requestData)
                 .then((response) => {
                     this.$store.dispatch(`user/setStoreUser`, response);
@@ -170,7 +202,52 @@ class UserAccount extends mixins(MixinForm) {
                 .catch((err) => {
                     this.setError(err.message);
                 });
+        } else if (this.isLicensee) {
+            const { email } = this.formValues;
+            const requestData = { email };
+
+            // TODO
+            // await dataApi.updateAuthenticatedLicneseeUser(requestData).catch((err) => {
+            //     this.setError(err.message);
+            // });
+            console.log(requestData);
         }
+    }
+
+    async openEmailVerificationModal(): Promise<void> {
+        this.isEmailVerificationModalDisplayed = true;
+        this.initFormInputs();
+        await nextTick();
+        document.getElementById(this.formData.emailVerificationCode.id)?.focus();
+    }
+
+    async closeEmailVerificationModal(): Promise<void> {
+        this.isEmailVerificationModalDisplayed = false;
+        this.initFormInputs();
+        await nextTick();
+        document.getElementById(this.formData.submitUserUpdate.id)?.focus();
+    }
+
+    focusTrapEmailVerificationModal(event: KeyboardEvent): void {
+        const firstTabIndex = document.getElementById(this.formData.emailVerificationCode.id);
+        const lastTabIndex = document.getElementById('confirm-modal-submit-button');
+
+        if (event.shiftKey) {
+            // shift + tab to last input
+            if (document.activeElement === firstTabIndex) {
+                lastTabIndex?.focus();
+                event.preventDefault();
+            }
+        } else if (document.activeElement === lastTabIndex) {
+            // Tab to first input
+            firstTabIndex?.focus();
+            event.preventDefault();
+        }
+    }
+
+    async submitEmailVerificationModal(): Promise<void> {
+        // await this.$store.dispatch(`user/setStoreUser`, response); // TODO: Somehow refetch / refresh the user store data
+        await this.closeEmailVerificationModal();
     }
 
     viewMilitaryStatus(): void {
@@ -188,6 +265,7 @@ class UserAccount extends mixins(MixinForm) {
         this.formData.firstName.value = user.firstName;
         this.formData.lastName.value = user.lastName;
         this.formData.email.value = this.email;
+        this.initialUserEmail = this.email;
     }
 }
 

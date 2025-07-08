@@ -32,6 +32,78 @@
         }
     }
 
+    .confirm-email-modal {
+        :deep(.modal-container) {
+            width: 95%;
+            max-width: 60rem;
+            padding: 2rem;
+
+            @media @tabletWidth {
+                padding: 4rem;
+            }
+
+            .modal-content {
+                padding-top: 0.6rem;
+
+                .verification-code-input-container {
+                    justify-self: center;
+                    width: 100%;
+                    max-width: 24rem;
+
+                    label {
+                        justify-content: center;
+                        font-size: 2.4rem;
+                    }
+
+                    input {
+                        border-top: 0;
+                        border-right: 0;
+                        border-left: 0;
+                        border-radius: 0;
+                    }
+                }
+
+                .modal-error {
+                    margin-top: 2.4rem;
+                    color: @midRed;
+                    text-align: right;
+                }
+
+                .action-button-row {
+                    display: flex;
+                    flex-direction: column;
+                    margin-top: 2rem;
+
+                    @media @desktopWidth {
+                        flex-direction: row;
+                        flex-wrap: wrap;
+                        justify-content: center;
+                        margin-top: 4rem;
+                    }
+
+                    .action-button {
+                        margin-bottom: 1rem;
+
+                        @media @desktopWidth {
+                            &:not(:first-child) {
+                                margin-left: 2.4rem;
+                            }
+                        }
+
+                        .input-button,
+                        .input-submit {
+                            width: 100%;
+
+                            @media @desktopWidth {
+                                width: auto;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     .military-status-container {
         margin-top: 2rem;
         padding-top: 3rem;

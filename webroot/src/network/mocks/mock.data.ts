@@ -1503,7 +1503,8 @@ export const licensees = {
             homeAddressPostalCode: '',
             givenName: 'Janet',
             homeAddressStreet1: '1640 Riverside Drive',
-            emailAddress: 'test@test.com',
+            emailAddress: 'test@example.com',
+            compactConnectRegisteredEmailAddress: 'test@example.com',
             dateOfBirth: '1990-08-29',
             privilegeJurisdictions: [
                 'al'
@@ -1759,7 +1760,8 @@ export const licensees = {
             homeAddressPostalCode: '80302',
             givenName: 'Tyler',
             homeAddressStreet1: '1045 Pearl St',
-            emailAddress: 'test@test.com',
+            emailAddress: 'test@example.com',
+            compactConnectRegisteredEmailAddress: 'test@example.com',
             dateOfBirth: '1975-01-01',
             privilegeJurisdictions: [
                 'al'
@@ -1832,7 +1834,8 @@ export const licensees = {
             homeAddressPostalCode: '80301',
             givenName: 'Marla',
             homeAddressStreet1: '1495 Canyon Blvd',
-            emailAddress: 'test@test.com',
+            emailAddress: 'test@example.com',
+            compactConnectRegisteredEmailAddress: 'test@example.com',
             dateOfBirth: '1965-01-01',
             privilegeJurisdictions: [
                 'al',
@@ -1927,7 +1930,8 @@ export const licensees = {
             homeAddressPostalCode: '',
             givenName: 'Jane',
             homeAddressStreet1: '1640 Riverside Drive',
-            emailAddress: 'test@test.com',
+            emailAddress: 'test@example.com',
+            compactConnectRegisteredEmailAddress: 'test@example.com',
             dateOfBirth: '1990-08-29',
             privilegeJurisdictions: [
                 'al'
