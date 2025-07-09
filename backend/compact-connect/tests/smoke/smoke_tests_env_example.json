@@ -1,6 +1,7 @@
 {
   "CC_TEST_API_BASE_URL": "https://api.test.compactconnect.org",
   "CC_TEST_PROVIDER_DYNAMO_TABLE_NAME": "Sandbox-PersistentStack-ProviderTable12345",
+  "CC_TEST_COMPACT_CONFIGURATION_DYNAMO_TABLE_NAME": "Sandbox-PersistentStack-CompactConfigTable12345",
   "CC_TEST_RATE_LIMITING_DYNAMO_TABLE_NAME": "Sandbox-PersistentStack-RateLimitingTable12345",
   "CC_TEST_GET_PROVIDER_SSN_LAMBDA_NAME": "Sandbox-APIStack-LicenseApiv1compactscompactprovid-1234",
   "CC_TEST_SSN_DYNAMO_TABLE_NAME": "Sandbox-PersistentStack-SSNTable12345",

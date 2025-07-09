@@ -507,7 +507,7 @@ def generate_opaque_data(card_number: str):
                 'token': {
                     'cardNumber': card_number,
                     'expirationDate': '122030',
-                    'cardCode': '999',
+                    'cardCode': '900',
                     'fullName': 'SmokeTest User',
                 },
             },
