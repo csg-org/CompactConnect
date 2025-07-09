@@ -6,10 +6,51 @@ from enum import StrEnum
 from hashlib import md5
 from typing import Any
 
-from marshmallow import Schema, ValidationError, validates_schema
+from marshmallow import Schema, ValidationError, pre_load, validates_schema
 from marshmallow.fields import Dict, String, Url
 
 from cc_common.config import config
+
+
+class CCRequestSchema(Schema):
+    """
+    Base class for Compact Connect request schemas.
+
+    This schema provides common request processing functionality such as
+    whitespace trimming and other input sanitization that should be applied
+    to all incoming API requests.
+
+    All request schemas should inherit from this class instead of directly
+    from marshmallow.Schema to ensure consistent input processing.
+    """
+
+    @pre_load
+    def strip_whitespace(self, in_data, **kwargs):  # noqa: ARG002 unused-argument
+        """
+        Pre-load hook that strips whitespace from all string values in the request data.
+
+        This method recursively processes the input data and strips leading and trailing
+        whitespace from all string values. This ensures consistent input sanitization
+        across all request schemas.
+
+        :param in_data: Input data dictionary from the request
+        :param kwargs: Additional keyword arguments from marshmallow
+        :return: Processed data with whitespace stripped from string values
+        """
+        if not isinstance(in_data, dict):
+            return in_data
+
+        def strip_strings(data):
+            """Recursively strip whitespace from string values in nested data structures."""
+            if isinstance(data, dict):
+                return {key: strip_strings(value) for key, value in data.items()}
+            if isinstance(data, list):
+                return [strip_strings(item) for item in data]
+            if isinstance(data, str):
+                return data.strip()
+            return data
+
+        return strip_strings(in_data)
 
 
 class CCDataClass:
@@ -265,6 +306,7 @@ class UpdateCategory(CCEnum):
     LIFTING_ENCUMBRANCE = 'lifting_encumbrance'
     # this is specific to privileges that are deactivated due to a state license deactivation
     LICENSE_DEACTIVATION = 'licenseDeactivation'
+    EMAIL_CHANGE = 'emailChange'
 
 
 class ActiveInactiveStatus(CCEnum):
@@ -324,10 +366,13 @@ class ClinicalPrivilegeActionCategory(CCEnum):
     https://www.npdb.hrsa.gov/software/CodeLists.pdf, Tables 41-45
     """
 
+    NON_COMPLIANCE = 'Non-compliance With Requirements'
+    CRIMINAL_CONVICTION = 'Criminal Conviction or Adjudication'
+    CONFIDENTIALITY_VIOLATION = 'Confidentiality, Consent or Disclosure Violations'
+    MISCONDUCT_ABUSE = 'Misconduct or Abuse'
     FRAUD = 'Fraud, Deception, or Misrepresentation'
     UNSAFE_PRACTICE = 'Unsafe Practice or Substandard Care'
     IMPROPER_SUPERVISION = 'Improper Supervision or Allowing Unlicensed Practice'
-    IMPROPER_MEDICATION = 'Improper Prescribing, Dispensing, Administering Medication/Drug Violation'
     OTHER = 'Other'
 
 

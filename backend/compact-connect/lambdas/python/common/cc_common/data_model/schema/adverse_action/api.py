@@ -70,3 +70,4 @@ class AdverseActionGeneralResponseSchema(AdverseActionPublicResponseSchema):
     """
 
     clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategoryField(required=True, allow_none=False)
+    liftingUser = Raw(required=False, allow_none=False)

@@ -4,6 +4,7 @@ from marshmallow.fields import Date, Email, List, Nested, Raw, String
 from marshmallow.validate import Length, Regexp
 
 from cc_common.data_model.schema.base_record import ForgivingSchema
+from cc_common.data_model.schema.common import CCRequestSchema
 from cc_common.data_model.schema.fields import (
     ActiveInactive,
     Compact,
@@ -145,3 +146,29 @@ class ProviderRegistrationRequestSchema(Schema):
     licenseType = String(required=True, allow_none=False)
     compact = String(required=True, allow_none=False)
     token = String(required=True, allow_none=False)
+
+
+class ProviderEmailUpdateRequestSchema(CCRequestSchema):
+    """
+    Schema for provider email update requests.
+
+    This schema is used to validate incoming requests to the provider email update API endpoint.
+
+    Serialization direction:
+    API -> load() -> Python
+    """
+
+    newEmailAddress = Email(required=True, allow_none=False)
+
+
+class ProviderEmailVerificationRequestSchema(CCRequestSchema):
+    """
+    Schema for provider email verification requests.
+
+    This schema is used to validate incoming requests to the provider email verification API endpoint.
+
+    Serialization direction:
+    API -> load() -> Python
+    """
+
+    verificationCode = String(required=True, allow_none=False, validate=Length(min=4, max=4))

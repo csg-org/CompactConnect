@@ -194,10 +194,50 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         event['pathParameters']['compact'] = compact_config['compactAbbr']
         return event, compact_config
 
+    def _when_testing_put_compact_configuration_with_existing_configuration(
+        self, set_payment_fields: bool = True, transaction_fee_zero: bool = False
+    ):
+        from cc_common.utils import ResponseEncoder
+
+        value_overrides = {}
+        if set_payment_fields:
+            value_overrides.update(
+                {'paymentProcessorPublicFields': {'publicClientKey': 'some-key', 'apiLoginId': 'some-login-id'}}
+            )
+        compact_config = self.test_data_generator.put_default_compact_configuration_in_configuration_table(
+            value_overrides=value_overrides
+        )
+
+        event = generate_test_event('PUT', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE)
+        event['pathParameters']['compact'] = compact_config.compactAbbr
+        # add compact admin scope to the event
+        event['requestContext']['authorizer']['claims']['scope'] = f'{compact_config.compactAbbr}/admin'
+        event['requestContext']['authorizer']['claims']['sub'] = 'some-admin-id'
+
+        # we only allow the following values in the body
+        event['body'] = json.dumps(
+            {
+                'compactCommissionFee': compact_config.compactCommissionFee,
+                'licenseeRegistrationEnabled': compact_config.licenseeRegistrationEnabled,
+                'compactOperationsTeamEmails': compact_config.compactOperationsTeamEmails,
+                'compactAdverseActionsNotificationEmails': compact_config.compactAdverseActionsNotificationEmails,
+                'compactSummaryReportNotificationEmails': compact_config.compactSummaryReportNotificationEmails,
+                'transactionFeeConfiguration': compact_config.transactionFeeConfiguration
+                if not transaction_fee_zero
+                else {
+                    'licenseeCharges': {'chargeAmount': 0.00, 'chargeType': 'FLAT_FEE_PER_PRIVILEGE', 'active': True}
+                },
+            },
+            cls=ResponseEncoder,
+        )
+        return event, compact_config
+
     def _when_testing_put_compact_configuration(self, transaction_fee_zero: bool = False):
         from cc_common.utils import ResponseEncoder
 
-        compact_config = self.test_data_generator.generate_default_compact_configuration()
+        compact_config = self.test_data_generator.generate_default_compact_configuration(
+            value_overrides={'licenseeRegistrationEnabled': False}
+        )
         event = generate_test_event('PUT', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE)
         event['pathParameters']['compact'] = compact_config.compactAbbr
         # add compact admin scope to the event
@@ -302,7 +342,7 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         self.assertEqual(403, response['statusCode'])
         self.assertIn('Access denied', json.loads(response['body'])['message'])
 
-    def test_put_compact_configuration_stores_compact_configuration(self):
+    def test_put_compact_configuration_stores_new_compact_configuration(self):
         """Test putting a compact configuration stores the compact configuration."""
         from cc_common.data_model.schema.compact import CompactConfigurationData
         from handlers.compact_configuration import compact_configuration_api_handler
@@ -320,6 +360,27 @@ class TestStaffUsersCompactConfiguration(TstFunction):
 
         stored_compact_data = CompactConfigurationData.from_database_record(response['Item'])
 
+        self.assertEqual(compact_config.to_dict(), stored_compact_data.to_dict())
+
+    def test_put_compact_configuration_preserves_payment_processor_fields_when_updating_compact_configuration(self):
+        """Test putting a compact configuration preserves existing fields not set by the request body."""
+        from cc_common.data_model.schema.compact import CompactConfigurationData
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        event, compact_config = self._when_testing_put_compact_configuration_with_existing_configuration()
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+
+        # load the record from the configuration table
+        serialized_compact_config = compact_config.serialize_to_database_record()
+        response = self.config.compact_configuration_table.get_item(
+            Key={'pk': serialized_compact_config['pk'], 'sk': serialized_compact_config['sk']}
+        )
+
+        stored_compact_data = CompactConfigurationData.from_database_record(response['Item'])
+        # the compact_config variable has the 'paymentProcessorPublicFields' field, which we expect to also be
+        # present in the stored_compact_data
         self.assertEqual(compact_config.to_dict(), stored_compact_data.to_dict())
 
     def test_put_compact_configuration_removes_transaction_fee_when_zero(self):
@@ -348,17 +409,9 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         from handlers.compact_configuration import compact_configuration_api_handler
 
         # First, create a compact configuration with licenseeRegistrationEnabled=True
-        event, original_config = self._when_testing_put_compact_configuration()
-        # Set licenseeRegistrationEnabled to True in the request body
-        body = json.loads(event['body'])
-        body['licenseeRegistrationEnabled'] = True
-        event['body'] = json.dumps(body)
-
-        # Submit the configuration
-        compact_configuration_api_handler(event, self.mock_context)
+        event, _ = self._when_testing_put_compact_configuration_with_existing_configuration()
 
         # Now attempt to update with licenseeRegistrationEnabled=False
-        event, _ = self._when_testing_put_compact_configuration()
         body = json.loads(event['body'])
         body['licenseeRegistrationEnabled'] = False
         event['body'] = json.dumps(body)
@@ -368,6 +421,48 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         self.assertEqual(400, response['statusCode'])
         response_body = json.loads(response['body'])
         self.assertIn('Once licensee registration has been enabled, it cannot be disabled', response_body['message'])
+
+    def test_put_compact_configuration_rejects_enabling_licensee_registration_without_payment_credentials(self):
+        """Test that a compact configuration update is rejected if trying to enable licensee registration without payment processor credentials."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        # Attempt to enable licensee registration without any existing configuration (no payment credentials)
+        event, _ = self._when_testing_put_compact_configuration()
+        body = json.loads(event['body'])
+        body['licenseeRegistrationEnabled'] = True
+        event['body'] = json.dumps(body)
+
+        # Should be rejected with a 400 error
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        response_body = json.loads(response['body'])
+        self.assertIn(
+            'Authorize.net credentials need to be uploaded before the compact can be marked as live.',
+            response_body['message'],
+        )
+
+    def test_put_compact_configuration_rejects_enabling_licensee_registration_with_existing_config_without_payment_credentials(
+        self,
+    ):
+        """Test that a compact configuration update is rejected if trying to enable licensee registration when existing config has no payment credentials."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        # First, create a basic compact configuration without payment credentials
+        event, _ = self._when_testing_put_compact_configuration_with_existing_configuration(set_payment_fields=False)
+
+        # Now attempt to enable licensee registration without payment credentials
+        body = json.loads(event['body'])
+        body['licenseeRegistrationEnabled'] = True
+        event['body'] = json.dumps(body)
+
+        # Should be rejected with a 400 error
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        response_body = json.loads(response['body'])
+        self.assertIn(
+            'Authorize.net credentials not configured for compact. Please upload valid Authorize.net credentials.',
+            response_body['message'],
+        )
 
 
 TEST_MILITARY_RATE = Decimal('40.00')
