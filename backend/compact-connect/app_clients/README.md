@@ -1,7 +1,7 @@
 # App Client Management for Staff Users
 
 ## Overview
-This document is a guide for technical staff for managing Cognito app clients for machine-to-machine authentication in the Staff Users pool. All app clients must be documented in the external 'Compact Connect App Client Registry' Google Sheet for (If you do not have access to said registry, contact a maintainer of the project and request access).
+This document is a guide for technical staff for managing Cognito app clients for machine-to-machine authentication in the Staff Users pool. All app clients must be documented in the external 'Compact Connect App Client Registry' Google Sheet (If you do not have access to said registry, contact a maintainer of the project and request access).
 
 ## Creating a New App Client
 
