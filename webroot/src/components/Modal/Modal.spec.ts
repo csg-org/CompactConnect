@@ -24,7 +24,7 @@ describe('Modal component', async () => {
         component.closeModal = sinon.spy();
 
         expect(component.title).to.equal('');
-        expect(wrapper.find('h1.modal-title').exists()).to.equal(false);
+        expect(wrapper.find('.modal-mask').text()).to.equal('Info:');
 
         expect(component.closeOnBackgroundClick).to.equal(false);
         wrapper.find('.modal-mask').trigger('click');
