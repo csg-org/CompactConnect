@@ -78,7 +78,7 @@ Add the new app client information to the external Google Sheet registry for tra
      "licenseUploadUrl": "https://api.beta.compactconnect.org/v1/compacts/octp/jurisdictions/la/licenses"
    }
    ```
-   **Important:** These credentials should be securely transmitted to the consuming team via an encrypted channel (i.e., a one-time use link). The Python script output is ready to use directly with your one-time secret link generator.
+   **Important:** These credentials should be securely transmitted to the consuming team via an encrypted channel (i.e., a one-time use link). The Python script output is ready to use directly with your one-time secret link generator. Once you have sent the credentials over to the IT staff, ensure you remove all remnants of the credentials from your device.
 
 
 #### Email Instructions for consuming team
