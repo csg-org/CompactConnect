@@ -22,6 +22,7 @@
                     :tabindex="(isSubmitVisible) ? 0 : -1"
                 />
             </form>
+            <UpdateHomeJurisdiction v-if="isLicensee" />
             <ChangePassword />
             <section
                 v-if="isLicensee && currentCompactType"

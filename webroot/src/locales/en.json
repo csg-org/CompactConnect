@@ -39,6 +39,7 @@
         "success": "Success",
         "error": "Error",
         "somethingWentWrong": "Something went wrong",
+        "tryAgain": "Please try again",
         "saveAndContinue": "Save & Continue",
         "saveAndClose": "Save & Close",
         "subtotal": "Subtotal",
@@ -330,6 +331,7 @@
             }
         ],
         "stateUnknown": "Unknown",
+        "stateNotListed": "Not listed",
         "communicationPreference": "Communication Preference",
         "communicationPreferenceOptions": {
             "email": "Email",
@@ -888,5 +890,20 @@
         "loadingSpinner": "Loading Spinner",
         "showSpinner": "Show Spinner",
         "mobileStoreLinks": "Mobile Store Links"
+    },
+    "homeJurisdictionChange": {
+        "formTitle": "Change home state",
+        "formSubtext": "If you have changed your state of residence or otherwise need to update your home state, please do so here. Your old and new home states, if they are compact members, will be notified of the change.",
+        "currentHomeJurisdictionLabel": "Current home state",
+        "newHomeJurisdictionLabel": "New home state",
+        "inputSubtext": "This selection means your current compact privileges will be deactivated and you will no longer be able to practice under them.",
+        "updateButton": "Update home state",
+        "modalTitle": "Are you sure you want to change {newState} to your new home state?",
+        "modalSubtext": "Changing your home state may affect your privileges. If you already have a compact-eligible license in your new home state, your privileges will transfer. If you do not have a license in your new home state, or your license is not eligible, your privileges will be deactivated.",
+        "modalConfirm": "Confirm new home state",
+        "successTitle": "You have successfully changed your home state.",
+        "successSubtext": "Your former home state and new home state will be automatically notified of this change.",
+        "eligibleLicenseOption": "{state} (eligible {licenseType} license) \u2713",
+        "noEligibleLicenseOption": "{state} (no eligible license)"
     }
 }
