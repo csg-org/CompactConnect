@@ -390,6 +390,15 @@ export class DataApi {
     }
 
     /**
+     * UPDATE Authenticated Licensee User.
+     * @param  {object}          data The request data.
+     * @return {Promise<object>}      The server response.
+     */
+    public updateAuthenticatedLicenseeUser(data) {
+        return userDataApi.updateAuthenticatedLicenseeUser(data);
+    }
+
+    /**
      * POST Privilege Purchases for Authenticated Licensee user.
      * @return {Promise<object>} Purchase response object.
      */

@@ -254,6 +254,18 @@ export class UserDataApi implements DataApiInterface {
     }
 
     /**
+     * UPDATE Authenticated Licensee User.
+     * @param  {object}          data The request data.
+     * @return {Promise<object>}      The server response.
+     */
+    public async updateAuthenticatedLicenseeUser(data: object) {
+        // @TODO
+        const serverResponse: any = await this.api.patch(`/v1/provider-users/me`, data);
+
+        return serverResponse;
+    }
+
+    /**
      * GET Compact State List.
      * @return {Promise<Array<State>>} A list of State instances.
      */

@@ -111,6 +111,7 @@ class UserAccount extends mixins(MixinForm) {
                 }),
             });
         } else {
+            this.initialUserEmail = this.email;
             this.formData = reactive({
                 firstName: new FormInput({
                     id: 'first-name',
@@ -156,61 +157,64 @@ class UserAccount extends mixins(MixinForm) {
         await nextTick();
 
         if (this.isFormValid) {
-            const {
-                isStaff,
-                isLicensee,
-                formValues,
-                initialUserEmail
-            } = this;
-            const isEmailChanged = (isLicensee) ? formValues.email !== initialUserEmail : false;
+            const { isStaff, isLicensee } = this;
 
             if (isStaff) {
-                this.startFormLoading();
-                await this.updateUserRequest();
-
-                if (!this.isFormError) {
-                    this.isFormSuccessful = true;
-                    this.updateFormSubmitSuccess(this.$t('common.success'));
-                }
-
-                this.endFormLoading();
-            } else if (isEmailChanged) {
-                this.startFormLoading();
-                await this.updateUserRequest();
-                await this.openEmailVerificationModal();
-                this.endFormLoading();
-            } else {
-                this.setError('TODO');
+                await this.updateUserRequestStaff();
+            } else if (isLicensee) {
+                await this.updateUserRequestLicensee();
             }
         }
     }
 
-    async updateUserRequest(): Promise<void> {
-        if (this.isStaff) {
-            const { firstName, lastName } = this.formValues;
-            const requestData = {
-                attributes: {
-                    givenName: firstName,
-                    familyName: lastName,
-                },
-            };
+    async updateUserRequestStaff(): Promise<void> {
+        const { firstName, lastName } = this.formValues;
+        const requestData = {
+            attributes: {
+                givenName: firstName,
+                familyName: lastName,
+            },
+        };
 
-            await dataApi.updateAuthenticatedStaffUser(requestData)
-                .then((response) => {
-                    this.$store.dispatch(`user/setStoreUser`, response);
+        this.startFormLoading();
+
+        await dataApi.updateAuthenticatedStaffUser(requestData)
+            .then((response) => {
+                this.$store.dispatch(`user/setStoreUser`, response);
+            })
+            .catch((err) => {
+                this.setError(err.message);
+            });
+
+        if (!this.isFormError) {
+            this.isFormSuccessful = true;
+            this.updateFormSubmitSuccess(this.$t('common.success'));
+        }
+
+        this.endFormLoading();
+    }
+
+    async updateUserRequestLicensee(): Promise<void> {
+        const { formValues, initialUserEmail } = this;
+        const isEmailChanged = formValues.email !== initialUserEmail;
+        const requestData = { email: formValues.email };
+
+        console.log(`'${formValues.email}', '${initialUserEmail}'`);
+
+        if (!isEmailChanged) {
+            this.setError('TODO');
+        } else {
+            this.startFormLoading();
+
+            console.log(requestData);
+            await dataApi.updateAuthenticatedLicenseeUser(requestData)
+                .then(() => {
+                    this.openEmailVerificationModal();
                 })
                 .catch((err) => {
                     this.setError(err.message);
                 });
-        } else if (this.isLicensee) {
-            const { email } = this.formValues;
-            const requestData = { email };
-
-            // TODO
-            // await dataApi.updateAuthenticatedLicneseeUser(requestData).catch((err) => {
-            //     this.setError(err.message);
-            // });
-            console.log(requestData);
+            this.endFormLoading();
         }
     }
 

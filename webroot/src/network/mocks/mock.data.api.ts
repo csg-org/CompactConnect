@@ -361,7 +361,7 @@ export class DataApi {
 
     // Update Authenticated Licensee User
     public updateAuthenticatedLicenseeUser() {
-        return wait(500).then(() => LicenseeUserSerializer.fromServer(licensees.providers[0]));
+        return wait(500).then(() => ({ message: 'success' }));
     }
 
     // Get Privilege Purchase Information for Licensee User
