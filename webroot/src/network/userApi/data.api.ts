@@ -254,13 +254,23 @@ export class UserDataApi implements DataApiInterface {
     }
 
     /**
-     * UPDATE Authenticated Licensee User.
+     * UPDATE Authenticated Licensee User email address.
      * @param  {object}          data The request data.
      * @return {Promise<object>}      The server response.
      */
-    public async updateAuthenticatedLicenseeUser(data: object) {
-        // @TODO
-        const serverResponse: any = await this.api.patch(`/v1/provider-users/me`, data);
+    public async updateAuthenticatedLicenseeUserEmail(data: object) {
+        const serverResponse: any = await this.api.patch(`/v1/provider-users/me/email`, data);
+
+        return serverResponse;
+    }
+
+    /**
+     * VERIFY Authenticated Licensee User email address.
+     * @param  {object}          data The request data.
+     * @return {Promise<object>}      The server response.
+     */
+    public async verifyAuthenticatedLicenseeUserEmail(data: object) {
+        const serverResponse: any = await this.api.post(`/v1/provider-users/me/email/verify`, data);
 
         return serverResponse;
     }

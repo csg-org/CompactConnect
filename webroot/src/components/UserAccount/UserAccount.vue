@@ -24,35 +24,50 @@
                 <Modal
                     v-if="isEmailVerificationModalDisplayed"
                     class="confirm-email-modal"
-                    :title="$t('compact.confirmSaveCompactTitle')"
+                    :title="(!isEmailVerificationModalSuccess) ? $t('account.enterVerificationCode') : ' '"
                     :showActions="false"
                     @keydown.tab="focusTrapEmailVerificationModal($event)"
                     @keyup.esc="closeEmailVerificationModal"
                 >
                     <template v-slot:content>
                         <div class="modal-content confirm-modal-content">
-                            {{ $t('common.cannotBeUndone') }}
-                            <InputText
-                                :formInput="formData.emailVerificationCode"
-                                class="verification-code-input-container"
-                            />
-                            <div class="action-button-row">
-                                <InputButton
-                                    id="confirm-modal-cancel-button"
-                                    class="action-button cancel-button"
-                                    :label="$t('common.cancel')"
-                                    :isTransparent="true"
-                                    :onClick="closeEmailVerificationModal"
+                            <template v-if="!isEmailVerificationModalSuccess">
+                                <div class="confirm-email-subtext">
+                                    {{ $t('account.enterVerificationCodeSubtext') }}
+                                </div>
+                                <InputText
+                                    :formInput="formData.emailVerificationCode"
+                                    class="verification-code-input-container"
                                 />
+                            </template>
+                            <div v-else class="verification-code-success">
+                                <div class="icon-container"><CheckCircleIcon /></div>
+                                {{ $t('account.emailUpdateSuccess') }}
+                            </div>
+                            <div v-if="emailVerificationErrorMessage" class="modal-error">
+                                {{ emailVerificationErrorMessage }}
+                            </div>
+                            <div class="action-button-row">
                                 <InputSubmit
+                                    v-if="!isEmailVerificationModalSuccess"
                                     :formInput="formData.submitEmailVerification"
-                                    @click="submitEmailVerificationModal"
+                                    @click="submitEmailVerification"
                                     class="action-button submit-button continue-button"
                                     :label="(isFormLoading)
                                         ? $t('common.loading')
                                         : $t('common.submit')"
                                     :isTransparent="true"
                                     :isEnabled="!isFormLoading"
+                                />
+                                <InputButton
+                                    id="confirm-modal-cancel-button"
+                                    class="action-button cancel-button"
+                                    :label="(isEmailVerificationModalSuccess)
+                                        ? $t('common.close')
+                                        : $t('common.cancel')"
+                                    :isTransparent="true"
+                                    :onClick="closeEmailVerificationModal"
+                                    :isEnabled="isEmailVerificationModalSuccess || !isFormLoading"
                                 />
                             </div>
                         </div>

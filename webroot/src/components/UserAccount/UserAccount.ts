@@ -20,6 +20,7 @@ import InputText from '@components/Forms/InputText/InputText.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import ChangePassword from '@components/ChangePassword/ChangePassword.vue';
 import Modal from '@components/Modal/Modal.vue';
+import CheckCircleIcon from '@components/Icons/CheckCircle/CheckCircle.vue';
 import MockPopulate from '@components/Forms/MockPopulate/MockPopulate.vue';
 import { User } from '@models/User/User.model';
 import { LicenseeUser } from '@models/LicenseeUser/LicenseeUser.model';
@@ -37,6 +38,7 @@ import Joi from 'joi';
         InputText,
         InputSubmit,
         Modal,
+        CheckCircleIcon,
         ChangePassword,
     }
 })
@@ -46,6 +48,8 @@ class UserAccount extends mixins(MixinForm) {
     //
     initialUserEmail = '';
     isEmailVerificationModalDisplayed = false;
+    isEmailVerificationModalSuccess = false;
+    emailVerificationErrorMessage = '';
 
     //
     // Lifecycle
@@ -81,12 +85,12 @@ class UserAccount extends mixins(MixinForm) {
         return this.authType === AuthTypes.LICENSEE;
     }
 
-    get email(): string {
-        return this.user?.compactConnectEmail || '';
-    }
-
     get user(): User | LicenseeUser | StaffUser {
         return this.userStore.model || new User();
+    }
+
+    get email(): string {
+        return this.user?.compactConnectEmail || '';
     }
 
     get submitLabel(): string {
@@ -102,8 +106,9 @@ class UserAccount extends mixins(MixinForm) {
                 emailVerificationCode: new FormInput({
                     id: 'verification-code',
                     name: 'verification-code',
-                    label: computed(() => this.$t('common.firstName')), // @TODO
-                    validation: Joi.string().required().messages(this.joiMessages.string),
+                    label: computed(() => this.$t('account.enterCode')),
+                    validation: Joi.string().required().max(12).messages(this.joiMessages.string),
+                    enforceMax: true,
                 }),
                 submitEmailVerification: new FormInput({
                     isSubmitInput: true,
@@ -197,17 +202,13 @@ class UserAccount extends mixins(MixinForm) {
     async updateUserRequestLicensee(): Promise<void> {
         const { formValues, initialUserEmail } = this;
         const isEmailChanged = formValues.email !== initialUserEmail;
-        const requestData = { email: formValues.email };
-
-        console.log(`'${formValues.email}', '${initialUserEmail}'`);
+        const requestData = { newEmailAddress: formValues.email };
 
         if (!isEmailChanged) {
-            this.setError('TODO');
+            this.setError(this.$t('account.noValuesChanged'));
         } else {
             this.startFormLoading();
-
-            console.log(requestData);
-            await dataApi.updateAuthenticatedLicenseeUser(requestData)
+            await dataApi.updateAuthenticatedLicenseeUserEmail(requestData)
                 .then(() => {
                     this.openEmailVerificationModal();
                 })
@@ -227,14 +228,18 @@ class UserAccount extends mixins(MixinForm) {
 
     async closeEmailVerificationModal(): Promise<void> {
         this.isEmailVerificationModalDisplayed = false;
+        this.isEmailVerificationModalSuccess = false;
+        this.emailVerificationErrorMessage = '';
         this.initFormInputs();
         await nextTick();
         document.getElementById(this.formData.submitUserUpdate.id)?.focus();
     }
 
     focusTrapEmailVerificationModal(event: KeyboardEvent): void {
-        const firstTabIndex = document.getElementById(this.formData.emailVerificationCode.id);
-        const lastTabIndex = document.getElementById('confirm-modal-submit-button');
+        const firstTabIndex = (this.isEmailVerificationModalSuccess)
+            ? document.getElementById('confirm-modal-cancel-button')
+            : document.getElementById(this.formData.emailVerificationCode.id);
+        const lastTabIndex = document.getElementById('confirm-modal-cancel-button');
 
         if (event.shiftKey) {
             // shift + tab to last input
@@ -249,9 +254,33 @@ class UserAccount extends mixins(MixinForm) {
         }
     }
 
-    async submitEmailVerificationModal(): Promise<void> {
-        // await this.$store.dispatch(`user/setStoreUser`, response); // TODO: Somehow refetch / refresh the user store data
-        await this.closeEmailVerificationModal();
+    async submitEmailVerification(): Promise<void> {
+        this.emailVerificationErrorMessage = '';
+        this.validateAll({ asTouched: true });
+        await nextTick();
+
+        if (this.isFormValid) {
+            const { formValues, isLicensee } = this;
+            const requestData = { verificationCode: formValues.emailVerificationCode };
+            let isError = false;
+
+            if (isLicensee) {
+                this.startFormLoading();
+                await dataApi.verifyAuthenticatedLicenseeUserEmail(requestData).catch((err) => {
+                    this.emailVerificationErrorMessage = err?.message || this.$t('serverErrors.networkError');
+                    isError = true;
+                });
+
+                if (!isError) {
+                    this.isEmailVerificationModalSuccess = true;
+                    await nextTick();
+                    document.getElementById('confirm-modal-cancel-button')?.focus();
+                    await this.$store.dispatch(`user/getLicenseeAccountRequest`);
+                }
+
+                this.endFormLoading();
+            }
+        }
     }
 
     viewMilitaryStatus(): void {
@@ -264,12 +293,7 @@ class UserAccount extends mixins(MixinForm) {
     // Watchers
     //
     @Watch('user') userData() {
-        const { user } = this;
-
-        this.formData.firstName.value = user.firstName;
-        this.formData.lastName.value = user.lastName;
-        this.formData.email.value = this.email;
-        this.initialUserEmail = this.email;
+        this.initFormInputs();
     }
 }
 

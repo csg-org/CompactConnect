@@ -390,12 +390,21 @@ export class DataApi {
     }
 
     /**
-     * UPDATE Authenticated Licensee User.
+     * UPDATE Authenticated Licensee User email address.
      * @param  {object}          data The request data.
      * @return {Promise<object>}      The server response.
      */
-    public updateAuthenticatedLicenseeUser(data) {
-        return userDataApi.updateAuthenticatedLicenseeUser(data);
+    public updateAuthenticatedLicenseeUserEmail(data) {
+        return userDataApi.updateAuthenticatedLicenseeUserEmail(data);
+    }
+
+    /**
+     * VERIFY Authenticated Licensee User email address.
+     * @param  {object}          data The request data.
+     * @return {Promise<object>}      The server response.
+     */
+    public verifyAuthenticatedLicenseeUserEmail(data) {
+        return userDataApi.verifyAuthenticatedLicenseeUserEmail(data);
     }
 
     /**

@@ -359,8 +359,17 @@ export class DataApi {
         return wait(500).then(() => LicenseeUserSerializer.fromServer(licensees.providers[0]));
     }
 
-    // Update Authenticated Licensee User
-    public updateAuthenticatedLicenseeUser() {
+    // Update Authenticated Licensee User email address
+    public updateAuthenticatedLicenseeUserEmail() {
+        return wait(500).then(() => ({ message: 'success' }));
+    }
+
+    // Verify Authenticated Licensee User email address
+    public verifyAuthenticatedLicenseeUserEmail({ verificationCode }) {
+        if (!verificationCode) {
+            return wait(500).then(() => { throw new Error('failed email verification'); });
+        }
+
         return wait(500).then(() => ({ message: 'success' }));
     }
 

@@ -35,7 +35,11 @@ class MixinForm extends Vue {
 
         this.formKeys.forEach((key) => {
             if (!formData[key].isSubmitInput && (!formData[key].isDisabled || this.shouldValuesIncludeDisabled)) {
-                values[key] = formData[key].value;
+                if (typeof formData[key].value === 'string') {
+                    values[key] = formData[key].value.trim();
+                } else {
+                    values[key] = formData[key].value;
+                }
             }
         });
 
