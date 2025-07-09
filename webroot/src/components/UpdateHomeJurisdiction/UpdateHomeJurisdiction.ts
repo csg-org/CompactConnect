@@ -154,7 +154,7 @@ class UpdateHomeJurisdiction extends mixins(MixinForm) {
     }
 
     get jurisdictionModalTitle(): string {
-        let title = '';
+        let title = ' ';
 
         if (this.isError) {
             title = this.$t('common.somethingWentWrong');
