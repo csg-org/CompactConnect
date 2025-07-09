@@ -1,6 +1,6 @@
+#!/usr/bin/env python3
 # ruff: noqa: T201 we use print statements for scripts run locally
 
-#!/usr/bin/env python3
 """
 Script to create AWS Cognito app clients interactively.
 
