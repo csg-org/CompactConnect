@@ -3,6 +3,7 @@
 import json
 
 import requests
+from botocore.exceptions import ClientError
 from config import config
 from smoke_common import (
     COMPACTS,
@@ -21,9 +22,48 @@ from smoke_common import (
 # 'smoke_tests_env_example.json' file as a template.
 
 
+def cleanup_compact_configuration(compact: str):
+    """
+    Clean up compact configuration record for testing using direct DynamoDB calls.
+
+    :param compact: The compact abbreviation
+    """
+    try:
+        # Delete the compact configuration record directly from DynamoDB
+        pk = f'{compact}#CONFIGURATION'
+        sk = f'{compact}#CONFIGURATION'
+
+        config.compact_configuration_dynamodb_table.delete_item(Key={'pk': pk, 'sk': sk})
+        print(f'Cleaned up compact configuration for {compact}')
+
+    except ClientError as e:
+        print(f'Warning: Error cleaning up compact configuration for {compact}: {e}')
+
+
+def cleanup_jurisdiction_configuration(compact: str, jurisdiction: str):
+    """
+    Clean up jurisdiction configuration record for testing using direct DynamoDB calls.
+
+    :param compact: The compact abbreviation
+    :param jurisdiction: The jurisdiction postal abbreviation
+    """
+    try:
+        # Delete the jurisdiction configuration record directly from DynamoDB
+        pk = f'{compact}#CONFIGURATION'
+        sk = f'{compact}#JURISDICTION#{jurisdiction.lower()}'
+
+        config.compact_configuration_dynamodb_table.delete_item(Key={'pk': pk, 'sk': sk})
+        print(f'Cleaned up jurisdiction configuration for {jurisdiction} in {compact}')
+
+    except ClientError as e:
+        print(f'Warning: Error cleaning up jurisdiction configuration for {jurisdiction} in {compact}: {e}')
+
+
 def test_active_member_jurisdictions():
     """
     Test that the active member jurisdictions from cdk.json match the jurisdictions returned by the API.
+
+    :raises SmokeTestFailureException: If the test fails
     """
     print('Testing active member jurisdictions...')
 
@@ -66,6 +106,9 @@ def test_active_member_jurisdictions():
 def test_compact_configuration():
     """
     Test that a compact admin can update and retrieve compact configuration.
+
+    :return: The compact configuration response for use in other tests
+    :raises SmokeTestFailureException: If the test fails
     """
     print('Testing compact configuration...')
 
@@ -87,13 +130,17 @@ def test_compact_configuration():
         # Get auth headers for the test user
         headers = get_staff_user_auth_headers(test_email)
 
+        # Clean up any existing compact configuration from previous test runs
+        cleanup_compact_configuration(compact)
+
         # Create test compact configuration data
         compact_config = {
             'compactCommissionFee': {'feeAmount': 15.00, 'feeType': 'FLAT_RATE'},
-            'licenseeRegistrationEnabled': True,
+            'licenseeRegistrationEnabled': False,
             'compactOperationsTeamEmails': ['ops-test@ccSmokeTestFakeEmail.com'],
             'compactAdverseActionsNotificationEmails': ['adverse-test@ccSmokeTestFakeEmail.com'],
             'compactSummaryReportNotificationEmails': ['summary-test@ccSmokeTestFakeEmail.com'],
+            'configuredStates': [],
             'transactionFeeConfiguration': {
                 'licenseeCharges': {'chargeAmount': 10.00, 'chargeType': 'FLAT_FEE_PER_PRIVILEGE', 'active': True}
             },
@@ -110,6 +157,25 @@ def test_compact_configuration():
             )
 
         print(f'Successfully PUT compact configuration for {compact}')
+
+        # Test uploading payment processor credentials for existing compact configuration
+        # These must be set before the compact can enable itself for registration.
+        _test_upload_payment_processor_credentials(compact, headers)
+
+        # now set the compact configuration licenseeRegistrationEnabled to true
+        # and verify that the compact configuration is updated
+        compact_config['licenseeRegistrationEnabled'] = True
+        compact_put_response = requests.put(
+            url=f'{get_api_base_url()}/v1/compacts/{compact}', headers=headers, json=compact_config, timeout=10
+        )
+
+        if compact_put_response.status_code != 200:
+            raise SmokeTestFailureException(
+                f'Failed to PUT compact configuration to set licenseeRegistrationEnabled to true. '
+                f'Response: {compact_put_response.json()}'
+            )
+
+        print('Successfully PUT compact configuration to set licenseeRegistrationEnabled to true')
 
         # GET the compact configuration
         get_response = requests.get(url=f'{get_api_base_url()}/v1/compacts/{compact}', headers=headers, timeout=10)
@@ -158,14 +224,17 @@ def test_compact_configuration():
 def test_jurisdiction_configuration():
     """
     Test that a state admin can update and retrieve jurisdiction configuration.
+
+    :return: The jurisdiction configuration response for use in other tests
+    :raises SmokeTestFailureException: If the test fails
     """
     print('Testing jurisdiction configuration...')
 
-    # Create a test state admin user
+    # Create a test state admin user with compact admin permissions for simplicity
     compact = COMPACTS[0]  # Use the first compact for testing
-    jurisdiction = 'ky'  # Use Kentucky for testing
+    jurisdiction = 'ne'  # Use Nebraska for testing
     test_email = f'test-state-admin-{jurisdiction}@ccSmokeTestFakeEmail.com'
-    permissions = {'actions': {}, 'jurisdictions': {'ky': {'admin'}}}
+    permissions = {'actions': {'admin'}, 'jurisdictions': {'ne': {'admin'}}}
 
     user_sub = None
     try:
@@ -179,6 +248,9 @@ def test_jurisdiction_configuration():
 
         # Get auth headers for the test user
         headers = get_staff_user_auth_headers(test_email)
+
+        # Clean up any existing configurations from previous test runs
+        cleanup_jurisdiction_configuration(compact, jurisdiction)
 
         # Get license types for the compact
         with open('cdk.json') as context_file:
@@ -263,6 +335,115 @@ def test_jurisdiction_configuration():
             )
 
         print(f'Successfully verified jurisdiction configuration for {jurisdiction} in {compact}')
+
+        # Verify that the jurisdiction was automatically added to the compact's configuredStates
+        # since we set licenseeRegistrationEnabled: True
+        print(f'Verifying that {jurisdiction} was added to compact configuredStates...')
+
+        # Use the same user (which also has compact admin permissions) to check the compact configuration
+        compact_get_response = requests.get(
+            url=f'{get_api_base_url()}/v1/compacts/{compact}', headers=headers, timeout=10
+        )
+
+        if compact_get_response.status_code != 200:
+            raise SmokeTestFailureException(
+                f'Failed to GET compact configuration for verification. Response: {compact_get_response.json()}'
+            )
+
+        compact_config_data = compact_get_response.json()
+        configured_states = compact_config_data.get('configuredStates', [])
+
+        # Check if our jurisdiction was added with isLive: False
+        jurisdiction_found = False
+        for state in configured_states:
+            if state.get('postalAbbreviation') == jurisdiction.lower():
+                jurisdiction_found = True
+                if state.get('isLive') is not False:
+                    raise SmokeTestFailureException(
+                        f'Expected jurisdiction {jurisdiction} to have isLive: false in configuredStates, '
+                        f'but got isLive: {state.get("isLive")}'
+                    )
+                break
+
+        if not jurisdiction_found:
+            raise SmokeTestFailureException(
+                f'Expected jurisdiction {jurisdiction} to be automatically added to configuredStates '
+                f'when licenseeRegistrationEnabled was set to true, but it was not found. '
+                f'configuredStates: {configured_states}'
+            )
+
+        print(f'Successfully verified that {jurisdiction} was added to configuredStates with isLive: false')
+
+        # Now set the jurisdiction to live for use by other smoke tests
+        print(f'Setting {jurisdiction} to live in configuredStates...')
+
+        # Update the configuredStates to set our jurisdiction to live
+        updated_configured_states = []
+        for state in configured_states:
+            if state.get('postalAbbreviation') == jurisdiction.lower():
+                # Set this jurisdiction to live
+                updated_state = state.copy()
+                updated_state['isLive'] = True
+                updated_configured_states.append(updated_state)
+            else:
+                updated_configured_states.append(state)
+
+        # Prepare the compact configuration update with the jurisdiction set to live
+        compact_config_data['configuredStates'] = updated_configured_states
+
+        # remove fields not expected by PUT endpoint
+        del compact_config_data['compactName']
+        del compact_config_data['compactAbbr']
+
+        # PUT the updated compact configuration
+        compact_put_response = requests.put(
+            url=f'{get_api_base_url()}/v1/compacts/{compact}',
+            headers=headers,
+            json=compact_config_data,
+            timeout=10,
+        )
+
+        if compact_put_response.status_code != 200:
+            raise SmokeTestFailureException(
+                f'Failed to PUT compact configuration to set {jurisdiction} to live. '
+                f'Response: {compact_put_response.json()}'
+            )
+
+        print(f'Successfully updated compact configuration to set {jurisdiction} to live')
+
+        # Get compact config one last time to verify state is now set to live
+        compact_get_response = requests.get(
+            url=f'{get_api_base_url()}/v1/compacts/{compact}', headers=headers, timeout=10
+        )
+
+        if compact_get_response.status_code != 200:
+            raise SmokeTestFailureException(
+                f'Failed to GET compact configuration for verification. Response: {compact_get_response.json()}'
+            )
+
+        compact_config_data = compact_get_response.json()
+        configured_states = compact_config_data.get('configuredStates', [])
+
+        # now verify that the jurisdiction is live
+        jurisdiction_found = False
+        for state in configured_states:
+            if state.get('postalAbbreviation') == jurisdiction.lower():
+                jurisdiction_found = True
+                if not state.get('isLive'):
+                    raise SmokeTestFailureException(
+                        f'Expected jurisdiction {jurisdiction} to have isLive: true in configuredStates, '
+                        f'but got isLive: {state.get("isLive")}'
+                    )
+                break
+
+        if not jurisdiction_found:
+            raise SmokeTestFailureException(
+                f'Expected jurisdiction {jurisdiction} to be live in configuredStates, '
+                f'but it was not found. configuredStates: {configured_states}'
+            )
+
+        print(f'Successfully verified that {jurisdiction} is live in configuredStates')
+
         # return the config response to be used in other tests
         return config_response
     finally:
@@ -271,64 +452,42 @@ def test_jurisdiction_configuration():
             delete_test_staff_user(test_email, user_sub, compact)
 
 
-def test_upload_payment_processor_credentials():
+def _test_upload_payment_processor_credentials(compact: str, staff_user_headers: dict):
     """
     Test that a compact admin can upload payment processor credentials.
+
+    :raises SmokeTestFailureException: If the test fails
     """
     print('Testing upload payment processor credentials...')
 
-    # Create a test compact admin user
-    compact = COMPACTS[0]  # Use the first compact for testing
-    test_email = f'test-compact-admin-credentials-{compact}@ccSmokeTestFakeEmail.com'
-    permissions = {'actions': {'admin'}, 'jurisdictions': {}}
+    credentials = {
+        'processor': 'authorize.net',
+        'apiLoginId': config.sandbox_authorize_net_api_login_id,
+        'transactionKey': config.sandbox_authorize_net_transaction_key,
+    }
 
-    user_sub = None
-    try:
-        # Create the test user
-        user_sub = create_test_staff_user(
-            email=test_email,
-            compact=compact,
-            jurisdiction=None,
-            permissions=permissions,
+    # POST the payment processor credentials
+    response = requests.post(
+        url=f'{get_api_base_url()}/v1/compacts/{compact}/credentials/payment-processor',
+        headers=staff_user_headers,
+        json=credentials,
+        timeout=30,  # Give this more time as it makes external API calls to authorize.net
+    )
+
+    if response.status_code != 200:
+        raise SmokeTestFailureException(
+            f'Failed to POST payment processor credentials for compact {compact}. '
+            f'Status: {response.status_code}, Response: {response.text}'
         )
 
-        # Get auth headers for the test user
-        headers = get_staff_user_auth_headers(test_email)
-
-        # Create test payment processor credentials
-        credentials = {
-            'processor': 'authorize.net',
-            'apiLoginId': config.sandbox_authorize_net_api_login_id,
-            'transactionKey': config.sandbox_authorize_net_transaction_key,
-        }
-
-        # POST the payment processor credentials
-        response = requests.post(
-            url=f'{get_api_base_url()}/v1/compacts/{compact}/credentials/payment-processor',
-            headers=headers,
-            json=credentials,
-            timeout=30,  # Give this more time as it makes external API calls to authorize.net
+    # Verify the response contains a success message
+    response_data = response.json()
+    if 'message' not in response_data or 'Successfully verified credentials' not in response_data['message']:
+        raise SmokeTestFailureException(
+            f'Unexpected response when uploading payment processor credentials: {response_data}'
         )
 
-        if response.status_code != 200:
-            raise SmokeTestFailureException(
-                f'Failed to POST payment processor credentials for compact {compact}. '
-                f'Status: {response.status_code}, Response: {response.text}'
-            )
-
-        # Verify the response contains a success message
-        response_data = response.json()
-        if 'message' not in response_data or 'Successfully verified credentials' not in response_data['message']:
-            raise SmokeTestFailureException(
-                f'Unexpected response when uploading payment processor credentials: {response_data}'
-            )
-
-        print(f'Successfully uploaded and verified payment processor credentials for {compact}')
-
-    finally:
-        # Clean up the test user
-        if user_sub:
-            delete_test_staff_user(test_email, user_sub, compact)
+    print(f'Successfully uploaded and verified payment processor credentials for {compact}')
 
 
 if __name__ == '__main__':
@@ -336,4 +495,3 @@ if __name__ == '__main__':
     test_active_member_jurisdictions()
     test_compact_configuration()
     test_jurisdiction_configuration()
-    test_upload_payment_processor_credentials()

@@ -74,6 +74,7 @@
                     </template>
                 </Modal>
             </TransitionGroup>
+            <UpdateHomeJurisdiction v-if="isLicensee" />
             <ChangePassword />
             <section
                 v-if="isLicensee && currentCompactType"

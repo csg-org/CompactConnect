@@ -1,0 +1,142 @@
+//
+//  StateSettingsList.less
+//  CompactConnect
+//
+//  Created by InspiringApps on 7/1/2025.
+//
+
+.state-config-list-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-bottom: 2.4rem;
+    border-radius: 8px;
+    background-color: @white;
+
+    .compact-loading-error {
+        padding: 0.4rem 1.6rem;
+        color: @midRed;
+        font-weight: @fontWeightBold;
+        text-align: center;
+    }
+
+    .state-row {
+        display: flex;
+        flex-direction: column;
+        min-height: 6.4rem;
+        padding: 1.6rem;
+
+        @media @desktopWidth {
+            flex-direction: row;
+        }
+
+        &.header-row {
+            font-weight: @fontWeightBold;
+        }
+
+        &:not(.header-row) {
+            border-top: 1px solid @veryLightGrey;
+        }
+
+        .state-cell {
+            display: flex;
+            align-items: center;
+
+            &.state {
+                font-weight: @fontWeightBold;
+
+                @media @desktopWidth {
+                    width: 40%;
+
+                    &:not(.header-cell) {
+                        font-weight: @fontWeightLight;
+                    }
+                }
+            }
+
+            &.actions {
+                width: 100%;
+                margin-bottom: 0.8rem;
+
+                &.compact-enable {
+                    width: 100%;
+
+                    @media @desktopWidth {
+                        width: 20%;
+
+                        &.is-last-column {
+                            margin-left: auto;
+                        }
+                    }
+                }
+
+                &.state-edit {
+                    width: 100%;
+
+                    @media @desktopWidth {
+                        width: 20%;
+                        margin-left: auto;
+                    }
+                }
+
+                .state-action-btn {
+                    width: 100%;
+                }
+            }
+        }
+    }
+
+    .confirm-config-modal {
+        :deep(.modal-container) {
+            width: 95%;
+            max-width: 60rem;
+            padding: 2rem;
+
+            @media @tabletWidth {
+                padding: 4rem;
+            }
+
+            .modal-content {
+                padding-top: 0.6rem;
+
+                .modal-error {
+                    margin-top: 2.4rem;
+                    color: @midRed;
+                    text-align: right;
+                }
+
+                .action-button-row {
+                    display: flex;
+                    flex-direction: column;
+                    margin-top: 2rem;
+
+                    @media @desktopWidth {
+                        flex-direction: row;
+                        flex-wrap: wrap;
+                        justify-content: flex-end;
+                        margin-top: 4rem;
+                    }
+
+                    .action-button {
+                        margin-bottom: 1rem;
+
+                        @media @desktopWidth {
+                            &:not(:first-child) {
+                                margin-left: 2.4rem;
+                            }
+                        }
+
+                        .input-button,
+                        .input-submit {
+                            width: 100%;
+
+                            @media @desktopWidth {
+                                width: auto;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

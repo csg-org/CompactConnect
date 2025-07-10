@@ -1,0 +1,152 @@
+//
+//  UpdateHomeJurisdiction.less
+//  CompactConnect
+//
+//  Created by InspiringApps on 7/1/2025.
+//
+
+.home-jurisdiction-change-section {
+    margin: 2.5rem 0;
+    padding: 2.5rem 0 2rem;
+    border-top: 1px solid @lightGrey;
+    border-bottom: 1px solid @lightGrey;
+
+    .section-title {
+        margin-bottom: 1.5rem;
+        font-weight: @fontWeightBold;
+        font-size: @fontSizeLarge;
+    }
+
+    .section-subtext {
+        color: @veryDarkGrey;
+    }
+
+    .current-home-jurisdiction-container {
+        display: flex;
+        flex-direction: column;
+        margin: 2rem 0;
+
+        .input-label {
+            margin-right: 1rem;
+            font-weight: @fontWeightBold;
+        }
+
+        .current-home-jurisdiction {
+            font-size: 1.6rem;
+        }
+    }
+
+    .home-jurisdiction-select {
+        margin-bottom: 1.5rem;
+    }
+
+    .input-label-subtext {
+        margin-bottom: 2.5rem;
+        color: @veryDarkGrey;
+    }
+
+    .update-home-jurisdiction-btn {
+        margin-top: 1.5rem;
+    }
+
+    .home-jurisdiction-modal {
+        :deep(.modal-container) {
+            max-width: 90vw;
+            padding: 2rem;
+
+            @media @tabletWidth {
+                max-width: 60rem;
+                padding: 4rem;
+            }
+
+            h1 {
+                font-size: 2.8rem;
+            }
+
+            .modal-content {
+                padding-top: 1rem;
+
+                .modal-subtext {
+                    margin-bottom: 2rem;
+                    font-size: 1.8rem;
+                }
+            }
+
+            .modal-actions {
+                margin-bottom: 0;
+
+                .action-button-row {
+                    display: flex;
+                    flex-direction: row;
+                    justify-content: flex-end;
+
+                    &.initial-action-buttons {
+                        flex-direction: column-reverse;
+                        align-items: center;
+
+                        @media @tabletWidth {
+                            flex-direction: row;
+                            align-items: flex-end;
+                        }
+                    }
+
+                    .cancel-btn {
+                        .input-button {
+                            color: @primaryColor;
+                            font-weight: @fontWeightBold;
+                            background: @white;
+                        }
+                    }
+
+                    .submit-btn {
+                        margin-left: 1rem;
+
+                        .input-submit:not(:disabled) {
+                            border-color: @midRed;
+                            background: @midRed;
+                        }
+                    }
+                }
+            }
+        }
+
+        &.is-success {
+            :deep(.modal-container) {
+                text-align: center;
+
+                .modal-content {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+
+                    .modal-title {
+                        margin-bottom: 1.6rem;
+                    }
+                }
+
+                .modal-actions {
+                    .action-button-row {
+                        justify-content: center;
+                    }
+                }
+
+                .icon-container {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 6.4rem;
+                    height: 6.4rem;
+                    margin-bottom: 1.6rem;
+                    border-radius: 50%;
+                    overflow: hidden;
+                    background-color: @lightGreen;
+
+                    .icon-check-circle {
+                        width: 100%;
+                        fill: @white;
+                    }
+                }
+            }
+        }
+    }
+}

@@ -79,8 +79,13 @@ def get_purchase_privilege_options(event: dict, context: LambdaContext):  # noqa
 
     options_response = config.compact_configuration_client.get_privilege_purchase_options(
         compact=compact,
-        pagination=event.get('queryStringParameters', {}),
     )
+
+    # In theory, this should never happen as a practitioner can only call this endpoint if at least one state
+    # was enabled for users to register in, but we still check for it here so we can be alerted if it ever occurs.
+    if not options_response.get('items'):
+        logger.error('No privilege options returned for compact.', compact=compact)
+        raise CCInternalException('No privilege options returned for compact.')
 
     # we need to filter out contact information from the response, which is not needed by the client
     serlialized_options = []

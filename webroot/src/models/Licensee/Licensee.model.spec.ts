@@ -288,14 +288,7 @@ describe('Licensee model', () => {
             homeAddressPostalCode: 'test-zip',
             dateOfBirth: moment().format(serverDateFormat),
             phoneNumber: '+13234558990',
-            homeJurisdictionSelection: {
-                compact: 'aslp',
-                dateOfSelection: '2025-01-30T18:55:00+00:00',
-                dateOfUpdate: '2025-01-30T18:55:00+00:00',
-                jurisdiction: 'co',
-                providerId: '0a945011-e2a7-4b25-b514-84f4d89b9937',
-                type: 'homeJurisdictionSelection'
-            },
+            currentHomeJurisdiction: 'co',
             ssnLastFour: '0000',
             licenseType: LicenseType.AUDIOLOGIST,
             licenseJurisdiction: 'co',
@@ -501,14 +494,7 @@ describe('Licensee model', () => {
             licenseType: LicenseType.AUDIOLOGIST,
             ssnLastFour: '0000',
             licenseJurisdiction: 'co',
-            homeJurisdictionSelection: {
-                compact: 'aslp',
-                dateOfSelection: '2025-01-30T18:55:00+00:00',
-                dateOfUpdate: '2025-01-30T18:55:00+00:00',
-                jurisdiction: 'co',
-                providerId: '0a945011-e2a7-4b25-b514-84f4d89b9937',
-                type: 'homeJurisdictionSelection'
-            },
+            currentHomeJurisdiction: 'co',
             militaryAffiliations: [{
                 affiliationType: 'affiliationType',
                 compact: 'aslp',

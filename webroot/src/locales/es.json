@@ -39,9 +39,11 @@
         "subtotal": "Total parcial",
         "total": "Total",
         "history": "Historia",
+        "status": "Estado",
         "success": "Correcto",
         "error": "Error",
         "somethingWentWrong": "Algo salió mal",
+        "tryAgain": "Por favor, inténtelo de nuevo",
         "saveAndContinue": "Guardar y continuar",
         "saveAndClose": "Guardar y cerrar",
         "saving": "Guardando...",
@@ -329,6 +331,7 @@
             }
         ],
         "stateUnknown": "Desconocido",
+        "stateNotListed": "No listado",
         "communicationPreference": "Preferencias de comunicación",
         "communicationPreferenceOptions": {
             "email": "Correo electrónico",
@@ -477,7 +480,7 @@
         "compactFee": "Tarifa compacta",
         "privilegeTransactionFee": "Tarifa de transacción privilegiada",
         "fee": "tarifa",
-        "militaryAffiliated": "Afiliado a los militares",
+        "militaryAffiliated": "Militar en servicio activo o cónyuge",
         "jurisprudence": "Jurisprudencia",
         "jurisprudenceExamRequired": "¿Es necesario un examen?",
         "jurisprudenceInfoLink": "Enlace de información sobre jurisprudencia",
@@ -499,7 +502,9 @@
         "confirmSaveCompactTitle": "¿Estás seguro de que deseas marcar este estado como activo?",
         "confirmSaveCompactYes": "Sí, marcar como en vivo",
         "saveSuccessfulCompact": "Los cambios compactos se guardaron correctamente",
-        "saveSuccessfulState": "Los cambios de estado se guardaron correctamente"
+        "saveSuccessfulState": "Los cambios de estado se guardaron correctamente",
+        "enable": "Permitir",
+        "live": "En vivo"
     },
     "stateUpload": {
         "formTitle": "Carga de datos compacta",
@@ -892,5 +897,20 @@
         "loadingSpinner": "Indicador de funcionamiento",
         "showSpinner": "Mostrar el indicador",
         "mobileStoreLinks": "Enlaces de tiendas móviles"
+    },
+    "homeJurisdictionChange": {
+        "formTitle": "Cambiar estado de residencia",
+        "formSubtext": "Cambiar de estado de residencia puede afectar a sus atribuciones. Si ya tiene una licencia apta para el convenio en su nuevo estado de residencia, sus atribuciones se transferirán. Si no tiene una licencia en su nuevo estado de residencia, o su licencia no es elegible, sus atribuciones se desactivarán.",
+        "currentHomeJurisdictionLabel": "Estado de residencia actual",
+        "newHomeJurisdictionLabel": "Nuevo estado de residencia",
+        "inputSubtext": "Esta selección significa que sus privilegios compactos actuales serán desactivados y ya no podrá ejercer bajo ellos.",
+        "updateButton": "Actualizar estado de residencia",
+        "modalTitle": "¿Está seguro de que desea cambiar {newState} como su nuevo estado de residencia?",
+        "modalSubtext": "Cambiar su estado de residencia puede afectar sus privilegios. Si ya tiene una licencia elegible para el compacto en su nuevo estado de residencia, sus privilegios se transferirán. Si no tiene una licencia en su nuevo estado de residencia, o su licencia no es elegible, sus privilegios serán desactivados.",
+        "modalConfirm": "Confirmar nuevo estado de residencia",
+        "successTitle": "Ha cambiado exitosamente su estado de residencia.",
+        "successSubtext": "Su antiguo estado de residencia y el nuevo serán notificados automáticamente de este cambio.",
+        "eligibleLicenseOption": "{state} (licencia {licenseType} elegible) \u2713",
+        "noEligibleLicenseOption": "{state} (sin licencia elegible)"
     }
 }

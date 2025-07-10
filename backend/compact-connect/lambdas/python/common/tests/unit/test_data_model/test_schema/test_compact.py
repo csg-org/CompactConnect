@@ -84,3 +84,44 @@ class TestCompactRecordSchema(TstLambdas):
             "['Must be greater than or equal to 0.']",
             str(context.exception),
         )
+
+    def test_compact_config_raises_validation_error_for_invalid_configured_state_jurisdiction(self):
+        """Test that an invalid jurisdiction postal abbreviation in configuredStates raises a ValidationError"""
+        from cc_common.data_model.schema.compact.record import CompactRecordSchema
+
+        with open('tests/resources/dynamo/compact.json') as f:
+            expected_compact = json.load(f, parse_float=Decimal)
+            expected_compact['configuredStates'][0]['postalAbbreviation'] = 'invalid'
+
+        with self.assertRaises(ValidationError) as context:
+            CompactRecordSchema().load(expected_compact.copy())
+
+        self.assertIn("{'configuredStates': {0: {'postalAbbreviation': ['Must be one of:", str(context.exception))
+
+    def test_compact_config_raises_validation_error_for_missing_configured_state_fields(self):
+        """Test that missing required fields in configuredStates raises a ValidationError"""
+        from cc_common.data_model.schema.compact.record import CompactRecordSchema
+
+        with open('tests/resources/dynamo/compact.json') as f:
+            expected_compact = json.load(f, parse_float=Decimal)
+            del expected_compact['configuredStates'][0]['isLive']
+
+        with self.assertRaises(ValidationError) as context:
+            CompactRecordSchema().load(expected_compact.copy())
+
+        self.assertIn('configuredStates', str(context.exception))
+        self.assertIn('isLive', str(context.exception))
+
+    def test_compact_config_allows_empty_configured_states(self):
+        """Test that an empty configuredStates list is valid"""
+        from cc_common.data_model.schema.compact.record import CompactRecordSchema
+
+        with open('tests/resources/dynamo/compact.json') as f:
+            expected_compact = json.load(f, parse_float=Decimal)
+            expected_compact['configuredStates'] = []
+
+        schema = CompactRecordSchema()
+        loaded_schema = schema.load(expected_compact.copy())
+
+        compact_data = schema.dump(loaded_schema)
+        self.assertEqual([], compact_data['configuredStates'])
