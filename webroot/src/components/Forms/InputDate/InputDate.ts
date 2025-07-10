@@ -12,6 +12,7 @@ import {
     toNative,
     Watch
 } from 'vue-facing-decorator';
+import { nextTick } from 'vue';
 import MixinInput from '@components/Forms/_mixins/input.mixin';
 import VueDatePicker, { DatePickerMarker } from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
@@ -114,8 +115,15 @@ class InputDate extends mixins(MixinInput) {
     //
     // Methods
     //
-    onOpen(formInput: FormInput): void {
+    async onOpen(formInput: FormInput): Promise<void> {
         this.$emit('open', formInput);
+        // Focus the datepicker menu to improve keyboard navigation
+        await nextTick();
+        const menuElement = document.getElementById(`dp-menu-${formInput.id}`);
+
+        if (menuElement) {
+            menuElement.focus();
+        }
     }
 
     onInput(): void {
@@ -148,6 +156,10 @@ class InputDate extends mixins(MixinInput) {
 
     focus(): void {
         (this.$refs.datepicker as any)?.openMenu();
+    }
+
+    onEscape(): void {
+        (this.$refs.datepicker as any)?.closeMenu();
     }
 
     onClose(formInput: FormInput): void {

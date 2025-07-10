@@ -184,7 +184,7 @@ class RegisterLicensee extends mixins(MixinForm) {
                 label: computed(() => this.$t('common.dateOfBirth')),
                 placeholder: computed(() => 'MM/DD/YYYY'),
                 autocomplete: 'bday',
-                validation: Joi.string().required().messages(this.joiMessages.string),
+                validation: Joi.string().required().messages(this.getDateValidationMessages('MM/DD/YYYY')),
             }),
             licenseState: new FormInput({
                 id: 'license-state',
@@ -208,9 +208,13 @@ class RegisterLicensee extends mixins(MixinForm) {
                 autocomplete: 'email',
                 validation: Joi.string().required().email({ tlds: false }).messages(this.joiMessages.string),
             }),
-            submit: new FormInput({
+            handleSubmitInitial: new FormInput({
                 isSubmitInput: true,
-                id: 'submit',
+                id: 'submit-initial',
+            }),
+            handleSubmitConfirmation: new FormInput({
+                isSubmitInput: true,
+                id: 'submit-confirmation',
             }),
         });
         this.watchFormInputs(); // Important if you want automated form validation

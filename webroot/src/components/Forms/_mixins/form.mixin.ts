@@ -105,9 +105,24 @@ class MixinForm extends Vue {
                 'boolean.base': this.$t('inputErrors.required'),
                 'any.invalid': this.$t('inputErrors.required'),
             },
+            date: {
+                'string.empty': this.$t('inputErrors.required'),
+                'string.base': this.$t('inputErrors.invalidDate'),
+                'date.base': this.$t('inputErrors.invalidDate'),
+                'any.required': this.$t('inputErrors.required'),
+            },
         };
 
         return messages;
+    }
+
+    getDateValidationMessages(format: string): any {
+        return {
+            'string.empty': this.$t('inputErrors.required'),
+            'string.base': this.$t('inputErrors.invalidDateWithFormat', { format }),
+            'date.base': this.$t('inputErrors.invalidDateWithFormat', { format }),
+            'any.required': this.$t('inputErrors.required'),
+        };
     }
 
     get locale() {

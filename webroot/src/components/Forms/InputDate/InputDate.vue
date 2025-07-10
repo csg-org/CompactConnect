@@ -73,6 +73,7 @@
                         @keydown.enter.stop="onEnter"
                         @keyup.enter.stop
                         @keydown.tab="onTab"
+                        @keydown.esc="onEscape"
                         @blur="onInputBlur"
                         @keypress="onKeypress"
                         @paste="onPaste"
@@ -96,6 +97,7 @@
                             @click="openMenu"
                             @keydown.enter="openMenu"
                             @keydown.space.prevent="openMenu"
+                            @keydown.esc="onEscape"
                             tabindex="0"
                             role="button"
                             aria-label="Open calendar"
