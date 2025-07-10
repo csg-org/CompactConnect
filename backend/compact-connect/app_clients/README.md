@@ -45,10 +45,10 @@ Add the new app client information to the external Google Sheet registry for tra
    Currently, the most common scope needed by app clients is the `{jurisdiction}/{compact}.write` scope. This scope allows the app client to upload license data for a jurisdiction/compact combination.
 
 ### 3. Create App Client Using Interactive Python Script
-   **Use the provided Python script for streamlined app client creation:**
+   **Use the provided Python script in the bin directory for streamlined app client creation:**
 
    ```bash
-   python3 create_app_client.py -e <environment> -u <user_pool_id>
+   python3 bin/create_app_client.py -e <environment> -u <user_pool_id>
    ```
 
    **Interactive Process:**

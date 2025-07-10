@@ -13,64 +13,44 @@ import argparse
 import json
 import re
 import sys
+from pathlib import Path
 
 import boto3
 from botocore.exceptions import ClientError, NoCredentialsError
 
-# Valid compacts and states
-VALID_COMPACTS = ['aslp', 'octp', 'coun']
-VALID_STATES = [
-    'al',
-    'ak',
-    'az',
-    'ar',
-    'ca',
-    'co',
-    'ct',
-    'de',
-    'fl',
-    'ga',
-    'hi',
-    'id',
-    'il',
-    'in',
-    'ia',
-    'ks',
-    'ky',
-    'la',
-    'me',
-    'md',
-    'ma',
-    'mi',
-    'mn',
-    'ms',
-    'mo',
-    'mt',
-    'ne',
-    'nv',
-    'nh',
-    'nj',
-    'nm',
-    'ny',
-    'nc',
-    'nd',
-    'oh',
-    'ok',
-    'or',
-    'pa',
-    'ri',
-    'sc',
-    'sd',
-    'tn',
-    'tx',
-    'ut',
-    'vt',
-    'va',
-    'wa',
-    'wv',
-    'wi',
-    'wy',
-]
+
+def load_cdk_config():
+    """Load configuration from cdk.json file."""
+    # Find cdk.json file - look in parent directories
+    current_dir = Path(__file__).parent
+    cdk_json_path = None
+
+    # Look up the directory tree for cdk.json
+    for parent in [current_dir] + list(current_dir.parents):
+        potential_path = parent / 'cdk.json'
+        if potential_path.exists():
+            cdk_json_path = potential_path
+            break
+
+    if not cdk_json_path:
+        raise FileNotFoundError('Could not find cdk.json file in current directory or parent directories')
+
+    with open(cdk_json_path) as f:
+        cdk_config = json.load(f)
+
+    context = cdk_config.get('context', {})
+
+    return {
+        'compacts': context.get('compacts', []),
+        'active_compact_member_jurisdictions': context.get('active_compact_member_jurisdictions', {}),
+    }
+
+
+# Load configuration from cdk.json
+CDK_CONFIG = load_cdk_config()
+VALID_COMPACTS = CDK_CONFIG['compacts']
+ACTIVE_COMPACT_JURISDICTIONS = CDK_CONFIG['active_compact_member_jurisdictions']
+
 
 # Valid scope patterns for validation
 VALID_SCOPE_PATTERNS = [
@@ -93,11 +73,17 @@ def validate_compact(compact):
     return compact
 
 
-def validate_state(state):
-    """Validate state postal abbreviation."""
+def validate_state(state, compact):
+    """Validate state postal abbreviation for the given compact."""
     state = state.lower().strip()
-    if state not in VALID_STATES:
-        raise ValueError(f'Invalid state: {state}. Must be a valid 2-letter state postal abbreviation.')
+
+    # Get valid states for this compact
+    valid_states = ACTIVE_COMPACT_JURISDICTIONS.get(compact, [])
+
+    if state not in valid_states:
+        raise ValueError(
+            f'Invalid state: {state}. Valid states for {compact.upper()} compact are: {", ".join(sorted(valid_states))}'
+        )
     return state
 
 
@@ -157,8 +143,10 @@ def get_user_input():
     # Get state
     while True:
         try:
+            valid_states = ACTIVE_COMPACT_JURISDICTIONS.get(compact, [])
+            print(f'\nValid states for {compact.upper()} compact: {", ".join(sorted(valid_states))}')
             state = input("Enter the state postal abbreviation (e.g., 'ky', 'la'): ").strip()
-            state = validate_state(state)
+            state = validate_state(state, compact)
             break
         except ValueError as e:
             print(f'Error: {e}')
@@ -182,22 +170,21 @@ def get_user_input():
     scopes = [f'{compact}/readGeneral', f'{state}/{compact}.write']
     scopes.extend(additional_scopes)
 
-    # Remove duplicates while preserving order
-    seen = set()
-    scopes = [scope for scope in scopes if not (scope in seen or seen.add(scope))]
+    # Remove duplicates
+    deduped_scopes = list(set(scopes))
 
     print('\nFinal configuration:')
     print(f'  Client Name: {client_name}')
     print(f'  Compact: {compact}')
     print(f'  State: {state}')
-    print(f'  Scopes: {", ".join(scopes)}')
+    print(f'  Scopes: {", ".join(deduped_scopes)}')
 
     confirm = input('\nProceed with this configuration? (y/N): ').strip().lower()
     if confirm != 'y':
         print('Configuration cancelled.')
         sys.exit(0)
 
-    return {'clientName': client_name, 'compact': compact, 'state': state, 'scopes': scopes}
+    return {'clientName': client_name, 'compact': compact, 'state': state, 'scopes': deduped_scopes}
 
 
 def create_app_client(user_pool_id, config):
