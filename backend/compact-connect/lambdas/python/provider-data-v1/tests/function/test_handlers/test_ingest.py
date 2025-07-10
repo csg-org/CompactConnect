@@ -29,7 +29,7 @@ class TestIngest(TstFunction):
         del expected_provider['compactConnectRegisteredEmailAddress']
         return expected_provider
 
-    def _with_ingested_license(self, omit_email: bool = False) -> str:
+    def _with_ingested_license(self, omit_email: bool = False, omit_date_of_renewal: bool = False) -> str:
         from handlers.ingest import ingest_license_message
 
         with open('../common/tests/resources/dynamo/provider-ssn.json') as f:
@@ -43,6 +43,8 @@ class TestIngest(TstFunction):
 
         if omit_email:
             del message['detail']['emailAddress']
+        if omit_date_of_renewal:
+            del message['detail']['dateOfRenewal']
 
         # Upload a new license
         event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
@@ -390,15 +392,17 @@ class TestIngest(TstFunction):
         # Verify that NO license deactivation event was sent because the license is expired
         mock_event_writer.return_value.__enter__.return_value.put_event.assert_not_called()
 
-    def test_existing_provider_renewal(self):
+    def _when_test_existing_provider_renewal(self, message_detail: dict, omit_date_of_renewal: bool = False):
         from handlers.ingest import ingest_license_message
 
-        provider_id = self._with_ingested_license()
+        provider_id = self._with_ingested_license(omit_date_of_renewal=omit_date_of_renewal)
 
         with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
 
-        message['detail'].update({'dateOfRenewal': '2025-03-03', 'dateOfExpiration': '2030-03-03'})
+        message['detail'].update(message_detail)
+        if omit_date_of_renewal:
+            del message['detail']['dateOfRenewal']
 
         # What happens if their license is renewed in a subsequent upload?
         event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
@@ -411,7 +415,10 @@ class TestIngest(TstFunction):
         # The license status and provider should immediately reflect the new dates
         expected_provider['dateOfExpiration'] = '2030-03-03'
         expected_provider['licenses'][0]['dateOfExpiration'] = '2030-03-03'
-        expected_provider['licenses'][0]['dateOfRenewal'] = '2025-03-03'
+        if omit_date_of_renewal:
+            del expected_provider['licenses'][0]['dateOfRenewal']
+        else:
+            expected_provider['licenses'][0]['dateOfRenewal'] = '2025-03-03'
 
         provider_data = self._get_provider_via_api(provider_id)
 
@@ -457,6 +464,9 @@ class TestIngest(TstFunction):
                     },
                 }
             ]
+            if omit_date_of_renewal:
+                del license_data['history'][0]['previous']['dateOfRenewal']
+                del license_data['history'][0]['updatedValues']['dateOfRenewal']
 
         # Removing/setting dynamic fields for comparison
         del expected_provider['dateOfUpdate']
@@ -472,6 +482,16 @@ class TestIngest(TstFunction):
                 del hist['previous']['dateOfUpdate']
 
         self.assertEqual(expected_provider, provider_data)
+
+    def test_existing_provider_renewal(self):
+        self._when_test_existing_provider_renewal(
+            message_detail={'dateOfRenewal': '2025-03-03', 'dateOfExpiration': '2030-03-03'}, omit_date_of_renewal=False
+        )
+
+    def test_existing_provider_renewal_without_date_of_renewal_field(self):
+        self._when_test_existing_provider_renewal(
+            message_detail={'dateOfExpiration': '2030-03-03'}, omit_date_of_renewal=True
+        )
 
     def test_existing_provider_name_change(self):
         from handlers.ingest import ingest_license_message
