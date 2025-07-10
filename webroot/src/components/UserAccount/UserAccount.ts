@@ -104,59 +104,68 @@ class UserAccount extends mixins(MixinForm) {
     //
     initFormInputs(): void {
         if (this.isEmailVerificationModalDisplayed) {
-            this.formData = reactive({
-                emailVerificationCode: new FormInput({
-                    id: 'verification-code',
-                    name: 'verification-code',
-                    label: computed(() => this.$t('account.enterCode')),
-                    autocomplete: 'off',
-                    validation: Joi.string().required().max(12).messages(this.joiMessages.string),
-                    enforceMax: true,
-                }),
-                submitEmailVerification: new FormInput({
-                    isSubmitInput: true,
-                    id: 'confirm-modal-submit-button',
-                }),
-            });
+            this.initFormInputsEmailVerification();
         } else {
-            this.initialUserEmail = this.email;
-            this.formData = reactive({
-                firstName: new FormInput({
-                    id: 'first-name',
-                    name: 'first-name',
-                    label: computed(() => this.$t('common.firstName')),
-                    placeholder: computed(() => this.$t('common.firstName')),
-                    autocomplete: 'given-name',
-                    value: this.user.firstName,
-                    validation: Joi.string().required().messages(this.joiMessages.string),
-                    isDisabled: this.isLicensee,
-                }),
-                lastName: new FormInput({
-                    id: 'last-name',
-                    name: 'last-name',
-                    label: computed(() => this.$t('common.lastName')),
-                    placeholder: computed(() => this.$t('common.lastName')),
-                    autocomplete: 'family-name',
-                    value: this.user.lastName,
-                    validation: Joi.string().required().messages(this.joiMessages.string),
-                    isDisabled: this.isLicensee,
-                }),
-                email: new FormInput({
-                    id: 'email',
-                    name: 'email',
-                    label: computed(() => this.$t('common.emailAddress')),
-                    placeholder: computed(() => this.$t('common.emailAddress')),
-                    autocomplete: 'email',
-                    value: this.email,
-                    validation: Joi.string().email({ tlds: false }).messages(this.joiMessages.string),
-                    isDisabled: this.isStaff,
-                }),
-                submitUserUpdate: new FormInput({
-                    isSubmitInput: true,
-                    id: 'submit-user-info',
-                }),
-            });
+            this.initFormInputsAccount();
         }
+    }
+
+    initFormInputsAccount(): void {
+        this.initialUserEmail = this.email;
+        this.formData = reactive({
+            firstName: new FormInput({
+                id: 'first-name',
+                name: 'first-name',
+                label: computed(() => this.$t('common.firstName')),
+                placeholder: computed(() => this.$t('common.firstName')),
+                autocomplete: 'given-name',
+                value: this.user.firstName,
+                validation: Joi.string().required().messages(this.joiMessages.string),
+                isDisabled: this.isLicensee,
+            }),
+            lastName: new FormInput({
+                id: 'last-name',
+                name: 'last-name',
+                label: computed(() => this.$t('common.lastName')),
+                placeholder: computed(() => this.$t('common.lastName')),
+                autocomplete: 'family-name',
+                value: this.user.lastName,
+                validation: Joi.string().required().messages(this.joiMessages.string),
+                isDisabled: this.isLicensee,
+            }),
+            email: new FormInput({
+                id: 'email',
+                name: 'email',
+                label: computed(() => this.$t('common.emailAddress')),
+                placeholder: computed(() => this.$t('common.emailAddress')),
+                autocomplete: 'email',
+                value: this.email,
+                validation: Joi.string().email({ tlds: false }).messages(this.joiMessages.string),
+                isDisabled: this.isStaff,
+            }),
+            submitUserUpdate: new FormInput({
+                isSubmitInput: true,
+                id: 'submit-user-info',
+            }),
+        });
+        this.watchFormInputs(); // Important if you want automated form validation
+    }
+
+    initFormInputsEmailVerification(): void {
+        this.formData = reactive({
+            emailVerificationCode: new FormInput({
+                id: 'verification-code',
+                name: 'verification-code',
+                label: computed(() => this.$t('account.enterCode')),
+                autocomplete: 'off',
+                validation: Joi.string().required().max(12).messages(this.joiMessages.string),
+                enforceMax: true,
+            }),
+            submitEmailVerification: new FormInput({
+                isSubmitInput: true,
+                id: 'confirm-modal-submit-button',
+            }),
+        });
         this.watchFormInputs(); // Important if you want automated form validation
     }
 
