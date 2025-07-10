@@ -65,7 +65,7 @@
                                     :label="(isEmailVerificationModalSuccess)
                                         ? $t('common.close')
                                         : $t('common.cancel')"
-                                    :isTransparent="true"
+                                    :isTransparent="!isEmailVerificationModalSuccess"
                                     :onClick="closeEmailVerificationModal"
                                     :isEnabled="isEmailVerificationModalSuccess || !isFormLoading"
                                 />

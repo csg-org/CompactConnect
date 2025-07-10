@@ -109,6 +109,7 @@ class UserAccount extends mixins(MixinForm) {
                     id: 'verification-code',
                     name: 'verification-code',
                     label: computed(() => this.$t('account.enterCode')),
+                    autocomplete: 'off',
                     validation: Joi.string().required().max(12).messages(this.joiMessages.string),
                     enforceMax: true,
                 }),
