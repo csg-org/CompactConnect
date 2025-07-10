@@ -174,7 +174,6 @@ class ApiModel:
                         'homeAddressPostalCode',
                         'licenseType',
                         'dateOfIssuance',
-                        'dateOfRenewal',
                         'dateOfExpiration',
                         'licenseStatus',
                         'compactEligibility',
