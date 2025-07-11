@@ -19,22 +19,6 @@ from cc_common.data_model.schema.military_affiliation.api import MilitaryAffilia
 from cc_common.data_model.schema.privilege.api import PrivilegeGeneralResponseSchema, PrivilegePublicResponseSchema
 
 
-# TODO deprecated - to be removed after frontend has been update to only   # noqa: FIX002
-#  reference 'currentHomeJurisdiction' field in https://github.com/csg-org/CompactConnect/issues/763
-class ProviderHomeJurisdictionSelectionGeneralResponseSchema(ForgivingSchema):
-    """
-    Schema defining fields available to all staff users with only the 'readGeneral' permission.
-
-    Serialization direction:
-    Python -> load() -> API
-    """
-
-    type = Raw(required=True, allow_none=False)
-    compact = Raw(required=True, allow_none=False)
-    providerId = Raw(required=True, allow_none=False)
-    jurisdiction = Raw(required=True, allow_none=False)
-
-
 class ProviderGeneralResponseSchema(ForgivingSchema):
     """
     Provider object fields that are sanitized for users with the 'readGeneral' permission.
@@ -82,11 +66,6 @@ class ProviderGeneralResponseSchema(ForgivingSchema):
     licenses = List(Nested(LicenseGeneralResponseSchema(), required=False, allow_none=False))
     privileges = List(Nested(PrivilegeGeneralResponseSchema(), required=False, allow_none=False))
     militaryAffiliations = List(Nested(MilitaryAffiliationGeneralResponseSchema(), required=False, allow_none=False))
-    # TODO deprecated - to be removed after frontend has been update to only   # noqa: FIX002
-    #  reference 'currentHomeJurisdiction' field in https://github.com/csg-org/CompactConnect/issues/763
-    homeJurisdictionSelection = Nested(
-        ProviderHomeJurisdictionSelectionGeneralResponseSchema(), required=False, allow_none=False
-    )
 
 
 class ProviderPublicResponseSchema(ForgivingSchema):
