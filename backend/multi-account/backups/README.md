@@ -18,7 +18,7 @@ Deployed to the dedicated backup account in `us-west-2` region:
 ### Environment Account Integration
 Environment account backup infrastructure is managed by the CompactConnect application:
 - CompactConnect deployments create local backup vaults and IAM service roles
-- Backup plans include copy actions that replicate data to this centralized backup account
+- Backup plans include copy actions that replicate data to this secondary backup account
 - Local KMS keys handle initial backup encryption
 - Cross-account replication provides disaster recovery capability
 
@@ -38,9 +38,7 @@ Copy `cdk.context.example.json` to `cdk.context.json` and update the values:
   "organization_id": "YOUR_ORG_ID",
   "backup_region": "us-west-2",
   "source_account_ids": [
-    "TEST_ACCOUNT_ID",
-    "BETA_ACCOUNT_ID",
-    "PROD_ACCOUNT_ID"
+    "TEST or PROD ACCOUNT ID"
   ],
   "backup_vault_name": "CompactConnectBackupVault",
   "ssn_backup_vault_name": "CompactConnectBackupVault-SSN",
@@ -58,14 +56,14 @@ Copy `cdk.context.example.json` to `cdk.context.json` and update the values:
    pip install -r requirements.txt
    ```
 
-2. **Bootstrap CDK** (if not already done):
+2. **Bootstrap CDK** (if not already done. Make sure the AWS cli is logged into the appropriate backup account):
    ```bash
-   cdk bootstrap --profile backup-account
+   cdk bootstrap
    ```
 
-3. **Deploy to backup account**:
+3. **Deploy to backup account(Make sure the AWS cli is logged into the appropriate backup account)**:
    ```bash
-   cdk deploy BackupAccountStack --profile backup-account
+   cdk deploy BackupAccountStack
    ```
 
 ## Security Features
