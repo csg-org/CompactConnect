@@ -84,9 +84,9 @@ def upload_licenses_record():
             'licenseType': 'audiologist',
             'dateOfExpiration': '2050-12-10',
             'homeAddressState': 'AZ',
-            'dateOfRenewal': '2051-12-10',
             'homeAddressCity': 'Omaha',
-            'status': 'active',
+            'compactEligibility': 'eligible',
+            'licenseStatus': 'active',
         }
     ]
 
