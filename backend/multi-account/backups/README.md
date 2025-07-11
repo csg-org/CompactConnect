@@ -56,12 +56,12 @@ Copy `cdk.context.example.json` to `cdk.context.json` and update the values:
    pip install -r requirements.txt
    ```
 
-2. **Bootstrap CDK** (if not already done. Make sure the AWS cli is logged into the appropriate backup account):
+2. **Bootstrap CDK in us-west-2 region** (if not already done. Make sure the AWS cli is logged into the appropriate backup account and set to us-west-2 region):
    ```bash
    cdk bootstrap
    ```
 
-3. **Deploy to backup account(Make sure the AWS cli is logged into the appropriate backup account)**:
+3. **Deploy to backup account(Make sure the AWS cli is logged into the appropriate backup account and set to the us-west-2 region)**:
    ```bash
    cdk deploy BackupAccountStack
    ```
