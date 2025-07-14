@@ -165,7 +165,8 @@ class TstAppABC(ABC):
                 local_ui_port = '3018' if not local_ui_port else local_ui_port
                 callbacks.append(f'http://localhost:{local_ui_port}/auth/callback')
 
-            # ensure we have two user pools, one for staff users and one for providers
+            # ensure we have one user pool defined in persistent stack for staff users (provider user pool defined in
+            # provider users stack)
             persistent_stack_template.resource_count_is(CfnUserPool.CFN_RESOURCE_TYPE_NAME, 1)
 
             # Ensure our Staff user pool app client is configured with the expected callbacks and read/write attributes
