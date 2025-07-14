@@ -82,7 +82,7 @@ export class AdverseAction implements InterfaceAdverseActionCreate {
         const endDateMoment = (endDate) ? moment(endDate, serverDateFormat) : null;
         const now = moment();
         const isAfterStartDate = (startDateMoment?.isValid()) ? now.isSameOrAfter(startDateMoment, 'day') : false;
-        const isBeforeEndDate = (endDateMoment?.isValid()) ? now.isSameOrBefore(endDateMoment, 'day') : false;
+        const isBeforeEndDate = (endDateMoment?.isValid()) ? now.isBefore(endDateMoment, 'day') : false;
         let isAdverseActionActive = false;
 
         if (isAfterStartDate && isBeforeEndDate) {
