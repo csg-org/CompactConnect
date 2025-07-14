@@ -1,7 +1,7 @@
 import os
 
 from aws_cdk import Duration, RemovalPolicy, aws_ssm
-from aws_cdk.aws_cognito import SignInAliases, UserPoolEmail
+from aws_cdk.aws_cognito import UserPoolEmail
 from aws_cdk.aws_iam import Effect, PolicyStatement
 from aws_cdk.aws_kms import Key
 from aws_cdk.aws_lambda import Runtime
@@ -197,14 +197,9 @@ class PersistentStack(AppStack):
             # by the user pool email settings
             self.staff_users.node.add_dependency(self.user_email_notifications.email_identity)
             self.staff_users.node.add_dependency(self.user_email_notifications.dmarc_record)
-            self.provider_users_deprecated.node.add_dependency(self.user_email_notifications.email_identity)
-            self.provider_users_deprecated.node.add_dependency(self.user_email_notifications.dmarc_record)
             # the verification custom resource needs to be completed before the user pools are created
             # so that the user pools will be created after the SES identity is verified
             self.staff_users.node.add_dependency(self.user_email_notifications.verification_custom_resource)
-            self.provider_users_deprecated.node.add_dependency(
-                self.user_email_notifications.verification_custom_resource
-            )
 
         # This parameter is used to store the frontend app config values for use in the frontend deployment stack
         self._create_frontend_app_config_parameter()
