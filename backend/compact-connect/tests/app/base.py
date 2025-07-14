@@ -166,8 +166,7 @@ class TstAppABC(ABC):
                 callbacks.append(f'http://localhost:{local_ui_port}/auth/callback')
 
             # ensure we have two user pools, one for staff users and one for providers
-            # TODO - this will go down to one when we finish provider user migration  # noqa: FIX002
-            persistent_stack_template.resource_count_is(CfnUserPool.CFN_RESOURCE_TYPE_NAME, 2)
+            persistent_stack_template.resource_count_is(CfnUserPool.CFN_RESOURCE_TYPE_NAME, 1)
 
             # Ensure our Staff user pool app client is configured with the expected callbacks and read/write attributes
             staff_users_user_pool_app_client = self.get_resource_properties_by_logical_id(
