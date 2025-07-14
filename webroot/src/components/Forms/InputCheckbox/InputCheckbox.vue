@@ -19,7 +19,7 @@
                 :aria-errormessage="`${formInput.id}-error`"
                 :aria-invalid="!!formInput.errorMessage"
                 @blur="blur(formInput)"
-                @change="input"
+                @change="input(formInput)"
             />
             <span class="checkbox-replacement"></span>
             <label v-html="formInput.label" :for="formInput.id" class="input-label"></label>

@@ -104,7 +104,7 @@ class MixinForm extends Vue {
             boolean: {
                 'boolean.base': this.$t('inputErrors.required'),
                 'any.invalid': this.$t('inputErrors.required'),
-            }
+            },
         };
 
         return messages;
