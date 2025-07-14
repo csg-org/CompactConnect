@@ -25,7 +25,6 @@ from stacks.persistent_stack.compact_configuration_upload import CompactConfigur
 from stacks.persistent_stack.data_event_table import DataEventTable
 from stacks.persistent_stack.event_bus import EventBus
 from stacks.persistent_stack.provider_table import ProviderTable
-from stacks.persistent_stack.provider_users import ProviderUsers
 from stacks.persistent_stack.provider_users_bucket import ProviderUsersBucket
 from stacks.persistent_stack.rate_limiting_table import RateLimitingTable
 from stacks.persistent_stack.ssn_table import SSNTable
@@ -177,31 +176,6 @@ class PersistentStack(AppStack):
             security_profile=security_profile,
             removal_policy=removal_policy,
         )
-
-        # This user pool is deprecated and will be removed once we've cut over to the green user pool
-        # in the new provider_users_stack across all environments.
-        provider_prefix = f'{app_name}-provider'
-        provider_prefix = provider_prefix if environment_name == 'prod' else f'{provider_prefix}-{environment_name}'
-
-        # We have to use a different prefix so we don't have a naming conflict with the original user pool
-        self.provider_users_deprecated = ProviderUsers(
-            self,
-            'ProviderUsersBlue',
-            cognito_domain_prefix=None,
-            environment_name=environment_name,
-            environment_context=environment_context,
-            encryption_key=self.shared_encryption_key,
-            sign_in_aliases=SignInAliases(email=True, username=False),
-            user_pool_email=user_pool_email_settings,
-            security_profile=security_profile,
-            removal_policy=removal_policy,
-        )
-        # We explicitly export the user pool values so we can later move the API stack over to the
-        # new user pool without putting our app into a cross-stack dependency 'deadly embrace':
-        # https://www.endoflineblog.com/cdk-tips-03-how-to-unblock-cross-stack-references
-        self.export_value(self.provider_users_deprecated.user_pool_id)
-        self.export_value(self.provider_users_deprecated.user_pool_arn)
-        self.export_value(self.provider_users_deprecated.ui_client.user_pool_client_id)
 
         QueryDefinition(
             self,
