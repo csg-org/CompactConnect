@@ -1806,83 +1806,116 @@ class DataClient:
                     )
                 )
 
-                # Get provider record update transaction items for jurisdiction change with license
-                provider_transaction_items = (
-                    self._get_provider_record_transaction_items_for_jurisdiction_change_with_license(
-                        compact=compact,
-                        provider_id=provider_id,
-                        provider_records=provider_user_records,
-                        new_license_record=best_license_in_selected_jurisdiction,
+                # Check if the selected jurisdiction is live in the compact configuration
+                compact_config = self.config.compact_configuration_client.get_compact_configuration(compact)
+                is_jurisdiction_live = any(
+                    state['postalAbbreviation'].lower() == selected_jurisdiction.lower() and state.get('isLive', False)
+                    for state in compact_config.configuredStates
+                )
+
+                if not is_jurisdiction_live:
+                    logger.info(
+                        'Selected jurisdiction is not live in compact configuration. '
+                        'Deactivating privileges as if there were no license.',
                         selected_jurisdiction=selected_jurisdiction,
+                        compact=compact,
                     )
-                )
-                all_transaction_items.extend(provider_transaction_items)
-
-                # Get licenses from the current home state
-                current_home_state_licenses = provider_user_records.get_license_records(
-                    filter_condition=lambda license_data: license_data.jurisdiction == current_home_jurisdiction
-                )
-
-                # Get unique license types from all privileges
-                privilege_license_types = set(privilege.licenseType for privilege in all_active_privileges)
-
-                for license_type in privilege_license_types:
-                    # Find the matching license in the current jurisdiction for this license type
-                    matching_license_in_current_jurisdiction = next(
-                        (
-                            license_data
-                            for license_data in current_home_state_licenses
-                            if license_data.licenseType == license_type
-                        ),
-                        None,
-                    )
-
-                    if not matching_license_in_current_jurisdiction:
-                        logger.info(
-                            'No current home state license found for license type. '
-                            'User likely previously moved to a state with no known license '
-                            'and privileges were deactivated. Will not move privileges over.',
-                            license_type=license_type,
-                            current_home_jurisdiction=current_home_jurisdiction,
-                            new_home_state_licenses=new_home_state_licenses,
-                        )
-                        continue
-
-                    # if the current home state license is expired, then all the privileges associated
-                    # with this license will also be expired, and we will not move them over
-                    if (
-                        matching_license_in_current_jurisdiction.dateOfExpiration
-                        < self.config.expiration_resolution_date
-                    ):
-                        logger.info(
-                            'Current home state license is expired. Not moving privileges over.',
-                            license_type=license_type,
-                        )
-                        continue
-
-                    if (
-                        matching_license_in_current_jurisdiction.encumberedStatus
-                        == LicenseEncumberedStatusEnum.ENCUMBERED
-                    ):
-                        logger.info(
-                            'Current license is encumbered. Privileges for this license type will not be moved over to'
-                            'new license.',
-                            license_type=license_type,
-                            encumbered_status=matching_license_in_current_jurisdiction.encumberedStatus,
-                        )
-                        continue
-
-                    # Get transaction items for privileges that can be moved to a license in the new jurisdiction
-                    privilege_transaction_items = (
-                        self._get_privilege_transaction_items_resulting_from_home_jurisdiction_move(
+                    # Get provider record update transaction items for jurisdiction with no known license
+                    provider_transaction_items = (
+                        self._get_provider_record_transaction_items_for_jurisdiction_with_no_known_license(
                             compact=compact,
                             provider_id=provider_id,
-                            provider_user_records=provider_user_records,
+                            provider_record=top_level_provider_record,
                             selected_jurisdiction=selected_jurisdiction,
-                            license_type=license_type,
+                        )
+                    )
+                    all_transaction_items.extend(provider_transaction_items)
+
+                    # Get privilege deactivation transaction items
+                    privilege_transaction_items = (
+                        self._get_privilege_deactivation_transaction_items_for_jurisdiction_change(
+                            compact=compact, provider_id=provider_id, privileges=all_active_privileges
                         )
                     )
                     all_transaction_items.extend(privilege_transaction_items)
+                else:
+                    # Get provider record update transaction items for jurisdiction change with license
+                    provider_transaction_items = (
+                        self._get_provider_record_transaction_items_for_jurisdiction_change_with_license(
+                            compact=compact,
+                            provider_id=provider_id,
+                            provider_records=provider_user_records,
+                            new_license_record=best_license_in_selected_jurisdiction,
+                            selected_jurisdiction=selected_jurisdiction,
+                        )
+                    )
+                    all_transaction_items.extend(provider_transaction_items)
+
+                    # Get licenses from the current home state
+                    current_home_state_licenses = provider_user_records.get_license_records(
+                        filter_condition=lambda license_data: license_data.jurisdiction == current_home_jurisdiction
+                    )
+
+                    # Get unique license types from all privileges
+                    privilege_license_types = set(privilege.licenseType for privilege in all_active_privileges)
+
+                    for license_type in privilege_license_types:
+                        # Find the matching license in the current jurisdiction for this license type
+                        matching_license_in_current_jurisdiction = next(
+                            (
+                                license_data
+                                for license_data in current_home_state_licenses
+                                if license_data.licenseType == license_type
+                            ),
+                            None,
+                        )
+
+                        if not matching_license_in_current_jurisdiction:
+                            logger.info(
+                                'No current home state license found for license type. '
+                                'User likely previously moved to a state with no known license '
+                                'and privileges were deactivated. Will not move privileges over.',
+                                license_type=license_type,
+                                current_home_jurisdiction=current_home_jurisdiction,
+                                new_home_state_licenses=new_home_state_licenses,
+                            )
+                            continue
+
+                        # if the current home state license is expired, then all the privileges associated
+                        # with this license will also be expired, and we will not move them over
+                        if (
+                            matching_license_in_current_jurisdiction.dateOfExpiration
+                            < self.config.expiration_resolution_date
+                        ):
+                            logger.info(
+                                'Current home state license is expired. Not moving privileges over.',
+                                license_type=license_type,
+                            )
+                            continue
+
+                        if (
+                            matching_license_in_current_jurisdiction.encumberedStatus
+                            == LicenseEncumberedStatusEnum.ENCUMBERED
+                        ):
+                            logger.info(
+                                'Current license is encumbered. Privileges for this license type will not be moved over to'
+                                'new license.',
+                                license_type=license_type,
+                                encumbered_status=matching_license_in_current_jurisdiction.encumberedStatus,
+                            )
+                            continue
+
+                        # Get transaction items for privileges that can be moved to a license in the new jurisdiction
+                        privilege_transaction_items = (
+                            self._get_privilege_transaction_items_resulting_from_home_jurisdiction_move(
+                                compact=compact,
+                                provider_id=provider_id,
+                                provider_user_records=provider_user_records,
+                                selected_jurisdiction=selected_jurisdiction,
+                                license_type=license_type,
+                            )
+                        )
+                        all_transaction_items.extend(privilege_transaction_items)
 
             # Execute all transactions in batches
             self._execute_batched_transactions(all_transaction_items)
