@@ -30,6 +30,9 @@
                 v-model="formInput.value"
                 :autocomplete="formInput.autocomplete"
                 :aria-label="formInput.label"
+                :aria-describedby="`${formInput.id}-error`"
+                :aria-errormessage="`${formInput.id}-error`"
+                :aria-invalid="!!formInput.errorMessage"
                 @blur="blur(formInput)"
                 @input="input(formInput)"
                 :class="{
@@ -53,7 +56,10 @@
         </div>
         <span
             v-if="(!passwordRequirements.length || !showRequirements) && formInput.errorMessage"
+            :id="`${formInput.id}-error`"
             class="form-field-error"
+            role="alert"
+            aria-live="assertive"
         >
             {{ formInput.errorMessage }}
         </span>

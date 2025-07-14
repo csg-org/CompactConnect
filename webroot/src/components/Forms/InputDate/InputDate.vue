@@ -83,6 +83,9 @@
                         :placeholder="formInput.placeholder"
                         :disabled="isDisabled"
                         :aria-label="formInput.label"
+                        :aria-describedby="`${formInput.id}-error`"
+                        :aria-errormessage="`${formInput.id}-error`"
+                        :aria-invalid="!!formInput.errorMessage"
                         :name="formInput.name"
                         :autocomplete="isAutoComplete"
                         maxlength="10"
@@ -123,7 +126,10 @@
         </VueDatePicker>
         <span
             v-if="formInput.errorMessage && !formInput.shouldHideErrorMessage"
+            :id="`${formInput.id}-error`"
             class="form-field-error"
+            role="alert"
+            aria-live="assertive"
         >
             {{ formInput.errorMessage }}
         </span>

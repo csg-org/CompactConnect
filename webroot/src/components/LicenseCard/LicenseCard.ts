@@ -262,7 +262,7 @@ class LicenseCard extends mixins(MixinForm) {
                 name: 'encumber-start',
                 label: computed(() => this.$t('licensing.encumberStartDate')),
                 placeholder: computed(() => 'MM/DD/YYYY'),
-                validation: Joi.string().required().messages(this.joiMessages.string),
+                validation: Joi.string().required().messages(this.getDateValidationMessages('MM/DD/YYYY')),
             }),
             encumberModalContinue: new FormInput({
                 isSubmitInput: true,
