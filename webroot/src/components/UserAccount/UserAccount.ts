@@ -249,9 +249,11 @@ class UserAccount extends mixins(MixinForm) {
 
     focusTrapEmailVerificationModal(event: KeyboardEvent): void {
         const firstTabIndex = (this.isEmailVerificationModalSuccess)
-            ? document.getElementById('confirm-modal-cancel-button')
+            ? document.getElementById('confirm-modal-submit-button')
             : document.getElementById(this.formData.emailVerificationCode.id);
-        const lastTabIndex = document.getElementById('confirm-modal-cancel-button');
+        const lastTabIndex = (this.isEmailVerificationModalSuccess)
+            ? document.getElementById('confirm-modal-submit-button')
+            : document.getElementById('confirm-modal-cancel-button');
 
         if (event.shiftKey) {
             // shift + tab to last input

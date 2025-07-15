@@ -56,18 +56,23 @@
                                     :label="(isFormLoading)
                                         ? $t('common.loading')
                                         : $t('common.submit')"
-                                    :isTransparent="true"
                                     :isEnabled="!isFormLoading"
                                 />
                                 <InputButton
+                                    v-if="!isEmailVerificationModalSuccess"
                                     id="confirm-modal-cancel-button"
                                     class="action-button cancel-button"
-                                    :label="(isEmailVerificationModalSuccess)
-                                        ? $t('common.close')
-                                        : $t('common.cancel')"
-                                    :isTransparent="!isEmailVerificationModalSuccess"
+                                    :label="$t('common.cancel')"
+                                    :isTransparent="true"
                                     :onClick="closeEmailVerificationModal"
-                                    :isEnabled="isEmailVerificationModalSuccess || !isFormLoading"
+                                    :isEnabled="!isFormLoading"
+                                />
+                                <InputSubmit
+                                    v-if="isEmailVerificationModalSuccess"
+                                    :formInput="formData.submitEmailVerification"
+                                    @click="closeEmailVerificationModal"
+                                    class="action-button submit-button continue-button"
+                                    :label="$t('common.close')"
                                 />
                             </div>
                         </div>
