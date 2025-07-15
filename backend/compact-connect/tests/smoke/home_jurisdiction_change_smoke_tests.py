@@ -3,6 +3,7 @@ import json
 import time
 
 import requests
+from compact_configuration_smoke_tests import test_jurisdiction_configuration
 from config import config, logger
 from purchasing_privileges_smoke_tests import test_purchasing_privilege
 from smoke_common import (
@@ -41,6 +42,11 @@ def test_home_jurisdiction_change_inactivates_privileges_when_no_license_in_new_
 
     original_jurisdiction = provider_info_before.get('currentHomeJurisdiction')
     logger.info(f'Original home jurisdiction: {original_jurisdiction}')
+
+    # we must ensure we have a valid live jurisdiction configuration in place for both states so the privilege
+    # can be moved over successfully
+    test_jurisdiction_configuration(jurisdiction='oh', recreate_compact_config=True)
+    test_jurisdiction_configuration(jurisdiction='al', recreate_compact_config=False)
 
     # Purchase a privilege for the provider
     # This uses the same test_purchasing_privilege function from purchasing_privileges_smoke_tests.py
