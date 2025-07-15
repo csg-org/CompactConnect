@@ -1,5 +1,4 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
-from marshmallow import Schema
 from marshmallow.fields import Date, Email, List, Nested, Raw, String
 from marshmallow.validate import Length, Regexp
 
@@ -105,7 +104,7 @@ class ProviderPublicResponseSchema(ForgivingSchema):
 
 
 # We set this to a strict schema, to avoid extra values from entering the system.
-class ProviderRegistrationRequestSchema(Schema):
+class ProviderRegistrationRequestSchema(CCRequestSchema):
     """
     Schema for provider registration requests.
 
