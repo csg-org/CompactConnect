@@ -1,0 +1,55 @@
+{
+  "base_email": "example@example.org",
+  "authorize_net": {
+    "api_login_id": "your_sandbox_api_login_id",
+    "transaction_key": "your_sandbox_transaction_key"
+  },
+  "compact": {
+    "abbreviation": "aslp",
+    "additional_states": ["ky", "ne", "al", "mn", "oh"],
+    "commission_fee": {
+      "amount": 15.0,
+      "type": "FLAT_RATE"
+    },
+    "transaction_fee": {
+      "amount": 10.0,
+      "type": "FLAT_FEE_PER_PRIVILEGE",
+      "active": true
+    },
+    "privilege_fees": {
+      "default_amount": 75.0,
+      "military_rate": 50.0
+    }
+  },
+  "test_data": {
+    "provider": {
+      "given_name": "Joe",
+      "family_name": "Dokes",
+      "ssn": "999-99-9999"
+    },
+    "license": {
+      "npi": "1111111111",
+      "license_number": "A0608337260",
+      "home_address_postal_code": "68001",
+      "home_address_street1": "123 Fake Street",
+      "date_of_birth": "1991-12-10",
+      "date_of_issuance": "2024-12-10",
+      "license_type": "speech-language pathologist",
+      "date_of_expiration": "2050-12-10",
+      "home_address_state": "OH",
+      "date_of_renewal": "2051-12-10",
+      "home_address_city": "New Timothy",
+      "compact_eligibility": "eligible",
+      "license_status": "inactive"
+    }
+  },
+  "jurisdiction": {
+    "jurisprudence_requirements": {
+      "required": true,
+      "link_to_documentation": "https://example.com/jurisprudence-docs"
+    }
+  },
+  "recaptcha": {
+    "site_key": "your_recaptcha_site_key_here"
+  }
+}

@@ -28,6 +28,7 @@ STACK_NAMES = [
     'Sandbox-APIStack',
     'Sandbox-IngestStack',
     'Sandbox-PersistentStack',
+    'Sandbox-ProviderUsersStack',
 ]
 
 
