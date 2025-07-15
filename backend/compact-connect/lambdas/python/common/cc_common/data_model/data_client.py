@@ -2448,7 +2448,7 @@ class DataClient:
         provider_id: str,
         jurisdiction: str,
         license_type_abbreviation: str,
-        effective_date: str,
+        effective_date: date,
     ) -> list[PrivilegeData]:
         """
         Encumber all unencumbered privileges associated with a home jurisdiction license.
@@ -2505,7 +2505,7 @@ class DataClient:
                     'jurisdiction': privilege_data.jurisdiction,
                     'licenseType': privilege_data.licenseType,
                     'createDate': now,
-                    'effectiveDate': datetime.fromisoformat(effective_date),
+                    'effectiveDate': effective_date,
                     'previous': privilege_data.to_dict(),
                     'updatedValues': {
                         'encumberedStatus': PrivilegeEncumberedStatusEnum.LICENSE_ENCUMBERED,
@@ -2546,7 +2546,7 @@ class DataClient:
         provider_id: str,
         jurisdiction: str,
         license_type_abbreviation: str,
-        effective_date: str,
+        effective_date: date,
     ) -> list[PrivilegeData]:
         """
         Lift encumbrances from privileges that were encumbered due to a home jurisdiction license encumbrance.
@@ -2617,7 +2617,7 @@ class DataClient:
                     'jurisdiction': privilege_data.jurisdiction,
                     'licenseType': privilege_data.licenseType,
                     'createDate': now,
-                    'effectiveDate': datetime.fromisoformat(effective_date),
+                    'effectiveDate': effective_date,
                     'previous': privilege_data.to_dict(),
                     'updatedValues': {
                         'encumberedStatus': PrivilegeEncumberedStatusEnum.UNENCUMBERED,
@@ -2695,6 +2695,8 @@ class DataClient:
         transaction_items = []
 
         for privilege_data in active_privileges_associated_with_license:
+            now = config.current_standard_datetime
+
             # Create privilege update record
             privilege_update_record = PrivilegeUpdateData.create_new(
                 {
@@ -2705,6 +2707,8 @@ class DataClient:
                     'jurisdiction': privilege_data.jurisdiction,
                     'licenseType': privilege_data.licenseType,
                     'previous': privilege_data.to_dict(),
+                    'effectiveDate': now,
+                    'createDate': now,
                     'updatedValues': {
                         'licenseDeactivatedStatus': LicenseDeactivatedStatusEnum.LICENSE_DEACTIVATED,
                     },

@@ -34,7 +34,7 @@ class TestEncumbranceEvents(TstFunction):
                 'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
                 'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
                 'eventTime': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
-                'effectiveDate': DEFAULT_LIFT_EFFECTIVE_DATE,
+                'effectiveDate': DEFAULT_EFFECTIVE_DATE,
             }
         }
         if message_overrides:

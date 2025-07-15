@@ -20,7 +20,7 @@ class CreateEffectiveDateMigration(CustomResourceHandler):
         """
 
 
-on_event = CreateEffectiveDateMigration('create-effective-date-1')
+on_event = CreateEffectiveDateMigration('create-effective-date')
 
 
 def do_migration(_properties: dict) -> None:

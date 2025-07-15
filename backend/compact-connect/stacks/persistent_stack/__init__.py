@@ -362,8 +362,8 @@ class PersistentStack(AppStack):
 
         update_dates_migration = DataMigration(
             self,
-            '7CreateEffectiveDate',
-            migration_dir='create_effective_date_7',
+            '887CreateEffectiveDate',
+            migration_dir='create_effective_date_887',
             lambda_environment={
                 'PROVIDER_TABLE_NAME': self.provider_table.table_name,
                 **self.common_env_vars,
