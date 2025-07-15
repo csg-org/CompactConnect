@@ -20,6 +20,7 @@ from cc_common.data_model.schema.fields import (
     Compact,
     HomeJurisdictionChangeStatusField,
     Jurisdiction,
+    LicenseDeactivatedStatusField,
     PrivilegeEncumberedStatusField,
     UpdateType,
 )
@@ -88,6 +89,10 @@ class PrivilegeRecordSchema(BaseRecordSchema, ValidatesLicenseTypeMixin):
     # the license in the new jurisdiction is compact eligible.
     homeJurisdictionChangeStatus = HomeJurisdictionChangeStatusField(required=False, allow_none=False)
 
+    # This field is only set if a privilege is deactivated due to their home state license being deactivated
+    # by the jurisdiction. When this field is set, the privilege status will be calculated as INACTIVE.
+    licenseDeactivatedStatus = LicenseDeactivatedStatusField(required=False, allow_none=False)
+
     # This field is the actual status referenced by the system, which is determined by the expiration date
     # in addition to the administratorSetStatus. This should never be written to the DB. It is calculated
     # whenever the record is loaded.
@@ -136,6 +141,7 @@ class PrivilegeRecordSchema(BaseRecordSchema, ValidatesLicenseTypeMixin):
                 and in_data.get('encumberedStatus', PrivilegeEncumberedStatusEnum.UNENCUMBERED)
                 == PrivilegeEncumberedStatusEnum.UNENCUMBERED
                 and in_data.get('homeJurisdictionChangeStatus', None) is None
+                and in_data.get('licenseDeactivatedStatus', None) is None
             )
             else ActiveInactiveStatus.INACTIVE
         )
@@ -170,6 +176,8 @@ class PrivilegeUpdatePreviousRecordSchema(ForgivingSchema):
     homeJurisdictionChangeStatus = HomeJurisdictionChangeStatusField(required=False, allow_none=False)
     # this field is only set if the privilege or the associated license is encumbered
     encumberedStatus = PrivilegeEncumberedStatusField(required=False, allow_none=False)
+    # this field is only set if the privilege is deactivated due to a state license deactivation
+    licenseDeactivatedStatus = LicenseDeactivatedStatusField(required=False, allow_none=False)
 
 
 @BaseRecordSchema.register_schema('privilegeUpdate')

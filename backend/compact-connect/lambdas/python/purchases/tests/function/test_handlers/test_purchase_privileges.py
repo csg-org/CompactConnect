@@ -277,7 +277,7 @@ class TestPostPurchasePrivileges(TstFunction):
 
         post_purchase_privileges(event, self.mock_context)
         mock_event_bus.publish_privilege_purchase_event.assert_called_once_with(
-            source='post_purchase_privileges',
+            source='org.compactconnect.purchases',
             jurisdiction='oh',
             compact='aslp',
             provider_email='björkRegisteredEmail@example.com',
@@ -310,7 +310,7 @@ class TestPostPurchasePrivileges(TstFunction):
 
         post_purchase_privileges(event, self.mock_context)
         mock_event_bus.publish_privilege_issued_event.assert_called_once_with(
-            source='post_purchase_privileges',
+            source='org.compactconnect.purchases',
             jurisdiction='ky',
             compact='aslp',
             provider_email='björkRegisteredEmail@example.com',
@@ -353,7 +353,7 @@ class TestPostPurchasePrivileges(TstFunction):
 
         post_purchase_privileges(event, self.mock_context)
         mock_event_bus.publish_privilege_renewed_event.assert_called_once_with(
-            source='post_purchase_privileges',
+            source='org.compactconnect.purchases',
             jurisdiction='ky',
             compact='aslp',
             provider_email='björkRegisteredEmail@example.com',
@@ -999,3 +999,85 @@ class TestPostPurchasePrivileges(TstFunction):
             },
             response_body,
         )
+
+    @patch('handlers.privileges.PurchaseClient')
+    def test_purchase_privileges_removes_license_deactivated_status_when_renewing_privilege(
+        self, mock_purchase_client_constructor
+    ):
+        """
+        Test that when a privilege with licenseDeactivatedStatus is renewed, the licenseDeactivatedStatus
+        field is removed from the record and the privilege status becomes active.
+
+        This test simulates the scenario where:
+        1. A privilege was previously deactivated due to license deactivation (licenseDeactivatedStatus set)
+        2. The license is later reactivated by the jurisdiction
+        3. The user renews their privilege
+        4. The licenseDeactivatedStatus field should be removed and privilege should be active
+        """
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from handlers.privileges import post_purchase_privileges
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+        test_expiration_date = date(2025, 10, 8).isoformat()
+        event = self._when_testing_provider_user_event_with_custom_claims(license_expiration_date=test_expiration_date)
+        event['body'] = _generate_test_request_body()
+        test_issuance_date = datetime(2023, 10, 8, hour=5, tzinfo=UTC).isoformat()
+
+        # Create a privilege record that was previously deactivated due to license deactivation
+        test_privilege_record = self.test_data_generator.put_default_privilege_record_in_provider_table(
+            value_overrides={
+                'compact': TEST_COMPACT,
+                'jurisdiction': 'ky',
+                'providerId': TEST_PROVIDER_ID,
+                'dateOfRenewal': datetime.fromisoformat(test_issuance_date),
+                'dateOfIssuance': datetime.fromisoformat(test_issuance_date),
+                'dateOfExpiration': date.fromisoformat(test_expiration_date),
+                'licenseJurisdiction': 'oh',
+                'administratorSetStatus': 'active',
+                # This privilege was deactivated due to license deactivation
+                'licenseDeactivatedStatus': 'licenseDeactivated',
+            }
+        )
+
+        # Create an active license record (license has been reactivated by jurisdiction)
+        self.test_data_generator.put_default_license_record_in_provider_table(
+            value_overrides={
+                'compact': TEST_COMPACT,
+                'jurisdiction': 'oh',
+                'dateOfExpiration': date.fromisoformat(test_expiration_date),
+                'providerId': TEST_PROVIDER_ID,
+                'jurisdictionUploadedLicenseStatus': 'active',
+                'jurisdictionUploadedCompactEligibility': 'eligible',
+            }
+        )
+
+        # Renew the privilege
+        resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(200, resp['statusCode'], resp['body'])
+
+        # Verify that there is still only one privilege record for the jurisdiction
+        provider_records: ProviderUserRecords = self.config.data_client.get_provider_user_records(
+            compact=TEST_COMPACT, provider_id=TEST_PROVIDER_ID
+        )
+        privilege_records = provider_records.get_privilege_records()
+        self.assertEqual(1, len(privilege_records))
+
+        updated_privilege_record = privilege_records[0]
+
+        # Verify that the licenseDeactivatedStatus field has been removed
+        self.assertIsNone(updated_privilege_record.licenseDeactivatedStatus)
+
+        # Verify that the privilege status is now active
+        self.assertEqual('active', updated_privilege_record.status)
+
+        # Verify that the privilege update record shows the licenseDeactivatedStatus was removed
+        privilege_update_records = (
+            self.test_data_generator.query_privilege_update_records_for_given_record_from_database(
+                privilege_data=test_privilege_record
+            )
+        )
+        self.assertEqual(1, len(privilege_update_records))
+
+        privilege_update_record = privilege_update_records[0]
+        # Ensure the licenseDeactivatedStatus field is in the list of removed values
+        self.assertEqual(['licenseDeactivatedStatus'], privilege_update_record.removedValues)

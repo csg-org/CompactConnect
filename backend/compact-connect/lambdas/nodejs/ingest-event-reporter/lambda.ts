@@ -26,6 +26,7 @@ interface LambdaProperties {
  */
 export class Lambda implements LambdaInterface {
     private readonly jurisdictionClient: JurisdictionClient;
+    private readonly compactConfigurationClient: CompactConfigurationClient;
     private readonly eventClient: EventClient;
     private readonly emailService: IngestEventEmailService;
 
@@ -35,7 +36,7 @@ export class Lambda implements LambdaInterface {
             dynamoDBClient: props.dynamoDBClient,
         });
 
-        const compactConfigurationClient = new CompactConfigurationClient({
+        this.compactConfigurationClient = new CompactConfigurationClient({
             logger: logger,
             dynamoDBClient: props.dynamoDBClient,
         });
@@ -48,7 +49,7 @@ export class Lambda implements LambdaInterface {
             logger: logger,
             sesClient: props.sesClient,
             s3Client: props.s3Client,
-            compactConfigurationClient: compactConfigurationClient,
+            compactConfigurationClient: this.compactConfigurationClient,
             jurisdictionClient: this.jurisdictionClient
         });
     }
@@ -62,6 +63,17 @@ export class Lambda implements LambdaInterface {
 
         // Loop over each compact the system knows about
         for (const compact of environmentVariables.getCompacts()) {
+            let compactConfig;
+
+            try {
+                compactConfig = await this.compactConfigurationClient.getCompactConfiguration(compact);
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : String(error);
+
+                logger.warn('Compact configuration not found, skipping compact', { compact, error: errorMessage });
+                continue;
+            }
+
             const jurisdictionConfigs = await this.jurisdictionClient.getJurisdictionConfigurations(compact);
 
             // Loop over each jurisdiction that we have contacts configured for
@@ -74,7 +86,7 @@ export class Lambda implements LambdaInterface {
                 if (ingestEvents.ingestFailures.length || ingestEvents.validationErrors.length) {
                     const messageId = await this.emailService.sendReportEmail(
                         ingestEvents,
-                        compact,
+                        compactConfig.compactName,
                         jurisdictionConfig.jurisdictionName,
                         jurisdictionConfig.jurisdictionOperationsTeamEmails
                     );
@@ -113,7 +125,7 @@ export class Lambda implements LambdaInterface {
                             && weeklyIngestEvents.ingestSuccesses.length
                         ) {
                             const messageId = await this.emailService.sendAllsWellEmail(
-                                compact,
+                                compactConfig.compactName,
                                 jurisdictionConfig.jurisdictionName,
                                 jurisdictionConfig.jurisdictionOperationsTeamEmails
                             );
@@ -121,7 +133,7 @@ export class Lambda implements LambdaInterface {
                             logger.info(
                                 'Sent alls well email',
                                 {
-                                    compact: compact,
+                                    compact: compactConfig.compactName,
                                     jurisdiction: jurisdictionConfig.postalAbbreviation,
                                     message_id: messageId
                                 }
@@ -129,15 +141,18 @@ export class Lambda implements LambdaInterface {
                         }
                         else if(!weeklyIngestEvents.ingestSuccesses.length) {
                             const messageId = await this.emailService.sendNoLicenseUpdatesEmail(
-                                compact,
+                                compactConfig.compactName,
                                 jurisdictionConfig.jurisdictionName,
-                                jurisdictionConfig.jurisdictionOperationsTeamEmails
+                                [
+                                    ...jurisdictionConfig.jurisdictionOperationsTeamEmails,
+                                    ...compactConfig.compactOperationsTeamEmails
+                                ]
                             );
 
                             logger.warn(
                                 'No licenses uploaded withinin the last week',
                                 {
-                                    compact: compact,
+                                    compact: compactConfig.compactName,
                                     jurisdiction: jurisdictionConfig.postalAbbreviation,
                                     message_id: messageId
                                 }

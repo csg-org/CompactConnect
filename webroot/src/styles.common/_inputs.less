@@ -111,3 +111,36 @@ input[type='button'] {
 .grecaptcha-badge {     // Hide google recaptcha badge
     visibility: hidden;
 }
+
+body > .dp__outer_menu_wrap { // Fixup the datepicker in cases where it gets teleported to the body tag; see /components/Forms/InputDate/InputDate.ts
+    .dp__input_wrap div {
+        position: static;
+    }
+
+    .dp__input_icon {
+        right: 0;
+        left: unset;
+    }
+
+    .dp__input_icon_pad {
+        padding: 0 30px 0 1rem;
+    }
+
+    .dp__instance_calendar {
+        .dp__menu_inner {
+            position: static;
+        }
+
+        .dp--header-wrap {
+            position: static;
+        }
+
+        .dp__month_year_wrap {
+            position: static;
+        }
+
+        .dp__overlay_container {
+            --dp-overlay-height: 90%;
+        }
+    }
+}

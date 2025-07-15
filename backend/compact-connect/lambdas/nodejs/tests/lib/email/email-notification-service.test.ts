@@ -628,4 +628,158 @@ describe('EmailNotificationService', () => {
             )).rejects.toThrow('No recipients found for multiple registration attempt notification email');
         });
     });
+
+    describe('Privilege Purchase Provider Notification', () => {
+        it('should send privilege purchase provider notification email with correct content', async () => {
+            await emailService.sendPrivilegePurchaseProviderNotificationEmail(
+                '12/12/2004',
+                [
+                    {
+                        jurisdiction: 'OH',
+                        licenseTypeAbbrev: 'OTA',
+                        privilegeId: 'OTA-OH-019'
+                    }
+                ],
+                '45.0',
+                [
+                    {
+                        name: 'OH OTA fee', quantity: '2', unitPrice: '45'
+                    },
+                    {
+                        name: 'cc fees', quantity: '1', unitPrice: '3.5'
+                    }
+                ],
+                ['provider@example.com']
+            );
+
+            expect(mockSESClient).toHaveReceivedCommandWith(
+                SendEmailCommand,
+                {
+                    Destination: {
+                        ToAddresses: ['provider@example.com']
+                    },
+                    Message: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.stringContaining('Privilege Purchase Confirmation')
+                            }
+                        },
+                        Subject: {
+                            Charset: 'UTF-8',
+                            Data: 'Compact Connect Privilege Purchase Confirmation'
+                        }
+                    },
+                    Source: 'Compact Connect <noreply@example.org>'
+                }
+            );
+        });
+
+        it('should throw error when no recipients found', async () => {
+            await expect(emailService.sendPrivilegePurchaseProviderNotificationEmail(
+                '12/12/2004',
+                [
+                    {
+                        jurisdiction: 'OH',
+                        licenseTypeAbbrev: 'OTA',
+                        privilegeId: 'OTA-OH-019'
+                    }
+                ],
+                '45.0',
+                [
+                    {
+                        name: 'OH OTA fee', quantity: '2', unitPrice: '45'
+                    },
+                    {
+                        name: 'cc fees', quantity: '1', unitPrice: '3.5'
+                    }
+                ],
+                []
+            )).rejects.toThrow('No recipients found');
+        });
+    });
+
+    describe('Provider Email Verification Code', () => {
+        it('should send email verification code with all expected content', async () => {
+            const verificationCode = '1234';
+            
+            await emailService.sendProviderEmailVerificationCode(
+                'aslp',
+                'newuser@example.com',
+                verificationCode
+            );
+
+            // Check overall email structure and each content piece
+            // Verify email was sent
+            expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
+                Destination: {
+                    ToAddresses: ['newuser@example.com']
+                },
+                Message: {
+                    Body: {
+                        Html: {
+                            Charset: 'UTF-8',
+                            Data: expect.any(String)
+                        }
+                    },
+                    Subject: {
+                        Charset: 'UTF-8',
+                        Data: 'Verify Your New Email Address - Compact Connect'
+                    }
+                },
+                Source: 'Compact Connect <noreply@example.org>'
+            });
+
+            // Get the actual HTML content for detailed validation
+            const emailCall = mockSESClient.commandCalls(SendEmailCommand)[0];
+            const htmlContent = emailCall.args[0].input.Message?.Body?.Html?.Data;
+
+            expect(htmlContent).toBeDefined();
+            expect(htmlContent).toContain('Please use the following verification code to complete your email address change');
+            expect(htmlContent).toContain(`<h2>${verificationCode}</h2>`);
+            expect(htmlContent).toContain('This code will expire in 15 minutes');
+            expect(htmlContent).toContain('If you did not request this email change, please contact support immediately');
+            expect(htmlContent).toContain('Email Update Verification');
+        });
+    });
+
+    describe('Provider Email Change Notification', () => {
+        it('should send email change notification with all expected content', async () => {
+            await emailService.sendProviderEmailChangeNotification(
+                'aslp',
+                'olduser@example.com',
+                'newuser@example.com'
+            );
+
+            // Verify email was sent
+            expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
+                Destination: {
+                    ToAddresses: ['olduser@example.com']
+                },
+                Message: {
+                    Body: {
+                        Html: {
+                            Charset: 'UTF-8',
+                            Data: expect.any(String)
+                        }
+                    },
+                    Subject: {
+                        Charset: 'UTF-8',
+                        Data: 'Email Address Changed - Compact Connect'
+                    }
+                },
+                Source: 'Compact Connect <noreply@example.org>'
+            });
+
+            // Get the actual HTML content for detailed validation
+            const emailCall = mockSESClient.commandCalls(SendEmailCommand)[0];
+            const htmlContent = emailCall.args[0].input.Message?.Body?.Html?.Data;
+
+            expect(htmlContent).toBeDefined();
+            expect(htmlContent).toContain('Please use the new email address to login to your account from now on.');
+            expect(htmlContent).toContain('If you did not make this change, please contact support immediately.');
+            expect(htmlContent).toContain('Email Address Changed');
+            expect(htmlContent).toContain('newuser@example.com');
+        });
+    });
 });

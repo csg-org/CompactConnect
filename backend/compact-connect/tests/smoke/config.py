@@ -29,6 +29,10 @@ class _Config:
         return boto3.resource('dynamodb').Table(os.environ['CC_TEST_STAFF_USER_DYNAMO_TABLE_NAME'])
 
     @property
+    def compact_configuration_dynamodb_table(self):
+        return boto3.resource('dynamodb').Table(os.environ['CC_TEST_COMPACT_CONFIGURATION_DYNAMO_TABLE_NAME'])
+
+    @property
     def cognito_staff_user_client_id(self):
         return os.environ['CC_TEST_COGNITO_STAFF_USER_POOL_CLIENT_ID']
 

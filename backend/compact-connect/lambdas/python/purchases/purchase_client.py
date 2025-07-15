@@ -30,9 +30,10 @@ MAXIMUM_TRANSACTION_API_LIMIT = 1000
 # information passed in by the user, and an internal issue caused by the API itself. To account for this, we
 # pulled the list of known issues from their transaction response code lookup and put the list of error codes that are
 # likely caused by the user. These include issues such as an invalid or unsupported card number, the expiration date
-# being expired, or the card being declined. You can review the description of these codes by searching for them at
-# https://developer.authorize.net/api/reference/responseCodes.html
-AUTHORIZE_NET_CARD_USER_ERROR_CODES = ['2', '5', '6', '7', '8', '11', '17', '65']
+# being expired, or the card being declined. E00114 is included as it represents a suspicious activity filter
+# rejection that should be handled as a user error with retry guidance. You can review the description of these codes
+# by searching for them at https://developer.authorize.net/api/reference/responseCodes.html
+AUTHORIZE_NET_CARD_USER_ERROR_CODES = ['2', '5', '6', '7', '8', '11', '17', '65', 'E00114']
 
 # The authorizenet SDK emits many warnings due to a Pyxb issue that they will not address,
 # see https://github.com/AuthorizeNet/sdk-python/issues/133,
@@ -255,6 +256,15 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                 logger.warning(
                     logger_message, transaction_error_code=error_code, transaction_error_message=error_message
                 )
+                # This error code occurs most likely if Authorize.net filtered a request as suspicious
+                # We return this as a user error, with this message to let the user know they can try again
+                # after waiting, as Authorize.net advises having a delay before processing the request in this case.
+                # see https://github.com/csg-org/CompactConnect/issues/889 for more info
+                if error_code == 'E00114':
+                    raise CCInvalidRequestException(
+                        "The transaction was declined by the payment processor's security filters. "
+                        'Please wait a moment and try your transaction again.'
+                    )
                 raise CCInvalidRequestException(
                     f'Failed to process transaction. Error code: {error_code}, Error message: {error_message}'
                 )
@@ -262,7 +272,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
             logger.error(logger_message, error_code=error_code, error_message=error_message)
             raise CCInternalException(logger_message)
 
-    def void_unsettled_charge_on_credit_card(
+    def void_unsettled_charge_on_credit_card(  # noqa: RET503 this branch raises an exception
         self,
         order_information: dict,
     ) -> dict:
@@ -321,9 +331,9 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                     f'Failed to void transaction. Error code: {error_code}, Error message: {error_message}'
                 )
 
-        self._handle_api_error(response)  # noqa: RET503 this branch raises an exception
+        self._handle_api_error(response)
 
-    def process_charge_on_credit_card_for_privilege_purchase(
+    def process_charge_on_credit_card_for_privilege_purchase(  # noqa: RET503 this branch raises an exception
         self,
         licensee_id: str,
         order_information: dict,
@@ -487,7 +497,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                         'transactionId': str(response.transactionResponse.transId),
                     }
                 logger.warning('Failed Transaction.')
-                if hasattr(response.transactionResponse, 'errors'):  # noqa: RET503 this branch raises an exception
+                if hasattr(response.transactionResponse, 'errors'):
                     # Although their API presents this as a list, it seems to only ever have one element
                     # so we only access the first one
                     error_code = response.transactionResponse.errors.error[0].errorCode
@@ -508,7 +518,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                         f'Failed to process transaction. Error code: {error_code}, Error message: {error_message}'
                     )
         # API request wasn't successful
-        self._handle_api_error(response)  # noqa: RET503 this branch raises an exception
+        self._handle_api_error(response)
 
     def validate_credentials(self) -> dict:
         """

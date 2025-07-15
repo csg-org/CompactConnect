@@ -45,6 +45,7 @@
             >
                 <LicenseCard
                     :license="license"
+                    :licensee="licensee"
                     :homeState="homeJurisdiction"
                     :shouldIncludeLogo="true"
                 />

@@ -4,7 +4,7 @@ from cc_common.data_model.schema.fields import (
     Compact,
     Jurisdiction,
 )
-from marshmallow.fields import UUID, DateTime, Email, List, Nested, String
+from marshmallow.fields import UUID, Date, DateTime, Email, List, Nested, String
 from marshmallow.validate import Length
 
 
@@ -44,3 +44,14 @@ class PrivilegeIssuanceDetailSchema(DataEventDetailBaseSchema):
 
 class PrivilegeRenewalDetailSchema(DataEventDetailBaseSchema):
     providerEmail = Email(required=False, allow_none=False)
+
+
+class EncumbranceEventDetailSchema(DataEventDetailBaseSchema):
+    providerId = UUID(required=True, allow_none=False)
+    licenseTypeAbbreviation = String(required=True, allow_none=False)
+    effectiveDate = Date(required=True, allow_none=False)
+
+
+class LicenseDeactivationDetailSchema(DataEventDetailBaseSchema):
+    providerId = UUID(required=True, allow_none=False)
+    licenseType = String(required=True, allow_none=False)

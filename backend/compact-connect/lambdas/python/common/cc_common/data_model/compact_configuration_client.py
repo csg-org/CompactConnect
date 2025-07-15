@@ -1,13 +1,14 @@
-from boto3.dynamodb.conditions import Attr, Key
+from boto3.dynamodb.conditions import Key
 
 from cc_common.config import _Config, logger
-from cc_common.data_model.query_paginator import paginated_query
 from cc_common.data_model.schema.attestation import AttestationRecordSchema
 from cc_common.data_model.schema.compact import CompactConfigurationData
+from cc_common.data_model.schema.compact.common import COMPACT_TYPE
 from cc_common.data_model.schema.compact.record import CompactRecordSchema
 from cc_common.data_model.schema.jurisdiction import JurisdictionConfigurationData
+from cc_common.data_model.schema.jurisdiction.common import JURISDICTION_TYPE
 from cc_common.data_model.schema.jurisdiction.record import JurisdictionRecordSchema
-from cc_common.exceptions import CCNotFoundException
+from cc_common.exceptions import CCInternalException, CCNotFoundException
 from cc_common.utils import logger_inject_kwargs
 
 
@@ -99,15 +100,48 @@ class CompactConfigurationClient:
 
     def save_compact_configuration(self, compact_configuration: CompactConfigurationData) -> None:
         """
-        Save the compact configuration.
+        Save the compact configuration, preserving existing fields like paymentProcessorPublicFields.
+        If a record exists, it merges the new values with the existing record to preserve all fields.
 
         :param compact_configuration: The compact configuration data
         """
         logger.info('Saving compact configuration', compactAbbr=compact_configuration.compactAbbr)
 
-        serialized_compact = compact_configuration.serialize_to_database_record()
+        try:
+            existing_compact_config = self.get_compact_configuration(compact_configuration.compactAbbr)
+        except CCNotFoundException:
+            logger.info('Existing compact configuration not found.', compact=compact_configuration.compactAbbr)
+            existing_compact_config = None
 
-        self.config.compact_configuration_table.put_item(Item=serialized_compact)
+        if existing_compact_config:
+            # Record exists - merge with existing data to preserve fields like paymentProcessorPublicFields
+            logger.info('Updating existing compact configuration record', compactAbbr=compact_configuration.compactAbbr)
+
+            # Load the existing record into a data class to get the existing data
+            existing_data = existing_compact_config.to_dict()
+
+            # Get the new data
+            new_data = compact_configuration.to_dict()
+
+            # Merge the data - new values override existing ones, but existing fields not in new_data are preserved
+            merged_data = existing_data.copy()
+            merged_data.update(new_data)
+
+            # Handle the special case where transactionFeeConfiguration should be removed
+            # If the new configuration doesn't have transactionFeeConfiguration, remove it from merged data
+            if 'transactionFeeConfiguration' not in new_data and 'transactionFeeConfiguration' in merged_data:
+                del merged_data['transactionFeeConfiguration']
+
+            # Create a new CompactConfigurationData with the merged data
+            merged_config = CompactConfigurationData.create_new(merged_data)
+            final_serialized = merged_config.serialize_to_database_record()
+        else:
+            # First time creation - use the new data directly
+            logger.info('Creating new compact configuration record', compactAbbr=compact_configuration.compactAbbr)
+            final_serialized = compact_configuration.serialize_to_database_record()
+
+        # Use put_item to save the final record
+        self.config.compact_configuration_table.put_item(Item=final_serialized)
 
     def get_active_compact_jurisdictions(self, compact: str) -> list[dict]:
         """
@@ -165,27 +199,164 @@ class CompactConfigurationClient:
 
     def save_jurisdiction_configuration(self, jurisdiction_config: JurisdictionConfigurationData) -> None:
         """
-        Save the jurisdiction configuration.
+        Save the jurisdiction configuration and update related compact configuration if needed.
 
         :param jurisdiction_config: The jurisdiction configuration model
         """
         logger.info('Saving jurisdiction configuration', jurisdiction=jurisdiction_config.postalAbbreviation)
 
         serialized_jurisdiction = jurisdiction_config.serialize_to_database_record()
-
         self.config.compact_configuration_table.put_item(Item=serialized_jurisdiction)
 
-    @paginated_query
+        # Always check if jurisdiction should be in compact's configuredStates (idempotent)
+        self._ensure_jurisdiction_in_configured_states_if_registration_enabled(jurisdiction_config)
+
+    def _ensure_jurisdiction_in_configured_states_if_registration_enabled(
+        self, jurisdiction_config: JurisdictionConfigurationData
+    ) -> None:
+        """
+        Ensure that if a jurisdiction has licensee registration enabled, it appears in the compact's
+        configuredStates list.
+
+        :param jurisdiction_config: The jurisdiction configuration to check
+        """
+        if not jurisdiction_config.licenseeRegistrationEnabled:
+            logger.debug(
+                'Jurisdiction does not have licensee registration enabled - no action needed',
+                compact=jurisdiction_config.compact,
+                jurisdiction=jurisdiction_config.postalAbbreviation,
+            )
+            return
+
+        try:
+            # Get current compact configuration
+            compact_config = self.get_compact_configuration(compact=jurisdiction_config.compact)
+            current_configured_states = compact_config.configuredStates.copy()
+
+            # Check if jurisdiction is already in configuredStates
+            existing_postal_abbrs = {state['postalAbbreviation'].lower() for state in current_configured_states}
+            jurisdiction_postal = jurisdiction_config.postalAbbreviation.lower()
+
+            if jurisdiction_postal not in existing_postal_abbrs:
+                # Add the jurisdiction with isLive: false
+                new_jurisdiction = {'postalAbbreviation': jurisdiction_postal, 'isLive': False}
+                current_configured_states.append(new_jurisdiction)
+
+                logger.info(
+                    'Adding jurisdiction to compact configuredStates',
+                    compact=jurisdiction_config.compact,
+                    jurisdiction=jurisdiction_config.postalAbbreviation,
+                    new_configured_states=current_configured_states,
+                )
+
+                # Update the compact configuration
+                self.update_compact_configured_states(
+                    compact=jurisdiction_config.compact, configured_states=current_configured_states
+                )
+
+                logger.info(
+                    'Added jurisdiction to compact configuredStates',
+                    compact=jurisdiction_config.compact,
+                    jurisdiction=jurisdiction_config.postalAbbreviation,
+                    new_configured_states=current_configured_states,
+                )
+            else:
+                logger.debug(
+                    'Jurisdiction already exists in compact configuredStates - no action needed',
+                    compact=jurisdiction_config.compact,
+                    jurisdiction=jurisdiction_config.postalAbbreviation,
+                )
+
+        except CCNotFoundException as e:
+            # This is unlikely, but possible if jurisdiction admins submit state config before compact admins have
+            # submitted their own configurations for the first time
+            # After the initial onboarding phase, if this occurs it is more likely the result of an error that needs
+            # to be investigated, so we raise an exception here
+            message = 'Compact configuration not found when trying to ensure jurisdiction in configuredStates'
+            logger.error(
+                message,
+                compact=jurisdiction_config.compact,
+                jurisdiction=jurisdiction_config.postalAbbreviation,
+            )
+            raise CCInternalException(message) from e
+
     @logger_inject_kwargs(logger, 'compact')
-    def get_privilege_purchase_options(self, *, compact: str, dynamo_pagination: dict):
+    def get_privilege_purchase_options(self, *, compact: str):
         logger.info('Getting privilege purchase options for compact')
 
-        return self.config.compact_configuration_table.query(
-            Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(f'{compact}#CONFIGURATION'),
-            FilterExpression=Attr('licenseeRegistrationEnabled').eq(True),
-            **dynamo_pagination,
+        # Get all compact configurations (both compact and jurisdiction records)
+        # Use pagination to ensure we get all records
+        all_items = []
+        query_params = {
+            'Select': 'ALL_ATTRIBUTES',
+            'KeyConditionExpression': Key('pk').eq(f'{compact}#CONFIGURATION'),
+        }
+
+        while True:
+            response = self.config.compact_configuration_table.query(**query_params)
+            all_items.extend(response.get('Items', []))
+
+            # Check if there are more records to fetch
+            last_evaluated_key = response.get('LastEvaluatedKey')
+            if not last_evaluated_key:
+                break
+
+            # Set up for next page
+            query_params['ExclusiveStartKey'] = last_evaluated_key
+
+        logger.info(
+            'Retrieved all configuration records',
+            total_items=len(all_items),
         )
+
+        # Get the compact configuration from the response items to access configuredStates
+        compact_config_item = next((item for item in all_items if item['type'] == COMPACT_TYPE), None)
+
+        if compact_config_item and compact_config_item.get('configuredStates'):
+            live_jurisdictions = {
+                state['postalAbbreviation'] for state in compact_config_item['configuredStates'] if state.get('isLive')
+            }
+
+            if not live_jurisdictions:
+                logger.info('No live jurisdictions found for compact. Returning empty list')
+                # in this case, there is nothing to return, so we return an empty list, and let the caller decide to
+                # raise an exception or not.
+                return {'items': []}
+
+            logger.info(
+                'Filtering privilege purchase options by live jurisdictions',
+                live_jurisdictions=list(live_jurisdictions),
+            )
+            # Filter jurisdictions to only include live ones
+            filtered_items = [
+                item
+                for item in all_items
+                if item.get('type') == COMPACT_TYPE
+                or (
+                    item.get('type') == JURISDICTION_TYPE
+                    and item.get('postalAbbreviation', '').lower() in live_jurisdictions
+                )
+            ]
+
+            # Return in the expected format for backward compatibility
+            return {
+                'items': filtered_items,
+                'pagination': {
+                    'pageSize': len(filtered_items),
+                    'prevLastKey': None,
+                    'lastKey': None,
+                },
+            }
+
+        message = 'Compact configuration not found or has no configuredStates when filtering privilege purchase options'
+        logger.info(
+            message,
+            compact_config_found=compact_config_item is not None,
+            configured_states=compact_config_item.get('configuredStates') if compact_config_item else None,
+        )
+        # in this case, there is nothing to return, so we return an empty list, and let the caller decide to raise
+        # an exception or not.
+        return {'items': []}
 
     def set_compact_authorize_net_public_values(self, compact: str, api_login_id: str, public_client_key: str) -> None:
         """
@@ -213,4 +384,28 @@ class CompactConfigurationClient:
             Key={'pk': pk, 'sk': sk},
             UpdateExpression='SET paymentProcessorPublicFields = :ppf',
             ExpressionAttributeValues={':ppf': {'apiLoginId': api_login_id, 'publicClientKey': public_client_key}},
+        )
+
+    def update_compact_configured_states(self, compact: str, configured_states: list[dict]) -> None:
+        """
+        Update the configuredStates field for a compact configuration using DynamoDB UPDATE operation.
+        This is used to add states to configuredStates when they enable licensee registration.
+
+        :param compact: The compact abbreviation
+        :param configured_states: The updated list of configured states
+        """
+        logger.info('Updating configured states for compact', compact=compact, configured_states=configured_states)
+
+        pk = f'{compact}#CONFIGURATION'
+        sk = f'{compact}#CONFIGURATION'
+
+        # Use UPDATE with SET to update both configuredStates and dateOfUpdate
+
+        self.config.compact_configuration_table.update_item(
+            Key={'pk': pk, 'sk': sk},
+            UpdateExpression='SET configuredStates = :cs, dateOfUpdate = :dou',
+            ExpressionAttributeValues={
+                ':cs': configured_states,
+                ':dou': self.config.current_standard_datetime.isoformat(),
+            },
         )

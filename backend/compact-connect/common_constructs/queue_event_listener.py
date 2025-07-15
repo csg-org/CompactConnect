@@ -3,30 +3,47 @@ from __future__ import annotations
 from aws_cdk import Duration
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Metric, Stats, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
-from aws_cdk.aws_events import EventPattern, Rule
+from aws_cdk.aws_events import EventBus, EventPattern, Rule
 from aws_cdk.aws_events_targets import SqsQueue
+from aws_cdk.aws_kms import IKey
 from aws_cdk.aws_lambda import IFunction
-from common_constructs.queued_lambda_processor import QueuedLambdaProcessor
+from aws_cdk.aws_sns import ITopic
 from constructs import Construct
 
-from stacks import persistent_stack as ps
+from common_constructs.queued_lambda_processor import QueuedLambdaProcessor
 
 
 class QueueEventListener(Construct):
     """
     This construct defines resources for an event listener that puts events on a queue to be processed by a lambda
     function.
+
+    This construct creates:
+    - A QueuedLambdaProcessor for reliable message processing
+    - An EventBridge rule to route events to the queue
+    - CloudWatch alarms for monitoring failures
     """
+
+    default_visibility_timeout = Duration.minutes(5)
+    default_retention_period = Duration.hours(12)
+    default_max_batching_window = Duration.seconds(15)
 
     def __init__(
         self,
         scope: Construct,
         construct_id: str,
         *,
-        data_event_bus: ps.EventBus,
+        data_event_bus: EventBus,
         listener_function: IFunction,
         listener_detail_type: str,
-        persistent_stack: ps.PersistentStack,
+        encryption_key: IKey,
+        alarm_topic: ITopic,
+        visibility_timeout: Duration = default_visibility_timeout,
+        retention_period: Duration = default_retention_period,
+        max_batching_window: Duration = default_max_batching_window,
+        max_receive_count: int = 3,
+        batch_size: int = 10,
+        dlq_count_alarm_threshold: int = 1,
         **kwargs,
     ):
         super().__init__(scope, construct_id, **kwargs)
@@ -44,22 +61,21 @@ class QueueEventListener(Construct):
             treat_missing_data=TreatMissingData.NOT_BREACHING,
         )
 
-        self.lambda_failure_alarm.add_alarm_action(SnsAction(persistent_stack.alarm_topic))
+        self.lambda_failure_alarm.add_alarm_action(SnsAction(alarm_topic))
 
         # Create the QueuedLambdaProcessor
         self.queue_processor = QueuedLambdaProcessor(
             self,
             f'{construct_id}QueueProcessor',
             process_function=listener_function,
-            visibility_timeout=Duration.minutes(5),
-            retention_period=Duration.hours(12),
-            max_batching_window=Duration.seconds(15),
-            max_receive_count=3,
-            batch_size=10,
-            encryption_key=persistent_stack.shared_encryption_key,
-            alarm_topic=persistent_stack.alarm_topic,
-            # We want to be aware if any communications failed to send, so we'll set this threshold to 1
-            dlq_count_alarm_threshold=1,
+            visibility_timeout=visibility_timeout,
+            retention_period=retention_period,
+            max_batching_window=max_batching_window,
+            max_receive_count=max_receive_count,
+            batch_size=batch_size,
+            encryption_key=encryption_key,
+            alarm_topic=alarm_topic,
+            dlq_count_alarm_threshold=dlq_count_alarm_threshold,
         )
 
         # Create rule to route specified detail events to the SQS queue
@@ -91,4 +107,4 @@ class QueueEventListener(Construct):
             treat_missing_data=TreatMissingData.NOT_BREACHING,
         )
 
-        self.event_bridge_failure_alarm.add_alarm_action(SnsAction(persistent_stack.alarm_topic))
+        self.event_bridge_failure_alarm.add_alarm_action(SnsAction(alarm_topic))

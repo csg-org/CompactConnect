@@ -39,9 +39,11 @@
         "subtotal": "Total parcial",
         "total": "Total",
         "history": "Historia",
+        "status": "Estado",
         "success": "Correcto",
         "error": "Error",
         "somethingWentWrong": "Algo salió mal",
+        "tryAgain": "Por favor, inténtelo de nuevo",
         "saveAndContinue": "Guardar y continuar",
         "saveAndClose": "Guardar y cerrar",
         "saving": "Guardando...",
@@ -329,6 +331,7 @@
             }
         ],
         "stateUnknown": "Desconocido",
+        "stateNotListed": "No listado",
         "communicationPreference": "Preferencias de comunicación",
         "communicationPreferenceOptions": {
             "email": "Correo electrónico",
@@ -477,7 +480,7 @@
         "compactFee": "Tarifa compacta",
         "privilegeTransactionFee": "Tarifa de transacción privilegiada",
         "fee": "tarifa",
-        "militaryAffiliated": "Afiliado a los militares",
+        "militaryAffiliated": "Militar en servicio activo o cónyuge",
         "jurisprudence": "Jurisprudencia",
         "jurisprudenceExamRequired": "¿Es necesario un examen?",
         "jurisprudenceInfoLink": "Enlace de información sobre jurisprudencia",
@@ -499,7 +502,9 @@
         "confirmSaveCompactTitle": "¿Estás seguro de que deseas marcar este estado como activo?",
         "confirmSaveCompactYes": "Sí, marcar como en vivo",
         "saveSuccessfulCompact": "Los cambios compactos se guardaron correctamente",
-        "saveSuccessfulState": "Los cambios de estado se guardaron correctamente"
+        "saveSuccessfulState": "Los cambios de estado se guardaron correctamente",
+        "enable": "Permitir",
+        "live": "En vivo"
     },
     "stateUpload": {
         "formTitle": "Carga de datos compacta",
@@ -510,7 +515,7 @@
     },
     "payment": {
         "payment": "Pago",
-        "paymentSummary": "Payment summary",
+        "paymentSummary": "Resumen de pagos",
         "enterPaymentDetails": "Ingrese de forma segura sus datos de pago",
         "enterCardDetails": "Información de la tarjeta de crédito",
         "confirmCardDetails": "Completar compra",
@@ -612,6 +617,7 @@
             "inactive": "Inactivo",
             "initializing": "Inicializando"
         },
+        "licenseActions": "Acciones de licencia",
         "privilegeActions": "Acciones de privilegio",
         "privilegeActionsNone": "No hay acciones disponibles",
         "deactivate": "Desactivar",
@@ -623,6 +629,29 @@
         "deactivateNotesPlaceholder": "Introduzca notas aquí",
         "confirmPrivilegeDeactivateSubmit": "Sí, desactivar privilegio",
         "encumber": "Cargar",
+        "encumbered": "Gravado",
+        "npdbCategoryLabel": "Categoría NPDB",
+        "encumberStartDate": "Inicio de la acción adversa",
+        "confirmLicenseEncumberTitle": "¿Estás seguro de que quieres gravar esta licencia?",
+        "confirmLicenseEncumberSubtext": "El profesional ya no podrá utilizar esta licencia.",
+        "confirmLicenseEncumberSubmit": "Sí, gravar la licencia",
+        "confirmLicenseEncumberSuccess": "Esta licencia ha sido gravada.",
+        "confirmPrivilegeEncumberTitle": "¿Estás seguro de que quieres gravar este privilegio?",
+        "confirmPrivilegeEncumberSubtext": "El practicante ya no podrá utilizar este privilegio.",
+        "confirmPrivilegeEncumberSubmit": "Sí, gravar el privilegio",
+        "confirmPrivilegeEncumberSuccess": "Este privilegio ha sido obstaculizado.",
+        "unencumber": "Liberarse",
+        "unencumbered": "Libre de cargas",
+        "confirmLicenseUnencumberTitle": "Seleccione los gravámenes que desea eliminar",
+        "confirmLicenseUnencumberEndDate": "Seleccione una fecha de finalización",
+        "confirmLicenseUnencumberSubmit": "Confirmar eliminación(es)",
+        "confirmLicenseUnencumberSuccess": "Está previsto que estos gravámenes se eliminen.",
+        "confirmLicenseUnencumberSuccessEndDate": "Fecha de finalización",
+        "confirmPrivilegeUnencumberTitle": "Seleccione los gravámenes que desea eliminar",
+        "confirmPrivilegeUnencumberEndDate": "Seleccione una fecha de finalización",
+        "confirmPrivilegeUnencumberSubmit": "Confirmar eliminación(es)",
+        "confirmPrivilegeUnencumberSuccess": "Está previsto que estos gravámenes se eliminen.",
+        "confirmPrivilegeUnencumberSuccessEndDate": "Fecha de finalización",
         "expiringIn": "Expirando en",
         "licenseEvents": [
             {
@@ -674,6 +703,40 @@
                 "abbrev": "lpc"
             }
         ],
+        "npdbTypes": [
+            {
+                "name": "Incumplimiento de los requisitos",
+                "key": "Non-compliance With Requirements"
+            },
+            {
+                "name": "Condena o sentencia penal",
+                "key": "Criminal Conviction or Adjudication"
+            },
+            {
+                "name": "Violaciones de confidencialidad, consentimiento o divulgación",
+                "key": "Confidentiality, Consent or Disclosure Violations"
+            },
+            {
+                "name": "Mala conducta o abuso",
+                "key": "Misconduct or Abuse"
+            },
+            {
+                "name": "Fraude, engaño o tergiversación",
+                "key": "Fraud, Deception, or Misrepresentation"
+            },
+            {
+                "name": "Prácticas inseguras o atención deficiente",
+                "key": "Unsafe Practice or Substandard Care"
+            },
+            {
+                "name": "Supervisión inadecuada o autorización de prácticas sin licencia",
+                "key": "Improper Supervision or Allowing Unlicensed Practice"
+            },
+            {
+                "name": "Otro",
+                "key": "Other"
+            }
+        ],
         "privilegePurchaseTitle": "Compra privada",
         "personalInfoTitle": "Información personal",
         "eventNodeLabel": "Evento: {eventNameDisplay} en {eventDate}",
@@ -681,7 +744,11 @@
         "compactEligible": "Elegible Compacto",
         "notCompactEligible": "No Compacto Elegible",
         "privilegeVerification": "Verificación de privilegios",
+        "licenseNumber": "Número de licencia",
+        "privilegeId": "Identificación de privilegio",
+        "privilegeType": "Tipo de privilegio",
         "practitionerInformation": "Información para profesionales",
+        "practitionerName": "Nombre del profesional",
         "homeStateLicenses": "Licencias del estado de origen",
         "activeDate": "Activa",
         "privilegeProofFooter": "Este documento es generado oficialmente por Compact Connect y sirve como prueba de las licencias y privilegios actuales del profesional.",
@@ -825,5 +892,20 @@
         "loadingSpinner": "Indicador de funcionamiento",
         "showSpinner": "Mostrar el indicador",
         "mobileStoreLinks": "Enlaces de tiendas móviles"
+    },
+    "homeJurisdictionChange": {
+        "formTitle": "Cambiar estado de residencia",
+        "formSubtext": "Cambiar de estado de residencia puede afectar a sus atribuciones. Si ya tiene una licencia apta para el convenio en su nuevo estado de residencia, sus atribuciones se transferirán. Si no tiene una licencia en su nuevo estado de residencia, o su licencia no es elegible, sus atribuciones se desactivarán.",
+        "currentHomeJurisdictionLabel": "Estado de residencia actual",
+        "newHomeJurisdictionLabel": "Nuevo estado de residencia",
+        "inputSubtext": "Esta selección significa que sus privilegios compactos actuales serán desactivados y ya no podrá ejercer bajo ellos.",
+        "updateButton": "Actualizar estado de residencia",
+        "modalTitle": "¿Está seguro de que desea cambiar {newState} como su nuevo estado de residencia?",
+        "modalSubtext": "Cambiar su estado de residencia puede afectar sus privilegios. Si ya tiene una licencia elegible para el compacto en su nuevo estado de residencia, sus privilegios se transferirán. Si no tiene una licencia en su nuevo estado de residencia, o su licencia no es elegible, sus privilegios serán desactivados.",
+        "modalConfirm": "Confirmar nuevo estado de residencia",
+        "successTitle": "Ha cambiado exitosamente su estado de residencia.",
+        "successSubtext": "Su antiguo estado de residencia y el nuevo serán notificados automáticamente de este cambio.",
+        "eligibleLicenseOption": "{state} (licencia {licenseType} elegible) \u2713",
+        "noEligibleLicenseOption": "{state} (sin licencia elegible)"
     }
 }

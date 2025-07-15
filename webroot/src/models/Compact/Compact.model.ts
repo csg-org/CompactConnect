@@ -48,6 +48,10 @@ export interface CompactConfig {
             chargeAmount: number,
         },
     },
+    configuredStates: Array<{
+        postalAbbreviation: string,
+        isLive: boolean,
+    }>,
 }
 
 export interface CompactStateConfig {

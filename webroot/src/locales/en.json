@@ -39,11 +39,13 @@
         "success": "Success",
         "error": "Error",
         "somethingWentWrong": "Something went wrong",
+        "tryAgain": "Please try again",
         "saveAndContinue": "Save & Continue",
         "saveAndClose": "Save & Close",
         "subtotal": "Subtotal",
         "total": "Total",
         "history": "History",
+        "status": "Status",
         "saving": "Saving...",
         "loading": "Loading...",
         "viewing": "Viewing",
@@ -330,6 +332,7 @@
             }
         ],
         "stateUnknown": "Unknown",
+        "stateNotListed": "Not listed",
         "communicationPreference": "Communication Preference",
         "communicationPreferenceOptions": {
             "email": "Email",
@@ -478,7 +481,7 @@
         "compactFee": "Compact fee",
         "privilegeTransactionFee": "Privilege transaction fee",
         "fee": "fee",
-        "militaryAffiliated": "Military-affiliated",
+        "militaryAffiliated": "Active duty military or spouse",
         "jurisprudence": "Jurisprudence",
         "jurisprudenceExamRequired": "Exam required?",
         "jurisprudenceInfoLink": "Jurisprudence information link",
@@ -500,7 +503,9 @@
         "confirmSaveCompactTitle": "Are you sure you want to mark this state as live?",
         "confirmSaveCompactYes": "Yes, mark as live",
         "saveSuccessfulCompact": "Compact changes saved successfully",
-        "saveSuccessfulState": "State changes saved successfully"
+        "saveSuccessfulState": "State changes saved successfully",
+        "enable": "Enable",
+        "live": "Live"
     },
     "stateUpload": {
         "formTitle": "Compact data upload",
@@ -613,6 +618,7 @@
             "inactive": "Inactive",
             "initializing": "Initializing"
         },
+        "licenseActions": "License actions",
         "privilegeActions": "Privilege actions",
         "privilegeActionsNone": "No available actions",
         "deactivate": "Deactivate",
@@ -624,6 +630,29 @@
         "deactivateNotesPlaceholder": "Enter notes here",
         "confirmPrivilegeDeactivateSubmit": "Yes, deactivate privilege",
         "encumber": "Encumber",
+        "encumbered": "Encumbered",
+        "npdbCategoryLabel": "NPDB category",
+        "encumberStartDate": "Beginning of adverse action",
+        "confirmLicenseEncumberTitle": "Are you sure you want to encumber this license?",
+        "confirmLicenseEncumberSubtext": "The practitioner will no longer be able to use this license.",
+        "confirmLicenseEncumberSubmit": "Yes, encumber license",
+        "confirmLicenseEncumberSuccess": "This license has been encumbered.",
+        "confirmPrivilegeEncumberTitle": "Are you sure you want to encumber this privilege?",
+        "confirmPrivilegeEncumberSubtext": "The practitioner will no longer be able to use this privilege.",
+        "confirmPrivilegeEncumberSubmit": "Yes, encumber privilege",
+        "confirmPrivilegeEncumberSuccess": "This privilege has been encumbered.",
+        "unencumber": "Unencumber",
+        "unencumbered": "Unencumbered",
+        "confirmLicenseUnencumberTitle": "Select encumbrance(s) to remove",
+        "confirmLicenseUnencumberEndDate": "Select an end date",
+        "confirmLicenseUnencumberSubmit": "Confirm removal(s)",
+        "confirmLicenseUnencumberSuccess": "These encumbrances are set to be removed.",
+        "confirmLicenseUnencumberSuccessEndDate": "End date",
+        "confirmPrivilegeUnencumberTitle": "Select encumbrance(s) to remove",
+        "confirmPrivilegeUnencumberEndDate": "Select an end date",
+        "confirmPrivilegeUnencumberSubmit": "Confirm removal(s)",
+        "confirmPrivilegeUnencumberSuccess": "These encumbrances are set to be removed.",
+        "confirmPrivilegeUnencumberSuccessEndDate": "End date",
         "expiringIn": "Expiring in",
         "licenseEvents": [
             {
@@ -675,6 +704,40 @@
                 "abbrev": "lpc"
             }
         ],
+        "npdbTypes": [
+            {
+                "name": "Non-compliance With Requirements",
+                "key": "Non-compliance With Requirements"
+            },
+            {
+                "name": "Criminal Conviction or Adjudication",
+                "key": "Criminal Conviction or Adjudication"
+            },
+            {
+                "name": "Confidentiality, Consent or Disclosure Violations",
+                "key": "Confidentiality, Consent or Disclosure Violations"
+            },
+            {
+                "name": "Misconduct or Abuse",
+                "key": "Misconduct or Abuse"
+            },
+            {
+                "name": "Fraud, Deception, or Misrepresentation",
+                "key": "Fraud, Deception, or Misrepresentation"
+            },
+            {
+                "name": "Unsafe Practice or Substandard Care",
+                "key": "Unsafe Practice or Substandard Care"
+            },
+            {
+                "name": "Improper Supervision or Allowing Unlicensed Practice",
+                "key": "Improper Supervision or Allowing Unlicensed Practice"
+            },
+            {
+                "name": "Other",
+                "key": "Other"
+            }
+        ],
         "privilegePurchaseTitle": "Privilege purchase",
         "personalInfoTitle": "Personal information",
         "eventNodeLabel": "Event: {eventNameDisplay} on {eventDate}",
@@ -682,7 +745,11 @@
         "compactEligible": "Compact Eligible",
         "notCompactEligible": "Not Compact Eligible",
         "privilegeVerification": "Privilege Verification",
+        "licenseNumber": "License number",
+        "privilegeId": "Privilege ID",
+        "privilegeType": "Privilege type",
         "practitionerInformation": "Practitioner Information",
+        "practitionerName": "Practitioner name",
         "homeStateLicenses": "Home State Licenses",
         "activeDate": "Active",
         "privilegeProofFooter": "This document is officially generated by Compact Connect and serves as proof of the practitioner's current licenses and privileges.",
@@ -826,5 +893,20 @@
         "loadingSpinner": "Loading Spinner",
         "showSpinner": "Show Spinner",
         "mobileStoreLinks": "Mobile Store Links"
+    },
+    "homeJurisdictionChange": {
+        "formTitle": "Change home state",
+        "formSubtext": "If you have changed your state of residence or otherwise need to update your home state, please do so here. Your old and new home states, if they are compact members, will be notified of the change.",
+        "currentHomeJurisdictionLabel": "Current home state",
+        "newHomeJurisdictionLabel": "New home state",
+        "inputSubtext": "This selection means your current compact privileges will be deactivated and you will no longer be able to practice under them.",
+        "updateButton": "Update home state",
+        "modalTitle": "Are you sure you want to change {newState} to your new home state?",
+        "modalSubtext": "Changing your home state may affect your privileges. If you already have a compact-eligible license in your new home state, your privileges will transfer. If you do not have a license in your new home state, or your license is not eligible, your privileges will be deactivated.",
+        "modalConfirm": "Confirm new home state",
+        "successTitle": "You have successfully changed your home state.",
+        "successSubtext": "Your former home state and new home state will be automatically notified of this change.",
+        "eligibleLicenseOption": "{state} (eligible {licenseType} license) \u2713",
+        "noEligibleLicenseOption": "{state} (no eligible license)"
     }
 }

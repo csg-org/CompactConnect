@@ -296,10 +296,6 @@
           "compact",
           "licenseJurisdiction",
           "privilegeJurisdictions",
-          "homeAddressStreet1",
-          "homeAddressCity",
-          "homeAddressState",
-          "homeAddressPostalCode",
           "dateOfUpdate",
           "dateOfExpiration",
           "birthMonthDay"

@@ -406,6 +406,29 @@ class PersistentStack(AppStack):
             ],
         )
 
+        self.compact_configured_states_migration = DataMigration(
+            self,
+            'CompactConfiguredStatesMigration',
+            migration_dir='compact_configured_states_871',
+            lambda_environment={
+                'COMPACT_CONFIGURATION_TABLE_NAME': self.compact_configuration_table.table_name,
+                **self.common_env_vars,
+            },
+        )
+        self.compact_configuration_table.grant_read_write_data(self.compact_configured_states_migration)
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            f'{self.compact_configured_states_migration.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'This policy contains wild-carded actions and resources but they are scoped to the '
+                    'specific actions, Table and Key that this lambda needs access to in order to perform the'
+                    'compact configuredStates migration.',
+                },
+            ],
+        )
+
         QueryDefinition(
             self,
             'Migrations',
@@ -419,6 +442,7 @@ class PersistentStack(AppStack):
                 home_jurisdiction_migration.migration_function.log_group,
                 update_dates_migration.migration_function.log_group,
                 self.provider_user_pool_migration.migration_function.log_group,
+                self.compact_configured_states_migration.migration_function.log_group,
             ],
         )
 

@@ -8,6 +8,7 @@ from cc_common.data_model.schema.common import (
     ActiveInactiveStatus,
     CompactEligibilityStatus,
     HomeJurisdictionChangeStatusEnum,
+    LicenseDeactivatedStatusEnum,
     LicenseEncumberedStatusEnum,
 )
 from cc_common.data_model.schema.compact import Compact
@@ -78,8 +79,13 @@ def get_purchase_privilege_options(event: dict, context: LambdaContext):  # noqa
 
     options_response = config.compact_configuration_client.get_privilege_purchase_options(
         compact=compact,
-        pagination=event.get('queryStringParameters', {}),
     )
+
+    # In theory, this should never happen as a practitioner can only call this endpoint if at least one state
+    # was enabled for users to register in, but we still check for it here so we can be alerted if it ever occurs.
+    if not options_response.get('items'):
+        logger.error('No privilege options returned for compact.', compact=compact)
+        raise CCInternalException('No privilege options returned for compact.')
 
     # we need to filter out contact information from the response, which is not needed by the client
     serlialized_options = []
@@ -293,6 +299,9 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             # Similar here, if the user's privilege was deactivated previously due to changing their home jurisdiction
             # to where they had no license, but now they have an eligible license, they can renew their privilege.
             and privilege.homeJurisdictionChangeStatus != HomeJurisdictionChangeStatusEnum.INACTIVE
+            # Likewise, if the user's privilege was deactivated previously due to a license deactivation, and then the
+            # license was reactivated, they can renew their privilege.
+            and privilege.licenseDeactivatedStatus != LicenseDeactivatedStatusEnum.LICENSE_DEACTIVATED
         ):
             raise CCInvalidRequestException(
                 f"Selected privilege jurisdiction '{privilege.jurisdiction.lower()}'"
@@ -364,7 +373,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             total_cost = total_cost + float(line_item['unitPrice']) * int(line_item['quantity'])
 
         config.event_bus_client.publish_privilege_purchase_event(
-            source='post_purchase_privileges',
+            source='org.compactconnect.purchases',
             jurisdiction=license_jurisdiction,
             compact=compact_abbr,
             provider_email=provider_email,
@@ -387,7 +396,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
 
         for privilege_jurisdiction_issued in privilege_jurisdictions_issued:
             config.event_bus_client.publish_privilege_issued_event(
-                source='post_purchase_privileges',
+                source='org.compactconnect.purchases',
                 jurisdiction=privilege_jurisdiction_issued,
                 compact=compact_abbr,
                 provider_email=provider_email,
@@ -395,7 +404,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
 
         for privilege_jurisdiction_renewed in privilege_jurisdictions_renewed:
             config.event_bus_client.publish_privilege_renewed_event(
-                source='post_purchase_privileges',
+                source='org.compactconnect.purchases',
                 jurisdiction=privilege_jurisdiction_renewed,
                 compact=compact_abbr,
                 provider_email=provider_email,

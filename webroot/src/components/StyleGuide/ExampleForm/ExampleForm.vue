@@ -38,7 +38,7 @@
                 <InputSubmit
                     :formInput="formData.submit"
                     :label="submitLabel"
-                    :isEnabled="isFormValid && !isFormLoading"
+                    :isEnabled="!isFormLoading"
                 />
             </form>
         </div>

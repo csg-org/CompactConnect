@@ -48,7 +48,7 @@ const SAMPLE_JURISDICTION_ITEMS = [
             ]
         },
         'jurisdictionName': {
-            'S': 'ohio'
+            'S': 'Ohio'
         },
         'jurisdictionOperationsTeamEmails': {
             'L': [
@@ -115,7 +115,7 @@ const SAMPLE_JURISDICTION_ITEMS = [
             ]
         },
         'jurisdictionName': {
-            'S': 'nebraska'
+            'S': 'Nebraska'
         },
         'jurisdictionOperationsTeamEmails': {
             'L': [
@@ -198,7 +198,7 @@ describe('JurisdictionClient', () => {
         );
 
         // Verify we got the expected jurisdictions back
-        expect(jurisdictions.map((j) => j.jurisdictionName)).toEqual(expect.arrayContaining(['ohio', 'nebraska']));
+        expect(jurisdictions.map((j) => j.jurisdictionName)).toEqual(expect.arrayContaining(['Ohio', 'Nebraska']));
     });
 
     it('should return an empty array if no records in dynamo', async () => {
@@ -241,7 +241,7 @@ describe('JurisdictionClient', () => {
             }
         );
 
-        expect(jurisdiction.jurisdictionName).toBe('ohio');
+        expect(jurisdiction.jurisdictionName).toBe('Ohio');
         expect(jurisdiction.postalAbbreviation).toBe('oh');
     });
 

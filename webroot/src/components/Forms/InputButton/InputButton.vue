@@ -20,7 +20,7 @@
             }"
             :value="label"
             v-bind:disabled="isEnabled === false ? true : false"
-            @click="onClick"
+            @click="onClick($event)"
         />
     </div>
 </template>

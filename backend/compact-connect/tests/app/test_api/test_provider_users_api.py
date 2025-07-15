@@ -64,6 +64,11 @@ class TestProviderUsersApi(TestApi):
             type=CfnMethod.CFN_RESOURCE_TYPE_NAME,
             props={
                 'HttpMethod': 'POST',
+                'ResourceId': {
+                    'Ref': api_stack.get_logical_id(
+                        api_stack.api.v1_api.provider_users.provider_users_registration_resource.node.default_child
+                    ),
+                },
                 # ensure the lambda integration is configured with the expected handler
                 'Integration': TestApi.generate_expected_integration_object(
                     api_stack.get_logical_id(
@@ -135,6 +140,11 @@ class TestProviderUsersApi(TestApi):
             type=CfnMethod.CFN_RESOURCE_TYPE_NAME,
             props={
                 'HttpMethod': 'GET',
+                'ResourceId': {
+                    'Ref': api_stack.get_logical_id(
+                        api_stack.api.v1_api.provider_users.provider_users_me_resource.node.default_child
+                    ),
+                },
                 # the provider users endpoints uses a separate authorizer from the staff endpoints
                 'AuthorizerId': {
                     'Ref': api_stack.get_logical_id(api_stack.api.provider_users_authorizer.node.default_child),
@@ -198,6 +208,11 @@ class TestProviderUsersApi(TestApi):
             type=CfnMethod.CFN_RESOURCE_TYPE_NAME,
             props={
                 'HttpMethod': 'POST',
+                'ResourceId': {
+                    'Ref': api_stack.get_logical_id(
+                        api_stack.api.v1_api.provider_users.provider_users_me_military_affiliation_resource.node.default_child
+                    ),
+                },
                 # the provider users endpoints uses a separate authorizer from the staff endpoints
                 'AuthorizerId': {
                     'Ref': api_stack.get_logical_id(api_stack.api.provider_users_authorizer.node.default_child),
@@ -243,13 +258,18 @@ class TestProviderUsersApi(TestApi):
             overwrite_snapshot=False,
         )
 
-        # now check the PATCH endpoint
+        # now check the PATCH endpoint for military affiliation
         patch_method_request_model_logical_id_capture = Capture()
         patch_method_response_model_logical_id_capture = Capture()
         api_stack_template.has_resource_properties(
             type=CfnMethod.CFN_RESOURCE_TYPE_NAME,
             props={
                 'HttpMethod': 'PATCH',
+                'ResourceId': {
+                    'Ref': api_stack.get_logical_id(
+                        api_stack.api.v1_api.provider_users.provider_users_me_military_affiliation_resource.node.default_child
+                    ),
+                },
                 # the provider users endpoints uses a separate authorizer from the staff endpoints
                 'AuthorizerId': {
                     'Ref': api_stack.get_logical_id(api_stack.api.provider_users_authorizer.node.default_child),
@@ -337,11 +357,16 @@ class TestProviderUsersApi(TestApi):
         post_method_request_model_logical_id_capture = Capture()
         post_method_response_model_logical_id_capture = Capture()
 
-        # ensure the POST method is configured with the lambda integration and authorizer
+        # ensure the PUT method is configured with the lambda integration and authorizer
         api_stack_template.has_resource_properties(
             type=CfnMethod.CFN_RESOURCE_TYPE_NAME,
             props={
                 'HttpMethod': 'PUT',
+                'ResourceId': {
+                    'Ref': api_stack.get_logical_id(
+                        api_stack.api.v1_api.provider_users.provider_users_me_home_jurisdiction_resource.node.default_child
+                    ),
+                },
                 # the provider users endpoints uses a separate authorizer from the staff endpoints
                 'AuthorizerId': {
                     'Ref': api_stack.get_logical_id(api_stack.api.provider_users_authorizer.node.default_child),
@@ -384,5 +409,171 @@ class TestProviderUsersApi(TestApi):
         self.compare_snapshot(
             post_response_model['Schema'],
             'PUT_PROVIDER_USERS_HOME_JURISDICTION_RESPONSE_SCHEMA',
+            overwrite_snapshot=False,
+        )
+
+    def test_synth_generates_provider_users_me_email_endpoint_resource(self):
+        api_stack = self.app.sandbox_backend_stage.api_stack
+        api_stack_template = Template.from_stack(api_stack)
+
+        # Ensure the resource is created with expected path
+        api_stack_template.has_resource_properties(
+            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'ParentId': {
+                    # Verify the parent id matches the expected 'provider-users/me' resource
+                    'Ref': api_stack.get_logical_id(
+                        api_stack.api.v1_api.provider_users.provider_users_me_resource.node.default_child
+                    ),
+                },
+                'PathPart': 'email',
+            },
+        )
+
+        # ensure the handler is created
+        api_stack_template.has_resource_properties(
+            type=CfnFunction.CFN_RESOURCE_TYPE_NAME,
+            props={'Handler': 'handlers.provider_users.provider_users_api_handler'},
+        )
+
+        patch_method_request_model_logical_id_capture = Capture()
+        patch_method_response_model_logical_id_capture = Capture()
+
+        # ensure the PATCH method for email is configured with the lambda integration and authorizer
+        api_stack_template.has_resource_properties(
+            type=CfnMethod.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'HttpMethod': 'PATCH',
+                'ResourceId': {
+                    'Ref': api_stack.get_logical_id(
+                        api_stack.api.v1_api.provider_users.provider_users_me_email_resource.node.default_child
+                    ),
+                },
+                # the provider users endpoints uses a separate authorizer from the staff endpoints
+                'AuthorizerId': {
+                    'Ref': api_stack.get_logical_id(api_stack.api.provider_users_authorizer.node.default_child),
+                },
+                # ensure the lambda integration is configured with the expected handler
+                'Integration': TestApi.generate_expected_integration_object(
+                    api_stack.get_logical_id(
+                        api_stack.api.v1_api.provider_users.provider_users_me_handler.node.default_child,
+                    ),
+                ),
+                'RequestModels': {
+                    'application/json': {'Ref': patch_method_request_model_logical_id_capture},
+                },
+                'MethodResponses': [
+                    {
+                        'ResponseModels': {'application/json': {'Ref': patch_method_response_model_logical_id_capture}},
+                        'StatusCode': '200',
+                    },
+                ],
+            },
+        )
+
+        # now check the request model matches expected contract
+        patch_request_model = TestApi.get_resource_properties_by_logical_id(
+            patch_method_request_model_logical_id_capture.as_string(),
+            api_stack_template.find_resources(CfnModel.CFN_RESOURCE_TYPE_NAME),
+        )
+
+        self.compare_snapshot(
+            patch_request_model['Schema'],
+            'PATCH_PROVIDER_USERS_EMAIL_REQUEST_SCHEMA',
+            overwrite_snapshot=False,
+        )
+
+        # now check the response model matches expected contract
+        patch_response_model = TestApi.get_resource_properties_by_logical_id(
+            patch_method_response_model_logical_id_capture.as_string(),
+            api_stack_template.find_resources(CfnModel.CFN_RESOURCE_TYPE_NAME),
+        )
+
+        self.compare_snapshot(
+            patch_response_model['Schema'],
+            'STANDARD_MESSAGE_RESPONSE_SCHEMA',
+            overwrite_snapshot=False,
+        )
+
+    def test_synth_generates_provider_users_me_email_verify_endpoint_resource(self):
+        api_stack = self.app.sandbox_backend_stage.api_stack
+        api_stack_template = Template.from_stack(api_stack)
+
+        # Ensure the resource is created with expected path
+        api_stack_template.has_resource_properties(
+            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'ParentId': {
+                    # Verify the parent id matches the expected 'provider-users/me/email' resource
+                    'Ref': api_stack.get_logical_id(
+                        api_stack.api.v1_api.provider_users.provider_users_me_email_resource.node.default_child
+                    ),
+                },
+                'PathPart': 'verify',
+            },
+        )
+
+        # ensure the handler is created
+        api_stack_template.has_resource_properties(
+            type=CfnFunction.CFN_RESOURCE_TYPE_NAME,
+            props={'Handler': 'handlers.provider_users.provider_users_api_handler'},
+        )
+
+        post_method_request_model_logical_id_capture = Capture()
+        post_method_response_model_logical_id_capture = Capture()
+
+        # ensure the POST method is configured with the lambda integration and authorizer
+        api_stack_template.has_resource_properties(
+            type=CfnMethod.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'HttpMethod': 'POST',
+                'ResourceId': {
+                    'Ref': api_stack.get_logical_id(
+                        api_stack.api.v1_api.provider_users.provider_users_me_email_verify_resource.node.default_child
+                    ),
+                },
+                # the provider users endpoints uses a separate authorizer from the staff endpoints
+                'AuthorizerId': {
+                    'Ref': api_stack.get_logical_id(api_stack.api.provider_users_authorizer.node.default_child),
+                },
+                # ensure the lambda integration is configured with the expected handler
+                'Integration': TestApi.generate_expected_integration_object(
+                    api_stack.get_logical_id(
+                        api_stack.api.v1_api.provider_users.provider_users_me_handler.node.default_child,
+                    ),
+                ),
+                'RequestModels': {
+                    'application/json': {'Ref': post_method_request_model_logical_id_capture},
+                },
+                'MethodResponses': [
+                    {
+                        'ResponseModels': {'application/json': {'Ref': post_method_response_model_logical_id_capture}},
+                        'StatusCode': '200',
+                    },
+                ],
+            },
+        )
+
+        # now check the request model matches expected contract
+        post_request_model = TestApi.get_resource_properties_by_logical_id(
+            post_method_request_model_logical_id_capture.as_string(),
+            api_stack_template.find_resources(CfnModel.CFN_RESOURCE_TYPE_NAME),
+        )
+
+        self.compare_snapshot(
+            post_request_model['Schema'],
+            'POST_PROVIDER_USERS_EMAIL_VERIFY_REQUEST_SCHEMA',
+            overwrite_snapshot=False,
+        )
+
+        # now check the response model matches expected contract
+        post_response_model = TestApi.get_resource_properties_by_logical_id(
+            post_method_response_model_logical_id_capture.as_string(),
+            api_stack_template.find_resources(CfnModel.CFN_RESOURCE_TYPE_NAME),
+        )
+
+        self.compare_snapshot(
+            post_response_model['Schema'],
+            'STANDARD_MESSAGE_RESPONSE_SCHEMA',
             overwrite_snapshot=False,
         )

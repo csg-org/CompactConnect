@@ -124,6 +124,70 @@ export default {
     deleteUserFailure: ({ commit }, error: Error) => {
         commit(MutationTypes.DELETE_USER_FAILURE, error);
     },
+    // ENCUMBER USER LICENSE
+    encumberLicenseRequest: async ({ commit, dispatch }, {
+        compact,
+        licenseeId,
+        licenseState,
+        licenseType,
+        npdbCategory,
+        startDate
+    }: any) => {
+        commit(MutationTypes.ENCUMBER_LICENSE_REQUEST);
+        return dataApi.encumberLicense(
+            compact,
+            licenseeId,
+            licenseState,
+            licenseType,
+            npdbCategory,
+            startDate
+        ).then(async (response) => {
+            dispatch('encumberLicenseSuccess');
+
+            return response;
+        }).catch((error) => {
+            dispatch('encumberLicenseFailure', error);
+            throw error;
+        });
+    },
+    encumberLicenseSuccess: ({ commit }) => {
+        commit(MutationTypes.ENCUMBER_LICENSE_SUCCESS);
+    },
+    encumberLicenseFailure: ({ commit }, error: Error) => {
+        commit(MutationTypes.ENCUMBER_LICENSE_FAILURE, error);
+    },
+    // UNENCUMBER USER LICENSE
+    unencumberLicenseRequest: async ({ commit, dispatch }, {
+        compact,
+        licenseeId,
+        licenseState,
+        licenseType,
+        encumbranceId,
+        endDate
+    }: any) => {
+        commit(MutationTypes.UNENCUMBER_LICENSE_REQUEST);
+        return dataApi.unencumberLicense(
+            compact,
+            licenseeId,
+            licenseState,
+            licenseType,
+            encumbranceId,
+            endDate
+        ).then(async (response) => {
+            dispatch('unencumberLicenseSuccess');
+
+            return response;
+        }).catch((error) => {
+            dispatch('unencumberLicenseFailure', error);
+            throw error;
+        });
+    },
+    unencumberLicenseSuccess: ({ commit }) => {
+        commit(MutationTypes.UNENCUMBER_LICENSE_SUCCESS);
+    },
+    unencumberLicenseFailure: ({ commit }, error: Error) => {
+        commit(MutationTypes.UNENCUMBER_LICENSE_FAILURE, error);
+    },
     // DELETE USER PRIVILEGE
     deletePrivilegeRequest: async ({ commit, dispatch }, {
         compact,
@@ -153,6 +217,70 @@ export default {
     },
     deletePrivilegeFailure: ({ commit }, error: Error) => {
         commit(MutationTypes.DELETE_PRIVILEGE_FAILURE, error);
+    },
+    // ENCUMBER USER PRIVILEGE
+    encumberPrivilegeRequest: async ({ commit, dispatch }, {
+        compact,
+        licenseeId,
+        privilegeState,
+        licenseType,
+        npdbCategory,
+        startDate
+    }: any) => {
+        commit(MutationTypes.ENCUMBER_PRIVILEGE_REQUEST);
+        return dataApi.encumberPrivilege(
+            compact,
+            licenseeId,
+            privilegeState,
+            licenseType,
+            npdbCategory,
+            startDate
+        ).then(async (response) => {
+            dispatch('encumberPrivilegeSuccess');
+
+            return response;
+        }).catch((error) => {
+            dispatch('encumberPrivilegeFailure', error);
+            throw error;
+        });
+    },
+    encumberPrivilegeSuccess: ({ commit }) => {
+        commit(MutationTypes.ENCUMBER_PRIVILEGE_SUCCESS);
+    },
+    encumberPrivilegeFailure: ({ commit }, error: Error) => {
+        commit(MutationTypes.ENCUMBER_PRIVILEGE_FAILURE, error);
+    },
+    // UNENCUMBER USER PRIVILEGE
+    unencumberPrivilegeRequest: async ({ commit, dispatch }, {
+        compact,
+        licenseeId,
+        privilegeState,
+        licenseType,
+        encumbranceId,
+        endDate
+    }: any) => {
+        commit(MutationTypes.UNENCUMBER_PRIVILEGE_REQUEST);
+        return dataApi.unencumberPrivilege(
+            compact,
+            licenseeId,
+            privilegeState,
+            licenseType,
+            encumbranceId,
+            endDate
+        ).then(async (response) => {
+            dispatch('unencumberPrivilegeSuccess');
+
+            return response;
+        }).catch((error) => {
+            dispatch('unencumberPrivilegeFailure', error);
+            throw error;
+        });
+    },
+    unencumberPrivilegeSuccess: ({ commit }) => {
+        commit(MutationTypes.UNENCUMBER_PRIVILEGE_SUCCESS);
+    },
+    unencumberPrivilegeFailure: ({ commit }, error: Error) => {
+        commit(MutationTypes.UNENCUMBER_PRIVILEGE_FAILURE, error);
     },
     // SET THE STORE STATE
     setStoreUsersPrevLastKey: ({ commit }, prevLastKey) => {

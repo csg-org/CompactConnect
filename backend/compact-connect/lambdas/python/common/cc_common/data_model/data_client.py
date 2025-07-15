@@ -22,6 +22,7 @@ from cc_common.data_model.schema.common import (
     CCDataClass,
     CompactEligibilityStatus,
     HomeJurisdictionChangeStatusEnum,
+    LicenseDeactivatedStatusEnum,
     LicenseEncumberedStatusEnum,
     PrivilegeEncumberedStatusEnum,
     UpdateCategory,
@@ -451,9 +452,16 @@ class DataClient:
                         }
                     )
                     # if this privilege was previously deactivated due to a home jurisdiction change
-                    # we remove this value when the privilege is renewed. Noting that removal here.
+                    # or license deactivation, we remove those deactivation values when the privilege is renewed.
+                    # We add those existing fields to the removedValues which will be stored with the update record.
+                    removed_values = []
                     if original_privilege.homeJurisdictionChangeStatus is not None:
-                        update_record.update({'removedValues': ['homeJurisdictionChangeStatus']})
+                        removed_values.append('homeJurisdictionChangeStatus')
+                    if original_privilege.licenseDeactivatedStatus is not None:
+                        removed_values.append('licenseDeactivatedStatus')
+
+                    if removed_values:
+                        update_record.update({'removedValues': removed_values})
 
                     privilege_update_records.append(update_record)
                     transactions.append(
@@ -1063,6 +1071,32 @@ class DataClient:
             encumbered_status=privilege_encumbered_status,
         )
 
+    def _generate_set_privilege_license_deactivated_status_item(
+        self,
+        privilege_data: PrivilegeData,
+        license_deactivated_status: LicenseDeactivatedStatusEnum,
+    ):
+        """
+        Generate a transaction item to update a privilege record with license deactivated status.
+
+        :param PrivilegeData privilege_data: The privilege data to update
+        :param LicenseDeactivatedStatusEnum license_deactivated_status: The license deactivated status to set
+        :return: DynamoDB transaction item for updating the privilege
+        """
+        privilege_record = privilege_data.serialize_to_database_record()
+
+        return {
+            'Update': {
+                'TableName': self.config.provider_table.name,
+                'Key': {'pk': {'S': privilege_record['pk']}, 'sk': {'S': privilege_record['sk']}},
+                'UpdateExpression': 'SET licenseDeactivatedStatus = :status, dateOfUpdate = :dateOfUpdate',
+                'ExpressionAttributeValues': {
+                    ':status': {'S': license_deactivated_status},
+                    ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
+                },
+            },
+        }
+
     def _generate_set_license_encumbered_status_item(
         self,
         license_data: LicenseData,
@@ -1127,11 +1161,7 @@ class DataClient:
         :return: The full license type name
         :raises CCInvalidRequestException: If the license type abbreviation is invalid
         """
-        license_type = LicenseUtility.get_license_type_by_abbreviation(compact, license_type_abbreviation)
-        if license_type is None:
-            logger.info('Invalid license type abbreviation provided.')
-            raise CCInvalidRequestException(f'Invalid license type abbreviation: {license_type_abbreviation}')
-        return license_type.name
+        return LicenseUtility.get_license_type_by_abbreviation(compact, license_type_abbreviation).name
 
     def _find_and_validate_adverse_action(
         self, adverse_action_records: list[AdverseActionData], adverse_action_id: str
@@ -2419,7 +2449,7 @@ class DataClient:
         jurisdiction: str,
         license_type_abbreviation: str,
         effective_date: str,
-    ) -> None:
+    ) -> list[PrivilegeData]:
         """
         Encumber all unencumbered privileges associated with a home jurisdiction license.
 
@@ -2431,6 +2461,7 @@ class DataClient:
         :param str jurisdiction: The jurisdiction of the license.
         :param str license_type_abbreviation: The license type abbreviation
         :param str effective_date: effective date of the encumbrance on the license and therefore privilege
+        :return: List of privileges that were encumbered
         """
         # Get all provider records
         provider_user_records: ProviderUserRecords = self.get_provider_user_records(
@@ -2452,7 +2483,7 @@ class DataClient:
 
         if not unencumbered_privileges_associated_with_license:
             logger.info('No unencumbered privileges found for this license.')
-            return
+            return []
 
         logger.info(
             'Found privileges to encumber', privilege_count=len(unencumbered_privileges_associated_with_license)
@@ -2507,6 +2538,7 @@ class DataClient:
                 raise CCAwsServiceException('Failed to encumber privileges for license') from e
 
         logger.info('Successfully encumbered associated privileges for license')
+        return unencumbered_privileges_associated_with_license
 
     def lift_home_jurisdiction_license_privilege_encumbrances(
         self,
@@ -2515,7 +2547,7 @@ class DataClient:
         jurisdiction: str,
         license_type_abbreviation: str,
         effective_date: str,
-    ) -> None:
+    ) -> list[PrivilegeData]:
         """
         Lift encumbrances from privileges that were encumbered due to a home jurisdiction license encumbrance.
 
@@ -2527,6 +2559,7 @@ class DataClient:
         :param str jurisdiction: The jurisdiction of the license.
         :param str license_type_abbreviation: The license type abbreviation
         :param str effective_date: effective lift date of the encumbrance on the license and therefore privilege
+        :return: List of privileges that were unencumbered
         """
         # Get all provider records
         provider_user_records = self.get_provider_user_records(
@@ -2548,7 +2581,7 @@ class DataClient:
                 'License is still encumbered. Not lifting privilege encumbrances. '
                 'Privileges will remain LICENSE_ENCUMBERED until all license encumbrances are lifted.'
             )
-            return
+            return []
 
         logger.info('License is unencumbered. Proceeding to lift privilege encumbrances.')
 
@@ -2564,7 +2597,7 @@ class DataClient:
 
         if not matching_privileges:
             logger.info('No license-encumbered privileges found for this license')
-            return
+            return []
 
         logger.info('Found license-encumbered privileges to unencumber', privilege_count=len(matching_privileges))
 
@@ -2617,3 +2650,244 @@ class DataClient:
                 raise CCAwsServiceException('Failed to unencumber privileges for license') from e
 
         logger.info('Successfully unencumbered all license-encumbered privileges for license')
+        return matching_privileges
+
+    def deactivate_license_privileges(
+        self,
+        compact: str,
+        provider_id: str,
+        jurisdiction: str,
+        license_type: str,
+    ) -> None:
+        """
+        Deactivate all privileges associated with a license due to license deactivation.
+
+        This method finds all privileges for the given license that are not already license-deactivated
+        and sets their licenseDeactivatedStatus to LICENSE_DEACTIVATED, along with creating privilege update records.
+
+        :param str compact: The compact name.
+        :param str provider_id: The provider ID.
+        :param str jurisdiction: The jurisdiction of the license.
+        :param str license_type: The license type
+        """
+        # Get all provider records
+        provider_user_records: ProviderUserRecords = self.get_provider_user_records(
+            compact=compact, provider_id=provider_id, consistent_read=True
+        )
+
+        # Find privileges associated with the license that was deactivated, which themselves are not currently
+        # license-deactivated
+        active_privileges_associated_with_license = provider_user_records.get_privilege_records(
+            filter_condition=lambda p: (
+                p.licenseJurisdiction == jurisdiction
+                and p.licenseType == license_type
+                and p.licenseDeactivatedStatus is None
+            )
+        )
+
+        if not active_privileges_associated_with_license:
+            logger.info('No active privileges found for this license to deactivate.')
+            return
+
+        logger.info('Found privileges to deactivate', privilege_count=len(active_privileges_associated_with_license))
+
+        # Build transaction items for all privileges
+        transaction_items = []
+
+        for privilege_data in active_privileges_associated_with_license:
+            # Create privilege update record
+            privilege_update_record = PrivilegeUpdateData.create_new(
+                {
+                    'type': 'privilegeUpdate',
+                    'updateType': UpdateCategory.LICENSE_DEACTIVATION,
+                    'providerId': provider_id,
+                    'compact': compact,
+                    'jurisdiction': privilege_data.jurisdiction,
+                    'licenseType': privilege_data.licenseType,
+                    'previous': privilege_data.to_dict(),
+                    'updatedValues': {
+                        'licenseDeactivatedStatus': LicenseDeactivatedStatusEnum.LICENSE_DEACTIVATED,
+                    },
+                }
+            ).serialize_to_database_record()
+
+            # Add PUT transaction for privilege update record
+            transaction_items.append(self._generate_put_transaction_item(privilege_update_record))
+
+            # Add UPDATE transaction for privilege license deactivated status
+            transaction_items.append(
+                self._generate_set_privilege_license_deactivated_status_item(
+                    privilege_data=privilege_data,
+                    license_deactivated_status=LicenseDeactivatedStatusEnum.LICENSE_DEACTIVATED,
+                )
+            )
+
+        # Execute transactions in batches of 100 (DynamoDB limit)
+        batch_size = 100
+        while transaction_items:
+            batch = transaction_items[:batch_size]
+            transaction_items = transaction_items[batch_size:]
+
+            try:
+                self.config.dynamodb_client.transact_write_items(TransactItems=batch)
+                logger.info('Successfully processed privilege deactivation batch', batch_size=len(batch))
+            except ClientError as e:
+                logger.error('Failed to process privilege deactivation batch', error=str(e))
+                raise CCAwsServiceException('Failed to deactivate privileges for license') from e
+
+        logger.info('Successfully deactivated associated privileges for license')
+
+    @logger_inject_kwargs(logger, 'compact', 'provider_id')
+    def update_provider_email_verification_data(
+        self,
+        *,
+        compact: str,
+        provider_id: str,
+        pending_email_address: str,
+        verification_code: str,
+        verification_expiry: datetime,
+    ) -> None:
+        """
+        Update the provider record with email verification data.
+
+        :param compact: The compact name
+        :param provider_id: The provider ID
+        :param pending_email_address: The new email address being verified
+        :param verification_code: The 4-digit verification code
+        :param verification_expiry: When the verification code expires
+        """
+        logger.info('Updating provider email verification data with pending values.')
+
+        try:
+            self.config.provider_table.update_item(
+                Key={'pk': f'{compact}#PROVIDER#{provider_id}', 'sk': f'{compact}#PROVIDER'},
+                UpdateExpression=(
+                    'SET pendingEmailAddress = :pending_email, '
+                    'emailVerificationCode = :verification_code, '
+                    'emailVerificationExpiry = :verification_expiry, '
+                    'dateOfUpdate = :date_of_update'
+                ),
+                ExpressionAttributeValues={
+                    ':pending_email': pending_email_address,
+                    ':verification_code': verification_code,
+                    ':verification_expiry': verification_expiry.isoformat(),
+                    ':date_of_update': self.config.current_standard_datetime.isoformat(),
+                },
+                # Ensure the provider record exists before updating
+                ConditionExpression='attribute_exists(pk)',
+            )
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
+                logger.error('Provider not found', error=str(e))
+                raise CCInternalException('Provider not found') from e
+            logger.error('Failed to update provider email verification data', error=str(e))
+            raise CCAwsServiceException('Failed to update provider email verification data') from e
+
+    @logger_inject_kwargs(logger, 'compact', 'provider_id')
+    def clear_provider_email_verification_data(
+        self,
+        *,
+        compact: str,
+        provider_id: str,
+    ) -> None:
+        """
+        Clear email verification data from the provider record.
+
+        :param compact: The compact name
+        :param provider_id: The provider ID
+        """
+        logger.info('Clearing provider email verification data')
+
+        try:
+            self.config.provider_table.update_item(
+                Key={'pk': f'{compact}#PROVIDER#{provider_id}', 'sk': f'{compact}#PROVIDER'},
+                UpdateExpression=(
+                    'REMOVE pendingEmailAddress, emailVerificationCode, emailVerificationExpiry '
+                    'SET dateOfUpdate = :date_of_update'
+                ),
+                ExpressionAttributeValues={
+                    ':date_of_update': self.config.current_standard_datetime.isoformat(),
+                },
+                # Ensure the provider record exists before updating
+                ConditionExpression='attribute_exists(pk)',
+            )
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
+                raise CCNotFoundException('Provider not found') from e
+            logger.error('Failed to clear provider email verification data', error=str(e))
+            raise CCAwsServiceException('Failed to clear provider email verification data') from e
+
+    @logger_inject_kwargs(logger, 'compact', 'provider_id', 'new_email_address')
+    def complete_provider_email_update(
+        self,
+        *,
+        compact: str,
+        provider_id: str,
+        new_email_address: str,
+    ) -> None:
+        """
+        Complete the email update process by updating the registered email and clearing verification data.
+        Creates a provider update record to track the email change.
+
+        :param compact: The compact name
+        :param provider_id: The provider ID
+        :param new_email_address: The new verified email address
+        """
+        logger.info('Completing provider email update')
+
+        # Get current provider record to capture the "previous" state
+        current_provider_record = self.get_provider_top_level_record(compact=compact, provider_id=provider_id)
+
+        # Create provider update record to track the email change
+        provider_update_record = ProviderUpdateData.create_new(
+            {
+                'type': 'providerUpdate',
+                'updateType': UpdateCategory.EMAIL_CHANGE,
+                'providerId': provider_id,
+                'compact': compact,
+                'previous': current_provider_record.to_dict(),
+                'updatedValues': {
+                    'compactConnectRegisteredEmailAddress': new_email_address,
+                },
+            }
+        )
+
+        try:
+            # Use a transaction to ensure both operations succeed together
+            self.config.dynamodb_client.transact_write_items(
+                TransactItems=[
+                    # Update the provider record with new email and clear verification data
+                    {
+                        'Update': {
+                            'TableName': self.config.provider_table_name,
+                            'Key': {
+                                'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
+                                'sk': {'S': f'{compact}#PROVIDER'},
+                            },
+                            'UpdateExpression': (
+                                'SET compactConnectRegisteredEmailAddress = :new_email, '
+                                'dateOfUpdate = :date_of_update '
+                                'REMOVE pendingEmailAddress, emailVerificationCode, emailVerificationExpiry'
+                            ),
+                            'ExpressionAttributeValues': {
+                                ':new_email': {'S': new_email_address},
+                                ':date_of_update': {'S': self.config.current_standard_datetime.isoformat()},
+                            },
+                            # Ensure the provider record exists before updating
+                            'ConditionExpression': 'attribute_exists(pk)',
+                        }
+                    },
+                    # Create provider update record
+                    {
+                        'Put': {
+                            'TableName': self.config.provider_table_name,
+                            'Item': TypeSerializer().serialize(provider_update_record.serialize_to_database_record())[
+                                'M'
+                            ],
+                        }
+                    },
+                ]
+            )
+        except ClientError as e:
+            logger.error('Failed to complete provider email update transaction', error=str(e))
+            raise CCAwsServiceException('Failed to complete provider email update') from e

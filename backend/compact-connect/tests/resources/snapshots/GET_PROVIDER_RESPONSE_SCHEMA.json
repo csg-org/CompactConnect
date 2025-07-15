@@ -503,6 +503,142 @@
             },
             "type": "array"
           },
+          "adverseActions": {
+            "items": {
+              "properties": {
+                "type": {
+                  "enum": [
+                    "adverseAction"
+                  ],
+                  "type": "string"
+                },
+                "compact": {
+                  "enum": [
+                    "aslp",
+                    "octp",
+                    "coun"
+                  ],
+                  "type": "string"
+                },
+                "providerId": {
+                  "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+                  "type": "string"
+                },
+                "jurisdiction": {
+                  "enum": [
+                    "al",
+                    "ak",
+                    "az",
+                    "ar",
+                    "ca",
+                    "co",
+                    "ct",
+                    "de",
+                    "dc",
+                    "fl",
+                    "ga",
+                    "hi",
+                    "id",
+                    "il",
+                    "in",
+                    "ia",
+                    "ks",
+                    "ky",
+                    "la",
+                    "me",
+                    "md",
+                    "ma",
+                    "mi",
+                    "mn",
+                    "ms",
+                    "mo",
+                    "mt",
+                    "ne",
+                    "nv",
+                    "nh",
+                    "nj",
+                    "nm",
+                    "ny",
+                    "nc",
+                    "nd",
+                    "oh",
+                    "ok",
+                    "or",
+                    "pa",
+                    "pr",
+                    "ri",
+                    "sc",
+                    "sd",
+                    "tn",
+                    "tx",
+                    "ut",
+                    "vt",
+                    "va",
+                    "vi",
+                    "wa",
+                    "wv",
+                    "wi",
+                    "wy"
+                  ],
+                  "type": "string"
+                },
+                "licenseTypeAbbreviation": {
+                  "type": "string"
+                },
+                "licenseType": {
+                  "type": "string"
+                },
+                "actionAgainst": {
+                  "type": "string"
+                },
+                "effectiveStartDate": {
+                  "format": "date",
+                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                  "type": "string"
+                },
+                "creationDate": {
+                  "format": "date",
+                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                  "type": "string"
+                },
+                "adverseActionId": {
+                  "type": "string"
+                },
+                "effectiveLiftDate": {
+                  "format": "date",
+                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                  "type": "string"
+                },
+                "dateOfUpdate": {
+                  "format": "date",
+                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                  "type": "string"
+                },
+                "clinicalPrivilegeActionCategory": {
+                  "type": "string"
+                },
+                "liftingUser": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "compact",
+                "providerId",
+                "jurisdiction",
+                "licenseTypeAbbreviation",
+                "licenseType",
+                "actionAgainst",
+                "effectiveStartDate",
+                "creationDate",
+                "adverseActionId",
+                "dateOfUpdate",
+                "clinicalPrivilegeActionCategory"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
           "npi": {
             "pattern": "^[0-9]{10}$",
             "type": "string"
@@ -1160,6 +1296,142 @@
               "licensed professional counselor"
             ],
             "type": "string"
+          },
+          "adverseActions": {
+            "items": {
+              "properties": {
+                "type": {
+                  "enum": [
+                    "adverseAction"
+                  ],
+                  "type": "string"
+                },
+                "compact": {
+                  "enum": [
+                    "aslp",
+                    "octp",
+                    "coun"
+                  ],
+                  "type": "string"
+                },
+                "providerId": {
+                  "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+                  "type": "string"
+                },
+                "jurisdiction": {
+                  "enum": [
+                    "al",
+                    "ak",
+                    "az",
+                    "ar",
+                    "ca",
+                    "co",
+                    "ct",
+                    "de",
+                    "dc",
+                    "fl",
+                    "ga",
+                    "hi",
+                    "id",
+                    "il",
+                    "in",
+                    "ia",
+                    "ks",
+                    "ky",
+                    "la",
+                    "me",
+                    "md",
+                    "ma",
+                    "mi",
+                    "mn",
+                    "ms",
+                    "mo",
+                    "mt",
+                    "ne",
+                    "nv",
+                    "nh",
+                    "nj",
+                    "nm",
+                    "ny",
+                    "nc",
+                    "nd",
+                    "oh",
+                    "ok",
+                    "or",
+                    "pa",
+                    "pr",
+                    "ri",
+                    "sc",
+                    "sd",
+                    "tn",
+                    "tx",
+                    "ut",
+                    "vt",
+                    "va",
+                    "vi",
+                    "wa",
+                    "wv",
+                    "wi",
+                    "wy"
+                  ],
+                  "type": "string"
+                },
+                "licenseTypeAbbreviation": {
+                  "type": "string"
+                },
+                "licenseType": {
+                  "type": "string"
+                },
+                "actionAgainst": {
+                  "type": "string"
+                },
+                "effectiveStartDate": {
+                  "format": "date",
+                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                  "type": "string"
+                },
+                "creationDate": {
+                  "format": "date",
+                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                  "type": "string"
+                },
+                "adverseActionId": {
+                  "type": "string"
+                },
+                "effectiveLiftDate": {
+                  "format": "date",
+                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                  "type": "string"
+                },
+                "dateOfUpdate": {
+                  "format": "date",
+                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                  "type": "string"
+                },
+                "clinicalPrivilegeActionCategory": {
+                  "type": "string"
+                },
+                "liftingUser": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "compact",
+                "providerId",
+                "jurisdiction",
+                "licenseTypeAbbreviation",
+                "licenseType",
+                "actionAgainst",
+                "effectiveStartDate",
+                "creationDate",
+                "adverseActionId",
+                "dateOfUpdate",
+                "clinicalPrivilegeActionCategory"
+              ],
+              "type": "object"
+            },
+            "type": "array"
           },
           "type": {
             "enum": [
@@ -1821,15 +2093,9 @@
     "providerId",
     "givenName",
     "familyName",
-    "licenseType",
     "compact",
     "licenseJurisdiction",
     "privilegeJurisdictions",
-    "homeAddressStreet1",
-    "homeAddressCity",
-    "homeAddressState",
-    "homeAddressPostalCode",
-    "dateOfBirth",
     "dateOfUpdate",
     "dateOfExpiration",
     "birthMonthDay",
