@@ -411,5 +411,3 @@ class TestPatchProviderMilitaryAffiliation(TstFunction):
 
         self.assertEqual(1, len(affiliation_record))
         self.assertEqual('inactive', affiliation_record[0]['status'])
-
-

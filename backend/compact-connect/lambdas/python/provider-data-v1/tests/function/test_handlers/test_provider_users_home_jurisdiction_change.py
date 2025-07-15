@@ -19,12 +19,13 @@ NEW_LICENSE_EXPIRED_EXPIRATION_DATE = '2023-12-12'
 # this other keyword is used for jurisdictions not listed in the system.
 OTHER_NON_MEMBER_JURISDICTION = 'other'
 
+
 @mock_aws
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
 class TestPutProviderHomeJurisdiction(TstFunction):
     def setUp(self):  # noqa: N801 invalid-name
         super().setUp()
-        
+
         # Set up default compact configuration with all jurisdictions as live
         # This ensures other tests continue to work as expected
         self.test_data_generator.put_default_compact_configuration_in_configuration_table(
@@ -1004,9 +1005,13 @@ class TestPutProviderHomeJurisdiction(TstFunction):
         from cc_common.data_model.schema.privilege import PrivilegeData
         from handlers.provider_users import provider_users_api_handler
 
-        (event, test_provider_record, test_current_license_record, test_privilege_record, new_jurisdiction_license_record) = (
-            self._when_new_home_state_license_is_not_live_in_compact_configuration()
-        )
+        (
+            event,
+            test_provider_record,
+            test_current_license_record,
+            test_privilege_record,
+            new_jurisdiction_license_record,
+        ) = self._when_new_home_state_license_is_not_live_in_compact_configuration()
 
         resp = provider_users_api_handler(event, self.mock_context)
 

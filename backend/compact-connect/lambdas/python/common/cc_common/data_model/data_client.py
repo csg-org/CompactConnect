@@ -1898,8 +1898,8 @@ class DataClient:
                             == LicenseEncumberedStatusEnum.ENCUMBERED
                         ):
                             logger.info(
-                                'Current license is encumbered. Privileges for this license type will not be moved over to'
-                                'new license.',
+                                'Current license is encumbered. Privileges for this license type will not be moved '
+                                'over to new license.',
                                 license_type=license_type,
                                 encumbered_status=matching_license_in_current_jurisdiction.encumberedStatus,
                             )
