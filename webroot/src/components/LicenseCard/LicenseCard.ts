@@ -16,6 +16,7 @@ import {
     ComputedRef,
     nextTick
 } from 'vue';
+import { dateFormatPatterns } from '@/app.config';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import InputDate from '@components/Forms/InputDate/InputDate.vue';
 import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
@@ -262,7 +263,10 @@ class LicenseCard extends mixins(MixinForm) {
                 name: 'encumber-start',
                 label: computed(() => this.$t('licensing.encumberStartDate')),
                 placeholder: computed(() => 'MM/DD/YYYY'),
-                validation: Joi.string().required().messages(this.getDateValidationMessages('MM/DD/YYYY')),
+                validation: Joi.string()
+                    .required()
+                    .pattern(dateFormatPatterns.MM_DD_YYYY)
+                    .messages(this.joiMessages.dateWithFormat('MM/DD/YYYY')),
             }),
             encumberModalContinue: new FormInput({
                 isSubmitInput: true,

@@ -17,7 +17,7 @@ import {
     ComputedRef,
     nextTick
 } from 'vue';
-import { stateList } from '@/app.config';
+import { stateList, dateFormatPatterns } from '@/app.config';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import Section from '@components/Section/Section.vue';
 import Card from '@components/Card/Card.vue';
@@ -184,7 +184,10 @@ class RegisterLicensee extends mixins(MixinForm) {
                 label: computed(() => this.$t('common.dateOfBirth')),
                 placeholder: computed(() => 'MM/DD/YYYY'),
                 autocomplete: 'bday',
-                validation: Joi.string().required().messages(this.getDateValidationMessages('MM/DD/YYYY')),
+                validation: Joi.string()
+                    .required()
+                    .pattern(dateFormatPatterns.MM_DD_YYYY)
+                    .messages(this.joiMessages.dateWithFormat('MM/DD/YYYY')),
             }),
             licenseState: new FormInput({
                 id: 'license-state',

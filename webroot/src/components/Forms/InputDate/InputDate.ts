@@ -119,11 +119,7 @@ class InputDate extends mixins(MixinInput) {
         this.$emit('open', formInput);
         // Focus the datepicker menu to improve keyboard navigation
         await nextTick();
-        const menuElement = document.getElementById(`dp-menu-${formInput.id}`);
-
-        if (menuElement) {
-            menuElement.focus();
-        }
+        document.getElementById(`dp-menu-${formInput.id}`)?.focus();
     }
 
     onInput(): void {
@@ -138,7 +134,7 @@ class InputDate extends mixins(MixinInput) {
         // Update form value with slight delay to prevent VueDatePicker conflicts
         this.$nextTick(() => {
             this.formInput.value = this.dateRaw;
-            this.formInput.validate();
+            this.validate();
         });
 
         // Update previous length for next comparison
@@ -183,7 +179,7 @@ class InputDate extends mixins(MixinInput) {
         }
 
         this.formInput.isTouched = true;
-        this.formInput.validate();
+        this.validate();
     }
 
     blur(): void {
@@ -194,7 +190,31 @@ class InputDate extends mixins(MixinInput) {
         }
 
         this.formInput.isTouched = true;
-        this.formInput.validate();
+        this.validate();
+    }
+
+    validate(): void {
+        // Override validation to check display format instead of server format
+        const { validation } = this.formInput;
+
+        if ((validation as any)?.validate) {
+            // Validate against the display format (localValue) instead of server format
+            const result = (validation as any).validate(this.localValue);
+
+            if (result.error) {
+                this.formInput.isValid = false;
+
+                if (this.formInput.isTouched) {
+                    this.formInput.errorMessage = result.error.message;
+                }
+            } else {
+                this.formInput.errorMessage = '';
+                this.formInput.isValid = true;
+            }
+        } else {
+            this.formInput.errorMessage = '';
+            this.formInput.isValid = true;
+        }
     }
 }
 
