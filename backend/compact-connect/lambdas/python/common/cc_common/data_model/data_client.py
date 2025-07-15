@@ -1720,6 +1720,30 @@ class DataClient:
 
             logger.info('Successfully lifted license encumbrance')
 
+    def _process_jurisdiction_change_deactivation(
+        self,
+        compact: str,
+        provider_id: str,
+        top_level_provider_record: ProviderData,
+        selected_jurisdiction: str,
+        all_active_privileges: list[PrivilegeData],
+        all_transaction_items: list[dict],
+    ) -> None:
+        # Get provider record update transaction items for jurisdiction with no valid license
+        provider_transaction_items = self._get_provider_record_transaction_items_for_jurisdiction_with_no_known_license(
+            compact=compact,
+            provider_id=provider_id,
+            provider_record=top_level_provider_record,
+            selected_jurisdiction=selected_jurisdiction,
+        )
+        all_transaction_items.extend(provider_transaction_items)
+
+        # Get privilege deactivation transaction items
+        privilege_transaction_items = self._get_privilege_deactivation_transaction_items_for_jurisdiction_change(
+            compact=compact, provider_id=provider_id, privileges=all_active_privileges
+        )
+        all_transaction_items.extend(privilege_transaction_items)
+
     @logger_inject_kwargs(logger, 'compact', 'provider_id', 'selected_jurisdiction')
     def update_provider_home_state_jurisdiction(
         self, *, compact: str, provider_id: str, selected_jurisdiction: str
@@ -1780,24 +1804,14 @@ class DataClient:
             if not new_home_state_licenses:
                 logger.info('No home state license found in selected jurisdiction. Deactivating all active privileges')
 
-                # Get provider record update transaction items for no license in new jurisdiction
-                provider_transaction_items = (
-                    self._get_provider_record_transaction_items_for_jurisdiction_with_no_known_license(
-                        compact=compact,
-                        provider_id=provider_id,
-                        provider_record=top_level_provider_record,
-                        selected_jurisdiction=selected_jurisdiction,
-                    )
+                self._process_jurisdiction_change_deactivation(
+                    compact=compact,
+                    provider_id=provider_id,
+                    top_level_provider_record=top_level_provider_record,
+                    selected_jurisdiction=selected_jurisdiction,
+                    all_active_privileges=all_active_privileges,
+                    all_transaction_items=all_transaction_items,
                 )
-                all_transaction_items.extend(provider_transaction_items)
-
-                # Get privilege deactivation transaction items
-                privilege_transaction_items = (
-                    self._get_privilege_deactivation_transaction_items_for_jurisdiction_change(
-                        compact=compact, provider_id=provider_id, privileges=all_active_privileges
-                    )
-                )
-                all_transaction_items.extend(privilege_transaction_items)
             else:
                 # Find the best license in the selected jurisdiction
                 best_license_in_selected_jurisdiction = (
@@ -1820,24 +1834,14 @@ class DataClient:
                         selected_jurisdiction=selected_jurisdiction,
                         compact=compact,
                     )
-                    # Get provider record update transaction items for jurisdiction with no known license
-                    provider_transaction_items = (
-                        self._get_provider_record_transaction_items_for_jurisdiction_with_no_known_license(
-                            compact=compact,
-                            provider_id=provider_id,
-                            provider_record=top_level_provider_record,
-                            selected_jurisdiction=selected_jurisdiction,
-                        )
+                    self._process_jurisdiction_change_deactivation(
+                        compact=compact,
+                        provider_id=provider_id,
+                        top_level_provider_record=top_level_provider_record,
+                        selected_jurisdiction=selected_jurisdiction,
+                        all_active_privileges=all_active_privileges,
+                        all_transaction_items=all_transaction_items,
                     )
-                    all_transaction_items.extend(provider_transaction_items)
-
-                    # Get privilege deactivation transaction items
-                    privilege_transaction_items = (
-                        self._get_privilege_deactivation_transaction_items_for_jurisdiction_change(
-                            compact=compact, provider_id=provider_id, privileges=all_active_privileges
-                        )
-                    )
-                    all_transaction_items.extend(privilege_transaction_items)
                 else:
                     # Get provider record update transaction items for jurisdiction change with license
                     provider_transaction_items = (
