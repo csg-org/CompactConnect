@@ -1813,13 +1813,6 @@ class DataClient:
                     all_transaction_items=all_transaction_items,
                 )
             else:
-                # Find the best license in the selected jurisdiction
-                best_license_in_selected_jurisdiction = (
-                    provider_user_records.find_best_license_in_current_known_licenses(
-                        jurisdiction=selected_jurisdiction
-                    )
-                )
-
                 # Check if the selected jurisdiction is live in the compact configuration
                 compact_config = self.config.compact_configuration_client.get_compact_configuration(compact)
                 is_jurisdiction_live = any(
@@ -1843,6 +1836,12 @@ class DataClient:
                         all_transaction_items=all_transaction_items,
                     )
                 else:
+                    # Find the best license in the selected jurisdiction
+                    best_license_in_selected_jurisdiction = (
+                        provider_user_records.find_best_license_in_current_known_licenses(
+                            jurisdiction=selected_jurisdiction
+                        )
+                    )
                     # Get provider record update transaction items for jurisdiction change with license
                     provider_transaction_items = (
                         self._get_provider_record_transaction_items_for_jurisdiction_change_with_license(
