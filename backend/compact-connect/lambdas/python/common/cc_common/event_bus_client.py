@@ -2,7 +2,6 @@ import json
 from datetime import date
 from uuid import UUID
 
-
 from cc_common.config import config
 from cc_common.data_model.schema.data_event.api import (
     EncumbranceEventDetailSchema,
