@@ -1,4 +1,5 @@
 import json
+from datetime import date
 
 from cc_common.config import config
 from cc_common.data_model.schema.data_event.api import (
@@ -120,7 +121,7 @@ class EventBusClient:
         provider_id: str,
         jurisdiction: str,
         license_type_abbreviation: str,
-        effective_date: str,
+        effective_date: date,
     ):
         """
         Publish a license encumbrance event to the event bus.
@@ -150,7 +151,7 @@ class EventBusClient:
         provider_id: str,
         jurisdiction: str,
         license_type_abbreviation: str,
-        effective_date: str,
+        effective_date: date,
     ):
         """
         Publish a license encumbrance lifting event to the event bus.

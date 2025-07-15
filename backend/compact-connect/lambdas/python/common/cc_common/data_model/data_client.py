@@ -1336,6 +1336,8 @@ class DataClient:
                     'Privilege is currently active. Setting privilege into an encumbered state as part of update.'
                 )
 
+            now = config.current_standard_datetime
+
             # Create the update record
             # Use the schema to generate the update record with proper pk/sk
             privilege_update_record = PrivilegeUpdateData.create_new(
@@ -1346,7 +1348,7 @@ class DataClient:
                     'compact': adverse_action.compact,
                     'jurisdiction': adverse_action.jurisdiction,
                     'licenseType': privilege_data.licenseType,
-                    'createDate': config.current_standard_datetime,
+                    'createDate': now,
                     'effectiveDate': adverse_action.effectiveStartDate,
                     'previous': {
                         # We're relying on the schema to trim out unneeded fields
@@ -1571,6 +1573,8 @@ class DataClient:
                 )
                 transact_items.append(privilege_update_item)
 
+                now = config.current_standard_datetime
+
                 # Create privilege update record
                 privilege_update_record = PrivilegeUpdateData.create_new(
                     {
@@ -1580,7 +1584,7 @@ class DataClient:
                         'compact': compact,
                         'jurisdiction': jurisdiction,
                         'licenseType': privilege_data.licenseType,
-                        'createDate': config.current_standard_datetime,
+                        'createDate': now,
                         'effectiveDate': effective_lift_date,
                         'previous': privilege_data.to_dict(),
                         'updatedValues': {
@@ -2458,6 +2462,8 @@ class DataClient:
         transaction_items = []
 
         for privilege_data in unencumbered_privileges_associated_with_license:
+            now = config.current_standard_datetime
+
             # Create privilege update record
             privilege_update_record = PrivilegeUpdateData.create_new(
                 {
@@ -2467,7 +2473,7 @@ class DataClient:
                     'compact': compact,
                     'jurisdiction': privilege_data.jurisdiction,
                     'licenseType': privilege_data.licenseType,
-                    'createDate': config.current_standard_datetime,
+                    'createDate': now,
                     'effectiveDate': datetime.fromisoformat(effective_date),
                     'previous': privilege_data.to_dict(),
                     'updatedValues': {
@@ -2566,6 +2572,8 @@ class DataClient:
         transaction_items = []
 
         for privilege_data in matching_privileges:
+            now = config.current_standard_datetime
+
             # Create privilege update record
             privilege_update_record = PrivilegeUpdateData.create_new(
                 {
@@ -2575,7 +2583,7 @@ class DataClient:
                     'compact': compact,
                     'jurisdiction': privilege_data.jurisdiction,
                     'licenseType': privilege_data.licenseType,
-                    'createDate': config.current_standard_datetime,
+                    'createDate': now,
                     'effectiveDate': datetime.fromisoformat(effective_date),
                     'previous': privilege_data.to_dict(),
                     'updatedValues': {
