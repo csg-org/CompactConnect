@@ -349,8 +349,6 @@ class TestPublicGetProvider(TstFunction):
             expected_provider.pop('dateOfExpiration')
             expected_provider.pop('jurisdictionUploadedLicenseStatus')
             expected_provider.pop('jurisdictionUploadedCompactEligibility')
-            # TODO - remove this as part of https://github.com/csg-org/CompactConnect/issues/763 # noqa: FIX002
-            expected_provider.pop('homeJurisdictionSelection')
 
         self.assertEqual(expected_provider, provider_data)
 
