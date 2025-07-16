@@ -34,9 +34,17 @@ describe('Form mixin', async () => {
         const wrapper = await mountShallow(FormMixin);
         const component = wrapper.vm;
 
-        component.formData = { id: { value: 1 }};
+        component.formData = {
+            id: { value: 1 },
+            name: { value: ' name ' },
+        };
 
-        expect(component.formValues).to.matchPattern({ id: 1 });
+        expect(component.formValues).to.matchPattern(
+            {
+                id: 1,
+                name: 'name',
+            }
+        );
     });
     it('should get custom form values (exclude disabled by default)', async () => {
         const wrapper = await mountShallow(FormMixin);
