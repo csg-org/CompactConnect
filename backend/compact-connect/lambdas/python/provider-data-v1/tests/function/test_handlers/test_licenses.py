@@ -78,6 +78,33 @@ class TestLicenses(TstFunction):
         self.assertEqual(400, resp['statusCode'])
         self.assertEqual({'message': {'0': {'someOtherField': ['Unknown field.']}}}, json.loads(resp['body']))
 
+    def test_post_licenses_null_field_returns_error(self):
+        from handlers.licenses import post_licenses
+
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        # The user has write permission for aslp/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.write'
+        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+        with open('../common/tests/resources/api/license-post.json') as f:
+            license_data = json.load(f)
+            license_data['licenseStatusName'] = None
+        event['body'] = json.dumps([license_data, license_data])
+
+        resp = post_licenses(event, self.mock_context)
+
+        self.assertEqual(400, resp['statusCode'])
+        self.assertEqual(
+            {
+                'message': {
+                    '0': {'licenseStatusName': ['Field may not be null.']},
+                    '1': {'licenseStatusName': ['Field may not be null.']},
+                }
+            },
+            json.loads(resp['body']),
+        )
+
     def test_post_licenses_strips_whitespace_from_string_fields(self):
         """Test that whitespace is stripped from all string fields in license data."""
         from handlers.licenses import post_licenses

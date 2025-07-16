@@ -47,10 +47,21 @@ class PostLicenses:
             license_upload_role=license_upload_role,
         )
 
+        # Normally, we have two layers of request body schema validation: one at the API gateway level,
+        # and one in the lambda handler logic.
+        #
+        # However, in this case, the API gateway request validation is insufficient for two core reasons:
+        # 1. It doesn't identify the row in which the validation error occurred, making it really
+        #  difficult for state IT staff to triage which license record is invalid.
+        # 2. It doesn't always specify the field name where the validation error occurred which,
+        # combined with the missing row number, will create a miserable developer experience.
+        #
+        # For these reasons, we are not validating these requests at the API gateway level for this endpoint.
+        # The schema validation performed at the lambda layer provides a much clearer error message for the caller
+        # when validation errors occur.
         self.post_license_endpoint = self.resource.add_method(
             'POST',
             request_validator=self.api.parameter_body_validator,
-            request_models={'application/json': self.api_model.post_license_model},
             method_responses=[
                 MethodResponse(
                     status_code='200', response_models={'application/json': self.api.message_response_model}
