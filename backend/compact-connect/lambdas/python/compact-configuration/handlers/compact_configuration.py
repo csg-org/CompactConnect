@@ -152,6 +152,7 @@ def _get_staff_users_compact_configuration(event: dict, context: LambdaContext):
                 'compactOperationsTeamEmails': [],
                 'compactAdverseActionsNotificationEmails': [],
                 'compactSummaryReportNotificationEmails': [],
+                'configuredStates': [],
             }
         ).to_dict()
         # we explicitly set this value to None (null) to denote it has not been set.
@@ -188,10 +189,7 @@ def _put_compact_configuration(event: dict, context: LambdaContext):  # noqa: AR
         # Check if licenseeRegistrationEnabled is being changed from true to false
         try:
             existing_config = config.compact_configuration_client.get_compact_configuration(compact=compact)
-            if (
-                existing_config.licenseeRegistrationEnabled is True
-                and validated_data.get('licenseeRegistrationEnabled') is False
-            ):
+            if existing_config.licenseeRegistrationEnabled and not validated_data.get('licenseeRegistrationEnabled'):
                 logger.info(
                     'attempt to disable licensee registration after it was enabled.',
                     compact=compact,
@@ -211,6 +209,10 @@ def _put_compact_configuration(event: dict, context: LambdaContext):  # noqa: AR
                     'Authorize.net credentials not configured for compact. '
                     'Please upload valid Authorize.net credentials.'
                 )
+
+            _validate_configured_states_transitions(
+                existing_config.configuredStates, validated_data['configuredStates'], compact, submitting_user_id
+            )
         except CCNotFoundException as e:
             # No existing configuration, so this is the first time setting this field
             logger.info('No existing configuration, so this is the first time setting this field', compact=compact)
@@ -240,6 +242,72 @@ def _put_compact_configuration(event: dict, context: LambdaContext):  # noqa: AR
     except ValidationError as e:
         logger.info('Invalid compact configuration', compact=compact, error=e)
         raise CCInvalidRequestException('Invalid compact configuration: ' + str(e)) from e
+
+
+def _validate_configured_states_transitions(
+    existing_states: list[dict], new_states: list[dict], compact: str, submitting_user_id: str
+) -> None:
+    """
+    Validate that configuredStates transitions are allowed.
+
+    Rules:
+    1. States cannot be manually added or removed - only managed internally by the API
+    2. Only isLive status can be modified (false -> true only)
+
+    :param existing_states: Current configuredStates from the database
+    :param new_states: New configuredStates from the request
+    :param compact: The compact abbreviation for logging
+    :param submitting_user_id: The user making the request for logging
+    :raises CCInvalidRequestException: If validation fails
+    """
+
+    # Create lookup dictionaries for easier comparison
+    existing_states_by_postal = {state['postalAbbreviation']: state for state in existing_states}
+    new_states_by_postal = {state['postalAbbreviation']: state for state in new_states}
+
+    # Check for removed states
+    removed_states = set(existing_states_by_postal.keys()) - set(new_states_by_postal.keys())
+    if removed_states:
+        logger.warning(
+            'Attempt to remove states from configuredStates',
+            compact=compact,
+            submitting_user_id=submitting_user_id,
+            removed_states=list(removed_states),
+        )
+        raise CCInvalidRequestException(
+            f'States cannot be removed from configuredStates. Attempted to remove: {", ".join(sorted(removed_states))}'
+        )
+
+    # Check for added states
+    added_states = set(new_states_by_postal.keys()) - set(existing_states_by_postal.keys())
+    if added_states:
+        logger.warning(
+            'Attempt to add states to configuredStates',
+            compact=compact,
+            submitting_user_id=submitting_user_id,
+            added_states=list(added_states),
+        )
+        raise CCInvalidRequestException(
+            f'States cannot be manually added to configuredStates. Attempted to add: {", ".join(sorted(added_states))}'
+        )
+
+    # Check for isLive downgrades (true -> false)
+    for postal_abbr, existing_state in existing_states_by_postal.items():
+        if postal_abbr in new_states_by_postal:
+            new_state = new_states_by_postal[postal_abbr]
+            if existing_state['isLive'] and not new_state['isLive']:
+                logger.warning(
+                    'Attempt to change isLive from true to false',
+                    compact=compact,
+                    submitting_user_id=submitting_user_id,
+                    state=postal_abbr,
+                    existing_is_live=existing_state['isLive'],
+                    new_is_live=new_state['isLive'],
+                )
+                raise CCInvalidRequestException(
+                    f'State "{postal_abbr}" cannot be changed from live to non-live status. '
+                    f'Once a state is live (isLive: true), it cannot be reverted to non-live (isLive: false).'
+                )
 
 
 def _get_staff_users_jurisdiction_configuration(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument

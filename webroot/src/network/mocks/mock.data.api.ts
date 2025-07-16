@@ -408,6 +408,13 @@ export class DataApi {
         return wait(500).then(() => ({ success: true }));
     }
 
+    // Put Home Jurisdiction State
+    public updateHomeJurisdiction() {
+        return wait(500).then(() => ({
+            message: 'success',
+        }));
+    }
+
     // ========================================================================
     //                              EXAMPLE API
     // ========================================================================

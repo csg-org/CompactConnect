@@ -489,6 +489,7 @@ class TestDataGenerator:
             'compactAdverseActionsNotificationEmails': ['adverse@example.com'],
             'compactSummaryReportNotificationEmails': ['summary@example.com'],
             'licenseeRegistrationEnabled': True,
+            'configuredStates': [],
             'transactionFeeConfiguration': {
                 'licenseeCharges': {
                     'active': True,

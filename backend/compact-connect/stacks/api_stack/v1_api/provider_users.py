@@ -68,6 +68,7 @@ class ProviderUsers:
             data_encryption_key=persistent_stack.shared_encryption_key,
             provider_data_table=persistent_stack.provider_table,
             persistent_stack=persistent_stack,
+            provider_users_stack=provider_users_stack,
             lambda_environment=lambda_environment,
         )
 
@@ -90,11 +91,20 @@ class ProviderUsers:
         # Add the PUT method for /v1/provider-users/me/home-jurisdiction
         self._add_provider_user_me_home_jurisdiction()
 
+        # /v1/provider-users/me/email
+        self.provider_users_me_email_resource = self.provider_users_me_resource.add_resource('email')
+        self._add_provider_user_me_email()
+
+        # /v1/provider-users/me/email/verify
+        self.provider_users_me_email_verify_resource = self.provider_users_me_email_resource.add_resource('verify')
+        self._add_provider_user_me_email_verify()
+
     def _create_provider_users_handler(
         self,
         data_encryption_key: IKey,
         provider_data_table: ProviderTable,
         persistent_stack: ps.PersistentStack,
+        provider_users_stack: ProviderUsersStack,
         lambda_environment: dict,
     ) -> PythonFunction:
         stack = Stack.of(self.provider_users_resource)
@@ -113,6 +123,10 @@ class ProviderUsers:
         data_encryption_key.grant_decrypt(handler)
         provider_data_table.grant_read_write_data(handler)
         persistent_stack.provider_users_bucket.grant_read_write(handler)
+        persistent_stack.email_notification_service_lambda.grant_invoke(handler)
+        # Grant Cognito permissions for email update operations
+        provider_users_stack.provider_users.grant(handler, 'cognito-idp:AdminGetUser')
+        provider_users_stack.provider_users.grant(handler, 'cognito-idp:AdminUpdateUserAttributes')
         self.api.log_groups.append(handler.log_group)
 
         NagSuppressions.add_resource_suppressions_by_path(
@@ -182,6 +196,38 @@ class ProviderUsers:
             'PUT',
             request_validator=self.api.parameter_body_validator,
             request_models={'application/json': self.api_model.put_provider_home_jurisdiction_request_model},
+            method_responses=[
+                MethodResponse(
+                    status_code='200',
+                    response_models={'application/json': self.api_model.message_response_model},
+                ),
+            ],
+            integration=LambdaIntegration(self.provider_users_me_handler, timeout=Duration.seconds(29)),
+            request_parameters={'method.request.header.Authorization': True},
+            authorizer=self.api.provider_users_authorizer,
+        )
+
+    def _add_provider_user_me_email(self):
+        self.provider_users_me_email_resource.add_method(
+            'PATCH',
+            request_validator=self.api.parameter_body_validator,
+            request_models={'application/json': self.api_model.patch_provider_email_request_model},
+            method_responses=[
+                MethodResponse(
+                    status_code='200',
+                    response_models={'application/json': self.api_model.message_response_model},
+                ),
+            ],
+            integration=LambdaIntegration(self.provider_users_me_handler, timeout=Duration.seconds(29)),
+            request_parameters={'method.request.header.Authorization': True},
+            authorizer=self.api.provider_users_authorizer,
+        )
+
+    def _add_provider_user_me_email_verify(self):
+        self.provider_users_me_email_verify_resource.add_method(
+            'POST',
+            request_validator=self.api.parameter_body_validator,
+            request_models={'application/json': self.api_model.post_provider_email_verify_request_model},
             method_responses=[
                 MethodResponse(
                     status_code='200',

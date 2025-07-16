@@ -421,6 +421,15 @@ export class DataApi {
         return userDataApi.endMilitaryAffiliation();
     }
 
+    /**
+     * UPDATE Home Jurisdiction for Authenticated Licensee User.
+     * @param  {object}          data   The request data.
+     * @return {Promise<object>}        Server response.
+     */
+    public async updateHomeJurisdiction(data: any) {
+        return userDataApi.updateHomeJurisdiction(data);
+    }
+
     // ========================================================================
     //                              EXAMPLE API
     // ========================================================================

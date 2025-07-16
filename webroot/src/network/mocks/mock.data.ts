@@ -47,7 +47,7 @@ export const staffAccount = {
                 },
                 ky: {
                     actions: {
-                        admin: true,
+                        admin: false,
                         write: true,
                         readPrivate: true,
                         readSsn: true,
@@ -55,7 +55,7 @@ export const staffAccount = {
                 },
                 ne: {
                     actions: {
-                        admin: true,
+                        admin: false,
                         write: true,
                         readPrivate: true,
                         readSsn: true,
@@ -63,7 +63,7 @@ export const staffAccount = {
                 },
                 oh: {
                     actions: {
-                        admin: true,
+                        admin: false,
                         write: true,
                         readPrivate: true,
                         readSsn: true,
@@ -530,14 +530,7 @@ export const licensees = {
     lastKey: 'abc',
     providers: [
         {
-            homeJurisdictionSelection: {
-                dateOfSelection: '2025-02-19',
-                compact: 'octp',
-                providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
-                jurisdiction: 'co',
-                type: 'homeJurisdictionSelection',
-                dateOfUpdate: '2025-02-19'
-            },
+            currentHomeJurisdiction: 'co',
             privileges: [
                 {
                     dateOfUpdate: '2025-03-19T22:02:28+00:00',
@@ -1732,14 +1725,7 @@ export const licensees = {
             status: 'active'
         },
         {
-            homeJurisdictionSelection: {
-                dateOfSelection: '2025-02-19',
-                compact: 'octp',
-                providerId: '2',
-                jurisdiction: 'co',
-                type: 'homeJurisdictionSelection',
-                dateOfUpdate: '2025-02-19'
-            },
+            currentHomeJurisdiction: 'co',
             privileges: [
                 {
                     licenseJurisdiction: 'al',
@@ -1805,14 +1791,7 @@ export const licensees = {
             status: 'inactive'
         },
         {
-            homeJurisdictionSelection: {
-                dateOfSelection: '2025-02-19',
-                compact: 'octp',
-                providerId: '3',
-                jurisdiction: 'co',
-                type: 'homeJurisdictionSelection',
-                dateOfUpdate: '2025-02-19'
-            },
+            currentHomeJurisdiction: 'co',
             privileges: [
                 {
                     licenseJurisdiction: 'al',
@@ -1880,14 +1859,7 @@ export const licensees = {
             status: 'active'
         },
         {
-            homeJurisdictionSelection: {
-                dateOfSelection: '2025-02-19',
-                compact: 'octp',
-                providerId: '4',
-                jurisdiction: 'co',
-                type: 'homeJurisdictionSelection',
-                dateOfUpdate: '2025-02-19'
-            },
+            currentHomeJurisdiction: 'co    ',
             privileges: [
                 {
                     licenseJurisdiction: 'al',
@@ -2221,6 +2193,28 @@ export const compactConfig = {
             chargeAmount: 5,
         },
     },
+    configuredStates: [
+        {
+            postalAbbreviation: 'al',
+            isLive: false,
+        },
+        {
+            postalAbbreviation: 'co',
+            isLive: true,
+        },
+        {
+            postalAbbreviation: 'ky',
+            isLive: false,
+        },
+        {
+            postalAbbreviation: 'ne',
+            isLive: false,
+        },
+        {
+            postalAbbreviation: 'oh',
+            isLive: true,
+        },
+    ],
 };
 
 export const stateConfig = {

@@ -255,11 +255,34 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
         )
         raise CCInvalidRequestException('Registration is not currently available for the specified state.') from e
 
-    if not jurisdiction_config.licenseeRegistrationEnabled:
+    # Check if the jurisdiction is configured and live in the compact's configuredStates
+    configured_state = next(
+        (
+            configured_state
+            for configured_state in compact_config.configuredStates
+            if configured_state['postalAbbreviation'].lower() == body['jurisdiction'].lower()
+        ),
+        None,
+    )
+
+    if not configured_state:
         logger.info(
-            'Registration is not enabled for this jurisdiction',
+            'Jurisdiction not found in compact configured states',
             compact=body['compact'],
             jurisdiction=body['jurisdiction'],
+            environment=config.environment_name,
+        )
+        metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
+        raise CCInvalidRequestException(
+            f'Registration is not currently available for {jurisdiction_config.jurisdictionName}.'
+        )
+
+    if not configured_state['isLive']:
+        logger.info(
+            'Jurisdiction is not live for registration',
+            compact=body['compact'],
+            jurisdiction=body['jurisdiction'],
+            is_live=configured_state['isLive'],
             environment=config.environment_name,
         )
         metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)

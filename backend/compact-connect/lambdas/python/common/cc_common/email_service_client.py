@@ -508,3 +508,59 @@ class EmailServiceClient:
             },
         }
         return self._invoke_lambda(payload)
+
+    def send_provider_email_verification_code(
+        self,
+        compact: str,
+        provider_email: str,
+        verification_code: str,
+    ) -> dict[str, str]:
+        """
+        Send an email verification code to a provider's new email address.
+
+        :param compact: Compact name
+        :param provider_email: Email address to send the verification code to
+        :param verification_code: 4-digit verification code
+        :return: Response from the email notification service
+        """
+        payload = {
+            'compact': compact,
+            'template': 'providerEmailVerificationCode',
+            'recipientType': 'SPECIFIC',
+            'specificEmails': [
+                provider_email,
+            ],
+            'templateVariables': {
+                'verificationCode': verification_code,
+            },
+        }
+
+        return self._invoke_lambda(payload)
+
+    def send_provider_email_change_notification(
+        self,
+        compact: str,
+        old_email_address: str,
+        new_email_address: str,
+    ) -> dict[str, str]:
+        """
+        Send a notification to the old email address when a provider's email is changed.
+
+        :param compact: Compact name
+        :param old_email_address: The previous email address
+        :param new_email_address: The new email address
+        :return: Response from the email notification service
+        """
+        payload = {
+            'compact': compact,
+            'template': 'providerEmailChangeNotification',
+            'recipientType': 'SPECIFIC',
+            'specificEmails': [
+                old_email_address,
+            ],
+            'templateVariables': {
+                'newEmailAddress': new_email_address,
+            },
+        }
+
+        return self._invoke_lambda(payload)

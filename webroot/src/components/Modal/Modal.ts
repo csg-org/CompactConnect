@@ -50,7 +50,7 @@ class Modal extends Vue {
     //
     get displayTitle(): string {
         if (this.title) {
-            return this.title;
+            return this.title.trim();
         }
 
         return (this.isErrorModal) ? 'Error:' : 'Info:';

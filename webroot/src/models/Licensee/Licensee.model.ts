@@ -283,12 +283,9 @@ export class LicenseeSerializer {
             firstName: json.givenName,
             middleName: json.middleName,
             lastName: json.familyName,
-            // If the user has registered, json.homeJurisdictionSelection will be populated with the user's selected home state
-            // licenseJurisdiction is the server's best guess at their home state. Once #467 is merged we can simply use
-            // json.licenseJurisdiction as this will be updated to match the users' choice once that happens, therefor always
-            // being the best choice for this field. Also json.homeJurisdictionSelection is not available in get all responses
-            homeJurisdiction: json.homeJurisdictionSelection
-                ? new State({ abbrev: json.homeJurisdictionSelection.jurisdiction })
+            // json.homeJurisdictionSelection has been deprecated and replaced with json.currentHomeJurisdiction
+            homeJurisdiction: json.currentHomeJurisdiction
+                ? new State({ abbrev: json.currentHomeJurisdiction })
                 : new State({ abbrev: json.licenseJurisdiction }),
             // This value is updated to equal bestHomeJurisdictionLicenseMailingAddress() whenever a License record is added or updated for the user.
             // In the edge case where the user's best home state license expires this can get out of sync with that calulated value.

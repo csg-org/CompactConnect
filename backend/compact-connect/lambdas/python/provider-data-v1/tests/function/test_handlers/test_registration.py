@@ -35,6 +35,7 @@ def generate_default_compact_config_overrides():
         'compactAbbr': TEST_COMPACT_ABBR,
         'compactName': TEST_COMPACT_NAME,
         'licenseeRegistrationEnabled': True,
+        'configuredStates': [{'postalAbbreviation': MOCK_JURISDICTION_POSTAL_ABBR, 'isLive': True}],
     }
 
 
@@ -168,31 +169,72 @@ class TestProviderRegistration(TstFunction):
         )
 
     @patch('handlers.registration.verify_recaptcha')
-    def test_registration_returns_400_if_jurisdiction_is_not_enabled_for_registration(self, mock_verify_recaptcha):
-        jurisdiction_config_overrides = generate_default_jurisdiction_config_overrides()
-        # in this case, no environments are enabled for registration
-        jurisdiction_config_overrides.update({'licenseeRegistrationEnabled': False})
-        self._load_jurisdiction_configuration(overrides=jurisdiction_config_overrides)
+    def test_registration_returns_400_if_jurisdiction_configuration_not_present(self, mock_verify_recaptcha):
         mock_verify_recaptcha.return_value = True
         from handlers.registration import register_provider
 
-        response = register_provider(self._get_test_event(), self.mock_context)
-        self.assertEqual(400, response['statusCode'])
-        self.assertEqual(
-            {'message': 'Registration is not currently available for Kentucky.'}, json.loads(response['body'])
-        )
-
-    @patch('handlers.registration.verify_recaptcha')
-    def test_registration_returns_400_if_jurisdiction_is_not_configured_for_registration(self, mock_verify_recaptcha):
-        mock_verify_recaptcha.return_value = True
-        from handlers.registration import register_provider
-
+        # in this case, Ohio state admins have not specified their configuration values yet, so registration cannot
+        # be completed
         response = register_provider(self._get_test_event(body_overrides={'jurisdiction': 'oh'}), self.mock_context)
         self.assertEqual(400, response['statusCode'])
         self.assertEqual(
             {'message': 'Registration is not currently available for the specified state.'},
             json.loads(response['body']),
         )
+
+    @patch('handlers.registration.verify_recaptcha')
+    def test_registration_returns_400_if_jurisdiction_not_in_compact_configured_states(self, mock_verify_recaptcha):
+        """Test that registration is rejected if jurisdiction is not in compact's configuredStates."""
+        mock_verify_recaptcha.return_value = True
+
+        # in this case, the compact does not have the requested state in their list of configuredStates, so registration
+        # cannot be completed
+        compact_config_overrides = generate_default_compact_config_overrides()
+        compact_config_overrides.update({'configuredStates': []})
+        self._load_compact_configuration(overrides=compact_config_overrides)
+
+        from handlers.registration import register_provider
+
+        response = register_provider(self._get_test_event(), self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        self.assertEqual(
+            {'message': 'Registration is not currently available for Kentucky.'},
+            json.loads(response['body']),
+        )
+
+    @patch('handlers.registration.verify_recaptcha')
+    def test_registration_returns_400_if_jurisdiction_not_live_in_configured_states(self, mock_verify_recaptcha):
+        """Test that registration is rejected if jurisdiction is not live in compact's configuredStates."""
+        mock_verify_recaptcha.return_value = True
+
+        # Update compact configuration to have jurisdiction but not live
+        compact_config_overrides = generate_default_compact_config_overrides()
+        compact_config_overrides.update(
+            {'configuredStates': [{'postalAbbreviation': MOCK_JURISDICTION_POSTAL_ABBR, 'isLive': False}]}
+        )
+        self._load_compact_configuration(overrides=compact_config_overrides)
+
+        from handlers.registration import register_provider
+
+        response = register_provider(self._get_test_event(), self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        self.assertEqual(
+            {'message': 'Registration is not currently available for Kentucky.'},
+            json.loads(response['body']),
+        )
+
+    @patch('handlers.registration.verify_recaptcha')
+    def test_registration_succeeds_if_jurisdiction_is_live_in_configured_states(self, mock_verify_recaptcha):
+        """Test that registration succeeds if jurisdiction is live in compact's configuredStates."""
+        mock_verify_recaptcha.return_value = True
+        self._add_mock_provider_records()
+
+        # Default setup already has jurisdiction as live in configuredStates
+        from handlers.registration import register_provider
+
+        response = register_provider(self._get_test_event(), self.mock_context)
+        self.assertEqual(200, response['statusCode'])
+        self.assertEqual({'message': 'request processed'}, json.loads(response['body']))
 
     @patch('handlers.registration.verify_recaptcha')
     def test_registration_returns_403_if_recaptcha_fails(self, mock_verify_recaptcha):

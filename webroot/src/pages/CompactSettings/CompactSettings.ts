@@ -10,6 +10,7 @@ import { AuthTypes } from '@/app.config';
 import Section from '@components/Section/Section.vue';
 import PaymentProcessorConfig from '@components/PaymentProcessorConfig/PaymentProcessorConfig.vue';
 import CompactSettingsConfig from '@components/CompactSettingsConfig/CompactSettingsConfig.vue';
+import StateSettingsList from '@components/StateSettingsList/StateSettingsList.vue';
 import { Compact } from '@models/Compact/Compact.model';
 import { CompactPermission, StatePermission } from '@models/StaffUser/StaffUser.model';
 
@@ -17,8 +18,9 @@ import { CompactPermission, StatePermission } from '@models/StaffUser/StaffUser.
     name: 'CompactSettings',
     components: {
         Section,
-        PaymentProcessorConfig,
         CompactSettingsConfig,
+        PaymentProcessorConfig,
+        StateSettingsList,
     }
 })
 export default class CompactSettings extends Vue {
@@ -89,7 +91,7 @@ export default class CompactSettings extends Vue {
     }
 
     get shouldShowStateList(): boolean {
-        return (this.isCompactAdmin && this.isStateAdminAny) || this.isStateAdminMultiple;
+        return this.isCompactAdmin || this.isStateAdminMultiple;
     }
 
     //
