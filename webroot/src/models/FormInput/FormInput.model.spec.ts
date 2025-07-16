@@ -27,6 +27,7 @@ describe('FormInput model', () => {
         expect(formInput.isLabelHTML).to.equal(false);
         expect(formInput.placeholder).to.equal('');
         expect(formInput.value).to.equal('');
+        expect(formInput.altValidateValue).to.equal('');
         expect(formInput.valueOptions).to.be.an('array').that.is.empty;
         expect(formInput.autocomplete).to.equal('on');
         expect(formInput.fileConfig).to.be.an('object');
@@ -130,6 +131,7 @@ describe('FormInput model', () => {
         expect(formInput.isLabelHTML).to.equal(values.isLabelHTML);
         expect(formInput.placeholder).to.equal(values.placeholder);
         expect(formInput.value).to.equal(values.value);
+        expect(formInput.altValidateValue).to.equal('');
         expect(formInput.valueOptions).to.be.an('array').with.length(1);
         expect(formInput.valueOptions).to.have.members(values.valueOptions);
         expect(formInput.autocomplete).to.equal(values.autocomplete);
@@ -199,7 +201,7 @@ describe('FormInput model', () => {
         formInput.enforceLength();
         expect(formInput.value).to.equal('');
     });
-    it('should validate with altValue parameter', () => {
+    it('should validate with altValidateValue property', () => {
         const formInput = new FormInput({
             validation: Joi.string().min(3).max(10),
             value: 'test',
@@ -211,29 +213,40 @@ describe('FormInput model', () => {
         expect(formInput.isValid).to.equal(true);
         expect(formInput.errorMessage).to.equal('');
 
-        // Test validation with altValue that passes validation
-        formInput.validate('valid');
+        // Test validation with altValidateValue that passes validation
+        formInput.altValidateValue = 'valid';
+        formInput.validate();
         expect(formInput.isValid).to.equal(true);
         expect(formInput.errorMessage).to.equal('');
 
-        // Test validation with altValue that fails validation (too short)
-        formInput.validate('ab');
+        // Test validation with altValidateValue that fails validation (too short)
+        formInput.altValidateValue = 'ab';
+        formInput.validate();
         expect(formInput.isValid).to.equal(false);
         expect(formInput.errorMessage).to.equal('"value" length must be at least 3 characters long');
 
-        // Test validation with altValue that fails validation (too long)
-        formInput.validate('thisiswaytoolong');
+        // Test validation with altValidateValue that fails validation (too long)
+        formInput.altValidateValue = 'thisiswaytoolong';
+        formInput.validate();
         expect(formInput.isValid).to.equal(false);
         expect(formInput.errorMessage).to.equal('"value" length must be less than or equal to 10 characters long');
 
-        // Test validation with altValue that is undefined (should use default value)
-        formInput.validate(undefined);
+        // Test validation with altValidateValue that is empty (should use default value)
+        formInput.altValidateValue = '';
+        formInput.validate();
         expect(formInput.isValid).to.equal(true);
         expect(formInput.errorMessage).to.equal('');
 
-        // Test validation with altValue that is null
-        formInput.validate(null);
-        expect(formInput.isValid).to.equal(false);
-        expect(formInput.errorMessage).to.equal('"value" must be a string');
+        // Test validation with altValidateValue that is null
+        formInput.altValidateValue = null as any;
+        formInput.validate();
+        expect(formInput.isValid).to.equal(true);
+        expect(formInput.errorMessage).to.equal('');
+
+        // Test validation with altValidateValue that is undefined
+        formInput.altValidateValue = undefined as any;
+        formInput.validate();
+        expect(formInput.isValid).to.equal(true);
+        expect(formInput.errorMessage).to.equal('');
     });
 });

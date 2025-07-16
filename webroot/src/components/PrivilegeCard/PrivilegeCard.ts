@@ -660,6 +660,7 @@ class PrivilegeCard extends mixins(MixinForm) {
         } else if (this.isEncumberPrivilegeModalDisplayed) {
             this.formData.encumberModalNpdbCategory.value = this.npdbCategoryOptions[1]?.value;
             this.formData.encumberModalStartDate.value = moment().format('YYYY-MM-DD');
+            this.formData.encumberModalStartDate.altValidateValue = moment().format('MM/DD/YYYY');
             this.validateAll({ asTouched: true });
         } else if (this.isUnencumberPrivilegeModalDisplayed) {
             this.selectedEncumbrances.forEach((selected) => {
@@ -669,6 +670,7 @@ class PrivilegeCard extends mixins(MixinForm) {
                 this.clickUnencumberItem(adverseAction);
                 await nextTick();
                 this.formData[`adverse-action-end-date-${adverseAction.id}`].value = moment().format('YYYY-MM-DD');
+                this.formData[`adverse-action-end-date-${adverseAction.id}`].altValidateValue = moment().format('MM/DD/YYYY');
             }));
             this.validateAll({ asTouched: true });
         }

@@ -90,14 +90,16 @@ class InputDate extends mixins(MixinInput) {
     //
     @Watch('formInput.value')
     onFormInputValueChange(newValue: string): void {
-        // Only update if this is actually a new datepicker selection
+        // Only update if this is actually a new value
         if (newValue !== this.lastDatePickerValue && newValue !== this.dateRaw) {
             if (!newValue) {
                 this.localValue = '';
+                this.formInput.altValidateValue = '';
             } else {
                 const newDateInput = serverFormatToDateInput(newValue);
 
                 this.localValue = formatDateInput(newDateInput);
+                this.formInput.altValidateValue = this.localValue;
             }
 
             // Only update lastDatePickerValue for genuine datepicker changes
@@ -134,7 +136,8 @@ class InputDate extends mixins(MixinInput) {
         // Update form value with slight delay to prevent VueDatePicker conflicts
         this.$nextTick(() => {
             this.formInput.value = this.dateRaw;
-            this.formInput.validate(this.localValue);
+            this.formInput.altValidateValue = this.localValue;
+            this.formInput.validate();
         });
 
         // Update previous length for next comparison
@@ -146,8 +149,16 @@ class InputDate extends mixins(MixinInput) {
 
         if (formInput?.value === null) {
             formInput.value = '';
-            formInput.validate(this.localValue);
+        } else if (formInput?.value) {
+            // When a date is selected from the datepicker, update localValue first
+            const newDateInput = serverFormatToDateInput(formInput.value);
+
+            this.localValue = formatDateInput(newDateInput);
+            this.lastDatePickerValue = formInput.value;
         }
+
+        formInput.altValidateValue = this.localValue;
+        formInput.validate();
     }
 
     focus(): void {
@@ -179,7 +190,8 @@ class InputDate extends mixins(MixinInput) {
         }
 
         this.formInput.isTouched = true;
-        this.formInput.validate(this.localValue);
+        this.formInput.altValidateValue = this.localValue;
+        this.formInput.validate();
     }
 
     blur(): void {
@@ -190,7 +202,8 @@ class InputDate extends mixins(MixinInput) {
         }
 
         this.formInput.isTouched = true;
-        this.formInput.validate(this.localValue);
+        this.formInput.altValidateValue = this.localValue;
+        this.formInput.validate();
     }
 }
 
