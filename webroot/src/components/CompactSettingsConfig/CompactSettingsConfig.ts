@@ -142,7 +142,7 @@ class CompactSettingsConfig extends mixins(MixinForm) {
             privilegeTransactionFee: new FormInput({
                 id: 'privilege-transaction-fee',
                 name: 'privilege-transaction-fee',
-                label: computed(() => this.$t('compact.privilegeTransactionFee')),
+                label: computed(() => this.$t('compact.stateTransactionFee')),
                 validation: Joi.number().min(0).messages(this.joiMessages.currency),
                 value: this.initialCompactConfig?.transactionFeeConfiguration?.licenseeCharges?.chargeAmount,
             }),

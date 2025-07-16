@@ -599,6 +599,8 @@
         "adminFee": "Administración Cuota",
         "jurisdictionFee": "Jurisdicción Cuota",
         "jurisdictionFeeMilitary": "Jurisdicción Cuota (Militar)",
+        "stateFee": "Cuota Estatal",
+        "stateFeeMilitary": "Cuota Estatal (Militar)",
         "disciplineStatus": "Estado de disciplina",
         "jurisprudenceExplanationText": "Doy fe de haber completado el examen de jurisprudencia requerido.",
         "scopeAttestTitle": "Alcance de la certificación de práctica",
