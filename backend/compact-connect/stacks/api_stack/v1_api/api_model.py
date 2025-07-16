@@ -174,7 +174,6 @@ class ApiModel:
                         'homeAddressPostalCode',
                         'licenseType',
                         'dateOfIssuance',
-                        'dateOfRenewal',
                         'dateOfExpiration',
                         'licenseStatus',
                         'compactEligibility',
@@ -1344,23 +1343,6 @@ class ApiModel:
                             **self._common_privilege_properties,
                         },
                     ),
-                ),
-                'homeJurisdictionSelection': JsonSchema(
-                    type=JsonSchemaType.OBJECT,
-                    properties={
-                        'type': JsonSchema(type=JsonSchemaType.STRING, enum=['homeJurisdictionSelection']),
-                        'compact': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.node.get_context('compacts')),
-                        'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
-                        'jurisdiction': JsonSchema(
-                            type=JsonSchemaType.STRING, enum=self.stack.node.get_context('jurisdictions')
-                        ),
-                        'dateOfSelection': JsonSchema(
-                            type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
-                        ),
-                        'dateOfUpdate': JsonSchema(
-                            type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
-                        ),
-                    },
                 ),
                 'militaryAffiliations': JsonSchema(
                     type=JsonSchemaType.ARRAY,

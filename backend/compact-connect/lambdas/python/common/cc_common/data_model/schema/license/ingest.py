@@ -82,6 +82,6 @@ class SanitizedLicenseIngestDataEventSchema(ForgivingSchema):
     licenseStatus = ActiveInactive(required=True, allow_none=False)
     compactEligibility = CompactEligibility(required=True, allow_none=False)
     dateOfIssuance = Date(required=True, allow_none=False)
-    dateOfRenewal = Date(required=True, allow_none=False)
+    dateOfRenewal = Date(required=False, allow_none=False)
     dateOfExpiration = Date(required=True, allow_none=False)
     eventTime = DateTime(required=True, allow_none=False)
