@@ -139,12 +139,13 @@ export class FormInput implements InterfaceFormInput {
         }
     }
 
-    public validate(): void {
+    public validate(altValue?: any): void {
         // @TODO: Better typing for Joi schemas
         const { validation } = this;
+        const value = (altValue !== undefined) ? altValue : this.value;
 
         if (validation && (validation as any).validate) {
-            const result = (validation as any).validate(this.value);
+            const result = (validation as any).validate(value);
 
             if (result.error) {
                 this.isValid = false;
