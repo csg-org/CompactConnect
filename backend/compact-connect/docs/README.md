@@ -36,7 +36,7 @@ The following table describes all available fields for the license CSV file. Req
 | dateOfBirth* | Provider's date of birth | YYYY-MM-DD | 1980-01-31 |
 | dateOfExpiration* | License expiration date | YYYY-MM-DD | 2025-12-31 |
 | dateOfIssuance* | Date when license was originally issued | YYYY-MM-DD | 2020-01-01 |
-| dateOfRenewal* | Most recent license renewal date | YYYY-MM-DD | 2023-01-01 |
+| dateOfRenewal | Most recent license renewal date | YYYY-MM-DD | 2023-01-01 |
 | familyName* | Provider's family/last name | String (max 100 chars) | Smith |
 | givenName* | Provider's given/first name | String (max 100 chars) | John |
 | homeAddressCity* | City of provider's home address | String (max 100 chars) | Springfield |

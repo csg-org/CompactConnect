@@ -159,11 +159,5 @@
       "dateOfUpload": "2024-11-08T23:59:59+00:00",
       "dateOfUpdate": "2024-11-08T23:59:59+00:00"
    }
-  ],
-  "homeJurisdictionSelection": {
-    "type": "homeJurisdictionSelection",
-    "compact": "aslp",
-    "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
-    "jurisdiction": "oh"
-  }
+  ]
 }
