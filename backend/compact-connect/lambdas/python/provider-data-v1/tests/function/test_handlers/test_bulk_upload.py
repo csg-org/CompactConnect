@@ -106,3 +106,82 @@ class TestProcessObjects(TstFunction):
         for message in messages:
             message_data = json.loads(message.body)
             self.assertEqual(csv_licenses[message_data['licenseNumber']], message_data)
+
+    def test_bulk_upload_strips_whitespace_from_string_fields(self):
+        """Test that whitespace is stripped from all string fields in CSV data."""
+        from handlers.bulk_upload import parse_bulk_upload_file
+
+        # Create CSV content with whitespace in string fields
+        csv_content = (
+            'ssn,npi,licenseNumber,givenName,middleName,familyName,suffix,dateOfBirth,dateOfIssuance'
+            ',dateOfRenewal,dateOfExpiration,licenseStatus,compactEligibility,homeAddressStreet1'
+            ',homeAddressStreet2,homeAddressCity,homeAddressState,homeAddressPostalCode'
+            ',emailAddress,phoneNumber,licenseType,licenseStatusName\n'
+            '123-45-6789,1234567890,'
+            '  LICENSE123  ,'
+            '  John  ,'
+            '  Middle  ,'
+            '  Doe  ,'
+            '  Jr.  ,'
+            '1990-01-01,'
+            '2020-01-01,'
+            '2021-01-01,'
+            '2023-01-01,'
+            '  active  ,'
+            '  eligible  ,'
+            '  123 Main St  ,'
+            '  Apt 1  ,'
+            '  Columbus  ,'
+            '  OH  ,'
+            '  43215  ,'
+            '  test@example.com,'
+            '+15551234567,'
+            '  audiologist  ,'
+            '  Active  '
+        )
+
+        # Upload the CSV content directly to the mock S3 bucket
+        object_key = f'aslp/oh/{uuid4().hex}'
+        self._bucket.put_object(Key=object_key, Body=csv_content)
+
+        # Simulate the s3 bucket event
+        with open('../common/tests/resources/put-event.json') as f:
+            event = json.load(f)
+
+        event['Records'][0]['s3']['bucket'] = {
+            'name': self._bucket.name,
+            'arn': f'arn:aws:s3:::{self._bucket.name}',
+            'ownerIdentity': {'principalId': 'ASDFG123'},
+        }
+        event['Records'][0]['s3']['object']['key'] = object_key
+
+        parse_bulk_upload_file(event, self.mock_context)
+
+        # Verify that one message was sent to the preprocessing queue
+        messages = self._license_preprocessing_queue.receive_messages(MaxNumberOfMessages=10)
+        self.assertEqual(1, len(messages))
+
+        message_data = json.loads(messages[0].body)
+
+        # Verify that whitespace was stripped from all string fields
+        self.assertEqual('LICENSE123', message_data['licenseNumber'])  # Should be trimmed
+        self.assertEqual('John', message_data['givenName'])  # Should be trimmed
+        self.assertEqual('Middle', message_data['middleName'])  # Should be trimmed
+        self.assertEqual('Doe', message_data['familyName'])  # Should be trimmed
+        self.assertEqual('Jr.', message_data['suffix'])  # Should be trimmed
+        self.assertEqual('123 Main St', message_data['homeAddressStreet1'])  # Should be trimmed
+        self.assertEqual('Apt 1', message_data['homeAddressStreet2'])  # Should be trimmed
+        self.assertEqual('Columbus', message_data['homeAddressCity'])  # Should be trimmed
+        self.assertEqual('OH', message_data['homeAddressState'])  # Should be trimmed
+        self.assertEqual('43215', message_data['homeAddressPostalCode'])  # Should be trimmed
+        self.assertEqual('test@example.com', message_data['emailAddress'])  # Should be trimmed
+        self.assertEqual('audiologist', message_data['licenseType'])  # Should be trimmed
+        self.assertEqual('Active', message_data['licenseStatusName'])  # Should be trimmed
+
+        # Verify that other fields remain unchanged
+        self.assertEqual('aslp', message_data['compact'])
+        self.assertEqual('oh', message_data['jurisdiction'])
+        self.assertEqual('123-45-6789', message_data['ssn'])
+        self.assertEqual('1234567890', message_data['npi'])
+        self.assertEqual('active', message_data['licenseStatus'])
+        self.assertEqual('eligible', message_data['compactEligibility'])

@@ -33,7 +33,6 @@ class TestPostLicenseApi(TestApi):
         self.assertEqual(post_licenses_handler['Handler'], 'handlers.licenses.post_licenses')
 
         # Capture model logical IDs for verification
-        request_model_logical_id_capture = Capture()
         response_model_logical_id_capture = Capture()
 
         # Ensure the POST method is configured correctly
@@ -49,9 +48,6 @@ class TestPostLicenseApi(TestApi):
                         api_stack.api.v1_api.post_licenses.post_license_handler.node.default_child,
                     ),
                 ),
-                'RequestModels': {
-                    'application/json': {'Ref': request_model_logical_id_capture},
-                },
                 'MethodResponses': [
                     {
                         'ResponseModels': {'application/json': {'Ref': response_model_logical_id_capture}},
@@ -59,17 +55,6 @@ class TestPostLicenseApi(TestApi):
                     },
                 ],
             },
-        )
-
-        # Verify request model schema
-        request_model = TestApi.get_resource_properties_by_logical_id(
-            request_model_logical_id_capture.as_string(),
-            api_stack_template.find_resources(CfnModel.CFN_RESOURCE_TYPE_NAME),
-        )
-        self.compare_snapshot(
-            request_model['Schema'],
-            'POST_LICENSES_REQUEST_SCHEMA',
-            overwrite_snapshot=False,
         )
 
         # Verify response model schema

@@ -10,7 +10,7 @@ from marshmallow.validate import Length
 from cc_common.config import config
 from cc_common.data_model.schema.adverse_action.api import AdverseActionGeneralResponseSchema
 from cc_common.data_model.schema.base_record import ForgivingSchema, StrictSchema
-from cc_common.data_model.schema.common import ActiveInactiveStatus, CompactEligibilityStatus
+from cc_common.data_model.schema.common import ActiveInactiveStatus, CCRequestSchema, CompactEligibilityStatus
 from cc_common.data_model.schema.fields import (
     ActiveInactive,
     Compact,
@@ -23,7 +23,7 @@ from cc_common.data_model.schema.fields import (
 )
 
 
-class LicensePostRequestSchema(StrictSchema):
+class LicensePostRequestSchema(CCRequestSchema, StrictSchema):
     """
     Schema for license data as posted by a board staff-user
 

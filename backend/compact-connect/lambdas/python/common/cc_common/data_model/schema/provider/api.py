@@ -1,6 +1,5 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
-from marshmallow import Schema
-from marshmallow.fields import Date, Email, List, Nested, Raw, String
+from marshmallow.fields import Date, Email, Integer, List, Nested, Raw, String
 from marshmallow.validate import Length, Regexp
 
 from cc_common.data_model.schema.base_record import ForgivingSchema
@@ -105,7 +104,7 @@ class ProviderPublicResponseSchema(ForgivingSchema):
 
 
 # We set this to a strict schema, to avoid extra values from entering the system.
-class ProviderRegistrationRequestSchema(Schema):
+class ProviderRegistrationRequestSchema(CCRequestSchema):
     """
     Schema for provider registration requests.
 
@@ -125,6 +124,48 @@ class ProviderRegistrationRequestSchema(Schema):
     licenseType = String(required=True, allow_none=False)
     compact = String(required=True, allow_none=False)
     token = String(required=True, allow_none=False)
+
+
+class QueryProvidersRequestSchema(CCRequestSchema):
+    """
+    Schema for query providers requests.
+
+    This schema is used to validate incoming requests to both the staff and public query providers API endpoints.
+    It corresponds to the V1QueryProvidersRequestModel in the API model.
+
+    Serialization direction:
+    API -> load() -> Python
+    """
+
+    class QuerySchema(CCRequestSchema):
+        """
+        Nested schema for the query object within the request.
+        """
+
+        providerId = String(required=False, allow_none=False, validate=Length(min=1))
+        jurisdiction = Jurisdiction(required=False, allow_none=False)
+        givenName = String(required=False, allow_none=False, validate=Length(min=1, max=100))
+        familyName = String(required=False, allow_none=False, validate=Length(min=1, max=100))
+
+    class PaginationSchema(ForgivingSchema):
+        """
+        Nested schema for the pagination object within the request.
+        """
+
+        lastKey = String(required=False, allow_none=False, validate=Length(min=1, max=1024))
+        pageSize = Integer(required=False, allow_none=False)
+
+    class SortingSchema(ForgivingSchema):
+        """
+        Nested schema for the sorting object within the request.
+        """
+
+        key = String(required=False, allow_none=False)
+        direction = String(required=False, allow_none=False)
+
+    query = Nested(QuerySchema, required=True, allow_none=False)
+    pagination = Nested(PaginationSchema, required=False, allow_none=False)
+    sorting = Nested(SortingSchema, required=False, allow_none=False)
 
 
 class ProviderEmailUpdateRequestSchema(CCRequestSchema):
