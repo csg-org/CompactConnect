@@ -94,7 +94,7 @@ class TestCognitoBackup(TstAppABC, TestCase):
                                     if stack is persistent_stack
                                     else {
                                         'Fn::ImportValue': Match.string_like_regexp(
-                                            r'Sandbox-PersistentStack:ExportsOutputRefAlarmTopic.*'
+                                            r'Test-PersistentStack:ExportsOutputRefAlarmTopic.*'
                                         )
                                     }
                                 )
