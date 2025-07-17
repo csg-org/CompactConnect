@@ -10,8 +10,8 @@
   "source_regions": [
     "us-east-1"
   ],
-  "backup_vault_name": "CompactConnectBackupVault",
-  "ssn_backup_vault_name": "CompactConnectBackupVault-SSN",
+  "backup_vault_name": "CompactConnect-<test | prod>-BackupVault",
+  "ssn_backup_vault_name": "CompactConnect-<test | prod>-SSNBackupVault",
   "tags": {
     "Project": "CompactConnect",
     "Environment": "Backups"
