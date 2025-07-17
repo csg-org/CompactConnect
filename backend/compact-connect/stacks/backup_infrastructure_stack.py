@@ -27,8 +27,8 @@ class BackupInfrastructureStack(NestedStack):
     This stack provides the local backup infrastructure needed for CompactConnect
     data retention, including backup vaults, KMS keys, and IAM roles. Each
     environment account manages its own complete backup infrastructure, with
-    copy actions replicating backups to the cross-account destination vaults
-    created by the backup account stack.
+    copy actions replicating backups to the environment-specific cross-account
+    destination vaults created by the backup account stack.
 
     Resources Created:
     - Local backup vaults (general and SSN-specific)

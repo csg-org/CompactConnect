@@ -16,7 +16,7 @@ class BackupAccountStack(Stack):
     """
     Stack deployed to the backup account that creates the cross-account backup infrastructure
     for CompactConnect data retention. This serves as the secure destination for backups from
-    all environment accounts.
+    a specific environment account.
 
     Creates:
     - Cross-account backup vaults (general and SSN-specific)

@@ -8,11 +8,11 @@ class BackupsApp(App):
         """
         An app for deploying data retention backup destination infrastructure in the backup account.
 
-        This application creates the centralized backup infrastructure that receives and stores
-        backup copies from CompactConnect environment accounts:
+        This application creates the environment-specific backup infrastructure that receives and stores
+        backup copies from a specific CompactConnect environment account:
         - Cross-account backup vaults (general and SSN-specific)
         - Customer-managed KMS keys for backup encryption
-        - Organization-level access policies for secure cross-account backup operations
+        - Environment-specific access policies for secure cross-account backup operations
 
         Environment account backup infrastructure (local vaults, IAM roles, backup plans)
         is managed by the CompactConnect application deployment.
