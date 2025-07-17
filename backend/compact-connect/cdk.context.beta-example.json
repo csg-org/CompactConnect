@@ -12,6 +12,7 @@
         "account_id": "222233334444",
         "region": "us-east-1",
         "domain_name": "beta.compactconnect.org",
+        "backup_enabled": false,
         "recaptcha_public_key": "123-KFEUsjehfuejILDVUKkRnAF9SSzb8o9uv5lY7Ih",
         "robots_meta": "noindex,nofollow",
         "notifications": {
