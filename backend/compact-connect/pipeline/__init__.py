@@ -617,6 +617,9 @@ class ProdBackendPipelineStack(BaseBackendPipelineStack):
             **kwargs,
         )
 
+        if not self.backup_config or not self.ssm_context['environments'][PROD_ENVIRONMENT_NAME].get('backup_enabled'):
+            raise ValueError('Backups must be enabled for production environment.')
+
         self.prod_pipeline = BackendPipeline(
             self,
             'ProdBackendPipeline',

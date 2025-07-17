@@ -149,6 +149,15 @@ class SSNTable(Table):
         else:
             self.backup_plan = None
             self.backup_service_role = None
+            NagSuppressions.add_resource_suppressions(
+                self,
+                suppressions=[
+                    {
+                        'id': 'HIPAA.Security-DynamoDBInBackupPlan',
+                        'reason': 'This non-production environment has backups disabled intentionally',
+                    },
+                ],
+            )
 
         self._configure_access()
 

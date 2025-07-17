@@ -22,7 +22,7 @@ class TestCognitoBackup(TstAppABC, TestCase):
     def get_context(cls):
         with open('cdk.json') as f:
             context = json.load(f)['context']
-        with open('cdk.context.sandbox-example.json') as f:
+        with open('cdk.context.test-example.json') as f:
             context.update(json.load(f))
 
         # Suppresses lambda bundling for tests
@@ -32,16 +32,16 @@ class TestCognitoBackup(TstAppABC, TestCase):
 
     def test_cognito_backup_created(self):
         """Test that the Cognito backup bucket is created with proper configuration."""
-        persistent_stack = self.app.sandbox_backend_stage.persistent_stack
-        provider_users_stack = self.app.sandbox_backend_stage.provider_users_stack
+        persistent_stack = self.app.test_backend_pipeline_stack.test_stage.persistent_stack
+        provider_users_stack = self.app.test_backend_pipeline_stack.test_stage.provider_users_stack
 
         self.assertIsInstance(persistent_stack.staff_users.backup_system, CognitoUserBackup)
         self.assertIsInstance(provider_users_stack.provider_users.backup_system, CognitoUserBackup)
 
     def test_cognito_backup_lambda_created(self):
         """Test that the Cognito backup Lambda function is created with proper configuration."""
-        persistent_stack = self.app.sandbox_backend_stage.persistent_stack
-        provider_users_stack = self.app.sandbox_backend_stage.provider_users_stack
+        persistent_stack = self.app.test_backend_pipeline_stack.test_stage.persistent_stack
+        provider_users_stack = self.app.test_backend_pipeline_stack.test_stage.provider_users_stack
 
         for stack in [persistent_stack, provider_users_stack]:
             stack_template = Template.from_stack(stack)

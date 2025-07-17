@@ -74,7 +74,6 @@ class ProviderUsersBucket(Bucket):
         else:
             self.backup_plan = None
 
-
         QueryDefinition(
             self,
             'RuntimeQuery',

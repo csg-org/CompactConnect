@@ -274,7 +274,12 @@ class TstAppABC(ABC):
         # Check condition structure but allow flexible backup role reference
         self.assertIn('StringNotEquals', actual_second_stmt['Condition'])
         self.assertIn('aws:PrincipalArn', actual_second_stmt['Condition']['StringNotEquals'])
-        self.assertEqual(3, len(actual_second_stmt['Condition']['StringNotEquals']['aws:PrincipalArn']))
+        if persistent_stack.environment_context['backup_enabled']:
+            # if backup is enabled, we add an additional principle arn for the backup role to the SSN policy to
+            # perform backups on data
+            self.assertEqual(4, len(actual_second_stmt['Condition']['StringNotEquals']['aws:PrincipalArn']))
+        else:
+            self.assertEqual(3, len(actual_second_stmt['Condition']['StringNotEquals']['aws:PrincipalArn']))
         self.assertEqual(
             expected_policy['Statement'][1]['Condition']['StringNotEquals']['aws:PrincipalServiceName'],
             actual_second_stmt['Condition']['StringNotEquals']['aws:PrincipalServiceName'],
@@ -305,7 +310,7 @@ class TstAppABC(ABC):
         # - staff cognito user backup
         # Not the provider cognito user backup, since it is in a separate stack
         # Every other environment should be 0
-        
+
         if persistent_stack.environment_context['backup_enabled']:
             persistent_stack_template.resource_count_is(CfnBackupPlan.CFN_RESOURCE_TYPE_NAME, 8)
             persistent_stack_template.resource_count_is(CfnBackupSelection.CFN_RESOURCE_TYPE_NAME, 8)
@@ -324,7 +329,7 @@ class TstAppABC(ABC):
         else:
             persistent_stack_template.resource_count_is(CfnBackupPlan.CFN_RESOURCE_TYPE_NAME, 0)
             persistent_stack_template.resource_count_is(CfnBackupSelection.CFN_RESOURCE_TYPE_NAME, 0)
-            
+
             # Verify that backup plans are None when backups are disabled
             self.assertIsNone(persistent_stack.provider_table.backup_plan)
             self.assertIsNone(persistent_stack.ssn_table.backup_plan)

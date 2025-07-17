@@ -2,6 +2,7 @@ from aws_cdk import RemovalPolicy
 from aws_cdk.aws_backup import BackupResource
 from aws_cdk.aws_dynamodb import Attribute, AttributeType, BillingMode, Table, TableEncryption
 from aws_cdk.aws_kms import IKey
+from cdk_nag import NagSuppressions
 from common_constructs.backup_plan import CCBackupPlan
 from constructs import Construct
 
@@ -50,3 +51,12 @@ class TransactionHistoryTable(Table):
             )
         else:
             self.backup_plan = None
+            NagSuppressions.add_resource_suppressions(
+                self,
+                suppressions=[
+                    {
+                        'id': 'HIPAA.Security-DynamoDBInBackupPlan',
+                        'reason': 'This non-production environment has backups disabled intentionally',
+                    },
+                ],
+            )

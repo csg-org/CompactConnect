@@ -148,3 +148,12 @@ class DataEventTable(Table):
             )
         else:
             self.backup_plan = None
+            NagSuppressions.add_resource_suppressions(
+                self,
+                suppressions=[
+                    {
+                        'id': 'HIPAA.Security-DynamoDBInBackupPlan',
+                        'reason': 'This non-production environment has backups disabled intentionally',
+                    },
+                ],
+            )
