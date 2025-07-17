@@ -107,7 +107,7 @@ describe('AdverseAction model', () => {
     });
     it('should create an AdverseAction model with specific values (endDate but no startDate)', () => {
         const data = {
-            endDate: moment().format(serverDateFormat),
+            endDate: moment().add(1, 'day').format(serverDateFormat),
         };
         const adverseAction = new AdverseAction(data);
 
@@ -118,6 +118,21 @@ describe('AdverseAction model', () => {
 
         // Test methods
         expect(adverseAction.isActive()).to.equal(true);
+    });
+    it('should create an AdverseAction model with specific values (endDate of today should count as lifted)', () => {
+        const data = {
+            startDate: moment().format(serverDateFormat),
+            endDate: moment().format(serverDateFormat),
+        };
+        const adverseAction = new AdverseAction(data);
+
+        // Test field values
+        expect(adverseAction).to.be.an.instanceof(AdverseAction);
+        expect(adverseAction.startDate).to.equal(data.startDate);
+        expect(adverseAction.endDate).to.equal(data.endDate);
+
+        // Test methods
+        expect(adverseAction.isActive()).to.equal(false);
     });
     it('should create an AdverseAction model with specific values through serializer', () => {
         const data = {

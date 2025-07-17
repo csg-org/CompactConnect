@@ -140,6 +140,11 @@
                                     :preventMinMaxNavigation="true"
                                     :textInput="{ format: 'MM/dd/yyyy', openMenu: false }"
                                     :startDate="new Date()"
+                                    position="right"
+                                    :teleport="true"
+                                    @open="((formInput) => focusTrapTeleportedDatepicker(formInput, true))"
+                                    @close="((formInput) => focusTrapTeleportedDatepicker(formInput, false))"
+                                    @keyup.esc.stop
                                 />
                             </div>
                             </div>

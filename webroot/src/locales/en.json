@@ -632,7 +632,7 @@
         "encumber": "Encumber",
         "encumbered": "Encumbered",
         "npdbCategoryLabel": "NPDB category",
-        "encumberStartDate": "Beginning of adverse action",
+        "encumberStartDate": "Beginning of encumbrance",
         "confirmLicenseEncumberTitle": "Are you sure you want to encumber this license?",
         "confirmLicenseEncumberSubtext": "The practitioner will no longer be able to use this license.",
         "confirmLicenseEncumberSubmit": "Yes, encumber license",
