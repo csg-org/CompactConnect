@@ -107,14 +107,14 @@ class CompactSettingsConfig extends mixins(MixinForm) {
             this.initFormInputs();
 
             // Format existing values
-            const { compactFee, privilegeTransactionFee } = this.formData;
+            const { compactFee, stateTransactionFee } = this.formData;
 
             if (compactFee?.value) {
                 this.formatBlur(this.formData.compactFee);
             }
 
-            if (privilegeTransactionFee?.value) {
-                this.formatBlur(this.formData.privilegeTransactionFee, true);
+            if (stateTransactionFee?.value) {
+                this.formatBlur(this.formData.stateTransactionFee, true);
             }
         }
     }
@@ -139,7 +139,7 @@ class CompactSettingsConfig extends mixins(MixinForm) {
                 validation: Joi.number().required().min(0).messages(this.joiMessages.currency),
                 value: this.initialCompactConfig?.compactCommissionFee?.feeAmount,
             }),
-            privilegeTransactionFee: new FormInput({
+            stateTransactionFee: new FormInput({
                 id: 'privilege-transaction-fee',
                 name: 'privilege-transaction-fee',
                 label: computed(() => this.$t('compact.stateTransactionFee')),
@@ -234,7 +234,7 @@ class CompactSettingsConfig extends mixins(MixinForm) {
         const compact = this.compactType || '';
         const {
             compactFee,
-            privilegeTransactionFee,
+            stateTransactionFee,
             opsNotificationEmails,
             adverseActionNotificationEmails,
             summaryReportNotificationEmails,
@@ -252,7 +252,7 @@ class CompactSettingsConfig extends mixins(MixinForm) {
                 licenseeCharges: {
                     active: true,
                     chargeType: FeeType.FLAT_FEE_PER_PRIVILEGE,
-                    chargeAmount: Number(privilegeTransactionFee),
+                    chargeAmount: Number(stateTransactionFee),
                 },
             },
             licenseeRegistrationEnabled: isRegistrationEnabled,
@@ -276,8 +276,8 @@ class CompactSettingsConfig extends mixins(MixinForm) {
     }
 
     populateMissingPrivilegeTransactionFee(): void {
-        if (this.formData.privilegeTransactionFee.value === '') {
-            this.populateFormInput(this.formData.privilegeTransactionFee, 0);
+        if (this.formData.stateTransactionFee.value === '') {
+            this.populateFormInput(this.formData.stateTransactionFee, 0);
         }
     }
 
@@ -328,7 +328,7 @@ class CompactSettingsConfig extends mixins(MixinForm) {
 
     async mockPopulate(): Promise<void> {
         this.populateFormInput(this.formData.compactFee, 5.55);
-        this.populateFormInput(this.formData.privilegeTransactionFee, 5);
+        this.populateFormInput(this.formData.stateTransactionFee, 5);
         this.populateFormInput(this.formData.opsNotificationEmails, ['ops@example.com']);
         this.populateFormInput(this.formData.adverseActionNotificationEmails, ['adverse@example.com']);
         this.populateFormInput(this.formData.summaryReportNotificationEmails, ['summary@example.com']);
