@@ -80,7 +80,7 @@ DynamoDB tables including provider data, staff user data, compact and jurisdicti
 
 ### S3 Buckets
 
-Compact-Connect includes an s3 bucket for storing of provider data, such as military affiliation documents. S3 supports out-of-the box integration with AWS Backup, so the provider data bucket will simply define a backup policy to store backups in the Vault.
+Compact-Connect includes an s3 bucket for storing of provider data, such as military affiliation documents. S3 supports out-of-the-box integration with AWS Backup, so the provider data bucket will simply define a backup policy to store backups in the Vault.
 
 ### Cognito User Pools
 
@@ -107,15 +107,15 @@ We will implement in small, digestible phases, each of which will include testin
 
 Phase 1 creates the backup account infrastructure that serves as the secure, isolated destination for backup copies from all environment accounts. This phase implements a simplified version of the cross-account backup architecture described in the AWS blog "How to secure recovery with cross-account backup and cross-Region copy using AWS Backup," focusing only on the backup account components.
 
-The backup account is deployed in `us-west-2` (separate from the primary `us-east-1` region) to provide geographic separation for disaster recovery scenarios. This account contains only the destination backup vaults and KMS keys needed to receive and store backup copies from environment accounts. All backup creation and management happens within the environment accounts themselves via the CompactConnect application.
+The backup account is deployed in `us-west-2` (separate from the primary `us-east-1` region) to provide geographic separation for disaster recovery scenarios. This account contains only the destination backup vaults and KMS keys needed to receive and store backup copies from a specific environment account. All backup creation and management happens within the environment accounts themselves via the CompactConnect application.
 
-The design uses customer-managed KMS keys for encryption, ensuring that backup data remains encrypted at rest with keys that are independent of the source accounts. Vault access policies are configured to accept backup copies only from specific organization accounts, preventing unauthorized access while enabling the automated copy actions from environment accounts.
+The design uses customer-managed KMS keys for encryption, ensuring that backup data remains encrypted at rest with keys that are independent of the source accounts. Vault access policies are configured to accept backup copies only from the specific environment account, preventing unauthorized access while enabling the automated copy actions from the environment account.
 
-This simplified approach eliminates the complexity of StackSets and cross-stack references while maintaining the security and isolation benefits of cross-account backup storage. Environment accounts will create their own backup infrastructure (vaults, roles, plans) as part of their CompactConnect deployment, then use copy actions to replicate backups to this centralized backup account.
+This simplified approach eliminates the complexity of StackSets and cross-stack references while maintaining the security and isolation benefits of cross-account backup storage. Each environment account will create its own backup infrastructure (vaults, roles, plans) as part of their CompactConnect deployment, then use copy actions to replicate backups to their environment-specific backup account.
 
 **Details**:
 - **Codebase Location**:
-  - New CDK app: `backend/multi-account/data-retention/`
+  - New CDK app: `backend/multi-account/backups/`
   - Single stack: `BackupAccountStack` (simplified, no StackSets)
   - Documentation updates: `backend/multi-account/README.md`, `backend/compact-connect/README.md`
 - **Resource Management**:
@@ -126,9 +126,9 @@ This simplified approach eliminates the complexity of StackSets and cross-stack 
   - Unit tests for backup vault creation and cross-account policies
   - Smoke tests for backup vault accessibility from organization accounts
 - **Manual Steps**:
-  - Create backup account through AWS Organizations
+  - Create environment-specific backup secondary accounts through AWS Organizations
   - Update CDK context files with backup account ID and target region
-  - Deploy BackupAccountStack to backup account
+  - Deploy BackupAccountStack to environment-specific secondary account
   - Verify cross-account access policies
 - **Requirements**:
   - Cross-account backup vault in `us-west-2` region (`CompactConnectBackupVault`)
