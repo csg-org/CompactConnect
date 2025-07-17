@@ -39,6 +39,9 @@
                     :step="formInput.rangeConfig.stepInterval"
                     v-model.number="formInput.value"
                     :aria-label="formInput.label"
+                    :aria-describedby="`${formInput.id}-error`"
+                    :aria-errormessage="`${formInput.id}-error`"
+                    :aria-invalid="!!formInput.errorMessage"
                     @blur="blur(formInput)"
                     @input="input(formInput)"
                     :class="{ 'has-error': !!formInput.errorMessage }"
@@ -58,7 +61,10 @@
         </div>
         <span
             v-if="formInput.errorMessage && !formInput.shouldHideErrorMessage"
+            :id="`${formInput.id}-error`"
             class="form-field-error"
+            role="alert"
+            aria-live="assertive"
         >
             {{ formInput.errorMessage }}
         </span>

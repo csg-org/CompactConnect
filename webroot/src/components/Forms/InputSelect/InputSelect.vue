@@ -26,6 +26,9 @@
             :name="formInput.name"
             v-model="formInput.value"
             :aria-label="formInput.label"
+            :aria-describedby="`${formInput.id}-error`"
+            :aria-errormessage="`${formInput.id}-error`"
+            :aria-invalid="!!formInput.errorMessage"
             :autocomplete="formInput.autocomplete"
             @blur="blur(formInput)"
             @change="input(formInput)"
@@ -46,7 +49,10 @@
         </select>
         <span
             v-if="formInput.errorMessage && !formInput.shouldHideErrorMessage"
+            :id="`${formInput.id}-error`"
             class="form-field-error"
+            role="alert"
+            aria-live="assertive"
         >
             {{ formInput.errorMessage }}
         </span>

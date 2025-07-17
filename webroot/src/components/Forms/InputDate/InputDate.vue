@@ -73,6 +73,7 @@
                         @keydown.enter.stop="onEnter"
                         @keyup.enter.stop
                         @keydown.tab="onTab"
+                        @keydown.esc="onEscape"
                         @blur="onInputBlur"
                         @keypress="onKeypress"
                         @paste="onPaste"
@@ -82,6 +83,9 @@
                         :placeholder="formInput.placeholder"
                         :disabled="isDisabled"
                         :aria-label="formInput.label"
+                        :aria-describedby="`${formInput.id}-error`"
+                        :aria-errormessage="`${formInput.id}-error`"
+                        :aria-invalid="!!formInput.errorMessage"
                         :name="formInput.name"
                         :autocomplete="isAutoComplete"
                         maxlength="10"
@@ -96,6 +100,7 @@
                             @click="openMenu"
                             @keydown.enter="openMenu"
                             @keydown.space.prevent="openMenu"
+                            @keydown.esc="onEscape"
                             tabindex="0"
                             role="button"
                             aria-label="Open calendar"
@@ -121,7 +126,10 @@
         </VueDatePicker>
         <span
             v-if="formInput.errorMessage && !formInput.shouldHideErrorMessage"
+            :id="`${formInput.id}-error`"
             class="form-field-error"
+            role="alert"
+            aria-live="assertive"
         >
             {{ formInput.errorMessage }}
         </span>

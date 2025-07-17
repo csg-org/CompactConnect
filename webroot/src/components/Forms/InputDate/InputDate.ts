@@ -12,6 +12,7 @@ import {
     toNative,
     Watch
 } from 'vue-facing-decorator';
+import { nextTick } from 'vue';
 import MixinInput from '@components/Forms/_mixins/input.mixin';
 import VueDatePicker, { DatePickerMarker } from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
@@ -30,13 +31,6 @@ import {
     emits: ['open', 'close'],
 })
 class InputDate extends mixins(MixinInput) {
-    //
-    // Data
-    //
-    localValue = '';
-    lastDatePickerValue = '';
-    previousLength = 0;
-
     // https://vue3datepicker.com
     // https://vue3datepicker.com/props/modes/
     @Prop({ default: 'yyyy-MM-dd' }) modelFormat?: string; // https://date-fns.org/v2.16.1/docs/format
@@ -76,32 +70,20 @@ class InputDate extends mixins(MixinInput) {
     @Prop({ default: false }) isLoading?: boolean;
 
     //
+    // Data
+    //
+    localValue = '';
+    lastDatePickerValue = '';
+    previousLength = 0;
+
+    //
     // Lifecycle
     //
     created() {
+        this.updateFormInputValidate();
         this.localValue = this.formInput.value || '';
         this.lastDatePickerValue = this.formInput.value || '';
         this.previousLength = this.localValue.length;
-    }
-
-    //
-    // Watchers
-    //
-    @Watch('formInput.value')
-    onFormInputValueChange(newValue: string): void {
-        // Only update if this is actually a new datepicker selection
-        if (newValue !== this.lastDatePickerValue && newValue !== this.dateRaw) {
-            if (!newValue) {
-                this.localValue = '';
-            } else {
-                const newDateInput = serverFormatToDateInput(newValue);
-
-                this.localValue = formatDateInput(newDateInput);
-            }
-
-            // Only update lastDatePickerValue for genuine datepicker changes
-            this.lastDatePickerValue = newValue;
-        }
     }
 
     //
@@ -114,8 +96,37 @@ class InputDate extends mixins(MixinInput) {
     //
     // Methods
     //
-    onOpen(formInput: FormInput): void {
+    updateFormInputValidate(): void {
+        const { formInput } = this;
+
+        formInput.validate = () => {
+            const { validation } = formInput;
+
+            if (validation && (validation as any).validate) {
+                const result = (validation as any).validate(this.localValue);
+
+                if (result.error) {
+                    formInput.isValid = false;
+
+                    if (formInput.isTouched) {
+                        formInput.errorMessage = result.error.message;
+                    }
+                } else {
+                    formInput.errorMessage = '';
+                    formInput.isValid = true;
+                }
+            } else {
+                formInput.errorMessage = '';
+                formInput.isValid = true;
+            }
+        };
+    }
+
+    async onOpen(formInput: FormInput): Promise<void> {
         this.$emit('open', formInput);
+        // Focus the datepicker menu to improve keyboard navigation
+        await nextTick();
+        document.getElementById(`dp-menu-${formInput.id}`)?.focus();
     }
 
     onInput(): void {
@@ -142,12 +153,23 @@ class InputDate extends mixins(MixinInput) {
 
         if (formInput?.value === null) {
             formInput.value = '';
-            formInput.validate();
+        } else if (formInput?.value) {
+            // When a date is selected from the datepicker, update localValue first
+            const newDateInput = serverFormatToDateInput(formInput.value);
+
+            this.localValue = formatDateInput(newDateInput);
+            this.lastDatePickerValue = formInput.value;
         }
+
+        formInput.validate();
     }
 
     focus(): void {
         (this.$refs.datepicker as any)?.openMenu();
+    }
+
+    onEscape(): void {
+        (this.$refs.datepicker as any)?.closeMenu();
     }
 
     onClose(formInput: FormInput): void {
@@ -183,6 +205,25 @@ class InputDate extends mixins(MixinInput) {
 
         this.formInput.isTouched = true;
         this.formInput.validate();
+    }
+
+    //
+    // Watchers
+    //
+    @Watch('formInput.value') onFormInputValueChange(newValue: string): void {
+        // Only update if this is actually a new value
+        if (newValue !== this.lastDatePickerValue && newValue !== this.dateRaw) {
+            if (!newValue) {
+                this.localValue = '';
+            } else {
+                const newDateInput = serverFormatToDateInput(newValue);
+
+                this.localValue = formatDateInput(newDateInput);
+            }
+
+            // Only update lastDatePickerValue for genuine datepicker changes
+            this.lastDatePickerValue = newValue;
+        }
     }
 }
 

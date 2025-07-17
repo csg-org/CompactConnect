@@ -42,6 +42,9 @@
             :name="formInput.name"
             :placeholder="formInput.placeholder"
             :aria-label="formInput.label"
+            :aria-describedby="`${formInput.id}-error`"
+            :aria-errormessage="`${formInput.id}-error`"
+            :aria-invalid="!!formInput.errorMessage"
             :accept="formInput.fileConfig.accepts"
             :multiple="formInput.fileConfig.allowMultiple"
             @change="input(formInput)"
@@ -68,7 +71,10 @@
         </div>
         <span
             v-if="formInput.errorMessage && !formInput.shouldHideErrorMessage"
+            :id="`${formInput.id}-error`"
             class="form-field-error"
+            role="alert"
+            aria-live="assertive"
         >
             {{ formInput.errorMessage }}
         </span>
