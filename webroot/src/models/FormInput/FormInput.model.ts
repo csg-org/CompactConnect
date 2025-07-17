@@ -46,7 +46,6 @@ export interface InterfaceFormInput {
     isFormRow?: boolean;
     shouldHideMargin?: boolean;
     isDisabled?: boolean | ComputedRef<boolean>;
-    altValidateValue?: string;
 }
 
 // ========================================================
@@ -89,7 +88,6 @@ export class FormInput implements InterfaceFormInput {
     public shouldHideErrorMessage = false;
     public shouldHideMargin = false;
     public isDisabled = false;
-    public altValidateValue = '';
 
     constructor(data?: InterfaceFormInput) {
         const cleanDataObject = deleteUndefinedProperties(data);
@@ -144,10 +142,9 @@ export class FormInput implements InterfaceFormInput {
     public validate(): void {
         // @TODO: Better typing for Joi schemas
         const { validation } = this;
-        const value = this.altValidateValue || this.value;
 
         if (validation && (validation as any).validate) {
-            const result = (validation as any).validate(value);
+            const result = (validation as any).validate(this.value);
 
             if (result.error) {
                 this.isValid = false;

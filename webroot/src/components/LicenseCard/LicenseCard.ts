@@ -603,11 +603,12 @@ class LicenseCard extends mixins(MixinForm) {
     async mockPopulate(): Promise<void> {
         if (this.isDeactivateLicenseModalDisplayed) {
             this.formData.deactivateModalNotes.value = `Sample note`;
+            await nextTick();
             this.validateAll({ asTouched: true });
         } else if (this.isEncumberLicenseModalDisplayed) {
             this.formData.encumberModalNpdbCategory.value = this.npdbCategoryOptions[1]?.value;
             this.formData.encumberModalStartDate.value = moment().format('YYYY-MM-DD');
-            this.formData.encumberModalStartDate.altValidateValue = moment().format('MM/DD/YYYY');
+            await nextTick();
             this.validateAll({ asTouched: true });
         } else if (this.isUnencumberLicenseModalDisplayed) {
             this.selectedEncumbrances.forEach((selected) => {
@@ -617,8 +618,8 @@ class LicenseCard extends mixins(MixinForm) {
                 this.clickUnencumberItem(adverseAction);
                 await nextTick();
                 this.formData[`adverse-action-end-date-${adverseAction.id}`].value = moment().format('YYYY-MM-DD');
-                this.formData[`adverse-action-end-date-${adverseAction.id}`].altValidateValue = moment().format('MM/DD/YYYY');
             }));
+            await nextTick();
             this.validateAll({ asTouched: true });
         }
     }
