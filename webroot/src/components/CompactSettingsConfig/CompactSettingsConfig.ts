@@ -256,6 +256,7 @@ class CompactSettingsConfig extends mixins(MixinForm) {
                 },
             },
             licenseeRegistrationEnabled: isRegistrationEnabled,
+            configuredStates: this.initialCompactConfig?.configuredStates || [],
         };
 
         // Call the server API to update

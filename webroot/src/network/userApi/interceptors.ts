@@ -19,6 +19,8 @@ export const requestSuccess = () => async (requestConfig) => {
     // by users logged in via the staff user pool and will therefore send those tokens to authorize.
     const licenseeUserEndPoints = [
         '/v1/provider-users/me',
+        '/v1/provider-users/me/email',
+        '/v1/provider-users/me/email/verify',
         '/v1/purchases/privileges/options',
         '/v1/purchases/privileges',
         '/v1/provider-users/me/military-affiliation',

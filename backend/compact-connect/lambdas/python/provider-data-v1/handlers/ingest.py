@@ -228,6 +228,7 @@ def _process_license_update(*, existing_license: dict, new_license: dict, dynamo
     # If any fields are missing from the new license, we'll consider them removed
     removed_values = existing_license.keys() - new_license.keys()
     if not updated_values and not removed_values:
+        logger.info('No changes detected for this license.')
         return
 
     # Categorize the update
@@ -236,7 +237,7 @@ def _process_license_update(*, existing_license: dict, new_license: dict, dynamo
     )
     # We'll fire off events for updates of particular importance
     if update_record['updateType'] == UpdateCategory.DEACTIVATION:
-        # Only publish license deactivation event if the license is not expired
+        # Only publish license deactivation event if the license is not expired.
         # Expired licenses are handled separately, and we want to distinguish between
         # jurisdiction deactivation vs natural expiration
         is_expired = new_license['dateOfExpiration'] < config.expiration_resolution_date
@@ -270,8 +271,9 @@ def _populate_update_record(*, existing_license: dict, updated_values: dict, rem
     """
     Categorize the update between existing and new license records.
     :param dict existing_license: The existing license record
-    :param dict new_license: The newly-uploaded license record
-    :return: The update type, one of 'update', 'revoke', or 'reinstate'
+    :param dict updated_values: Values that have been updated as part of the new upload
+    :param dict removed_values: Values that have been removed as part of the new upload
+    :return: The license update record to be stored to track changes.
     """
     logger.info(
         'Processing license update',
@@ -280,14 +282,17 @@ def _populate_update_record(*, existing_license: dict, updated_values: dict, rem
         jurisdiction=existing_license['jurisdiction'],
     )
     update_type = None
-    if {'dateOfExpiration', 'dateOfRenewal'} == updated_values.keys():
-        original_values = {key: value for key, value in existing_license.items() if key in updated_values}
-        if (
-            updated_values['dateOfExpiration'] > original_values['dateOfExpiration']
-            and updated_values['dateOfRenewal'] > original_values['dateOfRenewal']
-        ):
-            update_type = UpdateCategory.RENEWAL
-            logger.info('License renewal detected')
+    # if expiration date moves forward, it's a renewal
+    # previously we checked for both dateOfExpiration and dateOfRenewal, but the dateOfRenewal was made optional
+    # for states, so we now only check for dateOfExpiration to see if the date has been extended
+    if (
+        'dateOfExpiration' in updated_values
+        and updated_values['dateOfExpiration'] > existing_license['dateOfExpiration']
+    ):
+        update_type = UpdateCategory.RENEWAL
+        logger.info('License renewal detected - expiration date extended')
+    # if the license status is set to inactive, it's a deactivation, and this status is higher priority to
+    # store than a renewal
     if updated_values.get('jurisdictionUploadedLicenseStatus') == ActiveInactiveStatus.INACTIVE:
         update_type = UpdateCategory.DEACTIVATION
         logger.info('License deactivation detected')

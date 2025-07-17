@@ -39,6 +39,7 @@
         "subtotal": "Total parcial",
         "total": "Total",
         "history": "Historia",
+        "status": "Estado",
         "success": "Correcto",
         "error": "Error",
         "somethingWentWrong": "Algo salió mal",
@@ -502,7 +503,9 @@
         "confirmSaveCompactTitle": "¿Estás seguro de que deseas marcar este estado como activo?",
         "confirmSaveCompactYes": "Sí, marcar como en vivo",
         "saveSuccessfulCompact": "Los cambios compactos se guardaron correctamente",
-        "saveSuccessfulState": "Los cambios de estado se guardaron correctamente"
+        "saveSuccessfulState": "Los cambios de estado se guardaron correctamente",
+        "enable": "Permitir",
+        "live": "En vivo"
     },
     "stateUpload": {
         "formTitle": "Carga de datos compacta",
@@ -837,7 +840,12 @@
         "confirmUserReinviteSubtext": "Se enviará un correo electrónico a {email} y el usuario deberá establecer una nueva contraseña.",
         "confirmUserDeactivate": "¿Está seguro de que desea desactivar {name} de este acuerdo? No se puede deshacer.",
         "accountSummary": "Resumen de cuenta",
-        "accountSummarySubtext": "Esta es la información que ha enviado para su registración. Si sus datos no coinciden exactamente con los de nuestro sistema, el registro no se realizará correctamente."
+        "accountSummarySubtext": "Esta es la información que ha enviado para su registración. Si sus datos no coinciden exactamente con los de nuestro sistema, el registro no se realizará correctamente.",
+        "enterVerificationCode": "Introduzca el código de verificación",
+        "enterVerificationCodeSubtext": "Deberías recibir un correo electrónico en tu nueva dirección con un código de confirmación. El código caducará en unos 15 minutos.",
+        "enterCode": "Introduzca el código aquí",
+        "emailUpdateSuccess": "Su correo electrónico ha sido actualizado exitosamente",
+        "noValuesChanged": "No se han cambiado valores"
     },
     "recaptcha": {
         "googleDesc": "Este sitio está protegido por reCAPTCHA y se aplican las políticas de privacidad de Google.",
