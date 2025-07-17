@@ -4,7 +4,7 @@
 #
 #    pip-compile --no-emit-index-url compact-connect/lambdas/python/provider-data-v1/requirements.in
 #
-certifi==2025.6.15
+certifi==2025.7.14
     # via requests
 charset-normalizer==3.4.2
     # via requests
