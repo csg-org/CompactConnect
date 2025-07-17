@@ -201,7 +201,8 @@ export const privilegePurchaseOptionsResponse = {
                 discountAmount: 10
             },
             jurisprudenceRequirements: {
-                required: true
+                required: true,
+                linkToDocumentation: 'https://example.com',
             },
             type: 'jurisdiction'
         },
@@ -345,7 +346,8 @@ export const privilegePurchaseOptionsResponse = {
                 discountAmount: 10
             },
             jurisprudenceRequirements: {
-                required: true
+                required: true,
+                linkToDocumentation: 'https://example.com',
             },
             type: 'jurisdiction'
         },
@@ -489,7 +491,8 @@ export const privilegePurchaseOptionsResponse = {
                 discountAmount: 10
             },
             jurisprudenceRequirements: {
-                required: true
+                required: true,
+                linkToDocumentation: 'https://example.com',
             },
             type: 'jurisdiction'
         },
