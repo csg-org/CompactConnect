@@ -90,7 +90,7 @@ class PrivilegePurchaseLicense extends mixins(MixinForm) {
         this.purchaseEligibleLicenses.forEach((license: License) => {
             options.push({
                 value: license.id,
-                name: license.displayName()
+                name: license.displayName(' - ', true)
             });
         });
 
