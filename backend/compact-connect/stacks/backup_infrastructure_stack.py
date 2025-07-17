@@ -127,7 +127,7 @@ class BackupInfrastructureStack(NestedStack):
             # Create a policy that restricts cross-account copy operations to only our approved backup vault
             # This provides security controls while allowing necessary backup and restore operations
             inline_policies={
-                'SSNBackupSecurityPolicy': PolicyDocument(
+                'BackupSecurityPolicy': PolicyDocument(
                     statements=[
                         PolicyStatement(
                             sid='RestrictCrossAccountOperations',
@@ -136,7 +136,7 @@ class BackupInfrastructureStack(NestedStack):
                             resources=['*'],
                             conditions={
                                 'ForAnyValue:ArnNotEquals': {
-                                    'backup:CopyTargets': [self.cross_account_ssn_backup_vault.backup_vault_arn]
+                                    'backup:CopyTargets': [self.cross_account_backup_vault.backup_vault_arn]
                                 }
                             },
                         )
