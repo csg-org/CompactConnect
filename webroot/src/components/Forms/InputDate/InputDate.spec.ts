@@ -6,7 +6,7 @@
 //
 
 import { expect } from 'chai';
-import { mountShallow, mountFull } from '@tests/helpers/setup';
+import { mountShallow } from '@tests/helpers/setup';
 import InputDate from '@components/Forms/InputDate/InputDate.vue';
 import { FormInput } from '@models/FormInput/FormInput.model';
 import Joi from 'joi';
@@ -21,7 +21,7 @@ describe('InputDate component', async () => {
     });
 
     it('should validate against localValue instead of formInput.value', async () => {
-        const wrapper = await mountFull(InputDate, {
+        const wrapper = await mountShallow(InputDate, {
             props: {
                 formInput: new FormInput({
                     id: 'test-date',
