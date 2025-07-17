@@ -337,6 +337,29 @@ class PersistentStack(AppStack):
         there should be an associated migration script that is run as part of the deployment. These are short-lived
         custom resources that should be removed from the CDK app once the migration has been run in all environments.
         """
+        update_dates_migration = DataMigration(
+            self,
+            '887CreateEffectiveDate',
+            migration_dir='create_effective_date_887',
+            lambda_environment={
+                'PROVIDER_TABLE_NAME': self.provider_table.table_name,
+                **self.common_env_vars,
+            },
+        )
+        self.provider_table.grant_read_write_data(update_dates_migration)
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            f'{update_dates_migration.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'This policy contains wild-carded actions and resources but they are scoped to the '
+                    'specific actions, Table and Key that this lambda needs access to in order to perform the'
+                    'migration.',
+                },
+            ],
+        )
+
         self.provider_user_pool_migration = DataMigration(
             self,
             'ProviderUserPoolMigration',
@@ -393,6 +416,7 @@ class PersistentStack(AppStack):
                 sort='@timestamp desc',
             ),
             log_groups=[
+                update_dates_migration.migration_function.log_group,
                 self.provider_user_pool_migration.migration_function.log_group,
                 self.compact_configured_states_migration.migration_function.log_group,
             ],
