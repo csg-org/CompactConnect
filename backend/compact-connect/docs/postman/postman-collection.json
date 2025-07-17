@@ -78,10 +78,10 @@
                                 },
                                 {
                                     "key": "scope",
-                                    "value": "{{compact}}/{{jurisdiction}}"
+                                    "value": "{{jurisdiction}}/{{compact}}.write"
                                 }
                             ],
-                            "raw": "{{staffUserPoolUrl}}/oauth2/token?grant_type=client_credentials&client_id={{clientId}}&client_secret={{clientSecret}}&scope={{compact}}/{{jurisdiction}}"
+                            "raw": "{{staffUserPoolUrl}}/oauth2/token?grant_type=client_credentials&client_id={{clientId}}&client_secret={{clientSecret}}&scope={{jurisdiction}}/{{compact}}.write"
                         }
                     },
                     "response": []

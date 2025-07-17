@@ -73,8 +73,8 @@ class LicenseData(CCDataClass):
         return self._data['dateOfIssuance']
 
     @property
-    def dateOfRenewal(self) -> date:
-        return self._data['dateOfRenewal']
+    def dateOfRenewal(self) -> date | None:
+        return self._data.get('dateOfRenewal')
 
     @property
     def dateOfExpiration(self) -> date:

@@ -38,7 +38,11 @@ The credentials will be sent to you in this format:
 ```json
 {
   "clientId": "<client id>",
-  "clientSecret": "<client secret>"
+  "clientSecret": "<client secret>",
+  "compact": "<compact>",
+  "jurisdiction": "<state postal abbreviation>",
+  "authUrl": "https://compact-connect-staff-beta.auth.us-east-1.amazoncognito.com/oauth2/token",
+  "licenseUploadUrl": "https://api.beta.compactconnect.org/v1/compacts/<compact>/jurisdictions/<jurisdiction>/licenses"
 }
 ```
 
@@ -51,13 +55,13 @@ Follow these steps to obtain an access token and make requests to the CompactCon
 You must first obtain an access token to authenticate your API requests. The access token will be used in the 
 Authorization header of subsequent API calls. While the following curl command demonstrates how to generate a token for
 the **beta** environment, you should implement this authentication flow in your application's programming language using
-appropriate OAuth/HTTP libraries:
+appropriate HTTPS request libraries:
 
 > **Note**: When copying commands, be careful of line breaks. You may need to remove any extra spaces or 
 > line breaks that occur when pasting.
 
 ```bash
-curl --location --request POST 'https://compact-connect-staff-beta.auth.us-east-1.amazoncognito.com/oauth2/token' \
+curl --location --request POST '<authUrl>' \
 --header 'Content-Type: application/x-www-form-urlencoded' \
 --header 'Accept: application/json' \
 --data-urlencode 'grant_type=client_credentials' \
@@ -94,12 +98,12 @@ AWS documentation: https://docs.aws.amazon.com/cognito/latest/developerguide/tok
 
 The CompactConnect License API can be called through a POST REST endpoint which takes in a list of license record objects.
 The following curl command example demonstrates how to upload license data into the **beta** environment, but you should
-implement this API call in your application's programming language using appropriate HTTP libraries. You will need to 
+implement this API call in your application's programming language using appropriate HTTPS request libraries. You will need to 
 replace the example payload with valid license data that includes the correct license types for your 
 specific compact (you can send up to 100 license records per request):
 
 ```bash
-curl --location --request POST 'https://api.beta.compactconnect.org/v1/compacts/<compact>/jurisdictions/<jurisdiction>/licenses' \
+curl --location --request POST '<licenseUploadUrl>' \
 --header 'Authorization: Bearer <access_token>' \
 --header 'Content-Type: application/json' \
 --data '[{"ssn":"123-45-6789","licenseNumber":"LIC123456","licenseStatusName":"Active","licenseStatus":"active","compactEligibility":"eligible","licenseType":"audiologist","givenName":"Jane","middleName":"Marie","familyName":"Smith","dateOfIssuance":"2023-01-15","dateOfRenewal":"2023-01-15","dateOfExpiration":"2025-01-14","dateOfBirth":"1980-05-20","homeAddressStreet1":"123 Main Street","homeAddressStreet2":"Apt 4B","homeAddressCity":"Louisville","homeAddressState":"KY","homeAddressPostalCode":"40202","emailAddress":"jane.smith@example.com","phoneNumber":"+15555551234","npi":"1234567890"}]'
@@ -177,8 +181,8 @@ validation errors in the response body.
 
 1. Implement token refresh logic to get a new token before the current one expires
 2. Implement error handling for API responses
-3. Configure your application to securely store and access the client credentials, do not store the credentials in your 
-application code.
+3. Configure your application to securely store and access the client credentials, **do not store the credentials in your 
+application code.**
 
 ## Support and Feedback
 
