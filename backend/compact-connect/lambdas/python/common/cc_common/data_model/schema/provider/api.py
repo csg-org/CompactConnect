@@ -1,5 +1,5 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
-from marshmallow.fields import Date, Email, List, Nested, Raw, String
+from marshmallow.fields import Date, Email, Integer, List, Nested, Raw, String
 from marshmallow.validate import Length, Regexp
 
 from cc_common.data_model.schema.base_record import ForgivingSchema
@@ -153,7 +153,7 @@ class QueryProvidersRequestSchema(CCRequestSchema):
         """
 
         lastKey = String(required=False, allow_none=False, validate=Length(min=1, max=1024))
-        pageSize = Raw(required=False, allow_none=False)  # Using Raw to allow integers
+        pageSize = Integer(required=False, allow_none=False)
 
     class SortingSchema(ForgivingSchema):
         """
