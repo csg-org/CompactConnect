@@ -160,3 +160,33 @@ class PrivilegePublicResponseSchema(ForgivingSchema):
     # the human-friendly identifier for this privilege
     privilegeId = String(required=True, allow_none=False)
     status = ActiveInactive(required=True, allow_none=False)
+
+
+class PrivilegeHistoryEventPublicResponseSchema(ForgivingSchema):
+    """
+    Privilege history event object fields, as seen by the public lookup endpoint.
+    Serialization direction:
+    Python -> load() -> API
+    """
+
+    type = String(required=True, allow_none=False)
+    updateType = UpdateType(required=True, allow_none=False)
+    dateOfUpdate = Raw(required=True, allow_none=False)
+    dateEffective = Raw(required=True, allow_none=False)
+    dateCreated = Raw(required=True, allow_none=False)
+    note = String(required=False, allow_none=True)
+
+
+class PrivilegeHistoryPublicResponseSchema(ForgivingSchema):
+    """
+    Privilege history object fields, as seen by the public lookup endpoint.
+    Serialization direction:
+    Python -> load() -> API
+    """
+
+    providerId = Raw(required=True, allow_none=False)
+    compact = Compact(required=True, allow_none=False)
+    jurisdiction = Jurisdiction(required=True, allow_none=False)
+    licenseType = String(required=True, allow_none=False)
+    privilegeId = String(required=True, allow_none=False)
+    events = List(Nested(PrivilegeHistoryEventPublicResponseSchema(), required=False, allow_none=False))

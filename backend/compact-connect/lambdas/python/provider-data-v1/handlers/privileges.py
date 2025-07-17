@@ -163,3 +163,32 @@ def privilege_purchase_message_handler(message: dict):
         # If there were any errors, raise an exception to trigger a retry
         if error_messages:
             raise CCInternalException('; '.join(error_messages))
+
+
+def get_privilege_history(event: dict):
+    """Return the enriched and simplified privilege history for front end consumption
+    This endpoint requires is public
+    :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
+    :param LambdaContext context:
+    """
+    compact = event['pathParameters']['compact']
+    provider_id = event['pathParameters']['providerId']
+    jurisdiction = event['pathParameters']['jurisdiction']
+    license_type_abbr = event['pathParameters']['licenseType']
+
+    with logger.append_context_keys(
+        compact=compact, provider_id=provider_id, jurisdiction=jurisdiction, license_type=license_type_abbr
+    ):
+        # Validate the license type is a supported abbreviation
+        if license_type_abbr not in config.license_type_abbreviations[compact].values():
+            logger.warning('Invalid license type abbreviation')
+            raise CCInvalidRequestException(f'Invalid license type abbreviation: {license_type_abbr}')
+
+    privilege = config.data_client.get_privilege(
+        compact=compact,
+        provider_id=provider_id,
+        jurisdiction=jurisdiction,
+        license_type_abbr=license_type_abbr
+    )
+
+    return ProviderRecordUtility.construct_simplified_public_privilege_history_object(privilege)
