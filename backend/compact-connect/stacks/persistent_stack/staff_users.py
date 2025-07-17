@@ -41,7 +41,7 @@ class StaffUsers(UserPool):
         encryption_key: IKey,
         user_pool_email: UserPoolEmail,
         removal_policy,
-        backup_infrastructure_stack: BackupInfrastructureStack,
+        backup_infrastructure_stack: BackupInfrastructureStack | None,
         **kwargs,
     ):
         super().__init__(
@@ -81,17 +81,24 @@ class StaffUsers(UserPool):
             read_attributes=ClientAttributes().with_standard_attributes(email=True),
         )
 
-        # Set up Cognito backup system for this user pool
-        self.backup_system = CognitoUserBackup(
-            self,
-            'StaffUserBackup',
-            user_pool_id=self.user_pool_id,
-            access_logs_bucket=stack.access_logs_bucket,
-            encryption_key=encryption_key,
-            removal_policy=removal_policy,
-            backup_infrastructure_stack=backup_infrastructure_stack,
-            alarm_topic=stack.alarm_topic,
-        )
+        # Check if backups are enabled for this environment
+        backup_enabled = environment_context.get('backup_enabled', True)
+
+        if backup_enabled and backup_infrastructure_stack is not None:
+            # Set up Cognito backup system for this user pool
+            self.backup_system = CognitoUserBackup(
+                self,
+                'StaffUserBackup',
+                user_pool_id=self.user_pool_id,
+                access_logs_bucket=stack.access_logs_bucket,
+                encryption_key=encryption_key,
+                removal_policy=removal_policy,
+                backup_infrastructure_stack=backup_infrastructure_stack,
+                alarm_topic=stack.alarm_topic,
+            )
+        else:
+            # Create placeholder attribute for disabled state
+            self.backup_system = None
 
     def _generate_resource_server_scopes_list_for_compact(self, compact: str):
         return [

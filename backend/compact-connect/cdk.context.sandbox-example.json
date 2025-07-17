@@ -25,38 +25,8 @@
           "email": [
             "justin@example.com"
           ]
-        },
-        "backup_policies": {
-          "general_data": {
-            "schedule": {
-              "week_day": "5",
-              "year": "*",
-              "month": "*",
-              "hour": "5",
-              "minute": "0"
-            },
-            "delete_after_days": 180,
-            "cold_storage_after_days": 30
-          },
-          "frequent_updates": {
-            "schedule": {
-              "week_day": "5",
-              "year": "*",
-              "month": "*",
-              "hour": "5",
-              "minute": "0"
-            },
-            "delete_after_days": 180,
-            "cold_storage_after_days": 30
-          }
         }
       }
-    },
-    "backup_config": {
-      "backup_account_id": "111122223333",
-      "backup_region": "us-west-2",
-      "general_vault_name": "CompactConnectBackupVault",
-      "ssn_vault_name": "CompactConnectBackupVault-SSN"
     }
   }
 }

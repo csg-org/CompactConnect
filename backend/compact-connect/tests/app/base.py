@@ -274,7 +274,7 @@ class TstAppABC(ABC):
         # Check condition structure but allow flexible backup role reference
         self.assertIn('StringNotEquals', actual_second_stmt['Condition'])
         self.assertIn('aws:PrincipalArn', actual_second_stmt['Condition']['StringNotEquals'])
-        self.assertEqual(4, len(actual_second_stmt['Condition']['StringNotEquals']['aws:PrincipalArn']))
+        self.assertEqual(3, len(actual_second_stmt['Condition']['StringNotEquals']['aws:PrincipalArn']))
         self.assertEqual(
             expected_policy['Statement'][1]['Condition']['StringNotEquals']['aws:PrincipalServiceName'],
             actual_second_stmt['Condition']['StringNotEquals']['aws:PrincipalServiceName'],
@@ -294,7 +294,7 @@ class TstAppABC(ABC):
         """Validate that backup resources are created for tables and buckets with backup plans."""
         from aws_cdk.aws_backup import CfnBackupPlan, CfnBackupSelection
 
-        # Should have 8 backup plans, 8 backup selections:
+        # if in env with backup_enabled, Should have 8 backup plans, 8 backup selections:
         # - provider table
         # - SSN table
         # - compact config table
@@ -304,20 +304,36 @@ class TstAppABC(ABC):
         # - provider users bucket
         # - staff cognito user backup
         # Not the provider cognito user backup, since it is in a separate stack
-        persistent_stack_template.resource_count_is(CfnBackupPlan.CFN_RESOURCE_TYPE_NAME, 8)
-        persistent_stack_template.resource_count_is(CfnBackupSelection.CFN_RESOURCE_TYPE_NAME, 8)
+        # Every other environment should be 0
+        
+        if persistent_stack.environment_context['backup_enabled']:
+            persistent_stack_template.resource_count_is(CfnBackupPlan.CFN_RESOURCE_TYPE_NAME, 8)
+            persistent_stack_template.resource_count_is(CfnBackupSelection.CFN_RESOURCE_TYPE_NAME, 8)
 
-        for plan in [
-            persistent_stack.provider_table.backup_plan,
-            persistent_stack.ssn_table.backup_plan,
-            persistent_stack.compact_configuration_table.backup_plan,
-            persistent_stack.transaction_history_table.backup_plan,
-            persistent_stack.data_event_table.backup_plan,
-            persistent_stack.staff_users.user_table.backup_plan,
-            persistent_stack.provider_users_bucket.backup_plan,
-            persistent_stack.staff_users.backup_system.backup_plan,
-        ]:
-            self.assertIsInstance(plan, CCBackupPlan)
+            for plan in [
+                persistent_stack.provider_table.backup_plan,
+                persistent_stack.ssn_table.backup_plan,
+                persistent_stack.compact_configuration_table.backup_plan,
+                persistent_stack.transaction_history_table.backup_plan,
+                persistent_stack.data_event_table.backup_plan,
+                persistent_stack.staff_users.user_table.backup_plan,
+                persistent_stack.provider_users_bucket.backup_plan,
+                persistent_stack.staff_users.backup_system.backup_plan,
+            ]:
+                self.assertIsInstance(plan, CCBackupPlan)
+        else:
+            persistent_stack_template.resource_count_is(CfnBackupPlan.CFN_RESOURCE_TYPE_NAME, 0)
+            persistent_stack_template.resource_count_is(CfnBackupSelection.CFN_RESOURCE_TYPE_NAME, 0)
+            
+            # Verify that backup plans are None when backups are disabled
+            self.assertIsNone(persistent_stack.provider_table.backup_plan)
+            self.assertIsNone(persistent_stack.ssn_table.backup_plan)
+            self.assertIsNone(persistent_stack.compact_configuration_table.backup_plan)
+            self.assertIsNone(persistent_stack.transaction_history_table.backup_plan)
+            self.assertIsNone(persistent_stack.data_event_table.backup_plan)
+            self.assertIsNone(persistent_stack.staff_users.user_table.backup_plan)
+            self.assertIsNone(persistent_stack.provider_users_bucket.backup_plan)
+            self.assertIsNone(persistent_stack.staff_users.backup_system)
 
     def _inspect_data_events_table(self, persistent_stack: PersistentStack, persistent_stack_template: Template):
         # Ensure our DataEventTable and queues are created

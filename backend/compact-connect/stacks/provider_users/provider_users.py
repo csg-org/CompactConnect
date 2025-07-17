@@ -75,17 +75,24 @@ class ProviderUsers(UserPool):
 
         self._add_custom_message_lambda(stack=persistent_stack, environment_name=environment_name)
 
-        # Set up Cognito backup system for this user pool
-        self.backup_system = CognitoUserBackup(
-            self,
-            'ProviderUserBackup',
-            user_pool_id=self.user_pool_id,
-            access_logs_bucket=persistent_stack.access_logs_bucket,
-            encryption_key=encryption_key,
-            removal_policy=removal_policy,
-            backup_infrastructure_stack=persistent_stack.backup_infrastructure_stack,
-            alarm_topic=persistent_stack.alarm_topic,
-        )
+        # Check if backups are enabled for this environment
+        backup_enabled = environment_context.get('backup_enabled', True)
+
+        if backup_enabled and persistent_stack.backup_infrastructure_stack is not None:
+            # Set up Cognito backup system for this user pool
+            self.backup_system = CognitoUserBackup(
+                self,
+                'ProviderUserBackup',
+                user_pool_id=self.user_pool_id,
+                access_logs_bucket=persistent_stack.access_logs_bucket,
+                encryption_key=encryption_key,
+                removal_policy=removal_policy,
+                backup_infrastructure_stack=persistent_stack.backup_infrastructure_stack,
+                alarm_topic=persistent_stack.alarm_topic,
+            )
+        else:
+            # Create placeholder attribute for disabled state
+            self.backup_system = None
 
     @staticmethod
     def _configure_user_pool_standard_attributes() -> StandardAttributes:

@@ -111,14 +111,20 @@ class PersistentStack(AppStack):
             slack_subscriptions=notifications.get('slack', []),
         )
 
-        # Create backup infrastructure as a nested stack
-        self.backup_infrastructure_stack = BackupInfrastructureStack(
-            self,
-            'BackupInfrastructureStack',
-            environment_name=environment_name,
-            backup_config=backup_config,
-            alarm_topic=self.alarm_topic,
-        )
+        # Check if backups are enabled for this environment
+        backup_enabled = environment_context.get('backup_enabled', True)
+
+        if backup_enabled:
+            # Create backup infrastructure as a nested stack
+            self.backup_infrastructure_stack = BackupInfrastructureStack(
+                self,
+                'BackupInfrastructureStack',
+                environment_name=environment_name,
+                backup_config=backup_config,
+                alarm_topic=self.alarm_topic,
+            )
+        else:
+            self.backup_infrastructure_stack = None
 
         self.access_logs_bucket = AccessLogsBucket(
             self,
@@ -250,7 +256,7 @@ class PersistentStack(AppStack):
         self._create_frontend_app_config_parameter()
 
     def _add_data_resources(
-        self, removal_policy: RemovalPolicy, backup_infrastructure_stack: BackupInfrastructureStack
+        self, removal_policy: RemovalPolicy, backup_infrastructure_stack: BackupInfrastructureStack | None
     ):
         # Create the ssn related resources before other resources which are dependent on them
         self.ssn_table = SSNTable(

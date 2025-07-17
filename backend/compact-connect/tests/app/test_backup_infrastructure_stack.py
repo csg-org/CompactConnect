@@ -17,7 +17,7 @@ class TestBackupInfrastructureStack(TstAppABC, TestCase):
     def get_context(cls):
         with open('cdk.json') as f:
             context = json.load(f)['context']
-        with open('cdk.context.sandbox-example.json') as f:
+        with open('cdk.context.test-example.json') as f:
             context.update(json.load(f))
 
         # Suppresses lambda bundling for tests
@@ -27,8 +27,8 @@ class TestBackupInfrastructureStack(TstAppABC, TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        # Use the sandbox backend stage for testing backup infrastructure
-        self.backup_stack = self.app.sandbox_backend_stage.backup_infrastructure_stack
+        # Use the test backend stage for testing backup infrastructure
+        self.backup_stack = self.app.test_backend_pipeline_stack.test_stage.backup_infrastructure_stack
         self.template = Template.from_stack(self.backup_stack)
 
     def test_stack_creates_expected_resources(self):
@@ -51,7 +51,7 @@ class TestBackupInfrastructureStack(TstAppABC, TestCase):
 
     def test_general_backup_vault_configuration(self):
         """Test the general backup vault is configured correctly."""
-        environment_name = self.app.sandbox_backend_stage.backup_infrastructure_stack.environment_name
+        environment_name = self.app.test_backend_pipeline_stack.test_stage.backup_infrastructure_stack.environment_name
         self.template.has_resource_properties(
             CfnBackupVault.CFN_RESOURCE_TYPE_NAME,
             {
@@ -62,7 +62,7 @@ class TestBackupInfrastructureStack(TstAppABC, TestCase):
 
     def test_ssn_backup_vault_configuration(self):
         """Test the SSN backup vault is configured correctly."""
-        environment_name = self.app.sandbox_backend_stage.backup_infrastructure_stack.environment_name
+        environment_name = self.app.test_backend_pipeline_stack.test_stage.backup_infrastructure_stack.environment_name
         self.template.has_resource_properties(
             CfnBackupVault.CFN_RESOURCE_TYPE_NAME,
             {
@@ -73,7 +73,7 @@ class TestBackupInfrastructureStack(TstAppABC, TestCase):
 
     def test_kms_keys_have_correct_aliases(self):
         """Test that KMS keys have the correct aliases."""
-        environment_name = self.app.sandbox_backend_stage.backup_infrastructure_stack.environment_name
+        environment_name = self.app.test_backend_pipeline_stack.test_stage.backup_infrastructure_stack.environment_name
 
         # General backup key alias
         self.template.has_resource_properties(
@@ -89,7 +89,7 @@ class TestBackupInfrastructureStack(TstAppABC, TestCase):
 
     def test_backup_service_roles_configuration(self):
         """Test that backup service roles are configured correctly."""
-        environment_name = self.app.sandbox_backend_stage.backup_infrastructure_stack.environment_name
+        environment_name = self.app.test_backend_pipeline_stack.test_stage.backup_infrastructure_stack.environment_name
 
         # General backup service role
         self.template.has_resource_properties(
@@ -134,7 +134,7 @@ class TestBackupInfrastructureStack(TstAppABC, TestCase):
 
     def test_ssn_backup_role_has_cross_account_restrictions(self):
         """Test that the SSN backup role restricts cross-account copy operations."""
-        environment_name = self.app.sandbox_backend_stage.backup_infrastructure_stack.environment_name
+        environment_name = self.app.test_backend_pipeline_stack.test_stage.backup_infrastructure_stack.environment_name
 
         # Verify the SSN backup role exists and has the inline policy with cross-account restrictions
         self.template.has_resource_properties(
@@ -194,10 +194,10 @@ class TestBackupInfrastructureStack(TstAppABC, TestCase):
         self.assertEqual(expected_general_arn, self.backup_stack.cross_account_backup_vault.backup_vault_arn)
         self.assertEqual(expected_ssn_arn, self.backup_stack.cross_account_ssn_backup_vault.backup_vault_arn)
 
-    def test_removal_policy_set_for_sandbox_environment(self):
-        """Test that all resources have RemovalPolicy.DESTROY in sandbox environment for development cleanup."""
-        # Since we're testing with sandbox context (non-prod), resources should have DESTROY policy
-        environment_name = self.app.sandbox_backend_stage.backup_infrastructure_stack.environment_name
+    def test_removal_policy_set_for_test_environment(self):
+        """Test that all resources have RemovalPolicy.DESTROY in test environment for development cleanup."""
+        # Since we're testing with test context (non-prod), resources should have DESTROY policy
+        environment_name = self.app.test_backend_pipeline_stack.test_stage.backup_infrastructure_stack.environment_name
         self.assertNotEqual(environment_name, 'prod', 'Test should be using non-prod environment')
 
         # KMS keys should have DeletionPolicy: Delete (DESTROY)
@@ -220,15 +220,15 @@ class TestBackupInfrastructureStack(TstAppABC, TestCase):
 
     def test_backend_stage_integration(self):
         """Test that the backup infrastructure stack integrates correctly with the backend stage."""
-        # The backup infrastructure stack should be present in the sandbox backend stage
-        self.assertIsNotNone(self.app.sandbox_backend_stage.backup_infrastructure_stack)
+        # The backup infrastructure stack should be present in the test backend stage
+        self.assertIsNotNone(self.app.test_backend_pipeline_stack.test_stage.backup_infrastructure_stack)
 
         # Validate that the stack is properly configured as a nested stack
         # NestedStacks have token-based names so we check that it's not None instead of exact match
         self.assertIsNotNone(self.backup_stack.stack_name)
 
         # Validate that all expected backup infrastructure resources are created
-        self._check_no_backend_stage_annotations(self.app.sandbox_backend_stage)
+        self._check_no_backend_stage_annotations(self.app.test_backend_pipeline_stack.test_stage)
 
     def test_backup_monitoring_configuration(self):
         """Test that backup monitoring alarms and rules are correctly configured."""

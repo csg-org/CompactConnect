@@ -147,7 +147,7 @@ class BasePipelineStack(Stack):
         self.pipeline_environment_context = self.ssm_context['environments']['pipeline']
         self.connection_arn = self.pipeline_environment_context['connection_arn']
         self.github_repo_string = self.ssm_context['github_repo_string']
-        self.backup_config = self.ssm_context['backup_config']
+        self.backup_config = self.ssm_context.get('backup_config', {})
         self.app_name = self.ssm_context['app_name']
 
     def _add_pipeline_cdk_assume_role_policy(self, pipeline: CdkCodePipeline):

@@ -59,16 +59,21 @@ class ProviderUsersBucket(Bucket):
 
         self._add_v1_object_events(provider_table, encryption_key)
 
-        self.backup_plan = CCBackupPlan(
-            self,
-            'ProviderUsersBucketBackup',
-            backup_plan_name_prefix=self.bucket_name,
-            backup_resources=[BackupResource.from_arn(self.bucket_arn)],
-            backup_vault=backup_infrastructure_stack.local_backup_vault,
-            backup_service_role=backup_infrastructure_stack.backup_service_role,
-            cross_account_backup_vault=backup_infrastructure_stack.cross_account_backup_vault,
-            backup_policy=environment_context['backup_policies']['general_data'],
-        )
+        backup_enabled = environment_context.get('backup_enabled', True)
+        if backup_enabled and backup_infrastructure_stack is not None:
+            self.backup_plan = CCBackupPlan(
+                self,
+                'ProviderUsersBucketBackup',
+                backup_plan_name_prefix=self.bucket_name,
+                backup_resources=[BackupResource.from_arn(self.bucket_arn)],
+                backup_vault=backup_infrastructure_stack.local_backup_vault,
+                backup_service_role=backup_infrastructure_stack.backup_service_role,
+                cross_account_backup_vault=backup_infrastructure_stack.cross_account_backup_vault,
+                backup_policy=environment_context['backup_policies']['general_data'],
+            )
+        else:
+            self.backup_plan = None
+
 
         QueryDefinition(
             self,

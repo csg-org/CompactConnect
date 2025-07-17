@@ -18,7 +18,7 @@ class UsersTable(Table):
         *,
         encryption_key: IKey,
         removal_policy: RemovalPolicy,
-        backup_infrastructure_stack: BackupInfrastructureStack,
+        backup_infrastructure_stack: BackupInfrastructureStack | None,
         environment_context: dict,
         **kwargs,
     ):
@@ -43,14 +43,21 @@ class UsersTable(Table):
             projection_type=ProjectionType.ALL,
         )
 
-        # Set up backup plan
-        self.backup_plan = CCBackupPlan(
-            self,
-            'UsersTableBackup',
-            backup_plan_name_prefix=self.table_name,
-            backup_resources=[BackupResource.from_dynamo_db_table(self)],
-            backup_vault=backup_infrastructure_stack.local_backup_vault,
-            backup_service_role=backup_infrastructure_stack.backup_service_role,
-            cross_account_backup_vault=backup_infrastructure_stack.cross_account_backup_vault,
-            backup_policy=environment_context['backup_policies']['general_data'],
-        )
+        # Check if backups are enabled for this environment
+        backup_enabled = environment_context.get('backup_enabled', True)
+
+        if backup_enabled and backup_infrastructure_stack is not None:
+            # Set up backup plan
+            self.backup_plan = CCBackupPlan(
+                self,
+                'UsersTableBackup',
+                backup_plan_name_prefix=self.table_name,
+                backup_resources=[BackupResource.from_dynamo_db_table(self)],
+                backup_vault=backup_infrastructure_stack.local_backup_vault,
+                backup_service_role=backup_infrastructure_stack.backup_service_role,
+                cross_account_backup_vault=backup_infrastructure_stack.cross_account_backup_vault,
+                backup_policy=environment_context['backup_policies']['general_data'],
+            )
+        else:
+            # Create placeholder attribute for disabled state
+            self.backup_plan = None

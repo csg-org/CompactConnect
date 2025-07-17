@@ -84,7 +84,7 @@ class CompactConnectApp(App):
             app_name=app_name,
             environment_name=environment_name,
             environment_context=environment_context,
-            backup_config=ssm_context['backup_config'],
+            backup_config=ssm_context.get('backup_config', {}),
         )
         # NOTE: for first-time sandbox deployments, ensure you deploy the backend stage successfully first
         # by running `cdk deploy 'Sandbox/*'`, then if you have a domain name configured and want to deploy the UI for

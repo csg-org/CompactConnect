@@ -42,6 +42,7 @@ class BackendStage(Stage):
         )
 
         # Backup infrastructure is now created as a nested stack within PersistentStack
+        # if backups are enabled for this environment
         self.backup_infrastructure_stack = self.persistent_stack.backup_infrastructure_stack
 
         self.provider_users_stack = ProviderUsersStack(
