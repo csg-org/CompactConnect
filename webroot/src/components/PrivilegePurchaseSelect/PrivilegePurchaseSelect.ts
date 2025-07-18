@@ -11,7 +11,7 @@ import {
     mixins,
     Prop
 } from 'vue-facing-decorator';
-import { reactive, nextTick } from 'vue';
+import { reactive, computed, nextTick } from 'vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import SelectedStatePurchaseInformation from '@components/SelectedStatePurchaseInformation/SelectedStatePurchaseInformation.vue';
 import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
@@ -88,6 +88,52 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
     //
     // Computed
     //
+    get userStore(): any {
+        return this.$store.state.user;
+    }
+
+    get currentCompact(): Compact | null {
+        return this.userStore?.currentCompact || null;
+    }
+
+    get currentCompactType(): string | null {
+        return this.currentCompact?.type || null;
+    }
+
+    get user(): LicenseeUser | null {
+        return this.userStore.model;
+    }
+
+    get userFullName(): string {
+        let name = '';
+
+        if (this.user) {
+            name = this.user.getFullName();
+        }
+
+        return name;
+    }
+
+    get licensee(): Licensee | null {
+        return this.user?.licensee || null;
+    }
+
+    get licenseList(): Array<License> {
+        return this.licensee?.licenses || [];
+    }
+
+    get privilegeList(): Array<License> {
+        return this.licensee?.privileges || [];
+    }
+
+    get selectedPurchaseLicense(): License | null {
+        return this.$store.getters['user/getLicenseSelected']();
+    }
+
+    get activeLicense(): License | null {
+        return this.licenseList?.find((license) => license.status === LicenseStatus.ACTIVE) || null;
+    }
+
     get purchaseDataList(): Array<PrivilegePurchaseOption> {
         const privilegePurchaseOptions = [...this.currentCompact?.privilegePurchaseOptions || []];
 
@@ -109,48 +155,6 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
         });
 
         return privilegePurchaseOptions;
-    }
-
-    get currentCompact(): Compact | null {
-        return this.userStore?.currentCompact || null;
-    }
-
-    get currentCompactType(): string | null {
-        return this.currentCompact?.type || null;
-    }
-
-    get userStore(): any {
-        return this.$store.state.user;
-    }
-
-    get user(): LicenseeUser | null {
-        return this.userStore.model;
-    }
-
-    get licensee(): Licensee | null {
-        return this.user?.licensee || null;
-    }
-
-    get userFullName(): string {
-        let name = '';
-
-        if (this.user) {
-            name = this.user.getFullName();
-        }
-
-        return name;
-    }
-
-    get isPhone(): boolean {
-        return this.$matches.phone.only;
-    }
-
-    get privilegeList(): Array<License> {
-        return this.licensee?.privileges || [];
-    }
-
-    get licenseList(): Array<License> {
-        return this.licensee?.licenses || [];
     }
 
     get disabledPrivilegeStateChoices(): Array<string> {
@@ -176,39 +180,8 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
         return disabledStateList;
     }
 
-    get backText(): string {
-        return this.$t('common.back');
-    }
-
-    get cancelText(): string {
-        return this.$t('common.cancel');
-    }
-
     get stateCheckList(): Array<FormInput> {
         return this.formData.stateCheckList;
-    }
-
-    get isAtLeastOnePrivilegeChosen(): boolean {
-        return this.formData.stateCheckList?.filter((formInput) =>
-            (formInput.value === true)).length > 0;
-    }
-
-    get submitLabel(): string {
-        let label = this.$t('common.next');
-
-        if (this.isFormLoading) {
-            label = this.$t('common.loading');
-        }
-
-        return label;
-    }
-
-    get isDesktop(): boolean {
-        return this.$matches.desktop.min;
-    }
-
-    get isMobile(): boolean {
-        return !this.isDesktop;
     }
 
     get statesSelected(): Array <string> {
@@ -244,56 +217,9 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
         return selectedStatesWithJurisprudenceRequired;
     }
 
-    get jurisprudenceExplanationText(): string {
-        return this.$t('licensing.jurisprudenceExplanationText');
-    }
-
-    get activeLicense(): License | null {
-        return this.licenseList?.find((license) => license.status === LicenseStatus.ACTIVE) || null;
-    }
-
-    get selectPrivilegesTitleText(): string {
-        return this.$t('licensing.selectPrivileges');
-    }
-
-    get areAllJurisprudenceConfirmed(): boolean {
-        let allConfirmed = true;
-
-        if (this.formData?.jurisprudenceConfirmations) {
-            const jurisprudenceConfirmations = Object.keys(this.formData.jurisprudenceConfirmations);
-
-            jurisprudenceConfirmations.forEach((state) => {
-                if (!this.formData.jurisprudenceConfirmations[state].value) {
-                    allConfirmed = false;
-                }
-            });
-        }
-
-        return allConfirmed;
-    }
-
-    get areAllScopesConfirmed(): boolean {
-        let allConfirmed = true;
-
-        if (this.formData?.scopeOfPracticeConfirmations) {
-            const scopeOfPracticeConfirmations = Object.keys(this.formData.scopeOfPracticeConfirmations);
-
-            scopeOfPracticeConfirmations.forEach((state) => {
-                if (!this.formData.scopeOfPracticeConfirmations[state].value) {
-                    allConfirmed = false;
-                }
-            });
-        }
-
-        return allConfirmed;
-    }
-
-    get areAllAttesationsConfirmed(): boolean {
-        return this.areAllScopesConfirmed && this.areAllJurisprudenceConfirmed;
-    }
-
-    get scopeOfPracticeText(): string {
-        return this.$t('licensing.scopeAttestLabel');
+    get isAtLeastOnePrivilegeChosen(): boolean {
+        return this.formData.stateCheckList?.filter((formInput) =>
+            (formInput.value === true)).length > 0;
     }
 
     get jurisprudenceAttestation(): PrivilegeAttestation {
@@ -304,25 +230,42 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
         return this.attestationRecords.find((record) => ((record as any)?.id === 'scope-of-practice-attestation')) || new PrivilegeAttestation();
     }
 
-    get isMockPopulateEnabled(): boolean {
-        return Boolean(this.$envConfig.isDevelopment);
+    get submitLabel(): string {
+        let label = this.$t('common.next');
+
+        if (this.isFormLoading) {
+            label = this.$t('common.loading');
+        }
+
+        return label;
     }
 
-    get selectedPurchaseLicense(): License | null {
-        return this.$store.getters['user/getLicenseSelected']();
+    get isPhone(): boolean {
+        return this.$matches.phone.only;
+    }
+
+    get isMockPopulateEnabled(): boolean {
+        return Boolean(this.$envConfig.isDevelopment);
     }
 
     //
     // Methods
     //
+    async fetchAttestations(): Promise<void> {
+        if (this.currentCompactType) {
+            this.attestationRecords = await Promise.all((this.attestationIds[this.currentCompactType] as Array<any>)
+                .map(async (attesationId) => (dataApi.getAttestation(this.currentCompactType, attesationId))));
+        }
+    }
+
     initFormInputs(): void {
-        const initFormData: any = {
+        this.formData = reactive({
             stateCheckList: [],
             submit: new FormInput({
                 isSubmitInput: true,
                 id: 'submit',
             })
-        };
+        });
 
         this.purchaseDataList?.forEach((purchaseOption) => {
             const { jurisdiction = new State() } = purchaseOption;
@@ -331,7 +274,7 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
                 const { abbrev } = jurisdiction;
 
                 if (abbrev) {
-                    initFormData.stateCheckList.push(new FormInput({
+                    this.formData.stateCheckList.push(new FormInput({
                         id: abbrev,
                         name: `${abbrev}-check`,
                         label: jurisdiction.name(),
@@ -342,12 +285,10 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
             }
         });
 
-        this.formData = reactive(initFormData);
+        this.watchFormInputs();
     }
 
-    // Add attestation FormInputs as top-level properties
     addStateAttestationInputs(stateAbbrev: string) {
-        // Find the state object in purchaseDataList
         const stateObj = this.purchaseDataList.find(
             (option) => option.jurisdiction?.abbrev === stateAbbrev
         );
@@ -357,7 +298,7 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
             this.formData[`jurisprudence-${stateAbbrev}`] = new FormInput({
                 id: `jurisprudence-${stateAbbrev}`,
                 name: `jurisprudence-${stateAbbrev}`,
-                label: this.jurisprudenceExplanationText,
+                label: computed(() => this.$t('licensing.jurisprudenceExplanationText')),
                 value: false,
                 validation: Joi.boolean().invalid(false).required().messages(this.joiMessages.boolean),
             });
@@ -369,19 +310,17 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
         this.formData[`scope-${stateAbbrev}`] = new FormInput({
             id: `scope-${stateAbbrev}`,
             name: `scope-${stateAbbrev}`,
-            label: this.scopeOfPracticeText,
+            label: computed(() => this.$t('licensing.scopeAttestLabel')),
             value: false,
             validation: Joi.boolean().invalid(false).required().messages(this.joiMessages.boolean),
         });
     }
 
-    // Remove attestation FormInputs from top-level properties
     removeStateAttestationInputs(stateAbbrev: string) {
         delete this.formData[`jurisprudence-${stateAbbrev}`];
         delete this.formData[`scope-${stateAbbrev}`];
     }
 
-    // Update state selection logic
     toggleStateSelected(stateFormInput) {
         const newStateFormInputValue = !stateFormInput.value;
         const stateAbbrev = stateFormInput.id;
@@ -395,8 +334,25 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
         }
     }
 
+    deselectState(stateAbbrev: string) {
+        this.formData.stateCheckList.find((checkBox) => (checkBox.id === stateAbbrev)).value = false;
+        this.removeStateAttestationInputs(stateAbbrev);
+    }
+
+    isStateSelectDisabled(state): boolean {
+        return this.disabledPrivilegeStateChoices.includes(state.id);
+    }
+
+    findStatePurchaseInformation(stateSelectInput): PrivilegePurchaseOption | null {
+        const stateAbbrev = stateSelectInput.id;
+
+        const statePurchaseData = this.selectedStatePurchaseDataList.find((purchaseData) =>
+            (purchaseData.jurisdiction?.abbrev === stateAbbrev)) || null;
+
+        return statePurchaseData;
+    }
+
     handleSubmit() {
-        // Always validate all before checking isFormValid
         this.validateAll({ asTouched: true });
 
         if (this.isAtLeastOnePrivilegeChosen && this.isFormValid) {
@@ -416,6 +372,13 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
         }
     }
 
+    prepareAttestations(): Array<any> {
+        return this.attestationRecords.map((attestation) => (new AcceptedAttestationToSend({
+            attestationId: attestation.id,
+            version: attestation.version,
+        })));
+    }
+
     handleCancelClicked() {
         this.$store.dispatch('user/resetToPurchaseFlowStep', 0);
 
@@ -427,45 +390,12 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
         }
     }
 
-    prepareAttestations(): Array<any> {
-        return this.attestationRecords.map((attestation) => (new AcceptedAttestationToSend({
-            attestationId: attestation.id,
-            version: attestation.version,
-        })));
-    }
-
     handleBackClicked() {
         if (this.currentCompactType) {
             this.$router.push({
                 name: 'PrivilegePurchaseInformationConfirmation',
                 params: { compact: this.currentCompactType }
             });
-        }
-    }
-
-    deselectState(stateAbbrev) {
-        this.formData.stateCheckList.find((checkBox) => (checkBox.id === stateAbbrev)).value = false;
-        delete this.formData.jurisprudenceConfirmations?.[stateAbbrev];
-        delete this.formData.scopeOfPracticeConfirmations?.[stateAbbrev];
-    }
-
-    isStateSelectDisabled(state): boolean {
-        return this.disabledPrivilegeStateChoices.includes(state.id);
-    }
-
-    findStatePurchaseInformation(stateSelectInput): PrivilegePurchaseOption | null {
-        const stateAbbrev = stateSelectInput.id;
-
-        const statePurchaseData = this.selectedStatePurchaseDataList.find((purchaseData) =>
-            (purchaseData.jurisdiction?.abbrev === stateAbbrev)) || null;
-
-        return statePurchaseData;
-    }
-
-    async fetchAttestations(): Promise<void> {
-        if (this.currentCompactType) {
-            this.attestationRecords = await Promise.all((this.attestationIds[this.currentCompactType] as Array<any>)
-                .map(async (attesationId) => (dataApi.getAttestation(this.currentCompactType, attesationId))));
         }
     }
 
