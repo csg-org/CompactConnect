@@ -306,7 +306,7 @@ export class LicenseeSerializer {
             privilegeStates: [] as Array<State>,
             privileges: [] as Array<License>,
             militaryAffiliations: [] as Array<MilitaryAffiliation>,
-            status: json.status,
+            status: json.licenseStatus,
             lastUpdated: json.dateOfUpdate,
         };
 

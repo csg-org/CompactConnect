@@ -23,14 +23,14 @@
                 <div class="expire-date-value">{{selectedLicenseExpirationDate}}</div>
             </div>
             <div class="info-row sub-row">
-                <div class="info-row-label">{{jurisdictionFeeText}}</div>
+                <div class="info-row-label">{{stateFeeText}}</div>
                 <div class="expire-date-value">${{feeDisplay}}</div>
             </div>
             <div class="info-row sub-row">
                 <div class="info-row-label">{{commissionFeeText}}</div>
                 <div class="expire-date-value">${{currentCompactCommissionFeeDisplay}}</div>
             </div>
-            <div class="info-row">
+            <div class="info-row subtotal-row">
                 <div class="info-row-label">{{subtotalText}}</div>
                 <div class="expire-date-value">${{subTotal}}</div>
             </div>

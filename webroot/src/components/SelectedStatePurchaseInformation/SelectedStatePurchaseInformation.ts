@@ -182,8 +182,8 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
         return Boolean(this.hasMilitaryRate && this.licensee?.isMilitaryStatusActive());
     }
 
-    get jurisdictionFeeText(): string {
-        return this.shouldUseMilitaryRate ? this.$t('licensing.jurisdictionFeeMilitary') : this.$t('licensing.jurisdictionFee');
+    get stateFeeText(): string {
+        return this.shouldUseMilitaryRate ? this.$t('licensing.stateFeeMilitary') : this.$t('licensing.stateFee');
     }
 
     get subTotal(): string {

@@ -77,6 +77,22 @@ export const staffAccount = {
                         readSsn: true,
                     },
                 },
+                ma: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                        readPrivate: true,
+                        readSsn: true,
+                    },
+                },
+                vt: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                        readPrivate: true,
+                        readSsn: true,
+                    },
+                },
             },
         },
         aslp: {
@@ -1564,7 +1580,7 @@ export const licensees = {
                     npi: '6944447281',
                     licenseNumber: 'A-944447281',
                     homeAddressPostalCode: '',
-                    jurisdiction: 'co',
+                    jurisdiction: 'ma',
                     givenName: 'Jane',
                     homeAddressStreet1: '1640 Riverside Drive',
                     dateOfBirth: '1990-08-29',
@@ -1660,7 +1676,7 @@ export const licensees = {
                     licenseNumber: 'A-944447281',
                     npi: '6944447281',
                     homeAddressPostalCode: '',
-                    jurisdiction: 'nv',
+                    jurisdiction: 'vt',
                     givenName: 'Jane',
                     homeAddressStreet1: '1640 Riverside Drive',
                     dateOfBirth: '1990-08-29',
@@ -1684,7 +1700,7 @@ export const licensees = {
                             providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
                             compact: 'octp',
                             type: 'adverseAction',
-                            jurisdiction: 'al',
+                            jurisdiction: 'vt',
                             licenseTypeAbbreviation: 'ota',
                             licenseType: 'occupational therapy assistant',
                             actionAgainst: 'privilege',
@@ -1700,7 +1716,7 @@ export const licensees = {
                             providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
                             compact: 'octp',
                             type: 'adverseAction',
-                            jurisdiction: 'al',
+                            jurisdiction: 'vt',
                             licenseTypeAbbreviation: 'ota',
                             licenseType: 'occupational therapy assistant',
                             actionAgainst: 'privilege',
@@ -1723,7 +1739,7 @@ export const licensees = {
             middleName: '',
             birthMonthDay: '1990-08-29',
             dateOfUpdate: '2024-08-29',
-            status: 'active'
+            licenseStatus: 'active'
         },
         {
             currentHomeJurisdiction: 'co',
@@ -1790,7 +1806,7 @@ export const licensees = {
             middleName: '',
             birthMonthDay: '1975-01-01',
             dateOfUpdate: '2024-08-29',
-            status: 'inactive'
+            licenseStatus: 'inactive'
         },
         {
             currentHomeJurisdiction: 'co',
@@ -1859,7 +1875,7 @@ export const licensees = {
             middleName: '',
             birthMonthDay: '1965-01-01',
             dateOfUpdate: '2024-08-29',
-            status: 'active'
+            licenseStatus: 'active'
         },
         {
             currentHomeJurisdiction: 'co    ',
@@ -1946,7 +1962,7 @@ export const licensees = {
             middleName: '',
             birthMonthDay: '1990-08-29',
             dateOfUpdate: '2024-08-29',
-            status: 'active'
+            licenseStatus: 'active'
         },
     ],
 };
