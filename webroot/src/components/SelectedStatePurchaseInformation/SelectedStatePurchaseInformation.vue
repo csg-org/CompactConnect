@@ -30,8 +30,8 @@
                 <div class="info-row-label">{{commissionFeeText}}</div>
                 <div class="expire-date-value">${{currentCompactCommissionFeeDisplay}}</div>
             </div>
-            <div class="info-row">
-                <div class="info-row-label subtotal-label">{{subtotalText}}</div>
+            <div class="info-row subtotal-row">
+                <div class="info-row-label">{{subtotalText}}</div>
                 <div class="expire-date-value">${{subTotal}}</div>
             </div>
         </div>

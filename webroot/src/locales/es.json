@@ -522,6 +522,7 @@
         "confirmCardDetails": "Completar compra",
         "confirmCardDetailsError": "Se produjo un error al confirmar los datos de pago. Inténtalo de nuevo.",
         "ccTransactionFees": "Tarifas de transacciones con tarjeta de crédito",
+        "ccTransactionFee": "Tarifa de transacción con tarjeta de crédito",
         "enterFirstName": "Ingrese el nombre",
         "enterLastName": "Introduzca el apellido",
         "billingAddressTitle": "Dirección de Envio",

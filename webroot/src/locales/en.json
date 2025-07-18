@@ -523,6 +523,7 @@
         "confirmCardDetails": "Complete purchase",
         "confirmCardDetailsError": "There was an error confirming your payment details. Please try again.",
         "ccTransactionFees": "Credit card transaction fees",
+        "ccTransactionFee": "Credit card transaction fee",
         "enterFirstName": "Enter first name",
         "enterLastName": "Enter last name",
         "billingAddressTitle": "Billing Address",
