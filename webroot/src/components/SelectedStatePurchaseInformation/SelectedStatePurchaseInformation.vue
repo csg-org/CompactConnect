@@ -24,15 +24,15 @@
             </div>
             <div class="info-row sub-row">
                 <div class="info-row-label">{{jurisdictionFeeText}}</div>
-                <div class="expire-date-value">${{feeDisplay}}</div>
+                <div class="fee-display-value">${{feeDisplay}}</div>
             </div>
             <div class="info-row sub-row">
                 <div class="info-row-label">{{ $t('licensing.adminFee') }}</div>
-                <div class="expire-date-value">${{currentCompactCommissionFeeDisplay}}</div>
+                <div class="fee-display-value">${{currentCompactCommissionFeeDisplay}}</div>
             </div>
-            <div class="info-row">
+            <div class="info-row total-row">
                 <div class="info-row-label">{{ $t('common.subtotal') }}</div>
-                <div class="expire-date-value">${{subTotal}}</div>
+                <div class="subtotal-value">${{subTotal}}</div>
             </div>
         </div>
         <div v-if="selectedStatePurchaseData.isJurisprudenceRequired" class="jurisprudence-check-box">
