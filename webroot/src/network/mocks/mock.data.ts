@@ -1739,7 +1739,7 @@ export const licensees = {
             middleName: '',
             birthMonthDay: '1990-08-29',
             dateOfUpdate: '2024-08-29',
-            status: 'active'
+            licenseStatus: 'active'
         },
         {
             currentHomeJurisdiction: 'co',
@@ -1806,7 +1806,7 @@ export const licensees = {
             middleName: '',
             birthMonthDay: '1975-01-01',
             dateOfUpdate: '2024-08-29',
-            status: 'inactive'
+            licenseStatus: 'inactive'
         },
         {
             currentHomeJurisdiction: 'co',
@@ -1875,7 +1875,7 @@ export const licensees = {
             middleName: '',
             birthMonthDay: '1965-01-01',
             dateOfUpdate: '2024-08-29',
-            status: 'active'
+            licenseStatus: 'active'
         },
         {
             currentHomeJurisdiction: 'co    ',
@@ -1962,7 +1962,7 @@ export const licensees = {
             middleName: '',
             birthMonthDay: '1990-08-29',
             dateOfUpdate: '2024-08-29',
-            status: 'active'
+            licenseStatus: 'active'
         },
     ],
 };
