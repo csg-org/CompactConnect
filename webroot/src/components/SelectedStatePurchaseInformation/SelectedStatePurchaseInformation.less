@@ -19,6 +19,8 @@
         color: @white;
 
         :deep(.checkbox-container) {
+            margin-bottom: 0;
+
             input {
                 &:not(:checked) + .checkbox-replacement::before {
                     border-color: @white;
@@ -54,6 +56,27 @@
                 background-color: rgba(@white, 0.9);
             }
         }
+
+        .jurisprudence-info-link-container {
+            margin-left: 3.2rem;
+
+            &.error {
+                margin-top: 0.8rem;
+            }
+
+            .jurisprudence-info-link {
+                color: #9ddcf9;
+                font-weight: 700;
+                text-decoration: underline;
+                text-decoration-thickness: 1px;
+                text-underline-offset: 0.2rem;
+
+                &:hover {
+                    color: #9ddcf9;
+                    text-decoration: underline;
+                }
+            }
+        }
     }
 
     .info-row {
@@ -83,6 +106,10 @@
 
         &.sub-row {
             color: ~"rgba(@{white}, 0.75)";
+        }
+
+        &.total-row {
+            font-weight: 700;
         }
 
         .state-title {
