@@ -19,6 +19,12 @@ class OrganizationalControlsStack(Stack):
             target_ids=[bare_org_stack.organization.attr_root_id],
         )
 
+        NoCreatingIAMUsersControlPolicy(
+            self,
+            'NoCreatingIAMUsersControlPolicy',
+            target_ids=[bare_org_stack.organization.attr_root_id],
+        )
+
 
 class OrganizationalPolicyType(Enum):
     SERVICE_CONTROL_POLICY = 'SERVICE_CONTROL_POLICY'
@@ -76,6 +82,24 @@ class NoLeavingServiceControlPolicy(ServiceControlPolicy):
             PolicyDocument(
                 statements=[
                     PolicyStatement(effect=Effect.DENY, actions=['organizations:LeaveOrganization'], resources=['*']),
+                ],
+            ),
+        )
+
+
+class NoCreatingIAMUsersControlPolicy(ServiceControlPolicy):
+    def __init__(self, scope: Construct, construct_id: str, *, target_ids: list[str]):
+        super().__init__(
+            scope,
+            construct_id,
+            name='NoCreatingIAMUsers',
+            description='Denies the creation of IAM users',
+            target_ids=target_ids,
+        )
+        self.assign_document(
+            PolicyDocument(
+                statements=[
+                    PolicyStatement(effect=Effect.DENY, actions=['iam:CreateUser'], resources=['*']),
                 ],
             ),
         )

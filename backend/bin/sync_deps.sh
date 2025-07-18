@@ -10,6 +10,8 @@ pip-sync \
   multi-account/log-aggregation/requirements.txt \
   compact-connect/requirements-dev.txt \
   compact-connect/requirements.txt \
+  compact-connect/lambdas/python/cognito-backup/requirements-dev.txt \
+  compact-connect/lambdas/python/cognito-backup/requirements.txt \
   compact-connect/lambdas/python/compact-configuration/requirements-dev.txt \
   compact-connect/lambdas/python/compact-configuration/requirements.txt \
   compact-connect/lambdas/python/common/requirements-dev.txt \
