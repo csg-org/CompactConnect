@@ -92,7 +92,6 @@ class TestCognitoBackupFunctional(TstFunction):
             'enabled',
             'user_create_date',
             'user_last_modified_date',
-            'mfa_options',
             'attributes',
         ]
         for field in required_fields:

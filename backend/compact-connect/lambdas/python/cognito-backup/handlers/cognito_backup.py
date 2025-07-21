@@ -147,7 +147,6 @@ class CognitoBackupExporter:
                 'enabled': user_data.get('Enabled', False),
                 'user_create_date': user_data['UserCreateDate'].isoformat(),
                 'user_last_modified_date': user_data['UserLastModifiedDate'].isoformat(),
-                'mfa_options': user_data.get('MFAOptions', []),
                 'attributes': self._extract_user_attributes(user_data.get('Attributes', [])),
             },
         }
