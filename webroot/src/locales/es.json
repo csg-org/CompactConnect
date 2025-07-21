@@ -357,7 +357,8 @@
         "description": "Descripción",
         "copyright": "Copyright",
         "compact": "Compacto",
-        "uploadDocument": "Subir documento"
+        "uploadDocument": "Subir documento",
+        "here": "aquí"
     },
     "navigation": {
         "dashboard": "Panel",
@@ -744,7 +745,6 @@
         "compactEligible": "Elegible Compacto",
         "notCompactEligible": "No Compacto Elegible",
         "privilegeVerification": "Verificación de privilegios",
-        "licenseNumber": "Número de licencia",
         "privilegeId": "Identificación de privilegio",
         "privilegeType": "Tipo de privilegio",
         "practitionerInformation": "Información para profesionales",
@@ -753,7 +753,12 @@
         "activeDate": "Activa",
         "privilegeProofFooter": "Este documento es generado oficialmente por Compact Connect y sirve como prueba de las licencias y privilegios actuales del profesional.",
         "publicProfileLink": "Ver perfil público en",
-        "qrCodeAlt": "Código QR que enlaza al perfil público"
+        "qrCodeAlt": "Código QR que enlaza al perfil público",
+        "whyUnavailable": "¿Por qué no está disponible?",
+        "purchaseUnavailableMessage": "Actualmente no es elegible para comprar privilegios compactos. Esto puede ocurrir por una serie de razones.",
+        "purchaseUnavailableNoEligibleLicenses": "No tiene ninguna licencia que sea elegible para la participación en el convenio. Si cree que una de sus licencias debería ser elegible, comuníquese con el consejo estatal que emitió esa licencia.",
+        "purchaseUnavailableEncumbrance": "Tiene una carga que le impide comprar privilegios. Si cree que no debería tener una carga, comuníquese con el consejo estatal que registró la carga.",
+        "purchaseUnavailablePendingMilitaryStatus": "Ha iniciado el proceso de presentación de documentación para confirmar su condición de militar, pero no lo ha finalizado. Puede completar ese proceso"
     },
     "military": {
         "militaryStatusTitle": "Estado militar",

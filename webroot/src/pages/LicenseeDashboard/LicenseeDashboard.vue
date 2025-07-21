@@ -29,6 +29,16 @@
                         :isEnabled="isPrivilegePurchaseEnabled"
                         @click="startPrivPurchaseFlow"
                     />
+                    <div
+                        v-if="!isPrivilegePurchaseEnabled"
+                        class="btn-subtext why-unavailable-container"
+                    >
+                        {{ $t('licensing.whyUnavailable') }}
+                        <InfoCircle
+                            @click="openPurchaseUnavailableModal"
+                            @keyup.enter="openPurchaseUnavailableModal"
+                        />
+                    </div>
                 </div>
             </div>
         </div>
@@ -77,6 +87,43 @@
                 />
             </div>
         </div>
+        <TransitionGroup>
+            <Modal
+                v-if="isPurchaseUnavailableModalDisplayed"
+                class="purchase-unavailable-modal"
+                title=" "
+                :showActions="true"
+                @keydown.tab="focusTrapPurchaseUnavailableModal($event)"
+                @keyup.esc="closePurchaseUnavailableModal"
+            >
+                <template v-slot:content>
+                    <div class="modal-content-text">
+                        <p class="purchase-unavailable-message">{{ $t('licensing.purchaseUnavailableMessage') }}</p>
+                        <ol class="purchase-unavailable-list">
+                            <li>{{ $t('licensing.purchaseUnavailableNoEligibleLicenses') }}</li>
+                            <li>{{ $t('licensing.purchaseUnavailableEncumbrance') }}</li>
+                            <li>
+                                {{ $t('licensing.purchaseUnavailablePendingMilitaryStatus') }}
+                                <router-link :to="{ name: 'MilitaryStatus', params: { compact: currentCompactType } }">
+                                    {{ $t('common.here') }}
+                                </router-link>.
+                            </li>
+                        </ol>
+                    </div>
+                </template>
+                <template v-slot:actions>
+                    <div class="action-button-row initial-action-buttons">
+                        <InputSubmit
+                            class="submit-btn"
+                            :formInput="formData.close"
+                            :label="$t('common.close')"
+                            :isEnabled="true"
+                            @click="closePurchaseUnavailableModal"
+                        />
+                    </div>
+                </template>
+            </Modal>
+        </TransitionGroup>
     </div>
 </template>
 

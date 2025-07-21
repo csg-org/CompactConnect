@@ -267,7 +267,7 @@ export class Licensee implements InterfaceLicensee {
     }
 
     public canPurchasePrivileges(): boolean {
-        return !!this.purchaseEligibleLicenses().length;
+        return !!this.purchaseEligibleLicenses().length && !this.isMilitaryStatusInitializing();
     }
 }
 
