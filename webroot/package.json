@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "serve": "yarn audit:dependencies && yarn lint --no-fix && vue-cli-service serve",
+    "serve": "yarn lint --no-fix && vue-cli-service serve",
     "build": "yarn audit:dependencies && vue-cli-service build",
     "test:unit:all": "export NODE_OPTIONS=--openssl-legacy-provider && yarn lint --no-fix && vue-cli-service test:unit 'src/**/*.spec.ts'",
     "test:unit": "export NODE_OPTIONS=--openssl-legacy-provider && yarn lint --no-fix && vue-cli-service test:unit",

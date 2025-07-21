@@ -172,8 +172,8 @@ class PrivilegeHistoryEventPublicResponseSchema(ForgivingSchema):
     type = String(required=True, allow_none=False)
     updateType = UpdateType(required=True, allow_none=False)
     dateOfUpdate = Raw(required=True, allow_none=False)
-    dateEffective = Raw(required=True, allow_none=False)
-    dateCreated = Raw(required=True, allow_none=False)
+    effectiveDate = Raw(required=True, allow_none=False)
+    createDate = Raw(required=True, allow_none=False)
     note = String(required=False, allow_none=True)
 
 

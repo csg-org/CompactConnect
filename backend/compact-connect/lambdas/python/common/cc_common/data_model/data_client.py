@@ -932,8 +932,19 @@ class DataClient:
                 ]
             )
 
-    @logger_inject_kwargs(logger, 'compact', 'provider_id', 'jurisdiction', 'license_type')
-    def get_privilege(self, *, compact: str, provider_id: str, jurisdiction: str, license_type_abbr: str) -> dict:
+    @paginated_query
+    @logger_inject_kwargs(logger, 'compact', 'provider_id', 'detail', 'jurisdiction', 'license_type')
+    def get_privilege_data(
+        self,
+        *,
+        compact: str,
+        provider_id: str,
+        detail: bool = False,
+        dynamo_pagination: dict,
+        jurisdiction: str,
+        license_type_abbr: str,
+        consistent_read: bool = False,
+    ):
         """
         Get a privilege for a provider in a jurisdiction of the license type
 
@@ -944,17 +955,21 @@ class DataClient:
         :raises CCNotFoundException: If the privilege record is not found
         """
         # Get the privilege record
-        try:
-            privilege_record = self.config.provider_table.get_item(
-                Key={
-                    'pk': f'{compact}#PROVIDER#{provider_id}',
-                    'sk': f'{compact}#PROVIDER#privilege/{jurisdiction}/{license_type_abbr}#',
-                },
-            )['Item']
-        except KeyError as e:
-            raise CCNotFoundException(f'Privilege not found for jurisdiction {jurisdiction}') from e
+        if detail:
+            sk_condition = Key('sk').begins_with(f'{compact}#PROVIDER#privilege/{jurisdiction}/{license_type_abbr}#')
+        else:
+            sk_condition = Key('sk').eq(f'{compact}#PROVIDER#privilege/{jurisdiction}/{license_type_abbr}#')
 
-        return privilege_record
+        resp = self.config.provider_table.query(
+            Select='ALL_ATTRIBUTES',
+            KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}') & sk_condition,
+            ConsistentRead=consistent_read,
+            **dynamo_pagination,
+        )
+        if not resp['Items']:
+            raise CCNotFoundException('Provider not found')
+
+        return resp
 
     @logger_inject_kwargs(logger, 'compact', 'provider_id', 'jurisdiction', 'license_type')
     def deactivate_privilege(
@@ -973,9 +988,9 @@ class DataClient:
         :raises CCNotFoundException: If the privilege record is not found
         """
         # Get the privilege record
-        privilege_record = self.get_privilege(
+        privilege_record = self.get_privilege_data(
             compact=compact, provider_id=provider_id, jurisdiction=jurisdiction, license_type_abbr=license_type_abbr
-        )
+        )[0]
 
         # Find the main privilege record (not history records)
         privilege_record_schema = PrivilegeRecordSchema()
