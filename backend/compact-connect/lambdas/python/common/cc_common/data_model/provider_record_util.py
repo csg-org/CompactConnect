@@ -3,7 +3,11 @@ from enum import StrEnum
 
 from cc_common.config import logger
 from cc_common.data_model.schema.adverse_action import AdverseActionData
-from cc_common.data_model.schema.common import ActiveInactiveStatus, AdverseActionAgainstEnum, CompactEligibilityStatus
+from cc_common.data_model.schema.common import (
+    ActiveInactiveStatus,
+    AdverseActionAgainstEnum,
+    CompactEligibilityStatus,
+)
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
 from cc_common.data_model.schema.license.api import LicenseUpdatePreviousResponseSchema
 from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationData

@@ -198,6 +198,8 @@ class PrivilegeUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin, ValidatesLi
     licenseType = String(required=True, allow_none=False)
     compactTransactionIdGSIPK = String(required=True, allow_none=False)
     previous = Nested(PrivilegeUpdatePreviousRecordSchema, required=True, allow_none=False)
+    createDate = DateTime(required=True, allow_none=False)
+    effectiveDate = Date(required=True, allow_none=False)
     # We'll allow any fields that can show up in the previous field to be here as well, but none are required
     updatedValues = Nested(PrivilegeUpdatePreviousRecordSchema(partial=True), required=True, allow_none=False)
     # optional field that is only included if the update was a deactivation
