@@ -1,11 +1,10 @@
-import json
 from datetime import timedelta
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
 from cc_common.config import config, logger, metrics
 from cc_common.data_model.schema.common import CCPermissionsAction
-from cc_common.data_model.schema.provider.api import ProviderGeneralResponseSchema
+from cc_common.data_model.schema.provider.api import ProviderGeneralResponseSchema, QueryProvidersRequestSchema
 from cc_common.exceptions import (
     CCAccessDeniedException,
     CCAwsServiceException,
@@ -19,6 +18,7 @@ from cc_common.utils import (
     sanitize_provider_data_based_on_caller_scopes,
     user_has_read_ssn_access_for_provider,
 )
+from marshmallow import ValidationError
 
 from . import get_provider_information
 
@@ -34,7 +34,14 @@ def query_providers(event: dict, context: LambdaContext):  # noqa: ARG001 unused
     """
     compact = event['pathParameters']['compact']
 
-    body = json.loads(event['body'])
+    # Parse and validate the request body using the schema to strip whitespace
+    try:
+        schema = QueryProvidersRequestSchema()
+        body = schema.loads(event['body'])
+    except ValidationError as e:
+        logger.warning('Invalid request body', errors=e.messages)
+        raise CCInvalidRequestException(f'Invalid request: {e.messages}') from e
+
     query = body.get('query', {})
     if 'providerId' in query.keys():
         provider_id = query['providerId']
