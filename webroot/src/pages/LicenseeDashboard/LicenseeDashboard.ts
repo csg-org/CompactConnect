@@ -161,17 +161,19 @@ export default class LicenseeDashboard extends Vue {
         const firstTabIndex = document.getElementById('submit-close-purchase-unavailable');
         const lastTabIndex = document.getElementById('military-status-link');
 
-        if (event.shiftKey && document.activeElement === firstTabIndex) {
-            // shift + tab to last input
-            lastTabIndex?.focus();
+        if (event.shiftKey) {
+            if (document.activeElement === firstTabIndex) {
+                lastTabIndex?.focus();
+            } else {
+                firstTabIndex?.focus();
+            }
             event.preventDefault();
-        } else if (!event.shiftKey && document.activeElement === lastTabIndex) {
-            // Tab to first input
-            firstTabIndex?.focus();
-            event.preventDefault();
-        } else if (!event.shiftKey && document.activeElement === firstTabIndex) {
-            // Tab to last input
-            lastTabIndex?.focus();
+        } else {
+            if (document.activeElement === lastTabIndex) {
+                firstTabIndex?.focus();
+            } else {
+                lastTabIndex?.focus();
+            }
             event.preventDefault();
         }
     }
