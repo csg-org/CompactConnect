@@ -6,7 +6,7 @@
 //
 
 import { Component, Vue } from 'vue-facing-decorator';
-import { reactive } from 'vue';
+import { reactive, nextTick } from 'vue';
 import { FormInput } from '@/models/FormInput/FormInput.model';
 import HomeStateBlock from '@/components/HomeStateBlock/HomeStateBlock.vue';
 import LicenseCard from '@/components/LicenseCard/LicenseCard.vue';
@@ -138,8 +138,10 @@ export default class LicenseeDashboard extends Vue {
         this.isPastPrivsCollapsed = !this.isPastPrivsCollapsed;
     }
 
-    openPurchaseUnavailableModal(): void {
+    async openPurchaseUnavailableModal(): Promise<void> {
         this.isPurchaseUnavailableModalDisplayed = true;
+        await nextTick();
+        document.getElementById('submit-close-purchase-unavailable')?.focus();
     }
 
     closePurchaseUnavailableModal(): void {
@@ -150,15 +152,32 @@ export default class LicenseeDashboard extends Vue {
         this.formData = reactive({
             close: new FormInput({
                 isSubmitInput: true,
-                id: 'submit-finish-military-status-setup',
+                id: 'submit-close-purchase-unavailable',
             }),
         });
     }
 
-    finishMilitaryStatusSetup(): void {
-        this.$router.push({
-            name: 'MilitaryStatus',
-            params: { compact: this.currentCompactType }
-        });
+    focusTrapPurchaseUnavailable(event: KeyboardEvent): void {
+        const firstTabIndex = document.getElementById('submit-close-purchase-unavailable');
+        const lastTabIndex = document.getElementById('military-status-link');
+
+        if (event.key === 'Tab') {
+            if (firstTabIndex && lastTabIndex) {
+                // If Shift+Tab on first, cycle to last
+                if (event.shiftKey && document.activeElement === firstTabIndex) {
+                    lastTabIndex.focus();
+                    event.preventDefault();
+                } else if (!event.shiftKey && document.activeElement === lastTabIndex) {
+                    firstTabIndex.focus();
+                    event.preventDefault();
+                } else if (
+                    document.activeElement !== firstTabIndex
+                    && document.activeElement !== lastTabIndex
+                ) {
+                    firstTabIndex.focus();
+                    event.preventDefault();
+                }
+            }
+        }
     }
 }

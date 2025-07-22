@@ -93,7 +93,7 @@
                 class="purchase-unavailable-modal"
                 title=" "
                 :showActions="true"
-                @keydown.tab="focusTrapPurchaseUnavailableModal($event)"
+                @keydown.tab="focusTrapPurchaseUnavailable($event)"
                 @keyup.esc="closePurchaseUnavailableModal"
             >
                 <template v-slot:content>
@@ -104,7 +104,10 @@
                             <li>{{ $t('licensing.purchaseUnavailableEncumbrance') }}</li>
                             <li>
                                 {{ $t('licensing.purchaseUnavailablePendingMilitaryStatus') }}
-                                <router-link :to="{ name: 'MilitaryStatus', params: { compact: currentCompactType } }">
+                                <router-link
+                                    id="military-status-link"
+                                    :to="{ name: 'MilitaryStatus', params: { compact: currentCompactType } }"
+                                >
                                     {{ $t('common.here') }}
                                 </router-link>.
                             </li>
@@ -117,7 +120,6 @@
                             class="submit-btn"
                             :formInput="formData.close"
                             :label="$t('common.close')"
-                            :isEnabled="true"
                             @click="closePurchaseUnavailableModal"
                         />
                     </div>
