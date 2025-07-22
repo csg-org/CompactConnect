@@ -1489,7 +1489,7 @@ export const licensees = {
                 dateOfUpload: '2024-08-29',
                 documentKeys: 'key',
                 fileNames: ['military-document.pdf'],
-                status: 'initializing'
+                status: 'active'
             }],
             npi: '6944447281',
             licenseNumber: 'A-944447281',
