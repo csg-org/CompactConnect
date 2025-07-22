@@ -93,14 +93,12 @@ class CognitoUserBackup(Construct):
             # Versioning is required for AWS Backup
             # https://docs.aws.amazon.com/aws-backup/latest/devguide/s3-backups.html#s3-backup-prerequisites
             versioned=True,
-            # Minimize versioning storage costs by keeping exactly 1 non-current version
+            # Minimize versioning storage costs by deleting all non-current versions
+            # (AWS Backup will store previous versions in recovery points)
             lifecycle_rules=[
                 LifecycleRule(
                     id='MinimizeVersioningCosts',
                     enabled=True,
-                    # Keep exactly 1 non-current version for disaster recovery
-                    # S3 automatically deletes older versions when new ones are created
-                    noncurrent_versions_to_retain=1,
                     # Delete non-current versions after 1 day to minimize storage costs
                     noncurrent_version_expiration=Duration.days(1),
 
