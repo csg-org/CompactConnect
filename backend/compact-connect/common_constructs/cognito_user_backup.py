@@ -101,6 +101,9 @@ class CognitoUserBackup(Construct):
                     # Keep exactly 1 non-current version for disaster recovery
                     # S3 automatically deletes older versions when new ones are created
                     noncurrent_versions_to_retain=1,
+                    # Delete non-current versions after 1 day to minimize storage costs
+                    noncurrent_version_expiration=Duration.days(1),
+
                 )
             ],
         )

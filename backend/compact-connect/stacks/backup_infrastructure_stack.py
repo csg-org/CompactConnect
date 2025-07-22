@@ -123,8 +123,8 @@ class BackupInfrastructureStack(NestedStack):
             managed_policies=[
                 ManagedPolicy.from_aws_managed_policy_name('service-role/AWSBackupServiceRolePolicyForBackup'),
                 ManagedPolicy.from_aws_managed_policy_name('service-role/AWSBackupServiceRolePolicyForRestores'),
-                ManagedPolicy.from_aws_managed_policy_name('service-role/AWSBackupServiceRolePolicyForS3Backup'),
-                ManagedPolicy.from_aws_managed_policy_name('service-role/AWSBackupServiceRolePolicyForS3Restore'),
+                ManagedPolicy.from_aws_managed_policy_name('AWSBackupServiceRolePolicyForS3Backup'),
+                ManagedPolicy.from_aws_managed_policy_name('AWSBackupServiceRolePolicyForS3Restore'),
             ],
             # Create a policy that restricts cross-account copy operations to only our approved backup vault
             # This provides security controls while allowing necessary backup and restore operations
