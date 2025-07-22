@@ -4,6 +4,8 @@
 )
 
 pip-sync \
+  multi-account/backups/requirements-dev.txt \
+  multi-account/backups/requirements.txt \
   multi-account/control-tower/requirements-dev.txt \
   multi-account/control-tower/requirements.txt \
   multi-account/log-aggregation/requirements-dev.txt \

@@ -1,5 +1,7 @@
 set -e
 
+pip-compile --no-emit-index-url --upgrade --no-strip-extras multi-account/backups/requirements-dev.in
+pip-compile --no-emit-index-url --upgrade --no-strip-extras multi-account/backups/requirements.in
 pip-compile --no-emit-index-url --upgrade --no-strip-extras multi-account/control-tower/requirements-dev.in
 pip-compile --no-emit-index-url --upgrade --no-strip-extras multi-account/control-tower/requirements.in
 pip-compile --no-emit-index-url --upgrade --no-strip-extras multi-account/log-aggregation/requirements-dev.in
