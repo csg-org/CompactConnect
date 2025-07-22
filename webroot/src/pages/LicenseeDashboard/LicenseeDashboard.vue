@@ -93,6 +93,7 @@
                 class="purchase-unavailable-modal"
                 title=" "
                 :showActions="true"
+                @close-modal="closePurchaseUnavailableModal"
                 @keydown.tab="focusTrapPurchaseUnavailable($event)"
                 @keyup.esc="closePurchaseUnavailableModal"
             >
