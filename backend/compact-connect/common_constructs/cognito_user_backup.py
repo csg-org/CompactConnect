@@ -109,10 +109,6 @@ class CognitoUserBackup(Construct):
             self.bucket,
             suppressions=[
                 {
-                    'id': 'HIPAA.Security-S3BucketVersioningEnabled',
-                    'reason': 'This bucket has recovery points saved by AWS Backup, so versioning is redundant.',
-                },
-                {
                     'id': 'HIPAA.Security-S3BucketReplicationEnabled',
                     'reason': 'This bucket stores Cognito user exports that are backed up to cross-account vault via '
                     'AWS Backup. Replication is handled by backup infrastructure rather than S3 replication.',
