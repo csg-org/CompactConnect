@@ -192,7 +192,7 @@ class CognitoUserBackup(Construct):
 
     def _create_backup_rule(self) -> Rule:
         """Create EventBridge rule for daily execution."""
-        # Schedule at 2 AM UTC to avoid conflicts with other backup operations
+        # Schedule at 5 AM UTC to avoid conflicts with other backup operations
         # Pass the required parameters as part of the event
         return Rule(
             self,
