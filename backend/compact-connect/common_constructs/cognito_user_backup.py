@@ -18,7 +18,7 @@ from aws_cdk.aws_events import Rule, RuleTargetInput, Schedule
 from aws_cdk.aws_events_targets import LambdaFunction
 from aws_cdk.aws_iam import Effect, PolicyStatement
 from aws_cdk.aws_kms import IKey
-from aws_cdk.aws_s3 import BucketEncryption
+from aws_cdk.aws_s3 import BucketEncryption, LifecycleRule
 from aws_cdk.aws_sns import ITopic
 from cdk_nag import NagSuppressions
 from constructs import Construct
@@ -90,7 +90,19 @@ class CognitoUserBackup(Construct):
             encryption_key=encryption_key,
             server_access_logs_bucket=access_logs_bucket,
             removal_policy=removal_policy,
-            versioned=False,  # Versioning is redundant with backup plan
+            # Versioning is required for AWS Backup
+            #https://docs.aws.amazon.com/aws-backup/latest/devguide/s3-backups.html#s3-backup-prerequisites
+            versioned=True,
+            # Minimize versioning storage costs by keeping exactly 1 non-current version
+            lifecycle_rules=[
+                LifecycleRule(
+                    id='MinimizeVersioningCosts',
+                    enabled=True,
+                    # Keep exactly 1 non-current version for disaster recovery
+                    # S3 automatically deletes older versions when new ones are created
+                    noncurrent_versions_to_retain=1,
+                )
+            ],
         )
 
         NagSuppressions.add_resource_suppressions(

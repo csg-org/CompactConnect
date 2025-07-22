@@ -69,7 +69,7 @@ class TestCognitoUserBackup(TestCase):
 
     def test_creates_s3_backup_bucket(self):
         """Test that the S3 backup bucket is created with proper configuration."""
-        # Should create an S3 bucket with KMS encryption
+        # Should create an S3 bucket with KMS encryption and versioning
         self.template.has_resource_properties(
             CfnBucket.CFN_RESOURCE_TYPE_NAME,
             {
@@ -98,6 +98,9 @@ class TestCognitoUserBackup(TestCase):
                     'BlockPublicPolicy': True,
                     'IgnorePublicAcls': True,
                     'RestrictPublicBuckets': True,
+                },
+                'VersioningConfiguration': {
+                    'Status': 'Enabled',
                 },
             },
         )
