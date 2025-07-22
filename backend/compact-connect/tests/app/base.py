@@ -33,7 +33,7 @@ class _AppSynthesizer:
 
     def __init__(self):
         super().__init__()
-        self._cached_apps: dict[str, CompactConnectApp] = {}
+        self._cached_apps: dict[int, CompactConnectApp] = {}
 
     def get_app(self, context: Mapping) -> CompactConnectApp:
         context_hash = self._get_context_hash(context)
@@ -41,7 +41,7 @@ class _AppSynthesizer:
             self._cached_apps[context_hash] = CompactConnectApp(context=context)
         return self._cached_apps[context_hash]
 
-    def _get_context_hash(self, context: Mapping) -> str:
+    def _get_context_hash(self, context: Mapping) -> int:
         return hash(json.dumps(context, sort_keys=True))
 
 
