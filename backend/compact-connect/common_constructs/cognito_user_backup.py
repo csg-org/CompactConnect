@@ -91,7 +91,7 @@ class CognitoUserBackup(Construct):
             server_access_logs_bucket=access_logs_bucket,
             removal_policy=removal_policy,
             # Versioning is required for AWS Backup
-            #https://docs.aws.amazon.com/aws-backup/latest/devguide/s3-backups.html#s3-backup-prerequisites
+            # https://docs.aws.amazon.com/aws-backup/latest/devguide/s3-backups.html#s3-backup-prerequisites
             versioned=True,
             # Minimize versioning storage costs by keeping exactly 1 non-current version
             lifecycle_rules=[

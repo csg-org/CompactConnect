@@ -20,11 +20,17 @@ class BackupsApp(App):
         super().__init__(*args, **kwargs)
 
         # Get account IDs from context (backup account deployment only)
-        required_context = ['backup_account_id', 'organization_id', 'backup_region', 'source_account_ids',
-                            'source_regions', 'tags']
+        required_context = [
+            'backup_account_id',
+            'organization_id',
+            'backup_region',
+            'source_account_ids',
+            'source_regions',
+            'tags',
+        ]
         missing_context = [key for key in required_context if self.node.get_context(key) is None]
         if missing_context:
-            raise ValueError(f"Missing required context parameters: {', '.join(missing_context)}")
+            raise ValueError(f'Missing required context parameters: {", ".join(missing_context)}')
 
         backup_account_id = self.node.get_context('backup_account_id')
         organization_id = self.node.get_context('organization_id')
