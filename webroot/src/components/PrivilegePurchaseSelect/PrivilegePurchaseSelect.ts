@@ -445,8 +445,8 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
 
     deselectState(stateAbbrev) {
         this.formData.stateCheckList.find((checkBox) => (checkBox.id === stateAbbrev)).value = false;
-        delete this.formData[`jurisprudence-${stateAbbrev}`];
-        delete this.formData[`scope-${stateAbbrev}`];
+        delete this.formData.jurisprudenceConfirmations[stateAbbrev];
+        delete this.formData.scopeOfPracticeConfirmations[stateAbbrev];
     }
 
     isStateSelectDisabled(state): boolean {
@@ -475,11 +475,11 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
                 this.toggleStateSelected(state);
 
                 this.$nextTick(() => {
-                    if (this.formData[`jurisprudence-${state.id}`]) {
-                        this.formData[`jurisprudence-${state.id}`].value = true;
+                    if (this.formData.jurisprudenceConfirmations[state.id]) {
+                        this.formData.jurisprudenceConfirmations[state.id].value = true;
                     }
-                    if (this.formData[`scope-${state.id}`]) {
-                        this.formData[`scope-${state.id}`].value = true;
+                    if (this.formData.scopeOfPracticeConfirmations[state.id]) {
+                        this.formData.scopeOfPracticeConfirmations[state.id].value = true;
                     }
                 });
             }
