@@ -836,3 +836,57 @@ class TestProviderRegistration(TstFunction):
             },
             update_data.to_dict(),
         )
+
+    @patch('handlers.registration.verify_recaptcha')
+    def test_registration_strips_whitespace_from_all_string_fields(self, mock_verify_recaptcha):
+        """Test that registration strips whitespace from all string fields in the request."""
+        mock_verify_recaptcha.return_value = True
+
+        # Add provider records with normal names (no whitespace)
+        provider_data, license_data = self._add_mock_provider_records()
+
+        # Create registration request with whitespace around ALL string fields
+        fields_with_whitespace = {
+            'givenName': f'  {MOCK_GIVEN_NAME}  ',  # Add whitespace around the name
+            'familyName': f'  {MOCK_FAMILY_NAME}  ',  # Add whitespace around the name
+            'email': '  test@example.com  ',  # Add whitespace around email
+            'partialSocial': f'  {MOCK_SSN_LAST_FOUR}  ',  # Add whitespace around SSN
+            'jurisdiction': f'  {MOCK_JURISDICTION_POSTAL_ABBR}  ',  # Add whitespace around jurisdiction
+            'licenseType': f'  {TEST_LICENSE_TYPE}  ',  # Add whitespace around license type
+            'compact': f'  {TEST_COMPACT_ABBR}  ',  # Add whitespace around compact
+            'token': '  valid_token  ',  # Add whitespace around token
+        }
+
+        from handlers.registration import register_provider
+
+        event = self._get_test_event(body_overrides=fields_with_whitespace)
+        response = register_provider(event, self.mock_context)
+
+        # Verify registration succeeds despite whitespace on all fields
+        self.assertEqual(200, response['statusCode'])
+        self.assertEqual({'message': 'request processed'}, json.loads(response['body']))
+
+        # Verify provider record was updated (confirming the match worked)
+        provider_record = self.config.provider_table.get_item(
+            Key={
+                'pk': f'{TEST_COMPACT_ABBR}#PROVIDER#{provider_data["providerId"]}',
+                'sk': f'{TEST_COMPACT_ABBR}#PROVIDER',
+            }
+        )['Item']
+
+        # If the registration worked, the email should be set
+        self.assertEqual('test@example.com', provider_record['compactConnectRegisteredEmailAddress'])
+
+        # Verify Cognito user was created with the correct email (proving email whitespace was stripped)
+        cognito_users = self.config.cognito_client.list_users(
+            UserPoolId=self.config.provider_user_pool_id, Filter='email = "test@example.com"'
+        )
+        self.assertEqual(1, len(cognito_users['Users']))
+
+        # Verify the Cognito user has the correct attributes (proving all fields were processed correctly)
+        user_attributes = {attr['Name']: attr['Value'] for attr in cognito_users['Users'][0]['Attributes']}
+        self.assertEqual(TEST_COMPACT_ABBR, user_attributes['custom:compact'])
+        self.assertEqual(provider_data['providerId'], user_attributes['custom:providerId'])
+        self.assertEqual('test@example.com', user_attributes['email'])
+
+        mock_verify_recaptcha.assert_called_with('valid_token')

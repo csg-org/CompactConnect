@@ -30,8 +30,23 @@ import InputButton from '@components/Forms/InputButton/InputButton.vue';
 })
 export default class DashboardPublic extends Vue {
     //
+    // Lifecycle
+    //
+    created(): void {
+        if (this.bypassQuery) {
+            this.bypassRedirect();
+        }
+    }
+
+    //
     // Computed
     //
+    get bypassQuery(): string {
+        const bypass: string = (this.$route.query?.bypass as string) || '';
+
+        return bypass.toLowerCase();
+    }
+
     get shouldRemoteLogout(): boolean {
         const logoutQuery: string = (this.$route.query?.logout as string) || '';
 
@@ -81,8 +96,35 @@ export default class DashboardPublic extends Vue {
     //
     // Methods
     //
-    redirectToHostedLogin(): void {
-        window.location.replace(this.hostedLoginUriStaff);
+    bypassRedirect(): void {
+        switch (this.bypassQuery) {
+        case 'login-staff':
+            this.bypassToStaffLogin();
+            break;
+        case 'login-practitioner':
+            this.bypassToLicenseeLogin();
+            break;
+        default:
+            // Continue
+        }
+    }
+
+    bypassToStaffLogin(): void {
+        if (this.isUsingMockApi) {
+            this.mockStaffLogin();
+        } else {
+            this.$store.dispatch('startLoading');
+            window.location.replace(this.hostedLoginUriStaff);
+        }
+    }
+
+    bypassToLicenseeLogin(): void {
+        if (this.isUsingMockApi) {
+            this.mockLicenseeLogin();
+        } else {
+            this.$store.dispatch('startLoading');
+            window.location.replace(this.hostedLoginUriLicensee);
+        }
     }
 
     async mockStaffLogin(): Promise<void> {
