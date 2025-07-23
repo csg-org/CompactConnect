@@ -11,7 +11,7 @@ from botocore.exceptions import ClientError
 from cc_common.config import _Config, config, logger, metrics
 from cc_common.data_model.provider_record_util import (
     ProviderRecordUtility,
-    ProviderUserRecords,
+    ProviderUserRecords, ProviderRecordType,
 )
 from cc_common.data_model.query_paginator import paginated_query
 from cc_common.data_model.schema.adverse_action import AdverseActionData
@@ -427,8 +427,8 @@ class DataClient:
                 if original_privilege:
                     update_record = PrivilegeUpdateData.create_new(
                         {
-                            'type': 'privilegeUpdate',
-                            'updateType': 'renewal',
+                            'type': ProviderRecordType.PRIVILEGE_UPDATE,
+                            'updateType': UpdateCategory.RENEWAL,
                             'providerId': provider_id,
                             'compact': compact,
                             'jurisdiction': postal_abbreviation.lower(),
@@ -558,7 +558,7 @@ class DataClient:
         for transaction in processed_transactions:
             if transaction.get('Put'):
                 item = TypeDeserializer().deserialize({'M': transaction['Put']['Item']})
-                if item.get('type') == 'privilegeUpdate':
+                if item.get('type') == ProviderRecordType.PRIVILEGE_UPDATE:
                     # Always delete update records as they are always new
                     rollback_transactions.append(
                         {
@@ -1503,16 +1503,20 @@ class DataClient:
                     'License is currently unencumbered. Setting license into an encumbered state as part of update.'
                 )
 
+            now = config.current_standard_datetime
+
             # Create the update record
             # Use the schema to generate the update record with proper pk/sk
             license_update_record = LicenseUpdateData.create_new(
                 {
-                    'type': 'licenseUpdate',
+                    'type': ProviderRecordType.LICENSE_UPDATE,
                     'updateType': UpdateCategory.ENCUMBRANCE,
                     'providerId': adverse_action.providerId,
                     'compact': adverse_action.compact,
                     'jurisdiction': adverse_action.jurisdiction,
                     'licenseType': license_data.licenseType,
+                    'createDate': now,
+                    'effectiveDate': adverse_action.effectiveStartDate,
                     'previous': {
                         # We're relying on the schema to trim out unneeded fields
                         **license_data.to_dict(),
@@ -1761,15 +1765,19 @@ class DataClient:
                 )
                 transact_items.append(license_update_item)
 
+                now = config.current_standard_datetime
+
                 # Create license update record
                 license_update_record = LicenseUpdateData.create_new(
                     {
-                        'type': 'licenseUpdate',
+                        'type': ProviderRecordType.LICENSE_UPDATE,
                         'updateType': UpdateCategory.LIFTING_ENCUMBRANCE,
                         'providerId': provider_id,
                         'compact': compact,
                         'jurisdiction': jurisdiction,
                         'licenseType': license_data.licenseType,
+                        'createDate': now,
+                        'effectiveDate': effective_lift_date,
                         'previous': license_data.to_dict(),
                         'updatedValues': {
                             'encumberedStatus': LicenseEncumberedStatusEnum.UNENCUMBERED,

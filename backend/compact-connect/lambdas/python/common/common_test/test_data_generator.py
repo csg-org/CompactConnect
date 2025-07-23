@@ -257,6 +257,8 @@ class TestDataGenerator:
             'type': LICENSE_UPDATE_RECORD_TYPE,
             'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
             'licenseType': DEFAULT_LICENSE_TYPE,
+            'createDate': datetime.fromisoformat(DEFAULT_LICENSE_UPDATE_CREATE_DATE),
+            'effectiveDate': datetime.fromisoformat(DEFAULT_LICENSE_UPDATE_EFFECTIVE_DATE),
             'previous': previous_license.to_dict(),
             'updatedValues': {
                 'dateOfRenewal': date.fromisoformat(DEFAULT_LICENSE_RENEWAL_DATE),
