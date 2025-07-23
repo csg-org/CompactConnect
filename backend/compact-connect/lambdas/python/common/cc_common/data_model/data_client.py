@@ -422,6 +422,8 @@ class DataClient:
 
                 privileges.append(privilege_record)
 
+                now = config.current_standard_datetime
+
                 # Create privilege update record if this is updating an existing privilege
                 if original_privilege:
                     update_record = PrivilegeUpdateData.create_new(
@@ -433,6 +435,8 @@ class DataClient:
                             'jurisdiction': postal_abbreviation.lower(),
                             'licenseType': license_type,
                             'previous': original_privilege.to_dict(),
+                            'effectiveDate': now,
+                            'createDate': now,
                             'updatedValues': {
                                 'dateOfRenewal': privilege_record.dateOfRenewal,
                                 'dateOfExpiration': privilege_record.dateOfExpiration,
@@ -929,6 +933,30 @@ class DataClient:
             )
 
     @logger_inject_kwargs(logger, 'compact', 'provider_id', 'jurisdiction', 'license_type')
+    def get_privilege(self, *, compact: str, provider_id: str, jurisdiction: str, license_type_abbr: str) -> dict:
+        """
+        Get a privilege for a provider in a jurisdiction of the license type
+
+        :param str compact: The compact of the privilege
+        :param str provider_id: The provider of the privilege
+        :param str jurisdiction: The jurisdiction of the privilege
+        :param str license_type_abbr: The license type abbreviation of the privilege
+        :raises CCNotFoundException: If the privilege record is not found
+        """
+        # Get the privilege record
+        try:
+            privilege_record = self.config.provider_table.get_item(
+                Key={
+                    'pk': f'{compact}#PROVIDER#{provider_id}',
+                    'sk': f'{compact}#PROVIDER#privilege/{jurisdiction}/{license_type_abbr}#',
+                },
+            )['Item']
+        except KeyError as e:
+            raise CCNotFoundException(f'Privilege not found for jurisdiction {jurisdiction}') from e
+
+        return privilege_record
+
+    @logger_inject_kwargs(logger, 'compact', 'provider_id', 'jurisdiction', 'license_type')
     def deactivate_privilege(
         self, *, compact: str, provider_id: str, jurisdiction: str, license_type_abbr: str, deactivation_details: dict
     ) -> None:
@@ -945,15 +973,9 @@ class DataClient:
         :raises CCNotFoundException: If the privilege record is not found
         """
         # Get the privilege record
-        try:
-            privilege_record = self.config.provider_table.get_item(
-                Key={
-                    'pk': f'{compact}#PROVIDER#{provider_id}',
-                    'sk': f'{compact}#PROVIDER#privilege/{jurisdiction}/{license_type_abbr}#',
-                },
-            )['Item']
-        except KeyError as e:
-            raise CCNotFoundException(f'Privilege not found for jurisdiction {jurisdiction}') from e
+        privilege_record = self.get_privilege(
+            compact=compact, provider_id=provider_id, jurisdiction=jurisdiction, license_type_abbr=license_type_abbr
+        )
 
         # Find the main privilege record (not history records)
         privilege_record_schema = PrivilegeRecordSchema()
@@ -964,6 +986,8 @@ class DataClient:
             logger.info('Provider already inactive. Doing nothing.')
             raise CCInvalidRequestException('Privilege already deactivated')
 
+        now = config.current_standard_datetime
+
         # Create the update record
         # Use the schema to generate the update record with proper pk/sk
         privilege_update_record = PrivilegeUpdateRecordSchema().dump(
@@ -973,6 +997,8 @@ class DataClient:
                 'providerId': provider_id,
                 'compact': compact,
                 'jurisdiction': jurisdiction,
+                'createDate': now,
+                'effectiveDate': now,
                 'licenseType': privilege_record['licenseType'],
                 'deactivationDetails': deactivation_details,
                 'previous': {
@@ -1340,6 +1366,8 @@ class DataClient:
                     'Privilege is currently active. Setting privilege into an encumbered state as part of update.'
                 )
 
+            now = config.current_standard_datetime
+
             # Create the update record
             # Use the schema to generate the update record with proper pk/sk
             privilege_update_record = PrivilegeUpdateData.create_new(
@@ -1350,6 +1378,8 @@ class DataClient:
                     'compact': adverse_action.compact,
                     'jurisdiction': adverse_action.jurisdiction,
                     'licenseType': privilege_data.licenseType,
+                    'createDate': now,
+                    'effectiveDate': adverse_action.effectiveStartDate,
                     'previous': {
                         # We're relying on the schema to trim out unneeded fields
                         **privilege_data.to_dict(),
@@ -1573,6 +1603,8 @@ class DataClient:
                 )
                 transact_items.append(privilege_update_item)
 
+                now = config.current_standard_datetime
+
                 # Create privilege update record
                 privilege_update_record = PrivilegeUpdateData.create_new(
                     {
@@ -1582,6 +1614,8 @@ class DataClient:
                         'compact': compact,
                         'jurisdiction': jurisdiction,
                         'licenseType': privilege_data.licenseType,
+                        'createDate': now,
+                        'effectiveDate': effective_lift_date,
                         'previous': privilege_data.to_dict(),
                         'updatedValues': {
                             'encumberedStatus': PrivilegeEncumberedStatusEnum.UNENCUMBERED,
@@ -1720,6 +1754,30 @@ class DataClient:
 
             logger.info('Successfully lifted license encumbrance')
 
+    def _process_jurisdiction_change_deactivation(
+        self,
+        compact: str,
+        provider_id: str,
+        top_level_provider_record: ProviderData,
+        selected_jurisdiction: str,
+        all_active_privileges: list[PrivilegeData],
+        all_transaction_items: list[dict],
+    ) -> None:
+        # Get provider record update transaction items for jurisdiction with no valid license
+        provider_transaction_items = self._get_provider_record_transaction_items_for_jurisdiction_with_no_known_license(
+            compact=compact,
+            provider_id=provider_id,
+            provider_record=top_level_provider_record,
+            selected_jurisdiction=selected_jurisdiction,
+        )
+        all_transaction_items.extend(provider_transaction_items)
+
+        # Get privilege deactivation transaction items
+        privilege_transaction_items = self._get_privilege_deactivation_transaction_items_for_jurisdiction_change(
+            compact=compact, provider_id=provider_id, privileges=all_active_privileges
+        )
+        all_transaction_items.extend(privilege_transaction_items)
+
     @logger_inject_kwargs(logger, 'compact', 'provider_id', 'selected_jurisdiction')
     def update_provider_home_state_jurisdiction(
         self, *, compact: str, provider_id: str, selected_jurisdiction: str
@@ -1780,109 +1838,121 @@ class DataClient:
             if not new_home_state_licenses:
                 logger.info('No home state license found in selected jurisdiction. Deactivating all active privileges')
 
-                # Get provider record update transaction items for no license in new jurisdiction
-                provider_transaction_items = (
-                    self._get_provider_record_transaction_items_for_jurisdiction_with_no_known_license(
-                        compact=compact,
-                        provider_id=provider_id,
-                        provider_record=top_level_provider_record,
-                        selected_jurisdiction=selected_jurisdiction,
-                    )
+                self._process_jurisdiction_change_deactivation(
+                    compact=compact,
+                    provider_id=provider_id,
+                    top_level_provider_record=top_level_provider_record,
+                    selected_jurisdiction=selected_jurisdiction,
+                    all_active_privileges=all_active_privileges,
+                    all_transaction_items=all_transaction_items,
                 )
-                all_transaction_items.extend(provider_transaction_items)
-
-                # Get privilege deactivation transaction items
-                privilege_transaction_items = (
-                    self._get_privilege_deactivation_transaction_items_for_jurisdiction_change(
-                        compact=compact, provider_id=provider_id, privileges=all_active_privileges
-                    )
-                )
-                all_transaction_items.extend(privilege_transaction_items)
             else:
-                # Find the best license in the selected jurisdiction
-                best_license_in_selected_jurisdiction = (
-                    provider_user_records.find_best_license_in_current_known_licenses(
-                        jurisdiction=selected_jurisdiction
-                    )
+                # Check if the selected jurisdiction is live in the compact configuration
+                compact_config = self.config.compact_configuration_client.get_compact_configuration(compact)
+                is_jurisdiction_live = any(
+                    state['postalAbbreviation'].lower() == selected_jurisdiction.lower() and state.get('isLive', False)
+                    for state in compact_config.configuredStates
                 )
 
-                # Get provider record update transaction items for jurisdiction change with license
-                provider_transaction_items = (
-                    self._get_provider_record_transaction_items_for_jurisdiction_change_with_license(
+                if not is_jurisdiction_live:
+                    logger.info(
+                        'Selected jurisdiction is not live in compact configuration. '
+                        'Deactivating privileges as if there were no license.',
+                        selected_jurisdiction=selected_jurisdiction,
+                        compact=compact,
+                    )
+                    self._process_jurisdiction_change_deactivation(
                         compact=compact,
                         provider_id=provider_id,
-                        provider_records=provider_user_records,
-                        new_license_record=best_license_in_selected_jurisdiction,
+                        top_level_provider_record=top_level_provider_record,
                         selected_jurisdiction=selected_jurisdiction,
+                        all_active_privileges=all_active_privileges,
+                        all_transaction_items=all_transaction_items,
                     )
-                )
-                all_transaction_items.extend(provider_transaction_items)
-
-                # Get licenses from the current home state
-                current_home_state_licenses = provider_user_records.get_license_records(
-                    filter_condition=lambda license_data: license_data.jurisdiction == current_home_jurisdiction
-                )
-
-                # Get unique license types from all privileges
-                privilege_license_types = set(privilege.licenseType for privilege in all_active_privileges)
-
-                for license_type in privilege_license_types:
-                    # Find the matching license in the current jurisdiction for this license type
-                    matching_license_in_current_jurisdiction = next(
-                        (
-                            license_data
-                            for license_data in current_home_state_licenses
-                            if license_data.licenseType == license_type
-                        ),
-                        None,
+                else:
+                    # Find the best license in the selected jurisdiction
+                    best_license_in_selected_jurisdiction = (
+                        provider_user_records.find_best_license_in_current_known_licenses(
+                            jurisdiction=selected_jurisdiction
+                        )
                     )
-
-                    if not matching_license_in_current_jurisdiction:
-                        logger.info(
-                            'No current home state license found for license type. '
-                            'User likely previously moved to a state with no known license '
-                            'and privileges were deactivated. Will not move privileges over.',
-                            license_type=license_type,
-                            current_home_jurisdiction=current_home_jurisdiction,
-                            new_home_state_licenses=new_home_state_licenses,
-                        )
-                        continue
-
-                    # if the current home state license is expired, then all the privileges associated
-                    # with this license will also be expired, and we will not move them over
-                    if (
-                        matching_license_in_current_jurisdiction.dateOfExpiration
-                        < self.config.expiration_resolution_date
-                    ):
-                        logger.info(
-                            'Current home state license is expired. Not moving privileges over.',
-                            license_type=license_type,
-                        )
-                        continue
-
-                    if (
-                        matching_license_in_current_jurisdiction.encumberedStatus
-                        == LicenseEncumberedStatusEnum.ENCUMBERED
-                    ):
-                        logger.info(
-                            'Current license is encumbered. Privileges for this license type will not be moved over to'
-                            'new license.',
-                            license_type=license_type,
-                            encumbered_status=matching_license_in_current_jurisdiction.encumberedStatus,
-                        )
-                        continue
-
-                    # Get transaction items for privileges that can be moved to a license in the new jurisdiction
-                    privilege_transaction_items = (
-                        self._get_privilege_transaction_items_resulting_from_home_jurisdiction_move(
+                    # Get provider record update transaction items for jurisdiction change with license
+                    provider_transaction_items = (
+                        self._get_provider_record_transaction_items_for_jurisdiction_change_with_license(
                             compact=compact,
                             provider_id=provider_id,
-                            provider_user_records=provider_user_records,
+                            provider_records=provider_user_records,
+                            new_license_record=best_license_in_selected_jurisdiction,
                             selected_jurisdiction=selected_jurisdiction,
-                            license_type=license_type,
                         )
                     )
-                    all_transaction_items.extend(privilege_transaction_items)
+                    all_transaction_items.extend(provider_transaction_items)
+
+                    # Get licenses from the current home state
+                    current_home_state_licenses = provider_user_records.get_license_records(
+                        filter_condition=lambda license_data: license_data.jurisdiction == current_home_jurisdiction
+                    )
+
+                    # Get unique license types from all privileges
+                    privilege_license_types = set(privilege.licenseType for privilege in all_active_privileges)
+
+                    for license_type in privilege_license_types:
+                        # Find the matching license in the current jurisdiction for this license type
+                        matching_license_in_current_jurisdiction = next(
+                            (
+                                license_data
+                                for license_data in current_home_state_licenses
+                                if license_data.licenseType == license_type
+                            ),
+                            None,
+                        )
+
+                        if not matching_license_in_current_jurisdiction:
+                            logger.info(
+                                'No current home state license found for license type. '
+                                'User likely previously moved to a state with no known license '
+                                'and privileges were deactivated. Will not move privileges over.',
+                                license_type=license_type,
+                                current_home_jurisdiction=current_home_jurisdiction,
+                                new_home_state_licenses=new_home_state_licenses,
+                            )
+                            continue
+
+                        # if the current home state license is expired, then all the privileges associated
+                        # with this license will also be expired, and we will not move them over
+                        if (
+                            matching_license_in_current_jurisdiction.dateOfExpiration
+                            < self.config.expiration_resolution_date
+                        ):
+                            logger.info(
+                                'Current home state license is expired. Not moving privileges over.',
+                                license_type=license_type,
+                            )
+                            continue
+
+                        if (
+                            matching_license_in_current_jurisdiction.encumberedStatus
+                            == LicenseEncumberedStatusEnum.ENCUMBERED
+                        ):
+                            logger.info(
+                                'Current license is encumbered. Privileges for this license type will not be moved '
+                                'over to new license.',
+                                license_type=license_type,
+                                encumbered_status=matching_license_in_current_jurisdiction.encumberedStatus,
+                            )
+                            continue
+
+                        # Get transaction items for privileges that can be moved to a license in the new jurisdiction
+                        privilege_transaction_items = (
+                            self._get_privilege_transaction_items_resulting_from_home_jurisdiction_move(
+                                compact=compact,
+                                provider_id=provider_id,
+                                provider_user_records=provider_user_records,
+                                selected_jurisdiction=selected_jurisdiction,
+                                license_type=license_type,
+                            )
+                        )
+                        all_transaction_items.extend(privilege_transaction_items)
 
             # Execute all transactions in batches
             self._execute_batched_transactions(all_transaction_items)
@@ -2122,6 +2192,8 @@ class DataClient:
 
         transactions = []
 
+        now = config.current_standard_datetime
+
         for privilege in privileges:
             # Create update record
             privilege_update_record = PrivilegeUpdateData.create_new(
@@ -2132,6 +2204,8 @@ class DataClient:
                     'compact': compact,
                     'jurisdiction': privilege.jurisdiction,
                     'licenseType': privilege.licenseType,
+                    'createDate': now,
+                    'effectiveDate': now,
                     'previous': privilege.to_dict(),
                     'updatedValues': {
                         'homeJurisdictionChangeStatus': HomeJurisdictionChangeStatusEnum.INACTIVE,
@@ -2339,6 +2413,8 @@ class DataClient:
                 )
                 updated_values['encumberedStatus'] = PrivilegeEncumberedStatusEnum.LICENSE_ENCUMBERED
 
+            now = config.current_standard_datetime
+
             # Create update record
             privilege_update_record = PrivilegeUpdateData.create_new(
                 {
@@ -2347,6 +2423,8 @@ class DataClient:
                     'providerId': provider_id,
                     'compact': compact,
                     'jurisdiction': privilege.jurisdiction,
+                    'createDate': now,
+                    'effectiveDate': now,
                     'licenseType': privilege.licenseType,
                     'previous': privilege.to_dict(),
                     'updatedValues': updated_values,
@@ -2406,6 +2484,7 @@ class DataClient:
         provider_id: str,
         jurisdiction: str,
         license_type_abbreviation: str,
+        effective_date: date,
     ) -> list[PrivilegeData]:
         """
         Encumber all unencumbered privileges associated with a home jurisdiction license.
@@ -2417,6 +2496,7 @@ class DataClient:
         :param str provider_id: The provider ID.
         :param str jurisdiction: The jurisdiction of the license.
         :param str license_type_abbreviation: The license type abbreviation
+        :param str effective_date: effective date of the encumbrance on the license and therefore privilege
         :return: List of privileges that were encumbered
         """
         # Get all provider records
@@ -2449,6 +2529,8 @@ class DataClient:
         transaction_items = []
 
         for privilege_data in unencumbered_privileges_associated_with_license:
+            now = config.current_standard_datetime
+
             # Create privilege update record
             privilege_update_record = PrivilegeUpdateData.create_new(
                 {
@@ -2458,6 +2540,8 @@ class DataClient:
                     'compact': compact,
                     'jurisdiction': privilege_data.jurisdiction,
                     'licenseType': privilege_data.licenseType,
+                    'createDate': now,
+                    'effectiveDate': effective_date,
                     'previous': privilege_data.to_dict(),
                     'updatedValues': {
                         'encumberedStatus': PrivilegeEncumberedStatusEnum.LICENSE_ENCUMBERED,
@@ -2498,6 +2582,7 @@ class DataClient:
         provider_id: str,
         jurisdiction: str,
         license_type_abbreviation: str,
+        effective_date: date,
     ) -> list[PrivilegeData]:
         """
         Lift encumbrances from privileges that were encumbered due to a home jurisdiction license encumbrance.
@@ -2509,6 +2594,7 @@ class DataClient:
         :param str provider_id: The provider ID.
         :param str jurisdiction: The jurisdiction of the license.
         :param str license_type_abbreviation: The license type abbreviation
+        :param str effective_date: effective lift date of the encumbrance on the license and therefore privilege
         :return: List of privileges that were unencumbered
         """
         # Get all provider records
@@ -2555,6 +2641,8 @@ class DataClient:
         transaction_items = []
 
         for privilege_data in matching_privileges:
+            now = config.current_standard_datetime
+
             # Create privilege update record
             privilege_update_record = PrivilegeUpdateData.create_new(
                 {
@@ -2564,6 +2652,8 @@ class DataClient:
                     'compact': compact,
                     'jurisdiction': privilege_data.jurisdiction,
                     'licenseType': privilege_data.licenseType,
+                    'createDate': now,
+                    'effectiveDate': effective_date,
                     'previous': privilege_data.to_dict(),
                     'updatedValues': {
                         'encumberedStatus': PrivilegeEncumberedStatusEnum.UNENCUMBERED,
@@ -2641,6 +2731,8 @@ class DataClient:
         transaction_items = []
 
         for privilege_data in active_privileges_associated_with_license:
+            now = config.current_standard_datetime
+
             # Create privilege update record
             privilege_update_record = PrivilegeUpdateData.create_new(
                 {
@@ -2651,6 +2743,8 @@ class DataClient:
                     'jurisdiction': privilege_data.jurisdiction,
                     'licenseType': privilege_data.licenseType,
                     'previous': privilege_data.to_dict(),
+                    'effectiveDate': now,
+                    'createDate': now,
                     'updatedValues': {
                         'licenseDeactivatedStatus': LicenseDeactivatedStatusEnum.LICENSE_DEACTIVATED,
                     },
