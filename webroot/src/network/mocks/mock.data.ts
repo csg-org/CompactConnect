@@ -85,14 +85,6 @@ export const staffAccount = {
                         readSsn: true,
                     },
                 },
-                vt: {
-                    actions: {
-                        admin: true,
-                        write: true,
-                        readPrivate: true,
-                        readSsn: true,
-                    },
-                },
             },
         },
         aslp: {
@@ -657,16 +649,16 @@ export const licensees = {
                     ]
                 },
                 {
-                    dateOfUpdate: '2025-03-26T16:19:09+00:00',
+                    dateOfUpdate: moment().subtract(7, 'months').format(serverDateFormat),
                     type: 'privilege',
                     providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
                     compact: 'octp',
                     jurisdiction: 'ne',
                     licenseJurisdiction: 'ky',
                     licenseType: 'occupational therapy assistant',
-                    dateOfIssuance: '2022-03-19T21:51:26+00:00',
-                    dateOfRenewal: '2025-03-26T16:19:09+00:00',
-                    dateOfExpiration: '2025-05-12',
+                    dateOfIssuance: moment().subtract(2, 'years').subtract(7, 'months').format(serverDateFormat),
+                    dateOfRenewal: moment().subtract(2, 'months').format(serverDateFormat),
+                    dateOfExpiration: moment().add(10, 'months').format(serverDateFormat),
                     compactTransactionId: '120060088901',
                     attestations: [
                         {
@@ -707,7 +699,7 @@ export const licensees = {
                     status: 'active',
                     history: [
                         {
-                            dateOfUpdate: '2022-03-19T22:02:17+00:00',
+                            dateOfUpdate: moment().subtract(1, 'years').subtract(7, 'months').format(serverDateFormat),
                             type: 'privilegeUpdate',
                             updateType: 'deactivation',
                             providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
@@ -763,7 +755,7 @@ export const licensees = {
                             }
                         },
                         {
-                            dateOfUpdate: '2022-08-19T19:03:56+00:00',
+                            dateOfUpdate: moment().subtract(1, 'years').subtract(2, 'months').format(serverDateFormat),
                             type: 'privilegeUpdate',
                             updateType: 'renewal',
                             providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
@@ -857,7 +849,7 @@ export const licensees = {
                             }
                         },
                         {
-                            dateOfUpdate: '2024-03-01T16:19:09+00:00',
+                            dateOfUpdate: moment().subtract(2, 'months').format(serverDateFormat),
                             type: 'privilegeUpdate',
                             updateType: 'renewal',
                             providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
@@ -959,9 +951,9 @@ export const licensees = {
                     jurisdiction: 'oh',
                     licenseJurisdiction: 'ky',
                     licenseType: 'occupational therapist',
-                    dateOfIssuance: '2025-03-28T18:07:08+00:00',
+                    dateOfIssuance: '2024-03-28T18:07:08+00:00',
                     dateOfRenewal: '2025-03-28T18:07:08+00:00',
-                    dateOfExpiration: '2025-02-12',
+                    dateOfExpiration: '2025-03-28',
                     compactTransactionId: '120060232791',
                     attestations: [
                         {
@@ -1166,16 +1158,16 @@ export const licensees = {
                     ],
                 },
                 {
-                    dateOfUpdate: '2025-03-26T16:19:09+00:00',
+                    dateOfUpdate: moment().subtract(9, 'months').format(serverDateFormat),
                     type: 'privilege',
                     providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
                     compact: 'octp',
                     jurisdiction: 'al',
                     licenseJurisdiction: 'ky',
                     licenseType: 'occupational therapy assistant',
-                    dateOfIssuance: '2022-03-19T21:51:26+00:00',
-                    dateOfRenewal: '2025-03-26T16:19:09+00:00',
-                    dateOfExpiration: '2025-05-12',
+                    dateOfIssuance: moment().subtract(9, 'months').format(serverDateFormat),
+                    dateOfRenewal: moment().subtract(9, 'months').format(serverDateFormat),
+                    dateOfExpiration: moment().add(1, 'month').format(serverDateFormat),
                     compactTransactionId: '120060088901',
                     attestations: [
                         {
@@ -1216,7 +1208,7 @@ export const licensees = {
                     status: 'active',
                     history: [
                         {
-                            dateOfUpdate: '2022-03-19T22:02:17+00:00',
+                            dateOfUpdate: moment().subtract(7, 'months').format(serverDateFormat),
                             type: 'privilegeUpdate',
                             updateType: 'deactivation',
                             providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
@@ -1228,7 +1220,7 @@ export const licensees = {
                                 dateOfRenewal: '2025-03-19T21:51:26+00:00',
                                 dateOfExpiration: '2026-02-12',
                                 dateOfUpdate: '2022-03-19T21:51:26+00:00',
-                                privilegeId: 'OTA-NE-10',
+                                privilegeId: 'OTA-AL-10',
                                 compactTransactionId: '120059525522',
                                 attestations: [
                                     {
@@ -1272,101 +1264,7 @@ export const licensees = {
                             }
                         },
                         {
-                            dateOfUpdate: '2022-08-19T19:03:56+00:00',
-                            type: 'privilegeUpdate',
-                            updateType: 'renewal',
-                            providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
-                            compact: 'octp',
-                            jurisdiction: 'al',
-                            licenseType: 'occupational therapy assistant',
-                            previous: {
-                                dateOfIssuance: '2025-03-19T21:51:26+00:00',
-                                dateOfRenewal: '2022-08-19T19:03:56+00:00',
-                                dateOfExpiration: '2026-02-12',
-                                dateOfUpdate: '2022-03-19T22:02:17+00:00',
-                                privilegeId: 'OTA-AL-10',
-                                compactTransactionId: '120059525522',
-                                attestations: [
-                                    {
-                                        attestationId: 'personal-information-address-attestation',
-                                        version: '3'
-                                    },
-                                    {
-                                        attestationId: 'personal-information-home-state-attestation',
-                                        version: '1'
-                                    },
-                                    {
-                                        attestationId: 'jurisprudence-confirmation',
-                                        version: '1'
-                                    },
-                                    {
-                                        attestationId: 'scope-of-practice-attestation',
-                                        version: '1'
-                                    },
-                                    {
-                                        attestationId: 'not-under-investigation-attestation',
-                                        version: '1'
-                                    },
-                                    {
-                                        attestationId: 'discipline-no-current-encumbrance-attestation',
-                                        version: '1'
-                                    },
-                                    {
-                                        attestationId: 'discipline-no-prior-encumbrance-attestation',
-                                        version: '1'
-                                    },
-                                    {
-                                        attestationId: 'provision-of-true-information-attestation',
-                                        version: '1'
-                                    }
-                                ],
-                                persistedStatus: 'inactive',
-                                licenseJurisdiction: 'ky'
-                            },
-                            updatedValues: {
-                                dateOfRenewal: '2025-03-25T19:03:56+00:00',
-                                dateOfExpiration: '2026-02-12',
-                                privilegeId: 'OTA-AL-10',
-                                compactTransactionId: '120060004893',
-                                attestations: [
-                                    {
-                                        attestationId: 'personal-information-address-attestation',
-                                        version: '3'
-                                    },
-                                    {
-                                        attestationId: 'personal-information-home-state-attestation',
-                                        version: '1'
-                                    },
-                                    {
-                                        attestationId: 'jurisprudence-confirmation',
-                                        version: '1'
-                                    },
-                                    {
-                                        attestationId: 'scope-of-practice-attestation',
-                                        version: '1'
-                                    },
-                                    {
-                                        attestationId: 'not-under-investigation-attestation',
-                                        version: '1'
-                                    },
-                                    {
-                                        attestationId: 'discipline-no-current-encumbrance-attestation',
-                                        version: '1'
-                                    },
-                                    {
-                                        attestationId: 'discipline-no-prior-encumbrance-attestation',
-                                        version: '1'
-                                    },
-                                    {
-                                        attestationId: 'provision-of-true-information-attestation',
-                                        version: '1'
-                                    }
-                                ],
-                                persistedStatus: 'active'
-                            }
-                        },
-                        {
-                            dateOfUpdate: '2024-03-01T16:19:09+00:00',
+                            dateOfUpdate: moment().subtract(6, 'months').format(serverDateFormat),
                             type: 'privilegeUpdate',
                             updateType: 'renewal',
                             providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
@@ -1469,11 +1367,11 @@ export const licensees = {
                             licenseType: 'occupational therapy assistant',
                             actionAgainst: 'privilege',
                             clinicalPrivilegeActionCategory: 'Non-compliance With Requirements',
-                            effectiveStartDate: moment().subtract(1, 'month').format(serverDateFormat),
+                            effectiveStartDate: moment().subtract(7, 'months').format(serverDateFormat),
                             submittingUser: '1',
-                            creationDate: moment().subtract(1, 'week').format(serverDatetimeFormat),
+                            creationDate: moment().subtract(8, 'months').format(serverDatetimeFormat),
                             adverseActionId: '12345-DEF',
-                            effectiveLiftDate: moment().add(11, 'months').format(serverDateFormat),
+                            effectiveLiftDate: moment().subtract(5, 'months').format(serverDateFormat),
                             liftingUser: '1',
                         },
                         {
@@ -1489,7 +1387,7 @@ export const licensees = {
                             submittingUser: '1',
                             creationDate: moment().subtract(1, 'week').format(serverDatetimeFormat),
                             adverseActionId: '12345-GHI',
-                            effectiveLiftDate: null,
+                            effectiveLiftDate: moment().subtract(1, 'months').format(serverDateFormat),
                             liftingUser: null,
                         },
                     ],
@@ -1533,17 +1431,17 @@ export const licensees = {
                     homeAddressStreet1: '1640 Riverside Drive',
                     dateOfBirth: '1990-08-29',
                     type: 'license-home',
-                    dateOfIssuance: '2023-08-29',
+                    dateOfIssuance: moment().subtract(10, 'months').format(serverDateFormat),
                     ssnLastFour: '1111',
                     licenseType: 'occupational therapy assistant',
-                    dateOfExpiration: '2025-08-29',
+                    dateOfExpiration: moment().add(2, 'months').format(serverDateFormat),
                     homeAddressState: 'co',
                     providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
                     dateOfRenewal: '2024-08-29',
                     familyName: 'Doe',
                     homeAddressCity: 'Riverside',
                     middleName: '',
-                    dateOfUpdate: '2024-08-29',
+                    dateOfUpdate: moment().subtract(10, 'months').format(serverDateFormat),
                     licenseStatus: 'active',
                     licenseStatusName: 'Active in renewal',
                     compactEligibility: 'eligible',
@@ -1559,17 +1457,17 @@ export const licensees = {
                     homeAddressStreet1: '1640 Riverside Drive',
                     dateOfBirth: '1990-08-29',
                     type: 'license-home',
-                    dateOfIssuance: '2023-08-29',
+                    dateOfIssuance: moment().subtract(1, 'years').subtract(11, 'months').format(serverDateFormat),
                     ssnLastFour: '1111',
                     licenseType: 'occupational therapist',
-                    dateOfExpiration: '2026-08-29',
+                    dateOfExpiration: moment().add(1, 'months').format(serverDateFormat),
                     homeAddressState: 'co',
                     providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
-                    dateOfRenewal: '2023-08-29',
+                    dateOfRenewal: moment().subtract(11, 'months').format(serverDateFormat),
                     familyName: 'Doe',
                     homeAddressCity: 'Riverside',
                     middleName: '',
-                    dateOfUpdate: '2023-08-29',
+                    dateOfUpdate: moment().subtract(1, 'months').format(serverDateFormat),
                     licenseStatus: 'active',
                     licenseStatusName: null,
                     compactEligibility: 'eligible',
@@ -1585,17 +1483,18 @@ export const licensees = {
                     homeAddressStreet1: '1640 Riverside Drive',
                     dateOfBirth: '1990-08-29',
                     type: 'license-home',
-                    dateOfIssuance: '2023-08-29',
+                    dateOfIssuance: moment().subtract(2, 'years').subtract(7, 'days').subtract(10, 'months')
+                        .format(serverDateFormat),
                     ssnLastFour: '1111',
                     licenseType: 'occupational therapist',
-                    dateOfExpiration: '2026-08-29',
+                    dateOfExpiration: moment().subtract(7, 'days').add(2, 'months').format(serverDateFormat),
                     homeAddressState: 'co',
                     providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
-                    dateOfRenewal: '2023-08-29',
+                    dateOfRenewal: moment().subtract(7, 'days').subtract(10, 'months').format(serverDateFormat),
                     familyName: 'Doe',
                     homeAddressCity: 'Riverside',
                     middleName: '',
-                    dateOfUpdate: '2023-08-29',
+                    dateOfUpdate: moment().subtract(7, 'days').subtract(10, 'months').format(serverDateFormat),
                     licenseStatus: 'active',
                     licenseStatusName: 'Custom text with longer content provided by the state that may not fit completely in the default area of the UI and could overflow',
                     compactEligibility: 'ineligible',
@@ -1670,66 +1569,6 @@ export const licensees = {
                         },
                     ],
                 },
-                {
-                    compact: 'octp',
-                    homeAddressStreet2: '',
-                    licenseNumber: 'A-944447281',
-                    npi: '6944447281',
-                    homeAddressPostalCode: '',
-                    jurisdiction: 'vt',
-                    givenName: 'Jane',
-                    homeAddressStreet1: '1640 Riverside Drive',
-                    dateOfBirth: '1990-08-29',
-                    type: 'license-home',
-                    dateOfIssuance: '2024-08-29',
-                    ssnLastFour: '1111',
-                    licenseType: 'occupational therapy assistant',
-                    dateOfExpiration: '2023-08-29',
-                    homeAddressState: 'co',
-                    providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
-                    dateOfRenewal: '2023-08-29',
-                    familyName: 'Doe',
-                    homeAddressCity: 'Riverside',
-                    middleName: '',
-                    dateOfUpdate: '2023-08-29',
-                    licenseStatus: 'inactive',
-                    licenseStatusName: '',
-                    compactEligibility: 'ineligible',
-                    adverseActions: [
-                        {
-                            providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
-                            compact: 'octp',
-                            type: 'adverseAction',
-                            jurisdiction: 'vt',
-                            licenseTypeAbbreviation: 'ota',
-                            licenseType: 'occupational therapy assistant',
-                            actionAgainst: 'privilege',
-                            clinicalPrivilegeActionCategory: 'Non-compliance With Requirements',
-                            effectiveStartDate: moment().subtract(1, 'month').format(serverDateFormat),
-                            submittingUser: '1',
-                            creationDate: moment().subtract(1, 'week').format(serverDatetimeFormat),
-                            adverseActionId: '12345-MNO',
-                            effectiveLiftDate: moment().add(11, 'months').format(serverDateFormat),
-                            liftingUser: '1',
-                        },
-                        {
-                            providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
-                            compact: 'octp',
-                            type: 'adverseAction',
-                            jurisdiction: 'vt',
-                            licenseTypeAbbreviation: 'ota',
-                            licenseType: 'occupational therapy assistant',
-                            actionAgainst: 'privilege',
-                            clinicalPrivilegeActionCategory: 'Unsafe Practice or Substandard Care',
-                            effectiveStartDate: moment().subtract(3, 'months').format(serverDateFormat),
-                            submittingUser: '1',
-                            creationDate: moment().subtract(1, 'week').format(serverDatetimeFormat),
-                            adverseActionId: '12345-PQR',
-                            effectiveLiftDate: null,
-                            liftingUser: null,
-                        },
-                    ],
-                }
             ],
             dateOfExpiration: '2024-08-29',
             homeAddressState: 'co',
@@ -1750,9 +1589,10 @@ export const licensees = {
                     compact: 'octp',
                     providerId: '2',
                     type: 'privilege',
-                    dateOfIssuance: '2024-08-29',
+                    dateOfIssuance: '2023-08-29',
                     dateOfUpdate: '2024-08-29',
-                    status: 'active'
+                    status: 'inactive',
+                    privilegeId: 'OCTP-AL-19'
                 }
             ],
             licenseJurisdiction: 'co',
@@ -1774,6 +1614,7 @@ export const licensees = {
             licenses: [
                 {
                     compact: 'octp',
+                    licenseNumber: 'A-312445289',
                     homeAddressStreet2: '',
                     npi: '2522457223',
                     homeAddressPostalCode: '80302',
@@ -1782,20 +1623,20 @@ export const licensees = {
                     homeAddressStreet1: '1045 Pearl St',
                     dateOfBirth: '1975-01-01',
                     type: 'license-home',
-                    dateOfIssuance: '2024-08-29',
+                    dateOfIssuance: '2023-08-29',
                     ssnLastFour: '2222',
                     licenseType: 'occupational therapy assistant',
                     dateOfExpiration: '2024-08-29',
                     homeAddressState: 'co',
                     providerId: '2',
-                    dateOfRenewal: '2024-08-29',
+                    dateOfRenewal: '2023-08-29',
                     familyName: 'Durden',
                     homeAddressCity: 'Boulder',
                     middleName: '',
-                    dateOfUpdate: '2024-08-29',
+                    dateOfUpdate: '2023-08-29',
                     licenseStatus: 'inactive',
                     licenseStatusName: 'Custom text with longer content provided by the state that may not fit completely in the default area of the UI and could overflow',
-                    compactEligibility: 'eligible',
+                    compactEligibility: 'ineligible',
                 }
             ],
             dateOfExpiration: '2024-08-29',
@@ -1813,13 +1654,14 @@ export const licensees = {
             privileges: [
                 {
                     licenseJurisdiction: 'al',
-                    dateOfExpiration: '2024-08-29',
+                    dateOfExpiration: moment().add(2, 'months').format(serverDateFormat),
                     compact: 'octp',
                     providerId: '3',
                     type: 'privilege',
-                    dateOfIssuance: '2024-08-29',
-                    dateOfUpdate: '2024-08-29',
-                    status: 'active'
+                    dateOfIssuance: moment().subtract(10, 'months').subtract(1, 'year').format(serverDateFormat),
+                    dateOfUpdate: moment().subtract(10, 'months').subtract(1, 'year').format(serverDateFormat),
+                    status: 'active',
+                    privilegeId: 'OCTP-AL-22'
                 }
             ],
             licenseJurisdiction: 'co',
@@ -1851,20 +1693,22 @@ export const licensees = {
                     homeAddressStreet1: '1495 Canyon Blvd',
                     dateOfBirth: '1965-01-01',
                     type: 'license-home',
-                    dateOfIssuance: '2024-08-29',
+                    dateOfIssuance: moment().add(1, 'day').subtract(11, 'months').subtract(2, 'years')
+                        .format(serverDateFormat),
                     ssnLastFour: '3333',
                     licenseType: 'occupational therapy assistant',
-                    dateOfExpiration: '2024-08-29',
+                    dateOfExpiration: moment().add(1, 'day').add(1, 'month').format(serverDateFormat),
                     homeAddressState: 'co',
                     providerId: '3',
-                    dateOfRenewal: '2024-08-29',
+                    dateOfRenewal: moment().add(1, 'day').subtract(1, 'year').format(serverDateFormat),
                     familyName: 'Singer',
                     homeAddressCity: 'Boulder',
                     middleName: '',
-                    dateOfUpdate: '2024-08-29',
+                    dateOfUpdate: moment().add(1, 'day').subtract(1, 'year').format(serverDateFormat),
                     licenseStatus: 'active',
                     licenseStatusName: 'text from state',
                     compactEligibility: 'eligible',
+                    licenseNumber: 'A-1234567890'
                 }
             ],
             dateOfExpiration: '2024-08-29',
