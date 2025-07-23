@@ -1405,7 +1405,7 @@ export const licensees = {
                 fileNames: ['military-document.pdf'],
                 status: 'active'
             }],
-            npi: '6944447281',
+            npi: '6441445289',
             licenseNumber: 'A-944447281',
             homeAddressPostalCode: '',
             givenName: 'Janet',
@@ -1449,7 +1449,7 @@ export const licensees = {
                 {
                     compact: 'octp',
                     homeAddressStreet2: '',
-                    npi: '921445289',
+                    npi: '6441445289',
                     licenseNumber: 'A-921445289',
                     homeAddressPostalCode: '',
                     jurisdiction: 'co',
@@ -1475,7 +1475,7 @@ export const licensees = {
                 {
                     compact: 'octp',
                     homeAddressStreet2: '',
-                    npi: '944945289',
+                    npi: '6441445289',
                     licenseNumber: 'A-944945289',
                     homeAddressPostalCode: '',
                     jurisdiction: 'ma',
