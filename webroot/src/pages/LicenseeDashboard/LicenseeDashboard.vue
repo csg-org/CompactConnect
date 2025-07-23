@@ -29,15 +29,9 @@
                         :isEnabled="isPrivilegePurchaseEnabled"
                         @click="startPrivPurchaseFlow"
                     />
-                    <div
-                        v-if="!isPrivilegePurchaseEnabled"
-                        class="btn-subtext why-unavailable-container"
-                    >
+                    <div v-if="!isPrivilegePurchaseEnabled" class="btn-subtext why-unavailable-container">
                         {{ $t('licensing.whyUnavailable') }}
-                        <InfoCircle
-                            @click="openPurchaseUnavailableModal"
-                            @keyup.enter="openPurchaseUnavailableModal"
-                        />
+                        <InfoCircle @click="openPurchaseUnavailableModal" @keyup.enter="openPurchaseUnavailableModal" />
                     </div>
                 </div>
             </div>
