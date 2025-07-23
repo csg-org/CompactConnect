@@ -12,6 +12,8 @@ from cc_common.data_model.schema.common import (
     ActiveInactiveStatus,
     AdverseActionAgainstEnum,
     CompactEligibilityStatus,
+    HomeJurisdictionChangeStatusEnum,
+    PrivilegeEncumberedStatusEnum,
     UpdateCategory,
 )
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
@@ -41,6 +43,16 @@ class ProviderRecordType(StrEnum):
     ADVERSE_ACTION = 'adverseAction'
 
 
+# The following update event types are used during events which caused
+# licenses/privileges to become inactive
+DEACTIVATION_EVENT_TYPES: list[UpdateCategory] = [
+    UpdateCategory.EXPIRATION,
+    UpdateCategory.DEACTIVATION,
+    UpdateCategory.ENCUMBRANCE,
+    UpdateCategory.LICENSE_DEACTIVATION,
+]
+
+
 class ProviderRecordUtility:
     """
     A class for housing official logic for how to handle provider records without making database queries.
@@ -60,7 +72,7 @@ class ProviderRecordUtility:
 
         :param provider_records: The list of provider records to search through
         :param record_type: The type of record to search for
-        :param filter: An optional filter to apply to the records
+        :param _filter: An optional filter to apply to the records
         :return: A list of records of the given type
         """
         return [
@@ -134,6 +146,50 @@ class ProviderRecordUtility:
             raise CCInternalException('No licenses found')
 
         return latest_licenses[0]
+
+    @staticmethod
+    def calculate_privilege_active_since_date(
+        privilege: PrivilegeData, privilege_updates: list[PrivilegeUpdateData]
+    ) -> datetime | None:
+        """
+        Determine how long a privilege has been continuously active.
+
+        :param privilege: The privilege record.
+        :param privilege_updates: The list of updates for this privilege record.
+        :return: The oldest datetime this privilege has been continuously active if still active, else None
+        """
+
+        if privilege.status == ActiveInactiveStatus.INACTIVE:
+            # privilege is inactive, no date to calculate
+            return None
+
+        # start with dateOfIssuance as active date
+        active_since = privilege.dateOfIssuance
+        # sort privilege updates by effective date
+        privilege_updates.sort(key=lambda x: x.effectiveDate)
+        # iterate through privilege updates
+        for update in privilege_updates:
+            # We check for the following cases:
+            # 1. If the updateType is found in the list of deactivation update types, we set active_since to None,
+            # since the privilege is no longer active as a result of this update.
+            # 2. If the updateType is a home jurisdiction change, we need to check the updatedValues to see if the
+            # privilege was deactivated as a result of this update (if there is either a encumberedStatus
+            # or homeJurisdictionChangeStatus)
+            # 3. If the updateType is a renewal, and the `active_since` field is None, we set active_since to the
+            # effective date of the renewal.
+            if update.updateType in DEACTIVATION_EVENT_TYPES:
+                active_since = None
+            elif (
+                update.updateType == UpdateCategory.HOME_JURISDICTION_CHANGE
+                and update.updatedValues.get('encumberedStatus', PrivilegeEncumberedStatusEnum.UNENCUMBERED)
+                != PrivilegeEncumberedStatusEnum.UNENCUMBERED
+                or update.updatedValues.get('homeJurisdictionChangeStatus') == HomeJurisdictionChangeStatusEnum.INACTIVE
+            ):
+                active_since = None
+            elif update.updateType == UpdateCategory.RENEWAL and active_since is None:
+                active_since = update.updatedValues['dateOfRenewal']
+
+        return active_since
 
     @staticmethod
     def populate_provider_record(
