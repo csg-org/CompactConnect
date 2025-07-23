@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+import os
+
 from aws_cdk.aws_apigateway import AuthorizationType, IResource, MethodOptions
+from aws_cdk.aws_lambda_python_alpha import PythonFunction
+from cdk_nag import NagSuppressions
 from common_constructs.ssm_parameter_utility import SSMParameterUtility
 from common_constructs.stack import Stack
 
@@ -8,6 +12,7 @@ from stacks import persistent_stack as ps
 from stacks.api_stack import cc_api
 from stacks.api_stack.v1_api.attestations import Attestations
 from stacks.api_stack.v1_api.bulk_upload_url import BulkUploadUrl
+from stacks.api_stack.v1_api.privilege_history import PrivilegeHistory
 from stacks.api_stack.v1_api.provider_management import ProviderManagement
 from stacks.api_stack.v1_api.provider_users import ProviderUsers
 from stacks.api_stack.v1_api.purchases import Purchases
@@ -82,6 +87,36 @@ class V1Api:
             authorization_scopes=read_ssn_scopes,
         )
 
+        self.privilege_history_function = PythonFunction(
+            self.resource,
+            'GetPrivilegeHistory',
+            description='Get privilege history handler',
+            lambda_dir='provider-data-v1',
+            environment={
+                'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
+                **stack.common_env_vars,
+            },
+            index=os.path.join('handlers', 'privilege_history.py'),
+            handler='get_privilege_history',
+            alarm_topic=self.api.alarm_topic,
+        )
+        persistent_stack.shared_encryption_key.grant_decrypt(self.privilege_history_function)
+        persistent_stack.provider_table.grant_read_data(self.privilege_history_function)
+
+        self.api.log_groups.append(self.privilege_history_function.log_group)
+
+        NagSuppressions.add_resource_suppressions_by_path(
+            stack,
+            path=f'{self.privilege_history_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'The actions in this policy are specifically what this lambda needs to read '
+                    'and is scoped to one table and encryption key.',
+                },
+            ],
+        )
+
         # /v1/public
         self.public_resource = self.resource.add_resource('public')
         # POST /v1/public/compacts/{compact}/providers/query
@@ -95,6 +130,7 @@ class V1Api:
             resource=self.public_compacts_compact_providers_resource,
             persistent_stack=persistent_stack,
             api_model=self.api_model,
+            privilege_history_function=self.privilege_history_function,
         )
 
         # /v1/provider-users

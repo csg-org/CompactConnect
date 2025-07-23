@@ -512,8 +512,3 @@ class TestProviderRecordUtility(TstLambdas):
         # Check that the history contains exactly one update with the expected values
         self.maxDiff = None
         self.assertEqual(expected_updates, enriched_history)
-
-    # Inserts expiration date at end if expired
-    # Doesn't insert expiration date at end if day of expiration
-    # Inserts expiration in correct place (Renewal, Backdated encumbrance, backdated encumbrance lifted) =
-    # (Issuance, encumbrance, expiration, encumbrance lifted, Renewal)

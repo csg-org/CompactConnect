@@ -988,13 +988,11 @@ class DataClient:
         :raises CCNotFoundException: If the privilege record is not found
         """
         # Get the privilege record
-        privilege_record = self.get_privilege_data(
+        privilege_data = self.get_privilege_data(
             compact=compact, provider_id=provider_id, jurisdiction=jurisdiction, license_type_abbr=license_type_abbr
-        )[0]
+        )
 
-        # Find the main privilege record (not history records)
-        privilege_record_schema = PrivilegeRecordSchema()
-        privilege_record = privilege_record_schema.load(privilege_record)
+        privilege_record = privilege_data['items'][0]
 
         # If already inactive, do nothing
         if privilege_record.get('administratorSetStatus', ActiveInactiveStatus.ACTIVE) == ActiveInactiveStatus.INACTIVE:
