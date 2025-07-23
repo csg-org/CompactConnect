@@ -127,6 +127,8 @@ class LicenseUpdateGeneralResponseSchema(ForgivingSchema):
     licenseType = String(required=True, allow_none=False)
     dateOfUpdate = Raw(required=True, allow_none=False)
     previous = Nested(LicenseUpdatePreviousGeneralResponseSchema(), required=True, allow_none=False)
+    createDate = Raw(required=True, allow_none=False)
+    effectiveDate = Raw(required=True, allow_none=False)
     # We'll allow any fields that can show up in the previous field to be here as well, but none are required
     updatedValues = Nested(LicenseUpdatePreviousGeneralResponseSchema(partial=True), required=True, allow_none=False)
     # List of field names that were present in the previous record but removed in the update
