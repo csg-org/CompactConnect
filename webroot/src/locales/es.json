@@ -632,7 +632,7 @@
         "encumber": "Cargar",
         "encumbered": "Gravado",
         "npdbCategoryLabel": "Categoría NPDB",
-        "encumberStartDate": "Inicio de la acción adversa",
+        "encumberStartDate": "Inicio del gravamen",
         "confirmLicenseEncumberTitle": "¿Estás seguro de que quieres gravar esta licencia?",
         "confirmLicenseEncumberSubtext": "El profesional ya no podrá utilizar esta licencia.",
         "confirmLicenseEncumberSubmit": "Sí, gravar la licencia",

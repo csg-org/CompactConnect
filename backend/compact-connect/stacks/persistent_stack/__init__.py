@@ -1,7 +1,7 @@
 import os
 
 from aws_cdk import Duration, RemovalPolicy, aws_ssm
-from aws_cdk.aws_cognito import SignInAliases, UserPoolEmail
+from aws_cdk.aws_cognito import UserPoolEmail
 from aws_cdk.aws_iam import Effect, PolicyStatement
 from aws_cdk.aws_kms import Key
 from aws_cdk.aws_lambda import Runtime
@@ -25,7 +25,6 @@ from stacks.persistent_stack.compact_configuration_upload import CompactConfigur
 from stacks.persistent_stack.data_event_table import DataEventTable
 from stacks.persistent_stack.event_bus import EventBus
 from stacks.persistent_stack.provider_table import ProviderTable
-from stacks.persistent_stack.provider_users import ProviderUsers
 from stacks.persistent_stack.provider_users_bucket import ProviderUsersBucket
 from stacks.persistent_stack.rate_limiting_table import RateLimitingTable
 from stacks.persistent_stack.ssn_table import SSNTable
@@ -178,31 +177,6 @@ class PersistentStack(AppStack):
             removal_policy=removal_policy,
         )
 
-        # This user pool is deprecated and will be removed once we've cut over to the green user pool
-        # in the new provider_users_stack across all environments.
-        provider_prefix = f'{app_name}-provider'
-        provider_prefix = provider_prefix if environment_name == 'prod' else f'{provider_prefix}-{environment_name}'
-
-        # We have to use a different prefix so we don't have a naming conflict with the original user pool
-        self.provider_users_deprecated = ProviderUsers(
-            self,
-            'ProviderUsersBlue',
-            cognito_domain_prefix=None,
-            environment_name=environment_name,
-            environment_context=environment_context,
-            encryption_key=self.shared_encryption_key,
-            sign_in_aliases=SignInAliases(email=True, username=False),
-            user_pool_email=user_pool_email_settings,
-            security_profile=security_profile,
-            removal_policy=removal_policy,
-        )
-        # We explicitly export the user pool values so we can later move the API stack over to the
-        # new user pool without putting our app into a cross-stack dependency 'deadly embrace':
-        # https://www.endoflineblog.com/cdk-tips-03-how-to-unblock-cross-stack-references
-        self.export_value(self.provider_users_deprecated.user_pool_id)
-        self.export_value(self.provider_users_deprecated.user_pool_arn)
-        self.export_value(self.provider_users_deprecated.ui_client.user_pool_client_id)
-
         QueryDefinition(
             self,
             'StaffUserCustomEmails',
@@ -223,14 +197,9 @@ class PersistentStack(AppStack):
             # by the user pool email settings
             self.staff_users.node.add_dependency(self.user_email_notifications.email_identity)
             self.staff_users.node.add_dependency(self.user_email_notifications.dmarc_record)
-            self.provider_users_deprecated.node.add_dependency(self.user_email_notifications.email_identity)
-            self.provider_users_deprecated.node.add_dependency(self.user_email_notifications.dmarc_record)
             # the verification custom resource needs to be completed before the user pools are created
             # so that the user pools will be created after the SES identity is verified
             self.staff_users.node.add_dependency(self.user_email_notifications.verification_custom_resource)
-            self.provider_users_deprecated.node.add_dependency(
-                self.user_email_notifications.verification_custom_resource
-            )
 
         # This parameter is used to store the frontend app config values for use in the frontend deployment stack
         self._create_frontend_app_config_parameter()
@@ -337,6 +306,29 @@ class PersistentStack(AppStack):
         there should be an associated migration script that is run as part of the deployment. These are short-lived
         custom resources that should be removed from the CDK app once the migration has been run in all environments.
         """
+        update_dates_migration = DataMigration(
+            self,
+            '887CreateEffectiveDate',
+            migration_dir='create_effective_date_887',
+            lambda_environment={
+                'PROVIDER_TABLE_NAME': self.provider_table.table_name,
+                **self.common_env_vars,
+            },
+        )
+        self.provider_table.grant_read_write_data(update_dates_migration)
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            f'{update_dates_migration.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'This policy contains wild-carded actions and resources but they are scoped to the '
+                    'specific actions, Table and Key that this lambda needs access to in order to perform the'
+                    'migration.',
+                },
+            ],
+        )
+
         self.provider_user_pool_migration = DataMigration(
             self,
             'ProviderUserPoolMigration',
@@ -393,6 +385,7 @@ class PersistentStack(AppStack):
                 sort='@timestamp desc',
             ),
             log_groups=[
+                update_dates_migration.migration_function.log_group,
                 self.provider_user_pool_migration.migration_function.log_group,
                 self.compact_configured_states_migration.migration_function.log_group,
             ],

@@ -64,13 +64,13 @@ export class CognitoEmailService extends BaseEmailService {
 
         if (userPoolType === 'provider') {
             this.insertBody(template,
-                `Your temporary password is: \n\n${codeParameter}\n\nYour username is: \n\n${usernameParameter}\n\nThis temporary password is valid for 24 hours. Please sign in at ${environmentVariableService.getUiBasePathUrl()}/Dashboard within the next 24 hours and change your password when prompted.`,
+                `Your temporary password is: \n\n${codeParameter}\n\nYour username is: \n\n${usernameParameter}\n\nThis temporary password is valid for 24 hours. Please sign in at ${environmentVariableService.getUiBasePathUrl()}/Dashboard?bypass=login-practitioner within the next 24 hours and change your password when prompted.`,
                 'center',
                 true
             );
         } else {
             this.insertBody(template,
-                `Your temporary password is: \n\n${codeParameter}\n\nYour username is: \n\n${usernameParameter}\n\nPlease sign in at ${environmentVariableService.getUiBasePathUrl()}/Dashboard and change your password when prompted.`,
+                `Your temporary password is: \n\n${codeParameter}\n\nYour username is: \n\n${usernameParameter}\n\nPlease sign in at ${environmentVariableService.getUiBasePathUrl()}/Dashboard?bypass=login-staff and change your password when prompted.`,
                 'center',
                 true
             );
