@@ -966,10 +966,10 @@ class DataClient:
             ConsistentRead=consistent_read,
             **dynamo_pagination,
         )
-        if not resp['Items']:
-            raise CCNotFoundException('Provider not found')
+        if not resp['Items'] or not len(resp['Items']):
+            raise CCNotFoundException('Privilege not found')
 
-        return resp
+        return resp['Items']
 
     @logger_inject_kwargs(logger, 'compact', 'provider_id', 'jurisdiction', 'license_type')
     def deactivate_privilege(
