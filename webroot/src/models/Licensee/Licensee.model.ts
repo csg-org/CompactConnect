@@ -261,13 +261,25 @@ export class Licensee implements InterfaceLicensee {
         return this.bestHomeJurisdictionLicense().mailingAddress || new Address();
     }
 
+    public hasEncumberedLicenses(): boolean {
+        return this.licenses?.some((license: License) => license.isEncumbered()) || false;
+    }
+
+    public hasEncumberedPrivileges(): boolean {
+        return this.privileges?.some((privilege: License) => privilege.isEncumbered()) || false;
+    }
+
+    public isEncumbered(): boolean {
+        return this.hasEncumberedLicenses() || this.hasEncumberedPrivileges();
+    }
+
     public purchaseEligibleLicenses(): Array<License> {
         return this.activeHomeJurisdictionLicenses()
             .filter((license: License) => (license.eligibility === EligibilityStatus.ELIGIBLE));
     }
 
     public canPurchasePrivileges(): boolean {
-        return !!this.purchaseEligibleLicenses().length && !this.isMilitaryStatusInitializing();
+        return !!this.purchaseEligibleLicenses().length && !this.isMilitaryStatusInitializing() && !this.isEncumbered();
     }
 }
 
