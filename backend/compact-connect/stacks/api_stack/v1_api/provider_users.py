@@ -124,6 +124,7 @@ class ProviderUsers:
         provider_data_table.grant_read_write_data(handler)
         persistent_stack.provider_users_bucket.grant_read_write(handler)
         persistent_stack.email_notification_service_lambda.grant_invoke(handler)
+        persistent_stack.compact_configuration_table.grant_read_data(handler)
         # Grant Cognito permissions for email update operations
         provider_users_stack.provider_users.grant(handler, 'cognito-idp:AdminGetUser')
         provider_users_stack.provider_users.grant(handler, 'cognito-idp:AdminUpdateUserAttributes')

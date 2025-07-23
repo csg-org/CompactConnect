@@ -6,11 +6,7 @@ import requests
 from boto3.dynamodb.conditions import Key
 
 # Import the existing compact configuration tests
-from compact_configuration_smoke_tests import (
-    test_compact_configuration,
-    test_jurisdiction_configuration,
-    test_upload_payment_processor_credentials,
-)
+from compact_configuration_smoke_tests import test_compact_configuration, test_jurisdiction_configuration
 from config import config, logger
 from smoke_common import (
     SmokeTestFailureException,
@@ -44,9 +40,6 @@ def test_purchase_privilege_options():
     # These will set up the configurations and return them for verification
     compact_config = test_compact_configuration()
     jurisdiction_config = test_jurisdiction_configuration()
-
-    # Upload payment processor credentials to ensure they are available
-    test_upload_payment_processor_credentials()
 
     # Now test the purchase privilege options endpoint
     headers = get_provider_user_auth_headers_cached()

@@ -31,7 +31,7 @@ describe('CognitoEmailService', () => {
     });
 
     describe('generateCognitoMessage', () => {
-        it('should generate AdminCreateUser message', () => {
+        it('should generate AdminCreateUser message for provider users', () => {
             const { subject, htmlContent } = emailService.generateCognitoMessage(
                 'CustomMessage_AdminCreateUser',
                 '{####}',
@@ -43,7 +43,25 @@ describe('CognitoEmailService', () => {
             expect(htmlContent).toContain('{####}');
             expect(htmlContent).toContain('Your username is:');
             expect(htmlContent).toContain('testuser');
-            expect(htmlContent).toContain('https://app.test.compactconnect.org/Dashboard');
+            expect(htmlContent).toContain('https://app.test.compactconnect.org/Dashboard?bypass=login-practitioner');
+
+        });
+
+        it('should generate AdminCreateUser message for staff users', () => {
+            // Set up for staff user type
+            process.env.USER_POOL_TYPE = 'staff';
+            const { subject, htmlContent } = emailService.generateCognitoMessage(
+                'CustomMessage_AdminCreateUser',
+                '{####}',
+                'staffuser'
+            );
+
+            expect(subject).toBe('Welcome to CompactConnect');
+            expect(htmlContent).toContain('Your temporary password is:');
+            expect(htmlContent).toContain('{####}');
+            expect(htmlContent).toContain('Your username is:');
+            expect(htmlContent).toContain('staffuser');
+            expect(htmlContent).toContain('https://app.test.compactconnect.org/Dashboard?bypass=login-staff');
         });
 
         it('should generate ForgotPassword message', () => {

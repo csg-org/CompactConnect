@@ -151,6 +151,8 @@ class TestPostPrivilegeEncumbrance(TstFunction):
             value_overrides={
                 'updateType': 'encumbrance',
                 'updatedValues': {'encumberedStatus': 'encumbered'},
+                'effectiveDate': datetime.fromisoformat(TEST_ENCUMBRANCE_EFFECTIVE_DATE),
+                'createDate': datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP),
             }
         )
         loaded_privilege_update_data = PrivilegeUpdateData.from_database_record(item)

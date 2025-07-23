@@ -203,6 +203,7 @@ def license_encumbrance_listener(message: dict):
         provider_id=provider_id,
         jurisdiction=jurisdiction,
         license_type_abbreviation=license_type_abbreviation,
+        effective_date=effective_date,
     ):
         logger.info('Processing license encumbrance event')
 
@@ -212,6 +213,7 @@ def license_encumbrance_listener(message: dict):
             provider_id=provider_id,
             jurisdiction=jurisdiction,
             license_type_abbreviation=license_type_abbreviation,
+            effective_date=effective_date,
         )
 
         # Publish privilege encumbrance events for each privilege that was encumbered
@@ -260,6 +262,7 @@ def license_encumbrance_lifted_listener(message: dict):
         provider_id=provider_id,
         jurisdiction=jurisdiction,
         license_type_abbreviation=license_type_abbreviation,
+        effective_date=effective_date,
     ):
         logger.info('Processing license encumbrance lifting event')
 
@@ -269,6 +272,7 @@ def license_encumbrance_lifted_listener(message: dict):
             provider_id=provider_id,
             jurisdiction=jurisdiction,
             license_type_abbreviation=license_type_abbreviation,
+            effective_date=effective_date,
         )
 
         # Publish privilege encumbrance lifting events for each privilege that was unencumbered
