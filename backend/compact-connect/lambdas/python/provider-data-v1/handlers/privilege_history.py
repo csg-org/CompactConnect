@@ -30,7 +30,7 @@ def privilege_history_handler(event: dict, context: LambdaContext):
             return _get_privilege_history(event)
         case (
             'GET',
-            '/v1/compacts/{compact}/providers/{providerId}/jurisdiction/{jurisdiction}/licenseType/{licenseType}/history'
+            '/v1/compacts/{compact}/providers/{providerId}/privileges/jurisdiction/{jurisdiction}/licenseType/{licenseType}/history'
         ):
             return _get_privilege_history(event)
 

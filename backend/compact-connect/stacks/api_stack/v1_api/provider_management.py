@@ -87,13 +87,6 @@ class ProviderManagement:
             'licenseType'
         ).add_resource('{licenseType}')
 
-        self.provider_jurisdiction_resource = self.provider_resource.add_resource('jurisdiction').add_resource(
-            '{jurisdiction}'
-        )
-        self.provider_jurisdiction_license_type_resource = self.provider_jurisdiction_resource.add_resource(
-            'licenseType'
-        )
-
         self._add_query_providers(
             method_options=method_options,
             data_encryption_key=persistent_stack.shared_encryption_key,

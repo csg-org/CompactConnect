@@ -60,10 +60,10 @@ class TestGetProvider(TstFunction):
             event = json.load(f)
             event['httpMethod'] = 'GET'
             event['resource'] = (
-                '/v1/compacts/{compact}/providers/{providerId}/jurisdiction/{jurisdiction}/licenseType/{licenseType}/history'
+                '/v1/public/compacts/{compact}/providers/{providerId}/jurisdiction/{jurisdiction}/licenseType/{licenseType}/history'
             )
             event['pathParameters'] = {
-                'jurisdiction': 'oh',
+                'jurisdiction': 'ma',
                 'licenseType': 'slp',
                 'compact': test_provider.compact,
                 'providerId': test_provider.providerId,
@@ -82,10 +82,10 @@ class TestGetProvider(TstFunction):
             event = json.load(f)
             event['httpMethod'] = 'GET'
             event['resource'] = (
-                '/v1/public/compacts/{compact}/providers/{providerId}/jurisdiction/{jurisdiction}/licenseType/{licenseType}/history'
+                '/v1/compacts/{compact}/providers/{providerId}/privileges/jurisdiction/{jurisdiction}/licenseType/{licenseType}/history'
             )
             event['pathParameters'] = {
-                'jurisdiction': 'oh',
+                'jurisdiction': 'ma',
                 'licenseType': 'slp',
                 'compact': test_provider.compact,
                 'providerId': test_provider.providerId,
@@ -189,7 +189,7 @@ class TestGetProvider(TstFunction):
             event = json.load(f)
             event['httpMethod'] = 'GET'
             event['resource'] = (
-                '/v1/compacts/{compact}/providers/{providerId}/jurisdiction/{jurisdiction}/licenseType/{licenseType}/history'
+                '/v1/compacts/{compact}/providers/{providerId}/privileges/jurisdiction/{jurisdiction}/licenseType/{licenseType}/history'
             )
             event['pathParameters'] = {
                 'jurisdiction': 'ne',
