@@ -118,7 +118,7 @@ class BackupAccountStack(Stack):
             'BackupEncryptionKey',
             description='KMS key for CompactConnect cross-account backup encryption',
             policy=PolicyDocument(statements=key_policy_statements),
-            removal_policy=RemovalPolicy.DESTROY,  # Allow deletion during development/testing
+            removal_policy=RemovalPolicy.RETAIN,  # Allow deletion during development/testing
         )
 
         # Add an alias for the key
@@ -179,7 +179,7 @@ class BackupAccountStack(Stack):
             'SSNBackupEncryptionKey',
             description='Dedicated KMS key for CompactConnect SSN data backup encryption',
             policy=PolicyDocument(statements=ssn_key_policy_statements),
-            removal_policy=RemovalPolicy.DESTROY,  # Allow deletion during development/testing
+            removal_policy=RemovalPolicy.RETAIN,  # Allow deletion during development/testing
         )
 
         # Add an alias for the SSN backup key
@@ -217,7 +217,7 @@ class BackupAccountStack(Stack):
             backup_vault_name=vault_name,
             encryption_key=self.backup_key,
             access_policy=vault_access_policy,
-            removal_policy=RemovalPolicy.DESTROY,  # Allow deletion during development/testing
+            removal_policy=RemovalPolicy.RETAIN,  # Allow deletion during development/testing
         )
 
     def _create_ssn_backup_vault(self) -> None:
@@ -270,7 +270,7 @@ class BackupAccountStack(Stack):
             backup_vault_name=ssn_vault_name,
             encryption_key=self.ssn_backup_key,
             access_policy=ssn_vault_access_policy,
-            removal_policy=RemovalPolicy.DESTROY,  # Allow deletion during development/testing
+            removal_policy=RemovalPolicy.RETAIN,  # Allow deletion during development/testing
         )
 
     def _create_outputs(self) -> None:
