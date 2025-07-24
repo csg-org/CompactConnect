@@ -339,11 +339,11 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
         this.removeStateAttestationInputs(stateAbbrev);
     }
 
-    isStateSelectDisabled(state): boolean {
+    isStateSelectDisabled(state: FormInput): boolean {
         return this.disabledPrivilegeStateChoices.includes(state.id);
     }
 
-    findStatePurchaseInformation(stateSelectInput): PrivilegePurchaseOption | null {
+    findStatePurchaseInformation(stateSelectInput: FormInput): PrivilegePurchaseOption | null {
         const stateAbbrev = stateSelectInput.id;
 
         const statePurchaseData = this.selectedStatePurchaseDataList.find((purchaseData) =>
