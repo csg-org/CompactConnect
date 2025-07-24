@@ -40,6 +40,7 @@ describe('PrivilegePurchaseOption model', () => {
         expect(privilegePurchaseOption.compactType).to.equal(null);
         expect(privilegePurchaseOption.fees).to.matchPattern({});
         expect(privilegePurchaseOption.isJurisprudenceRequired).to.equal(false);
+        expect(privilegePurchaseOption.jurisprudenceInfoUri).to.equal('');
     });
     it('should create a PrivilegePurchaseOption with specific values', () => {
         const data = {
@@ -55,6 +56,7 @@ describe('PrivilegePurchaseOption model', () => {
                 }
             },
             isJurisprudenceRequired: true,
+            jurisprudenceInfoUri: 'https://example.com',
         };
         const privilegePurchaseOption = new PrivilegePurchaseOption(data);
 
@@ -72,6 +74,7 @@ describe('PrivilegePurchaseOption model', () => {
             }
         });
         expect(privilegePurchaseOption.isJurisprudenceRequired).to.equal(true);
+        expect(privilegePurchaseOption.jurisprudenceInfoUri).to.equal(data.jurisprudenceInfoUri);
     });
     it('should create a PrivilegePurchaseOption with specific values through serializer', () => {
         const data = {
@@ -95,7 +98,8 @@ describe('PrivilegePurchaseOption model', () => {
                 discountAmount: 10
             },
             jurisprudenceRequirements: {
-                required: true
+                required: true,
+                linkToDocumentation: 'https://example.com',
             },
             type: 'jurisdiction'
         };
@@ -117,6 +121,7 @@ describe('PrivilegePurchaseOption model', () => {
             }
         });
         expect(privilegePurchaseOption.isJurisprudenceRequired).to.equal(true);
+        expect(privilegePurchaseOption.jurisprudenceInfoUri).to.equal('https://example.com');
     });
     it('should create a PrivilegePurchaseOption with specific values and not throw errors for malformed fee object', () => {
         const data = {
@@ -130,7 +135,8 @@ describe('PrivilegePurchaseOption model', () => {
             ],
             militaryDiscount: null,
             jurisprudenceRequirements: {
-                required: true
+                required: true,
+                linkToDocumentation: 'https://example.com',
             },
             type: 'jurisdiction'
         };
@@ -148,5 +154,6 @@ describe('PrivilegePurchaseOption model', () => {
             }
         });
         expect(privilegePurchaseOption.isJurisprudenceRequired).to.equal(true);
+        expect(privilegePurchaseOption.jurisprudenceInfoUri).to.equal('https://example.com');
     });
 });
