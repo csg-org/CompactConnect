@@ -188,7 +188,7 @@ class TestCognitoBackupFunctional(TstFunction):
         from handlers.cognito_backup import CognitoBackupExporter
 
         # Create many users to test pagination (moto may not enforce the 60 limit, but we can test the logic)
-        for i in range(5):
+        for i in range(65):
             self.cognito_client.admin_create_user(
                 UserPoolId=self.user_pool_id,
                 Username=f'pagination-user-{i}',
@@ -202,12 +202,12 @@ class TestCognitoBackupFunctional(TstFunction):
         exporter = CognitoBackupExporter(self.user_pool_id, self.bucket_name)
         results = exporter.export_user_pool()
 
-        # Verify all users were exported (2 original + 5 new = 7 total)
-        self.assertEqual(results['users_exported'], 7)
+        # Verify all users were exported (2 original + 65 new = 67 total)
+        self.assertEqual(results['users_exported'], 67)
 
         # Verify all users are in S3
         s3_objects = self.s3_client.list_objects_v2(Bucket=self.bucket_name)
-        self.assertEqual(len(s3_objects['Contents']), 7)
+        self.assertEqual(len(s3_objects['Contents']), 67)
 
     def test_lambda_handler_multiple_executions(self):
         """Test lambda handler with multiple executions."""
