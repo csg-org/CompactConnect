@@ -170,7 +170,7 @@ class TestProviderRecordUtility(TstLambdas):
         privilege = {
             **self.base_privilege,
             'providerId': 'test-provider-id',
-            'dateOfIssuance': date.fromisoformat('2024-01-01'),
+            'dateOfIssuance': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
             'dateOfExpiration': date.fromisoformat('2025-01-01'),
             'dateOfRenewal': date.fromisoformat('2024-01-01'),
             'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
@@ -185,8 +185,8 @@ class TestProviderRecordUtility(TstLambdas):
         # Define the expected issuance update
         expected_issuance_update = {
             'compact': 'octp',
-            'createDate': date.fromisoformat('2024-01-01'),
-            'dateOfUpdate': date.fromisoformat('2024-01-01'),
+            'createDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
+            'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
             'effectiveDate': date.fromisoformat('2024-01-01'),
             'jurisdiction': 'al',
             'licenseType': 'occupational therapy assistant',
@@ -210,7 +210,7 @@ class TestProviderRecordUtility(TstLambdas):
         privilege = {
             **self.base_privilege,
             'providerId': 'test-provider-id',
-            'dateOfIssuance': date.fromisoformat('2024-01-01'),
+            'dateOfIssuance': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
             'dateOfExpiration': date.fromisoformat('2024-02-01'),
             'dateOfRenewal': date.fromisoformat('2024-01-01'),
             'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
@@ -227,8 +227,8 @@ class TestProviderRecordUtility(TstLambdas):
         expected_updates = [
             {
                 'compact': 'octp',
-                'createDate': date.fromisoformat('2024-01-01'),
-                'dateOfUpdate': date.fromisoformat('2024-01-01'),
+                'createDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
+                'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'effectiveDate': date.fromisoformat('2024-01-01'),
                 'jurisdiction': 'al',
                 'licenseType': 'occupational therapy assistant',
@@ -240,8 +240,8 @@ class TestProviderRecordUtility(TstLambdas):
             },
             {
                 'compact': 'octp',
-                'createDate': date.fromisoformat('2024-02-01'),
-                'dateOfUpdate': date.fromisoformat('2024-02-01'),
+                'createDate': datetime.fromisoformat('2024-02-01T00:00:00+00:00'),
+                'dateOfUpdate': datetime.fromisoformat('2024-02-01T00:00:00+00:00'),
                 'effectiveDate': date.fromisoformat('2024-02-01'),
                 'jurisdiction': 'al',
                 'licenseType': 'occupational therapy assistant',
@@ -266,7 +266,7 @@ class TestProviderRecordUtility(TstLambdas):
         privilege = {
             **self.base_privilege,
             'providerId': 'test-provider-id',
-            'dateOfIssuance': date.fromisoformat('2024-01-01'),
+            'dateOfIssuance': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
             'dateOfExpiration': date.fromisoformat('2024-03-15'),
             'dateOfRenewal': date.fromisoformat('2024-01-01'),
             'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
@@ -283,8 +283,8 @@ class TestProviderRecordUtility(TstLambdas):
         expected_updates = [
             {
                 'compact': 'octp',
-                'createDate': date.fromisoformat('2024-01-01'),
-                'dateOfUpdate': date.fromisoformat('2024-01-01'),
+                'createDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
+                'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'effectiveDate': date.fromisoformat('2024-01-01'),
                 'jurisdiction': 'al',
                 'licenseType': 'occupational therapy assistant',
@@ -309,7 +309,7 @@ class TestProviderRecordUtility(TstLambdas):
         privilege = {
             **self.base_privilege,
             'providerId': 'test-provider-id',
-            'dateOfIssuance': date.fromisoformat('2024-01-01'),
+            'dateOfIssuance': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
             'dateOfExpiration': date.fromisoformat('2028-03-15'),
             'dateOfRenewal': date.fromisoformat('2024-01-01'),
             'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
@@ -405,8 +405,8 @@ class TestProviderRecordUtility(TstLambdas):
         expected_updates = [
             {
                 'compact': 'octp',
-                'createDate': date.fromisoformat('2024-01-01'),
-                'dateOfUpdate': date.fromisoformat('2024-01-01'),
+                'createDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
+                'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'effectiveDate': date.fromisoformat('2024-01-01'),
                 'jurisdiction': 'al',
                 'licenseType': 'occupational therapy assistant',
@@ -443,8 +443,8 @@ class TestProviderRecordUtility(TstLambdas):
             },
             {
                 'compact': 'octp',
-                'createDate': date.fromisoformat('2025-06-15'),
-                'dateOfUpdate': date.fromisoformat('2025-06-15'),
+                'createDate': datetime.fromisoformat('2025-06-15T00:00:00+00:00'),
+                'dateOfUpdate': datetime.fromisoformat('2025-06-15T00:00:00+00:00'),
                 'effectiveDate': date.fromisoformat('2025-06-15'),
                 'jurisdiction': 'al',
                 'licenseType': 'occupational therapy assistant',

@@ -245,35 +245,3 @@ class PublicLookupApi:
             ],
         )
         return self.query_providers_handler
-    #
-    # def _get_privilege_history_handler(
-    #     self,
-    #     persistent_stack: ps.PersistentStack,
-    #     lambda_environment: dict,
-    # ) -> PythonFunction:
-    #     stack = Stack.of(self.resource)
-    #     handler = PythonFunction(
-    #         self.resource,
-    #         'GetPrivilegeHistory',
-    #         description='Public Get p handler',
-    #         lambda_dir='provider-data-v1',
-    #         index=os.path.join('handlers', 'public_lookup.py'),
-    #         handler='public_get_provider',
-    #         environment=lambda_environment,
-    #         alarm_topic=self.api.alarm_topic,
-    #     )
-    #     persistent_stack.shared_encryption_key.grant_decrypt(handler)
-    #     persistent_stack.provider_table.grant_read_data(handler)
-    #
-    #     NagSuppressions.add_resource_suppressions_by_path(
-    #         stack,
-    #         path=f'{handler.node.path}/ServiceRole/DefaultPolicy/Resource',
-    #         suppressions=[
-    #             {
-    #                 'id': 'AwsSolutions-IAM5',
-    #                 'reason': 'The actions in this policy are specifically what this lambda needs to read '
-    #                 'and is scoped to one table and encryption key.',
-    #             },
-    #         ],
-    #     )
-    #     return handler

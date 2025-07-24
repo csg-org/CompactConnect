@@ -1,6 +1,6 @@
 from collections.abc import Callable, Iterable
 from enum import StrEnum
-from datetime import date
+from datetime import datetime
 
 from cc_common.config import config, logger
 from cc_common.data_model.schema.adverse_action import AdverseActionData
@@ -266,7 +266,7 @@ class ProviderRecordUtility:
             'compact': privilege['compact'],
             'jurisdiction': privilege['jurisdiction'],
             'licenseType': privilege['licenseType'],
-            'effectiveDate': privilege['dateOfIssuance'],
+            'effectiveDate': privilege['dateOfIssuance'].date(),
             'createDate': privilege['dateOfIssuance'],
             'previous': {},
             'updatedValues': {},
@@ -280,6 +280,7 @@ class ProviderRecordUtility:
         # Inject expiration events that occurred between events
         for update in renewal_updates:
             date_of_expiration = update['previous']['dateOfExpiration']
+            datetime_of_expiration = datetime.fromisoformat(date_of_expiration.isoformat() + 'T00:00:00+00:00')
             if date_of_expiration < update['createDate'].date():
                 enriched_history.append(
                     {
@@ -290,15 +291,17 @@ class ProviderRecordUtility:
                         'jurisdiction': privilege['jurisdiction'],
                         'licenseType': privilege['licenseType'],
                         'effectiveDate': date_of_expiration,
-                        'createDate': date_of_expiration,
+                        'createDate': datetime_of_expiration,
                         'previous': {},
                         'updatedValues': {},
-                        'dateOfUpdate': date_of_expiration,
+                        'dateOfUpdate': datetime_of_expiration,
                     }
                 )
-
         # Inject expiration event if currently expired
-        if privilege['dateOfExpiration'] < now.date():
+        privilege_date_of_expiration = privilege['dateOfExpiration']
+
+        if privilege_date_of_expiration < now.date():
+            privilege_datetime_of_expiration = datetime.fromisoformat(privilege_date_of_expiration.isoformat() + 'T00:00:00+00:00')
             enriched_history.append(
                 {
                     'type': 'privilegeUpdate',
@@ -307,11 +310,11 @@ class ProviderRecordUtility:
                     'compact': privilege['compact'],
                     'jurisdiction': privilege['jurisdiction'],
                     'licenseType': privilege['licenseType'],
-                    'effectiveDate': privilege['dateOfExpiration'],
-                    'createDate': privilege['dateOfExpiration'],
+                    'effectiveDate': privilege_date_of_expiration,
+                    'createDate': privilege_datetime_of_expiration,
                     'previous': {},
                     'updatedValues': {},
-                    'dateOfUpdate': privilege['dateOfExpiration'],
+                    'dateOfUpdate': privilege_datetime_of_expiration,
                 }
             )
 

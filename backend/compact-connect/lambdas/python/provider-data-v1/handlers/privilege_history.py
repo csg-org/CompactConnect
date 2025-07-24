@@ -2,9 +2,10 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
 from cc_common.data_model.provider_record_util import ProviderRecordUtility
 from cc_common.exceptions import CCInvalidRequestException
+from cc_common.utils import api_handler
 
 
-
+@api_handler
 def privilege_history_handler(event: dict, context: LambdaContext):
     """
     Main entry point for provider users API.
@@ -32,7 +33,6 @@ def privilege_history_handler(event: dict, context: LambdaContext):
 
 def _get_privilege_history(event: dict):
     """Return the enriched and simplified privilege history for front end consumption
-    This endpoint requires is public
     :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
     :param LambdaContext context:
     """
@@ -41,14 +41,6 @@ def _get_privilege_history(event: dict):
     jurisdiction = event['pathParameters']['jurisdiction']
     license_type_abbr = event['pathParameters']['licenseType']
 
-    with logger.append_context_keys(
-        compact=compact, provider_id=provider_id, jurisdiction=jurisdiction, license_type=license_type_abbr
-    ):
-        # Validate the license type is a supported abbreviation
-        if license_type_abbr not in config.license_type_abbreviations[compact].values():
-            logger.warning('Invalid license type abbreviation')
-            raise CCInvalidRequestException(f'Invalid license type abbreviation: {license_type_abbr}')
-
     privilege_data = config.data_client.get_privilege_data(
         compact=compact,
         provider_id=provider_id,
@@ -57,11 +49,11 @@ def _get_privilege_history(event: dict):
         license_type_abbr=license_type_abbr
     )
 
-    return ProviderRecordUtility.construct_simplified_public_privilege_history_object(privilege_data)
+    return ProviderRecordUtility.construct_simplified_public_privilege_history_object(privilege_data['items'])
 
 def _get_privilege_history_provider_user_me(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
-    """Return the enriched and simplified privilege history for front end consumption
-    This endpoint requires is public
+    """Return the enriched and simplified privilege history for provider
+    for front end consumption
     :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
     :param LambdaContext context:
     """
@@ -69,14 +61,6 @@ def _get_privilege_history_provider_user_me(event: dict, context: LambdaContext)
     jurisdiction = event['pathParameters']['jurisdiction']
     license_type_abbr = event['pathParameters']['licenseType']
 
-    with logger.append_context_keys(
-        compact=compact, provider_id=provider_id, jurisdiction=jurisdiction, license_type=license_type_abbr
-    ):
-        # Validate the license type is a supported abbreviation
-        if license_type_abbr not in config.license_type_abbreviations[compact].values():
-            logger.warning('Invalid license type abbreviation')
-            raise CCInvalidRequestException(f'Invalid license type abbreviation: {license_type_abbr}')
-
     privilege_data = config.data_client.get_privilege_data(
         compact=compact,
         provider_id=provider_id,
@@ -85,7 +69,7 @@ def _get_privilege_history_provider_user_me(event: dict, context: LambdaContext)
         license_type_abbr=license_type_abbr
     )
 
-    return ProviderRecordUtility.construct_simplified_public_privilege_history_object(privilege_data)
+    return ProviderRecordUtility.construct_simplified_public_privilege_history_object(privilege_data['items'])
 
 def _check_provider_user_attributes(event: dict) -> tuple[str, str]:
     try:
