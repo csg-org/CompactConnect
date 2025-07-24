@@ -237,28 +237,29 @@ class ProviderRecordUtility:
         history: list[dict]
     ) -> list[dict]:
         """
-        Enrich the license or privilege history with 'synthetic updates'.
+        Enrich the privilege history with 'synthetic updates'.
         Synthetic updates are what we're calling critical pieces of history that are not explicitly recorded in the data
-        system, because they occur passively, such as when a license or privilege expires or that we do not participate
-        in, like when a license is issued. These 'synthetic updates' do not have a corresponding record in the
-        database, but we can deduce their existence based on the license's other data. Because these events are
+        system, because they occur passively, such as when a privilege expires or that we do not participate
+        in, like when a privilege is issued. These 'synthetic updates' do not have a corresponding record in the
+        database, but we can deduce their existence based on the privilege's other data. Because these events are
         'synthetic', they have no actual changes in record values associated with them.
         Example issuance event:
         {
-            'type': 'licenseUpdate',
+            'type': 'privilegeUpdate',
             'updateType': 'issuance',
             'providerId': <provider_id>,
             'compact': <compact>,
             'jurisdiction': <jurisdiction>,
             'licenseType': <license_type>,
+            'effectiveDate': <date_effective>,
+            'createDate': <create_date>
             'dateOfUpdate': <date_of_update>,
-            'previous': {
-                <full license details>
-            },
+            'previous': {},
             'updatedValues': {},
         }
-        :param license_or_priv: The license or privilege API object to enrich
-        :return: The enriched license or privilege API object
+        :param privilege: The privilege record whose history we intend to construct
+        :param history: The raw history records we intend to extrapolate from
+        :return: The enriched privilege history
         """
         create_date_sorted_original_history = sorted(history, key=lambda x: x['createDate'])
 
@@ -327,6 +328,11 @@ class ProviderRecordUtility:
 
     @classmethod
     def construct_simplified_public_privilege_history_object(cls, privilege_data: list[dict]) -> dict:
+        """
+        Construct a simplified list of history events to be easily consumed by the front end
+        :param privilege_data: All of the records relative to the privilege: the privilege, updates, and adverse actions
+        :return: The simplified and enriched privilege history
+        """
         privilege = list(filter(lambda x: x['type'] == 'privilege', privilege_data))[0]
         history = list(filter(lambda x: x['type'] == 'privilegeUpdate', privilege_data))
 
