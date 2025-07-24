@@ -7,13 +7,15 @@ This CDK application deploys the backup destination infrastructure for CompactCo
 This application creates the dedicated backup infrastructure for a single environment account:
 
 ### Environment-Specific Backup Account Infrastructure
-Deployed to a dedicated backup account in `us-west-2` region for each environment (Test Secondary and Prod Secondary):
+Deployed to a dedicated backup account for each environment (Test Secondary and Prod Secondary):
 - **Cross-account backup vault**: Secure destination for backup copies from the specific environment account (`CompactConnectBackupVault`)
-- **Dedicated SSN backup vault**: Separate vault (`CompactConnectBackupVault-SSN`) with enhanced access controls for SSN data
-- **Customer-managed KMS keys**: Encryption keys for backup data with cross-account access policies
-- **Dedicated SSN KMS key**: Separate encryption key for SSN backup data with restricted cross-account access
-- **Environment-specific access policies**: Allow only the specific environment account to copy backups while maintaining security
-- **Break-glass security policies**: DENY policies on SSN vault and KMS key requiring explicit modification for emergency access
+- **Regional separation**: Backups stored in different region (`us-west-2`) than primary operations (`us-east-1`)
+- **Customer-managed KMS keys**: All backup data encrypted with customer-managed KMS keys.
+- **Enhanced SSN Security**: Dedicated infrastructure for SSN data protection:
+  - Separate backup vault exclusively for SSN table backups
+  - Dedicated KMS key with restricted cross-account access for SSN encryption
+  - **Break-glass access controls**: Both the SSN backup vault and KMS key use DENY policies that block all restore/decrypt operations except for AWS
+- **Least privilege**: Vault access policies follow principle of least privilege
 
 ### Environment Account Integration
 Environment account backup infrastructure is managed by the CompactConnect application:
@@ -59,7 +61,7 @@ Copy `cdk.context.example.json` to `cdk.context.json` and update the values:
    pip install -r requirements.txt
    ```
 
-2. **Bootstrap CDK in us-west-2 region** (if not already done. Make sure the AWS cli is logged into the appropriate backup account and set to us-west-2 region):
+2. **Bootstrap CDK in us-west-2 region** if not already done. (Make sure the AWS cli is logged into the appropriate backup account and set to us-west-2 region):
    ```bash
    cdk bootstrap
    ```
@@ -69,19 +71,6 @@ Copy `cdk.context.example.json` to `cdk.context.json` and update the values:
    cdk deploy BackupAccountStack
    ```
 
-## Security Features
-
-- **Cross-account isolation**: Backup account is separate from operational account
-- **Environment-specific isolation**: Each environment has its own dedicated backup account
-- **Regional separation**: Backups stored in different region (`us-west-2`) than primary operations (`us-east-1`)
-- **Encryption**: All backup data encrypted with customer-managed KMS keys
-- **Enhanced SSN Security**: Dedicated infrastructure for SSN data protection:
-  - Separate backup vault exclusively for SSN table backups
-  - Dedicated KMS key with restricted cross-account access for SSN encryption
-  - **Break-glass access controls**: Both the SSN backup vault and KMS key use DENY policies that block all restore/decrypt operations except for AWS services, requiring explicit policy modification for emergency restoration
-- **Environment-specific policies**: Access restricted to only the specific environment account within the AWS Organization
-- **Least privilege**: Vault access policies follow principle of least privilege
-
 ## Integration with Environment Accounts
 
 Once deployed, this infrastructure provides destination vaults for the specific environment account to:
@@ -89,11 +78,15 @@ Once deployed, this infrastructure provides destination vaults for the specific 
 2. Configure backup plans with copy actions that reference these cross-account vault ARNs
 3. Automatically replicate backups to this environment-specific backup account for disaster recovery
 
-The environment account will need the following ARNs from this deployment:
-- General backup vault ARN: `arn:aws:backup:us-west-2:BACKUP_ACCOUNT:backup-vault:CompactConnectBackupVault`
-- SSN backup vault ARN: `arn:aws:backup:us-west-2:BACKUP_ACCOUNT:backup-vault:CompactConnectBackupVault-SSN`
-- General KMS key ARN: Output from `BackupEncryptionKeyArn`
-- SSN KMS key ARN: Output from `SSNBackupEncryptionKeyArn`
+The environment account CDK context will need the following information from this deployment:
+```commandline
+    "backup_config": {
+      "backup_account_id": "<account id>",
+      "backup_region": "us-west-2",
+      "general_vault_name": "CompactConnectBackupVault",
+      "ssn_vault_name": "CompactConnectSSNBackupVault"
+    }
+```
 
 ## Testing
 
@@ -153,4 +146,3 @@ This approach ensures that emergency access is:
 ## Related Documentation
 
 - [AWS Backup Cross-Account Documentation](https://docs.aws.amazon.com/aws-backup/latest/devguide/cross-account-backup.html)
-- [CompactConnect Data Retention Implementation Plan](../../../working-resources/246-data-retention.md)
