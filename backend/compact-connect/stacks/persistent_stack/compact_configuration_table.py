@@ -37,7 +37,7 @@ class CompactConfigurationTable(Table):
         )
 
         # Set up backup plan
-        backup_enabled = environment_context.get('backup_enabled', True)
+        backup_enabled = environment_context['backup_enabled']
         if backup_enabled and backup_infrastructure_stack is not None:
             self.backup_plan = CCBackupPlan(
                 self,

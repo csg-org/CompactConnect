@@ -76,7 +76,7 @@ class ProviderUsers(UserPool):
         self._add_custom_message_lambda(stack=persistent_stack, environment_name=environment_name)
 
         # Check if backups are enabled for this environment
-        backup_enabled = environment_context.get('backup_enabled', True)
+        backup_enabled = environment_context['backup_enabled']
 
         if backup_enabled and persistent_stack.backup_infrastructure_stack is not None:
             # Set up Cognito backup system for this user pool

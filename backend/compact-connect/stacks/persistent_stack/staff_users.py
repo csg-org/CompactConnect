@@ -82,7 +82,7 @@ class StaffUsers(UserPool):
         )
 
         # Check if backups are enabled for this environment
-        backup_enabled = environment_context.get('backup_enabled', True)
+        backup_enabled = environment_context['backup_enabled']
 
         if backup_enabled and backup_infrastructure_stack is not None:
             # Set up Cognito backup system for this user pool

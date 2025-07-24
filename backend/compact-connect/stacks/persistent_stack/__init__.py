@@ -112,7 +112,7 @@ class PersistentStack(AppStack):
         )
 
         # Check if backups are enabled for this environment
-        backup_enabled = environment_context.get('backup_enabled', True)
+        backup_enabled = environment_context['backup_enabled']
 
         if backup_enabled:
             # Create backup infrastructure as a nested stack

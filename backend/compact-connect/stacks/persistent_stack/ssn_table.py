@@ -131,7 +131,7 @@ class SSNTable(Table):
         )
 
         # Set up backup plan
-        backup_enabled = environment_context.get('backup_enabled', True)
+        backup_enabled = environment_context['backup_enabled']
         if backup_enabled and backup_infrastructure_stack is not None:
             # Store backup service role for KMS key policy configuration
             self.backup_service_role = backup_infrastructure_stack.ssn_backup_service_role
