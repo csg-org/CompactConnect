@@ -107,14 +107,14 @@ class CompactSettingsConfig extends mixins(MixinForm) {
             this.initFormInputs();
 
             // Format existing values
-            const { compactFee, privilegeTransactionFee } = this.formData;
+            const { compactFee, creditCardTransactionFee } = this.formData;
 
             if (compactFee?.value) {
                 this.formatBlur(this.formData.compactFee);
             }
 
-            if (privilegeTransactionFee?.value) {
-                this.formatBlur(this.formData.privilegeTransactionFee, true);
+            if (creditCardTransactionFee?.value) {
+                this.formatBlur(this.formData.creditCardTransactionFee, true);
             }
         }
     }
@@ -139,10 +139,10 @@ class CompactSettingsConfig extends mixins(MixinForm) {
                 validation: Joi.number().required().min(0).messages(this.joiMessages.currency),
                 value: this.initialCompactConfig?.compactCommissionFee?.feeAmount,
             }),
-            privilegeTransactionFee: new FormInput({
-                id: 'privilege-transaction-fee',
-                name: 'privilege-transaction-fee',
-                label: computed(() => this.$t('compact.privilegeTransactionFee')),
+            creditCardTransactionFee: new FormInput({
+                id: 'credit-card-transaction-fee',
+                name: 'credit-card-transaction-fee',
+                label: computed(() => this.$t('payment.ccTransactionFee')),
                 validation: Joi.number().min(0).messages(this.joiMessages.currency),
                 value: this.initialCompactConfig?.transactionFeeConfiguration?.licenseeCharges?.chargeAmount,
             }),
@@ -234,7 +234,7 @@ class CompactSettingsConfig extends mixins(MixinForm) {
         const compact = this.compactType || '';
         const {
             compactFee,
-            privilegeTransactionFee,
+            creditCardTransactionFee,
             opsNotificationEmails,
             adverseActionNotificationEmails,
             summaryReportNotificationEmails,
@@ -252,7 +252,7 @@ class CompactSettingsConfig extends mixins(MixinForm) {
                 licenseeCharges: {
                     active: true,
                     chargeType: FeeType.FLAT_FEE_PER_PRIVILEGE,
-                    chargeAmount: Number(privilegeTransactionFee),
+                    chargeAmount: Number(creditCardTransactionFee),
                 },
             },
             licenseeRegistrationEnabled: isRegistrationEnabled,
@@ -275,9 +275,9 @@ class CompactSettingsConfig extends mixins(MixinForm) {
         }
     }
 
-    populateMissingPrivilegeTransactionFee(): void {
-        if (this.formData.privilegeTransactionFee.value === '') {
-            this.populateFormInput(this.formData.privilegeTransactionFee, 0);
+    populateMissingCreditCardTransactionFee(): void {
+        if (this.formData.creditCardTransactionFee.value === '') {
+            this.populateFormInput(this.formData.creditCardTransactionFee, 0);
         }
     }
 
@@ -288,7 +288,7 @@ class CompactSettingsConfig extends mixins(MixinForm) {
     }
 
     populateOptionalMissing(): void {
-        this.populateMissingPrivilegeTransactionFee();
+        this.populateMissingCreditCardTransactionFee();
         this.populateMissingRegistrationEnabled();
     }
 
@@ -328,7 +328,7 @@ class CompactSettingsConfig extends mixins(MixinForm) {
 
     async mockPopulate(): Promise<void> {
         this.populateFormInput(this.formData.compactFee, 5.55);
-        this.populateFormInput(this.formData.privilegeTransactionFee, 5);
+        this.populateFormInput(this.formData.creditCardTransactionFee, 5);
         this.populateFormInput(this.formData.opsNotificationEmails, ['ops@example.com']);
         this.populateFormInput(this.formData.adverseActionNotificationEmails, ['adverse@example.com']);
         this.populateFormInput(this.formData.summaryReportNotificationEmails, ['summary@example.com']);
