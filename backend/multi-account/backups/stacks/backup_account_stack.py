@@ -25,7 +25,8 @@ class BackupAccountStack(Stack):
     - Break-glass security controls for SSN data
 
     Based on AWS best practices for cross-account backup architecture as described in:
-    "How to secure recovery with cross-account backup and cross-Region copy using AWS Backup"
+    "Secure recovery with cross-account backup and cross-Region copy using AWS Backup"
+    https://aws.amazon.com/blogs/storage/secure-data-recovery-with-cross-account-backup-and-cross-region-copy-using-aws-backup/
     """
 
     def __init__(
