@@ -428,7 +428,8 @@
         "numberType": "Must be a number",
         "currencyType": "Must be a valid currency amount",
         "minNumber": "Must be greater than or equal to {min}",
-        "maxNumber": "Must be less than or equal to {max}"
+        "maxNumber": "Must be less than or equal to {max}",
+        "invalidDateWithFormat": "Date must be of required format {format}"
     },
     "serverErrors": {
         "networkError": "Network error",

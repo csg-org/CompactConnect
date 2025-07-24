@@ -427,7 +427,8 @@
         "numberType": "Debe ser un número",
         "currencyType": "Debe ser un monto en moneda válido",
         "minNumber": "Debe ser mayor o igual a {min}",
-        "maxNumber": "Debe ser menor o igual a {max}"
+        "maxNumber": "Debe ser menor o igual a {max}",
+        "invalidDateWithFormat": "Fecha debe estar en el formato requerido {format}"
     },
     "serverErrors": {
         "networkError": "Error de red",

@@ -17,7 +17,7 @@ import {
     ComputedRef,
     nextTick
 } from 'vue';
-import { stateList } from '@/app.config';
+import { stateList, dateFormatPatterns } from '@/app.config';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import Section from '@components/Section/Section.vue';
 import Card from '@components/Card/Card.vue';
@@ -184,7 +184,10 @@ class RegisterLicensee extends mixins(MixinForm) {
                 label: computed(() => this.$t('common.dateOfBirth')),
                 placeholder: computed(() => 'MM/DD/YYYY'),
                 autocomplete: 'bday',
-                validation: Joi.string().required().messages(this.joiMessages.string),
+                validation: Joi.string()
+                    .required()
+                    .pattern(dateFormatPatterns.MM_DD_YYYY)
+                    .messages(this.joiMessages.dateWithFormat('MM/DD/YYYY')),
             }),
             licenseState: new FormInput({
                 id: 'license-state',
@@ -208,9 +211,13 @@ class RegisterLicensee extends mixins(MixinForm) {
                 autocomplete: 'email',
                 validation: Joi.string().required().email({ tlds: false }).messages(this.joiMessages.string),
             }),
-            submit: new FormInput({
+            handleSubmitInitial: new FormInput({
                 isSubmitInput: true,
-                id: 'submit',
+                id: 'submit-initial',
+            }),
+            handleSubmitConfirmation: new FormInput({
+                isSubmitInput: true,
+                id: 'submit-confirmation',
             }),
         });
         this.watchFormInputs(); // Important if you want automated form validation
@@ -416,7 +423,7 @@ class RegisterLicensee extends mixins(MixinForm) {
         this.updateFormSubmitError('');
     }
 
-    mockPopulate(): void {
+    async mockPopulate(): Promise<void> {
         this.formData.firstName.value = 'Test';
         this.formData.lastName.value = 'User';
         this.formData.email.value = 'test@example.com';
@@ -424,6 +431,7 @@ class RegisterLicensee extends mixins(MixinForm) {
         this.formData.dob.value = '2000-01-01';
         this.formData.licenseState.value = this.stateOptions[1]?.value || 'co';
         this.formData.licenseType.value = this.licenseTypeOptions[1]?.value || 'audiologist';
+        await nextTick();
         this.validateAll({ asTouched: true });
     }
 
