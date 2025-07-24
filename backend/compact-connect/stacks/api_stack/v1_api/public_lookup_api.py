@@ -10,7 +10,6 @@ from common_constructs.stack import Stack
 
 
 from stacks import persistent_stack as ps
-from stacks.api_stack.v1_api.privilege_history import PrivilegeHistory
 
 # Importing module level to allow lazy loading for typing
 from stacks.api_stack import cc_api
@@ -155,7 +154,7 @@ class PublicLookupApi:
             method_responses=[
                 MethodResponse(
                     status_code='200',
-                    response_models={'application/json': self.api_model.privilege_history_response_model}, #TODO
+                    response_models={'application/json': self.api_model.privilege_history_response_model},
                 ),
             ],
             integration=LambdaIntegration(privilege_history_function, timeout=Duration.seconds(29)),

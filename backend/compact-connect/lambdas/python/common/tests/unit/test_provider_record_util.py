@@ -1,4 +1,3 @@
-# from cc_common.data_model.schema.common import UpdateCategory
 from tests import TstLambdas
 from datetime import date, datetime
 from unittest.mock import patch

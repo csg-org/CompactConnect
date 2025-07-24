@@ -97,7 +97,7 @@ class V1Api:
                 **stack.common_env_vars,
             },
             index=os.path.join('handlers', 'privilege_history.py'),
-            handler='get_privilege_history',
+            handler='privilege_history_handler',
             alarm_topic=self.api.alarm_topic,
         )
         persistent_stack.shared_encryption_key.grant_decrypt(self.privilege_history_function)
