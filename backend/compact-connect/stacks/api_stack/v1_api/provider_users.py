@@ -451,7 +451,7 @@ class ProviderUsers:
             method_responses=[
                 MethodResponse(
                     status_code='200',
-                    response_models={'application/json': self.api_model.privilege_history_response_model},  # TODO
+                    response_models={'application/json': self.api_model.privilege_history_response_model},
                 ),
             ],
             integration=LambdaIntegration(privilege_history_function, timeout=Duration.seconds(29)),

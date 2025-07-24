@@ -14,7 +14,6 @@ from cc_common.data_model.provider_record_util import (
     ProviderUserRecords,
 )
 from cc_common.data_model.query_paginator import paginated_query
-from cc_common.data_model.schema import PrivilegeRecordSchema
 from cc_common.data_model.schema.adverse_action import AdverseActionData
 from cc_common.data_model.schema.base_record import SSNIndexRecordSchema
 from cc_common.data_model.schema.common import (

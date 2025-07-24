@@ -14,10 +14,10 @@ from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
 from cc_common.data_model.schema.license.api import LicenseUpdatePreviousResponseSchema
 from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationData
 from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
-from cc_common.data_model.schema.privilege.api import(
-    PrivilegeUpdatePreviousGeneralResponseSchema,
+from cc_common.data_model.schema.privilege.api import (
     PrivilegeHistoryEventPublicResponseSchema,
-    PrivilegeHistoryPublicResponseSchema
+    PrivilegeHistoryPublicResponseSchema,
+    PrivilegeUpdatePreviousGeneralResponseSchema,
 )
 from cc_common.data_model.schema.provider import ProviderData, ProviderUpdateData
 from cc_common.exceptions import CCInternalException
@@ -231,7 +231,11 @@ class ProviderRecordUtility:
 
 
     @classmethod
-    def get_enriched_history_with_synthetic_updates_from_privilege(cls, privilege: dict, history: list[dict]) -> list[dict]:
+    def get_enriched_history_with_synthetic_updates_from_privilege(
+        cls,
+        privilege: dict,
+        history: list[dict]
+    ) -> list[dict]:
         """
         Enrich the license or privilege history with 'synthetic updates'.
         Synthetic updates are what we're calling critical pieces of history that are not explicitly recorded in the data
@@ -301,7 +305,8 @@ class ProviderRecordUtility:
         privilege_date_of_expiration = privilege['dateOfExpiration']
 
         if privilege_date_of_expiration < now.date():
-            privilege_datetime_of_expiration = datetime.fromisoformat(privilege_date_of_expiration.isoformat() + 'T00:00:00+00:00')
+            privilege_datetime_of_expiration = datetime.fromisoformat(privilege_date_of_expiration.isoformat()
+                + 'T00:00:00+00:00')
             enriched_history.append(
                 {
                     'type': 'privilegeUpdate',

@@ -24,7 +24,7 @@ class TestGetProvider(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
             event['httpMethod'] = 'GET'
-            event['resource'] = '/v1/provider-users/me/jurisdiction/{jurisdiction}/licenseType/{licenseType}'
+            event['resource'] = '/v1/provider-users/me/jurisdiction/{jurisdiction}/licenseType/{licenseType}/history'
             event['requestContext']['authorizer']['claims']['custom:providerId'] = test_provider.providerId
             event['requestContext']['authorizer']['claims']['custom:compact'] = test_provider.compact
             event['pathParameters'] = {
@@ -60,7 +60,7 @@ class TestGetProvider(TstFunction):
             event = json.load(f)
             event['httpMethod'] = 'GET'
             event['resource'] = (
-                '/v1/compacts/{compact}/providers/{providerId}/jurisdiction/{jurisdiction}/licenseType/{licenseType}'
+                '/v1/compacts/{compact}/providers/{providerId}/jurisdiction/{jurisdiction}/licenseType/{licenseType}/history'
             )
             event['pathParameters'] = {
                 'jurisdiction': 'oh',
@@ -82,7 +82,7 @@ class TestGetProvider(TstFunction):
             event = json.load(f)
             event['httpMethod'] = 'GET'
             event['resource'] = (
-                '/v1/public/compacts/{compact}/providers/{providerId}/jurisdiction/{jurisdiction}/licenseType/{licenseType}'
+                '/v1/public/compacts/{compact}/providers/{providerId}/jurisdiction/{jurisdiction}/licenseType/{licenseType}/history'
             )
             event['pathParameters'] = {
                 'jurisdiction': 'oh',
@@ -139,7 +139,9 @@ class TestGetProvider(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
             event['httpMethod'] = 'GET'
-            event['resource'] = '/v1/public/compacts/{compact}/providers/{providerId}/jurisdiction/{jurisdiction}/licenseType/{licenseType}'
+            event['resource'] = (
+                '/v1/public/compacts/{compact}/providers/{providerId}/jurisdiction/{jurisdiction}/licenseType/{licenseType}/history'
+            )
             event['pathParameters'] = {
                 'jurisdiction': 'ne',
                 'licenseType': 'slp',
@@ -186,7 +188,9 @@ class TestGetProvider(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
             event['httpMethod'] = 'GET'
-            event['resource'] = '/v1/compacts/{compact}/providers/{providerId}/jurisdiction/{jurisdiction}/licenseType/{licenseType}'
+            event['resource'] = (
+                '/v1/compacts/{compact}/providers/{providerId}/jurisdiction/{jurisdiction}/licenseType/{licenseType}/history'
+            )
             event['pathParameters'] = {
                 'jurisdiction': 'ne',
                 'licenseType': 'slp',

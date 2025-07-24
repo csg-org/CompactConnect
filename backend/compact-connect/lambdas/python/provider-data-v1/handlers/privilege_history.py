@@ -21,11 +21,17 @@ def privilege_history_handler(event: dict, context: LambdaContext):
     # Route to the appropriate handler
     api_method = (http_method, resource_path)
     match api_method:
-        case ('GET', '/v1/provider-users/me/jurisdiction/{jurisdiction}/licenseType/{licenseType}'):
+        case ('GET', '/v1/provider-users/me/jurisdiction/{jurisdiction}/licenseType/{licenseType}/history'):
             return _get_privilege_history_provider_user_me(event, context)
-        case ('GET', '/v1/public/compacts/{compact}/providers/{providerId}/jurisdiction/{jurisdiction}/licenseType/{licenseType}'):
+        case (
+            'GET',
+            '/v1/public/compacts/{compact}/providers/{providerId}/jurisdiction/{jurisdiction}/licenseType/{licenseType}/history'
+        ):
             return _get_privilege_history(event)
-        case ('GET', '/v1/compacts/{compact}/providers/{providerId}/jurisdiction/{jurisdiction}/licenseType/{licenseType}'):
+        case (
+            'GET',
+            '/v1/compacts/{compact}/providers/{providerId}/jurisdiction/{jurisdiction}/licenseType/{licenseType}/history'
+        ):
             return _get_privilege_history(event)
 
     # If we get here, the method/resource combination is not supported

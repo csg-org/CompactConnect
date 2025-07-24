@@ -2053,7 +2053,10 @@ class ApiModel:
                 properties={
                     'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
                     'compact': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.node.get_context('compacts')),
-                    'jurisdiction': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.node.get_context('jurisdictions')),
+                    'jurisdiction': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        enum=self.stack.node.get_context('jurisdictions')
+                    ),
                     'licenseType': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.license_type_names),
                     'privilegeId': JsonSchema(type=JsonSchemaType.STRING),
                     'events': JsonSchema(
