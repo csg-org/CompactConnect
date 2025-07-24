@@ -150,50 +150,6 @@ class ApiModel:
         return self.api._v1_get_provider_response_model
 
     @property
-    def post_license_model(self) -> Model:
-        """Return the Post License Model, which should only be created once per API"""
-        if hasattr(self.api, '_v1_post_license_model'):
-            return self.api._v1_post_license_model
-
-        self.api._v1_post_license_model = self.api.add_model(
-            'V1PostLicenseModel',
-            description='POST licenses request model',
-            schema=JsonSchema(
-                type=JsonSchemaType.ARRAY,
-                max_length=100,
-                items=JsonSchema(
-                    type=JsonSchemaType.OBJECT,
-                    required=[
-                        'ssn',
-                        'givenName',
-                        'familyName',
-                        'dateOfBirth',
-                        'homeAddressStreet1',
-                        'homeAddressCity',
-                        'homeAddressState',
-                        'homeAddressPostalCode',
-                        'licenseType',
-                        'dateOfIssuance',
-                        'dateOfExpiration',
-                        'licenseStatus',
-                        'compactEligibility',
-                    ],
-                    additional_properties=False,
-                    properties={
-                        'licenseType': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.license_type_names),
-                        'ssn': JsonSchema(
-                            type=JsonSchemaType.STRING,
-                            description="The provider's social security number",
-                            pattern=cc_api.SSN_FORMAT,
-                        ),
-                        **self._common_license_properties,
-                    },
-                ),
-            ),
-        )
-        return self.api._v1_post_license_model
-
-    @property
     def bulk_upload_response_model(self) -> Model:
         """Return the Bulk Upload Response Model, which should only be created once per API"""
         if hasattr(self.api, 'bulk_upload_response_model'):

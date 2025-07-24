@@ -1,10 +1,9 @@
-import json
-
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
-from cc_common.data_model.schema.provider.api import ProviderPublicResponseSchema
+from cc_common.data_model.schema.provider.api import ProviderPublicResponseSchema, QueryProvidersRequestSchema
 from cc_common.exceptions import CCInvalidRequestException
 from cc_common.utils import api_handler
+from marshmallow import ValidationError
 
 from . import get_provider_information
 
@@ -17,7 +16,14 @@ def public_query_providers(event: dict, context: LambdaContext):  # noqa: ARG001
     """
     compact = event['pathParameters']['compact']
 
-    body = json.loads(event['body'])
+    # Parse and validate the request body using the schema to strip whitespace
+    try:
+        schema = QueryProvidersRequestSchema()
+        body = schema.loads(event['body'])
+    except ValidationError as e:
+        logger.warning('Invalid request body', errors=e.messages)
+        raise CCInvalidRequestException(f'Invalid request: {e.messages}') from e
+
     query = body.get('query', {})
     if 'providerId' in query.keys():
         provider_id = query['providerId']

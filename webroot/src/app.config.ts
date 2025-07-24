@@ -107,6 +107,14 @@ export const displayDateFormat = 'M/D/YYYY';
 export const displayDatetimeFormat = 'M/D/YYYY h:mm a';
 
 // =============================
+// =   Date Format Patterns    =
+// =============================
+export const dateFormatPatterns = {
+    MM_DD_YYYY: /^\d{2}\/\d{2}\/\d{4}$/,
+    YYYY_MM_DD: /^\d{4}-\d{2}-\d{2}$/,
+};
+
+// =============================
 // =   Relative Time Formats   =
 // =============================
 export const relativeTimeFormats = {

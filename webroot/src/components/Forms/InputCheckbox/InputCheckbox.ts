@@ -24,6 +24,8 @@ class InputCheckbox extends mixins(MixinInput) {
     // Methods
     //
     input(): void {
+        this.formInput.input();
+
         if (this.isChecked) {
             this.$emit('checked');
         } else {

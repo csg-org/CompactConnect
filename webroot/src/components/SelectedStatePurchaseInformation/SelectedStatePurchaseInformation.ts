@@ -40,7 +40,6 @@ import moment from 'moment';
     emits: ['exOutState']
 })
 class SelectedStatePurchaseInformation extends mixins(MixinForm) {
-    // PROPS
     @Prop({ required: true }) selectedStatePurchaseData?: PrivilegePurchaseOption;
     @Prop({ default: new FormInput({ value: false }) }) jurisprudenceCheckInput?: FormInput;
     @Prop({ default: new FormInput({ value: false }) }) scopeOfPracticeCheckInput?: FormInput;
@@ -64,24 +63,28 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
     //
     // Computed
     //
-    get selectedLicense(): License | null {
-        return this.$store.getters['user/getLicenseSelected']();
+    get userStore(): any {
+        return this.$store.state.user;
     }
 
-    get selectedLicenseTypeAbbrev(): string {
-        return this.selectedLicense?.licenseTypeAbbreviation().toLowerCase() || '';
+    get currentCompact(): Compact | null {
+        return this.userStore?.currentCompact || null;
     }
 
     get user(): LicenseeUser | null {
         return this.userStore.model;
     }
 
-    get userStore(): any {
-        return this.$store.state.user;
-    }
-
     get licensee(): Licensee | null {
         return this.user?.licensee || null;
+    }
+
+    get selectedLicense(): License | null {
+        return this.$store.getters['user/getLicenseSelected']();
+    }
+
+    get selectedLicenseTypeAbbrev(): string {
+        return this.selectedLicense?.licenseTypeAbbreviation().toLowerCase() || '';
     }
 
     get selectedLicenseExpirationDate(): string {
@@ -98,76 +101,40 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
         return date;
     }
 
-    get jurisprudenceInputRef(): HTMLElement | null {
-        return document.getElementById((this.jurisprudenceCheckInput?.id || ''));
-    }
-
-    get scopeOfPracticeInputRef(): HTMLElement | null {
-        return document.getElementById((this.scopeOfPracticeCheckInput?.id || ''));
-    }
-
-    get expirationDateText(): string {
-        return this.$t('licensing.expirationDate');
-    }
-
-    get commissionFeeText(): string {
-        return this.$t('licensing.adminFee');
-    }
-
-    get subtotalText(): string {
-        return this.$t('common.subtotal');
-    }
-
-    get militaryDiscountText(): string {
-        return this.$t('military.militaryDiscountText');
-    }
-
-    get jurisprudenceModalTitle(): string {
-        return this.$t('licensing.jurisprudenceConfirmation');
-    }
-
-    get jurisprudenceModalContent(): string {
-        return this.jurisprudenceAttestation?.textDisplay() || '';
-    }
-
-    get scopeModalContent(): string {
-        return this.scopeAttestation?.textDisplay() || '';
-    }
-
-    get iUnderstandText(): string {
-        return this.$t('licensing.iUnderstand');
-    }
-
-    get licenseTypeFees(): any {
-        return this.selectedStatePurchaseData?.fees?.[this.selectedLicenseTypeAbbrev];
-    }
-
     get basePurchasePrice(): number {
         return this.licenseTypeFees?.baseRate || 0;
-    }
-
-    get militaryPurchasePrice(): number {
-        return this.licenseTypeFees?.militaryRate || 0;
-    }
-
-    get hasMilitaryRate(): boolean {
-        return this.licenseTypeFees?.militaryRate || this.licenseTypeFees?.militaryRate === 0;
     }
 
     get baseFeeDisplay(): string {
         return this.basePurchasePrice.toFixed(2);
     }
 
+    get licenseTypeFees(): any {
+        return this.selectedStatePurchaseData?.fees?.[this.selectedLicenseTypeAbbrev];
+    }
+
+    get militaryPurchasePrice(): number {
+        return this.licenseTypeFees?.militaryRate || 0;
+    }
+
     get militaryFeeDisplay(): string {
         return this.militaryPurchasePrice.toFixed(2) || '';
+    }
+
+    get hasMilitaryRate(): boolean {
+        return this.licenseTypeFees?.militaryRate || this.licenseTypeFees?.militaryRate === 0;
+    }
+
+    get shouldUseMilitaryRate(): boolean {
+        return Boolean(this.hasMilitaryRate && this.licensee?.isMilitaryStatusActive());
     }
 
     get feeDisplay(): string {
         return this.shouldUseMilitaryRate ? this.militaryFeeDisplay : this.baseFeeDisplay;
     }
 
-    get currentCompact(): Compact | null {
-        return this.userStore?.currentCompact || null;
+    get jurisdictionFeeText(): string {
+        return this.shouldUseMilitaryRate ? this.$t('licensing.jurisdictionFeeMilitary') : this.$t('licensing.jurisdictionFee');
     }
 
     get currentCompactCommissionFee(): number {
@@ -176,14 +143,6 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
 
     get currentCompactCommissionFeeDisplay(): string {
         return this.currentCompactCommissionFee.toFixed(2);
-    }
-
-    get shouldUseMilitaryRate(): boolean {
-        return Boolean(this.hasMilitaryRate && this.licensee?.isMilitaryStatusActive());
-    }
-
-    get jurisdictionFeeText(): string {
-        return this.shouldUseMilitaryRate ? this.$t('licensing.jurisdictionFeeMilitary') : this.$t('licensing.jurisdictionFee');
     }
 
     get subTotal(): string {
@@ -199,8 +158,20 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
         return total.toFixed(2);
     }
 
-    get backText(): string {
-        return this.$t('common.back');
+    get jurisprudenceInputRef(): HTMLElement | null {
+        return document.getElementById((this.jurisprudenceCheckInput?.id || ''));
+    }
+
+    get scopeOfPracticeInputRef(): HTMLElement | null {
+        return document.getElementById((this.scopeOfPracticeCheckInput?.id || ''));
+    }
+
+    get jurisprudenceModalContent(): string {
+        return this.jurisprudenceAttestation?.textDisplay() || '';
+    }
+
+    get scopeModalContent(): string {
+        return this.scopeAttestation?.textDisplay() || '';
     }
 
     get isPhone(): boolean {

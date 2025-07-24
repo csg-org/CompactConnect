@@ -27,30 +27,20 @@ class CCRequestSchema(Schema):
     @pre_load
     def strip_whitespace(self, in_data, **kwargs):  # noqa: ARG002 unused-argument
         """
-        Pre-load hook that strips whitespace from all string values in the request data.
+        Pre-load hook that strips whitespace from all top-level string fields in the request data.
 
-        This method recursively processes the input data and strips leading and trailing
-        whitespace from all string values. This ensures consistent input sanitization
-        across all request schemas.
+        This method processes only the top-level fields of the input data and strips leading and trailing
+        whitespace from values that are strings. Nested structures will be processed if they inherit from this class.
+        This allows us to determine where we want to strip whitespace from the request data for each schema.
 
         :param in_data: Input data dictionary from the request
         :param kwargs: Additional keyword arguments from marshmallow
-        :return: Processed data with whitespace stripped from string values
+        :return: Processed data with whitespace stripped from top-level string values
         """
         if not isinstance(in_data, dict):
             return in_data
 
-        def strip_strings(data):
-            """Recursively strip whitespace from string values in nested data structures."""
-            if isinstance(data, dict):
-                return {key: strip_strings(value) for key, value in data.items()}
-            if isinstance(data, list):
-                return [strip_strings(item) for item in data]
-            if isinstance(data, str):
-                return data.strip()
-            return data
-
-        return strip_strings(in_data)
+        return {key: value.strip() if isinstance(value, str) else value for key, value in in_data.items()}
 
 
 class CCDataClass:
