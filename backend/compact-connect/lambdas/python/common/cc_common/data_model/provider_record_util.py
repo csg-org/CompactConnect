@@ -1,6 +1,6 @@
 from collections.abc import Callable, Iterable
-from enum import StrEnum
 from datetime import datetime
+from enum import StrEnum
 
 from cc_common.config import config, logger
 from cc_common.data_model.schema.adverse_action import AdverseActionData

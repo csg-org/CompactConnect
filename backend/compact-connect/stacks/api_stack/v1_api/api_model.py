@@ -2073,9 +2073,21 @@ class ApiModel:
                             properties={
                                 'type': JsonSchema(type=JsonSchemaType.STRING, enum=['privilegeUpdate']),
                                 'updateType': JsonSchema(type=JsonSchemaType.STRING),
-                                'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
-                                'effectiveDate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
-                                'createDate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
+                                'dateOfUpdate': JsonSchema(
+                                    type=JsonSchemaType.STRING,
+                                    format='date',
+                                    pattern=cc_api.YMD_FORMAT
+                                ),
+                                'effectiveDate': JsonSchema(
+                                    type=JsonSchemaType.STRING,
+                                    format='date',
+                                    pattern=cc_api.YMD_FORMAT
+                                ),
+                                'createDate': JsonSchema(
+                                    type=JsonSchemaType.STRING,
+                                    format='date',
+                                    pattern=cc_api.YMD_FORMAT
+                                ),
                                 'note': JsonSchema(type=JsonSchemaType.STRING),
                             },
                         ),

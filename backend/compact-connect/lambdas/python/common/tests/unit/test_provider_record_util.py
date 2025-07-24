@@ -1,6 +1,7 @@
-from tests import TstLambdas
 from datetime import date, datetime
 from unittest.mock import patch
+
+from tests import TstLambdas
 
 
 class TestProviderRecordUtility(TstLambdas):
@@ -19,7 +20,7 @@ class TestProviderRecordUtility(TstLambdas):
             'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
         }
 
-        # Create a base license record that we'll modify for different test cases
+        # Create a base privilege record that we'll modify for different test cases
         self.base_privilege = {
             'dateOfUpdate': '2025-05-12T15:05:08+00:00',
             'type': 'privilege',
@@ -177,7 +178,7 @@ class TestProviderRecordUtility(TstLambdas):
 
         history = []
 
-        # Enrich the license history
+        # Enrich the privilege history
         enriched_history =(
             ProviderRecordUtility.get_enriched_history_with_synthetic_updates_from_privilege(privilege, history))
 
@@ -202,7 +203,7 @@ class TestProviderRecordUtility(TstLambdas):
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-03-15T00:00:00+00:00'))
     def test_enrich_privilege_history_with_expiration_event_if_expired(self):
-        """Test that enrich_license_history_with_synthetic_updates adds an issuance update."""
+        """Test that enrich_privilege_history_with_synthetic_updates adds an expiration if expired"""
         from cc_common.data_model.provider_record_util import ProviderRecordUtility
 
         # Create a privilege with no history
@@ -217,7 +218,7 @@ class TestProviderRecordUtility(TstLambdas):
 
         history = []
 
-        # Enrich the license history
+        # Enrich the privilege history
         enriched_history = ProviderRecordUtility.get_enriched_history_with_synthetic_updates_from_privilege(
             privilege, history
         )
@@ -258,7 +259,7 @@ class TestProviderRecordUtility(TstLambdas):
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-03-15T00:00:00+00:00'))
     def test_enrich_privilege_history_does_not_add_expiration_if_day_of_expiration(self):
-        """Test that enrich_license_history_with_synthetic_updates adds an issuance update."""
+        """Test that enrich_privilege_history_with_synthetic_updates does not add expiration on day of expiration."""
         from cc_common.data_model.provider_record_util import ProviderRecordUtility
 
         # Create a privilege with no history
@@ -273,7 +274,7 @@ class TestProviderRecordUtility(TstLambdas):
 
         history = []
 
-        # Enrich the license history
+        # Enrich the privilege history
         enriched_history = ProviderRecordUtility.get_enriched_history_with_synthetic_updates_from_privilege(
             privilege, history
         )
@@ -301,7 +302,7 @@ class TestProviderRecordUtility(TstLambdas):
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2026-03-15T00:00:00+00:00'))
     def test_enrich_privilege_history_adds_expiration_events_in_correct_spots(self):
-        """Test that enrich_license_history_with_synthetic_updates adds an issuance update."""
+        """Test that enrich_privilege_history_with_synthetic_updates adds expiration and issuance events correctly"""
         from cc_common.data_model.provider_record_util import ProviderRecordUtility
 
         # Create a privilege with no history
@@ -395,7 +396,7 @@ class TestProviderRecordUtility(TstLambdas):
             },
         ]
 
-        # Enrich the license history
+        # Enrich the privilege history
         enriched_history = ProviderRecordUtility.get_enriched_history_with_synthetic_updates_from_privilege(
             privilege, history
         )

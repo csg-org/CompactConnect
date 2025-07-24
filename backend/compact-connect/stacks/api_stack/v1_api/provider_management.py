@@ -78,6 +78,7 @@ class ProviderManagement:
         self.privilege_jurisdiction_license_type_resource = self.privilege_jurisdiction_resource.add_resource(
             'licenseType'
         ).add_resource('{licenseType}')
+
         self.licenses_resource = self.provider_resource.add_resource('licenses')
         self.license_jurisdiction_resource = self.licenses_resource.add_resource('jurisdiction').add_resource(
             '{jurisdiction}'
@@ -708,7 +709,7 @@ class ProviderManagement:
         method_options: MethodOptions,
         privilege_history_function: PythonFunction,
     ):
-        self.privilege_history_resource = self.provider_jurisdiction_license_type_resource.add_resource(
+        self.privilege_history_resource = self.privilege_jurisdiction_license_type_resource.add_resource(
             'history'
         )
 
