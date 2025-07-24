@@ -2083,56 +2083,6 @@ class ApiModel:
         return self.api._v1_privilege_history_response_model
 
     @property
-    def public_query_providers_response_model(self) -> Model:
-        """Return the public query providers response model, which should only be created once per API"""
-        if hasattr(self.api, '_v1_public_query_providers_response_model'):
-            return self.api._v1_public_query_providers_response_model
-
-        self.api._v1_public_query_providers_response_model = self.api.add_model(
-            'V1PublicQueryProvidersResponseModel',
-            description='Public query providers response model',
-            schema=JsonSchema(
-                type=JsonSchemaType.OBJECT,
-                required=['providers', 'pagination'],
-                properties={
-                    'providers': JsonSchema(
-                        type=JsonSchemaType.ARRAY,
-                        max_length=100,
-                        items=self._public_providers_response_schema,
-                    ),
-                    'pagination': self._pagination_response_schema,
-                    'query': JsonSchema(
-                        type=JsonSchemaType.OBJECT,
-                        properties={
-                            'providerId': JsonSchema(
-                                type=JsonSchemaType.STRING,
-                                description='Internal UUID for the provider',
-                                pattern=cc_api.UUID4_FORMAT,
-                            ),
-                            'jurisdiction': JsonSchema(
-                                type=JsonSchemaType.STRING,
-                                description='Filter for providers with privilege/license in a jurisdiction',
-                                enum=self.api.node.get_context('jurisdictions'),
-                            ),
-                            'givenName': JsonSchema(
-                                type=JsonSchemaType.STRING,
-                                max_length=100,
-                                description='Filter for providers with a given name',
-                            ),
-                            'familyName': JsonSchema(
-                                type=JsonSchemaType.STRING,
-                                max_length=100,
-                                description='Filter for providers with a family name',
-                            ),
-                        },
-                    ),
-                    'sorting': self._sorting_schema,
-                },
-            ),
-        )
-        return self.api._v1_public_query_providers_response_model
-
-    @property
     def public_provider_response_model(self) -> Model:
         """Return the public provider response model, which should only be created once per API"""
         if hasattr(self.api, '_v1_public_provider_response_model'):

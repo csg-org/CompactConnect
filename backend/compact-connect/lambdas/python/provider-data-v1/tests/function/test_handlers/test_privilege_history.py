@@ -1,10 +1,8 @@
 import json
-from datetime import date, datetime
+from datetime import datetime
 from unittest.mock import patch
 
-from boto3.dynamodb.conditions import Key
-from cc_common.exceptions import CCInternalException
-from common_test.test_constants import DEFAULT_COMPACT, DEFAULT_DATE_OF_UPDATE_TIMESTAMP, DEFAULT_PROVIDER_ID
+from common_test.test_constants import DEFAULT_DATE_OF_UPDATE_TIMESTAMP
 from moto import mock_aws
 
 from .. import TstFunction
