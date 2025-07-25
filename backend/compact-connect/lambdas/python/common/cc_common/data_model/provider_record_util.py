@@ -611,9 +611,9 @@ class ProviderUserRecords:
 
     def generate_api_response_object(self) -> dict:
         """
-        Assemble a list of provider records into a single API response object using data classes.
-        This method mirrors the static assemble_provider_records_into_api_response_object but uses data classes and to_dict().
-        :return: A single provider record as a dict
+        Assemble a list of provider records into a single object used by the provider details api.
+
+        :return: A single provider record matching our provider details api schema.
         """
         provider = self.get_provider_record().to_dict()
         licenses = []
