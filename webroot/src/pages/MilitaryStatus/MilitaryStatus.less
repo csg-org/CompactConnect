@@ -24,6 +24,31 @@
         .military-status-title {
             margin-bottom: 1.4rem;
             font-size: @h1FontSize;
+
+            .military-status-initializing-error {
+                display: flex;
+                align-items: flex-start;
+                width: 100%;
+                max-width: 48rem;
+                margin: 1rem 0 3rem;
+                color: @midRed;
+
+                .military-status-initializing-error-text {
+                    display: flex;
+                    flex-direction: column;
+                    margin-left: 0.75rem;
+                    font-size: 1.7rem;
+
+                    .military-status-initializing-error-title {
+                        font-weight: 700;
+                    }
+                }
+
+                :deep(.alert-triangle-icon) {
+                    width: 5rem;
+                    height: 100%;
+                }
+            }
         }
     }
 }
