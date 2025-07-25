@@ -148,7 +148,7 @@ class PublicLookupApi:
             'history'
         )
 
-        public_get_provider_method = self.privilege_history_resource.add_method(
+        public_get_privilege_history_method, = self.privilege_history_resource.add_method(
             'GET',
             method_responses=[
                 MethodResponse(
@@ -161,7 +161,7 @@ class PublicLookupApi:
 
         # Add suppressions for the public GET endpoint
         NagSuppressions.add_resource_suppressions(
-            public_get_provider_method,
+            public_get_privilege_history_method,
             suppressions=[
                 {
                     'id': 'AwsSolutions-APIG4',
