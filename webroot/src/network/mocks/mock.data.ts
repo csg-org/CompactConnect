@@ -895,7 +895,7 @@ export const licensees = {
                             providerId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
                             compact: 'octp',
                             jurisdiction: 'oh',
-                            licenseType: 'occupational therapy assistant',
+                            licenseType: 'occupational therapist',
                             previous: {
                                 dateOfIssuance: '2025-03-19T21:51:26+00:00',
                                 dateOfRenewal: '2025-03-19T21:51:26+00:00',
@@ -951,7 +951,7 @@ export const licensees = {
                             providerId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
                             compact: 'octp',
                             jurisdiction: 'oh',
-                            licenseType: 'occupational therapy assistant',
+                            licenseType: 'occupational therapist',
                             previous: {
                                 dateOfIssuance: '2022-03-19T21:51:26+00:00',
                                 dateOfRenewal: '2024-03-01T16:19:09+00:00',
@@ -1084,7 +1084,7 @@ export const licensees = {
                 dateOfUpload: '2024-08-29',
                 documentKeys: 'key',
                 fileNames: ['military-document.pdf'],
-                status: 'active'
+                status: 'initializing'
             }],
             npi: '1234567890',
             licenseNumber: 'A-555666777',
