@@ -21,7 +21,8 @@ import {
     users,
     pets,
     privilegePurchaseOptionsResponse,
-    attestation,
+    // attestation,
+    getAttestation,
     compactStates,
     compactConfig,
     stateConfig
@@ -185,7 +186,7 @@ export class DataApi {
     // Get Attestation By ID
     public getAttestation(compact, attestationId) {
         const response = PrivilegeAttestationSerializer.fromServer({
-            ...attestation,
+            ...getAttestation(attestationId),
             attestationId,
             compact,
         });

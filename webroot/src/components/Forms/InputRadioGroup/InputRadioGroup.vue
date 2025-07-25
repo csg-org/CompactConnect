@@ -40,6 +40,13 @@
                 :key="option.value"
                 class="radio-button-container"
             >
+                <div
+                    v-if="option.superLabel"
+                    class="super-label"
+                    :class="{'first': index === 0}"
+                >
+                    {{ option.superLabel }}
+                </div>
                 <input
                     type="radio"
                     :id="`${formInput.name}-${index + 1}`"
