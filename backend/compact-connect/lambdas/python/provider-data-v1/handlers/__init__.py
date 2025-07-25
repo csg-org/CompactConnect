@@ -15,11 +15,5 @@ def get_provider_information(compact: str, provider_id: str) -> dict:
     :param provider_id: The provider's unique identifier.
     :return: Provider profile information.
     """
-    provider_data = config.data_client.get_provider(compact=compact, provider_id=provider_id)
-    # This is really unlikely, but we will check anyway
-    last_key = provider_data['pagination'].get('lastKey')
-    if last_key is not None:
-        logger.error('A provider had so many records, they paginated!')
-        raise CCInternalException('Unexpected provider data')
-
-    return ProviderRecordUtility.assemble_provider_records_into_api_response_object(provider_data['items'])
+    provider_user_records = config.data_client.get_provider_user_records(compact=compact, provider_id=provider_id)
+    return provider_user_records.generate_api_response_object()

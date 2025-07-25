@@ -231,6 +231,8 @@ class TestTransformations(TstFunction):
         # sample history from our expected_provider
         expected_provider['licenses'][0]['history'] = []
         expected_provider['privileges'][0]['history'] = []
+        # in this case, this should be set to the privilege issued date, which is the mock time used by this test
+        expected_provider['privileges'][0]['activeSince'] = '2024-11-08T23:59:59+00:00'
 
         # Phew! We've loaded the data all the way in via the ingest chain and back out via the API!
         self.maxDiff = None
