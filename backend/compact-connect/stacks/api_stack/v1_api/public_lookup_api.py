@@ -148,7 +148,7 @@ class PublicLookupApi:
             'history'
         )
 
-        public_get_privilege_history_method, = self.privilege_history_resource.add_method(
+        public_get_privilege_history_method = self.privilege_history_resource.add_method(
             'GET',
             method_responses=[
                 MethodResponse(

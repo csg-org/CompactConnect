@@ -1,5 +1,5 @@
 from collections.abc import Callable, Iterable
-from datetime import datetime, timezone
+from datetime import datetime
 from enum import StrEnum
 
 from cc_common.config import config, logger
@@ -285,7 +285,7 @@ class ProviderRecordUtility:
         # Inject expiration events that occurred between events
         for update in renewal_updates:
             date_of_expiration = update['previous']['dateOfExpiration']
-            datetime_of_expiration = datetime.combine(date_of_expiration, datetime.min.time(), tzinfo=timezone.utc)
+            datetime_of_expiration = datetime.combine(date_of_expiration, datetime.min.time(), tzinfo=datetime.UTC)
             if date_of_expiration < update['createDate'].date():
                 enriched_history.append(
                     {
@@ -309,7 +309,7 @@ class ProviderRecordUtility:
             privilege_datetime_of_expiration = datetime.combine(
                 privilege_date_of_expiration,
                 datetime.min.time(),
-                tzinfo=timezone.utc
+                tzinfo=datetime.UTC
             )
             enriched_history.append(
                 {
