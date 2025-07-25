@@ -109,6 +109,12 @@ class MixinForm extends Vue {
                 'boolean.base': this.$t('inputErrors.required'),
                 'any.invalid': this.$t('inputErrors.required'),
             },
+            dateWithFormat: (format: string) => ({
+                'any.required': this.$t('inputErrors.required'),
+                'string.empty': this.$t('inputErrors.required'),
+                'string.base': this.$t('inputErrors.invalidDateWithFormat', { format }),
+                'string.pattern.base': this.$t('inputErrors.invalidDateWithFormat', { format }),
+            }),
         };
 
         return messages;

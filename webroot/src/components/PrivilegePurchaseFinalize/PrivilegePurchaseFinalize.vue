@@ -56,11 +56,12 @@
             <div id="button-row" class="button-row">
                 <div class="form-nav-buttons">
                     <div class="payment-button-container">
-                        <InputButton
+                        <InputSubmit
                             v-if="!isSubmitEnabled"
-                            :label="$t('payment.payment')"
-                            :isDisabled="isFormLoading || !isSubmitEnabled"
+                            :formInput="formData.submit"
                             class="payment-overlay-button"
+                            :label="$t('payment.payment')"
+                            :isEnabled="!isFormLoading && !isSubmitEnabled"
                             @click="handlePaymentButtonClick"
                         />
                         <PrivilegePurchaseAcceptUI

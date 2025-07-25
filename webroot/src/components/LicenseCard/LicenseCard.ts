@@ -16,6 +16,7 @@ import {
     ComputedRef,
     nextTick
 } from 'vue';
+import { dateFormatPatterns } from '@/app.config';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import InputDate from '@components/Forms/InputDate/InputDate.vue';
 import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
@@ -262,7 +263,10 @@ class LicenseCard extends mixins(MixinForm) {
                 name: 'encumber-start',
                 label: computed(() => this.$t('licensing.encumberStartDate')),
                 placeholder: computed(() => 'MM/DD/YYYY'),
-                validation: Joi.string().required().messages(this.joiMessages.string),
+                validation: Joi.string()
+                    .required()
+                    .pattern(dateFormatPatterns.MM_DD_YYYY)
+                    .messages(this.joiMessages.dateWithFormat('MM/DD/YYYY')),
             }),
             encumberModalContinue: new FormInput({
                 isSubmitInput: true,
@@ -599,10 +603,12 @@ class LicenseCard extends mixins(MixinForm) {
     async mockPopulate(): Promise<void> {
         if (this.isDeactivateLicenseModalDisplayed) {
             this.formData.deactivateModalNotes.value = `Sample note`;
+            await nextTick();
             this.validateAll({ asTouched: true });
         } else if (this.isEncumberLicenseModalDisplayed) {
             this.formData.encumberModalNpdbCategory.value = this.npdbCategoryOptions[1]?.value;
             this.formData.encumberModalStartDate.value = moment().format('YYYY-MM-DD');
+            await nextTick();
             this.validateAll({ asTouched: true });
         } else if (this.isUnencumberLicenseModalDisplayed) {
             this.selectedEncumbrances.forEach((selected) => {
@@ -613,6 +619,7 @@ class LicenseCard extends mixins(MixinForm) {
                 await nextTick();
                 this.formData[`adverse-action-end-date-${adverseAction.id}`].value = moment().format('YYYY-MM-DD');
             }));
+            await nextTick();
             this.validateAll({ asTouched: true });
         }
     }

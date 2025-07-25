@@ -73,7 +73,8 @@
                                     autocomplete="off"
                                 />
                             </label>
-                            <InputButton
+                            <InputSubmit
+                                :formInput="formData.handleSubmitInitial"
                                 @click="handleProceedToConfirmation"
                                 class="action-button continue-button register-licensee-continue-to-confirmation-button"
                                 :label="(isFormLoading)
@@ -157,7 +158,7 @@
                                         :isEnabled="!isFormLoading"
                                     />
                                     <InputSubmit
-                                        :formInput="formData.submit"
+                                        :formInput="formData.handleSubmitConfirmation"
                                         :label="$t('common.confirm')"
                                         class="input-submit"
                                         :isTransparent="false"

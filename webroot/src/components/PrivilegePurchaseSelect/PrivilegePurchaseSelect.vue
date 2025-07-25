@@ -11,9 +11,7 @@
             <form class="privilege-form" @submit.prevent="handleSubmit">
                 <div class="select-privileges-core-container">
                     <div class="title-row">
-                        <h1 class="select-privileges-title">
-                            {{selectPrivilegesTitleText}}
-                        </h1>
+                        <h1 class="select-privileges-title">{{ $t('licensing.selectPrivileges') }}</h1>
                         <SelectedLicenseInfo class="license-info" />
                     </div>
                     <LoadingSpinner v-if="isLoading"></LoadingSpinner>
@@ -91,19 +89,19 @@
                             :isEnabled="!isFormLoading && isAtLeastOnePrivilegeChosen"
                         />
                         <InputButton
-                            :label="backText"
-                            :aria-label="backText"
                             class="form-nav-button back-button"
+                            :label="$t('common.back')"
+                            :aria-label="$t('common.back')"
                             :isTransparent="true"
                             @click="handleBackClicked"
                         />
                     </div>
                     <div class="form-override-buttons">
                         <InputButton
-                            :label="cancelText"
-                            :isTextLike="true"
-                            :aria-label="cancelText"
                             class="form-override-button icon icon-close-modal"
+                            :label="$t('common.cancel')"
+                            :aria-label="$t('common.cancel')"
+                            :isTextLike="true"
                             @click="handleCancelClicked"
                         />
                     </div>

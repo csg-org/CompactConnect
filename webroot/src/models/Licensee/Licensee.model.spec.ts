@@ -393,7 +393,7 @@ describe('Licensee model', () => {
                 }
             ],
             dateOfUpdate: moment().format(serverDateFormat),
-            status: LicenseeStatus.ACTIVE,
+            licenseStatus: LicenseeStatus.ACTIVE,
         };
         const licensee = LicenseeSerializer.fromServer(data);
 
@@ -421,7 +421,7 @@ describe('Licensee model', () => {
         expect(licensee.militaryAffiliations).to.be.an('array').with.length(2);
         expect(licensee.militaryAffiliations[0]).to.be.an.instanceof(MilitaryAffiliation);
         expect(licensee.militaryAffiliations[1]).to.be.an.instanceof(MilitaryAffiliation);
-        expect(licensee.status).to.equal(data.status);
+        expect(licensee.status).to.equal(data.licenseStatus);
 
         // Test methods
         expect(licensee.nameDisplay()).to.equal(`${data.givenName} ${data.familyName}`);
@@ -596,7 +596,7 @@ describe('Licensee model', () => {
                 },
             ],
             dateOfUpdate: moment().format(serverDateFormat),
-            status: LicenseeStatus.ACTIVE,
+            licenseStatus: LicenseeStatus.ACTIVE,
         };
         const licensee = LicenseeSerializer.fromServer(data);
 
@@ -694,7 +694,7 @@ describe('Licensee model', () => {
             licenseJurisdiction: 'co',
             privilegeJurisdictions: ['co'],
             dateOfUpdate: moment().format(serverDateFormat),
-            status: LicenseeStatus.ACTIVE,
+            licenseStatus: LicenseeStatus.ACTIVE,
         });
         const transmit = LicenseeSerializer.toServer(licensee);
 

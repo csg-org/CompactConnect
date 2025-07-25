@@ -15,6 +15,7 @@ export interface InterfacePrivilegePurchaseOption {
     compactType?: string | null;
     fees?: { [key: string]: number };
     isJurisprudenceRequired?: boolean;
+    jurisprudenceInfoUri?: string;
 }
 
 // ========================================================
@@ -26,6 +27,7 @@ export class PrivilegePurchaseOption implements InterfacePrivilegePurchaseOption
     public compactType? = null;
     public fees? = {};
     public isJurisprudenceRequired? = false;
+    public jurisprudenceInfoUri? = '';
 
     constructor(data?: InterfacePrivilegePurchaseOption) {
         const cleanDataObject = deleteUndefinedProperties(data);
@@ -50,6 +52,7 @@ export class PrivilegePurchaseOptionSerializer {
             compactType: json.compact,
             fees: {},
             isJurisprudenceRequired: json?.jurisprudenceRequirements?.required || false,
+            jurisprudenceInfoUri: json.jurisprudenceRequirements?.linkToDocumentation,
         };
 
         if (Array.isArray(json.privilegeFees)) {
