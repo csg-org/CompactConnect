@@ -20,7 +20,7 @@ class CreateEffectiveDateMigration(CustomResourceHandler):
         """
 
 
-on_event = CreateEffectiveDateMigration('create-effective-date')
+on_event = CreateEffectiveDateMigration('license-update-effective-date-931')
 
 
 def do_migration(_properties: dict) -> None:
@@ -33,18 +33,18 @@ def do_migration(_properties: dict) -> None:
     logger.info('Starting privilege update date fields migration')
 
     # Scan for all privilege update records
-    privilege_updates = []
+    license_updates = []
     scan_pagination = {}
 
     while True:
         response = config.provider_table.scan(
-            FilterExpression=Attr('type').eq('privilegeUpdate'),
+            FilterExpression=Attr('type').eq('licenseUpdate'),
             **scan_pagination,
         )
 
         items = response.get('Items', [])
-        privilege_updates.extend(items)
-        logger.info(f'Found {len(items)} privilege update records in current scan batch')
+        license_updates.extend(items)
+        logger.info(f'Found {len(items)} license update records in current scan batch')
 
         # Check if we need to continue pagination
         last_evaluated_key = response.get('LastEvaluatedKey')
@@ -53,20 +53,19 @@ def do_migration(_properties: dict) -> None:
 
         scan_pagination = {'ExclusiveStartKey': last_evaluated_key}
 
-    logger.info(f'Found {len(privilege_updates)} total update records to process')
+    logger.info(f'Found {len(license_updates)} total update records to process')
 
-    if not privilege_updates:
+    if not license_updates:
         logger.info('No privilege update records found, migration complete')
         return
 
-    # Process records in batches of 50 (DynamoDB transaction limit is 100 items,
-    # and each record generates 2 items: 1 update + 1 delete)
+    # Process records in batches of 50
     batch_size = 50
     success_count = 0
     error_count = 0
 
-    for i in range(0, len(privilege_updates), batch_size):
-        batch = privilege_updates[i : i + batch_size]
+    for i in range(0, len(license_updates), batch_size):
+        batch = license_updates[i : i + batch_size]
         logger.info(f'Processing batch {i // batch_size + 1} with {len(batch)} records')
 
         try:
@@ -128,7 +127,7 @@ def _process_batch(privilege_updates: list[dict]) -> None:
             )
 
             logger.info(
-                'Prepared update items for create date',
+                'Prepared update items with create and effective date',
                 provider_pk=provider_pk,
                 provider_sk=provider_sk,
                 update_pk=update_record['pk'],

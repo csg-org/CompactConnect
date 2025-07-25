@@ -402,6 +402,8 @@ class TestPostLicenseEncumbrance(TstFunction):
             value_overrides={
                 'updateType': 'encumbrance',
                 'updatedValues': {'encumberedStatus': 'encumbered'},
+                'createDate': datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP),
+                'effectiveDate': date.fromisoformat(TEST_ENCUMBRANCE_EFFECTIVE_DATE),
             }
         )
         loaded_license_update_data = LicenseUpdateData.from_database_record(item)

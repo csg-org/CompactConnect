@@ -366,48 +366,25 @@ class PersistentStack(AppStack):
             ],
         )
 
-        self.provider_user_pool_migration = DataMigration(
+        self.update_license_dates_migration = DataMigration(
             self,
-            'ProviderUserPoolMigration',
-            migration_dir='provider_user_pool_migration_551',
+            '931LicenseUpdateEffectiveDate',
+            migration_dir='license_update_effective_date_931',
             lambda_environment={
                 'PROVIDER_TABLE_NAME': self.provider_table.table_name,
                 **self.common_env_vars,
             },
         )
-        self.provider_table.grant_read_write_data(self.provider_user_pool_migration)
+        self.provider_table.grant_read_write_data(self.update_license_dates_migration)
         NagSuppressions.add_resource_suppressions_by_path(
             self,
-            f'{self.provider_user_pool_migration.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': 'This policy contains wild-carded actions and resources but they are scoped to the '
-                    'specific table that this lambda needs access to in order to perform the user pool domain '
-                    'migration.',
-                },
-            ],
-        )
-
-        self.compact_configured_states_migration = DataMigration(
-            self,
-            'CompactConfiguredStatesMigration',
-            migration_dir='compact_configured_states_871',
-            lambda_environment={
-                'COMPACT_CONFIGURATION_TABLE_NAME': self.compact_configuration_table.table_name,
-                **self.common_env_vars,
-            },
-        )
-        self.compact_configuration_table.grant_read_write_data(self.compact_configured_states_migration)
-        NagSuppressions.add_resource_suppressions_by_path(
-            self,
-            f'{self.compact_configured_states_migration.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            f'{self.update_license_dates_migration.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
                     'reason': 'This policy contains wild-carded actions and resources but they are scoped to the '
                     'specific actions, Table and Key that this lambda needs access to in order to perform the'
-                    'compact configuredStates migration.',
+                    'migration.',
                 },
             ],
         )
@@ -423,8 +400,7 @@ class PersistentStack(AppStack):
             ),
             log_groups=[
                 update_dates_migration.migration_function.log_group,
-                self.provider_user_pool_migration.migration_function.log_group,
-                self.compact_configured_states_migration.migration_function.log_group,
+                self.update_license_dates_migration.migration_function.log_group,
             ],
         )
 
