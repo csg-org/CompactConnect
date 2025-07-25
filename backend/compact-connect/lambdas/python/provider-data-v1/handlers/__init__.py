@@ -1,6 +1,4 @@
 from cc_common.config import config, logger
-from cc_common.data_model.provider_record_util import ProviderRecordUtility
-from cc_common.exceptions import CCInternalException
 from cc_common.utils import logger_inject_kwargs
 
 
@@ -8,8 +6,8 @@ from cc_common.utils import logger_inject_kwargs
 def get_provider_information(compact: str, provider_id: str) -> dict:
     """Common method to get provider information by compact and provider id.
 
-    Currently, this is used by both staff-users to get information for a specific provider,
-    and provider-users to get their own information.
+    Currently, this is used by staff-users to get information for a specific provider,
+    provider-users to get their own information, and the public lookup api to get a filtered response.
 
     :param compact: Compact the provider belongs to.
     :param provider_id: The provider's unique identifier.

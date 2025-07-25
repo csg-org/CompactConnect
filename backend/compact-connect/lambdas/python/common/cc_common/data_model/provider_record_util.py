@@ -583,7 +583,8 @@ class ProviderUserRecords:
         return [
             record
             for record in self._license_update_records
-            if record.jurisdiction == jurisdiction and record.licenseType == license_type
+            if record.jurisdiction == jurisdiction
+            and record.licenseType == license_type
             and (filter_condition is None or filter_condition(record))
         ]
 
@@ -603,7 +604,8 @@ class ProviderUserRecords:
         return [
             record
             for record in self._privilege_update_records
-            if record.jurisdiction == jurisdiction and record.licenseType == license_type
+            if record.jurisdiction == jurisdiction
+            and record.licenseType == license_type
             and (filter_condition is None or filter_condition(record))
         ]
 
@@ -621,29 +623,34 @@ class ProviderUserRecords:
         # Build licenses dict with history and adverseActions
         for license_record in self._license_records:
             license_dict = license_record.to_dict()
-            license_dict['history'] = [rec.to_dict() for rec in
-                                       self.get_update_records_for_license(
-                                           license_record.jurisdiction,
-                                           license_record.licenseType
-                                       )]
-            license_dict['adverseActions'] = [rec.to_dict() for rec in
-                                              self.get_adverse_action_records_for_license(
-                                                  license_record.jurisdiction,
-                                                  license_record.licenseTypeAbbreviation
-                                              )]
+            license_dict['history'] = [
+                rec.to_dict()
+                for rec in self.get_update_records_for_license(license_record.jurisdiction, license_record.licenseType)
+            ]
+            license_dict['adverseActions'] = [
+                rec.to_dict()
+                for rec in self.get_adverse_action_records_for_license(
+                    license_record.jurisdiction, license_record.licenseTypeAbbreviation
+                )
+            ]
             licenses.append(license_dict)
 
         # Build privileges dict with history and adverseActions
         for privilege_record in self._privilege_records:
             privilege_dict = privilege_record.to_dict()
-            privilege_updates = self.get_update_records_for_privilege(privilege_record.jurisdiction, privilege_record.licenseType)
+            privilege_updates = self.get_update_records_for_privilege(
+                privilege_record.jurisdiction, privilege_record.licenseType
+            )
             privilege_dict['history'] = [rec.to_dict() for rec in privilege_updates]
-            privilege_dict['adverseActions'] = [rec.to_dict() for rec in
-                                                self.get_adverse_action_records_for_privilege(
-                                                    privilege_record.jurisdiction,
-                                                    privilege_record.licenseTypeAbbreviation
-                                                )]
-            active_since = ProviderRecordUtility.calculate_privilege_active_since_date(privilege_record, privilege_updates)
+            privilege_dict['adverseActions'] = [
+                rec.to_dict()
+                for rec in self.get_adverse_action_records_for_privilege(
+                    privilege_record.jurisdiction, privilege_record.licenseTypeAbbreviation
+                )
+            ]
+            active_since = ProviderRecordUtility.calculate_privilege_active_since_date(
+                privilege_record, privilege_updates
+            )
             # we only include this value if the privilege is currently active
             if active_since:
                 privilege_dict['activeSince'] = active_since
