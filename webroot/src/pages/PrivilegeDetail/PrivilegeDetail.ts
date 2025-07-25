@@ -29,6 +29,12 @@ export default class PrivilegeDetail extends Vue {
         if (!this.licenseeRecord && this.isLoggedInAsStaff) {
             this.fetchLicenseeData();
         }
+    
+        // if (this.isLoggedInAsStaff) {
+        //     this.fetchLicenseeData();
+        // } else (this.isLoggedInAsLicensee) {
+
+        // }
     }
 
     //
