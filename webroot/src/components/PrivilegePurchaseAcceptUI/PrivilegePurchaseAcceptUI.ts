@@ -134,11 +134,10 @@ class PrivilegePurchaseAcceptUI extends Vue {
         }
 
         if (iframe) {
-            // Attempt to focus the frame for better keyboard nav
-            iframe.contentWindow?.focus();
-
-            // Attempt to set the title attr on the iframe
             try {
+                // Attempt to focus the frame for better keyboard nav
+                iframe.contentWindow?.focus();
+                // Attempt to set the title attr on the iframe
                 iframe.setAttribute('title', this.$t('payment.enterPaymentDetails'));
             } catch (err) {
                 // Continue
