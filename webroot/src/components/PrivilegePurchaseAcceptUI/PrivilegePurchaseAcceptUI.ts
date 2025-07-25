@@ -114,7 +114,7 @@ class PrivilegePurchaseAcceptUI extends Vue {
 
     handleClicked(): void {
         this.resetMessages();
-        this.adjustFramePosition();
+        this.improveInteractions();
     }
 
     resetMessages(): void {
@@ -122,14 +122,27 @@ class PrivilegePurchaseAcceptUI extends Vue {
         this.successMessage = '';
     }
 
-    adjustFramePosition(): void {
+    improveInteractions(): void {
+        const acceptUiContainer = document.getElementById('AcceptUIContainer');
+        const iframe = acceptUiContainer?.getElementsByTagName('iframe')[0];
+
         // The AcceptUI.js widget will sometimes pop up partially or fully off-screen if the
         // launching page's <body> height is significantly taller than the viewport.
         // This is a simple adjustment to start the pop up near our content.
-        const acceptUiContainer = document.getElementById('AcceptUIContainer');
-
         if (acceptUiContainer) {
             acceptUiContainer.style.top = '300px';
+        }
+
+        if (iframe) {
+            // Attempt to focus the frame for better keyboard nav
+            iframe.contentWindow?.focus();
+
+            // Attempt to set the title attr on the iframe
+            try {
+                iframe.setAttribute('title', this.$t('payment.enterPaymentDetails'));
+            } catch (err) {
+                // Continue
+            }
         }
     }
 
