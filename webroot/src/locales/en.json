@@ -756,7 +756,7 @@
         "publicProfileLink": "View public profile at",
         "qrCodeAlt": "QR code linking to public profile",
         "whyUnavailable": "Why is this unavailable?",
-        "purchaseUnavailableMessage": "You are currently not eligible to purchase compact privileges. This can occur for a number of reasons.",
+        "purchaseUnavailableMessage": "You are currently not eligible to purchase compact privileges. Please see the reason(s) below.",
         "purchaseUnavailableNoEligibleLicenses": "You do not have any licenses which are eligible for compact participation. If you believe one of your licenses should be eligible, please contact the state board who issued that license.",
         "purchaseUnavailableEncumbrance": "You have an encumbrance which prevents you from buying privileges. If you believe you should not have an encumbrance, please contact the state board who recorded the encumbrance.",
         "purchaseUnavailablePendingMilitaryStatus": "You started the process of providing documentation to confirm your military status but did not finish. You can complete that process"
@@ -796,7 +796,9 @@
         "fileInstructions": "Only 1 file (PDF, docx, png, jpeg only)",
         "fileName": "File name",
         "dateUploaded": "Date uploaded",
-        "initializingMessage": "Your document is in an initializing state. This may indicate that there was an error uploading. You cannot purchase privileges in this state. If this status persists, try uploading your document again or clicking end military affiliation and then refreshing the page."
+        "initializingMessage": "Your document is in an initializing state. This may indicate that there was an error uploading. You cannot purchase privileges in this state. If this status persists, try uploading your document again or clicking end military affiliation and then refreshing the page.",
+        "militaryStatusInitializingErrorTitle": "There’s an error with your military status.",
+        "militaryStatusInitializingErrorSubtext": "To purchase privileges, you will need to either re-upload your document(s) or end your military affiliation."
     },
     "account": {
         "requestAccount": "Request account",

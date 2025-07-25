@@ -105,6 +105,14 @@ export default class LicenseeDashboard extends Vue {
         return this.licensee?.canPurchasePrivileges() || false;
     }
 
+    get hasEligibleLicenses(): boolean {
+        return Boolean(this.licensee?.purchaseEligibleLicenses().length);
+    }
+
+    get isEncumbered(): boolean {
+        return this.licensee?.isEncumbered() || false;
+    }
+
     get isMilitaryStatusInitializing(): boolean {
         return this.licensee?.isMilitaryStatusInitializing() || false;
     }

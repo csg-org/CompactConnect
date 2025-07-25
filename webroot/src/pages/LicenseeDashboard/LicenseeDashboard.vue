@@ -95,9 +95,11 @@
                     <div class="modal-content-text">
                         <p class="purchase-unavailable-message">{{ $t('licensing.purchaseUnavailableMessage') }}</p>
                         <ol class="purchase-unavailable-list">
-                            <li>{{ $t('licensing.purchaseUnavailableNoEligibleLicenses') }}</li>
-                            <li>{{ $t('licensing.purchaseUnavailableEncumbrance') }}</li>
-                            <li>
+                            <li v-if="!hasEligibleLicenses">
+                                {{ $t('licensing.purchaseUnavailableNoEligibleLicenses') }}
+                            </li>
+                            <li v-if="isEncumbered">{{ $t('licensing.purchaseUnavailableEncumbrance') }}</li>
+                            <li v-if="isMilitaryStatusInitializing">
                                 {{ $t('licensing.purchaseUnavailablePendingMilitaryStatus') }}
                                 <router-link
                                     id="military-status-link"
