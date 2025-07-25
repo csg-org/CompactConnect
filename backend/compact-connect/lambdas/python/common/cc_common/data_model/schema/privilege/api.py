@@ -95,6 +95,9 @@ class PrivilegeGeneralResponseSchema(ForgivingSchema):
     # the human-friendly identifier for this privilege
     privilegeId = String(required=True, allow_none=False)
     status = ActiveInactive(required=True, allow_none=False)
+    # This field shows how long the privilege have been continuously active according to
+    # its history
+    activeSince = Raw(required=False, allow_none=False)
 
 
 class PrivilegeUpdatePreviousPublicResponseSchema(ForgivingSchema):
@@ -160,6 +163,9 @@ class PrivilegePublicResponseSchema(ForgivingSchema):
     # the human-friendly identifier for this privilege
     privilegeId = String(required=True, allow_none=False)
     status = ActiveInactive(required=True, allow_none=False)
+    # This field shows how long the privilege have been continuously active according to
+    # its history
+    activeSince = Raw(required=False, allow_none=False)
 
 
 class PrivilegeHistoryEventPublicResponseSchema(ForgivingSchema):

@@ -232,65 +232,6 @@ class ProviderRecordUtility:
         )
 
     @staticmethod
-    def assemble_provider_records_into_api_response_object(provider_records: list[dict]) -> dict:
-        """
-        Assemble a list of provider records into a single object.
-
-        :param provider_records: List of provider records
-        :return: A single provider record
-        """
-        provider = None
-        privileges = {}
-        licenses = {}
-        military_affiliations = []
-
-        for record in provider_records:
-            match record['type']:
-                case 'provider':
-                    logger.debug('Identified provider record')
-                    provider = record
-                case 'license':
-                    logger.debug('Identified license record')
-                    licenses[f'{record["jurisdiction"]}-{record["licenseType"]}'] = record
-                    licenses[f'{record["jurisdiction"]}-{record["licenseType"]}'].setdefault('history', [])
-                    licenses[f'{record["jurisdiction"]}-{record["licenseType"]}'].setdefault('adverseActions', [])
-                case 'privilege':
-                    logger.debug('Identified privilege record')
-                    privileges[f'{record["jurisdiction"]}-{record["licenseType"]}'] = record
-                    privileges[f'{record["jurisdiction"]}-{record["licenseType"]}'].setdefault('history', [])
-                    privileges[f'{record["jurisdiction"]}-{record["licenseType"]}'].setdefault('adverseActions', [])
-                case 'militaryAffiliation':
-                    logger.debug('Identified military affiliation record')
-                    military_affiliations.append(record)
-
-        # Process update and adverse action records after all base records have been identified
-        for record in provider_records:
-            match record['type']:
-                case 'licenseUpdate':
-                    logger.debug('Identified license update record')
-                    licenses[f'{record["jurisdiction"]}-{record["licenseType"]}']['history'].append(record)
-                case 'privilegeUpdate':
-                    logger.debug('Identified privilege update record')
-                    privileges[f'{record["jurisdiction"]}-{record["licenseType"]}']['history'].append(record)
-                case 'adverseAction':
-                    logger.debug('Identified adverse action record')
-                    if record['actionAgainst'] == AdverseActionAgainstEnum.PRIVILEGE:
-                        privileges[f'{record["jurisdiction"]}-{record["licenseType"]}']['adverseActions'].append(record)
-                    elif record['actionAgainst'] == AdverseActionAgainstEnum.LICENSE:
-                        licenses[f'{record["jurisdiction"]}-{record["licenseType"]}']['adverseActions'].append(record)
-
-        if provider is None:
-            logger.error("Failed to find a provider's primary record!")
-            raise CCInternalException('Unexpected provider data')
-
-        provider['licenses'] = list(licenses.values())
-        provider['privileges'] = list(privileges.values())
-        provider['militaryAffiliations'] = military_affiliations
-
-        return provider
-
-
-    @staticmethod
     def get_enriched_history_with_synthetic_updates_from_privilege(
         privilege: dict,
         history: list[dict]
@@ -625,3 +566,91 @@ class ProviderUserRecords:
         )[0]
 
         return latest_military_affiliation.status
+
+    def get_update_records_for_license(
+        self,
+        jurisdiction: str,
+        license_type: str,
+        filter_condition: Callable[[LicenseUpdateData], bool] | None = None,
+    ) -> list[LicenseUpdateData]:
+        """
+        Get all license update records for a specific license.
+        :param jurisdiction: The jurisdiction of the license.
+        :param license_type: The license type.
+        :param filter_condition: An optional filter to apply to the update records
+        :return: List of LicenseUpdateData records
+        """
+        return [
+            record
+            for record in self._license_update_records
+            if record.jurisdiction == jurisdiction and record.licenseType == license_type
+            and (filter_condition is None or filter_condition(record))
+        ]
+
+    def get_update_records_for_privilege(
+        self,
+        jurisdiction: str,
+        license_type: str,
+        filter_condition: Callable[[PrivilegeUpdateData], bool] | None = None,
+    ) -> list[PrivilegeUpdateData]:
+        """
+        Get all privilege update records for a specific privilege.
+        :param jurisdiction: The jurisdiction of the privilege.
+        :param license_type: The license type.
+        :param filter_condition: An optional filter to apply to the update records
+        :return: List of PrivilegeUpdateData records
+        """
+        return [
+            record
+            for record in self._privilege_update_records
+            if record.jurisdiction == jurisdiction and record.licenseType == license_type
+            and (filter_condition is None or filter_condition(record))
+        ]
+
+    def generate_api_response_object(self) -> dict:
+        """
+        Assemble a list of provider records into a single API response object using data classes.
+        This method mirrors the static assemble_provider_records_into_api_response_object but uses data classes and to_dict().
+        :return: A single provider record as a dict
+        """
+        provider = self.get_provider_record().to_dict()
+        licenses = []
+        privileges = []
+        military_affiliations = [record.to_dict() for record in self._military_affiliation_records]
+
+        # Build licenses dict with history and adverseActions
+        for license_record in self._license_records:
+            license_dict = license_record.to_dict()
+            license_dict['history'] = [rec.to_dict() for rec in
+                                       self.get_update_records_for_license(
+                                           license_record.jurisdiction,
+                                           license_record.licenseType
+                                       )]
+            license_dict['adverseActions'] = [rec.to_dict() for rec in
+                                              self.get_adverse_action_records_for_license(
+                                                  license_record.jurisdiction,
+                                                  license_record.licenseTypeAbbreviation
+                                              )]
+            licenses.append(license_dict)
+
+        # Build privileges dict with history and adverseActions
+        for privilege_record in self._privilege_records:
+            privilege_dict = privilege_record.to_dict()
+            privilege_updates = self.get_update_records_for_privilege(privilege_record.jurisdiction, privilege_record.licenseType)
+            privilege_dict['history'] = [rec.to_dict() for rec in privilege_updates]
+            privilege_dict['adverseActions'] = [rec.to_dict() for rec in
+                                                self.get_adverse_action_records_for_privilege(
+                                                    privilege_record.jurisdiction,
+                                                    privilege_record.licenseTypeAbbreviation
+                                                )]
+            active_since = ProviderRecordUtility.calculate_privilege_active_since_date(privilege_record, privilege_updates)
+            # we only include this value if the privilege is currently active
+            if active_since:
+                privilege_dict['activeSince'] = active_since
+            privileges.append(privilege_dict)
+
+        provider['licenses'] = licenses
+        provider['privileges'] = privileges
+        provider['militaryAffiliations'] = military_affiliations
+
+        return provider
