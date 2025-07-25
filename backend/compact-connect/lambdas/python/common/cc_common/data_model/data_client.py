@@ -149,7 +149,7 @@ class DataClient:
         dynamo_pagination: dict,
         detail: bool = True,
         consistent_read: bool = False,
-    ):
+    ) -> list [dict]:
         logger.info('Getting provider')
         if detail:
             sk_condition = Key('sk').begins_with(f'{compact}#PROVIDER')
@@ -943,7 +943,7 @@ class DataClient:
         jurisdiction: str,
         license_type_abbr: str,
         consistent_read: bool = False,
-    ):
+    ) -> list [dict]:
         """
         Get a privilege for a provider in a jurisdiction of the license type
 
@@ -952,6 +952,8 @@ class DataClient:
         :param str jurisdiction: The jurisdiction of the privilege
         :param str license_type_abbr: The license type abbreviation of the privilege
         :raises CCNotFoundException: If the privilege record is not found
+        :return If detail = False list of length one containing privilege item, if detail = True list containing,
+        privilege record, privilege update records and privilege adverse action records
         """
         # Get the privilege record
         if detail:

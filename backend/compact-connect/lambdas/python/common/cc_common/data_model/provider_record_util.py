@@ -1,5 +1,9 @@
 from collections.abc import Callable, Iterable
-from datetime import datetime
+from datetime import (
+    UTC,
+    datetime,
+    timedelta,
+)
 from enum import StrEnum
 
 from cc_common.config import config, logger
@@ -230,9 +234,8 @@ class ProviderRecordUtility:
         return provider
 
 
-    @classmethod
+    @staticmethod
     def get_enriched_history_with_synthetic_updates_from_privilege(
-        cls,
         privilege: dict,
         history: list[dict]
     ) -> list[dict]:
@@ -285,8 +288,11 @@ class ProviderRecordUtility:
         # Inject expiration events that occurred between events
         for update in renewal_updates:
             date_of_expiration = update['previous']['dateOfExpiration']
-            datetime_of_expiration = datetime.fromisoformat(date_of_expiration.isoformat() + 'T00:00:00+00:00')
-            if date_of_expiration < update['createDate'].date():
+            day_after_expiration = date_of_expiration + timedelta(days=1)
+            datetime_of_expiration = datetime.combine(
+                day_after_expiration, datetime.min.time(), tzinfo=config.expiration_resolution_timezone
+            )
+            if datetime_of_expiration < update['createDate'].astimezone(config.expiration_resolution_timezone):
                 enriched_history.append(
                     {
                         'type': 'privilegeUpdate',
@@ -296,19 +302,21 @@ class ProviderRecordUtility:
                         'jurisdiction': privilege['jurisdiction'],
                         'licenseType': privilege['licenseType'],
                         'effectiveDate': date_of_expiration,
-                        'createDate': datetime_of_expiration,
+                        'createDate': datetime_of_expiration.astimezone(UTC),
                         'previous': {},
                         'updatedValues': {},
-                        'dateOfUpdate': datetime_of_expiration,
+                        'dateOfUpdate': datetime_of_expiration.astimezone(UTC),
                     }
                 )
         # Inject expiration event if currently expired
         privilege_date_of_expiration = privilege['dateOfExpiration']
 
-        if privilege_date_of_expiration < now.date():
-            privilege_datetime_of_expiration = datetime.fromisoformat(
-                privilege_date_of_expiration.isoformat() + 'T00:00:00+00:00'
-            )
+        privilege_day_after_expiration = privilege_date_of_expiration + timedelta(days=1)
+        privilege_datetime_of_expiration = datetime.combine(
+            privilege_day_after_expiration, datetime.min.time(), tzinfo=config.expiration_resolution_timezone
+        )
+
+        if privilege_datetime_of_expiration < now.astimezone(config.expiration_resolution_timezone):
             enriched_history.append(
                 {
                     'type': 'privilegeUpdate',
@@ -318,17 +326,17 @@ class ProviderRecordUtility:
                     'jurisdiction': privilege['jurisdiction'],
                     'licenseType': privilege['licenseType'],
                     'effectiveDate': privilege_date_of_expiration,
-                    'createDate': privilege_datetime_of_expiration,
+                    'createDate': privilege_datetime_of_expiration.astimezone(UTC),
                     'previous': {},
                     'updatedValues': {},
-                    'dateOfUpdate': privilege_datetime_of_expiration,
+                    'dateOfUpdate': privilege_datetime_of_expiration.astimezone(UTC),
                 }
             )
 
         return sorted(enriched_history, key=lambda x: x['effectiveDate'])
 
     @classmethod
-    def construct_simplified_public_privilege_history_object(cls, privilege_data: list[dict]) -> dict:
+    def construct_simplified_privilege_history_object(cls, privilege_data: list[dict]) -> dict:
         """
         Construct a simplified list of history events to be easily consumed by the front end
         :param privilege_data: All of the records relative to the privilege: the privilege, updates, and adverse actions

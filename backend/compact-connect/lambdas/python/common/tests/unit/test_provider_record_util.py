@@ -240,8 +240,8 @@ class TestProviderRecordUtility(TstLambdas):
             },
             {
                 'compact': 'octp',
-                'createDate': datetime.fromisoformat('2024-02-01T00:00:00+00:00'),
-                'dateOfUpdate': datetime.fromisoformat('2024-02-01T00:00:00+00:00'),
+                'createDate': datetime.fromisoformat('2024-02-02T04:00:00+00:00'),
+                'dateOfUpdate': datetime.fromisoformat('2024-02-02T04:00:00+00:00'),
                 'effectiveDate': date.fromisoformat('2024-02-01'),
                 'jurisdiction': 'al',
                 'licenseType': 'occupational therapy assistant',
@@ -443,8 +443,8 @@ class TestProviderRecordUtility(TstLambdas):
             },
             {
                 'compact': 'octp',
-                'createDate': datetime.fromisoformat('2025-06-15T00:00:00+00:00'),
-                'dateOfUpdate': datetime.fromisoformat('2025-06-15T00:00:00+00:00'),
+                'createDate': datetime.fromisoformat('2025-06-16T04:00:00+00:00'),
+                'dateOfUpdate': datetime.fromisoformat('2025-06-16T04:00:00+00:00'),
                 'effectiveDate': date.fromisoformat('2025-06-15'),
                 'jurisdiction': 'al',
                 'licenseType': 'occupational therapy assistant',

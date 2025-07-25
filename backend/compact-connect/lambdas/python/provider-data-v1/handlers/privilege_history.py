@@ -55,7 +55,7 @@ def _get_privilege_history(event: dict):
         license_type_abbr=license_type_abbr
     )
 
-    return ProviderRecordUtility.construct_simplified_public_privilege_history_object(privilege_data['items'])
+    return ProviderRecordUtility.construct_simplified_privilege_history_object(privilege_data['items'])
 
 def _get_privilege_history_provider_user_me(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """Return the enriched and simplified privilege history for provider
@@ -75,7 +75,7 @@ def _get_privilege_history_provider_user_me(event: dict, context: LambdaContext)
         license_type_abbr=license_type_abbr
     )
 
-    return ProviderRecordUtility.construct_simplified_public_privilege_history_object(privilege_data['items'])
+    return ProviderRecordUtility.construct_simplified_privilege_history_object(privilege_data['items'])
 
 def _check_provider_user_attributes(event: dict) -> tuple[str, str]:
     try:
