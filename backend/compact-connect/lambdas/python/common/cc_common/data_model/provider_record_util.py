@@ -193,40 +193,6 @@ class ProviderRecordUtility:
         return active_since
 
     @staticmethod
-    def calculate_license_active_since_date(
-        license_record: LicenseData, license_updates: list[LicenseUpdateData]
-    ) -> date | None:
-        """
-        Determine how long a license has been continuously active.
-
-        :param license_record: The privilege record.
-        :param license_updates: The list of updates for this license record.
-        :return: The oldest date this privilege has been continuously active if still active, else None
-        """
-
-        if license_record.licenseStatus == ActiveInactiveStatus.INACTIVE:
-            # license is inactive, no date to calculate
-            return None
-
-        # start with dateOfIssuance as active date
-        active_since = license_record.dateOfIssuance
-        # sort privilege updates by effective date
-        license_updates.sort(key=lambda x: x.effectiveDate)
-        # iterate through privilege updates
-        for update in license_updates:
-            # We check for the following cases:
-            # 1. If the updateType is found in the list of deactivation update types, we set active_since to None,
-            # since the privilege is no longer active as a result of this update.
-            # 2. If the updateType is a renewal, and the `active_since` field is None, we set active_since to the
-            # effective date of the renewal.
-            if update.updateType in DEACTIVATION_EVENT_TYPES:
-                active_since = None
-            elif update.updateType == UpdateCategory.RENEWAL and active_since is None:
-                active_since = update.updatedValues['dateOfRenewal']
-
-        return active_since
-
-    @staticmethod
     def populate_provider_record(
         current_provider_record: ProviderData | None, license_record: dict, privilege_records: list[dict]
     ) -> ProviderData:
