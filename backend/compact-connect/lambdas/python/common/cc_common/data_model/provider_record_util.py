@@ -335,8 +335,8 @@ class ProviderRecordUtility:
 
         return sorted(enriched_history, key=lambda x: x['effectiveDate'])
 
-    @classmethod
-    def construct_simplified_privilege_history_object(cls, privilege_data: list[dict]) -> dict:
+    @staticmethod
+    def construct_simplified_privilege_history_object(privilege_data: list[dict]) -> dict:
         """
         Construct a simplified list of history events to be easily consumed by the front end
         :param privilege_data: All of the records relative to the privilege: the privilege, updates, and adverse actions
@@ -345,7 +345,10 @@ class ProviderRecordUtility:
         privilege = list(filter(lambda x: x['type'] == 'privilege', privilege_data))[0]
         history = list(filter(lambda x: x['type'] == 'privilegeUpdate', privilege_data))
 
-        enriched_history = cls.get_enriched_history_with_synthetic_updates_from_privilege(privilege, history)
+        enriched_history = ProviderRecordUtility.get_enriched_history_with_synthetic_updates_from_privilege(
+            privilege,
+            history
+        )
 
         event_schema = PrivilegeHistoryEventPublicResponseSchema()
         history_schema = PrivilegeHistoryPublicResponseSchema()

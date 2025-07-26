@@ -43,7 +43,7 @@ from cc_common.exceptions import (
     CCNotFoundException,
 )
 from cc_common.license_util import LicenseUtility
-from cc_common.utils import logger_inject_kwargs
+from cc_common.utils import logger_inject_kwargs, load_records_into_schemas
 
 
 class DataClient:
@@ -931,7 +931,6 @@ class DataClient:
                 ]
             )
 
-    @paginated_query
     @logger_inject_kwargs(logger, 'compact', 'provider_id', 'detail', 'jurisdiction', 'license_type')
     def get_privilege_data(
         self,
@@ -939,7 +938,6 @@ class DataClient:
         compact: str,
         provider_id: str,
         detail: bool = False,
-        dynamo_pagination: dict,
         jurisdiction: str,
         license_type_abbr: str,
         consistent_read: bool = False,
@@ -965,12 +963,11 @@ class DataClient:
             Select='ALL_ATTRIBUTES',
             KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}') & sk_condition,
             ConsistentRead=consistent_read,
-            **dynamo_pagination,
         )
         if not resp['Items'] or not len(resp['Items']):
             raise CCNotFoundException('Privilege not found')
 
-        return resp
+        return load_records_into_schemas(resp['Items'])
 
     @logger_inject_kwargs(logger, 'compact', 'provider_id', 'jurisdiction', 'license_type')
     def get_privilege(self, *, compact: str, provider_id: str, jurisdiction: str, license_type_abbr: str) -> dict:
@@ -1018,7 +1015,7 @@ class DataClient:
             compact=compact, provider_id=provider_id, jurisdiction=jurisdiction, license_type_abbr=license_type_abbr
         )
 
-        privilege_record = privilege_data['items'][0]
+        privilege_record = privilege_data[0]
 
         # If already inactive, do nothing
         if privilege_record.get('administratorSetStatus', ActiveInactiveStatus.ACTIVE) == ActiveInactiveStatus.INACTIVE:

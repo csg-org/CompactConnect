@@ -34,7 +34,41 @@ class TestGetProvider(TstFunction):
 
         return event
 
-    # need to add try catches and tests for malformed data
+    def _when_testing_public_endpoint(self):
+        self._load_provider_data()
+        test_provider = self.test_data_generator.put_default_provider_record_in_provider_table()
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+            event['httpMethod'] = 'GET'
+            event['resource'] = (
+                '/v1/public/compacts/{compact}/providers/{providerId}/jurisdiction/{jurisdiction}/licenseType/{licenseType}/history'
+            )
+            event['pathParameters'] = {
+                'jurisdiction': 'ne',
+                'licenseType': 'slp',
+                'compact': test_provider.compact,
+                'providerId': test_provider.providerId
+            }
+
+        return event
+
+    def _when_testing_staff_endpoint(self):
+        self._load_provider_data()
+        test_provider = self.test_data_generator.put_default_provider_record_in_provider_table()
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+            event['httpMethod'] = 'GET'
+            event['resource'] = (
+                '/v1/public/compacts/{compact}/providers/{providerId}/jurisdiction/{jurisdiction}/licenseType/{licenseType}/history'
+            )
+            event['pathParameters'] = {
+                'jurisdiction': 'ne',
+                'licenseType': 'slp',
+                'compact': test_provider.compact,
+                'providerId': test_provider.providerId
+            }
+
+        return event
 
     # Test not found privilege throws exception
     def test_privilege_not_found_returns_404_provider_user_me(self):
@@ -54,20 +88,8 @@ class TestGetProvider(TstFunction):
     def test_privilege_not_found_returns_404_public(self):
         from handlers.privilege_history import privilege_history_handler
 
-        self._load_provider_data()
-        test_provider = self.test_data_generator.put_default_provider_record_in_provider_table()
-        with open('../common/tests/resources/api-event.json') as f:
-            event = json.load(f)
-            event['httpMethod'] = 'GET'
-            event['resource'] = (
-                '/v1/public/compacts/{compact}/providers/{providerId}/jurisdiction/{jurisdiction}/licenseType/{licenseType}/history'
-            )
-            event['pathParameters'] = {
-                'jurisdiction': 'ma',
-                'licenseType': 'slp',
-                'compact': test_provider.compact,
-                'providerId': test_provider.providerId,
-            }
+        event = self._when_testing_public_endpoint()
+        event['pathParameters']['jurisdiction'] = 'ma'
 
         resp = privilege_history_handler(event, self.mock_context)
 
@@ -76,20 +98,8 @@ class TestGetProvider(TstFunction):
     def test_privilege_not_found_returns_404_staff(self):
         from handlers.privilege_history import privilege_history_handler
 
-        self._load_provider_data()
-        test_provider = self.test_data_generator.put_default_provider_record_in_provider_table()
-        with open('../common/tests/resources/api-event.json') as f:
-            event = json.load(f)
-            event['httpMethod'] = 'GET'
-            event['resource'] = (
-                '/v1/compacts/{compact}/providers/{providerId}/privileges/jurisdiction/{jurisdiction}/licenseType/{licenseType}/history'
-            )
-            event['pathParameters'] = {
-                'jurisdiction': 'ma',
-                'licenseType': 'slp',
-                'compact': test_provider.compact,
-                'providerId': test_provider.providerId,
-            }
+        event = self._when_testing_staff_endpoint()
+        event['pathParameters']['jurisdiction'] = 'ma'
 
         resp = privilege_history_handler(event, self.mock_context)
 
@@ -134,20 +144,7 @@ class TestGetProvider(TstFunction):
     def test_get_privilege_history_public_returns_expected_history(self):
         from handlers.privilege_history import privilege_history_handler
 
-        self._load_provider_data()
-        test_provider = self.test_data_generator.put_default_provider_record_in_provider_table()
-        with open('../common/tests/resources/api-event.json') as f:
-            event = json.load(f)
-            event['httpMethod'] = 'GET'
-            event['resource'] = (
-                '/v1/public/compacts/{compact}/providers/{providerId}/jurisdiction/{jurisdiction}/licenseType/{licenseType}/history'
-            )
-            event['pathParameters'] = {
-                'jurisdiction': 'ne',
-                'licenseType': 'slp',
-                'compact': test_provider.compact,
-                'providerId': test_provider.providerId
-            }
+        event = self._when_testing_public_endpoint()
 
         resp = privilege_history_handler(event, self.mock_context)
 
@@ -183,20 +180,7 @@ class TestGetProvider(TstFunction):
     def test_get_privilege_history_staff_returns_expected_history(self):
         from handlers.privilege_history import privilege_history_handler
 
-        self._load_provider_data()
-        test_provider = self.test_data_generator.put_default_provider_record_in_provider_table()
-        with open('../common/tests/resources/api-event.json') as f:
-            event = json.load(f)
-            event['httpMethod'] = 'GET'
-            event['resource'] = (
-                '/v1/compacts/{compact}/providers/{providerId}/privileges/jurisdiction/{jurisdiction}/licenseType/{licenseType}/history'
-            )
-            event['pathParameters'] = {
-                'jurisdiction': 'ne',
-                'licenseType': 'slp',
-                'compact': test_provider.compact,
-                'providerId': test_provider.providerId
-            }
+        event = self._when_testing_staff_endpoint()
 
         resp = privilege_history_handler(event, self.mock_context)
 

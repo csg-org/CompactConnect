@@ -1,8 +1,8 @@
 from aws_lambda_powertools.utilities.typing import LambdaContext
-from cc_common.config import config, logger
+from cc_common.config import config
 from cc_common.data_model.provider_record_util import ProviderRecordUtility
 from cc_common.exceptions import CCInvalidRequestException
-from cc_common.utils import api_handler
+from cc_common.utils import api_handler, get_provider_user_attributes_from_authorizer_claims
 
 
 @api_handler
@@ -55,7 +55,7 @@ def _get_privilege_history(event: dict):
         license_type_abbr=license_type_abbr
     )
 
-    return ProviderRecordUtility.construct_simplified_privilege_history_object(privilege_data['items'])
+    return ProviderRecordUtility.construct_simplified_privilege_history_object(privilege_data)
 
 def _get_privilege_history_provider_user_me(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """Return the enriched and simplified privilege history for provider
@@ -63,7 +63,7 @@ def _get_privilege_history_provider_user_me(event: dict, context: LambdaContext)
     :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
     :param LambdaContext context:
     """
-    compact, provider_id = _check_provider_user_attributes(event)
+    compact, provider_id = get_provider_user_attributes_from_authorizer_claims(event)
     jurisdiction = event['pathParameters']['jurisdiction']
     license_type_abbr = event['pathParameters']['licenseType']
 
@@ -75,18 +75,6 @@ def _get_privilege_history_provider_user_me(event: dict, context: LambdaContext)
         license_type_abbr=license_type_abbr
     )
 
-    return ProviderRecordUtility.construct_simplified_privilege_history_object(privilege_data['items'])
+    return ProviderRecordUtility.construct_simplified_privilege_history_object(privilege_data)
 
-def _check_provider_user_attributes(event: dict) -> tuple[str, str]:
-    try:
-        # the two values for compact and providerId are stored as custom attributes in the user's cognito claims
-        # so we can access them directly from the event object
-        compact = event['requestContext']['authorizer']['claims']['custom:compact']
-        provider_id = event['requestContext']['authorizer']['claims']['custom:providerId']
-    except (KeyError, TypeError) as e:
-        # This shouldn't happen unless a provider user was created without these custom attributes.
-        logger.error(f'Missing custom provider attribute: {e}')
-        raise CCInvalidRequestException('Missing required user profile attribute') from e
-
-    return compact, provider_id
 
