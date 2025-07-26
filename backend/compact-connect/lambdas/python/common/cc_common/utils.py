@@ -13,12 +13,15 @@ from uuid import UUID
 from aws_lambda_powertools import Logger
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
+from marshmallow import ValidationError
 
 from cc_common.config import config, logger, metrics
+from cc_common.data_model.schema.base_record import BaseRecordSchema
 from cc_common.data_model.schema.common import CCPermissionsAction
 from cc_common.data_model.schema.provider.api import ProviderGeneralResponseSchema
 from cc_common.exceptions import (
     CCAccessDeniedException,
+    CCInternalException,
     CCInvalidRequestException,
     CCNotFoundException,
     CCRateLimitingException,
@@ -696,3 +699,27 @@ def send_licenses_to_preprocessing_queue(licenses_data: list[dict], event_time: 
 
     # Return success status and failure count
     return failed_license_numbers
+
+def load_records_into_schemas(records: list[dict]):
+    """Load records into their defined schema"""
+    try:
+        return [BaseRecordSchema.get_schema_by_type(item['type']).load(item) for item in records]
+    except ValidationError as e:
+        logger.error('Validation error', error=e)
+        raise CCInternalException('Data validation failure!') from e
+    except KeyError as e:
+        logger.error('Key error', error=e)
+        raise CCInternalException('Key error!') from e
+
+def get_provider_user_attributes_from_authorizer_claims(event: dict) -> tuple[str, str]:
+    try:
+        # the two values for compact and providerId are stored as custom attributes in the user's cognito claims
+        # so we can access them directly from the event object
+        compact = event['requestContext']['authorizer']['claims']['custom:compact']
+        provider_id = event['requestContext']['authorizer']['claims']['custom:providerId']
+    except (KeyError, TypeError) as e:
+        # This shouldn't happen unless a provider user was created without these custom attributes.
+        logger.error(f'Missing custom provider attribute: {e}')
+        raise CCInvalidRequestException('Missing required user profile attribute') from e
+
+    return compact, provider_id
