@@ -94,7 +94,7 @@
                 <template v-slot:content>
                     <div class="modal-content-text">
                         <p class="purchase-unavailable-message">{{ $t('licensing.purchaseUnavailableMessage') }}</p>
-                        <ol class="purchase-unavailable-list">
+                        <ol class="purchase-unavailable-list good-wrap">
                             <li v-if="!hasEligibleLicenses">
                                 {{ $t('licensing.purchaseUnavailableNoEligibleLicenses') }}
                             </li>

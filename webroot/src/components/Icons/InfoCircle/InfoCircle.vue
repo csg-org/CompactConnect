@@ -8,13 +8,11 @@
 <template>
     <svg
         class="icon icon-info-circle"
-        width="13"
-        height="13"
         viewBox="0 0 13 13"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        role="presentation"
-        aria-hidden="true"
+        role="button"
+        tabindex="0"
     >
         <path d="M6.5 12.7773C5.68359 12.7773 4.91406 12.6211 4.19141 12.3086C3.47266 11.9961 2.83789
         11.5645 2.28711 11.0137C1.73633 10.4629 1.30469 9.82812 0.992188 9.10938C0.679688
