@@ -289,10 +289,13 @@ class ProviderRecordUtility:
         for update in renewal_updates:
             date_of_expiration = update['previous']['dateOfExpiration']
             day_after_expiration = date_of_expiration + timedelta(days=1)
-            datetime_of_expiration = datetime.combine(
+            datetime_of_expiration_trigger = datetime.combine(
                 day_after_expiration, datetime.min.time(), tzinfo=config.expiration_resolution_timezone
             )
-            if datetime_of_expiration < update['createDate'].astimezone(config.expiration_resolution_timezone):
+            effective_date_time = datetime.combine(
+                update['effectiveDate'], datetime.min.time(), tzinfo=config.expiration_resolution_timezone
+            )
+            if datetime_of_expiration_trigger <= effective_date_time:
                 enriched_history.append(
                     {
                         'type': 'privilegeUpdate',
@@ -302,21 +305,21 @@ class ProviderRecordUtility:
                         'jurisdiction': privilege['jurisdiction'],
                         'licenseType': privilege['licenseType'],
                         'effectiveDate': date_of_expiration,
-                        'createDate': datetime_of_expiration.astimezone(UTC),
+                        'createDate': datetime_of_expiration_trigger.astimezone(UTC),
                         'previous': {},
                         'updatedValues': {},
-                        'dateOfUpdate': datetime_of_expiration.astimezone(UTC),
+                        'dateOfUpdate': datetime_of_expiration_trigger.astimezone(UTC),
                     }
                 )
         # Inject expiration event if currently expired
         privilege_date_of_expiration = privilege['dateOfExpiration']
 
         privilege_day_after_expiration = privilege_date_of_expiration + timedelta(days=1)
-        privilege_datetime_of_expiration = datetime.combine(
+        privilege_datetime_of_expiration_trigger = datetime.combine(
             privilege_day_after_expiration, datetime.min.time(), tzinfo=config.expiration_resolution_timezone
         )
 
-        if privilege_datetime_of_expiration < now.astimezone(config.expiration_resolution_timezone):
+        if privilege_datetime_of_expiration_trigger <= now.astimezone(config.expiration_resolution_timezone):
             enriched_history.append(
                 {
                     'type': 'privilegeUpdate',
@@ -326,10 +329,10 @@ class ProviderRecordUtility:
                     'jurisdiction': privilege['jurisdiction'],
                     'licenseType': privilege['licenseType'],
                     'effectiveDate': privilege_date_of_expiration,
-                    'createDate': privilege_datetime_of_expiration.astimezone(UTC),
+                    'createDate': privilege_datetime_of_expiration_trigger.astimezone(UTC),
                     'previous': {},
                     'updatedValues': {},
-                    'dateOfUpdate': privilege_datetime_of_expiration.astimezone(UTC),
+                    'dateOfUpdate': privilege_datetime_of_expiration_trigger.astimezone(UTC),
                 }
             )
 

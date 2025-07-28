@@ -257,8 +257,107 @@ class TestProviderRecordUtility(TstLambdas):
         self.maxDiff = None
         self.assertEqual(expected_updates, enriched_history)
 
-    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-03-15T00:00:00+00:00'))
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-03-16T00:00:00+04:00'))
+    def test_enrich_privilege_history_with_expiration_event_if_first_second_of_expiration(self):
+        """Test that enrich_privilege_history_with_synthetic_updates adds an expiration if expired"""
+        from cc_common.data_model.provider_record_util import ProviderRecordUtility
+
+        # Create a privilege with no history
+        privilege = {
+            **self.base_privilege,
+            'providerId': 'test-provider-id',
+            'dateOfIssuance': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
+            'dateOfExpiration': date.fromisoformat('2024-02-01'),
+            'dateOfRenewal': date.fromisoformat('2024-01-01'),
+            'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
+        }
+
+        history = []
+
+        # Enrich the privilege history
+        enriched_history = ProviderRecordUtility.get_enriched_history_with_synthetic_updates_from_privilege(
+            privilege, history
+        )
+
+        # Define the expected issuance update
+        expected_updates = [
+            {
+                'compact': 'octp',
+                'createDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
+                'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
+                'effectiveDate': date.fromisoformat('2024-01-01'),
+                'jurisdiction': 'al',
+                'licenseType': 'occupational therapy assistant',
+                'previous': {},
+                'providerId': 'test-provider-id',
+                'type': 'privilegeUpdate',
+                'updateType': 'issuance',
+                'updatedValues': {},
+            },
+            {
+                'compact': 'octp',
+                'createDate': datetime.fromisoformat('2024-02-02T04:00:00+00:00'),
+                'dateOfUpdate': datetime.fromisoformat('2024-02-02T04:00:00+00:00'),
+                'effectiveDate': date.fromisoformat('2024-02-01'),
+                'jurisdiction': 'al',
+                'licenseType': 'occupational therapy assistant',
+                'previous': {},
+                'providerId': 'test-provider-id',
+                'type': 'privilegeUpdate',
+                'updateType': 'expiration',
+                'updatedValues': {},
+            },
+        ]
+
+        # Check that the history contains exactly one update with the expected values
+        self.maxDiff = None
+        self.assertEqual(expected_updates, enriched_history)
+
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-03-15T01:00:00+04:00'))
     def test_enrich_privilege_history_does_not_add_expiration_if_day_of_expiration(self):
+        """Test that enrich_privilege_history_with_synthetic_updates does not add expiration on day of expiration."""
+        from cc_common.data_model.provider_record_util import ProviderRecordUtility
+
+        # Create a privilege with no history
+        privilege = {
+            **self.base_privilege,
+            'providerId': 'test-provider-id',
+            'dateOfIssuance': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
+            'dateOfExpiration': date.fromisoformat('2024-03-15'),
+            'dateOfRenewal': date.fromisoformat('2024-01-01'),
+            'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
+        }
+
+        history = []
+
+        # Enrich the privilege history
+        enriched_history = ProviderRecordUtility.get_enriched_history_with_synthetic_updates_from_privilege(
+            privilege, history
+        )
+
+        # Define the expected issuance update
+        expected_updates = [
+            {
+                'compact': 'octp',
+                'createDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
+                'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
+                'effectiveDate': date.fromisoformat('2024-01-01'),
+                'jurisdiction': 'al',
+                'licenseType': 'occupational therapy assistant',
+                'previous': {},
+                'providerId': 'test-provider-id',
+                'type': 'privilegeUpdate',
+                'updateType': 'issuance',
+                'updatedValues': {},
+            }
+        ]
+
+        # Check that the history contains exactly one update with the expected values
+        self.maxDiff = None
+        self.assertEqual(expected_updates, enriched_history)
+
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-03-15T23:59:00+04:00'))
+    def test_enrich_privilege_history_does_not_add_expiration_if_minute_before_expiration(self):
         """Test that enrich_privilege_history_with_synthetic_updates does not add expiration on day of expiration."""
         from cc_common.data_model.provider_record_util import ProviderRecordUtility
 
@@ -485,6 +584,219 @@ class TestProviderRecordUtility(TstLambdas):
                 'dateOfUpdate': datetime.fromisoformat('2022-08-19T19:03:56+00:00'),
                 'createDate': datetime.fromisoformat('2025-07-17T15:24:01+00:00'),
                 'effectiveDate': date.fromisoformat('2025-08-15'),
+                'jurisdiction': 'ne',
+                'licenseType': 'occupational therapy assistant',
+                'previous': {
+                    'attestations': [],
+                    'compactTransactionId': '120059525522',
+                    'dateOfExpiration': date.fromisoformat('2025-06-15'),
+                    'dateOfIssuance': datetime.fromisoformat('2025-03-19T21:51:26+00:00'),
+                    'dateOfRenewal': datetime.fromisoformat('2022-08-19T19:03:56+00:00'),
+                    'dateOfUpdate': datetime.fromisoformat('2022-03-19T22:02:17+00:00'),
+                    'licenseJurisdiction': 'ky',
+                    'privilegeId': 'OTA-NE-10',
+                },
+                'providerId': 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
+                'type': 'privilegeUpdate',
+                'updatedValues': {
+                    'compactTransactionId': '120060004893',
+                    'dateOfExpiration': date.fromisoformat('2028-02-12'),
+                    'dateOfRenewal': datetime.fromisoformat('2025-03-25T19:03:56+00:00'),
+                    'privilegeId': 'OTA-NE-10',
+                },
+                'updateType': 'renewal',
+            },
+        ]
+
+        # Check that the history contains exactly one update with the expected values
+        self.maxDiff = None
+        self.assertEqual(expected_updates, enriched_history)
+
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2026-03-15T00:00:00+00:00'))
+    def test_enrich_privilege_history_does_not_inject_expiration_if_renewed_in_last_minute(self):
+        """Test that enrich_privilege_history_with_synthetic_updates adds expiration and issuance events correctly"""
+        from cc_common.data_model.provider_record_util import ProviderRecordUtility
+
+        # Create a privilege with no history
+        privilege = {
+            **self.base_privilege,
+            'providerId': 'test-provider-id',
+            'dateOfIssuance': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
+            'dateOfExpiration': date.fromisoformat('2028-03-15'),
+            'dateOfRenewal': date.fromisoformat('2024-01-01'),
+            'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
+        }
+
+        history = [
+            {
+                'compact': 'octp',
+                'compactTransactionIdGSIPK': 'COMPACT#octp#TX#120059525522#',
+                'dateOfUpdate': datetime.fromisoformat('2025-06-15T23:59:00+04:00'),
+                'createDate': datetime.fromisoformat('2025-06-15T23:59:00+04:00'),
+                'effectiveDate': date.fromisoformat('2025-06-15'),
+                'jurisdiction': 'ne',
+                'licenseType': 'occupational therapy assistant',
+                'previous': {
+                    'attestations': [],
+                    'compactTransactionId': '120059525522',
+                    'dateOfExpiration': date.fromisoformat('2025-06-15'),
+                    'dateOfIssuance': datetime.fromisoformat('2025-03-19T21:51:26+00:00'),
+                    'dateOfRenewal': datetime.fromisoformat('2022-08-19T19:03:56+00:00'),
+                    'dateOfUpdate': datetime.fromisoformat('2022-03-19T22:02:17+00:00'),
+                    'licenseJurisdiction': 'ky',
+                    'privilegeId': 'OTA-NE-10',
+                },
+                'providerId': 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
+                'type': 'privilegeUpdate',
+                'updatedValues': {
+                    'compactTransactionId': '120060004893',
+                    'dateOfExpiration': date.fromisoformat('2028-02-12'),
+                    'dateOfRenewal': datetime.fromisoformat('2025-03-25T19:03:56+00:00'),
+                    'privilegeId': 'OTA-NE-10',
+                },
+                'updateType': 'renewal',
+            },
+        ]
+
+        # Enrich the privilege history
+        enriched_history = ProviderRecordUtility.get_enriched_history_with_synthetic_updates_from_privilege(
+            privilege, history
+        )
+
+        # Define the expected issuance update
+        expected_updates = [
+            {
+                'compact': 'octp',
+                'createDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
+                'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
+                'effectiveDate': date.fromisoformat('2024-01-01'),
+                'jurisdiction': 'al',
+                'licenseType': 'occupational therapy assistant',
+                'previous': {},
+                'providerId': 'test-provider-id',
+                'type': 'privilegeUpdate',
+                'updateType': 'issuance',
+                'updatedValues': {},
+            },
+            {
+                'compact': 'octp',
+                'compactTransactionIdGSIPK': 'COMPACT#octp#TX#120059525522#',
+                'dateOfUpdate': datetime.fromisoformat('2025-06-15T23:59:00+04:00'),
+                'createDate': datetime.fromisoformat('2025-06-15T23:59:00+04:00'),
+                'effectiveDate': date.fromisoformat('2025-06-15'),
+                'jurisdiction': 'ne',
+                'licenseType': 'occupational therapy assistant',
+                'previous': {
+                    'attestations': [],
+                    'compactTransactionId': '120059525522',
+                    'dateOfExpiration': date.fromisoformat('2025-06-15'),
+                    'dateOfIssuance': datetime.fromisoformat('2025-03-19T21:51:26+00:00'),
+                    'dateOfRenewal': datetime.fromisoformat('2022-08-19T19:03:56+00:00'),
+                    'dateOfUpdate': datetime.fromisoformat('2022-03-19T22:02:17+00:00'),
+                    'licenseJurisdiction': 'ky',
+                    'privilegeId': 'OTA-NE-10',
+                },
+                'providerId': 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
+                'type': 'privilegeUpdate',
+                'updatedValues': {
+                    'compactTransactionId': '120060004893',
+                    'dateOfExpiration': date.fromisoformat('2028-02-12'),
+                    'dateOfRenewal': datetime.fromisoformat('2025-03-25T19:03:56+00:00'),
+                    'privilegeId': 'OTA-NE-10',
+                },
+                'updateType': 'renewal',
+            },
+        ]
+
+        # Check that the history contains exactly one update with the expected values
+        self.maxDiff = None
+        self.assertEqual(expected_updates, enriched_history)
+
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2028-03-15T00:00:00+00:00'))
+    def test_enrich_privilege_history_does_inject_expiration_if_renewed_on_second_of_expiration(self):
+        """Test that enrich_privilege_history_with_synthetic_updates adds expiration and issuance events correctly"""
+        from cc_common.data_model.provider_record_util import ProviderRecordUtility
+
+        # Create a privilege with no history
+        privilege = {
+            **self.base_privilege,
+            'providerId': 'test-provider-id',
+            'dateOfIssuance': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
+            'dateOfExpiration': date.fromisoformat('2028-03-15'),
+            'dateOfRenewal': date.fromisoformat('2024-01-01'),
+            'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
+        }
+
+        history = [
+            {
+                'compact': 'octp',
+                'compactTransactionIdGSIPK': 'COMPACT#octp#TX#120059525522#',
+                'dateOfUpdate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
+                'createDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
+                'effectiveDate': date.fromisoformat('2025-06-16'),
+                'jurisdiction': 'ne',
+                'licenseType': 'occupational therapy assistant',
+                'previous': {
+                    'attestations': [],
+                    'compactTransactionId': '120059525522',
+                    'dateOfExpiration': date.fromisoformat('2025-06-15'),
+                    'dateOfIssuance': datetime.fromisoformat('2025-03-19T21:51:26+00:00'),
+                    'dateOfRenewal': datetime.fromisoformat('2022-08-19T19:03:56+00:00'),
+                    'dateOfUpdate': datetime.fromisoformat('2022-03-19T22:02:17+00:00'),
+                    'licenseJurisdiction': 'ky',
+                    'privilegeId': 'OTA-NE-10',
+                },
+                'providerId': 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
+                'type': 'privilegeUpdate',
+                'updatedValues': {
+                    'compactTransactionId': '120060004893',
+                    'dateOfExpiration': date.fromisoformat('2028-02-12'),
+                    'dateOfRenewal': datetime.fromisoformat('2025-03-25T19:03:56+00:00'),
+                    'privilegeId': 'OTA-NE-10',
+                },
+                'updateType': 'renewal',
+            },
+        ]
+
+        # Enrich the privilege history
+        enriched_history = ProviderRecordUtility.get_enriched_history_with_synthetic_updates_from_privilege(
+            privilege, history
+        )
+
+        # Define the expected issuance update
+        expected_updates = [
+            {
+                'compact': 'octp',
+                'createDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
+                'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
+                'effectiveDate': date.fromisoformat('2024-01-01'),
+                'jurisdiction': 'al',
+                'licenseType': 'occupational therapy assistant',
+                'previous': {},
+                'providerId': 'test-provider-id',
+                'type': 'privilegeUpdate',
+                'updateType': 'issuance',
+                'updatedValues': {},
+            },
+            {
+                'compact': 'octp',
+                'dateOfUpdate': datetime.fromisoformat('2025-06-16T04:00:00+00:00'),
+                'createDate': datetime.fromisoformat('2025-06-16T04:00:00+00:00'),
+                'effectiveDate': date.fromisoformat('2025-06-15'),
+                'jurisdiction': 'al',
+                'licenseType': 'occupational therapy assistant',
+                'previous': {},
+                'providerId': 'test-provider-id',
+                'type': 'privilegeUpdate',
+                'updateType': 'expiration',
+                'updatedValues': {},
+            },
+            {
+                'compact': 'octp',
+                'compactTransactionIdGSIPK': 'COMPACT#octp#TX#120059525522#',
+                'dateOfUpdate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
+                'createDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
+                'effectiveDate': date.fromisoformat('2025-06-16'),
                 'jurisdiction': 'ne',
                 'licenseType': 'occupational therapy assistant',
                 'previous': {
