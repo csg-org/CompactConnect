@@ -642,9 +642,10 @@ class ProviderUserRecords:
                 privilege_record.jurisdiction, privilege_record.licenseType
             )
             # add the synthetic issuance/expiration events to history
-            privilege_dict['history'] = ProviderRecordUtility.get_enriched_history_with_synthetic_updates_from_privilege(
-                privilege=privilege_dict,
-                history=[rec.to_dict() for rec in privilege_updates]
+            privilege_dict['history'] = (
+                ProviderRecordUtility.get_enriched_history_with_synthetic_updates_from_privilege(
+                    privilege=privilege_dict, history=[rec.to_dict() for rec in privilege_updates]
+                )
             )
 
             privilege_dict['adverseActions'] = [

@@ -231,17 +231,21 @@ class TestTransformations(TstFunction):
         # sample history from our expected_provider
         expected_provider['licenses'][0]['history'] = []
         # this new privilege should only have an issuance event in the history
-        expected_provider['privileges'][0]['history'] = [{'compact': 'aslp',
-                              'createDate': '2024-11-08T23:59:59+00:00',
-                              'dateOfUpdate': '2024-11-08T23:59:59+00:00',
-                              'effectiveDate': '2024-11-08',
-                              'jurisdiction': 'ne',
-                              'licenseType': 'speech-language pathologist',
-                              'previous': {},
-                              'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
-                              'type': 'privilegeUpdate',
-                              'updateType': 'issuance',
-                              'updatedValues': {}}]
+        expected_provider['privileges'][0]['history'] = [
+            {
+                'compact': 'aslp',
+                'createDate': '2024-11-08T23:59:59+00:00',
+                'dateOfUpdate': '2024-11-08T23:59:59+00:00',
+                'effectiveDate': '2024-11-08',
+                'jurisdiction': 'ne',
+                'licenseType': 'speech-language pathologist',
+                'previous': {},
+                'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
+                'type': 'privilegeUpdate',
+                'updateType': 'issuance',
+                'updatedValues': {},
+            }
+        ]
         # in this case, this should be set to the privilege issued date, which is the mock time used by this test
         expected_provider['privileges'][0]['activeSince'] = '2024-11-08T23:59:59+00:00'
 
