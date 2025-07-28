@@ -9,6 +9,7 @@ from stacks.notification_stack import NotificationStack
 from stacks.persistent_stack import PersistentStack
 from stacks.provider_users import ProviderUsersStack
 from stacks.reporting_stack import ReportingStack
+from stacks.state_api_stack import StateApiStack
 from stacks.transaction_monitoring_stack import TransactionMonitoringStack
 
 
@@ -74,6 +75,17 @@ class BackendStage(Stage):
         self.api_stack = ApiStack(
             self,
             'APIStack',
+            env=environment,
+            environment_context=environment_context,
+            standard_tags=standard_tags,
+            environment_name=environment_name,
+            persistent_stack=self.persistent_stack,
+            provider_users_stack=self.provider_users_stack,
+        )
+
+        self.state_api_stack = StateApiStack(
+            self,
+            'StateAPIStack',
             env=environment,
             environment_context=environment_context,
             standard_tags=standard_tags,

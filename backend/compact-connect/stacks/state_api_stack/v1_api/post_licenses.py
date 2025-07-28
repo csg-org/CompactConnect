@@ -60,7 +60,8 @@ class PostLicenses:
         # when validation errors occur.
         self.post_license_endpoint = self.resource.add_method(
             'POST',
-            request_validator=self.api.parameter_body_validator,
+            request_validator=self.api.parameter_only_validator,
+            request_models={'application/json': self.api_model.post_license_model},
             method_responses=[
                 MethodResponse(
                     status_code='200', response_models={'application/json': self.api.message_response_model}

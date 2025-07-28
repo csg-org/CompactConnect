@@ -9,13 +9,11 @@ from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_kms import IKey
 from aws_cdk.aws_secretsmanager import Secret
 from cdk_nag import NagSuppressions
+from common_constructs.cc_api import CCApi
 from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
 
 from stacks import persistent_stack as ps
-
-# Importing module level to allow lazy loading for typing
-from stacks.api_stack import cc_api
 from stacks.persistent_stack import ProviderTable
 from stacks.provider_users import ProviderUsersStack
 
@@ -35,7 +33,7 @@ class ProviderUsers:
         # /v1/provider-users
         self.provider_users_resource = resource
         self.api_model = api_model
-        self.api: cc_api.CCApi = resource.api
+        self.api: CCApi = resource.api
 
         stack: Stack = Stack.of(resource)
         lambda_environment = {

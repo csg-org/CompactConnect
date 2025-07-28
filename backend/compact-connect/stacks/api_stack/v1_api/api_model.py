@@ -4,10 +4,10 @@
 from __future__ import annotations
 
 from aws_cdk.aws_apigateway import JsonSchema, JsonSchemaType, Model
-from common_constructs.stack import AppStack
 
 # Importing module level to allow lazy loading for typing
-from stacks.api_stack import cc_api
+from common_constructs import cc_api
+from common_constructs.stack import AppStack
 
 
 class ApiModel:
@@ -1363,7 +1363,7 @@ class ApiModel:
             'licenseStatusName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
             'compactEligibility': JsonSchema(type=JsonSchemaType.STRING, enum=['eligible', 'ineligible']),
             'emailAddress': JsonSchema(type=JsonSchemaType.STRING, format='email', min_length=5, max_length=100),
-            'phoneNumber': JsonSchema(type=JsonSchemaType.STRING, pattern=r'^\+[0-9]{8,15}$'),
+            'phoneNumber': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.PHONE_NUMBER_FORMAT),
             'suffix': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
         }
 

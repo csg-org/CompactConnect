@@ -244,13 +244,20 @@ class TstFunction(TstLambdas):
                 self._provider_table.put_item(Item=record)
 
     def _generate_providers(
-        self, *, home: str, privilege_jurisdiction: str | None, start_serial: int, names: tuple[tuple[str, str]] = ()
+        self,
+        *,
+        home: str,
+        privilege_jurisdiction: str | None,
+        start_serial: int,
+        names: tuple[tuple[str, str]] = (),
+        date_of_update: datetime | None = None,
     ):
         """Generate 10 providers with one license and one privilege
         :param home: The jurisdiction for the license
         :param privilege_jurisdiction: The jurisdiction for the privilege
         :param start_serial: Starting number for last portion of the provider's SSN
         :param names: A list of tuples, each containing a family name and given name
+        :param date_of_update: Fixed date to use for provider updates, if None uses random dates
         """
         from cc_common.data_model.data_client import DataClient
         from handlers.ingest import ingest_license_message, preprocess_license_ingest
@@ -325,10 +332,20 @@ class TstFunction(TstLambdas):
                 }
             )
 
-            # This gives us some variation in dateOfUpdate values to sort by
+            # Use provided date_of_update or generate random variation in dateOfUpdate values to sort by
+            patch_kwargs = {}
+            if date_of_update is not None:
+                # Use the provided fixed date
+                patch_kwargs['new_callable'] = lambda: date_of_update
+            else:
+                # Use random dates for variation
+                patch_kwargs['new_callable'] = lambda: datetime.now(tz=UTC).replace(microsecond=0) - timedelta(
+                    days=randint(1, 365)
+                )
+
             with patch(
                 'cc_common.config._Config.current_standard_datetime',
-                new_callable=lambda: datetime.now(tz=UTC).replace(microsecond=0) - timedelta(days=randint(1, 365)),
+                **patch_kwargs,
             ):
                 # First call the preprocessor to handle the SSN data
                 preprocess_license_ingest(
