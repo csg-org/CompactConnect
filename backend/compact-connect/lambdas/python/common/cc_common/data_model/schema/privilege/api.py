@@ -29,20 +29,23 @@ class PrivilegeUpdatePreviousGeneralResponseSchema(ForgivingSchema):
     """
     A snapshot of a previous state of a privilege object
 
+    Note that none of these fields are required, as there are issuance events returned which do not have a
+    previous state since the record was created for the first time.
+
     Serialization direction:
     Python -> load() -> API
     """
 
-    administratorSetStatus = ActiveInactive(required=True, allow_none=False)
+    administratorSetStatus = ActiveInactive(required=False, allow_none=False)
     # list of attestations that were accepted when purchasing this privilege
     attestations = List(Nested(AttestationVersionResponseSchema()), required=False, allow_none=False)
     compactTransactionId = String(required=False, allow_none=False)
-    dateOfExpiration = Raw(required=True, allow_none=False)
-    dateOfIssuance = Raw(required=True, allow_none=False)
-    dateOfRenewal = Raw(required=True, allow_none=False)
-    dateOfUpdate = Raw(required=True, allow_none=False)
-    licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
-    privilegeId = String(required=True, allow_none=False)
+    dateOfExpiration = Raw(required=False, allow_none=False)
+    dateOfIssuance = Raw(required=False, allow_none=False)
+    dateOfRenewal = Raw(required=False, allow_none=False)
+    dateOfUpdate = Raw(required=False, allow_none=False)
+    licenseJurisdiction = Jurisdiction(required=False, allow_none=False)
+    privilegeId = String(required=False, allow_none=False)
 
 
 class PrivilegeUpdateGeneralResponseSchema(ForgivingSchema):
@@ -104,17 +107,20 @@ class PrivilegeUpdatePreviousPublicResponseSchema(ForgivingSchema):
     """
     A snapshot of a previous state of a privilege object
 
+    Note that none of these fields are required, as there are issuance events returned which do not have a
+    previous state since the record was created for the first time.
+
     Serialization direction:
     Python -> load() -> API
     """
 
-    administratorSetStatus = ActiveInactive(required=True, allow_none=False)
-    dateOfExpiration = Raw(required=True, allow_none=False)
-    dateOfIssuance = Raw(required=True, allow_none=False)
-    dateOfRenewal = Raw(required=True, allow_none=False)
-    dateOfUpdate = Raw(required=True, allow_none=False)
-    licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
-    privilegeId = String(required=True, allow_none=False)
+    administratorSetStatus = ActiveInactive(required=False, allow_none=False)
+    dateOfExpiration = Raw(required=False, allow_none=False)
+    dateOfIssuance = Raw(required=False, allow_none=False)
+    dateOfRenewal = Raw(required=False, allow_none=False)
+    dateOfUpdate = Raw(required=False, allow_none=False)
+    licenseJurisdiction = Jurisdiction(required=False, allow_none=False)
+    privilegeId = String(required=False, allow_none=False)
 
 
 class PrivilegeUpdatePublicResponseSchema(ForgivingSchema):

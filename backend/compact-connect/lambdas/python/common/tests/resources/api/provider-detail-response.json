@@ -112,6 +112,18 @@
       "adverseActions": [],
       "history": [
         {
+          "compact": "aslp",
+          "createDate": "2016-05-05T12:59:59+00:00",
+          "dateOfUpdate": "2016-05-05T12:59:59+00:00",
+          "effectiveDate": "2016-05-05",
+          "jurisdiction": "ne",
+          "licenseType": "speech-language pathologist",
+          "previous": {},
+          "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
+          "type": "privilegeUpdate",
+          "updateType": "issuance",
+          "updatedValues": {}},
+        {
           "type": "privilegeUpdate",
           "updateType": "renewal",
           "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
