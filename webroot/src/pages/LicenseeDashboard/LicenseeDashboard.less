@@ -51,6 +51,11 @@
                             a {
                                 font-weight: @fontWeightBold;
                                 text-decoration: underline;
+
+                                &:focus {
+                                    border-radius: 4px;
+                                    outline: 2px solid @primaryColor;
+                                }
                             }
                         }
                     }

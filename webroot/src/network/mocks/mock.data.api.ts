@@ -356,7 +356,7 @@ export class DataApi {
     // ========================================================================
     // Get Authenticated Licensee User
     public getAuthenticatedLicenseeUser() {
-        return wait(500).then(() => LicenseeUserSerializer.fromServer(licensees.providers[0]));
+        return wait(500).then(() => LicenseeUserSerializer.fromServer(licensees.providers[1]));
     }
 
     // Update Authenticated Licensee User email address
