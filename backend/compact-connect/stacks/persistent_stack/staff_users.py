@@ -16,12 +16,14 @@ from aws_cdk.aws_cognito import (
 )
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
+from common_constructs.cognito_user_backup import CognitoUserBackup
 from common_constructs.nodejs_function import NodejsFunction
 from common_constructs.python_function import PythonFunction
 from common_constructs.user_pool import UserPool
 from constructs import Construct
 
 from stacks import persistent_stack as ps
+from stacks.backup_infrastructure_stack import BackupInfrastructureStack
 from stacks.persistent_stack.users_table import UsersTable
 
 
@@ -39,6 +41,7 @@ class StaffUsers(UserPool):
         encryption_key: IKey,
         user_pool_email: UserPoolEmail,
         removal_policy,
+        backup_infrastructure_stack: BackupInfrastructureStack | None,
         **kwargs,
     ):
         super().__init__(
@@ -55,7 +58,14 @@ class StaffUsers(UserPool):
         )
         stack: ps.PersistentStack = ps.PersistentStack.of(self)
 
-        self.user_table = UsersTable(self, 'UsersTable', encryption_key=encryption_key, removal_policy=removal_policy)
+        self.user_table = UsersTable(
+            self,
+            'UsersTable',
+            encryption_key=encryption_key,
+            removal_policy=removal_policy,
+            backup_infrastructure_stack=backup_infrastructure_stack,
+            environment_context=environment_context,
+        )
         self._add_resource_servers(stack=stack)
         self._add_scope_customization(stack=stack)
         self._add_custom_message_lambda(stack=stack)
@@ -70,6 +80,25 @@ class StaffUsers(UserPool):
             # We want to limit the attributes that this app can read and write so only email is visible.
             read_attributes=ClientAttributes().with_standard_attributes(email=True),
         )
+
+        # Check if backups are enabled for this environment
+        backup_enabled = environment_context['backup_enabled']
+
+        if backup_enabled and backup_infrastructure_stack is not None:
+            # Set up Cognito backup system for this user pool
+            self.backup_system = CognitoUserBackup(
+                self,
+                'StaffUserBackup',
+                user_pool_id=self.user_pool_id,
+                access_logs_bucket=stack.access_logs_bucket,
+                encryption_key=encryption_key,
+                removal_policy=removal_policy,
+                backup_infrastructure_stack=backup_infrastructure_stack,
+                alarm_topic=stack.alarm_topic,
+            )
+        else:
+            # Create placeholder attribute for disabled state
+            self.backup_system = None
 
     def _generate_resource_server_scopes_list_for_compact(self, compact: str):
         return [
