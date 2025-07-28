@@ -26,15 +26,15 @@ export default class PrivilegeDetail extends Vue {
     // Lifecycle
     //
     mounted() {
-        if (!this.licenseeRecord && this.isLoggedInAsStaff) {
-            this.fetchLicenseeData();
-        }
-    
-        // if (this.isLoggedInAsStaff) {
-        //     this.fetchLicenseeData();
-        // } else (this.isLoggedInAsLicensee) {
+        if (this.isLoggedInAsStaff) {
+            if (!this.licenseeRecord) {
+                this.fetchLicenseeData();
+            }
 
-        // }
+            this.fetchPrivilegeHistoryStaff();
+        } else if (this.isLoggedInAsLicensee) {
+            this.fetchPrivilegeHistoryProvider();
+        }
     }
 
     //
@@ -129,5 +129,13 @@ export default class PrivilegeDetail extends Vue {
         const { licenseeId } = this;
 
         await this.$store.dispatch('license/getLicenseeRequest', { compact: this.compact, licenseeId });
+    }
+
+    async fetchPrivilegeHistoryStaff(): Promise<void> {
+        console.log('fetch Staff');
+    }
+
+    async fetchPrivilegeHistoryProvider(): Promise<void> {
+        console.log('fetch prov');
     }
 }
