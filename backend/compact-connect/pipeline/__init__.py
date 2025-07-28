@@ -147,6 +147,7 @@ class BasePipelineStack(Stack):
         self.pipeline_environment_context = self.ssm_context['environments']['pipeline']
         self.connection_arn = self.pipeline_environment_context['connection_arn']
         self.github_repo_string = self.ssm_context['github_repo_string']
+        self.backup_config = self.ssm_context.get('backup_config', {})
         self.app_name = self.ssm_context['app_name']
 
     def _add_pipeline_cdk_assume_role_policy(self, pipeline: CdkCodePipeline):
@@ -248,6 +249,7 @@ class BaseBackendPipelineStack(BasePipelineStack):
             app_name=app_name,
             environment_name=environment_name,
             environment_context=environment_context,
+            backup_config=self.backup_config,
         )
 
     def _generate_frontend_pipeline_trigger_step(self):
@@ -614,6 +616,9 @@ class ProdBackendPipelineStack(BaseBackendPipelineStack):
             pipeline_access_logs_bucket=pipeline_access_logs_bucket,
             **kwargs,
         )
+
+        if not self.backup_config or not self.ssm_context['environments'][PROD_ENVIRONMENT_NAME].get('backup_enabled'):
+            raise ValueError('Backups must be enabled for production environment.')
 
         self.prod_pipeline = BackendPipeline(
             self,

@@ -14,6 +14,7 @@
         "account_id": "111122223333",
         "region": "us-east-1",
         "domain_name": "justin.compactconnect.org",
+        "backup_enabled": false,
         "allow_local_ui": true,
         "deploy_sandbox_ui": false,
         "security_profile": "VULNERABLE",

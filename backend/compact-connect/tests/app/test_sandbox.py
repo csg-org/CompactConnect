@@ -28,6 +28,9 @@ class TestSandbox(TstSandbox):
         # Identify any findings from our AwsSolutions rule sets
         self._check_no_backend_stage_annotations(self.app.sandbox_backend_stage)
 
+        # Check resource counts and emit warnings/errors if thresholds are exceeded
+        self._check_backend_stage_resource_counts(self.app.sandbox_backend_stage)
+
     def test_api_stack(self):
         self._inspect_api_stack(self.app.sandbox_backend_stage.api_stack)
 
@@ -62,6 +65,9 @@ class TestSandboxNoDomain(TstSandbox):
     def test_synth_sandbox_no_domain(self):
         self._check_no_backend_stage_annotations(self.app.sandbox_backend_stage)
 
+        # Check resource counts and emit warnings/errors if thresholds are exceeded
+        self._check_backend_stage_resource_counts(self.app.sandbox_backend_stage)
+
         self._inspect_api_stack(self.app.sandbox_backend_stage.api_stack)
 
         self._inspect_persistent_stack(self.app.sandbox_backend_stage.persistent_stack, allow_local_ui=True)
@@ -85,6 +91,9 @@ class TestSandboxLocalUiPortOverride(TstSandbox):
 
     def test_synth_local_ui_port_override(self):
         self._check_no_backend_stage_annotations(self.app.sandbox_backend_stage)
+
+        # Check resource counts and emit warnings/errors if thresholds are exceeded
+        self._check_backend_stage_resource_counts(self.app.sandbox_backend_stage)
 
         self._inspect_api_stack(self.app.sandbox_backend_stage.api_stack)
 

@@ -44,6 +44,8 @@ class TestBackendPipeline(TstAppABC, TestCase):
             self.app.prod_backend_pipeline_stack.prod_stage,
         ):
             self._check_no_backend_stage_annotations(stage)
+            # Check resource counts and emit warnings/errors if thresholds are exceeded
+            self._check_backend_stage_resource_counts(stage)
 
         for api_stack in (
             self.app.test_backend_pipeline_stack.test_stage.api_stack,

@@ -12,6 +12,7 @@
         "account_id": "000011112222",
         "region": "us-east-1",
         "domain_name": "compactconnect.org",
+        "backup_enabled": true,
         "robots_meta": "index,follow",
         "recaptcha_public_key": "123-KFEUsjehfuejILDVUKkRnAF9SSzb8o9uv5lY7Ih",
         "notifications": {
@@ -26,8 +27,38 @@
               "workspace_id": "T01234567"
             }
           ]
+        },
+        "backup_policies": {
+          "general_data": {
+            "schedule": {
+              "year": "*",
+              "month": "*",
+              "day": "*",
+              "hour": "5",
+              "minute": "0"
+            },
+            "delete_after_days": 730,
+            "cold_storage_after_days": 30
+          },
+          "frequent_updates": {
+            "schedule": {
+              "year": "*",
+              "month": "*",
+              "day": "*",
+              "hour": "*",
+              "minute": "0"
+            },
+            "delete_after_days": 730,
+            "cold_storage_after_days": 30
+          }
         }
       }
+    },
+    "backup_config": {
+      "backup_account_id": "111122223333",
+      "backup_region": "us-west-2",
+      "general_vault_name": "CompactConnectBackupVault",
+      "ssn_vault_name": "CompactConnectSSNBackupVault"
     }
   }
 }
