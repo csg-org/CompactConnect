@@ -259,7 +259,8 @@ class TestProviderRecordUtility(TstLambdas):
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-03-16T00:00:00+04:00'))
     def test_enrich_privilege_history_with_expiration_event_if_first_second_of_expiration(self):
-        """Test that get_enriched_history_with_synthetic_updates_from_privilege adds an expiration if first second of expired"""
+        """Test that get_enriched_history_with_synthetic_updates_from_privilege adds an expiration if first second
+        of expired"""
         from cc_common.data_model.provider_record_util import ProviderRecordUtility
 
         # Create a privilege with no history
@@ -315,7 +316,8 @@ class TestProviderRecordUtility(TstLambdas):
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-03-15T01:00:00+04:00'))
     def test_enrich_privilege_history_does_not_add_expiration_if_day_of_expiration(self):
-        """Test that get_enriched_history_with_synthetic_updates_from_privilege does not add expiration on day of expiration."""
+        """Test that get_enriched_history_with_synthetic_updates_from_privilege does not add expiration on day of
+        expiration."""
         from cc_common.data_model.provider_record_util import ProviderRecordUtility
 
         # Create a privilege with no history
@@ -358,7 +360,8 @@ class TestProviderRecordUtility(TstLambdas):
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-03-15T23:59:00+04:00'))
     def test_enrich_privilege_history_does_not_add_expiration_if_minute_before_expiration(self):
-        """Test that get_enriched_history_with_synthetic_updates_from_privilege does not add if minute before expiration cut off"""
+        """Test that get_enriched_history_with_synthetic_updates_from_privilege does not add if minute before expiration
+        cut off"""
         from cc_common.data_model.provider_record_util import ProviderRecordUtility
 
         # Create a privilege with no history
@@ -401,7 +404,8 @@ class TestProviderRecordUtility(TstLambdas):
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2026-03-15T00:00:00+00:00'))
     def test_enrich_privilege_history_adds_expiration_events_in_correct_spots(self):
-        """Test that get_enriched_history_with_synthetic_updates_from_privilege adds expiration and issuance events correctly"""
+        """Test that get_enriched_history_with_synthetic_updates_from_privilege adds expiration and issuance events
+        correctly"""
         from cc_common.data_model.provider_record_util import ProviderRecordUtility
 
         # Create a privilege with no history
@@ -614,7 +618,8 @@ class TestProviderRecordUtility(TstLambdas):
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2026-03-15T00:00:00+00:00'))
     def test_enrich_privilege_history_does_not_inject_expiration_if_renewed_in_last_minute(self):
-        """Test that get_enriched_history_with_synthetic_updates_from_privilege does not injection expiration event if renewed last
+        """Test that get_enriched_history_with_synthetic_updates_from_privilege does not injection expiration event if
+        renewed last
         minute
         """
         from cc_common.data_model.provider_record_util import ProviderRecordUtility
@@ -716,9 +721,8 @@ class TestProviderRecordUtility(TstLambdas):
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2028-03-15T00:00:00+00:00'))
     def test_enrich_privilege_history_does_inject_expiration_if_renewed_on_second_of_expiration(self):
-        """Test that get_enriched_history_with_synthetic_updates_from_privilege adds expiration if privilege renewed one second
-        over expiration cutoff
-        """
+        """Test that get_enriched_history_with_synthetic_updates_from_privilege adds expiration if privilege renewed
+        one second over expiration cutoff"""
         from cc_common.data_model.provider_record_util import ProviderRecordUtility
 
         # Create a privilege with no history
