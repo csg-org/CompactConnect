@@ -172,7 +172,7 @@ class TestProviderRecordUtility(TstLambdas):
             'providerId': 'test-provider-id',
             'dateOfIssuance': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
             'dateOfExpiration': date.fromisoformat('2025-01-01'),
-            'dateOfRenewal': date.fromisoformat('2024-01-01'),
+            'dateOfRenewal': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
             'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
         }
 
@@ -212,7 +212,7 @@ class TestProviderRecordUtility(TstLambdas):
             'providerId': 'test-provider-id',
             'dateOfIssuance': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
             'dateOfExpiration': date.fromisoformat('2024-02-01'),
-            'dateOfRenewal': date.fromisoformat('2024-01-01'),
+            'dateOfRenewal': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
             'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
         }
 
@@ -253,7 +253,7 @@ class TestProviderRecordUtility(TstLambdas):
             },
         ]
 
-        # Check that the history contains exactly one update with the expected values
+        # Check that the history contains updates with the expected values
         self.maxDiff = None
         self.assertEqual(expected_updates, enriched_history)
 
@@ -269,7 +269,7 @@ class TestProviderRecordUtility(TstLambdas):
             'providerId': 'test-provider-id',
             'dateOfIssuance': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
             'dateOfExpiration': date.fromisoformat('2024-02-01'),
-            'dateOfRenewal': date.fromisoformat('2024-01-01'),
+            'dateOfRenewal': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
             'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
         }
 
@@ -310,7 +310,7 @@ class TestProviderRecordUtility(TstLambdas):
             },
         ]
 
-        # Check that the history contains exactly one update with the expected values
+        # Check that the history contains updates with the expected values
         self.maxDiff = None
         self.assertEqual(expected_updates, enriched_history)
 
@@ -326,7 +326,7 @@ class TestProviderRecordUtility(TstLambdas):
             'providerId': 'test-provider-id',
             'dateOfIssuance': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
             'dateOfExpiration': date.fromisoformat('2024-03-15'),
-            'dateOfRenewal': date.fromisoformat('2024-01-01'),
+            'dateOfRenewal': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
             'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
         }
 
@@ -370,7 +370,7 @@ class TestProviderRecordUtility(TstLambdas):
             'providerId': 'test-provider-id',
             'dateOfIssuance': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
             'dateOfExpiration': date.fromisoformat('2024-03-15'),
-            'dateOfRenewal': date.fromisoformat('2024-01-01'),
+            'dateOfRenewal': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
             'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
         }
 
@@ -414,7 +414,7 @@ class TestProviderRecordUtility(TstLambdas):
             'providerId': 'test-provider-id',
             'dateOfIssuance': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
             'dateOfExpiration': date.fromisoformat('2028-03-15'),
-            'dateOfRenewal': date.fromisoformat('2024-01-01'),
+            'dateOfRenewal': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
             'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
         }
 
@@ -612,7 +612,7 @@ class TestProviderRecordUtility(TstLambdas):
             },
         ]
 
-        # Check that the history contains exactly one update with the expected values
+        # Check that the history contains updates with the expected values
         self.maxDiff = None
         self.assertEqual(expected_updates, enriched_history)
 
@@ -630,7 +630,7 @@ class TestProviderRecordUtility(TstLambdas):
             'providerId': 'test-provider-id',
             'dateOfIssuance': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
             'dateOfExpiration': date.fromisoformat('2028-03-15'),
-            'dateOfRenewal': date.fromisoformat('2024-01-01'),
+            'dateOfRenewal': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
             'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
         }
 
@@ -715,7 +715,7 @@ class TestProviderRecordUtility(TstLambdas):
             },
         ]
 
-        # Check that the history contains exactly one update with the expected values
+        # Check that the history contains updates with the expected values
         self.maxDiff = None
         self.assertEqual(expected_updates, enriched_history)
 
@@ -731,7 +731,7 @@ class TestProviderRecordUtility(TstLambdas):
             'providerId': 'test-provider-id',
             'dateOfIssuance': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
             'dateOfExpiration': date.fromisoformat('2028-03-15'),
-            'dateOfRenewal': date.fromisoformat('2024-01-01'),
+            'dateOfRenewal': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
             'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
         }
 
