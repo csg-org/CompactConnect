@@ -1,6 +1,4 @@
 from cc_common.config import config, logger
-from cc_common.data_model.provider_record_util import ProviderRecordUtility
-from cc_common.exceptions import CCInternalException
 from cc_common.utils import logger_inject_kwargs
 
 
