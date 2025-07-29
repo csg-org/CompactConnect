@@ -111,10 +111,10 @@ class ApiModel:
     @property
     def bulk_upload_response_model(self) -> Model:
         """Return the Bulk Upload Response Model, which should only be created once per API"""
-        if hasattr(self.api, 'bulk_upload_response_model'):
-            return self.api.bulk_upload_response_model
+        if hasattr(self.api, '_v1_bulk_upload_response_model'):
+            return self.api._v1_bulk_upload_response_model
 
-        self.api.bulk_upload_response_model = self.api.add_model(
+        self.api._v1_bulk_upload_response_model = self.api.add_model(
             'BulkUploadResponseModel',
             description='Bulk upload url response model',
             schema=JsonSchema(
@@ -135,7 +135,7 @@ class ApiModel:
                 },
             ),
         )
-        return self.api.bulk_upload_response_model
+        return self.api._v1_bulk_upload_response_model
 
     @property
     def post_license_model(self) -> Model:
@@ -346,7 +346,7 @@ class ApiModel:
                 ),
                 'licenseStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
                 'licenseStatusName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
-                'phoneNumber': JsonSchema(type=JsonSchemaType.STRING, pattern=r'^\+[0-9]{8,15}$'),
+                'phoneNumber': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.PHONE_NUMBER_FORMAT),
             },
         )
 
