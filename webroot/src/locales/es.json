@@ -598,6 +598,7 @@
         "expires": "Caduca",
         "iUnderstand": "Yo entiendo",
         "selectPrivileges": "Seleccionar privilegios",
+        "privilegePurchaseLimit": "Se pueden seleccionar un máximo de 20 privilegios en una transacción",
         "jurisprudenceConfirmation": "Confirmación de jurisprudencia",
         "adminFee": "Tarifa Administrativa",
         "jurisdictionFee": "Tarifa Estatal",
