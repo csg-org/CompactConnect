@@ -35,10 +35,11 @@ from common_constructs.security_profile import SecurityProfile
 from common_constructs.stack import AppStack, Stack
 from common_constructs.webacl import WebACL, WebACLScope
 
-MD_FORMAT = '^[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$'
-YMD_FORMAT = '^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$'
-SSN_FORMAT = '^[0-9]{3}-[0-9]{2}-[0-9]{4}$'
-UUID4_FORMAT = '[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}'
+MD_FORMAT = r'^[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$'
+YMD_FORMAT = r'^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$'
+ISO8601_DATETIME_FORMAT = r'^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\.[0-9]{1,3})?Z$'  # noqa: E501
+SSN_FORMAT = r'^[0-9]{3}-[0-9]{2}-[0-9]{4}$'
+UUID4_FORMAT = r'[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}'
 PHONE_NUMBER_FORMAT = r'^\+[0-9]{8,15}$'
 
 

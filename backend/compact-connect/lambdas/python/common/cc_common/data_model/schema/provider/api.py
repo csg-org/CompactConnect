@@ -2,7 +2,7 @@
 from datetime import timedelta
 
 from marshmallow import ValidationError, validates_schema
-from marshmallow.fields import UUID, Date, DateTime, Email, Integer, List, Nested, Raw, String
+from marshmallow.fields import Date, DateTime, Email, Integer, List, Nested, Raw, String
 from marshmallow.validate import Length, OneOf, Regexp
 
 from cc_common.data_model.schema.base_record import ForgivingSchema
@@ -68,12 +68,6 @@ class ProviderGeneralResponseSchema(ForgivingSchema):
     licenses = List(Nested(LicenseGeneralResponseSchema(), required=False, allow_none=False))
     privileges = List(Nested(PrivilegeGeneralResponseSchema(), required=False, allow_none=False))
     militaryAffiliations = List(Nested(MilitaryAffiliationGeneralResponseSchema(), required=False, allow_none=False))
-
-
-class UrlPathParameterSchema(ForgivingSchema):
-    compact = Compact(required=False, allow_none=False)
-    jurisdiction = Jurisdiction(required=False, allow_none=False)
-    providerId = UUID(required=False, allow_none=False)
 
 
 class ProviderPublicResponseSchema(ForgivingSchema):

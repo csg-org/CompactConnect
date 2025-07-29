@@ -58,10 +58,10 @@ class ApiModel:
                         additional_properties=False,
                         properties={
                             'startDateTime': JsonSchema(
-                                type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
+                                type=JsonSchemaType.STRING, format='date-time', pattern=cc_api.ISO8601_DATETIME_FORMAT
                             ),
                             'endDateTime': JsonSchema(
-                                type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
+                                type=JsonSchemaType.STRING, format='date-time', pattern=cc_api.ISO8601_DATETIME_FORMAT
                             ),
                         },
                     ),
@@ -82,7 +82,7 @@ class ApiModel:
             description='Query providers response model',
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
-                required=['items', 'pagination'],
+                required=['providers', 'pagination'],
                 properties={
                     'providers': JsonSchema(
                         type=JsonSchemaType.ARRAY,
@@ -119,13 +119,19 @@ class ApiModel:
             description='Bulk upload url response model',
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
-                required=['upload', 'fields'],
+                required=['upload'],
                 properties={
-                    'url': JsonSchema(type=JsonSchemaType.STRING),
-                    'fields': JsonSchema(
+                    'upload': JsonSchema(
                         type=JsonSchemaType.OBJECT,
-                        additional_properties=JsonSchema(type=JsonSchemaType.STRING),
-                    ),
+                        required=['url', 'fields'],
+                        properties={
+                            'url': JsonSchema(type=JsonSchemaType.STRING),
+                            'fields': JsonSchema(
+                                type=JsonSchemaType.OBJECT,
+                                additional_properties=JsonSchema(type=JsonSchemaType.STRING),
+                            ),
+                        },
+                    )
                 },
             ),
         )

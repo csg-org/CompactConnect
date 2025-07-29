@@ -171,6 +171,45 @@ class TestClient(TstFunction):
         dates_of_update = [item['dateOfUpdate'] for item in resp['items']]
         self.assertListEqual(sorted(dates_of_update, reverse=True), dates_of_update)
 
+    def test_get_providers_sorted_by_updated_privileges_in_jurisdiction_requires_jurisdiction(self):
+        from cc_common.data_model.data_client import DataClient
+
+        client = DataClient(self.config)
+
+        # Verify that an exception is raised when jurisdiction is None and
+        # only_providers_with_privileges_in_jurisdiction is True
+        with self.assertRaises(RuntimeError) as context:
+            client.get_providers_sorted_by_updated(
+                compact='aslp',
+                jurisdiction=None,
+                only_providers_with_privileges_in_jurisdiction=True,
+            )
+
+        self.assertEqual(
+            'jurisdiction is required when only_providers_with_privileges_in_jurisdiction is True',
+            str(context.exception),
+        )
+
+    def test_get_providers_sorted_by_updated_with_jurisdiction_and_only_providers_with_privileges_in_jurisdiction(self):
+        from cc_common.data_model.data_client import DataClient
+
+        self._generate_providers(home='oh', privilege_jurisdiction='ne', start_serial=9999)
+        client = DataClient(self.config)
+
+        # Verify that the method works correctly when jurisdiction is provided and
+        # only_providers_with_privileges_in_jurisdiction is True
+        resp = client.get_providers_sorted_by_updated(
+            compact='aslp',
+            jurisdiction='ne',
+            only_providers_with_privileges_in_jurisdiction=True,
+        )
+
+        # Should return providers that have privileges in the specified jurisdiction
+        self.assertIsInstance(resp['items'], list)
+        # All returned providers should have privileges in 'ne' jurisdiction
+        for provider in resp['items']:
+            self.assertIn('ne', provider['privilegeJurisdictions'])
+
     def _load_provider_data(self) -> str:
         with open('../common/tests/resources/dynamo/provider.json') as f:
             provider_record = json.load(f)

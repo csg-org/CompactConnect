@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """A quick convenience script for trimming auto-generated schema to supported API paths"""
 
+import argparse
 import json
+import os
 from collections import OrderedDict
 
 
@@ -29,12 +31,27 @@ def strip_options_endpoints(oas30: dict) -> dict:
 
 
 if __name__ == '__main__':
-    with open('docs/api-specification/latest-oas30.json') as f:
+    parser = argparse.ArgumentParser(description='Trim OpenAPI specification to supported API paths')
+    parser.add_argument(
+        '-i', '--internal', action='store_true', help='Use internal API specification files instead of regular ones'
+    )
+
+    args = parser.parse_args()
+
+    # Determine the base directory based on the internal flag
+    base_dir = (
+        os.path.join('docs', 'internal', 'api-specification')
+        if args.internal
+        else os.path.join('docs', 'api-specification')
+    )
+    file_path = os.path.join(base_dir, 'latest-oas30.json')
+
+    with open(file_path) as f:
         original_spec = json.load(f)
 
     new_spec = strip_sort_paths(original_spec)
     new_spec = strip_options_endpoints(new_spec)
 
-    with open('docs/api-specification/latest-oas30.json', 'w') as f:
+    with open(file_path, 'w') as f:
         json.dump(new_spec, f, indent=2)
         f.write('\n')

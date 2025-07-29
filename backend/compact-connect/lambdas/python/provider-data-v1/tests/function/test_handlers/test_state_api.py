@@ -339,6 +339,14 @@ class TestGetProvider(TstFunction):
         self.maxDiff = None
         self.assertEqual(expected_response, body)
 
+        # Explicitly assert private fields are not present
+        privilege = body['privileges'][0]
+        self.assertNotIn('ssnLastFour', privilege)
+        self.assertNotIn('emailAddress', privilege)
+        self.assertNotIn('dateOfBirth', privilege)
+        self.assertNotIn('homeAddressStreet1', privilege)
+        self.assertNotIn('phoneNumber', privilege)
+
     def test_get_provider_success_with_private_permissions(self):
         """Test successful provider retrieval with private read permissions."""
         # Create a provider with privileges in 'ne' jurisdiction

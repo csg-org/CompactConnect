@@ -123,7 +123,7 @@ class ApiModel:
             description='Query providers response model',
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
-                required=['items', 'pagination'],
+                required=['providers', 'pagination'],
                 properties={
                     'providers': JsonSchema(
                         type=JsonSchemaType.ARRAY,
@@ -152,25 +152,31 @@ class ApiModel:
     @property
     def bulk_upload_response_model(self) -> Model:
         """Return the Bulk Upload Response Model, which should only be created once per API"""
-        if hasattr(self.api, 'bulk_upload_response_model'):
-            return self.api.bulk_upload_response_model
+        if hasattr(self.api, '_v1_bulk_upload_response_model'):
+            return self.api._v1_bulk_upload_response_model
 
-        self.api.bulk_upload_response_model = self.api.add_model(
+        self.api._v1_bulk_upload_response_model = self.api.add_model(
             'BulkUploadResponseModel',
             description='Bulk upload url response model',
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
-                required=['upload', 'fields'],
+                required=['upload'],
                 properties={
-                    'url': JsonSchema(type=JsonSchemaType.STRING),
-                    'fields': JsonSchema(
+                    'upload': JsonSchema(
                         type=JsonSchemaType.OBJECT,
-                        additional_properties=JsonSchema(type=JsonSchemaType.STRING),
-                    ),
+                        required=['url', 'fields'],
+                        properties={
+                            'url': JsonSchema(type=JsonSchemaType.STRING),
+                            'fields': JsonSchema(
+                                type=JsonSchemaType.OBJECT,
+                                additional_properties=JsonSchema(type=JsonSchemaType.STRING),
+                            ),
+                        },
+                    )
                 },
             ),
         )
-        return self.api.bulk_upload_response_model
+        return self.api._v1_bulk_upload_response_model
 
     @property
     def post_staff_user_model(self):

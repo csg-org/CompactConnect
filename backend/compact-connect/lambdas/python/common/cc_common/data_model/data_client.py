@@ -272,7 +272,7 @@ class DataClient:
     ):
         logger.info('Getting providers by date updated')
 
-        if jurisdiction is None and not only_providers_with_privileges_in_jurisdiction:
+        if jurisdiction is None and only_providers_with_privileges_in_jurisdiction:
             raise RuntimeError('jurisdiction is required when only_providers_with_privileges_in_jurisdiction is True')
 
         if only_providers_with_privileges_in_jurisdiction:

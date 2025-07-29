@@ -58,29 +58,28 @@ def query_jurisdiction_providers(event: dict, context: LambdaContext):  # noqa: 
         end_date_time = end_date_time.isoformat()
 
     # For jurisdiction-specific queries, we always sort by date of update
-    resp = {
-        'query': query,
-        'sorting': {'direction': sort_direction},
-        **config.data_client.get_providers_sorted_by_updated(
-            compact=compact,
-            jurisdiction=jurisdiction,
-            scan_forward=scan_forward,
-            pagination=body.get('pagination'),
-            only_providers_with_privileges_in_jurisdiction=True,
-            start_date_time=start_date_time,
-            end_date_time=end_date_time,
-        ),
-    }
+    client_resp = config.data_client.get_providers_sorted_by_updated(
+        compact=compact,
+        jurisdiction=jurisdiction,
+        scan_forward=scan_forward,
+        pagination=body.get('pagination'),
+        only_providers_with_privileges_in_jurisdiction=True,
+        start_date_time=start_date_time,
+        end_date_time=end_date_time,
+    )
 
     # Convert generic field to more specific one for this API and sanitize data
-    unsanitized_providers = resp.pop('items', [])
+    unsanitized_providers = client_resp.pop('items', [])
     # for the query endpoint, we only return generally available data, regardless of the caller's scopes
     general_schema = ProviderGeneralResponseSchema()
     sanitized_providers = [general_schema.load(provider) for provider in unsanitized_providers]
 
-    resp['providers'] = sanitized_providers
-
-    return resp
+    return {
+        'query': query,
+        'sorting': {'direction': sort_direction},
+        'providers': sanitized_providers,
+        'pagination': client_resp['pagination'],
+    }
 
 
 def _create_flattened_privilege(

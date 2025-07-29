@@ -10,7 +10,7 @@
         "type": "bearer"
     },
     "info": {
-        "_postman_id": "c0816b57-d99e-42e4-a7d0-2f731fed6216",
+        "_postman_id": "7f126156-7101-4c16-b62f-c767f296267e",
         "description": {
             "content": "",
             "type": "text/plain"
@@ -400,1144 +400,17 @@
                             "description": "",
                             "item": [
                                 {
-                                    "event": [],
-                                    "id": "18855dee-3955-4008-91a5-4b2058d6da64",
-                                    "name": "/v1/compacts/:compact",
-                                    "protocolProfileBehavior": {
-                                        "disableBodyPruning": true
-                                    },
-                                    "request": {
-                                        "auth": {
-                                            "type": "noauth"
-                                        },
-                                        "body": {},
-                                        "description": {},
-                                        "method": "OPTIONS",
-                                        "name": "/v1/compacts/:compact",
-                                        "url": {
-                                            "host": [
-                                                "{{baseUrl}}"
-                                            ],
-                                            "path": [
-                                                "v1",
-                                                "compacts",
-                                                ":compact"
-                                            ],
-                                            "query": [],
-                                            "variable": [
-                                                {
-                                                    "description": {
-                                                        "content": "(Required) ",
-                                                        "type": "text/plain"
-                                                    },
-                                                    "disabled": false,
-                                                    "key": "compact",
-                                                    "type": "any",
-                                                    "value": "<string>"
-                                                }
-                                            ]
-                                        }
-                                    },
-                                    "response": [
-                                        {
-                                            "_postman_previewlanguage": "text",
-                                            "code": 204,
-                                            "cookie": [],
-                                            "header": [
-                                                {
-                                                    "description": {
-                                                        "content": "",
-                                                        "type": "text/plain"
-                                                    },
-                                                    "disabled": false,
-                                                    "key": "Access-Control-Allow-Origin",
-                                                    "value": "<string>"
-                                                },
-                                                {
-                                                    "description": {
-                                                        "content": "",
-                                                        "type": "text/plain"
-                                                    },
-                                                    "disabled": false,
-                                                    "key": "Access-Control-Allow-Methods",
-                                                    "value": "<string>"
-                                                },
-                                                {
-                                                    "description": {
-                                                        "content": "",
-                                                        "type": "text/plain"
-                                                    },
-                                                    "disabled": false,
-                                                    "key": "Vary",
-                                                    "value": "<string>"
-                                                },
-                                                {
-                                                    "description": {
-                                                        "content": "",
-                                                        "type": "text/plain"
-                                                    },
-                                                    "disabled": false,
-                                                    "key": "Access-Control-Allow-Headers",
-                                                    "value": "<string>"
-                                                }
-                                            ],
-                                            "id": "2a0bc73a-d910-4c4b-9dd6-94ca87a1cabe",
-                                            "name": "204 response",
-                                            "originalRequest": {
-                                                "body": {},
-                                                "method": "OPTIONS",
-                                                "url": {
-                                                    "host": [
-                                                        "{{baseUrl}}"
-                                                    ],
-                                                    "path": [
-                                                        "v1",
-                                                        "compacts",
-                                                        ":compact"
-                                                    ],
-                                                    "query": [],
-                                                    "variable": []
-                                                }
-                                            },
-                                            "status": "No Content"
-                                        }
-                                    ]
-                                },
-                                {
                                     "description": "",
                                     "item": [
                                         {
                                             "description": "",
                                             "item": [
                                                 {
-                                                    "event": [],
-                                                    "id": "8ac7aaba-b170-463e-97bb-31f1f9bb33ac",
-                                                    "name": "/v1/compacts/:compact/jurisdictions/:jurisdiction",
-                                                    "protocolProfileBehavior": {
-                                                        "disableBodyPruning": true
-                                                    },
-                                                    "request": {
-                                                        "auth": {
-                                                            "type": "noauth"
-                                                        },
-                                                        "body": {},
-                                                        "description": {},
-                                                        "method": "OPTIONS",
-                                                        "name": "/v1/compacts/:compact/jurisdictions/:jurisdiction",
-                                                        "url": {
-                                                            "host": [
-                                                                "{{baseUrl}}"
-                                                            ],
-                                                            "path": [
-                                                                "v1",
-                                                                "compacts",
-                                                                ":compact",
-                                                                "jurisdictions",
-                                                                ":jurisdiction"
-                                                            ],
-                                                            "query": [],
-                                                            "variable": [
-                                                                {
-                                                                    "description": {
-                                                                        "content": "(Required) ",
-                                                                        "type": "text/plain"
-                                                                    },
-                                                                    "disabled": false,
-                                                                    "key": "compact",
-                                                                    "type": "any",
-                                                                    "value": "<string>"
-                                                                },
-                                                                {
-                                                                    "description": {
-                                                                        "content": "(Required) ",
-                                                                        "type": "text/plain"
-                                                                    },
-                                                                    "disabled": false,
-                                                                    "key": "jurisdiction",
-                                                                    "type": "any",
-                                                                    "value": "<string>"
-                                                                }
-                                                            ]
-                                                        }
-                                                    },
-                                                    "response": [
-                                                        {
-                                                            "_postman_previewlanguage": "text",
-                                                            "code": 204,
-                                                            "cookie": [],
-                                                            "header": [
-                                                                {
-                                                                    "description": {
-                                                                        "content": "",
-                                                                        "type": "text/plain"
-                                                                    },
-                                                                    "disabled": false,
-                                                                    "key": "Access-Control-Allow-Origin",
-                                                                    "value": "<string>"
-                                                                },
-                                                                {
-                                                                    "description": {
-                                                                        "content": "",
-                                                                        "type": "text/plain"
-                                                                    },
-                                                                    "disabled": false,
-                                                                    "key": "Access-Control-Allow-Methods",
-                                                                    "value": "<string>"
-                                                                },
-                                                                {
-                                                                    "description": {
-                                                                        "content": "",
-                                                                        "type": "text/plain"
-                                                                    },
-                                                                    "disabled": false,
-                                                                    "key": "Vary",
-                                                                    "value": "<string>"
-                                                                },
-                                                                {
-                                                                    "description": {
-                                                                        "content": "",
-                                                                        "type": "text/plain"
-                                                                    },
-                                                                    "disabled": false,
-                                                                    "key": "Access-Control-Allow-Headers",
-                                                                    "value": "<string>"
-                                                                }
-                                                            ],
-                                                            "id": "5b8cf1d0-edf4-4078-998d-13b633841b79",
-                                                            "name": "204 response",
-                                                            "originalRequest": {
-                                                                "body": {},
-                                                                "method": "OPTIONS",
-                                                                "url": {
-                                                                    "host": [
-                                                                        "{{baseUrl}}"
-                                                                    ],
-                                                                    "path": [
-                                                                        "v1",
-                                                                        "compacts",
-                                                                        ":compact",
-                                                                        "jurisdictions",
-                                                                        ":jurisdiction"
-                                                                    ],
-                                                                    "query": [],
-                                                                    "variable": []
-                                                                }
-                                                            },
-                                                            "status": "No Content"
-                                                        }
-                                                    ]
-                                                },
-                                                {
                                                     "description": "",
                                                     "item": [
                                                         {
-                                                            "description": "",
-                                                            "item": [
-                                                                {
-                                                                    "event": [],
-                                                                    "id": "9140807a-0e78-4f5c-be34-48ea17f59479",
-                                                                    "name": "/v1/compacts/:compact/jurisdictions/:jurisdiction/providers/query",
-                                                                    "protocolProfileBehavior": {
-                                                                        "disableBodyPruning": true
-                                                                    },
-                                                                    "request": {
-                                                                        "body": {
-                                                                            "mode": "raw",
-                                                                            "options": {
-                                                                                "raw": {
-                                                                                    "headerFamily": "json",
-                                                                                    "language": "json"
-                                                                                }
-                                                                            },
-                                                                            "raw": "{\n  \"query\": {\n    \"endDateTime\": \"2753-08-04\",\n    \"startDateTime\": \"2175-06-25\"\n  },\n  \"pagination\": {\n    \"lastKey\": \"<string>\",\n    \"pageSize\": \"<integer>\"\n  },\n  \"sorting\": {\n    \"direction\": \"ascending\"\n  }\n}"
-                                                                        },
-                                                                        "description": {},
-                                                                        "header": [
-                                                                            {
-                                                                                "key": "Content-Type",
-                                                                                "value": "application/json"
-                                                                            },
-                                                                            {
-                                                                                "key": "Accept",
-                                                                                "value": "application/json"
-                                                                            }
-                                                                        ],
-                                                                        "method": "POST",
-                                                                        "name": "/v1/compacts/:compact/jurisdictions/:jurisdiction/providers/query",
-                                                                        "url": {
-                                                                            "host": [
-                                                                                "{{baseUrl}}"
-                                                                            ],
-                                                                            "path": [
-                                                                                "v1",
-                                                                                "compacts",
-                                                                                ":compact",
-                                                                                "jurisdictions",
-                                                                                ":jurisdiction",
-                                                                                "providers",
-                                                                                "query"
-                                                                            ],
-                                                                            "query": [],
-                                                                            "variable": [
-                                                                                {
-                                                                                    "description": {
-                                                                                        "content": "(Required) ",
-                                                                                        "type": "text/plain"
-                                                                                    },
-                                                                                    "disabled": false,
-                                                                                    "key": "compact",
-                                                                                    "type": "any",
-                                                                                    "value": "<string>"
-                                                                                },
-                                                                                {
-                                                                                    "description": {
-                                                                                        "content": "(Required) ",
-                                                                                        "type": "text/plain"
-                                                                                    },
-                                                                                    "disabled": false,
-                                                                                    "key": "jurisdiction",
-                                                                                    "type": "any",
-                                                                                    "value": "<string>"
-                                                                                }
-                                                                            ]
-                                                                        }
-                                                                    },
-                                                                    "response": [
-                                                                        {
-                                                                            "_postman_previewlanguage": "json",
-                                                                            "body": "{\n  \"pagination\": {\n    \"prevLastKey\": {},\n    \"lastKey\": {},\n    \"pageSize\": \"<integer>\"\n  },\n  \"sorting\": {\n    \"direction\": \"ascending\"\n  },\n  \"providers\": [\n    {\n      \"birthMonthDay\": \"19-23\",\n      \"compact\": \"octp\",\n      \"compactEligibility\": \"eligible\",\n      \"dateOfExpiration\": \"1032-11-03\",\n      \"dateOfUpdate\": \"2757-11-24\",\n      \"familyName\": \"<string>\",\n      \"givenName\": \"<string>\",\n      \"jurisdictionUploadedCompactEligibility\": \"eligible\",\n      \"jurisdictionUploadedLicenseStatus\": \"active\",\n      \"licenseJurisdiction\": \"ut\",\n      \"licenseStatus\": \"inactive\",\n      \"privilegeJurisdictions\": [\n        \"ma\",\n        \"me\"\n      ],\n      \"providerId\": \"df0c174d-ee92-4563-98aa-809454efe848\",\n      \"type\": \"provider\",\n      \"npi\": \"5190234990\",\n      \"dateOfBirth\": \"2291-03-31\",\n      \"suffix\": \"<string>\",\n      \"ssnLastFour\": \"8543\",\n      \"middleName\": \"<string>\",\n      \"compactConnectRegisteredEmailAddress\": \"<email>\"\n    },\n    {\n      \"birthMonthDay\": \"07-39\",\n      \"compact\": \"coun\",\n      \"compactEligibility\": \"ineligible\",\n      \"dateOfExpiration\": \"1598-08-07\",\n      \"dateOfUpdate\": \"1442-11-08\",\n      \"familyName\": \"<string>\",\n      \"givenName\": \"<string>\",\n      \"jurisdictionUploadedCompactEligibility\": \"ineligible\",\n      \"jurisdictionUploadedLicenseStatus\": \"inactive\",\n      \"licenseJurisdiction\": \"wi\",\n      \"licenseStatus\": \"active\",\n      \"privilegeJurisdictions\": [\n        \"al\",\n        \"or\"\n      ],\n      \"providerId\": \"71ef9ed5-6f3e-4a6c-add4-a24150342966\",\n      \"type\": \"provider\",\n      \"npi\": \"7628481567\",\n      \"dateOfBirth\": \"2010-08-15\",\n      \"suffix\": \"<string>\",\n      \"ssnLastFour\": \"1718\",\n      \"middleName\": \"<string>\",\n      \"compactConnectRegisteredEmailAddress\": \"<email>\"\n    }\n  ]\n}",
-                                                                            "code": 200,
-                                                                            "cookie": [],
-                                                                            "header": [
-                                                                                {
-                                                                                    "key": "Content-Type",
-                                                                                    "value": "application/json"
-                                                                                }
-                                                                            ],
-                                                                            "id": "d9ea24de-47a2-463e-a754-4d81892c666d",
-                                                                            "name": "200 response",
-                                                                            "originalRequest": {
-                                                                                "body": {
-                                                                                    "mode": "raw",
-                                                                                    "options": {
-                                                                                        "raw": {
-                                                                                            "headerFamily": "json",
-                                                                                            "language": "json"
-                                                                                        }
-                                                                                    },
-                                                                                    "raw": "{\n  \"query\": {\n    \"endDateTime\": \"2753-08-04\",\n    \"startDateTime\": \"2175-06-25\"\n  },\n  \"pagination\": {\n    \"lastKey\": \"<string>\",\n    \"pageSize\": \"<integer>\"\n  },\n  \"sorting\": {\n    \"direction\": \"ascending\"\n  }\n}"
-                                                                                },
-                                                                                "header": [
-                                                                                    {
-                                                                                        "key": "Content-Type",
-                                                                                        "value": "application/json"
-                                                                                    },
-                                                                                    {
-                                                                                        "key": "Accept",
-                                                                                        "value": "application/json"
-                                                                                    },
-                                                                                    {
-                                                                                        "description": {
-                                                                                            "content": "Added as a part of security scheme: apikey",
-                                                                                            "type": "text/plain"
-                                                                                        },
-                                                                                        "key": "Authorization",
-                                                                                        "value": "<API Key>"
-                                                                                    }
-                                                                                ],
-                                                                                "method": "POST",
-                                                                                "url": {
-                                                                                    "host": [
-                                                                                        "{{baseUrl}}"
-                                                                                    ],
-                                                                                    "path": [
-                                                                                        "v1",
-                                                                                        "compacts",
-                                                                                        ":compact",
-                                                                                        "jurisdictions",
-                                                                                        ":jurisdiction",
-                                                                                        "providers",
-                                                                                        "query"
-                                                                                    ],
-                                                                                    "query": [],
-                                                                                    "variable": []
-                                                                                }
-                                                                            },
-                                                                            "status": "OK"
-                                                                        }
-                                                                    ]
-                                                                },
-                                                                {
-                                                                    "event": [],
-                                                                    "id": "4ea8c191-4769-493f-8af3-39df77b4d4ae",
-                                                                    "name": "/v1/compacts/:compact/jurisdictions/:jurisdiction/providers/query",
-                                                                    "protocolProfileBehavior": {
-                                                                        "disableBodyPruning": true
-                                                                    },
-                                                                    "request": {
-                                                                        "auth": {
-                                                                            "type": "noauth"
-                                                                        },
-                                                                        "body": {},
-                                                                        "description": {},
-                                                                        "method": "OPTIONS",
-                                                                        "name": "/v1/compacts/:compact/jurisdictions/:jurisdiction/providers/query",
-                                                                        "url": {
-                                                                            "host": [
-                                                                                "{{baseUrl}}"
-                                                                            ],
-                                                                            "path": [
-                                                                                "v1",
-                                                                                "compacts",
-                                                                                ":compact",
-                                                                                "jurisdictions",
-                                                                                ":jurisdiction",
-                                                                                "providers",
-                                                                                "query"
-                                                                            ],
-                                                                            "query": [],
-                                                                            "variable": [
-                                                                                {
-                                                                                    "description": {
-                                                                                        "content": "(Required) ",
-                                                                                        "type": "text/plain"
-                                                                                    },
-                                                                                    "disabled": false,
-                                                                                    "key": "compact",
-                                                                                    "type": "any",
-                                                                                    "value": "<string>"
-                                                                                },
-                                                                                {
-                                                                                    "description": {
-                                                                                        "content": "(Required) ",
-                                                                                        "type": "text/plain"
-                                                                                    },
-                                                                                    "disabled": false,
-                                                                                    "key": "jurisdiction",
-                                                                                    "type": "any",
-                                                                                    "value": "<string>"
-                                                                                }
-                                                                            ]
-                                                                        }
-                                                                    },
-                                                                    "response": [
-                                                                        {
-                                                                            "_postman_previewlanguage": "text",
-                                                                            "code": 204,
-                                                                            "cookie": [],
-                                                                            "header": [
-                                                                                {
-                                                                                    "description": {
-                                                                                        "content": "",
-                                                                                        "type": "text/plain"
-                                                                                    },
-                                                                                    "disabled": false,
-                                                                                    "key": "Access-Control-Allow-Origin",
-                                                                                    "value": "<string>"
-                                                                                },
-                                                                                {
-                                                                                    "description": {
-                                                                                        "content": "",
-                                                                                        "type": "text/plain"
-                                                                                    },
-                                                                                    "disabled": false,
-                                                                                    "key": "Access-Control-Allow-Methods",
-                                                                                    "value": "<string>"
-                                                                                },
-                                                                                {
-                                                                                    "description": {
-                                                                                        "content": "",
-                                                                                        "type": "text/plain"
-                                                                                    },
-                                                                                    "disabled": false,
-                                                                                    "key": "Vary",
-                                                                                    "value": "<string>"
-                                                                                },
-                                                                                {
-                                                                                    "description": {
-                                                                                        "content": "",
-                                                                                        "type": "text/plain"
-                                                                                    },
-                                                                                    "disabled": false,
-                                                                                    "key": "Access-Control-Allow-Headers",
-                                                                                    "value": "<string>"
-                                                                                }
-                                                                            ],
-                                                                            "id": "0e5fee07-7871-420c-b887-8aefd3f07dfc",
-                                                                            "name": "204 response",
-                                                                            "originalRequest": {
-                                                                                "body": {},
-                                                                                "method": "OPTIONS",
-                                                                                "url": {
-                                                                                    "host": [
-                                                                                        "{{baseUrl}}"
-                                                                                    ],
-                                                                                    "path": [
-                                                                                        "v1",
-                                                                                        "compacts",
-                                                                                        ":compact",
-                                                                                        "jurisdictions",
-                                                                                        ":jurisdiction",
-                                                                                        "providers",
-                                                                                        "query"
-                                                                                    ],
-                                                                                    "query": [],
-                                                                                    "variable": []
-                                                                                }
-                                                                            },
-                                                                            "status": "No Content"
-                                                                        }
-                                                                    ]
-                                                                }
-                                                            ],
-                                                            "name": "query"
-                                                        },
-                                                        {
-                                                            "description": "",
-                                                            "item": [
-                                                                {
-                                                                    "event": [],
-                                                                    "id": "0430cb28-943a-4643-8948-21439226299a",
-                                                                    "name": "/v1/compacts/:compact/jurisdictions/:jurisdiction/providers/:providerId",
-                                                                    "protocolProfileBehavior": {
-                                                                        "disableBodyPruning": true
-                                                                    },
-                                                                    "request": {
-                                                                        "body": {},
-                                                                        "description": {},
-                                                                        "header": [
-                                                                            {
-                                                                                "key": "Accept",
-                                                                                "value": "application/json"
-                                                                            }
-                                                                        ],
-                                                                        "method": "GET",
-                                                                        "name": "/v1/compacts/:compact/jurisdictions/:jurisdiction/providers/:providerId",
-                                                                        "url": {
-                                                                            "host": [
-                                                                                "{{baseUrl}}"
-                                                                            ],
-                                                                            "path": [
-                                                                                "v1",
-                                                                                "compacts",
-                                                                                ":compact",
-                                                                                "jurisdictions",
-                                                                                ":jurisdiction",
-                                                                                "providers",
-                                                                                ":providerId"
-                                                                            ],
-                                                                            "query": [],
-                                                                            "variable": [
-                                                                                {
-                                                                                    "description": {
-                                                                                        "content": "(Required) ",
-                                                                                        "type": "text/plain"
-                                                                                    },
-                                                                                    "disabled": false,
-                                                                                    "key": "compact",
-                                                                                    "type": "any",
-                                                                                    "value": "<string>"
-                                                                                },
-                                                                                {
-                                                                                    "description": {
-                                                                                        "content": "(Required) ",
-                                                                                        "type": "text/plain"
-                                                                                    },
-                                                                                    "disabled": false,
-                                                                                    "key": "jurisdiction",
-                                                                                    "type": "any",
-                                                                                    "value": "<string>"
-                                                                                },
-                                                                                {
-                                                                                    "description": {
-                                                                                        "content": "(Required) ",
-                                                                                        "type": "text/plain"
-                                                                                    },
-                                                                                    "disabled": false,
-                                                                                    "key": "providerId",
-                                                                                    "type": "any",
-                                                                                    "value": "<string>"
-                                                                                }
-                                                                            ]
-                                                                        }
-                                                                    },
-                                                                    "response": [
-                                                                        {
-                                                                            "_postman_previewlanguage": "json",
-                                                                            "body": "{\n  \"privileges\": [\n    {\n      \"compact\": \"aslp\",\n      \"compactEligibility\": \"ineligible\",\n      \"dateOfExpiration\": \"1810-11-30\",\n      \"dateOfIssuance\": \"1542-11-03\",\n      \"dateOfRenewal\": \"1872-10-28\",\n      \"dateOfUpdate\": \"1624-07-17\",\n      \"familyName\": \"<string>\",\n      \"givenName\": \"<string>\",\n      \"jurisdiction\": \"oh\",\n      \"licenseJurisdiction\": \"hi\",\n      \"licenseStatus\": \"active\",\n      \"licenseType\": \"licensed professional counselor\",\n      \"privilegeId\": \"<string>\",\n      \"providerId\": \"c362a186-be87-493d-8a24-64c0d8c5a4df\",\n      \"status\": \"active\",\n      \"type\": \"statePrivilege\",\n      \"homeAddressStreet2\": \"<string>\",\n      \"homeAddressStreet1\": \"<string>\",\n      \"suffix\": \"<string>\",\n      \"emailAddress\": \"<email>\",\n      \"homeAddressState\": \"<string>\",\n      \"homeAddressCity\": \"<string>\",\n      \"licenseNumber\": \"<string>\",\n      \"compactConnectRegisteredEmailAddress\": \"<email>\",\n      \"npi\": \"5459956772\",\n      \"homeAddressPostalCode\": \"<string>\",\n      \"dateOfBirth\": \"1079-11-07\",\n      \"ssnLastFour\": \"9659\",\n      \"phoneNumber\": \"+671091614\",\n      \"middleName\": \"<string>\",\n      \"licenseStatusName\": \"<string>\"\n    },\n    {\n      \"compact\": \"coun\",\n      \"compactEligibility\": \"ineligible\",\n      \"dateOfExpiration\": \"2810-10-21\",\n      \"dateOfIssuance\": \"1726-12-12\",\n      \"dateOfRenewal\": \"1622-11-04\",\n      \"dateOfUpdate\": \"1319-01-04\",\n      \"familyName\": \"<string>\",\n      \"givenName\": \"<string>\",\n      \"jurisdiction\": \"mn\",\n      \"licenseJurisdiction\": \"de\",\n      \"licenseStatus\": \"inactive\",\n      \"licenseType\": \"licensed professional counselor\",\n      \"privilegeId\": \"<string>\",\n      \"providerId\": \"3446961d-8430-4cce-a0b6-78d86d41df6c\",\n      \"status\": \"inactive\",\n      \"type\": \"statePrivilege\",\n      \"homeAddressStreet2\": \"<string>\",\n      \"homeAddressStreet1\": \"<string>\",\n      \"suffix\": \"<string>\",\n      \"emailAddress\": \"<email>\",\n      \"homeAddressState\": \"<string>\",\n      \"homeAddressCity\": \"<string>\",\n      \"licenseNumber\": \"<string>\",\n      \"compactConnectRegisteredEmailAddress\": \"<email>\",\n      \"npi\": \"0288961390\",\n      \"homeAddressPostalCode\": \"<string>\",\n      \"dateOfBirth\": \"2878-08-25\",\n      \"ssnLastFour\": \"4144\",\n      \"phoneNumber\": \"+853720265611434\",\n      \"middleName\": \"<string>\",\n      \"licenseStatusName\": \"<string>\"\n    }\n  ],\n  \"providerUIUrl\": \"<uri>\"\n}",
-                                                                            "code": 200,
-                                                                            "cookie": [],
-                                                                            "header": [
-                                                                                {
-                                                                                    "key": "Content-Type",
-                                                                                    "value": "application/json"
-                                                                                }
-                                                                            ],
-                                                                            "id": "e532b6da-51c4-4d8c-849a-5b3287b250cc",
-                                                                            "name": "200 response",
-                                                                            "originalRequest": {
-                                                                                "body": {},
-                                                                                "header": [
-                                                                                    {
-                                                                                        "key": "Accept",
-                                                                                        "value": "application/json"
-                                                                                    },
-                                                                                    {
-                                                                                        "description": {
-                                                                                            "content": "Added as a part of security scheme: apikey",
-                                                                                            "type": "text/plain"
-                                                                                        },
-                                                                                        "key": "Authorization",
-                                                                                        "value": "<API Key>"
-                                                                                    }
-                                                                                ],
-                                                                                "method": "GET",
-                                                                                "url": {
-                                                                                    "host": [
-                                                                                        "{{baseUrl}}"
-                                                                                    ],
-                                                                                    "path": [
-                                                                                        "v1",
-                                                                                        "compacts",
-                                                                                        ":compact",
-                                                                                        "jurisdictions",
-                                                                                        ":jurisdiction",
-                                                                                        "providers",
-                                                                                        ":providerId"
-                                                                                    ],
-                                                                                    "query": [],
-                                                                                    "variable": []
-                                                                                }
-                                                                            },
-                                                                            "status": "OK"
-                                                                        }
-                                                                    ]
-                                                                },
-                                                                {
-                                                                    "event": [],
-                                                                    "id": "a0483d6b-2dd5-439b-adca-c35727cc1d27",
-                                                                    "name": "/v1/compacts/:compact/jurisdictions/:jurisdiction/providers/:providerId",
-                                                                    "protocolProfileBehavior": {
-                                                                        "disableBodyPruning": true
-                                                                    },
-                                                                    "request": {
-                                                                        "auth": {
-                                                                            "type": "noauth"
-                                                                        },
-                                                                        "body": {},
-                                                                        "description": {},
-                                                                        "method": "OPTIONS",
-                                                                        "name": "/v1/compacts/:compact/jurisdictions/:jurisdiction/providers/:providerId",
-                                                                        "url": {
-                                                                            "host": [
-                                                                                "{{baseUrl}}"
-                                                                            ],
-                                                                            "path": [
-                                                                                "v1",
-                                                                                "compacts",
-                                                                                ":compact",
-                                                                                "jurisdictions",
-                                                                                ":jurisdiction",
-                                                                                "providers",
-                                                                                ":providerId"
-                                                                            ],
-                                                                            "query": [],
-                                                                            "variable": [
-                                                                                {
-                                                                                    "description": {
-                                                                                        "content": "(Required) ",
-                                                                                        "type": "text/plain"
-                                                                                    },
-                                                                                    "disabled": false,
-                                                                                    "key": "compact",
-                                                                                    "type": "any",
-                                                                                    "value": "<string>"
-                                                                                },
-                                                                                {
-                                                                                    "description": {
-                                                                                        "content": "(Required) ",
-                                                                                        "type": "text/plain"
-                                                                                    },
-                                                                                    "disabled": false,
-                                                                                    "key": "jurisdiction",
-                                                                                    "type": "any",
-                                                                                    "value": "<string>"
-                                                                                },
-                                                                                {
-                                                                                    "description": {
-                                                                                        "content": "(Required) ",
-                                                                                        "type": "text/plain"
-                                                                                    },
-                                                                                    "disabled": false,
-                                                                                    "key": "providerId",
-                                                                                    "type": "any",
-                                                                                    "value": "<string>"
-                                                                                }
-                                                                            ]
-                                                                        }
-                                                                    },
-                                                                    "response": [
-                                                                        {
-                                                                            "_postman_previewlanguage": "text",
-                                                                            "code": 204,
-                                                                            "cookie": [],
-                                                                            "header": [
-                                                                                {
-                                                                                    "description": {
-                                                                                        "content": "",
-                                                                                        "type": "text/plain"
-                                                                                    },
-                                                                                    "disabled": false,
-                                                                                    "key": "Access-Control-Allow-Origin",
-                                                                                    "value": "<string>"
-                                                                                },
-                                                                                {
-                                                                                    "description": {
-                                                                                        "content": "",
-                                                                                        "type": "text/plain"
-                                                                                    },
-                                                                                    "disabled": false,
-                                                                                    "key": "Access-Control-Allow-Methods",
-                                                                                    "value": "<string>"
-                                                                                },
-                                                                                {
-                                                                                    "description": {
-                                                                                        "content": "",
-                                                                                        "type": "text/plain"
-                                                                                    },
-                                                                                    "disabled": false,
-                                                                                    "key": "Vary",
-                                                                                    "value": "<string>"
-                                                                                },
-                                                                                {
-                                                                                    "description": {
-                                                                                        "content": "",
-                                                                                        "type": "text/plain"
-                                                                                    },
-                                                                                    "disabled": false,
-                                                                                    "key": "Access-Control-Allow-Headers",
-                                                                                    "value": "<string>"
-                                                                                }
-                                                                            ],
-                                                                            "id": "a956ed44-dd17-4ba0-89d2-0e274cc9ea0b",
-                                                                            "name": "204 response",
-                                                                            "originalRequest": {
-                                                                                "body": {},
-                                                                                "method": "OPTIONS",
-                                                                                "url": {
-                                                                                    "host": [
-                                                                                        "{{baseUrl}}"
-                                                                                    ],
-                                                                                    "path": [
-                                                                                        "v1",
-                                                                                        "compacts",
-                                                                                        ":compact",
-                                                                                        "jurisdictions",
-                                                                                        ":jurisdiction",
-                                                                                        "providers",
-                                                                                        ":providerId"
-                                                                                    ],
-                                                                                    "query": [],
-                                                                                    "variable": []
-                                                                                }
-                                                                            },
-                                                                            "status": "No Content"
-                                                                        }
-                                                                    ]
-                                                                }
-                                                            ],
-                                                            "name": "{providerId}"
-                                                        },
-                                                        {
                                                             "event": [],
-                                                            "id": "1a1b9654-a0b9-4b14-904e-e40ab1ff61da",
-                                                            "name": "/v1/compacts/:compact/jurisdictions/:jurisdiction/providers",
-                                                            "protocolProfileBehavior": {
-                                                                "disableBodyPruning": true
-                                                            },
-                                                            "request": {
-                                                                "auth": {
-                                                                    "type": "noauth"
-                                                                },
-                                                                "body": {},
-                                                                "description": {},
-                                                                "method": "OPTIONS",
-                                                                "name": "/v1/compacts/:compact/jurisdictions/:jurisdiction/providers",
-                                                                "url": {
-                                                                    "host": [
-                                                                        "{{baseUrl}}"
-                                                                    ],
-                                                                    "path": [
-                                                                        "v1",
-                                                                        "compacts",
-                                                                        ":compact",
-                                                                        "jurisdictions",
-                                                                        ":jurisdiction",
-                                                                        "providers"
-                                                                    ],
-                                                                    "query": [],
-                                                                    "variable": [
-                                                                        {
-                                                                            "description": {
-                                                                                "content": "(Required) ",
-                                                                                "type": "text/plain"
-                                                                            },
-                                                                            "disabled": false,
-                                                                            "key": "compact",
-                                                                            "type": "any",
-                                                                            "value": "<string>"
-                                                                        },
-                                                                        {
-                                                                            "description": {
-                                                                                "content": "(Required) ",
-                                                                                "type": "text/plain"
-                                                                            },
-                                                                            "disabled": false,
-                                                                            "key": "jurisdiction",
-                                                                            "type": "any",
-                                                                            "value": "<string>"
-                                                                        }
-                                                                    ]
-                                                                }
-                                                            },
-                                                            "response": [
-                                                                {
-                                                                    "_postman_previewlanguage": "text",
-                                                                    "code": 204,
-                                                                    "cookie": [],
-                                                                    "header": [
-                                                                        {
-                                                                            "description": {
-                                                                                "content": "",
-                                                                                "type": "text/plain"
-                                                                            },
-                                                                            "disabled": false,
-                                                                            "key": "Access-Control-Allow-Origin",
-                                                                            "value": "<string>"
-                                                                        },
-                                                                        {
-                                                                            "description": {
-                                                                                "content": "",
-                                                                                "type": "text/plain"
-                                                                            },
-                                                                            "disabled": false,
-                                                                            "key": "Access-Control-Allow-Methods",
-                                                                            "value": "<string>"
-                                                                        },
-                                                                        {
-                                                                            "description": {
-                                                                                "content": "",
-                                                                                "type": "text/plain"
-                                                                            },
-                                                                            "disabled": false,
-                                                                            "key": "Vary",
-                                                                            "value": "<string>"
-                                                                        },
-                                                                        {
-                                                                            "description": {
-                                                                                "content": "",
-                                                                                "type": "text/plain"
-                                                                            },
-                                                                            "disabled": false,
-                                                                            "key": "Access-Control-Allow-Headers",
-                                                                            "value": "<string>"
-                                                                        }
-                                                                    ],
-                                                                    "id": "8f0aeb51-2bc4-4599-bcda-2e314ab72fe2",
-                                                                    "name": "204 response",
-                                                                    "originalRequest": {
-                                                                        "body": {},
-                                                                        "method": "OPTIONS",
-                                                                        "url": {
-                                                                            "host": [
-                                                                                "{{baseUrl}}"
-                                                                            ],
-                                                                            "path": [
-                                                                                "v1",
-                                                                                "compacts",
-                                                                                ":compact",
-                                                                                "jurisdictions",
-                                                                                ":jurisdiction",
-                                                                                "providers"
-                                                                            ],
-                                                                            "query": [],
-                                                                            "variable": []
-                                                                        }
-                                                                    },
-                                                                    "status": "No Content"
-                                                                }
-                                                            ]
-                                                        }
-                                                    ],
-                                                    "name": "providers"
-                                                },
-                                                {
-                                                    "description": "",
-                                                    "item": [
-                                                        {
-                                                            "description": "",
-                                                            "item": [
-                                                                {
-                                                                    "event": [
-                                                                        {
-                                                                            "listen": "test",
-                                                                            "script": {
-                                                                                "exec": [
-                                                                                    "pm.test('URL returned', () => {",
-                                                                                    "    var url = pm.response.json().upload.url;",
-                                                                                    "    pm.expect(url).not.to.be.empty;",
-                                                                                    "    pm.environment.set(\"docUrl\", url);",
-                                                                                    "    console.log('Upload url: ' + url);",
-                                                                                    "});",
-                                                                                    "",
-                                                                                    "pm.test('Fields returned', () => {",
-                                                                                    "    var fields = pm.response.json().upload.fields;",
-                                                                                    "    pm.expect(fields).not.to.be.empty;",
-                                                                                    "    for (const [key, value] of Object.entries(fields)) {",
-                                                                                    "        pm.environment.set(`docField-${key}`, value);",
-                                                                                    "        console.log(`Doc field \"${key}\": ${value}`);",
-                                                                                    "    }",
-                                                                                    "});"
-                                                                                ],
-                                                                                "packages": {},
-                                                                                "type": "text/javascript"
-                                                                            }
-                                                                        }
-                                                                    ],
-                                                                    "id": "1b6397ba-7582-47c4-8a4c-6ad1844c8224",
-                                                                    "name": "/v1/compacts/:compact/jurisdictions/:jurisdiction/licenses/bulk-upload",
-                                                                    "protocolProfileBehavior": {
-                                                                        "disableBodyPruning": true
-                                                                    },
-                                                                    "request": {
-                                                                        "body": {},
-                                                                        "description": {},
-                                                                        "header": [
-                                                                            {
-                                                                                "key": "Accept",
-                                                                                "value": "application/json"
-                                                                            }
-                                                                        ],
-                                                                        "method": "GET",
-                                                                        "name": "/v1/compacts/:compact/jurisdictions/:jurisdiction/licenses/bulk-upload",
-                                                                        "url": {
-                                                                            "host": [
-                                                                                "{{baseUrl}}"
-                                                                            ],
-                                                                            "path": [
-                                                                                "v1",
-                                                                                "compacts",
-                                                                                ":compact",
-                                                                                "jurisdictions",
-                                                                                ":jurisdiction",
-                                                                                "licenses",
-                                                                                "bulk-upload"
-                                                                            ],
-                                                                            "query": [],
-                                                                            "variable": [
-                                                                                {
-                                                                                    "description": {
-                                                                                        "content": "(Required) ",
-                                                                                        "type": "text/plain"
-                                                                                    },
-                                                                                    "disabled": false,
-                                                                                    "key": "compact",
-                                                                                    "type": "any",
-                                                                                    "value": "<string>"
-                                                                                },
-                                                                                {
-                                                                                    "description": {
-                                                                                        "content": "(Required) ",
-                                                                                        "type": "text/plain"
-                                                                                    },
-                                                                                    "disabled": false,
-                                                                                    "key": "jurisdiction",
-                                                                                    "type": "any",
-                                                                                    "value": "<string>"
-                                                                                }
-                                                                            ]
-                                                                        }
-                                                                    },
-                                                                    "response": [
-                                                                        {
-                                                                            "_postman_previewlanguage": "json",
-                                                                            "body": "{\n  \"fields\": {\n    \"velit88\": \"<string>\",\n    \"reprehenderit3\": \"<string>\"\n  },\n  \"url\": \"<string>\"\n}",
-                                                                            "code": 200,
-                                                                            "cookie": [],
-                                                                            "header": [
-                                                                                {
-                                                                                    "key": "Content-Type",
-                                                                                    "value": "application/json"
-                                                                                }
-                                                                            ],
-                                                                            "id": "a2204990-bf79-45d2-a01e-c0920a593c96",
-                                                                            "name": "200 response",
-                                                                            "originalRequest": {
-                                                                                "body": {},
-                                                                                "header": [
-                                                                                    {
-                                                                                        "key": "Accept",
-                                                                                        "value": "application/json"
-                                                                                    },
-                                                                                    {
-                                                                                        "description": {
-                                                                                            "content": "Added as a part of security scheme: apikey",
-                                                                                            "type": "text/plain"
-                                                                                        },
-                                                                                        "key": "Authorization",
-                                                                                        "value": "<API Key>"
-                                                                                    }
-                                                                                ],
-                                                                                "method": "GET",
-                                                                                "url": {
-                                                                                    "host": [
-                                                                                        "{{baseUrl}}"
-                                                                                    ],
-                                                                                    "path": [
-                                                                                        "v1",
-                                                                                        "compacts",
-                                                                                        ":compact",
-                                                                                        "jurisdictions",
-                                                                                        ":jurisdiction",
-                                                                                        "licenses",
-                                                                                        "bulk-upload"
-                                                                                    ],
-                                                                                    "query": [],
-                                                                                    "variable": []
-                                                                                }
-                                                                            },
-                                                                            "status": "OK"
-                                                                        }
-                                                                    ]
-                                                                },
-                                                                {
-                                                                    "event": [],
-                                                                    "id": "cb8208ac-4d15-4c61-bcd8-882170bd1716",
-                                                                    "name": "/v1/compacts/:compact/jurisdictions/:jurisdiction/licenses/bulk-upload",
-                                                                    "protocolProfileBehavior": {
-                                                                        "disableBodyPruning": true
-                                                                    },
-                                                                    "request": {
-                                                                        "auth": {
-                                                                            "type": "noauth"
-                                                                        },
-                                                                        "body": {},
-                                                                        "description": {},
-                                                                        "method": "OPTIONS",
-                                                                        "name": "/v1/compacts/:compact/jurisdictions/:jurisdiction/licenses/bulk-upload",
-                                                                        "url": {
-                                                                            "host": [
-                                                                                "{{baseUrl}}"
-                                                                            ],
-                                                                            "path": [
-                                                                                "v1",
-                                                                                "compacts",
-                                                                                ":compact",
-                                                                                "jurisdictions",
-                                                                                ":jurisdiction",
-                                                                                "licenses",
-                                                                                "bulk-upload"
-                                                                            ],
-                                                                            "query": [],
-                                                                            "variable": [
-                                                                                {
-                                                                                    "description": {
-                                                                                        "content": "(Required) ",
-                                                                                        "type": "text/plain"
-                                                                                    },
-                                                                                    "disabled": false,
-                                                                                    "key": "compact",
-                                                                                    "type": "any",
-                                                                                    "value": "<string>"
-                                                                                },
-                                                                                {
-                                                                                    "description": {
-                                                                                        "content": "(Required) ",
-                                                                                        "type": "text/plain"
-                                                                                    },
-                                                                                    "disabled": false,
-                                                                                    "key": "jurisdiction",
-                                                                                    "type": "any",
-                                                                                    "value": "<string>"
-                                                                                }
-                                                                            ]
-                                                                        }
-                                                                    },
-                                                                    "response": [
-                                                                        {
-                                                                            "_postman_previewlanguage": "text",
-                                                                            "code": 204,
-                                                                            "cookie": [],
-                                                                            "header": [
-                                                                                {
-                                                                                    "description": {
-                                                                                        "content": "",
-                                                                                        "type": "text/plain"
-                                                                                    },
-                                                                                    "disabled": false,
-                                                                                    "key": "Access-Control-Allow-Origin",
-                                                                                    "value": "<string>"
-                                                                                },
-                                                                                {
-                                                                                    "description": {
-                                                                                        "content": "",
-                                                                                        "type": "text/plain"
-                                                                                    },
-                                                                                    "disabled": false,
-                                                                                    "key": "Access-Control-Allow-Methods",
-                                                                                    "value": "<string>"
-                                                                                },
-                                                                                {
-                                                                                    "description": {
-                                                                                        "content": "",
-                                                                                        "type": "text/plain"
-                                                                                    },
-                                                                                    "disabled": false,
-                                                                                    "key": "Vary",
-                                                                                    "value": "<string>"
-                                                                                },
-                                                                                {
-                                                                                    "description": {
-                                                                                        "content": "",
-                                                                                        "type": "text/plain"
-                                                                                    },
-                                                                                    "disabled": false,
-                                                                                    "key": "Access-Control-Allow-Headers",
-                                                                                    "value": "<string>"
-                                                                                }
-                                                                            ],
-                                                                            "id": "a8fac723-acbc-41fa-84b1-d377dd2cadc5",
-                                                                            "name": "204 response",
-                                                                            "originalRequest": {
-                                                                                "body": {},
-                                                                                "method": "OPTIONS",
-                                                                                "url": {
-                                                                                    "host": [
-                                                                                        "{{baseUrl}}"
-                                                                                    ],
-                                                                                    "path": [
-                                                                                        "v1",
-                                                                                        "compacts",
-                                                                                        ":compact",
-                                                                                        "jurisdictions",
-                                                                                        ":jurisdiction",
-                                                                                        "licenses",
-                                                                                        "bulk-upload"
-                                                                                    ],
-                                                                                    "query": [],
-                                                                                    "variable": []
-                                                                                }
-                                                                            },
-                                                                            "status": "No Content"
-                                                                        }
-                                                                    ]
-                                                                }
-                                                            ],
-                                                            "name": "bulk-upload"
-                                                        },
-                                                        {
-                                                            "event": [],
-                                                            "id": "90dc907a-b386-40f8-a605-bdf0f3655851",
+                                                            "id": "ba504514-f8d3-4558-b903-fd815a069255",
                                                             "name": "/v1/compacts/:compact/jurisdictions/:jurisdiction/licenses",
                                                             "protocolProfileBehavior": {
                                                                 "disableBodyPruning": true
@@ -1551,7 +424,7 @@
                                                                             "language": "json"
                                                                         }
                                                                     },
-                                                                    "raw": "[\n  {\n    \"compactEligibility\": \"eligible\",\n    \"dateOfBirth\": \"2274-08-03\",\n    \"dateOfExpiration\": \"1625-10-13\",\n    \"dateOfIssuance\": \"2414-05-02\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeAddressCity\": \"<string>\",\n    \"homeAddressPostalCode\": \"<string>\",\n    \"homeAddressState\": \"<string>\",\n    \"homeAddressStreet1\": \"<string>\",\n    \"licenseStatus\": \"inactive\",\n    \"licenseType\": \"speech-language pathologist\",\n    \"ssn\": \"975-13-7202\",\n    \"homeAddressStreet2\": \"<string>\",\n    \"npi\": \"4512149991\",\n    \"suffix\": \"<string>\",\n    \"emailAddress\": \"<email>\",\n    \"phoneNumber\": \"+263112382099\",\n    \"dateOfRenewal\": \"2162-08-20\",\n    \"licenseNumber\": \"<string>\",\n    \"middleName\": \"<string>\",\n    \"licenseStatusName\": \"<string>\"\n  },\n  {\n    \"compactEligibility\": \"eligible\",\n    \"dateOfBirth\": \"1775-12-27\",\n    \"dateOfExpiration\": \"1959-11-30\",\n    \"dateOfIssuance\": \"1644-12-24\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeAddressCity\": \"<string>\",\n    \"homeAddressPostalCode\": \"<string>\",\n    \"homeAddressState\": \"<string>\",\n    \"homeAddressStreet1\": \"<string>\",\n    \"licenseStatus\": \"active\",\n    \"licenseType\": \"licensed professional counselor\",\n    \"ssn\": \"956-95-8098\",\n    \"homeAddressStreet2\": \"<string>\",\n    \"npi\": \"1562464208\",\n    \"suffix\": \"<string>\",\n    \"emailAddress\": \"<email>\",\n    \"phoneNumber\": \"+32855636229615\",\n    \"dateOfRenewal\": \"1505-03-06\",\n    \"licenseNumber\": \"<string>\",\n    \"middleName\": \"<string>\",\n    \"licenseStatusName\": \"<string>\"\n  }\n]"
+                                                                    "raw": "[\n  {\n    \"compactEligibility\": \"ineligible\",\n    \"dateOfBirth\": \"2740-11-30\",\n    \"dateOfExpiration\": \"1298-06-26\",\n    \"dateOfIssuance\": \"2405-09-18\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeAddressCity\": \"<string>\",\n    \"homeAddressPostalCode\": \"<string>\",\n    \"homeAddressState\": \"<string>\",\n    \"homeAddressStreet1\": \"<string>\",\n    \"licenseStatus\": \"inactive\",\n    \"licenseType\": \"occupational therapy assistant\",\n    \"ssn\": \"547-52-2980\",\n    \"homeAddressStreet2\": \"<string>\",\n    \"npi\": \"1544436342\",\n    \"suffix\": \"<string>\",\n    \"emailAddress\": \"<email>\",\n    \"phoneNumber\": \"+5115189572\",\n    \"dateOfRenewal\": \"1490-09-16\",\n    \"licenseNumber\": \"<string>\",\n    \"middleName\": \"<string>\",\n    \"licenseStatusName\": \"<string>\"\n  },\n  {\n    \"compactEligibility\": \"eligible\",\n    \"dateOfBirth\": \"2730-03-17\",\n    \"dateOfExpiration\": \"2744-04-21\",\n    \"dateOfIssuance\": \"2528-03-17\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeAddressCity\": \"<string>\",\n    \"homeAddressPostalCode\": \"<string>\",\n    \"homeAddressState\": \"<string>\",\n    \"homeAddressStreet1\": \"<string>\",\n    \"licenseStatus\": \"active\",\n    \"licenseType\": \"speech-language pathologist\",\n    \"ssn\": \"368-12-2050\",\n    \"homeAddressStreet2\": \"<string>\",\n    \"npi\": \"9356947811\",\n    \"suffix\": \"<string>\",\n    \"emailAddress\": \"<email>\",\n    \"phoneNumber\": \"+206468993404319\",\n    \"dateOfRenewal\": \"2119-12-04\",\n    \"licenseNumber\": \"<string>\",\n    \"middleName\": \"<string>\",\n    \"licenseStatusName\": \"<string>\"\n  }\n]"
                                                                 },
                                                                 "description": {},
                                                                 "header": [
@@ -1615,7 +488,7 @@
                                                                             "value": "application/json"
                                                                         }
                                                                     ],
-                                                                    "id": "fbde5488-30fb-41ae-8003-c566e62e26d0",
+                                                                    "id": "965e714a-0569-4273-a29d-da3be1b05ea1",
                                                                     "name": "200 response",
                                                                     "originalRequest": {
                                                                         "body": {
@@ -1626,7 +499,7 @@
                                                                                     "language": "json"
                                                                                 }
                                                                             },
-                                                                            "raw": "[\n  {\n    \"compactEligibility\": \"eligible\",\n    \"dateOfBirth\": \"2274-08-03\",\n    \"dateOfExpiration\": \"1625-10-13\",\n    \"dateOfIssuance\": \"2414-05-02\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeAddressCity\": \"<string>\",\n    \"homeAddressPostalCode\": \"<string>\",\n    \"homeAddressState\": \"<string>\",\n    \"homeAddressStreet1\": \"<string>\",\n    \"licenseStatus\": \"inactive\",\n    \"licenseType\": \"speech-language pathologist\",\n    \"ssn\": \"975-13-7202\",\n    \"homeAddressStreet2\": \"<string>\",\n    \"npi\": \"4512149991\",\n    \"suffix\": \"<string>\",\n    \"emailAddress\": \"<email>\",\n    \"phoneNumber\": \"+263112382099\",\n    \"dateOfRenewal\": \"2162-08-20\",\n    \"licenseNumber\": \"<string>\",\n    \"middleName\": \"<string>\",\n    \"licenseStatusName\": \"<string>\"\n  },\n  {\n    \"compactEligibility\": \"eligible\",\n    \"dateOfBirth\": \"1775-12-27\",\n    \"dateOfExpiration\": \"1959-11-30\",\n    \"dateOfIssuance\": \"1644-12-24\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeAddressCity\": \"<string>\",\n    \"homeAddressPostalCode\": \"<string>\",\n    \"homeAddressState\": \"<string>\",\n    \"homeAddressStreet1\": \"<string>\",\n    \"licenseStatus\": \"active\",\n    \"licenseType\": \"licensed professional counselor\",\n    \"ssn\": \"956-95-8098\",\n    \"homeAddressStreet2\": \"<string>\",\n    \"npi\": \"1562464208\",\n    \"suffix\": \"<string>\",\n    \"emailAddress\": \"<email>\",\n    \"phoneNumber\": \"+32855636229615\",\n    \"dateOfRenewal\": \"1505-03-06\",\n    \"licenseNumber\": \"<string>\",\n    \"middleName\": \"<string>\",\n    \"licenseStatusName\": \"<string>\"\n  }\n]"
+                                                                            "raw": "[\n  {\n    \"compactEligibility\": \"ineligible\",\n    \"dateOfBirth\": \"2740-11-30\",\n    \"dateOfExpiration\": \"1298-06-26\",\n    \"dateOfIssuance\": \"2405-09-18\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeAddressCity\": \"<string>\",\n    \"homeAddressPostalCode\": \"<string>\",\n    \"homeAddressState\": \"<string>\",\n    \"homeAddressStreet1\": \"<string>\",\n    \"licenseStatus\": \"inactive\",\n    \"licenseType\": \"occupational therapy assistant\",\n    \"ssn\": \"547-52-2980\",\n    \"homeAddressStreet2\": \"<string>\",\n    \"npi\": \"1544436342\",\n    \"suffix\": \"<string>\",\n    \"emailAddress\": \"<email>\",\n    \"phoneNumber\": \"+5115189572\",\n    \"dateOfRenewal\": \"1490-09-16\",\n    \"licenseNumber\": \"<string>\",\n    \"middleName\": \"<string>\",\n    \"licenseStatusName\": \"<string>\"\n  },\n  {\n    \"compactEligibility\": \"eligible\",\n    \"dateOfBirth\": \"2730-03-17\",\n    \"dateOfExpiration\": \"2744-04-21\",\n    \"dateOfIssuance\": \"2528-03-17\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeAddressCity\": \"<string>\",\n    \"homeAddressPostalCode\": \"<string>\",\n    \"homeAddressState\": \"<string>\",\n    \"homeAddressStreet1\": \"<string>\",\n    \"licenseStatus\": \"active\",\n    \"licenseType\": \"speech-language pathologist\",\n    \"ssn\": \"368-12-2050\",\n    \"homeAddressStreet2\": \"<string>\",\n    \"npi\": \"9356947811\",\n    \"suffix\": \"<string>\",\n    \"emailAddress\": \"<email>\",\n    \"phoneNumber\": \"+206468993404319\",\n    \"dateOfRenewal\": \"2119-12-04\",\n    \"licenseNumber\": \"<string>\",\n    \"middleName\": \"<string>\",\n    \"licenseStatusName\": \"<string>\"\n  }\n]"
                                                                         },
                                                                         "header": [
                                                                             {
@@ -1668,105 +541,51 @@
                                                             ]
                                                         },
                                                         {
-                                                            "event": [],
-                                                            "id": "6bbcb242-d9ad-424d-8864-4c61ea7d797f",
-                                                            "name": "/v1/compacts/:compact/jurisdictions/:jurisdiction/licenses",
-                                                            "protocolProfileBehavior": {
-                                                                "disableBodyPruning": true
-                                                            },
-                                                            "request": {
-                                                                "auth": {
-                                                                    "type": "noauth"
-                                                                },
-                                                                "body": {},
-                                                                "description": {},
-                                                                "method": "OPTIONS",
-                                                                "name": "/v1/compacts/:compact/jurisdictions/:jurisdiction/licenses",
-                                                                "url": {
-                                                                    "host": [
-                                                                        "{{baseUrl}}"
-                                                                    ],
-                                                                    "path": [
-                                                                        "v1",
-                                                                        "compacts",
-                                                                        ":compact",
-                                                                        "jurisdictions",
-                                                                        ":jurisdiction",
-                                                                        "licenses"
-                                                                    ],
-                                                                    "query": [],
-                                                                    "variable": [
-                                                                        {
-                                                                            "description": {
-                                                                                "content": "(Required) ",
-                                                                                "type": "text/plain"
-                                                                            },
-                                                                            "disabled": false,
-                                                                            "key": "compact",
-                                                                            "type": "any",
-                                                                            "value": "<string>"
-                                                                        },
-                                                                        {
-                                                                            "description": {
-                                                                                "content": "(Required) ",
-                                                                                "type": "text/plain"
-                                                                            },
-                                                                            "disabled": false,
-                                                                            "key": "jurisdiction",
-                                                                            "type": "any",
-                                                                            "value": "<string>"
-                                                                        }
-                                                                    ]
-                                                                }
-                                                            },
-                                                            "response": [
+                                                            "description": "",
+                                                            "item": [
                                                                 {
-                                                                    "_postman_previewlanguage": "text",
-                                                                    "code": 204,
-                                                                    "cookie": [],
-                                                                    "header": [
+                                                                    "event": [
                                                                         {
-                                                                            "description": {
-                                                                                "content": "",
-                                                                                "type": "text/plain"
-                                                                            },
-                                                                            "disabled": false,
-                                                                            "key": "Access-Control-Allow-Origin",
-                                                                            "value": "<string>"
-                                                                        },
-                                                                        {
-                                                                            "description": {
-                                                                                "content": "",
-                                                                                "type": "text/plain"
-                                                                            },
-                                                                            "disabled": false,
-                                                                            "key": "Access-Control-Allow-Methods",
-                                                                            "value": "<string>"
-                                                                        },
-                                                                        {
-                                                                            "description": {
-                                                                                "content": "",
-                                                                                "type": "text/plain"
-                                                                            },
-                                                                            "disabled": false,
-                                                                            "key": "Vary",
-                                                                            "value": "<string>"
-                                                                        },
-                                                                        {
-                                                                            "description": {
-                                                                                "content": "",
-                                                                                "type": "text/plain"
-                                                                            },
-                                                                            "disabled": false,
-                                                                            "key": "Access-Control-Allow-Headers",
-                                                                            "value": "<string>"
+                                                                            "listen": "test",
+                                                                            "script": {
+                                                                                "exec": [
+                                                                                    "pm.test('URL returned', () => {",
+                                                                                    "    var url = pm.response.json().upload.url;",
+                                                                                    "    pm.expect(url).not.to.be.empty;",
+                                                                                    "    pm.environment.set(\"docUrl\", url);",
+                                                                                    "    console.log('Upload url: ' + url);",
+                                                                                    "});",
+                                                                                    "",
+                                                                                    "pm.test('Fields returned', () => {",
+                                                                                    "    var fields = pm.response.json().upload.fields;",
+                                                                                    "    pm.expect(fields).not.to.be.empty;",
+                                                                                    "    for (const [key, value] of Object.entries(fields)) {",
+                                                                                    "        pm.environment.set(`docField-${key}`, value);",
+                                                                                    "        console.log(`Doc field \"${key}\": ${value}`);",
+                                                                                    "    }",
+                                                                                    "});"
+                                                                                ],
+                                                                                "packages": {},
+                                                                                "type": "text/javascript"
+                                                                            }
                                                                         }
                                                                     ],
-                                                                    "id": "9d7a3088-2ee3-4db5-ab16-3e99a2550a26",
-                                                                    "name": "204 response",
-                                                                    "originalRequest": {
+                                                                    "id": "6273415e-61da-4cbb-ac19-c4d97516decd",
+                                                                    "name": "/v1/compacts/:compact/jurisdictions/:jurisdiction/licenses/bulk-upload",
+                                                                    "protocolProfileBehavior": {
+                                                                        "disableBodyPruning": true
+                                                                    },
+                                                                    "request": {
                                                                         "body": {},
-                                                                        "method": "OPTIONS",
+                                                                        "description": {},
+                                                                        "header": [
+                                                                            {
+                                                                                "key": "Accept",
+                                                                                "value": "application/json"
+                                                                            }
+                                                                        ],
+                                                                        "method": "GET",
+                                                                        "name": "/v1/compacts/:compact/jurisdictions/:jurisdiction/licenses/bulk-upload",
                                                                         "url": {
                                                                             "host": [
                                                                                 "{{baseUrl}}"
@@ -1777,414 +596,376 @@
                                                                                 ":compact",
                                                                                 "jurisdictions",
                                                                                 ":jurisdiction",
-                                                                                "licenses"
+                                                                                "licenses",
+                                                                                "bulk-upload"
                                                                             ],
                                                                             "query": [],
-                                                                            "variable": []
+                                                                            "variable": [
+                                                                                {
+                                                                                    "description": {
+                                                                                        "content": "(Required) ",
+                                                                                        "type": "text/plain"
+                                                                                    },
+                                                                                    "disabled": false,
+                                                                                    "key": "compact",
+                                                                                    "type": "any",
+                                                                                    "value": "<string>"
+                                                                                },
+                                                                                {
+                                                                                    "description": {
+                                                                                        "content": "(Required) ",
+                                                                                        "type": "text/plain"
+                                                                                    },
+                                                                                    "disabled": false,
+                                                                                    "key": "jurisdiction",
+                                                                                    "type": "any",
+                                                                                    "value": "<string>"
+                                                                                }
+                                                                            ]
                                                                         }
                                                                     },
-                                                                    "status": "No Content"
+                                                                    "response": [
+                                                                        {
+                                                                            "_postman_previewlanguage": "json",
+                                                                            "body": "{\n  \"fields\": {\n    \"deserunt1_7\": \"<string>\",\n    \"exercitation3__\": \"<string>\"\n  },\n  \"url\": \"<string>\"\n}",
+                                                                            "code": 200,
+                                                                            "cookie": [],
+                                                                            "header": [
+                                                                                {
+                                                                                    "key": "Content-Type",
+                                                                                    "value": "application/json"
+                                                                                }
+                                                                            ],
+                                                                            "id": "a871f411-7320-400c-addf-a80f3f950d99",
+                                                                            "name": "200 response",
+                                                                            "originalRequest": {
+                                                                                "body": {},
+                                                                                "header": [
+                                                                                    {
+                                                                                        "key": "Accept",
+                                                                                        "value": "application/json"
+                                                                                    },
+                                                                                    {
+                                                                                        "description": {
+                                                                                            "content": "Added as a part of security scheme: apikey",
+                                                                                            "type": "text/plain"
+                                                                                        },
+                                                                                        "key": "Authorization",
+                                                                                        "value": "<API Key>"
+                                                                                    }
+                                                                                ],
+                                                                                "method": "GET",
+                                                                                "url": {
+                                                                                    "host": [
+                                                                                        "{{baseUrl}}"
+                                                                                    ],
+                                                                                    "path": [
+                                                                                        "v1",
+                                                                                        "compacts",
+                                                                                        ":compact",
+                                                                                        "jurisdictions",
+                                                                                        ":jurisdiction",
+                                                                                        "licenses",
+                                                                                        "bulk-upload"
+                                                                                    ],
+                                                                                    "query": [],
+                                                                                    "variable": []
+                                                                                }
+                                                                            },
+                                                                            "status": "OK"
+                                                                        }
+                                                                    ]
                                                                 }
-                                                            ]
+                                                            ],
+                                                            "name": "bulk-upload"
                                                         }
                                                     ],
                                                     "name": "licenses"
+                                                },
+                                                {
+                                                    "description": "",
+                                                    "item": [
+                                                        {
+                                                            "description": "",
+                                                            "item": [
+                                                                {
+                                                                    "event": [],
+                                                                    "id": "7ce11d3b-9941-453d-afc2-16e25d65acc3",
+                                                                    "name": "/v1/compacts/:compact/jurisdictions/:jurisdiction/providers/query",
+                                                                    "protocolProfileBehavior": {
+                                                                        "disableBodyPruning": true
+                                                                    },
+                                                                    "request": {
+                                                                        "body": {
+                                                                            "mode": "raw",
+                                                                            "options": {
+                                                                                "raw": {
+                                                                                    "headerFamily": "json",
+                                                                                    "language": "json"
+                                                                                }
+                                                                            },
+                                                                            "raw": "{\n  \"query\": {\n    \"endDateTime\": \"2364-05-09T22:58:09.38Z\",\n    \"startDateTime\": \"1896-01-30T21:19:04Z\"\n  },\n  \"pagination\": {\n    \"lastKey\": \"<string>\",\n    \"pageSize\": \"<integer>\"\n  },\n  \"sorting\": {\n    \"direction\": \"descending\"\n  }\n}"
+                                                                        },
+                                                                        "description": {},
+                                                                        "header": [
+                                                                            {
+                                                                                "key": "Content-Type",
+                                                                                "value": "application/json"
+                                                                            },
+                                                                            {
+                                                                                "key": "Accept",
+                                                                                "value": "application/json"
+                                                                            }
+                                                                        ],
+                                                                        "method": "POST",
+                                                                        "name": "/v1/compacts/:compact/jurisdictions/:jurisdiction/providers/query",
+                                                                        "url": {
+                                                                            "host": [
+                                                                                "{{baseUrl}}"
+                                                                            ],
+                                                                            "path": [
+                                                                                "v1",
+                                                                                "compacts",
+                                                                                ":compact",
+                                                                                "jurisdictions",
+                                                                                ":jurisdiction",
+                                                                                "providers",
+                                                                                "query"
+                                                                            ],
+                                                                            "query": [],
+                                                                            "variable": [
+                                                                                {
+                                                                                    "description": {
+                                                                                        "content": "(Required) ",
+                                                                                        "type": "text/plain"
+                                                                                    },
+                                                                                    "disabled": false,
+                                                                                    "key": "compact",
+                                                                                    "type": "any",
+                                                                                    "value": "<string>"
+                                                                                },
+                                                                                {
+                                                                                    "description": {
+                                                                                        "content": "(Required) ",
+                                                                                        "type": "text/plain"
+                                                                                    },
+                                                                                    "disabled": false,
+                                                                                    "key": "jurisdiction",
+                                                                                    "type": "any",
+                                                                                    "value": "<string>"
+                                                                                }
+                                                                            ]
+                                                                        }
+                                                                    },
+                                                                    "response": [
+                                                                        {
+                                                                            "_postman_previewlanguage": "json",
+                                                                            "body": "{\n  \"pagination\": {\n    \"prevLastKey\": {},\n    \"lastKey\": {},\n    \"pageSize\": \"<integer>\"\n  },\n  \"sorting\": {\n    \"direction\": \"ascending\"\n  },\n  \"providers\": [\n    {\n      \"birthMonthDay\": \"03-10\",\n      \"compact\": \"aslp\",\n      \"compactEligibility\": \"eligible\",\n      \"dateOfExpiration\": \"1592-10-05\",\n      \"dateOfUpdate\": \"2921-02-30\",\n      \"familyName\": \"<string>\",\n      \"givenName\": \"<string>\",\n      \"jurisdictionUploadedCompactEligibility\": \"eligible\",\n      \"jurisdictionUploadedLicenseStatus\": \"active\",\n      \"licenseJurisdiction\": \"ak\",\n      \"licenseStatus\": \"active\",\n      \"privilegeJurisdictions\": [\n        \"ky\",\n        \"az\"\n      ],\n      \"providerId\": \"493fb2a0-e5c4-420c-a9eb-8b3560ddb03b\",\n      \"type\": \"provider\",\n      \"npi\": \"9856942408\",\n      \"dateOfBirth\": \"2893-09-09\",\n      \"suffix\": \"<string>\",\n      \"ssnLastFour\": \"4970\",\n      \"middleName\": \"<string>\",\n      \"compactConnectRegisteredEmailAddress\": \"<email>\"\n    },\n    {\n      \"birthMonthDay\": \"04-08\",\n      \"compact\": \"coun\",\n      \"compactEligibility\": \"eligible\",\n      \"dateOfExpiration\": \"2597-11-18\",\n      \"dateOfUpdate\": \"2745-10-30\",\n      \"familyName\": \"<string>\",\n      \"givenName\": \"<string>\",\n      \"jurisdictionUploadedCompactEligibility\": \"ineligible\",\n      \"jurisdictionUploadedLicenseStatus\": \"active\",\n      \"licenseJurisdiction\": \"ms\",\n      \"licenseStatus\": \"active\",\n      \"privilegeJurisdictions\": [\n        \"ms\",\n        \"oh\"\n      ],\n      \"providerId\": \"a4c53129-2282-48f9-9750-974635068718\",\n      \"type\": \"provider\",\n      \"npi\": \"9697540949\",\n      \"dateOfBirth\": \"2643-03-23\",\n      \"suffix\": \"<string>\",\n      \"ssnLastFour\": \"4287\",\n      \"middleName\": \"<string>\",\n      \"compactConnectRegisteredEmailAddress\": \"<email>\"\n    }\n  ]\n}",
+                                                                            "code": 200,
+                                                                            "cookie": [],
+                                                                            "header": [
+                                                                                {
+                                                                                    "key": "Content-Type",
+                                                                                    "value": "application/json"
+                                                                                }
+                                                                            ],
+                                                                            "id": "200e4223-d37e-470f-91fb-a3149ee0a397",
+                                                                            "name": "200 response",
+                                                                            "originalRequest": {
+                                                                                "body": {
+                                                                                    "mode": "raw",
+                                                                                    "options": {
+                                                                                        "raw": {
+                                                                                            "headerFamily": "json",
+                                                                                            "language": "json"
+                                                                                        }
+                                                                                    },
+                                                                                    "raw": "{\n  \"query\": {\n    \"endDateTime\": \"2364-05-09T22:58:09.38Z\",\n    \"startDateTime\": \"1896-01-30T21:19:04Z\"\n  },\n  \"pagination\": {\n    \"lastKey\": \"<string>\",\n    \"pageSize\": \"<integer>\"\n  },\n  \"sorting\": {\n    \"direction\": \"descending\"\n  }\n}"
+                                                                                },
+                                                                                "header": [
+                                                                                    {
+                                                                                        "key": "Content-Type",
+                                                                                        "value": "application/json"
+                                                                                    },
+                                                                                    {
+                                                                                        "key": "Accept",
+                                                                                        "value": "application/json"
+                                                                                    },
+                                                                                    {
+                                                                                        "description": {
+                                                                                            "content": "Added as a part of security scheme: apikey",
+                                                                                            "type": "text/plain"
+                                                                                        },
+                                                                                        "key": "Authorization",
+                                                                                        "value": "<API Key>"
+                                                                                    }
+                                                                                ],
+                                                                                "method": "POST",
+                                                                                "url": {
+                                                                                    "host": [
+                                                                                        "{{baseUrl}}"
+                                                                                    ],
+                                                                                    "path": [
+                                                                                        "v1",
+                                                                                        "compacts",
+                                                                                        ":compact",
+                                                                                        "jurisdictions",
+                                                                                        ":jurisdiction",
+                                                                                        "providers",
+                                                                                        "query"
+                                                                                    ],
+                                                                                    "query": [],
+                                                                                    "variable": []
+                                                                                }
+                                                                            },
+                                                                            "status": "OK"
+                                                                        }
+                                                                    ]
+                                                                }
+                                                            ],
+                                                            "name": "query"
+                                                        },
+                                                        {
+                                                            "description": "",
+                                                            "item": [
+                                                                {
+                                                                    "event": [],
+                                                                    "id": "5a66fea5-112c-4695-ac20-55797b48baf0",
+                                                                    "name": "/v1/compacts/:compact/jurisdictions/:jurisdiction/providers/:providerId",
+                                                                    "protocolProfileBehavior": {
+                                                                        "disableBodyPruning": true
+                                                                    },
+                                                                    "request": {
+                                                                        "body": {},
+                                                                        "description": {},
+                                                                        "header": [
+                                                                            {
+                                                                                "key": "Accept",
+                                                                                "value": "application/json"
+                                                                            }
+                                                                        ],
+                                                                        "method": "GET",
+                                                                        "name": "/v1/compacts/:compact/jurisdictions/:jurisdiction/providers/:providerId",
+                                                                        "url": {
+                                                                            "host": [
+                                                                                "{{baseUrl}}"
+                                                                            ],
+                                                                            "path": [
+                                                                                "v1",
+                                                                                "compacts",
+                                                                                ":compact",
+                                                                                "jurisdictions",
+                                                                                ":jurisdiction",
+                                                                                "providers",
+                                                                                ":providerId"
+                                                                            ],
+                                                                            "query": [],
+                                                                            "variable": [
+                                                                                {
+                                                                                    "description": {
+                                                                                        "content": "(Required) ",
+                                                                                        "type": "text/plain"
+                                                                                    },
+                                                                                    "disabled": false,
+                                                                                    "key": "compact",
+                                                                                    "type": "any",
+                                                                                    "value": "<string>"
+                                                                                },
+                                                                                {
+                                                                                    "description": {
+                                                                                        "content": "(Required) ",
+                                                                                        "type": "text/plain"
+                                                                                    },
+                                                                                    "disabled": false,
+                                                                                    "key": "jurisdiction",
+                                                                                    "type": "any",
+                                                                                    "value": "<string>"
+                                                                                },
+                                                                                {
+                                                                                    "description": {
+                                                                                        "content": "(Required) ",
+                                                                                        "type": "text/plain"
+                                                                                    },
+                                                                                    "disabled": false,
+                                                                                    "key": "providerId",
+                                                                                    "type": "any",
+                                                                                    "value": "<string>"
+                                                                                }
+                                                                            ]
+                                                                        }
+                                                                    },
+                                                                    "response": [
+                                                                        {
+                                                                            "_postman_previewlanguage": "json",
+                                                                            "body": "{\n  \"privileges\": [\n    {\n      \"compact\": \"coun\",\n      \"compactEligibility\": \"ineligible\",\n      \"dateOfExpiration\": \"2701-11-30\",\n      \"dateOfIssuance\": \"1382-07-28\",\n      \"dateOfRenewal\": \"2292-01-06\",\n      \"dateOfUpdate\": \"1247-10-30\",\n      \"familyName\": \"<string>\",\n      \"givenName\": \"<string>\",\n      \"jurisdiction\": \"nj\",\n      \"licenseJurisdiction\": \"de\",\n      \"licenseStatus\": \"active\",\n      \"licenseType\": \"speech-language pathologist\",\n      \"privilegeId\": \"<string>\",\n      \"providerId\": \"a5654308-8f1b-4652-b2d6-7e477c6eb14c\",\n      \"status\": \"active\",\n      \"type\": \"statePrivilege\",\n      \"homeAddressStreet2\": \"<string>\",\n      \"homeAddressStreet1\": \"<string>\",\n      \"suffix\": \"<string>\",\n      \"emailAddress\": \"<email>\",\n      \"homeAddressState\": \"<string>\",\n      \"homeAddressCity\": \"<string>\",\n      \"licenseNumber\": \"<string>\",\n      \"compactConnectRegisteredEmailAddress\": \"<email>\",\n      \"npi\": \"2376403185\",\n      \"homeAddressPostalCode\": \"<string>\",\n      \"dateOfBirth\": \"2799-01-11\",\n      \"ssnLastFour\": \"8273\",\n      \"phoneNumber\": \"+252402774354011\",\n      \"middleName\": \"<string>\",\n      \"licenseStatusName\": \"<string>\"\n    },\n    {\n      \"compact\": \"coun\",\n      \"compactEligibility\": \"ineligible\",\n      \"dateOfExpiration\": \"1235-09-30\",\n      \"dateOfIssuance\": \"1765-12-23\",\n      \"dateOfRenewal\": \"2867-08-24\",\n      \"dateOfUpdate\": \"2577-11-03\",\n      \"familyName\": \"<string>\",\n      \"givenName\": \"<string>\",\n      \"jurisdiction\": \"mn\",\n      \"licenseJurisdiction\": \"id\",\n      \"licenseStatus\": \"active\",\n      \"licenseType\": \"occupational therapy assistant\",\n      \"privilegeId\": \"<string>\",\n      \"providerId\": \"7d35e347-4999-4a1c-9293-2ea2e7ca12b6\",\n      \"status\": \"active\",\n      \"type\": \"statePrivilege\",\n      \"homeAddressStreet2\": \"<string>\",\n      \"homeAddressStreet1\": \"<string>\",\n      \"suffix\": \"<string>\",\n      \"emailAddress\": \"<email>\",\n      \"homeAddressState\": \"<string>\",\n      \"homeAddressCity\": \"<string>\",\n      \"licenseNumber\": \"<string>\",\n      \"compactConnectRegisteredEmailAddress\": \"<email>\",\n      \"npi\": \"4312647099\",\n      \"homeAddressPostalCode\": \"<string>\",\n      \"dateOfBirth\": \"2840-12-04\",\n      \"ssnLastFour\": \"8342\",\n      \"phoneNumber\": \"+2321848899980\",\n      \"middleName\": \"<string>\",\n      \"licenseStatusName\": \"<string>\"\n    }\n  ],\n  \"providerUIUrl\": \"<uri>\"\n}",
+                                                                            "code": 200,
+                                                                            "cookie": [],
+                                                                            "header": [
+                                                                                {
+                                                                                    "key": "Content-Type",
+                                                                                    "value": "application/json"
+                                                                                }
+                                                                            ],
+                                                                            "id": "e04d639c-5417-4e1d-8799-d4b7e436eac9",
+                                                                            "name": "200 response",
+                                                                            "originalRequest": {
+                                                                                "body": {},
+                                                                                "header": [
+                                                                                    {
+                                                                                        "key": "Accept",
+                                                                                        "value": "application/json"
+                                                                                    },
+                                                                                    {
+                                                                                        "description": {
+                                                                                            "content": "Added as a part of security scheme: apikey",
+                                                                                            "type": "text/plain"
+                                                                                        },
+                                                                                        "key": "Authorization",
+                                                                                        "value": "<API Key>"
+                                                                                    }
+                                                                                ],
+                                                                                "method": "GET",
+                                                                                "url": {
+                                                                                    "host": [
+                                                                                        "{{baseUrl}}"
+                                                                                    ],
+                                                                                    "path": [
+                                                                                        "v1",
+                                                                                        "compacts",
+                                                                                        ":compact",
+                                                                                        "jurisdictions",
+                                                                                        ":jurisdiction",
+                                                                                        "providers",
+                                                                                        ":providerId"
+                                                                                    ],
+                                                                                    "query": [],
+                                                                                    "variable": []
+                                                                                }
+                                                                            },
+                                                                            "status": "OK"
+                                                                        }
+                                                                    ]
+                                                                }
+                                                            ],
+                                                            "name": "{providerId}"
+                                                        }
+                                                    ],
+                                                    "name": "providers"
                                                 }
                                             ],
                                             "name": "{jurisdiction}"
-                                        },
-                                        {
-                                            "event": [],
-                                            "id": "01f9692e-e3a1-4f06-87e8-0ee04daf8a41",
-                                            "name": "/v1/compacts/:compact/jurisdictions",
-                                            "protocolProfileBehavior": {
-                                                "disableBodyPruning": true
-                                            },
-                                            "request": {
-                                                "auth": {
-                                                    "type": "noauth"
-                                                },
-                                                "body": {},
-                                                "description": {},
-                                                "method": "OPTIONS",
-                                                "name": "/v1/compacts/:compact/jurisdictions",
-                                                "url": {
-                                                    "host": [
-                                                        "{{baseUrl}}"
-                                                    ],
-                                                    "path": [
-                                                        "v1",
-                                                        "compacts",
-                                                        ":compact",
-                                                        "jurisdictions"
-                                                    ],
-                                                    "query": [],
-                                                    "variable": [
-                                                        {
-                                                            "description": {
-                                                                "content": "(Required) ",
-                                                                "type": "text/plain"
-                                                            },
-                                                            "disabled": false,
-                                                            "key": "compact",
-                                                            "type": "any",
-                                                            "value": "<string>"
-                                                        }
-                                                    ]
-                                                }
-                                            },
-                                            "response": [
-                                                {
-                                                    "_postman_previewlanguage": "text",
-                                                    "code": 204,
-                                                    "cookie": [],
-                                                    "header": [
-                                                        {
-                                                            "description": {
-                                                                "content": "",
-                                                                "type": "text/plain"
-                                                            },
-                                                            "disabled": false,
-                                                            "key": "Access-Control-Allow-Origin",
-                                                            "value": "<string>"
-                                                        },
-                                                        {
-                                                            "description": {
-                                                                "content": "",
-                                                                "type": "text/plain"
-                                                            },
-                                                            "disabled": false,
-                                                            "key": "Access-Control-Allow-Methods",
-                                                            "value": "<string>"
-                                                        },
-                                                        {
-                                                            "description": {
-                                                                "content": "",
-                                                                "type": "text/plain"
-                                                            },
-                                                            "disabled": false,
-                                                            "key": "Vary",
-                                                            "value": "<string>"
-                                                        },
-                                                        {
-                                                            "description": {
-                                                                "content": "",
-                                                                "type": "text/plain"
-                                                            },
-                                                            "disabled": false,
-                                                            "key": "Access-Control-Allow-Headers",
-                                                            "value": "<string>"
-                                                        }
-                                                    ],
-                                                    "id": "974649b1-dff9-4340-b572-bfa8a406ca4b",
-                                                    "name": "204 response",
-                                                    "originalRequest": {
-                                                        "body": {},
-                                                        "method": "OPTIONS",
-                                                        "url": {
-                                                            "host": [
-                                                                "{{baseUrl}}"
-                                                            ],
-                                                            "path": [
-                                                                "v1",
-                                                                "compacts",
-                                                                ":compact",
-                                                                "jurisdictions"
-                                                            ],
-                                                            "query": [],
-                                                            "variable": []
-                                                        }
-                                                    },
-                                                    "status": "No Content"
-                                                }
-                                            ]
                                         }
                                     ],
                                     "name": "jurisdictions"
                                 }
                             ],
                             "name": "{compact}"
-                        },
-                        {
-                            "event": [],
-                            "id": "f6e29e81-9ae7-4ac8-9eca-1aaa191cce0f",
-                            "name": "/v1/compacts",
-                            "protocolProfileBehavior": {
-                                "disableBodyPruning": true
-                            },
-                            "request": {
-                                "auth": {
-                                    "type": "noauth"
-                                },
-                                "body": {},
-                                "description": {},
-                                "method": "OPTIONS",
-                                "name": "/v1/compacts",
-                                "url": {
-                                    "host": [
-                                        "{{baseUrl}}"
-                                    ],
-                                    "path": [
-                                        "v1",
-                                        "compacts"
-                                    ],
-                                    "query": [],
-                                    "variable": []
-                                }
-                            },
-                            "response": [
-                                {
-                                    "_postman_previewlanguage": "text",
-                                    "code": 204,
-                                    "cookie": [],
-                                    "header": [
-                                        {
-                                            "description": {
-                                                "content": "",
-                                                "type": "text/plain"
-                                            },
-                                            "disabled": false,
-                                            "key": "Access-Control-Allow-Origin",
-                                            "value": "<string>"
-                                        },
-                                        {
-                                            "description": {
-                                                "content": "",
-                                                "type": "text/plain"
-                                            },
-                                            "disabled": false,
-                                            "key": "Access-Control-Allow-Methods",
-                                            "value": "<string>"
-                                        },
-                                        {
-                                            "description": {
-                                                "content": "",
-                                                "type": "text/plain"
-                                            },
-                                            "disabled": false,
-                                            "key": "Vary",
-                                            "value": "<string>"
-                                        },
-                                        {
-                                            "description": {
-                                                "content": "",
-                                                "type": "text/plain"
-                                            },
-                                            "disabled": false,
-                                            "key": "Access-Control-Allow-Headers",
-                                            "value": "<string>"
-                                        }
-                                    ],
-                                    "id": "788d504c-543d-4afe-9fc6-56fe9a0f30e0",
-                                    "name": "204 response",
-                                    "originalRequest": {
-                                        "body": {},
-                                        "method": "OPTIONS",
-                                        "url": {
-                                            "host": [
-                                                "{{baseUrl}}"
-                                            ],
-                                            "path": [
-                                                "v1",
-                                                "compacts"
-                                            ],
-                                            "query": [],
-                                            "variable": []
-                                        }
-                                    },
-                                    "status": "No Content"
-                                }
-                            ]
                         }
                     ],
                     "name": "compacts"
-                },
-                {
-                    "event": [],
-                    "id": "aee93c8b-a852-42be-badc-8248ed6d3a1e",
-                    "name": "/v1",
-                    "protocolProfileBehavior": {
-                        "disableBodyPruning": true
-                    },
-                    "request": {
-                        "auth": {
-                            "type": "noauth"
-                        },
-                        "body": {},
-                        "description": {},
-                        "method": "OPTIONS",
-                        "name": "/v1",
-                        "url": {
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "v1"
-                            ],
-                            "query": [],
-                            "variable": []
-                        }
-                    },
-                    "response": [
-                        {
-                            "_postman_previewlanguage": "text",
-                            "code": 204,
-                            "cookie": [],
-                            "header": [
-                                {
-                                    "description": {
-                                        "content": "",
-                                        "type": "text/plain"
-                                    },
-                                    "disabled": false,
-                                    "key": "Access-Control-Allow-Origin",
-                                    "value": "<string>"
-                                },
-                                {
-                                    "description": {
-                                        "content": "",
-                                        "type": "text/plain"
-                                    },
-                                    "disabled": false,
-                                    "key": "Access-Control-Allow-Methods",
-                                    "value": "<string>"
-                                },
-                                {
-                                    "description": {
-                                        "content": "",
-                                        "type": "text/plain"
-                                    },
-                                    "disabled": false,
-                                    "key": "Vary",
-                                    "value": "<string>"
-                                },
-                                {
-                                    "description": {
-                                        "content": "",
-                                        "type": "text/plain"
-                                    },
-                                    "disabled": false,
-                                    "key": "Access-Control-Allow-Headers",
-                                    "value": "<string>"
-                                }
-                            ],
-                            "id": "fa089491-452f-41ab-9239-15296e2e7ac0",
-                            "name": "204 response",
-                            "originalRequest": {
-                                "body": {},
-                                "method": "OPTIONS",
-                                "url": {
-                                    "host": [
-                                        "{{baseUrl}}"
-                                    ],
-                                    "path": [
-                                        "v1"
-                                    ],
-                                    "query": [],
-                                    "variable": []
-                                }
-                            },
-                            "status": "No Content"
-                        }
-                    ]
                 }
             ],
             "name": "v1"
-        },
-        {
-            "description": "",
-            "item": [
-                {
-                    "event": [],
-                    "id": "c1c8f4e5-799e-4e4b-a99f-9c1a49879e49",
-                    "name": "/",
-                    "protocolProfileBehavior": {
-                        "disableBodyPruning": true
-                    },
-                    "request": {
-                        "auth": {
-                            "type": "noauth"
-                        },
-                        "body": {},
-                        "description": {},
-                        "method": "OPTIONS",
-                        "name": "/",
-                        "url": {
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                ""
-                            ],
-                            "query": [],
-                            "variable": []
-                        }
-                    },
-                    "response": [
-                        {
-                            "_postman_previewlanguage": "text",
-                            "code": 204,
-                            "cookie": [],
-                            "header": [
-                                {
-                                    "description": {
-                                        "content": "",
-                                        "type": "text/plain"
-                                    },
-                                    "disabled": false,
-                                    "key": "Access-Control-Allow-Origin",
-                                    "value": "<string>"
-                                },
-                                {
-                                    "description": {
-                                        "content": "",
-                                        "type": "text/plain"
-                                    },
-                                    "disabled": false,
-                                    "key": "Access-Control-Allow-Methods",
-                                    "value": "<string>"
-                                },
-                                {
-                                    "description": {
-                                        "content": "",
-                                        "type": "text/plain"
-                                    },
-                                    "disabled": false,
-                                    "key": "Vary",
-                                    "value": "<string>"
-                                },
-                                {
-                                    "description": {
-                                        "content": "",
-                                        "type": "text/plain"
-                                    },
-                                    "disabled": false,
-                                    "key": "Access-Control-Allow-Headers",
-                                    "value": "<string>"
-                                }
-                            ],
-                            "id": "7c726f9f-3a9a-4f9e-bd5c-bc7110ac3099",
-                            "name": "204 response",
-                            "originalRequest": {
-                                "body": {},
-                                "method": "OPTIONS",
-                                "url": {
-                                    "host": [
-                                        "{{baseUrl}}"
-                                    ],
-                                    "path": [
-                                        ""
-                                    ],
-                                    "query": [],
-                                    "variable": []
-                                }
-                            },
-                            "status": "No Content"
-                        }
-                    ]
-                }
-            ],
-            "name": "/"
         },
         {
             "name": "Upload Document",
