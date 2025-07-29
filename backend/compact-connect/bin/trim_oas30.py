@@ -38,13 +38,17 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
+    # Get script directory and workspace directory
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    workspace_dir = os.path.dirname(script_dir)
+
     # Determine the base directory based on the internal flag
     base_dir = (
         os.path.join('docs', 'internal', 'api-specification')
         if args.internal
         else os.path.join('docs', 'api-specification')
     )
-    file_path = os.path.join(base_dir, 'latest-oas30.json')
+    file_path = os.path.join(workspace_dir, base_dir, 'latest-oas30.json')
 
     with open(file_path) as f:
         original_spec = json.load(f)

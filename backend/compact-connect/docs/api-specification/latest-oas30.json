@@ -2,11 +2,11 @@
   "openapi": "3.0.1",
   "info": {
     "title": "StateApi",
-    "version": "2025-07-29T17:51:32Z"
+    "version": "2025-07-29T19:17:37Z"
   },
   "servers": [
     {
-      "url": "https://state-api.justin.jcc.iaapi.io"
+      "url": "https://state-api.beta.compactconnect.org"
     }
   ],
   "paths": {
@@ -508,18 +508,27 @@
       },
       "SandboStateBoXiSPFX3BOE": {
         "required": [
-          "fields"
+          "upload"
         ],
         "type": "object",
         "properties": {
-          "fields": {
+          "upload": {
+            "required": [
+              "fields",
+              "url"
+            ],
             "type": "object",
-            "additionalProperties": {
-              "type": "string"
+            "properties": {
+              "fields": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "url": {
+                "type": "string"
+              }
             }
-          },
-          "url": {
-            "type": "string"
           }
         }
       },
@@ -837,7 +846,8 @@
       },
       "SandboState06s6kUujWBE9": {
         "required": [
-          "pagination"
+          "pagination",
+          "providers"
         ],
         "type": "object",
         "properties": {
