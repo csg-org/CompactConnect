@@ -353,19 +353,15 @@ class ProviderRecordUtility:
             history
         )
 
-        event_schema = PrivilegeHistoryEventPublicResponseSchema()
-        history_schema = PrivilegeHistoryPublicResponseSchema()
-
-        sanitized_events = [event_schema.load(event) for event in enriched_history]
         unsanitized_history = {
             'providerId': privilege['providerId'],
             'compact': privilege['compact'],
             'jurisdiction': privilege['jurisdiction'],
             'licenseType': privilege['licenseType'],
             'privilegeId': privilege['privilegeId'],
-            'events': sanitized_events,
+            'events': enriched_history,
         }
-
+        history_schema = PrivilegeHistoryPublicResponseSchema()
         return history_schema.load(unsanitized_history)
 
 
