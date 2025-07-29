@@ -114,8 +114,12 @@ export default class PrivilegeDetail extends Vue {
         return foundPrivilege;
     }
 
+    get privilegeLicenseTypeAbbrev(): string {
+        return this.privilege?.licenseTypeAbbreviation() || '';
+    }
+
     get privilegeTitle(): string {
-        return `${this.privilege?.licenseTypeAbbreviation() || ''} - ${this.privilege?.issueState?.name() || ''}`;
+        return `${this.privilegeLicenseTypeAbbrev} - ${this.privilege?.issueState?.name() || ''}`;
     }
 
     //
@@ -136,6 +140,13 @@ export default class PrivilegeDetail extends Vue {
     }
 
     async fetchPrivilegeHistoryProvider(): Promise<void> {
-        console.log('fetch prov');
+        const issueStateAbbrev = this.privilege.issueState?.abbrev;
+
+        if (issueStateAbbrev && this.privilegeLicenseTypeAbbrev) {
+            await this.$store.dispatch('user/getLicenseePrivilegeHistory', {
+                jurisdiction: issueStateAbbrev,
+                licenseTypeAbbrev: this.privilegeLicenseTypeAbbrev
+            });
+        }
     }
 }

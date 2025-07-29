@@ -37,6 +37,9 @@ export enum MutationTypes {
     GET_PRIVILEGE_PURCHASE_INFORMATION_REQUEST = '[User] Get Privilege Purchase Information Request',
     GET_PRIVILEGE_PURCHASE_INFORMATION_SUCCESS = '[User] Get Privilege Purchase Information Success',
     GET_PRIVILEGE_PURCHASE_INFORMATION_FAILURE = '[User] Get Privilege Purchase Information Failure',
+    GET_PRIVILEGE_HISTORY_REQUEST = '[User] Get Privilege History Request',
+    GET_PRIVILEGE_HISTORY_SUCCESS = '[User] Get Privilege History Success',
+    GET_PRIVILEGE_HISTORY_FAILURE = '[User] Get Privilege History Failure',
     POST_PRIVILEGE_PURCHASE_REQUEST = '[User] Post Privilege Purchase Request',
     POST_PRIVILEGE_PURCHASE_SUCCESS = '[User] Post Privilege Purchase Success',
     POST_PRIVILEGE_PURCHASE_FAILURE = '[User] Post Privilege Purchase Failure',
@@ -165,6 +168,18 @@ export default {
     },
     [MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_FAILURE]: (state: any, error: Error) => {
         state.isLoadingPrivilegePurchaseOptions = false;
+        state.error = error;
+    },
+    [MutationTypes.GET_PRIVILEGE_HISTORY_REQUEST]: (state: any) => {
+        state.isLoadingPrivilegeHistory = true;
+        state.error = null;
+    },
+    [MutationTypes.GET_PRIVILEGE_HISTORY_SUCCESS]: (state: any) => {
+        state.isLoadingPrivilegeHistory = false;
+        state.error = null;
+    },
+    [MutationTypes.GET_PRIVILEGE_HISTORY_FAILURE]: (state: any, error: Error) => {
+        state.isLoadingPrivilegeHistory = false;
         state.error = error;
     },
     [MutationTypes.POST_PRIVILEGE_PURCHASE_REQUEST]: (state: any) => {

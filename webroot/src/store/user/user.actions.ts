@@ -114,6 +114,27 @@ export default {
     getAccountFailure: ({ commit }, error: Error) => {
         commit(MutationTypes.GET_ACCOUNT_FAILURE, error);
     },
+    // GET LICENSEE PRIVILEGE HISTORY
+    getLicenseePrivilegeHistory: async ({ commit, dispatch }, { jurisdiction, licenseTypeAbbrev }: any) => {
+        commit(MutationTypes.GET_PRIVILEGE_HISTORY_REQUEST);
+        return dataApi.getLicenseePrivilegeHistory(jurisdiction, licenseTypeAbbrev).then((account) => {
+            dispatch('getPrivilegeHistorySuccess', account);
+
+            return account;
+        }).catch((error) => {
+            dispatch('getPrivilegeHistoryFailure', error);
+        });
+    },
+    // GET GET LICENSEE PRIVILEGE HISTORY SUCCESS / FAIL HANDLERS
+    getLicenseePrivilegeHistorySuccess: ({ commit, dispatch }, account) => {
+        commit(MutationTypes.GET_PRIVILEGE_HISTORY_SUCCESS, account);
+        if (account) {
+            dispatch('setStoreUser', account);
+        }
+    },
+    getLicenseePrivilegeHistoryFailure: ({ commit }, error: Error) => {
+        commit(MutationTypes.GET_PRIVILEGE_HISTORY_FAILURE, error);
+    },
     // GET COMPACT STATES FOR USER
     getCompactStatesRequest: async ({ commit, dispatch, state }, { compact }) => {
         commit(MutationTypes.GET_COMPACT_STATES_REQUEST);

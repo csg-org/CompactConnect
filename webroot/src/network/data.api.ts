@@ -448,6 +448,16 @@ export class DataApi {
         return userDataApi.updateHomeJurisdiction(data);
     }
 
+    /**
+     * GET Authenticated Licensee User privilege's history.
+     * @param  {string}     jurisdiction jurisdiction of privilege
+     * @param  {string}     licenseTypeAbbrev licenseTypeAbbrev of privilege
+     * @return {Promise<>} A User model instance.
+     */
+    public getLicenseePrivilegeHistory(jurisdiction: string, licenseTypeAbbrev: string) {
+        return userDataApi.getMyPrivilegeHistory(jurisdiction, licenseTypeAbbrev);
+    }
+
     // ========================================================================
     //                              EXAMPLE API
     // ========================================================================
