@@ -60,9 +60,9 @@ class TstFunction(TstLambdas):
             Policies={
                 'PasswordPolicy': {
                     'MinimumLength': 12,
-                    'RequireUppercase': False,
-                    'RequireLowercase': False,
-                    'RequireNumbers': False,
+                    'RequireUppercase': True,
+                    'RequireLowercase': True,
+                    'RequireNumbers': True,
                     'RequireSymbols': False,
                 },
             },

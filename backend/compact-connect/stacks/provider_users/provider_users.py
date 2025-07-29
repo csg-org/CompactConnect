@@ -56,7 +56,13 @@ class ProviderUsers(UserPool):
                 'providerId': StringAttribute(mutable=False),
                 'compact': StringAttribute(mutable=False),
             },
-            password_policy=PasswordPolicy(min_length=12, temp_password_validity=Duration.days(1)),
+            password_policy=PasswordPolicy(
+                min_length=12,
+                require_digits=True,
+                require_lowercase=True,
+                require_uppercase=True,
+                temp_password_validity=Duration.days(1),
+            ),
             **kwargs,
         )
 
