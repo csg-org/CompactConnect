@@ -31,7 +31,16 @@
                     />
                     <div v-if="!isPrivilegePurchaseEnabled" class="btn-subtext why-unavailable-container">
                         {{ $t('licensing.whyUnavailable') }}
-                        <InfoCircle @click="openPurchaseUnavailableModal" @keyup.enter="openPurchaseUnavailableModal" />
+                        <span
+                            class="icon-info-circle-container"
+                            role="button"
+                            tabindex="0"
+                            :aria-label="$t('licensing.whyUnavailableInfoButton')"
+                            @click="openPurchaseUnavailableModal"
+                            @keyup.enter="openPurchaseUnavailableModal"
+                        >
+                          <InfoCircle />
+                        </span>
                     </div>
                 </div>
             </div>

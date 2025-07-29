@@ -25,19 +25,20 @@
 
             @media @tabletWidth {
                 max-width: 60rem;
-                padding: 4rem;
+                padding: 4rem 4rem 2rem;
             }
 
             .modal-content {
                 .modal-content-text {
-                    margin-bottom: 1rem;
+                    margin-bottom: 2rem;
 
                     .purchase-unavailable-message {
-                        margin-bottom: 1.5rem;
                         font-size: 1.8rem;
                     }
 
                     .purchase-unavailable-list {
+                        border-spacing: 0 1rem;
+
                         li {
                             margin-bottom: 1rem;
                             font-weight: @fontWeightLight;
@@ -178,10 +179,13 @@
                         align-items: center;
                         justify-content: flex-end;
 
+                        .icon-info-circle-container {
+                            margin-left: 0.5rem;
+                        }
+
                         .icon-info-circle {
                             width: 1.3rem;
                             height: 1.3rem;
-                            margin-left: 0.5rem;
                             cursor: pointer;
                         }
                     }

@@ -758,6 +758,7 @@
         "publicProfileLink": "Ver perfil público en",
         "qrCodeAlt": "Código QR que enlaza al perfil público",
         "whyUnavailable": "¿Por qué no está disponible?",
+        "whyUnavailableInfoButton": "Mostrar explicación de por qué la compra de privilegios no está disponible",
         "purchaseUnavailableMessage": "Actualmente no es elegible para comprar privilegios compactos. Por favor, consulte la(s) razón(es) a continuación.",
         "purchaseUnavailableNoEligibleLicenses": "No tiene ninguna licencia que sea elegible para la participación en el convenio. Si cree que una de sus licencias debería ser elegible, comuníquese con el consejo estatal que emitió esa licencia.",
         "purchaseUnavailableEncumbrance": "Tiene una carga que le impide comprar privilegios. Si cree que no debería tener una carga, comuníquese con el consejo estatal que registró la carga.",

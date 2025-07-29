@@ -759,6 +759,7 @@
         "publicProfileLink": "View public profile at",
         "qrCodeAlt": "QR code linking to public profile",
         "whyUnavailable": "Why is this unavailable?",
+        "whyUnavailableInfoButton": "Show explanation for why privilege purchase is unavailable",
         "purchaseUnavailableMessage": "You are currently not eligible to purchase compact privileges. Please see the reason(s) below.",
         "purchaseUnavailableNoEligibleLicenses": "You do not have any licenses which are eligible for compact participation. If you believe one of your licenses should be eligible, please contact the state board who issued that license.",
         "purchaseUnavailableEncumbrance": "You have an encumbrance which prevents you from buying privileges. If you believe you should not have an encumbrance, please contact the state board who recorded the encumbrance.",
