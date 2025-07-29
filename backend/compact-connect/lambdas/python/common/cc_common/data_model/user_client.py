@@ -399,7 +399,7 @@ class UserClient:
                     # outside of this function, as it is a real password and we want it to be cleaned up
                     # by the garbage collector, as soon as possible.
                     # These passwords require at least one number, one uppercase, and one lowercase letter, so we add
-                    # the suffix to meet these requirements
+                    # the prefix to meet these requirements
                     Password='!1Ha'+token_hex(45),
                     Permanent=False,
                 )
