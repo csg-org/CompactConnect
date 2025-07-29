@@ -26,11 +26,11 @@ on_event = CreateEffectiveDateMigration('license-update-effective-date-931')
 def do_migration(_properties: dict) -> None:
     """
     This migration performs the following:
-    - Scans the provider table for all privilege update records
+    - Scans the provider table for all license update records
     - For each update record, adds effectiveDate and createDate equal to that updates dateOfUpdate
     - Handles batching for cases where there are more than 100 records to update
     """
-    logger.info('Starting privilege update date fields migration')
+    logger.info('Starting license update date fields migration')
 
     # Scan for all privilege update records
     license_updates = []
@@ -56,7 +56,7 @@ def do_migration(_properties: dict) -> None:
     logger.info(f'Found {len(license_updates)} total update records to process')
 
     if not license_updates:
-        logger.info('No privilege update records found, migration complete')
+        logger.info('No license update records found, migration complete')
         return
 
     # Process records in batches of 50
@@ -79,23 +79,22 @@ def do_migration(_properties: dict) -> None:
     # Log final statistics
     logger.info(f'Migration completed: {success_count} records processed successfully, {error_count} errors')
     if error_count > 0:
-        raise RuntimeError(f'Privilege update migration completed with {error_count} errors')
+        raise RuntimeError(f'License update migration completed with {error_count} errors')
 
 
-def _process_batch(privilege_updates: list[dict]) -> None:
+def _process_batch(license_updates: list[dict]) -> None:
     """
     Process a batch of privilege update records.
 
     Args:
-        privilege_updates: List of privilegeUpdate records to process
+        license_updates: List of privilegeUpdate records to process
     """
     transaction_items = []
 
-    for update_record in privilege_updates:
+    for update_record in license_updates:
         try:
-            # Extract the dateOfUpdate from the privilegeUpdate record
+            # Extract the dateOfUpdate from the license update record
             datetime_of_update = update_record.get('dateOfUpdate')
-            date_of_update = datetime.fromisoformat(datetime_of_update).date().isoformat()
             if not datetime_of_update:
                 logger.warning(
                     'update record missing datetime_of_update field',
@@ -103,6 +102,7 @@ def _process_batch(privilege_updates: list[dict]) -> None:
                     sk=update_record.get('sk'),
                 )
                 continue
+            date_of_update = datetime.fromisoformat(datetime_of_update).date().isoformat()
 
             # Determine the provider record key
             provider_pk = update_record['pk']

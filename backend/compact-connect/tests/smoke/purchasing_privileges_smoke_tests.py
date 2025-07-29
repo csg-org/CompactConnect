@@ -245,8 +245,9 @@ def test_purchasing_privilege(delete_current_privilege: bool = True):
             )
 
     # check activeSince field and make sure it matches today
-    if datetime.fromisoformat(matching_privilege.get('activeSince')).date() != datetime.now(tz=UTC).date():
-        raise SmokeTestFailureException('activeSince field did not match today as expected.')
+    active_since = matching_privilege.get('activeSince')
+    if not active_since or (datetime.fromisoformat(active_since).date() != datetime.now(tz=UTC).date()):
+        raise SmokeTestFailureException(f'activeSince field did not match today as expected: {active_since}')
 
     logger.info(f'Successfully purchased privilege record: {matching_privilege}')
 
