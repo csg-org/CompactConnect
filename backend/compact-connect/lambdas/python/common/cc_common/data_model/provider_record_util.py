@@ -19,7 +19,6 @@ from cc_common.data_model.schema.license.api import LicenseUpdatePreviousRespons
 from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationData
 from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
 from cc_common.data_model.schema.privilege.api import (
-    PrivilegeHistoryEventPublicResponseSchema,
     PrivilegeHistoryPublicResponseSchema,
     PrivilegeUpdatePreviousGeneralResponseSchema,
 )
