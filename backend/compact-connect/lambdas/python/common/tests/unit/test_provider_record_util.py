@@ -619,8 +619,7 @@ class TestProviderRecordUtility(TstLambdas):
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2026-03-15T00:00:00+00:00'))
     def test_enrich_privilege_history_does_not_inject_expiration_if_renewed_in_last_minute(self):
         """Test that get_enriched_history_with_synthetic_updates_from_privilege does not injection expiration event if
-        renewed last
-        minute
+        renewed last minute
         """
         from cc_common.data_model.provider_record_util import ProviderRecordUtility
 

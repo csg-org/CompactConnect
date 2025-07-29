@@ -937,11 +937,11 @@ class DataClient:
         *,
         compact: str,
         provider_id: str,
-        detail: bool = False,
         jurisdiction: str,
         license_type_abbr: str,
         consistent_read: bool = False,
-    ) -> list [dict]:
+        detail: bool = False,
+    ) -> list[dict]:
         """
         Get a privilege for a provider in a jurisdiction of the license type
 
@@ -949,6 +949,7 @@ class DataClient:
         :param str provider_id: The provider of the privilege
         :param str jurisdiction: The jurisdiction of the privilege
         :param str license_type_abbr: The license type abbreviation of the privilege
+        :param bool detail: Boolean determining whether we include associated records or just privilege record itself
         :raises CCNotFoundException: If the privilege record is not found
         :return If detail = False list of length one containing privilege item, if detail = True list containing,
         privilege record, privilege update records and privilege adverse action records

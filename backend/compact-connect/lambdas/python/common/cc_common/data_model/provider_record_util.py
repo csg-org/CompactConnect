@@ -240,10 +240,10 @@ class ProviderRecordUtility:
     ) -> list[dict]:
         """
         Enrich the privilege history with 'synthetic updates'.
-        Synthetic updates are what we're calling critical pieces of history that are not explicitly recorded in the data
-        system, because they occur passively, such as when a privilege expires or that we do not participate
-        in, like when a privilege is issued. These 'synthetic updates' do not have a corresponding record in the
-        database, but we can deduce their existence based on the privilege's other data. Because these events are
+        Synthetic updates are pieces of history that are not explicitly recorded in the data
+        system, because they occur passively, such as when a privilege expires or because they are redundant.
+        These 'synthetic updates' do not have a corresponding record in the database, but we can deduce their
+        existence based on the privilege's other data. Because these events are
         'synthetic', they have no actual changes in record values associated with them.
         Example issuance event:
         {
@@ -341,7 +341,8 @@ class ProviderRecordUtility:
     def construct_simplified_privilege_history_object(privilege_data: list[dict]) -> dict:
         """
         Construct a simplified list of history events to be easily consumed by the front end
-        :param privilege_data: All of the records relative to the privilege: the privilege, updates, and adverse actions
+        :param privilege_data: All of the records associated with the privilege:
+        the privilege, updates, and adverse actions
         :return: The simplified and enriched privilege history
         """
         privilege = list(filter(lambda x: x['type'] == 'privilege', privilege_data))[0]
