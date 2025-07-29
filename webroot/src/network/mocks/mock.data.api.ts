@@ -21,7 +21,6 @@ import {
     users,
     pets,
     privilegePurchaseOptionsResponse,
-    // attestation,
     getAttestation,
     compactStates,
     compactConfig,
