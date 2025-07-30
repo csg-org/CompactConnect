@@ -276,12 +276,10 @@ class TestGetProvider(TstFunction):
             sk = json.load(f)['sk']
         # The actual sensitive part is the hash at the end of the key
         return sk.split('/')[-1]
-
-    def _when_testing_get_provider_response_based_on_read_access(self, scopes: str, expected_provider: dict):
-        self._load_provider_data()
-
+    
+    def _call_get_provider_and_return_provider_data(self, scopes: str):
         from handlers.providers import get_provider
-
+        
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
@@ -294,13 +292,20 @@ class TestGetProvider(TstFunction):
 
         self.assertEqual(200, resp['statusCode'])
         provider_data = json.loads(resp['body'])
-        self.assertEqual(expected_provider, provider_data)
-
         # The sk for a license-update record is sensitive so we'll do an extra, pretty broad, check just to make sure
         # we guard against future changes that might accidentally send the key out via the API. See discussion on
         # key generation in the LicenseUpdateRecordSchema for details.
         sensitive_hash = self._get_sensitive_hash()
         self.assertNotIn(sensitive_hash, resp['body'])
+
+        return provider_data
+    
+
+    def _when_testing_get_provider_response_based_on_read_access(self, scopes: str, expected_provider: dict):
+        self._load_provider_data()
+
+        provider_data = self._call_get_provider_and_return_provider_data(scopes)
+        self.assertEqual(expected_provider, provider_data)
 
     def _when_testing_get_provider_with_read_private_access(self, scopes: str):
         with open('../common/tests/resources/api/provider-detail-response.json') as f:
@@ -376,6 +381,19 @@ class TestGetProvider(TstFunction):
             scopes='openid email aslp/readGeneral', expected_provider=expected_provider
         )
 
+    def test_get_provider_returns_expected_download_links_when_caller_is_compact_admin(self):
+        self._load_provider_data()
+
+        provider_data = self._call_get_provider_and_return_provider_data(
+            scopes='openid email aslp/readGeneral aslp/admin aslp/readPrivate'
+        )
+
+        self.assertEqual('military-waiver.pdf',
+                         provider_data['militaryAffiliations'][0]['downloadLinks'][0]['fileName'])
+        # we can't assert on the whole url, since it changes with time
+        # we can verify the path to the file matches expected values
+        self.assertIn('https://provider-user-bucket.s3.amazonaws.com//provider/89a6377e-c3a5-40e5-bca5-317ec854c570/document-type/military-affiliations/2024-07-08/1234%23military-waiver.pdf',
+                      provider_data['militaryAffiliations'][0]['downloadLinks'][0]['url'])
 
 @mock_aws
 class TestGetProviderSSN(TstFunction):
