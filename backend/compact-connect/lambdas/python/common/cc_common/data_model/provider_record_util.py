@@ -3,7 +3,11 @@ from enum import StrEnum
 
 from cc_common.config import logger
 from cc_common.data_model.schema.adverse_action import AdverseActionData
-from cc_common.data_model.schema.common import ActiveInactiveStatus, AdverseActionAgainstEnum, CompactEligibilityStatus
+from cc_common.data_model.schema.common import (
+    ActiveInactiveStatus,
+    AdverseActionAgainstEnum,
+    CompactEligibilityStatus,
+)
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
 from cc_common.data_model.schema.license.api import LicenseUpdatePreviousResponseSchema
 from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationData
@@ -216,15 +220,7 @@ class ProviderRecordUtility:
         provider['licenses'] = list(licenses.values())
         provider['privileges'] = list(privileges.values())
         provider['militaryAffiliations'] = military_affiliations
-        # TODO - remove this once migration has been run replacing the 'homeJurisdictionSelection' field # noqa: FIX002
-        #   this should be removed as part of https://github.com/csg-org/CompactConnect/issues/763
-        if provider['currentHomeJurisdiction'] != 'unknown' and provider['currentHomeJurisdiction'] != 'other':
-            provider['homeJurisdictionSelection'] = {
-                'type': 'homeJurisdictionSelection',
-                'jurisdiction': provider['currentHomeJurisdiction'],
-                'compact': provider['compact'],
-                'providerId': provider['providerId'],
-            }
+
         return provider
 
 

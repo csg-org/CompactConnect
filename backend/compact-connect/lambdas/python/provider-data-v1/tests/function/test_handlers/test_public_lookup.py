@@ -303,6 +303,46 @@ class TestPublicQueryProviders(TstFunction):
         # Should reject the query, with 400
         self.assertEqual(400, resp['statusCode'])
 
+    def test_public_query_providers_strips_whitespace_from_query_fields(self):
+        """Test that whitespace is stripped from multiple fields simultaneously."""
+        from handlers.public_lookup import public_query_providers
+
+        # Create providers with known names for testing
+        self._generate_providers(
+            home='oh',
+            privilege_jurisdiction='ne',
+            start_serial=9999,
+            names=(('Testerly', 'Tess'), ('Testerly', 'Ted')),
+        )
+
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        # public endpoint does not have authorizer
+        del event['requestContext']['authorizer']
+        event['pathParameters'] = {'compact': 'aslp'}
+
+        # Test multiple fields with whitespace
+        event['body'] = json.dumps(
+            {
+                'query': {
+                    'givenName': '  Ted  ',
+                    'familyName': '  Testerly  ',
+                    'jurisdiction': '  oh  ',
+                },
+                'pagination': {'pageSize': 10},
+            }
+        )
+
+        resp = public_query_providers(event, self.mock_context)
+        self.assertEqual(200, resp['statusCode'])
+
+        body = json.loads(resp['body'])
+        self.assertEqual(1, len(body['providers']))  # Should find Ted Testerly
+        found_provider = body['providers'][0]
+        self.assertEqual('Ted', found_provider['givenName'])
+        self.assertEqual('Testerly', found_provider['familyName'])
+
 
 @mock_aws
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
@@ -349,8 +389,6 @@ class TestPublicGetProvider(TstFunction):
             expected_provider.pop('dateOfExpiration')
             expected_provider.pop('jurisdictionUploadedLicenseStatus')
             expected_provider.pop('jurisdictionUploadedCompactEligibility')
-            # TODO - remove this as part of https://github.com/csg-org/CompactConnect/issues/763 # noqa: FIX002
-            expected_provider.pop('homeJurisdictionSelection')
 
         self.assertEqual(expected_provider, provider_data)
 

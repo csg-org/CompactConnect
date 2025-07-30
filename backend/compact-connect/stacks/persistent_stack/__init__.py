@@ -1,7 +1,7 @@
 import os
 
 from aws_cdk import Duration, RemovalPolicy, aws_ssm
-from aws_cdk.aws_cognito import SignInAliases, UserPoolEmail
+from aws_cdk.aws_cognito import UserPoolEmail
 from aws_cdk.aws_iam import Effect, PolicyStatement
 from aws_cdk.aws_kms import Key
 from aws_cdk.aws_lambda import Runtime
@@ -19,13 +19,13 @@ from common_constructs.ssm_parameter_utility import SSMParameterUtility
 from common_constructs.stack import AppStack
 from constructs import Construct
 
+from stacks.backup_infrastructure_stack import BackupInfrastructureStack
 from stacks.persistent_stack.bulk_uploads_bucket import BulkUploadsBucket
 from stacks.persistent_stack.compact_configuration_table import CompactConfigurationTable
 from stacks.persistent_stack.compact_configuration_upload import CompactConfigurationUpload
 from stacks.persistent_stack.data_event_table import DataEventTable
 from stacks.persistent_stack.event_bus import EventBus
 from stacks.persistent_stack.provider_table import ProviderTable
-from stacks.persistent_stack.provider_users import ProviderUsers
 from stacks.persistent_stack.provider_users_bucket import ProviderUsersBucket
 from stacks.persistent_stack.rate_limiting_table import RateLimitingTable
 from stacks.persistent_stack.ssn_table import SSNTable
@@ -50,6 +50,7 @@ class PersistentStack(AppStack):
         app_name: str,
         environment_name: str,
         environment_context: dict,
+        backup_config: dict,
         **kwargs,
     ) -> None:
         super().__init__(
@@ -109,6 +110,21 @@ class PersistentStack(AppStack):
             slack_subscriptions=notifications.get('slack', []),
         )
 
+        # Check if backups are enabled for this environment
+        backup_enabled = environment_context['backup_enabled']
+
+        if backup_enabled:
+            # Create backup infrastructure as a nested stack
+            self.backup_infrastructure_stack = BackupInfrastructureStack(
+                self,
+                'BackupInfrastructureStack',
+                environment_name=environment_name,
+                backup_config=backup_config,
+                alarm_topic=self.alarm_topic,
+            )
+        else:
+            self.backup_infrastructure_stack = None
+
         self.access_logs_bucket = AccessLogsBucket(
             self,
             'AccessLogsBucket',
@@ -134,7 +150,9 @@ class PersistentStack(AppStack):
             self, self._data_event_bus
         )
 
-        self._add_data_resources(removal_policy=removal_policy)
+        self._add_data_resources(
+            removal_policy=removal_policy, backup_infrastructure_stack=self.backup_infrastructure_stack
+        )
         self._add_migrations()
 
         self.compact_configuration_upload = CompactConfigurationUpload(
@@ -176,32 +194,8 @@ class PersistentStack(AppStack):
             user_pool_email=user_pool_email_settings,
             security_profile=security_profile,
             removal_policy=removal_policy,
+            backup_infrastructure_stack=self.backup_infrastructure_stack,
         )
-
-        # This user pool is deprecated and will be removed once we've cut over to the green user pool
-        # in the new provider_users_stack across all environments.
-        provider_prefix = f'{app_name}-provider'
-        provider_prefix = provider_prefix if environment_name == 'prod' else f'{provider_prefix}-{environment_name}'
-
-        # We have to use a different prefix so we don't have a naming conflict with the original user pool
-        self.provider_users_deprecated = ProviderUsers(
-            self,
-            'ProviderUsersBlue',
-            cognito_domain_prefix=None,
-            environment_name=environment_name,
-            environment_context=environment_context,
-            encryption_key=self.shared_encryption_key,
-            sign_in_aliases=SignInAliases(email=True, username=False),
-            user_pool_email=user_pool_email_settings,
-            security_profile=security_profile,
-            removal_policy=removal_policy,
-        )
-        # We explicitly export the user pool values so we can later move the API stack over to the
-        # new user pool without putting our app into a cross-stack dependency 'deadly embrace':
-        # https://www.endoflineblog.com/cdk-tips-03-how-to-unblock-cross-stack-references
-        self.export_value(self.provider_users_deprecated.user_pool_id)
-        self.export_value(self.provider_users_deprecated.user_pool_arn)
-        self.export_value(self.provider_users_deprecated.ui_client.user_pool_client_id)
 
         QueryDefinition(
             self,
@@ -223,19 +217,16 @@ class PersistentStack(AppStack):
             # by the user pool email settings
             self.staff_users.node.add_dependency(self.user_email_notifications.email_identity)
             self.staff_users.node.add_dependency(self.user_email_notifications.dmarc_record)
-            self.provider_users_deprecated.node.add_dependency(self.user_email_notifications.email_identity)
-            self.provider_users_deprecated.node.add_dependency(self.user_email_notifications.dmarc_record)
             # the verification custom resource needs to be completed before the user pools are created
             # so that the user pools will be created after the SES identity is verified
             self.staff_users.node.add_dependency(self.user_email_notifications.verification_custom_resource)
-            self.provider_users_deprecated.node.add_dependency(
-                self.user_email_notifications.verification_custom_resource
-            )
 
         # This parameter is used to store the frontend app config values for use in the frontend deployment stack
         self._create_frontend_app_config_parameter()
 
-    def _add_data_resources(self, removal_policy: RemovalPolicy):
+    def _add_data_resources(
+        self, removal_policy: RemovalPolicy, backup_infrastructure_stack: BackupInfrastructureStack | None
+    ):
         # Create the ssn related resources before other resources which are dependent on them
         self.ssn_table = SSNTable(
             self,
@@ -243,6 +234,8 @@ class PersistentStack(AppStack):
             removal_policy=removal_policy,
             data_event_bus=self._data_event_bus,
             alarm_topic=self.alarm_topic,
+            backup_infrastructure_stack=backup_infrastructure_stack,
+            environment_context=self.environment_context,
         )
 
         self.bulk_uploads_bucket = BulkUploadsBucket(
@@ -279,7 +272,12 @@ class PersistentStack(AppStack):
         )
 
         self.provider_table = ProviderTable(
-            self, 'ProviderTable', encryption_key=self.shared_encryption_key, removal_policy=removal_policy
+            self,
+            'ProviderTable',
+            encryption_key=self.shared_encryption_key,
+            removal_policy=removal_policy,
+            backup_infrastructure_stack=backup_infrastructure_stack,
+            environment_context=self.environment_context,
         )
 
         # The api query role needs access to the provider table to associate a provider with
@@ -305,6 +303,8 @@ class PersistentStack(AppStack):
             event_bus=self._data_event_bus,
             alarm_topic=self.alarm_topic,
             removal_policy=removal_policy,
+            backup_infrastructure_stack=backup_infrastructure_stack,
+            environment_context=self.environment_context,
         )
 
         self.compact_configuration_table = CompactConfigurationTable(
@@ -312,6 +312,8 @@ class PersistentStack(AppStack):
             construct_id='CompactConfigurationTable',
             encryption_key=self.shared_encryption_key,
             removal_policy=removal_policy,
+            backup_infrastructure_stack=backup_infrastructure_stack,
+            environment_context=self.environment_context,
         )
 
         self.transaction_history_table = TransactionHistoryTable(
@@ -319,6 +321,8 @@ class PersistentStack(AppStack):
             construct_id='TransactionHistoryTable',
             encryption_key=self.shared_encryption_key,
             removal_policy=removal_policy,
+            backup_infrastructure_stack=backup_infrastructure_stack,
+            environment_context=self.environment_context,
         )
 
         # bucket for holding documentation for providers
@@ -329,6 +333,8 @@ class PersistentStack(AppStack):
             encryption_key=self.shared_encryption_key,
             provider_table=self.provider_table,
             removal_policy=removal_policy,
+            backup_infrastructure_stack=backup_infrastructure_stack,
+            environment_context=self.environment_context,
         )
 
     def _add_migrations(self):
@@ -337,19 +343,19 @@ class PersistentStack(AppStack):
         there should be an associated migration script that is run as part of the deployment. These are short-lived
         custom resources that should be removed from the CDK app once the migration has been run in all environments.
         """
-        home_jurisdiction_migration = DataMigration(
+        update_dates_migration = DataMigration(
             self,
-            '796HomeJurisdictionMigration',
-            migration_dir='home_jurisdiction_796',
+            '887CreateEffectiveDate',
+            migration_dir='create_effective_date_887',
             lambda_environment={
                 'PROVIDER_TABLE_NAME': self.provider_table.table_name,
                 **self.common_env_vars,
             },
         )
-        self.provider_table.grant_read_write_data(home_jurisdiction_migration)
+        self.provider_table.grant_read_write_data(update_dates_migration)
         NagSuppressions.add_resource_suppressions_by_path(
             self,
-            f'{home_jurisdiction_migration.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            f'{update_dates_migration.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
@@ -416,7 +422,7 @@ class PersistentStack(AppStack):
                 sort='@timestamp desc',
             ),
             log_groups=[
-                home_jurisdiction_migration.migration_function.log_group,
+                update_dates_migration.migration_function.log_group,
                 self.provider_user_pool_migration.migration_function.log_group,
                 self.compact_configured_states_migration.migration_function.log_group,
             ],

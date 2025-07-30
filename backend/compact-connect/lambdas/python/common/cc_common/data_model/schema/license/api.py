@@ -10,7 +10,7 @@ from marshmallow.validate import Length
 from cc_common.config import config
 from cc_common.data_model.schema.adverse_action.api import AdverseActionGeneralResponseSchema
 from cc_common.data_model.schema.base_record import ForgivingSchema, StrictSchema
-from cc_common.data_model.schema.common import ActiveInactiveStatus, CompactEligibilityStatus
+from cc_common.data_model.schema.common import ActiveInactiveStatus, CCRequestSchema, CompactEligibilityStatus
 from cc_common.data_model.schema.fields import (
     ActiveInactive,
     Compact,
@@ -23,7 +23,7 @@ from cc_common.data_model.schema.fields import (
 )
 
 
-class LicensePostRequestSchema(StrictSchema):
+class LicensePostRequestSchema(CCRequestSchema, StrictSchema):
     """
     Schema for license data as posted by a board staff-user
 
@@ -53,7 +53,7 @@ class LicensePostRequestSchema(StrictSchema):
     # These date values are determined by the license records uploaded by a state
     # they do not include a timestamp, so we use the Date field type
     dateOfIssuance = Date(required=True, allow_none=False)
-    dateOfRenewal = Date(required=True, allow_none=False)
+    dateOfRenewal = Date(required=False, allow_none=False)
     dateOfExpiration = Date(required=True, allow_none=False)
     dateOfBirth = Date(required=True, allow_none=False)
     homeAddressStreet1 = String(required=True, allow_none=False, validate=Length(2, 100))
@@ -97,7 +97,7 @@ class LicenseUpdatePreviousGeneralResponseSchema(ForgivingSchema):
     suffix = String(required=False, allow_none=False, validate=Length(1, 100))
     dateOfUpdate = Raw(required=True, allow_none=False)
     dateOfIssuance = Raw(required=True, allow_none=False)
-    dateOfRenewal = Raw(required=True, allow_none=False)
+    dateOfRenewal = Raw(required=False, allow_none=False)
     dateOfExpiration = Raw(required=True, allow_none=False)
     homeAddressStreet1 = String(required=True, allow_none=False, validate=Length(2, 100))
     homeAddressStreet2 = String(required=False, allow_none=False, validate=Length(1, 100))
@@ -159,7 +159,7 @@ class LicenseGeneralResponseSchema(ForgivingSchema):
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
     suffix = String(required=False, allow_none=False, validate=Length(1, 100))
     dateOfIssuance = Raw(required=True, allow_none=False)
-    dateOfRenewal = Raw(required=True, allow_none=False)
+    dateOfRenewal = Raw(required=False, allow_none=False)
     dateOfExpiration = Raw(required=True, allow_none=False)
     homeAddressStreet1 = String(required=True, allow_none=False, validate=Length(2, 100))
     homeAddressStreet2 = String(required=False, allow_none=False, validate=Length(1, 100))
@@ -188,7 +188,7 @@ class LicenseUpdatePreviousResponseSchema(ForgivingSchema):
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
     suffix = String(required=False, allow_none=False, validate=Length(1, 100))
     dateOfIssuance = Raw(required=True, allow_none=False)
-    dateOfRenewal = Raw(required=True, allow_none=False)
+    dateOfRenewal = Raw(required=False, allow_none=False)
     dateOfExpiration = Raw(required=True, allow_none=False)
     dateOfBirth = Raw(required=True, allow_none=False)
     homeAddressStreet1 = String(required=True, allow_none=False, validate=Length(2, 100))

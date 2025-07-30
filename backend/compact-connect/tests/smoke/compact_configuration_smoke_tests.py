@@ -221,7 +221,7 @@ def test_compact_configuration():
             delete_test_staff_user(test_email, user_sub, compact)
 
 
-def test_jurisdiction_configuration():
+def test_jurisdiction_configuration(jurisdiction: str = 'ne', recreate_compact_config: bool = False):
     """
     Test that a state admin can update and retrieve jurisdiction configuration.
 
@@ -232,9 +232,8 @@ def test_jurisdiction_configuration():
 
     # Create a test state admin user with compact admin permissions for simplicity
     compact = COMPACTS[0]  # Use the first compact for testing
-    jurisdiction = 'ne'  # Use Nebraska for testing
     test_email = f'test-state-admin-{jurisdiction}@ccSmokeTestFakeEmail.com'
-    permissions = {'actions': {'admin'}, 'jurisdictions': {'ne': {'admin'}}}
+    permissions = {'actions': {'admin'}, 'jurisdictions': {jurisdiction: {'admin'}}}
 
     user_sub = None
     try:
@@ -249,6 +248,8 @@ def test_jurisdiction_configuration():
         # Get auth headers for the test user
         headers = get_staff_user_auth_headers(test_email)
 
+        if recreate_compact_config:
+            test_compact_configuration()
         # Clean up any existing configurations from previous test runs
         cleanup_jurisdiction_configuration(compact, jurisdiction)
 

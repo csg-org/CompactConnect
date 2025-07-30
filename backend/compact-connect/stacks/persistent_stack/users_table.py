@@ -1,8 +1,12 @@
 from aws_cdk import RemovalPolicy
+from aws_cdk.aws_backup import BackupResource
 from aws_cdk.aws_dynamodb import Attribute, AttributeType, BillingMode, ProjectionType, Table, TableEncryption
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
+from common_constructs.backup_plan import CCBackupPlan
 from constructs import Construct
+
+from stacks.backup_infrastructure_stack import BackupInfrastructureStack
 
 
 class UsersTable(Table):
@@ -15,6 +19,8 @@ class UsersTable(Table):
         *,
         encryption_key: IKey,
         removal_policy: RemovalPolicy,
+        backup_infrastructure_stack: BackupInfrastructureStack | None,
+        environment_context: dict,
         **kwargs,
     ):
         super().__init__(
@@ -37,13 +43,31 @@ class UsersTable(Table):
             sort_key=Attribute(name='famGiv', type=AttributeType.STRING),
             projection_type=ProjectionType.ALL,
         )
-        NagSuppressions.add_resource_suppressions(
-            self,
-            suppressions=[
-                {
-                    'id': 'HIPAA.Security-DynamoDBInBackupPlan',
-                    'reason': 'We will implement data back-ups after we better understand regulatory data deletion'
-                    ' requirements',
-                },
-            ],
-        )
+
+        # Check if backups are enabled for this environment
+        backup_enabled = environment_context['backup_enabled']
+
+        if backup_enabled and backup_infrastructure_stack is not None:
+            # Set up backup plan
+            self.backup_plan = CCBackupPlan(
+                self,
+                'UsersTableBackup',
+                backup_plan_name_prefix=self.table_name,
+                backup_resources=[BackupResource.from_dynamo_db_table(self)],
+                backup_vault=backup_infrastructure_stack.local_backup_vault,
+                backup_service_role=backup_infrastructure_stack.backup_service_role,
+                cross_account_backup_vault=backup_infrastructure_stack.cross_account_backup_vault,
+                backup_policy=environment_context['backup_policies']['general_data'],
+            )
+        else:
+            # Create placeholder attribute for disabled state
+            self.backup_plan = None
+            NagSuppressions.add_resource_suppressions(
+                self,
+                suppressions=[
+                    {
+                        'id': 'HIPAA.Security-DynamoDBInBackupPlan',
+                        'reason': 'This non-production environment has backups disabled intentionally',
+                    },
+                ],
+            )

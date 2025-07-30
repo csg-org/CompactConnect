@@ -9,19 +9,76 @@
     <div class="account-area-container">
         <h1 class="card-title">{{ $t('account.accountTitle') }}</h1>
         <Card class="account-area">
-            <form @submit.prevent="handleSubmit">
+            <form @submit.prevent.stop="handleSubmit">
                 <InputText :formInput="formData.firstName" />
                 <InputText :formInput="formData.lastName" />
                 <InputText :formInput="formData.email" />
                 <InputSubmit
-                    :formInput="formData.submit"
+                    :formInput="formData.submitUserUpdate"
                     class="account-submit"
-                    :class="{ 'not-visible': !isSubmitVisible }"
                     :label="submitLabel"
                     :isEnabled="!isFormLoading"
-                    :tabindex="(isSubmitVisible) ? 0 : -1"
                 />
             </form>
+            <TransitionGroup>
+                <Modal
+                    v-if="isEmailVerificationModalDisplayed"
+                    class="confirm-email-modal"
+                    :title="(!isEmailVerificationModalSuccess) ? $t('account.enterVerificationCode') : ' '"
+                    :showActions="false"
+                    @keydown.tab="focusTrapEmailVerificationModal($event)"
+                    @keyup.esc="closeEmailVerificationModal"
+                >
+                    <template v-slot:content>
+                        <div class="modal-content confirm-modal-content">
+                            <template v-if="!isEmailVerificationModalSuccess">
+                                <div class="confirm-email-subtext">
+                                    {{ $t('account.enterVerificationCodeSubtext') }}
+                                </div>
+                                <InputText
+                                    :formInput="formData.emailVerificationCode"
+                                    class="verification-code-input-container"
+                                />
+                            </template>
+                            <div v-else class="verification-code-success">
+                                <div class="icon-container"><CheckCircleIcon /></div>
+                                {{ $t('account.emailUpdateSuccess') }}
+                            </div>
+                            <div v-if="emailVerificationErrorMessage" class="modal-error">
+                                {{ emailVerificationErrorMessage }}
+                            </div>
+                            <div class="action-button-row">
+                                <InputSubmit
+                                    v-if="!isEmailVerificationModalSuccess"
+                                    :formInput="formData.submitEmailVerification"
+                                    @click="submitEmailVerification"
+                                    class="action-button submit-button continue-button"
+                                    :label="(isFormLoading)
+                                        ? $t('common.loading')
+                                        : $t('common.submit')"
+                                    :isEnabled="!isFormLoading"
+                                />
+                                <InputButton
+                                    v-if="!isEmailVerificationModalSuccess"
+                                    id="confirm-modal-cancel-button"
+                                    class="action-button cancel-button"
+                                    :label="$t('common.cancel')"
+                                    :isTransparent="true"
+                                    :onClick="closeEmailVerificationModal"
+                                    :isEnabled="!isFormLoading"
+                                />
+                                <InputSubmit
+                                    v-if="isEmailVerificationModalSuccess"
+                                    :formInput="formData.submitEmailVerification"
+                                    @click="closeEmailVerificationModal"
+                                    class="action-button submit-button continue-button"
+                                    :label="$t('common.close')"
+                                />
+                            </div>
+                        </div>
+                    </template>
+                </Modal>
+            </TransitionGroup>
             <UpdateHomeJurisdiction v-if="isLicensee" />
             <ChangePassword />
             <section

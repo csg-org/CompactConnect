@@ -21,7 +21,7 @@ import {
     users,
     pets,
     privilegePurchaseOptionsResponse,
-    attestation,
+    getAttestation,
     compactStates,
     compactConfig,
     stateConfig
@@ -185,7 +185,7 @@ export class DataApi {
     // Get Attestation By ID
     public getAttestation(compact, attestationId) {
         const response = PrivilegeAttestationSerializer.fromServer({
-            ...attestation,
+            ...getAttestation(attestationId),
             attestationId,
             compact,
         });
@@ -359,9 +359,18 @@ export class DataApi {
         return wait(500).then(() => LicenseeUserSerializer.fromServer(licensees.providers[0]));
     }
 
-    // Update Authenticated Licensee User
-    public updateAuthenticatedLicenseeUser() {
-        return wait(500).then(() => LicenseeUserSerializer.fromServer(licensees.providers[0]));
+    // Update Authenticated Licensee User email address
+    public updateAuthenticatedLicenseeUserEmail() {
+        return wait(500).then(() => ({ message: 'success' }));
+    }
+
+    // Verify Authenticated Licensee User email address
+    public verifyAuthenticatedLicenseeUserEmail({ verificationCode }) {
+        if (!verificationCode) {
+            return wait(500).then(() => { throw new Error('failed email verification'); });
+        }
+
+        return wait(500).then(() => ({ message: 'success' }));
     }
 
     // Get Privilege Purchase Information for Licensee User

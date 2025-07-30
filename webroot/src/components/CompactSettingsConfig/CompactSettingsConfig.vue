@@ -24,10 +24,10 @@
                     @blur="formatBlur(formData.compactFee)"
                 />
                 <InputText
-                    :formInput="formData.privilegeTransactionFee"
+                    :formInput="formData.creditCardTransactionFee"
                     class="form-row currency"
-                    @input="formatInput(formData.privilegeTransactionFee)"
-                    @blur="formatBlur(formData.privilegeTransactionFee, true)"
+                    @input="formatInput(formData.creditCardTransactionFee)"
+                    @blur="formatBlur(formData.creditCardTransactionFee, true)"
                 />
                 <!-- Notifications -->
                 <h2 class="form-section-title notifications">{{ $t('compact.notifications') }}</h2>

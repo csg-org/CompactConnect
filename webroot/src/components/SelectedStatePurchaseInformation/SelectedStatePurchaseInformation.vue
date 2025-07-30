@@ -19,20 +19,20 @@
         </div>
         <div v-if="!isPriceCollapsed">
             <div class="info-row sub-row">
-                <div class="info-row-label">{{expirationDateText}}</div>
+                <div class="info-row-label">{{ $t('licensing.expirationDate') }}</div>
                 <div class="expire-date-value">{{selectedLicenseExpirationDate}}</div>
             </div>
             <div class="info-row sub-row">
                 <div class="info-row-label">{{jurisdictionFeeText}}</div>
-                <div class="expire-date-value">${{feeDisplay}}</div>
+                <div class="fee-display-value">${{feeDisplay}}</div>
             </div>
             <div class="info-row sub-row">
-                <div class="info-row-label">{{commissionFeeText}}</div>
-                <div class="expire-date-value">${{currentCompactCommissionFeeDisplay}}</div>
+                <div class="info-row-label">{{ $t('licensing.adminFee') }}</div>
+                <div class="fee-display-value">${{currentCompactCommissionFeeDisplay}}</div>
             </div>
-            <div class="info-row">
-                <div class="info-row-label">{{subtotalText}}</div>
-                <div class="expire-date-value">${{subTotal}}</div>
+            <div class="info-row total-row">
+                <div class="info-row-label">{{ $t('common.subtotal') }}</div>
+                <div class="subtotal-value">${{subTotal}}</div>
             </div>
         </div>
         <div v-if="selectedStatePurchaseData.isJurisprudenceRequired" class="jurisprudence-check-box">
@@ -40,6 +40,22 @@
                 :formInput="jurisprudenceCheckInput"
                 @change="handleJurisprudenceClicked()"
             />
+            <div
+                v-if="selectedStatePurchaseData.jurisprudenceInfoUri"
+                class="jurisprudence-info-link-container"
+                :class="{ 'error': !!jurisprudenceCheckInput.errorMessage }"
+            >
+                <a
+                    :href="selectedStatePurchaseData.jurisprudenceInfoUri"
+                    class="jurisprudence-info-link"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    :aria-label="$t('common.moreInfo')"
+                    tabindex="0"
+                >
+                    {{ $t('common.moreInfo') }}
+                </a>
+            </div>
         </div>
         <div class="jurisprudence-check-box">
             <InputCheckbox
@@ -58,7 +74,7 @@
             class="attestation-modal"
             :closeOnBackgroundClick="true"
             :showActions="false"
-            :title="jurisprudenceModalTitle"
+            :title="$t('licensing.jurisprudenceConfirmation')"
             @close-modal="closeAndInvalidateJurisprudenceCheckbox"
             @keydown.tab="focusTrapJurisprudence($event)"
             @keyup.esc="closeAndInvalidateJurisprudenceCheckbox"
@@ -72,14 +88,14 @@
                                 id="modal-back-button"
                                 ref="backButton"
                                 class="back-button"
-                                :label="backText"
+                                :label="$t('common.back')"
                                 :isTransparent="true"
                                 :onClick="closeAndInvalidateJurisprudenceCheckbox"
                             />
                             <InputSubmit
                                 class="understand-button"
                                 :formInput="formData.submitJurisprudenceUnderstanding"
-                                :label="iUnderstandText"
+                                :label="$t('licensing.iUnderstand')"
                             />
                         </div>
                     </form>
@@ -105,14 +121,14 @@
                                 id="modal-back-button"
                                 ref="backButton"
                                 class="back-button"
-                                :label="backText"
+                                :label="$t('common.back')"
                                 :isTransparent="true"
                                 :onClick="closeAndInvalidateScopeCheckbox"
                             />
                             <InputSubmit
                                 class="understand-button"
                                 :formInput="formData.submitScopeUnderstanding"
-                                :label="iUnderstandText"
+                                :label="$t('licensing.iUnderstand')"
                             />
                         </div>
                     </form>

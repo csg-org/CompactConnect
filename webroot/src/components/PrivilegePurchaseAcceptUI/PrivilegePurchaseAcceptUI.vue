@@ -9,7 +9,7 @@
     <div class="accept-ui-container">
         <div class="accept-ui-button-container">
             <button
-                type="button"
+                type="submit"
                 class="AcceptUI btn-accept-ui"
                 :class="{
                     'loading-init': isLoadingInit,

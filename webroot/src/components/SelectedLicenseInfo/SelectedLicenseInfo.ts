@@ -20,7 +20,7 @@ class SelectedLicenseInfo extends Vue {
     }
 
     get licenseDisplay(): string {
-        return this.license?.displayName() || '';
+        return this.license?.displayName(' - ', true) || '';
     }
 
     get expirationDisplay(): string {

@@ -1,6 +1,7 @@
 import os
 
 from aws_cdk import Duration, RemovalPolicy
+from aws_cdk.aws_backup import BackupResource
 from aws_cdk.aws_dynamodb import Attribute, AttributeType, BillingMode, ProjectionType, Table, TableEncryption
 from aws_cdk.aws_events import EventBus
 from aws_cdk.aws_iam import (
@@ -15,10 +16,13 @@ from aws_cdk.aws_iam import (
 from aws_cdk.aws_kms import Key
 from aws_cdk.aws_sns import ITopic
 from cdk_nag import NagSuppressions
+from common_constructs.backup_plan import CCBackupPlan
 from common_constructs.python_function import PythonFunction
 from common_constructs.queued_lambda_processor import QueuedLambdaProcessor
 from common_constructs.stack import Stack
 from constructs import Construct
+
+from stacks.backup_infrastructure_stack import BackupInfrastructureStack
 
 
 class SSNTable(Table):
@@ -32,6 +36,8 @@ class SSNTable(Table):
         removal_policy: RemovalPolicy,
         data_event_bus: EventBus,
         alarm_topic: ITopic,
+        backup_infrastructure_stack: BackupInfrastructureStack,
+        environment_context: dict,
         **kwargs,
     ):
         self.key = Key(
@@ -124,16 +130,34 @@ class SSNTable(Table):
             )
         )
 
-        NagSuppressions.add_resource_suppressions(
-            self,
-            suppressions=[
-                {
-                    'id': 'HIPAA.Security-DynamoDBInBackupPlan',
-                    'reason': 'We will implement data back-ups after we better understand regulatory data deletion'
-                    ' requirements',
-                },
-            ],
-        )
+        # Set up backup plan
+        backup_enabled = environment_context['backup_enabled']
+        if backup_enabled and backup_infrastructure_stack is not None:
+            # Store backup service role for KMS key policy configuration
+            self.backup_service_role = backup_infrastructure_stack.ssn_backup_service_role
+
+            self.backup_plan = CCBackupPlan(
+                self,
+                'SSNTableBackup',
+                backup_plan_name_prefix=self.table_name,
+                backup_resources=[BackupResource.from_dynamo_db_table(self)],
+                backup_vault=backup_infrastructure_stack.local_ssn_backup_vault,
+                backup_service_role=backup_infrastructure_stack.ssn_backup_service_role,
+                cross_account_backup_vault=backup_infrastructure_stack.cross_account_ssn_backup_vault,
+                backup_policy=environment_context['backup_policies']['general_data'],
+            )
+        else:
+            self.backup_plan = None
+            self.backup_service_role = None
+            NagSuppressions.add_resource_suppressions(
+                self,
+                suppressions=[
+                    {
+                        'id': 'HIPAA.Security-DynamoDBInBackupPlan',
+                        'reason': 'This non-production environment has backups disabled intentionally',
+                    },
+                ],
+            )
 
         self._configure_access()
 
@@ -182,6 +206,15 @@ class SSNTable(Table):
 
         # This explicitly blocks any principals (including account admins) from reading data
         # encrypted with this key other than our IAM roles declared here and dynamodb itself
+        allowed_principal_arns = [
+            self.ingest_role.role_arn,
+            self.license_upload_role.role_arn,
+            self.api_query_role.role_arn,
+        ]
+        # Only include backup service role if backup is enabled
+        if self.backup_service_role is not None:
+            allowed_principal_arns.append(self.backup_service_role.role_arn)
+
         self.key.add_to_resource_policy(
             PolicyStatement(
                 effect=Effect.DENY,
@@ -190,11 +223,7 @@ class SSNTable(Table):
                 resources=['*'],
                 conditions={
                     'StringNotEquals': {
-                        'aws:PrincipalArn': [
-                            self.ingest_role.role_arn,
-                            self.license_upload_role.role_arn,
-                            self.api_query_role.role_arn,
-                        ],
+                        'aws:PrincipalArn': allowed_principal_arns,
                         'aws:PrincipalServiceName': ['dynamodb.amazonaws.com', 'events.amazonaws.com'],
                     }
                 },

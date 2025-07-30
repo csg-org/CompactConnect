@@ -39,8 +39,10 @@ new AWS organization that we will set up here. Have them:
   - `<account_name_prefix>-audit@<email_domain>`
   - `<account_name_prefix>-deploy@<email_domain>`
   - `<account_name_prefix>-prod@<email_domain>`
+  - `<account_name_prefix>-prod-secondary@<email_domain>` (for backups and disaster recovery)
   - `<account_name_prefix>-beta@<email_domain>`
   - `<account_name_prefix>-test@<email_domain>`
+  - `<account_name_prefix>-test-secondary@<email_domain>` (for backups and disaster recovery)
 - Configure your local CLI to use your new IAM User admin credentials.
 - Install the requirements in `requirements.txt` into your local python environment.
 - Run `cdk bootstrap` to provision some CDK support infrastructure into your account.
@@ -73,7 +75,7 @@ new AWS organization that we will set up here. Have them:
     └── Prod
 ```
 - Go to the ControlTower service, Account factory view
-- Create four new AWS accounts for the OUs in the following structure, with the following details. Use the
+- Create six new AWS accounts for the OUs in the following structure, with the following details. Use the
   corresponding email distribution list as the account address, the names in the following structure for Display name,
   and your own IAM Identity Center user for Access configuration:
 ```text
@@ -82,9 +84,11 @@ new AWS organization that we will set up here. Have them:
     │   └── Deploy
     ├── PreProd
     │   └── Test
+    │   └── Test Secondary (Backups and Disaster Recovery)
     │   └── Beta 
     └── Prod
         └── Production
+        └── Production Secondary (Backups and Disaster Recovery)
 ```
 - Go to the IAM Identity Center service, Groups view
 - Create a new group called CSGAdmins and add yourself
@@ -111,6 +115,9 @@ new AWS organization that we will set up here. Have them:
 - For your Test, Beta, and Production accounts:
   - Configure your CLI to use the account
   - Run `cdk bootstrap <target account>/us-east-1 --trust <deploy account> --trust-for-lookup <deploy account> --cloudformation-execution-policies 'arn:aws:iam::aws:policy/AdministratorAccess'`
+
+### Bootstrap the secondary accounts
+See ./backups/README for instructions on setting up the secondary accounts and backup resources.
 
 ## Log Aggregation Setup
 

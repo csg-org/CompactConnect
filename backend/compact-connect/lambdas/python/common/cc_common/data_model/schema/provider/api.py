@@ -1,6 +1,5 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
-from marshmallow import Schema
-from marshmallow.fields import Date, Email, List, Nested, Raw, String
+from marshmallow.fields import Date, Email, Integer, List, Nested, Raw, String
 from marshmallow.validate import Length, Regexp
 
 from cc_common.data_model.schema.base_record import ForgivingSchema
@@ -17,22 +16,6 @@ from cc_common.data_model.schema.fields import (
 from cc_common.data_model.schema.license.api import LicenseGeneralResponseSchema
 from cc_common.data_model.schema.military_affiliation.api import MilitaryAffiliationGeneralResponseSchema
 from cc_common.data_model.schema.privilege.api import PrivilegeGeneralResponseSchema, PrivilegePublicResponseSchema
-
-
-# TODO deprecated - to be removed after frontend has been update to only   # noqa: FIX002
-#  reference 'currentHomeJurisdiction' field in https://github.com/csg-org/CompactConnect/issues/763
-class ProviderHomeJurisdictionSelectionGeneralResponseSchema(ForgivingSchema):
-    """
-    Schema defining fields available to all staff users with only the 'readGeneral' permission.
-
-    Serialization direction:
-    Python -> load() -> API
-    """
-
-    type = Raw(required=True, allow_none=False)
-    compact = Raw(required=True, allow_none=False)
-    providerId = Raw(required=True, allow_none=False)
-    jurisdiction = Raw(required=True, allow_none=False)
 
 
 class ProviderGeneralResponseSchema(ForgivingSchema):
@@ -82,11 +65,6 @@ class ProviderGeneralResponseSchema(ForgivingSchema):
     licenses = List(Nested(LicenseGeneralResponseSchema(), required=False, allow_none=False))
     privileges = List(Nested(PrivilegeGeneralResponseSchema(), required=False, allow_none=False))
     militaryAffiliations = List(Nested(MilitaryAffiliationGeneralResponseSchema(), required=False, allow_none=False))
-    # TODO deprecated - to be removed after frontend has been update to only   # noqa: FIX002
-    #  reference 'currentHomeJurisdiction' field in https://github.com/csg-org/CompactConnect/issues/763
-    homeJurisdictionSelection = Nested(
-        ProviderHomeJurisdictionSelectionGeneralResponseSchema(), required=False, allow_none=False
-    )
 
 
 class ProviderPublicResponseSchema(ForgivingSchema):
@@ -126,7 +104,7 @@ class ProviderPublicResponseSchema(ForgivingSchema):
 
 
 # We set this to a strict schema, to avoid extra values from entering the system.
-class ProviderRegistrationRequestSchema(Schema):
+class ProviderRegistrationRequestSchema(CCRequestSchema):
     """
     Schema for provider registration requests.
 
@@ -146,6 +124,48 @@ class ProviderRegistrationRequestSchema(Schema):
     licenseType = String(required=True, allow_none=False)
     compact = String(required=True, allow_none=False)
     token = String(required=True, allow_none=False)
+
+
+class QueryProvidersRequestSchema(CCRequestSchema):
+    """
+    Schema for query providers requests.
+
+    This schema is used to validate incoming requests to both the staff and public query providers API endpoints.
+    It corresponds to the V1QueryProvidersRequestModel in the API model.
+
+    Serialization direction:
+    API -> load() -> Python
+    """
+
+    class QuerySchema(CCRequestSchema):
+        """
+        Nested schema for the query object within the request.
+        """
+
+        providerId = String(required=False, allow_none=False, validate=Length(min=1))
+        jurisdiction = Jurisdiction(required=False, allow_none=False)
+        givenName = String(required=False, allow_none=False, validate=Length(min=1, max=100))
+        familyName = String(required=False, allow_none=False, validate=Length(min=1, max=100))
+
+    class PaginationSchema(ForgivingSchema):
+        """
+        Nested schema for the pagination object within the request.
+        """
+
+        lastKey = String(required=False, allow_none=False, validate=Length(min=1, max=1024))
+        pageSize = Integer(required=False, allow_none=False)
+
+    class SortingSchema(ForgivingSchema):
+        """
+        Nested schema for the sorting object within the request.
+        """
+
+        key = String(required=False, allow_none=False)
+        direction = String(required=False, allow_none=False)
+
+    query = Nested(QuerySchema, required=True, allow_none=False)
+    pagination = Nested(PaginationSchema, required=False, allow_none=False)
+    sorting = Nested(SortingSchema, required=False, allow_none=False)
 
 
 class ProviderEmailUpdateRequestSchema(CCRequestSchema):

@@ -1,10 +1,12 @@
+from datetime import datetime
+
 from boto3.dynamodb.conditions import Attr
 from cc_common.config import config, logger
 from custom_resource_handler import CustomResourceHandler, CustomResourceResponse
 
 
-class HomeJurisdictionMigration(CustomResourceHandler):
-    """Migration for removing deprecated homeJurisdictionSelection records and updating provider records."""
+class CreateEffectiveDateMigration(CustomResourceHandler):
+    """Migration for adding effective date and create date to all privilege update records"""
 
     def on_create(self, properties: dict) -> None:
         do_migration(properties)
@@ -18,33 +20,32 @@ class HomeJurisdictionMigration(CustomResourceHandler):
         """
 
 
-on_event = HomeJurisdictionMigration('home-jurisdiction-796')
+on_event = CreateEffectiveDateMigration('create-effective-date')
 
 
 def do_migration(_properties: dict) -> None:
     """
     This migration performs the following:
-    - Scans the provider table for all homeJurisdictionSelection records
-    - For each homeJurisdictionSelection record, updates the associated provider record's
-      currentHomeJurisdiction field with the selected jurisdiction
-    - Deletes the homeJurisdictionSelection records
+    - Scans the provider table for all privilege update records
+    - For each update record, adds effectiveDate and createDate equal to that updates dateOfUpdate
     - Handles batching for cases where there are more than 100 records to update
     """
-    logger.info('Starting home jurisdiction selection migration')
+    logger.info('Starting privilege update date fields migration')
 
-    # Scan for all homeJurisdictionSelection records
-    home_jurisdiction_selections = []
+    # Scan for all privilege update records
+    privilege_updates = []
     scan_pagination = {}
 
     while True:
         response = config.provider_table.scan(
-            FilterExpression=Attr('type').eq('homeJurisdictionSelection'),
+            FilterExpression=Attr('type').eq('privilegeUpdate'),
             **scan_pagination,
         )
 
+
         items = response.get('Items', [])
-        home_jurisdiction_selections.extend(items)
-        logger.info(f'Found {len(items)} homeJurisdictionSelection records in current scan batch')
+        privilege_updates.extend(items)
+        logger.info(f'Found {len(items)} privilege update records in current scan batch')
 
         # Check if we need to continue pagination
         last_evaluated_key = response.get('LastEvaluatedKey')
@@ -53,10 +54,10 @@ def do_migration(_properties: dict) -> None:
 
         scan_pagination = {'ExclusiveStartKey': last_evaluated_key}
 
-    logger.info(f'Found {len(home_jurisdiction_selections)} total homeJurisdictionSelection records to process')
+    logger.info(f'Found {len(privilege_updates)} total update records to process')
 
-    if not home_jurisdiction_selections:
-        logger.info('No homeJurisdictionSelection records found, migration complete')
+    if not privilege_updates:
+        logger.info('No privilege update records found, migration complete')
         return
 
     # Process records in batches of 50 (DynamoDB transaction limit is 100 items,
@@ -65,8 +66,8 @@ def do_migration(_properties: dict) -> None:
     success_count = 0
     error_count = 0
 
-    for i in range(0, len(home_jurisdiction_selections), batch_size):
-        batch = home_jurisdiction_selections[i : i + batch_size]
+    for i in range(0, len(privilege_updates), batch_size):
+        batch = privilege_updates[i : i + batch_size]
         logger.info(f'Processing batch {i // batch_size + 1} with {len(batch)} records')
 
         try:
@@ -80,33 +81,34 @@ def do_migration(_properties: dict) -> None:
     # Log final statistics
     logger.info(f'Migration completed: {success_count} records processed successfully, {error_count} errors')
     if error_count > 0:
-        raise RuntimeError(f'Home jurisdiction migration completed with {error_count} errors')
+        raise RuntimeError(f'Privilege update migration completed with {error_count} errors')
 
 
-def _process_batch(home_jurisdiction_selections: list[dict]) -> None:
+def _process_batch(privilege_updates: list[dict]) -> None:
     """
-    Process a batch of homeJurisdictionSelection records.
+    Process a batch of privilege update records.
 
     Args:
-        home_jurisdiction_selections: List of homeJurisdictionSelection records to process
+        privilege_updates: List of privilegeUpdate records to process
     """
     transaction_items = []
 
-    for selection_record in home_jurisdiction_selections:
+    for update_record in privilege_updates:
         try:
-            # Extract the selected jurisdiction from the homeJurisdictionSelection record
-            selected_jurisdiction = selection_record.get('jurisdiction')
-            if not selected_jurisdiction:
+            # Extract the dateOfUpdate from the privilegeUpdate record
+            datetime_of_update = update_record.get('dateOfUpdate')
+            date_of_update = datetime.fromisoformat(datetime_of_update).date().isoformat()
+            if not datetime_of_update:
                 logger.warning(
-                    'homeJurisdictionSelection record missing jurisdiction field',
-                    pk=selection_record.get('pk'),
-                    sk=selection_record.get('sk'),
+                    'update record missing datetime_of_update field',
+                    pk=update_record.get('pk'),
+                    sk=update_record.get('sk'),
                 )
                 continue
 
             # Determine the provider record key
-            provider_pk = selection_record['pk']
-            provider_sk = f'{selection_record["compact"]}#PROVIDER'
+            provider_pk = update_record['pk']
+            provider_sk = update_record['sk']
 
             # Add transaction item to update the provider record
             transaction_items.append(
@@ -117,42 +119,29 @@ def _process_batch(home_jurisdiction_selections: list[dict]) -> None:
                             'pk': {'S': provider_pk},
                             'sk': {'S': provider_sk},
                         },
-                        'UpdateExpression': 'SET currentHomeJurisdiction = :jurisdiction',
+                        'UpdateExpression': 'SET createDate = :createDate, effectiveDate = :effectiveDate',
                         'ExpressionAttributeValues': {
-                            ':jurisdiction': {'S': selected_jurisdiction},
-                        },
-                    }
-                }
-            )
-
-            # Add transaction item to delete the homeJurisdictionSelection record
-            transaction_items.append(
-                {
-                    'Delete': {
-                        'TableName': config.provider_table.table_name,
-                        'Key': {
-                            'pk': {'S': selection_record['pk']},
-                            'sk': {'S': selection_record['sk']},
+                            ':createDate': {'S': datetime_of_update},
+                            ':effectiveDate': {'S': date_of_update},
                         },
                     }
                 }
             )
 
             logger.info(
-                'Prepared transaction items for homeJurisdictionSelection',
+                'Prepared update items for create date',
                 provider_pk=provider_pk,
                 provider_sk=provider_sk,
-                selected_jurisdiction=selected_jurisdiction,
-                selection_pk=selection_record['pk'],
-                selection_sk=selection_record['sk'],
+                update_pk=update_record['pk'],
+                update_sk=update_record['sk'],
             )
 
         except Exception as e:  # noqa: BLE001
             logger.exception(
-                'Error preparing transaction items for homeJurisdictionSelection record',
+                'Error preparing update items for update record',
                 exc_info=e,
-                pk=selection_record.get('pk'),
-                sk=selection_record.get('sk'),
+                pk=update_record.get('pk'),
+                sk=update_record.get('sk'),
             )
             raise
 
