@@ -79,7 +79,8 @@ class UserPool(CdkUserPool):
                 min_length=12,
                 require_digits=True,
                 require_lowercase=True,
-                require_uppercase=True,
+                require_uppercase=False,
+                require_symbols=False,
                 password_history_size=4,
             )
             if not password_policy
