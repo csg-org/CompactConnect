@@ -258,7 +258,7 @@ export class UserDataApi implements DataApiInterface {
      * @return {Promise<User>} A User model instance.
      */
     public async getMyPrivilegeHistory(jurisdiction: string, licenseTypeAbbrev: string) {
-        const serverResponse: any = await this.api.get(`/v1/provider-users/me/jurisdiction/${jurisdiction}/licenseType/${licenseTypeAbbrev}/history`);
+        const serverResponse: any = await this.api.get(`/v1/provider-users/me/jurisdiction/${jurisdiction.toLowerCase()}/licenseType/${licenseTypeAbbrev.toLowerCase()}/history`);
 
         console.log('serverResponse', serverResponse);
 

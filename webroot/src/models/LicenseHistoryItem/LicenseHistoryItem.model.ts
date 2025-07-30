@@ -14,6 +14,9 @@ export interface InterfaceLicenseHistoryItem {
     type?: string | null;
     updateType?: string;
     dateOfUpdate?: string | null;
+    createDate?: string | null;
+    effectiveDate?: string | null;
+    note?: string | null;
     previousValues?: {
         compactTransactionId?: string | null,
         dateOfExpiration?: string | null,
@@ -87,11 +90,12 @@ export class LicenseHistoryItemSerializer {
     static fromServer(json: any): LicenseHistoryItem {
         // All license fields can possibly appear in the values below, however the frontend only utilizes
         // renewals at this time, these are the relevant fields for renewals
-        console.log('historyItemJson', json);
 
         const licenseHistoryData = {
             type: json.type,
             updateType: json.updateType,
+            createDate: json.createDate,
+            effectiveDate: json.effectiveDate,
             dateOfUpdate: json.dateOfUpdate,
             previousValues: {
                 compactTransactionId: json.previous?.compactTransactionId || '',

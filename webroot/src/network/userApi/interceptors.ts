@@ -30,7 +30,9 @@ export const requestSuccess = () => async (requestConfig) => {
     let authToken;
     let authTokenType;
 
-    if (licenseeUserEndPoints.includes(url)) {
+    console.log('url', url);
+
+    if (licenseeUserEndPoints.includes(url) || (url.includes('me') && url.includes('history'))) {
         authToken = authStorage.getItem(tokens.licensee.ID_TOKEN);
         authTokenType = authStorage.getItem(tokens.licensee.AUTH_TOKEN_TYPE);
     } else {
@@ -72,13 +74,15 @@ export const responseError = (router) => (error) => {
     const axiosResponse = error.response;
     let serverResponse;
 
+    console.log(router);
+
     if (axiosResponse) {
         // Get API response
         serverResponse = axiosResponse.data || {};
 
         switch (axiosResponse.status) {
         case 401:
-            router.push({ name: 'Logout' });
+            // router.push({ name: 'Logout' });
             break;
         default:
             // Continue
