@@ -102,8 +102,14 @@
             >
                 <template v-slot:content>
                     <div class="modal-content-text">
-                        <p class="purchase-unavailable-message">{{ $t('licensing.purchaseUnavailableMessage') }}</p>
-                        <ol class="purchase-unavailable-list good-wrap">
+                        <p id="purchase-unavailable-modal-title" class="purchase-unavailable-message">
+                            {{ $t('licensing.purchaseUnavailableMessage') }}
+                        </p>
+                        <ol
+                            id="purchase-unavailable-modal-reasons"
+                            class="purchase-unavailable-list good-wrap"
+                            tabindex="-1"
+                        >
                             <li v-if="!hasEligibleLicenses">
                                 {{ $t('licensing.purchaseUnavailableNoEligibleLicenses') }}
                             </li>
@@ -113,6 +119,7 @@
                                 <router-link
                                     id="military-status-link"
                                     :to="{ name: 'MilitaryStatus', params: { compact: currentCompactType } }"
+                                    :aria-label="$t('licensing.militaryStatusLinkAriaLabel')"
                                 >
                                     {{ $t('common.here') }}
                                 </router-link>.

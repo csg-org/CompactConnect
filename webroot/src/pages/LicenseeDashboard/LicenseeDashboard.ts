@@ -149,7 +149,7 @@ export default class LicenseeDashboard extends Vue {
     async openPurchaseUnavailableModal(): Promise<void> {
         this.isPurchaseUnavailableModalDisplayed = true;
         await nextTick();
-        document.getElementById('submit-close-purchase-unavailable')?.focus();
+        document.getElementById('purchase-unavailable-modal-reasons')?.focus();
     }
 
     closePurchaseUnavailableModal(): void {
@@ -166,22 +166,23 @@ export default class LicenseeDashboard extends Vue {
     }
 
     focusTrapPurchaseUnavailable(event: KeyboardEvent): void {
-        const firstTabIndex = document.getElementById('submit-close-purchase-unavailable');
-        const lastTabIndex = document.getElementById('military-status-link');
+        const closeButton = document.getElementById('submit-close-purchase-unavailable');
+        const reasonsList = document.getElementById('purchase-unavailable-modal-reasons');
+        const militaryLink = document.getElementById('military-status-link');
+        // Array of focusable elements in order
+        const focusables = [reasonsList, militaryLink, closeButton]
+            .filter((element) => element !== null) as HTMLElement[];
+        const currentIndex = focusables.indexOf(document.activeElement as HTMLElement);
+        let nextIndex;
 
-        if (event.shiftKey) {
-            if (document.activeElement === firstTabIndex) {
-                lastTabIndex?.focus();
+        if (focusables.length > 0) {
+            if (event.shiftKey) {
+                nextIndex = (currentIndex <= 0) ? focusables.length - 1 : currentIndex - 1;
             } else {
-                firstTabIndex?.focus();
+                nextIndex = (currentIndex === focusables.length - 1) ? 0 : currentIndex + 1;
             }
-            event.preventDefault();
-        } else {
-            if (document.activeElement === lastTabIndex) {
-                firstTabIndex?.focus();
-            } else {
-                lastTabIndex?.focus();
-            }
+
+            focusables[nextIndex]?.focus();
             event.preventDefault();
         }
     }
