@@ -398,7 +398,9 @@ class UserClient:
                     # just need to set it to something random. Note that this value should not be referenced
                     # outside of this function, as it is a real password and we want it to be cleaned up
                     # by the garbage collector, as soon as possible.
-                    Password=token_hex(48),
+                    # These passwords require at least one number, one uppercase, and one lowercase letter, so we add
+                    # the prefix to meet these requirements
+                    Password='!1Ha'+token_hex(45),
                     Permanent=False,
                 )
             # If the user is in any unexpected state, we'll raise an exception
