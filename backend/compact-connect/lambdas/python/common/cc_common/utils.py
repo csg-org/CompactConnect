@@ -573,6 +573,18 @@ def get_sub_from_user_attributes(attributes: list):
     raise ValueError('Failed to find user sub!')
 
 
+def caller_is_compact_admin(compact: str, caller_scopes: set[str]) -> bool:
+    if f'{compact}/{CCPermissionsAction.ADMIN}' in caller_scopes:
+        logger.debug(
+            'User has admin permission at compact level',
+            compact=compact,
+            scopes=caller_scopes
+        )
+        return True
+
+    return False
+
+
 def _user_has_read_private_access_for_provider(compact: str, provider_information: dict, scopes: set[str]) -> bool:
     return _user_has_permission_for_action_on_user(
         action=CCPermissionsAction.READ_PRIVATE,
@@ -623,6 +635,44 @@ def _user_has_permission_for_action_on_user(
     return False
 
 
+def _generate_pre_signed_urls_for_military_affiliation_records(provider: dict):
+    """
+    {
+      "pk": "aslp#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570",
+      "sk": "aslp#PROVIDER#military-affiliation#2024-11-08",
+      "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
+      "compact": "aslp",
+      "type": "militaryAffiliation",
+      "documentKeys": ["/provider/89a6377e-c3a5-40e5-bca5-317ec854c570/document-type/military-affiliations/2024-07-08/1234#military-waiver.pdf"],
+      "affiliationType": "militaryMember",
+      "fileNames": ["military-waiver.pdf"],
+      "status": "active",
+      "dateOfUpload": "2024-11-08T23:59:59+00:00",
+      "dateOfUpdate": "2024-11-08T23:59:59+00:00"
+    }
+    """
+    for record in provider['militaryAffiliations']:
+        try:
+            url = config.s3_client.generate_presigned_url(
+                'get_object',
+                # the 'documentKeys' field is a list of 1, as we only support uploading one military affiliation record
+                # for an affiliation record, but there were hints that this may change in the future in which case
+                # we would need to generate links per document key.
+                Params={'Bucket': config.provider_user_bucket_name, 'Key': record['documentKeys'][0]},
+                # 8 hours in seconds, to avoid links becoming stale during their session.
+                ExpiresIn=28800,
+            )
+            # returning this as a list of one for now, to support multiple download links in the future
+            record['downloadLinks'] = [{
+                "fileName": record['fileNames'][0],
+                "url": url
+            }]
+        except ClientError as e:
+            # if the url could not be generated, we log the error and continue, so as to not fail the entire request
+            # for this peripheral feature
+            logger.error(e)
+
+
 def sanitize_provider_data_based_on_caller_scopes(compact: str, provider: dict, scopes: set[str]) -> dict:
     """
     Take a provider and a set of user scopes, then return a provider, with information sanitized based on what
@@ -630,9 +680,15 @@ def sanitize_provider_data_based_on_caller_scopes(compact: str, provider: dict, 
 
     :param str compact: The compact the user is trying to access.
     :param dict provider: The provider record to be sanitized.
-    :param set scopes: The user's scopes from the request.
+    :param set scopes: The caller's scopes from the request.
     :return: The provider record, sanitized based on the user's scopes.
     """
+    if caller_is_compact_admin(compact, caller_scopes=scopes):
+        # compact admins have the ability to download military affiliation records
+        # so we generate a pre-signed url per military affiliation document
+        _generate_pre_signed_urls_for_military_affiliation_records(provider)
+
+
     if _user_has_read_private_access_for_provider(compact=compact, provider_information=provider, scopes=scopes):
         # return full object since caller has 'readPrivate' access for provider
         return provider
