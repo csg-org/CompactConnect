@@ -612,6 +612,8 @@
         "state": "Estado",
         "attestations": "Certificaciones",
         "investigations": "Investigaciones",
+        "underInvestigation": "Actualmente estoy bajo investigación",
+        "notUnderInvestigation": "NO estoy bajo investigación",
         "discipline": "Disciplina",
         "provisionOfInformation": "Suministro de información veraz",
         "militaryAffiliation": "Afiliación militar",
