@@ -575,11 +575,7 @@ def get_sub_from_user_attributes(attributes: list):
 
 def caller_is_compact_admin(compact: str, caller_scopes: set[str]) -> bool:
     if f'{compact}/{CCPermissionsAction.ADMIN}' in caller_scopes:
-        logger.debug(
-            'User has admin permission at compact level',
-            compact=compact,
-            scopes=caller_scopes
-        )
+        logger.debug('User has admin permission at compact level', compact=compact, scopes=caller_scopes)
         return True
 
     return False
@@ -637,19 +633,8 @@ def _user_has_permission_for_action_on_user(
 
 def _generate_pre_signed_urls_for_military_affiliation_records(provider: dict):
     """
-    {
-      "pk": "aslp#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570",
-      "sk": "aslp#PROVIDER#military-affiliation#2024-11-08",
-      "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
-      "compact": "aslp",
-      "type": "militaryAffiliation",
-      "documentKeys": ["/provider/89a6377e-c3a5-40e5-bca5-317ec854c570/document-type/military-affiliations/2024-07-08/1234#military-waiver.pdf"],
-      "affiliationType": "militaryMember",
-      "fileNames": ["military-waiver.pdf"],
-      "status": "active",
-      "dateOfUpload": "2024-11-08T23:59:59+00:00",
-      "dateOfUpdate": "2024-11-08T23:59:59+00:00"
-    }
+    Generates temporary S3 pre-signed urls to allow users with the link to access documents.
+    See https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-presigned-url.html
     """
     for record in provider['militaryAffiliations']:
         try:
@@ -663,10 +648,7 @@ def _generate_pre_signed_urls_for_military_affiliation_records(provider: dict):
                 ExpiresIn=28800,
             )
             # returning this as a list of one for now, to support multiple download links in the future
-            record['downloadLinks'] = [{
-                "fileName": record['fileNames'][0],
-                "url": url
-            }]
+            record['downloadLinks'] = [{'fileName': record['fileNames'][0], 'url': url}]
         except ClientError as e:
             # if the url could not be generated, we log the error and continue, so as to not fail the entire request
             # for this peripheral feature
@@ -687,7 +669,6 @@ def sanitize_provider_data_based_on_caller_scopes(compact: str, provider: dict, 
         # compact admins have the ability to download military affiliation records
         # so we generate a pre-signed url per military affiliation document
         _generate_pre_signed_urls_for_military_affiliation_records(provider)
-
 
     if _user_has_read_private_access_for_provider(compact=compact, provider_information=provider, scopes=scopes):
         # return full object since caller has 'readPrivate' access for provider
