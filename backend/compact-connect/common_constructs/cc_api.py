@@ -264,6 +264,10 @@ class CCApi(RestApi):
 
     @cached_property
     def parameter_only_validator(self):
+        """
+        Validates the query parameters but not the actual request body. Only use if you want to bypass APIGW
+        schema body validation.
+        """
         return self.add_request_validator(
             'ParameterValidator', validate_request_body=False, validate_request_parameters=True
         )
