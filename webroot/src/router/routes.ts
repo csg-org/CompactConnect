@@ -22,6 +22,12 @@ const routes: Array<RouteConfig> = [
         beforeEnter: guards.noAuthGuard,
     },
     {
+        path: '/PrivacyPolicy',
+        name: 'PrivacyPolicy',
+        component: () => import(/* webpackChunkName: "privacyPolicy" */ '@pages/PrivacyPolicy/PrivacyPolicy.vue'),
+        beforeEnter: guards.noAuthGuard,
+    },
+    {
         path: '/Search',
         name: 'LicneseeSearchPublic',
         component: () => import(/* webpackChunkName: "search" */ '@pages/PublicLicensingList/PublicLicensingList.vue'),

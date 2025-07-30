@@ -1,0 +1,53 @@
+//
+//  PrivacyPolicy.less
+//  CompactConnect
+//
+//  Created by InspiringApps on 7/30/2025.
+//
+
+.privacy-policy-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem;
+
+    @media @tabletWidth {
+        padding: 4rem;
+    }
+
+    .privacy-policy-content-container {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        padding: 2rem 2rem 4rem;
+        border-radius: 12px;
+        background-color: @white;
+
+        @media @desktopWidth {
+            width: 69rem;
+        }
+
+        h1 {
+            margin: 2rem 0 0.5rem;
+            font-size: @h1FontSize;
+        }
+
+        h2 {
+            margin: 2.5rem 0 0.5rem;
+            font-size: @h2FontSize;
+        }
+
+        p {
+            font-size: 1.8rem;
+        }
+
+        ul {
+            li {
+                margin: 0 0 0.5rem 2.5rem;
+                font-size: 1.8rem;
+                list-style-position: outside;
+                list-style-type: disc;
+            }
+        }
+    }
+}
