@@ -21,6 +21,7 @@ from common_constructs.cc_api import CCApi
 from common_constructs.nodejs_function import NodejsFunction
 from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
+from persistent_stack import ProviderUsersBucket
 
 from stacks import persistent_stack as ps
 from stacks.persistent_stack import ProviderTable, RateLimitingTable, SSNTable, StaffUsers
@@ -64,6 +65,7 @@ class ProviderManagement:
             'USER_POOL_ID': persistent_stack.staff_users.user_pool_id,
             'EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME': persistent_stack.email_notification_service_lambda.function_name,
             'USERS_TABLE_NAME': persistent_stack.staff_users.user_table.table_name,
+            'PROVIDER_USER_BUCKET_NAME': persistent_stack.provider_users_bucket.bucket_name,
             **stack.common_env_vars,
         }
 
@@ -95,6 +97,7 @@ class ProviderManagement:
             method_options=method_options,
             data_encryption_key=persistent_stack.shared_encryption_key,
             provider_data_table=persistent_stack.provider_table,
+            provider_users_bucket=persistent_stack.provider_users_bucket,
             lambda_environment=lambda_environment,
         )
         self._add_get_provider_ssn(
@@ -135,6 +138,7 @@ class ProviderManagement:
         method_options: MethodOptions,
         data_encryption_key: IKey,
         provider_data_table: ProviderTable,
+        provider_users_bucket: ProviderUsersBucket,
         lambda_environment: dict,
     ):
         self.get_provider_handler = self._get_provider_handler(
@@ -142,6 +146,7 @@ class ProviderManagement:
             provider_data_table=provider_data_table,
             lambda_environment=lambda_environment,
         )
+        provider_users_bucket.grant_read(self.get_provider_handler)
         self.api.log_groups.append(self.get_provider_handler.log_group)
 
         self.provider_resource.add_method(
