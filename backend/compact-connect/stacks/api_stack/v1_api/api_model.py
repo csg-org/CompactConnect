@@ -1341,6 +1341,17 @@ class ApiModel:
                                 type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
                             ),
                             'status': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
+                            'downloadLinks': JsonSchema(
+                                type=JsonSchemaType.ARRAY,
+                                items=JsonSchema(
+                                    type=JsonSchemaType.OBJECT,
+                                    required=['url', 'fileName'],
+                                    properties={
+                                        'url': JsonSchema(type=JsonSchemaType.STRING),
+                                        'fileName': JsonSchema(type=JsonSchemaType.STRING),
+                                    },
+                                ),
+                            ),
                         },
                     ),
                 ),
