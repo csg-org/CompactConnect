@@ -3,6 +3,7 @@ import json
 
 import requests
 from config import config, logger
+from deepdiff import DeepDiff
 from smoke_common import (
     SmokeTestFailureException,
     call_provider_users_me_endpoint,
@@ -67,22 +68,24 @@ def get_general_provider_user_data_smoke_test():
     for provider_license in test_user_profile['licenses']:
         provider_license.pop('ssnLastFour', None)
         provider_license.pop('dateOfBirth', None)
-        # TODO - should the general response not include the encumbered status
-        test_user_profile.pop('encumberedStatus', None)
+        provider_license.pop('encumberedStatus', None)
         for history_event in provider_license['history']:
             history_event['previous'].pop('ssnLastFour', None)
             history_event['previous'].pop('dateOfBirth', None)
-            # TODO - should the general response not include the encumbered status
             history_event['previous'].pop('encumberedStatus', None)
     for military_affiliation in test_user_profile['militaryAffiliations']:
         military_affiliation.pop('documentKeys', None)
 
     if get_provider_general_provider_object != test_user_profile:
-        raise SmokeTestFailureException(
-            f'Provider object does not match the profile.\n'
-            f'Get Provider response: {str(get_provider_general_provider_object)}\n'
-            f'Profile response: {str(test_user_profile)}\n'
+        formatted_test_user_profile = json.dumps(test_user_profile, sort_keys=True, indent=4)
+        formatted_get_provider_response = json.dumps(get_provider_general_provider_object, sort_keys=True, indent=4)
+        logger.error(
+            'Provider object does not match the profile.',
+            provider_profile=formatted_test_user_profile,
+            get_provider_response=formatted_get_provider_response,
+            diff=DeepDiff(test_user_profile, get_provider_general_provider_object),
         )
+        raise SmokeTestFailureException('Get provider object response does not match the profile.')
     logger.info('Successfully fetched expected provider records.')
 
 
@@ -126,17 +129,16 @@ def query_provider_user_smoke_test():
         raise SmokeTestFailureException(f'unexpected ssn field returned. Response: {post_response.json()}')
 
     # remove the fields from the user profile that are not in the query response
-    test_user_profile.pop('ssn', None)
+    test_user_profile.pop('ssnLastFour', None)
     test_user_profile.pop('dateOfBirth', None)
     test_user_profile.pop('licenses')
     test_user_profile.pop('militaryAffiliations')
     test_user_profile.pop('privileges')
+    test_user_profile.pop('encumberedStatus', None)
 
     if provider_object != test_user_profile:
         raise SmokeTestFailureException(
-            f'Provider object does not match the profile.\n'
-            f'Profile response: {test_user_profile}\n'
-            f'Query Provider object: {provider_object}'
+            f'Provider list object does not match the profile.\n{DeepDiff(test_user_profile, provider_object)}'
         )
 
     logger.info('Successfully queried expected provider record.')
@@ -211,9 +213,7 @@ def get_provider_data_with_read_private_access_smoke_test(test_staff_user_id: st
 
     if provider_object != test_user_profile:
         raise SmokeTestFailureException(
-            f'Provider object does not match the profile.\n'
-            f'Profile response: {test_user_profile}\n'
-            f'Get Provider response: {provider_object}'
+            f'Provider object does not match the profile.\n{DeepDiff(test_user_profile, provider_object)}'
         )
 
     logger.info('Successfully fetched expected user profile.')
