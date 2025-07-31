@@ -665,12 +665,18 @@ def sanitize_provider_data_based_on_caller_scopes(compact: str, provider: dict, 
     :param set scopes: The caller's scopes from the request.
     :return: The provider record, sanitized based on the user's scopes.
     """
-    if caller_is_compact_admin(compact, caller_scopes=scopes):
+
+    caller_is_admin = caller_is_compact_admin(compact, caller_scopes=scopes)
+    if caller_is_admin:
         # compact admins have the ability to download military affiliation records
         # so we generate a pre-signed url per military affiliation document
         _generate_pre_signed_urls_for_military_affiliation_records(provider)
 
-    if _user_has_read_private_access_for_provider(compact=compact, provider_information=provider, scopes=scopes):
+    # Currently, the UI bundles permissions for admins, granting them the readPrivate scope along with admin. Should
+    # this ever change, we will need to account for that here. This 'or' conditional is a precautionary measure to keep
+    # UI changes from unintentionally breaking existing functionality
+    if (caller_is_admin or
+            _user_has_read_private_access_for_provider(compact=compact, provider_information=provider, scopes=scopes)):
         # return full object since caller has 'readPrivate' access for provider
         return provider
 
