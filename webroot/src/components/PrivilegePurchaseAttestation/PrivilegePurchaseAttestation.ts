@@ -132,6 +132,7 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
         const options: Array<AttestationOption> = attestations.map((attestation) => ({
             value: attestation.id || '',
             name: attestation.textDisplay() || '',
+            superLabel: this.getAttestationSuperLabel(attestation.id || ''),
         }));
 
         return options;
@@ -212,6 +213,23 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
 
     getAttestation(attestationId: string | null | undefined): PrivilegeAttestation | null {
         return this.attestationRecords.find((attestationRecord) => attestationRecord.id === attestationId) || null;
+    }
+
+    getAttestationSuperLabel(attestationId: string): string {
+        let label = '';
+
+        switch (attestationId) {
+        case 'not-under-investigation-attestation':
+            label = this.$t('licensing.notUnderInvestigation');
+            break;
+        case 'under-investigation-attestation':
+            label = this.$t('licensing.underInvestigation');
+            break;
+        default:
+            break;
+        }
+
+        return label;
     }
 
     handleCancelClicked() {

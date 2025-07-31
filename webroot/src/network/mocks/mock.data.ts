@@ -2229,6 +2229,41 @@ export const attestation = {
     required: true,
 };
 
+export const getAttestation = (attestationId) => {
+    const attestationObj = { ...attestation };
+
+    switch (attestationId) {
+    case 'personal-information-address-attestation':
+        attestationObj.text = 'I hereby attest and affirm that the address information I have provided herein and is my current address. I further consent to accept service of process at this address. I will notify the Commission of a change in my Home State address or email address via updating personal information records in this system. I understand that I am only eligible for a Compact Privilege if I am a licensee in my Home State as defined by the Compact. If I mislead the Compact Commission about my Home State, the appropriate board may take action against my Compact Privilege, which may result in the revocation of other Compact Privileges I may hold. I will also be prohibited from obtaining any other Compact Privileges for a period of at least two (2) years.*';
+        break;
+    case 'personal-information-home-state-attestation':
+        attestationObj.text = 'I hereby attest and affirm that this is my personal and licensure information and that I am a resident of the state listed on this page.*';
+        break;
+    case 'not-under-investigation-attestation':
+        attestationObj.text = 'I hereby attest and affirm that I am not currently under investigation by any board, agency, department, association, certifying body, or other body.';
+        break;
+    case 'under-investigation-attestation':
+        attestationObj.text = 'I hereby attest and affirm that I am currently under investigation by any board, agency, department, association, certifying body, or other body. I understand that if any investigation results in a disciplinary action, my Compact Privileges may be revoked.';
+        break;
+    case 'discipline-no-current-encumbrance-attestation':
+        attestationObj.text = 'I hereby attest and affirm that I have no encumbrance (any discipline that restricts my full practice or any unmet condition before returning to a full and unrestricted license, including, but not limited, to probation, supervision, completion of a program, and/or completion of CEs) on ANY state license.';
+        break;
+    case 'discipline-no-prior-encumbrance-attestation':
+        attestationObj.text = 'I hereby attest and affirm that I have not had any encumbrance on ANY state license within the previous two years from date of this application for a Compact Privilege.';
+        break;
+    case 'provision-of-true-information-attestation':
+        attestationObj.text = 'I hereby attest and affirm that all information contained in this privilege application is true to the best of my knowledge.';
+        break;
+    case 'military-affiliation-confirmation-attestation':
+        attestationObj.text = 'I hereby attest and affirm that my current military status documentation as uploaded to CompactConnect is accurate.';
+        break;
+    default:
+        break;
+    }
+
+    return attestationObj;
+};
+
 export const compactStates = [
     {
         compact: 'octp',

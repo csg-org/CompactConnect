@@ -51,13 +51,21 @@
             }
         }
 
-        .form-section-title {
-            font-weight: @fontWeightBold;
-            font-size: @h3FontSize;
+        .radio-group {
+            margin-bottom: 0;
         }
 
-        .form-section-gap {
-            margin-top: 2.4rem;
+        .form-section-title {
+            font-weight: @fontWeightBold;
+            font-size: 2.6rem;
+        }
+
+        .form-section-separator {
+            height: 1px;
+            margin: 2rem 0;
+            border: none;
+            color: @lightGrey;
+            background-color: @lightGrey;
         }
 
         &:deep(.checkbox-container) {
@@ -75,7 +83,7 @@
         }
 
         &:deep(.radio-group-container .input-label) {
-            font-size: @h3FontSize;
+            font-size: 2.6rem;
         }
 
         .button-row {

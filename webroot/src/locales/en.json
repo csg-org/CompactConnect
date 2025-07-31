@@ -612,6 +612,8 @@
         "scopeAttestLabel": "Click here to read and affirm the scope of practice attestation.",
         "attestations": "Attestations",
         "investigations": "Investigations",
+        "underInvestigation": "I AM currently under investigation",
+        "notUnderInvestigation": "I am NOT under investigation",
         "discipline": "Discipline",
         "provisionOfInformation": "Provision of true information",
         "militaryAffiliation": "Military affiliation",
