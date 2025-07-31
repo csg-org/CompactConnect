@@ -84,10 +84,10 @@ def do_migration(_properties: dict) -> None:
 
 def _process_batch(license_updates: list[dict]) -> None:
     """
-    Process a batch of privilege update records.
+    Process a batch of license update records.
 
     Args:
-        license_updates: List of privilegeUpdate records to process
+        license_updates: List of licenseUpdate records to process
     """
     transaction_items = []
 

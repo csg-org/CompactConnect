@@ -179,9 +179,8 @@ class ProviderRecordUtility:
             # effective date of the renewal.
             if update.updateType in DEACTIVATION_EVENT_TYPES:
                 active_since = None
-            elif (
-                update.updateType == UpdateCategory.HOME_JURISDICTION_CHANGE
-                and update.updatedValues.get('encumberedStatus', PrivilegeEncumberedStatusEnum.UNENCUMBERED)
+            elif update.updateType == UpdateCategory.HOME_JURISDICTION_CHANGE and (
+                update.updatedValues.get('encumberedStatus', PrivilegeEncumberedStatusEnum.UNENCUMBERED)
                 != PrivilegeEncumberedStatusEnum.UNENCUMBERED
                 or update.updatedValues.get('homeJurisdictionChangeStatus') == HomeJurisdictionChangeStatusEnum.INACTIVE
             ):
