@@ -1,5 +1,5 @@
 import json
-from datetime import date
+from datetime import date, timedelta
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
@@ -266,6 +266,21 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
         and record.jurisdiction == current_home_jurisdiction
         and record.compactEligibility == CompactEligibilityStatus.ELIGIBLE,
     )
+
+    # Check for any adverse actions that have been lifted 2 years ago
+    latest_allowed_encumbrance_lift = config.current_standard_datetime.astimezone(config.expiration_resolution_timezone)
+    latest_allowed_encumbrance_lift = latest_allowed_encumbrance_lift.replace(
+        year=latest_allowed_encumbrance_lift.year - 2
+    )
+    latest_allowed_encumbrance_lift = (latest_allowed_encumbrance_lift - timedelta(days=1)).date()
+    blocking_encumbrance_records = provider_user_records.get_adverse_action_records(
+        filter_condition=lambda record: record.effectiveLiftDate is None
+        or record.effectiveLiftDate > latest_allowed_encumbrance_lift
+    )
+    if blocking_encumbrance_records:
+        raise CCInvalidRequestException(
+            'You have a license or privilege encumbrance that prevents you from purchasing privileges at this time.'
+        )
 
     if not matching_license_records:
         raise CCInvalidRequestException(

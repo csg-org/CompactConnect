@@ -304,6 +304,18 @@ class ProviderUserRecords:
         """
         return [record for record in self._license_records if filter_condition is None or filter_condition(record)]
 
+    def get_adverse_action_records(
+        self, filter_condition: Callable[[AdverseActionData], bool]
+    ) -> list[AdverseActionData]:
+        response = []
+        for record in self._adverse_action_records:
+            if filter_condition is None or filter_condition(record):
+                response.append(record)
+        return response
+        # return [
+        #     record for record in self._adverse_action_records if filter_condition is None or filter_condition(record)
+        # ]
+
     def get_adverse_action_records_for_license(
         self,
         license_jurisdiction: str,
