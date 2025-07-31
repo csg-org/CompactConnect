@@ -160,7 +160,6 @@ class TestProviderRecordUtility(TstLambdas):
         self.assertEqual(best_license['dateOfIssuance'], '2024-01-01')
         self.assertEqual(best_license['compactEligibility'], CompactEligibilityStatus.ELIGIBLE)
 
-
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-03-15T00:00:00+00:00'))
     def test_enrich_privilege_history_with_synthetic_issuance(self):
         """Test that enrich_license_history_with_synthetic_updates adds an issuance update."""
@@ -179,8 +178,9 @@ class TestProviderRecordUtility(TstLambdas):
         history = []
 
         # Enrich the privilege history
-        enriched_history =(
-            ProviderRecordUtility.get_enriched_history_with_synthetic_updates_from_privilege(privilege, history))
+        enriched_history = ProviderRecordUtility.get_enriched_history_with_synthetic_updates_from_privilege(
+            privilege, history
+        )
 
         # Define the expected issuance update
         expected_issuance_update = {
@@ -194,7 +194,7 @@ class TestProviderRecordUtility(TstLambdas):
             'providerId': 'test-provider-id',
             'type': 'privilegeUpdate',
             'updateType': 'issuance',
-            'updatedValues': {}
+            'updatedValues': {},
         }
 
         # Check that the history contains exactly one update with the expected values

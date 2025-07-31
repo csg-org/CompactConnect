@@ -23,7 +23,7 @@ class PublicLookupApi:
         resource: Resource,
         persistent_stack: ps.PersistentStack,
         api_model: ApiModel,
-        privilege_history_function: PythonFunction
+        privilege_history_function: PythonFunction,
     ):
         super().__init__()
 
@@ -144,9 +144,7 @@ class PublicLookupApi:
         self,
         privilege_history_function: PythonFunction,
     ):
-        self.privilege_history_resource = self.provider_jurisdiction_license_type_resource.add_resource(
-            'history'
-        )
+        self.privilege_history_resource = self.provider_jurisdiction_license_type_resource.add_resource('history')
 
         public_get_privilege_history_method = self.privilege_history_resource.add_method(
             'GET',
@@ -174,7 +172,6 @@ class PublicLookupApi:
                 },
             ],
         )
-
 
     def _get_provider_handler(
         self,

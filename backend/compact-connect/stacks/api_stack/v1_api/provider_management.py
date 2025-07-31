@@ -702,9 +702,7 @@ class ProviderManagement:
         method_options: MethodOptions,
         privilege_history_function: PythonFunction,
     ):
-        self.privilege_history_resource = self.privilege_jurisdiction_license_type_resource.add_resource(
-            'history'
-        )
+        self.privilege_history_resource = self.privilege_jurisdiction_license_type_resource.add_resource('history')
 
         self.privilege_history_resource.add_method(
             'GET',
@@ -720,4 +718,3 @@ class ProviderManagement:
             authorizer=method_options.authorizer,
             authorization_scopes=method_options.authorization_scopes,
         )
-

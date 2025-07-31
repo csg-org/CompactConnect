@@ -1,7 +1,6 @@
 from collections.abc import Callable, Iterable
 from datetime import (
     UTC,
-    date,
     datetime,
     timedelta,
 )
@@ -232,10 +231,7 @@ class ProviderRecordUtility:
         )
 
     @staticmethod
-    def get_enriched_history_with_synthetic_updates_from_privilege(
-        privilege: dict,
-        history: list[dict]
-    ) -> list[dict]:
+    def get_enriched_history_with_synthetic_updates_from_privilege(privilege: dict, history: list[dict]) -> list[dict]:
         """
         Enrich the privilege history with 'synthetic updates'.
         Synthetic updates are pieces of history that are not explicitly recorded in the data
@@ -264,19 +260,21 @@ class ProviderRecordUtility:
         create_date_sorted_original_history = sorted(history, key=lambda x: x['createDate'])
 
         # Inject issuance event
-        enriched_history = [{
-            'type': 'privilegeUpdate',
-            'updateType': UpdateCategory.ISSUANCE,
-            'providerId': privilege['providerId'],
-            'compact': privilege['compact'],
-            'jurisdiction': privilege['jurisdiction'],
-            'licenseType': privilege['licenseType'],
-            'effectiveDate': privilege['dateOfIssuance'].date(),
-            'createDate': privilege['dateOfIssuance'],
-            'previous': {},
-            'updatedValues': {},
-            'dateOfUpdate': privilege['dateOfIssuance'],
-        }] + create_date_sorted_original_history
+        enriched_history = [
+            {
+                'type': 'privilegeUpdate',
+                'updateType': UpdateCategory.ISSUANCE,
+                'providerId': privilege['providerId'],
+                'compact': privilege['compact'],
+                'jurisdiction': privilege['jurisdiction'],
+                'licenseType': privilege['licenseType'],
+                'effectiveDate': privilege['dateOfIssuance'].date(),
+                'createDate': privilege['dateOfIssuance'],
+                'previous': {},
+                'updatedValues': {},
+                'dateOfUpdate': privilege['dateOfIssuance'],
+            }
+        ] + create_date_sorted_original_history
 
         renewal_updates = list(filter(lambda x: x['updateType'] == UpdateCategory.RENEWAL, enriched_history))
 
@@ -347,8 +345,7 @@ class ProviderRecordUtility:
         history = list(filter(lambda x: x['type'] == 'privilegeUpdate', privilege_data))
 
         enriched_history = ProviderRecordUtility.get_enriched_history_with_synthetic_updates_from_privilege(
-            privilege,
-            history
+            privilege, history
         )
 
         unsanitized_history = {

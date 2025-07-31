@@ -25,17 +25,18 @@ def privilege_history_handler(event: dict, context: LambdaContext):
             return _get_privilege_history_provider_user_me(event, context)
         case (
             'GET',
-            '/v1/public/compacts/{compact}/providers/{providerId}/jurisdiction/{jurisdiction}/licenseType/{licenseType}/history'
+            '/v1/public/compacts/{compact}/providers/{providerId}/jurisdiction/{jurisdiction}/licenseType/{licenseType}/history',
         ):
             return _get_privilege_history(event)
         case (
             'GET',
-            '/v1/compacts/{compact}/providers/{providerId}/privileges/jurisdiction/{jurisdiction}/licenseType/{licenseType}/history'
+            '/v1/compacts/{compact}/providers/{providerId}/privileges/jurisdiction/{jurisdiction}/licenseType/{licenseType}/history',
         ):
             return _get_privilege_history(event)
 
     # If we get here, the method/resource combination is not supported
     raise CCInvalidRequestException(f'Unsupported method or resource: {http_method} {resource_path}')
+
 
 def _get_privilege_history(event: dict):
     """Return the enriched and simplified privilege history for front end consumption
@@ -52,10 +53,11 @@ def _get_privilege_history(event: dict):
         provider_id=provider_id,
         detail=True,
         jurisdiction=jurisdiction,
-        license_type_abbr=license_type_abbr
+        license_type_abbr=license_type_abbr,
     )
 
     return ProviderRecordUtility.construct_simplified_privilege_history_object(privilege_data)
+
 
 def _get_privilege_history_provider_user_me(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """Return the enriched and simplified privilege history for provider
@@ -72,9 +74,7 @@ def _get_privilege_history_provider_user_me(event: dict, context: LambdaContext)
         provider_id=provider_id,
         detail=True,
         jurisdiction=jurisdiction,
-        license_type_abbr=license_type_abbr
+        license_type_abbr=license_type_abbr,
     )
 
     return ProviderRecordUtility.construct_simplified_privilege_history_object(privilege_data)
-
-

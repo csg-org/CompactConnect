@@ -150,7 +150,7 @@ class DataClient:
         dynamo_pagination: dict,
         detail: bool = True,
         consistent_read: bool = False,
-    ) -> list [dict]:
+    ) -> list[dict]:
         logger.info('Getting provider')
         if detail:
             sk_condition = Key('sk').begins_with(f'{compact}#PROVIDER')

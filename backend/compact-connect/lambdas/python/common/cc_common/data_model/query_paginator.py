@@ -126,4 +126,3 @@ class paginated_query:  # noqa: N801 invalid-name
             raw_resp['Count'] = count
 
         return raw_resp
-
