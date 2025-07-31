@@ -21,10 +21,9 @@ from common_constructs.cc_api import CCApi
 from common_constructs.nodejs_function import NodejsFunction
 from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
-from persistent_stack import ProviderUsersBucket
 
 from stacks import persistent_stack as ps
-from stacks.persistent_stack import ProviderTable, RateLimitingTable, SSNTable, StaffUsers
+from stacks.persistent_stack import ProviderTable, ProviderUsersBucket, RateLimitingTable, SSNTable, StaffUsers
 
 from .api_model import ApiModel
 
