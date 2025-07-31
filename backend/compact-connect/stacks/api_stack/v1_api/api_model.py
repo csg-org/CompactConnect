@@ -2030,6 +2030,73 @@ class ApiModel:
         )
         return self.api._v1_public_query_providers_response_model
 
+
+    @property
+    def privilege_history_response_model(self) -> Model:
+        """Return the privilege history response model, which should only be created once per API"""
+        if hasattr(self.api, '_v1_privilege_history_response_model'):
+            return self.api._v1_privilege_history_response_model
+
+        self.api._v1_privilege_history_response_model = self.api.add_model(
+            'V1PrivilegeHistoryResponseModel',
+            description='Privilege history response model',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                required=[
+                    'providerId',
+                    'compact',
+                    'jurisdiction',
+                    'licenseType',
+                    'privilegeId',
+                    'events',
+                ],
+                properties={
+                    'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
+                    'compact': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.node.get_context('compacts')),
+                    'jurisdiction': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        enum=self.stack.node.get_context('jurisdictions')
+                    ),
+                    'licenseType': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.license_type_names),
+                    'privilegeId': JsonSchema(type=JsonSchemaType.STRING),
+                    'events': JsonSchema(
+                        type=JsonSchemaType.ARRAY,
+                        items=JsonSchema(
+                            type=JsonSchemaType.OBJECT,
+                            required=[
+                                'type',
+                                'updateType',
+                                'dateOfUpdate',
+                                'effectiveDate',
+                                'createDate',
+                            ],
+                            properties={
+                                'type': JsonSchema(type=JsonSchemaType.STRING, enum=['privilegeUpdate']),
+                                'updateType': JsonSchema(type=JsonSchemaType.STRING),
+                                'dateOfUpdate': JsonSchema(
+                                    type=JsonSchemaType.STRING,
+                                    format='date',
+                                    pattern=cc_api.YMD_FORMAT
+                                ),
+                                'effectiveDate': JsonSchema(
+                                    type=JsonSchemaType.STRING,
+                                    format='date',
+                                    pattern=cc_api.YMD_FORMAT
+                                ),
+                                'createDate': JsonSchema(
+                                    type=JsonSchemaType.STRING,
+                                    format='date',
+                                    pattern=cc_api.YMD_FORMAT
+                                ),
+                                'note': JsonSchema(type=JsonSchemaType.STRING),
+                            },
+                        ),
+                    ),
+                },
+            ),
+        )
+        return self.api._v1_privilege_history_response_model
+
     @property
     def public_provider_response_model(self) -> Model:
         """Return the public provider response model, which should only be created once per API"""

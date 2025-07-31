@@ -1,18 +1,27 @@
 from collections.abc import Callable, Iterable
+from datetime import (
+    UTC,
+    datetime,
+    timedelta,
+)
 from enum import StrEnum
 
-from cc_common.config import logger
+from cc_common.config import config, logger
 from cc_common.data_model.schema.adverse_action import AdverseActionData
 from cc_common.data_model.schema.common import (
     ActiveInactiveStatus,
     AdverseActionAgainstEnum,
     CompactEligibilityStatus,
+    UpdateCategory,
 )
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
 from cc_common.data_model.schema.license.api import LicenseUpdatePreviousResponseSchema
 from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationData
 from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
-from cc_common.data_model.schema.privilege.api import PrivilegeUpdatePreviousGeneralResponseSchema
+from cc_common.data_model.schema.privilege.api import (
+    PrivilegeHistoryPublicResponseSchema,
+    PrivilegeUpdatePreviousGeneralResponseSchema,
+)
 from cc_common.data_model.schema.provider import ProviderData, ProviderUpdateData
 from cc_common.exceptions import CCInternalException
 
@@ -222,6 +231,138 @@ class ProviderRecordUtility:
         provider['militaryAffiliations'] = military_affiliations
 
         return provider
+
+
+    @staticmethod
+    def get_enriched_history_with_synthetic_updates_from_privilege(
+        privilege: dict,
+        history: list[dict]
+    ) -> list[dict]:
+        """
+        Enrich the privilege history with 'synthetic updates'.
+        Synthetic updates are pieces of history that are not explicitly recorded in the data
+        system, because they occur passively, such as when a privilege expires or because they are redundant.
+        These 'synthetic updates' do not have a corresponding record in the database, but we can deduce their
+        existence based on the privilege's other data. Because these events are
+        'synthetic', they have no actual changes in record values associated with them.
+        Example issuance event:
+        {
+            'type': 'privilegeUpdate',
+            'updateType': 'issuance',
+            'providerId': <provider_id>,
+            'compact': <compact>,
+            'jurisdiction': <jurisdiction>,
+            'licenseType': <license_type>,
+            'effectiveDate': <date_effective>,
+            'createDate': <create_date>
+            'dateOfUpdate': <date_of_update>,
+            'previous': {},
+            'updatedValues': {},
+        }
+        :param privilege: The privilege record whose history we intend to construct
+        :param history: The raw history records we intend to extrapolate from
+        :return: The enriched privilege history
+        """
+        create_date_sorted_original_history = sorted(history, key=lambda x: x['createDate'])
+
+        # Inject issuance event
+        enriched_history = [{
+            'type': 'privilegeUpdate',
+            'updateType': UpdateCategory.ISSUANCE,
+            'providerId': privilege['providerId'],
+            'compact': privilege['compact'],
+            'jurisdiction': privilege['jurisdiction'],
+            'licenseType': privilege['licenseType'],
+            'effectiveDate': privilege['dateOfIssuance'].date(),
+            'createDate': privilege['dateOfIssuance'],
+            'previous': {},
+            'updatedValues': {},
+            'dateOfUpdate': privilege['dateOfIssuance'],
+        }] + create_date_sorted_original_history
+
+        renewal_updates = list(filter(lambda x: x['updateType'] == UpdateCategory.RENEWAL, enriched_history))
+
+        now = config.current_standard_datetime
+
+        # Inject expiration events that occurred between events
+        for update in renewal_updates:
+            date_of_expiration = update['previous']['dateOfExpiration']
+            day_after_expiration = date_of_expiration + timedelta(days=1)
+            datetime_of_expiration_trigger = datetime.combine(
+                day_after_expiration, datetime.min.time(), tzinfo=config.expiration_resolution_timezone
+            )
+            effective_date_time = datetime.combine(
+                update['effectiveDate'], datetime.min.time(), tzinfo=config.expiration_resolution_timezone
+            )
+            if datetime_of_expiration_trigger <= effective_date_time:
+                enriched_history.append(
+                    {
+                        'type': 'privilegeUpdate',
+                        'updateType': UpdateCategory.EXPIRATION,
+                        'providerId': privilege['providerId'],
+                        'compact': privilege['compact'],
+                        'jurisdiction': privilege['jurisdiction'],
+                        'licenseType': privilege['licenseType'],
+                        'effectiveDate': date_of_expiration,
+                        'createDate': datetime_of_expiration_trigger.astimezone(UTC),
+                        'previous': {},
+                        'updatedValues': {},
+                        'dateOfUpdate': datetime_of_expiration_trigger.astimezone(UTC),
+                    }
+                )
+        # Inject expiration event if currently expired
+        privilege_date_of_expiration = privilege['dateOfExpiration']
+
+        privilege_day_after_expiration = privilege_date_of_expiration + timedelta(days=1)
+        privilege_datetime_of_expiration_trigger = datetime.combine(
+            privilege_day_after_expiration, datetime.min.time(), tzinfo=config.expiration_resolution_timezone
+        )
+
+        if privilege_datetime_of_expiration_trigger <= now.astimezone(config.expiration_resolution_timezone):
+            enriched_history.append(
+                {
+                    'type': 'privilegeUpdate',
+                    'updateType': UpdateCategory.EXPIRATION,
+                    'providerId': privilege['providerId'],
+                    'compact': privilege['compact'],
+                    'jurisdiction': privilege['jurisdiction'],
+                    'licenseType': privilege['licenseType'],
+                    'effectiveDate': privilege_date_of_expiration,
+                    'createDate': privilege_datetime_of_expiration_trigger.astimezone(UTC),
+                    'previous': {},
+                    'updatedValues': {},
+                    'dateOfUpdate': privilege_datetime_of_expiration_trigger.astimezone(UTC),
+                }
+            )
+
+        return sorted(enriched_history, key=lambda x: x['effectiveDate'])
+
+    @staticmethod
+    def construct_simplified_privilege_history_object(privilege_data: list[dict]) -> dict:
+        """
+        Construct a simplified list of history events to be easily consumed by the front end
+        :param privilege_data: All of the records associated with the privilege:
+        the privilege, updates, and adverse actions
+        :return: The simplified and enriched privilege history
+        """
+        privilege = list(filter(lambda x: x['type'] == 'privilege', privilege_data))[0]
+        history = list(filter(lambda x: x['type'] == 'privilegeUpdate', privilege_data))
+
+        enriched_history = ProviderRecordUtility.get_enriched_history_with_synthetic_updates_from_privilege(
+            privilege,
+            history
+        )
+
+        unsanitized_history = {
+            'providerId': privilege['providerId'],
+            'compact': privilege['compact'],
+            'jurisdiction': privilege['jurisdiction'],
+            'licenseType': privilege['licenseType'],
+            'privilegeId': privilege['privilegeId'],
+            'events': enriched_history,
+        }
+        history_schema = PrivilegeHistoryPublicResponseSchema()
+        return history_schema.load(unsanitized_history)
 
 
 class ProviderUserRecords:

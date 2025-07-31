@@ -30,6 +30,7 @@ class ProviderUsers:
         persistent_stack: ps.PersistentStack,
         provider_users_stack: ProviderUsersStack,
         api_model: ApiModel,
+        privilege_history_function: PythonFunction,
     ):
         super().__init__()
         # /v1/provider-users
@@ -98,6 +99,17 @@ class ProviderUsers:
         # /v1/provider-users/me/email/verify
         self.provider_users_me_email_verify_resource = self.provider_users_me_email_resource.add_resource('verify')
         self._add_provider_user_me_email_verify()
+
+        self.provider_jurisdiction_resource = self.provider_users_me_resource.add_resource('jurisdiction').add_resource(
+            '{jurisdiction}'
+        )
+        self.provider_jurisdiction_license_type_resource = self.provider_jurisdiction_resource.add_resource(
+            'licenseType'
+        ).add_resource('{licenseType}')
+
+        self._add_get_privilege_history(
+            privilege_history_function=privilege_history_function,
+        )
 
     def _create_provider_users_handler(
         self,
@@ -425,3 +437,26 @@ class ProviderUsers:
                 },
             ],
         )
+
+    def _add_get_privilege_history(
+        self,
+        privilege_history_function: PythonFunction,
+    ):
+        self.privilege_history_resource = self.provider_jurisdiction_license_type_resource.add_resource(
+            'history'
+        )
+
+        self.privilege_history_resource.add_method(
+            'GET',
+            method_responses=[
+                MethodResponse(
+                    status_code='200',
+                    response_models={'application/json': self.api_model.privilege_history_response_model},
+                ),
+            ],
+            integration=LambdaIntegration(privilege_history_function, timeout=Duration.seconds(29)),
+            request_parameters={'method.request.header.Authorization': True},
+            authorizer=self.api.provider_users_authorizer,
+        )
+
+

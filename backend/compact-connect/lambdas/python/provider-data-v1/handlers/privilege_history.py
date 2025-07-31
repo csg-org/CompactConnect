@@ -1,0 +1,80 @@
+from aws_lambda_powertools.utilities.typing import LambdaContext
+from cc_common.config import config
+from cc_common.data_model.provider_record_util import ProviderRecordUtility
+from cc_common.exceptions import CCInvalidRequestException
+from cc_common.utils import api_handler, get_provider_user_attributes_from_authorizer_claims
+
+
+@api_handler
+def privilege_history_handler(event: dict, context: LambdaContext):
+    """
+    Main entry point for provider users API.
+    Routes to the appropriate handler based on the HTTP method and resource path.
+
+    :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
+    :param context: Lambda context
+    """
+    # Extract the HTTP method and resource path
+    http_method = event.get('httpMethod')
+    resource_path = event.get('resource')
+
+    # Route to the appropriate handler
+    api_method = (http_method, resource_path)
+    match api_method:
+        case ('GET', '/v1/provider-users/me/jurisdiction/{jurisdiction}/licenseType/{licenseType}/history'):
+            return _get_privilege_history_provider_user_me(event, context)
+        case (
+            'GET',
+            '/v1/public/compacts/{compact}/providers/{providerId}/jurisdiction/{jurisdiction}/licenseType/{licenseType}/history'
+        ):
+            return _get_privilege_history(event)
+        case (
+            'GET',
+            '/v1/compacts/{compact}/providers/{providerId}/privileges/jurisdiction/{jurisdiction}/licenseType/{licenseType}/history'
+        ):
+            return _get_privilege_history(event)
+
+    # If we get here, the method/resource combination is not supported
+    raise CCInvalidRequestException(f'Unsupported method or resource: {http_method} {resource_path}')
+
+def _get_privilege_history(event: dict):
+    """Return the enriched and simplified privilege history for front end consumption
+    :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
+    :param LambdaContext context:
+    """
+    compact = event['pathParameters']['compact']
+    provider_id = event['pathParameters']['providerId']
+    jurisdiction = event['pathParameters']['jurisdiction']
+    license_type_abbr = event['pathParameters']['licenseType']
+
+    privilege_data = config.data_client.get_privilege_data(
+        compact=compact,
+        provider_id=provider_id,
+        detail=True,
+        jurisdiction=jurisdiction,
+        license_type_abbr=license_type_abbr
+    )
+
+    return ProviderRecordUtility.construct_simplified_privilege_history_object(privilege_data)
+
+def _get_privilege_history_provider_user_me(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
+    """Return the enriched and simplified privilege history for provider
+    for front end consumption
+    :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
+    :param LambdaContext context:
+    """
+    compact, provider_id = get_provider_user_attributes_from_authorizer_claims(event)
+    jurisdiction = event['pathParameters']['jurisdiction']
+    license_type_abbr = event['pathParameters']['licenseType']
+
+    privilege_data = config.data_client.get_privilege_data(
+        compact=compact,
+        provider_id=provider_id,
+        detail=True,
+        jurisdiction=jurisdiction,
+        license_type_abbr=license_type_abbr
+    )
+
+    return ProviderRecordUtility.construct_simplified_privilege_history_object(privilege_data)
+
+
