@@ -199,6 +199,7 @@ def get_provider_data_with_read_private_access_smoke_test(test_staff_user_id: st
                     raise SmokeTestFailureException(f'Invalid download link structure: {download_link}')
 
                 # Attempt to download the file using the pre-signed URL
+                logger.info(f'downloading test file from {download_link["url"]}')
                 download_response = requests.get(download_link['url'], timeout=30)
                 if download_response.status_code != 200:
                     raise SmokeTestFailureException(
