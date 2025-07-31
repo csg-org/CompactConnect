@@ -81,7 +81,13 @@
                         </div>
                     </div>
                 </div>
-                <div v-if="formErrorMessage" class="form-error-message">{{formErrorMessage}}</div>
+                <div
+                    v-if="formErrorMessage"
+                    id="form-error-message"
+                    class="form-error-message"
+                >
+                    {{formErrorMessage}}
+                </div>
                 <div id="button-row" class="button-row">
                     <div class="form-nav-buttons">
                         <InputSubmit

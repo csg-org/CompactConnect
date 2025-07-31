@@ -2257,6 +2257,14 @@ export const getAttestation = (attestationId) => {
     case 'military-affiliation-confirmation-attestation':
         attestationObj.text = 'I hereby attest and affirm that my current military status documentation as uploaded to CompactConnect is accurate.';
         break;
+    case 'jurisprudence-confirmation':
+        attestationObj.text = 'I understand that an attestation is a legally binding statement. I understand that providing false information on this application could result in a loss of my licenses and/or privileges. I acknowledge that the Commission may audit jurisprudence attestations at their discretion.';
+        break;
+    case 'scope-of-practice-attestation':
+        attestationObj.text = `I hereby attest and affirm that I have reviewed, understand, and will abide by this state's scope of practice and all applicable laws and rules when practicing in the state. I understand that the issuance of a Compact Privilege authorizes me to legally practice in the member jurisdiction in accordance with the laws and rules governing practice of my profession in that jurisdiction.
+
+        If I violate the practice act, the appropriate board may take action against my Compact Privilege, which may result in the revocation of other Compact Privileges or licenses I may hold. I will also be prohibited from obtaining any other Compact Privileges for a period of at least two (2) years.`;
+        break;
     default:
         break;
     }
