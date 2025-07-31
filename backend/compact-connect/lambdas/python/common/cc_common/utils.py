@@ -644,8 +644,8 @@ def _generate_pre_signed_urls_for_military_affiliation_records(provider: dict):
                 # for an affiliation record, but there were hints that this may change in the future in which case
                 # we would need to generate links per document key.
                 Params={'Bucket': config.provider_user_bucket_name, 'Key': record['documentKeys'][0]},
-                # 8 hours in seconds, to avoid links becoming stale during their session.
-                ExpiresIn=28800,
+                # 2 hours in seconds, to avoid links becoming stale during their session.
+                ExpiresIn=7200,
             )
             # returning this as a list of one for now, to support multiple download links in the future
             record['downloadLinks'] = [{'fileName': record['fileNames'][0], 'url': url}]
