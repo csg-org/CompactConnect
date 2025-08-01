@@ -65,6 +65,12 @@ def _get_caller_provider_id_custom_attribute(event: dict) -> str:
         raise CCInvalidRequestException('Missing required user profile attribute') from e
 
 
+def _get_latest_allowed_encumbrance_lift() -> date:
+    return_date = config.current_standard_datetime.astimezone(config.expiration_resolution_timezone)
+    return_date = return_date.replace(year=return_date.year - 2)
+    return (return_date - timedelta(days=1)).date()
+
+
 @api_handler
 def get_purchase_privilege_options(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """This endpoint returns the available privilege options for a provider to purchase.
@@ -260,27 +266,23 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             'User should not be able to request privileges in this state.'
         )
 
-    # we now validate that the license type matches one of the license types from the home state license records
-    matching_license_records = provider_user_records.get_license_records(
-        filter_condition=lambda record: record.licenseType == body['licenseType']
-        and record.jurisdiction == current_home_jurisdiction
-        and record.compactEligibility == CompactEligibilityStatus.ELIGIBLE,
-    )
-
     # Check for any adverse actions that have been lifted 2 years ago
-    latest_allowed_encumbrance_lift = config.current_standard_datetime.astimezone(config.expiration_resolution_timezone)
-    latest_allowed_encumbrance_lift = latest_allowed_encumbrance_lift.replace(
-        year=latest_allowed_encumbrance_lift.year - 2
-    )
-    latest_allowed_encumbrance_lift = (latest_allowed_encumbrance_lift - timedelta(days=1)).date()
+    latest_allowed_encumbrance_lift = _get_latest_allowed_encumbrance_lift()
     blocking_encumbrance_records = provider_user_records.get_adverse_action_records(
         filter_condition=lambda record: record.effectiveLiftDate is None
         or record.effectiveLiftDate > latest_allowed_encumbrance_lift
     )
     if blocking_encumbrance_records:
         raise CCInvalidRequestException(
-            'You have a license or privilege encumbrance that prevents you from purchasing privileges at this time.'
+            'You have a current or recent encumbrance that prevents you from purchasing privileges at this time.'
         )
+
+    # we now validate that the license type matches one of the license types from the home state license records
+    matching_license_records = provider_user_records.get_license_records(
+        filter_condition=lambda record: record.licenseType == body['licenseType']
+        and record.jurisdiction == current_home_jurisdiction
+        and record.compactEligibility == CompactEligibilityStatus.ELIGIBLE,
+    )
 
     if not matching_license_records:
         raise CCInvalidRequestException(
