@@ -1,0 +1,3 @@
+-r requirements.in
+pytest
+moto[cognito-idp,s3]

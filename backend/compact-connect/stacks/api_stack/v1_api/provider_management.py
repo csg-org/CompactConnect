@@ -43,6 +43,7 @@ class ProviderManagement:
         persistent_stack: ps.PersistentStack,
         data_event_bus: EventBus,
         api_model: ApiModel,
+        privilege_history_function: PythonFunction,
     ):
         super().__init__()
 
@@ -75,6 +76,7 @@ class ProviderManagement:
         self.privilege_jurisdiction_license_type_resource = self.privilege_jurisdiction_resource.add_resource(
             'licenseType'
         ).add_resource('{licenseType}')
+
         self.licenses_resource = self.provider_resource.add_resource('licenses')
         self.license_jurisdiction_resource = self.licenses_resource.add_resource('jurisdiction').add_resource(
             '{jurisdiction}'
@@ -122,6 +124,11 @@ class ProviderManagement:
         self._add_encumber_privilege(method_options=admin_method_options)
 
         self._add_encumber_license(method_options=admin_method_options)
+
+        self._add_get_privilege_history(
+            method_options=method_options,
+            privilege_history_function=privilege_history_function,
+        )
 
     def _add_get_provider(
         self,
@@ -682,6 +689,28 @@ class ProviderManagement:
                 ),
             ],
             integration=LambdaIntegration(self.provider_encumbrance_handler, timeout=Duration.seconds(29)),
+            request_parameters={'method.request.header.Authorization': True},
+            authorization_type=method_options.authorization_type,
+            authorizer=method_options.authorizer,
+            authorization_scopes=method_options.authorization_scopes,
+        )
+
+    def _add_get_privilege_history(
+        self,
+        method_options: MethodOptions,
+        privilege_history_function: PythonFunction,
+    ):
+        self.privilege_history_resource = self.privilege_jurisdiction_license_type_resource.add_resource('history')
+
+        self.privilege_history_resource.add_method(
+            'GET',
+            method_responses=[
+                MethodResponse(
+                    status_code='200',
+                    response_models={'application/json': self.api_model.privilege_history_response_model},
+                ),
+            ],
+            integration=LambdaIntegration(privilege_history_function, timeout=Duration.seconds(29)),
             request_parameters={'method.request.header.Authorization': True},
             authorization_type=method_options.authorization_type,
             authorizer=method_options.authorizer,

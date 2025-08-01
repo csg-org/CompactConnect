@@ -269,6 +269,8 @@ class TestIngest(TstFunction):
                     'updateType': 'deactivation',
                     'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
                     'compact': 'aslp',
+                    'createDate': '2024-11-08T23:59:59+00:00',
+                    'effectiveDate': '2024-11-08',
                     'jurisdiction': 'oh',
                     'licenseType': 'speech-language pathologist',
                     'previous': {
@@ -433,6 +435,8 @@ class TestIngest(TstFunction):
                     'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
                     'compact': 'aslp',
                     'jurisdiction': 'oh',
+                    'createDate': '2024-11-08T23:59:59+00:00',
+                    'effectiveDate': '2024-11-08',
                     'licenseType': 'speech-language pathologist',
                     'previous': {
                         'ssnLastFour': '1234',
@@ -528,6 +532,8 @@ class TestIngest(TstFunction):
                     'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
                     'compact': 'aslp',
                     'jurisdiction': 'oh',
+                    'createDate': '2024-11-08T23:59:59+00:00',
+                    'effectiveDate': '2024-11-08',
                     'licenseType': 'speech-language pathologist',
                     'previous': {
                         'ssnLastFour': '1234',
@@ -647,6 +653,8 @@ class TestIngest(TstFunction):
                     'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
                     'compact': 'aslp',
                     'jurisdiction': 'oh',
+                    'createDate': '2024-11-08T23:59:59+00:00',
+                    'effectiveDate': '2024-11-08',
                     'licenseType': 'speech-language pathologist',
                     'previous': {
                         'ssnLastFour': '1234',
@@ -722,6 +730,8 @@ class TestIngest(TstFunction):
                     'compact': 'aslp',
                     'jurisdiction': 'oh',
                     'licenseType': 'speech-language pathologist',
+                    'createDate': '2024-11-08T23:59:59+00:00',
+                    'effectiveDate': '2024-11-08',
                     'previous': {
                         'ssnLastFour': '1234',
                         'npi': '0608337260',

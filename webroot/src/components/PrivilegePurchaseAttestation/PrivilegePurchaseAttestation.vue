@@ -18,15 +18,18 @@
                 </div>
                 <div v-else>
                     <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
-                    <InputRadioGroup :formInput="formData.investigations" />
+                    <InputRadioGroup :formInput="formData.investigations" class="radio-group" />
+                    <hr class="form-section-separator" />
                     <div class="form-section-title">{{ $t('licensing.discipline') }} *</div>
                     <InputCheckbox :formInput="formData.disciplineCurrent" />
                     <InputCheckbox :formInput="formData.disciplinePrior" />
-                    <div class="form-section-title form-section-gap">
+                    <hr class="form-section-separator" />
+                    <div class="form-section-title">
                         {{ $t('licensing.provisionOfInformation') }} *
                     </div>
                     <InputCheckbox :formInput="formData.trueInformation" />
-                    <div v-if="isMilitaryAffiliated" class="form-section-title form-section-gap">
+                    <hr v-if="isMilitaryAffiliated" class="form-section-separator" />
+                    <div v-if="isMilitaryAffiliated" class="form-section-title">
                         {{ $t('licensing.militaryAffiliation') }} *
                     </div>
                     <InputCheckbox v-if="isMilitaryAffiliated" :formInput="formData.militaryAffiliation" />

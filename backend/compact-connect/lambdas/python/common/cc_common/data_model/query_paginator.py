@@ -4,11 +4,10 @@ from collections.abc import Callable
 from types import MethodType
 
 from botocore.exceptions import ClientError
-from marshmallow import ValidationError
 
 from cc_common.config import config, logger
-from cc_common.data_model.schema.base_record import BaseRecordSchema
-from cc_common.exceptions import CCInternalException, CCInvalidRequestException
+from cc_common.exceptions import CCInvalidRequestException
+from cc_common.utils import load_records_into_schemas
 
 
 # It's conventional to name a decorator in snake_case, even if it is implemented as a class
@@ -64,7 +63,7 @@ class paginated_query:  # noqa: N801 invalid-name
 
         resp = {
             # Deserializing everything that comes out of the database
-            'items': self._load_records(items),
+            'items': load_records_into_schemas(items),
             'pagination': {'pageSize': page_size, 'prevLastKey': pagination.get('lastKey')},
         }
 
@@ -127,15 +126,3 @@ class paginated_query:  # noqa: N801 invalid-name
             raw_resp['Count'] = count
 
         return raw_resp
-
-    @staticmethod
-    def _load_records(records: list[dict]):
-        """Every record coming through this paginator should be de-serializable through our *RecordSchema"""
-        try:
-            return [BaseRecordSchema.get_schema_by_type(item['type']).load(item) for item in records]
-        except ValidationError as e:
-            logger.error('Validation error', error=e)
-            raise CCInternalException('Data validation failure!') from e
-        except KeyError as e:
-            logger.error('Key error', error=e)
-            raise CCInternalException('Key error!') from e
