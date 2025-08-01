@@ -165,10 +165,10 @@ class ProviderRecordUtility:
 
         # start with dateOfIssuance as active date
         active_since = privilege_record.dateOfIssuance
-        # sort privilege updates by effective date
-        privilege_updates.sort(key=lambda x: x.effectiveDate)
+        # sort privilege updates by their effective dates
+        sorted_updates = sorted(privilege_updates, key=lambda x: x.effectiveDate)
         # iterate through privilege updates
-        for update in privilege_updates:
+        for update in sorted_updates:
             # We check for the following cases:
             # 1. If the updateType is found in the list of deactivation update types, we set active_since to None,
             # since the privilege is no longer active as a result of this update.
@@ -179,12 +179,14 @@ class ProviderRecordUtility:
             # effective date of the renewal.
             if update.updateType in DEACTIVATION_EVENT_TYPES:
                 active_since = None
-            elif update.updateType == UpdateCategory.HOME_JURISDICTION_CHANGE and (
-                update.updatedValues.get('encumberedStatus', PrivilegeEncumberedStatusEnum.UNENCUMBERED)
-                != PrivilegeEncumberedStatusEnum.UNENCUMBERED
-                or update.updatedValues.get('homeJurisdictionChangeStatus') == HomeJurisdictionChangeStatusEnum.INACTIVE
-            ):
-                active_since = None
+            elif update.updateType == UpdateCategory.HOME_JURISDICTION_CHANGE:
+                if (
+                    update.updatedValues.get('encumberedStatus', PrivilegeEncumberedStatusEnum.UNENCUMBERED)
+                    != PrivilegeEncumberedStatusEnum.UNENCUMBERED
+                    or update.updatedValues.get('homeJurisdictionChangeStatus')
+                    == HomeJurisdictionChangeStatusEnum.INACTIVE
+                ):
+                    active_since = None
             elif update.updateType == UpdateCategory.RENEWAL and active_since is None:
                 active_since = update.updatedValues['dateOfRenewal']
 
