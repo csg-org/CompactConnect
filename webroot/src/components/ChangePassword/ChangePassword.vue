@@ -9,6 +9,15 @@
     <div class="change-password-container">
         <div class="form-title">{{ $t('common.changePassword') }}</div>
         <form @submit.prevent="handleSubmit">
+            <label for="username" class="hidden">{{ $t('common.username') }}</label>
+            <input
+                type="text"
+                id="username"
+                class="hidden"
+                autocomplete="username"
+                :value="userAppEmail"
+                :disabled="true"
+            />
             <InputPassword
                 :formInput="formData.currentPassword"
                 :joiMessages="joiMessages"

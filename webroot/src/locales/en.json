@@ -57,6 +57,7 @@
         "middleName": "Middle Name",
         "lastName": "Last name",
         "familyName": "Family Name",
+        "username": "Username",
         "selection": "Selection",
         "dateOfBirth": "Date of birth",
         "dateOfBirthShort": "DOB",
