@@ -4,7 +4,12 @@ from unittest.mock import patch
 
 from boto3.dynamodb.conditions import Key
 from cc_common.exceptions import CCInternalException
-from common_test.test_constants import DEFAULT_COMPACT, DEFAULT_DATE_OF_UPDATE_TIMESTAMP, DEFAULT_PROVIDER_ID
+from common_test.test_constants import (
+    DEFAULT_COMPACT,
+    DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
+    DEFAULT_PROVIDER_ID,
+    DEFAULT_PROVIDER_UPDATE_DATETIME,
+)
 from moto import mock_aws
 
 from .. import TstFunction
@@ -19,7 +24,9 @@ MOCK_MILITARY_AFFILIATION_FILE_NAME = 'military_affiliation.pdf'
 class TestGetProvider(TstFunction):
     def _when_testing_provider_user_event_with_custom_claims(self):
         self._load_provider_data()
-        test_provider = self.test_data_generator.put_default_provider_record_in_provider_table()
+        test_provider = self.test_data_generator.put_default_provider_record_in_provider_table(
+            date_of_update_override=DEFAULT_PROVIDER_UPDATE_DATETIME
+        )
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
             event['httpMethod'] = 'GET'

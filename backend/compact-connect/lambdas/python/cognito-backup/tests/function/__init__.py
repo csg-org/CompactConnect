@@ -36,10 +36,10 @@ class TstFunction(TstLambdas):
             PoolName='test-user-pool',
             Policies={
                 'PasswordPolicy': {
-                    'MinimumLength': 8,
-                    'RequireUppercase': False,
-                    'RequireLowercase': False,
-                    'RequireNumbers': False,
+                    'MinimumLength': 12,
+                    'RequireUppercase': True,
+                    'RequireLowercase': True,
+                    'RequireNumbers': True,
                     'RequireSymbols': False,
                 }
             },

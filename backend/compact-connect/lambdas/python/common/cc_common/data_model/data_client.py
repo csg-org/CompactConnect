@@ -10,11 +10,11 @@ from botocore.exceptions import ClientError
 
 from cc_common.config import _Config, config, logger, metrics
 from cc_common.data_model.provider_record_util import (
+    ProviderRecordType,
     ProviderRecordUtility,
     ProviderUserRecords,
 )
 from cc_common.data_model.query_paginator import paginated_query
-from cc_common.data_model.schema import PrivilegeRecordSchema
 from cc_common.data_model.schema.adverse_action import AdverseActionData
 from cc_common.data_model.schema.base_record import SSNIndexRecordSchema
 from cc_common.data_model.schema.common import (
@@ -44,7 +44,7 @@ from cc_common.exceptions import (
     CCNotFoundException,
 )
 from cc_common.license_util import LicenseUtility
-from cc_common.utils import logger_inject_kwargs
+from cc_common.utils import load_records_into_schemas, logger_inject_kwargs
 
 
 class DataClient:
@@ -150,7 +150,7 @@ class DataClient:
         dynamo_pagination: dict,
         detail: bool = True,
         consistent_read: bool = False,
-    ):
+    ) -> list[dict]:
         logger.info('Getting provider')
         if detail:
             sk_condition = Key('sk').begins_with(f'{compact}#PROVIDER')
@@ -428,8 +428,8 @@ class DataClient:
                 if original_privilege:
                     update_record = PrivilegeUpdateData.create_new(
                         {
-                            'type': 'privilegeUpdate',
-                            'updateType': 'renewal',
+                            'type': ProviderRecordType.PRIVILEGE_UPDATE,
+                            'updateType': UpdateCategory.RENEWAL,
                             'providerId': provider_id,
                             'compact': compact,
                             'jurisdiction': postal_abbreviation.lower(),
@@ -559,7 +559,7 @@ class DataClient:
         for transaction in processed_transactions:
             if transaction.get('Put'):
                 item = TypeDeserializer().deserialize({'M': transaction['Put']['Item']})
-                if item.get('type') == 'privilegeUpdate':
+                if item.get('type') == ProviderRecordType.PRIVILEGE_UPDATE:
                     # Always delete update records as they are always new
                     rollback_transactions.append(
                         {
@@ -932,6 +932,45 @@ class DataClient:
                 ]
             )
 
+    @logger_inject_kwargs(logger, 'compact', 'provider_id', 'detail', 'jurisdiction', 'license_type')
+    def get_privilege_data(
+        self,
+        *,
+        compact: str,
+        provider_id: str,
+        jurisdiction: str,
+        license_type_abbr: str,
+        consistent_read: bool = False,
+        detail: bool = False,
+    ) -> list[dict]:
+        """
+        Get a privilege for a provider in a jurisdiction of the license type
+
+        :param str compact: The compact of the privilege
+        :param str provider_id: The provider of the privilege
+        :param str jurisdiction: The jurisdiction of the privilege
+        :param str license_type_abbr: The license type abbreviation of the privilege
+        :param bool detail: Boolean determining whether we include associated records or just privilege record itself
+        :raises CCNotFoundException: If the privilege record is not found
+        :return If detail = False list of length one containing privilege item, if detail = True list containing,
+        privilege record, privilege update records and privilege adverse action records
+        """
+        # Get the privilege record
+        if detail:
+            sk_condition = Key('sk').begins_with(f'{compact}#PROVIDER#privilege/{jurisdiction}/{license_type_abbr}#')
+        else:
+            sk_condition = Key('sk').eq(f'{compact}#PROVIDER#privilege/{jurisdiction}/{license_type_abbr}#')
+
+        resp = self.config.provider_table.query(
+            Select='ALL_ATTRIBUTES',
+            KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}') & sk_condition,
+            ConsistentRead=consistent_read,
+        )
+        if not resp['Items'] or not len(resp['Items']):
+            raise CCNotFoundException('Privilege not found')
+
+        return load_records_into_schemas(resp['Items'])
+
     @logger_inject_kwargs(logger, 'compact', 'provider_id', 'jurisdiction', 'license_type')
     def get_privilege(self, *, compact: str, provider_id: str, jurisdiction: str, license_type_abbr: str) -> dict:
         """
@@ -973,13 +1012,12 @@ class DataClient:
         :raises CCNotFoundException: If the privilege record is not found
         """
         # Get the privilege record
-        privilege_record = self.get_privilege(
+
+        privilege_data = self.get_privilege_data(
             compact=compact, provider_id=provider_id, jurisdiction=jurisdiction, license_type_abbr=license_type_abbr
         )
 
-        # Find the main privilege record (not history records)
-        privilege_record_schema = PrivilegeRecordSchema()
-        privilege_record = privilege_record_schema.load(privilege_record)
+        privilege_record = privilege_data[0]
 
         # If already inactive, do nothing
         if privilege_record.get('administratorSetStatus', ActiveInactiveStatus.ACTIVE) == ActiveInactiveStatus.INACTIVE:
@@ -1466,16 +1504,20 @@ class DataClient:
                     'License is currently unencumbered. Setting license into an encumbered state as part of update.'
                 )
 
+            now = config.current_standard_datetime
+
             # Create the update record
             # Use the schema to generate the update record with proper pk/sk
             license_update_record = LicenseUpdateData.create_new(
                 {
-                    'type': 'licenseUpdate',
+                    'type': ProviderRecordType.LICENSE_UPDATE,
                     'updateType': UpdateCategory.ENCUMBRANCE,
                     'providerId': adverse_action.providerId,
                     'compact': adverse_action.compact,
                     'jurisdiction': adverse_action.jurisdiction,
                     'licenseType': license_data.licenseType,
+                    'createDate': now,
+                    'effectiveDate': adverse_action.effectiveStartDate,
                     'previous': {
                         # We're relying on the schema to trim out unneeded fields
                         **license_data.to_dict(),
@@ -1724,15 +1766,19 @@ class DataClient:
                 )
                 transact_items.append(license_update_item)
 
+                now = config.current_standard_datetime
+
                 # Create license update record
                 license_update_record = LicenseUpdateData.create_new(
                     {
-                        'type': 'licenseUpdate',
+                        'type': ProviderRecordType.LICENSE_UPDATE,
                         'updateType': UpdateCategory.LIFTING_ENCUMBRANCE,
                         'providerId': provider_id,
                         'compact': compact,
                         'jurisdiction': jurisdiction,
                         'licenseType': license_data.licenseType,
+                        'createDate': now,
+                        'effectiveDate': effective_lift_date,
                         'previous': license_data.to_dict(),
                         'updatedValues': {
                             'encumberedStatus': LicenseEncumberedStatusEnum.UNENCUMBERED,
