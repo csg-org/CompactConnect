@@ -217,67 +217,6 @@
             "minLength": 5,
             "type": "string"
           },
-          "currentHomeJurisdiction": {
-            "description": "The current jurisdiction postal abbreviation if known.",
-            "enum": [
-              "al",
-              "ak",
-              "az",
-              "ar",
-              "ca",
-              "co",
-              "ct",
-              "de",
-              "dc",
-              "fl",
-              "ga",
-              "hi",
-              "id",
-              "il",
-              "in",
-              "ia",
-              "ks",
-              "ky",
-              "la",
-              "me",
-              "md",
-              "ma",
-              "mi",
-              "mn",
-              "ms",
-              "mo",
-              "mt",
-              "ne",
-              "nv",
-              "nh",
-              "nj",
-              "nm",
-              "ny",
-              "nc",
-              "nd",
-              "oh",
-              "ok",
-              "or",
-              "pa",
-              "pr",
-              "ri",
-              "sc",
-              "sd",
-              "tn",
-              "tx",
-              "ut",
-              "vt",
-              "va",
-              "vi",
-              "wa",
-              "wv",
-              "wi",
-              "wy",
-              "other",
-              "unknown"
-            ],
-            "type": "string"
-          },
           "dateOfUpdate": {
             "format": "date",
             "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
@@ -334,14 +273,6 @@
     "sorting": {
       "description": "How to sort results",
       "properties": {
-        "key": {
-          "description": "The key to sort results by",
-          "enum": [
-            "dateOfUpdate",
-            "familyName"
-          ],
-          "type": "string"
-        },
         "direction": {
           "description": "Direction to sort results by",
           "enum": [
@@ -351,9 +282,6 @@
           "type": "string"
         }
       },
-      "required": [
-        "key"
-      ],
       "type": "object"
     }
   },

@@ -11,7 +11,7 @@ from stacks.provider_users import ProviderUsersStack
 from .v1_api import V1Api
 
 
-class _LicenseApi(CCApi):
+class _StateApi(CCApi):
     def __init__(
         self,
         scope: Construct,
@@ -28,10 +28,10 @@ class _LicenseApi(CCApi):
             provider_users_stack=provider_users_stack,
             **kwargs,
         )
-        self.v1_api = V1Api(self.root, persistent_stack=persistent_stack, provider_users_stack=provider_users_stack)
+        self.v1_api = V1Api(self.root, persistent_stack=persistent_stack)
 
 
-class ApiStack(AppStack):
+class StateApiStack(AppStack):
     def __init__(
         self,
         scope: Construct,
@@ -49,12 +49,12 @@ class ApiStack(AppStack):
 
         security_profile = SecurityProfile[environment_context.get('security_profile', 'RECOMMENDED')]
 
-        self.api = _LicenseApi(
+        self.api = _StateApi(
             self,
-            'LicenseApi',
+            'StateApi',
             environment_name=environment_name,
             security_profile=security_profile,
             persistent_stack=persistent_stack,
             provider_users_stack=provider_users_stack,
-            domain_name=self.api_domain_name,
+            domain_name=self.state_api_domain_name,
         )

@@ -5,13 +5,11 @@ import os
 from aws_cdk import Duration
 from aws_cdk.aws_apigateway import LambdaIntegration, MethodResponse, Resource
 from cdk_nag import NagSuppressions
+from common_constructs.cc_api import CCApi
 from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
 
 from stacks import persistent_stack as ps
-
-# Importing module level to allow lazy loading for typing
-from stacks.api_stack import cc_api
 
 from .api_model import ApiModel
 
@@ -28,7 +26,7 @@ class PublicLookupApi:
         super().__init__()
 
         self.resource = resource
-        self.api: cc_api.CCApi = resource.api
+        self.api: CCApi = resource.api
         self.api_model = api_model
 
         stack: Stack = Stack.of(resource)

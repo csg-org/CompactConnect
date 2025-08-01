@@ -4,19 +4,19 @@
 	"values": [
 		{
 			"key": "boardUserPoolUrl",
-			"value": "https://compact-connect-staff-beta.auth.us-east-1.amazoncognito.com",
+			"value": "https://compact-connect-staff-test.auth.us-east-1.amazoncognito.com",
 			"type": "default",
 			"enabled": true
 		},
 		{
 			"key": "baseUrl",
-			"value": "https://state-api.beta.compactconnect.org",
+			"value": "https://api.test.compactconnect.org",
 			"type": "default",
 			"enabled": true
 		},
 		{
 			"key": "uiUrl",
-			"value": "https://app.beta.compactconnect.org",
+			"value": "https://app.test.compactconnect.org",
 			"type": "default",
 			"enabled": true
 		},

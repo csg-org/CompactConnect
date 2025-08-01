@@ -1,4 +1,6 @@
 import json
+from datetime import UTC, datetime
+from unittest.mock import patch
 
 from marshmallow import ValidationError
 
@@ -85,3 +87,35 @@ class TestProviderRecordSchema(TstLambdas):
 
         self.assertEqual('active', provider_data['licenseStatus'])
         self.assertEqual('ineligible', provider_data['compactEligibility'])
+
+    def test_prov_date_of_update_matches_new_date_of_update(self):
+        """
+        When a provider record is serialized date of update fields should be processed like:
+        1) dateOfUpdate is overwritten with the current time
+        2) providerDateOfUpdate is overwritten with the new dateOfUpdate
+        3) The resulting serialized record has both fields updated to the current time
+
+        If 2 happens before 1, we could have an incorrect value in providerDateOfUpdate, which would
+        break time-based querying of providers
+        """
+        from cc_common.data_model.schema import ProviderRecordSchema
+
+        with open('tests/resources/dynamo/provider.json') as f:
+            expected_provider_record = json.load(f)
+
+        old_date_of_update = datetime(2024, 1, 1, 0, 0, 0, tzinfo=UTC)
+        new_date_of_update = datetime(2025, 2, 1, 0, 0, 0, tzinfo=UTC)
+        expected_provider_record['dateOfUpdate'] = old_date_of_update.isoformat()
+
+        schema = ProviderRecordSchema()
+
+        with patch('cc_common.config._Config.current_standard_datetime', new_date_of_update):
+            loaded_record = schema.load(expected_provider_record.copy())
+            # Verify we have the expected _old_ dateOfUpdate on load
+            self.assertEqual(loaded_record['dateOfUpdate'], old_date_of_update)
+
+            dumped_record = schema.dump(schema.load(expected_provider_record.copy()))
+
+            self.assertEqual(new_date_of_update.isoformat(), dumped_record['dateOfUpdate'])
+            # If 1 and 2 happened out of order, `providerDateOfUpdate` will be incorrect
+            self.assertEqual(new_date_of_update.isoformat(), dumped_record['providerDateOfUpdate'])
