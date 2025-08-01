@@ -700,6 +700,7 @@ def send_licenses_to_preprocessing_queue(licenses_data: list[dict], event_time: 
     # Return success status and failure count
     return failed_license_numbers
 
+
 def load_records_into_schemas(records: list[dict]):
     """Load records into their defined schema"""
     try:
@@ -710,6 +711,7 @@ def load_records_into_schemas(records: list[dict]):
     except KeyError as e:
         logger.error('Key error', error=e)
         raise CCInternalException('Key error!') from e
+
 
 def get_provider_user_attributes_from_authorizer_claims(event: dict) -> tuple[str, str]:
     try:

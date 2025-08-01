@@ -442,9 +442,7 @@ class ProviderUsers:
         self,
         privilege_history_function: PythonFunction,
     ):
-        self.privilege_history_resource = self.provider_jurisdiction_license_type_resource.add_resource(
-            'history'
-        )
+        self.privilege_history_resource = self.provider_jurisdiction_license_type_resource.add_resource('history')
 
         self.privilege_history_resource.add_method(
             'GET',
@@ -458,5 +456,3 @@ class ProviderUsers:
             request_parameters={'method.request.header.Authorization': True},
             authorizer=self.api.provider_users_authorizer,
         )
-
-

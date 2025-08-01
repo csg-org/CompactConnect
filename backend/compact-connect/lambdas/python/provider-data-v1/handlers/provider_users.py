@@ -279,6 +279,7 @@ def _patch_provider_email(event: dict, context: LambdaContext):  # noqa: ARG001 
 
         raise CCInternalException('Failed to initiate email verification process') from e
 
+
 def _post_provider_email_verify(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """
     Handle the POST method for verifying a provider's email address change.

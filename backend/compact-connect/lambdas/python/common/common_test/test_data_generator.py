@@ -4,7 +4,7 @@ from datetime import date, datetime
 from decimal import Decimal
 
 from boto3.dynamodb.conditions import Key
-from cc_common.data_model.provider_record_util import ProviderRecordUtility
+from cc_common.data_model.provider_record_util import ProviderUserRecords
 from cc_common.data_model.schema.adverse_action import AdverseActionData
 from cc_common.data_model.schema.common import CCDataClass
 from cc_common.data_model.schema.compact import CompactConfigurationData
@@ -257,6 +257,8 @@ class TestDataGenerator:
             'type': LICENSE_UPDATE_RECORD_TYPE,
             'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
             'licenseType': DEFAULT_LICENSE_TYPE,
+            'createDate': datetime.fromisoformat(DEFAULT_LICENSE_UPDATE_CREATE_DATE),
+            'effectiveDate': datetime.fromisoformat(DEFAULT_LICENSE_UPDATE_EFFECTIVE_DATE),
             'previous': previous_license.to_dict(),
             'updatedValues': {
                 'dateOfRenewal': date.fromisoformat(DEFAULT_LICENSE_RENEWAL_DATE),
@@ -379,16 +381,20 @@ class TestDataGenerator:
 
     @staticmethod
     def put_default_provider_record_in_provider_table(
-        value_overrides: dict | None = None, is_registered: bool = True
+        value_overrides: dict | None = None, is_registered: bool = True, date_of_update_override: str = None
     ) -> ProviderData:
         """
         Creates a default provider record and stores it in the provider table.
 
         :param value_overrides: Optional dictionary to override default values
+        :param is_registered: whether the provider should include fields for a registered provider
+        :param date_of_update_override: optional date for date of update to be shown on provider record
         :return: The ProviderData instance that was stored
         """
         provider_data = TestDataGenerator.generate_default_provider(value_overrides, is_registered)
         provider_record = provider_data.serialize_to_database_record()
+        if date_of_update_override:
+            provider_record['dateOfUpdate'] = date_of_update_override
 
         TestDataGenerator.store_record_in_provider_table(provider_record)
 
@@ -459,20 +465,33 @@ class TestDataGenerator:
                 default_military_affiliation, datetime.fromisoformat(DEFAULT_MILITARY_UPDATE_DATE)
             )
 
+            provider_record = TestDataGenerator.generate_default_provider().serialize_to_database_record()
+            provider_record['dateOfUpdate'] = DEFAULT_PROVIDER_UPDATE_DATETIME
+            license_record = default_license_record.serialize_to_database_record()
+            license_record['dateOfUpdate'] = DEFAULT_LICENSE_UPDATE_DATETIME
+            license_update_record = default_license_update_record.serialize_to_database_record()
+            license_update_record['dateOfUpdate'] = DEFAULT_LICENSE_UPDATE_DATE_OF_UPDATE
+            privilege_record = default_privilege_record.serialize_to_database_record()
+            privilege_record['dateOfUpdate'] = DEFAULT_PRIVILEGE_UPDATE_DATETIME
+            privilege_update_record = default_privilege_update_record.serialize_to_database_record()
+            privilege_update_record['dateOfUpdate'] = DEFAULT_PRIVILEGE_UPDATE_DATE_OF_UPDATE
+            military_affiliation_record = default_military_affiliation.serialize_to_database_record()
+            military_affiliation_record['dateOfUpdate'] = DEFAULT_MILITARY_UPDATE_DATE
+
             items = [
-                TestDataGenerator.generate_default_provider().to_dict(),
-                default_license_record.to_dict(),
-                default_license_update_record.to_dict(),
-                default_privilege_record.to_dict(),
-                default_privilege_update_record.to_dict(),
-                default_military_affiliation.to_dict(),
+                provider_record,
+                license_record,
+                license_update_record,
+                privilege_record,
+                privilege_update_record,
+                military_affiliation_record,
             ]
         else:
             # convert each item into a dictionary
-            items = [record.to_dict() for record in provider_record_items]
+            items = [record.serialize_to_database_record() for record in provider_record_items]
 
         # Now we put all the data together in a dict
-        provider_detail_response = ProviderRecordUtility.assemble_provider_records_into_api_response_object(items)
+        provider_detail_response = ProviderUserRecords(items).generate_api_response_object()
 
         # cast to json, to match what the API is doing
         return json.loads(json.dumps(provider_detail_response, cls=ResponseEncoder))

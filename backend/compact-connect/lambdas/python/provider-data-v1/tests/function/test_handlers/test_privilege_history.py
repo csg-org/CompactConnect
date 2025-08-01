@@ -27,10 +27,7 @@ class TestGetProvider(TstFunction):
             event['resource'] = '/v1/provider-users/me/jurisdiction/{jurisdiction}/licenseType/{licenseType}/history'
             event['requestContext']['authorizer']['claims']['custom:providerId'] = test_provider.providerId
             event['requestContext']['authorizer']['claims']['custom:compact'] = test_provider.compact
-            event['pathParameters'] = {
-                'jurisdiction': 'ne',
-                'licenseType': 'slp'
-            }
+            event['pathParameters'] = {'jurisdiction': 'ne', 'licenseType': 'slp'}
 
         return event
 
@@ -47,7 +44,7 @@ class TestGetProvider(TstFunction):
                 'jurisdiction': 'ne',
                 'licenseType': 'slp',
                 'compact': test_provider.compact,
-                'providerId': test_provider.providerId
+                'providerId': test_provider.providerId,
             }
 
         return event
@@ -65,7 +62,7 @@ class TestGetProvider(TstFunction):
                 'jurisdiction': 'ne',
                 'licenseType': 'slp',
                 'compact': test_provider.compact,
-                'providerId': test_provider.providerId
+                'providerId': test_provider.providerId,
             }
 
         return event
@@ -76,10 +73,7 @@ class TestGetProvider(TstFunction):
 
         event = self._when_testing_provider_user_event_with_custom_claims()
 
-        event['pathParameters'] = {
-                'jurisdiction': 'ma',
-                'licenseType': 'slp'
-            }
+        event['pathParameters'] = {'jurisdiction': 'ma', 'licenseType': 'slp'}
 
         resp = privilege_history_handler(event, self.mock_context)
 
@@ -123,20 +117,20 @@ class TestGetProvider(TstFunction):
                     'dateOfUpdate': '2016-05-05T12:59:59+00:00',
                     'effectiveDate': '2016-05-05',
                     'type': 'privilegeUpdate',
-                    'updateType': 'issuance'
+                    'updateType': 'issuance',
                 },
                 {
                     'createDate': '2020-05-05T12:59:59+00:00',
                     'dateOfUpdate': '2020-05-05T12:59:59+00:00',
                     'effectiveDate': '2020-05-05',
                     'type': 'privilegeUpdate',
-                    'updateType': 'renewal'
-                }
+                    'updateType': 'renewal',
+                },
             ],
-             'jurisdiction': 'ne',
-             'licenseType': 'speech-language pathologist',
-             'privilegeId': 'SLP-NE-1',
-             'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'
+            'jurisdiction': 'ne',
+            'licenseType': 'speech-language pathologist',
+            'privilegeId': 'SLP-NE-1',
+            'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
         }
 
         self.assertEqual(expected_history, history_data)
@@ -159,20 +153,20 @@ class TestGetProvider(TstFunction):
                     'dateOfUpdate': '2016-05-05T12:59:59+00:00',
                     'effectiveDate': '2016-05-05',
                     'type': 'privilegeUpdate',
-                    'updateType': 'issuance'
+                    'updateType': 'issuance',
                 },
                 {
                     'createDate': '2020-05-05T12:59:59+00:00',
                     'dateOfUpdate': '2020-05-05T12:59:59+00:00',
                     'effectiveDate': '2020-05-05',
                     'type': 'privilegeUpdate',
-                    'updateType': 'renewal'
-                }
+                    'updateType': 'renewal',
+                },
             ],
-             'jurisdiction': 'ne',
-             'licenseType': 'speech-language pathologist',
-             'privilegeId': 'SLP-NE-1',
-             'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'
+            'jurisdiction': 'ne',
+            'licenseType': 'speech-language pathologist',
+            'privilegeId': 'SLP-NE-1',
+            'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
         }
 
         self.assertEqual(expected_history, history_data)
@@ -195,21 +189,20 @@ class TestGetProvider(TstFunction):
                     'dateOfUpdate': '2016-05-05T12:59:59+00:00',
                     'effectiveDate': '2016-05-05',
                     'type': 'privilegeUpdate',
-                    'updateType': 'issuance'
+                    'updateType': 'issuance',
                 },
                 {
                     'createDate': '2020-05-05T12:59:59+00:00',
                     'dateOfUpdate': '2020-05-05T12:59:59+00:00',
                     'effectiveDate': '2020-05-05',
                     'type': 'privilegeUpdate',
-                    'updateType': 'renewal'
-                }
+                    'updateType': 'renewal',
+                },
             ],
-             'jurisdiction': 'ne',
-             'licenseType': 'speech-language pathologist',
-             'privilegeId': 'SLP-NE-1',
-             'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'
+            'jurisdiction': 'ne',
+            'licenseType': 'speech-language pathologist',
+            'privilegeId': 'SLP-NE-1',
+            'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
         }
 
         self.assertEqual(expected_history, history_data)
-
