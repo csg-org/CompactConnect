@@ -187,7 +187,7 @@ def get_provider_data_with_read_private_access_smoke_test(test_staff_user_id: st
 
     # Step 3: Verify the Provider response matches the profile.
     provider_object = get_provider_response.json()
-    # because this test staff user is a compact admin, there will be download links present the
+    # because this test staff user is a compact admin, there will be download links present for the
     # military affiliation files, so we need to account for those here by removing them from the
     # list of military records and checking the links to verify they are valid
     for record in provider_object['militaryAffiliations']:
