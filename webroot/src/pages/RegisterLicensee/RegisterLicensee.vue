@@ -38,7 +38,7 @@
                 <template v-else-if="!isFormSuccessful">
                     <form @submit.prevent="handleSubmit" class="register-licensee-form" id="register-licensee-form">
                         <div v-if="!isConfirmationScreen" class="register-licensee-form-container">
-                            <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
+                            <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" /><br />
                             <a
                                 v-if="isMockPopulateEnabled"
                                 @click="resetForm()"

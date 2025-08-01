@@ -70,6 +70,7 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
     }
     attestationRecords: Array<PrivilegeAttestation> = []; // eslint-disable-line lines-between-class-members
     areFormInputsSet = false;
+    formErrorMessage = '';
 
     //
     // Lifecycle
@@ -138,20 +139,20 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
         const privilegePurchaseOptions = [...this.currentCompact?.privilegePurchaseOptions || []];
 
         privilegePurchaseOptions.sort((a: PrivilegePurchaseOption, b: PrivilegePurchaseOption) => {
-            let toReturn = 0;
             const nameA = a.jurisdiction?.name().toLowerCase();
             const nameB = b.jurisdiction?.name().toLowerCase();
+            let sort = 0;
 
             if (nameA && nameB) {
                 if (nameA < nameB) {
-                    toReturn = -1;
+                    sort = -1;
                 }
                 if (nameA > nameB) {
-                    toReturn = 1;
+                    sort = 1;
                 }
             }
 
-            return toReturn;
+            return sort;
         });
 
         return privilegePurchaseOptions;
@@ -163,17 +164,20 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
         const purchaseLicense = this.selectedPurchaseLicense;
 
         if (purchaseLicense) {
-            privilegeList.filter((privilege) =>
-                (privilege.licenseType === purchaseLicense.licenseType)).forEach((privilege) => {
-                if (
-                    privilege?.issueState?.abbrev
-                    && moment(privilege?.expireDate).isSameOrAfter(purchaseLicense.expireDate)
-                    && privilege.status === LicenseStatus.ACTIVE
-                ) {
-                    disabledStateList.push(privilege?.issueState?.abbrev);
-                }
-            });
+            // Disable privilege selection for valid privileges the user already holds
+            privilegeList
+                .filter((privilege) => (privilege.licenseType === purchaseLicense.licenseType))
+                .forEach((privilege) => {
+                    if (
+                        privilege?.issueState?.abbrev
+                        && moment(privilege?.expireDate).isSameOrAfter(purchaseLicense.expireDate)
+                        && privilege.status === LicenseStatus.ACTIVE
+                    ) {
+                        disabledStateList.push(privilege?.issueState?.abbrev);
+                    }
+                });
 
+            // Disable privilege selection for the user's license home state
             disabledStateList.push(purchaseLicense?.issueState?.abbrev || '');
         }
 
@@ -217,9 +221,12 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
         return selectedStatesWithJurisprudenceRequired;
     }
 
+    get numPrivilegesChosen(): number {
+        return this.formData.stateCheckList?.filter((formInput) => (formInput.value === true)).length;
+    }
+
     get isAtLeastOnePrivilegeChosen(): boolean {
-        return this.formData.stateCheckList?.filter((formInput) =>
-            (formInput.value === true)).length > 0;
+        return this.numPrivilegesChosen > 0;
     }
 
     get jurisprudenceAttestation(): PrivilegeAttestation {
@@ -288,7 +295,7 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
         this.watchFormInputs();
     }
 
-    addStateAttestationInputs(stateAbbrev: string) {
+    addStateAttestationInputs(stateAbbrev: string): void {
         const stateObj = this.purchaseDataList.find(
             (option) => option.jurisdiction?.abbrev === stateAbbrev
         );
@@ -316,12 +323,12 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
         });
     }
 
-    removeStateAttestationInputs(stateAbbrev: string) {
+    removeStateAttestationInputs(stateAbbrev: string): void {
         delete this.formData[`jurisprudence-${stateAbbrev}`];
         delete this.formData[`scope-${stateAbbrev}`];
     }
 
-    toggleStateSelected(stateFormInput) {
+    toggleStateSelected(stateFormInput): void {
         const newStateFormInputValue = !stateFormInput.value;
         const stateAbbrev = stateFormInput.id;
 
@@ -332,11 +339,16 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
         } else {
             this.removeStateAttestationInputs(stateAbbrev);
         }
+
+        if (this.numPrivilegesChosen <= 20) {
+            this.formErrorMessage = '';
+        }
     }
 
-    deselectState(stateAbbrev: string) {
+    deselectState(stateAbbrev: string): void {
         this.formData.stateCheckList.find((checkBox) => (checkBox.id === stateAbbrev)).value = false;
         this.removeStateAttestationInputs(stateAbbrev);
+        this.formErrorMessage = '';
     }
 
     isStateSelectDisabled(state: FormInput): boolean {
@@ -352,10 +364,14 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
         return statePurchaseData;
     }
 
-    handleSubmit() {
+    async handleSubmit(): Promise<void> {
         this.validateAll({ asTouched: true });
 
-        if (this.isAtLeastOnePrivilegeChosen && this.isFormValid) {
+        if (this.numPrivilegesChosen > 20) {
+            this.formErrorMessage = this.$t('licensing.privilegePurchaseLimit');
+            await nextTick();
+            document.getElementById('form-error-message')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else if (this.isAtLeastOnePrivilegeChosen && this.isFormValid) {
             const selectedStates = this.formData.stateCheckList.filter((input) => input.value).map((input) => input.id);
             const attestationData = this.prepareAttestations();
 
@@ -379,7 +395,7 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
         })));
     }
 
-    handleCancelClicked() {
+    handleCancelClicked(): void {
         this.$store.dispatch('user/resetToPurchaseFlowStep', 0);
 
         if (this.currentCompactType) {
@@ -390,7 +406,7 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
         }
     }
 
-    handleBackClicked() {
+    handleBackClicked(): void {
         if (this.currentCompactType) {
             this.$router.push({
                 name: 'PrivilegePurchaseInformationConfirmation',
@@ -399,22 +415,38 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
         }
     }
 
-    async mockPopulate(): Promise<void> {
+    async mockPopulate(shouldPopulateAll = false): Promise<void> {
+        const checkStateAttestations = (state: FormInput) => {
+            this.$nextTick(() => {
+                const jurisprudenceCheckInput = this.formData[`jurisprudence-${state.id}`];
+                const scopeCheckInput = this.formData[`scope-${state.id}`];
+
+                if (jurisprudenceCheckInput) {
+                    jurisprudenceCheckInput.value = true;
+                }
+                if (scopeCheckInput) {
+                    scopeCheckInput.value = true;
+                }
+            });
+        };
+        let foundSelection = false;
+
         this.stateCheckList.forEach((state) => {
             if (!this.isStateSelectDisabled(state)) {
-                this.toggleStateSelected(state);
-
-                this.$nextTick(() => {
-                    const jurisprudenceCheckInput = this.formData[`jurisprudence-${state.id}`];
-                    const scopeCheckInput = this.formData[`scope-${state.id}`];
-
-                    if (jurisprudenceCheckInput) {
-                        jurisprudenceCheckInput.value = true;
+                if (shouldPopulateAll && !state.value) {
+                    this.toggleStateSelected(state);
+                    checkStateAttestations(state);
+                } else if (!shouldPopulateAll) {
+                    if (!foundSelection) {
+                        if (!state.value) {
+                            this.toggleStateSelected(state);
+                        }
+                        checkStateAttestations(state);
+                        foundSelection = true;
+                    } else if (foundSelection && state.value) {
+                        this.toggleStateSelected(state);
                     }
-                    if (scopeCheckInput) {
-                        scopeCheckInput.value = true;
-                    }
-                });
+                }
             }
         });
 
