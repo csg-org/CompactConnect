@@ -56,6 +56,7 @@
         "givenName": "Nombre de pila",
         "middleName": "Segundo nombre",
         "lastName": "Apellido",
+        "username": "Nombre de usuario",
         "selection": "Selección",
         "dateOfBirth": "Fecha de nacimiento",
         "dateOfBirthShort": "Fecha de nacim.",
