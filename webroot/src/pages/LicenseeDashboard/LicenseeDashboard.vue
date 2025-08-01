@@ -29,6 +29,19 @@
                         :isEnabled="isPrivilegePurchaseEnabled"
                         @click="startPrivPurchaseFlow"
                     />
+                    <div v-if="!isPrivilegePurchaseEnabled" class="btn-subtext why-unavailable-container">
+                        {{ $t('licensing.whyUnavailable') }}
+                        <span
+                            class="icon-info-circle-container"
+                            role="button"
+                            tabindex="0"
+                            :aria-label="$t('licensing.whyUnavailableInfoButton')"
+                            @click="openPurchaseUnavailableModal"
+                            @keyup.enter="openPurchaseUnavailableModal"
+                        >
+                          <InfoCircle />
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -77,6 +90,55 @@
                 />
             </div>
         </div>
+        <TransitionGroup>
+            <Modal
+                v-if="isPurchaseUnavailableModalDisplayed"
+                class="purchase-unavailable-modal"
+                title=" "
+                :showActions="true"
+                @close-modal="closePurchaseUnavailableModal"
+                @keydown.tab="focusTrapPurchaseUnavailable($event)"
+                @keyup.esc="closePurchaseUnavailableModal"
+            >
+                <template v-slot:content>
+                    <div class="modal-content-text">
+                        <p id="purchase-unavailable-modal-title" class="purchase-unavailable-message">
+                            {{ $t('licensing.purchaseUnavailableMessage') }}
+                        </p>
+                        <ol
+                            id="purchase-unavailable-modal-reasons"
+                            class="purchase-unavailable-list good-wrap"
+                            tabindex="-1"
+                        >
+                            <li v-if="!hasEligibleLicenses">
+                                {{ $t('licensing.purchaseUnavailableNoEligibleLicenses') }}
+                            </li>
+                            <li v-if="isEncumbered">{{ $t('licensing.purchaseUnavailableEncumbrance') }}</li>
+                            <li v-if="isMilitaryStatusInitializing">
+                                {{ $t('licensing.purchaseUnavailablePendingMilitaryStatus') }}
+                                <router-link
+                                    id="military-status-link"
+                                    :to="{ name: 'MilitaryStatus', params: { compact: currentCompactType } }"
+                                    :aria-label="$t('licensing.militaryStatusLinkAriaLabel')"
+                                >
+                                    {{ $t('common.here') }}
+                                </router-link>.
+                            </li>
+                        </ol>
+                    </div>
+                </template>
+                <template v-slot:actions>
+                    <div class="action-button-row initial-action-buttons">
+                        <InputSubmit
+                            class="submit-btn"
+                            :formInput="formData.close"
+                            :label="$t('common.close')"
+                            @click="closePurchaseUnavailableModal"
+                        />
+                    </div>
+                </template>
+            </Modal>
+        </TransitionGroup>
     </div>
 </template>
 
