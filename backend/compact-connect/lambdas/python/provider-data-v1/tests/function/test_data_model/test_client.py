@@ -206,6 +206,8 @@ class TestClient(TstFunction):
 
         # Should return providers that have privileges in the specified jurisdiction
         self.assertIsInstance(resp['items'], list)
+        # All 10 created providers should be returned
+        self.assertEqual(10, len(resp['items']))
         # All returned providers should have privileges in 'ne' jurisdiction
         for provider in resp['items']:
             self.assertIn('ne', provider['privilegeJurisdictions'])

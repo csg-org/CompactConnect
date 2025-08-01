@@ -176,7 +176,7 @@ class QueryJurisdictionProvidersRequestSchema(CCRequestSchema):
     Schema for jurisdiction-specific query providers requests.
 
     This schema is used to validate incoming requests to the jurisdiction-specific query providers API endpoint.
-    It supports time window filtering through startDateTime and endDateTime query parameters.
+    It supports time window filtering by dateOfUpdate through startDateTime and endDateTime query parameters.
 
     Serialization direction:
     API -> load() -> Python

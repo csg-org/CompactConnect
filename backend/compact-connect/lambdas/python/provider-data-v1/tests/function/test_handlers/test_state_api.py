@@ -86,18 +86,11 @@ class TestQueryJurisdictionProviders(TstFunction):
         # These should NOT be returned since the jurisdiction API only returns providers with privileges in the
         # requested jurisdiction.
         self._generate_multiple_providers_with_privileges(
-            count=10,
+            count=20,
             privilege_jurisdiction='ne',  # Privileges in 'ne', not target 'oh'
             license_jurisdiction='oh',
             date_of_update=date_of_update,
             start_serial=9989,
-        )
-        self._generate_multiple_providers_with_privileges(
-            count=10,
-            privilege_jurisdiction='ne',  # Privileges in 'ne', not target 'oh'
-            license_jurisdiction='oh',
-            date_of_update=date_of_update,
-            start_serial=9979,
         )
 
         from handlers.state_api import query_jurisdiction_providers

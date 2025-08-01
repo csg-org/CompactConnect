@@ -59,10 +59,7 @@ def download_openapi_spec(apigateway_client, api_id: str, stage_name: str) -> di
     """
     try:
         response = apigateway_client.get_export(
-            restApiId=api_id,
-            stageName=stage_name,
-            exportType='oas30',
-            accepts='application/json'
+            restApiId=api_id, stageName=stage_name, exportType='oas30', accepts='application/json'
         )
 
         # Parse the response body
@@ -139,6 +136,8 @@ def download_api_spec(api_name: str, output_path: str) -> None:
     stages = get_api_stages(apigateway_client, api_id)
 
     # Use the first stage (assuming single stage)
+    if len(stages) != 1:
+        raise RuntimeError('API has an unexpected number of stages!')
     stage_name = stages[0]
     sys.stdout.write(f'Using stage: {stage_name}\n')
 
@@ -154,12 +153,8 @@ def download_api_spec(api_name: str, output_path: str) -> None:
 
 def main():
     parser = argparse.ArgumentParser(description='Download OpenAPI v3 specifications from AWS API Gateway')
-    parser.add_argument(
-        '--state-api-only', action='store_true', help='Download only the StateApi specification'
-    )
-    parser.add_argument(
-        '--license-api-only', action='store_true', help='Download only the LicenseApi specification'
-    )
+    parser.add_argument('--state-api-only', action='store_true', help='Download only the StateApi specification')
+    parser.add_argument('--license-api-only', action='store_true', help='Download only the LicenseApi specification')
 
     args = parser.parse_args()
 
