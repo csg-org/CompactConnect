@@ -358,8 +358,7 @@
         "description": "Descripción",
         "copyright": "Copyright",
         "compact": "Compacto",
-        "uploadDocument": "Subir documento",
-        "privacyPolicy": "Política de privacidad"
+        "uploadDocument": "Subir documento"
     },
     "navigation": {
         "dashboard": "Panel",
