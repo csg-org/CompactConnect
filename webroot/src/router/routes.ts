@@ -24,7 +24,7 @@ const routes: Array<RouteConfig> = [
     {
         path: '/PrivacyPolicy',
         name: 'PrivacyPolicy',
-        component: () => import(/* webpackChunkName: "privacyPolicy" */ '@pages/PrivacyPolicy/PrivacyPolicy.vue'),
+        component: () => import(/* webpackChunkName: "home" */ '@pages/PrivacyPolicy/PrivacyPolicy.vue'),
         beforeEnter: guards.noAuthGuard,
     },
     {

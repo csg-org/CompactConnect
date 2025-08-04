@@ -19,6 +19,10 @@ export default class PrivacyPolicy extends Vue {
     // Methods
     //
     goBack(): void {
-        this.$router.push({ name: 'DashboardPublic' });
+        if (window.history.state.back !== null) {
+            this.$router.go(-1);
+        } else {
+            this.$router.push({ name: 'DashboardPublic' });
+        }
     }
 }
