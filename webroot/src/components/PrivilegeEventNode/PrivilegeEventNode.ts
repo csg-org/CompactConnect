@@ -25,7 +25,7 @@ class PrivilegeEventNode extends Vue {
     // Computed
     //
     get eventDate(): string {
-        return this.event?.dateOfUpdateDisplay() || '';
+        return this.event?.effectiveDateDisplay() || '';
     }
 
     get eventNameDisplay(): string {

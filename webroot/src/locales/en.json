@@ -684,7 +684,7 @@
             },
             {
                 "name": "Privilege Encumbrance Lifted",
-                "key": "encumbrance_lifted"
+                "key": "lifting_encumbrance"
             },
             {
                 "name": "Encumbrance",

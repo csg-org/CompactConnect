@@ -45,8 +45,8 @@ export class LicenseHistoryItem implements InterfaceLicenseHistoryItem {
         Object.assign(this, cleanDataObject);
     }
 
-    public dateOfUpdateDisplay(): string {
-        return dateDisplay(this.dateOfUpdate);
+    public effectiveDateDisplay(): string {
+        return dateDisplay(this.effectiveDate);
     }
 
     public isActivatingEvent(): boolean {
@@ -64,6 +64,9 @@ export class LicenseHistoryItem implements InterfaceLicenseHistoryItem {
     public updateTypeDisplay(): string {
         const updateType = this.updateType || '';
         const events = this.$tm('licensing.licenseEvents') || [];
+
+        console.log('updateType', updateType);
+
         const event = events.find((st) => st.key === updateType);
         const eventName = event?.name || this.$t('common.stateUnknown');
 

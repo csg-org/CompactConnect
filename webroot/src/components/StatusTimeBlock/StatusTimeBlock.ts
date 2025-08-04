@@ -18,8 +18,6 @@ import { LicenseHistoryItem } from '@models/LicenseHistoryItem/LicenseHistoryIte
 })
 class StatusTimeBlock extends Vue {
     // PROPS
-    @Prop({ required: true }) isStartOfVisualBlock!: boolean;
-    @Prop({ required: true }) isEndOfVisualBlock!: boolean;
     @Prop({ required: true }) isLastEvent!: boolean;
     @Prop({ required: true }) event!: LicenseHistoryItem;
 
@@ -32,18 +30,6 @@ class StatusTimeBlock extends Vue {
 
     get isDeactivating(): boolean {
         return this.event?.isDeactivatingEvent() || false;
-    }
-
-    get status(): string {
-        let status = '';
-
-        if (this.isActivating) {
-            status = this.$t('licensing.statusOptions.active');
-        } else if (this.isDeactivating) {
-            status = this.$t('licensing.statusOptions.inactive');
-        }
-
-        return status;
     }
 }
 

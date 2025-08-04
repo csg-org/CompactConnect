@@ -13,16 +13,12 @@
         :class="{
             'inactive': isDeactivating,
             'active': isActivating,
-            'start-of-block': isStartOfVisualBlock,
-            'end-of-block': isEndOfVisualBlock,
         }"
     >
         <div
             :class="{
                 'inactive': isDeactivating,
                 'active': isActivating,
-                'start-of-block': isStartOfVisualBlock,
-                'end-of-block': isEndOfVisualBlock,
                 'last-event': isLastEvent
             }"
             class="status-time-block-color"
