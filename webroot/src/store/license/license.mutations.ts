@@ -17,6 +17,9 @@ export enum MutationTypes {
     GET_LICENSEE_REQUEST = '[License] Get Licensee Request',
     GET_LICENSEE_FAILURE = '[License] Get Licensee Failure',
     GET_LICENSEE_SUCCESS = '[License] Get Licensee Success',
+    GET_PRIVILEGE_HISTORY_REQUEST = '[User] Get Privilege History Request',
+    GET_PRIVILEGE_HISTORY_SUCCESS = '[User] Get Privilege History Success',
+    GET_PRIVILEGE_HISTORY_FAILURE = '[User] Get Privilege History Failure',
     STORE_UPDATE_LICENSEE = '[License] Updated Licensee in store',
     STORE_REMOVE_LICENSEE = '[License] Remove Licensee from store',
     STORE_UPDATE_SEARCH = '[License] Update search params',
@@ -116,5 +119,17 @@ export default {
             lastName: '',
             state: '',
         };
+    },
+    [MutationTypes.GET_PRIVILEGE_HISTORY_REQUEST]: (state: any) => {
+        state.isLoadingPrivilegeHistory = true;
+        state.error = null;
+    },
+    [MutationTypes.GET_PRIVILEGE_HISTORY_SUCCESS]: (state: any) => {
+        state.isLoadingPrivilegeHistory = false;
+        state.error = null;
+    },
+    [MutationTypes.GET_PRIVILEGE_HISTORY_FAILURE]: (state: any, error: Error) => {
+        state.isLoadingPrivilegeHistory = false;
+        state.error = error;
     },
 };

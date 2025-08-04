@@ -16,20 +16,7 @@ export interface InterfaceLicenseHistoryItem {
     dateOfUpdate?: string | null;
     createDate?: string | null;
     effectiveDate?: string | null;
-    note?: string | null;
-    previousValues?: {
-        compactTransactionId?: string | null,
-        dateOfExpiration?: string | null,
-        dateOfIssuance?: string | null,
-        dateOfRenewal?: string | null,
-        dateOfUpdate?: string | null,
-    };
-    updatedValues?: {
-        compactTransactionId?: string | null,
-        dateOfExpiration?: string | null,
-        dateOfIssuance?: string | null,
-        dateOfRenewal?: string | null,
-    };
+    serverNote?: string | null;
 }
 
 // ========================================================
@@ -41,8 +28,9 @@ export class LicenseHistoryItem implements InterfaceLicenseHistoryItem {
     public type? = null;
     public updateType? = '';
     public dateOfUpdate? = null;
-    public previousValues? = {};
-    public updatedValues? = {};
+    public createDate? = null;
+    public effectiveDate? = null;
+    public serverNote? = null;
 
     constructor(data?: InterfaceLicenseHistoryItem) {
         const cleanDataObject = deleteUndefinedProperties(data);
@@ -81,6 +69,15 @@ export class LicenseHistoryItem implements InterfaceLicenseHistoryItem {
 
         return eventName;
     }
+
+    public noteDisplay(): string {
+        const updateType = this.updateType || '';
+        const events = this.$tm('licensing.licenseEvents') || [];
+        const event = events.find((st) => st.key === updateType);
+        const eventName = event?.name || this.$t('common.stateUnknown');
+
+        return eventName;
+    }
 }
 
 // ========================================================
@@ -97,19 +94,6 @@ export class LicenseHistoryItemSerializer {
             createDate: json.createDate,
             effectiveDate: json.effectiveDate,
             dateOfUpdate: json.dateOfUpdate,
-            previousValues: {
-                compactTransactionId: json.previous?.compactTransactionId || '',
-                dateOfExpiration: json.previous?.dateOfExpiration || '',
-                dateOfIssuance: json.previous?.dateOfIssuance || '',
-                dateOfRenewal: json.previous?.dateOfRenewal || '',
-                dateOfUpdate: json.previous?.dateOfUpdate || '',
-            },
-            updatedValues: {
-                compactTransactionId: json.updatedValues?.compactTransactionId || '',
-                dateOfExpiration: json.updatedValues?.dateOfExpiration || '',
-                dateOfIssuance: json.updatedValues?.dateOfIssuance || '',
-                dateOfRenewal: json.updatedValues?.dateOfRenewal || '',
-            }
         };
 
         return new LicenseHistoryItem(licenseHistoryData);

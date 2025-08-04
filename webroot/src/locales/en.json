@@ -660,7 +660,7 @@
         "licenseEvents": [
             {
                 "name": "Privilege purchased",
-                "key": "purchased"
+                "key": "issuance"
             },
             {
                 "name": "Renewal",
@@ -673,6 +673,22 @@
             {
                 "name": "Deactivation",
                 "key": "deactivation"
+            },
+            {
+                "name": "License Deactivation",
+                "key": "licenseDeactivation"
+            },
+            {
+                "name": "Home Jurisdiction Change",
+                "key": "homeJurisdictionChange"
+            },
+            {
+                "name": "Privilege Encumbrance Lifted",
+                "key": "encumbrance_lifted"
+            },
+            {
+                "name": "Encumbrance",
+                "key": "encumbrance"
             }
         ],
         "licenseTypes": [

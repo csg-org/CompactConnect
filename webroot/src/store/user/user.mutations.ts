@@ -6,6 +6,7 @@
 //
 import { Compact } from '@models/Compact/Compact.model';
 import { LicenseeUser } from '@/models/LicenseeUser/LicenseeUser.model';
+// import { LicenseHistory } from '@/models/LicenseHistory/LicenseHistory.model';
 import { StaffUser } from '@/models/StaffUser/StaffUser.model';
 import { PurchaseFlowStep } from '@/models/PurchaseFlowStep/PurchaseFlowStep.model';
 import { AuthTypes } from '@/app.config';
@@ -174,7 +175,15 @@ export default {
         state.isLoadingPrivilegeHistory = true;
         state.error = null;
     },
-    [MutationTypes.GET_PRIVILEGE_HISTORY_SUCCESS]: (state: any) => {
+    [MutationTypes.GET_PRIVILEGE_HISTORY_SUCCESS]: (state: any, { history, getters }) => {
+        const privilegeId = `${history.providerId}-${history.jurisdiction}-${history.licenseType}`;
+
+        const privilege = getters.getUserPrivilegeById(privilegeId);
+
+        if (privilege) {
+            privilege.history = history.events;
+        }
+
         state.isLoadingPrivilegeHistory = false;
         state.error = null;
     },

@@ -18,6 +18,7 @@ import { LicenseeUserSerializer } from '@models/LicenseeUser/LicenseeUser.model'
 import { StaffUserSerializer } from '@models/StaffUser/StaffUser.model';
 import { StateSerializer } from '@models/State/State.model';
 import { CompactFeeConfigSerializer } from '@/models/CompactFeeConfig/CompactFeeConfig.model';
+import { LicenseHistorySerializer } from '@/models/LicenseHistory/LicenseHistory.model';
 
 export interface RequestParamsInterfaceLocal {
     compact?: string;
@@ -260,11 +261,9 @@ export class UserDataApi implements DataApiInterface {
     public async getMyPrivilegeHistory(jurisdiction: string, licenseTypeAbbrev: string) {
         const serverResponse: any = await this.api.get(`/v1/provider-users/me/jurisdiction/${jurisdiction.toLowerCase()}/licenseType/${licenseTypeAbbrev.toLowerCase()}/history`);
 
-        console.log('serverResponse', serverResponse);
+        const response = LicenseHistorySerializer.fromServer(serverResponse);
 
-        // const response = LicenseeUserSerializer.fromServer(serverResponse);
-
-        return [];
+        return response;
     }
 
     /**

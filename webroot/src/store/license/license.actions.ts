@@ -90,4 +90,28 @@ export default {
     resetStoreLicense: ({ commit }) => {
         commit(MutationTypes.STORE_RESET_LICENSE);
     },
+    // GET LICENSEE PRIVILEGE HISTORY
+    getLicenseePrivilegeHistory: async ({ commit, dispatch }, { jurisdiction, licenseTypeAbbrev }: any) => {
+        commit(MutationTypes.GET_PRIVILEGE_HISTORY_REQUEST);
+        return dataApi.getLicenseePrivilegeHistory(jurisdiction, licenseTypeAbbrev).then((privilegeHistory) => {
+            dispatch('getLicenseePrivilegeHistorySuccess', privilegeHistory);
+
+            return privilegeHistory;
+        }).catch((error) => {
+            dispatch('getPrivilegeHistoryFailure', error);
+        });
+    },
+    // GET GET LICENSEE PRIVILEGE HISTORY SUCCESS / FAIL HANDLERS
+    getLicenseePrivilegeHistorySuccess: ({ commit, getters }, history) => {
+        console.log('history', history);
+        const privilegeId = `${history.providerId}-${history.jurisdiction}-${history.licenseTypeAbbreviation()}`;
+        const privilege = getters.getPrivilegeByLicenseeIdAndId({ licenseeId: history.providerId, privilegeId });
+
+        console.log('privilege', privilege);
+
+        commit(MutationTypes.GET_PRIVILEGE_HISTORY_SUCCESS, history);
+    },
+    getLicenseePrivilegeHistoryFailure: ({ commit }, error: Error) => {
+        commit(MutationTypes.GET_PRIVILEGE_HISTORY_FAILURE, error);
+    },
 };

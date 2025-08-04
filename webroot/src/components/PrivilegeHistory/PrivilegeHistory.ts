@@ -19,8 +19,6 @@ import moment from 'moment';
 
 export interface RichEvent {
     event: LicenseHistoryItem,
-    isStartOfVisualBlock: boolean,
-    isEndOfVisualBlock: boolean,
     isLastEvent: boolean,
     eventLengthBucket: string
 }
@@ -40,41 +38,19 @@ class PrivilegeHistory extends Vue {
     // Computed
     //
     get events(): Array<LicenseHistoryItem> {
-        return this.privilege?.historyWithFabricatedEvents() || [];
+        return this.privilege?.history || [];
     }
 
     get preppedEvents(): Array <RichEvent> {
         const preppedEvents = [] as Array <RichEvent>;
 
         this.events.forEach((event, i) => {
-            let isStart = false;
-            let isEnd = false;
             const isLastEvent = (i === this.events.length - 1);
-
-            // used for styling the StatusTimeBlocks and distinguising between continuous blocks and new blocks
-            // isStart will return true if the event is the first in the timeline or if the status
-            // changed between this and the previous event
-            if (i === 0) {
-                isStart = true;
-            } else if ((event.isActivatingEvent() && this.events[i - 1].isDeactivatingEvent())
-            || (event.isDeactivatingEvent() && this.events[i - 1].isActivatingEvent())) {
-                isStart = true;
-            }
-
-            // used for styling the StatusTimeBlocks and distinguising between continuous blocks and new blocks
-            // isEnd will return false if the event is the last event in the timeline or if the status
-            // changed between this and the next event
-            if (isLastEvent) {
-                isEnd = false;
-            } else if ((event.isActivatingEvent() && this.events[i + 1].isDeactivatingEvent())
-            || (event.isDeactivatingEvent() && this.events[i + 1].isActivatingEvent())) {
-                isEnd = true;
-            }
 
             // Determine length of time being represented by timeline block
             // Last block must be compared against present to determine length of time
-            const nextEventDate = isLastEvent ? moment() : this.events[i + 1].dateOfUpdate;
-            const eventGap = moment(nextEventDate).diff(event.dateOfUpdate, 'days');
+            const nextEventDate = isLastEvent ? moment() : this.events[i + 1].effectiveDate;
+            const eventGap = moment(nextEventDate).diff(event.effectiveDate, 'days');
 
             let eventLengthBucket = 'short';
 
@@ -86,8 +62,6 @@ class PrivilegeHistory extends Vue {
 
             preppedEvents.push({
                 event,
-                isStartOfVisualBlock: isStart,
-                isEndOfVisualBlock: isEnd,
                 isLastEvent,
                 eventLengthBucket,
             });
