@@ -1,28 +1,40 @@
 {
 	"id": "65234e00-5ac9-4819-8620-d1b9076dcbce",
-	"name": "JCC License Data - sandbox",
+	"name": "CompactConnect - beta",
 	"values": [
 		{
 			"key": "boardUserPoolUrl",
-			"value": "https://ia-cc-staff-justin.auth.us-east-1.amazoncognito.com",
+			"value": "https://compact-connect-staff-beta.auth.us-east-1.amazoncognito.com",
 			"type": "default",
 			"enabled": true
 		},
 		{
 			"key": "baseUrl",
-			"value": "https://api.justin.jcc.iaapi.io",
+			"value": "https://state-api.beta.compactconnect.org",
 			"type": "default",
 			"enabled": true
 		},
 		{
 			"key": "uiUrl",
-			"value": "https://app.justin.jcc.iaapi.io",
+			"value": "https://app.beta.compactconnect.org",
 			"type": "default",
 			"enabled": true
 		},
 		{
-			"key": "clientId",
+			"key": "m2mClientId",
 			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "m2mClientSecret",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "m2mScopes",
+			"value": "ky/aslp.write ky/aslp.readPrivate aslp/readGeneral",
 			"type": "default",
 			"enabled": true
 		}

@@ -166,7 +166,7 @@ class UIDistribution(Distribution):
                 # for faster refreshes of static content.
                 cache_policy=CachePolicy.CACHING_DISABLED,
                 origin=S3BucketOrigin.with_origin_access_control(ui_bucket, origin_shield_enabled=False),
-                viewer_protocol_policy=ViewerProtocolPolicy.HTTPS_ONLY,
+                viewer_protocol_policy=ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
                 edge_lambdas=[
                     EdgeLambda(
                         event_type=LambdaEdgeEventType.VIEWER_RESPONSE,
@@ -179,7 +179,7 @@ class UIDistribution(Distribution):
                     cache_policy=CachePolicy.CACHING_DISABLED,
                     allowed_methods=AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
                     origin=S3BucketOrigin.with_origin_access_control(ui_bucket, origin_shield_enabled=False),
-                    viewer_protocol_policy=ViewerProtocolPolicy.HTTPS_ONLY,
+                    viewer_protocol_policy=ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
                 )
             },
             minimum_protocol_version=SecurityPolicyProtocol.TLS_V1_2_2021,

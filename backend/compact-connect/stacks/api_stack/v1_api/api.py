@@ -4,12 +4,12 @@ import os
 
 from aws_cdk.aws_apigateway import AuthorizationType, IResource, MethodOptions
 from cdk_nag import NagSuppressions
+from common_constructs.cc_api import CCApi
 from common_constructs.python_function import PythonFunction
 from common_constructs.ssm_parameter_utility import SSMParameterUtility
 from common_constructs.stack import Stack
 
 from stacks import persistent_stack as ps
-from stacks.api_stack import cc_api
 from stacks.api_stack.v1_api.attestations import Attestations
 from stacks.api_stack.v1_api.bulk_upload_url import BulkUploadUrl
 from stacks.api_stack.v1_api.provider_management import ProviderManagement
@@ -32,7 +32,7 @@ class V1Api:
         super().__init__()
         self.root = root
         self.resource = root.add_resource('v1')
-        self.api: cc_api.CCApi = root.api
+        self.api: CCApi = root.api
         self.api_model = ApiModel(api=self.api)
         stack: Stack = Stack.of(self.resource)
         data_event_bus = SSMParameterUtility.load_data_event_bus_from_ssm_parameter(stack)

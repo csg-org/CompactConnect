@@ -4,10 +4,10 @@
 from __future__ import annotations
 
 from aws_cdk.aws_apigateway import JsonSchema, JsonSchemaType, Model
-from common_constructs.stack import AppStack
 
 # Importing module level to allow lazy loading for typing
-from stacks.api_stack import cc_api
+from common_constructs import cc_api
+from common_constructs.stack import AppStack
 
 
 class ApiModel:
@@ -123,7 +123,7 @@ class ApiModel:
             description='Query providers response model',
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
-                required=['items', 'pagination'],
+                required=['providers', 'pagination'],
                 properties={
                     'providers': JsonSchema(
                         type=JsonSchemaType.ARRAY,
@@ -152,25 +152,31 @@ class ApiModel:
     @property
     def bulk_upload_response_model(self) -> Model:
         """Return the Bulk Upload Response Model, which should only be created once per API"""
-        if hasattr(self.api, 'bulk_upload_response_model'):
-            return self.api.bulk_upload_response_model
+        if hasattr(self.api, '_v1_bulk_upload_response_model'):
+            return self.api._v1_bulk_upload_response_model
 
-        self.api.bulk_upload_response_model = self.api.add_model(
+        self.api._v1_bulk_upload_response_model = self.api.add_model(
             'BulkUploadResponseModel',
             description='Bulk upload url response model',
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
-                required=['upload', 'fields'],
+                required=['upload'],
                 properties={
-                    'url': JsonSchema(type=JsonSchemaType.STRING),
-                    'fields': JsonSchema(
+                    'upload': JsonSchema(
                         type=JsonSchemaType.OBJECT,
-                        additional_properties=JsonSchema(type=JsonSchemaType.STRING),
-                    ),
+                        required=['url', 'fields'],
+                        properties={
+                            'url': JsonSchema(type=JsonSchemaType.STRING),
+                            'fields': JsonSchema(
+                                type=JsonSchemaType.OBJECT,
+                                additional_properties=JsonSchema(type=JsonSchemaType.STRING),
+                            ),
+                        },
+                    )
                 },
             ),
         )
-        return self.api.bulk_upload_response_model
+        return self.api._v1_bulk_upload_response_model
 
     @property
     def post_staff_user_model(self):
@@ -1335,6 +1341,17 @@ class ApiModel:
                                 type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
                             ),
                             'status': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
+                            'downloadLinks': JsonSchema(
+                                type=JsonSchemaType.ARRAY,
+                                items=JsonSchema(
+                                    type=JsonSchemaType.OBJECT,
+                                    required=['url', 'fileName'],
+                                    properties={
+                                        'url': JsonSchema(type=JsonSchemaType.STRING),
+                                        'fileName': JsonSchema(type=JsonSchemaType.STRING),
+                                    },
+                                ),
+                            ),
                         },
                     ),
                 ),
@@ -1363,7 +1380,7 @@ class ApiModel:
             'licenseStatusName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
             'compactEligibility': JsonSchema(type=JsonSchemaType.STRING, enum=['eligible', 'ineligible']),
             'emailAddress': JsonSchema(type=JsonSchemaType.STRING, format='email', min_length=5, max_length=100),
-            'phoneNumber': JsonSchema(type=JsonSchemaType.STRING, pattern=r'^\+[0-9]{8,15}$'),
+            'phoneNumber': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.PHONE_NUMBER_FORMAT),
             'suffix': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
         }
 

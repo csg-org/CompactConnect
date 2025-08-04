@@ -234,9 +234,13 @@ class TestDataGenerator:
         return LicenseData.create_new(default_license)
 
     @staticmethod
-    def put_default_license_record_in_provider_table(value_overrides: dict | None = None) -> LicenseData:
+    def put_default_license_record_in_provider_table(
+        value_overrides: dict | None = None, date_of_update_override: str = None
+    ) -> LicenseData:
         license_data = TestDataGenerator.generate_default_license(value_overrides)
         license_record = license_data.serialize_to_database_record()
+        if date_of_update_override:
+            license_record['dateOfUpdate'] = date_of_update_override
 
         TestDataGenerator.store_record_in_provider_table(license_record)
 
@@ -302,9 +306,13 @@ class TestDataGenerator:
         config.provider_table.put_item(Item=record)
 
     @staticmethod
-    def put_default_privilege_record_in_provider_table(value_overrides: dict | None = None) -> PrivilegeData:
+    def put_default_privilege_record_in_provider_table(
+        value_overrides: dict | None = None, date_of_update_override: str = None
+    ) -> PrivilegeData:
         privilege = TestDataGenerator.generate_default_privilege(value_overrides)
         privilege_record = privilege.serialize_to_database_record()
+        if date_of_update_override:
+            privilege_record['dateOfUpdate'] = date_of_update_override
 
         TestDataGenerator.store_record_in_provider_table(privilege_record)
 
@@ -395,6 +403,8 @@ class TestDataGenerator:
         provider_record = provider_data.serialize_to_database_record()
         if date_of_update_override:
             provider_record['dateOfUpdate'] = date_of_update_override
+            # Also override providerDateOfUpdate since it's a computed field used by the GSI
+            provider_record['providerDateOfUpdate'] = date_of_update_override
 
         TestDataGenerator.store_record_in_provider_table(provider_record)
 

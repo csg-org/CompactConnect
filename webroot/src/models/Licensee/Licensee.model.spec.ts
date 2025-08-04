@@ -86,6 +86,9 @@ describe('Licensee model', () => {
         expect(licensee.bestHomeJurisdictionLicenseMailingAddress()).to.be.an.instanceof(Address);
         expect(licensee.purchaseEligibleLicenses()).to.matchPattern([]);
         expect(licensee.canPurchasePrivileges()).to.equal(false);
+        expect(licensee.hasEncumberedLicenses()).to.equal(false);
+        expect(licensee.hasEncumberedPrivileges()).to.equal(false);
+        expect(licensee.isEncumbered()).to.equal(false);
     });
     it('should create a Licensee with specific values', () => {
         const data = {
@@ -191,6 +194,9 @@ describe('Licensee model', () => {
         expect(licensee.bestHomeJurisdictionLicenseMailingAddress()).to.be.an.instanceof(Address);
         expect(licensee.purchaseEligibleLicenses()).to.matchPattern([]);
         expect(licensee.canPurchasePrivileges()).to.equal(false);
+        expect(licensee.hasEncumberedLicenses()).to.equal(false);
+        expect(licensee.hasEncumberedPrivileges()).to.equal(false);
+        expect(licensee.isEncumbered()).to.equal(false);
     });
     it('should create a Licensee with specific values (null address fallbacks)', () => {
         const data = {
@@ -475,6 +481,9 @@ describe('Licensee model', () => {
             },
         ]);
         expect(licensee.canPurchasePrivileges()).to.equal(true);
+        expect(licensee.hasEncumberedLicenses()).to.equal(false);
+        expect(licensee.hasEncumberedPrivileges()).to.equal(false);
+        expect(licensee.isEncumbered()).to.equal(false);
     });
     it('should create a Licensee with specific values through serializer (with inactive best license)', () => {
         const data = {
@@ -604,6 +613,9 @@ describe('Licensee model', () => {
         expect(licensee.bestHomeJurisdictionLicenseMailingAddress()).to.be.an.instanceof(Address);
         expect(licensee.purchaseEligibleLicenses()).to.matchPattern([]);
         expect(licensee.canPurchasePrivileges()).to.equal(false);
+        expect(licensee.hasEncumberedLicenses()).to.equal(false);
+        expect(licensee.hasEncumberedPrivileges()).to.equal(false);
+        expect(licensee.isEncumbered()).to.equal(false);
     });
     it('should create a Licensee with specific values through serializer (with initiliazing military status)', () => {
         const data = {
@@ -635,6 +647,34 @@ describe('Licensee model', () => {
         expect(licensee.isMilitaryStatusActive()).to.equal(false);
         expect(licensee.isMilitaryStatusInitializing()).to.equal(true);
         expect(licensee.activeMilitaryAffiliation()).to.equal(null);
+    });
+    it('should create a Licensee with encumbered licenses and privileges', () => {
+        // Create mock licenses with encumbered status
+        const encumberedLicense = new License({
+            licenseNumber: 'encumbered-license',
+            licenseStatus: LicenseStatus.INACTIVE,
+        });
+
+        // Mock the isEncumbered method
+        encumberedLicense.isEncumbered = () => true;
+
+        const encumberedPrivilege = new License({
+            licenseNumber: 'encumbered-privilege',
+            licenseStatus: LicenseStatus.INACTIVE,
+        });
+
+        // Mock the isEncumbered method
+        encumberedPrivilege.isEncumbered = () => true;
+
+        const licensee = new Licensee({
+            licenses: [encumberedLicense],
+            privileges: [encumberedPrivilege],
+        });
+
+        // Test encumbered methods
+        expect(licensee.hasEncumberedLicenses()).to.equal(true);
+        expect(licensee.hasEncumberedPrivileges()).to.equal(true);
+        expect(licensee.isEncumbered()).to.equal(true);
     });
     it('should serialize a Licensee for transmission to server', () => {
         const licensee = LicenseeSerializer.fromServer({

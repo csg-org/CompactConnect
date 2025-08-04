@@ -5,13 +5,11 @@ import os
 from aws_cdk import Duration
 from aws_cdk.aws_apigateway import LambdaIntegration, MethodOptions, MethodResponse, Resource
 from cdk_nag import NagSuppressions
+from common_constructs.cc_api import CCApi
 from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
 
 from stacks import persistent_stack as ps
-
-# Importing module level to allow lazy loading for typing
-from stacks.api_stack import cc_api
 
 from .api_model import ApiModel
 
@@ -25,7 +23,7 @@ class CompactConfigurationApi:
     def __init__(
         self,
         *,
-        api: cc_api.CCApi,
+        api: CCApi,
         compact_resource: Resource,
         jurisdictions_resource: Resource,
         public_jurisdictions_resource: Resource,

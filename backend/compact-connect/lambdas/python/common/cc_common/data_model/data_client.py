@@ -265,28 +265,49 @@ class DataClient:
         dynamo_pagination: dict,
         jurisdiction: str | None = None,
         scan_forward: bool = True,
-        exclude_providers_without_privileges: bool = False,
+        only_providers_with_privileges: bool = False,
+        only_providers_with_privileges_in_jurisdiction: bool = False,
+        start_date_time: str | None = None,
+        end_date_time: str | None = None,
     ):
         logger.info('Getting providers by date updated')
-        if jurisdiction is not None:
-            filter_expression = Attr('licenseJurisdiction').eq(jurisdiction) | Attr('privilegeJurisdictions').contains(
-                jurisdiction,
-            )
-        else:
-            filter_expression = None
 
-        # Add filter for providers with privileges if requested
-        if exclude_providers_without_privileges:
-            privilege_filter = Attr('privilegeJurisdictions').exists()
-            if filter_expression is not None:
-                filter_expression = filter_expression & privilege_filter
-            else:
-                filter_expression = privilege_filter
+        if jurisdiction is None and only_providers_with_privileges_in_jurisdiction:
+            raise RuntimeError('jurisdiction is required when only_providers_with_privileges_in_jurisdiction is True')
+
+        if only_providers_with_privileges_in_jurisdiction:
+            # only_providers_with_privileges_in_jurisdiction works _with_ jurisdiction
+            filter_expression = Attr('privilegeJurisdictions').contains(jurisdiction)
+        # Ignore only_providers_with_privileges if only_providers_with_privileges_in_jurisdiction is True
+        else:
+            # only_providers_with_privileges and jurisdiction are independent filters that can be combined
+            filter_expression = None
+            if only_providers_with_privileges:
+                filter_expression = Attr('privilegeJurisdictions').exists()
+            if jurisdiction is not None:
+                jurisdiction_condition = Attr('licenseJurisdiction').eq(jurisdiction) | Attr(
+                    'privilegeJurisdictions'
+                ).contains(jurisdiction)
+                if filter_expression is not None:
+                    filter_expression = filter_expression & jurisdiction_condition
+                else:
+                    filter_expression = jurisdiction_condition
+
+        # Build key condition expression with optional date range
+        key_condition = Key('sk').eq(f'{compact}#PROVIDER')
+
+        # Add date range conditions if provided
+        if start_date_time is not None and end_date_time is not None:
+            key_condition = key_condition & Key('providerDateOfUpdate').between(start_date_time, end_date_time)
+        elif start_date_time is not None:
+            key_condition = key_condition & Key('providerDateOfUpdate').gte(start_date_time)
+        elif end_date_time is not None:
+            key_condition = key_condition & Key('providerDateOfUpdate').lte(end_date_time)
 
         return config.provider_table.query(
             IndexName=config.date_of_update_index_name,
             Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('sk').eq(f'{compact}#PROVIDER'),
+            KeyConditionExpression=key_condition,
             ScanIndexForward=scan_forward,
             **({'FilterExpression': filter_expression} if filter_expression is not None else {}),
             **dynamo_pagination,

@@ -27,19 +27,19 @@ from aws_cdk.aws_logs import LogGroup, QueryDefinition, QueryString, RetentionDa
 from aws_cdk.aws_route53 import ARecord, IHostedZone, RecordTarget
 from aws_cdk.aws_route53_targets import ApiGateway
 from cdk_nag import NagSuppressions
+from constructs import Construct
+from stacks import persistent_stack as ps
+from stacks.provider_users import ProviderUsersStack
+
 from common_constructs.security_profile import SecurityProfile
 from common_constructs.stack import AppStack, Stack
 from common_constructs.webacl import WebACL, WebACLScope
-from constructs import Construct
 
-from stacks import persistent_stack as ps
-from stacks.api_stack.v1_api import V1Api
-from stacks.provider_users import ProviderUsersStack
-
-MD_FORMAT = '^[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$'
-YMD_FORMAT = '^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$'
-SSN_FORMAT = '^[0-9]{3}-[0-9]{2}-[0-9]{4}$'
-UUID4_FORMAT = '[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}'
+MD_FORMAT = r'^[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$'
+YMD_FORMAT = r'^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$'
+ISO8601_DATETIME_FORMAT = r'^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\.[0-9]{1,3})?Z$'  # noqa: E501
+SSN_FORMAT = r'^[0-9]{3}-[0-9]{2}-[0-9]{4}$'
+UUID4_FORMAT = r'[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}'
 PHONE_NUMBER_FORMAT = r'^\+[0-9]{8,15}$'
 
 
@@ -75,6 +75,7 @@ class CCApi(RestApi):
         security_profile: SecurityProfile = SecurityProfile.RECOMMENDED,
         persistent_stack: ps.PersistentStack,
         provider_users_stack: ProviderUsersStack,
+        domain_name: str | None = None,
         **kwargs,
     ):
         stack: AppStack = AppStack.of(scope)
@@ -87,13 +88,11 @@ class CCApi(RestApi):
             certificate = Certificate(
                 scope,
                 'ApiCert',
-                domain_name=stack.api_domain_name,
+                domain_name=domain_name,
                 validation=CertificateValidation.from_dns(hosted_zone=stack.hosted_zone),
                 subject_alternative_names=[stack.hosted_zone.zone_name],
             )
-            domain_kwargs = {
-                'domain_name': DomainNameOptions(certificate=certificate, domain_name=stack.api_domain_name)
-            }
+            domain_kwargs = {'domain_name': DomainNameOptions(certificate=certificate, domain_name=domain_name)}
 
         access_log_group = LogGroup(scope, 'ApiAccessLogGroup', retention=RetentionDays.ONE_MONTH)
         NagSuppressions.add_resource_suppressions(
@@ -163,7 +162,7 @@ class CCApi(RestApi):
         if stack.hosted_zone is not None:
             self._add_domain_name(
                 hosted_zone=stack.hosted_zone,
-                api_domain_name=stack.api_domain_name,
+                api_domain_name=domain_name,
             )
 
         self.log_groups = [access_log_group]
@@ -202,8 +201,6 @@ class CCApi(RestApi):
             response_headers={'Access-Control-Allow-Origin': f"'{gateway_response_origin}'"},
             templates={'application/json': '{"message": "Access denied"}'},
         )
-
-        self.v1_api = V1Api(self.root, persistent_stack=persistent_stack, provider_users_stack=provider_users_stack)
 
         QueryDefinition(
             self,
@@ -264,6 +261,16 @@ class CCApi(RestApi):
     @cached_property
     def parameter_body_validator(self):
         return self.add_request_validator('BodyValidator', validate_request_body=True, validate_request_parameters=True)
+
+    @cached_property
+    def parameter_only_validator(self):
+        """
+        Validates the query parameters but not the actual request body. Only use if you want to bypass APIGW
+        schema body validation.
+        """
+        return self.add_request_validator(
+            'ParameterValidator', validate_request_body=False, validate_request_parameters=True
+        )
 
     @cached_property
     def message_response_model(self):
