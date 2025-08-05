@@ -84,9 +84,9 @@ class InputDate extends mixins(MixinInput) {
 
         // Initialize localValue with proper formatting
         if (this.formInput.value) {
-            const newDateInput = serverFormatToDateInput(this.formInput.value);
+            const date = serverFormatToDateInput(this.formInput.value);
 
-            this.localValue = formatDateInput(newDateInput);
+            this.localValue = formatDateInput(date);
         } else {
             this.localValue = '';
         }
