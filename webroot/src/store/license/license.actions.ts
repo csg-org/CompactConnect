@@ -90,28 +90,57 @@ export default {
     resetStoreLicense: ({ commit }) => {
         commit(MutationTypes.STORE_RESET_LICENSE);
     },
-    // GET LICENSEE PRIVILEGE HISTORY
-    getLicenseePrivilegeHistory: async ({ commit, dispatch }, { jurisdiction, licenseTypeAbbrev }: any) => {
+    // GET PRIVILEGE HISTORY
+    getPrivilegeHistoryRequestStaff: async ({ commit, dispatch }, {
+        compact,
+        providerId,
+        jurisdiction,
+        licenseTypeAbbrev,
+    }: any) => {
         commit(MutationTypes.GET_PRIVILEGE_HISTORY_REQUEST);
-        return dataApi.getLicenseePrivilegeHistory(jurisdiction, licenseTypeAbbrev).then((privilegeHistory) => {
-            dispatch('getLicenseePrivilegeHistorySuccess', privilegeHistory);
+        return dataApi.getPrivilegeHistoryStaff(
+            compact,
+            providerId,
+            jurisdiction,
+            licenseTypeAbbrev
+        ).then((privilegeHistory) => {
+            console.log('Here?');
+
+            dispatch('getPrivilegeHistorySuccess', privilegeHistory);
 
             return privilegeHistory;
         }).catch((error) => {
             dispatch('getPrivilegeHistoryFailure', error);
         });
     },
-    // GET GET LICENSEE PRIVILEGE HISTORY SUCCESS / FAIL HANDLERS
-    getLicenseePrivilegeHistorySuccess: ({ commit, getters }, history) => {
-        console.log('history', history);
-        const privilegeId = `${history.providerId}-${history.jurisdiction}-${history.licenseTypeAbbreviation()}`;
-        const privilege = getters.getPrivilegeByLicenseeIdAndId({ licenseeId: history.providerId, privilegeId });
+    // // GET PRIVILEGE HISTORY
+    // getPrivilegeHistoryRequestPublic: async ({ commit, dispatch }, {
+    //     compact,
+    //     providerId,
+    //     jurisdiction,
+    //     licenseTypeAbbrev,
+    // }: any) => {
+    //     commit(MutationTypes.GET_PRIVILEGE_HISTORY_REQUEST);
+    //     return dataApi.getPrivilegeHistoryPublic(
+    //         compact,
+    //         providerId,
+    //         jurisdiction,
+    //         licenseTypeAbbrev
+    //     ).then((privilegeHistory) => {
+    //         console.log('Here?');
 
-        console.log('privilege', privilege);
+    //         dispatch('getPrivilegeHistorySuccess', privilegeHistory);
 
-        commit(MutationTypes.GET_PRIVILEGE_HISTORY_SUCCESS, history);
+    //         return privilegeHistory;
+    //     }).catch((error) => {
+    //         dispatch('getPrivilegeHistoryFailure', error);
+    //     });
+    // },
+    // GET PRIVILEGE HISTORY SUCCESS / FAIL HANDLERS
+    getPrivilegeHistorySuccess: ({ commit, getters }, history) => {
+        commit(MutationTypes.GET_PRIVILEGE_HISTORY_SUCCESS, { history, getters });
     },
-    getLicenseePrivilegeHistoryFailure: ({ commit }, error: Error) => {
+    getPrivilegeHistoryFailure: ({ commit }, error: Error) => {
         commit(MutationTypes.GET_PRIVILEGE_HISTORY_FAILURE, error);
     },
 };

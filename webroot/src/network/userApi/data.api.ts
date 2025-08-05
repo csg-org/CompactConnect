@@ -258,7 +258,7 @@ export class UserDataApi implements DataApiInterface {
      * GET the history of logged in provider user's privilege.
      * @return {Promise<User>} A User model instance.
      */
-    public async getMyPrivilegeHistory(jurisdiction: string, licenseTypeAbbrev: string) {
+    public async getPrivilegeHistoryLicensee(jurisdiction: string, licenseTypeAbbrev: string) {
         const serverResponse: any = await this.api.get(`/v1/provider-users/me/jurisdiction/${jurisdiction.toLowerCase()}/licenseType/${licenseTypeAbbrev.toLowerCase()}/history`);
 
         const response = LicenseHistorySerializer.fromServer(serverResponse);

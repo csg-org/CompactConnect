@@ -8,11 +8,7 @@
 <template>
     <div class="history-container">
         <div v-for="(richEvent, idx) in preppedEvents" :key="idx" class="events">
-            <StatusTimeBlock
-                class="status-time-block"
-                :event="richEvent.event"
-                :isLastEvent="richEvent.isLastEvent"
-            />
+            <div class="timeline-line" />
             <PrivilegeEventNode
                 :event="richEvent.event"
                 :eventLengthBucket="richEvent.eventLengthBucket"

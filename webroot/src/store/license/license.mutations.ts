@@ -121,15 +121,24 @@ export default {
         };
     },
     [MutationTypes.GET_PRIVILEGE_HISTORY_REQUEST]: (state: any) => {
-        state.isLoadingPrivilegeHistory = true;
+        state.isLoading = true;
         state.error = null;
     },
-    [MutationTypes.GET_PRIVILEGE_HISTORY_SUCCESS]: (state: any) => {
-        state.isLoadingPrivilegeHistory = false;
+    [MutationTypes.GET_PRIVILEGE_HISTORY_SUCCESS]: (state: any, { history, getters }) => {
+        const privilegeId = `${history.providerId}-${history.jurisdiction}-${history.licenseType}`;
+        const licenseeId = history.providerId;
+
+        const privilege = getters.getPrivilegeByLicenseeIdAndId({ licenseeId, privilegeId });
+
+        if (privilege) {
+            privilege.history = history.events;
+        }
+
+        state.isLoading = false;
         state.error = null;
     },
     [MutationTypes.GET_PRIVILEGE_HISTORY_FAILURE]: (state: any, error: Error) => {
-        state.isLoadingPrivilegeHistory = false;
+        state.isLoading = false;
         state.error = error;
     },
 };

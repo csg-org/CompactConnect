@@ -115,21 +115,21 @@ export default {
         commit(MutationTypes.GET_ACCOUNT_FAILURE, error);
     },
     // GET LICENSEE PRIVILEGE HISTORY
-    getLicenseePrivilegeHistory: async ({ commit, dispatch }, { jurisdiction, licenseTypeAbbrev }) => {
+    getPrivilegeHistoryRequestLicensee: async ({ commit, dispatch }, { jurisdiction, licenseTypeAbbrev }) => {
         commit(MutationTypes.GET_PRIVILEGE_HISTORY_REQUEST);
-        return dataApi.getLicenseePrivilegeHistory(jurisdiction, licenseTypeAbbrev).then((history) => {
-            dispatch('getLicenseePrivilegeHistorySuccess', history);
+        return dataApi.getPrivilegeHistoryLicensee(jurisdiction, licenseTypeAbbrev).then((history) => {
+            dispatch('getPrivilegeHistorySuccessLicensee', history);
 
             return history;
         }).catch((error) => {
-            dispatch('getPrivilegeHistoryFailure', error);
+            dispatch('getPrivilegeHistoryFailureLicensee', error);
         });
     },
     // GET GET LICENSEE PRIVILEGE HISTORY SUCCESS / FAIL HANDLERS
-    getLicenseePrivilegeHistorySuccess: ({ commit, getters }, history) => {
+    getPrivilegeHistorySuccessLicensee: ({ commit, getters }, history) => {
         commit(MutationTypes.GET_PRIVILEGE_HISTORY_SUCCESS, { history, getters });
     },
-    getLicenseePrivilegeHistoryFailure: ({ commit }, error: Error) => {
+    getPrivilegeHistoryFailureLicensee: ({ commit }, error: Error) => {
         commit(MutationTypes.GET_PRIVILEGE_HISTORY_FAILURE, error);
     },
     // GET COMPACT STATES FOR USER

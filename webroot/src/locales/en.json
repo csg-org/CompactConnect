@@ -683,7 +683,7 @@
                 "key": "homeJurisdictionChange"
             },
             {
-                "name": "Privilege Encumbrance Lifted",
+                "name": "Privilege Unencumbered",
                 "key": "lifting_encumbrance"
             },
             {

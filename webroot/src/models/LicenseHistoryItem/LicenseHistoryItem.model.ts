@@ -50,13 +50,13 @@ export class LicenseHistoryItem implements InterfaceLicenseHistoryItem {
     }
 
     public isActivatingEvent(): boolean {
-        const activatingEvents = [ 'purchased', 'renewal' ];
+        const activatingEvents = ['renewal'];
 
         return activatingEvents.some((event) => (this.updateType && event === this.updateType));
     }
 
     public isDeactivatingEvent(): boolean {
-        const deactivatingEvents = ['expired', 'deactivation'];
+        const deactivatingEvents = ['expired', 'deactivation', 'encumbrance'];
 
         return deactivatingEvents.some((event) => (this.updateType && event === this.updateType));
     }

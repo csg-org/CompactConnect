@@ -16,6 +16,7 @@ import {
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 import { LicenseeSerializer } from '@models/Licensee/Licensee.model';
 import { PrivilegeAttestation, PrivilegeAttestationSerializer } from '@models/PrivilegeAttestation/PrivilegeAttestation.model';
+import { LicenseHistorySerializer } from '@/models/LicenseHistory/LicenseHistory.model';
 
 export interface RequestParamsInterfaceLocal {
     isPublic?: boolean;
@@ -394,6 +395,25 @@ export class LicenseDataApi implements DataApiInterface {
         });
 
         return serverResponse.data || {};
+    }
+
+    /**
+     * GET the history of a privilege
+     * @return {Promise<User>} A User model instance.
+     */
+    public async getPrivilegeHistoryStaff(
+        compact: string,
+        providerId: string,
+        jurisdiction: string,
+        licenseTypeAbbrev: string
+    ) {
+        const serverResponse: any = await this.api.get(
+            `/v1/compacts/${compact}/providers/${providerId}/privileges/jurisdiction/${jurisdiction.toLowerCase()}/licenseType/${licenseTypeAbbrev.toLowerCase()}/history`
+        );
+
+        const response = LicenseHistorySerializer.fromServer(serverResponse);
+
+        return response;
     }
 }
 

@@ -378,6 +378,26 @@ export class DataApi {
         return userDataApi.getPrivilegePurchaseInformation();
     }
 
+    /**
+     * GET Authenticated Privilege History for Staff .
+     * @param  {string}     jurisdiction jurisdiction of privilege
+     * @param  {string}     licenseTypeAbbrev licenseTypeAbbrev of privilege
+     * @return {Promise<>} A User model instance.
+     */
+    public getPrivilegeHistoryStaff(
+        compact: string,
+        providerId: string,
+        jurisdiction: string,
+        licenseTypeAbbrev: string
+    ) {
+        return licenseDataApi.getPrivilegeHistoryStaff(
+            compact,
+            providerId,
+            jurisdiction,
+            licenseTypeAbbrev
+        );
+    }
+
     // ========================================================================
     //                              LICENSEE USER API
     // ========================================================================
@@ -454,8 +474,8 @@ export class DataApi {
      * @param  {string}     licenseTypeAbbrev licenseTypeAbbrev of privilege
      * @return {Promise<>} A User model instance.
      */
-    public getLicenseePrivilegeHistory(jurisdiction: string, licenseTypeAbbrev: string) {
-        return userDataApi.getMyPrivilegeHistory(jurisdiction, licenseTypeAbbrev);
+    public getPrivilegeHistoryLicensee(jurisdiction: string, licenseTypeAbbrev: string) {
+        return userDataApi.getPrivilegeHistoryLicensee(jurisdiction, licenseTypeAbbrev);
     }
 
     // ========================================================================

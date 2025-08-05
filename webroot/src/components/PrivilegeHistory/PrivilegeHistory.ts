@@ -12,7 +12,6 @@ import {
     Prop
 } from 'vue-facing-decorator';
 import PrivilegeEventNode from '@components/PrivilegeEventNode/PrivilegeEventNode.vue';
-import StatusTimeBlock from '@components/StatusTimeBlock/StatusTimeBlock.vue';
 import { License, LicenseStatus } from '@models/License/License.model';
 import { LicenseHistoryItem } from '@models/LicenseHistoryItem/LicenseHistoryItem.model';
 import moment from 'moment';
@@ -26,8 +25,7 @@ export interface RichEvent {
 @Component({
     name: 'PrivilegeHistory',
     components: {
-        PrivilegeEventNode,
-        StatusTimeBlock
+        PrivilegeEventNode
     }
 })
 class PrivilegeHistory extends Vue {
