@@ -72,7 +72,7 @@
             />
         </div>
         <div v-if="isLoggedIn" class="separator"></div>
-        <ul class="nav my-nav">
+        <ul class="nav my-nav" :class="{ 'iphone-safari': isIphoneSafari }">
             <li v-for="link in myLinks" :key="link.label" class="page-nav my-links">
                 <!-- Internal links that should only have active style if the route path matches exactly -->
                 <router-link v-if="!link.isExternal && link.isExactActive"

@@ -55,6 +55,12 @@
         align-items: center;
         margin-bottom: 1.6rem;
 
+        &.my-nav {
+            &.iphone-safari {
+                padding-bottom: 8.4rem; // iPhone Safari has aggressive URL bar pinned to bottom of viewport that blocks fixed elements near bottom of page
+            }
+        }
+
         li {
             display: flex;
             align-items: center;
