@@ -107,7 +107,6 @@ class ChangePassword extends mixins(MixinForm) {
                     .string()
                     .min(12)
                     .minOfLowercase(1)
-                    .minOfUppercase(1)
                     .minOfNumeric(1)
                     .messages({
                         ...this.joiMessages.string,
