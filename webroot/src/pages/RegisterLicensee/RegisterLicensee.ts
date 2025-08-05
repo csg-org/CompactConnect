@@ -326,10 +326,11 @@ class RegisterLicensee extends mixins(MixinForm) {
         }
     }
 
-    handleBackToForm(): void {
+    async handleBackToForm(): Promise<void> {
         this.isConfirmationScreen = false;
 
-        this.scrollIntoView('register-licensee-form');
+        await nextTick();
+        this.scrollIntoView('submit-initial');
     }
 
     handleMissingCompactType(): void {

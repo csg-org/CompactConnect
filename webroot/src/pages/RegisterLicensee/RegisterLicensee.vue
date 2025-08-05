@@ -45,9 +45,6 @@
                                 @keyup.enter="resetForm()"
                                 class="clear-form"
                             >{{ $t('common.clear') }}</a>
-                            <div v-if="isFormError" class="register-licensee-form-error">
-                                {{ submitErrorMessage }}
-                            </div>
                             <InputText :formInput="formData.firstName" />
                             <InputText :formInput="formData.lastName" />
                             <InputText :formInput="formData.ssnLastFour" @input="formatSsn()" />

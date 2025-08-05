@@ -81,7 +81,16 @@ class InputDate extends mixins(MixinInput) {
     //
     created() {
         this.updateFormInputValidate();
-        this.localValue = this.formInput.value || '';
+
+        // Initialize localValue with proper formatting
+        if (this.formInput.value) {
+            const newDateInput = serverFormatToDateInput(this.formInput.value);
+
+            this.localValue = formatDateInput(newDateInput);
+        } else {
+            this.localValue = '';
+        }
+
         this.lastDatePickerValue = this.formInput.value || '';
         this.previousLength = this.localValue.length;
     }

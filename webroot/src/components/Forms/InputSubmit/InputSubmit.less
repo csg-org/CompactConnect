@@ -7,6 +7,10 @@
 
 .input-submit-container {
     .response-message {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: flex-start;
         min-height: 24px;
 
         .success {
@@ -15,6 +19,11 @@
 
         .error {
             color: @midRed;
+        }
+
+        .success,
+        .error {
+            margin-bottom: 1rem;
         }
     }
 }

@@ -135,7 +135,11 @@ class MixinForm extends Vue {
                 this.$watch(`formData.${key}`, () => {
                     this.checkValidForAll();
                     this.updateFormSubmitSuccess('');
-                    this.updateFormSubmitError('');
+
+                    // Only clear error message if we're not in an error state
+                    if (!this.isFormError) {
+                        this.updateFormSubmitError('');
+                    }
                 }, { deep: true });
             }
         });
