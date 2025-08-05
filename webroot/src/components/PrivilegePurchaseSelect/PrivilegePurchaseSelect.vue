@@ -46,6 +46,7 @@
                                         <div
                                             @click.prevent="toggleStateSelected(state)"
                                             @keyup.space="toggleStateSelected(state)"
+                                            @keydown.space.prevent
                                             class="enabled-state-overlay"
                                             tabindex="0"
                                         />
