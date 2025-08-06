@@ -617,6 +617,7 @@
         "expireDate": "Expire Date",
         "expires": "Expires",
         "selectPrivileges": "Select privileges",
+        "privilegePurchaseLimit": "A maximum of 20 privileges may be selected in one transaction",
         "iUnderstand": "I understand",
         "jurisprudenceConfirmation": "Jurisprudence Confirmation",
         "lastUpdate": "Latest upload",
