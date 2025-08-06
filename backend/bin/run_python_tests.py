@@ -27,6 +27,7 @@ TEST_DIRS = (
     'compact-connect/lambdas/python/compact-configuration',
     'compact-connect/lambdas/python/custom-resources',
     'compact-connect/lambdas/python/data-events',
+    'compact-connect/lambdas/python/disaster-recovery',
     'compact-connect/lambdas/python/migration',
     'compact-connect/lambdas/python/provider-data-v1',
     'compact-connect/lambdas/python/purchases',
