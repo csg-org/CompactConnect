@@ -11,7 +11,7 @@ from cc_common.config import config, logger
 from cc_common.data_model.schema.compact import Compact
 from cc_common.data_model.schema.compact.common import COMPACT_TYPE
 from cc_common.data_model.schema.jurisdiction.common import JURISDICTION_TYPE
-from cc_common.exceptions import CCInternalException, CCNotFoundException
+from cc_common.exceptions import CCInternalException
 
 SETTLEMENT_ERROR_STATE = 'settlementError'
 
@@ -194,6 +194,20 @@ def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  
     compact_configuration_client = config.compact_configuration_client
     email_service_client = config.email_service_client
 
+    # Get compact configuration and jurisdictions that are live for licensee registration
+    compact_configuration_options = compact_configuration_client.get_privilege_purchase_options(compact=compact)
+
+    compact_configuration = next(
+        (Compact(item) for item in compact_configuration_options['items'] if item['type'] == COMPACT_TYPE), None
+    )
+    jurisdiction_configurations = [
+        item for item in compact_configuration_options['items'] if item['type'] == JURISDICTION_TYPE
+    ]
+
+    if not compact_configuration or not jurisdiction_configurations:
+        logger.warning('The compact is not yet live - skipping reports')
+        return {'message': 'Compact not live yet'}
+
     # Get the S3 bucket name
     bucket_name = config.transaction_reports_bucket_name
 
@@ -216,22 +230,6 @@ def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  
     # See https://community.developer.cybersource.com/t5/Integration-and-Testing/What-happens-to-a-batch-having-a-settlementState-of/td-p/58993
     # for more information on how settlement errors are reprocessed.
     transactions = [t for t in transactions if t.get('transactionStatus') != SETTLEMENT_ERROR_STATE]
-
-    # Get compact configuration and jurisdictions that are live for licensee registration
-    compact_configuration_options = compact_configuration_client.get_privilege_purchase_options(compact=compact)
-
-    compact_configuration = next(
-        (Compact(item) for item in compact_configuration_options['items'] if item['type'] == COMPACT_TYPE), None
-    )
-    if not compact_configuration:
-        message = f'Compact configuration not found for the specified compact: {compact}'
-        logger.error(message)
-        # we can't continue if this is missing, so we raise an exception
-        raise CCNotFoundException(message)
-
-    jurisdiction_configurations = [
-        item for item in compact_configuration_options['items'] if item['type'] == JURISDICTION_TYPE
-    ]
 
     # Get unique provider IDs from transactions and their details
     provider_ids = {t['licenseeId'] for t in transactions}

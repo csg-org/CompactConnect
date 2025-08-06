@@ -6,7 +6,7 @@ from io import BytesIO
 from unittest.mock import call, patch
 from zipfile import ZipFile
 
-from cc_common.exceptions import CCInternalException, CCNotFoundException
+from cc_common.exceptions import CCInternalException
 from moto import mock_aws
 
 from .. import TstFunction
@@ -703,10 +703,10 @@ class TestGenerateTransactionReports(TstFunction):
         from handlers.transaction_reporting import generate_transaction_reports
 
         # Don't add any compact configuration data
-        with self.assertRaises(CCNotFoundException) as exc_info:
-            generate_transaction_reports(generate_mock_event(), self.mock_context)
+        resp = generate_transaction_reports(generate_mock_event(), self.mock_context)
 
-        self.assertIn('Compact configuration not found', str(exc_info.exception.message))
+        # Should return early with a message indicating compact is not live yet
+        self.assertEqual({'message': 'Compact not live yet'}, resp)
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2025-04-05T22:00:00+00:00'))
     @patch('handlers.transaction_reporting.config.email_service_client')
@@ -1219,3 +1219,39 @@ class TestGenerateTransactionReports(TstFunction):
                     f'{mock_user["givenName"]},{mock_user["familyName"]},{mock_user["providerId"]},04-01-2025,KY,100,10.50,0,{MOCK_TRANSACTION_ID},{MOCK_KENTUCKY_PRIVILEGE_ID},{TEST_TRANSACTION_SUCCESSFUL_STATUS}\n',
                     detail_content,
                 )
+
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2025-04-05T22:00:00+00:00'))
+    @patch('handlers.transaction_reporting.config.email_service_client')
+    def test_generate_report_exits_early_when_compact_exists_but_no_jurisdictions(self, mock_email_service_client):
+        """Test that the function exits early when compact exists but no jurisdictions are configured."""
+        from handlers.transaction_reporting import generate_transaction_reports
+
+        # Add only compact configuration data, no jurisdictions
+        with open('../common/tests/resources/dynamo/compact.json') as f:
+            record = json.load(f, parse_float=Decimal)
+            self._compact_configuration_table.put_item(Item=record)
+
+        resp = generate_transaction_reports(generate_mock_event(), self.mock_context)
+
+        # Should return early with a message indicating compact is not live yet
+        self.assertEqual({'message': 'Compact not live yet'}, resp)
+
+        # The email service client should not be called since we exit early
+        mock_email_service_client.send_compact_transaction_report_email.assert_not_called()
+        mock_email_service_client.send_jurisdiction_transaction_report_email.assert_not_called()
+
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2025-04-05T22:00:00+00:00'))
+    @patch('handlers.transaction_reporting.config.email_service_client')
+    def test_generate_report_exits_early_when_no_compact_configuration(self, mock_email_service_client):
+        """Test that the function exits early when no compact configuration exists at all."""
+        from handlers.transaction_reporting import generate_transaction_reports
+
+        # Don't add any compact configuration data at all
+        resp = generate_transaction_reports(generate_mock_event(), self.mock_context)
+
+        # Should return early with a message indicating compact is not live yet
+        self.assertEqual({'message': 'Compact not live yet'}, resp)
+
+        # The email service client should not be called since we exit early
+        mock_email_service_client.send_compact_transaction_report_email.assert_not_called()
+        mock_email_service_client.send_jurisdiction_transaction_report_email.assert_not_called()
