@@ -179,6 +179,113 @@ class TestPostPurchasePrivileges(TstFunction):
         # in this test, the user had an empty list of military affiliations, so this should be false
         self.assertEqual(False, purchase_client_call_kwargs['user_active_military'])
 
+    @patch('handlers.privileges.PurchaseClient')
+    def test_post_purchase_privileges_allowed_with_old_encumbrances(self, mock_purchase_client_constructor):
+        """
+        In the event that a practitioner has an encumbrance in the system that was lifted more than two years ago,
+        they should be allowed to purchase privileges.
+        """
+        from handlers.privileges import post_purchase_privileges
+
+        # Create an old encumbrance that was lifted just over two years ago
+        self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+            {'effectiveLiftDate': date(2024, 11, 29)}
+        )
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+        event = self._when_testing_provider_user_event_with_custom_claims()
+        event['body'] = _generate_test_request_body()
+
+        # Pretend 'today' is just after midnight UTC-4, two years after the effective lift date
+        with patch(
+            'cc_common.config._Config.current_standard_datetime',
+            datetime(2026, 11, 30, 0, 1, tzinfo=config.expiration_resolution_timezone).astimezone(UTC),
+        ):
+            resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(200, resp['statusCode'])
+
+    @patch('handlers.privileges.PurchaseClient')
+    def test_post_purchase_privileges_forbidden_with_active_encumbrance(self, mock_purchase_client_constructor):
+        """
+        In this case, the provider is ineligible to purchase privileges because hey have an active encumbrance
+
+        Note that, while this case is notionally the same as below, they are testing two different sources of state.
+        This test is checking that the presence of an encumbrance record that is active prevents a privilege purchase.
+        """
+        from handlers.privileges import post_purchase_privileges
+
+        # Create an old encumbrance that has not been lifted
+        self.test_data_generator.put_default_adverse_action_record_in_provider_table()
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+        event = self._when_testing_provider_user_event_with_custom_claims()
+        event['body'] = _generate_test_request_body()
+
+        resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(400, resp['statusCode'])
+
+    @patch('handlers.privileges.PurchaseClient')
+    def test_purchase_privileges_forbidden_if_provider_encumbered(self, mock_purchase_client_constructor):
+        """
+        In this case, the provider is ineligible to purchase privileges because one of their privileges was encumbered
+
+        Note that, while this case is notionally the same as above, they are testing two different sources of state.
+        This test is checking that the status field on the provider record prevents purchases.
+        """
+        from handlers.privileges import post_purchase_privileges
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+        test_expiration_date = date(2025, 10, 8).isoformat()
+        event = self._when_testing_provider_user_event_with_custom_claims(license_expiration_date=test_expiration_date)
+        event['body'] = _generate_test_request_body()
+
+        # override the provider record to include an encumbered status
+        self.test_data_generator.put_default_provider_record_in_provider_table(
+            value_overrides={
+                'encumberedStatus': 'encumbered',
+                'providerId': TEST_PROVIDER_ID,
+            }
+        )
+
+        # now make the call
+        resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(400, resp['statusCode'], resp['body'])
+        response_body = json.loads(resp['body'])
+
+        self.assertEqual(
+            {
+                'message': 'You have a license or privilege that is currently encumbered, and '
+                'are unable to purchase privileges at this time.'
+            },
+            response_body,
+        )
+
+    @patch('handlers.privileges.PurchaseClient')
+    def test_post_purchase_privileges_forbidden_with_recent_encumbrance(self, mock_purchase_client_constructor):
+        """
+        In the event that a practitioner has any encumbrance in the system that was lifted less than two years ago,
+        they should be prevented from purchasing privileges.
+        """
+        from cc_common.config import config
+        from handlers.privileges import post_purchase_privileges
+
+        # Create an old encumbrance that was lifted just under two years ago
+        self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+            {'effectiveLiftDate': date(2024, 11, 29)}
+        )
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+        event = self._when_testing_provider_user_event_with_custom_claims()
+        event['body'] = _generate_test_request_body()
+
+        # Pretend 'today' is just before midnight UTC-4, two years after the effective lift date
+        with patch(
+            'cc_common.config._Config.current_standard_datetime',
+            datetime(2026, 11, 29, 23, 59, tzinfo=config.expiration_resolution_timezone).astimezone(UTC),
+        ):
+            resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(400, resp['statusCode'])
+
     def _when_testing_military_affiliation_status(
         self,
         mock_purchase_client_constructor: MagicMock,
@@ -965,40 +1072,6 @@ class TestPostPurchasePrivileges(TstFunction):
         privilege_update_record = privilege_update_records[0]
         # ensure the home jurisdiction change deactivation status is not present in updated record
         self.assertEqual(['homeJurisdictionChangeStatus'], privilege_update_record.removedValues)
-
-    @patch('handlers.privileges.PurchaseClient')
-    def test_purchase_privileges_returns_400_if_provider_encumbered(self, mock_purchase_client_constructor):
-        """
-        In this case, the provider is ineligible to purchase privileges because one of their privileges was encumbered
-        In this case, they should not be allowed to purchase privileges.
-        """
-        from handlers.privileges import post_purchase_privileges
-
-        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
-        test_expiration_date = date(2025, 10, 8).isoformat()
-        event = self._when_testing_provider_user_event_with_custom_claims(license_expiration_date=test_expiration_date)
-        event['body'] = _generate_test_request_body()
-
-        # override the provider record to include an encumbered status
-        self.test_data_generator.put_default_provider_record_in_provider_table(
-            value_overrides={
-                'encumberedStatus': 'encumbered',
-                'providerId': TEST_PROVIDER_ID,
-            }
-        )
-
-        # now make the call
-        resp = post_purchase_privileges(event, self.mock_context)
-        self.assertEqual(400, resp['statusCode'], resp['body'])
-        response_body = json.loads(resp['body'])
-
-        self.assertEqual(
-            {
-                'message': 'You have a license or privilege that is currently encumbered, and '
-                'are unable to purchase privileges at this time.'
-            },
-            response_body,
-        )
 
     @patch('handlers.privileges.PurchaseClient')
     def test_purchase_privileges_removes_license_deactivated_status_when_renewing_privilege(
