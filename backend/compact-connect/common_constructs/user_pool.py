@@ -1,4 +1,5 @@
 import base64
+import os
 from collections.abc import Mapping
 
 from aws_cdk import CfnOutput, Duration, RemovalPolicy
@@ -48,6 +49,8 @@ class UserPool(CdkUserPool):
         standard_attributes: StandardAttributes,
         custom_attributes: Mapping[str, ICustomAttribute] | None = None,
         email: UserPoolEmail,
+        notification_from_email: str | None,
+        ses_identity_arn: str | None,
         removal_policy,
         security_profile: SecurityProfile = SecurityProfile.RECOMMENDED,
         password_policy: PasswordPolicy = None,
@@ -74,7 +77,7 @@ class UserPool(CdkUserPool):
                 challenge_required_on_new_device=True, device_only_remembered_on_user_prompt=True
             ),
             mfa=Mfa.REQUIRED if security_profile == SecurityProfile.RECOMMENDED else Mfa.OPTIONAL,
-            mfa_second_factor=MfaSecondFactor(otp=True, sms=False),
+            mfa_second_factor=MfaSecondFactor(otp=True, sms=False, email=False),
             password_policy=PasswordPolicy(
                 min_length=12,
                 require_digits=True,
@@ -94,6 +97,10 @@ class UserPool(CdkUserPool):
         )
 
         self.security_profile = security_profile
+
+        # Configure notification emails if provided
+        self.notification_from_email = notification_from_email
+        self.ses_identity_arn = ses_identity_arn
 
         if cognito_domain_prefix:
             self.user_pool_domain = self.add_domain(
@@ -208,6 +215,10 @@ class UserPool(CdkUserPool):
         )
 
     def _add_risk_configuration(self, security_profile: SecurityProfile):
+        with open(os.path.join('resources', 'cognito-blocked-notification.txt')) as f:
+            blocked_notify_text = f.read()
+        with open(os.path.join('resources', 'cognito-no-action-notification.txt')) as f:
+            no_action_notify_text = f.read()
         CfnUserPoolRiskConfigurationAttachment(
             self,
             'UserPoolRiskConfiguration',
@@ -229,7 +240,27 @@ class UserPool(CdkUserPool):
                         event_action='BLOCK' if security_profile == SecurityProfile.RECOMMENDED else 'NO_ACTION',
                         notify=True,
                     ),
-                )
+                ),
+                **(
+                    {
+                        'notify_configuration': CfnUserPoolRiskConfigurationAttachment.NotifyConfigurationTypeProperty(
+                            source_arn=self.ses_identity_arn,
+                            block_email=CfnUserPoolRiskConfigurationAttachment.NotifyEmailTypeProperty(
+                                subject='CompactConnect: Account Security Alert',
+                                text_body=blocked_notify_text,
+                                html_body=f'<p>{blocked_notify_text}</p>',
+                            ),
+                            no_action_email=CfnUserPoolRiskConfigurationAttachment.NotifyEmailTypeProperty(
+                                subject='CompactConnect: Account Security Alert',
+                                text_body=no_action_notify_text,
+                                html_body=f'<p>{no_action_notify_text}</p>',
+                            ),
+                            from_=self.notification_from_email,
+                        )
+                    }
+                    if self.notification_from_email is not None
+                    else {}
+                ),
             ),
             # If Cognito detects the user trying to register compromised credentials, block the activity
             compromised_credentials_risk_configuration=CfnUserPoolRiskConfigurationAttachment.CompromisedCredentialsRiskConfigurationTypeProperty(

@@ -170,13 +170,15 @@ class PersistentStack(AppStack):
                 hosted_zone=self.hosted_zone,
                 master_key=self.shared_encryption_key,
             )
+            notification_from_email = f'no-reply@{self.hosted_zone.zone_name}'
             user_pool_email_settings = UserPoolEmail.with_ses(
-                from_email=f'no-reply@{self.hosted_zone.zone_name}',
+                from_email=notification_from_email,
                 ses_verified_domain=self.hosted_zone.zone_name,
                 configuration_set_name=self.user_email_notifications.config_set.configuration_set_name,
             )
         else:
             # if domain name is not provided, use the default cognito email settings
+            notification_from_email = None
             user_pool_email_settings = UserPoolEmail.with_cognito()
 
         self._create_email_notification_service()
@@ -192,6 +194,10 @@ class PersistentStack(AppStack):
             environment_context=environment_context,
             encryption_key=self.shared_encryption_key,
             user_pool_email=user_pool_email_settings,
+            notification_from_email=notification_from_email,
+            ses_identity_arn=self.user_email_notifications.email_identity.email_identity_arn
+            if self.hosted_zone
+            else None,
             security_profile=security_profile,
             removal_policy=removal_policy,
             backup_infrastructure_stack=self.backup_infrastructure_stack,
