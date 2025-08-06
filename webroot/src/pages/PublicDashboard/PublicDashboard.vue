@@ -7,13 +7,14 @@
 
 <template>
     <div class="login-container">
-        <div class="dashboard-logo-container">
-            <img
-                src="@assets/logos/compact-connect-logo.png"
-                class="dashboard-logo"
-                :alt="$t('common.appName')"
-            />
-        </div>
+        <div class="dashboard-content-container">
+            <div class="dashboard-logo-container">
+                <img
+                    src="@assets/logos/compact-connect-logo.png"
+                    class="dashboard-logo"
+                    :alt="$t('common.appName')"
+                />
+            </div>
         <div class="dashboard-row">
             <router-link
                 :to="{ name: 'LicneseeSearchPublic' }"
@@ -69,6 +70,10 @@
                 <StaffUserIcon class="login-icon" />
                 {{ $t('navigation.loginAsStaff') }}
             </div>
+        </div>
+        </div>
+        <div class="dashboard-footer">
+            <router-link :to="{ name: 'PrivacyPolicy' }">{{ $t('privacyPolicy.title') }}</router-link>
         </div>
     </div>
 </template>
