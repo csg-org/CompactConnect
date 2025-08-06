@@ -13,6 +13,11 @@
         align-items: center;
         width: 100%;
 
+        .form-error-message {
+            padding: 2rem;
+            color: @midRed;
+        }
+
         .button-row {
             .purchase-flow-buttons();
         }
@@ -58,21 +63,10 @@
 
             .lists-container {
                 display: flex;
-                flex-direction: column;
-                align-items: center;
-
-                @media @tabletWidth {
-                    flex-direction: row;
-                    align-items: flex-start;
-                    justify-content: space-between;
-                }
 
                 .state-select-list {
-                    display: flex;
-                    flex-flow: column wrap;
-
                     @media @desktopWidth {
-                        max-height: 80vh;
+                        column-count: 2;
                     }
 
                     .state-unit {

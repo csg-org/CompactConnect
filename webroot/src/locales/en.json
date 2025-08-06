@@ -57,6 +57,7 @@
         "middleName": "Middle Name",
         "lastName": "Last name",
         "familyName": "Family Name",
+        "username": "Username",
         "selection": "Selection",
         "dateOfBirth": "Date of birth",
         "dateOfBirthShort": "DOB",
@@ -382,6 +383,21 @@
         "account": "Account",
         "logout": "Logout"
     },
+    "privacyPolicy": {
+        "title": "Privacy Policy",
+        "introSubtext": "This privacy policy describes how the CompactConnect website stores and uses visitor data.",
+        "whatDataIsCollectedTitle": "What data is collected?",
+        "collectedDataEmail": "Email address of registered users",
+        "collectedDataDevice": "Type of device, browser, and IP address",
+        "whatIsDoneWithThisInfoTitle": "What is done with this information?",
+        "whatIsDoneWithThisInfoSubtext": "Information you provide helps us respond to your customer service requests and support needs more efficiently. We may use feedback you provide to improve our site. The information is not sold to third parties.",
+        "howIsMyDataProtectedTitle": "How is my data protected?",
+        "howIsMyDataProtectedSubtext": "We adopt industry standard data collection, storage, and processing practices and security measures to protect against unauthorized access, alteration, disclosure, or destruction of your personal information, username, password, transaction information, and data stored on our site.",
+        "changesToThisPolicyTitle": "Changes to this policy",
+        "changesToThisPolicySubtext": "CompactConnect has the discretion to update this privacy policy at any time. We encourage you to frequently check this page for any changes to stay informed about how we are helping to protect the personal information we collect. You acknowledge and agree that it is your responsibility to review this privacy policy periodically and become aware of modifications.",
+        "disclaimerTitle": "Disclaimer",
+        "disclaimerSubtext": "Other websites that are connected by hyperlinks to and / or from the CompactConnect website may not follow the same privacy constraints. We do not assume responsibility for the practices or content of any website which links to or from our site."
+    },
     "paging": {
         "previousPage": "Previous",
         "nextPage": "Next",
@@ -601,6 +617,7 @@
         "expireDate": "Expire Date",
         "expires": "Expires",
         "selectPrivileges": "Select privileges",
+        "privilegePurchaseLimit": "A maximum of 20 privileges may be selected in one transaction",
         "iUnderstand": "I understand",
         "jurisprudenceConfirmation": "Jurisprudence Confirmation",
         "lastUpdate": "Latest upload",

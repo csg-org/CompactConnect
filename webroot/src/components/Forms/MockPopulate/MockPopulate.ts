@@ -18,6 +18,7 @@ import {
 })
 class MockPopulate extends Vue {
     @Prop({ default: false }) isEnabled?: boolean;
+    @Prop({ default: '' }) customLabel?: string;
 
     //
     // Methods
