@@ -10,7 +10,7 @@ class TestCleanupRecords(TstFunction):
     """Test suite for attestation endpoints."""
 
     def _generate_test_event(self) -> dict:
-        return {'destinationTableArn': self.mock_destination_table_arn}
+        return {'destinationTableArn': self.mock_destination_table_arn, 'sourceTableArn': self.mock_source_table_arn}
 
     def test_lambda_returns_complete_delete_status_when_all_records_cleaned_up(self):
         """Test getting the latest version of an attestation."""
@@ -42,6 +42,7 @@ class TestCleanupRecords(TstFunction):
                 'deletedCount': 5000,
                 'deleteStatus': 'COMPLETE',
                 'destinationTableArn': self.mock_destination_table_arn,
+                'sourceTableArn': self.mock_source_table_arn,
             },
             response,
         )
@@ -90,6 +91,7 @@ class TestCleanupRecords(TstFunction):
                 'deletedCount': 100,
                 'deleteStatus': 'IN_PROGRESS',
                 'destinationTableArn': self.mock_destination_table_arn,
+                'sourceTableArn': self.mock_source_table_arn,
             },
             response,
         )
