@@ -56,7 +56,13 @@ export class LicenseHistoryItem implements InterfaceLicenseHistoryItem {
     }
 
     public isDeactivatingEvent(): boolean {
-        const deactivatingEvents = ['expired', 'deactivation', 'encumbrance'];
+        const deactivatingEvents = [
+            'expired',
+            'deactivation',
+            'encumbrance',
+            'homeJurisdictionChange',
+            'licenseDeactivation'
+        ];
 
         return deactivatingEvents.some((event) => (this.updateType && event === this.updateType));
     }
@@ -69,7 +75,7 @@ export class LicenseHistoryItem implements InterfaceLicenseHistoryItem {
         let eventName = event?.name || this.$t('common.stateUnknown');
 
         if (updateType === 'homeJurisdictionChange' || updateType === 'licenseDeactivation') {
-            eventName = 'Deactivated';
+            eventName = this.$t('licensing.deactivation');
         }
 
         return eventName;
@@ -80,9 +86,9 @@ export class LicenseHistoryItem implements InterfaceLicenseHistoryItem {
         let noteDisplay = this.serverNote || '';
 
         if (updateType === 'homeJurisdictionChange') {
-            noteDisplay = this.$t('licensing.stateUnknown');
+            noteDisplay = this.$t('licensing.homeStateChangeNote');
         } else if (updateType === 'licenseDeactivation') {
-            noteDisplay = this.$t('licensing.stateUnknown');
+            noteDisplay = this.$t('licensing.licenseDeactivationNote');
         }
 
         return noteDisplay;

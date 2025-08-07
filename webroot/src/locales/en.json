@@ -630,6 +630,7 @@
         "confirmPrivilegeDeactivateTitle": "Are you sure you want to deactivate this privilege?",
         "confirmPrivilegeDeactivateSubtext": "The practitioner will no longer be able to use this privilege. This does not constitute a disciplinary action.",
         "deactivateNotesTitle": "Deactivation notes",
+        "deactivation": "Deactivation",
         "deactivateNotesPlaceholder": "Enter notes here",
         "confirmPrivilegeDeactivateSubmit": "Yes, deactivate privilege",
         "encumber": "Encumber",
