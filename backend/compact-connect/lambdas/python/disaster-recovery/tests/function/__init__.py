@@ -18,7 +18,9 @@ class TstFunction(TstLambdas):
     def setUp(self):  # noqa: N801 invalid-name
         super().setUp()
         self.mock_destination_table_name = 'Test-PersistentStack-ProviderTableEC5D0597-TQ2RIO6VVBRE'
-        self.mock_destination_table_arn = f'arn:aws:dynamodb:us-east-1:767398110685:table/{self.mock_destination_table_name}'
+        self.mock_destination_table_arn = (
+            f'arn:aws:dynamodb:us-east-1:767398110685:table/{self.mock_destination_table_name}'
+        )
         self.mock_source_table_name = 'Recovered-ProviderTableEC5D0597-TQ2RIO6VVBRE'
         self.mock_source_table_arn = f'arn:aws:dynamodb:us-east-1:767398110685:table/{self.mock_source_table_name}'
         self.build_resources()
@@ -26,6 +28,7 @@ class TstFunction(TstLambdas):
         self.addCleanup(self.delete_resources)
         # this must be imported here as the import relies on env variables being set by the parent class
         from common_test.test_data_generator import TestDataGenerator
+
         # Helper class used to generate test objects
         self.test_data_generator = TestDataGenerator()
 

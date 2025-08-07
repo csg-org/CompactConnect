@@ -2,7 +2,6 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
 
 
-
 def copy_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """
     As part of synchronizing tables during a DR event, we clear the current records from the target
@@ -16,6 +15,4 @@ def copy_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused-ar
     complete the sync workflow.
     """
 
-    return {
-        'copyStatus': 'COMPLETE'
-    }
+    return {'copyStatus': 'COMPLETE'}

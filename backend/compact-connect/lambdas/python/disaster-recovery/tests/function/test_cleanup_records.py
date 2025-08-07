@@ -8,9 +8,7 @@ class TestCleanupRecords(TstFunction):
     """Test suite for attestation endpoints."""
 
     def _generate_test_event(self) -> dict:
-        return {
-            'tableArn': self.mock_destination_table_arn
-        }
+        return {'tableArn': self.mock_destination_table_arn}
 
     def test_lambda_returns_complete_delete_status_when_all_records_cleaned_up(self):
         """Test getting the latest version of an attestation."""
@@ -22,9 +20,7 @@ class TestCleanupRecords(TstFunction):
         # The TstFunction class sets up 4 versions of this attestation, we expect the endpoint to return version 4
         # as it's the latest
         self.assertEqual(
-            {
-                'deleteStatus': 'COMPLETE'
-            },
+            {'deleteStatus': 'COMPLETE'},
             response,
         )
 
@@ -36,8 +32,6 @@ class TestCleanupRecords(TstFunction):
         response = cleanup_records(event, self.mock_context)
 
         self.assertEqual(
-            {
-                'deleteStatus': 'IN_PROGRESS'
-            },
+            {'deleteStatus': 'IN_PROGRESS'},
             response,
         )

@@ -14,10 +14,7 @@ class TestCopyRecords(TstFunction):
     """Test suite for get compact jurisdiction endpoints."""
 
     def _generate_test_event(self) -> dict:
-        return {
-            'sourceTableArn': self.mock_source_table_arn,
-            'destinationTableArn': self.mock_destination_table_arn
-        }
+        return {'sourceTableArn': self.mock_source_table_arn, 'destinationTableArn': self.mock_destination_table_arn}
 
     def test_get_compact_jurisdictions_returns_invalid_exception_if_invalid_http_method(self):
         """Test getting an empty list if no jurisdictions configured."""
@@ -28,9 +25,6 @@ class TestCopyRecords(TstFunction):
         response = copy_records(event, self.mock_context)
 
         self.assertEqual(
-            {
-                'copyStatus': 'COMPLETE'
-            },
+            {'copyStatus': 'COMPLETE'},
             response,
         )
-
