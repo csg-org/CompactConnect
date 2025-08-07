@@ -698,7 +698,7 @@ class TestGenerateTransactionReports(TstFunction):
                     self.assertEqual('300,$30000.00,,,,,,,', content[-2])
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2025-04-05T22:00:00+00:00'))
-    def test_generate_report_raises_error_when_compact_not_found(self):
+    def test_generate_report_exits_early_when_compact_not_found(self):
         """Test error handling when compact configuration is not found."""
         from handlers.transaction_reporting import generate_transaction_reports
 

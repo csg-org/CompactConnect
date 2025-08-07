@@ -12,8 +12,7 @@ from cc_common.data_model.schema.compact import Compact
 from cc_common.data_model.schema.compact.common import COMPACT_TYPE
 from cc_common.data_model.schema.jurisdiction.common import JURISDICTION_TYPE
 from cc_common.exceptions import CCInternalException
-
-SETTLEMENT_ERROR_STATE = 'settlementError'
+from purchase_client import AuthorizeNetTransactionErrorStates
 
 
 def _get_display_date_range(reporting_cycle: str) -> tuple[datetime, datetime]:
@@ -229,7 +228,7 @@ def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  
     # have worked with their MSP to resolve the issue that caused the settlement error.
     # See https://community.developer.cybersource.com/t5/Integration-and-Testing/What-happens-to-a-batch-having-a-settlementState-of/td-p/58993
     # for more information on how settlement errors are reprocessed.
-    transactions = [t for t in transactions if t.get('transactionStatus') != SETTLEMENT_ERROR_STATE]
+    transactions = [t for t in transactions if t.get('transactionStatus') not in AuthorizeNetTransactionErrorStates]
 
     # Get unique provider IDs from transactions and their details
     provider_ids = {t['licenseeId'] for t in transactions}
