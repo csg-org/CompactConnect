@@ -1,4 +1,6 @@
+import json
 import time
+from base64 import b64decode, b64encode
 
 import boto3
 from aws_lambda_powertools.utilities.typing import LambdaContext
@@ -27,8 +29,10 @@ def copy_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused-ar
     source_table_name = source_table_arn.split('/')[-1]
     destination_table_name = destination_table_arn.split('/')[-1]
 
-    # Get any continuation key from previous execution
-    last_evaluated_key = event.get('lastEvaluatedKey')
+    # Get any pagination key from previous execution
+    last_evaluated_key = event.get('copyLastEvaluatedKey')
+    if last_evaluated_key is not None:
+        last_evaluated_key = json.loads(b64decode(last_evaluated_key).decode('utf-8'))
 
     logger.info(f'Starting copy of records from {source_table_name} to {destination_table_name}')
     if last_evaluated_key:
@@ -51,7 +55,7 @@ def copy_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused-ar
                 logger.info(f'Approaching time limit after {elapsed_time:.2f} seconds. Returning IN_PROGRESS status.')
                 return {
                     'copyStatus': 'IN_PROGRESS',
-                    'lastEvaluatedKey': last_evaluated_key,
+                    'copyLastEvaluatedKey': b64encode(json.dumps(last_evaluated_key).encode('utf-8')).decode('utf-8'),
                     'copiedCount': total_copied,
                     'sourceTableArn': source_table_arn,
                     'destinationTableArn': destination_table_arn,
@@ -107,5 +111,5 @@ def copy_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused-ar
             'copiedCount': total_copied,
             'sourceTableArn': source_table_arn,
             'destinationTableArn': destination_table_arn,
-            'lastEvaluatedKey': last_evaluated_key,
+            'copyLastEvaluatedKey': last_evaluated_key,
         }

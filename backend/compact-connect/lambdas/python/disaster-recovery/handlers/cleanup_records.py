@@ -1,3 +1,4 @@
+import json
 import time
 
 import boto3
@@ -48,7 +49,9 @@ def cleanup_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused
                 return {
                     'deleteStatus': 'IN_PROGRESS',
                     'deletedCount': total_deleted,
+                    # pass this through so it is available for following steps
                     'destinationTableArn': destination_table_arn,
+                    'sourceTableArn': event['sourceTableArn'],
                 }
 
             # Scan the table to get records to delete
@@ -68,7 +71,9 @@ def cleanup_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused
                 return {
                     'deleteStatus': 'COMPLETE',
                     'deletedCount': total_deleted,
+                    # pass this through so it is available for following steps
                     'destinationTableArn': destination_table_arn,
+                    'sourceTableArn': event['sourceTableArn'],
                 }
 
             # Delete items using batch_writer
@@ -90,7 +95,9 @@ def cleanup_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused
                 return {
                     'deleteStatus': 'COMPLETE',
                     'deletedCount': total_deleted,
+                    # pass this through so it is available for following steps
                     'destinationTableArn': destination_table_arn,
+                    'sourceTableArn': event['sourceTableArn'],
                 }
 
     except Exception as e:
@@ -99,6 +106,8 @@ def cleanup_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused
             'deleteStatus': 'FAILED',
             'error': str(e),
             'deletedCount': total_deleted,
+            'lastEvaluatedKey': json.dumps(last_evaluated_key),
+            # pass this through so it is available for following steps
             'destinationTableArn': destination_table_arn,
-            'lastEvaluatedKey': last_evaluated_key,
+            'sourceTableArn': event['sourceTableArn'],
         }
