@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from moto import mock_aws
 
 from . import TstFunction
@@ -8,7 +10,7 @@ class TestCleanupRecords(TstFunction):
     """Test suite for attestation endpoints."""
 
     def _generate_test_event(self) -> dict:
-        return {'tableArn': self.mock_destination_table_arn}
+        return {'destinationTableArn': self.mock_destination_table_arn}
 
     def test_lambda_returns_complete_delete_status_when_all_records_cleaned_up(self):
         """Test getting the latest version of an attestation."""
@@ -17,21 +19,75 @@ class TestCleanupRecords(TstFunction):
         event = self._generate_test_event()
         response = cleanup_records(event, self.mock_context)
 
-        # The TstFunction class sets up 4 versions of this attestation, we expect the endpoint to return version 4
-        # as it's the latest
-        self.assertEqual(
-            {'deleteStatus': 'COMPLETE'},
-            response,
-        )
+        self.assertEqual('COMPLETE', response['deleteStatus'])
 
-    def test_lambda_returns_in_progress_delete_status_when_remaining_records_to_clean_up(self):
-        """Test getting the latest version of an attestation."""
+    def test_lambda_iterates_over_all_records_to_clean_up(self):
+        """Test that the lambda iterates over all records to clean up."""
         from handlers.cleanup_records import cleanup_records
+
+        for i in range(5000):
+            self.mock_destination_table.put_item(
+                Item={
+                    'pk': str(i),
+                    'sk': str(i),
+                    'data': f'test_{i}',
+                }
+            )
 
         event = self._generate_test_event()
         response = cleanup_records(event, self.mock_context)
 
         self.assertEqual(
-            {'deleteStatus': 'IN_PROGRESS'},
+            {
+                'deletedCount': 5000,
+                'deleteStatus': 'COMPLETE',
+                'destinationTableArn': self.mock_destination_table_arn,
+            },
+            response,
+        )
+
+    @patch('handlers.cleanup_records.time')
+    def test_lambda_returns_in_progress_delete_status_when_remaining_records_to_clean_up_and_past_max_execution_time(
+        self, mock_time
+    ):
+        """Test getting the latest version of an attestation."""
+        from handlers.cleanup_records import cleanup_records
+
+        # the first time the mock_time function is called, it will return current time
+        # the second time the mock_time function is called, it will return 12 minutes + 1 second
+        # this should cause the lambda to return an IN_PROGRESS status
+        mock_time.time.side_effect = [0, 12 * 60 + 2]  # current time, 12 minutes + 2 seconds
+
+        event = self._generate_test_event()
+        response = cleanup_records(event, self.mock_context)
+
+        self.assertEqual('IN_PROGRESS', response['deleteStatus'])
+
+    @patch('handlers.cleanup_records.time')
+    def test_lambda_returns_pagination_key_when_time_limit_reached(self, mock_time):
+        """Test that the lambda iterates over all records to clean up."""
+        from handlers.cleanup_records import cleanup_records
+
+        # current time, start time + 1 second, start time 12 minutes + 2 seconds
+        mock_time.time.side_effect = [0, 1, 12 * 60 + 2]
+
+        for i in range(500):
+            self.mock_destination_table.put_item(
+                Item={
+                    'pk': str(i),
+                    'sk': str(i),
+                    'data': f'test_{i}',
+                }
+            )
+
+        event = self._generate_test_event()
+        response = cleanup_records(event, self.mock_context)
+
+        self.assertEqual(
+            {
+                'deletedCount': 100,
+                'deleteStatus': 'IN_PROGRESS',
+                'destinationTableArn': self.mock_destination_table_arn,
+            },
             response,
         )
