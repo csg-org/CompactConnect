@@ -1,19 +1,24 @@
 import os
 
-from aws_cdk import Duration, ArnFormat
+from aws_cdk import ArnFormat, Duration
 from aws_cdk.aws_dynamodb import Table
 from aws_cdk.aws_iam import PolicyStatement
+from aws_cdk.aws_kms import Key
+from aws_cdk.aws_logs import LogGroup, RetentionDays
 from aws_cdk.aws_stepfunctions import (
     Choice,
     Condition,
     DefinitionBody,
     Fail,
     IChainable,
+    LogLevel,
+    LogOptions,
     Pass,
     StateMachine,
     Succeed,
 )
 from aws_cdk.aws_stepfunctions_tasks import LambdaInvoke
+from cdk_nag import NagSuppressions
 from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
 from constructs import Construct
@@ -27,9 +32,12 @@ class SyncTableDataStepFunctionConstruct(Construct):
         *,
         table: Table,
         source_table_name_prefix: str,
+        dr_shared_encryption_key: Key,
         **kwargs,
     ):
         super().__init__(scope, construct_id, **kwargs)
+
+        stack = Stack.of(self)
 
         # Create Lambda functions for delete and copy operations
         self._create_lambda_functions(table, source_table_name_prefix=source_table_name_prefix)
@@ -37,11 +45,41 @@ class SyncTableDataStepFunctionConstruct(Construct):
         # Build Step Function definition with separate delete and copy phases
         definition = self._build_sync_table_data_state_machine_definition(destination_table=table)
 
+        state_machine_log_group = LogGroup(
+            self,
+            f'{table.node.id}DRSyncTableDataStateMachineLogs',
+            retention=RetentionDays.ONE_MONTH,
+            encryption_key=dr_shared_encryption_key,
+        )
+
         self.state_machine = StateMachine(
             self,
-            f'{table.table_name}DRSyncTableDataStateMachine',
+            f'{table.node.id}DRSyncTableDataStateMachine',
             definition_body=DefinitionBody.from_chainable(definition),
             timeout=Duration.hours(8),  # Longer timeout for data operations
+            logs=LogOptions(
+                destination=state_machine_log_group,
+                level=LogLevel.ALL,
+                include_execution_data=True,
+            ),
+            tracing_enabled=True,
+        )
+        # allow step function to call these lambdas
+        self.cleanup_records_function.grant_invoke(self.state_machine)
+        self.copy_records_function.grant_invoke(self.state_machine)
+
+        NagSuppressions.add_resource_suppressions_by_path(
+            stack=stack,
+            path=f'{self.state_machine.node.path}/Role/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': """
+                              This policy contains wild-carded actions and resources but they are scoped to the specific
+                              Lambda functions that this state machine needs access to.
+                              """,
+                },
+            ],
         )
 
     def _create_lambda_functions(self, table: Table, source_table_name_prefix: str):
@@ -50,8 +88,8 @@ class SyncTableDataStepFunctionConstruct(Construct):
         # These will be created in the next phase of implementation
         self.cleanup_records_function = PythonFunction(
             self,
-            f'DR-{table.table_name}-SyncCleanup',
-            description=f'Disaster Recovery cleanup sync step for {table.table_name}',
+            f'DR-{table.node.id}-SyncCleanup',
+            description=f'Disaster Recovery cleanup sync step for {table.node.id}',
             lambda_dir='disaster-recovery',
             index=os.path.join('handlers', 'cleanup_records.py'),
             handler='cleanup_records',
@@ -64,12 +102,26 @@ class SyncTableDataStepFunctionConstruct(Construct):
             # also increases the performance.
             memory_size=3008,
         )
-        table.grant_write_data(self.cleanup_records_function)
+        table.grant_read_write_data(self.cleanup_records_function)
+
+        NagSuppressions.add_resource_suppressions_by_path(
+            stack=stack,
+            path=f'{self.cleanup_records_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': """
+                            This policy contains wild-carded actions and resources but they are scoped to the
+                            specific table that this lambda needs access to.
+                            """,
+                },
+            ],
+        )
 
         self.copy_records_function = PythonFunction(
             self,
-            f'DR-{table.table_name}-SyncCopy',
-            description=f'Disaster Recovery copy sync step for {table.table_name}',
+            f'DR-{table.node.id}-SyncCopy',
+            description=f'Disaster Recovery copy sync step for {table.node.id}',
             lambda_dir='disaster-recovery',
             index=os.path.join('handlers', 'copy_records.py'),
             handler='copy_records',
@@ -89,7 +141,8 @@ class SyncTableDataStepFunctionConstruct(Construct):
         self.copy_records_function.add_to_role_policy(
             PolicyStatement(
                 actions=['dynamodb:Scan'],
-                resources=[stack.format_arn(
+                resources=[
+                    stack.format_arn(
                         partition=stack.partition,
                         service='dynamodb',
                         region=stack.region,
@@ -102,6 +155,19 @@ class SyncTableDataStepFunctionConstruct(Construct):
             )
         )
 
+        NagSuppressions.add_resource_suppressions_by_path(
+            stack=stack,
+            path=f'{self.copy_records_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': """
+                              This policy contains wild-carded actions and resources but they are scoped to the
+                              specific destination table and prefixed source tables this lambda needs access to.
+                              """,
+                },
+            ],
+        )
 
     def _build_sync_table_data_state_machine_definition(self, destination_table: Table) -> IChainable:
         """
@@ -130,7 +196,7 @@ class SyncTableDataStepFunctionConstruct(Construct):
                 # get the source table ARN from the event input.
                 # the destination table is hardcoded to what is created during the deployment
                 'sourceTableArn.$': '$.sourceTableArn',
-                'destinationTableArn.$': f'{destination_table.table_arn}',
+                'destinationTableArn': destination_table.table_arn,
             },
             comment='Initialize sync operation with input parameters',
             result_path='$',
@@ -142,7 +208,7 @@ class SyncTableDataStepFunctionConstruct(Construct):
         delete_records_task = LambdaInvoke(
             self,
             # step function names are limited to 80 characters
-            f'{destination_table.table_name[0:32]}-DeleteRecords',
+            f'{destination_table.node.id}-DeleteRecords',
             lambda_function=self.cleanup_records_function,
             comment='Delete all records from destination table',
             payload_response_only=True,
@@ -167,7 +233,7 @@ class SyncTableDataStepFunctionConstruct(Construct):
         # Copy records from source to destination table
         copy_records_task = LambdaInvoke(
             self,
-            f'{destination_table.table_name[0:32]}-CopyRecords',
+            f'{destination_table.node.id}-CopyRecords',
             lambda_function=self.copy_records_function,
             comment='Copy records from source to destination table',
             payload_response_only=True,
