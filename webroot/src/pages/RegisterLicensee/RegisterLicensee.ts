@@ -328,7 +328,6 @@ class RegisterLicensee extends mixins(MixinForm) {
 
     async handleBackToForm(): Promise<void> {
         this.isConfirmationScreen = false;
-
         await nextTick();
         this.scrollIntoView('submit-initial');
     }
