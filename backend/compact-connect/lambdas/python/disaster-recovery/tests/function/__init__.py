@@ -26,11 +26,6 @@ class TstFunction(TstLambdas):
         self.build_resources()
 
         self.addCleanup(self.delete_resources)
-        # this must be imported here as the import relies on env variables being set by the parent class
-        from common_test.test_data_generator import TestDataGenerator
-
-        # Helper class used to generate test objects
-        self.test_data_generator = TestDataGenerator()
 
     def build_resources(self):
         # in the case of DR, the lambda sync solution should be table agnostic, since we are performing the same
