@@ -53,6 +53,8 @@ class TestCleanupRecords(TstFunction):
         """Test getting the latest version of an attestation."""
         from handlers.cleanup_records import cleanup_records
 
+        # Lambda functions have a timeout of 15 minutes, so we set a cutoff of 12 minutes before we loop around
+        # the step function to reset the timeout. This mock allows us to test that branch of logic.
         # the first time the mock_time function is called, it will return current time
         # the second time the mock_time function is called, it will return 12 minutes + 1 second
         # this should cause the lambda to return an IN_PROGRESS status
