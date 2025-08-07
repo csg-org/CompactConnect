@@ -143,11 +143,12 @@ export default class PrivilegeDetail extends Vue {
         const issueStateAbbrev = this.privilege.issueState?.abbrev;
 
         if (issueStateAbbrev && this.privilegeLicenseTypeAbbrev) {
-            await this.$store.dispatch('license/getPrivilegeHistoryRequestStaff', {
+            await this.$store.dispatch('license/getPrivilegeHistoryRequest', {
                 compact: this.compact,
                 providerId: this.licenseeId,
                 jurisdiction: issueStateAbbrev,
-                licenseTypeAbbrev: this.privilegeLicenseTypeAbbrev
+                licenseTypeAbbrev: this.privilegeLicenseTypeAbbrev,
+                isPublic: false
             });
         }
     }

@@ -285,6 +285,38 @@ export class DataApi {
         }));
     }
 
+    // Get Privilege History (Public)
+    public getPrivilegeHistoryPublic(compact, licenseeId) {
+        const serverResponse = licensees.providers.find((item) => item.providerId === licenseeId);
+        let response;
+
+        if (serverResponse) {
+            response = wait(500).then(() => (LicenseeSerializer.fromServer(licensees.providers[0])));
+        } else {
+            response = wait(500).then(() => {
+                throw new Error('not found');
+            });
+        }
+
+        return response;
+    }
+
+    // Get Privilege History (Public)
+    public getPrivilegeHistoryStaff(compact, licenseeId) {
+        const serverResponse = licensees.providers.find((item) => item.providerId === licenseeId);
+        let response;
+
+        if (serverResponse) {
+            response = wait(500).then(() => (LicenseeSerializer.fromServer(licensees.providers[0])));
+        } else {
+            response = wait(500).then(() => {
+                throw new Error('not found');
+            });
+        }
+
+        return response;
+    }
+
     // ========================================================================
     //                              STAFF USER API
     // ========================================================================

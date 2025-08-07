@@ -121,11 +121,14 @@ export class License implements InterfaceLicense {
     }
 
     public isDeactivated(): boolean {
+        // This will only be populated once we fetch the history data from the history endpoint
         const { history } = this;
         const historyLength = history?.length || 0;
         const lastEvent = (history && historyLength) ? history[historyLength - 1] : new LicenseHistoryItem();
 
-        const isLastEventDeactivation = lastEvent.updateType === 'deactivation';
+        const isLastEventDeactivation = lastEvent.updateType === 'deactivation'
+            || lastEvent.updateType === 'licenseDeactivation'
+            || lastEvent.updateType === 'homeJurisdictionChange';
         const isInactive = this.status === LicenseStatus.INACTIVE;
 
         return isLastEventDeactivation && isInactive;
@@ -161,8 +164,6 @@ export class License implements InterfaceLicense {
 // ========================================================
 export class LicenseSerializer {
     static fromServer(json: any): License {
-        console.log('licensejson', json);
-
         const licenseData = {
             id: `${json.providerId}-${json.jurisdiction}-${json.licenseType}`,
             compact: new Compact({ type: json.compact }),

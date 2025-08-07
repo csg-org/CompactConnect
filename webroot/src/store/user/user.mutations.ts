@@ -178,7 +178,7 @@ export default {
     [MutationTypes.GET_PRIVILEGE_HISTORY_SUCCESS]: (state: any, { history, getters }) => {
         const privilegeId = `${history.providerId}-${history.jurisdiction}-${history.licenseType}`;
 
-        const privilege = getters.getUserPrivilegeById(privilegeId);
+        const privilege = getters.getUserPrivilegeById(state)(privilegeId);
 
         if (privilege) {
             privilege.history = history.events;

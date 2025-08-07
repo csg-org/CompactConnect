@@ -62,8 +62,6 @@ export class LicenseHistorySerializer {
     static fromServer(json: any): LicenseHistory {
         // All license fields can possibly appear in the values below, however the frontend only utilizes
         // renewals at this time, these are the relevant fields for renewals
-        console.log('json', json);
-
         const licenseHistoryData = {
             compact: json.compact,
             jurisdiction: json.jurisdiction,

@@ -5,6 +5,7 @@
 //  Created by InspiringApps on 7/2/24.
 //
 import { LicenseSearch } from '@components/Licensee/LicenseeSearch/LicenseeSearch.vue';
+import getters from './license.getters';
 
 export enum MutationTypes {
     GET_LICENSEES_REQUEST = '[License] Get Licensees Request',
@@ -124,11 +125,11 @@ export default {
         state.isLoading = true;
         state.error = null;
     },
-    [MutationTypes.GET_PRIVILEGE_HISTORY_SUCCESS]: (state: any, { history, getters }) => {
+    [MutationTypes.GET_PRIVILEGE_HISTORY_SUCCESS]: (state: any, { history }) => {
         const privilegeId = `${history.providerId}-${history.jurisdiction}-${history.licenseType}`;
         const licenseeId = history.providerId;
 
-        const privilege = getters.getPrivilegeByLicenseeIdAndId({ licenseeId, privilegeId });
+        const privilege = getters.getPrivilegeByLicenseeIdAndId(state)({ licenseeId, privilegeId });
 
         if (privilege) {
             privilege.history = history.events;

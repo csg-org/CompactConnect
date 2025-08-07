@@ -264,6 +264,50 @@ export class DataApi {
         return licenseDataApi.getLicenseeSsn(compact, licenseeId);
     }
 
+    /**
+     * GET Privilege History for a staff user.
+     * @param  {string}     compact compact of privilege
+     * @param  {string}     providerId providerId of privilege holder
+     * @param  {string}     jurisdiction jurisdiction of privilege
+     * @param  {string}     licenseTypeAbbrev licenseTypeAbbrev of privilege
+     * @return {Promise<object>} A PrivilegeHistory model instance.
+     */
+    public getPrivilegeHistoryStaff(
+        compact: string,
+        providerId: string,
+        jurisdiction: string,
+        licenseTypeAbbrev: string
+    ) {
+        return licenseDataApi.getPrivilegeHistoryStaff(
+            compact,
+            providerId,
+            jurisdiction,
+            licenseTypeAbbrev
+        );
+    }
+
+    /**
+     * GET Privilege History for an unauthenticated user.
+     * @param  {string}     compact compact of privilege
+     * @param  {string}     providerId providerId of privilege holder
+     * @param  {string}     jurisdiction jurisdiction of privilege
+     * @param  {string}     licenseTypeAbbrev licenseTypeAbbrev of privilege
+     * @return {Promise<object>} A PrivilegeHistory model instance.
+     */
+    public getPrivilegeHistoryPublic(
+        compact: string,
+        providerId: string,
+        jurisdiction: string,
+        licenseTypeAbbrev: string
+    ) {
+        return licenseDataApi.getPrivilegeHistoryPublic(
+            compact,
+            providerId,
+            jurisdiction,
+            licenseTypeAbbrev
+        );
+    }
+
     // ========================================================================
     //                              USER API
     // ========================================================================
@@ -376,50 +420,6 @@ export class DataApi {
      */
     public getPrivilegePurchaseInformation() {
         return userDataApi.getPrivilegePurchaseInformation();
-    }
-
-    /**
-     * GET Authenticated Privilege History for a staff user.
-     * @param  {string}     compact compact of privilege
-     * @param  {string}     providerId providerId of privilege holder
-     * @param  {string}     jurisdiction jurisdiction of privilege
-     * @param  {string}     licenseTypeAbbrev licenseTypeAbbrev of privilege
-     * @return {Promise<>} A PrivilegeHistory model instance.
-     */
-    public getPrivilegeHistoryStaff(
-        compact: string,
-        providerId: string,
-        jurisdiction: string,
-        licenseTypeAbbrev: string
-    ) {
-        return licenseDataApi.getPrivilegeHistoryStaff(
-            compact,
-            providerId,
-            jurisdiction,
-            licenseTypeAbbrev
-        );
-    }
-
-    /**
-     * GET Authenticated Privilege History for an unauthenticated user.
-     * @param  {string}     compact compact of privilege
-     * @param  {string}     providerId providerId of privilege holder
-     * @param  {string}     jurisdiction jurisdiction of privilege
-     * @param  {string}     licenseTypeAbbrev licenseTypeAbbrev of privilege
-     * @return {Promise<>} A PrivilegeHistory model instance.
-     */
-    public getPrivilegeHistoryPublic(
-        compact: string,
-        providerId: string,
-        jurisdiction: string,
-        licenseTypeAbbrev: string
-    ) {
-        return licenseDataApi.getPrivilegeHistoryPublic(
-            compact,
-            providerId,
-            jurisdiction,
-            licenseTypeAbbrev
-        );
     }
 
     // ========================================================================
