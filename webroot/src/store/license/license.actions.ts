@@ -90,7 +90,7 @@ export default {
     resetStoreLicense: ({ commit }) => {
         commit(MutationTypes.STORE_RESET_LICENSE);
     },
-    // GET PRIVILEGE HISTORY
+    // GET PRIVILEGE HISTORY STAFF
     getPrivilegeHistoryRequestStaff: async ({ commit, dispatch }, {
         compact,
         providerId,
@@ -104,8 +104,6 @@ export default {
             jurisdiction,
             licenseTypeAbbrev
         ).then((privilegeHistory) => {
-            console.log('Here?');
-
             dispatch('getPrivilegeHistorySuccess', privilegeHistory);
 
             return privilegeHistory;
@@ -113,29 +111,27 @@ export default {
             dispatch('getPrivilegeHistoryFailure', error);
         });
     },
-    // // GET PRIVILEGE HISTORY
-    // getPrivilegeHistoryRequestPublic: async ({ commit, dispatch }, {
-    //     compact,
-    //     providerId,
-    //     jurisdiction,
-    //     licenseTypeAbbrev,
-    // }: any) => {
-    //     commit(MutationTypes.GET_PRIVILEGE_HISTORY_REQUEST);
-    //     return dataApi.getPrivilegeHistoryPublic(
-    //         compact,
-    //         providerId,
-    //         jurisdiction,
-    //         licenseTypeAbbrev
-    //     ).then((privilegeHistory) => {
-    //         console.log('Here?');
+    // GET PRIVILEGE HISTORY PUBLIC
+    getPrivilegeHistoryRequestPublic: async ({ commit, dispatch }, {
+        compact,
+        providerId,
+        jurisdiction,
+        licenseTypeAbbrev,
+    }: any) => {
+        commit(MutationTypes.GET_PRIVILEGE_HISTORY_REQUEST);
+        return dataApi.getPrivilegeHistoryPublic(
+            compact,
+            providerId,
+            jurisdiction,
+            licenseTypeAbbrev
+        ).then((privilegeHistory) => {
+            dispatch('getPrivilegeHistorySuccess', privilegeHistory);
 
-    //         dispatch('getPrivilegeHistorySuccess', privilegeHistory);
-
-    //         return privilegeHistory;
-    //     }).catch((error) => {
-    //         dispatch('getPrivilegeHistoryFailure', error);
-    //     });
-    // },
+            return privilegeHistory;
+        }).catch((error) => {
+            dispatch('getPrivilegeHistoryFailure', error);
+        });
+    },
     // GET PRIVILEGE HISTORY SUCCESS / FAIL HANDLERS
     getPrivilegeHistorySuccess: ({ commit, getters }, history) => {
         commit(MutationTypes.GET_PRIVILEGE_HISTORY_SUCCESS, { history, getters });

@@ -21,7 +21,7 @@
         <div class="event-info">
             <div class="event-date">{{eventDate}}</div>
             <div class="event-type">{{eventNameDisplay}}</div>
-            <div class="event-detail"></div>
+            <div class="event-detail">{{detailDisplay}}</div>
         </div>
     </div>
 </template>

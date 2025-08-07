@@ -379,10 +379,12 @@ export class DataApi {
     }
 
     /**
-     * GET Authenticated Privilege History for Staff .
+     * GET Authenticated Privilege History for a staff user.
+     * @param  {string}     compact compact of privilege
+     * @param  {string}     providerId providerId of privilege holder
      * @param  {string}     jurisdiction jurisdiction of privilege
      * @param  {string}     licenseTypeAbbrev licenseTypeAbbrev of privilege
-     * @return {Promise<>} A User model instance.
+     * @return {Promise<>} A PrivilegeHistory model instance.
      */
     public getPrivilegeHistoryStaff(
         compact: string,
@@ -391,6 +393,28 @@ export class DataApi {
         licenseTypeAbbrev: string
     ) {
         return licenseDataApi.getPrivilegeHistoryStaff(
+            compact,
+            providerId,
+            jurisdiction,
+            licenseTypeAbbrev
+        );
+    }
+
+    /**
+     * GET Authenticated Privilege History for an unauthenticated user.
+     * @param  {string}     compact compact of privilege
+     * @param  {string}     providerId providerId of privilege holder
+     * @param  {string}     jurisdiction jurisdiction of privilege
+     * @param  {string}     licenseTypeAbbrev licenseTypeAbbrev of privilege
+     * @return {Promise<>} A PrivilegeHistory model instance.
+     */
+    public getPrivilegeHistoryPublic(
+        compact: string,
+        providerId: string,
+        jurisdiction: string,
+        licenseTypeAbbrev: string
+    ) {
+        return licenseDataApi.getPrivilegeHistoryPublic(
             compact,
             providerId,
             jurisdiction,

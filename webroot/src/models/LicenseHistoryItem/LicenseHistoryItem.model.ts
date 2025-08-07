@@ -65,21 +65,27 @@ export class LicenseHistoryItem implements InterfaceLicenseHistoryItem {
         const updateType = this.updateType || '';
         const events = this.$tm('licensing.licenseEvents') || [];
 
-        console.log('updateType', updateType);
-
         const event = events.find((st) => st.key === updateType);
-        const eventName = event?.name || this.$t('common.stateUnknown');
+        let eventName = event?.name || this.$t('common.stateUnknown');
+
+        if (updateType === 'homeJurisdictionChange' || updateType === 'licenseDeactivation') {
+            eventName = 'Deactivated';
+        }
 
         return eventName;
     }
 
     public noteDisplay(): string {
         const updateType = this.updateType || '';
-        const events = this.$tm('licensing.licenseEvents') || [];
-        const event = events.find((st) => st.key === updateType);
-        const eventName = event?.name || this.$t('common.stateUnknown');
+        let noteDisplay = this.serverNote || '';
 
-        return eventName;
+        if (updateType === 'homeJurisdictionChange') {
+            noteDisplay = this.$t('licensing.stateUnknown');
+        } else if (updateType === 'licenseDeactivation') {
+            noteDisplay = this.$t('licensing.stateUnknown');
+        }
+
+        return noteDisplay;
     }
 }
 
@@ -97,6 +103,7 @@ export class LicenseHistoryItemSerializer {
             createDate: json.createDate,
             effectiveDate: json.effectiveDate,
             dateOfUpdate: json.dateOfUpdate,
+            serverNote: json.note,
         };
 
         return new LicenseHistoryItem(licenseHistoryData);

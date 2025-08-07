@@ -165,7 +165,7 @@ export default class PrivilegeDetail extends Vue {
 
     async populateData(): Promise<void> {
         if (this.isLoggedInAsStaff) {
-            if (!this.isPrivilegeLoaded) {
+            if (!this.licenseeRecord) {
                 await this.fetchLicenseeData();
             }
 

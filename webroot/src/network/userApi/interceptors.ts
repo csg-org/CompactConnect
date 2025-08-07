@@ -82,7 +82,7 @@ export const responseError = (router) => (error) => {
 
         switch (axiosResponse.status) {
         case 401:
-            // router.push({ name: 'Logout' });
+            router.push({ name: 'Logout' });
             break;
         default:
             // Continue

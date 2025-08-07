@@ -32,12 +32,16 @@ class PrivilegeEventNode extends Vue {
         return this.event?.updateTypeDisplay() || '';
     }
 
-    get isActivating() {
-        return this.event?.isActivatingEvent();
+    get isActivating(): boolean {
+        return this.event?.isActivatingEvent() || false;
     }
 
-    get isDeactivating() {
-        return this.event?.isDeactivatingEvent();
+    get isDeactivating(): boolean {
+        return this.event?.isDeactivatingEvent() || false;
+    }
+
+    get detailDisplay(): string {
+        return this.event?.noteDisplay() || '';
     }
 }
 
