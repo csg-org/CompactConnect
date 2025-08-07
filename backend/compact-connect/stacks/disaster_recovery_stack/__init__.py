@@ -1,5 +1,4 @@
 from aws_cdk.aws_dynamodb import Table
-
 from common_constructs.stack import AppStack
 from constructs import Construct
 
@@ -12,14 +11,15 @@ class DisasterRecoveryStack(AppStack):
     impact the entire system. It leverages AWS step functions to automate the recovery process and reduce the risk of
     developer error the comes with manual rollbacks.
     """
+
     def __init__(
-            self,
-            scope: Construct,
-            construct_id: str,
-            *,
-            environment_name: str,
-            persistent_stack: ps.PersistentStack,
-            **kwargs,
+        self,
+        scope: Construct,
+        construct_id: str,
+        *,
+        environment_name: str,
+        persistent_stack: ps.PersistentStack,
+        **kwargs,
     ):
         super().__init__(scope, construct_id, environment_name=environment_name, **kwargs)
 
@@ -36,9 +36,7 @@ class DisasterRecoveryStack(AppStack):
         ]
 
         for table in dr_enabled_tables:
-            self.dr_workflows[table.table_name] = self._create_table_dr_workflow(
-                table
-            )
+            self.dr_workflows[table.table_name] = self._create_table_dr_workflow(table)
 
     def _create_dynamod_db_table_dr_recovery_workflow(self, table: Table):
         # TODO - fill this out

@@ -1,17 +1,17 @@
 from aws_cdk import Duration
 from aws_cdk.aws_dynamodb import Table
-from aws_cdk.aws_stepfunctions import DefinitionBody, StateMachine, IChainable, Pass
+from aws_cdk.aws_stepfunctions import DefinitionBody, IChainable, Pass, StateMachine
 from constructs import Construct
 
 
 class SyncTableDataStepFunctionConstruct(Construct):
     def __init__(
-            self,
-            scope: Construct,
-            construct_id: str,
-            *,
-            table: Table,
-            **kwargs,
+        self,
+        scope: Construct,
+        construct_id: str,
+        *,
+        table: Table,
+        **kwargs,
     ):
         super().__init__(scope, construct_id, **kwargs)
 
@@ -55,8 +55,7 @@ class SyncTableDataStepFunctionConstruct(Construct):
         self.initialize_state = Pass(
             self,
             'SyncTable-InitializeState',
-            parameters={
-            },
+            parameters={},
             result_path='$.Payload',
         )
         return self.initialize_state
