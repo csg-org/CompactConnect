@@ -11,20 +11,104 @@ from . import TstFunction
 
 @mock_aws
 class TestCopyRecords(TstFunction):
-    """Test suite for get compact jurisdiction endpoints."""
+    """Test suite for DR copy records step."""
 
     def _generate_test_event(self) -> dict:
         return {'sourceTableArn': self.mock_source_table_arn, 'destinationTableArn': self.mock_destination_table_arn}
 
-    def test_get_compact_jurisdictions_returns_invalid_exception_if_invalid_http_method(self):
-        """Test getting an empty list if no jurisdictions configured."""
+    def test_copy_records_returns_complete_status_when_records_copied_over(self):
+        """Test expected_status_is_returned_when_complete"""
         from handlers.copy_records import copy_records
 
         event = self._generate_test_event()
 
         response = copy_records(event, self.mock_context)
 
-        self.assertEqual(
-            {'copyStatus': 'COMPLETE'},
-            response,
+        self.assertEqual('COMPLETE',
+            response['copyStatus'],
         )
+
+    def test_copy_records_copies_all_records_over_from_source_to_destination_table(self):
+        """Test all records are moved over as expected"""
+        from handlers.copy_records import copy_records
+
+        source_items = []
+        for i in range(5000):
+            source_item = {
+                'pk': str(i),
+                'sk': str(i),
+                'data': f'test_{i}',
+            }
+            source_items.append(source_item)
+            self.mock_source_table.put_item(Item=source_item)
+
+        event = self._generate_test_event()
+
+        response = copy_records(event, self.mock_context)
+
+        self.assertEqual({
+            'copyStatus': 'COMPLETE',
+            'copiedCount': 5000,
+            'sourceTableArn': self.mock_source_table_arn,
+            'destinationTableArn': self.mock_destination_table_arn,
+        }, response)
+
+        # now get all records from destination table using pagination
+        last_evaluated_key = None
+        copied_items = []
+        while True:
+            scan_kwargs = {}
+            if last_evaluated_key:
+                scan_kwargs['ExclusiveStartKey'] = last_evaluated_key
+
+            # get all records from destination table
+            response = self.mock_destination_table.scan(**scan_kwargs)
+            items = response.get('Items', [])
+
+            if not items:
+                break
+
+            copied_items.extend(items)
+            last_evaluated_key = response.get('LastEvaluatedKey')
+            if not last_evaluated_key:
+                break
+
+        self.assertEqual(5000, len(copied_items))
+        source_items.sort(key=lambda x: x['pk'])
+        copied_items.sort(key=lambda x: x['pk'])
+        self.assertEqual(source_items, copied_items)
+
+    @patch('handlers.copy_records.time')
+    def test_copy_records_returns_in_progress_with_pagination_key_if_max_time_elapsed(self, mock_time):
+        """Test expected in progress status returned if time exceeded"""
+        from handlers.copy_records import copy_records
+
+        source_items = []
+        for i in range(5000):
+            source_item = {
+                'pk': str(i),
+                'sk': str(i),
+                'data': f'test_{i}',
+            }
+            source_items.append(source_item)
+            self.mock_source_table.put_item(Item=source_item)
+
+        # Lambda functions have a timeout of 15 minutes, so we set a cutoff of 12 minutes before we loop around
+        # the step function to reset the timeout. This mock allows us to test that branch of logic.
+        # the first time the mock_time function is called, it will return current time
+        # the second time the mock_time function is called, it will return + 1 second
+        # the third time the mock_time function is called, it will return 12 minutes + 1 second (cutoff is 12 minutes
+        # this should cause the lambda to return an IN_PROGRESS status with a pagination key
+        mock_time.time.side_effect = [0, 1, 12 * 60 + 2]  # current time, 12 minutes + 2 seconds
+
+        event = self._generate_test_event()
+
+        response = copy_records(event, self.mock_context)
+
+        self.assertEqual({
+            'copyStatus': 'IN_PROGRESS',
+            'copiedCount': 100,
+            'lastEvaluatedKey': {'pk': '1087', 'sk': '1087'},
+            'sourceTableArn': self.mock_source_table_arn,
+            'destinationTableArn': self.mock_destination_table_arn,
+        }, response)

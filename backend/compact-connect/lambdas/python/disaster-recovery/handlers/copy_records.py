@@ -1,12 +1,14 @@
+import time
+
+import boto3
 from aws_lambda_powertools.utilities.typing import LambdaContext
-from cc_common.config import config, logger
+from cc_common.config import logger
 
 
 def copy_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """
-    As part of synchronizing tables during a DR event, we clear the current records from the target
-    table to put it in a clean state. After which the next step in the recovery process will copy over all the
-    existing records from the recovery point table into the target table.
+    As part of synchronizing tables during a DR event, we copy all records from the restored
+    table (source) to the original table (destination) to complete the data synchronization.
 
     In the event that the copy process takes longer than the 15-minute time limit window for lambda, we return a
     'copyStatus' field of 'IN_PROGRESS', causing the step function to loop around and continue the copy process using
@@ -14,5 +16,96 @@ def copy_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused-ar
     If all the records have been copied, we return a 'copyStatus' of 'COMPLETE', causing the step function to
     complete the sync workflow.
     """
+    start_time = time.time()
+    max_execution_time = 12 * 60  # 12 minutes in seconds
 
-    return {'copyStatus': 'COMPLETE'}
+    # Get source and destination table ARNs from event
+    source_table_arn = event['sourceTableArn']
+    destination_table_arn = event['destinationTableArn']
+
+    # Extract table names from ARNs (format: arn:aws:dynamodb:region:account:table/table-name)
+    source_table_name = source_table_arn.split('/')[-1]
+    destination_table_name = destination_table_arn.split('/')[-1]
+
+    # Get any continuation key from previous execution
+    last_evaluated_key = event.get('lastEvaluatedKey')
+
+    logger.info(f'Starting copy of records from {source_table_name} to {destination_table_name}')
+    if last_evaluated_key:
+        logger.info(f'Continuing from last evaluated key: {last_evaluated_key}')
+
+    # Initialize DynamoDB resource
+    dynamodb = boto3.resource('dynamodb')
+    source_table = dynamodb.Table(source_table_name)
+    destination_table = dynamodb.Table(destination_table_name)
+
+    total_copied = 0
+
+    try:
+        while True:
+            # Check if we're approaching the time limit
+            current_time = time.time()
+            elapsed_time = current_time - start_time
+
+            if elapsed_time > max_execution_time:
+                logger.info(f'Approaching time limit after {elapsed_time:.2f} seconds. Returning IN_PROGRESS status.')
+                return {
+                    'copyStatus': 'IN_PROGRESS',
+                    'lastEvaluatedKey': last_evaluated_key,
+                    'copiedCount': total_copied,
+                    'sourceTableArn': source_table_arn,
+                    'destinationTableArn': destination_table_arn,
+                }
+
+            # Scan the source table to get records to copy
+            scan_kwargs = {
+                'Limit': 100  # Process in smaller batches for better performance
+            }
+
+            if last_evaluated_key:
+                scan_kwargs['ExclusiveStartKey'] = last_evaluated_key
+
+            response = source_table.scan(**scan_kwargs)
+            items = response.get('Items', [])
+
+            if not items:
+                # No more items to copy
+                logger.info(f'Copy complete. Total records copied: {total_copied}')
+                return {
+                    'copyStatus': 'COMPLETE',
+                    'copiedCount': total_copied,
+                    'sourceTableArn': source_table_arn,
+                    'destinationTableArn': destination_table_arn,
+                }
+
+            # Copy items to destination table using batch_writer
+            with destination_table.batch_writer() as batch:
+                for item in items:
+                    batch.put_item(Item=item)
+                    total_copied += 1
+
+            logger.info(f'Copied batch of {len(items)} records. Total copied so far: {total_copied}')
+
+            # Update last_evaluated_key for next iteration
+            last_evaluated_key = response.get('LastEvaluatedKey')
+
+            # If no more pages, we're done
+            if not last_evaluated_key:
+                logger.info(f'Copy complete. Total records copied: {total_copied}')
+                return {
+                    'copyStatus': 'COMPLETE',
+                    'copiedCount': total_copied,
+                    'sourceTableArn': source_table_arn,
+                    'destinationTableArn': destination_table_arn,
+                }
+
+    except Exception as e:
+        logger.error(f'Error during copy: {str(e)}')
+        return {
+            'copyStatus': 'FAILED',
+            'error': str(e),
+            'copiedCount': total_copied,
+            'sourceTableArn': source_table_arn,
+            'destinationTableArn': destination_table_arn,
+            'lastEvaluatedKey': last_evaluated_key,
+        }
