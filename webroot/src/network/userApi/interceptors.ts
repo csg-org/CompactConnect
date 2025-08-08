@@ -72,8 +72,6 @@ export const responseError = (router) => (error) => {
     const axiosResponse = error.response;
     let serverResponse;
 
-    console.log(router);
-
     if (axiosResponse) {
         // Get API response
         serverResponse = axiosResponse.data || {};

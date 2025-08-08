@@ -629,6 +629,7 @@
         "confirmPrivilegeDeactivateTitle": "¿Está seguro de que desea desactivar este privilegio?",
         "confirmPrivilegeDeactivateSubtext": "El profesional ya no podrá ejercer este privilegio. Esto no constituye una sanción disciplinaria.",
         "deactivateNotesTitle": "Notas de desactivación",
+        "deactivation": "Desactivación",
         "deactivateNotesPlaceholder": "Introduzca notas aquí",
         "confirmPrivilegeDeactivateSubmit": "Sí, desactivar privilegio",
         "encumber": "Cargar",
@@ -659,7 +660,7 @@
         "licenseEvents": [
             {
                 "name": "Privilegio comprado",
-                "key": "purchased"
+                "key": "issuance"
             },
             {
                 "name": "Renovación",
@@ -667,11 +668,27 @@
             },
             {
                 "name": "Expirado",
-                "key": "expired"
+                "key": "expiration"
             },
             {
                 "name": "Desactivación",
                 "key": "deactivation"
+            },
+            {
+                "name": "Desactivación de Licencia",
+                "key": "licenseDeactivation"
+            },
+            {
+                "name": "Inicio Cambio de Jurisdicción",
+                "key": "homeJurisdictionChange"
+            },
+            {
+                "name": "Privilegio sin trabas",
+                "key": "lifting_encumbrance"
+            },
+            {
+                "name": "Encumbrance",
+                "key": "encumbrance"
             }
         ],
         "licenseTypes": [
@@ -747,7 +764,6 @@
         "compactEligible": "Elegible Compacto",
         "notCompactEligible": "No Compacto Elegible",
         "privilegeVerification": "Verificación de privilegios",
-        "licenseNumber": "Número de licencia",
         "privilegeId": "Identificación de privilegio",
         "privilegeType": "Tipo de privilegio",
         "practitionerInformation": "Información para profesionales",
@@ -756,7 +772,9 @@
         "activeDate": "Activa",
         "privilegeProofFooter": "Este documento es generado oficialmente por Compact Connect y sirve como prueba de las licencias y privilegios actuales del profesional.",
         "publicProfileLink": "Ver perfil público en",
-        "qrCodeAlt": "Código QR que enlaza al perfil público"
+        "qrCodeAlt": "QR code linking to public profile",
+        "licenseDeactivationNote": "Desactivado debido a que la licencia asociada está desactivada",
+        "homeStateChangeNote": "Desactivado debido al cambio de estado de origen"
     },
     "military": {
         "militaryStatusTitle": "Estado militar",
