@@ -21,7 +21,7 @@
     background-color: @primaryColor;
     transition: width @navAnimation;
 
-    @media @tabletWidth {
+    @media @tabletWidth and (hover: hover) {
         top: 0;
         width: @navPartialExpandWidth;
         height: 100vh;
@@ -55,6 +55,16 @@
         align-items: center;
         margin-bottom: 1.6rem;
 
+        &.my-nav {
+            &.touch-device {
+                padding-bottom: 2.4rem; // Some touch screen devices, such as iPads, need a little extra room
+            }
+
+            &.iphone-safari {
+                padding-bottom: 8.4rem; // iPhone Safari has aggressive URL bar pinned to bottom of viewport that blocks fixed elements near bottom of page
+            }
+        }
+
         li {
             display: flex;
             align-items: center;
@@ -68,6 +78,7 @@
             &.page-nav {
                 a {
                     display: flex;
+                    flex-grow: 2;
                     align-items: center;
                     padding: 1.2rem 1.6rem; // Bump the left-right padding depending on the @navPartialExpandWidth
                     border-left: 3px solid transparent;

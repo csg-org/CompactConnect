@@ -9,6 +9,7 @@
     <div class="accept-ui-container">
         <div class="accept-ui-button-container">
             <button
+                id="payment-init"
                 type="submit"
                 class="AcceptUI btn-accept-ui"
                 :class="{
