@@ -30,7 +30,7 @@ export const requestSuccess = () => async (requestConfig) => {
     let authToken;
     let authTokenType;
 
-    if (licenseeUserEndPoints.includes(url)) {
+    if (licenseeUserEndPoints.includes(url) || (url.includes('me') && url.includes('history'))) {
         authToken = authStorage.getItem(tokens.licensee.ID_TOKEN);
         authTokenType = authStorage.getItem(tokens.licensee.AUTH_TOKEN_TYPE);
     } else {

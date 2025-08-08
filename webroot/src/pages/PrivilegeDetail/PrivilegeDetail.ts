@@ -5,7 +5,11 @@
 //  Created by InspiringApps on 3/18/2025.
 //
 
-import { Component, Vue } from 'vue-facing-decorator';
+import {
+    Component,
+    Vue,
+    Watch
+} from 'vue-facing-decorator';
 import { AuthTypes } from '@/app.config';
 import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
@@ -26,9 +30,7 @@ export default class PrivilegeDetail extends Vue {
     // Lifecycle
     //
     mounted() {
-        if (!this.licenseeRecord && this.isLoggedInAsStaff) {
-            this.fetchLicenseeData();
-        }
+        this.populateData();
     }
 
     //
@@ -75,7 +77,7 @@ export default class PrivilegeDetail extends Vue {
     }
 
     get isLoading(): boolean {
-        return this.licenseStore?.isLoading || false;
+        return this.licenseStore?.isLoading || this.userStore?.isLoadingPrivilegeHistory || false;
     }
 
     get compact(): string {
@@ -108,8 +110,20 @@ export default class PrivilegeDetail extends Vue {
         return foundPrivilege;
     }
 
+    get privilegeLicenseTypeAbbrev(): string {
+        return this.privilege?.licenseTypeAbbreviation() || '';
+    }
+
     get privilegeTitle(): string {
-        return `${this.privilege?.licenseTypeAbbreviation() || ''} - ${this.privilege?.issueState?.name() || ''}`;
+        return `${this.privilegeLicenseTypeAbbrev} - ${this.privilege?.issueState?.name() || ''}`;
+    }
+
+    get isPrivilegeLoaded(): boolean {
+        return !!this.privilege.id;
+    }
+
+    get isPrivilegeHistoryLoaded(): boolean {
+        return !!this.privilege.history?.length || false;
     }
 
     //
@@ -123,5 +137,55 @@ export default class PrivilegeDetail extends Vue {
         const { licenseeId } = this;
 
         await this.$store.dispatch('license/getLicenseeRequest', { compact: this.compact, licenseeId });
+    }
+
+    async fetchPrivilegeHistoryStaff(): Promise<void> {
+        const issueStateAbbrev = this.privilege.issueState?.abbrev;
+
+        if (issueStateAbbrev && this.privilegeLicenseTypeAbbrev) {
+            await this.$store.dispatch('license/getPrivilegeHistoryRequest', {
+                compact: this.compact,
+                providerId: this.licenseeId,
+                jurisdiction: issueStateAbbrev,
+                licenseTypeAbbrev: this.privilegeLicenseTypeAbbrev,
+                isPublic: false
+            });
+        }
+    }
+
+    async fetchPrivilegeHistoryProvider(): Promise<void> {
+        const issueStateAbbrev = this.privilege.issueState?.abbrev;
+
+        if (issueStateAbbrev && this.privilegeLicenseTypeAbbrev) {
+            await this.$store.dispatch('user/getPrivilegeHistoryRequestLicensee', {
+                jurisdiction: issueStateAbbrev,
+                licenseTypeAbbrev: this.privilegeLicenseTypeAbbrev
+            });
+        }
+    }
+
+    async populateData(): Promise<void> {
+        if (this.isLoggedInAsStaff) {
+            if (!this.licenseeRecord) {
+                await this.fetchLicenseeData();
+            }
+
+            if (!this.isPrivilegeHistoryLoaded) {
+                this.fetchPrivilegeHistoryStaff();
+            }
+        } else if (this.isLoggedInAsLicensee) {
+            if (!this.isPrivilegeHistoryLoaded) {
+                this.fetchPrivilegeHistoryProvider();
+            }
+        }
+    }
+
+    //
+    // Watch
+    //
+    @Watch('isPrivilegeLoaded') fetchPrivilegeHistory() {
+        if (this.isLoggedInAsLicensee && !this.isPrivilegeHistoryLoaded) {
+            this.fetchPrivilegeHistoryProvider();
+        }
     }
 }

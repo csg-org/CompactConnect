@@ -10,7 +10,7 @@ import { serverDateFormat } from '@/app.config';
 import { dateDisplay } from '@models/_formatters/date';
 import { Compact } from '@models/Compact/Compact.model';
 import { State } from '@models/State/State.model';
-import { LicenseHistoryItem, LicenseHistoryItemSerializer } from '@models/LicenseHistoryItem/LicenseHistoryItem.model';
+import { LicenseHistoryItem } from '@models/LicenseHistoryItem/LicenseHistoryItem.model';
 import { Address, AddressSerializer } from '@models/Address/Address.model';
 import { AdverseAction, AdverseActionSerializer } from '@models/AdverseAction/AdverseAction.model';
 import moment from 'moment';
@@ -121,11 +121,14 @@ export class License implements InterfaceLicense {
     }
 
     public isDeactivated(): boolean {
+        // This will only be populated once we fetch the history data from the history endpoint
         const { history } = this;
         const historyLength = history?.length || 0;
         const lastEvent = (history && historyLength) ? history[historyLength - 1] : new LicenseHistoryItem();
 
-        const isLastEventDeactivation = lastEvent.updateType === 'deactivation';
+        const isLastEventDeactivation = lastEvent.updateType === 'deactivation'
+            || lastEvent.updateType === 'licenseDeactivation'
+            || lastEvent.updateType === 'homeJurisdictionChange';
         const isInactive = this.status === LicenseStatus.INACTIVE;
 
         return isLastEventDeactivation && isInactive;
@@ -149,46 +152,6 @@ export class License implements InterfaceLicense {
         const licenseTypeToShow = (displayAbbrev) ? this.licenseTypeAbbreviation() : this.licenseType;
 
         return `${stateName}${stateName && licenseTypeToShow ? delimiter : ''}${licenseTypeToShow || ''}`;
-    }
-
-    public historyWithFabricatedEvents(): Array<LicenseHistoryItem> {
-        // inject purchase event
-        const historyWithFabricatedEvents = [ new LicenseHistoryItem({
-            type: 'fabricatedEvent',
-            updateType: 'purchased',
-            dateOfUpdate: this.issueDate
-        })];
-
-        // inject expiration events
-        if (Array.isArray(this.history)) {
-            this.history.forEach((historyItem) => {
-                const { updateType, previousValues, dateOfUpdate } = historyItem;
-                const { dateOfExpiration } = previousValues as any;
-
-                if (updateType === 'renewal'
-                    && (previousValues as any)?.dateOfExpiration
-                    && dateOfUpdate
-                    && (isDatePastExpiration({ date: dateOfUpdate, dateOfExpiration }))) {
-                    historyWithFabricatedEvents.push(new LicenseHistoryItem({
-                        type: 'fabricatedEvent',
-                        updateType: 'expired',
-                        dateOfUpdate: dateOfExpiration
-                    }));
-                }
-
-                historyWithFabricatedEvents.push(historyItem);
-            });
-
-            if (this.isExpired()) {
-                historyWithFabricatedEvents.push(new LicenseHistoryItem({
-                    type: 'fabricatedEvent',
-                    updateType: 'expired',
-                    dateOfUpdate: this.expireDate
-                }));
-            }
-        }
-
-        return historyWithFabricatedEvents;
     }
 
     public isEncumbered(): boolean {
@@ -221,7 +184,6 @@ export class LicenseSerializer {
             renewalDate: json.dateOfRenewal,
             expireDate: json.dateOfExpiration,
             licenseType: json.licenseType,
-            history: [] as Array<LicenseHistoryItem>,
             status: json.licenseStatus || json.status,
             statusDescription: json.licenseStatusName,
             eligibility: (json.type === 'license' || json.type === 'license-home')
@@ -229,12 +191,6 @@ export class LicenseSerializer {
                 : EligibilityStatus.NA,
             adverseActions: [] as Array<AdverseAction>,
         };
-
-        if (Array.isArray(json.history)) {
-            json.history.forEach((serverHistoryItem) => {
-                licenseData.history.push(LicenseHistoryItemSerializer.fromServer(serverHistoryItem));
-            });
-        }
 
         if (Array.isArray(json.adverseActions)) {
             json.adverseActions.forEach((serverAdverseAction) => {

@@ -5,6 +5,7 @@
 //  Created by InspiringApps on 7/2/24.
 //
 import { LicenseSearch } from '@components/Licensee/LicenseeSearch/LicenseeSearch.vue';
+import getters from './license.getters';
 
 export enum MutationTypes {
     GET_LICENSEES_REQUEST = '[License] Get Licensees Request',
@@ -17,6 +18,9 @@ export enum MutationTypes {
     GET_LICENSEE_REQUEST = '[License] Get Licensee Request',
     GET_LICENSEE_FAILURE = '[License] Get Licensee Failure',
     GET_LICENSEE_SUCCESS = '[License] Get Licensee Success',
+    GET_PRIVILEGE_HISTORY_REQUEST = '[User] Get Privilege History Request',
+    GET_PRIVILEGE_HISTORY_SUCCESS = '[User] Get Privilege History Success',
+    GET_PRIVILEGE_HISTORY_FAILURE = '[User] Get Privilege History Failure',
     STORE_UPDATE_LICENSEE = '[License] Updated Licensee in store',
     STORE_REMOVE_LICENSEE = '[License] Remove Licensee from store',
     STORE_UPDATE_SEARCH = '[License] Update search params',
@@ -116,5 +120,26 @@ export default {
             lastName: '',
             state: '',
         };
+    },
+    [MutationTypes.GET_PRIVILEGE_HISTORY_REQUEST]: (state: any) => {
+        state.isLoading = true;
+        state.error = null;
+    },
+    [MutationTypes.GET_PRIVILEGE_HISTORY_SUCCESS]: (state: any, { history }) => {
+        const privilegeId = `${history.providerId}-${history.jurisdiction}-${history.licenseType}`;
+        const licenseeId = history.providerId;
+
+        const privilege = getters.getPrivilegeByLicenseeIdAndId(state)({ licenseeId, privilegeId });
+
+        if (privilege) {
+            privilege.history = history.events;
+        }
+
+        state.isLoading = false;
+        state.error = null;
+    },
+    [MutationTypes.GET_PRIVILEGE_HISTORY_FAILURE]: (state: any, error: Error) => {
+        state.isLoading = false;
+        state.error = error;
     },
 };

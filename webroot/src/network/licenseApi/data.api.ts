@@ -16,6 +16,7 @@ import {
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 import { LicenseeSerializer } from '@models/Licensee/Licensee.model';
 import { PrivilegeAttestation, PrivilegeAttestationSerializer } from '@models/PrivilegeAttestation/PrivilegeAttestation.model';
+import { LicenseHistorySerializer } from '@/models/LicenseHistory/LicenseHistory.model';
 
 export interface RequestParamsInterfaceLocal {
     isPublic?: boolean;
@@ -394,6 +395,48 @@ export class LicenseDataApi implements DataApiInterface {
         });
 
         return serverResponse.data || {};
+    }
+
+    /**
+     * GET Authenticated Privilege History for a staff user.
+     * @param  {string}     compact compact of privilege
+     * @param  {string}     providerId providerId of privilege holder
+     * @param  {string}     jurisdiction jurisdiction of privilege
+     * @param  {string}     licenseTypeAbbrev licenseTypeAbbrev of privilege
+     * @return {Promise<object>} A PrivilegeHistory model instance.
+     */
+    public async getPrivilegeHistoryStaff(
+        compact: string,
+        providerId: string,
+        jurisdiction: string,
+        licenseTypeAbbrev: string
+    ) {
+        const serverResponse: any = await this.api.get(
+            `/v1/compacts/${compact}/providers/${providerId}/privileges/jurisdiction/${jurisdiction.toLowerCase()}/licenseType/${licenseTypeAbbrev.toLowerCase()}/history`
+        );
+
+        return LicenseHistorySerializer.fromServer(serverResponse);
+    }
+
+    /**
+     * GET Authenticated Privilege History for an unauthenticated user.
+     * @param  {string}     compact compact of privilege
+     * @param  {string}     providerId providerId of privilege holder
+     * @param  {string}     jurisdiction jurisdiction of privilege
+     * @param  {string}     licenseTypeAbbrev licenseTypeAbbrev of privilege
+     * @return {Promise<object>} A PrivilegeHistory model instance.
+     */
+    public async getPrivilegeHistoryPublic(
+        compact: string,
+        providerId: string,
+        jurisdiction: string,
+        licenseTypeAbbrev: string
+    ) {
+        const serverResponse: any = await this.api.get(
+            `/v1/public/compacts/${compact}/providers/${providerId}/jurisdiction/${jurisdiction.toLowerCase()}/licenseType/${licenseTypeAbbrev.toLowerCase()}/history`
+        );
+
+        return LicenseHistorySerializer.fromServer(serverResponse);
     }
 }
 

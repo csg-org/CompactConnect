@@ -9,6 +9,7 @@ import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 import { LicenseeSerializer } from '@models/Licensee/Licensee.model';
 import { LicenseeUserSerializer } from '@models/LicenseeUser/LicenseeUser.model';
 import { StaffUserSerializer } from '@models/StaffUser/StaffUser.model';
+import { LicenseHistorySerializer } from '@models/LicenseHistory/LicenseHistory.model';
 import { PrivilegePurchaseOptionSerializer } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
 import { PrivilegeAttestationSerializer } from '@models/PrivilegeAttestation/PrivilegeAttestation.model';
 import { CompactFeeConfigSerializer } from '@/models/CompactFeeConfig/CompactFeeConfig.model';
@@ -24,7 +25,8 @@ import {
     getAttestation,
     compactStates,
     compactConfig,
-    stateConfig
+    stateConfig,
+    mockPrivilegeHistoryResponse
 } from '@network/mocks/mock.data';
 
 let mockStore: any = null;
@@ -285,6 +287,58 @@ export class DataApi {
         }));
     }
 
+    // Get Privilege History (Public)
+    public getPrivilegeHistoryPublic(
+        compact,
+        providerId,
+        jurisdiction,
+        licenseTypeAbbrev
+    ) {
+        const serverResponse = mockPrivilegeHistoryResponse;
+        let response;
+
+        if (serverResponse
+            && compact
+            && providerId
+            && jurisdiction
+            && licenseTypeAbbrev
+        ) {
+            response = wait(500).then(() => (LicenseHistorySerializer.fromServer(serverResponse)));
+        } else {
+            response = wait(500).then(() => {
+                throw new Error('not found');
+            });
+        }
+
+        return response;
+    }
+
+    // Get Privilege History (Public)
+    public getPrivilegeHistoryStaff(
+        compact,
+        providerId,
+        jurisdiction,
+        licenseTypeAbbrev
+    ) {
+        const serverResponse = mockPrivilegeHistoryResponse;
+        let response;
+
+        if (serverResponse
+            && compact
+            && providerId
+            && jurisdiction
+            && licenseTypeAbbrev
+        ) {
+            response = wait(500).then(() => (LicenseHistorySerializer.fromServer(serverResponse)));
+        } else {
+            response = wait(500).then(() => {
+                throw new Error('not found');
+            });
+        }
+
+        return response;
+    }
+
     // ========================================================================
     //                              STAFF USER API
     // ========================================================================
@@ -422,6 +476,27 @@ export class DataApi {
         return wait(500).then(() => ({
             message: 'success',
         }));
+    }
+
+    /**
+     * GET Authenticated Licensee User privilege's history.
+     * @param  {string}     jurisdiction jurisdiction of privilege
+     * @param  {string}     licenseTypeAbbrev license type abbreviation of privilege
+     * @return {Promise<>} A User model instance.
+     */
+    public getPrivilegeHistoryLicensee(jurisdiction: string, licenseTypeAbbrev: string) {
+        const serverResponse = mockPrivilegeHistoryResponse;
+        let response;
+
+        if (serverResponse && jurisdiction && licenseTypeAbbrev) {
+            response = wait(500).then(() => (LicenseHistorySerializer.fromServer(serverResponse)));
+        } else {
+            response = wait(500).then(() => {
+                throw new Error('not found');
+            });
+        }
+
+        return response;
     }
 
     // ========================================================================
