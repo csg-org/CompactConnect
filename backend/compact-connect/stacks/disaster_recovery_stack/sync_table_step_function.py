@@ -197,6 +197,8 @@ class SyncTableDataStepFunctionConstruct(Construct):
                 # the destination table is hardcoded to what is created during the deployment
                 'sourceTableArn.$': '$.sourceTableArn',
                 'destinationTableArn': destination_table.table_arn,
+                # Used by the lambdas to ensure the execution guard flag is present and matches the expected table name
+                'tableNameRecoveryConfirmation.$': '$.tableNameRecoveryConfirmation',
             },
             comment='Initialize sync operation with input parameters',
             result_path='$',

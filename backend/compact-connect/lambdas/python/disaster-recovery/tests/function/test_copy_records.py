@@ -10,7 +10,11 @@ class TestCopyRecords(TstFunction):
     """Test suite for DR copy records step."""
 
     def _generate_test_event(self) -> dict:
-        return {'sourceTableArn': self.mock_source_table_arn, 'destinationTableArn': self.mock_destination_table_arn}
+        return {
+            'sourceTableArn': self.mock_source_table_arn,
+            'destinationTableArn': self.mock_destination_table_arn,
+            'tableNameRecoveryConfirmation': self.mock_destination_table_name,
+        }
 
     def test_copy_records_returns_complete_status_when_records_copied_over(self):
         """Test expected_status_is_returned_when_complete"""
@@ -23,6 +27,23 @@ class TestCopyRecords(TstFunction):
         self.assertEqual(
             'COMPLETE',
             response['copyStatus'],
+        )
+
+    def test_lambda_returns_failed_copy_status_when_guard_rail_fails(self):
+        """Test getting the latest version of an attestation."""
+        from handlers.copy_records import copy_records
+
+        event = self._generate_test_event()
+        event['tableNameRecoveryConfirmation'] = 'invalid-table-name'
+        response = copy_records(event, self.mock_context)
+
+        self.assertEqual(
+            {
+                'copyStatus': 'FAILED',
+                'error': 'Invalid table name specified. tableNameRecoveryConfirmation field must be set to '
+                'Test-PersistentStack-ProviderTableEC5D0597-TQ2RIO6VVBRE',
+            },
+            response,
         )
 
     def test_copy_records_copies_all_records_over_from_source_to_destination_table(self):
@@ -49,6 +70,7 @@ class TestCopyRecords(TstFunction):
                 'copiedCount': 5000,
                 'sourceTableArn': self.mock_source_table_arn,
                 'destinationTableArn': self.mock_destination_table_arn,
+                'tableNameRecoveryConfirmation': self.mock_destination_table_name,
             },
             response,
         )
@@ -112,6 +134,7 @@ class TestCopyRecords(TstFunction):
                 'copyLastEvaluatedKey': 'eyJwayI6ICIxMDg3IiwgInNrIjogIjEwODcifQ==',
                 'sourceTableArn': self.mock_source_table_arn,
                 'destinationTableArn': self.mock_destination_table_arn,
+                'tableNameRecoveryConfirmation': self.mock_destination_table_name,
             },
             response,
         )
@@ -143,6 +166,7 @@ class TestCopyRecords(TstFunction):
                 'copiedCount': 4900,
                 'sourceTableArn': self.mock_source_table_arn,
                 'destinationTableArn': self.mock_destination_table_arn,
+                'tableNameRecoveryConfirmation': self.mock_destination_table_name,
             },
             response,
         )

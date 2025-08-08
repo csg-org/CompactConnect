@@ -27,6 +27,15 @@ def cleanup_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused
     # Extract table name from ARN (format: arn:aws:dynamodb:region:account:table/table-name)
     table_name = destination_table_arn.split('/')[-1]
 
+    # Guard rail: ensure explicit table name was passed in by caller
+    specified_table_name = event.get('tableNameRecoveryConfirmation')
+    if specified_table_name != table_name:
+        logger.error('DR execution guard flag missing or invalid')
+        return {
+            'deleteStatus': 'FAILED',
+            'error': f'Invalid table name specified. tableNameRecoveryConfirmation field must be set to {table_name}',
+        }
+
     logger.info(f'Starting cleanup of records from table: {table_name}')
 
     # Initialize DynamoDB resource
@@ -53,6 +62,7 @@ def cleanup_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused
                     # pass this through so it is available for following steps
                     'destinationTableArn': destination_table_arn,
                     'sourceTableArn': event['sourceTableArn'],
+                    'tableNameRecoveryConfirmation': event['tableNameRecoveryConfirmation'],
                 }
 
             # Scan the table to get records to delete
@@ -75,6 +85,7 @@ def cleanup_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused
                     # pass this through so it is available for following steps
                     'destinationTableArn': destination_table_arn,
                     'sourceTableArn': event['sourceTableArn'],
+                    'tableNameRecoveryConfirmation': event['tableNameRecoveryConfirmation'],
                 }
 
             # Delete items using batch_writer
@@ -99,6 +110,7 @@ def cleanup_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused
                     # pass this through so it is available for following steps
                     'destinationTableArn': destination_table_arn,
                     'sourceTableArn': event['sourceTableArn'],
+                    'tableNameRecoveryConfirmation': event['tableNameRecoveryConfirmation'],
                 }
 
     except ClientError as e:
@@ -111,4 +123,5 @@ def cleanup_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused
             # pass this through so it is available for following steps
             'destinationTableArn': destination_table_arn,
             'sourceTableArn': event['sourceTableArn'],
+            'tableNameRecoveryConfirmation': event['tableNameRecoveryConfirmation'],
         }
