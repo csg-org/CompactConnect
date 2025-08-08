@@ -669,7 +669,7 @@
             },
             {
                 "name": "Expired",
-                "key": "expired"
+                "key": "expiration"
             },
             {
                 "name": "Deactivation",

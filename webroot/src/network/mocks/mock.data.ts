@@ -2116,6 +2116,93 @@ export const stateConfig = {
     ],
 };
 
+export const mockPrivilegeHistoryReponse = {
+    providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
+    compact: 'octp',
+    jurisdiction: 'ne',
+    licenseType: 'occupational therapy assistant',
+    privilegeId: 'OT-NE-26',
+    events: [
+        {
+            type: 'privilegeUpdate',
+            updateType: 'issuance',
+            dateOfUpdate: '2024-06-23T07:46:19+00:00',
+            effectiveDate: '2024-06-23',
+            createDate: '2024-06-23T07:46:19+00:00'
+        },
+        {
+            type: 'privilegeUpdate',
+            updateType: 'encumbrance',
+            dateOfUpdate: '2025-07-17T17:04:38+00:00',
+            effectiveDate: '2025-07-01',
+            createDate: '2025-07-17T17:04:38+00:00'
+        },
+        {
+            type: 'privilegeUpdate',
+            updateType: 'lifting_encumbrance',
+            dateOfUpdate: '2025-07-29T23:10:15+00:00',
+            effectiveDate: '2025-07-18',
+            createDate: '2025-07-29T23:10:15+00:00'
+        },
+        {
+            type: 'privilegeUpdate',
+            updateType: 'deactivation',
+            dateOfUpdate: '2025-07-29T23:10:15+00:00',
+            effectiveDate: '2025-07-29',
+            createDate: '2025-07-29T23:10:15+00:00'
+        },
+        {
+            type: 'privilegeUpdate',
+            updateType: 'renewal',
+            dateOfUpdate: '2025-08-04T22:28:59+00:00',
+            effectiveDate: '2025-08-04',
+            createDate: '2025-08-04T22:28:59+00:00'
+        },
+        {
+            type: 'privilegeUpdate',
+            updateType: 'expiration',
+            dateOfUpdate: '2025-08-05T22:28:59+00:00',
+            effectiveDate: '2025-08-05',
+            createDate: '2025-08-05T22:28:59+00:00'
+        },
+        {
+            type: 'privilegeUpdate',
+            updateType: 'renewal',
+            dateOfUpdate: '2025-08-06T22:28:59+00:00',
+            effectiveDate: '2025-08-06',
+            createDate: '2025-08-06T22:28:59+00:00'
+        },
+        {
+            type: 'privilegeUpdate',
+            updateType: 'homeJurisdictionChange',
+            dateOfUpdate: '2025-08-07T20:36:31+00:00',
+            effectiveDate: '2025-08-07',
+            createDate: '2025-08-07T20:36:31+00:00'
+        },
+        {
+            type: 'privilegeUpdate',
+            updateType: 'renewal',
+            dateOfUpdate: '2025-08-08T20:42:14+00:00',
+            effectiveDate: '2025-08-08',
+            createDate: '2025-08-08T20:42:14+00:00'
+        },
+        {
+            type: 'privilegeUpdate',
+            updateType: 'licenseDeactivation',
+            dateOfUpdate: '2025-08-09T21:56:37+00:00',
+            effectiveDate: '2025-08-09',
+            createDate: '2025-08-09T21:56:37+00:00'
+        },
+        {
+            type: 'privilegeUpdate',
+            updateType: 'renewal',
+            dateOfUpdate: '2025-08-10T22:28:59+00:00',
+            effectiveDate: '2025-08-10',
+            createDate: '2025-08-10T22:28:59+00:00'
+        },
+    ]
+};
+
 export const pets = [
     {
         id: 1,
