@@ -27,7 +27,7 @@ new AWS organization that we will set up here. Have them:
 - [Enable IAM Billing access](https://docs.aws.amazon.com/IAM/latest/UserGuide/tutorial_billing.html#tutorial-billing-activate) - only Step 1 is required.
 
 ### Deploy the multi-account app
-- For this section, work within the `backend/multi-account` directory
+- For this section, work within the `backend/multi-account/control-tower` directory
 - Copy `cdk.context.example.json` to `cdk.context.json`
 - Update the `account_id` field to your new root account id.
 - Update the `account_name_prefix` to a common name prefix you would like to use for the core AWS account names
@@ -45,7 +45,8 @@ new AWS organization that we will set up here. Have them:
   - `<account_name_prefix>-test-secondary@<email_domain>` (for backups and disaster recovery)
 - Configure your local CLI to use your new IAM User admin credentials.
 - Install the requirements in `requirements.txt` into your local python environment.
-- Run `cdk bootstrap` to provision some CDK support infrastructure into your account.
+- If this is your first time deploying, run `cdk bootstrap` to provision some CDK support infrastructure into your account.
+- If this is not your first time deploying, run `cdk diff` and verify the changes that will be applied.
 - Run `cdk deploy --all` to deploy this app
 
 ### Set Up IAM Identity Center

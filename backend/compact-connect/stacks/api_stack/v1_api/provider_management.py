@@ -17,15 +17,13 @@ from aws_cdk.aws_events import EventBus
 from aws_cdk.aws_iam import Policy, PolicyStatement
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
+from common_constructs.cc_api import CCApi
 from common_constructs.nodejs_function import NodejsFunction
 from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
 
 from stacks import persistent_stack as ps
-
-# Importing module level to allow lazy loading for typing
-from stacks.api_stack import cc_api
-from stacks.persistent_stack import ProviderTable, RateLimitingTable, SSNTable, StaffUsers
+from stacks.persistent_stack import ProviderTable, ProviderUsersBucket, RateLimitingTable, SSNTable, StaffUsers
 
 from .api_model import ApiModel
 
@@ -45,11 +43,12 @@ class ProviderManagement:
         persistent_stack: ps.PersistentStack,
         data_event_bus: EventBus,
         api_model: ApiModel,
+        privilege_history_function: PythonFunction,
     ):
         super().__init__()
 
         self.resource = resource
-        self.api: cc_api.CCApi = resource.api
+        self.api: CCApi = resource.api
         self.api_model = api_model
 
         stack: Stack = Stack.of(resource)
@@ -65,6 +64,7 @@ class ProviderManagement:
             'USER_POOL_ID': persistent_stack.staff_users.user_pool_id,
             'EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME': persistent_stack.email_notification_service_lambda.function_name,
             'USERS_TABLE_NAME': persistent_stack.staff_users.user_table.table_name,
+            'PROVIDER_USER_BUCKET_NAME': persistent_stack.provider_users_bucket.bucket_name,
             **stack.common_env_vars,
         }
 
@@ -77,6 +77,7 @@ class ProviderManagement:
         self.privilege_jurisdiction_license_type_resource = self.privilege_jurisdiction_resource.add_resource(
             'licenseType'
         ).add_resource('{licenseType}')
+
         self.licenses_resource = self.provider_resource.add_resource('licenses')
         self.license_jurisdiction_resource = self.licenses_resource.add_resource('jurisdiction').add_resource(
             '{jurisdiction}'
@@ -95,6 +96,7 @@ class ProviderManagement:
             method_options=method_options,
             data_encryption_key=persistent_stack.shared_encryption_key,
             provider_data_table=persistent_stack.provider_table,
+            provider_users_bucket=persistent_stack.provider_users_bucket,
             lambda_environment=lambda_environment,
         )
         self._add_get_provider_ssn(
@@ -125,11 +127,17 @@ class ProviderManagement:
 
         self._add_encumber_license(method_options=admin_method_options)
 
+        self._add_get_privilege_history(
+            method_options=method_options,
+            privilege_history_function=privilege_history_function,
+        )
+
     def _add_get_provider(
         self,
         method_options: MethodOptions,
         data_encryption_key: IKey,
         provider_data_table: ProviderTable,
+        provider_users_bucket: ProviderUsersBucket,
         lambda_environment: dict,
     ):
         self.get_provider_handler = self._get_provider_handler(
@@ -137,6 +145,7 @@ class ProviderManagement:
             provider_data_table=provider_data_table,
             lambda_environment=lambda_environment,
         )
+        provider_users_bucket.grant_read(self.get_provider_handler)
         self.api.log_groups.append(self.get_provider_handler.log_group)
 
         self.provider_resource.add_method(
@@ -684,6 +693,28 @@ class ProviderManagement:
                 ),
             ],
             integration=LambdaIntegration(self.provider_encumbrance_handler, timeout=Duration.seconds(29)),
+            request_parameters={'method.request.header.Authorization': True},
+            authorization_type=method_options.authorization_type,
+            authorizer=method_options.authorizer,
+            authorization_scopes=method_options.authorization_scopes,
+        )
+
+    def _add_get_privilege_history(
+        self,
+        method_options: MethodOptions,
+        privilege_history_function: PythonFunction,
+    ):
+        self.privilege_history_resource = self.privilege_jurisdiction_license_type_resource.add_resource('history')
+
+        self.privilege_history_resource.add_method(
+            'GET',
+            method_responses=[
+                MethodResponse(
+                    status_code='200',
+                    response_models={'application/json': self.api_model.privilege_history_response_model},
+                ),
+            ],
+            integration=LambdaIntegration(privilege_history_function, timeout=Duration.seconds(29)),
             request_parameters={'method.request.header.Authorization': True},
             authorization_type=method_options.authorization_type,
             authorizer=method_options.authorizer,

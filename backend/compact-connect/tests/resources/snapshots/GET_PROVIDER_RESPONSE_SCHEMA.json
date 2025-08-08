@@ -1700,6 +1700,24 @@
               "inactive"
             ],
             "type": "string"
+          },
+          "downloadLinks": {
+            "items": {
+              "properties": {
+                "url": {
+                  "type": "string"
+                },
+                "fileName": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "url",
+                "fileName"
+              ],
+              "type": "object"
+            },
+            "type": "array"
           }
         },
         "required": [

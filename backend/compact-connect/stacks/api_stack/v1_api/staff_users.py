@@ -21,12 +21,11 @@ from aws_cdk.aws_cognito import IUserPool
 from aws_cdk.aws_dynamodb import ITable
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
+from common_constructs.cc_api import CCApi
 from common_constructs.python_function import PythonFunction
 
-# Importing module level to allow lazy loading for typing
 from stacks import persistent_stack as ps
 
-from .. import cc_api
 from .api_model import ApiModel
 
 
@@ -44,7 +43,7 @@ class StaffUsers:
 
         self.stack: ps.PersistentStack = ps.PersistentStack.of(admin_resource)
         self.admin_resource = admin_resource
-        self.api: cc_api.CCApi = admin_resource.api
+        self.api: CCApi = admin_resource.api
         self.api_model = api_model
 
         self.log_groups = []

@@ -89,7 +89,10 @@ describe('FormInput model', () => {
             isLabelHTML: true,
             placeholder: 'test',
             value: 'test',
-            valueOptions: [{ value: 'test', name: 'test' }],
+            valueOptions: [
+                { value: 'test1', name: 'test1' },
+                { value: 'test2', name: 'test2', superLabel: 'test2' },
+            ],
             autocomplete: 'off',
             fileConfig: {
                 accepts: ['application/pdf'],
@@ -130,7 +133,7 @@ describe('FormInput model', () => {
         expect(formInput.isLabelHTML).to.equal(values.isLabelHTML);
         expect(formInput.placeholder).to.equal(values.placeholder);
         expect(formInput.value).to.equal(values.value);
-        expect(formInput.valueOptions).to.be.an('array').with.length(1);
+        expect(formInput.valueOptions).to.be.an('array').with.length(2);
         expect(formInput.valueOptions).to.have.members(values.valueOptions);
         expect(formInput.autocomplete).to.equal(values.autocomplete);
         expect(formInput.fileConfig).to.be.an('object');
