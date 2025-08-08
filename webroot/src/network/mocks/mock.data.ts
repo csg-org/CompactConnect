@@ -3001,7 +3001,7 @@ export const stateConfig = {
     ],
 };
 
-export const mockPrivilegeHistoryReponse = {
+export const mockPrivilegeHistoryResponse = {
     providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
     compact: 'octp',
     jurisdiction: 'ne',

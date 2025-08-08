@@ -26,7 +26,7 @@ import {
     compactStates,
     compactConfig,
     stateConfig,
-    mockPrivilegeHistoryReponse
+    mockPrivilegeHistoryResponse
 } from '@network/mocks/mock.data';
 
 let mockStore: any = null;
@@ -294,7 +294,7 @@ export class DataApi {
         jurisdiction,
         licenseTypeAbbrev
     ) {
-        const serverResponse = mockPrivilegeHistoryReponse;
+        const serverResponse = mockPrivilegeHistoryResponse;
         let response;
 
         if (serverResponse
@@ -320,7 +320,7 @@ export class DataApi {
         jurisdiction,
         licenseTypeAbbrev
     ) {
-        const serverResponse = mockPrivilegeHistoryReponse;
+        const serverResponse = mockPrivilegeHistoryResponse;
         let response;
 
         if (serverResponse
@@ -485,7 +485,7 @@ export class DataApi {
      * @return {Promise<>} A User model instance.
      */
     public getPrivilegeHistoryLicensee(jurisdiction: string, licenseTypeAbbrev: string) {
-        const serverResponse = mockPrivilegeHistoryReponse;
+        const serverResponse = mockPrivilegeHistoryResponse;
         let response;
 
         if (serverResponse && jurisdiction && licenseTypeAbbrev) {
