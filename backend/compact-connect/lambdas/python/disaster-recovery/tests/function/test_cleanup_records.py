@@ -10,7 +10,28 @@ class TestCleanupRecords(TstFunction):
     """Test suite for attestation endpoints."""
 
     def _generate_test_event(self) -> dict:
-        return {'destinationTableArn': self.mock_destination_table_arn, 'sourceTableArn': self.mock_source_table_arn}
+        return {
+            'destinationTableArn': self.mock_destination_table_arn,
+            'sourceTableArn': self.mock_source_table_arn,
+            'tableNameRecoveryConfirmation': self.mock_destination_table_name,
+        }
+
+    def test_lambda_returns_failed_delete_status_when_guard_rail_fails(self):
+        """Test getting the latest version of an attestation."""
+        from handlers.cleanup_records import cleanup_records
+
+        event = self._generate_test_event()
+        event['tableNameRecoveryConfirmation'] = 'invalid-table-name'
+        response = cleanup_records(event, self.mock_context)
+
+        self.assertEqual(
+            {
+                'deleteStatus': 'FAILED',
+                'error': 'Invalid table name specified. tableNameRecoveryConfirmation field must be set to '
+                'Test-PersistentStack-ProviderTableEC5D0597-TQ2RIO6VVBRE',
+            },
+            response,
+        )
 
     def test_lambda_returns_complete_delete_status_when_all_records_cleaned_up(self):
         """Test getting the latest version of an attestation."""
@@ -43,6 +64,7 @@ class TestCleanupRecords(TstFunction):
                 'deleteStatus': 'COMPLETE',
                 'destinationTableArn': self.mock_destination_table_arn,
                 'sourceTableArn': self.mock_source_table_arn,
+                'tableNameRecoveryConfirmation': self.mock_destination_table_name,
             },
             response,
         )
@@ -92,6 +114,7 @@ class TestCleanupRecords(TstFunction):
                 'deleteStatus': 'IN_PROGRESS',
                 'destinationTableArn': self.mock_destination_table_arn,
                 'sourceTableArn': self.mock_source_table_arn,
+                'tableNameRecoveryConfirmation': self.mock_destination_table_name,
             },
             response,
         )

@@ -30,6 +30,16 @@ def copy_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused-ar
     source_table_name = source_table_arn.split('/')[-1]
     destination_table_name = destination_table_arn.split('/')[-1]
 
+    # Guard rail: ensure explicit table name was passed in by caller
+    specified_table_name = event.get('tableNameRecoveryConfirmation')
+    if specified_table_name != destination_table_name:
+        logger.error('DR execution guard flag missing or invalid')
+        return {
+            'copyStatus': 'FAILED',
+            'error': f'Invalid table name specified. '
+            f'tableNameRecoveryConfirmation field must be set to {destination_table_name}',
+        }
+
     # Get any pagination key from previous execution
     last_evaluated_key = event.get('copyLastEvaluatedKey')
     if last_evaluated_key is not None:
@@ -60,6 +70,7 @@ def copy_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused-ar
                     'copiedCount': total_copied,
                     'sourceTableArn': source_table_arn,
                     'destinationTableArn': destination_table_arn,
+                    'tableNameRecoveryConfirmation': event['tableNameRecoveryConfirmation'],
                 }
 
             # Scan the source table to get records to copy
@@ -81,6 +92,7 @@ def copy_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused-ar
                     'copiedCount': total_copied,
                     'sourceTableArn': source_table_arn,
                     'destinationTableArn': destination_table_arn,
+                    'tableNameRecoveryConfirmation': event['tableNameRecoveryConfirmation'],
                 }
 
             # Copy items to destination table using batch_writer
@@ -102,6 +114,7 @@ def copy_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused-ar
                     'copiedCount': total_copied,
                     'sourceTableArn': source_table_arn,
                     'destinationTableArn': destination_table_arn,
+                    'tableNameRecoveryConfirmation': event['tableNameRecoveryConfirmation'],
                 }
 
     except ClientError as e:
@@ -113,4 +126,5 @@ def copy_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused-ar
             'sourceTableArn': source_table_arn,
             'destinationTableArn': destination_table_arn,
             'copyLastEvaluatedKey': last_evaluated_key,
+            'tableNameRecoveryConfirmation': event['tableNameRecoveryConfirmation'],
         }
