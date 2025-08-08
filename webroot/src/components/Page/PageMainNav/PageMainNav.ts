@@ -146,9 +146,9 @@ class PageMainNav extends Vue {
         return this.$matches.hover === 'none';
     }
 
-    get isMobileSafari(): boolean {
+    get isIphoneSafari(): boolean {
         const ua = navigator.userAgent;
-        const isIos = /iP(hone|od|ad)/.test(ua);
+        const isIos = /iP(hone|od)/.test(ua);
         const isWebkit = /WebKit/.test(ua);
         const isSafari = /Safari/.test(ua) && !/CriOS|FxiOS|OPiOS|EdgiOS/.test(ua); // Exclude Chrome, Firefox, Opera, Edge on iOS
 

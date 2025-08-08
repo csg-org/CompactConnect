@@ -76,7 +76,7 @@
             class="nav my-nav"
             :class="{
                 'touch-device': isTouchDevice,
-                'mobile-safari': isMobileSafari,
+                'iphone-safari': isIphoneSafari,
             }"
         >
             <li v-for="link in myLinks" :key="link.label" class="page-nav my-links">
