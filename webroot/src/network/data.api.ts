@@ -495,7 +495,7 @@ export class DataApi {
     /**
      * GET Authenticated Licensee User privilege's history.
      * @param  {string}     jurisdiction jurisdiction of privilege
-     * @param  {string}     licenseTypeAbbrev licenseTypeAbbrev of privilege
+     * @param  {string}     licenseTypeAbbrev license type abbreviation of privilege
      * @return {Promise<>} A User model instance.
      */
     public getPrivilegeHistoryLicensee(jurisdiction: string, licenseTypeAbbrev: string) {

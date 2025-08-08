@@ -126,8 +126,8 @@ export default {
         });
     },
     // GET GET LICENSEE PRIVILEGE HISTORY SUCCESS / FAIL HANDLERS
-    getPrivilegeHistorySuccessLicensee: ({ commit, getters }, history) => {
-        commit(MutationTypes.GET_PRIVILEGE_HISTORY_SUCCESS, { history, getters });
+    getPrivilegeHistorySuccessLicensee: ({ commit }, history) => {
+        commit(MutationTypes.GET_PRIVILEGE_HISTORY_SUCCESS, { history });
     },
     getPrivilegeHistoryFailureLicensee: ({ commit }, error: Error) => {
         commit(MutationTypes.GET_PRIVILEGE_HISTORY_FAILURE, error);

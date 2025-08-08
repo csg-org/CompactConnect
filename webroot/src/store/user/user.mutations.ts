@@ -6,10 +6,10 @@
 //
 import { Compact } from '@models/Compact/Compact.model';
 import { LicenseeUser } from '@/models/LicenseeUser/LicenseeUser.model';
-// import { LicenseHistory } from '@/models/LicenseHistory/LicenseHistory.model';
 import { StaffUser } from '@/models/StaffUser/StaffUser.model';
 import { PurchaseFlowStep } from '@/models/PurchaseFlowStep/PurchaseFlowStep.model';
 import { AuthTypes } from '@/app.config';
+import getters from './user.getters';
 
 export enum MutationTypes {
     LOGIN_REQUEST = '[User] Login Request',
@@ -175,7 +175,7 @@ export default {
         state.isLoadingPrivilegeHistory = true;
         state.error = null;
     },
-    [MutationTypes.GET_PRIVILEGE_HISTORY_SUCCESS]: (state: any, { history, getters }) => {
+    [MutationTypes.GET_PRIVILEGE_HISTORY_SUCCESS]: (state: any, { history }) => {
         const privilegeId = `${history.providerId}-${history.jurisdiction}-${history.licenseType}`;
 
         const privilege = getters.getUserPrivilegeById(state)(privilegeId);

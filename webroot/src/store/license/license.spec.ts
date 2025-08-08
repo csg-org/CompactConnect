@@ -475,7 +475,7 @@ describe('License Store Actions', async () => {
 
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_PRIVILEGE_HISTORY_REQUEST]);
-        // expect(dispatch.calledOnce).to.equal(true);
+        expect(dispatch.calledOnce).to.equal(true);
     });
     it('should successfully start privilege history failure', () => {
         const commit = sinon.spy();

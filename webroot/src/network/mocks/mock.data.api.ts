@@ -456,6 +456,27 @@ export class DataApi {
         }));
     }
 
+    /**
+     * GET Authenticated Licensee User privilege's history.
+     * @param  {string}     jurisdiction jurisdiction of privilege
+     * @param  {string}     licenseTypeAbbrev license type abbreviation of privilege
+     * @return {Promise<>} A User model instance.
+     */
+    public getPrivilegeHistoryLicensee(jurisdiction: string, licenseTypeAbbrev: string) {
+        const serverResponse = { jurisdiction, licenseTypeAbbrev };
+        let response;
+
+        if (serverResponse) {
+            response = wait(500).then(() => (serverResponse));
+        } else {
+            response = wait(500).then(() => {
+                throw new Error('not found');
+            });
+        }
+
+        return response;
+    }
+
     // ========================================================================
     //                              EXAMPLE API
     // ========================================================================
