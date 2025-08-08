@@ -4,6 +4,7 @@ from base64 import b64decode, b64encode
 
 import boto3
 from aws_lambda_powertools.utilities.typing import LambdaContext
+from botocore.exceptions import ClientError
 from cc_common.config import logger
 
 
@@ -103,7 +104,7 @@ def copy_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused-ar
                     'destinationTableArn': destination_table_arn,
                 }
 
-    except Exception as e:
+    except ClientError as e:
         logger.error(f'Error during copy: {str(e)}')
         return {
             'copyStatus': 'FAILED',
