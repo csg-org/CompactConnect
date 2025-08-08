@@ -610,6 +610,7 @@
         "status": "Status",
         "expired": "Expired",
         "issueDate": "Issue Date",
+        "activeFrom": "Active from",
         "state": "State",
         "issued": "Issued",
         "expirationDate": "Expiration date",
