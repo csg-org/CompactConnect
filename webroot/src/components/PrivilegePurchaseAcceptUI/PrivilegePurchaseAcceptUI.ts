@@ -52,7 +52,9 @@ class PrivilegePurchaseAcceptUI extends Vue {
     isLoadingInit = true;
     acceptUiScript: HTMLElement | null = null;
     acceptUiContainer: HTMLElement | null = null;
+    acceptUiContainerId = 'AcceptUIContainer';
     focusTrapElement: HTMLElement | null = null;
+    acceptUiObserver: MutationObserver | null = null;
     acceptUiPaymentDetails: AcceptUiResponse = {};
     errorMessage = '';
     successMessage = '';
@@ -116,7 +118,12 @@ class PrivilegePurchaseAcceptUI extends Vue {
     }
 
     removeFocusTrapHandling(): void {
-        const { acceptUiContainer, focusTrapElement, focusTrap } = this;
+        const {
+            acceptUiContainer,
+            focusTrapElement,
+            focusTrap,
+            acceptUiObserver
+        } = this;
 
         if (acceptUiContainer) {
             acceptUiContainer.removeEventListener('keydown', focusTrap);
@@ -125,6 +132,10 @@ class PrivilegePurchaseAcceptUI extends Vue {
         if (focusTrapElement) {
             focusTrapElement.removeEventListener('keydown', focusTrap);
             focusTrapElement.remove();
+        }
+
+        if (acceptUiObserver) {
+            acceptUiObserver.disconnect();
         }
     }
 
@@ -139,7 +150,7 @@ class PrivilegePurchaseAcceptUI extends Vue {
     }
 
     improveInteractions(): void {
-        const acceptUiContainer = document.getElementById('AcceptUIContainer');
+        const acceptUiContainer = document.getElementById(this.acceptUiContainerId);
         const iframe = acceptUiContainer?.getElementsByTagName('iframe')[0];
         const trapper = document.createElement('div');
 
@@ -161,6 +172,9 @@ class PrivilegePurchaseAcceptUI extends Vue {
 
             acceptUiContainer.addEventListener('keydown', this.focusTrap);
             trapper.addEventListener('keydown', this.focusTrap);
+
+            // Attempt to detect the closing of the iframe
+            this.detectIframeClose();
 
             // Attempt to focus the iframe container for better keyboard nav
             acceptUiContainer.setAttribute('tabindex', '0');
@@ -188,12 +202,33 @@ class PrivilegePurchaseAcceptUI extends Vue {
             if (!shiftKey && targetElement?.id === 'iframe-trapper') {
                 event.preventDefault();
                 acceptUiContainer?.focus();
-            } else if (shiftKey && targetElement?.id === 'AcceptUIContainer') {
+            } else if (shiftKey && targetElement?.id === this.acceptUiContainerId) {
                 // If reverse tabbing on the iframe container, cycle focus back to the trapper element
                 event.preventDefault();
                 focusTrapElement?.focus();
             }
         }
+    }
+
+    detectIframeClose(): void {
+        const observer = new MutationObserver((mutationsList) => {
+            mutationsList.forEach((mutation) => {
+                if (mutation.type === 'childList') {
+                    mutation.removedNodes.forEach((removedNode) => {
+                        if ((removedNode as HTMLElement).id === this.acceptUiContainerId) {
+                            this.handleIframeClosed();
+                        }
+                    });
+                }
+            });
+        });
+
+        this.acceptUiObserver = observer;
+        observer.observe(document.body, { childList: true, subtree: false });
+    }
+
+    handleIframeClosed(): void {
+        document.getElementById('payment-init')?.focus();
     }
 
     handlePaymentDetailsResponse(response: any): void {
