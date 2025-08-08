@@ -3,6 +3,7 @@ import time
 
 import boto3
 from aws_lambda_powertools.utilities.typing import LambdaContext
+from botocore.exceptions import ClientError
 from cc_common.config import logger
 
 
@@ -100,7 +101,7 @@ def cleanup_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused
                     'sourceTableArn': event['sourceTableArn'],
                 }
 
-    except Exception as e:
+    except ClientError as e:
         logger.error(f'Error during cleanup: {str(e)}')
         return {
             'deleteStatus': 'FAILED',

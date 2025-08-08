@@ -54,16 +54,15 @@ class RestoreDynamoDbTableStepFunctionConstruct(Construct):
         )
 
     def _create_lambda_functions(self, table: Table):
-        # TODO - fill this out
+        # This implementation will be completed as part of https://github.com/csg-org/CompactConnect/issues/892
         pass
 
     def _build_state_machine_definition(self):
-        # Create Step Function definition
-        # TODO - fill this out
+        # This implementation will be completed as part of https://github.com/csg-org/CompactConnect/issues/892
         self.initialize_state = Pass(
             self,
             'RestoreTable-InitializeState',
             parameters={},
-            result_path='$.Payload',
+            result_path='$',
         )
         return self.initialize_state
