@@ -6,6 +6,9 @@ from common_constructs.stack import AppStack
 from constructs import Construct
 
 from stacks import persistent_stack as ps
+from stacks.disaster_recovery_stack.restore_dynamo_db_table_step_function import (
+    RestoreDynamoDbTableStepFunctionConstruct,
+)
 from stacks.disaster_recovery_stack.sync_table_step_function import SyncTableDataStepFunctionConstruct
 
 
@@ -67,9 +70,11 @@ class DisasterRecoveryStack(AppStack):
         ]
 
         for table in dr_enabled_tables:
-            self.dr_workflows[table.table_name] = self._create_dynamod_db_table_dr_recovery_workflow(table)
+            self.dr_workflows[table.table_name] = self._create_dynamod_db_table_dr_recovery_workflow(
+                table=table, shared_persistent_stack_key=persistent_stack.shared_encryption_key
+            )
 
-    def _create_dynamod_db_table_dr_recovery_workflow(self, table: Table):
+    def _create_dynamod_db_table_dr_recovery_workflow(self, table: Table, shared_persistent_stack_key: Key):
         """Create the DR workflow for a single DynamoDB table.
 
         Phase 1 scope: Only create the SyncTableData step function construct that
@@ -81,10 +86,20 @@ class DisasterRecoveryStack(AppStack):
         # restored table that follows this naming convention.
         restored_table_name_prefix = 'DR-TEMP-'
 
-        return SyncTableDataStepFunctionConstruct(
+        sync_table_step_function = SyncTableDataStepFunctionConstruct(
             self,
             f'{table.node.id[0:50]}-SyncTableData',
             table=table,
             source_table_name_prefix=restored_table_name_prefix,
+            dr_shared_encryption_key=self.dr_shared_encryption_key,
+        )
+
+        return RestoreDynamoDbTableStepFunctionConstruct(
+            self,
+            f'RestoreTableStepFunction-{table.node.id[0:50]}',
+            restored_table_name_prefix=restored_table_name_prefix,
+            table=table,
+            sync_table_data_state_machine_arn=sync_table_step_function.state_machine.state_machine_arn,
+            shared_persistent_stack_key=shared_persistent_stack_key,
             dr_shared_encryption_key=self.dr_shared_encryption_key,
         )
