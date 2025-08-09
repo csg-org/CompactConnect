@@ -381,7 +381,7 @@ class ApiModel:
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
                 additional_properties=False,
-                required=['encumbranceEffectiveDate', 'clinicalPrivilegeActionCategory'],
+                required=['encumbranceEffectiveDate', 'encumbranceType', 'clinicalPrivilegeActionCategory'],
                 properties={
                     'encumbranceEffectiveDate': JsonSchema(
                         type=JsonSchemaType.STRING,
@@ -389,6 +389,7 @@ class ApiModel:
                         format='date',
                         pattern=cc_api.YMD_FORMAT,
                     ),
+                    'encumbranceType': self._encumbrance_type_schema,
                     'clinicalPrivilegeActionCategory': JsonSchema(
                         type=JsonSchemaType.STRING,
                         description='The category of clinical privilege action',
@@ -410,7 +411,7 @@ class ApiModel:
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
                 additional_properties=False,
-                required=['encumbranceEffectiveDate', 'clinicalPrivilegeActionCategory'],
+                required=['encumbranceEffectiveDate', 'encumbranceType', 'clinicalPrivilegeActionCategory'],
                 properties={
                     'encumbranceEffectiveDate': JsonSchema(
                         type=JsonSchemaType.STRING,
@@ -418,6 +419,7 @@ class ApiModel:
                         format='date',
                         pattern=cc_api.YMD_FORMAT,
                     ),
+                    'encumbranceType': self._encumbrance_type_schema,
                     'clinicalPrivilegeActionCategory': JsonSchema(
                         type=JsonSchemaType.STRING,
                         description='The category of clinical privilege action',
@@ -1131,6 +1133,7 @@ class ApiModel:
                                         'creationDate',
                                         'adverseActionId',
                                         'dateOfUpdate',
+                                        'encumbranceType',
                                         'clinicalPrivilegeActionCategory',
                                     ],
                                     properties={
@@ -1161,6 +1164,7 @@ class ApiModel:
                                         'dateOfUpdate': JsonSchema(
                                             type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
                                         ),
+                                        'encumbranceType': JsonSchema(type=JsonSchemaType.STRING),
                                         'clinicalPrivilegeActionCategory': JsonSchema(type=JsonSchemaType.STRING),
                                         'liftingUser': JsonSchema(type=JsonSchemaType.STRING),
                                     },
@@ -1267,6 +1271,7 @@ class ApiModel:
                                         'creationDate',
                                         'adverseActionId',
                                         'dateOfUpdate',
+                                        'encumbranceType',
                                         'clinicalPrivilegeActionCategory',
                                     ],
                                     properties={
@@ -1297,6 +1302,7 @@ class ApiModel:
                                         'dateOfUpdate': JsonSchema(
                                             type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
                                         ),
+                                        'encumbranceType': JsonSchema(type=JsonSchemaType.STRING),
                                         'clinicalPrivilegeActionCategory': JsonSchema(type=JsonSchemaType.STRING),
                                         'liftingUser': JsonSchema(type=JsonSchemaType.STRING),
                                     },
@@ -1357,6 +1363,31 @@ class ApiModel:
                 ),
                 **self._common_provider_properties,
             },
+        )
+
+    @property
+    def _encumbrance_type_schema(self) -> JsonSchema:
+        """Common schema for encumbrance type field"""
+        return JsonSchema(
+            type=JsonSchemaType.STRING,
+            description='The type of encumbrance',
+            enum=[
+                'fine',
+                'reprimand',
+                'required supervision',
+                'completion of continuing education',
+                'public reprimand',
+                'probation',
+                'injunctive action',
+                'suspension',
+                'revocation',
+                'denial',
+                'surrender of license',
+                'modification of previous action-extension',
+                'modification of previous action-reduction',
+                'other monitoring',
+                'other adjudicated action not listed',
+            ],
         )
 
     @property
@@ -2292,6 +2323,7 @@ class ApiModel:
                             'creationDate',
                             'adverseActionId',
                             'dateOfUpdate',
+                            'encumbranceType',
                         ],
                         properties={
                             'type': JsonSchema(type=JsonSchemaType.STRING, enum=['adverseAction']),
@@ -2316,6 +2348,7 @@ class ApiModel:
                             'dateOfUpdate': JsonSchema(
                                 type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
                             ),
+                            'encumbranceType': JsonSchema(type=JsonSchemaType.STRING),
                         },
                     ),
                 ),
