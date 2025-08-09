@@ -4,7 +4,12 @@ from marshmallow.validate import OneOf
 
 from cc_common.data_model.schema.base_record import ForgivingSchema
 from cc_common.data_model.schema.common import AdverseActionAgainstEnum
-from cc_common.data_model.schema.fields import ClinicalPrivilegeActionCategoryField, Compact, Jurisdiction
+from cc_common.data_model.schema.fields import (
+    ClinicalPrivilegeActionCategoryField,
+    Compact,
+    EncumbranceTypeField,
+    Jurisdiction,
+)
 
 
 class AdverseActionPostRequestSchema(ForgivingSchema):
@@ -18,6 +23,7 @@ class AdverseActionPostRequestSchema(ForgivingSchema):
     """
 
     encumbranceEffectiveDate = Date(required=True, allow_none=False)
+    encumbranceType = EncumbranceTypeField(required=True, allow_none=False)
     clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategoryField(required=True, allow_none=False)
 
 
@@ -69,5 +75,6 @@ class AdverseActionGeneralResponseSchema(AdverseActionPublicResponseSchema):
     Python -> load() -> API
     """
 
+    encumbranceType = EncumbranceTypeField(required=True, allow_none=False)
     clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategoryField(required=True, allow_none=False)
     liftingUser = Raw(required=False, allow_none=False)
