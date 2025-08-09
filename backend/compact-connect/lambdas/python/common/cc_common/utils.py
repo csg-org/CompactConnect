@@ -675,8 +675,9 @@ def sanitize_provider_data_based_on_caller_scopes(compact: str, provider: dict, 
     # Currently, the UI bundles permissions for admins, granting them the readPrivate scope along with admin. Should
     # this ever change, we will need to account for that here. This 'or' conditional is a precautionary measure to keep
     # UI changes from unintentionally breaking existing functionality
-    if (caller_is_admin or
-            _user_has_read_private_access_for_provider(compact=compact, provider_information=provider, scopes=scopes)):
+    if caller_is_admin or _user_has_read_private_access_for_provider(
+        compact=compact, provider_information=provider, scopes=scopes
+    ):
         # return full object since caller has 'readPrivate' access for provider
         return provider
 
