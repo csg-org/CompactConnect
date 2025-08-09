@@ -6,7 +6,9 @@ look [here](./design/README.md).
 
 ## Introduction
 
-The Audiology and Speech Language Pathology, Counseling, and Occupational Therapy compact commissions are collectively building a system to share professional licensure data between their state licensing boards to facilitate participation in their respective occupational licensure compacts. To date, this system is solely composed of a mock API.
+The Audiology and Speech Language Pathology, Counseling, and Occupational Therapy compact commissions are collectively
+building a system to share professional licensure data between their state licensing boards to facilitate participation
+in their respective occupational licensure compacts. To date, this system is solely composed of a mock API.
 
 ## Table of Contents
 - **[How to use the API bulk-upload feature](#how-to-use-the-api-bulk-upload-feature)**
@@ -19,17 +21,21 @@ The Audiology and Speech Language Pathology, Counseling, and Occupational Therap
 
 Export your license data to a CSV file, formatted as follows:
    - The file must be a utf-8 encoded text format
-   - The first line must be a header with column names exactly matching the field names listed in [the table below](#field-descriptions).
+   - The first line must be a header with column names exactly matching the field names listed in
+     [the table below](#field-descriptions).
    - All subsequent lines must be individual licenses.
    - At least all required fields must be present as a column and required fields cannot be empty in any row.
    - Any optional fields may also be included. Optional fields can be left empty in some rows.
    - Order of columns does not matter.
    - String lengths are enforced - exceeding them will cause validation errors
-   - Some fields have a set list of allowed values. For those fields, make sure to enter the value exactly, including spacing and capitalization
+   - Some fields have a set list of allowed values. For those fields, make sure to enter the value exactly, including
+     spacing and capitalization
 
 #### Field Descriptions
 
-The following table describes all available fields for the license CSV file. Required fields are marked with an asterisk (*).
+The following table describes all available fields for the license CSV file. Required fields are marked with an asterisk
+(*). Note that our API does not accept `NULL` values - if some of your licenses have no value for an optional field,
+leave the field entirely empty. If some of your licenses are missing a required field, those licenses will be rejected.
 
 | Field Name | Description | Format | Example |
 |------------|-------------|---------|---------|
@@ -70,23 +76,37 @@ dateOfIssuance,npi,licenseNumber,dateOfBirth,licenseType,familyName,homeAddressC
 
 1) Request a staff user with permissions you need.
 2) Log into CompactConnect with your new user.
-3) Navigate to the bulk-upload page to upload your exported CSV. It may take about five minutes for uploaded licenses to be fully ingested and appear in the system.
+3) Navigate to the bulk-upload page to upload your exported CSV. It may take about five minutes for uploaded licenses to
+   be fully ingested and appear in the system.
 
 ### Machine-to-machine automated uploads
 
-The data system API supports uploading of a large CSV file for asynchronous data ingest. The feature involves using two endpoints, which are described in the [Open API Specification](#open-api-specification). To upload a file for asynchronous data ingest perform the following steps:
+The data system API supports uploading of a large CSV file for asynchronous data ingest. The feature involves using two
+endpoints, which are described in the [Open API Specification](#open-api-specification). To upload a file for
+asynchronous data ingest perform the following steps:
 1) Request a dedicated client for your automated integration. Note that there may be some lead time for that request.
 2) Authenticate your client using the **OAuth2.0 client-credentials-grant** to obtain an access token for the API.
-3) Call the `GET /v1/compacts/{compact}/jurisdictions/{jurisdiction}/licenses/bulk-upload` endpoint to receive an upload URL and upload fields to use when uploading your file.
-4) `POST` to the provided url, with `Content-Type: multipart/form-data`, providing all the fields returned from the `GET` endpoint as form-data fields in addition to your file.
+3) Call the `GET /v1/compacts/{compact}/jurisdictions/{jurisdiction}/licenses/bulk-upload` endpoint to receive an upload
+   URL and upload fields to use when uploading your file.
+4) `POST` to the provided url, with `Content-Type: multipart/form-data`, providing all the fields returned from the
+   `GET` endpoint as form-data fields in addition to your file.
 
 For your convenience, use of this feature is included in the [Postman Collection](./postman/postman-collection.json).
 
-Note that there is also a POST licenses endpoint, where up to 100 json-formatted licenses can be uploaded in a single request, with synchronous validation results. See the API specification for more details.
+Note that, when using the bulk-upload feature, processing of licenses is asynchronous, and so feedback on invalid
+licenses is slow. The operational reports contact email will be sent a nightly report with a sample of validation
+errors, if there were any, from the day's uploads. For faster feedback, there is also a POST licenses endpoint,
+where up to 100 json-formatted licenses can be uploaded in a single request, with synchronous validation results. We
+highly recommend that states with the capability integrate with this JSON endpoint instead, for more efficient
+communication and feedback. See the API specification for more details.
 
 ## Open API Specification
 [Back to top](#compact-connect---technical-user-guide)
 
 We will maintain the latest api specification here, in [latest-oas30.json](api-specification/latest-oas30.json). You can
 use [Swagger.io](https://editor.swagger.io/) to render the json directly or, if you happen to use an IDE that supports
-the feature, you can open a Swagger UI view of it by opening up the accompanying [swagger.html](api-specification/swagger.html) in your browser.
+the feature, you can open a Swagger UI view of it by opening up the accompanying
+[swagger.html](api-specification/swagger.html) in your browser.
+
+Note that HTTP request headers such as `Content-Type` and `User-Agent` are important to the API and should be
+transmitted with HTTP requests. Most of the API only accepts a `Content-Type` of `application/json`.
