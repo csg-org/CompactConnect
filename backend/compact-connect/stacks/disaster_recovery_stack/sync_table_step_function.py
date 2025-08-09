@@ -85,7 +85,6 @@ class SyncTableDataStepFunctionConstruct(Construct):
     def _create_lambda_functions(self, table: Table, source_table_name_prefix: str):
         """Create Lambda functions for delete and copy operations."""
         stack = Stack.of(self)
-        # These will be created in the next phase of implementation
         self.cleanup_records_function = PythonFunction(
             self,
             f'DR-{table.node.id}-SyncCleanup',
