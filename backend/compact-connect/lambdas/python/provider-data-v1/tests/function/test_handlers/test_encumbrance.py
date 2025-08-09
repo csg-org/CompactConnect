@@ -7,6 +7,7 @@ from cc_common.exceptions import CCInternalException
 from common_test.test_constants import (
     DEFAULT_AA_SUBMITTING_USER_ID,
     DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
+    DEFAULT_ENCUMBRANCE_TYPE,
     DEFAULT_LICENSE_JURISDICTION,
     DEFAULT_LICENSE_TYPE_ABBREVIATION,
     DEFAULT_PRIVILEGE_JURISDICTION,
@@ -36,10 +37,11 @@ TEST_ENCUMBRANCE_EFFECTIVE_DATE = '2023-01-15'
 
 
 def _generate_test_body():
-    from cc_common.data_model.schema.common import ClinicalPrivilegeActionCategory
+    from cc_common.data_model.schema.common import ClinicalPrivilegeActionCategory, EncumbranceType
 
     return {
         'encumbranceEffectiveDate': TEST_ENCUMBRANCE_EFFECTIVE_DATE,
+        'encumbranceType': EncumbranceType.SUSPENSION,
         'clinicalPrivilegeActionCategory': ClinicalPrivilegeActionCategory.UNSAFE_PRACTICE,
     }
 
@@ -115,6 +117,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
         default_adverse_action_encumbrance = self.test_data_generator.generate_default_adverse_action(
             value_overrides={
                 'adverseActionId': item['adverseActionId'],
+                'encumbranceType': DEFAULT_ENCUMBRANCE_TYPE,
                 'effectiveStartDate': date.fromisoformat(TEST_ENCUMBRANCE_EFFECTIVE_DATE),
                 'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
             }
@@ -367,6 +370,7 @@ class TestPostLicenseEncumbrance(TstFunction):
             value_overrides={
                 'actionAgainst': 'license',
                 'adverseActionId': item['adverseActionId'],
+                'encumbranceType': DEFAULT_ENCUMBRANCE_TYPE,
                 'effectiveStartDate': date.fromisoformat(TEST_ENCUMBRANCE_EFFECTIVE_DATE),
                 'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
             }

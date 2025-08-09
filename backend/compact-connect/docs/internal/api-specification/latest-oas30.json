@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "LicenseApi",
-    "version": "2025-07-29T16:48:27Z"
+    "version": "2025-08-09T21:46:58Z"
   },
   "servers": [
     {
@@ -1254,6 +1254,73 @@
         ]
       }
     },
+    "/v1/compacts/{compact}/providers/{providerId}/privileges/jurisdiction/{jurisdiction}/licenseType/{licenseType}/history": {
+      "get": {
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "compact",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "providerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "jurisdiction",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "licenseType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SandboLicenGU0hy3kyLtkB"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
+              "aslp/readGeneral",
+              "octp/readGeneral",
+              "coun/readGeneral"
+            ]
+          }
+        ]
+      }
+    },
     "/v1/compacts/{compact}/providers/{providerId}/ssn": {
       "get": {
         "parameters": [
@@ -1986,6 +2053,53 @@
         ]
       }
     },
+    "/v1/provider-users/me/jurisdiction/{jurisdiction}/licenseType/{licenseType}/history": {
+      "get": {
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "jurisdiction",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "licenseType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SandboLicenGU0hy3kyLtkB"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "SandboxAPIStackLicenseApiProviderUsersPoolAuthorizerEB7523BA": []
+          }
+        ]
+      }
+    },
     "/v1/provider-users/me/military-affiliation": {
       "post": {
         "parameters": [
@@ -2188,6 +2302,56 @@
         }
       }
     },
+    "/v1/public/compacts/{compact}/providers/{providerId}/jurisdiction/{jurisdiction}/licenseType/{licenseType}/history": {
+      "get": {
+        "parameters": [
+          {
+            "name": "compact",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "providerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "jurisdiction",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "licenseType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SandboLicenGU0hy3kyLtkB"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/purchases/privileges": {
       "post": {
         "parameters": [
@@ -2351,6 +2515,144 @@
   },
   "components": {
     "schemas": {
+      "SandboLicenGU0hy3kyLtkB": {
+        "required": [
+          "compact",
+          "events",
+          "jurisdiction",
+          "licenseType",
+          "privilegeId",
+          "providerId"
+        ],
+        "type": "object",
+        "properties": {
+          "licenseType": {
+            "type": "string",
+            "enum": [
+              "audiologist",
+              "speech-language pathologist",
+              "occupational therapist",
+              "occupational therapy assistant",
+              "licensed professional counselor"
+            ]
+          },
+          "compact": {
+            "type": "string",
+            "enum": [
+              "aslp",
+              "octp",
+              "coun"
+            ]
+          },
+          "privilegeId": {
+            "type": "string"
+          },
+          "providerId": {
+            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+            "type": "string"
+          },
+          "jurisdiction": {
+            "type": "string",
+            "enum": [
+              "al",
+              "ak",
+              "az",
+              "ar",
+              "ca",
+              "co",
+              "ct",
+              "de",
+              "dc",
+              "fl",
+              "ga",
+              "hi",
+              "id",
+              "il",
+              "in",
+              "ia",
+              "ks",
+              "ky",
+              "la",
+              "me",
+              "md",
+              "ma",
+              "mi",
+              "mn",
+              "ms",
+              "mo",
+              "mt",
+              "ne",
+              "nv",
+              "nh",
+              "nj",
+              "nm",
+              "ny",
+              "nc",
+              "nd",
+              "oh",
+              "ok",
+              "or",
+              "pa",
+              "pr",
+              "ri",
+              "sc",
+              "sd",
+              "tn",
+              "tx",
+              "ut",
+              "vt",
+              "va",
+              "vi",
+              "wa",
+              "wv",
+              "wi",
+              "wy"
+            ]
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "required": [
+                "createDate",
+                "dateOfUpdate",
+                "effectiveDate",
+                "type",
+                "updateType"
+              ],
+              "type": "object",
+              "properties": {
+                "note": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "privilegeUpdate"
+                  ]
+                },
+                "dateOfUpdate": {
+                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                  "type": "string",
+                  "format": "date"
+                },
+                "effectiveDate": {
+                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                  "type": "string",
+                  "format": "date"
+                },
+                "updateType": {
+                  "type": "string"
+                },
+                "createDate": {
+                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                  "type": "string",
+                  "format": "date"
+                }
+              }
+            }
+          }
+        }
+      },
       "SandboLicenOQdBdK9iyjkI": {
         "required": [
           "pagination",
@@ -2732,7 +3034,8 @@
       "SandboLicenAshENRDOKgYW": {
         "required": [
           "clinicalPrivilegeActionCategory",
-          "encumbranceEffectiveDate"
+          "encumbranceEffectiveDate",
+          "encumbranceType"
         ],
         "type": "object",
         "properties": {
@@ -2741,6 +3044,27 @@
             "type": "string",
             "description": "The effective date of the encumbrance",
             "format": "date"
+          },
+          "encumbranceType": {
+            "type": "string",
+            "description": "The type of encumbrance",
+            "enum": [
+              "fine",
+              "reprimand",
+              "required supervision",
+              "completion of continuing education",
+              "public reprimand",
+              "probation",
+              "injunctive action",
+              "suspension",
+              "revocation",
+              "denial",
+              "surrender of license",
+              "modification of previous action-extension",
+              "modification of previous action-reduction",
+              "other monitoring",
+              "other adjudicated action not listed"
+            ]
           },
           "clinicalPrivilegeActionCategory": {
             "type": "string",
@@ -3364,7 +3688,8 @@
       "SandboLicens9Ab3Qp78PSE": {
         "required": [
           "clinicalPrivilegeActionCategory",
-          "encumbranceEffectiveDate"
+          "encumbranceEffectiveDate",
+          "encumbranceType"
         ],
         "type": "object",
         "properties": {
@@ -3373,6 +3698,27 @@
             "type": "string",
             "description": "The effective date of the encumbrance",
             "format": "date"
+          },
+          "encumbranceType": {
+            "type": "string",
+            "description": "The type of encumbrance",
+            "enum": [
+              "fine",
+              "reprimand",
+              "required supervision",
+              "completion of continuing education",
+              "public reprimand",
+              "probation",
+              "injunctive action",
+              "suspension",
+              "revocation",
+              "denial",
+              "surrender of license",
+              "modification of previous action-extension",
+              "modification of previous action-reduction",
+              "other monitoring",
+              "other adjudicated action not listed"
+            ]
           },
           "clinicalPrivilegeActionCategory": {
             "type": "string",
@@ -4237,6 +4583,7 @@
                       "creationDate",
                       "dateOfUpdate",
                       "effectiveStartDate",
+                      "encumbranceType",
                       "jurisdiction",
                       "licenseType",
                       "licenseTypeAbbreviation",
@@ -4347,6 +4694,9 @@
                         "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                         "type": "string",
                         "format": "date"
+                      },
+                      "encumbranceType": {
+                        "type": "string"
                       },
                       "clinicalPrivilegeActionCategory": {
                         "type": "string"
@@ -5233,6 +5583,7 @@
                       "creationDate",
                       "dateOfUpdate",
                       "effectiveStartDate",
+                      "encumbranceType",
                       "jurisdiction",
                       "licenseType",
                       "licenseTypeAbbreviation",
@@ -5344,6 +5695,9 @@
                         "type": "string",
                         "format": "date"
                       },
+                      "encumbranceType": {
+                        "type": "string"
+                      },
                       "clinicalPrivilegeActionCategory": {
                         "type": "string"
                       },
@@ -5402,6 +5756,24 @@
                     "octp",
                     "coun"
                   ]
+                },
+                "downloadLinks": {
+                  "type": "array",
+                  "items": {
+                    "required": [
+                      "fileName",
+                      "url"
+                    ],
+                    "type": "object",
+                    "properties": {
+                      "fileName": {
+                        "type": "string"
+                      },
+                      "url": {
+                        "type": "string"
+                      }
+                    }
+                  }
                 },
                 "providerId": {
                   "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
@@ -7135,6 +7507,7 @@
                       "creationDate",
                       "dateOfUpdate",
                       "effectiveStartDate",
+                      "encumbranceType",
                       "jurisdiction",
                       "licenseType",
                       "licenseTypeAbbreviation",
@@ -7143,9 +7516,6 @@
                     ],
                     "type": "object",
                     "properties": {
-                      "licenseType": {
-                        "type": "string"
-                      },
                       "compact": {
                         "type": "string",
                         "enum": [
@@ -7153,10 +7523,6 @@
                           "octp",
                           "coun"
                         ]
-                      },
-                      "providerId": {
-                        "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
-                        "type": "string"
                       },
                       "jurisdiction": {
                         "type": "string",
@@ -7216,21 +7582,8 @@
                           "wy"
                         ]
                       },
-                      "effectiveStartDate": {
-                        "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-                        "type": "string",
-                        "format": "date"
-                      },
                       "licenseTypeAbbreviation": {
                         "type": "string"
-                      },
-                      "adverseActionId": {
-                        "type": "string"
-                      },
-                      "effectiveLiftDate": {
-                        "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-                        "type": "string",
-                        "format": "date"
                       },
                       "type": {
                         "type": "string",
@@ -7244,6 +7597,29 @@
                         "format": "date"
                       },
                       "actionAgainst": {
+                        "type": "string"
+                      },
+                      "licenseType": {
+                        "type": "string"
+                      },
+                      "providerId": {
+                        "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+                        "type": "string"
+                      },
+                      "effectiveStartDate": {
+                        "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                        "type": "string",
+                        "format": "date"
+                      },
+                      "adverseActionId": {
+                        "type": "string"
+                      },
+                      "effectiveLiftDate": {
+                        "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                        "type": "string",
+                        "format": "date"
+                      },
+                      "encumbranceType": {
                         "type": "string"
                       },
                       "dateOfUpdate": {

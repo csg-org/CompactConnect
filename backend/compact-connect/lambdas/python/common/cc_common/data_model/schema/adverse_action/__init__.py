@@ -3,7 +3,12 @@ from datetime import date, datetime
 from uuid import UUID
 
 from cc_common.data_model.schema.adverse_action.record import AdverseActionRecordSchema
-from cc_common.data_model.schema.common import AdverseActionAgainstEnum, CCDataClass, ClinicalPrivilegeActionCategory
+from cc_common.data_model.schema.common import (
+    AdverseActionAgainstEnum,
+    CCDataClass,
+    ClinicalPrivilegeActionCategory,
+    EncumbranceType,
+)
 
 
 class AdverseActionData(CCDataClass):
@@ -65,6 +70,14 @@ class AdverseActionData(CCDataClass):
     @actionAgainst.setter
     def actionAgainst(self, action_against_enum: AdverseActionAgainstEnum) -> None:
         self._data['actionAgainst'] = action_against_enum.value
+
+    @property
+    def encumbranceType(self) -> str:
+        return self._data['encumbranceType']
+
+    @encumbranceType.setter
+    def encumbranceType(self, encumbrance_type_enum: EncumbranceType) -> None:
+        self._data['encumbranceType'] = encumbrance_type_enum.value
 
     @property
     def clinicalPrivilegeActionCategory(self) -> str:

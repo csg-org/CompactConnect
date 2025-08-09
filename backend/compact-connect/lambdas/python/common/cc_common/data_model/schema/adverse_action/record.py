@@ -8,7 +8,12 @@ from marshmallow.validate import OneOf
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import BaseRecordSchema
 from cc_common.data_model.schema.common import AdverseActionAgainstEnum
-from cc_common.data_model.schema.fields import ClinicalPrivilegeActionCategoryField, Compact, Jurisdiction
+from cc_common.data_model.schema.fields import (
+    ClinicalPrivilegeActionCategoryField,
+    Compact,
+    EncumbranceTypeField,
+    Jurisdiction,
+)
 
 
 @BaseRecordSchema.register_schema('adverseAction')
@@ -30,6 +35,7 @@ class AdverseActionRecordSchema(BaseRecordSchema):
     actionAgainst = String(required=True, allow_none=False, validate=OneOf([e.value for e in AdverseActionAgainstEnum]))
 
     # Populated on creation
+    encumbranceType = EncumbranceTypeField(required=True, allow_none=False)
     clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategoryField(required=True, allow_none=False)
     effectiveStartDate = Date(required=True, allow_none=False)
     submittingUser = UUID(required=True, allow_none=False)
