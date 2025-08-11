@@ -228,6 +228,7 @@ class PrivilegePurchaseAcceptUI extends Vue {
     }
 
     handleIframeClosed(): void {
+        this.removeFocusTrapHandling();
         document.getElementById('payment-init')?.focus();
     }
 
