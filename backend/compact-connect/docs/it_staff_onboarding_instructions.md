@@ -116,6 +116,7 @@ specific compact (you can send up to 100 license records per request). See the
 curl --location --request POST '<licenseUploadUrl>' \
 --header 'Authorization: Bearer <access_token>' \
 --header 'Content-Type: application/json' \
+--header 'User-Agent: <your-app-name>/<version> (<contact-email-or-url>)' \
 --data '[
   {
     "ssn":"123-45-6789",
@@ -167,14 +168,15 @@ For the latest information about the license data field requirements, along with
 - If `licenseStatus` is "inactive", `compactEligibility` cannot be "eligible"
 - `licenseType` must match exactly with one of the valid types for the specified compact
 - All date fields must use the `YYYY-MM-DD` format
+- The API does not accept `null` values. For optional fields with no value, omit the field or leave it empty in CSV.
 
 ## Verification that License Records are Uploaded
 
 After submitting license data to the API, you can verify that your records were successfully uploaded by checking the API response:
 
 ### 1. Successful Upload
-If the API responds with a 200 status code, your request was successful and the license data is being processed
-by the CompactConnect System. The response will return the following body:
+If the API responds with a 200 status code, your request was accepted and basic validation passed (e.g., schema and
+field-level checks). The data is then queued for asynchronous ingest and business processing. The response will be:
 
 ```json
 {
@@ -187,15 +189,16 @@ If you receive an error response, check the status code and message:
 - **400**: Bad Request - Your request data is invalid (check the response body for validation errors)
 - **401**: Unauthorized - Your access token is invalid or expired
 - **403**: Forbidden - Your app client doesn't have permission to upload to the specified jurisdiction/compact
+           Also note that some firewall rules require a valid `User-Agent` header; missing it can result in 403.
+- **415**: Unsupported Media Type - Ensure `Content-Type: application/json` is set for this endpoint.
 - **502**: Internal Server Error - There was a problem processing your request
 
 ### 3. Validation Errors
 If your license data fails validation, the API will return a 400 status code with details about the
 validation errors in the response body.
 
-> **Note**: Successful API responses (200 status code) indicate that the license data has been validated and accepted
-> for processing, but actual ingest processing still happens asynchronously. The data will be validated and processed by
-> the CompactConnect System after acceptance.
+> **Note**: 200 status code means your request passed synchronous validation and was accepted for processing. Ingest and
+> downstream processing are asynchronous and may take several minutes.
 
 ## Troubleshooting Common Issues
 
