@@ -56,6 +56,7 @@
         "givenName": "Nombre de pila",
         "middleName": "Segundo nombre",
         "lastName": "Apellido",
+        "username": "Nombre de usuario",
         "selection": "Selección",
         "dateOfBirth": "Fecha de nacimiento",
         "dateOfBirthShort": "Fecha de nacim.",
@@ -599,6 +600,7 @@
         "expires": "Caduca",
         "iUnderstand": "Yo entiendo",
         "selectPrivileges": "Seleccionar privilegios",
+        "privilegePurchaseLimit": "Se pueden seleccionar un máximo de 20 privilegios en una transacción",
         "jurisprudenceConfirmation": "Confirmación de jurisprudencia",
         "adminFee": "Tarifa Administrativa",
         "jurisdictionFee": "Tarifa Estatal",
@@ -859,6 +861,21 @@
         "enterCode": "Introduzca el código aquí",
         "emailUpdateSuccess": "Su correo electrónico ha sido actualizado exitosamente",
         "noValuesChanged": "No se han cambiado valores"
+    },
+    "privacyPolicy": {
+        "title": "Política de Privacidad",
+        "introSubtext": "Esta política de privacidad describe cómo el sitio web CompactConnect almacena y utiliza los datos de los visitantes.",
+        "whatDataIsCollectedTitle": "¿Qué datos se recopilan?",
+        "collectedDataEmail": "Dirección de correo electrónico de usuarios registrados",
+        "collectedDataDevice": "Tipo de dispositivo, navegador y dirección IP",
+        "whatIsDoneWithThisInfoTitle": "¿Qué se hace con esta información?",
+        "whatIsDoneWithThisInfoSubtext": "La información que proporciona nos ayuda a responder a sus solicitudes de servicio al cliente y necesidades de soporte de manera más eficiente. Podemos usar los comentarios que proporcione para mejorar nuestro sitio. La información no se vende a terceros.",
+        "howIsMyDataProtectedTitle": "¿Cómo se protege mi información?",
+        "howIsMyDataProtectedSubtext": "Adoptamos prácticas estándar de la industria para la recopilación, almacenamiento y procesamiento de datos y medidas de seguridad para proteger contra el acceso no autorizado, alteración, divulgación o destrucción de su información personal, nombre de usuario, contraseña, información de transacciones y datos almacenados en nuestro sitio.",
+        "changesToThisPolicyTitle": "Cambios a esta política",
+        "changesToThisPolicySubtext": "CompactConnect tiene la discreción de actualizar esta política de privacidad en cualquier momento. Le recomendamos que revise frecuentemente esta página para cualquier cambio para mantenerse informado sobre cómo estamos ayudando a proteger la información personal que recopilamos. Usted reconoce y acepta que es su responsabilidad revisar esta política de privacidad periódicamente y conocer las modificaciones.",
+        "disclaimerTitle": "Descargo de responsabilidad",
+        "disclaimerSubtext": "Otros sitios web que están conectados por hipervínculos a y/o desde el sitio web CompactConnect pueden no seguir las mismas restricciones de privacidad. No asumimos responsabilidad por las prácticas o el contenido de cualquier sitio web que se vincule a o desde nuestro sitio."
     },
     "recaptcha": {
         "googleDesc": "Este sitio está protegido por reCAPTCHA y se aplican las políticas de privacidad de Google.",
