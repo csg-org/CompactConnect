@@ -78,7 +78,6 @@ class RestoreDynamoDbTableStepFunctionConstruct(Construct):
                     'dynamodb:DescribeBackup',  # For backup status polling
                     'dynamodb:RestoreTableToPointInTime',  # For creating table from PITR backup
                     'dynamodb:DescribeTable',  # For table status polling
-                    'states:StartExecution',  # For invoking sync table step function
                     # The following permissions are needed for restoring data into the PITR table
                     # https://docs.aws.amazon.com/service-authorization/latest/reference/list_amazondynamodb.html#amazondynamodb-actions-as-permissions
                     'dynamodb:BatchWriteItem',
@@ -92,10 +91,27 @@ class RestoreDynamoDbTableStepFunctionConstruct(Construct):
                 resources=[
                     table.table_arn,  # Table for backup operations
                     f'{table.table_arn}/backup/*',  # Backup resources
-                    sync_table_data_state_machine_arn,  # Sync table step function
                     f'arn:aws:dynamodb:{stack.region}:{stack.account}:table/{restored_table_name_prefix}*',
                     f'arn:aws:dynamodb:{stack.region}:{stack.account}:table/{restored_table_name_prefix}*/index/*',
                 ],
+            )
+        )
+        # Add permissions to start sync table step function and check for completion
+        self.state_machine.add_to_role_policy(
+            PolicyStatement(
+                effect=Effect.ALLOW,
+                actions=[
+                    'states:StartExecution',  # For invoking sync table step function
+                    # permissions needed for step function to track synchronous events of step function execution
+                    'events:PutTargets',
+                    'events:PutRule',
+                    'events:DescribeRule'
+                ],
+                resources=[
+                    sync_table_data_state_machine_arn,  # Sync table step function
+                    # rule used for tracking step function execution events
+                    f'arn:aws:events:{stack.region}:{stack.account}:rule/StepFunctionsGetEventsForStepFunctionsExecutionRule'
+        ],
             )
         )
 
@@ -131,6 +147,7 @@ class RestoreDynamoDbTableStepFunctionConstruct(Construct):
         self, table: Table, restored_table_name_prefix: str, sync_table_data_state_machine_arn: str
     ):
         """Builds restore + backup in parallel, then sync execution with polling loops."""
+        stack = Stack.of(self)
 
         new_table_name = f'{restored_table_name_prefix}{table.table_name[0:32]}'
 
@@ -140,19 +157,20 @@ class RestoreDynamoDbTableStepFunctionConstruct(Construct):
             'Restore-Initialize',
             assign={
                 'restoreTableName': f"{{% '{new_table_name}' & $states.input.incidentId %}}",
+                'incidentId': '{% $states.input.incidentId %}',
+                # guard rail for admin to confirm which table that are attempting to recover
+                'tableNameRecoveryConfirmation': '{% $states.input.tableNameRecoveryConfirmation %}',
             },
             # JSONata syntax uses outputs instead of parameters and result path as used by JSONPath syntax
             outputs={
-                'incidentId': '{% $states.input.incidentId %}',
                 'pitrBackupTime': '{% $states.input.pitrBackupTime %}',
                 'destinationTableArn': table.table_arn,
-                # guard rail for admin to confirm which table that are attempting to recover
-                'tableNameRecoveryConfirmation': '{% $states.input.tableNameRecoveryConfirmation %}',
             },
         )
 
         # =====================
         # Restore Branch (PITR)
+        # restore the table from the PITR backup using the provided timestamp.
         # =====================
         restore_from_pitr_state_json = {
             'Type': 'Task',
@@ -200,12 +218,13 @@ class RestoreDynamoDbTableStepFunctionConstruct(Construct):
 
         # =================
         # Backup Branch
+        # create a backup of the existing table for post-recovery analysis.
         # =================
         create_backup_state_json = {
             'Type': 'Task',
             'Arguments': {
-                'BackupName': f"{{% $states.input.incidentId & '{table.table_name[0:32]}-BACKUP' %}}",
-                'TableName': '{% $states.input.tableNameRecoveryConfirmation %}',
+                'BackupName': f"{{% $incidentId & '{table.table_name[0:32]}-BACKUP' %}}",
+                'TableName': '{% $tableNameRecoveryConfirmation %}',
             },
             'Resource': 'arn:aws:states:::aws-sdk:dynamodb:createBackup',
             'QueryLanguage': 'JSONata',
@@ -246,20 +265,26 @@ class RestoreDynamoDbTableStepFunctionConstruct(Construct):
         parallel_restore_and_backup.branch(restore_task)
         parallel_restore_and_backup.branch(create_backup_for_existing_table)
 
-        # After both complete, start the sync step function
-        # start_sync = StepFunctionsStartExecution(
-        #     self,
-        #     'StartSyncTableData',
-        #     state_machine_arn=sync_table_data_state_machine_arn,
-        #     input=StepFunctionsStartExecution.Input.from_object(
-        #         {
-        #             'sourceTableArn.$': '$.restoreResult.TableDescription.TableArn',
-        #             'tableNameRecoveryConfirmation': table.table_name,
-        #         }
-        #     ),
-        # )
+        # After both complete, start the sync step function using JSONata to perform a hard reset
+        # of the table to match the PITR backup table.
+        start_sync_table_state_json = {
+            'Type': 'Task',
+            'Resource': 'arn:aws:states:::states:startExecution.sync:2',
+            'Arguments': {
+                'StateMachineArn': sync_table_data_state_machine_arn,
+                'Input': {
+                    # Pass the source table arn and the table name that the admin confirmed to the sync step function
+                    'sourceTableArn': f"{{% 'arn:aws:dynamodb:{stack.region}:{stack.account}:table/' & $restoreTableName %}}",  # noqa: E501
+                    'tableNameRecoveryConfirmation': '{% $tableNameRecoveryConfirmation %}',
+                },
+                "Name": '{% $incidentId %}'
+            },
+            'QueryLanguage': 'JSONata',
+            'End': True
+        }
+        start_sync = CustomState(self, 'StartSyncTableData', state_json=start_sync_table_state_json)
 
         initialize_restore_step.next(parallel_restore_and_backup)
-        # parallel_restore_and_backup.next(start_sync)
+        parallel_restore_and_backup.next(start_sync)
 
         return initialize_restore_step
