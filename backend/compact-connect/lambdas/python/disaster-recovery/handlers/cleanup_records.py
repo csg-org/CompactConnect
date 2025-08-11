@@ -42,7 +42,7 @@ def cleanup_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table(table_name)
 
-    total_deleted = 0
+    total_deleted = event.get('deletedCount', 0)
 
     last_evaluated_key = None
 

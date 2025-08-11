@@ -54,7 +54,7 @@ def copy_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused-ar
     source_table = dynamodb.Table(source_table_name)
     destination_table = dynamodb.Table(destination_table_name)
 
-    total_copied = 0
+    total_copied = event.get('copiedCount', 0)
 
     try:
         while True:
