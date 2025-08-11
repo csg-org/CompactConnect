@@ -1427,6 +1427,10 @@ class DataClient:
 
             now = config.current_standard_datetime
 
+            effective_date_time = datetime.combine(
+                adverse_action.effectiveStartDate, datetime.min.time(), tzinfo=config.expiration_resolution_timezone
+            )
+
             # Create the update record
             # Use the schema to generate the update record with proper pk/sk
             privilege_update_record = PrivilegeUpdateData.create_new(
@@ -1438,7 +1442,7 @@ class DataClient:
                     'jurisdiction': adverse_action.jurisdiction,
                     'licenseType': privilege_data.licenseType,
                     'createDate': now,
-                    'effectiveDate': adverse_action.effectiveStartDate,
+                    'effectiveDate': effective_date_time,
                     'previous': {
                         # We're relying on the schema to trim out unneeded fields
                         **privilege_data.to_dict(),
@@ -1526,6 +1530,10 @@ class DataClient:
                 )
 
             now = config.current_standard_datetime
+    
+            effective_date_time = datetime.combine(
+                adverse_action.effectiveStartDate, datetime.min.time(), tzinfo=config.expiration_resolution_timezone
+            )
 
             # Create the update record
             # Use the schema to generate the update record with proper pk/sk
@@ -1538,7 +1546,7 @@ class DataClient:
                     'jurisdiction': adverse_action.jurisdiction,
                     'licenseType': license_data.licenseType,
                     'createDate': now,
-                    'effectiveDate': adverse_action.effectiveStartDate,
+                    'effectiveDate': effective_date_time,
                     'previous': {
                         # We're relying on the schema to trim out unneeded fields
                         **license_data.to_dict(),
@@ -2551,7 +2559,7 @@ class DataClient:
         provider_id: str,
         jurisdiction: str,
         license_type_abbreviation: str,
-        effective_date: date,
+        effective_date: datetime,
     ) -> list[PrivilegeData]:
         """
         Encumber all unencumbered privileges associated with a home jurisdiction license.
@@ -2649,7 +2657,7 @@ class DataClient:
         provider_id: str,
         jurisdiction: str,
         license_type_abbreviation: str,
-        effective_date: date,
+        effective_date: datetime,
     ) -> list[PrivilegeData]:
         """
         Lift encumbrances from privileges that were encumbered due to a home jurisdiction license encumbrance.
