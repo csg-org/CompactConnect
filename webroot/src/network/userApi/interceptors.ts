@@ -14,31 +14,14 @@ import { authStorage, tokens } from '@/app.config';
  * @return {AxiosInterceptor} Function that amends the outgoing client API request.
  */
 export const requestSuccess = () => async (requestConfig) => {
-    // Endpoints in the below list are accessible to users who are logged in via the licensee userpool
-    // and as such require sending that token to authorize their use. All other endpoints are only accessible
-    // by users logged in via the staff user pool and will therefore send those tokens to authorize.
-    const licenseeUserEndPoints = [
-        '/v1/provider-users/me',
-        '/v1/provider-users/me/email',
-        '/v1/provider-users/me/email/verify',
-        '/v1/purchases/privileges/options',
-        '/v1/purchases/privileges',
-        '/v1/provider-users/me/military-affiliation',
-        '/v1/provider-users/me/home-jurisdiction'
-    ];
-    const { headers, url } = requestConfig;
-    let authToken;
-    let authTokenType;
+    const authTokenStaff = authStorage.getItem(tokens.staff.AUTH_TOKEN);
+    const authTokenStaffType = authStorage.getItem(tokens.staff.AUTH_TOKEN_TYPE);
+    const authTokenLicensee = authStorage.getItem(tokens.licensee.ID_TOKEN);
+    const authTokenLicenseeType = authStorage.getItem(tokens.licensee.AUTH_TOKEN_TYPE);
+    const { headers } = requestConfig;
 
-    if (licenseeUserEndPoints.includes(url) || (url.includes('me') && url.includes('history'))) {
-        authToken = authStorage.getItem(tokens.licensee.ID_TOKEN);
-        authTokenType = authStorage.getItem(tokens.licensee.AUTH_TOKEN_TYPE);
-    } else {
-        authToken = authStorage.getItem(tokens.staff.AUTH_TOKEN);
-        authTokenType = authStorage.getItem(tokens.staff.AUTH_TOKEN_TYPE);
-    }
-
-    headers.Authorization = `${authTokenType} ${authToken}`;
+    // Add auth token
+    headers.Authorization = `${authTokenStaffType || authTokenLicenseeType} ${authTokenStaff || authTokenLicensee}`;
 
     return requestConfig;
 };
