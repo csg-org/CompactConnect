@@ -89,7 +89,7 @@ Replace:
 Example response:
 ```json
 {
-  "access_token": "eyJraWQiOiJleGFtcGxlS2V5SWQiLCJhbGciOiJSUzI1NiJ9...",
+  "access_token": "<your-access-token>",
   "expires_in": 900,
   "token_type": "Bearer"
 }
