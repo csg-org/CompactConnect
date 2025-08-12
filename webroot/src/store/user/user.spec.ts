@@ -437,6 +437,33 @@ describe('Use Store Mutations', () => {
         expect(state.error).to.equal(null);
         expect(state.model.licensee.privileges[0].history.length).to.equal(1);
     });
+    it('should successfully get privilege history success for privilege not found', () => {
+        const licensee = {
+            id: '1',
+            privileges: [
+                new License({ id: '1-2-4' }),
+                new License({ id: '22' }),
+            ]
+        };
+        const model = {
+            licensee,
+        };
+
+        const state = { model };
+
+        const history = {
+            providerId: '1',
+            jurisdiction: '2',
+            licenseType: '3',
+            events: ['1']
+        };
+
+        mutations[MutationTypes.GET_PRIVILEGE_HISTORY_SUCCESS](state, { history });
+
+        expect(state.isLoadingPrivilegeHistory).to.equal(false);
+        expect(state.error).to.equal(null);
+        expect(state.model.licensee.privileges[0].history.length).to.equal(0);
+    });
 });
 describe('User Store Actions', async () => {
     it('should successfully start login request', () => {

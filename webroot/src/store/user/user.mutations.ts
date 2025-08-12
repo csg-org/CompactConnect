@@ -9,7 +9,6 @@ import { LicenseeUser } from '@/models/LicenseeUser/LicenseeUser.model';
 import { StaffUser } from '@/models/StaffUser/StaffUser.model';
 import { PurchaseFlowStep } from '@/models/PurchaseFlowStep/PurchaseFlowStep.model';
 import { AuthTypes } from '@/app.config';
-import getters from './user.getters';
 
 export enum MutationTypes {
     LOGIN_REQUEST = '[User] Login Request',
@@ -178,10 +177,11 @@ export default {
     [MutationTypes.GET_PRIVILEGE_HISTORY_SUCCESS]: (state: any, { history }) => {
         const privilegeId = `${history.providerId}-${history.jurisdiction}-${history.licenseType}`;
 
-        const privilege = getters.getUserPrivilegeById(state)(privilegeId);
+        const foundPrivilege = (state.model?.licensee?.privileges?.find((privilege) =>
+            (privilege.id === privilegeId)) || null);
 
-        if (privilege) {
-            privilege.history = history.events;
+        if (foundPrivilege) {
+            foundPrivilege.history = history.events;
         }
 
         state.isLoadingPrivilegeHistory = false;

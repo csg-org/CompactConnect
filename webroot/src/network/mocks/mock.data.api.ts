@@ -7,9 +7,9 @@
 
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 import { LicenseeSerializer } from '@models/Licensee/Licensee.model';
+import { LicenseHistoryItem, LicenseHistoryItemSerializer } from '@/models/LicenseHistoryItem/LicenseHistoryItem.model';
 import { LicenseeUserSerializer } from '@models/LicenseeUser/LicenseeUser.model';
 import { StaffUserSerializer } from '@models/StaffUser/StaffUser.model';
-import { LicenseHistorySerializer } from '@models/LicenseHistory/LicenseHistory.model';
 import { PrivilegePurchaseOptionSerializer } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
 import { PrivilegeAttestationSerializer } from '@models/PrivilegeAttestation/PrivilegeAttestation.model';
 import { CompactFeeConfigSerializer } from '@/models/CompactFeeConfig/CompactFeeConfig.model';
@@ -303,7 +303,24 @@ export class DataApi {
             && jurisdiction
             && licenseTypeAbbrev
         ) {
-            response = wait(500).then(() => (LicenseHistorySerializer.fromServer(serverResponse)));
+            response = wait(500).then(() => {
+                const licenseHistoryData = {
+                    compact: serverResponse.compact,
+                    jurisdiction: serverResponse.jurisdiction,
+                    licenseType: serverResponse.licenseType,
+                    privilegeId: serverResponse.privilegeId,
+                    providerId: serverResponse.providerId,
+                    events: [] as Array<LicenseHistoryItem>,
+                };
+
+                if (Array.isArray(serverResponse.events)) {
+                    serverResponse.events.forEach((serverHistoryItem) => {
+                        licenseHistoryData.events.push(LicenseHistoryItemSerializer.fromServer(serverHistoryItem));
+                    });
+                }
+
+                return licenseHistoryData;
+            });
         } else {
             response = wait(500).then(() => {
                 throw new Error('not found');
@@ -329,7 +346,24 @@ export class DataApi {
             && jurisdiction
             && licenseTypeAbbrev
         ) {
-            response = wait(500).then(() => (LicenseHistorySerializer.fromServer(serverResponse)));
+            response = wait(500).then(() => {
+                const licenseHistoryData = {
+                    compact: serverResponse.compact,
+                    jurisdiction: serverResponse.jurisdiction,
+                    licenseType: serverResponse.licenseType,
+                    privilegeId: serverResponse.privilegeId,
+                    providerId: serverResponse.providerId,
+                    events: [] as Array<LicenseHistoryItem>,
+                };
+
+                if (Array.isArray(serverResponse.events)) {
+                    serverResponse.events.forEach((serverHistoryItem) => {
+                        licenseHistoryData.events.push(LicenseHistoryItemSerializer.fromServer(serverHistoryItem));
+                    });
+                }
+
+                return licenseHistoryData;
+            });
         } else {
             response = wait(500).then(() => {
                 throw new Error('not found');
@@ -489,7 +523,24 @@ export class DataApi {
         let response;
 
         if (serverResponse && jurisdiction && licenseTypeAbbrev) {
-            response = wait(500).then(() => (LicenseHistorySerializer.fromServer(serverResponse)));
+            response = wait(500).then(() => {
+                const licenseHistoryData = {
+                    compact: serverResponse.compact,
+                    jurisdiction: serverResponse.jurisdiction,
+                    licenseType: serverResponse.licenseType,
+                    privilegeId: serverResponse.privilegeId,
+                    providerId: serverResponse.providerId,
+                    events: [] as Array<LicenseHistoryItem>,
+                };
+
+                if (Array.isArray(serverResponse.events)) {
+                    serverResponse.events.forEach((serverHistoryItem) => {
+                        licenseHistoryData.events.push(LicenseHistoryItemSerializer.fromServer(serverHistoryItem));
+                    });
+                }
+
+                return licenseHistoryData;
+            });
         } else {
             response = wait(500).then(() => {
                 throw new Error('not found');

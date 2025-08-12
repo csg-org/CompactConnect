@@ -16,7 +16,7 @@ import {
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 import { LicenseeSerializer } from '@models/Licensee/Licensee.model';
 import { PrivilegeAttestation, PrivilegeAttestationSerializer } from '@models/PrivilegeAttestation/PrivilegeAttestation.model';
-import { LicenseHistorySerializer } from '@/models/LicenseHistory/LicenseHistory.model';
+import { LicenseHistoryItemSerializer, LicenseHistoryItem } from '@/models/LicenseHistoryItem/LicenseHistoryItem.model';
 
 export interface RequestParamsInterfaceLocal {
     isPublic?: boolean;
@@ -403,7 +403,7 @@ export class LicenseDataApi implements DataApiInterface {
      * @param  {string}     providerId providerId of privilege holder
      * @param  {string}     jurisdiction jurisdiction of privilege
      * @param  {string}     licenseTypeAbbrev licenseTypeAbbrev of privilege
-     * @return {Promise<object>} A PrivilegeHistory model instance.
+     * @return {Promise<object>} Privilege History data.
      */
     public async getPrivilegeHistoryStaff(
         compact: string,
@@ -415,7 +415,22 @@ export class LicenseDataApi implements DataApiInterface {
             `/v1/compacts/${compact}/providers/${providerId}/privileges/jurisdiction/${jurisdiction.toLowerCase()}/licenseType/${licenseTypeAbbrev.toLowerCase()}/history`
         );
 
-        return LicenseHistorySerializer.fromServer(serverResponse);
+        const licenseHistoryData = {
+            compact: serverResponse.compact,
+            jurisdiction: serverResponse.jurisdiction,
+            licenseType: serverResponse.licenseType,
+            privilegeId: serverResponse.privilegeId,
+            providerId: serverResponse.providerId,
+            events: [] as Array<LicenseHistoryItem>,
+        };
+
+        if (Array.isArray(serverResponse.events)) {
+            serverResponse.events.forEach((serverHistoryItem) => {
+                licenseHistoryData.events.push(LicenseHistoryItemSerializer.fromServer(serverHistoryItem));
+            });
+        }
+
+        return licenseHistoryData;
     }
 
     /**
@@ -424,7 +439,7 @@ export class LicenseDataApi implements DataApiInterface {
      * @param  {string}     providerId providerId of privilege holder
      * @param  {string}     jurisdiction jurisdiction of privilege
      * @param  {string}     licenseTypeAbbrev licenseTypeAbbrev of privilege
-     * @return {Promise<object>} A PrivilegeHistory model instance.
+     * @return {Promise<object>} Privilege History data.
      */
     public async getPrivilegeHistoryPublic(
         compact: string,
@@ -436,7 +451,22 @@ export class LicenseDataApi implements DataApiInterface {
             `/v1/public/compacts/${compact}/providers/${providerId}/jurisdiction/${jurisdiction.toLowerCase()}/licenseType/${licenseTypeAbbrev.toLowerCase()}/history`
         );
 
-        return LicenseHistorySerializer.fromServer(serverResponse);
+        const licenseHistoryData = {
+            compact: serverResponse.compact,
+            jurisdiction: serverResponse.jurisdiction,
+            licenseType: serverResponse.licenseType,
+            privilegeId: serverResponse.privilegeId,
+            providerId: serverResponse.providerId,
+            events: [] as Array<LicenseHistoryItem>,
+        };
+
+        if (Array.isArray(serverResponse.events)) {
+            serverResponse.events.forEach((serverHistoryItem) => {
+                licenseHistoryData.events.push(LicenseHistoryItemSerializer.fromServer(serverHistoryItem));
+            });
+        }
+
+        return licenseHistoryData;
     }
 }
 

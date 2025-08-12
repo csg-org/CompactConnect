@@ -271,6 +271,37 @@ describe('License Store Mutations', () => {
         expect(state.error).to.equal(null);
         expect(state.model[1].privileges[0].history.length).to.equal(1);
     });
+    it('should successfully get privilege history success for unfound privilege', () => {
+        const licensee1 = {
+            id: '2',
+            privileges: [
+                new License({ id: '1' }),
+                new License({ id: '2' }),
+            ]
+        };
+
+        const licensee2 = {
+            id: '1',
+            privileges: [
+                new License({ id: '1-2-4' }),
+                new License({ id: '22' }),
+            ]
+        };
+        const state = { model: [ licensee1, licensee2 ] };
+
+        const history = {
+            providerId: '1',
+            jurisdiction: '2',
+            licenseType: '3',
+            events: ['1']
+        };
+
+        mutations[MutationTypes.GET_PRIVILEGE_HISTORY_SUCCESS](state, { history });
+
+        expect(state.isLoading).to.equal(false);
+        expect(state.error).to.equal(null);
+        expect(state.model[1].privileges[0].history.length).to.equal(0);
+    });
 });
 describe('License Store Actions', async () => {
     it('should successfully start licensees request with next page', async () => {

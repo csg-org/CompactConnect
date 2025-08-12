@@ -18,7 +18,7 @@ import { LicenseeUserSerializer } from '@models/LicenseeUser/LicenseeUser.model'
 import { StaffUserSerializer } from '@models/StaffUser/StaffUser.model';
 import { StateSerializer } from '@models/State/State.model';
 import { CompactFeeConfigSerializer } from '@/models/CompactFeeConfig/CompactFeeConfig.model';
-import { LicenseHistorySerializer } from '@/models/LicenseHistory/LicenseHistory.model';
+import { LicenseHistoryItemSerializer, LicenseHistoryItem } from '@/models/LicenseHistoryItem/LicenseHistoryItem.model';
 
 export interface RequestParamsInterfaceLocal {
     compact?: string;
@@ -258,14 +258,27 @@ export class UserDataApi implements DataApiInterface {
      * GET Authenticated Licensee User privilege's history.
      * @param  {string}     jurisdiction jurisdiction of privilege
      * @param  {string}     licenseTypeAbbrev license type abbreviation of privilege
-     * @return {Promise<>} A User model instance.
+     * @return {Promise<>} Privilege History data instance.
      */
     public async getPrivilegeHistoryLicensee(jurisdiction: string, licenseTypeAbbrev: string) {
         const serverResponse: any = await this.api.get(`/v1/provider-users/me/jurisdiction/${jurisdiction.toLowerCase()}/licenseType/${licenseTypeAbbrev.toLowerCase()}/history`);
 
-        const response = LicenseHistorySerializer.fromServer(serverResponse);
+        const licenseHistoryData = {
+            compact: serverResponse.compact,
+            jurisdiction: serverResponse.jurisdiction,
+            licenseType: serverResponse.licenseType,
+            privilegeId: serverResponse.privilegeId,
+            providerId: serverResponse.providerId,
+            events: [] as Array<LicenseHistoryItem>,
+        };
 
-        return response;
+        if (Array.isArray(serverResponse.events)) {
+            serverResponse.events.forEach((serverHistoryItem) => {
+                licenseHistoryData.events.push(LicenseHistoryItemSerializer.fromServer(serverHistoryItem));
+            });
+        }
+
+        return licenseHistoryData;
     }
 
     /**
