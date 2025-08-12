@@ -124,7 +124,7 @@ The following tables are configured for disaster recovery:
 ```
 ## Complete Disaster Recovery Workflow
 
-### Step 1: Start Maintenance Mode
+### Step 1: Start Recovery Mode
 
 Before executing the DR Step Function, you must throttle all Lambda functions to prevent other data operations from occurring while attempting to roll any databases back. There is a script provided to perform this action:
 
@@ -132,33 +132,32 @@ Before executing the DR Step Function, you must throttle all Lambda functions to
 # Navigate to the disaster_recovery directory
 cd backend/compact-connect/disaster_recovery
 
-# Start maintenance mode for the environment
-python start_maintenance_mode.py --environment Prod --confirm
+# Start recovery mode for the environment
+python start_recovery_mode.py --environment Prod
 ```
 
-This will:
-- Set reserved concurrency to 0 for all environment Lambda functions, so they can't be invoked
-- Skip Disaster Recovery functions to keep them operational
-- Put the system into maintenance mode
+This will put the system into recovery mode by:
+- Setting reserved concurrency to 0 for all environment Lambda functions, so they can't be invoked
+- Leaving Disaster Recovery functions operational
 
-### Step 2: Execute Disaster Recovery Step Function
+### Step 2: Execute Disaster Recovery Step Function For Specific Tables
 
 #### AWS Console Method
 
 1. Navigate to Step Functions in the AWS Console
-2. Find the appropriate Step Function (e.g., `DRRestoreDynamoDbTableTransactionHistoryTableStateMachine`)
+2. Find the appropriate Step Function for the table you need to recover (e.g., `DRRestoreDynamoDbTableTransactionHistoryTableStateMachine`)
 3. Click "Start Execution"
 4. Enter the JSON payload in the input field
 5. Click "Start Execution" and wait for completion
 
-### Step 3: End Maintenance Mode
+### Step 3: End Recovery Mode
 
-After the DR Step Function completes successfully for each table you need to restore, end the maintenance mode to restore
+After the DR Step Function completes successfully for each table you need to restore, end the recovery mode to restore
 normal operations:
 
 ```bash
-# End maintenance mode for the environment
-python end_maintenance_mode.py --environment Prod --confirm
+# End recovery mode for the environment
+python end_recovery_mode.py --environment Prod
 ```
 
 This will:
