@@ -96,7 +96,7 @@ class DisasterRecoveryStack(AppStack):
 
         return RestoreDynamoDbTableStepFunctionConstruct(
             self,
-            f'RestoreTableStepFunction-{table.node.id[0:50]}',
+            f'DR-RestoreTableStepFunction-{table.node.id[0:50]}',
             restored_table_name_prefix=restored_table_name_prefix,
             table=table,
             sync_table_data_state_machine_arn=sync_table_step_function.state_machine.state_machine_arn,
