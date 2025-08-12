@@ -173,9 +173,11 @@ export default class PrivilegeDetail extends Vue {
             if (!this.isPrivilegeHistoryLoaded) {
                 await this.fetchPrivilegeHistoryStaff();
             }
-        }
-
-        if (this.isLoggedInAsLicensee && this.isPrivilegeLoaded && !this.isPrivilegeHistoryLoaded) {
+        } else if (
+            this.isLoggedInAsLicensee
+            && this.isPrivilegeLoaded
+            && !this.isPrivilegeHistoryLoaded
+        ) {
             await this.fetchPrivilegeHistoryLicensee();
         }
     }
@@ -184,7 +186,10 @@ export default class PrivilegeDetail extends Vue {
     // Watch
     //
     @Watch('isPrivilegeLoaded') async loadPrivilegeHistory() {
-        if (this.isLoggedInAsLicensee && !this.isPrivilegeHistoryLoaded) {
+        if (this.isLoggedInAsLicensee
+            && !this.isPrivilegeHistoryLoaded
+            && this.isPrivilegeLoaded
+        ) {
             await this.fetchPrivilegeHistoryLicensee();
         }
     }
