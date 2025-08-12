@@ -42,7 +42,7 @@
                     <span class="cell-title">{{ $t('common.name') }}</span>
                     <span>{{ userFullName }}</span>
                 </div>
-                <div class="cell max-gap">
+                <div class="cell max-gap home-state-cell">
                     <span class="cell-title">{{ $t('licensing.homeState') }}</span>
                     <span>{{ homeJurisdictionName }}</span>
                 </div>
@@ -82,7 +82,7 @@
                     <span class="cell-display-name">{{ privilege.displayName(', ') }}</span>
                     <span v-if="privilege.privilegeId" class="cell-id">{{ privilege.privilegeId }}</span>
                 </div>
-                <div class="cell max-gap">
+                <div class="cell max-gap active-from-cell">
                     <span class="cell-title">{{ $t('licensing.activeFrom') }}</span>
                     <span class="date-text">{{ privilege.activeFromDateDisplay() }}</span>
                 </div>
