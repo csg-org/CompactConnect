@@ -117,7 +117,6 @@ class RestoreDynamoDbTableStepFunctionConstruct(Construct):
         )
 
         shared_persistent_stack_key.grant_encrypt_decrypt(self.state_machine)
-        shared_persistent_stack_key.grant(self.state_machine)
         self.state_machine.add_to_role_policy(
             PolicyStatement(
                 effect=Effect.ALLOW,

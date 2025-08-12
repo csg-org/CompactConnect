@@ -119,12 +119,16 @@ def copy_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused-ar
 
     except ClientError as e:
         logger.error(f'Error during copy: {str(e)}')
-        return {
+        response = {
             'copyStatus': 'FAILED',
             'error': str(e),
             'copiedCount': total_copied,
             'sourceTableArn': source_table_arn,
             'destinationTableArn': destination_table_arn,
-            'copyLastEvaluatedKey': last_evaluated_key,
             'tableNameRecoveryConfirmation': event['tableNameRecoveryConfirmation'],
         }
+        if last_evaluated_key:
+            response.update({
+                'copyLastEvaluatedKey': b64encode(json.dumps(last_evaluated_key).encode('utf-8')).decode('utf-8'),
+            })
+        return response

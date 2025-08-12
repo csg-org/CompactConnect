@@ -1,4 +1,3 @@
-import json
 import time
 
 import boto3
@@ -76,18 +75,6 @@ def cleanup_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused
             response = table.scan(**scan_kwargs)
             items = response.get('Items', [])
 
-            if not items:
-                # No more items to delete
-                logger.info(f'Cleanup complete. Total records deleted: {total_deleted}')
-                return {
-                    'deleteStatus': 'COMPLETE',
-                    'deletedCount': total_deleted,
-                    # pass this through so it is available for following steps
-                    'destinationTableArn': destination_table_arn,
-                    'sourceTableArn': event['sourceTableArn'],
-                    'tableNameRecoveryConfirmation': event['tableNameRecoveryConfirmation'],
-                }
-
             # Delete items using batch_writer
             with table.batch_writer() as batch:
                 for item in items:
@@ -119,7 +106,6 @@ def cleanup_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused
             'deleteStatus': 'FAILED',
             'error': str(e),
             'deletedCount': total_deleted,
-            'lastEvaluatedKey': json.dumps(last_evaluated_key),
             # pass this through so it is available for following steps
             'destinationTableArn': destination_table_arn,
             'sourceTableArn': event['sourceTableArn'],

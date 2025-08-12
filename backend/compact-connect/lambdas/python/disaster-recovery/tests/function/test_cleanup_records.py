@@ -70,26 +70,7 @@ class TestCleanupRecords(TstFunction):
         )
 
     @patch('handlers.cleanup_records.time')
-    def test_lambda_returns_in_progress_delete_status_when_remaining_records_to_clean_up_and_past_max_execution_time(
-        self, mock_time
-    ):
-        """Test getting the latest version of an attestation."""
-        from handlers.cleanup_records import cleanup_records
-
-        # Lambda functions have a timeout of 15 minutes, so we set a cutoff of 12 minutes before we loop around
-        # the step function to reset the timeout. This mock allows us to test that branch of logic.
-        # the first time the mock_time function is called, it will return current time
-        # the second time the mock_time function is called, it will return 12 minutes + 1 second
-        # this should cause the lambda to return an IN_PROGRESS status
-        mock_time.time.side_effect = [0, 12 * 60 + 2]  # current time, 12 minutes + 2 seconds
-
-        event = self._generate_test_event()
-        response = cleanup_records(event, self.mock_context)
-
-        self.assertEqual('IN_PROGRESS', response['deleteStatus'])
-
-    @patch('handlers.cleanup_records.time')
-    def test_lambda_returns_pagination_key_when_time_limit_reached(self, mock_time):
+    def test_lambda_returns_in_progress_when_time_limit_reached(self, mock_time):
         """Test that the lambda iterates over all records to clean up."""
         from handlers.cleanup_records import cleanup_records
 

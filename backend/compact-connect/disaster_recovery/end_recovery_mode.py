@@ -81,7 +81,7 @@ def unthrottle_lambda_functions(environment_name: str) -> dict:
                     continue
 
                 # Skip Disaster Recovery functions as they weren't throttled
-                if 'DisasterRecovery' in function_name or 'DR-' in function_name:
+                if 'DisasterRecovery' in function_name:
                     print(f'Skipping DR function: {function_name}')
                     skipped_functions.append(function_name)
                     continue
