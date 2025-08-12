@@ -214,7 +214,7 @@ class SyncTableDataStepFunctionConstruct(Construct):
             comment='Delete all records from destination table',
             payload_response_only=True,
             result_path='$',
-            retry_on_service_exceptions=True
+            retry_on_service_exceptions=True,
         )
 
         # Check delete operation status
@@ -240,7 +240,7 @@ class SyncTableDataStepFunctionConstruct(Construct):
             comment='Copy records from source to destination table',
             payload_response_only=True,
             result_path='$',
-            retry_on_service_exceptions=True
+            retry_on_service_exceptions=True,
         )
 
         # Check copy operation status

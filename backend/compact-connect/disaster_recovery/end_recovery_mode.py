@@ -44,7 +44,7 @@ def validate_environment(environment_name: str) -> str:
 
     if normalized not in valid_environments:
         raise ValueError(f"Invalid environment '{environment_name}'. Valid options: {valid_environments}")
-    
+
     return normalized
 
 

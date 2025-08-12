@@ -74,9 +74,7 @@ def copy_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused-ar
                 }
 
             # Scan the source table to get records to copy
-            scan_kwargs = {
-                'Limit': 1000
-            }
+            scan_kwargs = {'Limit': 1000}
 
             if last_evaluated_key:
                 scan_kwargs['ExclusiveStartKey'] = last_evaluated_key

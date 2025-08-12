@@ -1,4 +1,3 @@
-import json
 import time
 
 import boto3
@@ -66,9 +65,7 @@ def cleanup_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused
                 }
 
             # Scan the table to get records to delete
-            scan_kwargs = {
-                'Limit': 1000
-            }
+            scan_kwargs = {'Limit': 1000}
 
             if last_evaluated_key:
                 scan_kwargs['ExclusiveStartKey'] = last_evaluated_key
