@@ -84,17 +84,6 @@ def copy_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused-ar
             response = source_table.scan(**scan_kwargs)
             items = response.get('Items', [])
 
-            if not items:
-                # No more items to copy
-                logger.info(f'Copy complete. Total records copied: {total_copied}')
-                return {
-                    'copyStatus': 'COMPLETE',
-                    'copiedCount': total_copied,
-                    'sourceTableArn': source_table_arn,
-                    'destinationTableArn': destination_table_arn,
-                    'tableNameRecoveryConfirmation': event['tableNameRecoveryConfirmation'],
-                }
-
             # Copy items to destination table using batch_writer
             with destination_table.batch_writer() as batch:
                 for item in items:
