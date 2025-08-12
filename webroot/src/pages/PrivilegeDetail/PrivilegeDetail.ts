@@ -153,7 +153,7 @@ export default class PrivilegeDetail extends Vue {
         }
     }
 
-    async fetchPrivilegeHistoryProvider(): Promise<void> {
+    async fetchPrivilegeHistoryLicensee(): Promise<void> {
         const issueStateAbbrev = this.privilege.issueState?.abbrev;
 
         if (issueStateAbbrev && this.privilegeLicenseTypeAbbrev) {
@@ -171,21 +171,21 @@ export default class PrivilegeDetail extends Vue {
             }
 
             if (!this.isPrivilegeHistoryLoaded) {
-                this.fetchPrivilegeHistoryStaff();
+                await this.fetchPrivilegeHistoryStaff();
             }
-        } else if (this.isLoggedInAsLicensee) {
-            if (!this.isPrivilegeHistoryLoaded) {
-                this.fetchPrivilegeHistoryProvider();
-            }
+        }
+
+        if (this.isLoggedInAsLicensee && this.isPrivilegeLoaded && !this.isPrivilegeHistoryLoaded) {
+            await this.fetchPrivilegeHistoryLicensee();
         }
     }
 
     //
     // Watch
     //
-    @Watch('isPrivilegeLoaded') fetchPrivilegeHistory() {
+    @Watch('isPrivilegeLoaded') async loadPrivilegeHistory() {
         if (this.isLoggedInAsLicensee && !this.isPrivilegeHistoryLoaded) {
-            this.fetchPrivilegeHistoryProvider();
+            await this.fetchPrivilegeHistoryLicensee();
         }
     }
 }

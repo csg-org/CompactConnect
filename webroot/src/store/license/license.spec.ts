@@ -248,7 +248,6 @@ describe('License Store Mutations', () => {
                 new License({ id: '2' }),
             ]
         };
-
         const licensee2 = {
             id: '1',
             privileges: [
@@ -257,7 +256,6 @@ describe('License Store Mutations', () => {
             ]
         };
         const state = { model: [ licensee1, licensee2 ] };
-
         const history = {
             providerId: '1',
             jurisdiction: '2',
@@ -279,7 +277,6 @@ describe('License Store Mutations', () => {
                 new License({ id: '2' }),
             ]
         };
-
         const licensee2 = {
             id: '1',
             privileges: [
@@ -288,7 +285,6 @@ describe('License Store Mutations', () => {
             ]
         };
         const state = { model: [ licensee1, licensee2 ] };
-
         const history = {
             providerId: '1',
             jurisdiction: '2',

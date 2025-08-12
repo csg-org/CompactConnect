@@ -421,9 +421,7 @@ describe('Use Store Mutations', () => {
         const model = {
             licensee,
         };
-
         const state = { model };
-
         const history = {
             providerId: '1',
             jurisdiction: '2',
@@ -448,9 +446,7 @@ describe('Use Store Mutations', () => {
         const model = {
             licensee,
         };
-
         const state = { model };
-
         const history = {
             providerId: '1',
             jurisdiction: '2',

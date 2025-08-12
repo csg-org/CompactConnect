@@ -69,7 +69,7 @@ describe('License model', () => {
         expect(license.renewalDateDisplay()).to.equal('');
         expect(license.expireDateDisplay()).to.equal('');
         expect(license.isExpired()).to.equal(false);
-        expect(license.isDeactivated()).to.equal(false);
+        expect(license.isAdminDeactivated()).to.equal(false);
         expect(license.isCompactEligible()).to.equal(false);
         expect(license.licenseTypeAbbreviation()).to.equal('');
         expect(license.displayName()).to.equal('Unknown');
@@ -125,7 +125,7 @@ describe('License model', () => {
         expect(license.renewalDateDisplay()).to.equal('Invalid date');
         expect(license.expireDateDisplay()).to.equal('Invalid date');
         expect(license.isExpired()).to.equal(false);
-        expect(license.isDeactivated()).to.equal(false);
+        expect(license.isAdminDeactivated()).to.equal(false);
         expect(license.isCompactEligible()).to.equal(true);
         expect(license.licenseTypeAbbreviation()).to.equal('AUD');
         expect(license.displayName()).to.equal('Unknown - audiologist');
@@ -207,7 +207,7 @@ describe('License model', () => {
             moment(data.dateOfExpiration, serverDateFormat).format(displayDateFormat)
         );
         expect(license.isExpired()).to.equal(true);
-        expect(license.isDeactivated()).to.equal(false);
+        expect(license.isAdminDeactivated()).to.equal(false);
         expect(license.isCompactEligible()).to.equal(true);
         expect(license.displayName()).to.equal('Alabama - audiologist');
         expect(license.displayName(', ', true)).to.equal('Alabama, AUD');
@@ -549,7 +549,7 @@ describe('License model', () => {
             moment(data.dateOfExpiration, serverDateFormat).format(displayDateFormat)
         );
         expect(license.isExpired()).to.equal(true);
-        expect(license.isDeactivated()).to.equal(false);
+        expect(license.isAdminDeactivated()).to.equal(false);
         expect(license.isCompactEligible()).to.equal(false);
         expect(license.displayName()).to.equal('Nebraska - occupational therapy assistant');
         expect(license.displayName(', ', true)).to.equal('Nebraska, OTA');
@@ -587,7 +587,7 @@ describe('License model', () => {
         })];
 
         // Test field values
-        expect(license.isDeactivated()).to.equal(true);
+        expect(license.isAdminDeactivated()).to.equal(true);
     });
     it('should populate isDeactivated correctly given license history (homeJurisdictionChange)', () => {
         const data = {
@@ -620,6 +620,6 @@ describe('License model', () => {
         })];
 
         // Test field values
-        expect(license.isDeactivated()).to.equal(true);
+        expect(license.isAdminDeactivated()).to.equal(true);
     });
 });

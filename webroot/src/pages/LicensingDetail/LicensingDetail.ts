@@ -46,7 +46,9 @@ export default class LicensingDetail extends Vue {
     // Lifecycle
     //
     async mounted() {
-        await this.fetchLicenseeData();
+        if (!this.licenseeRecord) {
+            await this.fetchLicenseeData();
+        }
 
         if (!this.licensee) {
             this.$router.push({ name: '404' });
@@ -196,6 +198,17 @@ export default class LicensingDetail extends Vue {
 
     get homeStateName(): string {
         return this.homeState?.name() || '';
+    }
+
+    get licenseeRecord(): Licensee | null {
+        const { licenseeId } = this;
+        let storeRecord: Licensee | null = null;
+
+        if (licenseeId && this.licenseStore.model) {
+            storeRecord = this.$store.getters['license/licenseeById'](licenseeId);
+        }
+
+        return storeRecord;
     }
 
     //

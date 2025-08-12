@@ -120,18 +120,14 @@ export class License implements InterfaceLicense {
         return isDatePastExpiration({ date: now, dateOfExpiration: expireDate });
     }
 
-    public isDeactivated(): boolean {
-        // This will only be populated once we fetch the history data from the history endpoint
-        const { history } = this;
-        const historyLength = history?.length || 0;
-        const lastEvent = (history && historyLength) ? history[historyLength - 1] : new LicenseHistoryItem();
-
-        const isLastEventDeactivation = lastEvent.updateType === 'deactivation'
-            || lastEvent.updateType === 'licenseDeactivation'
-            || lastEvent.updateType === 'homeJurisdictionChange';
+    public isAdminDeactivated(): boolean {
+        // NOTE: History is needed to determine this status; and history may be fetched in a separate API call and not always available on the License / Privilege list fetch
+        const adminDeactivateList = ['deactivation', 'licenseDeactivation', 'homeJurisdictionChange'];
         const isInactive = this.status === LicenseStatus.INACTIVE;
+        const lastEvent: LicenseHistoryItem = this.history?.slice(-1).pop() || new LicenseHistoryItem();
+        const lastEventType = lastEvent?.updateType;
 
-        return isLastEventDeactivation && isInactive;
+        return isInactive && !!lastEventType && adminDeactivateList.includes(lastEventType);
     }
 
     public isCompactEligible(): boolean {

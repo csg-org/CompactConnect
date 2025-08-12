@@ -30,7 +30,7 @@ export default class PublicPrivilegeDetail extends Vue {
         }
 
         if (!this.isPrivilegeHistoryLoaded) {
-            this.fetchPrivilegeHistoryStaff();
+            await this.fetchPrivilegeHistory();
         }
     }
 
@@ -112,7 +112,7 @@ export default class PublicPrivilegeDetail extends Vue {
         });
     }
 
-    async fetchPrivilegeHistoryStaff(): Promise<void> {
+    async fetchPrivilegeHistory(): Promise<void> {
         const issueStateAbbrev = this.privilege?.issueState?.abbrev;
 
         if (issueStateAbbrev && this.privilegeLicenseTypeAbbrev) {
