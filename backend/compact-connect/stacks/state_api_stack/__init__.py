@@ -30,6 +30,9 @@ class _StateApi(CCApi):
         )
         self.v1_api = V1Api(self.root, persistent_stack=persistent_stack)
 
+        # Create the QueryDefinition after all API modules have been initialized and added their log groups
+        self.create_runtime_query_definition()
+
 
 class StateApiStack(AppStack):
     def __init__(

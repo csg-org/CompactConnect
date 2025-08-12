@@ -174,7 +174,7 @@ class CCApi(RestApi):
 
         self.web_acl = WebACL(self, 'WebACL', acl_scope=WebACLScope.REGIONAL, security_profile=security_profile)
         self.web_acl.associate_stage(self.deployment_stage)
-        self.log_groups = [access_log_group, self.web_acl.log_group]
+        self.log_groups.append(self.web_acl.log_group)
         self._configure_alarms()
 
         # These canned Gateway Response headers do not support dynamic values, so we have to set a static value for the
@@ -200,18 +200,6 @@ class CCApi(RestApi):
             status_code='403',
             response_headers={'Access-Control-Allow-Origin': f"'{gateway_response_origin}'"},
             templates={'application/json': '{"message": "Access denied"}'},
-        )
-
-        QueryDefinition(
-            self,
-            'RuntimeQuery',
-            query_definition_name=f'{construct_id}/Lambdas',
-            query_string=QueryString(
-                fields=['@timestamp', '@log', 'level', 'status', 'message', 'method', 'path', '@message'],
-                filter_statements=['level in ["INFO", "WARNING", "ERROR"]'],
-                sort='@timestamp desc',
-            ),
-            log_groups=self.log_groups,
         )
 
         stack = AppStack.of(self)
@@ -367,3 +355,17 @@ class CCApi(RestApi):
             evaluate_low_sample_count_percentile='evaluate',
         )
         latency_alarm.add_alarm_action(SnsAction(self.alarm_topic))
+
+    def create_runtime_query_definition(self):
+        """Create the QueryDefinition for runtime logs after all API modules have been initialized."""
+        QueryDefinition(
+            self,
+            'RuntimeQuery',
+            query_definition_name=f'{self.node.id}/Lambdas',
+            query_string=QueryString(
+                fields=['@timestamp', '@log', 'level', 'status', 'message', 'method', 'path', '@message'],
+                filter_statements=['level in ["INFO", "WARNING", "ERROR"]'],
+                sort='@timestamp desc',
+            ),
+            log_groups=self.log_groups,
+        )

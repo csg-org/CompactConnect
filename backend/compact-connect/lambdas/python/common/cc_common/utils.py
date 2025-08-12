@@ -94,9 +94,11 @@ def api_handler(fn: Callable):
     @logger.inject_lambda_context
     def caught_handler(event, context: LambdaContext):
         # We have to jump through extra hoops to handle the case where APIGW sets headers to null
-        headers = CaseInsensitiveDict(event.get('headers')) or {}
-        headers.pop('Authorization', None)
+        (event.get('headers') or {}).pop('Authorization', None)
+        (event.get('headers') or {}).pop('authorization', None)
         (event.get('multiValueHeaders') or {}).pop('Authorization', None)
+        (event.get('multiValueHeaders') or {}).pop('authorization', None)
+        headers = CaseInsensitiveDict(event.get('headers') or {})
 
         # Determine the appropriate CORS origin header value
         origin = headers.get('Origin')
@@ -675,8 +677,9 @@ def sanitize_provider_data_based_on_caller_scopes(compact: str, provider: dict, 
     # Currently, the UI bundles permissions for admins, granting them the readPrivate scope along with admin. Should
     # this ever change, we will need to account for that here. This 'or' conditional is a precautionary measure to keep
     # UI changes from unintentionally breaking existing functionality
-    if (caller_is_admin or
-            _user_has_read_private_access_for_provider(compact=compact, provider_information=provider, scopes=scopes)):
+    if caller_is_admin or _user_has_read_private_access_for_provider(
+        compact=compact, provider_information=provider, scopes=scopes
+    ):
         # return full object since caller has 'readPrivate' access for provider
         return provider
 
