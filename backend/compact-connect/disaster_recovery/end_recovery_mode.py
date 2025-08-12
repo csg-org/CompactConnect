@@ -51,12 +51,6 @@ def unthrottle_lambda_functions(environment_name: str) -> dict:
 
     return: Dict containing results of the operation
     """
-    try:
-        validate_environment(environment_name)
-    except ValueError as e:
-        print(f'Environment validation failed: {e}')
-        return {'success': False, 'error': str(e), 'unthrottled_functions': [], 'skipped_functions': [], 'errors': []}
-
     lambda_client = boto3.client('lambda')
 
     # Environment prefix for filtering functions (e.g., "Test-", "Beta-", "Prod-")
@@ -114,9 +108,7 @@ def unthrottle_lambda_functions(environment_name: str) -> dict:
                     failed_function_names.append(function_name)
 
         return {
-            'success': True,
             'unthrottled_functions': unthrottled_functions,
-            'unthrottled_count': len(unthrottled_functions),
             'skipped_functions': skipped_functions,
             'failed_functions': failed_function_names,
             'errors': errors,
@@ -136,9 +128,9 @@ def unthrottle_lambda_functions(environment_name: str) -> dict:
         error_msg = f'Unexpected error during recovery mode deactivation: {str(e)}'
         print(error_msg)
         return {
-            'success': False,
             'unthrottled_functions': unthrottled_functions,
             'skipped_functions': skipped_functions,
+            'errors': errors + [error_msg],
         }
 
 
@@ -158,6 +150,12 @@ def main():
 
     args = parser.parse_args()
 
+    try:
+        validate_environment(args.environment)
+    except ValueError as e:
+        print(f'Environment validation failed: {e}')
+        return
+
     # Confirmation prompt
     print(f'\n🔓 This will restore normal Lambda function operations for the {args.environment} environment.')
     print('All reserved concurrency throttling will be removed.')
@@ -172,12 +170,16 @@ def main():
     # Execute the unthrottling operation
     result = unthrottle_lambda_functions(args.environment)
 
-    print('\nRecovery mode deactivation completed')
-    print(f'   Functions unthrottled: {result["unthrottled_count"]}')
+    print(f'   Functions unthrottled: {len(result["unthrottled_functions"])}')
     print(f'   Functions skipped: {len(result["skipped_functions"])}')
 
-    if result['failed_functions']:
-        print(f'   Function That failed to unthrottle: {result["failed_functions"]}')
+    if result.get('failed_functions') or result.get('errors'):
+        print(f'   Functions that failed: {result.get("failed_functions", "unknown")}')
+        print(f'   Errors: {result.get("errors", "unknown")}')
+    else:
+        print('\n✅ Recovery mode deactivation completed')
+        print(f"\n🔓 Environment '{args.environment}' recovery mode has been ended.")
+        print('Normal application operations have been restored!')
 
 
 if __name__ == '__main__':

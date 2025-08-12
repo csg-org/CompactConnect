@@ -18,7 +18,6 @@ Example:
 Requirements:
     - AWS CLI configured with appropriate credentials
     - boto3 installed
-    - Lambda permissions: ListFunctions, PutReservedConcurrencyConfiguration
 """
 
 import argparse
@@ -53,12 +52,6 @@ def throttle_lambda_functions(environment_name: str, dry_run: bool = False) -> d
 
     return: Dict containing results of the operation
     """
-    try:
-        validate_environment(environment_name)
-    except ValueError as e:
-        print(f'Environment validation failed: {e}')
-        return {'success': False, 'error': str(e), 'throttled_functions': [], 'skipped_functions': [], 'errors': []}
-
     lambda_client = boto3.client('lambda')
 
     # Environment prefix for filtering functions (e.g., "Test-", "Beta-", "Prod-")
@@ -70,6 +63,7 @@ def throttle_lambda_functions(environment_name: str, dry_run: bool = False) -> d
     throttled_functions = []
     skipped_functions = []
     errors = []
+    failed_functions = []
 
     try:
         # Use paginator to handle accounts with many Lambda functions
@@ -114,33 +108,29 @@ def throttle_lambda_functions(environment_name: str, dry_run: bool = False) -> d
                     error_msg = f'Error throttling {function_name}: {error_code} - {error_message}'
                     print(error_msg)
                     errors.append(error_msg)
+                    failed_functions.append(function_name)
 
                 except Exception as e:  # noqa: BLE001
                     error_msg = f'Unexpected error throttling {function_name}: {str(e)}'
                     print(error_msg)
                     errors.append(error_msg)
+                    failed_functions.append(function_name)
 
         if errors:
             print(f'Encountered {len(errors)} errors during throttling process')
 
         return {
-            'success': True,
             'throttled_functions': throttled_functions,
-            'throttled_count': len(throttled_functions),
             'skipped_functions': skipped_functions,
-            'skipped_count': len(skipped_functions),
+            'failed_functions': failed_functions,
             'errors': errors,
-            'environment_name': environment_name,
-            'environment_prefix': environment_prefix,
             'total_functions_checked': total_functions_checked,
-            'dry_run': dry_run,
         }
 
     except ClientError as e:
         error_msg = f'Failed to list Lambda functions: {str(e)}'
         print(error_msg)
         return {
-            'success': False,
             'error': error_msg,
             'throttled_functions': throttled_functions,
             'skipped_functions': skipped_functions,
@@ -151,7 +141,6 @@ def throttle_lambda_functions(environment_name: str, dry_run: bool = False) -> d
         error_msg = f'Unexpected error during recovery mode activation: {str(e)}'
         print(error_msg)
         return {
-            'success': False,
             'error': error_msg,
             'throttled_functions': throttled_functions,
             'skipped_functions': skipped_functions,
@@ -178,6 +167,12 @@ def main():
 
     args = parser.parse_args()
 
+    try:
+        validate_environment(args.environment)
+    except ValueError as e:
+        print(f'Environment validation failed: {e}')
+        return
+
     # Confirmation prompt unless --dry-run is used
     if not args.dry_run:
         print(f'\n⚠️  WARNING: This will throttle ALL Lambda functions in the {args.environment} environment!')
@@ -194,26 +189,20 @@ def main():
     # Execute the throttling operation
     result = throttle_lambda_functions(args.environment, dry_run=args.dry_run)
 
-    if result['success']:
-        action = 'would be throttled' if args.dry_run else 'throttled'
-        print(f'\n✅ Recovery mode {"dry run" if args.dry_run else "activation"} completed successfully!')
-        print(f'   throttled functions: {result["throttled_functions"]}')
-        print(f'   Functions {action}: {result["throttled_count"]}')
-        print(f'   Functions skipped: {result["skipped_count"]}')
+    action = 'would be throttled' if args.dry_run else 'throttled'
+    print(f'   Functions {action}: {len(result["throttled_functions"])}')
+    print(f'   Functions skipped: {len(result["skipped_functions"])}')
 
-        if result['errors']:
-            print(f'   Errors encountered: {len(result["errors"])}')
-
+    # Show failed functions if any
+    if result.get('failed_functions') or result.get('errors'):
+        print(f'\n❌ Recovery mode {"dry run" if args.dry_run else "activation"} failed')
+        print(f'   Functions that failed: {result.get("failed_functions", "unknown")}')
+        print(f'   Errors: {result.get("errors", "unknown")}')
+    else:
+        print(f'\n✅ Recovery mode {"dry run" if args.dry_run else "activation"} completed')
         if not args.dry_run:
             print(f"\n🔒 Environment '{args.environment}' is now in recovery mode.")
             print("Remember to run 'end_recovery_mode.py' when disaster recovery is complete!")
-    else:
-        print(f'\n❌ Recovery mode activation failed: {result.get("error", "Unknown error")}')
-        if result.get('errors'):
-            print('\nDetailed errors:')
-            for error in result['errors']:
-                print(f'  - {error}')
-        sys.exit(1)
 
 
 if __name__ == '__main__':

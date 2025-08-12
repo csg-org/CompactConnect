@@ -46,7 +46,7 @@ class RestoreDynamoDbTableStepFunctionConstruct(Construct):
             table=table,
             restored_table_name_prefix=restored_table_name_prefix,
             sync_table_data_state_machine_arn=sync_table_data_state_machine_arn,
-            persistent_stack_encryption_key=shared_persistent_stack_key
+            persistent_stack_encryption_key=shared_persistent_stack_key,
         )
 
         state_machine_log_group = LogGroup(
@@ -106,13 +106,13 @@ class RestoreDynamoDbTableStepFunctionConstruct(Construct):
                     # permissions needed for step function to track synchronous events of step function execution
                     'events:PutTargets',
                     'events:PutRule',
-                    'events:DescribeRule'
+                    'events:DescribeRule',
                 ],
                 resources=[
                     sync_table_data_state_machine_arn,  # Sync table step function
                     # rule used for tracking step function execution events
-                    f'arn:aws:events:{stack.region}:{stack.account}:rule/StepFunctionsGetEventsForStepFunctionsExecutionRule'
-        ],
+                    f'arn:aws:events:{stack.region}:{stack.account}:rule/StepFunctionsGetEventsForStepFunctionsExecutionRule',
+                ],
             )
         )
 
@@ -145,9 +145,11 @@ class RestoreDynamoDbTableStepFunctionConstruct(Construct):
         )
 
     def _build_state_machine_definition(
-        self, table: Table, restored_table_name_prefix: str,
-            sync_table_data_state_machine_arn: str,
-            persistent_stack_encryption_key: Key
+        self,
+        table: Table,
+        restored_table_name_prefix: str,
+        sync_table_data_state_machine_arn: str,
+        persistent_stack_encryption_key: Key,
     ):
         """Builds restore + backup in parallel, then sync execution with polling loops."""
         stack = Stack.of(self)
@@ -182,11 +184,11 @@ class RestoreDynamoDbTableStepFunctionConstruct(Construct):
                 'RestoreDateTime': '{% $states.input.pitrBackupTime %}',
                 'SourceTableArn': table.table_arn,
                 # ensure the restored table is encrypted with the same key as the original table.
-                "SseSpecificationOverride": {
-                    "Enabled": True,
-                    "KmsMasterKeyId": persistent_stack_encryption_key.key_id,
-                    "SseType": "KMS"
-                }
+                'SseSpecificationOverride': {
+                    'Enabled': True,
+                    'KmsMasterKeyId': persistent_stack_encryption_key.key_id,
+                    'SseType': 'KMS',
+                },
             },
             'Resource': 'arn:aws:states:::aws-sdk:dynamodb:restoreTableToPointInTime',
             'QueryLanguage': 'JSONata',
@@ -286,10 +288,10 @@ class RestoreDynamoDbTableStepFunctionConstruct(Construct):
                     'sourceTableArn': f"{{% 'arn:aws:dynamodb:{stack.region}:{stack.account}:table/' & $restoreTableName %}}",  # noqa: E501
                     'tableNameRecoveryConfirmation': '{% $tableNameRecoveryConfirmation %}',
                 },
-                "Name": '{% $incidentId %}'
+                'Name': '{% $incidentId %}',
             },
             'QueryLanguage': 'JSONata',
-            'End': True
+            'End': True,
         }
         start_sync = CustomState(self, 'StartSyncTableData', state_json=start_sync_table_state_json)
 
