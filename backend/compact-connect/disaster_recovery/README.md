@@ -132,15 +132,21 @@ Before executing the DR Step Function, you must throttle all Lambda functions to
 # Navigate to the disaster_recovery directory
 cd backend/compact-connect/disaster_recovery
 
-# Start recovery mode for the environment
+# Start recovery mode for the environment (replace "Prod" with your target environment)
 python start_recovery_mode.py --environment Prod
 ```
 
 This will put the system into recovery mode by:
 - Setting reserved concurrency to 0 for all environment Lambda functions, so they can't be invoked
 - Leaving Disaster Recovery functions operational
+- **Important**: If any functions failed to throttle, investigate before proceeding
 
 ### Step 2: Execute Disaster Recovery Step Function For Specific Tables
+
+#### Prerequisites
+- Identify the exact table name from the DynamoDB console (needed for `tableNameRecoveryConfirmation`)
+- Determine the PITR timestamp to restore to (must be within 35 days)
+- Create a unique incident ID for tracking
 
 #### AWS Console Method
 
@@ -152,8 +158,9 @@ This will put the system into recovery mode by:
 
 ### Step 3: End Recovery Mode
 
-After the DR Step Function completes successfully for each table you need to restore, end the recovery mode to restore
-normal operations:
+**⚠️ CRITICAL**: Only proceed after ALL Step Functions have completed successfully.
+
+After the DR Step Function completes successfully for each table you need to restore, end the recovery mode to restore normal operations:
 
 ```bash
 # End recovery mode for the environment
@@ -164,6 +171,7 @@ This will:
 - Remove reserved concurrency throttling from all Lambda functions
 - Restore normal application operations
 - Complete the disaster recovery process
+- **Important**: If any functions failed to unthrottle, you may rerun the script or manually check their reserved concurrency settings if needed. The script is idempotent and can be run multiple times.
 
 ## Pre-Execution Checklist
 
@@ -199,8 +207,76 @@ This will:
 
 #### Invalid table name
 - **Cause**: `tableNameRecoveryConfirmation` doesn't match actual table name
-- **Solution**: Verify exact table name spelling and case
+- **Solution**: Copy exact table name from DynamoDB console
 
 #### Restore timestamp out of range
 - **Cause**: PITR timestamp is outside the 35-day retention window
 - **Solution**: Choose a more recent timestamp within the retention period
+
+## Complete Table Deletion Recovery (Manual Backup Restoration)
+
+**⚠️ CRITICAL**: This section applies ONLY when a DynamoDB table has been completely deleted and PITR is not available. This requires manual intervention and cannot use the automated Step Functions.
+
+### When to Use This Process
+
+Use this manual recovery process when:
+- A DynamoDB table has been completely deleted (not just corrupted data)
+- Point-in-Time Recovery (PITR) is not available
+- You need to restore from a backup snapshot (DynamoDB or AWS Backup)
+
+### Recovery Steps
+
+#### Step 1: Locate the Latest Backup
+
+**Option A: DynamoDB Console**
+1. Navigate to DynamoDB Console → Backups
+2. Find the most recent backup for the deleted table
+3. Note the backup name and creation time
+
+**Option B: AWS Backup Console**
+1. Navigate to AWS Backup Console → Backup Vaults
+2. Find the most recent recovery point for the deleted table
+3. **CRITICAL**: Note the "Original table name" from the recovery point details
+
+#### Step 2: Restore Table from Backup
+
+1. **From DynamoDB Console**:
+   - Go to DynamoDB → Backups
+   - Select the backup → "Restore"
+   - **CRITICAL Configuration**:
+     - **Table Name**: Must match EXACTLY the original deleted table name
+     - **Encryption**: Select "Customer managed key"
+     - **KMS Key**: Choose `<environment>-PersistentStack-shared-encryption-key` for non-ssn tables, `ssn-key` for the SSN table
+       - Example: `Prod-PersistentStack-shared-encryption-key`
+     - **Global Secondary Indexes (GSIs)**: Ensure ALL original GSIs are included in the restore by selecting 'Restore the entire table'
+     - Select 'Restore'
+
+2. **From AWS Backup Console**:
+   - Navigate to Recovery Points → Select the backup
+   - Click "Restore"
+   - **CRITICAL Configuration**:
+     - **New Table Name**: Use the EXACT "Original table name" from the recovery point
+     - **Encryption**: Choose an AWS KMS key -> `<environment>-PersistentStack-shared-encryption-key` for non-ssn tables, `ssn-key` for the SSN table
+     - **GSIs**: Verify all original GSIs are restored
+     - Select 'Restore Backup'
+
+#### Step 3: Verify Restoration
+
+1. **Table Configuration**:
+   - ✅ Table name matches exactly (including environment prefix and suffix)
+   - ✅ All Global Secondary Indexes are present
+   - ✅ Encryption is set to the correct KMS key
+   - ✅ Table status is "ACTIVE"
+
+2. **Data Verification**:
+   - Spot-check critical records
+   - Verify record counts are reasonable
+   - Verify application functionality with the restored table
+
+### Post-Recovery Validation
+
+1. **Technical Validation**:
+   - Table is accessible from applications
+   - All expected GSIs are queryable
+   - Encryption key is correct
+   - CDK app can be redeployed into environment
