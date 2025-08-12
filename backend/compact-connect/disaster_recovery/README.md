@@ -95,7 +95,7 @@ The following tables are configured for disaster recovery:
 
 - **`incidentId`** (required)
   - Purpose: Unique identifier for tracking this recovery operation
-  - Format: String (alphanumeric, hyphens allowed)
+  - Format: String (80 chars or less, allows alphanumeric and hyphens)
   - Example: `"incident-2025-001"`, `"corruption-fix-20250115"`
   - Used in: Backup names, restored table names, execution tracking
 

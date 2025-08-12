@@ -107,6 +107,6 @@ def copy_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused-ar
                 }
 
     except ClientError as e:
-        logger.error(f'Error during copy: {str(e)}', last_evaluated_key=json.dumps(last_evaluated_key))
+        logger.error(f'Error during copy: {str(e)}')
         # raise exception so step function will retry
         raise e
