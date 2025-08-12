@@ -77,7 +77,7 @@ class TestCleanupRecords(TstFunction):
         # current time, start time + 1 second, start time 12 minutes + 2 seconds
         mock_time.time.side_effect = [0, 1, 12 * 60 + 2]
 
-        for i in range(500):
+        for i in range(5000):
             self.mock_destination_table.put_item(
                 Item={
                     'pk': str(i),
@@ -91,7 +91,7 @@ class TestCleanupRecords(TstFunction):
 
         self.assertEqual(
             {
-                'deletedCount': 100,
+                'deletedCount': 1000,
                 'deleteStatus': 'IN_PROGRESS',
                 'destinationTableArn': self.mock_destination_table_arn,
                 'sourceTableArn': self.mock_source_table_arn,

@@ -75,7 +75,7 @@ def copy_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused-ar
 
             # Scan the source table to get records to copy
             scan_kwargs = {
-                'Limit': 100  # Process in smaller batches for better performance
+                'Limit': 1000
             }
 
             if last_evaluated_key:
@@ -118,17 +118,6 @@ def copy_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused-ar
                 }
 
     except ClientError as e:
-        logger.error(f'Error during copy: {str(e)}')
-        response = {
-            'copyStatus': 'FAILED',
-            'error': str(e),
-            'copiedCount': total_copied,
-            'sourceTableArn': source_table_arn,
-            'destinationTableArn': destination_table_arn,
-            'tableNameRecoveryConfirmation': event['tableNameRecoveryConfirmation'],
-        }
-        if last_evaluated_key:
-            response.update({
-                'copyLastEvaluatedKey': b64encode(json.dumps(last_evaluated_key).encode('utf-8')).decode('utf-8'),
-            })
-        return response
+        logger.error(f'Error during copy: {str(e)}', last_evaluated_key=json.dumps(last_evaluated_key))
+        # raise exception so step function will retry
+        raise e

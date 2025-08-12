@@ -1,3 +1,4 @@
+import json
 import time
 
 import boto3
@@ -66,7 +67,7 @@ def cleanup_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused
 
             # Scan the table to get records to delete
             scan_kwargs = {
-                'Limit': 100  # Process in smaller batches for better performance
+                'Limit': 1000
             }
 
             if last_evaluated_key:
@@ -101,13 +102,6 @@ def cleanup_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused
                 }
 
     except ClientError as e:
-        logger.error(f'Error during cleanup: {str(e)}')
-        return {
-            'deleteStatus': 'FAILED',
-            'error': str(e),
-            'deletedCount': total_deleted,
-            # pass this through so it is available for following steps
-            'destinationTableArn': destination_table_arn,
-            'sourceTableArn': event['sourceTableArn'],
-            'tableNameRecoveryConfirmation': event['tableNameRecoveryConfirmation'],
-        }
+        logger.error(f'Error during cleanup: {str(e)}', last_evaluated_key=json.dumps(last_evaluated_key))
+        # raise exception so step function will retry
+        raise e
