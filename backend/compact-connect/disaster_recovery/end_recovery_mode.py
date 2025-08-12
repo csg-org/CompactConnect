@@ -27,20 +27,25 @@ import boto3
 from botocore.exceptions import ClientError
 
 
-def validate_environment(environment_name: str) -> None:
+def validate_environment(environment_name: str) -> str:
     """
-    Validate the environment name.
+    Validate and normalize the environment name.
     param: environment_name: Environment name to validate
 
+    return: Normalized environment name in title case
     raise ValueError: If environment name is invalid
     """
     if not environment_name:
         raise ValueError('Environment name cannot be empty')
 
+    # Normalize to title case for validation and consistency
+    normalized = environment_name.strip().title()
     valid_environments = ['Test', 'Beta', 'Prod', 'Sandbox']
 
-    if environment_name not in valid_environments:
+    if normalized not in valid_environments:
         raise ValueError(f"Invalid environment '{environment_name}'. Valid options: {valid_environments}")
+    
+    return normalized
 
 
 def unthrottle_lambda_functions(environment_name: str) -> dict:
@@ -54,7 +59,7 @@ def unthrottle_lambda_functions(environment_name: str) -> dict:
     lambda_client = boto3.client('lambda')
 
     # Environment prefix for filtering functions (e.g., "Test-", "Beta-", "Prod-")
-    environment_prefix = f'{environment_name.title()}-'
+    environment_prefix = f'{environment_name}-'
 
     print(f'Ending recovery mode for environment: {environment_name}')
     print(f'Function prefix filter: {environment_prefix}')
@@ -146,12 +151,12 @@ def main():
         """,
     )
 
-    parser.add_argument('-e', '--environment', required=True, help='Environment name (test, beta, prod, sandbox)')
+    parser.add_argument('-e', '--environment', required=True, help='Environment name (Test, Beta, Prod, Sandbox)')
 
     args = parser.parse_args()
 
     try:
-        validate_environment(args.environment)
+        environment_name = validate_environment(args.environment)
     except ValueError as e:
         print(f'Environment validation failed: {e}')
         return
@@ -168,7 +173,7 @@ def main():
         sys.exit(0)
 
     # Execute the unthrottling operation
-    result = unthrottle_lambda_functions(args.environment)
+    result = unthrottle_lambda_functions(environment_name)
 
     print(f'   Functions unthrottled: {len(result["unthrottled_functions"])}')
     print(f'   Functions skipped: {len(result["skipped_functions"])}')

@@ -27,20 +27,25 @@ import boto3
 from botocore.exceptions import ClientError
 
 
-def validate_environment(environment_name: str) -> None:
+def validate_environment(environment_name: str) -> str:
     """
-    Validate the environment name.
+    Validate and normalize the environment name.
     param: environment_name: Environment name to validate
 
+    return: Normalized environment name in title case
     raise ValueError: If environment name is invalid
     """
     if not environment_name:
         raise ValueError('Environment name cannot be empty')
 
+    # Normalize to title case for validation and consistency
+    normalized = environment_name.strip().title()
     valid_environments = ['Test', 'Beta', 'Prod', 'Sandbox']
 
-    if environment_name not in valid_environments:
+    if normalized not in valid_environments:
         raise ValueError(f"Invalid environment '{environment_name}'. Valid options: {valid_environments}")
+    
+    return normalized
 
 
 def throttle_lambda_functions(environment_name: str, dry_run: bool = False) -> dict:
@@ -161,14 +166,14 @@ def main():
         """,
     )
 
-    parser.add_argument('-e', '--environment', required=True, help='Environment name (test, beta, prod, sandbox)')
+    parser.add_argument('-e', '--environment', required=True, help='Environment name (Test, Beta, Prod, Sandbox)')
 
     parser.add_argument('--dry-run', action='store_true', help='Show what would be done without making changes')
 
     args = parser.parse_args()
 
     try:
-        validate_environment(args.environment)
+        environment_name = validate_environment(args.environment)
     except ValueError as e:
         print(f'Environment validation failed: {e}')
         return
@@ -187,7 +192,7 @@ def main():
             sys.exit(0)
 
     # Execute the throttling operation
-    result = throttle_lambda_functions(args.environment, dry_run=args.dry_run)
+    result = throttle_lambda_functions(environment_name, dry_run=args.dry_run)
 
     action = 'would be throttled' if args.dry_run else 'throttled'
     print(f'   Functions {action}: {len(result["throttled_functions"])}')
