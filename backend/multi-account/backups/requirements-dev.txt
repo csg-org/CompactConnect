@@ -4,20 +4,20 @@
 #
 #    pip-compile --no-emit-index-url multi-account/backups/requirements-dev.in
 #
-boto3==1.39.10
+boto3==1.40.7
     # via moto
-botocore==1.39.10
+botocore==1.40.7
     # via
     #   boto3
     #   moto
     #   s3transfer
-certifi==2025.7.14
+certifi==2025.8.3
     # via requests
 cffi==1.17.1
     # via cryptography
-charset-normalizer==3.4.2
+charset-normalizer==3.4.3
     # via requests
-cryptography==45.0.5
+cryptography==45.0.6
     # via moto
 idna==3.10
     # via requests
@@ -33,7 +33,7 @@ markupsafe==3.0.2
     # via
     #   jinja2
     #   werkzeug
-moto==5.1.8
+moto==5.1.10
     # via -r multi-account/backups/requirements-dev.in
 packaging==25.0
     # via pytest
@@ -55,7 +55,7 @@ requests==2.32.4
     # via
     #   moto
     #   responses
-responses==0.25.7
+responses==0.25.8
     # via moto
 s3transfer==0.13.1
     # via boto3
