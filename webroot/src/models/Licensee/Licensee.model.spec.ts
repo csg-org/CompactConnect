@@ -680,6 +680,31 @@ describe('Licensee model', () => {
         expect(licensee.hasEncumberedPrivileges()).to.equal(true);
         expect(licensee.isEncumbered()).to.equal(true);
     });
+    it('should create a Licensee with privileges that have encumbrances lifted within wait period', () => {
+        // Create mock privileges with encumbrances lifted within wait period
+        const privilegeWithRecentLift = new License({
+            licenseNumber: 'privilege-with-recent-lift',
+            licenseStatus: LicenseStatus.ACTIVE,
+        });
+
+        // Mock the isLatestEncumbranceWithinWaitPeriod method
+        privilegeWithRecentLift.isLatestEncumbranceWithinWaitPeriod = () => true;
+
+        const privilegeWithoutRecentLift = new License({
+            licenseNumber: 'privilege-without-recent-lift',
+            licenseStatus: LicenseStatus.ACTIVE,
+        });
+
+        // Mock the isLatestEncumbranceWithinWaitPeriod method
+        privilegeWithoutRecentLift.isLatestEncumbranceWithinWaitPeriod = () => false;
+
+        const licensee = new Licensee({
+            privileges: [privilegeWithRecentLift, privilegeWithoutRecentLift],
+        });
+
+        // Test hasEncumbranceLiftedWithinWaitPeriod method
+        expect(licensee.hasEncumbranceLiftedWithinWaitPeriod()).to.equal(true);
+    });
     it('should serialize a Licensee for transmission to server', () => {
         const licensee = LicenseeSerializer.fromServer({
             providerId: 'test-id',

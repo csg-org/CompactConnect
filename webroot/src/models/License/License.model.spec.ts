@@ -199,8 +199,6 @@ describe('License model', () => {
         };
         const license = LicenseSerializer.fromServer(data);
 
-        console.log('license', license);
-
         // Test field values
         expect(license).to.be.an.instanceof(License);
         expect(license.id).to.equal('test-provider-id-al-audiologist');
