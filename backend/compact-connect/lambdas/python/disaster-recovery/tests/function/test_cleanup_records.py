@@ -91,7 +91,7 @@ class TestCleanupRecords(TstFunction):
 
         self.assertEqual(
             {
-                'deletedCount': 1000,
+                'deletedCount': 2000,
                 'deleteStatus': 'IN_PROGRESS',
                 'destinationTableArn': self.mock_destination_table_arn,
                 'sourceTableArn': self.mock_source_table_arn,
