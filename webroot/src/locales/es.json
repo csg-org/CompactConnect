@@ -777,6 +777,7 @@
         "viewMilitaryStatus": "Ver estado militar",
         "affiliationType": "Tipo de afiliación",
         "uploadedDocuments": "Documentos de afiliación militar",
+        "previousDocuments": "Documentos cargados previamente",
         "downloadUnavailable": "Indisponible",
         "endMilitaryAffiliation": "Parar afiliación militar",
         "editInfo": "Editar información",

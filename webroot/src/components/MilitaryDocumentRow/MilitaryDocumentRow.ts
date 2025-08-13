@@ -17,4 +17,5 @@ import DownloadIcon from '@components/Icons/DownloadFile/DownloadFile.vue';
 export default class MilitaryDocumentRow extends Vue {
     @Prop({ required: true }) item!: any;
     @Prop({ default: false }) isHeaderRow?: boolean;
+    @Prop({ default: false }) isDownloadAvailable?: boolean;
 }

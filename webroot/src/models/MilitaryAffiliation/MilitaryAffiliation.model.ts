@@ -12,6 +12,11 @@ import { dateDisplay } from '@models/_formatters/date';
 // ========================================================
 // =                       Interface                      =
 // ========================================================
+type DownloadLink = {
+    filename?: string;
+    url?: string;
+};
+
 export interface InterfaceMilitaryAffiliationCreate {
     affiliationType?: string | null;
     compact?: Compact | null;
@@ -19,10 +24,7 @@ export interface InterfaceMilitaryAffiliationCreate {
     dateOfUpload?: string | null;
     documentKeys?: Array<string>;
     fileNames?: Array<string>;
-    downloadLinks?: Array<{
-        filename?: string,
-        url?: string,
-    }>;
+    downloadLinks?: Array<DownloadLink>;
     status?: string | null;
 }
 
@@ -34,9 +36,9 @@ export class MilitaryAffiliation implements InterfaceMilitaryAffiliationCreate {
     public compact? = null;
     public dateOfUpdate? = null;
     public dateOfUpload? = null;
-    public documentKeys? = [];
-    public fileNames? = [];
-    public downloadLinks? = [];
+    public documentKeys?: Array<string> = [];
+    public fileNames?: Array<string> = [];
+    public downloadLinks?: Array<DownloadLink> = [];
     public status? = null;
 
     constructor(data?: InterfaceMilitaryAffiliationCreate) {
@@ -54,12 +56,14 @@ export class MilitaryAffiliation implements InterfaceMilitaryAffiliationCreate {
         return dateDisplay(this.dateOfUpload);
     }
 
+    // These first* helpers take advantage of the fact that only 1 document can be uploaded
+    // at a time; to simplify all of the denormalized-but-loosely-keyed array props received from the server.
     public firstFilenameDisplay(): string {
         return this.fileNames?.[0] || '';
     }
 
     public firstDownloadLink(): string {
-        return (this.downloadLinks?.[0] as any)?.url || ''; // any needed to make TS compiler happy since it loses track of its own types here; open to suggestion
+        return this.downloadLinks?.[0]?.url || '';
     }
 }
 

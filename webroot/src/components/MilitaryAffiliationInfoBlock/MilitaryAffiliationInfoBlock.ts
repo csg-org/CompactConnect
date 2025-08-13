@@ -12,12 +12,15 @@ import {
     mixins
 } from 'vue-facing-decorator';
 import { reactive } from 'vue';
+import { AuthTypes } from '@/app.config';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import ListContainer from '@components/Lists/ListContainer/ListContainer.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import MilitaryDocumentRow from '@components/MilitaryDocumentRow/MilitaryDocumentRow.vue';
 import Modal from '@components/Modal/Modal.vue';
+import { Compact } from '@models/Compact/Compact.model';
+import { StaffUser, CompactPermission } from '@models/StaffUser/StaffUser.model';
 import { FormInput } from '@/models/FormInput/FormInput.model';
 import { Licensee } from '@/models/Licensee/Licensee.model';
 import { MilitaryAffiliation } from '@/models/MilitaryAffiliation/MilitaryAffiliation.model';
@@ -51,6 +54,46 @@ class MilitaryAffiliationInfoBlock extends mixins(MixinForm) {
     //
     // Computed
     //
+    get globalStore() {
+        return this.$store.state;
+    }
+
+    get authType(): string {
+        return this.globalStore.authType;
+    }
+
+    get userStore() {
+        return this.$store.state.user;
+    }
+
+    get currentCompact(): Compact | null {
+        return this.userStore.currentCompact;
+    }
+
+    get isLoggedInAsLicensee(): boolean {
+        return this.authType === AuthTypes.LICENSEE;
+    }
+
+    get isLoggedInAsStaff(): boolean {
+        return this.authType === AuthTypes.STAFF;
+    }
+
+    get staffUser(): StaffUser | null {
+        return (this.isLoggedInAsStaff) ? this.userStore.model : null;
+    }
+
+    get staffPermission(): CompactPermission | null {
+        const currentPermissions = this.staffUser?.permissions;
+        const compactPermission = currentPermissions?.find((currentPermission: CompactPermission) =>
+            currentPermission.compact.type === this.currentCompact?.type) || null;
+
+        return compactPermission;
+    }
+
+    get isCompactAdmin(): boolean {
+        return this.isLoggedInAsStaff && Boolean(this.staffPermission?.isAdmin);
+    }
+
     get status(): string {
         let militaryStatus = this.$t('licensing.statusOptions.inactive');
 
@@ -144,7 +187,7 @@ class MilitaryAffiliationInfoBlock extends mixins(MixinForm) {
     }
 
     async confirmEndMilitaryAffiliation(): Promise<void> {
-        this.closeEndAffilifationModal();
+        this.closeEndAffiliationModal();
         await this.$store.dispatch('user/endMilitaryAffiliationRequest');
         await this.$store.dispatch('user/getLicenseeAccountRequest');
     }
@@ -155,12 +198,12 @@ class MilitaryAffiliationInfoBlock extends mixins(MixinForm) {
 
     focusOnModalCancelButton(): void {
         const buttonComponent = this.$refs.noBackButton as InstanceType<typeof InputButton>;
-        const button = buttonComponent.$refs.button as HTMLElement;
+        const button = buttonComponent?.$refs.button as HTMLElement;
 
-        button.focus();
+        button?.focus();
     }
 
-    closeEndAffilifationModal(): void {
+    closeEndAffiliationModal(): void {
         this.shouldShowEndAffiliationModal = false;
         this.$store.dispatch('setModalIsOpen', false);
     }

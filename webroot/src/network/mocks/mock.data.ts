@@ -1299,7 +1299,7 @@ export const licensees = {
                     compact: 'octp',
                     dateOfUpdate: '2024-08-29',
                     dateOfUpload: '2024-08-29',
-                    documentKeys: 'key',
+                    documentKeys: ['key'],
                     fileNames: ['military-document-1.png'],
                     downloadLinks: [{
                         fileName: 'military-document-1.png',
@@ -1312,7 +1312,7 @@ export const licensees = {
                     compact: 'octp',
                     dateOfUpdate: '2024-08-30',
                     dateOfUpload: '2024-08-30',
-                    documentKeys: 'key',
+                    documentKeys: ['key'],
                     fileNames: ['military-document-2.png'],
                     downloadLinks: [{
                         fileName: 'military-document-2.png',
@@ -2266,7 +2266,7 @@ export const licensees = {
                     compact: 'octp',
                     dateOfUpdate: '2024-08-29',
                     dateOfUpload: '2024-08-29',
-                    documentKeys: 'key',
+                    documentKeys: ['key'],
                     fileNames: ['military-document-1-military-document-1-military-document-1-military-document-1-military-document-1.png'],
                     downloadLinks: [{
                         fileName: 'military-document-1.png',
@@ -2279,7 +2279,7 @@ export const licensees = {
                     compact: 'octp',
                     dateOfUpdate: '2024-08-30',
                     dateOfUpload: '2024-08-30',
-                    documentKeys: 'key',
+                    documentKeys: ['key'],
                     fileNames: ['military-document-2.png'],
                     downloadLinks: [{
                         fileName: 'military-document-2.png',

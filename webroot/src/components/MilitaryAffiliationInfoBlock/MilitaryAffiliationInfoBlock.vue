@@ -21,7 +21,8 @@
             {{$t('military.initializingMessage')}}
         </div>
         <div class="chunk">
-            <div class="chunk-title">{{ $t('military.uploadedDocuments') }}</div>
+            <div v-if="isLoggedInAsLicensee" class="chunk-title">{{ $t('military.previousDocuments') }}</div>
+            <div v-else class="chunk-title">{{ $t('military.uploadedDocuments') }}</div>
             <div class="document-list-container" :class="{ 'can-edit': shouldShowEditButtons }">
                 <ListContainer
                     listId="military-affiliations"
@@ -41,6 +42,7 @@
                         <MilitaryDocumentRow
                             :item="militaryDocumentHeader"
                             :isHeaderRow="true"
+                            :isDownloadAvailable="isCompactAdmin"
                         />
                     </template>
                     <template v-slot:list>
@@ -48,6 +50,7 @@
                             v-for="(record, index) in this.affiliations"
                             :key="index"
                             :item="record"
+                            :isDownloadAvailable="isCompactAdmin"
                         />
                     </template>
                 </ListContainer>
@@ -79,8 +82,8 @@
             :showActions="false"
             :title="$t('military.endAffiliationModalTitle')"
             @keydown.tab="focusTrap($event)"
-            @keyup.esc="closeEndAffilifationModal"
-            @close-modal="closeEndAffilifationModal"
+            @keyup.esc="closeEndAffiliationModal"
+            @close-modal="closeEndAffiliationModal"
         >
             <template v-slot:content>
                 <div class="end-affiliation-modal-content">
@@ -94,7 +97,7 @@
                                 :label="$t('military.noGoBack')"
                                 :aria-label="$t('military.noGoBack')"
                                 :isTransparent="true"
-                                :onClick="closeEndAffilifationModal"
+                                :onClick="closeEndAffiliationModal"
                             />
                             <InputSubmit
                                 class="yes-end-button"

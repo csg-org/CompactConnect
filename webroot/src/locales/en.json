@@ -793,6 +793,7 @@
         "militaryDiscountText": "Military Discount",
         "affiliationType": "Affiliation Type",
         "uploadedDocuments": "Military Affiliation Documents",
+        "previousDocuments": "Previously Uploaded Documents",
         "downloadUnavailable": "Unavailable",
         "endMilitaryAffiliation": "End military affiliation",
         "editInfo": "Edit info",
