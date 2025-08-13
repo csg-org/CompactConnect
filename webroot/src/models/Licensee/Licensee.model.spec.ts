@@ -89,6 +89,7 @@ describe('Licensee model', () => {
         expect(licensee.hasEncumberedLicenses()).to.equal(false);
         expect(licensee.hasEncumberedPrivileges()).to.equal(false);
         expect(licensee.isEncumbered()).to.equal(false);
+        expect(licensee.hasEncumbranceLiftedWithinWaitPeriod()).to.equal(false);
     });
     it('should create a Licensee with specific values', () => {
         const data = {
@@ -197,6 +198,7 @@ describe('Licensee model', () => {
         expect(licensee.hasEncumberedLicenses()).to.equal(false);
         expect(licensee.hasEncumberedPrivileges()).to.equal(false);
         expect(licensee.isEncumbered()).to.equal(false);
+        expect(licensee.hasEncumbranceLiftedWithinWaitPeriod()).to.equal(false);
     });
     it('should create a Licensee with specific values (null address fallbacks)', () => {
         const data = {
@@ -484,6 +486,7 @@ describe('Licensee model', () => {
         expect(licensee.hasEncumberedLicenses()).to.equal(false);
         expect(licensee.hasEncumberedPrivileges()).to.equal(false);
         expect(licensee.isEncumbered()).to.equal(false);
+        expect(licensee.hasEncumbranceLiftedWithinWaitPeriod()).to.equal(false);
     });
     it('should create a Licensee with specific values through serializer (with inactive best license)', () => {
         const data = {
@@ -616,6 +619,7 @@ describe('Licensee model', () => {
         expect(licensee.hasEncumberedLicenses()).to.equal(false);
         expect(licensee.hasEncumberedPrivileges()).to.equal(false);
         expect(licensee.isEncumbered()).to.equal(false);
+        expect(licensee.hasEncumbranceLiftedWithinWaitPeriod()).to.equal(false);
     });
     it('should create a Licensee with specific values through serializer (with initiliazing military status)', () => {
         const data = {

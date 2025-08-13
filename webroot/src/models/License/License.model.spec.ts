@@ -6,7 +6,7 @@
 //
 import chaiMatchPattern from 'chai-match-pattern';
 import chai from 'chai';
-import { serverDateFormat, displayDateFormat } from '@/app.config';
+import { serverDateFormat, displayDateFormat, serverDatetimeFormat } from '@/app.config';
 import {
     License,
     LicenseType,
@@ -80,6 +80,7 @@ describe('License model', () => {
             '...': '',
         }]);
         expect(license.isEncumbered()).to.equal(false);
+        expect(license.isLatestEncumbranceWithinWaitPeriod()).to.equal(false);
     });
     it('should create a License with specific values', () => {
         const data = {
@@ -151,6 +152,7 @@ describe('License model', () => {
             },
         ]);
         expect(license.isEncumbered()).to.equal(false);
+        expect(license.isLatestEncumbranceWithinWaitPeriod()).to.equal(false);
     });
     it('should create a License with specific values (custom displayName delimiter)', () => {
         const data = {
@@ -196,6 +198,8 @@ describe('License model', () => {
             ],
         };
         const license = LicenseSerializer.fromServer(data);
+
+        console.log('license', license);
 
         // Test field values
         expect(license).to.be.an.instanceof(License);
@@ -247,6 +251,7 @@ describe('License model', () => {
             },
         ]);
         expect(license.isEncumbered()).to.equal(true);
+        expect(license.isLatestEncumbranceWithinWaitPeriod()).to.equal(false);
     });
     it('should create a privilege with specific values through serializer', () => {
         const data = {
@@ -264,7 +269,8 @@ describe('License model', () => {
             adverseActions: [
                 {
                     adverseActionId: 'test-id',
-                    effectiveLiftDate: moment().subtract(1, 'day').format(serverDateFormat),
+                    creationDate: moment().subtract(6, 'months').format(serverDatetimeFormat),
+                    effectiveLiftDate: moment().subtract(3, 'months').format(serverDateFormat),
                 },
             ],
             attestations: [
@@ -597,6 +603,7 @@ describe('License model', () => {
         expect(license.historyWithFabricatedEvents()[4].updateType).to.equal('renewal');
         expect(license.historyWithFabricatedEvents()[5].updateType).to.equal('expired');
         expect(license.isEncumbered()).to.equal(false);
+        expect(license.isLatestEncumbranceWithinWaitPeriod()).to.equal(true);
     });
     it('should create a privilege with specific values through serializer (deactivated)', () => {
         const data = {
@@ -678,5 +685,6 @@ describe('License model', () => {
 
         // Test field values
         expect(license.isDeactivated()).to.equal(true);
+        expect(license.isLatestEncumbranceWithinWaitPeriod()).to.equal(false);
     });
 });
