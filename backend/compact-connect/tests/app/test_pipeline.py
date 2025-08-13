@@ -86,6 +86,18 @@ class TestBackendPipeline(TstAppABC, TestCase):
             domain_name='app.compactconnect.org',
         )
 
+        self._inspect_state_auth_stack(
+            self.app.test_backend_pipeline_stack.test_stage.state_auth_stack,
+        )
+
+        self._inspect_state_auth_stack(
+            self.app.beta_backend_pipeline_stack.beta_backend_stage.state_auth_stack,
+        )
+
+        self._inspect_state_auth_stack(
+            self.app.prod_backend_pipeline_stack.prod_stage.state_auth_stack,
+        )
+
     def _when_testing_compact_resource_servers(self, persistent_stack):
         persistent_stack_template = Template.from_stack(persistent_stack)
 

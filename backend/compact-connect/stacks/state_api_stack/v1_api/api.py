@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from aws_cdk.aws_apigateway import AuthorizationType, IResource, MethodOptions
-from common_constructs.cc_api import CCApi
 
 from stacks import persistent_stack as ps
 from stacks.state_api_stack.v1_api.bulk_upload_url import BulkUploadUrl
@@ -16,9 +15,11 @@ class V1Api:
 
     def __init__(self, root: IResource, persistent_stack: ps.PersistentStack):
         super().__init__()
+        from stacks.state_api_stack.api import StateApi
+
         self.root = root
         self.resource = root.add_resource('v1')
-        self.api: CCApi = root.api
+        self.api: StateApi = root.api
         self.api_model = ApiModel(api=self.api)
         _active_compacts = persistent_stack.get_list_of_compact_abbreviations()
 
@@ -43,12 +44,12 @@ class V1Api:
 
         read_auth_method_options = MethodOptions(
             authorization_type=AuthorizationType.COGNITO,
-            authorizer=self.api.staff_users_authorizer,
+            authorizer=self.api.state_auth_authorizer,
             authorization_scopes=read_scopes,
         )
         write_auth_method_options = MethodOptions(
             authorization_type=AuthorizationType.COGNITO,
-            authorizer=self.api.staff_users_authorizer,
+            authorizer=self.api.state_auth_authorizer,
             authorization_scopes=write_scopes,
         )
 

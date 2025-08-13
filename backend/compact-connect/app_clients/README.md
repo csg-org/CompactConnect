@@ -1,7 +1,9 @@
 # App Client Management for Staff Users
 
 ## Overview
-This document is a guide for technical staff for managing Cognito app clients for machine-to-machine authentication in the Staff Users pool. All app clients must be documented in the external 'Compact Connect App Client Registry' Google Sheet (If you do not have access to said registry, contact a maintainer of the project and request access).
+This document is a guide for technical staff for managing Cognito app clients for machine-to-machine authentication in
+the State API. All app clients must be documented in the external 'Compact Connect App Client Registry' Google Sheet
+(If you do not have access to said registry, contact a maintainer of the project and request access).
 
 ## Creating a New App Client
 
@@ -10,11 +12,13 @@ Before creating a new app client, ensure you have:
 - Jurisdiction requirements documented (compact and state)
 - Contact information for the consuming team
 - Approval to grant the app client with the requested scopes
-- AWS credentials configured with permissions to create app clients for the Staff Users user pool in the needed AWS accounts
+- AWS credentials configured with permissions to create app clients for the State Auth user pool in the needed AWS
+  accounts
 - Python 3.6+ installed with boto3 dependency (`pip install boto3`)
 
 ### 2. Update Registry
-Add the new app client information to the external Google Sheet registry for tracking and disaster recovery purposes (ie a deployment error or AWS region outage causes app client data to be lost so it must be recreated).
+Add the new app client information to the external Google Sheet registry for tracking and disaster recovery purposes
+(ie a deployment error or AWS region outage causes app client data to be lost so it must be recreated).
 
 #### **Scope Configuration**
    Scopes are the permissions that the app client will have. There are two tiers of scopes:
@@ -63,8 +67,6 @@ Add the new app client information to the external Google Sheet registry for tra
    - `{compact}/readGeneral` - General read access for the compact
    - `{state}/{compact}.write` - Write access for the specific state/compact combination
 
-
-
 ### 4. **Send Credentials to Consuming Team**
    **When using the Python script (recommended):**
    The script will output comprehensive JSON with all necessary information for the consuming team:
@@ -74,7 +76,7 @@ Add the new app client information to the external Google Sheet registry for tra
      "clientSecret": "1234example567890",
      "compact": "octp",
      "state": "la",
-     "authUrl": "https://compact-connect-staff-beta.auth.us-east-1.amazoncognito.com/oauth2/token",
+     "authUrl": "https://compact-connect-state-auth-beta.auth.us-east-1.amazoncognito.com/oauth2/token",
      "licenseUploadUrl": "https://api.beta.compactconnect.org/v1/compacts/octp/jurisdictions/la/licenses"
    }
    ```
@@ -99,5 +101,5 @@ Unfortunately, AWS Cognito does not support rotating app client credentials for 
 ### 3. Cleanup
 - Delete old app client from Cognito using the following cli command:
 ```
-aws cognito-idp delete-user-pool-client --user-pool-id '<staff users's user pool id>' --client-id '<old client id>'
+aws cognito-idp delete-user-pool-client --user-pool-id '<state auth user pool id>' --client-id '<old client id>'
 ```

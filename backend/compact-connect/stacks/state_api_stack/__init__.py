@@ -1,37 +1,13 @@
 from __future__ import annotations
 
-from common_constructs.cc_api import CCApi
 from common_constructs.security_profile import SecurityProfile
 from common_constructs.stack import AppStack
 from constructs import Construct
 
 from stacks import persistent_stack as ps
-from stacks.provider_users import ProviderUsersStack
+from stacks.state_auth import StateAuthStack
 
-from .v1_api import V1Api
-
-
-class _StateApi(CCApi):
-    def __init__(
-        self,
-        scope: Construct,
-        construct_id: str,
-        *,
-        persistent_stack: ps.PersistentStack,
-        provider_users_stack: ProviderUsersStack,
-        **kwargs,
-    ):
-        super().__init__(
-            scope,
-            construct_id,
-            persistent_stack=persistent_stack,
-            provider_users_stack=provider_users_stack,
-            **kwargs,
-        )
-        self.v1_api = V1Api(self.root, persistent_stack=persistent_stack)
-
-        # Create the QueryDefinition after all API modules have been initialized and added their log groups
-        self.create_runtime_query_definition()
+from .api import StateApi
 
 
 class StateApiStack(AppStack):
@@ -43,7 +19,7 @@ class StateApiStack(AppStack):
         environment_name: str,
         environment_context: dict,
         persistent_stack: ps.PersistentStack,
-        provider_users_stack: ProviderUsersStack,
+        state_auth_stack: StateAuthStack,
         **kwargs,
     ):
         super().__init__(
@@ -52,12 +28,12 @@ class StateApiStack(AppStack):
 
         security_profile = SecurityProfile[environment_context.get('security_profile', 'RECOMMENDED')]
 
-        self.api = _StateApi(
+        self.api = StateApi(
             self,
             'StateApi',
             environment_name=environment_name,
             security_profile=security_profile,
             persistent_stack=persistent_stack,
-            provider_users_stack=provider_users_stack,
+            state_auth_stack=state_auth_stack,
             domain_name=self.state_api_domain_name,
         )

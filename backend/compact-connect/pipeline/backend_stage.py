@@ -10,6 +10,7 @@ from stacks.persistent_stack import PersistentStack
 from stacks.provider_users import ProviderUsersStack
 from stacks.reporting_stack import ReportingStack
 from stacks.state_api_stack import StateApiStack
+from stacks.state_auth import StateAuthStack
 from stacks.transaction_monitoring_stack import TransactionMonitoringStack
 
 
@@ -49,6 +50,17 @@ class BackendStage(Stage):
         self.provider_users_stack = ProviderUsersStack(
             self,
             'ProviderUsersStack',
+            env=environment,
+            environment_context=environment_context,
+            standard_tags=standard_tags,
+            app_name=app_name,
+            environment_name=environment_name,
+            persistent_stack=self.persistent_stack,
+        )
+
+        self.state_auth_stack = StateAuthStack(
+            self,
+            'StateAuthStack',
             env=environment,
             environment_context=environment_context,
             standard_tags=standard_tags,
@@ -97,7 +109,7 @@ class BackendStage(Stage):
             standard_tags=standard_tags,
             environment_name=environment_name,
             persistent_stack=self.persistent_stack,
-            provider_users_stack=self.provider_users_stack,
+            state_auth_stack=self.state_auth_stack,
         )
 
         self.event_listener_stack = EventListenerStack(
