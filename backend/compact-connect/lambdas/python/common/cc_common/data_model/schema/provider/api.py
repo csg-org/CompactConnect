@@ -244,6 +244,44 @@ class ProviderEmailVerificationRequestSchema(CCRequestSchema):
     verificationCode = String(required=True, allow_none=False, validate=Length(min=4, max=4))
 
 
+class ProviderAccountRecoveryInitiateRequestSchema(CCRequestSchema):
+    """
+    Schema for provider MFA recovery initiation requests.
+
+    This schema validates inputs for initiating MFA recovery.
+
+    Serialization direction:
+    API -> load() -> Python
+    """
+
+    username = Email(required=True, allow_none=False)
+    password = String(required=True, allow_none=False)
+    compact = Compact(required=True, allow_none=False)
+    jurisdiction = Jurisdiction(required=True, allow_none=False)
+    givenName = String(required=True, allow_none=False)
+    familyName = String(required=True, allow_none=False)
+    dob = Date(required=True, allow_none=False)
+    partialSocial = String(required=True, allow_none=False, validate=Length(min=4, max=4))
+    licenseType = String(required=True, allow_none=False)
+    recaptchaToken = String(required=True, allow_none=False)
+
+
+class ProviderAccountRecoveryVerifyRequestSchema(CCRequestSchema):
+    """
+    Schema for provider MFA recovery verification requests.
+
+    This schema validates inputs for verifying MFA recovery UUID and completing the reset.
+
+    Serialization direction:
+    API -> load() -> Python
+    """
+
+    compact = Compact(required=True, allow_none=False)
+    providerId = String(required=True, allow_none=False)
+    recoveryUuid = String(required=True, allow_none=False)
+    recaptchaToken = String(required=True, allow_none=False)
+
+
 class StatePrivilegeGeneralResponseSchema(ForgivingSchema):
     """
     Schema for flattened state privilege responses with general (non-private) fields only.
