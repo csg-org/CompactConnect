@@ -110,6 +110,20 @@ class ProviderData(CCDataClass):
         return self._data.get('emailVerificationExpiry')
 
     @property
+    def recoveryUuid(self) -> str | None:
+        """
+        The UUID for the account recovery process.
+        """
+        return self._data.get('recoveryUuid')
+
+    @property
+    def recoveryExpiry(self) -> str | None:
+        """
+        The expiry datetime for the account recovery process.
+        """
+        return self._data.get('recoveryExpiry')
+
+    @property
     def birthMonthDay(self) -> str | None:
         return self._data.get('birthMonthDay')
 
