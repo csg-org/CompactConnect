@@ -176,7 +176,6 @@ export default {
     },
     [MutationTypes.GET_PRIVILEGE_HISTORY_SUCCESS]: (state: any, { history }) => {
         const privilegeId = `${history.providerId}-${history.jurisdiction}-${history.licenseType}`;
-
         const foundPrivilege = (state.model?.licensee?.privileges?.find((privilege) =>
             (privilege.id === privilegeId)) || null);
 

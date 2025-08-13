@@ -26,7 +26,11 @@ import {
     compactStates,
     compactConfig,
     stateConfig,
-    mockPrivilegeHistoryResponse
+    mockPrivilegeHistoryResponse1,
+    mockPrivilegeHistoryResponse2,
+    mockPrivilegeHistoryResponse3,
+    mockPrivilegeHistoryResponse4
+
 } from '@network/mocks/mock.data';
 
 let mockStore: any = null;
@@ -294,7 +298,16 @@ export class DataApi {
         jurisdiction,
         licenseTypeAbbrev
     ) {
-        const serverResponse = mockPrivilegeHistoryResponse;
+        let serverResponse = mockPrivilegeHistoryResponse1;
+
+        if (providerId === 'aa2e057d-6972-4a68-a55d-aad1c3d05278' && jurisdiction === 'al') {
+            serverResponse = mockPrivilegeHistoryResponse2;
+        } else if (providerId === 'f47ac10b-58cc-4372-a567-0e02b2c3d479' && jurisdiction === 'ne') {
+            serverResponse = mockPrivilegeHistoryResponse3;
+        } else if (providerId === 'f47ac10b-58cc-4372-a567-0e02b2c3d479' && jurisdiction === 'oh') {
+            serverResponse = mockPrivilegeHistoryResponse4;
+        }
+
         let response;
 
         if (serverResponse
@@ -330,14 +343,23 @@ export class DataApi {
         return response;
     }
 
-    // Get Privilege History (Public)
+    // Get Privilege History (Staff)
     public getPrivilegeHistoryStaff(
         compact,
         providerId,
         jurisdiction,
         licenseTypeAbbrev
     ) {
-        const serverResponse = mockPrivilegeHistoryResponse;
+        let serverResponse = mockPrivilegeHistoryResponse1;
+
+        if (jurisdiction === 'al') {
+            serverResponse = mockPrivilegeHistoryResponse2;
+        } else if (providerId === 'f47ac10b-58cc-4372-a567-0e02b2c3d479' && jurisdiction === 'ne') {
+            serverResponse = mockPrivilegeHistoryResponse3;
+        } else if (providerId === 'f47ac10b-58cc-4372-a567-0e02b2c3d479' && jurisdiction === 'oh') {
+            serverResponse = mockPrivilegeHistoryResponse4;
+        }
+
         let response;
 
         if (serverResponse
@@ -519,7 +541,14 @@ export class DataApi {
      * @return {Promise<>} A User model instance.
      */
     public getPrivilegeHistoryLicensee(jurisdiction: string, licenseTypeAbbrev: string) {
-        const serverResponse = mockPrivilegeHistoryResponse;
+        let serverResponse = mockPrivilegeHistoryResponse1;
+
+        if (jurisdiction === 'ne' && licenseTypeAbbrev === 'OTA') {
+            serverResponse = mockPrivilegeHistoryResponse3;
+        } else if (jurisdiction === 'oh' && licenseTypeAbbrev === 'OT') {
+            serverResponse = mockPrivilegeHistoryResponse4;
+        }
+
         let response;
 
         if (serverResponse && jurisdiction && licenseTypeAbbrev) {
