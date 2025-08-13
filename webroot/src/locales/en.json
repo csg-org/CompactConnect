@@ -678,6 +678,7 @@
         "confirmPrivilegeUnencumberSuccess": "These encumbrances are set to be removed.",
         "confirmPrivilegeUnencumberSuccessEndDate": "End date",
         "expiringIn": "Expiring in",
+        "events": "Events",
         "licenseEvents": [
             {
                 "name": "Privilege purchased",

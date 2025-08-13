@@ -662,6 +662,7 @@
         "confirmPrivilegeUnencumberSuccess": "Está previsto que estos gravámenes se eliminen.",
         "confirmPrivilegeUnencumberSuccessEndDate": "Fecha de finalización",
         "expiringIn": "Expirando en",
+        "events": "Eventos",
         "licenseEvents": [
             {
                 "name": "Privilegio comprado",
