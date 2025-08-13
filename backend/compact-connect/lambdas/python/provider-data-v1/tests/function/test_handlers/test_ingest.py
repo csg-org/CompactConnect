@@ -731,7 +731,7 @@ class TestIngest(TstFunction):
                     'jurisdiction': 'oh',
                     'licenseType': 'speech-language pathologist',
                     'createDate': '2024-11-08T23:59:59+00:00',
-                    'effectiveDate': '2024-11-08',
+                    'effectiveDate': '2024-11-08T23:59:59+00:00',
                     'previous': {
                         'ssnLastFour': '1234',
                         'npi': '0608337260',

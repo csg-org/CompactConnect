@@ -1530,7 +1530,7 @@ class DataClient:
                 )
 
             now = config.current_standard_datetime
-    
+
             effective_date_time = datetime.combine(
                 adverse_action.effectiveStartDate, datetime.min.time(), tzinfo=config.expiration_resolution_timezone
             )
@@ -1676,6 +1676,10 @@ class DataClient:
 
                 now = config.current_standard_datetime
 
+                effective_date_time = datetime.combine(
+                    effective_lift_date, datetime.min.time(), tzinfo=config.expiration_resolution_timezone
+                )
+
                 # Create privilege update record
                 privilege_update_record = PrivilegeUpdateData.create_new(
                     {
@@ -1686,7 +1690,7 @@ class DataClient:
                         'jurisdiction': jurisdiction,
                         'licenseType': privilege_data.licenseType,
                         'createDate': now,
-                        'effectiveDate': effective_lift_date,
+                        'effectiveDate': effective_date_time,
                         'previous': privilege_data.to_dict(),
                         'updatedValues': {
                             'encumberedStatus': PrivilegeEncumberedStatusEnum.UNENCUMBERED,
@@ -1797,6 +1801,10 @@ class DataClient:
 
                 now = config.current_standard_datetime
 
+                effective_date_time = datetime.combine(
+                    effective_lift_date, datetime.min.time(), tzinfo=config.expiration_resolution_timezone
+                )
+
                 # Create license update record
                 license_update_record = LicenseUpdateData.create_new(
                     {
@@ -1807,7 +1815,7 @@ class DataClient:
                         'jurisdiction': jurisdiction,
                         'licenseType': license_data.licenseType,
                         'createDate': now,
-                        'effectiveDate': effective_lift_date,
+                        'effectiveDate': effective_date_time,
                         'previous': license_data.to_dict(),
                         'updatedValues': {
                             'encumberedStatus': LicenseEncumberedStatusEnum.UNENCUMBERED,
@@ -2603,6 +2611,10 @@ class DataClient:
         # Build transaction items for all privileges
         transaction_items = []
 
+        effective_date_time = datetime.combine(
+            effective_date, datetime.min.time(), tzinfo=config.expiration_resolution_timezone
+        )
+
         for privilege_data in unencumbered_privileges_associated_with_license:
             now = config.current_standard_datetime
 
@@ -2616,7 +2628,7 @@ class DataClient:
                     'jurisdiction': privilege_data.jurisdiction,
                     'licenseType': privilege_data.licenseType,
                     'createDate': now,
-                    'effectiveDate': effective_date,
+                    'effectiveDate': effective_date_time,
                     'previous': privilege_data.to_dict(),
                     'updatedValues': {
                         'encumberedStatus': PrivilegeEncumberedStatusEnum.LICENSE_ENCUMBERED,
@@ -2657,7 +2669,7 @@ class DataClient:
         provider_id: str,
         jurisdiction: str,
         license_type_abbreviation: str,
-        effective_date: datetime,
+        effective_date: date,
     ) -> list[PrivilegeData]:
         """
         Lift encumbrances from privileges that were encumbered due to a home jurisdiction license encumbrance.
@@ -2715,6 +2727,10 @@ class DataClient:
         # Build transaction items for all privileges
         transaction_items = []
 
+        effective_date_time = datetime.combine(
+            effective_date, datetime.min.time(), tzinfo=config.expiration_resolution_timezone
+        )
+
         for privilege_data in matching_privileges:
             now = config.current_standard_datetime
 
@@ -2728,7 +2744,7 @@ class DataClient:
                     'jurisdiction': privilege_data.jurisdiction,
                     'licenseType': privilege_data.licenseType,
                     'createDate': now,
-                    'effectiveDate': effective_date,
+                    'effectiveDate': effective_date_time,
                     'previous': privilege_data.to_dict(),
                     'updatedValues': {
                         'encumberedStatus': PrivilegeEncumberedStatusEnum.UNENCUMBERED,

@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import date
 from uuid import UUID
 
 from cc_common.config import config
@@ -174,7 +174,7 @@ class EventBusClient:
         provider_id: UUID,
         jurisdiction: str,
         license_type_abbreviation: str,
-        effective_date: datetime,
+        effective_date: date,
         event_batch_writer: EventBatchWriter | None = None,
     ):
         """
@@ -215,7 +215,7 @@ class EventBusClient:
         provider_id: UUID,
         jurisdiction: str,
         license_type_abbreviation: str,
-        effective_date: datetime,
+        effective_date: date,
         event_batch_writer: EventBatchWriter | None = None,
     ):
         """
@@ -256,7 +256,7 @@ class EventBusClient:
         provider_id: UUID,
         jurisdiction: str,
         license_type_abbreviation: str,
-        effective_date: datetime,
+        effective_date: date,
         event_batch_writer: EventBatchWriter | None = None,
     ):
         """
@@ -297,7 +297,7 @@ class EventBusClient:
         provider_id: UUID,
         jurisdiction: str,
         license_type_abbreviation: str,
-        effective_date: datetime,
+        effective_date: date,
         event_batch_writer: EventBatchWriter | None = None,
     ):
         """
