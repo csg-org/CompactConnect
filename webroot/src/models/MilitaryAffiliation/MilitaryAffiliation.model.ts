@@ -17,8 +17,12 @@ export interface InterfaceMilitaryAffiliationCreate {
     compact?: Compact | null;
     dateOfUpdate?: string | null;
     dateOfUpload?: string | null;
-    documentKeys?: Array<string> | null;
-    fileNames?: Array<string> | null;
+    documentKeys?: Array<string>;
+    fileNames?: Array<string>;
+    downloadLinks?: Array<{
+        filename?: string,
+        url?: string,
+    }>;
     status?: string | null;
 }
 
@@ -30,8 +34,9 @@ export class MilitaryAffiliation implements InterfaceMilitaryAffiliationCreate {
     public compact? = null;
     public dateOfUpdate? = null;
     public dateOfUpload? = null;
-    public documentKeys? = null;
-    public fileNames? = null;
+    public documentKeys? = [];
+    public fileNames? = [];
+    public downloadLinks? = [];
     public status? = null;
 
     constructor(data?: InterfaceMilitaryAffiliationCreate) {
@@ -48,6 +53,14 @@ export class MilitaryAffiliation implements InterfaceMilitaryAffiliationCreate {
     public dateOfUploadDisplay(): string {
         return dateDisplay(this.dateOfUpload);
     }
+
+    public firstFilenameDisplay(): string {
+        return this.fileNames?.[0] || '';
+    }
+
+    public firstDownloadLink(): string {
+        return (this.downloadLinks?.[0] as any)?.url || ''; // any needed to make TS compiler happy since it loses track of its own types here; open to suggestion
+    }
 }
 
 // ========================================================
@@ -62,8 +75,18 @@ export class MilitaryAffiliationSerializer {
             dateOfUpload: json.dateOfUpload,
             documentKeys: json.documentKeys,
             fileNames: json.fileNames,
+            downloadLinks: [],
             status: json.status
         };
+
+        if (Array.isArray(json.downloadLinks)) {
+            json.downloadLinks.forEach((downloadLink) => {
+                data.downloadLinks.push({
+                    filename: downloadLink.fileName || '',
+                    url: downloadLink.url || '',
+                });
+            });
+        }
 
         return new MilitaryAffiliation(data);
     }

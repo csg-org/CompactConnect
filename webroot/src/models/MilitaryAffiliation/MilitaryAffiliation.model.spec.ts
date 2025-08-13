@@ -36,13 +36,16 @@ describe('User model', () => {
         expect(militaryAffiliation.compact).to.equal(null);
         expect(militaryAffiliation.dateOfUpdate).to.equal(null);
         expect(militaryAffiliation.dateOfUpload).to.equal(null);
-        expect(militaryAffiliation.documentKeys).to.equal(null);
-        expect(militaryAffiliation.fileNames).to.equal(null);
+        expect(militaryAffiliation.documentKeys).to.matchPattern([]);
+        expect(militaryAffiliation.fileNames).to.matchPattern([]);
+        expect(militaryAffiliation.downloadLinks).to.matchPattern([]);
         expect(militaryAffiliation.status).to.equal(null);
 
         // Test methods
         expect(militaryAffiliation.dateOfUpdateDisplay()).to.equal('');
         expect(militaryAffiliation.dateOfUploadDisplay()).to.equal('');
+        expect(militaryAffiliation.firstFilenameDisplay()).to.equal('');
+        expect(militaryAffiliation.firstDownloadLink()).to.equal('');
     });
     it('should create a MilitaryAffiliation with specific values', () => {
         const data = {
@@ -52,9 +55,12 @@ describe('User model', () => {
             dateOfUpload: '2025-01-03T23:50:17+00:00',
             documentKeys: ['key'],
             fileNames: ['file.png'],
+            downloadLinks: [{
+                filename: 'file.png',
+                url: 'https://example.com',
+            }],
             status: 'active'
         };
-
         const militaryAffiliation = new MilitaryAffiliation(data);
 
         expect(militaryAffiliation).to.be.an.instanceof(MilitaryAffiliation);
@@ -64,11 +70,14 @@ describe('User model', () => {
         expect(militaryAffiliation.dateOfUpload).to.equal(data.dateOfUpload);
         expect(militaryAffiliation.documentKeys).to.matchPattern(data.documentKeys);
         expect(militaryAffiliation.fileNames).to.matchPattern(data.fileNames);
+        expect(militaryAffiliation.downloadLinks).to.matchPattern(data.downloadLinks);
         expect(militaryAffiliation.status).to.equal(data.status);
 
         // Test methods
         expect(militaryAffiliation.dateOfUpdateDisplay()).to.equal(dateDisplay(data.dateOfUpdate));
         expect(militaryAffiliation.dateOfUploadDisplay()).to.equal(dateDisplay(data.dateOfUpload));
+        expect(militaryAffiliation.firstFilenameDisplay()).to.equal('file.png');
+        expect(militaryAffiliation.firstDownloadLink()).to.equal('https://example.com');
     });
     it('should create a MilitaryAffiliation with specific values through MilitaryAffiliation serializer', () => {
         const data = {
@@ -78,9 +87,18 @@ describe('User model', () => {
             dateOfUpload: '2025-01-03T23:50:17+00:00',
             documentKeys: ['key'],
             fileNames: ['file.png'],
+            downloadLinks: [
+                {
+                    fileName: 'file.png',
+                    url: 'https://example.com',
+                },
+                {
+                    fileName: null,
+                    url: null,
+                },
+            ],
             status: 'active'
         };
-
         const militaryAffiliation = MilitaryAffiliationSerializer.fromServer(data);
 
         expect(militaryAffiliation).to.be.an.instanceof(MilitaryAffiliation);
@@ -90,10 +108,22 @@ describe('User model', () => {
         expect(militaryAffiliation.dateOfUpload).to.equal(data.dateOfUpload);
         expect(militaryAffiliation.documentKeys).to.matchPattern(data.documentKeys);
         expect(militaryAffiliation.fileNames).to.matchPattern(data.fileNames);
+        expect(militaryAffiliation.downloadLinks).to.matchPattern([
+            {
+                filename: 'file.png',
+                url: 'https://example.com',
+            },
+            {
+                filename: '',
+                url: '',
+            },
+        ]);
         expect(militaryAffiliation.status).to.equal(data.status);
 
         // Test methods
         expect(militaryAffiliation.dateOfUpdateDisplay()).to.equal(dateDisplay(data.dateOfUpdate));
         expect(militaryAffiliation.dateOfUploadDisplay()).to.equal(dateDisplay(data.dateOfUpload));
+        expect(militaryAffiliation.firstFilenameDisplay()).to.equal('file.png');
+        expect(militaryAffiliation.firstDownloadLink()).to.equal('https://example.com');
     });
 });

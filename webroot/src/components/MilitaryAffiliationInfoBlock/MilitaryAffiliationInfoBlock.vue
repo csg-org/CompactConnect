@@ -9,20 +9,20 @@
     <div class="core-info-block">
         <div class="info-row">
             <div class="chunk">
-                <div class="chunk-title">{{statusTitleText}}</div>
-                <div class="chunk-text" :class="{ 'error': isStatusInitializing}">{{status}}</div>
+                <div class="chunk-title">{{ $t('common.status') }}</div>
+                <div class="chunk-text emphasis" :class="{ 'error': isStatusInitializing}">{{status}}</div>
             </div>
             <div class="chunk affiliation-type">
-                <div class="chunk-title">{{affiliationTypeTitle}}</div>
-                <div class="chunk-text">{{affiliationType}}</div>
+                <div class="chunk-title">{{ $t('military.affiliationType') }}</div>
+                <div class="chunk-text emphasis">{{affiliationType}}</div>
             </div>
         </div>
         <div v-if="isStatusInitializing" class="info-row error">
             {{$t('military.initializingMessage')}}
         </div>
         <div class="chunk">
-            <div class="chunk-title">{{previouslyUploadedTitle}}</div>
-            <div class="prev-doc-table">
+            <div class="chunk-title">{{ $t('military.uploadedDocuments') }}</div>
+            <div class="document-list-container" :class="{ 'can-edit': shouldShowEditButtons }">
                 <ListContainer
                     listId="military-affiliations"
                     :listData="this.affiliations"
@@ -60,7 +60,7 @@
                 :aria-label="$t('military.endMilitaryAffiliation')"
                 :isTextLike="true"
                 :shouldHideMargin="true"
-                class="end-aff-button"
+                class="end-affiliation-button"
                 @keyup.enter="focusOnModalCancelButton()"
                 @click="startEndAffiliationFlow"
             />
@@ -77,22 +77,22 @@
             class="end-affiliation-modal"
             :closeOnBackgroundClick="true"
             :showActions="false"
-            :title="endAffiliationModalTitle"
+            :title="$t('military.endAffiliationModalTitle')"
             @keydown.tab="focusTrap($event)"
             @keyup.esc="closeEndAffilifationModal"
             @close-modal="closeEndAffilifationModal"
         >
             <template v-slot:content>
                 <div class="end-affiliation-modal-content">
-                    {{endAffiliationModalContent}}
+                    {{ $t('military.endAffiliationModalContent') }}
                     <form @submit.prevent="confirmEndMilitaryAffiliation">
                         <div class="action-button-row">
                             <InputButton
                                 id="no-back-button"
                                 ref="noBackButton"
                                 class="no-back-button"
-                                :label="backText"
-                                :aria-label="backText"
+                                :label="$t('military.noGoBack')"
+                                :aria-label="$t('military.noGoBack')"
                                 :isTransparent="true"
                                 :onClick="closeEndAffilifationModal"
                             />
