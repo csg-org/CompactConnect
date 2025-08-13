@@ -6,7 +6,7 @@
 //
 
 import { deleteUndefinedProperties, isDatePastExpiration } from '@models/_helpers';
-import { serverDateFormat, serverDatetimeFormat } from '@/app.config';
+import { serverDateFormat } from '@/app.config';
 import { dateDisplay } from '@models/_formatters/date';
 import { Compact } from '@models/Compact/Compact.model';
 import { State } from '@models/State/State.model';
@@ -196,26 +196,24 @@ export class License implements InterfaceLicense {
     }
 
     public isLatestEncumbranceWithinWaitPeriod(): boolean {
+        const encumbrances = this.adverseActions || [];
+        const nonActiveEncumbrancesWithEndDate: AdverseAction[] = encumbrances
+            .filter((encumbrace: AdverseAction) => !encumbrace.isActive())
+            .filter((encumbrace: AdverseAction) => encumbrace.endDate);
         let withinWaitPeriod = false;
 
-        if (this.adverseActions?.length) {
-            const latestEncumbrance: AdverseAction = this.adverseActions
-                .filter((adverseAction: AdverseAction) => adverseAction.creationDate)
-                .sort((a: AdverseAction, b: AdverseAction) => {
-                    const dateA = moment(a.creationDate, serverDatetimeFormat);
-                    const dateB = moment(b.creationDate, serverDatetimeFormat);
+        if (nonActiveEncumbrancesWithEndDate.length) {
+            const latestEncumbrance = nonActiveEncumbrancesWithEndDate.reduce(
+                (prev: AdverseAction, curr: AdverseAction): AdverseAction => (
+                    moment(prev.endDate, serverDateFormat).isAfter(moment(curr.endDate, serverDateFormat)) ? prev : curr
+                )
+            );
 
-                    return dateB.valueOf() - dateA.valueOf(); // Most recent creationDate first
-                })[0];
+            // Check if the end date is within the last 2 years (within wait period)
+            const endDate = moment(latestEncumbrance.endDate, serverDateFormat);
+            const twoYearsAgo = moment().subtract(2, 'years');
 
-            // Check if we found a latest adverse action and it has an end date
-            if (latestEncumbrance?.endDate) {
-                // Check if the end date is within the last 2 years (within wait period)
-                const endDate = moment(latestEncumbrance.endDate, serverDateFormat);
-                const twoYearsAgo = moment().subtract(2, 'years');
-
-                withinWaitPeriod = endDate.isAfter(twoYearsAgo);
-            }
+            withinWaitPeriod = endDate.isAfter(twoYearsAgo);
         }
 
         return withinWaitPeriod;
