@@ -3058,9 +3058,7 @@ class DataClient:
         try:
             self.config.provider_table.update_item(
                 Key={'pk': f'{compact}#PROVIDER#{provider_id}', 'sk': f'{compact}#PROVIDER'},
-                UpdateExpression=(
-                    'REMOVE recoveryUuid, recoveryExpiry, recoveryUsedAt SET dateOfUpdate = :date_of_update'
-                ),
+                UpdateExpression=('REMOVE recoveryUuid, recoveryExpiry SET dateOfUpdate = :date_of_update'),
                 ExpressionAttributeValues={
                     ':date_of_update': self.config.current_standard_datetime.isoformat(),
                 },
@@ -3071,34 +3069,3 @@ class DataClient:
                 raise CCNotFoundException('Provider not found') from e
             logger.error('Failed to clear provider account recovery data', error=str(e))
             raise CCAwsServiceException('Failed to clear provider account recovery data') from e
-
-    @logger_inject_kwargs(logger, 'compact', 'provider_id')
-    def complete_provider_account_recovery(
-        self,
-        *,
-        compact: str,
-        provider_id: str,
-    ) -> None:
-        """
-        Mark the provider's account recovery as used and clear the token fields.
-
-        :param compact: The compact name
-        :param provider_id: The provider ID
-        """
-        logger.info('Completing provider account recovery')
-
-        try:
-            self.config.provider_table.update_item(
-                Key={'pk': f'{compact}#PROVIDER#{provider_id}', 'sk': f'{compact}#PROVIDER'},
-                UpdateExpression=('SET dateOfUpdate = :date_of_update REMOVE recoveryUuid, recoveryExpiry'),
-                ExpressionAttributeValues={
-                    ':date_of_update': self.config.current_standard_datetime.isoformat(),
-                },
-                ConditionExpression='attribute_exists(pk)',
-            )
-        except ClientError as e:
-            if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
-                logger.error('Provider not found when completing account recovery', error=str(e))
-                raise CCNotFoundException('Provider not found') from e
-            logger.error('Failed to complete provider account recovery', error=str(e))
-            raise CCAwsServiceException('Failed to complete provider account recovery') from e
