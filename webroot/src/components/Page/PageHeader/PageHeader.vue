@@ -7,7 +7,7 @@
 
 <template>
     <div class="page-header-container">
-        <div v-if="$matches.phone.only" class="logo-container">
+        <div v-if="isMenuTouchToggle" class="logo-container">
             <img
                 src="@assets/logos/compact-connect-logo-white.svg"
                 :alt="$t('common.appName')"
@@ -19,7 +19,7 @@
                 :aria-label="$t('common.appName')"
             />
         </div>
-        <div v-if="$matches.phone.only" class="nav-toggle-container">
+        <div v-if="isMenuTouchToggle" class="nav-toggle-container">
             <div
                 class="nav-toggle"
                 :class="{ expanded: $store.state.isNavExpanded }"
