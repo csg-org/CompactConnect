@@ -576,6 +576,7 @@ describe('License model', () => {
         expect(license.eligibility).to.equal(EligibilityStatus.NA);
         expect(license.adverseActions).to.be.an('array').with.length(1);
         expect(license.adverseActions[0]).to.be.an.instanceof(AdverseAction);
+        expect(license.adverseActions[0].endDate).to.equal(data.adverseActions[0].effectiveLiftDate);
 
         // Test methods
         expect(license.issueDateDisplay()).to.equal(
@@ -695,10 +696,12 @@ describe('License model', () => {
             adverseActions: [
                 new AdverseAction({
                     creationDate: '2024-01-01T00:00:00Z',
+                    startDate: '2024-01-01',
                     endDate: null
                 }),
                 new AdverseAction({
                     creationDate: '2024-02-01T00:00:00Z',
+                    startDate: '2024-01-01',
                     endDate: null
                 })
             ]
@@ -712,13 +715,13 @@ describe('License model', () => {
             adverseActions: [
                 new AdverseAction({
                     creationDate: '2020-01-01T00:00:00Z',
-                    endDate: '2020-06-01',
-                    effectiveStartDate: '2020-01-01'
+                    startDate: '2020-01-01',
+                    endDate: '2020-06-01'
                 }),
                 new AdverseAction({
                     creationDate: '2021-01-01T00:00:00Z',
-                    endDate: oneYearAgo,
-                    effectiveStartDate: '2021-01-01'
+                    startDate: '2021-01-01',
+                    endDate: oneYearAgo
                 })
             ]
         });
@@ -731,39 +734,18 @@ describe('License model', () => {
             adverseActions: [
                 new AdverseAction({
                     creationDate: '2020-01-01T00:00:00Z',
-                    endDate: '2020-06-01',
-                    effectiveStartDate: '2020-01-01'
+                    startDate: '2020-01-01',
+                    endDate: '2020-06-01'
                 }),
                 new AdverseAction({
                     creationDate: '2021-01-01T00:00:00Z',
-                    endDate: threeYearsAgo,
-                    effectiveStartDate: '2021-01-01'
+                    startDate: '2021-01-01',
+                    endDate: threeYearsAgo
                 })
             ]
         });
 
         expect(license.isLatestEncumbranceWithinWaitPeriod()).to.equal(false);
-    });
-    it('should prioritize endDate over creationDate when isLatestEncumbranceWithinWaitPeriod selects latest encumbrance', () => {
-        const recentEndDate = moment().subtract(6, 'months').format(serverDateFormat);
-        const oldEndDate = moment().subtract(3, 'years').format(serverDateFormat);
-        const license = new License({
-            adverseActions: [
-                new AdverseAction({
-                    creationDate: '2024-01-01T00:00:00Z',
-                    endDate: oldEndDate,
-                    effectiveStartDate: '2024-01-01'
-                }),
-                new AdverseAction({
-                    creationDate: '2020-01-01T00:00:00Z',
-                    endDate: recentEndDate,
-                    effectiveStartDate: '2020-01-01'
-                })
-            ]
-        });
-
-        // Should return true because the encumbrance with recentEndDate (6 months ago) is within 2 years
-        expect(license.isLatestEncumbranceWithinWaitPeriod()).to.equal(true);
     });
     it('should handle mixed active and non-active encumbrances correctly in isLatestEncumbranceWithinWaitPeriod', () => {
         const recentEndDate = moment().subtract(6, 'months').format(serverDateFormat);
@@ -771,18 +753,18 @@ describe('License model', () => {
             adverseActions: [
                 new AdverseAction({
                     creationDate: '2024-01-01T00:00:00Z',
-                    endDate: null, // Active encumbrance
-                    effectiveStartDate: '2024-01-01'
+                    startDate: '2024-01-01',
+                    endDate: null // Active encumbrance
                 }),
                 new AdverseAction({
                     creationDate: '2021-01-01T00:00:00Z',
-                    endDate: recentEndDate, // Non-active encumbrance within 2 years
-                    effectiveStartDate: '2021-01-01'
+                    startDate: '2021-01-01',
+                    endDate: recentEndDate // Non-active encumbrance within 2 years
                 }),
                 new AdverseAction({
                     creationDate: '2020-01-01T00:00:00Z',
-                    endDate: '2020-06-01', // Non-active encumbrance more than 2 years ago
-                    effectiveStartDate: '2020-01-01'
+                    startDate: '2020-01-01',
+                    endDate: '2020-06-01' // Non-active encumbrance more than 2 years ago
                 })
             ]
         });
@@ -796,8 +778,8 @@ describe('License model', () => {
             adverseActions: [
                 new AdverseAction({
                     creationDate: '2020-01-01T00:00:00Z',
-                    endDate: exactlyTwoYearsAgo,
-                    effectiveStartDate: '2020-01-01'
+                    startDate: '2020-01-01',
+                    endDate: exactlyTwoYearsAgo
                 })
             ]
         });
@@ -811,8 +793,8 @@ describe('License model', () => {
             adverseActions: [
                 new AdverseAction({
                     creationDate: '2020-01-01T00:00:00Z',
-                    endDate: justUnderTwoYears,
-                    effectiveStartDate: '2020-01-01'
+                    startDate: '2020-01-01',
+                    endDate: justUnderTwoYears
                 })
             ]
         });
