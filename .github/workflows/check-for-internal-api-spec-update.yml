@@ -45,7 +45,6 @@ jobs:
           
           if [ -n "$CHANGED_SPEC_FILE" ]; then
             echo "✅ SUCCESS: OpenAPI spec file was updated: $SPEC_FILE_PATH"
-            echo "The API documentation appears to be in sync with the implementation changes."
           else
             echo ""
             echo "🚨 ERROR: API stack files were modified but the OpenAPI specification was not updated!"
