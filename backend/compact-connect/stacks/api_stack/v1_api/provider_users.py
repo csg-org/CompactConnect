@@ -14,6 +14,7 @@ from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
 
 from stacks import persistent_stack as ps
+from stacks.api_lambda_stack import ApiLambdaStack
 from stacks.persistent_stack import ProviderTable
 from stacks.provider_users import ProviderUsersStack
 
@@ -29,6 +30,7 @@ class ProviderUsers:
         provider_users_stack: ProviderUsersStack,
         api_model: ApiModel,
         privilege_history_function: PythonFunction,
+        api_lambda_stack: ApiLambdaStack,
     ):
         super().__init__()
         # /v1/provider-users
@@ -57,6 +59,14 @@ class ProviderUsers:
             persistent_stack=persistent_stack,
             provider_users_stack=provider_users_stack,
             lambda_environment=lambda_environment,
+        )
+
+        # /v1/provider-users/initiateRecovery
+        # /v1/provider-users/verifyRecovery
+        self.account_recovery_initiate_resource = self.provider_users_resource.add_resource('initiateRecovery')
+        self.account_recovery_verify_resource = self.provider_users_resource.add_resource('verifyRecovery')
+        self._add_account_recovery_endpoints(
+            api_lambda_stack=api_lambda_stack,
         )
 
         # /v1/provider-users/me
@@ -453,4 +463,31 @@ class ProviderUsers:
             integration=LambdaIntegration(privilege_history_function, timeout=Duration.seconds(29)),
             request_parameters={'method.request.header.Authorization': True},
             authorizer=self.api.provider_users_authorizer,
+        )
+
+    def _add_account_recovery_endpoints(self, *, api_lambda_stack: ApiLambdaStack):
+        self.account_recovery_initiate_resource.add_method(
+            'POST',
+            request_validator=self.api.parameter_body_validator,
+            method_responses=[
+                MethodResponse(
+                    status_code='200', response_models={'application/json': self.api_model.message_response_model}
+                ),
+            ],
+            integration=LambdaIntegration(
+                api_lambda_stack.provider_users_lambdas.account_recovery_initiate_function, timeout=Duration.seconds(29)
+            ),
+        )
+
+        self.account_recovery_verify_resource.add_method(
+            'POST',
+            request_validator=self.api.parameter_body_validator,
+            method_responses=[
+                MethodResponse(
+                    status_code='200', response_models={'application/json': self.api_model.message_response_model}
+                ),
+            ],
+            integration=LambdaIntegration(
+                api_lambda_stack.provider_users_lambdas.account_recovery_verify_function, timeout=Duration.seconds(29)
+            ),
         )
