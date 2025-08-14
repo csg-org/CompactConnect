@@ -32,14 +32,19 @@ jobs:
         run: |
           echo "Checking if OpenAPI specification has been updated..."
           echo "Since API stack files were modified (trigger condition), verifying spec file was also updated."
+
+          # Get the base branch from GitHub context
+          BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
+          echo "Base branch: $BASE_BRANCH"
           
           # Check if the OpenAPI spec file was updated using the suggested git diff command
           SPEC_FILE_PATH="backend/compact-connect/docs/api-specification/latest-oas30.json"
-          CHANGED_SPEC_FILE=$(git diff development..HEAD --name-only -- '**/docs/api-specification/latest-oas30.json')
+          echo "Checking for changes to: $SPEC_FILE_PATH"
+          
+          CHANGED_SPEC_FILE=$(git diff origin/$BASE_BRANCH..HEAD --name-only -- '**/docs/api-specification/latest-oas30.json')
           
           if [ -n "$CHANGED_SPEC_FILE" ]; then
             echo "✅ SUCCESS: State OpenAPI spec file was updated: $SPEC_FILE_PATH"
-            echo "The API documentation appears to be in sync with the implementation changes."
           else
             echo ""
             echo "🚨 ERROR: State API stack files were modified but the State OpenAPI specification was not updated!"
