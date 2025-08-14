@@ -189,7 +189,7 @@ If you receive an error response, check the status code and message:
 - **400**: Bad Request - Your request data is invalid (check the response body for validation errors)
 - **401**: Unauthorized - Your access token is invalid or expired
 - **403**: Forbidden - Your app client doesn't have permission to upload to the specified jurisdiction/compact
-           Also note that some firewall rules require a valid `User-Agent` header; missing it can result in 403.
+           Also note that some firewall rules require a valid `User-Agent` header; omitting it will result in 403.
 - **415**: Unsupported Media Type - Ensure `Content-Type: application/json` is set for this endpoint.
 - **502**: Internal Server Error - There was a problem processing your request
 
