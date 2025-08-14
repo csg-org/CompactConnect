@@ -195,14 +195,14 @@ export class License implements InterfaceLicense {
         return this.adverseActions?.some((adverseAction: AdverseAction) => adverseAction.isActive()) || false;
     }
 
-    public isLatestEncumbranceWithinWaitPeriod(): boolean {
+    public isLatestLiftedEncumbranceWithinWaitPeriod(): boolean {
         const encumbrances = this.adverseActions || [];
-        const nonActiveEncumbrancesWithEndDate: AdverseAction[] = encumbrances
-            .filter((encumbrace: AdverseAction) => !encumbrace.isActive() && encumbrace.endDate);
-        let withinWaitPeriod = false;
+        const inActiveEncumbrancesWithEndDate: Array<AdverseAction> = encumbrances.filter((encumbrace: AdverseAction) =>
+            !encumbrace.isActive() && encumbrace.endDate);
+        let isWithinWaitPeriod = false;
 
-        if (nonActiveEncumbrancesWithEndDate.length) {
-            const latestEncumbrance = nonActiveEncumbrancesWithEndDate.reduce(
+        if (inActiveEncumbrancesWithEndDate.length) {
+            const latestEncumbrance = inActiveEncumbrancesWithEndDate.reduce(
                 (prev: AdverseAction, curr: AdverseAction): AdverseAction => (
                     moment(prev.endDate, serverDateFormat).isAfter(moment(curr.endDate, serverDateFormat)) ? prev : curr
                 )
@@ -210,12 +210,12 @@ export class License implements InterfaceLicense {
 
             // Check if the end date is within the last 2 years (within wait period)
             const endDate = moment(latestEncumbrance.endDate, serverDateFormat);
-            const twoYearsAgo = moment().subtract(2, 'years');
+            const waitPeriod = moment().subtract(2, 'years');
 
-            withinWaitPeriod = endDate.isAfter(twoYearsAgo);
+            isWithinWaitPeriod = endDate.isAfter(waitPeriod);
         }
 
-        return withinWaitPeriod;
+        return isWithinWaitPeriod;
     }
 }
 

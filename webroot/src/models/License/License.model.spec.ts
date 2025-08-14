@@ -80,7 +80,7 @@ describe('License model', () => {
             '...': '',
         }]);
         expect(license.isEncumbered()).to.equal(false);
-        expect(license.isLatestEncumbranceWithinWaitPeriod()).to.equal(false);
+        expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(false);
     });
     it('should create a License with specific values', () => {
         const data = {
@@ -152,7 +152,7 @@ describe('License model', () => {
             },
         ]);
         expect(license.isEncumbered()).to.equal(false);
-        expect(license.isLatestEncumbranceWithinWaitPeriod()).to.equal(false);
+        expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(false);
     });
     it('should create a License with specific values (custom displayName delimiter)', () => {
         const data = {
@@ -249,7 +249,7 @@ describe('License model', () => {
             },
         ]);
         expect(license.isEncumbered()).to.equal(true);
-        expect(license.isLatestEncumbranceWithinWaitPeriod()).to.equal(false);
+        expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(false);
     });
     it('should create a privilege with specific values through serializer', () => {
         const data = {
@@ -602,7 +602,7 @@ describe('License model', () => {
         expect(license.historyWithFabricatedEvents()[4].updateType).to.equal('renewal');
         expect(license.historyWithFabricatedEvents()[5].updateType).to.equal('expired');
         expect(license.isEncumbered()).to.equal(false);
-        expect(license.isLatestEncumbranceWithinWaitPeriod()).to.equal(true);
+        expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(true);
     });
     it('should create a privilege with specific values through serializer (deactivated)', () => {
         const data = {
@@ -684,14 +684,14 @@ describe('License model', () => {
 
         // Test field values
         expect(license.isDeactivated()).to.equal(true);
-        expect(license.isLatestEncumbranceWithinWaitPeriod()).to.equal(false);
+        expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(false);
     });
-    it('should return false when isLatestEncumbranceWithinWaitPeriod called with no adverse actions', () => {
+    it('should return false when isLatestLiftedEncumbranceWithinWaitPeriod called with no adverse actions', () => {
         const license = new License();
 
-        expect(license.isLatestEncumbranceWithinWaitPeriod()).to.equal(false);
+        expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(false);
     });
-    it('should return false when isLatestEncumbranceWithinWaitPeriod called with all active encumbrances (no endDate)', () => {
+    it('should return false when isLatestLiftedEncumbranceWithinWaitPeriod called with all active encumbrances (no endDate)', () => {
         const license = new License({
             adverseActions: [
                 new AdverseAction({
@@ -707,9 +707,9 @@ describe('License model', () => {
             ]
         });
 
-        expect(license.isLatestEncumbranceWithinWaitPeriod()).to.equal(false);
+        expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(false);
     });
-    it('should return true when isLatestEncumbranceWithinWaitPeriod called with latest non-active encumbrance endDate within 2 years', () => {
+    it('should return true when isLatestLiftedEncumbranceWithinWaitPeriod called with latest non-active encumbrance endDate within 2 years', () => {
         const oneYearAgo = moment().subtract(1, 'year').format(serverDateFormat);
         const license = new License({
             adverseActions: [
@@ -726,9 +726,9 @@ describe('License model', () => {
             ]
         });
 
-        expect(license.isLatestEncumbranceWithinWaitPeriod()).to.equal(true);
+        expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(true);
     });
-    it('should return false when isLatestEncumbranceWithinWaitPeriod called with latest non-active encumbrance endDate more than 2 years ago', () => {
+    it('should return false when isLatestLiftedEncumbranceWithinWaitPeriod called with latest non-active encumbrance endDate more than 2 years ago', () => {
         const threeYearsAgo = moment().subtract(3, 'years').format(serverDateFormat);
         const license = new License({
             adverseActions: [
@@ -745,9 +745,9 @@ describe('License model', () => {
             ]
         });
 
-        expect(license.isLatestEncumbranceWithinWaitPeriod()).to.equal(false);
+        expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(false);
     });
-    it('should handle mixed active and non-active encumbrances correctly in isLatestEncumbranceWithinWaitPeriod', () => {
+    it('should handle mixed active and non-active encumbrances correctly in isLatestLiftedEncumbranceWithinWaitPeriod', () => {
         const recentEndDate = moment().subtract(6, 'months').format(serverDateFormat);
         const license = new License({
             adverseActions: [
@@ -770,9 +770,9 @@ describe('License model', () => {
         });
 
         // Should return true because the encumbrance with recentEndDate (6 months ago) is within 2 years
-        expect(license.isLatestEncumbranceWithinWaitPeriod()).to.equal(true);
+        expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(true);
     });
-    it('should handle edge case of exactly 2 years ago in isLatestEncumbranceWithinWaitPeriod', () => {
+    it('should handle edge case of exactly 2 years ago in isLatestLiftedEncumbranceWithinWaitPeriod', () => {
         const exactlyTwoYearsAgo = moment().subtract(2, 'years').format(serverDateFormat);
         const license = new License({
             adverseActions: [
@@ -785,9 +785,9 @@ describe('License model', () => {
         });
 
         // Should return false because exactly 2 years ago is not "within" the last 2 years
-        expect(license.isLatestEncumbranceWithinWaitPeriod()).to.equal(false);
+        expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(false);
     });
-    it('should handle edge case of just under 2 years ago in isLatestEncumbranceWithinWaitPeriod', () => {
+    it('should handle edge case of just under 2 years ago in isLatestLiftedEncumbranceWithinWaitPeriod', () => {
         const justUnderTwoYears = moment().subtract(2, 'years').add(1, 'day').format(serverDateFormat);
         const license = new License({
             adverseActions: [
@@ -800,6 +800,6 @@ describe('License model', () => {
         });
 
         // Should return true because just under 2 years ago is within the last 2 years
-        expect(license.isLatestEncumbranceWithinWaitPeriod()).to.equal(true);
+        expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(true);
     });
 });

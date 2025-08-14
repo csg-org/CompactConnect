@@ -274,7 +274,8 @@ export class Licensee implements InterfaceLicensee {
     }
 
     public hasEncumbranceLiftedWithinWaitPeriod(): boolean {
-        return this.privileges?.some((privilege: License) => privilege.isLatestEncumbranceWithinWaitPeriod()) || false;
+        return this.privileges?.some((privilege: License) =>
+            privilege.isLatestLiftedEncumbranceWithinWaitPeriod()) || false;
     }
 
     public purchaseEligibleLicenses(): Array<License> {

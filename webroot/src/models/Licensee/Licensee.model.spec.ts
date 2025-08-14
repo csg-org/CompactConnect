@@ -687,16 +687,16 @@ describe('Licensee model', () => {
             licenseStatus: LicenseStatus.ACTIVE,
         });
 
-        // Mock the isLatestEncumbranceWithinWaitPeriod method
-        privilegeWithRecentLift.isLatestEncumbranceWithinWaitPeriod = () => true;
+        // Mock the isLatestLiftedEncumbranceWithinWaitPeriod method
+        privilegeWithRecentLift.isLatestLiftedEncumbranceWithinWaitPeriod = () => true;
 
         const privilegeWithoutRecentLift = new License({
             licenseNumber: 'privilege-without-recent-lift',
             licenseStatus: LicenseStatus.ACTIVE,
         });
 
-        // Mock the isLatestEncumbranceWithinWaitPeriod method
-        privilegeWithoutRecentLift.isLatestEncumbranceWithinWaitPeriod = () => false;
+        // Mock the isLatestLiftedEncumbranceWithinWaitPeriod method
+        privilegeWithoutRecentLift.isLatestLiftedEncumbranceWithinWaitPeriod = () => false;
 
         const licensee = new Licensee({
             privileges: [privilegeWithRecentLift, privilegeWithoutRecentLift],
