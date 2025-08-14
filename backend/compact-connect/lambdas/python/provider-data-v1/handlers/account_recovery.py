@@ -16,7 +16,7 @@ from cc_common.exceptions import (
     CCAccessDeniedException,
     CCAwsServiceException,
     CCInternalException,
-    CCInvalidRequestException,
+    CCInvalidRequestException, CCRateLimitingException,
 )
 from cc_common.utils import api_handler
 from marshmallow import ValidationError
@@ -26,6 +26,8 @@ MFA_RECOVERY_VERIFY_ATTEMPT_METRIC = 'mfa-recovery-verify'
 
 # Module-level cache
 _RECAPTCHA_SECRET = None
+
+GENERIC_REQUEST_PROCESSED_RESPONSE = {'message': 'request processed'}
 
 
 def _get_recaptcha_secret() -> str:
@@ -92,6 +94,136 @@ def _record_provider_rate_limit_event(*, compact: str, provider_id: str) -> None
     except ClientError as e:
         logger.error('Failed to record provider rate limit event', error=str(e))
 
+def _attempt_admin_password_auth(username: str, password: str) -> bool:
+    try:
+        response = config.cognito_client.admin_initiate_auth(
+            UserPoolId=config.provider_user_pool_id,
+            ClientId=config.provider_user_pool_ui_client_id,
+            AuthFlow='ADMIN_USER_PASSWORD_AUTH',
+            AuthParameters={'USERNAME': username, 'PASSWORD': password},
+        )
+        # Successful auth yields AuthenticationResult or a challenge (we only care that password was correct)
+        return 'ChallengeName' in response or 'AuthenticationResult' in response
+    except ClientError as e:
+        error_code = e.response['Error'].get('Code')
+        logger.info('Cognito admin_initiate_auth failed', username=username, error_code=error_code)
+        return False
+
+
+@api_handler
+def initiate_account_recovery(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
+    source_ip = event['requestContext']['identity']['sourceIp']
+
+    try:
+        body = ProviderAccountRecoveryInitiateRequestSchema().loads(event['body'])
+    except ValidationError as e:
+        logger.info('Invalid request body for account recovery initiate', errors=e.messages)
+        # Always return generic success
+        metrics.add_metric(name=MFA_RECOVERY_INITIATE_ATTEMPT_METRIC, unit=MetricUnit.NoUnit, value=0)
+        return GENERIC_REQUEST_PROCESSED_RESPONSE
+
+    # Verify reCAPTCHA
+    if not _verify_recaptcha(body['recaptchaToken']):
+        logger.info('Invalid reCAPTCHA token for account recovery initiate', ip_address=source_ip)
+        metrics.add_metric(name=MFA_RECOVERY_INITIATE_ATTEMPT_METRIC, unit=MetricUnit.NoUnit, value=0)
+        return GENERIC_REQUEST_PROCESSED_RESPONSE
+
+    logger.info("reCaptcha token verified, checking for matching license record.", ip_address=source_ip)
+
+    username = body['username']
+    password = body['password']
+
+    # Find matching license record
+    matching_record = config.data_client.find_matching_license_record(
+        compact=body['compact'],
+        jurisdiction=body['jurisdiction'],
+        family_name=body['familyName'],
+        given_name=body['givenName'],
+        partial_ssn=body['partialSocial'],
+        dob=body['dob'],
+        license_type=body['licenseType'],
+    )
+
+    if not matching_record:
+        logger.info('No matching license for account recovery initiate')
+        metrics.add_metric(name=MFA_RECOVERY_INITIATE_ATTEMPT_METRIC, unit=MetricUnit.NoUnit, value=0)
+        return GENERIC_REQUEST_PROCESSED_RESPONSE
+
+    # license matched, record attempt against this particular provider for rate-limiting
+    # Provider-based rate limiting (3 per hour)
+    if _provider_rate_limit_exceeded(compact=matching_record.compact, provider_id=str(matching_record.providerId)):
+        logger.warning(
+            'MFA recovery initiate provider rate limit exceeded',
+            compact=matching_record.compact,
+            provider_id=matching_record.providerId,
+        )
+        metrics.add_metric(name='mfa-recovery-rate-limit-throttles', unit=MetricUnit.Count, value=1)
+        metrics.add_metric(name=MFA_RECOVERY_INITIATE_ATTEMPT_METRIC, unit=MetricUnit.NoUnit, value=0)
+        return GENERIC_REQUEST_PROCESSED_RESPONSE
+
+    # Record the attempt for provider-level rate limiting
+    _record_provider_rate_limit_event(compact=matching_record.compact, provider_id=str(matching_record.providerId))
+
+    # Resolve provider record and validate email
+    provider_record = config.data_client.get_provider_top_level_record(
+        compact=matching_record.compact, provider_id=matching_record.providerId
+    )
+    registered_email = provider_record.compactConnectRegisteredEmailAddress
+    if registered_email is None:
+        logger.info(
+            'Provided has no registered email address. '
+            'Provider must be registered before attempting to recover account',
+            provider_id=matching_record.providerId
+        )
+        metrics.add_metric(name=MFA_RECOVERY_INITIATE_ATTEMPT_METRIC, unit=MetricUnit.NoUnit, value=0)
+        return GENERIC_REQUEST_PROCESSED_RESPONSE
+    if registered_email.lower() != username.lower():
+        logger.info(
+            'Provided email does not match registered email for provider', provider_id=matching_record.providerId
+        )
+        metrics.add_metric(name=MFA_RECOVERY_INITIATE_ATTEMPT_METRIC, unit=MetricUnit.NoUnit, value=0)
+        return GENERIC_REQUEST_PROCESSED_RESPONSE
+
+    # Validate password against Cognito
+    if not _attempt_admin_password_auth(username=username, password=password):
+        logger.info('Password validation failed for account recovery initiate')
+        metrics.add_metric(name=MFA_RECOVERY_INITIATE_ATTEMPT_METRIC, unit=MetricUnit.NoUnit, value=0)
+        return GENERIC_REQUEST_PROCESSED_RESPONSE
+
+    logger.info('Password authentication verified. Generating temporary recovery token.')
+
+    # Create cryptographically secure, URL-safe recovery token and store on provider record
+    # 32 bytes ~ 43 URL-safe chars; sufficient entropy for email deep links
+    recovery_token = secrets.token_urlsafe(32)
+    expiry_time = config.current_standard_datetime + timedelta(minutes=15)
+    try:
+        config.data_client.update_provider_account_recovery_data(
+            compact=matching_record.compact,
+            provider_id=matching_record.providerId,
+            recovery_token=recovery_token,
+            recovery_expiry=expiry_time,
+        )
+    except Exception as e:  # noqa: BLE001
+        logger.error('Failed to update provider recovery data', error=str(e))
+        metrics.add_metric(name=MFA_RECOVERY_INITIATE_ATTEMPT_METRIC, unit=MetricUnit.NoUnit, value=0)
+        raise CCInternalException('Internal server error') from e
+
+    # Send email with confirmation link
+    try:
+        config.email_service_client.send_provider_account_recovery_confirmation_email(
+            compact=matching_record.compact,
+            provider_email=registered_email,
+            provider_id=str(matching_record.providerId),
+            recovery_token=recovery_token,
+        )
+    except Exception as e:  # noqa: BLE001
+        logger.error('Failed to send account recovery confirmation email', error=str(e))
+        raise CCInternalException('Internal server error') from e
+
+    metrics.add_metric(name=MFA_RECOVERY_INITIATE_ATTEMPT_METRIC, unit=MetricUnit.NoUnit, value=1)
+    return GENERIC_REQUEST_PROCESSED_RESPONSE
+
+
 
 def _provider_verify_rate_limit_exceeded(*, compact: str, provider_id: str) -> bool:
     """Limit to 2 verification requests per provider within the last 15 minutes."""
@@ -129,143 +261,10 @@ def _record_provider_verify_rate_limit_event(*, compact: str, provider_id: str) 
         logger.error('Failed to record provider verify rate limit event', error=str(e))
 
 
-def _attempt_admin_password_auth(username: str, password: str) -> bool:
-    try:
-        client_id = os.environ['PROVIDER_USER_POOL_CLIENT_ID']
-    except KeyError as e:
-        logger.error('PROVIDER_USER_POOL_CLIENT_ID not configured', error=str(e))
-        return False
-
-    try:
-        response = config.cognito_client.admin_initiate_auth(
-            UserPoolId=config.provider_user_pool_id,
-            ClientId=client_id,
-            AuthFlow='ADMIN_USER_PASSWORD_AUTH',
-            AuthParameters={'USERNAME': username, 'PASSWORD': password},
-        )
-        # Successful auth yields AuthenticationResult or a challenge (we only care that password was correct)
-        return 'ChallengeName' in response or 'AuthenticationResult' in response
-    except ClientError as e:
-        error_code = e.response['Error'].get('Code')
-        logger.info('Cognito admin_initiate_auth failed', username=username, error_code=error_code)
-        return False
-
-
 @api_handler
-def initiate_recovery(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
-    source_ip = event['requestContext']['identity']['sourceIp']
-
+def verify_account_recovery(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     try:
-        body = ProviderAccountRecoveryInitiateRequestSchema().loads(event['body'])
-    except ValidationError as e:
-        logger.info('Invalid request body for account recovery initiate', errors=e.messages)
-        # Always return generic success
-        metrics.add_metric(name=MFA_RECOVERY_INITIATE_ATTEMPT_METRIC, unit=MetricUnit.NoUnit, value=0)
-        return {'message': 'request processed'}
-
-    # Verify reCAPTCHA
-    if not _verify_recaptcha(body['recaptchaToken']):
-        logger.info('Invalid reCAPTCHA token for account recovery initiate', ip_address=source_ip)
-        metrics.add_metric(name=MFA_RECOVERY_INITIATE_ATTEMPT_METRIC, unit=MetricUnit.NoUnit, value=0)
-        return {'message': 'request processed'}
-
-    username = body['username']
-    password = body['password']
-
-    # Find matching license record
-    try:
-        matching_record = config.data_client.find_matching_license_record(
-            compact=body['compact'],
-            jurisdiction=body['jurisdiction'],
-            family_name=body['familyName'],
-            given_name=body['givenName'],
-            partial_ssn=body['partialSocial'],
-            dob=body['dob'],
-            license_type=body['licenseType'],
-        )
-    except Exception as e:  # noqa: BLE001
-        logger.error('Failed to search for matching license record', error=str(e))
-        matching_record = None
-
-    if not matching_record:
-        logger.info('No matching license for account recovery initiate')
-        metrics.add_metric(name=MFA_RECOVERY_INITIATE_ATTEMPT_METRIC, unit=MetricUnit.NoUnit, value=0)
-        return {'message': 'request processed'}
-
-    # Resolve provider record and validate email
-    try:
-        provider_record = config.data_client.get_provider_top_level_record(
-            compact=matching_record.compact, provider_id=matching_record.providerId
-        )
-        registered_email = provider_record.compactConnectRegisteredEmailAddress
-        if registered_email is None or registered_email.lower() != username.lower():
-            logger.info(
-                'Provided email does not match registered email for provider', provider_id=matching_record.providerId
-            )
-            metrics.add_metric(name=MFA_RECOVERY_INITIATE_ATTEMPT_METRIC, unit=MetricUnit.NoUnit, value=0)
-            return {'message': 'request processed'}
-    except Exception as e:  # noqa: BLE001
-        logger.error('Failed to fetch provider record for account recovery', error=str(e))
-        metrics.add_metric(name=MFA_RECOVERY_INITIATE_ATTEMPT_METRIC, unit=MetricUnit.NoUnit, value=0)
-        return {'message': 'request processed'}
-
-    # Provider-based rate limiting (3 per hour)
-    if _provider_rate_limit_exceeded(compact=matching_record.compact, provider_id=str(matching_record.providerId)):
-        logger.warning(
-            'MFA recovery initiate provider rate limit exceeded',
-            compact=matching_record.compact,
-            provider_id=matching_record.providerId,
-        )
-        metrics.add_metric(name='mfa-recovery-rate-limit-throttles', unit=MetricUnit.Count, value=1)
-        metrics.add_metric(name=MFA_RECOVERY_INITIATE_ATTEMPT_METRIC, unit=MetricUnit.NoUnit, value=0)
-        return {'message': 'request processed'}
-
-    # Record the attempt for provider-level rate limiting
-    _record_provider_rate_limit_event(compact=matching_record.compact, provider_id=str(matching_record.providerId))
-
-    # Validate password against Cognito
-    if not _attempt_admin_password_auth(username=username, password=password):
-        logger.info('Password validation failed for account recovery initiate')
-        metrics.add_metric(name=MFA_RECOVERY_INITIATE_ATTEMPT_METRIC, unit=MetricUnit.NoUnit, value=0)
-        return {'message': 'request processed'}
-
-    # Create cryptographically secure, URL-safe recovery token and store on provider record
-    # 32 bytes ~ 43 URL-safe chars; sufficient entropy for email deep links
-    recovery_uuid = secrets.token_urlsafe(32)
-    expiry_time = config.current_standard_datetime + timedelta(minutes=15)
-    try:
-        config.data_client.update_provider_account_recovery_data(
-            compact=matching_record.compact,
-            provider_id=matching_record.providerId,
-            recovery_uuid=recovery_uuid,
-            recovery_expiry=expiry_time,
-        )
-    except Exception as e:  # noqa: BLE001
-        logger.error('Failed to update provider recovery data', error=str(e))
-        metrics.add_metric(name=MFA_RECOVERY_INITIATE_ATTEMPT_METRIC, unit=MetricUnit.NoUnit, value=0)
-        raise CCInternalException('Internal server error') from e
-
-    # Send email with confirmation link
-    try:
-        config.email_service_client.send_provider_account_recovery_confirmation_email(
-            compact=matching_record.compact,
-            provider_email=registered_email,
-            provider_id=matching_record.providerId,
-            recovery_uuid=recovery_uuid,
-        )
-    except Exception as e:  # noqa: BLE001
-        logger.error('Failed to send account recovery confirmation email', error=str(e))
-        raise CCInternalException('Internal server error') from e
-
-    metrics.add_metric(name=MFA_RECOVERY_INITIATE_ATTEMPT_METRIC, unit=MetricUnit.NoUnit, value=1)
-    return {'message': 'request processed'}
-
-
-@api_handler
-def verify_recovery(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
-    try:
-        schema = ProviderAccountRecoveryVerifyRequestSchema()
-        body = schema.loads(event['body'])
+        body = ProviderAccountRecoveryVerifyRequestSchema().loads(event['body'])
     except ValidationError as e:
         logger.warning('Invalid request body for account recovery verify', errors=e.messages)
         metrics.add_metric(name=MFA_RECOVERY_VERIFY_ATTEMPT_METRIC, unit=MetricUnit.NoUnit, value=0)
@@ -299,7 +298,7 @@ def verify_recovery(event: dict, context: LambdaContext):  # noqa: ARG001 unused
         metrics.add_metric(name=MFA_RECOVERY_VERIFY_ATTEMPT_METRIC, unit=MetricUnit.NoUnit, value=0)
         raise CCInvalidRequestException('Invalid or expired recovery link') from e
 
-    record_uuid = provider_record.recoveryUuid
+    record_uuid = provider_record.recoveryToken
     record_expiry = provider_record.recoveryExpiry
     current_email = provider_record.compactConnectRegisteredEmailAddress
 
@@ -356,4 +355,4 @@ def verify_recovery(event: dict, context: LambdaContext):  # noqa: ARG001 unused
 
     logger.info('Account recovery completed successfully', compact=compact, provider_id=provider_id)
     metrics.add_metric(name=MFA_RECOVERY_VERIFY_ATTEMPT_METRIC, unit=MetricUnit.NoUnit, value=1)
-    return {'message': 'request processed'}
+    return GENERIC_REQUEST_PROCESSED_RESPONSE

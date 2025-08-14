@@ -570,8 +570,8 @@ class EmailServiceClient:
         *,
         compact: str,
         provider_email: str,
-        provider_id: UUID,
-        recovery_uuid: UUID,
+        provider_id: str,
+        recovery_token: str,
     ) -> dict[str, str]:
         """
         Send an account recovery confirmation email to a provider with a secure link.
@@ -579,7 +579,7 @@ class EmailServiceClient:
         :param compact: The compact name
         :param provider_email: Email address of the provider
         :param provider_id: Provider ID
-        :param recovery_uuid: Recovery UUID
+        :param recovery_token: Recovery UUID
         :return: Response from the email notification service
         """
 
@@ -590,7 +590,7 @@ class EmailServiceClient:
             'specificEmails': [provider_email],
             'templateVariables': {
                 'providerId': str(provider_id),
-                'recoveryUuid': str(recovery_uuid),
+                'recoveryUuid': str(recovery_token),
             },
         }
 

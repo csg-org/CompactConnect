@@ -110,11 +110,11 @@ class ProviderData(CCDataClass):
         return self._data.get('emailVerificationExpiry')
 
     @property
-    def recoveryUuid(self) -> str | None:
+    def recoveryToken(self) -> str | None:
         """
-        The UUID for the account recovery process.
+        The token for the account recovery process.
         """
-        return self._data.get('recoveryUuid')
+        return self._data.get('recoveryToken')
 
     @property
     def recoveryExpiry(self) -> str | None:

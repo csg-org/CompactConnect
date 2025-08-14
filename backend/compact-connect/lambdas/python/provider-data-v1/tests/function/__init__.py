@@ -64,6 +64,16 @@ class TstFunction(TstLambdas):
         os.environ['PROVIDER_USER_POOL_ID'] = user_pool_response['UserPool']['Id']
         self._provider_user_pool_id = user_pool_response['UserPool']['Id']
 
+        # create the UI client for testing authentication
+        ui_client_response = cognito_client.create_user_pool_client(
+            UserPoolId=self._provider_user_pool_id,
+            ClientName='TestUiClient',
+            RefreshTokenValidity=3600,
+            TokenValidityUnits={'RefreshToken': 'seconds'},
+        )
+        os.environ['PROVIDER_USER_POOL_CLIENT_ID'] = ui_client_response['UserPoolClient']['ClientId']
+        self._provider_user_pool_client_id = ui_client_response['UserPoolClient']['ClientId']
+
     def create_staff_user_pool(self):
         # Create a new Cognito user pool
         cognito_client = boto3.client('cognito-idp')
@@ -207,6 +217,10 @@ class TstFunction(TstLambdas):
 
         # Delete the Cognito user pool
         cognito_client = boto3.client('cognito-idp')
+        cognito_client.delete_user_pool_client(
+            UserPoolId=self._provider_user_pool_id,
+            ClientId=self._provider_user_pool_client_id,
+        )
         cognito_client.delete_user_pool(UserPoolId=self._provider_user_pool_id)
 
     def _load_compact_configuration(self, overrides: dict):
@@ -386,25 +400,35 @@ class TstFunction(TstLambdas):
                     attestations=[{'attestationId': 'jurisprudence-confirmation', 'version': '1'}],
                 )
 
-    def _create_cognito_user(self, *, email: str, attributes=None):
+    def _create_provider_cognito_user(self, *, email: str, provider_id: str, compact: str, password: str):
         """
         Create a Cognito user in the provider user pool.
 
         :param email: The email address for the user
-        :param attributes: Optional additional user attributes
+        :param provider_id: the id of the provider
+        :param compact: the compact the provider is in
+        :param password: the compact the provider is in
         :return: The Cognito sub (user ID)
         """
         from cc_common.utils import get_sub_from_user_attributes
 
-        user_attributes = [{'Name': 'email', 'Value': email}, {'Name': 'email_verified', 'Value': 'true'}]
-
-        if attributes:
-            user_attributes.extend(attributes)
+        user_attributes = [
+            {'Name': 'email', 'Value': email},
+            {'Name': 'email_verified', 'Value': 'true'},
+            {'Name': 'custom:compact', 'Value': compact.lower()},
+            {'Name': 'custom:providerId', 'Value': str(provider_id)},
+        ]
 
         user_data = self.config.cognito_client.admin_create_user(
             UserPoolId=self.config.provider_user_pool_id,
             Username=email,
             UserAttributes=user_attributes,
-            DesiredDeliveryMediums=['EMAIL'],
+        )
+
+        self.config.cognito_client.admin_set_user_password(
+            UserPoolId=self.config.provider_user_pool_id,
+            Username=email,
+            Password=password,
+            Permanent=True
         )
         return get_sub_from_user_attributes(user_data['User']['Attributes'])
