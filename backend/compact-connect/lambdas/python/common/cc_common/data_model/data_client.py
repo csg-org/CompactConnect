@@ -3005,7 +3005,7 @@ class DataClient:
         *,
         compact: str,
         provider_id: str,
-        recovery_uuid: str,
+        recovery_token: str,
         recovery_expiry: datetime,
     ) -> None:
         """
@@ -3013,7 +3013,7 @@ class DataClient:
 
         :param compact: The compact name
         :param provider_id: The provider ID
-        :param recovery_uuid: The recovery UUID to store
+        :param recovery_token: The recovery UUID to store
         :param recovery_expiry: The expiration datetime of the recovery UUID
         """
         logger.info('Updating provider account recovery data')
@@ -3022,12 +3022,12 @@ class DataClient:
             self.config.provider_table.update_item(
                 Key={'pk': f'{compact}#PROVIDER#{provider_id}', 'sk': f'{compact}#PROVIDER'},
                 UpdateExpression=(
-                    'SET recoveryUuid = :recovery_uuid, '
+                    'SET recoveryToken = :recovery_token, '
                     'recoveryExpiry = :recovery_expiry, '
                     'dateOfUpdate = :date_of_update'
                 ),
                 ExpressionAttributeValues={
-                    ':recovery_uuid': recovery_uuid,
+                    ':recovery_token': recovery_token,
                     ':recovery_expiry': recovery_expiry.isoformat(),
                     ':date_of_update': self.config.current_standard_datetime.isoformat(),
                 },
