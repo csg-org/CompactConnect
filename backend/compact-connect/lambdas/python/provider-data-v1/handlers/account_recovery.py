@@ -1,6 +1,6 @@
 import json
 import os
-import uuid
+import secrets
 from datetime import timedelta
 
 import requests
@@ -57,14 +57,15 @@ def _verify_recaptcha(token: str) -> bool:
         return False
 
 
-def _per_ip_rate_limit_exceeded(ip_address: str) -> bool:
+def _provider_rate_limit_exceeded(*, compact: str, provider_id: str) -> bool:
+    """Limit to 3 requests per provider within the last hour."""
     now = config.current_standard_datetime
-    window_start = now - timedelta(minutes=15)
+    window_start = now - timedelta(hours=1)
     try:
         response = config.rate_limiting_table.query(
             KeyConditionExpression='pk = :pk AND sk BETWEEN :start_sk AND :end_sk',
             ExpressionAttributeValues={
-                ':pk': f'IP#{ip_address}',
+                ':pk': f'PROVIDER#{compact.lower()}#{provider_id}',
                 ':start_sk': f'MFARECOVERY#{window_start.isoformat()}',
                 ':end_sk': f'MFARECOVERY#{now.isoformat()}',
             },
@@ -73,63 +74,59 @@ def _per_ip_rate_limit_exceeded(ip_address: str) -> bool:
         )
         return response['Count'] >= 3
     except ClientError as e:
-        logger.error('Failed to query per-IP rate limit', error=str(e))
-        # Fail closed to protect the endpoint
+        logger.error('Failed to query provider rate limit', error=str(e))
+        # Fail closed to protect endpoint
         return True
 
 
-def _global_rate_limit_exceeded() -> bool:
-    """
-    Returns True if there are at least 3 requests across 5 or more distinct IPs in the last hour.
-    """
-    now = config.current_standard_datetime
-    window_start = now - timedelta(hours=1)
-    try:
-        result = config.rate_limiting_table.query(
-            KeyConditionExpression='pk = :pk AND sk BETWEEN :start_sk AND :end_sk',
-            ExpressionAttributeValues={
-                ':pk': 'RECOVERY_REQUESTS',
-                ':start_sk': f'MFARECOVERY#{window_start.isoformat()}',
-                ':end_sk': f'MFARECOVERY#{now.isoformat()}',
-            },
-            Select='ALL_ATTRIBUTES',
-            ConsistentRead=True,
-        )
-        items = result.get('Items', [])
-        ip_to_count: dict[str, int] = {}
-        for item in items:
-            ip = item.get('ip') or 'unknown'
-            ip_to_count[ip] = ip_to_count.get(ip, 0) + 1
-        ips_meeting_threshold = sum(1 for count in ip_to_count.values() if count >= 3)
-        return ips_meeting_threshold >= 5
-    except ClientError as e:
-        logger.error('Failed to query global rate limit', error=str(e))
-        # Fail closed
-        return True
-
-
-def _record_rate_limit_event(ip_address: str) -> None:
+def _record_provider_rate_limit_event(*, compact: str, provider_id: str) -> None:
     now = config.current_standard_datetime
     try:
-        # Per-IP record (15 min TTL)
         config.rate_limiting_table.put_item(
             Item={
-                'pk': f'IP#{ip_address}',
+                'pk': f'PROVIDER#{compact.lower()}#{provider_id}',
                 'sk': f'MFARECOVERY#{now.isoformat()}',
-                'ttl': int(now.timestamp()) + 900,
-            }
-        )
-        # Global record (1 hour TTL)
-        config.rate_limiting_table.put_item(
-            Item={
-                'pk': 'RECOVERY_REQUESTS',
-                'sk': f'MFARECOVERY#{now.isoformat()}#IP#{ip_address}',
-                'ip': ip_address,
                 'ttl': int(now.timestamp()) + 3600,
             }
         )
     except ClientError as e:
-        logger.error('Failed to record rate limit event', error=str(e))
+        logger.error('Failed to record provider rate limit event', error=str(e))
+
+
+def _provider_verify_rate_limit_exceeded(*, compact: str, provider_id: str) -> bool:
+    """Limit to 2 verification requests per provider within the last 15 minutes."""
+    now = config.current_standard_datetime
+    window_start = now - timedelta(minutes=15)
+    try:
+        response = config.rate_limiting_table.query(
+            KeyConditionExpression='pk = :pk AND sk BETWEEN :start_sk AND :end_sk',
+            ExpressionAttributeValues={
+                ':pk': f'PROVIDER#{compact.lower()}#{provider_id}',
+                ':start_sk': f'MFARECOVERYVERIFY#{window_start.isoformat()}',
+                ':end_sk': f'MFARECOVERYVERIFY#{now.isoformat()}',
+            },
+            Select='COUNT',
+            ConsistentRead=True,
+        )
+        return response['Count'] >= 2
+    except ClientError as e:
+        logger.error('Failed to query provider verify rate limit', error=str(e))
+        # Fail closed
+        return True
+
+
+def _record_provider_verify_rate_limit_event(*, compact: str, provider_id: str) -> None:
+    now = config.current_standard_datetime
+    try:
+        config.rate_limiting_table.put_item(
+            Item={
+                'pk': f'PROVIDER#{compact.lower()}#{provider_id}',
+                'sk': f'MFARECOVERYVERIFY#{now.isoformat()}',
+                'ttl': int(now.timestamp()) + 900,
+            }
+        )
+    except ClientError as e:
+        logger.error('Failed to record provider verify rate limit event', error=str(e))
 
 
 def _attempt_admin_password_auth(username: str, password: str) -> bool:
@@ -172,17 +169,6 @@ def initiate_recovery(event: dict, context: LambdaContext):  # noqa: ARG001 unus
         metrics.add_metric(name=MFA_RECOVERY_INITIATE_ATTEMPT_METRIC, unit=MetricUnit.NoUnit, value=0)
         return {'message': 'request processed'}
 
-    # Rate limiting checks (fail closed to generic 200)
-    if _per_ip_rate_limit_exceeded(source_ip) or _global_rate_limit_exceeded():
-        logger.warning('MFA recovery initiate rate limit exceeded', ip_address=source_ip)
-        _record_rate_limit_event(source_ip)
-        metrics.add_metric(name='mfa-recovery-rate-limit-throttles', unit=MetricUnit.Count, value=1)
-        metrics.add_metric(name=MFA_RECOVERY_INITIATE_ATTEMPT_METRIC, unit=MetricUnit.NoUnit, value=0)
-        return {'message': 'request processed'}
-
-    # Record this attempt for future rate limiting windows
-    _record_rate_limit_event(source_ip)
-
     username = body['username']
     password = body['password']
 
@@ -223,14 +209,29 @@ def initiate_recovery(event: dict, context: LambdaContext):  # noqa: ARG001 unus
         metrics.add_metric(name=MFA_RECOVERY_INITIATE_ATTEMPT_METRIC, unit=MetricUnit.NoUnit, value=0)
         return {'message': 'request processed'}
 
+    # Provider-based rate limiting (3 per hour)
+    if _provider_rate_limit_exceeded(compact=matching_record.compact, provider_id=str(matching_record.providerId)):
+        logger.warning(
+            'MFA recovery initiate provider rate limit exceeded',
+            compact=matching_record.compact,
+            provider_id=matching_record.providerId,
+        )
+        metrics.add_metric(name='mfa-recovery-rate-limit-throttles', unit=MetricUnit.Count, value=1)
+        metrics.add_metric(name=MFA_RECOVERY_INITIATE_ATTEMPT_METRIC, unit=MetricUnit.NoUnit, value=0)
+        return {'message': 'request processed'}
+
+    # Record the attempt for provider-level rate limiting
+    _record_provider_rate_limit_event(compact=matching_record.compact, provider_id=str(matching_record.providerId))
+
     # Validate password against Cognito
     if not _attempt_admin_password_auth(username=username, password=password):
         logger.info('Password validation failed for account recovery initiate')
         metrics.add_metric(name=MFA_RECOVERY_INITIATE_ATTEMPT_METRIC, unit=MetricUnit.NoUnit, value=0)
         return {'message': 'request processed'}
 
-    # Create recovery token and store on provider record
-    recovery_uuid = str(uuid.uuid4())
+    # Create cryptographically secure, URL-safe recovery token and store on provider record
+    # 32 bytes ~ 43 URL-safe chars; sufficient entropy for email deep links
+    recovery_uuid = secrets.token_urlsafe(32)
     expiry_time = config.current_standard_datetime + timedelta(minutes=15)
     try:
         config.data_client.update_provider_account_recovery_data(
@@ -279,6 +280,16 @@ def verify_recovery(event: dict, context: LambdaContext):  # noqa: ARG001 unused
     compact = body['compact']
     provider_id = body['providerId']
     provided_recovery_uuid = body['recoveryUuid']
+
+    # Provider-based rate limiting for verification (2 per 15 minutes)
+    if _provider_verify_rate_limit_exceeded(compact=compact, provider_id=str(provider_id)):
+        logger.warning('MFA recovery verify provider rate limit exceeded', compact=compact, provider_id=provider_id)
+        metrics.add_metric(name='mfa-recovery-rate-limit-throttles', unit=MetricUnit.Count, value=1)
+        metrics.add_metric(name=MFA_RECOVERY_VERIFY_ATTEMPT_METRIC, unit=MetricUnit.NoUnit, value=0)
+        raise CCInvalidRequestException('Please try again later.')
+
+    # Record the attempt regardless of outcome
+    _record_provider_verify_rate_limit_event(compact=compact, provider_id=str(provider_id))
 
     # Load provider record and validate recovery UUID
     try:
