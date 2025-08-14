@@ -194,6 +194,29 @@ export class License implements InterfaceLicense {
     public isEncumbered(): boolean {
         return this.adverseActions?.some((adverseAction: AdverseAction) => adverseAction.isActive()) || false;
     }
+
+    public isLatestLiftedEncumbranceWithinWaitPeriod(): boolean {
+        const encumbrances = this.adverseActions || [];
+        const inActiveEncumbrancesWithEndDate: Array<AdverseAction> = encumbrances.filter((encumbrace: AdverseAction) =>
+            !encumbrace.isActive() && encumbrace.endDate);
+        let isWithinWaitPeriod = false;
+
+        if (inActiveEncumbrancesWithEndDate.length) {
+            const latestEncumbrance = inActiveEncumbrancesWithEndDate.reduce(
+                (prev: AdverseAction, curr: AdverseAction): AdverseAction => (
+                    moment(prev.endDate, serverDateFormat).isAfter(moment(curr.endDate, serverDateFormat)) ? prev : curr
+                )
+            );
+
+            // Check if the end date is within the last 2 years (within wait period)
+            const endDate = moment(latestEncumbrance.endDate, serverDateFormat);
+            const waitPeriod = moment().subtract(2, 'years');
+
+            isWithinWaitPeriod = endDate.isAfter(waitPeriod);
+        }
+
+        return isWithinWaitPeriod;
+    }
 }
 
 // ========================================================
