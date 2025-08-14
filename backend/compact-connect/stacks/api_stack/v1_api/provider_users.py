@@ -466,7 +466,9 @@ class ProviderUsers:
         )
 
     def _add_account_recovery_endpoints(self, *, api_lambda_stack: ApiLambdaStack):
-        self.account_recovery_initiate_resource.add_method(
+        stack = Stack.of(self.provider_users_resource)
+
+        initiate_account_recovery_method = self.account_recovery_initiate_resource.add_method(
             'POST',
             request_validator=self.api.parameter_body_validator,
             method_responses=[
@@ -478,8 +480,24 @@ class ProviderUsers:
                 api_lambda_stack.provider_users_lambdas.account_recovery_initiate_function, timeout=Duration.seconds(29)
             ),
         )
+        NagSuppressions.add_resource_suppressions_by_path(
+            stack,
+            path=f'{initiate_account_recovery_method.node.path}',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-APIG4',
+                    'reason': 'This is a public account recovery endpoint that needs to be accessible without '
+                              'authorization',
+                },
+                {
+                    'id': 'AwsSolutions-COG4',
+                    'reason': 'This is a public account recovery endpoint that needs to be accessible without Cognito '
+                              'authorization',
+                },
+            ],
+        )
 
-        self.account_recovery_verify_resource.add_method(
+        verify_account_recovery_method = self.account_recovery_verify_resource.add_method(
             'POST',
             request_validator=self.api.parameter_body_validator,
             method_responses=[
@@ -490,4 +508,20 @@ class ProviderUsers:
             integration=LambdaIntegration(
                 api_lambda_stack.provider_users_lambdas.account_recovery_verify_function, timeout=Duration.seconds(29)
             ),
+        )
+        NagSuppressions.add_resource_suppressions_by_path(
+            stack,
+            path=f'{verify_account_recovery_method.node.path}',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-APIG4',
+                    'reason': 'This is a public account recovery endpoint that needs to be accessible without '
+                              'authorization',
+                },
+                {
+                    'id': 'AwsSolutions-COG4',
+                    'reason': 'This is a public account recovery endpoint that needs to be accessible without Cognito '
+                              'authorization',
+                },
+            ],
         )
