@@ -113,7 +113,7 @@ specific compact (you can send up to 100 license records per request). See the
 [Technical User Guide](./README.md) for more details about API use:
 
 ```bash
-curl --location --request POST '<licenseUploadUrl>' \
+curl --location --request POST 'https://api.beta.compactconnect.org/v1/compacts/<compact>/jurisdictions/<jurisdiction>/licenses' \
 --header 'Authorization: Bearer <access_token>' \
 --header 'Content-Type: application/json' \
 --header 'User-Agent: <your-app-name>/<version> (<contact-email-or-url>)' \
@@ -150,6 +150,7 @@ Replace:
   provided in the email.
 - `<jurisdiction>` with your lower-cased two-letter state code (e.g., `ky`) - this information was provided in the email
 - The example payload shown here with your test license data
+Note: The URL provided during onboarding and is already configured for your jurisdiction and compact.
 
 ### Step 2 Alternative: Upload License Data via CSV File
 
