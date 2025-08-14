@@ -17,6 +17,9 @@ export enum MutationTypes {
     GET_LICENSEE_REQUEST = '[License] Get Licensee Request',
     GET_LICENSEE_FAILURE = '[License] Get Licensee Failure',
     GET_LICENSEE_SUCCESS = '[License] Get Licensee Success',
+    GET_PRIVILEGE_HISTORY_REQUEST = '[User] Get Privilege History Request',
+    GET_PRIVILEGE_HISTORY_SUCCESS = '[User] Get Privilege History Success',
+    GET_PRIVILEGE_HISTORY_FAILURE = '[User] Get Privilege History Failure',
     STORE_UPDATE_LICENSEE = '[License] Updated Licensee in store',
     STORE_REMOVE_LICENSEE = '[License] Remove Licensee from store',
     STORE_UPDATE_SEARCH = '[License] Update search params',
@@ -116,5 +119,27 @@ export default {
             lastName: '',
             state: '',
         };
+    },
+    [MutationTypes.GET_PRIVILEGE_HISTORY_REQUEST]: (state: any) => {
+        state.isLoading = true;
+        state.error = null;
+    },
+    [MutationTypes.GET_PRIVILEGE_HISTORY_SUCCESS]: (state: any, { history }) => {
+        const privilegeId = `${history.providerId}-${history.jurisdiction}-${history.licenseType}`;
+        const licenseeId = history.providerId;
+        const licensees = state.model || [];
+        const foundLicensee = licensees.find((licensee) => licensee.id === licenseeId);
+        const foundPrivilege = foundLicensee?.privileges?.find((privilege) => (privilege.id === privilegeId)) || null;
+
+        if (foundPrivilege) {
+            foundPrivilege.history = history.events;
+        }
+
+        state.isLoading = false;
+        state.error = null;
+    },
+    [MutationTypes.GET_PRIVILEGE_HISTORY_FAILURE]: (state: any, error: Error) => {
+        state.isLoading = false;
+        state.error = error;
     },
 };
