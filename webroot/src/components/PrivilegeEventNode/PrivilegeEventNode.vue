@@ -9,6 +9,7 @@
     <div
         class="event-node-container"
         :class="eventLengthBucket"
+        :aria-label="$t('licensing.eventNodeLabel', { eventNameDisplay, eventDate })"
     >
         <div class="node"
             :class="{

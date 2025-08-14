@@ -125,7 +125,7 @@ export default {
             dispatch('getPrivilegeHistoryFailureLicensee', error);
         });
     },
-    // GET GET LICENSEE PRIVILEGE HISTORY SUCCESS / FAIL HANDLERS
+    // GET LICENSEE PRIVILEGE HISTORY SUCCESS / FAIL HANDLERS
     getPrivilegeHistorySuccessLicensee: ({ commit }, history) => {
         commit(MutationTypes.GET_PRIVILEGE_HISTORY_SUCCESS, { history });
     },

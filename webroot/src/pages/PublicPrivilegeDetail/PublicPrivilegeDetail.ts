@@ -24,7 +24,7 @@ export default class PublicPrivilegeDetail extends Vue {
     //
     // Lifecycle
     //
-    async mounted() {
+    async created() {
         if (!this.licenseeRecord) {
             await this.fetchLicenseePublicData();
         }
@@ -92,7 +92,7 @@ export default class PublicPrivilegeDetail extends Vue {
     }
 
     get isPrivilegeHistoryLoaded(): boolean {
-        return !!this.privilege?.history?.length || false;
+        return Boolean(this.privilege?.history?.length);
     }
 
     //

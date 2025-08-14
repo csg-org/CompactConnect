@@ -26,10 +26,7 @@ import {
     compactStates,
     compactConfig,
     stateConfig,
-    mockPrivilegeHistoryResponse1,
-    mockPrivilegeHistoryResponse2,
-    mockPrivilegeHistoryResponse3,
-    mockPrivilegeHistoryResponse4
+    mockPrivilegeHistoryResponses
 
 } from '@network/mocks/mock.data';
 
@@ -298,19 +295,19 @@ export class DataApi {
         jurisdiction,
         licenseTypeAbbrev
     ) {
-        let serverResponse = mockPrivilegeHistoryResponse1;
+        const [ janetNE, janetAL, layneNE, layneOH ] = mockPrivilegeHistoryResponses;
+        let response;
+        let responseData = janetNE;
 
         if (providerId === 'aa2e057d-6972-4a68-a55d-aad1c3d05278' && jurisdiction === 'al') {
-            serverResponse = mockPrivilegeHistoryResponse2;
+            responseData = janetAL;
         } else if (providerId === 'f47ac10b-58cc-4372-a567-0e02b2c3d479' && jurisdiction === 'ne') {
-            serverResponse = mockPrivilegeHistoryResponse3;
+            responseData = layneNE;
         } else if (providerId === 'f47ac10b-58cc-4372-a567-0e02b2c3d479' && jurisdiction === 'oh') {
-            serverResponse = mockPrivilegeHistoryResponse4;
+            responseData = layneOH;
         }
 
-        let response;
-
-        if (serverResponse
+        if (responseData
             && compact
             && providerId
             && jurisdiction
@@ -318,16 +315,16 @@ export class DataApi {
         ) {
             response = wait(500).then(() => {
                 const licenseHistoryData = {
-                    compact: serverResponse.compact,
-                    jurisdiction: serverResponse.jurisdiction,
-                    licenseType: serverResponse.licenseType,
-                    privilegeId: serverResponse.privilegeId,
-                    providerId: serverResponse.providerId,
+                    compact: responseData.compact,
+                    jurisdiction: responseData.jurisdiction,
+                    licenseType: responseData.licenseType,
+                    privilegeId: responseData.privilegeId,
+                    providerId: responseData.providerId,
                     events: [] as Array<LicenseHistoryItem>,
                 };
 
-                if (Array.isArray(serverResponse.events)) {
-                    serverResponse.events.forEach((serverHistoryItem) => {
+                if (Array.isArray(responseData.events)) {
+                    responseData.events.forEach((serverHistoryItem) => {
                         licenseHistoryData.events.push(LicenseHistoryItemSerializer.fromServer(serverHistoryItem));
                     });
                 }
@@ -350,19 +347,19 @@ export class DataApi {
         jurisdiction,
         licenseTypeAbbrev
     ) {
-        let serverResponse = mockPrivilegeHistoryResponse1;
+        const [ janetNE, janetAL, layneNE, layneOH ] = mockPrivilegeHistoryResponses;
+        let response;
+        let responseData = janetNE;
 
-        if (jurisdiction === 'al') {
-            serverResponse = mockPrivilegeHistoryResponse2;
+        if (providerId === 'aa2e057d-6972-4a68-a55d-aad1c3d05278' && jurisdiction === 'al') {
+            responseData = janetAL;
         } else if (providerId === 'f47ac10b-58cc-4372-a567-0e02b2c3d479' && jurisdiction === 'ne') {
-            serverResponse = mockPrivilegeHistoryResponse3;
+            responseData = layneNE;
         } else if (providerId === 'f47ac10b-58cc-4372-a567-0e02b2c3d479' && jurisdiction === 'oh') {
-            serverResponse = mockPrivilegeHistoryResponse4;
+            responseData = layneOH;
         }
 
-        let response;
-
-        if (serverResponse
+        if (responseData
             && compact
             && providerId
             && jurisdiction
@@ -370,16 +367,16 @@ export class DataApi {
         ) {
             response = wait(500).then(() => {
                 const licenseHistoryData = {
-                    compact: serverResponse.compact,
-                    jurisdiction: serverResponse.jurisdiction,
-                    licenseType: serverResponse.licenseType,
-                    privilegeId: serverResponse.privilegeId,
-                    providerId: serverResponse.providerId,
+                    compact: responseData.compact,
+                    jurisdiction: responseData.jurisdiction,
+                    licenseType: responseData.licenseType,
+                    privilegeId: responseData.privilegeId,
+                    providerId: responseData.providerId,
                     events: [] as Array<LicenseHistoryItem>,
                 };
 
-                if (Array.isArray(serverResponse.events)) {
-                    serverResponse.events.forEach((serverHistoryItem) => {
+                if (Array.isArray(responseData.events)) {
+                    responseData.events.forEach((serverHistoryItem) => {
                         licenseHistoryData.events.push(LicenseHistoryItemSerializer.fromServer(serverHistoryItem));
                     });
                 }
@@ -541,29 +538,29 @@ export class DataApi {
      * @return {Promise<>} A User model instance.
      */
     public getPrivilegeHistoryLicensee(jurisdiction: string, licenseTypeAbbrev: string) {
-        let serverResponse = mockPrivilegeHistoryResponse1;
+        const [ janetNE, , layneNE, layneOH ] = mockPrivilegeHistoryResponses;
+        let response;
+        let responseData = janetNE;
 
         if (jurisdiction === 'ne' && licenseTypeAbbrev === 'OTA') {
-            serverResponse = mockPrivilegeHistoryResponse3;
+            responseData = layneNE;
         } else if (jurisdiction === 'oh' && licenseTypeAbbrev === 'OT') {
-            serverResponse = mockPrivilegeHistoryResponse4;
+            responseData = layneOH;
         }
 
-        let response;
-
-        if (serverResponse && jurisdiction && licenseTypeAbbrev) {
+        if (responseData && jurisdiction && licenseTypeAbbrev) {
             response = wait(500).then(() => {
                 const licenseHistoryData = {
-                    compact: serverResponse.compact,
-                    jurisdiction: serverResponse.jurisdiction,
-                    licenseType: serverResponse.licenseType,
-                    privilegeId: serverResponse.privilegeId,
-                    providerId: serverResponse.providerId,
+                    compact: responseData.compact,
+                    jurisdiction: responseData.jurisdiction,
+                    licenseType: responseData.licenseType,
+                    privilegeId: responseData.privilegeId,
+                    providerId: responseData.providerId,
                     events: [] as Array<LicenseHistoryItem>,
                 };
 
-                if (Array.isArray(serverResponse.events)) {
-                    serverResponse.events.forEach((serverHistoryItem) => {
+                if (Array.isArray(responseData.events)) {
+                    responseData.events.forEach((serverHistoryItem) => {
                         licenseHistoryData.events.push(LicenseHistoryItemSerializer.fromServer(serverHistoryItem));
                     });
                 }

@@ -398,7 +398,7 @@ export class LicenseDataApi implements DataApiInterface {
     }
 
     /**
-     * GET Authenticated Privilege History for a staff user.
+     * GET Authenticated Privilege History as a staff user.
      * @param  {string}     compact compact of privilege
      * @param  {string}     providerId providerId of privilege holder
      * @param  {string}     jurisdiction jurisdiction of privilege
@@ -434,7 +434,7 @@ export class LicenseDataApi implements DataApiInterface {
     }
 
     /**
-     * GET Authenticated Privilege History for an unauthenticated user.
+     * GET Privilege History as an unauthenticated user.
      * @param  {string}     compact compact of privilege
      * @param  {string}     providerId providerId of privilege holder
      * @param  {string}     jurisdiction jurisdiction of privilege

@@ -125,9 +125,9 @@ export class License implements InterfaceLicense {
         const adminDeactivateList = ['deactivation', 'licenseDeactivation', 'homeJurisdictionChange'];
         const isInactive = this.status === LicenseStatus.INACTIVE;
         const lastEvent: LicenseHistoryItem = this.history?.slice(-1).pop() || new LicenseHistoryItem();
-        const lastEventType = lastEvent?.updateType;
+        const lastEventType = lastEvent?.updateType || '';
 
-        return isInactive && !!lastEventType && adminDeactivateList.includes(lastEventType);
+        return isInactive && adminDeactivateList.includes(lastEventType);
     }
 
     public isCompactEligible(): boolean {

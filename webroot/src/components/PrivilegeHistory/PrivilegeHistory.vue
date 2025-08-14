@@ -14,7 +14,6 @@
                 v-for="(richEvent, idx) in preppedEvents"
                 :key="idx"
                 class="events"
-                :aria-label="$t('licensing.eventNodeLabel', { eventNameDisplay, eventDate })"
             >
                 <div class="timeline-line" />
                 <PrivilegeEventNode

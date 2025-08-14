@@ -127,11 +127,8 @@ export default {
     [MutationTypes.GET_PRIVILEGE_HISTORY_SUCCESS]: (state: any, { history }) => {
         const privilegeId = `${history.providerId}-${history.jurisdiction}-${history.licenseType}`;
         const licenseeId = history.providerId;
-
         const licensees = state.model || [];
-
         const foundLicensee = licensees.find((licensee) => licensee.id === licenseeId);
-
         const foundPrivilege = foundLicensee?.privileges?.find((privilege) => (privilege.id === privilegeId)) || null;
 
         if (foundPrivilege) {

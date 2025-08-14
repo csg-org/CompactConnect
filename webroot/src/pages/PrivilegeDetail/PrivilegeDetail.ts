@@ -29,8 +29,8 @@ export default class PrivilegeDetail extends Vue {
     //
     // Lifecycle
     //
-    mounted() {
-        this.populateData();
+    async created() {
+        await this.populateData();
     }
 
     //
@@ -123,7 +123,7 @@ export default class PrivilegeDetail extends Vue {
     }
 
     get isPrivilegeHistoryLoaded(): boolean {
-        return !!this.privilege.history?.length || false;
+        return Boolean(this.privilege.history?.length);
     }
 
     //
