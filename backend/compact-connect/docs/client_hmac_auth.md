@@ -9,7 +9,7 @@ CompactConnect implements a dual-authentication system for API access to sensiti
 ### Why Dual Authentication?
 
 The licensure data shared through CompactConnect contains highly sensitive personal information including:
-- Social Security Numbers
+- Partial Social Security Numbers
 - Personal addresses and contact information
 - Professional license details
 - Disciplinary actions
@@ -160,11 +160,11 @@ headers = sign_request(
 
 To implement HMAC authentication:
 
-1. **Generate your RSA key pair** as described above
-2. **Contact CompactConnect support** to register your client
-3. **Provide your public key** (not the private key) during registration
-4. **Receive your client ID** for use in signatures
-5. **Test your implementation** against the sandbox environment
+1. **Receive client credentials and test your client credentials grant flow**
+   [See here for more](../app_clients/it_staff_onboarding_instructions/README.md).
+2. **Generate your RSA key pair** as described above
+3. **Provide your public key** (not the private key) to CompactConnect staff during registration
+4. **Test your implementation** against the beta environment
 
 ## Troubleshooting
 
