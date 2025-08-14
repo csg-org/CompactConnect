@@ -12,13 +12,19 @@ import { dateDisplay } from '@models/_formatters/date';
 // ========================================================
 // =                       Interface                      =
 // ========================================================
+type DownloadLink = {
+    filename?: string;
+    url?: string;
+};
+
 export interface InterfaceMilitaryAffiliationCreate {
     affiliationType?: string | null;
     compact?: Compact | null;
     dateOfUpdate?: string | null;
     dateOfUpload?: string | null;
-    documentKeys?: Array<string> | null;
-    fileNames?: Array<string> | null;
+    documentKeys?: Array<string>;
+    fileNames?: Array<string>;
+    downloadLinks?: Array<DownloadLink>;
     status?: string | null;
 }
 
@@ -30,8 +36,9 @@ export class MilitaryAffiliation implements InterfaceMilitaryAffiliationCreate {
     public compact? = null;
     public dateOfUpdate? = null;
     public dateOfUpload? = null;
-    public documentKeys? = null;
-    public fileNames? = null;
+    public documentKeys?: Array<string> = [];
+    public fileNames?: Array<string> = [];
+    public downloadLinks?: Array<DownloadLink> = [];
     public status? = null;
 
     constructor(data?: InterfaceMilitaryAffiliationCreate) {
@@ -48,6 +55,16 @@ export class MilitaryAffiliation implements InterfaceMilitaryAffiliationCreate {
     public dateOfUploadDisplay(): string {
         return dateDisplay(this.dateOfUpload);
     }
+
+    // These first* helpers take advantage of the fact that only 1 document can be uploaded
+    // at a time; to simplify all of the denormalized-but-loosely-keyed array props received from the server.
+    public firstFilenameDisplay(): string {
+        return this.fileNames?.[0] || '';
+    }
+
+    public firstDownloadLink(): string {
+        return this.downloadLinks?.[0]?.url || '';
+    }
 }
 
 // ========================================================
@@ -62,8 +79,18 @@ export class MilitaryAffiliationSerializer {
             dateOfUpload: json.dateOfUpload,
             documentKeys: json.documentKeys,
             fileNames: json.fileNames,
+            downloadLinks: [],
             status: json.status
         };
+
+        if (Array.isArray(json.downloadLinks)) {
+            json.downloadLinks.forEach((downloadLink) => {
+                data.downloadLinks.push({
+                    filename: downloadLink.fileName || '',
+                    url: downloadLink.url || '',
+                });
+            });
+        }
 
         return new MilitaryAffiliation(data);
     }

@@ -1293,15 +1293,34 @@ export const licensees = {
             licenseJurisdiction: 'co',
             compact: 'octp',
             homeAddressStreet2: '',
-            militaryAffiliations: [{
-                affiliationType: 'militaryMember',
-                compact: 'octp',
-                dateOfUpdate: '2024-08-29',
-                dateOfUpload: '2024-08-29',
-                documentKeys: 'key',
-                fileNames: ['military-document.pdf'],
-                status: 'active'
-            }],
+            militaryAffiliations: [
+                {
+                    affiliationType: 'militaryMember',
+                    compact: 'octp',
+                    dateOfUpdate: '2024-08-29',
+                    dateOfUpload: '2024-08-29',
+                    documentKeys: ['key'],
+                    fileNames: ['military-document-1.png'],
+                    downloadLinks: [{
+                        fileName: 'military-document-1.png',
+                        url: '/img/email/compact-connect-logo-final.png',
+                    }],
+                    status: 'active',
+                },
+                {
+                    affiliationType: 'militaryMember',
+                    compact: 'octp',
+                    dateOfUpdate: '2024-08-30',
+                    dateOfUpload: '2024-08-30',
+                    documentKeys: ['key'],
+                    fileNames: ['military-document-2.png'],
+                    downloadLinks: [{
+                        fileName: 'military-document-2.png',
+                        url: '/img/email/compact-connect-logo-final.png',
+                    }],
+                    status: 'active',
+                },
+            ],
             npi: '1234567890',
             licenseNumber: 'A-555666777',
             homeAddressPostalCode: '98008',
@@ -2241,15 +2260,34 @@ export const licensees = {
             licenseJurisdiction: 'co',
             compact: 'octp',
             homeAddressStreet2: '',
-            militaryAffiliations: [{
-                affiliationType: 'militaryMember',
-                compact: 'octp',
-                dateOfUpdate: '2024-08-29',
-                dateOfUpload: '2024-08-29',
-                documentKeys: 'key',
-                fileNames: ['military-document.pdf'],
-                status: 'initializing'
-            }],
+            militaryAffiliations: [
+                {
+                    affiliationType: 'militaryMember',
+                    compact: 'octp',
+                    dateOfUpdate: '2024-08-29',
+                    dateOfUpload: '2024-08-29',
+                    documentKeys: ['key'],
+                    fileNames: ['military-document-1-military-document-1-military-document-1-military-document-1-military-document-1.png'],
+                    downloadLinks: [{
+                        fileName: 'military-document-1.png',
+                        url: '/img/email/compact-connect-logo-final.png',
+                    }],
+                    status: 'initializing'
+                },
+                {
+                    affiliationType: 'militaryMember',
+                    compact: 'octp',
+                    dateOfUpdate: '2024-08-30',
+                    dateOfUpload: '2024-08-30',
+                    documentKeys: ['key'],
+                    fileNames: ['military-document-2.png'],
+                    downloadLinks: [{
+                        fileName: 'military-document-2.png',
+                        url: '',
+                    }],
+                    status: 'initializing'
+                },
+            ],
             npi: '6441445289',
             licenseNumber: 'A-944447281',
             homeAddressPostalCode: '',

@@ -12,12 +12,15 @@ import {
     mixins
 } from 'vue-facing-decorator';
 import { reactive } from 'vue';
+import { AuthTypes } from '@/app.config';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import ListContainer from '@components/Lists/ListContainer/ListContainer.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import MilitaryDocumentRow from '@components/MilitaryDocumentRow/MilitaryDocumentRow.vue';
 import Modal from '@components/Modal/Modal.vue';
+import { Compact } from '@models/Compact/Compact.model';
+import { StaffUser, CompactPermission } from '@models/StaffUser/StaffUser.model';
 import { FormInput } from '@/models/FormInput/FormInput.model';
 import { Licensee } from '@/models/Licensee/Licensee.model';
 import { MilitaryAffiliation } from '@/models/MilitaryAffiliation/MilitaryAffiliation.model';
@@ -33,7 +36,6 @@ import { MilitaryAffiliation } from '@/models/MilitaryAffiliation/MilitaryAffili
     }
 })
 class MilitaryAffiliationInfoBlock extends mixins(MixinForm) {
-    // PROPS
     @Prop({ required: true }) licensee?: Licensee;
     @Prop({ default: 'aslp' }) currentCompactType?: string;
     @Prop({ default: false }) shouldShowEditButtons?: boolean;
@@ -49,8 +51,47 @@ class MilitaryAffiliationInfoBlock extends mixins(MixinForm) {
         this.initFormInputs();
     }
 
-    get statusTitleText(): string {
-        return this.$t('licensing.status').toUpperCase();
+    //
+    // Computed
+    //
+    get globalStore() {
+        return this.$store.state;
+    }
+
+    get authType(): string {
+        return this.globalStore.authType;
+    }
+
+    get userStore() {
+        return this.$store.state.user;
+    }
+
+    get currentCompact(): Compact | null {
+        return this.userStore.currentCompact;
+    }
+
+    get isLoggedInAsLicensee(): boolean {
+        return this.authType === AuthTypes.LICENSEE;
+    }
+
+    get isLoggedInAsStaff(): boolean {
+        return this.authType === AuthTypes.STAFF;
+    }
+
+    get staffUser(): StaffUser | null {
+        return (this.isLoggedInAsStaff) ? this.userStore.model : null;
+    }
+
+    get staffPermission(): CompactPermission | null {
+        const currentPermissions = this.staffUser?.permissions;
+        const compactPermission = currentPermissions?.find((currentPermission: CompactPermission) =>
+            currentPermission.compact.type === this.currentCompact?.type) || null;
+
+        return compactPermission;
+    }
+
+    get isCompactAdmin(): boolean {
+        return this.isLoggedInAsStaff && Boolean(this.staffPermission?.isAdmin);
     }
 
     get status(): string {
@@ -63,10 +104,6 @@ class MilitaryAffiliationInfoBlock extends mixins(MixinForm) {
         }
 
         return militaryStatus;
-    }
-
-    get affiliationTypeTitle(): string {
-        return this.$t('military.affiliationType').toUpperCase();
     }
 
     get isStatusInitializing(): boolean {
@@ -96,57 +133,28 @@ class MilitaryAffiliationInfoBlock extends mixins(MixinForm) {
         return militaryStatus;
     }
 
-    get previouslyUploadedTitle(): string {
-        return this.$t('military.previouslyUploadedDocuments').toUpperCase();
-    }
-
-    get militaryDocumentHeader(): any {
-        return { name: this.$t('military.fileName'), date: this.$t('military.dateUploaded') };
-    }
-
-    get endAffiliationModalTitle(): string {
-        return this.$t('military.endAffiliationModalTitle');
-    }
-
-    get endAffiliationModalContent(): string {
-        return this.$t('military.endAffiliationModalContent');
-    }
-
-    get backText(): string {
-        return this.$t('military.noGoBack');
+    get militaryDocumentHeader(): object {
+        return {
+            firstFilenameDisplay: () => this.$t('military.fileName'),
+            dateOfUploadDisplay: () => this.$t('military.dateUploaded'),
+            firstDownloadLink: () => this.$t('common.downloadFile'),
+        };
     }
 
     get yesEndText(): string {
-        return this.$matches.phone.only ? this.$t('common.yes') : this.$t('military.yesEnd');
+        return (this.$matches.phone.only) ? this.$t('common.yes') : this.$t('military.yesEnd');
     }
 
     get shouldShowEndButton(): boolean {
         return this.isStatusActive || this.isStatusInitializing;
     }
 
-    get sortOptions(): Array<any> {
-        // Sorting not API supported
-        return [];
+    get affiliations(): Array<MilitaryAffiliation> {
+        return this.licensee?.militaryAffiliations || [];
     }
 
-    get affiliations(): Array<any> {
-        let affiliations: any = [];
-
-        if (this.licensee && this.licensee?.militaryAffiliations) {
-            affiliations = (this.licensee.militaryAffiliations)
-                .map((militaryAffiliation: MilitaryAffiliation) => {
-                    const affiliationDisplay = { name: '', date: '' };
-
-                    if (militaryAffiliation.fileNames && (militaryAffiliation.fileNames as Array<string>).length) {
-                        affiliationDisplay.name = militaryAffiliation.fileNames[0] || '';
-                        affiliationDisplay.date = militaryAffiliation.dateOfUploadDisplay();
-                    }
-
-                    return affiliationDisplay;
-                });
-        }
-
-        return affiliations;
+    get sortOptions(): Array<any> {
+        return []; // Sorting not API supported
     }
 
     //
@@ -161,17 +169,15 @@ class MilitaryAffiliationInfoBlock extends mixins(MixinForm) {
         });
     }
 
-    sortingChange() {
-        // Sorting not API supported
-        return false;
+    sortingChange(): boolean {
+        return false; // Sorting not API supported
     }
 
-    paginationChange() {
-        // Pagination not API supported
-        return false;
+    paginationChange(): boolean {
+        return false; // Pagination not API supported
     }
 
-    editInfo() {
+    editInfo(): void {
         if (this.currentCompactType) {
             this.$router.push({
                 name: 'MilitaryStatusUpdate',
@@ -180,24 +186,24 @@ class MilitaryAffiliationInfoBlock extends mixins(MixinForm) {
         }
     }
 
-    async confirmEndMilitaryAffiliation() {
-        this.closeEndAffilifationModal();
+    async confirmEndMilitaryAffiliation(): Promise<void> {
+        this.closeEndAffiliationModal();
         await this.$store.dispatch('user/endMilitaryAffiliationRequest');
         await this.$store.dispatch('user/getLicenseeAccountRequest');
     }
 
-    startEndAffiliationFlow() {
+    startEndAffiliationFlow(): void {
         this.shouldShowEndAffiliationModal = true;
     }
 
-    focusOnModalCancelButton() {
+    focusOnModalCancelButton(): void {
         const buttonComponent = this.$refs.noBackButton as InstanceType<typeof InputButton>;
-        const button = buttonComponent.$refs.button as HTMLElement;
+        const button = buttonComponent?.$refs.button as HTMLElement;
 
-        button.focus();
+        button?.focus();
     }
 
-    closeEndAffilifationModal() {
+    closeEndAffiliationModal(): void {
         this.shouldShowEndAffiliationModal = false;
         this.$store.dispatch('setModalIsOpen', false);
     }

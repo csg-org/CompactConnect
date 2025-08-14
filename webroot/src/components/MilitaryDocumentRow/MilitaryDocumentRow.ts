@@ -6,9 +6,16 @@
 //
 
 import { Component, Prop, Vue } from 'vue-facing-decorator';
+import DownloadIcon from '@components/Icons/DownloadFile/DownloadFile.vue';
 
-@Component
+@Component({
+    name: 'MilitaryDocumentRow',
+    components: {
+        DownloadIcon,
+    },
+})
 export default class MilitaryDocumentRow extends Vue {
     @Prop({ required: true }) item!: any;
     @Prop({ default: false }) isHeaderRow?: boolean;
+    @Prop({ default: false }) isDownloadAvailable?: boolean;
 }
