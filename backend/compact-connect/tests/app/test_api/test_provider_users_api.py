@@ -37,6 +37,8 @@ class TestProviderUsersApi(TestApi):
     def test_synth_generates_provider_users_registration_endpoint_resource(self):
         api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
+        api_lambda_stack = self.app.sandbox_backend_stage.api_lambda_stack
+        api_lambda_stack_template = Template.from_stack(api_lambda_stack)
 
         # Ensure the resource is created with expected path
         api_stack_template.has_resource_properties(
@@ -51,7 +53,7 @@ class TestProviderUsersApi(TestApi):
         )
 
         # ensure the handler is created
-        api_stack_template.has_resource_properties(
+        api_lambda_stack_template.has_resource_properties(
             type=CfnFunction.CFN_RESOURCE_TYPE_NAME,
             props={'Handler': 'handlers.registration.register_provider'},
         )
@@ -70,10 +72,10 @@ class TestProviderUsersApi(TestApi):
                     ),
                 },
                 # ensure the lambda integration is configured with the expected handler
-                'Integration': TestApi.generate_expected_integration_object(
-                    api_stack.get_logical_id(
-                        api_stack.api.v1_api.provider_users.provider_registration_handler.node.default_child,
-                    ),
+                'Integration': TestApi.generate_expected_integration_object_for_imported_lambda(
+                    api_lambda_stack,
+                    api_lambda_stack_template,
+                    api_lambda_stack.provider_users_lambdas.provider_registration_handler,
                 ),
                 'RequestModels': {
                     'application/json': {'Ref': post_method_request_model_logical_id_capture},
@@ -114,6 +116,8 @@ class TestProviderUsersApi(TestApi):
     def test_synth_generates_get_provider_users_me_endpoint_resource(self):
         api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
+        api_lambda_stack = self.app.sandbox_backend_stage.api_lambda_stack
+        api_lambda_stack_template = Template.from_stack(api_lambda_stack)
 
         # Ensure the resource is created with expected path
         api_stack_template.has_resource_properties(
@@ -128,7 +132,7 @@ class TestProviderUsersApi(TestApi):
         )
 
         # ensure the handler is created
-        api_stack_template.has_resource_properties(
+        api_lambda_stack_template.has_resource_properties(
             type=CfnFunction.CFN_RESOURCE_TYPE_NAME,
             props={'Handler': 'handlers.provider_users.provider_users_api_handler'},
         )
@@ -150,10 +154,10 @@ class TestProviderUsersApi(TestApi):
                     'Ref': api_stack.get_logical_id(api_stack.api.provider_users_authorizer.node.default_child),
                 },
                 # ensure the lambda integration is configured with the expected handler
-                'Integration': TestApi.generate_expected_integration_object(
-                    api_stack.get_logical_id(
-                        api_stack.api.v1_api.provider_users.provider_users_me_handler.node.default_child,
-                    ),
+                'Integration': TestApi.generate_expected_integration_object_for_imported_lambda(
+                    api_lambda_stack,
+                    api_lambda_stack_template,
+                    api_lambda_stack.provider_users_lambdas.provider_users_me_handler,
                 ),
                 'MethodResponses': [
                     {
@@ -179,6 +183,8 @@ class TestProviderUsersApi(TestApi):
     def test_synth_generates_provider_users_me_military_affiliation_endpoint_resource(self):
         api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
+        api_lambda_stack = self.app.sandbox_backend_stage.api_lambda_stack
+        api_lambda_stack_template = Template.from_stack(api_lambda_stack)
 
         # Ensure the resource is created with expected path
         api_stack_template.has_resource_properties(
@@ -195,7 +201,7 @@ class TestProviderUsersApi(TestApi):
         )
 
         # ensure the handler is created
-        api_stack_template.has_resource_properties(
+        api_lambda_stack_template.has_resource_properties(
             type=CfnFunction.CFN_RESOURCE_TYPE_NAME,
             props={'Handler': 'handlers.provider_users.provider_users_api_handler'},
         )
@@ -218,10 +224,10 @@ class TestProviderUsersApi(TestApi):
                     'Ref': api_stack.get_logical_id(api_stack.api.provider_users_authorizer.node.default_child),
                 },
                 # ensure the lambda integration is configured with the expected handler
-                'Integration': TestApi.generate_expected_integration_object(
-                    api_stack.get_logical_id(
-                        api_stack.api.v1_api.provider_users.provider_users_me_handler.node.default_child,
-                    ),
+                'Integration': TestApi.generate_expected_integration_object_for_imported_lambda(
+                    api_lambda_stack,
+                    api_lambda_stack_template,
+                    api_lambda_stack.provider_users_lambdas.provider_users_me_handler,
                 ),
                 'RequestModels': {
                     'application/json': {'Ref': post_method_request_model_logical_id_capture},
@@ -275,10 +281,10 @@ class TestProviderUsersApi(TestApi):
                     'Ref': api_stack.get_logical_id(api_stack.api.provider_users_authorizer.node.default_child),
                 },
                 # ensure the lambda integration is configured with the expected handler
-                'Integration': TestApi.generate_expected_integration_object(
-                    api_stack.get_logical_id(
-                        api_stack.api.v1_api.provider_users.provider_users_me_handler.node.default_child,
-                    ),
+                'Integration': TestApi.generate_expected_integration_object_for_imported_lambda(
+                    api_lambda_stack,
+                    api_lambda_stack_template,
+                    api_lambda_stack.provider_users_lambdas.provider_users_me_handler,
                 ),
                 'RequestModels': {
                     'application/json': {'Ref': patch_method_request_model_logical_id_capture},
@@ -333,6 +339,8 @@ class TestProviderUsersApi(TestApi):
     def test_synth_generates_provider_users_me_home_jurisdiction_endpoint_resource(self):
         api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
+        api_lambda_stack = self.app.sandbox_backend_stage.api_lambda_stack
+        api_lambda_stack_template = Template.from_stack(api_lambda_stack)
 
         # Ensure the resource is created with expected path
         api_stack_template.has_resource_properties(
@@ -349,7 +357,7 @@ class TestProviderUsersApi(TestApi):
         )
 
         # ensure the handler is created
-        api_stack_template.has_resource_properties(
+        api_lambda_stack_template.has_resource_properties(
             type=CfnFunction.CFN_RESOURCE_TYPE_NAME,
             props={'Handler': 'handlers.provider_users.provider_users_api_handler'},
         )
@@ -372,10 +380,10 @@ class TestProviderUsersApi(TestApi):
                     'Ref': api_stack.get_logical_id(api_stack.api.provider_users_authorizer.node.default_child),
                 },
                 # ensure the lambda integration is configured with the expected handler
-                'Integration': TestApi.generate_expected_integration_object(
-                    api_stack.get_logical_id(
-                        api_stack.api.v1_api.provider_users.provider_users_me_handler.node.default_child,
-                    ),
+                'Integration': TestApi.generate_expected_integration_object_for_imported_lambda(
+                    api_lambda_stack,
+                    api_lambda_stack_template,
+                    api_lambda_stack.provider_users_lambdas.provider_users_me_handler,
                 ),
                 'RequestModels': {
                     'application/json': {'Ref': post_method_request_model_logical_id_capture},
@@ -415,6 +423,8 @@ class TestProviderUsersApi(TestApi):
     def test_synth_generates_provider_users_me_email_endpoint_resource(self):
         api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
+        api_lambda_stack = self.app.sandbox_backend_stage.api_lambda_stack
+        api_lambda_stack_template = Template.from_stack(api_lambda_stack)
 
         # Ensure the resource is created with expected path
         api_stack_template.has_resource_properties(
@@ -431,7 +441,7 @@ class TestProviderUsersApi(TestApi):
         )
 
         # ensure the handler is created
-        api_stack_template.has_resource_properties(
+        api_lambda_stack_template.has_resource_properties(
             type=CfnFunction.CFN_RESOURCE_TYPE_NAME,
             props={'Handler': 'handlers.provider_users.provider_users_api_handler'},
         )
@@ -454,10 +464,10 @@ class TestProviderUsersApi(TestApi):
                     'Ref': api_stack.get_logical_id(api_stack.api.provider_users_authorizer.node.default_child),
                 },
                 # ensure the lambda integration is configured with the expected handler
-                'Integration': TestApi.generate_expected_integration_object(
-                    api_stack.get_logical_id(
-                        api_stack.api.v1_api.provider_users.provider_users_me_handler.node.default_child,
-                    ),
+                'Integration': TestApi.generate_expected_integration_object_for_imported_lambda(
+                    api_lambda_stack,
+                    api_lambda_stack_template,
+                    api_lambda_stack.provider_users_lambdas.provider_users_me_handler,
                 ),
                 'RequestModels': {
                     'application/json': {'Ref': patch_method_request_model_logical_id_capture},
@@ -498,6 +508,8 @@ class TestProviderUsersApi(TestApi):
     def test_synth_generates_provider_users_me_email_verify_endpoint_resource(self):
         api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
+        api_lambda_stack = self.app.sandbox_backend_stage.api_lambda_stack
+        api_lambda_stack_template = Template.from_stack(api_lambda_stack)
 
         # Ensure the resource is created with expected path
         api_stack_template.has_resource_properties(
@@ -514,7 +526,7 @@ class TestProviderUsersApi(TestApi):
         )
 
         # ensure the handler is created
-        api_stack_template.has_resource_properties(
+        api_lambda_stack_template.has_resource_properties(
             type=CfnFunction.CFN_RESOURCE_TYPE_NAME,
             props={'Handler': 'handlers.provider_users.provider_users_api_handler'},
         )
@@ -537,10 +549,10 @@ class TestProviderUsersApi(TestApi):
                     'Ref': api_stack.get_logical_id(api_stack.api.provider_users_authorizer.node.default_child),
                 },
                 # ensure the lambda integration is configured with the expected handler
-                'Integration': TestApi.generate_expected_integration_object(
-                    api_stack.get_logical_id(
-                        api_stack.api.v1_api.provider_users.provider_users_me_handler.node.default_child,
-                    ),
+                'Integration': TestApi.generate_expected_integration_object_for_imported_lambda(
+                    api_lambda_stack,
+                    api_lambda_stack_template,
+                    api_lambda_stack.provider_users_lambdas.provider_users_me_handler,
                 ),
                 'RequestModels': {
                     'application/json': {'Ref': post_method_request_model_logical_id_capture},
