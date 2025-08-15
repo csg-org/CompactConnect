@@ -350,6 +350,28 @@ class StaffUserStatus(CCEnum):
     INACTIVE = 'inactive'
 
 
+class EncumbranceType(CCEnum):
+    """
+    Enum for the allowed types of encumbrances
+    """
+
+    FINE = 'fine'
+    REPRIMAND = 'reprimand'
+    REQUIRED_SUPERVISION = 'required supervision'
+    COMPLETION_OF_CONTINUING_EDUCATION = 'completion of continuing education'
+    PUBLIC_REPRIMAND = 'public reprimand'
+    PROBATION = 'probation'
+    INJUNCTIVE_ACTION = 'injunctive action'
+    SUSPENSION = 'suspension'
+    REVOCATION = 'revocation'
+    DENIAL = 'denial'
+    SURRENDER_OF_LICENSE = 'surrender of license'
+    MODIFICATION_OF_PREVIOUS_ACTION_EXTENSION = 'modification of previous action-extension'
+    MODIFICATION_OF_PREVIOUS_ACTION_REDUCTION = 'modification of previous action-reduction'
+    OTHER_MONITORING = 'other monitoring'
+    OTHER_ADJUDICATED_ACTION_NOT_LISTED = 'other adjudicated action not listed'
+
+
 class ClinicalPrivilegeActionCategory(CCEnum):
     """
     Enum for the category of clinical privileges actions, as defined by NPDB:
