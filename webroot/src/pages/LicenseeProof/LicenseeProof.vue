@@ -42,7 +42,7 @@
                     <span class="cell-title">{{ $t('common.name') }}</span>
                     <span>{{ userFullName }}</span>
                 </div>
-                <div class="cell max-gap">
+                <div class="cell max-gap home-state-cell">
                     <span class="cell-title">{{ $t('licensing.homeState') }}</span>
                     <span>{{ homeJurisdictionName }}</span>
                 </div>
@@ -61,10 +61,7 @@
                 <div class="cell">
                     <span class="cell-display-name">{{ license.displayName(', ') }}</span>
                 </div>
-                <div class="cell max-gap">
-                    <span class="cell-title">{{ $t('licensing.activeDate') }}</span>
-                    <span class="date-text">{{ license.issueDateDisplay() }}</span>
-                </div>
+                <div class="cell max-gap"></div>
                 <div class="cell">
                     <span class="cell-title">{{ $t('licensing.expiration') }}</span>
                     <span class="date-text">{{ license.expireDateDisplay() }}</span>
@@ -85,9 +82,9 @@
                     <span class="cell-display-name">{{ privilege.displayName(', ') }}</span>
                     <span v-if="privilege.privilegeId" class="cell-id">{{ privilege.privilegeId }}</span>
                 </div>
-                <div class="cell max-gap">
-                    <span class="cell-title">{{ $t('licensing.activeDate') }}</span>
-                    <span class="date-text">{{ privilege.issueDateDisplay() }}</span>
+                <div class="cell max-gap active-from-cell">
+                    <span class="cell-title">{{ $t('licensing.activeFrom') }}</span>
+                    <span class="date-text">{{ privilege.activeFromDateDisplay() }}</span>
                 </div>
                 <div class="cell">
                     <span class="cell-title">{{ $t('licensing.expiration') }}</span>

@@ -160,6 +160,10 @@ class PrivilegeCard extends mixins(MixinForm) {
         return this.privilege?.issueDateDisplay() || '';
     }
 
+    get activeFromContent(): string {
+        return this.privilege?.activeFromDateDisplay() || '';
+    }
+
     get isExpired(): boolean {
         return Boolean(this.privilege?.isExpired());
     }

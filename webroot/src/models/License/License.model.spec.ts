@@ -51,6 +51,7 @@ describe('License model', () => {
         expect(license.licenseeId).to.equal(null);
         expect(license.issueState).to.be.an.instanceof(State);
         expect(license.issueDate).to.equal(null);
+        expect(license.activeFromDate).to.equal(null);
         expect(license.renewalDate).to.equal(null);
         expect(license.expireDate).to.equal(null);
         expect(license.npi).to.equal(null);
@@ -68,6 +69,7 @@ describe('License model', () => {
         expect(license.issueDateDisplay()).to.equal('');
         expect(license.renewalDateDisplay()).to.equal('');
         expect(license.expireDateDisplay()).to.equal('');
+        expect(license.activeFromDateDisplay()).to.equal('');
         expect(license.isExpired()).to.equal(false);
         expect(license.isDeactivated()).to.equal(false);
         expect(license.isCompactEligible()).to.equal(false);
@@ -113,6 +115,7 @@ describe('License model', () => {
         expect(license.licenseeId).to.equal(data.licenseeId);
         expect(license.issueState).to.be.an.instanceof(State);
         expect(license.issueDate).to.equal(data.issueDate);
+        expect(license.activeFromDate).to.be.null;
         expect(license.renewalDate).to.equal(data.renewalDate);
         expect(license.expireDate).to.equal(data.expireDate);
         expect(license.mailingAddress).to.be.an.instanceof(Address);
@@ -130,6 +133,7 @@ describe('License model', () => {
         expect(license.issueDateDisplay()).to.equal('Invalid date');
         expect(license.renewalDateDisplay()).to.equal('Invalid date');
         expect(license.expireDateDisplay()).to.equal('Invalid date');
+        expect(license.activeFromDateDisplay()).to.equal('');
         expect(license.isExpired()).to.equal(false);
         expect(license.isDeactivated()).to.equal(false);
         expect(license.isCompactEligible()).to.equal(true);
@@ -175,6 +179,7 @@ describe('License model', () => {
             dateOfIssuance: moment().format(serverDateFormat),
             dateOfRenewal: moment().format(serverDateFormat),
             dateOfExpiration: moment().subtract(1, 'day').format(serverDateFormat),
+            activeSince: null,
             npi: 'npi',
             licenseNumber: 'licenseNumber',
             homeAddressStreet1: 'test-street1',
@@ -209,6 +214,7 @@ describe('License model', () => {
         expect(license.issueDate).to.equal(data.dateOfIssuance);
         expect(license.renewalDate).to.equal(data.dateOfRenewal);
         expect(license.expireDate).to.equal(data.dateOfExpiration);
+        expect(license.activeFromDate).to.equal(data.activeSince);
         expect(license.licenseType).to.equal(data.licenseType);
         expect(license.status).to.equal(data.licenseStatus);
         expect(license.statusDescription).to.equal(data.licenseStatusName);
@@ -260,6 +266,7 @@ describe('License model', () => {
             dateOfIssuance: '2022-03-19T21:51:26+00:00',
             dateOfRenewal: '2025-03-26T16:19:09+00:00',
             dateOfExpiration: '2025-02-12',
+            activeSince: '2025-05-26T16:19:09+00:00',
             compactTransactionId: '120060088901',
             adverseActions: [
                 {
@@ -564,6 +571,7 @@ describe('License model', () => {
         expect(license.issueDate).to.equal(data.dateOfIssuance);
         expect(license.renewalDate).to.equal(data.dateOfRenewal);
         expect(license.expireDate).to.equal(data.dateOfExpiration);
+        expect(license.activeFromDate).to.equal(data.activeSince);
         expect(license.licenseType).to.equal(data.licenseType);
         expect(license.privilegeId).to.equal(data.privilegeId);
         expect(license.history[0]).to.be.an.instanceof(LicenseHistoryItem);
@@ -582,6 +590,9 @@ describe('License model', () => {
         );
         expect(license.expireDateDisplay()).to.equal(
             moment(data.dateOfExpiration, serverDateFormat).format(displayDateFormat)
+        );
+        expect(license.activeFromDateDisplay()).to.equal(
+            moment(data.activeSince, serverDateFormat).format(displayDateFormat)
         );
         expect(license.isExpired()).to.equal(true);
         expect(license.isDeactivated()).to.equal(false);
@@ -610,6 +621,7 @@ describe('License model', () => {
             dateOfIssuance: '2022-03-19T21:51:26+00:00',
             dateOfRenewal: '2025-03-26T16:19:09+00:00',
             dateOfExpiration: '2025-02-12',
+            activeSince: '2025-05-26T16:19:09+00:00',
             compactTransactionId: '120060088901',
             attestations: [],
             privilegeId: 'OTA-NE-10',
