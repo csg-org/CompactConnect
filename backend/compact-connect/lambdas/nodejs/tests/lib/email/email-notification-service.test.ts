@@ -782,4 +782,92 @@ describe('EmailNotificationService', () => {
             expect(htmlContent).toContain('newuser@example.com');
         });
     });
+
+    describe('Provider Account Recovery Confirmation', () => {
+        it('should send account recovery confirmation email with all expected content', async () => {
+            const providerId = 'provider-123';
+            const recoveryToken = 'secure-recovery-token-abc123';
+            
+            await emailService.sendProviderAccountRecoveryConfirmationEmail(
+                'aslp',
+                ['user@example.com'],
+                providerId,
+                recoveryToken
+            );
+
+            // Check overall email structure
+            expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
+                Destination: {
+                    ToAddresses: ['user@example.com']
+                },
+                Message: {
+                    Body: {
+                        Html: {
+                            Charset: 'UTF-8',
+                            Data: expect.any(String)
+                        }
+                    },
+                    Subject: {
+                        Charset: 'UTF-8',
+                        Data: 'Confirm Account Recovery - Compact Connect'
+                    }
+                },
+                Source: 'Compact Connect <noreply@example.org>'
+            });
+
+            // Get the actual HTML content for detailed validation
+            const emailCall = mockSESClient.commandCalls(SendEmailCommand)[0];
+            const htmlContent = emailCall.args[0].input.Message?.Body?.Html?.Data;
+
+            expect(htmlContent).toBeDefined();
+            expect(htmlContent).toContain('A request was made to recover access to your Compact Connect user account.');
+            expect(htmlContent).toContain('If you initiated this request, please confirm by clicking the link below to continue account recovery.');
+            expect(htmlContent).toContain('Confirm Account Recovery');
+            
+            // Verify recovery URL is correctly formatted (HTML encoded in email)
+            const expectedRecoveryUrl = `https://app.test.compactconnect.org/Dashboard?bypass=recovery-practitioner&amp;compact=aslp&amp;providerId=${providerId}&amp;recoveryId=${recoveryToken}`;
+
+            expect(htmlContent).toContain(expectedRecoveryUrl);
+            
+            // Verify security warning text (HTML encoded)
+            expect(htmlContent).toContain('<em>If you did not request this, your password has likely been compromised and you should reset your password immediately</em>');
+            expect(htmlContent).toContain('https://app.test.compactconnect.org/Dashboard?bypass=login-practitioner');
+            expect(htmlContent).toContain('select &#x27;Forgot your password?&#x27; and follow the instructions');
+        });
+
+        it('should throw error when no recipients provided', async () => {
+            await expect(emailService.sendProviderAccountRecoveryConfirmationEmail(
+                'aslp',
+                [],
+                'provider-123',
+                'recovery-token'
+            )).rejects.toThrow('No recipients found for provider account recovery confirmation email');
+        });
+
+        it('should throw error when recipients is undefined', async () => {
+            await expect(emailService.sendProviderAccountRecoveryConfirmationEmail(
+                'aslp',
+                undefined,
+                'provider-123',
+                'recovery-token'
+            )).rejects.toThrow('No recipients found for provider account recovery confirmation email');
+        });
+
+        it('should include reset password URL in security warning', async () => {
+            await emailService.sendProviderAccountRecoveryConfirmationEmail(
+                'aslp',
+                ['user@example.com'],
+                'provider-123',
+                'recovery-token'
+            );
+
+            const emailCall = mockSESClient.commandCalls(SendEmailCommand)[0];
+            const htmlContent = emailCall.args[0].input.Message?.Body?.Html?.Data;
+
+            // Verify reset password URL is present
+            const expectedResetUrl = 'https://app.test.compactconnect.org/Dashboard?bypass=login-practitioner';
+
+            expect(htmlContent).toContain(expectedResetUrl);
+        });
+    });
 });
