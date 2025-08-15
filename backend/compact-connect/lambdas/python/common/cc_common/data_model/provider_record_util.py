@@ -269,7 +269,7 @@ class ProviderRecordUtility:
                 'compact': privilege['compact'],
                 'jurisdiction': privilege['jurisdiction'],
                 'licenseType': privilege['licenseType'],
-                'effectiveDate': privilege['dateOfIssuance'].date(),
+                'effectiveDate': privilege['dateOfIssuance'],
                 'createDate': privilege['dateOfIssuance'],
                 'previous': {},
                 'updatedValues': {},
@@ -292,6 +292,9 @@ class ProviderRecordUtility:
                 update['effectiveDate'], datetime.min.time(), tzinfo=config.expiration_resolution_timezone
             )
             if datetime_of_expiration_trigger <= effective_date_time:
+                effective_datetime_of_expiration = datetime.combine(
+                    date_of_expiration, datetime.max.time(), tzinfo=config.expiration_resolution_timezone
+                )
                 enriched_history.append(
                     {
                         'type': 'privilegeUpdate',
@@ -300,7 +303,7 @@ class ProviderRecordUtility:
                         'compact': privilege['compact'],
                         'jurisdiction': privilege['jurisdiction'],
                         'licenseType': privilege['licenseType'],
-                        'effectiveDate': date_of_expiration,
+                        'effectiveDate': effective_datetime_of_expiration,
                         'createDate': datetime_of_expiration_trigger.astimezone(UTC),
                         'previous': {},
                         'updatedValues': {},
@@ -315,7 +318,12 @@ class ProviderRecordUtility:
             privilege_day_after_expiration, datetime.min.time(), tzinfo=config.expiration_resolution_timezone
         )
 
+
+
         if privilege_datetime_of_expiration_trigger <= now.astimezone(config.expiration_resolution_timezone):
+            effective_datetime_of_expiration = datetime.combine(
+                privilege_date_of_expiration, datetime.max.time(), tzinfo=config.expiration_resolution_timezone
+            )
             enriched_history.append(
                 {
                     'type': 'privilegeUpdate',
@@ -324,7 +332,7 @@ class ProviderRecordUtility:
                     'compact': privilege['compact'],
                     'jurisdiction': privilege['jurisdiction'],
                     'licenseType': privilege['licenseType'],
-                    'effectiveDate': privilege_date_of_expiration,
+                    'effectiveDate': effective_datetime_of_expiration,
                     'createDate': privilege_datetime_of_expiration_trigger.astimezone(UTC),
                     'previous': {},
                     'updatedValues': {},
