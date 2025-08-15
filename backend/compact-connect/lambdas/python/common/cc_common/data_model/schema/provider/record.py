@@ -72,6 +72,10 @@ class ProviderRecordSchema(BaseRecordSchema):
     emailVerificationCode = String(required=False, allow_none=False, validate=Length(4, 4))
     emailVerificationExpiry = DateTime(required=False, allow_none=False)
 
+    # Optional fields for account recovery
+    recoveryToken = String(required=False, allow_none=False)
+    recoveryExpiry = DateTime(required=False, allow_none=False)
+
     # Generated fields
     birthMonthDay = String(required=False, allow_none=False, validate=Regexp('^[0-1]{1}[0-9]{1}-[0-3]{1}[0-9]{1}'))
     privilegeJurisdictions = Set(String, required=False, allow_none=False, load_default=set())
