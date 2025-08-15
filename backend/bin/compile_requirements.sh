@@ -18,6 +18,8 @@ pip-compile --no-emit-index-url --upgrade --no-strip-extras compact-connect/lamb
 pip-compile --no-emit-index-url --upgrade --no-strip-extras compact-connect/lambdas/python/custom-resources/requirements.in
 pip-compile --no-emit-index-url --upgrade --no-strip-extras compact-connect/lambdas/python/data-events/requirements-dev.in
 pip-compile --no-emit-index-url --upgrade --no-strip-extras compact-connect/lambdas/python/data-events/requirements.in
+pip-compile --no-emit-index-url --upgrade --no-strip-extras compact-connect/lambdas/python/disaster-recovery/requirements-dev.in
+pip-compile --no-emit-index-url --upgrade --no-strip-extras compact-connect/lambdas/python/disaster-recovery/requirements.in
 pip-compile --no-emit-index-url --upgrade --no-strip-extras compact-connect/lambdas/python/provider-data-v1/requirements-dev.in
 pip-compile --no-emit-index-url --upgrade --no-strip-extras compact-connect/lambdas/python/provider-data-v1/requirements.in
 pip-compile --no-emit-index-url --upgrade --no-strip-extras compact-connect/lambdas/python/purchases/requirements-dev.in
