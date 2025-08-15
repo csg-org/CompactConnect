@@ -1326,7 +1326,7 @@ describe('EmailNotificationServiceLambda', () => {
             specificEmails: ['user@example.com'],
             templateVariables: {
                 providerId: 'provider-123',
-                recoveryUuid: 'secure-recovery-token-abc123'
+                recoveryToken: 'secure-recovery-token-abc123'
             }
         };
 
@@ -1386,7 +1386,7 @@ describe('EmailNotificationServiceLambda', () => {
             const eventWithMissingProviderId: EmailNotificationEvent = {
                 ...SAMPLE_PROVIDER_ACCOUNT_RECOVERY_CONFIRMATION_EVENT,
                 templateVariables: {
-                    recoveryUuid: 'secure-recovery-token-abc123'
+                    recoveryToken: 'secure-recovery-token-abc123'
                 }
             };
 
@@ -1395,15 +1395,15 @@ describe('EmailNotificationServiceLambda', () => {
                 .toThrow('Missing required template variables for providerAccountRecoveryConfirmation template');
         });
 
-        it('should throw error when recoveryUuid is missing', async () => {
-            const eventWithMissingRecoveryUuid: EmailNotificationEvent = {
+        it('should throw error when recoveryToken is missing', async () => {
+            const eventWithMissingRecoveryToken: EmailNotificationEvent = {
                 ...SAMPLE_PROVIDER_ACCOUNT_RECOVERY_CONFIRMATION_EVENT,
                 templateVariables: {
                     providerId: 'provider-123'
                 }
             };
 
-            await expect(lambda.handler(eventWithMissingRecoveryUuid, {} as any))
+            await expect(lambda.handler(eventWithMissingRecoveryToken, {} as any))
                 .rejects
                 .toThrow('Missing required template variables for providerAccountRecoveryConfirmation template');
         });
