@@ -49,6 +49,11 @@ def _get_recaptcha_secret() -> str:
 
 
 def _verify_recaptcha(token: str) -> bool:
+    # Sandbox environments don't always have recaptcha configured, but our persistent environments
+    # do. This checks if we are running in a sandbox environment. Else we call the Google verification endpoint
+    if config.environment_name.lower() not in ['test', 'beta', 'prod']:
+        return True
+
     try:
         response = requests.post(
             'https://www.google.com/recaptcha/api/siteverify',
