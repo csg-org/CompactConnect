@@ -184,7 +184,7 @@ class LicenseUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
     # this tracks when the update event should be considered in effect for the history of the license record
     # note for most update types this is the same as the createDate, except encumbrances, which are effective
     # based on the value provided by the state administrator
-    effectiveDate = Date(required=True, allow_none=False)
+    effectiveDate = DateTime(required=True, allow_none=False)
     # We'll allow any fields that can show up in the previous field to be here as well, but none are required
     updatedValues = Nested(LicenseUpdateRecordPreviousSchema(partial=True), required=True, allow_none=False)
     # List of field names that were present in the previous record but removed in the update
