@@ -435,7 +435,7 @@ export class EmailNotificationService extends BaseEmailService {
         compact: string,
         specificEmails: string[] | undefined,
         providerId: string,
-        recoveryUuid: string
+        recoveryToken: string
     ): Promise<void> {
         this.logger.info('Sending provider account recovery confirmation email', { compact: compact, providerId: providerId });
 
@@ -449,11 +449,12 @@ export class EmailNotificationService extends BaseEmailService {
         const subject = 'Confirm Account Recovery - Compact Connect';
 
         const baseUrl = environmentVariableService.getUiBasePathUrl();
-        const recoveryUrl = `${baseUrl}/Dashboard?bypass=recovery-practitioner&compact=${compact}&providerId=${providerId}&recoveryId=${recoveryUuid}`;
+        const recoveryUrl = `${baseUrl}/Dashboard?bypass=recovery-practitioner&compact=${compact}&providerId=${providerId}&recoveryId=${recoveryToken}`;
 
-        const bodyText = `A request was made to reset multi-factor authentication for your Compact Connect account.\n\n` +
+        const bodyText = `A request was made to recover access to your Compact Connect user account.\n\n` +
             `If you initiated this request, please confirm by clicking the link below to continue account recovery. ` +
-            `If you did not request this, you can ignore this email.\n\n${recoveryUrl}`;
+            `\n\n${recoveryUrl}\n\n` +
+            `*If you did not request this, your password has likely been compromised and you should reset your password immediately*. To reset your password, please visit the following link:\n\n${baseUrl}/Dashboard?bypass=login-practitioner, select 'Forgot your password?' and follow the instructions.`;
 
         this.insertHeader(emailContent, 'Confirm Account Recovery');
         this.insertBody(emailContent, bodyText, 'center', true);

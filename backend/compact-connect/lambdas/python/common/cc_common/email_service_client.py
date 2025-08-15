@@ -578,8 +578,8 @@ class EmailServiceClient:
 
         :param compact: The compact name
         :param provider_email: Email address of the provider
-        :param provider_id: Provider ID
-        :param recovery_token: Recovery UUID
+        :param provider_id: The id of the provider
+        :param recovery_token: Recovery token
         :return: Response from the email notification service
         """
 
@@ -590,7 +590,7 @@ class EmailServiceClient:
             'specificEmails': [provider_email],
             'templateVariables': {
                 'providerId': str(provider_id),
-                'recoveryUuid': str(recovery_token),
+                'recoveryToken': str(recovery_token),
             },
         }
 
