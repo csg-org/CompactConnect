@@ -487,12 +487,12 @@ class ProviderUsers:
                 {
                     'id': 'AwsSolutions-APIG4',
                     'reason': 'This is a public account recovery endpoint that needs to be accessible without '
-                              'authorization',
+                    'authorization',
                 },
                 {
                     'id': 'AwsSolutions-COG4',
                     'reason': 'This is a public account recovery endpoint that needs to be accessible without Cognito '
-                              'authorization',
+                    'authorization',
                 },
             ],
         )
@@ -516,12 +516,12 @@ class ProviderUsers:
                 {
                     'id': 'AwsSolutions-APIG4',
                     'reason': 'This is a public account recovery endpoint that needs to be accessible without '
-                              'authorization',
+                    'authorization',
                 },
                 {
                     'id': 'AwsSolutions-COG4',
                     'reason': 'This is a public account recovery endpoint that needs to be accessible without Cognito '
-                              'authorization',
+                    'authorization',
                 },
             ],
         )

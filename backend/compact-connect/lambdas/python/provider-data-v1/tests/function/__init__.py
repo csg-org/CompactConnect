@@ -426,9 +426,6 @@ class TstFunction(TstLambdas):
         )
 
         self.config.cognito_client.admin_set_user_password(
-            UserPoolId=self.config.provider_user_pool_id,
-            Username=email,
-            Password=password,
-            Permanent=True
+            UserPoolId=self.config.provider_user_pool_id, Username=email, Password=password, Permanent=True
         )
         return get_sub_from_user_attributes(user_data['User']['Attributes'])

@@ -278,7 +278,7 @@ class ProviderAccountRecoveryVerifyRequestSchema(CCRequestSchema):
 
     compact = Compact(required=True, allow_none=False)
     providerId = String(required=True, allow_none=False)
-    recoveryUuid = String(required=True, allow_none=False)
+    recoveryToken = String(required=True, allow_none=False)
     recaptchaToken = String(required=True, allow_none=False)
 
 

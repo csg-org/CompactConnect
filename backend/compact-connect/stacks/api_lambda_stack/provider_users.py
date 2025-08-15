@@ -61,7 +61,7 @@ class ProviderUsersLambdas:
             description='Provider users account recovery initiate handler',
             lambda_dir='provider-data-v1',
             index=os.path.join('handlers', 'account_recovery.py'),
-            handler='initiate_recovery',
+            handler='initiate_account_recovery',
             environment=env,
             alarm_topic=self.persistent_stack.alarm_topic,
         )
@@ -95,7 +95,7 @@ class ProviderUsersLambdas:
             description='Provider users account recovery verify handler',
             lambda_dir='provider-data-v1',
             index=os.path.join('handlers', 'account_recovery.py'),
-            handler='verify_recovery',
+            handler='verify_account_recovery',
             environment=lambda_environment,
             alarm_topic=self.persistent_stack.alarm_topic,
         )
