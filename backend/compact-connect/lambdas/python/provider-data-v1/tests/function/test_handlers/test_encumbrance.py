@@ -34,7 +34,7 @@ LICENSE_ENCUMBRANCE_ID_ENDPOINT_RESOURCE = (
 
 TEST_ENCUMBRANCE_EFFECTIVE_DATE = '2023-01-15'
 
-TEST_ENCUMBRANCE_EFFECTIVE_DATETIME = '2023-01-14T00:00:00+00:00'
+TEST_ENCUMBRANCE_EFFECTIVE_DATETIME = '2023-01-15T04:00:00+00:00'
 
 
 def _generate_test_body():
@@ -153,7 +153,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
             value_overrides={
                 'updateType': 'encumbrance',
                 'updatedValues': {'encumberedStatus': 'encumbered'},
-                'effectiveDate': datetime.fromisoformat(TEST_ENCUMBRANCE_EFFECTIVE_DATE),
+                'effectiveDate': datetime.fromisoformat(TEST_ENCUMBRANCE_EFFECTIVE_DATETIME),
                 'createDate': datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP),
             }
         )
