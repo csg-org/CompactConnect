@@ -33,7 +33,6 @@ class _LicenseApi(CCApi):
         self.v1_api = V1Api(
             self.root,
             persistent_stack=persistent_stack,
-            provider_users_stack=provider_users_stack,
             api_lambda_stack=api_lambda_stack,
         )
 
