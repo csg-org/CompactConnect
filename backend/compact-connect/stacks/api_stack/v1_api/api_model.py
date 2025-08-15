@@ -1053,9 +1053,7 @@ class ApiModel:
                                     ],
                                     properties={
                                         'type': JsonSchema(type=JsonSchemaType.STRING, enum=['licenseUpdate']),
-                                        'updateType': JsonSchema(
-                                            type=JsonSchemaType.STRING, enum=['renewal', 'deactivation', 'other']
-                                        ),
+                                        'updateType': self._update_type_schema,
                                         'compact': JsonSchema(
                                             type=JsonSchemaType.STRING, enum=self.stack.node.get_context('compacts')
                                         ),
@@ -1211,9 +1209,7 @@ class ApiModel:
                                     ],
                                     properties={
                                         'type': JsonSchema(type=JsonSchemaType.STRING, enum=['privilegeUpdate']),
-                                        'updateType': JsonSchema(
-                                            type=JsonSchemaType.STRING, enum=['renewal', 'deactivation', 'other']
-                                        ),
+                                        'updateType': self._update_type_schema,
                                         'compact': JsonSchema(
                                             type=JsonSchemaType.STRING, enum=self.stack.node.get_context('compacts')
                                         ),
@@ -1363,6 +1359,26 @@ class ApiModel:
                 ),
                 **self._common_provider_properties,
             },
+        )
+
+    @property
+    def _update_type_schema(self) -> JsonSchema:
+        return JsonSchema(
+            type=JsonSchemaType.STRING,
+            enum=[
+                'deactivation',
+                'expiration',
+                'issuance',
+                'other',
+                'renewal',
+                'encumbrance',
+                'homeJurisdictionChange',
+                'registration',
+                'lifting_encumbrance',
+                # this is specific to privileges that are deactivated due to a state license deactivation,
+                'licenseDeactivation',
+                'emailChange',
+            ],
         )
 
     @property
@@ -2118,7 +2134,7 @@ class ApiModel:
                             ],
                             properties={
                                 'type': JsonSchema(type=JsonSchemaType.STRING, enum=['privilegeUpdate']),
-                                'updateType': JsonSchema(type=JsonSchemaType.STRING),
+                                'updateType': self._update_type_schema,
                                 'dateOfUpdate': JsonSchema(
                                     type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
                                 ),
@@ -2232,9 +2248,7 @@ class ApiModel:
                         ],
                         properties={
                             'type': JsonSchema(type=JsonSchemaType.STRING, enum=['privilegeUpdate']),
-                            'updateType': JsonSchema(
-                                type=JsonSchemaType.STRING, enum=['renewal', 'deactivation', 'other']
-                            ),
+                            'updateType': self._update_type_schema,
                             'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
                             'compact': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')),
                             'jurisdiction': JsonSchema(
@@ -2323,7 +2337,6 @@ class ApiModel:
                             'creationDate',
                             'adverseActionId',
                             'dateOfUpdate',
-                            'encumbranceType',
                         ],
                         properties={
                             'type': JsonSchema(type=JsonSchemaType.STRING, enum=['adverseAction']),
@@ -2348,7 +2361,6 @@ class ApiModel:
                             'dateOfUpdate': JsonSchema(
                                 type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
                             ),
-                            'encumbranceType': JsonSchema(type=JsonSchemaType.STRING),
                         },
                     ),
                 ),

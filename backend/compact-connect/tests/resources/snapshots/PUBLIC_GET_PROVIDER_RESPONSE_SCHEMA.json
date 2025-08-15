@@ -195,9 +195,17 @@
                 },
                 "updateType": {
                   "enum": [
-                    "renewal",
                     "deactivation",
-                    "other"
+                    "expiration",
+                    "issuance",
+                    "other",
+                    "renewal",
+                    "encumbrance",
+                    "homeJurisdictionChange",
+                    "registration",
+                    "lifting_encumbrance",
+                    "licenseDeactivation",
+                    "emailChange"
                   ],
                   "type": "string"
                 },
@@ -607,9 +615,6 @@
                   "format": "date",
                   "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                   "type": "string"
-                },
-                "encumbranceType": {
-                  "type": "string"
                 }
               },
               "required": [
@@ -623,8 +628,7 @@
                 "effectiveStartDate",
                 "creationDate",
                 "adverseActionId",
-                "dateOfUpdate",
-                "encumbranceType"
+                "dateOfUpdate"
               ],
               "type": "object"
             },

@@ -41,8 +41,9 @@ def _generate_test_body():
 
     return {
         'encumbranceEffectiveDate': TEST_ENCUMBRANCE_EFFECTIVE_DATE,
-        'encumbranceType': EncumbranceType.SUSPENSION,
-        'clinicalPrivilegeActionCategory': ClinicalPrivilegeActionCategory.UNSAFE_PRACTICE,
+        # These Enums are expected to be `str` type, so we'll directly access their .value
+        'encumbranceType': EncumbranceType.SUSPENSION.value,
+        'clinicalPrivilegeActionCategory': ClinicalPrivilegeActionCategory.UNSAFE_PRACTICE.value,
     }
 
 
