@@ -198,7 +198,10 @@ class TestEmailServiceClient(TstLambdas):
         test_model = self._generate_test_model(mock_lambda_client)
 
         test_model.send_provider_account_recovery_confirmation_email(
-            compact=TEST_COMPACT, provider_email='123@example.com', provider_id='123', recovery_token='456'  # noqa: S106 test mock token
+            compact=TEST_COMPACT,
+            provider_email='123@example.com',
+            provider_id='123',
+            recovery_token='456',  # noqa: S106 test mock token
         )
 
         mock_lambda_client.invoke.assert_called_once_with(

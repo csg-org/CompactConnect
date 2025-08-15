@@ -347,14 +347,14 @@ export class Lambda implements LambdaInterface {
             if (!event.specificEmails?.length) {
                 throw new Error('No recipients found for provider account recovery confirmation email');
             }
-            if (!event.templateVariables?.providerId || !event.templateVariables?.recoveryUuid) {
+            if (!event.templateVariables?.providerId || !event.templateVariables?.recoveryToken) {
                 throw new Error('Missing required template variables for providerAccountRecoveryConfirmation template');
             }
             await this.emailService.sendProviderAccountRecoveryConfirmationEmail(
                 event.compact,
                 event.specificEmails,
                 event.templateVariables.providerId,
-                event.templateVariables.recoveryUuid
+                event.templateVariables.recoveryToken
             );
             break;
         default:
