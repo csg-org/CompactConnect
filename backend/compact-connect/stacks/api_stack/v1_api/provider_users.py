@@ -471,6 +471,7 @@ class ProviderUsers:
         initiate_account_recovery_method = self.account_recovery_initiate_resource.add_method(
             'POST',
             request_validator=self.api.parameter_body_validator,
+            request_models={'application/json': self.api_model.provider_account_recovery_initiate_request_model},
             method_responses=[
                 MethodResponse(
                     status_code='200', response_models={'application/json': self.api_model.message_response_model}
@@ -500,6 +501,7 @@ class ProviderUsers:
         verify_account_recovery_method = self.account_recovery_verify_resource.add_method(
             'POST',
             request_validator=self.api.parameter_body_validator,
+            request_models={'application/json': self.api_model.provider_account_recovery_verify_request_model},
             method_responses=[
                 MethodResponse(
                     status_code='200', response_models={'application/json': self.api_model.message_response_model}
