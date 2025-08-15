@@ -70,11 +70,11 @@ class DisasterRecoveryStack(AppStack):
         ]
 
         for table in dr_enabled_tables:
-            self.dr_workflows[table.table_name] = self._create_dynamod_db_table_dr_recovery_workflow(
+            self.dr_workflows[table.table_name] = self._create_dynamodb_table_dr_recovery_workflow(
                 table=table, shared_persistent_stack_key=persistent_stack.shared_encryption_key
             )
 
-    def _create_dynamod_db_table_dr_recovery_workflow(self, table: Table, shared_persistent_stack_key: Key):
+    def _create_dynamodb_table_dr_recovery_workflow(self, table: Table, shared_persistent_stack_key: Key):
         """Create the DR workflow for a single DynamoDB table.
 
         Phase 1 scope: Only create the SyncTableData step function construct that
