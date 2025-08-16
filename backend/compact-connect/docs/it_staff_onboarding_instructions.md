@@ -150,7 +150,7 @@ Replace:
   provided in the email.
 - `<jurisdiction>` with your lower-cased two-letter state code (e.g., `ky`) - this information was provided in the email
 - The example payload shown here with your test license data
-Note: The URL provided during onboarding and is already configured for your jurisdiction and compact.
+Note: The URL was provided during onboarding and is already configured for your jurisdiction and compact.
 
 ### Step 2 Alternative: Upload License Data via CSV File
 
