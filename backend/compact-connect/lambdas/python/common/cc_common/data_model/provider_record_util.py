@@ -318,8 +318,6 @@ class ProviderRecordUtility:
             privilege_day_after_expiration, datetime.min.time(), tzinfo=config.expiration_resolution_timezone
         )
 
-
-
         if privilege_datetime_of_expiration_trigger <= now.astimezone(config.expiration_resolution_timezone):
             effective_datetime_of_expiration = datetime.combine(
                 privilege_date_of_expiration, datetime.max.time(), tzinfo=config.expiration_resolution_timezone
