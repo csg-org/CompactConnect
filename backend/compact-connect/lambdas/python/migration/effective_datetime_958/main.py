@@ -47,7 +47,7 @@ def _do_license_migration(_properties: dict) -> None:
     logger.info(f'Found {len(license_updates)} total update records to process')
 
     if not license_updates:
-        logger.info('No privilege update records found, migration complete')
+        logger.info('No license update records found, migration complete')
         return
 
     # Process records in batches of 50 (DynamoDB transaction limit is 100 items,
@@ -71,7 +71,7 @@ def _do_license_migration(_properties: dict) -> None:
     # Log final statistics
     logger.info(f'Migration completed: {success_count} records processed successfully, {error_count} errors')
     if error_count > 0:
-        raise RuntimeError(f'Privilege update migration completed with {error_count} errors')
+        raise RuntimeError(f'License update migration completed with {error_count} errors')
 
 def _do_privilege_migration(_properties: dict) -> None:
 
