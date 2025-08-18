@@ -391,18 +391,18 @@ class ProviderUsersLambdas:
         )
 
         # Create metrics for registration attempts and successes
-        # This metric uses SAMPLE_COUNT to count the number of times we added a value of 1 to the metric.
+        # This metric uses SUM to count the number of times we added a value of 1 to the metric.
         # The registration handler code only adds a value of 1 to this metric when a user is successfully
-        # registered. Failed registrations add a value of 0, which are not counted by SAMPLE_COUNT.
+        # registered. Failed registrations add a value of 0, which are not counted by SUM.
         registration_successes = Metric(
             namespace='compact-connect',
             metric_name='registration-attempt',
             dimensions_map={'service': 'common'},
-            statistic=Stats.SAMPLE_COUNT,
+            statistic=Stats.SUM,
             period=Duration.minutes(5),
         )
 
-        # This metric uses SUM to count the total number of registration attempts.
+        # This metric uses SAMPLE_COUNT to count the total number of registration attempts.
         # The registration handler code adds to this metric for every registration attempt
         # (both successful and failed).
         # This allows us to calculate failures by subtracting successes from total attempts.
@@ -410,7 +410,7 @@ class ProviderUsersLambdas:
             namespace='compact-connect',
             metric_name='registration-attempt',
             dimensions_map={'service': 'common'},
-            statistic=Stats.SUM,
+            statistic=Stats.SAMPLE_COUNT,
             period=Duration.minutes(5),
         )
 
@@ -441,18 +441,18 @@ class ProviderUsersLambdas:
         registration_failures_alarm.add_alarm_action(SnsAction(self.persistent_stack.alarm_topic))
 
         # Create metrics for daily registration monitoring
-        # This metric uses SAMPLE_COUNT to count the number of times we added a value of 1 to the metric.
+        # This metric uses SUM to count the number of times we added a value of 1 to the metric.
         # The registration handler code only adds a value of 1 to this metric when a user is successfully
-        # registered. Failed registrations add a value of 0, which are not counted by SAMPLE_COUNT.
+        # registered. Failed registrations add a value of 0, which are not counted by SUM.
         daily_registration_successes = Metric(
             namespace='compact-connect',
             metric_name='registration-attempt',
             dimensions_map={'service': 'common'},
-            statistic=Stats.SAMPLE_COUNT,
+            statistic=Stats.SUM,
             period=Duration.days(1),
         )
 
-        # This metric uses SUM to count the total number of registration attempts.
+        # This metric uses SAMPLE_COUNT to count the total number of registration attempts.
         # The registration handler code adds to this metric for every registration attempt
         # (both successful and failed).
         # This allows us to calculate failures by subtracting successes from total attempts.
@@ -460,7 +460,7 @@ class ProviderUsersLambdas:
             namespace='compact-connect',
             metric_name='registration-attempt',
             dimensions_map={'service': 'common'},
-            statistic=Stats.SUM,
+            statistic=Stats.SAMPLE_COUNT,
             period=Duration.days(1),
         )
 
