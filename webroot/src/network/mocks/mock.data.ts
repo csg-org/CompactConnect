@@ -63,7 +63,7 @@ export const staffAccount = {
                 },
                 oh: {
                     actions: {
-                        admin: false,
+                        admin: true,
                         write: true,
                         readPrivate: true,
                         readSsn: true,
@@ -167,6 +167,39 @@ export const uploadRequestData = {
     },
 };
 
+export const createStatePrivilegePurchaseOption = (config: any = {}) => {
+    const purchaseOption: any = {
+        type: 'jurisdiction',
+        postalAbbreviation: config?.stateAbbrev,
+        jurisdictionName: config?.stateName,
+        compact: 'octp',
+        privilegeFees: [
+            {
+                licenseTypeAbbreviation: 'ot',
+                amount: 200
+            },
+            {
+                licenseTypeAbbreviation: 'ota',
+                amount: 100
+            }
+        ],
+        militaryDiscount: {
+            active: Boolean(config?.hasMilitaryDiscount),
+            discountType: 'FLAT_RATE',
+            discountAmount: 10,
+        },
+        jurisprudenceRequirements: {
+            required: Boolean(config?.hasJurisprudence),
+        },
+    };
+
+    if (config.hasJurisprudenceLink) {
+        purchaseOption.jurisprudenceRequirements.linkToDocumentation = 'https://example.com';
+    }
+
+    return purchaseOption;
+};
+
 export const privilegePurchaseOptionsResponse = {
     items: [
         {
@@ -189,561 +222,167 @@ export const privilegePurchaseOptionsResponse = {
                 publicClientKey: process.env.VUE_APP_MOCK_API_PAYMENT_CLIENT_KEY,
             },
         },
-        {
-            jurisdictionName: 'kentucky',
-            postalAbbreviation: 'ky',
-            compact: 'octp',
-            privilegeFees: [
-                {
-                    licenseTypeAbbreviation: 'ot',
-                    amount: 200
-                },
-                {
-                    licenseTypeAbbreviation: 'ota',
-                    amount: 100
-                }
-            ],
-            militaryDiscount: {
-                active: true,
-                discountType: 'FLAT_RATE',
-                discountAmount: 10
-            },
-            jurisprudenceRequirements: {
-                required: true,
-                linkToDocumentation: 'https://example.com',
-            },
-            type: 'jurisdiction'
-        },
-        {
-            jurisdictionName: 'nebraska',
-            postalAbbreviation: 'ne',
-            compact: 'octp',
-            privilegeFees: [
-                {
-                    licenseTypeAbbreviation: 'ot',
-                    amount: 200
-                },
-                {
-                    licenseTypeAbbreviation: 'ota',
-                    amount: 100
-                }
-            ],
-            militaryDiscount: {
-                active: true,
-                discountType: 'FLAT_RATE',
-                discountAmount: 10
-            },
-            jurisprudenceRequirements: {
-                required: true
-            },
-            type: 'jurisdiction'
-        },
-        {
-            jurisdictionName: 'ohio',
-            postalAbbreviation: 'oh',
-            compact: 'octp',
-            privilegeFees: [
-                {
-                    licenseTypeAbbreviation: 'ot',
-                    amount: 200
-                },
-                {
-                    licenseTypeAbbreviation: 'ota',
-                    amount: 100
-                }
-            ],
-            militaryDiscount: {
-                active: true,
-                discountType: 'FLAT_RATE',
-                discountAmount: 10
-            },
-            jurisprudenceRequirements: {
-                required: true
-            },
-            type: 'jurisdiction'
-        },
-        {
-            jurisdictionName: 'massachusetts',
-            postalAbbreviation: 'ma',
-            compact: 'octp',
-            privilegeFees: [
-                {
-                    licenseTypeAbbreviation: 'ot',
-                    amount: 200
-                },
-                {
-                    licenseTypeAbbreviation: 'ota',
-                    amount: 100
-                }
-            ],
-            militaryDiscount: {
-                active: false,
-                discountType: 'FLAT_RATE',
-                discountAmount: 10
-            },
-            jurisprudenceRequirements: {
-                required: true
-            },
-            type: 'jurisdiction'
-        },
-        {
-            jurisdictionName: 'vermont',
-            postalAbbreviation: 'vt',
-            compact: 'octp',
-            privilegeFees: [
-                {
-                    licenseTypeAbbreviation: 'ot',
-                    amount: 200
-                },
-                {
-                    licenseTypeAbbreviation: 'ota',
-                    amount: 100
-                }
-            ],
-            militaryDiscount: {
-                active: false,
-                discountType: 'FLAT_RATE',
-                discountAmount: 10
-            },
-            jurisprudenceRequirements: {
-                required: true
-            },
-            type: 'jurisdiction'
-        },
-        {
-            jurisdictionName: 'virginia',
-            postalAbbreviation: 'va',
-            compact: 'octp',
-            privilegeFees: [
-                {
-                    licenseTypeAbbreviation: 'ot',
-                    amount: 200
-                },
-                {
-                    licenseTypeAbbreviation: 'ota',
-                    amount: 100
-                }
-            ],
-            militaryDiscount: {
-                active: false,
-                discountType: 'FLAT_RATE',
-                discountAmount: 10
-            },
-            jurisprudenceRequirements: {
-                required: false
-            },
-            type: 'jurisdiction'
-        },
-        {
-            jurisdictionName: 'colorado',
-            postalAbbreviation: 'co',
-            compact: 'octp',
-            privilegeFees: [
-                {
-                    licenseTypeAbbreviation: 'ot',
-                    amount: 200
-                },
-                {
-                    licenseTypeAbbreviation: 'ota',
-                    amount: 100
-                }
-            ],
-            militaryDiscount: {
-                active: false,
-                discountType: 'FLAT_RATE',
-                discountAmount: 10
-            },
-            jurisprudenceRequirements: {
-                required: true,
-                linkToDocumentation: 'https://example.com',
-            },
-            type: 'jurisdiction'
-        },
-        {
-            jurisdictionName: 'maine',
-            postalAbbreviation: 'me',
-            compact: 'octp',
-            privilegeFees: [
-                {
-                    licenseTypeAbbreviation: 'ot',
-                    amount: 250
-                },
-                {
-                    licenseTypeAbbreviation: 'ota',
-                    amount: 100
-                }
-            ],
-            militaryDiscount: {
-                active: false,
-                discountType: 'FLAT_RATE',
-                discountAmount: 10
-            },
-            jurisprudenceRequirements: {
-                required: true
-            },
-            type: 'jurisdiction'
-        },
-        {
-            jurisdictionName: 'connecticut',
-            postalAbbreviation: 'ct',
-            compact: 'octp',
-            privilegeFees: [
-                {
-                    licenseTypeAbbreviation: 'ot',
-                    amount: 200
-                },
-                {
-                    licenseTypeAbbreviation: 'ota',
-                    amount: 110
-                }
-            ],
-            militaryDiscount: {
-                active: false,
-                discountType: 'FLAT_RATE',
-                discountAmount: 10
-            },
-            jurisprudenceRequirements: {
-                required: false
-            },
-            type: 'jurisdiction'
-        },
-        {
-            jurisdictionName: 'rhode island',
-            postalAbbreviation: 'ri',
-            compact: 'octp',
-            privilegeFees: [
-                {
-                    licenseTypeAbbreviation: 'ot',
-                    amount: 200
-                },
-                {
-                    licenseTypeAbbreviation: 'ota',
-                    amount: 100
-                }
-            ],
-            militaryDiscount: {
-                active: false,
-                discountType: 'FLAT_RATE',
-                discountAmount: 10
-            },
-            jurisprudenceRequirements: {
-                required: true
-            },
-            type: 'jurisdiction'
-        },
-        {
-            jurisdictionName: 'nevada',
-            postalAbbreviation: 'nv',
-            compact: 'octp',
-            privilegeFees: [
-                {
-                    licenseTypeAbbreviation: 'ot',
-                    amount: 200
-                },
-                {
-                    licenseTypeAbbreviation: 'ota',
-                    amount: 100
-                }
-            ],
-            militaryDiscount: {
-                active: false,
-                discountType: 'FLAT_RATE',
-                discountAmount: 10
-            },
-            jurisprudenceRequirements: {
-                required: true
-            },
-            type: 'jurisdiction'
-        },
-        {
-            jurisdictionName: 'kansas',
-            postalAbbreviation: 'ks',
-            compact: 'octp',
-            privilegeFees: [
-                {
-                    licenseTypeAbbreviation: 'ot',
-                    amount: 150
-                },
-                {
-                    licenseTypeAbbreviation: 'ota',
-                    amount: 100
-                }
-            ],
-            militaryDiscount: {
-                active: false,
-                discountType: 'FLAT_RATE',
-                discountAmount: 10
-            },
-            jurisprudenceRequirements: {
-                required: false
-            },
-            type: 'jurisdiction'
-        },
-        {
-            jurisdictionName: 'alaska',
-            postalAbbreviation: 'ak',
-            compact: 'octp',
-            privilegeFees: [
-                {
-                    licenseTypeAbbreviation: 'ot',
-                    amount: 100
-                },
-                {
-                    licenseTypeAbbreviation: 'ota',
-                    amount: 100
-                }
-            ],
-            militaryDiscount: {
-                active: false,
-                discountType: 'FLAT_RATE',
-                discountAmount: 10
-            },
-            jurisprudenceRequirements: {
-                required: true,
-                linkToDocumentation: 'https://example.com',
-            },
-            type: 'jurisdiction'
-        },
-        {
-            jurisdictionName: 'arkansas',
-            postalAbbreviation: 'ar',
-            compact: 'octp',
-            privilegeFees: [
-                {
-                    licenseTypeAbbreviation: 'ot',
-                    amount: 200
-                },
-                {
-                    licenseTypeAbbreviation: 'ota',
-                    amount: 100
-                }
-            ],
-            militaryDiscount: {
-                active: false,
-                discountType: 'FLAT_RATE',
-                discountAmount: 10
-            },
-            jurisprudenceRequirements: {
-                required: true
-            },
-            type: 'jurisdiction'
-        },
-        {
-            jurisdictionName: 'alabama',
-            postalAbbreviation: 'al',
-            compact: 'octp',
-            privilegeFees: [
-                {
-                    licenseTypeAbbreviation: 'ot',
-                    amount: 200
-                },
-                {
-                    licenseTypeAbbreviation: 'ota',
-                    amount: 100
-                }
-            ],
-            militaryDiscount: {
-                active: false,
-                discountType: 'FLAT_RATE',
-                discountAmount: 10
-            },
-            jurisprudenceRequirements: {
-                required: true
-            },
-            type: 'jurisdiction'
-        },
-        {
-            jurisdictionName: 'montana',
-            postalAbbreviation: 'mt',
-            compact: 'octp',
-            privilegeFees: [
-                {
-                    licenseTypeAbbreviation: 'ot',
-                    amount: 200
-                },
-                {
-                    licenseTypeAbbreviation: 'ota',
-                    amount: 100
-                }
-            ],
-            militaryDiscount: {
-                active: false,
-                discountType: 'FLAT_RATE',
-                discountAmount: 10
-            },
-            jurisprudenceRequirements: {
-                required: false
-            },
-            type: 'jurisdiction'
-        },
-        {
-            jurisdictionName: 'maryland',
-            postalAbbreviation: 'md',
-            compact: 'octp',
-            privilegeFees: [
-                {
-                    licenseTypeAbbreviation: 'ot',
-                    amount: 200
-                },
-                {
-                    licenseTypeAbbreviation: 'ota',
-                    amount: 100
-                }
-            ],
-            militaryDiscount: {
-                active: false,
-                discountType: 'FLAT_RATE',
-                discountAmount: 10
-            },
-            jurisprudenceRequirements: {
-                required: false
-            },
-            type: 'jurisdiction'
-        },
-        {
-            jurisdictionName: 'utah',
-            postalAbbreviation: 'ut',
-            compact: 'octp',
-            privilegeFees: [
-                {
-                    licenseTypeAbbreviation: 'ot',
-                    amount: 200
-                },
-                {
-                    licenseTypeAbbreviation: 'ota',
-                    amount: 100
-                }
-            ],
-            militaryDiscount: {
-                active: false,
-                discountType: 'FLAT_RATE',
-                discountAmount: 10
-            },
-            jurisprudenceRequirements: {
-                required: false
-            },
-            type: 'jurisdiction'
-        },
-        {
-            jurisdictionName: 'new mexico',
-            postalAbbreviation: 'nm',
-            compact: 'octp',
-            privilegeFees: [
-                {
-                    licenseTypeAbbreviation: 'ot',
-                    amount: 200
-                },
-                {
-                    licenseTypeAbbreviation: 'ota',
-                    amount: 100
-                }
-            ],
-            militaryDiscount: {
-                active: false,
-                discountType: 'FLAT_RATE',
-                discountAmount: 10
-            },
-            jurisprudenceRequirements: {
-                required: false
-            },
-            type: 'jurisdiction'
-        },
-        {
-            jurisdictionName: 'oklahoma',
-            postalAbbreviation: 'ok',
-            compact: 'octp',
-            privilegeFees: [
-                {
-                    licenseTypeAbbreviation: 'ot',
-                    amount: 200
-                },
-                {
-                    licenseTypeAbbreviation: 'ota',
-                    amount: 100
-                }
-            ],
-            militaryDiscount: {
-                active: false,
-                discountType: 'FLAT_RATE',
-                discountAmount: 10
-            },
-            jurisprudenceRequirements: {
-                required: false
-            },
-            type: 'jurisdiction'
-        },
-        {
-            jurisdictionName: 'washington',
-            postalAbbreviation: 'wa',
-            compact: 'octp',
-            privilegeFees: [
-                {
-                    licenseTypeAbbreviation: 'ot',
-                    amount: 200
-                },
-                {
-                    licenseTypeAbbreviation: 'ota',
-                    amount: 100
-                }
-            ],
-            militaryDiscount: {
-                active: false,
-                discountType: 'FLAT_RATE',
-                discountAmount: 10
-            },
-            jurisprudenceRequirements: {
-                required: false
-            },
-            type: 'jurisdiction'
-        },
-        {
-            jurisdictionName: 'oregon',
-            postalAbbreviation: 'or',
-            compact: 'octp',
-            privilegeFees: [
-                {
-                    licenseTypeAbbreviation: 'ot',
-                    amount: 200
-                },
-                {
-                    licenseTypeAbbreviation: 'ota',
-                    amount: 100
-                }
-            ],
-            militaryDiscount: {
-                active: false,
-                discountType: 'FLAT_RATE',
-                discountAmount: 10
-            },
-            jurisprudenceRequirements: {
-                required: false
-            },
-            type: 'jurisdiction'
-        },
-        {
-            jurisdictionName: 'new hampshire',
-            postalAbbreviation: 'nh',
-            compact: 'octp',
-            privilegeFees: [
-                {
-                    licenseTypeAbbreviation: 'ot',
-                    amount: 200
-                },
-                {
-                    licenseTypeAbbreviation: 'ota',
-                    amount: 100
-                }
-            ],
-            militaryDiscount: {
-                active: false,
-                discountType: 'FLAT_RATE',
-                discountAmount: 10
-            },
-            jurisprudenceRequirements: {
-                required: false
-            },
-            type: 'jurisdiction'
-        },
+        createStatePrivilegePurchaseOption({
+            stateAbbrev: 'ak',
+            stateName: 'alaska',
+            hasMilitaryDiscount: false,
+            hasJurisprudence: true,
+            hasJurisprudenceLink: true,
+        }),
+        createStatePrivilegePurchaseOption({
+            stateAbbrev: 'al',
+            stateName: 'alabama',
+            hasMilitaryDiscount: false,
+            hasJurisprudence: true,
+            hasJurisprudenceLink: false,
+        }),
+        createStatePrivilegePurchaseOption({
+            stateAbbrev: 'ar',
+            stateName: 'arkansas',
+            hasMilitaryDiscount: false,
+            hasJurisprudence: true,
+            hasJurisprudenceLink: false,
+        }),
+        createStatePrivilegePurchaseOption({
+            stateAbbrev: 'co',
+            stateName: 'colorado',
+            hasMilitaryDiscount: false,
+            hasJurisprudence: true,
+            hasJurisprudenceLink: true,
+        }),
+        createStatePrivilegePurchaseOption({
+            stateAbbrev: 'ct',
+            stateName: 'connecticut',
+            hasMilitaryDiscount: false,
+            hasJurisprudence: false,
+            hasJurisprudenceLink: false,
+        }),
+        createStatePrivilegePurchaseOption({
+            stateAbbrev: 'ks',
+            stateName: 'kansas',
+            hasMilitaryDiscount: false,
+            hasJurisprudence: false,
+            hasJurisprudenceLink: false,
+        }),
+        createStatePrivilegePurchaseOption({
+            stateAbbrev: 'ky',
+            stateName: 'kentucky',
+            hasMilitaryDiscount: true,
+            hasJurisprudence: true,
+            hasJurisprudenceLink: true,
+        }),
+        createStatePrivilegePurchaseOption({
+            stateAbbrev: 'ma',
+            stateName: 'massachusetts',
+            hasMilitaryDiscount: false,
+            hasJurisprudence: true,
+            hasJurisprudenceLink: false,
+        }),
+        createStatePrivilegePurchaseOption({
+            stateAbbrev: 'md',
+            stateName: 'maryland',
+            hasMilitaryDiscount: false,
+            hasJurisprudence: false,
+            hasJurisprudenceLink: false,
+        }),
+        createStatePrivilegePurchaseOption({
+            stateAbbrev: 'me',
+            stateName: 'maine',
+            hasMilitaryDiscount: false,
+            hasJurisprudence: true,
+            hasJurisprudenceLink: false,
+        }),
+        createStatePrivilegePurchaseOption({
+            stateAbbrev: 'mt',
+            stateName: 'montana',
+            hasMilitaryDiscount: false,
+            hasJurisprudence: false,
+            hasJurisprudenceLink: false,
+        }),
+        createStatePrivilegePurchaseOption({
+            stateAbbrev: 'ne',
+            stateName: 'nebraska',
+            hasMilitaryDiscount: true,
+            hasJurisprudence: true,
+            hasJurisprudenceLink: false,
+        }),
+        createStatePrivilegePurchaseOption({
+            stateAbbrev: 'nh',
+            stateName: 'new hampshire',
+            hasMilitaryDiscount: false,
+            hasJurisprudence: false,
+            hasJurisprudenceLink: false,
+        }),
+        createStatePrivilegePurchaseOption({
+            stateAbbrev: 'nm',
+            stateName: 'new mexico',
+            hasMilitaryDiscount: false,
+            hasJurisprudence: false,
+            hasJurisprudenceLink: false,
+        }),
+        createStatePrivilegePurchaseOption({
+            stateAbbrev: 'nv',
+            stateName: 'nevada',
+            hasMilitaryDiscount: false,
+            hasJurisprudence: true,
+            hasJurisprudenceLink: false,
+        }),
+        createStatePrivilegePurchaseOption({
+            stateAbbrev: 'oh',
+            stateName: 'ohio',
+            hasMilitaryDiscount: true,
+            hasJurisprudence: true,
+            hasJurisprudenceLink: false,
+        }),
+        createStatePrivilegePurchaseOption({
+            stateAbbrev: 'ok',
+            stateName: 'oklahoma',
+            hasMilitaryDiscount: false,
+            hasJurisprudence: false,
+            hasJurisprudenceLink: false,
+        }),
+        createStatePrivilegePurchaseOption({
+            stateAbbrev: 'or',
+            stateName: 'oregon',
+            hasMilitaryDiscount: false,
+            hasJurisprudence: false,
+            hasJurisprudenceLink: false,
+        }),
+        createStatePrivilegePurchaseOption({
+            stateAbbrev: 'ri',
+            stateName: 'rhode island',
+            hasMilitaryDiscount: false,
+            hasJurisprudence: true,
+            hasJurisprudenceLink: false,
+        }),
+        createStatePrivilegePurchaseOption({
+            stateAbbrev: 'ut',
+            stateName: 'utah',
+            hasMilitaryDiscount: false,
+            hasJurisprudence: false,
+            hasJurisprudenceLink: false,
+        }),
+        createStatePrivilegePurchaseOption({
+            stateAbbrev: 'va',
+            stateName: 'virginia',
+            hasMilitaryDiscount: false,
+            hasJurisprudence: false,
+            hasJurisprudenceLink: false,
+        }),
+        createStatePrivilegePurchaseOption({
+            stateAbbrev: 'vt',
+            stateName: 'vermont',
+            hasMilitaryDiscount: false,
+            hasJurisprudence: true,
+            hasJurisprudenceLink: false,
+        }),
+        createStatePrivilegePurchaseOption({
+            stateAbbrev: 'wa',
+            stateName: 'washington',
+            hasMilitaryDiscount: false,
+            hasJurisprudence: false,
+            hasJurisprudenceLink: false,
+        }),
     ],
     pagination: {
         pageSize: 100,
