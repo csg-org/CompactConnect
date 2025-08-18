@@ -117,6 +117,10 @@ export default class LicenseeDashboard extends Vue {
         return this.licensee?.isMilitaryStatusInitializing() || false;
     }
 
+    get hasEncumbranceLiftedWithinWaitPeriod(): boolean {
+        return this.licensee?.hasEncumbranceLiftedWithinWaitPeriod() || false;
+    }
+
     //
     // Methods
     //
