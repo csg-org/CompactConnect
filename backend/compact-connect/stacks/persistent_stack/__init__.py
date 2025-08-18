@@ -424,7 +424,7 @@ class PersistentStack(AppStack):
             log_groups=[
                 update_dates_migration.migration_function.log_group,
                 self.update_license_dates_migration.migration_function.log_group,
-                update_effective_date_migration.log_group,
+                update_effective_date_migration.migration_function.log_group,
             ],
         )
 
