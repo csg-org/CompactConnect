@@ -139,10 +139,6 @@ def _process_batch(updates: list[dict]) -> None:
         try:
             # Extract the dateOfUpdate from the privilegeUpdate record
             effective_date = update_record.get('effectiveDate')
-            effective_date_time = datetime.combine(
-                date.fromisoformat(effective_date), datetime.min.time(), tzinfo=config.expiration_resolution_timezone
-            )
-            effective_date_time_string = effective_date_time.isoformat()
             if not effective_date:
                 logger.warning(
                     'update record missing effective date field',
@@ -150,6 +146,11 @@ def _process_batch(updates: list[dict]) -> None:
                     sk=update_record.get('sk'),
                 )
                 continue
+
+            effective_date_time = datetime.combine(
+                date.fromisoformat(effective_date), datetime.min.time(), tzinfo=config.expiration_resolution_timezone
+            )
+            effective_date_time_string = effective_date_time.isoformat()
 
             # Determine the provider record key
             provider_pk = update_record['pk']
