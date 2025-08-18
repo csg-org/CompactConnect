@@ -654,8 +654,9 @@
         "confirmPrivilegeDeactivateSubmit": "Yes, deactivate privilege",
         "encumber": "Encumber",
         "encumbered": "Encumbered",
-        "npdbCategoryLabel": "NPDB category",
-        "encumberStartDate": "Beginning of encumbrance",
+        "encumberAction": "Disciplinary action",
+        "npdbCategoryLabel": "Basis for action / NPDB category",
+        "encumberStartDate": "Start of encumbrance",
         "confirmLicenseEncumberTitle": "Are you sure you want to encumber this license?",
         "confirmLicenseEncumberSubtext": "The practitioner will no longer be able to use this license.",
         "confirmLicenseEncumberSubmit": "Yes, encumber license",
@@ -725,6 +726,68 @@
                 "key": "licensed professional counselor",
                 "compactKey": "coun",
                 "abbrev": "lpc"
+            }
+        ],
+        "disciplineTypes": [
+            {
+                "name": "Fine",
+                "key": "fine"
+            },
+            {
+                "name": "Reprimand",
+                "key": "reprimand"
+            },
+            {
+                "name": "Required supervision",
+                "key": "required supervision"
+            },
+            {
+                "name": "Completion of continuing education",
+                "key": "completion of continuing education"
+            },
+            {
+                "name": "Public reprimand",
+                "key": "public reprimand"
+            },
+            {
+                "name": "Probation",
+                "key": "probation"
+            },
+            {
+                "name": "Injunctive action",
+                "key": "injunctive action"
+            },
+            {
+                "name": "Suspension",
+                "key": "suspension"
+            },
+            {
+                "name": "Revocation",
+                "key": "revocation"
+            },
+            {
+                "name": "Denial",
+                "key": "denial"
+            },
+            {
+                "name": "Surrender of license",
+                "key": "surrender of license"
+            },
+            {
+                "name": "Modification of previous action-extension",
+                "key": "modification of previous action-extension"
+            },
+            {
+                "name": "Modification of previous action-reduction",
+                "key": "modification of previous action-reduction"
+            },
+            {
+                "name": "Other monitoring",
+                "key": "other monitoring"
+            },
+            {
+                "name": "Other adjudicated action not listed",
+                "key": "other adjudicated action not listed"
             }
         ],
         "npdbTypes": [

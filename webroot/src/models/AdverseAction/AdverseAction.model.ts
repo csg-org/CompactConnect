@@ -21,6 +21,7 @@ export interface InterfaceAdverseActionCreate {
     providerId?: string | null;
     state?: State;
     type?: string | null;
+    encumbranceType?: string | null;
     npdbType?: string | null;
     creationDate?: string | null;
     startDate?: string | null;
@@ -37,6 +38,7 @@ export class AdverseAction implements InterfaceAdverseActionCreate {
     public providerId? = null;
     public state? = new State();
     public type? = null;
+    public encumbranceType? = null;
     public npdbType? = null;
     public creationDate? = null;
     public startDate? = null;
@@ -65,6 +67,14 @@ export class AdverseAction implements InterfaceAdverseActionCreate {
 
     public endDateDisplay(): string {
         return dateDisplay(this.endDate);
+    }
+
+    public encumbranceTypeName(): string {
+        const encumbranceTypes = this.$tm('licensing.disciplineTypes') || [];
+        const encumbranceType = encumbranceTypes.find((translate) => translate.key === this.encumbranceType);
+        const typeName = encumbranceType?.name || '';
+
+        return typeName;
     }
 
     public npdbTypeName(): string {
@@ -108,6 +118,7 @@ export class AdverseActionSerializer {
             providerId: json.providerId,
             state: new State({ abbrev: json.jurisdiction }),
             type: json.type,
+            encumbranceType: json.encumbranceType,
             npdbType: json.clinicalPrivilegeActionCategory,
             creationDate: json.creationDate,
             startDate: json.effectiveStartDate,

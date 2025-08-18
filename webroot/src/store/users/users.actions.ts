@@ -130,6 +130,7 @@ export default {
         licenseeId,
         licenseState,
         licenseType,
+        encumbranceType,
         npdbCategory,
         startDate
     }: any) => {
@@ -139,6 +140,7 @@ export default {
             licenseeId,
             licenseState,
             licenseType,
+            encumbranceType,
             npdbCategory,
             startDate
         ).then(async (response) => {
@@ -224,6 +226,7 @@ export default {
         licenseeId,
         privilegeState,
         licenseType,
+        encumbranceType,
         npdbCategory,
         startDate
     }: any) => {
@@ -233,6 +236,7 @@ export default {
             licenseeId,
             privilegeState,
             licenseType,
+            encumbranceType,
             npdbCategory,
             startDate
         ).then(async (response) => {

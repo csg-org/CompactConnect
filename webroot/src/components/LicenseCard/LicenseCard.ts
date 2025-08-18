@@ -216,6 +216,20 @@ class LicenseCard extends mixins(MixinForm) {
         return this.license?.adverseActions || [];
     }
 
+    get encumberDisciplineOptions(): Array<{ value: string, name: string | ComputedRef<string> }> {
+        const options = this.$tm('licensing.disciplineTypes').map((disciplineType) => ({
+            value: disciplineType.key,
+            name: disciplineType.name,
+        }));
+
+        options.unshift({
+            value: '',
+            name: computed(() => this.$t('common.selectOption')),
+        });
+
+        return options;
+    }
+
     get npdbCategoryOptions(): Array<{ value: string, name: string | ComputedRef<string> }> {
         const options = this.$tm('licensing.npdbTypes').map((npdbType) => ({
             value: npdbType.key,
@@ -251,6 +265,13 @@ class LicenseCard extends mixins(MixinForm) {
 
     initFormInputsEncumberLicense(): void {
         this.formData = reactive({
+            encumberModalDisciplineAction: new FormInput({
+                id: 'discipline-action',
+                name: 'discipline-action',
+                label: computed(() => this.$t('licensing.encumberAction')),
+                validation: Joi.string().required().messages(this.joiMessages.string),
+                valueOptions: this.encumberDisciplineOptions,
+            }),
             encumberModalNpdbCategory: new FormInput({
                 id: 'npdb-category',
                 name: 'npdb-category',
@@ -349,7 +370,7 @@ class LicenseCard extends mixins(MixinForm) {
         if (this.isEncumberLicenseModalDisplayed) {
             this.initFormInputs();
             await nextTick();
-            document.getElementById(this.formData.encumberModalNpdbCategory.id)?.focus();
+            document.getElementById(this.formData.encumberModalDisciplineAction.id)?.focus();
         }
     }
 
@@ -360,7 +381,7 @@ class LicenseCard extends mixins(MixinForm) {
     }
 
     focusTrapEncumberLicenseModal(event: KeyboardEvent): void {
-        const firstTabIndex = document.getElementById('npdb-category')
+        const firstTabIndex = document.getElementById('discipline-action')
             || document.getElementById('encumber-modal-cancel-button');
         const lastTabIndex = (this.isFormValid && !this.isFormLoading && !this.isEncumberLicenseModalSuccess)
             ? document.getElementById(this.formData.encumberModalContinue.id)
@@ -398,6 +419,7 @@ class LicenseCard extends mixins(MixinForm) {
                 licenseeId,
                 licenseState: stateAbbrev,
                 licenseType: licenseTypeAbbrev.toLowerCase(),
+                encumbranceType: this.formData.encumberModalDisciplineAction.value,
                 npdbCategory: this.formData.encumberModalNpdbCategory.value,
                 startDate: this.formData.encumberModalStartDate.value,
             }).catch((err) => {
@@ -606,6 +628,7 @@ class LicenseCard extends mixins(MixinForm) {
             await nextTick();
             this.validateAll({ asTouched: true });
         } else if (this.isEncumberLicenseModalDisplayed) {
+            this.formData.encumberModalDisciplineAction.value = this.encumberDisciplineOptions[1]?.value;
             this.formData.encumberModalNpdbCategory.value = this.npdbCategoryOptions[1]?.value;
             this.formData.encumberModalStartDate.value = moment().format('YYYY-MM-DD');
             await nextTick();

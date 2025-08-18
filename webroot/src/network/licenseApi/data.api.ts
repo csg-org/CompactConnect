@@ -253,23 +253,26 @@ export class LicenseDataApi implements DataApiInterface {
 
     /**
      * POST Encumber License for a licensee.
-     * @param  {string}           compact      The compact string ID (aslp, otcp, coun).
-     * @param  {string}           licenseeId   The Licensee ID.
-     * @param  {string}           licenseState The 2-character state abbreviation for the License.
-     * @param  {string}           licenseType  The license type.
-     * @param  {string}           npdbCategory The NPDB category name.
-     * @param  {string}           startDate    The encumber start date.
-     * @return {Promise<object>}               The server response.
+     * @param  {string}           compact         The compact string ID (aslp, otcp, coun).
+     * @param  {string}           licenseeId      The Licensee ID.
+     * @param  {string}           licenseState    The 2-character state abbreviation for the License.
+     * @param  {string}           licenseType     The license type.
+     * @param  {string}           encumbranceType The discipline action type.
+     * @param  {string}           npdbCategory    The NPDB category name.
+     * @param  {string}           startDate       The encumber start date.
+     * @return {Promise<object>}                  The server response.
      */
     public async encumberLicense(
         compact: string,
         licenseeId: string,
         licenseState: string,
         licenseType: string,
+        encumbranceType: string,
         npdbCategory: string,
         startDate: string
     ) {
         const serverResponse: any = await this.api.post(`/v1/compacts/${compact}/providers/${licenseeId}/licenses/jurisdiction/${licenseState}/licenseType/${licenseType}/encumbrance`, {
+            encumbranceType,
             clinicalPrivilegeActionCategory: npdbCategory,
             encumbranceEffectiveDate: startDate,
         });
@@ -327,23 +330,26 @@ export class LicenseDataApi implements DataApiInterface {
 
     /**
      * POST Encumber Privilege for a licensee.
-     * @param  {string}           compact        The compact string ID (aslp, otcp, coun).
-     * @param  {string}           licenseeId     The Licensee ID.
-     * @param  {string}           privilegeState The 2-character state abbreviation for the Privilege.
-     * @param  {string}           licenseType    The license type.
-     * @param  {string}           npdbCategory   The NPDB category name.
-     * @param  {string}           startDate      The encumber start date.
-     * @return {Promise<object>}                 The server response.
+     * @param  {string}           compact         The compact string ID (aslp, otcp, coun).
+     * @param  {string}           licenseeId      The Licensee ID.
+     * @param  {string}           privilegeState  The 2-character state abbreviation for the Privilege.
+     * @param  {string}           licenseType     The license type.
+     * @param  {string}           encumbranceType The discipline action type.
+     * @param  {string}           npdbCategory    The NPDB category name.
+     * @param  {string}           startDate       The encumber start date.
+     * @return {Promise<object>}                  The server response.
      */
     public async encumberPrivilege(
         compact: string,
         licenseeId: string,
         privilegeState: string,
         licenseType: string,
+        encumbranceType: string,
         npdbCategory: string,
         startDate: string
     ) {
         const serverResponse: any = await this.api.post(`/v1/compacts/${compact}/providers/${licenseeId}/privileges/jurisdiction/${privilegeState}/licenseType/${licenseType}/encumbrance`, {
+            encumbranceType,
             clinicalPrivilegeActionCategory: npdbCategory,
             encumbranceEffectiveDate: startDate,
         });

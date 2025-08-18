@@ -181,6 +181,9 @@
                                 <div class="static-value">{{ privilegeTypeAbbrev }}</div>
                             </div>
                             <div class="form-row">
+                                <InputSelect :formInput="formData.encumberModalDisciplineAction" />
+                            </div>
+                            <div class="form-row">
                                 <InputSelect :formInput="formData.encumberModalNpdbCategory" />
                             </div>
                             <div class="form-row">
