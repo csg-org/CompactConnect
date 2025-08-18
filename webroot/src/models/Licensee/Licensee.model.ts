@@ -8,7 +8,7 @@
 import { deleteUndefinedProperties } from '@models/_helpers';
 import { dateDisplay, relativeFromNowDisplay } from '@models/_formatters/date';
 import { formatPhoneNumber, stripPhoneNumber } from '@models/_formatters/phone';
-import { Address, AddressSerializer } from '@models/Address/Address.model';
+import { Address } from '@models/Address/Address.model';
 import {
     License,
     LicenseType,
@@ -41,7 +41,6 @@ export interface InterfaceLicensee {
     firstName?: string | null;
     middleName?: string | null;
     lastName?: string | null;
-    homeJurisdictionLicenseAddress?: Address;
     homeJurisdiction?: State;
     dob?: string | null;
     birthMonthDay?: string | null;
@@ -70,7 +69,6 @@ export class Licensee implements InterfaceLicensee {
     public middleName? = null;
     public lastName? = null;
     public homeJurisdiction? = new State();
-    public homeJurisdictionLicenseAddress? = new Address();
     public dob? = null;
     public birthMonthDay? = null;
     public ssnLastFour? = null;
@@ -261,6 +259,38 @@ export class Licensee implements InterfaceLicensee {
         return this.bestHomeJurisdictionLicense().mailingAddress || new Address();
     }
 
+    public bestLicense(): License {
+        // First try to get the best home jurisdiction license
+        const bestHomeLicense = this.bestHomeJurisdictionLicense();
+        // If no home jurisdiction license, get the most recent active non-home state license
+        const nonHomeStateLicenses = (this.licenses?.filter((license: License) =>
+            license.issueState?.abbrev !== this.homeJurisdiction?.abbrev) || []) as License[];
+
+        let bestNonHomeLicense = new License();
+
+        if (nonHomeStateLicenses.length) {
+            // First try active licenses
+            const activeNonHomeLicenses = nonHomeStateLicenses.filter((license: License) =>
+                license.status === LicenseStatus.ACTIVE);
+
+            if (activeNonHomeLicenses.length) {
+                bestNonHomeLicense = activeNonHomeLicenses.reduce((prev: License, current: License) =>
+                    ((prev && moment(prev.issueDate).isAfter(current.issueDate)) ? prev : current));
+            } else {
+                // If no active, get most recent inactive
+                bestNonHomeLicense = nonHomeStateLicenses.reduce((prev: License, current: License) =>
+                    ((prev && moment(prev.issueDate).isAfter(current.issueDate)) ? prev : current));
+            }
+        }
+
+        // Return the best available license (non-home takes precedence if available)
+        return (bestNonHomeLicense.licenseNumber) ? bestNonHomeLicense : bestHomeLicense;
+    }
+
+    public bestLicenseMailingAddress(): Address {
+        return this.bestLicense().mailingAddress || new Address();
+    }
+
     public hasEncumberedLicenses(): boolean {
         return this.licenses?.some((license: License) => license.isEncumbered()) || false;
     }
@@ -296,18 +326,9 @@ export class LicenseeSerializer {
             middleName: json.middleName,
             lastName: json.familyName,
             // json.homeJurisdictionSelection has been deprecated and replaced with json.currentHomeJurisdiction
-            homeJurisdiction: json.currentHomeJurisdiction
+            homeJurisdiction: (json.currentHomeJurisdiction && json.currentHomeJurisdiction !== 'unknown')
                 ? new State({ abbrev: json.currentHomeJurisdiction })
                 : new State({ abbrev: json.licenseJurisdiction }),
-            // This value is updated to equal bestHomeJurisdictionLicenseMailingAddress() whenever a License record is added or updated for the user.
-            // In the edge case where the user's best home state license expires this can get out of sync with that calulated value.
-            homeJurisdictionLicenseAddress: AddressSerializer.fromServer({
-                street1: json.homeAddressStreet1,
-                street2: json.homeAddressStreet2,
-                city: json.homeAddressCity,
-                state: json.homeAddressState,
-                zip: json.homeAddressPostalCode,
-            }),
             dob: json.dateOfBirth,
             birthMonthDay: json.birthMonthDay,
             ssnLastFour: json.ssnLastFour,

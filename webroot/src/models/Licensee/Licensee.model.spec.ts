@@ -50,7 +50,6 @@ describe('Licensee model', () => {
         expect(licensee.firstName).to.equal(null);
         expect(licensee.middleName).to.equal(null);
         expect(licensee.lastName).to.equal(null);
-        expect(licensee.homeJurisdictionLicenseAddress).to.be.an.instanceof(Address);
         expect(licensee.dob).to.equal(null);
         expect(licensee.birthMonthDay).to.equal(null);
         expect(licensee.licenseType).to.equal(null);
@@ -154,10 +153,9 @@ describe('Licensee model', () => {
         expect(licensee.lastName).to.equal(data.lastName);
         expect(licensee.phoneNumber).to.equal(data.phoneNumber);
         expect(licensee.homeJurisdiction).to.be.an.instanceof(State);
-        expect(licensee.homeJurisdictionLicenseAddress).to.be.an.instanceof(Address);
         expect(licensee.dob).to.equal(data.dob);
         expect(licensee.birthMonthDay).to.equal(data.birthMonthDay);
-        expect(licensee.ssn).to.equal(data.ssn);
+        expect(licensee.ssnLastFour).to.equal(data.ssnLastFour);
         expect(licensee.licenseType).to.equal(data.licenseType);
         expect(licensee.licenseStates).to.be.an('array').with.length(1);
         expect(licensee.licenseStates[0]).to.be.an.instanceof(State);
@@ -190,22 +188,12 @@ describe('Licensee model', () => {
         expect(licensee.inactiveHomeJurisdictionLicenses()).to.matchPattern([]);
         expect(licensee.homeJurisdictionDisplay()).to.equal('Massachusetts');
         expect(licensee.bestHomeJurisdictionLicense()).to.be.an.instanceof(License);
-        expect(licensee.bestHomeJurisdictionLicense().licenseNumber).to.equal(null);
         expect(licensee.bestHomeJurisdictionLicenseMailingAddress()).to.be.an.instanceof(Address);
         expect(licensee.purchaseEligibleLicenses()).to.matchPattern([]);
         expect(licensee.canPurchasePrivileges()).to.equal(false);
         expect(licensee.hasEncumberedLicenses()).to.equal(false);
         expect(licensee.hasEncumberedPrivileges()).to.equal(false);
         expect(licensee.isEncumbered()).to.equal(false);
-    });
-    it('should create a Licensee with specific values (null address fallbacks)', () => {
-        const data = {
-            homeJurisdictionLicenseAddress: null,
-        };
-        const licensee = new Licensee(data);
-
-        // Test field values
-        expect(licensee.homeJurisdictionLicenseAddress).equal(data.homeJurisdictionLicenseAddress);
     });
     it('should create a Licensee with specific values (empty state name fallbacks)', () => {
         const licensee = new Licensee();
@@ -408,7 +396,6 @@ describe('Licensee model', () => {
         expect(licensee.dob).to.equal(data.dateOfBirth);
         expect(licensee.ssnLastFour).to.equal(data.ssnLastFour);
         expect(licensee.licenseType).to.equal(data.licenseType);
-        expect(licensee.homeJurisdictionLicenseAddress).to.be.an.instanceof(Address);
         expect(licensee.licenseStates).to.be.an('array').with.length(1);
         expect(licensee.licenseStates[0]).to.be.an.instanceof(State);
         expect(licensee.licenses).to.be.an('array').with.length(3);
@@ -648,6 +635,127 @@ describe('Licensee model', () => {
         expect(licensee.isMilitaryStatusInitializing()).to.equal(true);
         expect(licensee.activeMilitaryAffiliation()).to.equal(null);
     });
+    it('should test bestLicense() method with comprehensive fallback scenarios', () => {
+        // Test scenario 1: Has home jurisdiction license (should return that)
+        const licenseeWithHomeLicense = new Licensee({
+            homeJurisdiction: new State({ abbrev: 'co' }),
+            licenses: [
+                new License({
+                    licenseNumber: 'home-1',
+                    issueState: new State({ abbrev: 'co' }),
+                    issueDate: '2025-01-01',
+                    licenseStatus: LicenseStatus.ACTIVE,
+                }),
+                new License({
+                    licenseNumber: 'other-1',
+                    issueState: new State({ abbrev: 'ny' }),
+                    issueDate: '2025-01-02',
+                    licenseStatus: LicenseStatus.ACTIVE,
+                })
+            ]
+        });
+
+        let bestLicense = licenseeWithHomeLicense.bestLicense();
+        expect(bestLicense.licenseNumber).to.equal('home-1');
+        expect(bestLicense.issueState?.abbrev).to.equal('co');
+
+        // Test scenario 2: No home jurisdiction license, has active non-home licenses
+        const licenseeWithActiveNonHome = new Licensee({
+            homeJurisdiction: new State({ abbrev: 'co' }),
+            licenses: [
+                new License({
+                    licenseNumber: 'ny-1',
+                    issueState: new State({ abbrev: 'ny' }),
+                    issueDate: '2025-01-02',
+                    licenseStatus: LicenseStatus.ACTIVE,
+                }),
+                new License({
+                    licenseNumber: 'ma-1',
+                    issueState: new State({ abbrev: 'ma' }),
+                    issueDate: '2025-01-01',
+                    licenseStatus: LicenseStatus.ACTIVE,
+                })
+            ]
+        });
+
+        bestLicense = licenseeWithActiveNonHome.bestLicense();
+        expect(bestLicense.licenseNumber).to.equal('ny-1'); // Most recent active non-home
+        expect(bestLicense.issueState?.abbrev).to.equal('ny');
+
+        // Test scenario 3: No home jurisdiction license, no active non-home, has inactive non-home
+        const licenseeWithInactiveNonHome = new Licensee({
+            homeJurisdiction: new State({ abbrev: 'co' }),
+            licenses: [
+                new License({
+                    licenseNumber: 'ny-1',
+                    issueState: new State({ abbrev: 'ny' }),
+                    issueDate: '2025-01-01',
+                    licenseStatus: LicenseStatus.INACTIVE,
+                }),
+                new License({
+                    licenseNumber: 'ma-1',
+                    issueState: new State({ abbrev: 'ma' }),
+                    issueDate: '2025-01-02',
+                    licenseStatus: LicenseStatus.INACTIVE,
+                })
+            ]
+        });
+
+        bestLicense = licenseeWithInactiveNonHome.bestLicense();
+        expect(bestLicense.licenseNumber).to.equal('ma-1'); // Most recent inactive non-home
+        expect(bestLicense.issueState?.abbrev).to.equal('ma');
+
+        // Test scenario 4: No licenses at all
+        const licenseeWithNoLicenses = new Licensee({
+            homeJurisdiction: new State({ abbrev: 'co' }),
+            licenses: []
+        });
+
+        bestLicense = licenseeWithNoLicenses.bestLicense();
+        expect(bestLicense.licenseNumber).to.equal(null);
+    });
+    it('should test bestLicenseMailingAddress() method', () => {
+        // Test with license that has mailing address
+        const licenseeWithAddress = new Licensee({
+            licenses: [
+                new License({
+                    licenseNumber: 'test-1',
+                    issueState: new State({ abbrev: 'co' }),
+                    mailingAddress: new Address({
+                        street1: 'test-street1',
+                        street2: 'test-street2',
+                        city: 'test-city',
+                        state: new State({ abbrev: 'co' }),
+                        zip: 'test-zip'
+                    }),
+                    licenseStatus: LicenseStatus.ACTIVE,
+                })
+            ]
+        });
+
+        const bestAddress = licenseeWithAddress.bestLicenseMailingAddress();
+        expect(bestAddress).to.be.an.instanceof(Address);
+        expect(bestAddress.street1).to.equal('test-street1');
+        expect(bestAddress.street2).to.equal('test-street2');
+        expect(bestAddress.city).to.equal('test-city');
+        expect(bestAddress.state?.abbrev).to.equal('co');
+        expect(bestAddress.zip).to.equal('test-zip');
+
+        // Test with license that has no mailing address
+        const licenseeWithoutAddress = new Licensee({
+            licenses: [
+                new License({
+                    licenseNumber: 'test-2',
+                    issueState: new State({ abbrev: 'ny' }),
+                    licenseStatus: LicenseStatus.ACTIVE,
+                })
+            ]
+        });
+
+        const emptyAddress = licenseeWithoutAddress.bestLicenseMailingAddress();
+        expect(emptyAddress).to.be.an.instanceof(Address);
+        expect(emptyAddress.street1).to.equal(null);
+    });
     it('should create a Licensee with encumbered licenses and privileges', () => {
         // Create mock licenses with encumbered status
         const encumberedLicense = new License({
@@ -675,6 +783,98 @@ describe('Licensee model', () => {
         expect(licensee.hasEncumberedLicenses()).to.equal(true);
         expect(licensee.hasEncumberedPrivileges()).to.equal(true);
         expect(licensee.isEncumbered()).to.equal(true);
+    });
+    it('should handle unknown currentHomeJurisdiction by falling back to licenseJurisdiction', () => {
+        const data = {
+            providerId: 'test-id',
+            currentHomeJurisdiction: 'unknown',
+            licenseJurisdiction: 'ma',
+            licenseType: LicenseType.AUDIOLOGIST,
+            licenseStatus: LicenseeStatus.ACTIVE,
+        };
+        const licensee = LicenseeSerializer.fromServer(data);
+
+        // Test that homeJurisdiction falls back to licenseJurisdiction when currentHomeJurisdiction is 'unknown'
+        expect(licensee.homeJurisdiction).to.be.an.instanceof(State);
+        expect(licensee.homeJurisdiction?.abbrev).to.equal('ma');
+        expect(licensee.homeJurisdictionDisplay()).to.equal('Massachusetts');
+    });
+    it('should test serializer fallback when currentHomeJurisdiction is unknown', () => {
+        const data = {
+            providerId: 'test-id',
+            currentHomeJurisdiction: 'unknown',
+            licenseJurisdiction: 'ny',
+            licenseType: LicenseType.AUDIOLOGIST,
+            licenseStatus: LicenseeStatus.ACTIVE,
+        };
+        const licensee = LicenseeSerializer.fromServer(data);
+
+        // Test that homeJurisdiction falls back to licenseJurisdiction when currentHomeJurisdiction is 'unknown'
+        expect(licensee.homeJurisdiction).to.be.an.instanceof(State);
+        expect(licensee.homeJurisdiction?.abbrev).to.equal('ny');
+        expect(licensee.homeJurisdictionDisplay()).to.equal('New York');
+
+        // Test that the fallback logic works for address resolution
+        expect(licensee.bestLicense()).to.be.an.instanceof(License);
+        expect(licensee.bestLicenseMailingAddress()).to.be.an.instanceof(Address);
+    });
+    it('should handle missing currentHomeJurisdiction and licenseJurisdiction gracefully', () => {
+        const data = {
+            providerId: 'test-id',
+            licenseType: LicenseType.AUDIOLOGIST,
+            licenseStatus: LicenseeStatus.ACTIVE,
+        };
+        const licensee = LicenseeSerializer.fromServer(data);
+
+        // Test that homeJurisdiction is still a valid State instance even when both values are missing
+        expect(licensee.homeJurisdiction).to.be.an.instanceof(State);
+        expect(licensee.homeJurisdiction?.abbrev).to.equal(undefined);
+        expect(licensee.homeJurisdictionDisplay()).to.equal('Unknown');
+
+        // Test that address fallback methods still work
+        expect(licensee.bestHomeJurisdictionLicense()).to.be.an.instanceof(License);
+        expect(licensee.bestHomeJurisdictionLicenseMailingAddress()).to.be.an.instanceof(Address);
+    });
+    it('should verify serializer no longer processes top-level address fields', () => {
+        const data = {
+            providerId: 'test-id',
+            // These top-level address fields should be ignored
+            homeAddressStreet1: 'ignored-street1',
+            homeAddressStreet2: 'ignored-street2',
+            homeAddressCity: 'ignored-city',
+            homeAddressState: 'ignored-state',
+            homeAddressPostalCode: 'ignored-zip',
+            currentHomeJurisdiction: 'co',
+            licenseJurisdiction: 'co',
+            licenseType: LicenseType.AUDIOLOGIST,
+            licenseStatus: LicenseeStatus.ACTIVE,
+            licenses: [
+                {
+                    id: 'test-license',
+                    licenseNumber: '1',
+                    jurisdiction: 'co',
+                    homeAddressStreet1: 'license-street1',
+                    homeAddressStreet2: 'license-street2',
+                    homeAddressCity: 'license-city',
+                    homeAddressState: 'co',
+                    homeAddressPostalCode: 'license-zip',
+                    licenseType: LicenseType.AUDIOLOGIST,
+                    licenseStatus: LicenseStatus.ACTIVE,
+                }
+            ]
+        };
+        const licensee = LicenseeSerializer.fromServer(data);
+
+        // Verify that top-level address fields are not processed
+        // The homeJurisdictionLicenseAddress should be an empty Address object
+        expect(licensee.homeJurisdictionLicenseAddress).to.be.an.instanceof(Address);
+        expect(licensee.homeJurisdictionLicenseAddress?.street1).to.equal(null);
+
+        // Verify that addresses come from license-based methods
+        const bestAddress = licensee.bestLicenseMailingAddress();
+        expect(bestAddress).to.be.an.instanceof(Address);
+        expect(bestAddress.street1).to.equal('license-street1');
+        expect(bestAddress.city).to.equal('license-city');
     });
     it('should serialize a Licensee for transmission to server', () => {
         const licensee = LicenseeSerializer.fromServer({
