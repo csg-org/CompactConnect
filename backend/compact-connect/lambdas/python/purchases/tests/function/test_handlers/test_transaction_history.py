@@ -672,9 +672,7 @@ class TestProcessSettledTransactions(TstFunction):
         )
 
     @patch('handlers.transaction_history.PurchaseClient')
-    def test_process_settled_transactions_exits_early_when_compact_not_live(
-        self, mock_purchase_client_constructor
-    ):
+    def test_process_settled_transactions_exits_early_when_compact_not_live(self, mock_purchase_client_constructor):
         """Test that the function exits early when compact is not yet live."""
         from handlers.transaction_history import process_settled_transactions
 
