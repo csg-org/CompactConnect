@@ -94,26 +94,26 @@ class ProviderUsersLambdas:
         )
 
         # Create metrics for account recovery attempts and successes
-        # This metric uses SAMPLE_COUNT to count the number of times we added a value of 1 to the metric.
-        # The registration handler code only adds a value of 1 to this metric when a user successfully initiated the
-        # account recovery process. Failed attemps add a value of 0, which are not counted by SAMPLE_COUNT.
+        # This metric uses SUM to count the number of times we added a value of 1 to the metric.
+        # The account recovery handler code only adds a value of 1 to this metric when a user successfully initiated the
+        # account recovery process. Failed attempts add a value of 0, which are not counted by SUM.
         account_recovery_initiation_successes = Metric(
             namespace='compact-connect',
             metric_name='mfa-recovery-initiate',
             dimensions_map={'service': 'common'},
-            statistic=Stats.SAMPLE_COUNT,
+            statistic=Stats.SUM,
             period=Duration.minutes(5),
         )
 
-        # This metric uses SUM to count the total number of registration attempts.
-        # The registration handler code adds to this metric for every registration attempt
+        # This metric uses SAMPLE_COUNT to count the total number of account recovery initiation attempts.
+        # The account recovery handler code adds to this metric for every registration attempt
         # (both successful and failed).
         # This allows us to calculate failures by subtracting successes from total attempts.
         account_recovery_initiation_attempts = Metric(
             namespace='compact-connect',
             metric_name='mfa-recovery-initiate',
             dimensions_map={'service': 'common'},
-            statistic=Stats.SUM,
+            statistic=Stats.SAMPLE_COUNT,
             period=Duration.minutes(5),
         )
 
@@ -145,19 +145,19 @@ class ProviderUsersLambdas:
         account_recovery_failures_alarm.add_alarm_action(SnsAction(self.persistent_stack.alarm_topic))
 
         # Create metrics for daily account recovery monitoring
-        # This metric uses SAMPLE_COUNT to count the number of times we added a value of 1 to the metric.
+        # This metric uses SUM to count the number of times we added a value of 1 to the metric.
         # The account recovery handler code only adds a value of 1 to this metric when a user is successfully
         # initiates the account recovery email. Failed recoveries add a value of 0,
-        # which are not counted by SAMPLE_COUNT.
+        # which are not counted by SUM.
         daily_account_recovery_successes = Metric(
             namespace='compact-connect',
             metric_name='mfa-recovery-initiate',
             dimensions_map={'service': 'common'},
-            statistic=Stats.SAMPLE_COUNT,
+            statistic=Stats.SUM,
             period=Duration.days(1),
         )
 
-        # This metric uses SUM to count the total number of account recovery attempts.
+        # This metric uses SAMPLE_COUNT to count the total number of account recovery attempts.
         # The initiate account recovery handler code adds to this metric for every account recovery attempt
         # (both successful and failed).
         # This allows us to calculate failures by subtracting successes from total attempts.
@@ -165,7 +165,7 @@ class ProviderUsersLambdas:
             namespace='compact-connect',
             metric_name='mfa-recovery-initiate',
             dimensions_map={'service': 'common'},
-            statistic=Stats.SUM,
+            statistic=Stats.SAMPLE_COUNT,
             period=Duration.days(1),
         )
 
@@ -229,26 +229,27 @@ class ProviderUsersLambdas:
         )
 
         # Create metrics for account recovery attempts and successes
-        # This metric uses SAMPLE_COUNT to count the number of times we added a value of 1 to the metric.
-        # The registration handler code only adds a value of 1 to this metric when a user successfully initiated the
-        # account recovery process. Failed attemps add a value of 0, which are not counted by SAMPLE_COUNT.
+        # This metric uses SUM to count the number of times we added a value of 1 to the metric.
+        # The account recovery verification handler code only adds a value of 1 to this metric when a user successfully
+        # initiated the account recovery process. Failed attempts add a value of 0, which are not counted by
+        # SUM.
         account_recovery_verification_successes = Metric(
             namespace='compact-connect',
             metric_name='mfa-recovery-verify',
             dimensions_map={'service': 'common'},
-            statistic=Stats.SAMPLE_COUNT,
+            statistic=Stats.SUM,
             period=Duration.minutes(5),
         )
 
-        # This metric uses SUM to count the total number of registration attempts.
-        # The registration handler code adds to this metric for every registration attempt
+        # This metric uses SAMPLE_COUNT to count the total number of account recovery verification attempts.
+        # The account recovery handler code adds to this metric for every verification attempt
         # (both successful and failed).
         # This allows us to calculate failures by subtracting successes from total attempts.
         account_recovery_verification_attempts = Metric(
             namespace='compact-connect',
             metric_name='mfa-recovery-verify',
             dimensions_map={'service': 'common'},
-            statistic=Stats.SUM,
+            statistic=Stats.SAMPLE_COUNT,
             period=Duration.minutes(5),
         )
 
@@ -280,6 +281,37 @@ class ProviderUsersLambdas:
         )
         # Add the alarm to the SNS topic
         account_recovery_verification_failures_alarm.add_alarm_action(SnsAction(self.persistent_stack.alarm_topic))
+
+        # Create metric for account recovery rate limiting
+        # This metric uses SAMPLE_COUNT to count the number of times a user was rate limited using the account recovery
+        # endpoints. The account recovery handlers only report this metric if a caller was rate limited.
+        account_recovery_rate_limited = Metric(
+            namespace='compact-connect',
+            metric_name='mfa-recovery-rate-limit-throttles',
+            dimensions_map={'service': 'common'},
+            statistic=Stats.SAMPLE_COUNT,
+            period=Duration.minutes(5),
+        )
+
+        # Create an alarm for account recovery rate limiting
+        account_recovery_rate_limited_alarm = Alarm(
+            verify_account_recovery_function,
+            'AccountRecoveryRateLimitedAlarm',
+            metric=account_recovery_rate_limited,
+            # Alert if we have more than 1 failure in 5 minutes
+            threshold=1,
+            evaluation_periods=1,
+            comparison_operator=ComparisonOperator.GREATER_THAN_THRESHOLD,
+            treat_missing_data=TreatMissingData.NOT_BREACHING,
+            alarm_description=(
+                'This alarm monitors the account recovery endpoints for rate limiting. '
+                'It triggers when any user is rate limited while calling the account recovery endpoints. '
+                'This would most likely occur due to a caller attempting to recover a provider account with invalid '
+                'information.'
+            ),
+        )
+        # Add the alarm to the SNS topic
+        account_recovery_rate_limited_alarm.add_alarm_action(SnsAction(self.persistent_stack.alarm_topic))
 
         return verify_account_recovery_function
 
