@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 
 from boto3.dynamodb.conditions import Attr
 from cc_common.config import config, logger
@@ -140,8 +140,9 @@ def _process_batch(updates: list[dict]) -> None:
             # Extract the dateOfUpdate from the privilegeUpdate record
             effective_date = update_record.get('effectiveDate')
             effective_date_time = datetime.combine(
-                effective_date, datetime.min.time(), tzinfo=config.expiration_resolution_timezone
+                date.fromisoformat(effective_date), datetime.min.time(), tzinfo=config.expiration_resolution_timezone
             )
+            effective_date_time_string = effective_date_time.isoformat()
             if not effective_date:
                 logger.warning(
                     'update record missing effective date field',
@@ -165,7 +166,7 @@ def _process_batch(updates: list[dict]) -> None:
                         },
                         'UpdateExpression': 'SET effectiveDate = :effectiveDate',
                         'ExpressionAttributeValues': {
-                            ':effectiveDate': {'S': effective_date_time},
+                            ':effectiveDate': {'S': effective_date_time_string},
                         },
                     }
                 }
