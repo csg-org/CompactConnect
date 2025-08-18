@@ -197,12 +197,12 @@ export class License implements InterfaceLicense {
 
     public isLatestLiftedEncumbranceWithinWaitPeriod(): boolean {
         const encumbrances = this.adverseActions || [];
-        const inActiveEncumbrancesWithEndDate: Array<AdverseAction> = encumbrances.filter((encumbrace: AdverseAction) =>
+        const inactiveEncumbrancesWithEndDate: Array<AdverseAction> = encumbrances.filter((encumbrace: AdverseAction) =>
             !encumbrace.isActive() && encumbrace.endDate);
         let isWithinWaitPeriod = false;
 
-        if (inActiveEncumbrancesWithEndDate.length) {
-            const latestEncumbrance = inActiveEncumbrancesWithEndDate.reduce(
+        if (inactiveEncumbrancesWithEndDate.length) {
+            const latestEncumbrance = inactiveEncumbrancesWithEndDate.reduce(
                 (prev: AdverseAction, curr: AdverseAction): AdverseAction => (
                     moment(prev.endDate, serverDateFormat).isAfter(moment(curr.endDate, serverDateFormat)) ? prev : curr
                 )
