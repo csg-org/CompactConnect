@@ -142,6 +142,23 @@ class PageMainNav extends Vue {
         return hasWritePermissions;
     }
 
+    get isTouchDevice(): boolean {
+        return this.$matches.hover === 'none';
+    }
+
+    get isIphoneSafari(): boolean {
+        const ua = navigator.userAgent;
+        const isIos = /iP(hone|od)/.test(ua);
+        const isWebkit = /WebKit/.test(ua);
+        const isSafari = /Safari/.test(ua) && !/CriOS|FxiOS|OPiOS|EdgiOS/.test(ua); // Exclude Chrome, Firefox, Opera, Edge on iOS
+
+        return isIos && isWebkit && isSafari;
+    }
+
+    get isMenuTouchToggle(): boolean {
+        return this.$matches.phone.only || this.isTouchDevice;
+    }
+
     get mainLinks(): Array<NavLink> {
         return reactive([
             {

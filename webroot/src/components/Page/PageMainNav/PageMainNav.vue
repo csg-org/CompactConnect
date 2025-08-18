@@ -10,13 +10,13 @@
         v-if="mainLinks.length"
         class="main-nav-container"
         :class="{ expanded: isNavExpanded }"
-        @mouseenter="!$matches.phone.only && navExpand($event)"
-        @focusin="!$matches.phone.only && navExpand()"
-        @mouseleave="!$matches.phone.only && navCollapse($event)"
-        @focusout="!$matches.phone.only && navCollapse()"
+        @mouseenter="!isMenuTouchToggle && navExpand($event)"
+        @focusin="!isMenuTouchToggle && navExpand()"
+        @mouseleave="!isMenuTouchToggle && navCollapse($event)"
+        @focusout="!isMenuTouchToggle && navCollapse()"
         v-click-outside="clickOutside"
     >
-        <div v-if="$matches.tablet.min" class="logo-container">
+        <div v-if="$matches.tablet.min && !isMenuTouchToggle" class="logo-container">
             <img
                 src="@assets/logos/compact-connect-logo-white.svg"
                 :alt="$t('common.appName')"
@@ -72,7 +72,13 @@
             />
         </div>
         <div v-if="isLoggedIn" class="separator"></div>
-        <ul class="nav my-nav">
+        <ul
+            class="nav my-nav"
+            :class="{
+                'touch-device': isTouchDevice,
+                'iphone-safari': isIphoneSafari,
+            }"
+        >
             <li v-for="link in myLinks" :key="link.label" class="page-nav my-links">
                 <!-- Internal links that should only have active style if the route path matches exactly -->
                 <router-link v-if="!link.isExternal && link.isExactActive"
