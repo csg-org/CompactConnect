@@ -415,6 +415,10 @@ def privilege_encumbrance_lifting_notification_listener(message: dict):
         target_privilege = provider_records.get_specific_privilege_record(
             jurisdiction=jurisdiction, license_abbreviation=license_type_abbreviation
         )
+        if target_privilege is None:
+            logger.error('Privilege record not found for lifting event')
+            raise CCInternalException
+
         if (
             target_privilege.encumberedStatus is not None
             and target_privilege.encumberedStatus != PrivilegeEncumberedStatusEnum.UNENCUMBERED
