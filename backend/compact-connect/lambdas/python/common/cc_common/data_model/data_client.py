@@ -2717,7 +2717,6 @@ class DataClient:
         :param str provider_id: The provider ID.
         :param str jurisdiction: The jurisdiction of the license.
         :param str license_type_abbreviation: The license type abbreviation
-        :param str effective_date: effective lift date of the encumbrance on the license and therefore privilege
         :return: Tuple containing (list of privileges that were unencumbered, latest effective lift date)
         """
         # Get all provider records
@@ -2740,7 +2739,7 @@ class DataClient:
                 'License is still encumbered. Not lifting privilege encumbrances. '
                 'Privileges will remain LICENSE_ENCUMBERED until all license encumbrances are lifted.'
             )
-            return []
+            return [], None
 
         logger.info('License is unencumbered. Proceeding to lift privilege encumbrances.')
 
