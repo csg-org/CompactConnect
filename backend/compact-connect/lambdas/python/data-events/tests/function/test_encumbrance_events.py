@@ -2585,3 +2585,42 @@ class TestEncumbranceEvents(TstFunction):
 
         self._when_testing_privilege_lift_handler_with_encumbered_privilege(
             PrivilegeEncumberedStatusEnum.LICENSE_ENCUMBERED, mock_provider_email, mock_state_email)
+
+    @patch(
+        'cc_common.email_service_client.EmailServiceClient.send_license_encumbrance_lifting_state_notification_email'
+    )
+    @patch(
+        'cc_common.email_service_client.EmailServiceClient.send_license_encumbrance_lifting_provider_notification_email'
+    )
+    def test_license_encumbrance_lifting_notification_listener_skips_notifications_when_license_still_encumbered(
+        self, mock_provider_email, mock_state_email
+    ):
+        """Test that license encumbrance lifting notifications are NOT sent when license is still encumbered."""
+        from handlers.encumbrance_events import license_encumbrance_lifting_notification_listener
+
+        # Set up test data with registered provider
+        self.test_data_generator.put_default_provider_record_in_provider_table(
+            value_overrides={'compactConnectRegisteredEmailAddress': 'provider@example.com'}
+        )
+
+        # Create a license that is still ENCUMBERED (has another adverse action)
+        self.test_data_generator.put_default_license_record_in_provider_table(
+            value_overrides={
+                'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                'encumberedStatus': 'encumbered',  # Still encumbered due to another adverse action
+            }
+        )
+
+        # Generate license encumbrance lifting event
+        message = self._generate_license_encumbrance_lifting_message()
+        event = self._create_sqs_event(message)
+
+        # Execute the handler
+        result = license_encumbrance_lifting_notification_listener(event, self.mock_context)
+
+        # Should succeed with no batch failures (handler completes successfully)
+        self.assertEqual({'batchItemFailures': []}, result)
+
+        # Verify NO notifications were sent because license is still encumbered
+        mock_provider_email.assert_not_called()
+        mock_state_email.assert_not_called()

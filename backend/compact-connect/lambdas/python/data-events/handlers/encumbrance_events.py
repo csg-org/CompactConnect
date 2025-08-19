@@ -2,7 +2,7 @@ from uuid import UUID
 
 from cc_common.config import config, logger
 from cc_common.data_model.provider_record_util import ProviderData, ProviderUserRecords
-from cc_common.data_model.schema.common import PrivilegeEncumberedStatusEnum
+from cc_common.data_model.schema.common import PrivilegeEncumberedStatusEnum, LicenseEncumberedStatusEnum
 from cc_common.data_model.schema.data_event.api import (
     EncumbranceEventDetailSchema,
 )
@@ -480,13 +480,13 @@ def license_encumbrance_notification_listener(message: dict):
     effective_date = detail['effectiveDate']
     event_time = detail['eventTime']
 
-    with logger.append_context_keys(
+    with (logger.append_context_keys(
         compact=compact,
         provider_id=provider_id,
         jurisdiction=jurisdiction,
         license_type_abbreviation=license_type_abbreviation,
         event_time=event_time,
-    ):
+    )):
         logger.info('Processing license encumbrance notification event')
 
         # Get license type name from abbreviation (lookup once at the top)
@@ -569,6 +569,15 @@ def license_encumbrance_lifting_notification_listener(message: dict):
 
         # Get provider records to gather notification targets and provider information
         provider_records, provider_record = _get_provider_records(compact, provider_id)
+
+        target_license = provider_records.get_specific_license_record(jurisdiction=jurisdiction,
+                                                                      license_abbreviation=license_type_abbreviation)
+        if (target_license.encumberedStatus is not None
+            and target_license.encumberedStatus != LicenseEncumberedStatusEnum.UNENCUMBERED):
+            logger.info('License record is still encumbered, likely due to another adverse '
+                        'action. Not sending encumbrance lift notifications',
+                        license_encumbered_status=target_license.encumberedStatus)
+            return
 
         # Provider Notification
         _send_provider_notification(
