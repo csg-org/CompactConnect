@@ -9,6 +9,7 @@ from cc_common.data_model.schema.data_event.api import (
 from cc_common.email_service_client import EncumbranceNotificationTemplateVariables, ProviderNotificationMethod
 from cc_common.event_batch_writer import EventBatchWriter
 from cc_common.event_bus_client import EventBusClient
+from cc_common.exceptions import CCInternalException
 from cc_common.license_util import LicenseUtility
 from cc_common.utils import sqs_handler
 
@@ -273,7 +274,6 @@ def license_encumbrance_lifted_listener(message: dict):
             provider_id=provider_id,
             jurisdiction=jurisdiction,
             license_type_abbreviation=license_type_abbreviation,
-            effective_date=effective_date,
         )
 
         # Publish privilege encumbrance lifting events for each privilege that was unencumbered
@@ -392,7 +392,6 @@ def privilege_encumbrance_lifting_notification_listener(message: dict):
     provider_id = detail['providerId']
     jurisdiction = detail['jurisdiction']
     license_type_abbreviation = detail['licenseTypeAbbreviation']
-    effective_date = detail['effectiveDate']
     event_time = detail['eventTime']
 
     with (logger.append_context_keys(
@@ -420,6 +419,30 @@ def privilege_encumbrance_lifting_notification_listener(message: dict):
                         privilege_encumbered_status=target_privilege.encumberedStatus)
             return
 
+        # get latest effective lift date for all adverse actions related to privilege/license
+        # and determine the actual effective date when privilege was effectively unencumbered
+        latest_license_lift_date = provider_records.get_latest_effective_lift_date_for_license_adverse_actions(
+            license_jurisdiction=target_privilege.licenseJurisdiction,
+            license_type_abbreviation=target_privilege.licenseTypeAbbreviation
+        )
+
+        latest_privilege_lift_date = provider_records.get_latest_effective_lift_date_for_privilege_adverse_actions(
+            privilege_jurisdiction=target_privilege.jurisdiction,
+            license_type_abbreviation=target_privilege.licenseTypeAbbreviation
+        )
+
+        if latest_license_lift_date is None and latest_privilege_lift_date is None:
+            message = ('No latest effective lift date found for this privilege record. Records with an unencumbered '
+                       'status should have a latest effective lift date')
+            logger.error(message)
+            raise CCInternalException(message)
+        if latest_license_lift_date is None:
+            latest_effective_lift_date = latest_privilege_lift_date
+        elif latest_privilege_lift_date is None:
+            latest_effective_lift_date = latest_license_lift_date
+        else:
+            latest_effective_lift_date = max(latest_license_lift_date, latest_privilege_lift_date)
+
         # Provider Notification
         _send_provider_notification(
             config.email_service_client.send_privilege_encumbrance_lifting_provider_notification_email,
@@ -428,7 +451,7 @@ def privilege_encumbrance_lifting_notification_listener(message: dict):
             compact=compact,
             encumbered_jurisdiction=jurisdiction,
             license_type=license_type_name,
-            effective_date=effective_date,
+            effective_date=latest_effective_lift_date,
         )
 
         # State Notifications
@@ -442,7 +465,7 @@ def privilege_encumbrance_lifting_notification_listener(message: dict):
             compact=compact,
             encumbered_jurisdiction=jurisdiction,
             license_type=license_type_name,
-            effective_date=effective_date,
+            effective_date=latest_effective_lift_date,
         )
 
         # Send notifications to all other states with provider licenses or privileges
@@ -456,7 +479,7 @@ def privilege_encumbrance_lifting_notification_listener(message: dict):
             compact=compact,
             encumbered_jurisdiction=jurisdiction,
             license_type=license_type_name,
-            effective_date=effective_date,
+            effective_date=latest_effective_lift_date,
         )
 
         logger.info('Successfully processed privilege encumbrance lifting event')
