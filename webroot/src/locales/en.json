@@ -22,6 +22,7 @@
         "selectFiles": "Select files",
         "replaceFile": "Replace file",
         "replaceFiles": "Replace files",
+        "downloadFile": "Download",
         "change": "Change",
         "add": "Add",
         "remove": "Remove",
@@ -846,6 +847,7 @@
         "purchaseUnavailableNoEligibleLicenses": "You do not have any licenses which are eligible for compact participation. If you believe one of your licenses should be eligible, please contact the state board who issued that license.",
         "purchaseUnavailableEncumbrance": "You have an encumbrance which prevents you from buying privileges. If you believe you should not have an encumbrance, please contact the state board who recorded the encumbrance.",
         "purchaseUnavailablePendingMilitaryStatus": "You started the process of providing documentation to confirm your military status but did not finish. You can complete that process",
+        "purchaseUnavailableEncumbranceLiftedWithinWaitPeriod": "It has been fewer than two years since your most recent encumbrance was lifted. You will be able to purchase privileges after two years have passed from the end of your most recent encumbrance.",
         "militaryStatusLinkAriaLabel": "View military status page"
     },
     "military": {
@@ -854,7 +856,9 @@
         "viewMilitaryStatus": "View military status",
         "militaryDiscountText": "Military Discount",
         "affiliationType": "Affiliation Type",
-        "previouslyUploadedDocuments": "Previously Uploaded Documents",
+        "uploadedDocuments": "Military Affiliation Documents",
+        "previousDocuments": "Previously Uploaded Documents",
+        "downloadUnavailable": "Unavailable",
         "endMilitaryAffiliation": "End military affiliation",
         "editInfo": "Edit info",
         "noUploadedDocuments": "No uploaded documents",
