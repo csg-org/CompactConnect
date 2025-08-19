@@ -431,6 +431,9 @@ export const licensees = {
     lastKey: 'abc',
     providers: [
         {
+            // ================================================================
+            //                         LAYNE CORNELL
+            // ================================================================
             providerId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
             givenName: 'Layne',
             middleName: '',
@@ -731,6 +734,9 @@ export const licensees = {
             ],
         },
         {
+            // ================================================================
+            //                         JANET DOE
+            // ================================================================
             providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
             givenName: 'Janet',
             middleName: '',
@@ -899,20 +905,37 @@ export const licensees = {
                     compactEligibility: 'ineligible',
                     adverseActions: [
                         {
+                            adverseActionId: '12345-MNO',
                             providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
                             compact: 'octp',
                             type: 'adverseAction',
+                            encumbranceType: 'fine',
+                            clinicalPrivilegeActionCategory: 'Non-compliance With Requirements',
+                            actionAgainst: 'privilege',
                             jurisdiction: 'nv',
                             licenseTypeAbbreviation: 'ota',
                             licenseType: 'occupational therapy assistant',
-                            actionAgainst: 'privilege',
+                            creationDate: moment().subtract(1, 'year').format(serverDatetimeFormat),
+                            effectiveStartDate: moment().subtract(1, 'year').format(serverDateFormat),
+                            effectiveLiftDate: moment().subtract(1, 'month').format(serverDateFormat),
+                            submittingUser: '1',
+                            liftingUser: '1',
+                        },
+                        {
+                            adverseActionId: '12345-JKL',
+                            providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
+                            compact: 'octp',
+                            type: 'adverseAction',
                             encumbranceType: 'fine',
                             clinicalPrivilegeActionCategory: 'Non-compliance With Requirements',
-                            effectiveStartDate: moment().subtract(1, 'month').format(serverDateFormat),
-                            submittingUser: '1',
+                            actionAgainst: 'privilege',
+                            jurisdiction: 'nv',
+                            licenseTypeAbbreviation: 'ota',
+                            licenseType: 'occupational therapy assistant',
                             creationDate: moment().subtract(1, 'week').format(serverDatetimeFormat),
-                            adverseActionId: '12345-JKL',
+                            effectiveStartDate: moment().subtract(1, 'month').format(serverDateFormat),
                             effectiveLiftDate: null,
+                            submittingUser: '1',
                             liftingUser: null,
                         },
                     ],
@@ -1254,6 +1277,9 @@ export const licensees = {
             ],
         },
         {
+            // ================================================================
+            //                         TYLER DURDEN
+            // ================================================================
             providerId: '2',
             givenName: 'Tyler',
             middleName: '',
@@ -1329,6 +1355,9 @@ export const licensees = {
             ],
         },
         {
+            // ================================================================
+            //                         MARLA SINGER
+            // ================================================================
             providerId: '3',
             givenName: 'Marla',
             middleName: '',
@@ -1405,6 +1434,9 @@ export const licensees = {
             ],
         },
         {
+            // ================================================================
+            //                         JANE DOE
+            // ================================================================
             providerId: '4',
             givenName: 'Jane',
             middleName: '',

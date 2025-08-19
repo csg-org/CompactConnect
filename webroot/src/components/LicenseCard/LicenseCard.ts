@@ -311,6 +311,7 @@ class LicenseCard extends mixins(MixinForm) {
                 id: `adverse-action-data-${adverseActionId}`,
                 name: `adverse-action-data-${adverseActionId}`,
                 label: adverseAction.npdbTypeName(),
+                isDisabled: Boolean(adverseAction.endDate),
             });
 
             this.formData[`adverse-action-data-${adverseActionId}`] = adverseActionInput;
@@ -637,11 +638,13 @@ class LicenseCard extends mixins(MixinForm) {
             this.selectedEncumbrances.forEach((selected) => {
                 this.clickUnencumberItem(selected);
             });
-            await Promise.all(this.adverseActions.map(async (adverseAction) => {
-                this.clickUnencumberItem(adverseAction);
-                await nextTick();
-                this.formData[`adverse-action-end-date-${adverseAction.id}`].value = moment().format('YYYY-MM-DD');
-            }));
+            await Promise.all(this.adverseActions
+                .filter((adverseAction) => !adverseAction.hasEndDate())
+                .map(async (adverseAction) => {
+                    this.clickUnencumberItem(adverseAction);
+                    await nextTick();
+                    this.formData[`adverse-action-end-date-${adverseAction.id}`].value = moment().format('YYYY-MM-DD');
+                }));
             await nextTick();
             this.validateAll({ asTouched: true });
         }

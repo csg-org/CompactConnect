@@ -55,6 +55,7 @@ describe('AdverseAction model', () => {
         expect(adverseAction.creationDateDisplay()).to.equal('');
         expect(adverseAction.startDateDisplay()).to.equal('');
         expect(adverseAction.endDateDisplay()).to.equal('');
+        expect(adverseAction.hasEndDate()).to.equal(false);
         expect(adverseAction.encumbranceTypeName()).to.equal('');
         expect(adverseAction.npdbTypeName()).to.equal('');
         expect(adverseAction.isActive()).to.equal(false);
@@ -90,6 +91,7 @@ describe('AdverseAction model', () => {
         expect(adverseAction.creationDateDisplay()).to.equal('Invalid date');
         expect(adverseAction.startDateDisplay()).to.equal('Invalid date');
         expect(adverseAction.endDateDisplay()).to.equal('Invalid date');
+        expect(adverseAction.hasEndDate()).to.equal(true);
         expect(adverseAction.encumbranceTypeName()).to.equal('');
         expect(adverseAction.npdbTypeName()).to.equal('');
         expect(adverseAction.isActive()).to.equal(false);
@@ -173,6 +175,7 @@ describe('AdverseAction model', () => {
         expect(adverseAction.endDateDisplay()).to.equal(
             moment(data.effectiveLiftDate, serverDateFormat).format(displayDateFormat)
         );
+        expect(adverseAction.hasEndDate()).to.equal(true);
         expect(adverseAction.encumbranceTypeName()).to.equal('Fine');
         expect(adverseAction.npdbTypeName()).to.equal('Non-compliance With Requirements');
         expect(adverseAction.isActive()).to.equal(true);

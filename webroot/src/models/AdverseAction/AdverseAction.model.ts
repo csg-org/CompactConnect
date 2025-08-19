@@ -69,6 +69,10 @@ export class AdverseAction implements InterfaceAdverseActionCreate {
         return dateDisplay(this.endDate);
     }
 
+    public hasEndDate(): boolean {
+        return Boolean(this.endDate);
+    }
+
     public encumbranceTypeName(): string {
         const encumbranceTypes = this.$tm('licensing.disciplineTypes') || [];
         const encumbranceType = encumbranceTypes.find((translate) => translate.key === this.encumbranceType);

@@ -267,16 +267,28 @@
                             >
                                 <div
                                     class="unencumber-select"
-                                    :class="{ 'selected': isEncumbranceSelected(adverseAction) }"
-                                    @click="clickUnencumberItem(adverseAction, $event)"
-                                    @keyup.space="clickUnencumberItem(adverseAction, $event)"
+                                    :class="{
+                                        'selected': isEncumbranceSelected(adverseAction),
+                                        'inactive': adverseAction.hasEndDate(),
+                                    }"
+                                    @click="!adverseAction.hasEndDate()
+                                        && clickUnencumberItem(adverseAction, $event)"
+                                    @keyup.space="!adverseAction.hasEndDate()
+                                        && clickUnencumberItem(adverseAction, $event)"
                                 >
                                     <InputCheckbox
+                                        v-if="!adverseAction.hasEndDate()"
                                         :formInput="formData[`adverse-action-data-${adverseAction.id}`]"
                                         class="unencumber-checkbox-input"
                                     />
-                                    <div class="encumbrance-start-date">
-                                        {{ adverseAction.startDateDisplay() }}
+                                    <div v-else class="inactive-category">
+                                        {{ formData[`adverse-action-data-${adverseAction.id}`].label }}
+                                    </div>
+                                    <div class="encumbrance-dates">
+                                        <span>{{ adverseAction.startDateDisplay() }}</span>
+                                        <span v-if="adverseAction.endDateDisplay()">
+                                            - {{ adverseAction.endDateDisplay() }}
+                                        </span>
                                     </div>
                                 </div>
                                 <InputDate
