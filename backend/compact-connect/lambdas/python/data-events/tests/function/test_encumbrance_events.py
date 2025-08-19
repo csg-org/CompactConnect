@@ -2078,6 +2078,14 @@ class TestEncumbranceEvents(TstFunction):
             }
         )
 
+        self.test_data_generator.put_default_adverse_action_record_in_provider_table(value_overrides={
+            'actionAgainst': 'license',
+            'effectiveLiftDate': date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+            'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+            'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
+            'licenseType': DEFAULT_LICENSE_TYPE,
+        })
+
         message = self._generate_license_encumbrance_lifting_message()
         event = self._create_sqs_event(message)
 
@@ -2150,6 +2158,14 @@ class TestEncumbranceEvents(TstFunction):
                 'jurisdictionUploadedLicenseStatus': 'active',
             }
         )
+
+        self.test_data_generator.put_default_adverse_action_record_in_provider_table(value_overrides={
+            'actionAgainst': 'license',
+            'effectiveLiftDate': date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+            'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+            'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
+            'licenseType': DEFAULT_LICENSE_TYPE,
+        })
 
         message = self._generate_license_encumbrance_lifting_message()
         event = self._create_sqs_event(message)
@@ -2228,6 +2244,14 @@ class TestEncumbranceEvents(TstFunction):
                 'administratorSetStatus': 'active',
             }
         )
+
+        self.test_data_generator.put_default_adverse_action_record_in_provider_table(value_overrides={
+            'actionAgainst': 'license',
+            'effectiveLiftDate': date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+            'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+            'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
+            'licenseType': DEFAULT_LICENSE_TYPE,
+        })
 
         # The encumbrance lifting occurs in DEFAULT_LICENSE_JURISDICTION ('oh')
         message = self._generate_license_encumbrance_lifting_message()
@@ -2326,6 +2350,14 @@ class TestEncumbranceEvents(TstFunction):
                 'administratorSetStatus': 'active',
             }
         )
+
+        self.test_data_generator.put_default_adverse_action_record_in_provider_table(value_overrides={
+            'actionAgainst': 'license',
+            'effectiveLiftDate': date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+            'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+            'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
+            'licenseType': DEFAULT_LICENSE_TYPE,
+        })
 
         # Test license encumbrance notification
         message = self._generate_license_encumbrance_message()

@@ -552,7 +552,6 @@ def license_encumbrance_lifting_notification_listener(message: dict):
     provider_id = detail['providerId']
     jurisdiction = detail['jurisdiction']
     license_type_abbreviation = detail['licenseTypeAbbreviation']
-    effective_date = detail['effectiveDate']
     event_time = detail['eventTime']
 
     with logger.append_context_keys(
@@ -579,6 +578,12 @@ def license_encumbrance_lifting_notification_listener(message: dict):
                         license_encumbered_status=target_license.encumberedStatus)
             return
 
+        # license is unencumbered, get latest effective lift date for all adverse actions
+        latest_effective_lift_date = provider_records.get_latest_effective_lift_date_for_license_adverse_actions(
+            license_jurisdiction=target_license.jurisdiction,
+            license_type_abbreviation=target_license.licenseTypeAbbreviation
+        )
+
         # Provider Notification
         _send_provider_notification(
             config.email_service_client.send_license_encumbrance_lifting_provider_notification_email,
@@ -587,7 +592,7 @@ def license_encumbrance_lifting_notification_listener(message: dict):
             compact=compact,
             encumbered_jurisdiction=jurisdiction,
             license_type=license_type_name,
-            effective_date=effective_date,
+            effective_date=latest_effective_lift_date,
         )
 
         # State Notifications
@@ -601,7 +606,7 @@ def license_encumbrance_lifting_notification_listener(message: dict):
             compact=compact,
             encumbered_jurisdiction=jurisdiction,
             license_type=license_type_name,
-            effective_date=effective_date,
+            effective_date=latest_effective_lift_date,
         )
 
         # Send notifications to all other states with provider licenses or privileges
@@ -615,7 +620,7 @@ def license_encumbrance_lifting_notification_listener(message: dict):
             compact=compact,
             encumbered_jurisdiction=jurisdiction,
             license_type=license_type_name,
-            effective_date=effective_date,
+            effective_date=latest_effective_lift_date,
         )
 
         logger.info('Successfully processed license encumbrance lifting notification event')
