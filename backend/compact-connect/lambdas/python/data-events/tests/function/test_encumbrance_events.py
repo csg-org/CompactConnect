@@ -1437,7 +1437,9 @@ class TestEncumbranceEvents(TstFunction):
         )
 
         # Add the privilege where encumbrance is being lifted (in DEFAULT_PRIVILEGE_JURISDICTION = 'ne')
-        self.test_data_generator.put_default_privilege_record_in_provider_table()
+        self.test_data_generator.put_default_privilege_record_in_provider_table(value_overrides={
+            'encumberedStatus': 'unencumbered'
+        })
 
         # Create active licenses in multiple jurisdictions (excluding the lifting jurisdiction 'ne')
         self.test_data_generator.put_default_license_record_in_provider_table(
@@ -1458,6 +1460,7 @@ class TestEncumbranceEvents(TstFunction):
             value_overrides={
                 'jurisdiction': 'tx',
                 'administratorSetStatus': 'active',
+                'encumberedStatus': 'unencumbered'
             }
         )
 
@@ -2397,3 +2400,188 @@ class TestEncumbranceEvents(TstFunction):
                 provider_id=UUID(DEFAULT_PROVIDER_ID),
             ),
         )
+
+    @patch('cc_common.event_bus_client.EventBusClient._publish_event')
+    def test_license_encumbrance_lifted_listener_uses_latest_effective_lift_date_for_privilege_lifting(
+        self, mock_publish_event
+    ):
+        """Test that privilege lifting uses the latest effective lift date when license has multiple encumbrances."""
+        from cc_common.data_model.schema.common import PrivilegeEncumberedStatusEnum
+        from handlers.encumbrance_events import license_encumbrance_lifted_listener
+
+        # Set up test data
+        self.test_data_generator.put_default_provider_record_in_provider_table()
+
+        # Create a license that will be fully unencumbered after all adverse actions are lifted
+        self.test_data_generator.put_default_license_record_in_provider_table(
+            value_overrides={
+                'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                'licenseType': DEFAULT_LICENSE_TYPE,
+                'encumberedStatus': 'unencumbered',  # License is now fully unencumbered
+            }
+        )
+
+        # Create multiple adverse actions for the license with different effective lift dates
+        # Encumbrance A: lifted with effective date 2024-03-15 (later date)
+        self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+            value_overrides={
+                'adverseActionId': '98765432-9876-9876-9876-987654321123',
+                'actionAgainst': 'license',
+                'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                'licenseType': DEFAULT_LICENSE_TYPE,
+                'effectiveLiftDate': date(2024, 3, 15),  # Later effective lift date
+            }
+        )
+
+        # Encumbrance B: lifted with effective date 2024-03-01 (earlier date)
+        self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+            value_overrides={
+                'adverseActionId': '98765432-9876-9876-9876-987654321456',
+                'actionAgainst': 'license',
+                'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                'licenseType': DEFAULT_LICENSE_TYPE,
+                'effectiveLiftDate': date(2024, 3, 1),  # Earlier effective lift date
+            }
+        )
+
+        # Create a privilege that should be unencumbered due to license lifting
+        self.test_data_generator.put_default_privilege_record_in_provider_table(
+            value_overrides={
+                'licenseJurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
+                'encumberedStatus': 'licenseEncumbered',  # Should be unencumbered
+                'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
+            }
+        )
+
+        # Simulate the license encumbrance lifting event (this would be triggered when the last 
+        # license encumbrance is lifted, making the license fully unencumbered)
+        message = self._generate_license_encumbrance_lifting_message({
+            'effectiveDate': '2024-03-01',  # This is the date when the most recent encumbrance was lifted
+        })
+        event = self._create_sqs_event(message)
+
+        # Execute the handler
+        license_encumbrance_lifted_listener(event, self.mock_context)
+
+        # Verify the privilege was unencumbered
+        provider_records = self.config.data_client.get_provider_user_records(
+            compact=DEFAULT_COMPACT,
+            provider_id=DEFAULT_PROVIDER_ID,
+        )
+
+        privileges = provider_records.get_privilege_records()
+        updated_privilege = next(
+            p for p in privileges if p.jurisdiction == DEFAULT_PRIVILEGE_JURISDICTION
+        )
+
+        self.assertEqual(PrivilegeEncumberedStatusEnum.UNENCUMBERED, updated_privilege.encumberedStatus)
+
+        # Verify privilege update record was created with the LATEST effective lift date (2024-03-15)
+        # not the date from the event (2024-03-01)
+        privilege_update_records = (self.test_data_generator
+                                    .query_privilege_update_records_for_given_record_from_database(updated_privilege))
+
+        self.assertEqual(1, len(privilege_update_records))
+        update_record = privilege_update_records[0]
+        
+        # The key assertion: effectiveDate should be the LATEST lift date (2024-03-15), not the event date (2024-03-01)
+        self.assertEqual(date(2024, 3, 15), update_record.effectiveDate)
+        self.assertEqual('lifting_encumbrance', update_record.updateType)
+        self.assertEqual({'encumberedStatus': 'unencumbered'}, update_record.updatedValues)
+
+        # Verify that a privilege encumbrance lifting event was published with the correct effective date
+        mock_publish_event.assert_called_once()
+        call_args = mock_publish_event.call_args[1]
+
+        # Extract and verify event_batch_writer separately
+        called_event_batch_writer = call_args.pop('event_batch_writer')
+        from cc_common.event_batch_writer import EventBatchWriter
+
+        self.assertIsInstance(called_event_batch_writer, EventBatchWriter)
+
+        # Verify the published event uses the latest effective lift date
+        self.assertEqual(
+            {
+                'source': 'org.compactconnect.data-events',
+                'detail_type': 'privilege.encumbranceLifted',
+                'detail': {
+                    'compact': DEFAULT_COMPACT,
+                    'providerId': DEFAULT_PROVIDER_ID,
+                    'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
+                    'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
+                    'effectiveDate': '2024-03-15',  # Should be the latest lift date, not the event date
+                    'eventTime': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
+                },
+            },
+            call_args,
+        )
+
+
+    def _when_testing_privilege_lift_handler_with_encumbered_privilege(self, encumbered_status,
+                                                                       mock_provider_email, mock_state_email):
+        from handlers.encumbrance_events import privilege_encumbrance_lifting_notification_listener
+        # Set up test data with registered provider
+        self.test_data_generator.put_default_provider_record_in_provider_table(
+            value_overrides={'compactConnectRegisteredEmailAddress': 'provider@example.com'}
+        )
+
+        # Create a privilege that is still ENCUMBERED (has its own adverse action)
+        self.test_data_generator.put_default_privilege_record_in_provider_table(
+            value_overrides={
+                'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
+                'encumberedStatus': encumbered_status,  # Still encumbered due to another adverse action
+            }
+        )
+
+        # Create additional active records that would normally trigger notifications
+        self.test_data_generator.put_default_license_record_in_provider_table(
+            value_overrides={
+                'jurisdiction': 'co',
+                'jurisdictionUploadedLicenseStatus': 'active',
+            }
+        )
+
+        # Generate privilege encumbrance lifting event
+        message = self._generate_privilege_encumbrance_lifting_message()
+        event = self._create_sqs_event(message)
+
+        # Execute the handler
+        result = privilege_encumbrance_lifting_notification_listener(event, self.mock_context)
+
+        # Should succeed with no batch failures (handler completes successfully)
+        self.assertEqual({'batchItemFailures': []}, result)
+
+        # Verify NO notifications were sent because privilege is still encumbered
+        mock_provider_email.assert_not_called()
+        mock_state_email.assert_not_called()
+
+    @patch(
+        'cc_common.email_service_client.EmailServiceClient.send_privilege_encumbrance_lifting_state_notification_email'
+    )
+    @patch(
+        'cc_common.email_service_client.EmailServiceClient.send_privilege_encumbrance_lifting_provider_notification_email'
+    )
+    def test_privilege_encumbrance_lifting_notification_listener_skips_notifications_when_privilege_still_encumbered(
+        self, mock_provider_email, mock_state_email
+    ):
+        """Test that privilege encumbrance lifting notifications are NOT sent when privilege is still encumbered."""
+        from cc_common.data_model.schema.common import PrivilegeEncumberedStatusEnum
+
+        self._when_testing_privilege_lift_handler_with_encumbered_privilege(
+            PrivilegeEncumberedStatusEnum.ENCUMBERED, mock_provider_email, mock_state_email)
+
+    @patch(
+        'cc_common.email_service_client.EmailServiceClient.send_privilege_encumbrance_lifting_state_notification_email'
+    )
+    @patch(
+        'cc_common.email_service_client.EmailServiceClient.send_privilege_encumbrance_lifting_provider_notification_email'
+    )
+    def test_privilege_encumbrance_lifting_notification_listener_skips_notifications_when_privilege_license_encumbered(
+        self, mock_provider_email, mock_state_email
+    ):
+        """Test that privilege encumbrance lifting notifications are NOT sent when privilege is LICENSE_ENCUMBERED."""
+        from cc_common.data_model.schema.common import PrivilegeEncumberedStatusEnum
+
+        self._when_testing_privilege_lift_handler_with_encumbered_privilege(
+            PrivilegeEncumberedStatusEnum.LICENSE_ENCUMBERED, mock_provider_email, mock_state_email)

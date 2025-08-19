@@ -2,6 +2,7 @@ from uuid import UUID
 
 from cc_common.config import config, logger
 from cc_common.data_model.provider_record_util import ProviderData, ProviderUserRecords
+from cc_common.data_model.schema.common import PrivilegeEncumberedStatusEnum
 from cc_common.data_model.schema.data_event.api import (
     EncumbranceEventDetailSchema,
 )
@@ -267,7 +268,7 @@ def license_encumbrance_lifted_listener(message: dict):
         logger.info('Processing license encumbrance lifting event')
 
         # lift encumbrances from the privileges associated with this license using the data client method
-        affected_privileges = config.data_client.lift_home_jurisdiction_license_privilege_encumbrances(
+        affected_privileges, latest_effective_lift_date = config.data_client.lift_home_jurisdiction_license_privilege_encumbrances(
             compact=compact,
             provider_id=provider_id,
             jurisdiction=jurisdiction,
@@ -283,6 +284,7 @@ def license_encumbrance_lifted_listener(message: dict):
                     logger.info(
                         'Publishing privilege encumbrance lifting event for affected privilege',
                         privilege_jurisdiction=privilege.jurisdiction,
+                        latest_effective_lift_date=latest_effective_lift_date,
                     )
                     event_bus_client.publish_privilege_encumbrance_lifting_event(
                         source='org.compactconnect.data-events',
@@ -290,7 +292,8 @@ def license_encumbrance_lifted_listener(message: dict):
                         provider_id=provider_id,
                         jurisdiction=privilege.jurisdiction,  # The privilege jurisdiction, not the license jurisdiction
                         license_type_abbreviation=license_type_abbreviation,
-                        effective_date=effective_date,
+                        # Use the latest effective lift date of all encumbrances, not the event date
+                        effective_date=latest_effective_lift_date,
                         event_batch_writer=event_batch_writer,
                     )
 

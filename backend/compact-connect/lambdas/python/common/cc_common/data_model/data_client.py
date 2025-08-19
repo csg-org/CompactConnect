@@ -2594,6 +2594,7 @@ class DataClient:
 
         return transactions
 
+    @logger_inject_kwargs(logger, 'compact', 'provider_id', 'jurisdiction', 'license_type_abbreviation')
     def encumber_home_jurisdiction_license_privileges(
         self,
         compact: str,
@@ -2699,6 +2700,7 @@ class DataClient:
         logger.info('Successfully encumbered associated privileges for license')
         return unencumbered_privileges_associated_with_license
 
+    @logger_inject_kwargs(logger, 'compact', 'provider_id', 'jurisdiction', 'license_type_abbreviation')
     def lift_home_jurisdiction_license_privilege_encumbrances(
         self,
         compact: str,
@@ -2706,7 +2708,7 @@ class DataClient:
         jurisdiction: str,
         license_type_abbreviation: str,
         effective_date: date,
-    ) -> list[PrivilegeData]:
+    ) -> tuple[list[PrivilegeData], date|None]:
         """
         Lift encumbrances from privileges that were encumbered due to a home jurisdiction license encumbrance.
 
@@ -2718,7 +2720,7 @@ class DataClient:
         :param str jurisdiction: The jurisdiction of the license.
         :param str license_type_abbreviation: The license type abbreviation
         :param str effective_date: effective lift date of the encumbrance on the license and therefore privilege
-        :return: List of privileges that were unencumbered
+        :return: Tuple containing (list of privileges that were unencumbered, latest effective lift date)
         """
         # Get all provider records
         provider_user_records = self.get_provider_user_records(
@@ -2744,6 +2746,22 @@ class DataClient:
 
         logger.info('License is unencumbered. Proceeding to lift privilege encumbrances.')
 
+        # Get all adverse action records for this license to determine the correct effective date
+        # for privilege lifting (should be the maximum effective lift date among all lifted encumbrances)
+        license_adverse_actions = provider_user_records.get_adverse_action_records_for_license(
+            license_jurisdiction=jurisdiction,
+            license_type_abbreviation=license_type_abbreviation,
+        )
+
+        # Find the latest effective lift date among all lifted adverse actions
+        # This ensures that privilege lifting uses the latest effective date, not just the date
+        # of the most recently processed encumbrance lifting
+        latest_effective_lift_date = effective_date  # Default to the current lifting date
+        for adverse_action in license_adverse_actions:
+            if adverse_action.effectiveLiftDate is not None and adverse_action.effectiveLiftDate > latest_effective_lift_date:
+                latest_effective_lift_date = adverse_action.effectiveLiftDate
+
+
         # Find privileges that match the license jurisdiction and type and are currently LICENSE_ENCUMBERED
         # (meaning they were encumbered due to the license, not due to their own adverse actions)
         matching_privileges = provider_user_records.get_privilege_records(
@@ -2756,7 +2774,7 @@ class DataClient:
 
         if not matching_privileges:
             logger.info('No license-encumbered privileges found for this license')
-            return []
+            return [], None
 
         logger.info('Found license-encumbered privileges to unencumber', privilege_count=len(matching_privileges))
 
@@ -2766,14 +2784,14 @@ class DataClient:
         # The time selected here is somewhat arbitrary; however, we want this selection to not alter the date
         # displayed for a user when it is transformed back to their timezone. We selected noon UTC-4:00 so that
         # users across the entire US will see the same date
-        effective_date_time = datetime.combine(
-            effective_date, dtime(12, 0, 0), tzinfo=config.expiration_resolution_timezone
+        latest_effective_date_time = datetime.combine(
+            latest_effective_lift_date, dtime(12, 0, 0), tzinfo=config.expiration_resolution_timezone
         )
 
         for privilege_data in matching_privileges:
             now = config.current_standard_datetime
 
-            # Create privilege update record
+            # Create privilege update record using the latest effective lift date
             privilege_update_record = PrivilegeUpdateData.create_new(
                 {
                     'type': 'privilegeUpdate',
@@ -2783,7 +2801,7 @@ class DataClient:
                     'jurisdiction': privilege_data.jurisdiction,
                     'licenseType': privilege_data.licenseType,
                     'createDate': now,
-                    'effectiveDate': effective_date_time,
+                    'effectiveDate': latest_effective_date_time,
                     'previous': privilege_data.to_dict(),
                     'updatedValues': {
                         'encumberedStatus': PrivilegeEncumberedStatusEnum.UNENCUMBERED,
@@ -2816,8 +2834,9 @@ class DataClient:
                 raise CCAwsServiceException('Failed to unencumber privileges for license') from e
 
         logger.info('Successfully unencumbered all license-encumbered privileges for license')
-        return matching_privileges
+        return matching_privileges, latest_effective_lift_date
 
+    @logger_inject_kwargs(logger, 'compact', 'provider_id', 'jurisdiction', 'license_type')
     def deactivate_license_privileges(
         self,
         compact: str,
