@@ -1673,11 +1673,30 @@ class DataClient:
 
             # If this was the last unlifted adverse action, update privilege status and create update record
             unlifted_adverse_actions = self._get_unlifted_adverse_actions(adverse_action_records, adverse_action_id)
+            # we also need to check if the license record the privilege is associated with is also unencumbered
+            license_records = provider_user_records.get_license_records(
+                filter_condition=lambda license_record: (
+                    license_record.jurisdiction == privilege_data.licenseJurisdiction
+                    and license_record.licenseType == license_type_name
+                )
+            )
+            if not license_records:
+                message = 'License record not found for adverse action record.'
+                logger.error(message, license_type_name=license_type_name)
+                raise CCInternalException(message)
+
+            license_data = license_records[0]
+
             if not unlifted_adverse_actions:
-                # Update privilege record to unencumbered status
+                encumbered_status = PrivilegeEncumberedStatusEnum.UNENCUMBERED
+                # If the license is encumbered, we need to update the privilege record to the license encumbered status
+                # otherwise, we update the privilege record to unencumbered
+                if license_data.encumberedStatus == LicenseEncumberedStatusEnum.ENCUMBERED:
+                    encumbered_status = PrivilegeEncumberedStatusEnum.LICENSE_ENCUMBERED
+                # Update privilege record to new status
                 privilege_update_item = self._generate_set_privilege_encumbered_status_item(
                     privilege_data=privilege_data,
-                    privilege_encumbered_status=PrivilegeEncumberedStatusEnum.UNENCUMBERED,
+                    privilege_encumbered_status=encumbered_status,
                 )
                 transact_items.append(privilege_update_item)
 
@@ -1703,7 +1722,8 @@ class DataClient:
                         'effectiveDate': effective_date_time,
                         'previous': privilege_data.to_dict(),
                         'updatedValues': {
-                            'encumberedStatus': PrivilegeEncumberedStatusEnum.UNENCUMBERED,
+                            # this may be unencumbered or license encumbered
+                            'encumberedStatus': encumbered_status,
                         },
                     }
                 ).serialize_to_database_record()
