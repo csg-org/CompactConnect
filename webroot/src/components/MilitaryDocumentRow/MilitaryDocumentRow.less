@@ -5,21 +5,22 @@
 //  Created by InspiringApps on 4/30/2021.
 //
 
-.example-row {
+.military-document-row {
     display: flex;
     flex-direction: column;
     padding: 0.8rem 0;
-    border-bottom: 0.1rem solid @midGrey;
+
+    &:not(:last-child) {
+        border-bottom: 0.1rem solid @midGrey;
+    }
 
     @media @tabletWidth {
         flex-direction: row;
     }
 
     .cell {
-        flex-basis: 0;
-        flex-grow: 1;
-        flex-shrink: 1;
-        color: @veryDarkGrey;
+        display: flex;
+        align-items: center;
 
         &.is-header {
             display: none;
@@ -31,7 +32,50 @@
         }
 
         .cell-title {
+            display: flex;
+            flex-shrink: 0;
+            width: 12rem;
+            padding-right: 0.4rem;
             font-weight: @fontWeightBold;
+            white-space: nowrap;
+
+            @media @tabletWidth {
+                flex-shrink: 1;
+                width: auto;
+                padding-right: 0;
+                white-space: normal;
+            }
+        }
+
+        @media @tabletWidth {
+            &.filename {
+                flex-basis: 60%;
+                padding-right: 0.8rem;
+            }
+
+            &.upload-date {
+                flex-basis: 25%;
+            }
+
+            &.download {
+                flex-basis: 15%;
+                justify-content: center;
+            }
+        }
+
+        .download-link {
+            .download-text {
+                .visually-hidden();
+            }
+
+            .download-icon {
+                width: 3.2rem;
+                stroke: @primaryColor;
+            }
+        }
+
+        .download-unavailable {
+            font-style: italic;
         }
     }
 }
