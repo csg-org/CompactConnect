@@ -12537,9 +12537,9 @@ vue-loader@^17.0.0:
     watchpack "^2.4.0"
 
 vue-responsiveness@^0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/vue-responsiveness/-/vue-responsiveness-0.2.0.tgz#fb3eef2e57f6c0643d41042e62d61cc4279ee60c"
-  integrity sha512-ee7EkS8h1r27ZBNtTJGJrKPwP/zlkbb4yJhUz8tNATW2/RhVSrRKKe3tSJj1/Bbc9di9mtg2v8Gn3TLs3yS8Ig==
+  version "0.2.4"
+  resolved "https://registry.yarnpkg.com/vue-responsiveness/-/vue-responsiveness-0.2.4.tgz#7a092b9e8ba9a2cd12a0b901da93f8c159d7d436"
+  integrity sha512-WtBrPMGBte3GXAwnIAT94HNntdQfyI3X+M85xW8DgSgLKTAQCPQp3tFNanI157sx3yz4UrLe9PF608OjfFzzMg==
 
 vue-router@^4.3.0:
   version "4.3.0"

@@ -25,7 +25,7 @@
     }
 
     &.no-top-pad {
-        @media @tabletWidth {
+        @media @tabletWidth and (hover: hover) {
             padding-top: unset;
         }
     }
@@ -34,7 +34,7 @@
         margin-top: @appHeaderHeight;
         padding-top: 0;
 
-        @media @tabletWidth {
+        @media @tabletWidth and (hover: hover) {
             margin-top: 0;
         }
     }
@@ -55,7 +55,7 @@
         flex-grow: 1;
         flex-shrink: 0;
 
-        @media @tabletWidth {
+        @media @tabletWidth and (hover: hover) {
             &.include-nav {
                 padding-left: @navPartialExpandWidth;
             }

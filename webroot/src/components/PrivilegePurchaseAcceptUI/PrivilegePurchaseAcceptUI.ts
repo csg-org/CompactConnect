@@ -51,6 +51,10 @@ class PrivilegePurchaseAcceptUI extends Vue {
     //
     isLoadingInit = true;
     acceptUiScript: HTMLElement | null = null;
+    acceptUiContainer: HTMLElement | null = null;
+    acceptUiContainerId = 'AcceptUIContainer';
+    focusTrapElement: HTMLElement | null = null;
+    acceptUiObserver: MutationObserver | null = null;
     acceptUiPaymentDetails: AcceptUiResponse = {};
     errorMessage = '';
     successMessage = '';
@@ -109,7 +113,30 @@ class PrivilegePurchaseAcceptUI extends Vue {
     }
 
     unloadPaymentDetailsUi(): void {
+        this.removeFocusTrapHandling();
         (window as any).handlePaymentDetailsResponse = undefined;
+    }
+
+    removeFocusTrapHandling(): void {
+        const {
+            acceptUiContainer,
+            focusTrapElement,
+            focusTrap,
+            acceptUiObserver
+        } = this;
+
+        if (acceptUiContainer) {
+            acceptUiContainer.removeEventListener('keydown', focusTrap);
+        }
+
+        if (focusTrapElement) {
+            focusTrapElement.removeEventListener('keydown', focusTrap);
+            focusTrapElement.remove();
+        }
+
+        if (acceptUiObserver) {
+            acceptUiObserver.disconnect();
+        }
     }
 
     handleClicked(): void {
@@ -123,26 +150,86 @@ class PrivilegePurchaseAcceptUI extends Vue {
     }
 
     improveInteractions(): void {
-        const acceptUiContainer = document.getElementById('AcceptUIContainer');
+        const acceptUiContainer = document.getElementById(this.acceptUiContainerId);
         const iframe = acceptUiContainer?.getElementsByTagName('iframe')[0];
+        const trapper = document.createElement('div');
 
-        // The AcceptUI.js widget will sometimes pop up partially or fully off-screen if the
-        // launching page's <body> height is significantly taller than the viewport.
-        // This is a simple adjustment to start the pop up near our content.
+        this.removeFocusTrapHandling();
+
         if (acceptUiContainer) {
+            // The AcceptUI.js widget will sometimes pop up partially or fully off-screen if the
+            // launching page's <body> height is significantly taller than the viewport.
+            // This is a simple adjustment to start the pop up near our content.
             acceptUiContainer.style.top = '300px';
+
+            // Configure elements before / after the iframe to focus-trap the iframe
+            this.acceptUiContainer = acceptUiContainer;
+            trapper.id = 'iframe-trapper';
+            trapper.classList.add('iframe-trapper');
+            trapper.setAttribute('tabindex', '0');
+            acceptUiContainer.parentNode?.insertBefore(trapper, acceptUiContainer.nextSibling);
+            this.focusTrapElement = trapper;
+
+            acceptUiContainer.addEventListener('keydown', this.focusTrap);
+            trapper.addEventListener('keydown', this.focusTrap);
+
+            // Attempt to detect the closing of the iframe
+            this.detectIframeClose();
+
+            // Attempt to focus the iframe container for better keyboard nav
+            acceptUiContainer.setAttribute('tabindex', '0');
+            window.setTimeout(() => { acceptUiContainer.focus(); }, 100);
         }
 
         if (iframe) {
             try {
-                // Attempt to focus the frame for better keyboard nav
-                iframe.contentWindow?.focus();
-                // Attempt to set the title attr on the iframe
+                // Attempt to set the title attr on the iframe for better a11y
                 iframe.setAttribute('title', this.$t('payment.enterPaymentDetails'));
             } catch (err) {
                 // Continue
             }
         }
+    }
+
+    focusTrap(event: KeyboardEvent): void {
+        const { target, key, shiftKey } = event;
+        const targetElement = target as Element;
+        const { acceptUiContainer, focusTrapElement } = this;
+        const isIframeVisible = acceptUiContainer?.classList.contains('show');
+
+        if (isIframeVisible && key === 'Tab') {
+            // If tabbing on the trapper element, cycle focus back to the iframe container
+            if (!shiftKey && targetElement?.id === 'iframe-trapper') {
+                event.preventDefault();
+                acceptUiContainer?.focus();
+            } else if (shiftKey && targetElement?.id === this.acceptUiContainerId) {
+                // If reverse tabbing on the iframe container, cycle focus back to the trapper element
+                event.preventDefault();
+                focusTrapElement?.focus();
+            }
+        }
+    }
+
+    detectIframeClose(): void {
+        const observer = new MutationObserver((mutationsList) => {
+            mutationsList.forEach((mutation) => {
+                if (mutation.type === 'childList') {
+                    mutation.removedNodes.forEach((removedNode) => {
+                        if ((removedNode as HTMLElement).id === this.acceptUiContainerId) {
+                            this.handleIframeClosed();
+                        }
+                    });
+                }
+            });
+        });
+
+        this.acceptUiObserver = observer;
+        observer.observe(document.body, { childList: true, subtree: false });
+    }
+
+    handleIframeClosed(): void {
+        this.removeFocusTrapHandling();
+        document.getElementById('payment-init')?.focus();
     }
 
     handlePaymentDetailsResponse(response: any): void {

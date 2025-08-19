@@ -6,7 +6,7 @@
 //
 import chaiMatchPattern from 'chai-match-pattern';
 import chai from 'chai';
-import { serverDateFormat, displayDateFormat } from '@/app.config';
+import { serverDateFormat, displayDateFormat, serverDatetimeFormat } from '@/app.config';
 import {
     License,
     LicenseType,
@@ -74,6 +74,7 @@ describe('License model', () => {
         expect(license.licenseTypeAbbreviation()).to.equal('');
         expect(license.displayName()).to.equal('Unknown');
         expect(license.isEncumbered()).to.equal(false);
+        expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(false);
     });
     it('should create a License with specific values', () => {
         const data = {
@@ -131,6 +132,7 @@ describe('License model', () => {
         expect(license.displayName()).to.equal('Unknown - audiologist');
         expect(license.displayName(', ', true)).to.equal('Unknown, AUD');
         expect(license.isEncumbered()).to.equal(false);
+        expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(false);
     });
     it('should create a License with specific values (custom displayName delimiter)', () => {
         const data = {
@@ -213,6 +215,7 @@ describe('License model', () => {
         expect(license.displayName(', ', true)).to.equal('Alabama, AUD');
         expect(license.licenseTypeAbbreviation()).to.equal('AUD');
         expect(license.isEncumbered()).to.equal(true);
+        expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(false);
     });
     it('should create a privilege with specific values through serializer', () => {
         const data = {
@@ -230,7 +233,8 @@ describe('License model', () => {
             adverseActions: [
                 {
                     adverseActionId: 'test-id',
-                    effectiveLiftDate: moment().subtract(1, 'day').format(serverDateFormat),
+                    creationDate: moment().subtract(6, 'months').format(serverDatetimeFormat),
+                    effectiveLiftDate: moment().subtract(3, 'months').format(serverDateFormat),
                 },
             ],
             attestations: [
@@ -537,6 +541,7 @@ describe('License model', () => {
         expect(license.eligibility).to.equal(EligibilityStatus.NA);
         expect(license.adverseActions).to.be.an('array').with.length(1);
         expect(license.adverseActions[0]).to.be.an.instanceof(AdverseAction);
+        expect(license.adverseActions[0].endDate).to.equal(data.adverseActions[0].effectiveLiftDate);
 
         // Test methods
         expect(license.issueDateDisplay()).to.equal(
@@ -556,6 +561,7 @@ describe('License model', () => {
         expect(license.licenseTypeAbbreviation()).to.equal('OTA');
         expect(license.history.length).to.equal(0);
         expect(license.isEncumbered()).to.equal(false);
+        expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(true);
     });
     it('should populate isDeactivated correctly given license history (deactivation)', () => {
         const data = {
@@ -621,5 +627,122 @@ describe('License model', () => {
 
         // Test field values
         expect(license.isAdminDeactivated()).to.equal(true);
+        expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(false);
+    });
+    it('should return false when isLatestLiftedEncumbranceWithinWaitPeriod called with no adverse actions', () => {
+        const license = new License();
+
+        expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(false);
+    });
+    it('should return false when isLatestLiftedEncumbranceWithinWaitPeriod called with all active encumbrances (no endDate)', () => {
+        const license = new License({
+            adverseActions: [
+                new AdverseAction({
+                    creationDate: '2024-01-01T00:00:00Z',
+                    startDate: '2024-01-01',
+                    endDate: null
+                }),
+                new AdverseAction({
+                    creationDate: '2024-02-01T00:00:00Z',
+                    startDate: '2024-01-01',
+                    endDate: null
+                })
+            ]
+        });
+
+        expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(false);
+    });
+    it('should return true when isLatestLiftedEncumbranceWithinWaitPeriod called with latest non-active encumbrance endDate within 2 years', () => {
+        const oneYearAgo = moment().subtract(1, 'year').format(serverDateFormat);
+        const license = new License({
+            adverseActions: [
+                new AdverseAction({
+                    creationDate: '2020-01-01T00:00:00Z',
+                    startDate: '2020-01-01',
+                    endDate: '2020-06-01'
+                }),
+                new AdverseAction({
+                    creationDate: '2021-01-01T00:00:00Z',
+                    startDate: '2021-01-01',
+                    endDate: oneYearAgo
+                })
+            ]
+        });
+
+        expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(true);
+    });
+    it('should return false when isLatestLiftedEncumbranceWithinWaitPeriod called with latest non-active encumbrance endDate more than 2 years ago', () => {
+        const threeYearsAgo = moment().subtract(3, 'years').format(serverDateFormat);
+        const license = new License({
+            adverseActions: [
+                new AdverseAction({
+                    creationDate: '2020-01-01T00:00:00Z',
+                    startDate: '2020-01-01',
+                    endDate: '2020-06-01'
+                }),
+                new AdverseAction({
+                    creationDate: '2021-01-01T00:00:00Z',
+                    startDate: '2021-01-01',
+                    endDate: threeYearsAgo
+                })
+            ]
+        });
+
+        expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(false);
+    });
+    it('should handle mixed active and non-active encumbrances correctly in isLatestLiftedEncumbranceWithinWaitPeriod', () => {
+        const recentEndDate = moment().subtract(6, 'months').format(serverDateFormat);
+        const license = new License({
+            adverseActions: [
+                new AdverseAction({
+                    creationDate: '2024-01-01T00:00:00Z',
+                    startDate: '2024-01-01',
+                    endDate: null // Active encumbrance
+                }),
+                new AdverseAction({
+                    creationDate: '2021-01-01T00:00:00Z',
+                    startDate: '2021-01-01',
+                    endDate: recentEndDate // Non-active encumbrance within 2 years
+                }),
+                new AdverseAction({
+                    creationDate: '2020-01-01T00:00:00Z',
+                    startDate: '2020-01-01',
+                    endDate: '2020-06-01' // Non-active encumbrance more than 2 years ago
+                })
+            ]
+        });
+
+        // Should return true because the encumbrance with recentEndDate (6 months ago) is within 2 years
+        expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(true);
+    });
+    it('should handle edge case of exactly 2 years ago in isLatestLiftedEncumbranceWithinWaitPeriod', () => {
+        const exactlyTwoYearsAgo = moment().subtract(2, 'years').format(serverDateFormat);
+        const license = new License({
+            adverseActions: [
+                new AdverseAction({
+                    creationDate: '2020-01-01T00:00:00Z',
+                    startDate: '2020-01-01',
+                    endDate: exactlyTwoYearsAgo
+                })
+            ]
+        });
+
+        // Should return false because exactly 2 years ago is not "within" the last 2 years
+        expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(false);
+    });
+    it('should handle edge case of just under 2 years ago in isLatestLiftedEncumbranceWithinWaitPeriod', () => {
+        const justUnderTwoYears = moment().subtract(2, 'years').add(1, 'day').format(serverDateFormat);
+        const license = new License({
+            adverseActions: [
+                new AdverseAction({
+                    creationDate: '2020-01-01T00:00:00Z',
+                    startDate: '2020-01-01',
+                    endDate: justUnderTwoYears
+                })
+            ]
+        });
+
+        // Should return true because just under 2 years ago is within the last 2 years
+        expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(true);
     });
 });

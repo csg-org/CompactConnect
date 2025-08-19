@@ -71,7 +71,7 @@
         ],
         "type": "string"
       },
-      "maxLength": 100,
+      "maxLength": 20,
       "type": "array"
     },
     "orderInformation": {
