@@ -1671,27 +1671,26 @@ class DataClient:
                 )
             )
 
-            # If this was the last unlifted adverse action, update privilege status and create update record
+            # If this was the last un-lifted adverse action, update privilege status and create update record
             unlifted_adverse_actions = self._get_unlifted_adverse_actions(adverse_action_records, adverse_action_id)
             # we also need to check if the license record the privilege is associated with is also unencumbered
-            license_records = provider_user_records.get_license_records(
-                filter_condition=lambda license_record: (
-                    license_record.jurisdiction == privilege_data.licenseJurisdiction
-                    and license_record.licenseType == license_type_name
-                )
+            license_record = provider_user_records.get_specific_license_record(
+                jurisdiction=privilege_data.licenseJurisdiction, license_abbreviation=license_type_abbreviation
             )
-            if not license_records:
+            if not license_record:
                 message = 'License record not found for adverse action record.'
-                logger.error(message, license_type_name=license_type_name)
+                logger.error(
+                    message,
+                    license_jurisdiction=privilege_data.licenseJurisdiction,
+                    license_type_name=license_type_name,
+                )
                 raise CCInternalException(message)
-
-            license_data = license_records[0]
 
             if not unlifted_adverse_actions:
                 encumbered_status = PrivilegeEncumberedStatusEnum.UNENCUMBERED
                 # If the license is encumbered, we need to update the privilege record to the license encumbered status
                 # otherwise, we update the privilege record to unencumbered
-                if license_data.encumberedStatus == LicenseEncumberedStatusEnum.ENCUMBERED:
+                if license_record.encumberedStatus == LicenseEncumberedStatusEnum.ENCUMBERED:
                     encumbered_status = PrivilegeEncumberedStatusEnum.LICENSE_ENCUMBERED
                 # Update privilege record to new status
                 privilege_update_item = self._generate_set_privilege_encumbered_status_item(

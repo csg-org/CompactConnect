@@ -1722,7 +1722,7 @@ class TestEncumbranceEvents(TstFunction):
     @patch(
         'cc_common.email_service_client.EmailServiceClient.send_privilege_encumbrance_lifting_provider_notification_email'
     )
-    def test_privilege_encumbrance_lifting_notification_listener_determines_latest_license_effective_lift_date_when_no_privilege_encumbrance(
+    def test_privilege_encumbrance_lifting_notification_listener_determines_latest_license_effective_lift_date_when_no_privilege_encumbrance(  # noqa: E501
         self, mock_provider_email, mock_state_email
     ):
         """Test that privilege encumbrance lifting listener correctly determines latest effective lift date."""
