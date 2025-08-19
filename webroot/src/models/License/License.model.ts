@@ -124,7 +124,7 @@ export class License implements InterfaceLicense {
         // NOTE: History is needed to determine this status; and history may be fetched in a separate API call and not always available on the License / Privilege list fetch
         const adminDeactivateList = ['deactivation', 'licenseDeactivation', 'homeJurisdictionChange'];
         const isInactive = this.status === LicenseStatus.INACTIVE;
-        const lastEvent: LicenseHistoryItem = this.history?.slice(-1).pop() || new LicenseHistoryItem();
+        const lastEvent: LicenseHistoryItem = this.history?.at(-1) || new LicenseHistoryItem();
         const lastEventType = lastEvent?.updateType || '';
 
         return isInactive && adminDeactivateList.includes(lastEventType);
