@@ -46,9 +46,7 @@ export default class LicensingDetail extends Vue {
     // Lifecycle
     //
     async created() {
-        if (!this.licensee) {
-            await this.fetchLicenseeData();
-        }
+        await this.fetchLicenseeData();
 
         if (!this.licensee) {
             this.$router.push({ name: '404' });
