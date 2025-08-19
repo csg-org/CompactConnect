@@ -439,6 +439,23 @@ class ProviderUserRecords:
             None,
         )
 
+    def get_specific_privilege_record(self, jurisdiction: str, license_abbreviation: str) -> LicenseData | None:
+        """
+        Get a specific privilege record from a list of provider records.
+
+        :param jurisdiction: The jurisdiction of the license.
+        :param license_abbreviation: The abbreviation of the license type.
+        :return: The license record if found, else None.
+        """
+        return next(
+            (
+                record
+                for record in self._privilege_records
+                if record.jurisdiction == jurisdiction and record.licenseTypeAbbreviation == license_abbreviation
+            ),
+            None,
+        )
+
     def get_privilege_records(
         self,
         filter_condition: Callable[[PrivilegeData], bool] | None = None,

@@ -395,13 +395,13 @@ def privilege_encumbrance_lifting_notification_listener(message: dict):
     effective_date = detail['effectiveDate']
     event_time = detail['eventTime']
 
-    with logger.append_context_keys(
+    with (logger.append_context_keys(
         compact=compact,
         provider_id=provider_id,
         jurisdiction=jurisdiction,
         license_type_abbreviation=license_type_abbreviation,
         event_time=event_time,
-    ):
+    )):
         logger.info('Processing privilege encumbrance lifting event')
 
         # Get license type name from abbreviation (lookup once at the top)
@@ -409,6 +409,16 @@ def privilege_encumbrance_lifting_notification_listener(message: dict):
 
         # Get provider records to gather notification targets and provider information
         provider_records, provider_record = _get_provider_records(compact, provider_id)
+
+        # ensure that all encumbrances have been lifted from this privilege before sending out notifications
+        target_privilege = provider_records.get_specific_privilege_record(jurisdiction=jurisdiction,
+                                                                          license_abbreviation=license_type_abbreviation)
+        if (target_privilege.encumberedStatus is not None
+            and target_privilege.encumberedStatus != PrivilegeEncumberedStatusEnum.UNENCUMBERED):
+            logger.info('Privilege record is still encumbered, likely due to a license encumbrance or another adverse '
+                        'action. Not sending lift notifications',
+                        privilege_encumbered_status=target_privilege.encumberedStatus)
+            return
 
         # Provider Notification
         _send_provider_notification(
