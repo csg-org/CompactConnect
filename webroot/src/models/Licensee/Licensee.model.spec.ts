@@ -654,8 +654,8 @@ describe('Licensee model', () => {
                 })
             ]
         });
-
         let bestLicense = licenseeWithHomeLicense.bestLicense();
+
         expect(bestLicense.licenseNumber).to.equal('home-1');
         expect(bestLicense.issueState?.abbrev).to.equal('co');
 
@@ -732,8 +732,8 @@ describe('Licensee model', () => {
                 })
             ]
         });
-
         const bestAddress = licenseeWithAddress.bestLicenseMailingAddress();
+
         expect(bestAddress).to.be.an.instanceof(Address);
         expect(bestAddress.street1).to.equal('test-street1');
         expect(bestAddress.street2).to.equal('test-street2');
@@ -751,8 +751,8 @@ describe('Licensee model', () => {
                 })
             ]
         });
-
         const emptyAddress = licenseeWithoutAddress.bestLicenseMailingAddress();
+
         expect(emptyAddress).to.be.an.instanceof(Address);
         expect(emptyAddress.street1).to.equal(null);
     });
@@ -872,6 +872,7 @@ describe('Licensee model', () => {
 
         // Verify that addresses come from license-based methods
         const bestAddress = licensee.bestLicenseMailingAddress();
+
         expect(bestAddress).to.be.an.instanceof(Address);
         expect(bestAddress.street1).to.equal('license-street1');
         expect(bestAddress.city).to.equal('license-city');
