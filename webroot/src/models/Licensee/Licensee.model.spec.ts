@@ -88,6 +88,7 @@ describe('Licensee model', () => {
         expect(licensee.hasEncumberedLicenses()).to.equal(false);
         expect(licensee.hasEncumberedPrivileges()).to.equal(false);
         expect(licensee.isEncumbered()).to.equal(false);
+        expect(licensee.hasEncumbranceLiftedWithinWaitPeriod()).to.equal(false);
     });
     it('should create a Licensee with specific values', () => {
         const data = {
@@ -194,6 +195,7 @@ describe('Licensee model', () => {
         expect(licensee.hasEncumberedLicenses()).to.equal(false);
         expect(licensee.hasEncumberedPrivileges()).to.equal(false);
         expect(licensee.isEncumbered()).to.equal(false);
+        expect(licensee.hasEncumbranceLiftedWithinWaitPeriod()).to.equal(false);
     });
     it('should create a Licensee with specific values (empty state name fallbacks)', () => {
         const licensee = new Licensee();
@@ -471,6 +473,7 @@ describe('Licensee model', () => {
         expect(licensee.hasEncumberedLicenses()).to.equal(false);
         expect(licensee.hasEncumberedPrivileges()).to.equal(false);
         expect(licensee.isEncumbered()).to.equal(false);
+        expect(licensee.hasEncumbranceLiftedWithinWaitPeriod()).to.equal(false);
     });
     it('should create a Licensee with specific values through serializer (with inactive best license)', () => {
         const data = {
@@ -603,6 +606,7 @@ describe('Licensee model', () => {
         expect(licensee.hasEncumberedLicenses()).to.equal(false);
         expect(licensee.hasEncumberedPrivileges()).to.equal(false);
         expect(licensee.isEncumbered()).to.equal(false);
+        expect(licensee.hasEncumbranceLiftedWithinWaitPeriod()).to.equal(false);
     });
     it('should create a Licensee with specific values through serializer (with initiliazing military status)', () => {
         const data = {
@@ -876,6 +880,31 @@ describe('Licensee model', () => {
         expect(bestAddress).to.be.an.instanceof(Address);
         expect(bestAddress.street1).to.equal('license-street1');
         expect(bestAddress.city).to.equal('license-city');
+    });
+    it('should create a Licensee with privileges that have encumbrances lifted within wait period', () => {
+        // Create mock privileges with encumbrances lifted within wait period
+        const privilegeWithRecentLift = new License({
+            licenseNumber: 'privilege-with-recent-lift',
+            licenseStatus: LicenseStatus.ACTIVE,
+        });
+
+        // Mock the isLatestLiftedEncumbranceWithinWaitPeriod method
+        privilegeWithRecentLift.isLatestLiftedEncumbranceWithinWaitPeriod = () => true;
+
+        const privilegeWithoutRecentLift = new License({
+            licenseNumber: 'privilege-without-recent-lift',
+            licenseStatus: LicenseStatus.ACTIVE,
+        });
+
+        // Mock the isLatestLiftedEncumbranceWithinWaitPeriod method
+        privilegeWithoutRecentLift.isLatestLiftedEncumbranceWithinWaitPeriod = () => false;
+
+        const licensee = new Licensee({
+            privileges: [privilegeWithRecentLift, privilegeWithoutRecentLift],
+        });
+
+        // Test hasEncumbranceLiftedWithinWaitPeriod method
+        expect(licensee.hasEncumbranceLiftedWithinWaitPeriod()).to.equal(true);
     });
     it('should serialize a Licensee for transmission to server', () => {
         const licensee = LicenseeSerializer.fromServer({
