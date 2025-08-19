@@ -439,7 +439,7 @@ class ProviderUserRecords:
             None,
         )
 
-    def get_specific_privilege_record(self, jurisdiction: str, license_abbreviation: str) -> LicenseData | None:
+    def get_specific_privilege_record(self, jurisdiction: str, license_abbreviation: str) -> PrivilegeData | None:
         """
         Get a specific privilege record from a list of provider records.
 
@@ -500,6 +500,23 @@ class ProviderUserRecords:
             and (filter_condition is None or filter_condition(record))
         ]
 
+    def _get_latest_effective_lift_date_for_adverse_actions(self,
+                                                            adverse_actions: list[AdverseActionData]) -> date | None:
+        if not adverse_actions:
+            logger.info('No adverse actions found. Returning None')
+            return None
+
+        # Find the latest effective lift date among all lifted adverse actions
+        latest_effective_lift_date = None
+        for adverse_action in adverse_actions:
+            if adverse_action.effectiveLiftDate is None:
+                logger.info('found adverse action without effective lift date. Returning None')
+                return None
+            if latest_effective_lift_date is None or adverse_action.effectiveLiftDate > latest_effective_lift_date:
+                latest_effective_lift_date = adverse_action.effectiveLiftDate
+
+        return latest_effective_lift_date
+
     def get_latest_effective_lift_date_for_license_adverse_actions(self, license_jurisdiction: str,
         license_type_abbreviation: str) -> date | None:
         """
@@ -513,22 +530,22 @@ class ProviderUserRecords:
             license_jurisdiction=license_jurisdiction,
             license_type_abbreviation=license_type_abbreviation,
         )
-        if not license_adverse_actions:
-            logger.info('No adverse actions for license. Returning None')
-            return None
+        return self._get_latest_effective_lift_date_for_adverse_actions(license_adverse_actions)
 
-        # Find the latest effective lift date among all lifted adverse actions
-        # This ensures that lifting notifications and updates use the latest effective date, not just the date
-        # of the most recently processed encumbrance lifting
-        latest_effective_lift_date = None
-        for adverse_action in license_adverse_actions:
-            if adverse_action.effectiveLiftDate is None:
-                logger.info('found adverse action without effective lift date. Returning None')
-                return None
-            if latest_effective_lift_date is None or adverse_action.effectiveLiftDate > latest_effective_lift_date:
-                latest_effective_lift_date = adverse_action.effectiveLiftDate
+    def get_latest_effective_lift_date_for_privilege_adverse_actions(self, privilege_jurisdiction: str,
+        license_type_abbreviation: str) -> date | None:
+        """
+        Get the latest effective lift date for a privilege if all adverse actions have been lifted.
 
-        return latest_effective_lift_date
+        If any of the adverse actions have not been lifted, or there are no adverse actions, None is returned.
+        """
+        # Get all adverse action records for this privilege to determine the correct effective date
+        # for privilege lifting (should be the maximum effective lift date among all lifted encumbrances)
+        privilege_adverse_actions = self.get_adverse_action_records_for_privilege(
+            privilege_jurisdiction=privilege_jurisdiction,
+            privilege_license_type_abbreviation=license_type_abbreviation,
+        )
+        return self._get_latest_effective_lift_date_for_adverse_actions(privilege_adverse_actions)
 
     def get_adverse_action_records_for_privilege(
         self,

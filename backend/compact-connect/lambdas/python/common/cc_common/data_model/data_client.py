@@ -2707,7 +2707,6 @@ class DataClient:
         provider_id: str,
         jurisdiction: str,
         license_type_abbreviation: str,
-        effective_date: date,
     ) -> tuple[list[PrivilegeData], date|None]:
         """
         Lift encumbrances from privileges that were encumbered due to a home jurisdiction license encumbrance.
@@ -2746,22 +2745,6 @@ class DataClient:
 
         logger.info('License is unencumbered. Proceeding to lift privilege encumbrances.')
 
-        # Get all adverse action records for this license to determine the correct effective date
-        # for privilege lifting (should be the maximum effective lift date among all lifted encumbrances)
-        license_adverse_actions = provider_user_records.get_adverse_action_records_for_license(
-            license_jurisdiction=jurisdiction,
-            license_type_abbreviation=license_type_abbreviation,
-        )
-
-        # Find the latest effective lift date among all lifted adverse actions
-        # This ensures that privilege lifting uses the latest effective date, not just the date
-        # of the most recently processed encumbrance lifting
-        latest_effective_lift_date = effective_date  # Default to the current lifting date
-        for adverse_action in license_adverse_actions:
-            if adverse_action.effectiveLiftDate is not None and adverse_action.effectiveLiftDate > latest_effective_lift_date:
-                latest_effective_lift_date = adverse_action.effectiveLiftDate
-
-
         # Find privileges that match the license jurisdiction and type and are currently LICENSE_ENCUMBERED
         # (meaning they were encumbered due to the license, not due to their own adverse actions)
         matching_privileges = provider_user_records.get_privilege_records(
@@ -2777,6 +2760,11 @@ class DataClient:
             return [], None
 
         logger.info('Found license-encumbered privileges to unencumber', privilege_count=len(matching_privileges))
+
+        latest_effective_lift_date = provider_user_records.get_latest_effective_lift_date_for_license_adverse_actions(
+            license_jurisdiction=license_record.jurisdiction,
+            license_type_abbreviation=license_record.licenseTypeAbbreviation
+        )
 
         # Build transaction items for all privileges
         transaction_items = []
