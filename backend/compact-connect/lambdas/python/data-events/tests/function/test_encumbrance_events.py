@@ -249,13 +249,15 @@ class TestEncumbranceEvents(TstFunction):
             }
         )
 
-        self.test_data_generator.put_default_adverse_action_record_in_provider_table(value_overrides={
-            'actionAgainst': 'license',
-            'effectiveLiftDate': date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
-            'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
-            'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
-            'licenseType': DEFAULT_LICENSE_TYPE,
-        })
+        self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+            value_overrides={
+                'actionAgainst': 'license',
+                'effectiveLiftDate': date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
+                'licenseType': DEFAULT_LICENSE_TYPE,
+            }
+        )
 
         # Privilege with encumbrance status as result of license encumbrance
         self.test_data_generator.put_default_privilege_record_in_provider_table(
@@ -392,13 +394,15 @@ class TestEncumbranceEvents(TstFunction):
             }
         )
 
-        self.test_data_generator.put_default_adverse_action_record_in_provider_table(value_overrides={
-            'actionAgainst': 'license',
-            'effectiveLiftDate': date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
-            'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
-            'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
-            'licenseType': DEFAULT_LICENSE_TYPE,
-        })
+        self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+            value_overrides={
+                'actionAgainst': 'license',
+                'effectiveLiftDate': date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
+                'licenseType': DEFAULT_LICENSE_TYPE,
+            }
+        )
 
         message = self._generate_license_encumbrance_lifting_message()
         event = self._create_sqs_event(message)
@@ -512,13 +516,15 @@ class TestEncumbranceEvents(TstFunction):
             }
         )
 
-        self.test_data_generator.put_default_adverse_action_record_in_provider_table(value_overrides={
-            'actionAgainst': 'license',
-            'effectiveLiftDate': date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
-            'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
-            'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
-            'licenseType': DEFAULT_LICENSE_TYPE,
-        })
+        self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+            value_overrides={
+                'actionAgainst': 'license',
+                'effectiveLiftDate': date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
+                'licenseType': DEFAULT_LICENSE_TYPE,
+            }
+        )
 
         # Create multiple LICENSE_ENCUMBERED privileges
         self.test_data_generator.put_default_privilege_record_in_provider_table(
@@ -689,13 +695,15 @@ class TestEncumbranceEvents(TstFunction):
             }
         )
 
-        self.test_data_generator.put_default_adverse_action_record_in_provider_table(value_overrides={
-            'actionAgainst': 'license',
-            'effectiveLiftDate': date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
-            'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
-            'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
-            'licenseType': DEFAULT_LICENSE_TYPE,
-        })
+        self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+            value_overrides={
+                'actionAgainst': 'license',
+                'effectiveLiftDate': date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
+                'licenseType': DEFAULT_LICENSE_TYPE,
+            }
+        )
 
         message = self._generate_license_encumbrance_lifting_message()
         event = self._create_sqs_event(message)
@@ -738,13 +746,15 @@ class TestEncumbranceEvents(TstFunction):
             }
         )
 
-        self.test_data_generator.put_default_adverse_action_record_in_provider_table(value_overrides={
-            'actionAgainst': 'license',
-            'effectiveLiftDate': date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
-            'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
-            'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
-            'licenseType': DEFAULT_LICENSE_TYPE,
-        })
+        self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+            value_overrides={
+                'actionAgainst': 'license',
+                'effectiveLiftDate': date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
+                'licenseType': DEFAULT_LICENSE_TYPE,
+            }
+        )
 
         # Create privilege with matching license type (should be unencumbered)
         self.test_data_generator.put_default_privilege_record_in_provider_table(
@@ -765,8 +775,6 @@ class TestEncumbranceEvents(TstFunction):
                 'jurisdiction': 'ky',
             }
         )
-
-
 
         message = self._generate_license_encumbrance_lifting_message()
         event = self._create_sqs_event(message)
@@ -1336,10 +1344,9 @@ class TestEncumbranceEvents(TstFunction):
         )
 
         # Add the privilege where encumbrance is being lifted (in DEFAULT_PRIVILEGE_JURISDICTION = 'ne')
-        self.test_data_generator.put_default_privilege_record_in_provider_table(value_overrides={
-            'licenseJurisdiction': 'co',
-            'encumberedStatus': 'unencumbered'
-        })
+        self.test_data_generator.put_default_privilege_record_in_provider_table(
+            value_overrides={'licenseJurisdiction': 'co', 'encumberedStatus': 'unencumbered'}
+        )
 
         # Create additional licenses and privileges for notification testing
         self.test_data_generator.put_default_license_record_in_provider_table(
@@ -1355,13 +1362,15 @@ class TestEncumbranceEvents(TstFunction):
             }
         )
 
-        self.test_data_generator.put_default_adverse_action_record_in_provider_table(value_overrides={
-            'actionAgainst': 'privilege',
-            'effectiveLiftDate': date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
-            'jurisdiction': 'ne',
-            'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
-            'licenseType': DEFAULT_LICENSE_TYPE,
-        })
+        self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+            value_overrides={
+                'actionAgainst': 'privilege',
+                'effectiveLiftDate': date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                'jurisdiction': 'ne',
+                'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
+                'licenseType': DEFAULT_LICENSE_TYPE,
+            }
+        )
 
         message = self._generate_privilege_encumbrance_lifting_message()
         event = self._create_sqs_event(message)
@@ -1431,13 +1440,15 @@ class TestEncumbranceEvents(TstFunction):
         # Create license associated with the privilege
         self.test_data_generator.put_default_license_record_in_provider_table()
         # Create AA associated with the privilege
-        self.test_data_generator.put_default_adverse_action_record_in_provider_table(value_overrides={
-            'actionAgainst': 'privilege',
-            'effectiveLiftDate': date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
-            'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
-            'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
-            'licenseType': DEFAULT_LICENSE_TYPE,
-        })
+        self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+            value_overrides={
+                'actionAgainst': 'privilege',
+                'effectiveLiftDate': date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
+                'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
+                'licenseType': DEFAULT_LICENSE_TYPE,
+            }
+        )
 
         # Create additional active records for state notifications
         self.test_data_generator.put_default_license_record_in_provider_table(
@@ -1501,18 +1512,19 @@ class TestEncumbranceEvents(TstFunction):
         )
 
         # Add the privilege where encumbrance is being lifted (in DEFAULT_PRIVILEGE_JURISDICTION = 'ne')
-        self.test_data_generator.put_default_privilege_record_in_provider_table(value_overrides={
-            'encumberedStatus': 'unencumbered',
-            'licenseJurisdiction': 'co'
-        })
+        self.test_data_generator.put_default_privilege_record_in_provider_table(
+            value_overrides={'encumberedStatus': 'unencumbered', 'licenseJurisdiction': 'co'}
+        )
 
-        self.test_data_generator.put_default_adverse_action_record_in_provider_table(value_overrides={
-            'actionAgainst': 'privilege',
-            'effectiveLiftDate': date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
-            'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
-            'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
-            'licenseType': DEFAULT_LICENSE_TYPE,
-        })
+        self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+            value_overrides={
+                'actionAgainst': 'privilege',
+                'effectiveLiftDate': date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
+                'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
+                'licenseType': DEFAULT_LICENSE_TYPE,
+            }
+        )
 
         # Create active licenses in multiple jurisdictions (excluding the lifting jurisdiction 'ne')
         self.test_data_generator.put_default_license_record_in_provider_table(
@@ -1533,7 +1545,7 @@ class TestEncumbranceEvents(TstFunction):
             value_overrides={
                 'jurisdiction': 'tx',
                 'administratorSetStatus': 'active',
-                'encumberedStatus': 'unencumbered'
+                'encumberedStatus': 'unencumbered',
             }
         )
 
@@ -1610,18 +1622,19 @@ class TestEncumbranceEvents(TstFunction):
         )
 
         # Add the privilege where encumbrance is being lifted (in DEFAULT_PRIVILEGE_JURISDICTION = 'ne')
-        self.test_data_generator.put_default_privilege_record_in_provider_table(value_overrides={
-            'encumberedStatus': 'unencumbered',
-            'licenseJurisdiction': 'co'
-        })
+        self.test_data_generator.put_default_privilege_record_in_provider_table(
+            value_overrides={'encumberedStatus': 'unencumbered', 'licenseJurisdiction': 'co'}
+        )
 
-        self.test_data_generator.put_default_adverse_action_record_in_provider_table(value_overrides={
-            'actionAgainst': 'privilege',
-            'effectiveLiftDate': privilege_effective_lift_date,
-            'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
-            'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
-            'licenseType': DEFAULT_LICENSE_TYPE,
-        })
+        self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+            value_overrides={
+                'actionAgainst': 'privilege',
+                'effectiveLiftDate': privilege_effective_lift_date,
+                'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
+                'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
+                'licenseType': DEFAULT_LICENSE_TYPE,
+            }
+        )
 
         # Create active licenses in multiple jurisdictions (excluding the lifting jurisdiction 'ne')
         self.test_data_generator.put_default_license_record_in_provider_table(
@@ -1630,13 +1643,15 @@ class TestEncumbranceEvents(TstFunction):
                 'jurisdictionUploadedLicenseStatus': 'active',
             }
         )
-        self.test_data_generator.put_default_adverse_action_record_in_provider_table(value_overrides={
-            'actionAgainst': 'license',
-            'effectiveLiftDate': license_effective_lift_date,
-            'jurisdiction': 'co',
-            'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
-            'licenseType': DEFAULT_LICENSE_TYPE,
-        })
+        self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+            value_overrides={
+                'actionAgainst': 'license',
+                'effectiveLiftDate': license_effective_lift_date,
+                'jurisdiction': 'co',
+                'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
+                'licenseType': DEFAULT_LICENSE_TYPE,
+            }
+        )
 
         self.test_data_generator.put_default_license_record_in_provider_table(
             value_overrides={
@@ -1650,7 +1665,7 @@ class TestEncumbranceEvents(TstFunction):
             value_overrides={
                 'jurisdiction': 'tx',
                 'administratorSetStatus': 'active',
-                'encumberedStatus': 'unencumbered'
+                'encumberedStatus': 'unencumbered',
             }
         )
 
@@ -1725,10 +1740,9 @@ class TestEncumbranceEvents(TstFunction):
         )
 
         # Add the privilege where encumbrance is being lifted (in DEFAULT_PRIVILEGE_JURISDICTION = 'ne')
-        self.test_data_generator.put_default_privilege_record_in_provider_table(value_overrides={
-            'encumberedStatus': 'unencumbered',
-            'licenseJurisdiction': 'co'
-        })
+        self.test_data_generator.put_default_privilege_record_in_provider_table(
+            value_overrides={'encumberedStatus': 'unencumbered', 'licenseJurisdiction': 'co'}
+        )
 
         # Create active licenses in multiple jurisdictions (excluding the lifting jurisdiction 'ne')
         self.test_data_generator.put_default_license_record_in_provider_table(
@@ -1737,13 +1751,15 @@ class TestEncumbranceEvents(TstFunction):
                 'jurisdictionUploadedLicenseStatus': 'active',
             }
         )
-        self.test_data_generator.put_default_adverse_action_record_in_provider_table(value_overrides={
-            'actionAgainst': 'license',
-            'effectiveLiftDate': license_effective_lift_date,
-            'jurisdiction': 'co',
-            'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
-            'licenseType': DEFAULT_LICENSE_TYPE,
-        })
+        self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+            value_overrides={
+                'actionAgainst': 'license',
+                'effectiveLiftDate': license_effective_lift_date,
+                'jurisdiction': 'co',
+                'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
+                'licenseType': DEFAULT_LICENSE_TYPE,
+            }
+        )
 
         self.test_data_generator.put_default_license_record_in_provider_table(
             value_overrides={
@@ -1757,7 +1773,7 @@ class TestEncumbranceEvents(TstFunction):
             value_overrides={
                 'jurisdiction': 'tx',
                 'administratorSetStatus': 'active',
-                'encumberedStatus': 'unencumbered'
+                'encumberedStatus': 'unencumbered',
             }
         )
 
@@ -2267,13 +2283,15 @@ class TestEncumbranceEvents(TstFunction):
             }
         )
 
-        self.test_data_generator.put_default_adverse_action_record_in_provider_table(value_overrides={
-            'actionAgainst': 'license',
-            'effectiveLiftDate': date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
-            'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
-            'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
-            'licenseType': DEFAULT_LICENSE_TYPE,
-        })
+        self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+            value_overrides={
+                'actionAgainst': 'license',
+                'effectiveLiftDate': date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
+                'licenseType': DEFAULT_LICENSE_TYPE,
+            }
+        )
 
         message = self._generate_license_encumbrance_lifting_message()
         event = self._create_sqs_event(message)
@@ -2348,13 +2366,15 @@ class TestEncumbranceEvents(TstFunction):
             }
         )
 
-        self.test_data_generator.put_default_adverse_action_record_in_provider_table(value_overrides={
-            'actionAgainst': 'license',
-            'effectiveLiftDate': date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
-            'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
-            'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
-            'licenseType': DEFAULT_LICENSE_TYPE,
-        })
+        self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+            value_overrides={
+                'actionAgainst': 'license',
+                'effectiveLiftDate': date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
+                'licenseType': DEFAULT_LICENSE_TYPE,
+            }
+        )
 
         message = self._generate_license_encumbrance_lifting_message()
         event = self._create_sqs_event(message)
@@ -2434,13 +2454,15 @@ class TestEncumbranceEvents(TstFunction):
             }
         )
 
-        self.test_data_generator.put_default_adverse_action_record_in_provider_table(value_overrides={
-            'actionAgainst': 'license',
-            'effectiveLiftDate': date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
-            'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
-            'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
-            'licenseType': DEFAULT_LICENSE_TYPE,
-        })
+        self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+            value_overrides={
+                'actionAgainst': 'license',
+                'effectiveLiftDate': date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
+                'licenseType': DEFAULT_LICENSE_TYPE,
+            }
+        )
 
         # The encumbrance lifting occurs in DEFAULT_LICENSE_JURISDICTION ('oh')
         message = self._generate_license_encumbrance_lifting_message()
@@ -2540,13 +2562,15 @@ class TestEncumbranceEvents(TstFunction):
             }
         )
 
-        self.test_data_generator.put_default_adverse_action_record_in_provider_table(value_overrides={
-            'actionAgainst': 'license',
-            'effectiveLiftDate': date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
-            'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
-            'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
-            'licenseType': DEFAULT_LICENSE_TYPE,
-        })
+        self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+            value_overrides={
+                'actionAgainst': 'license',
+                'effectiveLiftDate': date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
+                'licenseType': DEFAULT_LICENSE_TYPE,
+            }
+        )
 
         # Test license encumbrance notification
         message = self._generate_license_encumbrance_message()
@@ -2675,11 +2699,13 @@ class TestEncumbranceEvents(TstFunction):
             }
         )
 
-        # Simulate the license encumbrance lifting event (this would be triggered when the last 
+        # Simulate the license encumbrance lifting event (this would be triggered when the last
         # license encumbrance is lifted, making the license fully unencumbered)
-        message = self._generate_license_encumbrance_lifting_message({
-            'effectiveDate': '2024-03-01',  # This is the date when the most recent encumbrance was lifted
-        })
+        message = self._generate_license_encumbrance_lifting_message(
+            {
+                'effectiveDate': '2024-03-01',  # This is the date when the most recent encumbrance was lifted
+            }
+        )
         event = self._create_sqs_event(message)
 
         # Execute the handler
@@ -2692,20 +2718,19 @@ class TestEncumbranceEvents(TstFunction):
         )
 
         privileges = provider_records.get_privilege_records()
-        updated_privilege = next(
-            p for p in privileges if p.jurisdiction == DEFAULT_PRIVILEGE_JURISDICTION
-        )
+        updated_privilege = next(p for p in privileges if p.jurisdiction == DEFAULT_PRIVILEGE_JURISDICTION)
 
         self.assertEqual(PrivilegeEncumberedStatusEnum.UNENCUMBERED, updated_privilege.encumberedStatus)
 
         # Verify privilege update record was created with the LATEST effective lift date (2024-03-15)
         # not the date from the event (2024-03-01)
-        privilege_update_records = (self.test_data_generator
-                                    .query_privilege_update_records_for_given_record_from_database(updated_privilege))
+        privilege_update_records = (
+            self.test_data_generator.query_privilege_update_records_for_given_record_from_database(updated_privilege)
+        )
 
         self.assertEqual(1, len(privilege_update_records))
         update_record = privilege_update_records[0]
-        
+
         # The key assertion: effectiveDate should be the LATEST lift date (2024-03-15), not the event date (2024-03-01)
         self.assertEqual(date(2024, 3, 15), update_record.effectiveDate)
         self.assertEqual('lifting_encumbrance', update_record.updateType)
@@ -2738,10 +2763,11 @@ class TestEncumbranceEvents(TstFunction):
             call_args,
         )
 
-
-    def _when_testing_privilege_lift_handler_with_encumbered_privilege(self, encumbered_status,
-                                                                       mock_provider_email, mock_state_email):
+    def _when_testing_privilege_lift_handler_with_encumbered_privilege(
+        self, encumbered_status, mock_provider_email, mock_state_email
+    ):
         from handlers.encumbrance_events import privilege_encumbrance_lifting_notification_listener
+
         # Set up test data with registered provider
         self.test_data_generator.put_default_provider_record_in_provider_table(
             value_overrides={'compactConnectRegisteredEmailAddress': 'provider@example.com'}
@@ -2790,7 +2816,8 @@ class TestEncumbranceEvents(TstFunction):
         from cc_common.data_model.schema.common import PrivilegeEncumberedStatusEnum
 
         self._when_testing_privilege_lift_handler_with_encumbered_privilege(
-            PrivilegeEncumberedStatusEnum.ENCUMBERED, mock_provider_email, mock_state_email)
+            PrivilegeEncumberedStatusEnum.ENCUMBERED, mock_provider_email, mock_state_email
+        )
 
     @patch(
         'cc_common.email_service_client.EmailServiceClient.send_privilege_encumbrance_lifting_state_notification_email'
@@ -2805,7 +2832,8 @@ class TestEncumbranceEvents(TstFunction):
         from cc_common.data_model.schema.common import PrivilegeEncumberedStatusEnum
 
         self._when_testing_privilege_lift_handler_with_encumbered_privilege(
-            PrivilegeEncumberedStatusEnum.LICENSE_ENCUMBERED, mock_provider_email, mock_state_email)
+            PrivilegeEncumberedStatusEnum.LICENSE_ENCUMBERED, mock_provider_email, mock_state_email
+        )
 
     @patch(
         'cc_common.email_service_client.EmailServiceClient.send_license_encumbrance_lifting_state_notification_email'

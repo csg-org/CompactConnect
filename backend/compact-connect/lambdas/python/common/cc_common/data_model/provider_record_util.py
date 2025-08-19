@@ -1,8 +1,9 @@
 from collections.abc import Callable, Iterable
 from datetime import (
     UTC,
+    date,
     datetime,
-    timedelta, date,
+    timedelta,
 )
 from enum import StrEnum
 
@@ -500,8 +501,9 @@ class ProviderUserRecords:
             and (filter_condition is None or filter_condition(record))
         ]
 
-    def _get_latest_effective_lift_date_for_adverse_actions(self,
-                                                            adverse_actions: list[AdverseActionData]) -> date | None:
+    def _get_latest_effective_lift_date_for_adverse_actions(
+        self, adverse_actions: list[AdverseActionData]
+    ) -> date | None:
         if not adverse_actions:
             logger.info('No adverse actions found. Returning None')
             return None
@@ -517,8 +519,9 @@ class ProviderUserRecords:
 
         return latest_effective_lift_date
 
-    def get_latest_effective_lift_date_for_license_adverse_actions(self, license_jurisdiction: str,
-        license_type_abbreviation: str) -> date | None:
+    def get_latest_effective_lift_date_for_license_adverse_actions(
+        self, license_jurisdiction: str, license_type_abbreviation: str
+    ) -> date | None:
         """
         Get the latest effective lift date for a license if all adverse actions have been lifted.
 
@@ -532,8 +535,9 @@ class ProviderUserRecords:
         )
         return self._get_latest_effective_lift_date_for_adverse_actions(license_adverse_actions)
 
-    def get_latest_effective_lift_date_for_privilege_adverse_actions(self, privilege_jurisdiction: str,
-        license_type_abbreviation: str) -> date | None:
+    def get_latest_effective_lift_date_for_privilege_adverse_actions(
+        self, privilege_jurisdiction: str, license_type_abbreviation: str
+    ) -> date | None:
         """
         Get the latest effective lift date for a privilege if all adverse actions have been lifted.
 

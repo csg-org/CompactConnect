@@ -2707,7 +2707,7 @@ class DataClient:
         provider_id: str,
         jurisdiction: str,
         license_type_abbreviation: str,
-    ) -> tuple[list[PrivilegeData], date|None]:
+    ) -> tuple[list[PrivilegeData], date | None]:
         """
         Lift encumbrances from privileges that were encumbered due to a home jurisdiction license encumbrance.
 
@@ -2763,7 +2763,7 @@ class DataClient:
 
         latest_effective_lift_date = provider_user_records.get_latest_effective_lift_date_for_license_adverse_actions(
             license_jurisdiction=license_record.jurisdiction,
-            license_type_abbreviation=license_record.licenseTypeAbbreviation
+            license_type_abbreviation=license_record.licenseTypeAbbreviation,
         )
 
         # Build transaction items for all privileges
