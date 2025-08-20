@@ -7,13 +7,9 @@
 .core-info-block {
     display: flex;
     flex-direction: column;
-    padding: 1rem;
+    padding: 1rem 1rem 0 1rem;
     border-radius: 14px;
     background-color: @white;
-
-    @media @tabletWidth {
-        padding: 2rem;
-    }
 
     @media @desktopWidth {
         width: 69rem;
@@ -45,19 +41,29 @@
             color: @lightTextGrey;
             font-weight: @fontWeightBold;
             font-size: 1.4rem;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
         }
 
         .chunk-text {
             font-size: 1.6rem;
+
+            &.emphasis {
+                font-weight: @fontWeightBold;
+                font-size: @fontSizeLarge;
+            }
 
             &.error {
                 color: @midRed;
             }
         }
 
-        .prev-doc-table {
-            min-height: 33vh;
+        .document-list-container {
             margin-top: 1rem;
+
+            &.can-edit {
+                min-height: 33vh;
+            }
         }
     }
 
@@ -65,12 +71,14 @@
         display: flex;
         flex-direction: row;
         justify-content: space-between;
+        margin-top: auto;
+        padding-bottom: 2rem;
 
         &.one-button {
             justify-content: flex-end;
         }
 
-        .end-aff-button {
+        .end-affiliation-button {
             margin-bottom: -1rem;
             margin-left: 1rem;
 

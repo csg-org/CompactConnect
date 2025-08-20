@@ -309,6 +309,10 @@ describe('Licensee model', () => {
                 dateOfUpload: '2025-01-03T23:50:17+00:00',
                 documentKeys: ['key'],
                 fileNames: ['file.png'],
+                downloadLinks: [{
+                    fileName: 'file.png',
+                    url: 'https://example.com',
+                }],
                 status: 'active'
             },
             {
@@ -318,6 +322,10 @@ describe('Licensee model', () => {
                 dateOfUpload: '2025-02-03T23:50:17+00:00',
                 documentKeys: ['key'],
                 fileNames: ['file.png'],
+                downloadLinks: [{
+                    fileName: 'file.png',
+                    url: 'https://example.com',
+                }],
                 status: 'inactive'
             }],
             licenses: [
@@ -449,6 +457,10 @@ describe('Licensee model', () => {
             dateOfUpload: '2025-01-03T23:50:17+00:00',
             documentKeys: ['key'],
             fileNames: ['file.png'],
+            downloadLinks: [{
+                filename: 'file.png',
+                url: 'https://example.com',
+            }],
             status: 'active'
         });
         expect(licensee.homeJurisdictionLicenses()).to.matchPattern([
@@ -639,6 +651,10 @@ describe('Licensee model', () => {
                 dateOfUpload: '2025-01-03T23:50:17+00:00',
                 documentKeys: ['key'],
                 fileNames: ['file.png'],
+                downloadLinks: [{
+                    fileName: 'file.png',
+                    url: 'https://example.com',
+                }],
                 status: 'inactive'
             },
             {

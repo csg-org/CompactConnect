@@ -8,12 +8,13 @@
 import { expect } from 'chai';
 import { mountShallow } from '@tests/helpers/setup';
 import MilitaryDocumentRow from '@components/MilitaryDocumentRow/MilitaryDocumentRow.vue';
+import { MilitaryAffiliation } from '@/models/MilitaryAffiliation/MilitaryAffiliation.model';
 
 describe('MilitaryDocumentRow component', async () => {
     it('should mount the component', async () => {
         const wrapper = await mountShallow(MilitaryDocumentRow, {
             props: {
-                item: {},
+                item: new MilitaryAffiliation(),
             }
         });
 
