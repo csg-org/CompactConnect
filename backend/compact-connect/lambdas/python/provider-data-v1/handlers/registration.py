@@ -1,7 +1,5 @@
-import json
 from datetime import timedelta
 
-import requests
 from aws_lambda_powertools.metrics import MetricUnit
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
@@ -17,15 +15,11 @@ from cc_common.exceptions import (
     CCNotFoundException,
     CCRateLimitingException,
 )
-from cc_common.utils import api_handler
+from cc_common.utils import api_handler, verify_recaptcha
 from marshmallow import ValidationError
 
 RECAPTCHA_ATTEMPT_METRIC_NAME = 'recaptcha-attempt'
 REGISTRATION_ATTEMPT_METRIC_NAME = 'registration-attempt'
-
-# Module level variable for caching
-_RECAPTCHA_SECRET = None
-
 
 def _rate_limit_exceeded(ip_address: str) -> bool:
     """Check if the IP address has exceeded the rate limit.
@@ -66,41 +60,6 @@ def _rate_limit_exceeded(ip_address: str) -> bool:
     except ClientError as e:
         logger.error('Failed to check rate limit', error=str(e))
         raise CCAwsServiceException('Failed to check rate limit') from e
-
-
-def get_recaptcha_secret() -> str:
-    """Get the reCAPTCHA secret from Secrets Manager with module-level caching."""
-    global _RECAPTCHA_SECRET
-    if _RECAPTCHA_SECRET is None:
-        logger.info('Loading reCAPTCHA secret')
-        try:
-            _RECAPTCHA_SECRET = json.loads(
-                config.secrets_manager_client.get_secret_value(
-                    SecretId=f'compact-connect/env/{config.environment_name}/recaptcha/token'
-                )['SecretString']
-            )['token']
-        except Exception as e:
-            logger.error('Failed to load reCAPTCHA secret', error=str(e))
-            raise CCInternalException('Failed to load reCAPTCHA secret') from e
-    return _RECAPTCHA_SECRET
-
-
-def verify_recaptcha(token: str) -> bool:
-    """Verify the reCAPTCHA token with Google's API."""
-    try:
-        response = requests.post(
-            'https://www.google.com/recaptcha/api/siteverify',
-            data={
-                'secret': get_recaptcha_secret(),
-                'response': token,
-            },
-            timeout=5,
-        )
-        return response.json().get('success', False)
-    except ClientError as e:
-        logger.error('Failed to verify reCAPTCHA token', error=str(e))
-        return False
-
 
 def _should_allow_reregistration(cognito_user: dict) -> bool:
     """Check if a user should be allowed to re-register based on their Cognito status.

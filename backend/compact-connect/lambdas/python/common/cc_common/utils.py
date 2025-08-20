@@ -10,6 +10,7 @@ from types import MethodType
 from typing import Any
 from uuid import UUID
 
+import requests
 from aws_lambda_powertools import Logger
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
@@ -777,3 +778,45 @@ def get_provider_user_attributes_from_authorizer_claims(event: dict) -> tuple[st
         raise CCInvalidRequestException('Missing required user profile attribute') from e
 
     return compact, provider_id
+
+# Module level variable for caching
+_RECAPTCHA_SECRET = None
+
+def _get_recaptcha_secret() -> str:
+    """Get the reCAPTCHA secret from Secrets Manager with module-level caching."""
+    global _RECAPTCHA_SECRET
+    if _RECAPTCHA_SECRET is None:
+        logger.info('Loading reCAPTCHA secret')
+        try:
+            _RECAPTCHA_SECRET = json.loads(
+                config.secrets_manager_client.get_secret_value(
+                    SecretId=f'compact-connect/env/{config.environment_name}/recaptcha/token'
+                )['SecretString']
+            )['token']
+        except Exception as e:
+            logger.error('Failed to load reCAPTCHA secret', error=str(e))
+            raise CCInternalException('Failed to load reCAPTCHA secret') from e
+    return _RECAPTCHA_SECRET
+
+
+def verify_recaptcha(token: str) -> bool:
+    """Verify the reCAPTCHA token with Google's API."""
+
+    # Sandbox environments don't always have recaptcha configured, but our persistent environments
+    # do. This checks if we are running in a sandbox environment. Else we call the Google verification endpoint
+    if config.environment_name.lower() not in ['test', 'beta', 'prod']:
+        return True
+
+    try:
+        response = requests.post(
+            'https://www.google.com/recaptcha/api/siteverify',
+            data={
+                'secret': _get_recaptcha_secret(),
+                'response': token,
+            },
+            timeout=5,
+        )
+        return response.json().get('success', False)
+    except ClientError as e:
+        logger.error('Failed to verify reCAPTCHA token', error=str(e))
+        return False

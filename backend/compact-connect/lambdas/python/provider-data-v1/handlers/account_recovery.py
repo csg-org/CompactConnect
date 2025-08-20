@@ -1,8 +1,6 @@
-import json
 import secrets
 from datetime import timedelta
 
-import requests
 from aws_lambda_powertools.metrics import MetricUnit
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
@@ -13,57 +11,19 @@ from cc_common.data_model.schema.provider.api import (
 )
 from cc_common.exceptions import (
     CCAccessDeniedException,
-    CCAwsServiceException,
     CCInternalException,
     CCInvalidRequestException,
     CCNotFoundException,
     CCRateLimitingException,
 )
-from cc_common.utils import api_handler
+from cc_common.utils import api_handler, verify_recaptcha
 from marshmallow import ValidationError
 
 MFA_RECOVERY_INITIATE_ATTEMPT_METRIC = 'mfa-recovery-initiate'
 MFA_RECOVERY_VERIFY_ATTEMPT_METRIC = 'mfa-recovery-verify'
 
-# Module-level cache
-_RECAPTCHA_SECRET = None
-
 GENERIC_REQUEST_PROCESSED_RESPONSE = {'message': 'request processed'}
 GENERIC_INVALID_REQUEST_MESSAGE = 'Invalid or expired recovery link'
-
-
-def _get_recaptcha_secret() -> str:
-    global _RECAPTCHA_SECRET
-    if _RECAPTCHA_SECRET is None:
-        logger.info('Loading reCAPTCHA secret')
-        try:
-            _RECAPTCHA_SECRET = json.loads(
-                config.secrets_manager_client.get_secret_value(
-                    SecretId=f'compact-connect/env/{config.environment_name}/recaptcha/token'
-                )['SecretString']
-            )['token']
-        except Exception as e:  # noqa: BLE001
-            logger.error('Failed to load reCAPTCHA secret', error=str(e))
-            raise CCAwsServiceException('Failed to load reCAPTCHA secret') from e
-    return _RECAPTCHA_SECRET
-
-
-def _verify_recaptcha(token: str) -> bool:
-    # Sandbox environments don't always have recaptcha configured, but our persistent environments
-    # do. This checks if we are running in a sandbox environment. Else we call the Google verification endpoint
-    if config.environment_name.lower() not in ['test', 'beta', 'prod']:
-        return True
-
-    try:
-        response = requests.post(
-            'https://www.google.com/recaptcha/api/siteverify',
-            data={'secret': _get_recaptcha_secret(), 'response': token},
-            timeout=5,
-        )
-        return response.json().get('success', False)
-    except Exception as e:  # noqa: BLE001
-        logger.error('Failed to verify reCAPTCHA token', error=str(e))
-        return False
 
 
 def _provider_rate_limit_exceeded(*, compact: str, provider_id: str) -> bool:
@@ -131,7 +91,7 @@ def initiate_account_recovery(event: dict, context: LambdaContext):  # noqa: ARG
         return GENERIC_REQUEST_PROCESSED_RESPONSE
 
     # Verify reCAPTCHA
-    if not _verify_recaptcha(body['recaptchaToken']):
+    if not verify_recaptcha(body['recaptchaToken']):
         logger.info('Invalid reCAPTCHA token for account recovery initiate', ip_address=source_ip)
         metrics.add_metric(name=MFA_RECOVERY_INITIATE_ATTEMPT_METRIC, unit=MetricUnit.NoUnit, value=0)
         return GENERIC_REQUEST_PROCESSED_RESPONSE
@@ -329,7 +289,7 @@ def verify_account_recovery(event: dict, context: LambdaContext):  # noqa: ARG00
         raise CCInvalidRequestException(GENERIC_INVALID_REQUEST_MESSAGE) from e
 
     # Verify reCAPTCHA
-    if not _verify_recaptcha(body['recaptchaToken']):
+    if not verify_recaptcha(body['recaptchaToken']):
         logger.info('Invalid reCAPTCHA token for account recovery verify')
         metrics.add_metric(name=MFA_RECOVERY_VERIFY_ATTEMPT_METRIC, unit=MetricUnit.NoUnit, value=0)
         raise CCAccessDeniedException(GENERIC_INVALID_REQUEST_MESSAGE)

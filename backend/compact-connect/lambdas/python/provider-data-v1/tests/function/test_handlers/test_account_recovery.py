@@ -106,7 +106,7 @@ class TestInitiateAccountRecovery(TstFunction):
         event['body'] = json.dumps(body)
         return event
 
-    @patch('handlers.account_recovery._verify_recaptcha', return_valid_recaptcha)
+    @patch('handlers.account_recovery.verify_recaptcha', return_valid_recaptcha)
     def test_initiate_account_recovery_returns_generic_200_if_no_license_match(self):
         from handlers.account_recovery import initiate_account_recovery
 
@@ -119,7 +119,7 @@ class TestInitiateAccountRecovery(TstFunction):
             json.loads(response['body']),
         )
 
-    @patch('handlers.account_recovery._verify_recaptcha', return_invalid_recaptcha)
+    @patch('handlers.account_recovery.verify_recaptcha', return_invalid_recaptcha)
     def test_initiate_account_recovery_returns_generic_200_if_recaptcha_fails(self):
         from handlers.account_recovery import initiate_account_recovery
 
@@ -133,7 +133,7 @@ class TestInitiateAccountRecovery(TstFunction):
             json.loads(response['body']),
         )
 
-    @patch('handlers.account_recovery._verify_recaptcha', return_valid_recaptcha)
+    @patch('handlers.account_recovery.verify_recaptcha', return_valid_recaptcha)
     def test_initiate_account_recovery_returns_generic_200_if_provider_not_registered(self):
         from handlers.account_recovery import initiate_account_recovery
 
@@ -148,7 +148,7 @@ class TestInitiateAccountRecovery(TstFunction):
             json.loads(response['body']),
         )
 
-    @patch('handlers.account_recovery._verify_recaptcha', return_valid_recaptcha)
+    @patch('handlers.account_recovery.verify_recaptcha', return_valid_recaptcha)
     def test_initiate_account_recovery_returns_generic_200_if_provided_email_does_not_match_with_registered_email(self):
         from handlers.account_recovery import initiate_account_recovery
 
@@ -165,7 +165,7 @@ class TestInitiateAccountRecovery(TstFunction):
             json.loads(response['body']),
         )
 
-    @patch('handlers.account_recovery._verify_recaptcha', return_valid_recaptcha)
+    @patch('handlers.account_recovery.verify_recaptcha', return_valid_recaptcha)
     def test_initiate_account_recovery_returns_generic_200_if_rate_limited(self):
         from handlers.account_recovery import initiate_account_recovery
 
@@ -215,7 +215,7 @@ class TestInitiateAccountRecovery(TstFunction):
             self.assertIsNone(provider_record.recoveryToken)
             self.assertIsNone(provider_record.recoveryExpiry)
 
-    @patch('handlers.account_recovery._verify_recaptcha', return_valid_recaptcha)
+    @patch('handlers.account_recovery.verify_recaptcha', return_valid_recaptcha)
     def test_initiate_account_recovery_sends_email_if_authenticated(self):
         from handlers.account_recovery import initiate_account_recovery
 
@@ -316,7 +316,7 @@ class TestVerifyAccountRecovery(TstFunction):
         event['body'] = json.dumps(body)
         return event
 
-    @patch('handlers.account_recovery._verify_recaptcha', return_valid_recaptcha)
+    @patch('handlers.account_recovery.verify_recaptcha', return_valid_recaptcha)
     def test_verify_account_recovery_removes_recovery_fields_if_successful_verification(self):
         from handlers.account_recovery import verify_account_recovery
 
@@ -337,7 +337,7 @@ class TestVerifyAccountRecovery(TstFunction):
         self.assertIsNone(provider_record.recoveryToken)
         self.assertIsNone(provider_record.recoveryExpiry)
 
-    @patch('handlers.account_recovery._verify_recaptcha', return_valid_recaptcha)
+    @patch('handlers.account_recovery.verify_recaptcha', return_valid_recaptcha)
     def test_verify_account_recovery_recreates_cognito_user_account(self):
         from handlers.account_recovery import verify_account_recovery
 
@@ -365,7 +365,7 @@ class TestVerifyAccountRecovery(TstFunction):
                 ],
             )
 
-    @patch('handlers.account_recovery._verify_recaptcha', return_invalid_recaptcha)
+    @patch('handlers.account_recovery.verify_recaptcha', return_invalid_recaptcha)
     def test_verify_account_recovery_returns_failure_if_recaptcha_fails(self):
         from handlers.account_recovery import verify_account_recovery
 
@@ -386,7 +386,7 @@ class TestVerifyAccountRecovery(TstFunction):
         self.assertIsNotNone(provider_record.recoveryToken)
         self.assertIsNotNone(provider_record.recoveryExpiry)
 
-    @patch('handlers.account_recovery._verify_recaptcha', return_valid_recaptcha)
+    @patch('handlers.account_recovery.verify_recaptcha', return_valid_recaptcha)
     def test_verify_account_recovery_rate_limits_caller_for_same_provider_account(self):
         from handlers.account_recovery import verify_account_recovery
 
@@ -423,7 +423,7 @@ class TestVerifyAccountRecovery(TstFunction):
         self.assertIsNotNone(provider_record.recoveryToken)
         self.assertIsNotNone(provider_record.recoveryExpiry)
 
-    @patch('handlers.account_recovery._verify_recaptcha', return_valid_recaptcha)
+    @patch('handlers.account_recovery.verify_recaptcha', return_valid_recaptcha)
     def test_verify_account_recovery_removes_recovery_fields_if_token_expired(self):
         from handlers.account_recovery import verify_account_recovery
 
@@ -449,7 +449,7 @@ class TestVerifyAccountRecovery(TstFunction):
         self.assertIsNone(provider_record.recoveryToken)
         self.assertIsNone(provider_record.recoveryExpiry)
 
-    @patch('handlers.account_recovery._verify_recaptcha', return_valid_recaptcha)
+    @patch('handlers.account_recovery.verify_recaptcha', return_valid_recaptcha)
     def test_verify_account_recovery_returns_invalid_response_if_no_token_on_provider_record(self):
         from handlers.account_recovery import verify_account_recovery
 
@@ -462,7 +462,7 @@ class TestVerifyAccountRecovery(TstFunction):
             json.loads(response['body']),
         )
 
-    @patch('handlers.account_recovery._verify_recaptcha', return_valid_recaptcha)
+    @patch('handlers.account_recovery.verify_recaptcha', return_valid_recaptcha)
     def test_verify_account_recovery_returns_invalid_response_if_no_provider_record(self):
         from handlers.account_recovery import verify_account_recovery
 
