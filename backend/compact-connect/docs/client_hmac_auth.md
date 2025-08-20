@@ -27,6 +27,13 @@ This dual authentication approach helps meet regulatory requirements for protect
 
 ## Implementation Requirements
 
+### Authentication Modes
+
+CompactConnect supports two authentication modes:
+
+1. **Required HMAC Authentication** (`@hmac_auth_required`): Endpoints that always require valid HMAC signatures
+2. **Optional HMAC Authentication** (`@optional_hmac_auth`): Endpoints that require HMAC signatures only when a public key is configured for the compact/state combination
+
 ### 1. Key Pair Generation
 
 Generate an ECDSA key pair using the P-256 curve for your client:
@@ -56,6 +63,7 @@ For each API request, you must:
    SORTED_QUERY_PARAMETERS
    TIMESTAMP
    NONCE
+   KEY_ID
    ```
 
 3. **Sign the string** using ECDSA with SHA-256
@@ -71,6 +79,7 @@ Authorization: Bearer <oauth2_access_token>
 X-Algorithm: ECDSA-SHA256
 X-Timestamp: <iso8601_timestamp>
 X-Nonce: <unique_nonce>
+X-Key-Id: <key_identifier>
 X-Signature: <base64_encoded_signature>
 ```
 
@@ -110,9 +119,18 @@ To implement HMAC authentication:
 
 1. **Receive client credentials and test your client credentials grant flow**
    [See here for more](../app_clients/it_staff_onboarding_instructions/README.md).
-2. **Generate your RSA key pair** as described above
-3. **Provide your public key** (not the private key) to CompactConnect staff during registration
+2. **Generate your ECDSA key pair** as described above
+3. **Provide your public key and key ID** (not the private key) to CompactConnect staff during registration
 4. **Test your implementation** against the beta environment
+
+### Key Management
+
+CompactConnect supports key rotation to allow clients to update their signing keys without downtime:
+
+- **Key IDs**: Each public key is associated with a unique key ID that clients must include in the `X-Key-Id` header
+- **Multiple Keys**: Clients can have multiple active keys simultaneously during rotation periods
+- **Key Rollover**: When rotating keys, clients can continue using old keys while new keys are being validated
+- **Database Schema**: Keys are stored with the pattern `pk: <compact>#HMAC_KEYS`, `sk: <compact>#JURISDICTION#<jurisdiction>#<key-id>`
 
 ## Troubleshooting
 
@@ -125,10 +143,19 @@ To implement HMAC authentication:
 - **Encoding**: Use UTF-8 encoding for all string operations
 - **Signature format**: Ensure proper ECDSA with SHA-256
 - **Algorithm header**: Must specify `ECDSA-SHA256` in X-Algorithm header
+- **Key ID header**: Must include `X-Key-Id` header with a valid key identifier
 
 ### Testing Your Implementation
 
 Use the provided test vectors and sandbox environment to validate your HMAC implementation before production deployment.
+
+### Optional HMAC Authentication
+
+For endpoints that support optional HMAC authentication:
+
+- If no public key is configured for the compact/state combination, requests proceed without HMAC validation
+- If a public key is configured, full HMAC validation is enforced
+- This allows for gradual rollout of HMAC authentication across different compacts and states
 
 ## Support
 

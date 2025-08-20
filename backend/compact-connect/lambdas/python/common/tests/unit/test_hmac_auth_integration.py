@@ -66,10 +66,14 @@ class TestHmacAuthIntegration(TstLambdas):
         # Create event without HMAC headers
         event = self.base_event.copy()
 
-        resp = lambda_handler(event, self.mock_context)
+        # Mock DynamoDB to return the public key
+        with patch('cc_common.hmac_auth._get_public_key_from_dynamodb') as mock_get_key:
+            mock_get_key.return_value = self.public_key_pem
 
-        self.assertEqual(401, resp['statusCode'])
-        self.assertEqual('https://example.org', resp['headers']['Access-Control-Allow-Origin'])
+            resp = lambda_handler(event, self.mock_context)
+
+            self.assertEqual(401, resp['statusCode'])
+            self.assertEqual('https://example.org', resp['headers']['Access-Control-Allow-Origin'])
         self.assertEqual('{"message": "Unauthorized"}', resp['body'])
 
     def test_hmac_with_api_handler_invalid_request(self):
@@ -86,10 +90,14 @@ class TestHmacAuthIntegration(TstLambdas):
         event = self._create_signed_event()
         event['headers']['X-Timestamp'] = 'not-a-timestamp'
 
-        resp = lambda_handler(event, self.mock_context)
+        # Mock DynamoDB to return the public key
+        with patch('cc_common.hmac_auth._get_public_key_from_dynamodb') as mock_get_key:
+            mock_get_key.return_value = self.public_key_pem
 
-        self.assertEqual(400, resp['statusCode'])
-        self.assertEqual('https://example.org', resp['headers']['Access-Control-Allow-Origin'])
+            resp = lambda_handler(event, self.mock_context)
+
+            self.assertEqual(400, resp['statusCode'])
+            self.assertEqual('https://example.org', resp['headers']['Access-Control-Allow-Origin'])
 
         # Parse response body to verify error message
         body = json.loads(resp['body'])
@@ -158,11 +166,15 @@ class TestHmacAuthIntegration(TstLambdas):
         # Create event without HMAC headers
         event = self.base_event.copy()
 
-        # This should raise an exception directly instead of returning a proper API response
-        with self.assertRaises(Exception) as cm:
-            lambda_handler_wrong_order(event, self.mock_context)
+        # Mock DynamoDB to return the public key
+        with patch('cc_common.hmac_auth._get_public_key_from_dynamodb') as mock_get_key:
+            mock_get_key.return_value = self.public_key_pem
 
-        self.assertIn('Missing required HMAC authentication headers', str(cm.exception))
+            # This should raise an exception directly instead of returning a proper API response
+            with self.assertRaises(Exception) as cm:
+                lambda_handler_wrong_order(event, self.mock_context)
+
+            self.assertIn('Missing required X-Key-Id header', str(cm.exception))
 
     def test_hmac_with_api_handler_cors_handling(self):
         """Test that CORS headers are properly handled with HMAC authentication."""
@@ -206,6 +218,7 @@ class TestHmacAuthIntegration(TstLambdas):
             query_params=event.get('queryStringParameters') or {},
             timestamp=timestamp,
             nonce=nonce,
+            key_id='test-key-001',
             private_key_pem=self.private_key_pem,
         )
 

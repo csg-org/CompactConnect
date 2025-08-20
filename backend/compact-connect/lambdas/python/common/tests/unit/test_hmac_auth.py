@@ -58,10 +58,14 @@ class TestHmacAuth(TstLambdas):
         # Create event without HMAC headers
         event = self.base_event.copy()
 
-        with self.assertRaises(Exception) as cm:
-            lambda_handler(event, self.mock_context)
+        # Mock DynamoDB to return the public key
+        with patch('cc_common.hmac_auth._get_public_key_from_dynamodb') as mock_get_key:
+            mock_get_key.return_value = self.public_key_pem
 
-        self.assertIn('Missing required HMAC authentication headers', str(cm.exception))
+            with self.assertRaises(Exception) as cm:
+                lambda_handler(event, self.mock_context)
+
+            self.assertIn('Missing required X-Key-Id header', str(cm.exception))
 
     def test_unsupported_algorithm(self):
         """Test authentication failure with unsupported algorithm."""
@@ -75,10 +79,14 @@ class TestHmacAuth(TstLambdas):
         event = self._create_signed_event()
         event['headers']['X-Algorithm'] = 'RSA-SHA256'
 
-        with self.assertRaises(Exception) as cm:
-            lambda_handler(event, self.mock_context)
+        # Mock DynamoDB to return the public key
+        with patch('cc_common.hmac_auth._get_public_key_from_dynamodb') as mock_get_key:
+            mock_get_key.return_value = self.public_key_pem
 
-        self.assertIn('Unsupported signature algorithm', str(cm.exception))
+            with self.assertRaises(Exception) as cm:
+                lambda_handler(event, self.mock_context)
+
+            self.assertIn('Unsupported signature algorithm', str(cm.exception))
 
     def test_invalid_timestamp(self):
         """Test authentication failure with invalid timestamp."""
@@ -92,10 +100,14 @@ class TestHmacAuth(TstLambdas):
         event = self._create_signed_event()
         event['headers']['X-Timestamp'] = '2020-01-01T00:00:00Z'
 
-        with self.assertRaises(Exception) as cm:
-            lambda_handler(event, self.mock_context)
+        # Mock DynamoDB to return the public key
+        with patch('cc_common.hmac_auth._get_public_key_from_dynamodb') as mock_get_key:
+            mock_get_key.return_value = self.public_key_pem
 
-        self.assertIn('Request timestamp is too old or in the future', str(cm.exception))
+            with self.assertRaises(Exception) as cm:
+                lambda_handler(event, self.mock_context)
+
+            self.assertIn('Request timestamp is too old or in the future', str(cm.exception))
 
     def test_malformed_timestamp(self):
         """Test authentication failure with malformed timestamp."""
@@ -109,10 +121,14 @@ class TestHmacAuth(TstLambdas):
         event = self._create_signed_event()
         event['headers']['X-Timestamp'] = 'not-a-timestamp'
 
-        with self.assertRaises(Exception) as cm:
-            lambda_handler(event, self.mock_context)
+        # Mock DynamoDB to return the public key
+        with patch('cc_common.hmac_auth._get_public_key_from_dynamodb') as mock_get_key:
+            mock_get_key.return_value = self.public_key_pem
 
-        self.assertIn('Invalid timestamp format', str(cm.exception))
+            with self.assertRaises(Exception) as cm:
+                lambda_handler(event, self.mock_context)
+
+            self.assertIn('Invalid timestamp format', str(cm.exception))
 
     def test_timestamp_format_compatibility(self):
         """Test that both timestamp formats work with the same signature validation."""
@@ -143,6 +159,7 @@ class TestHmacAuth(TstLambdas):
                     query_params=event.get('queryStringParameters') or {},
                     timestamp=timestamp,
                     nonce=nonce,
+                    key_id='test-key-001',
                     private_key_pem=self.private_key_pem,
                 )
 
@@ -230,12 +247,13 @@ class TestHmacAuth(TstLambdas):
         # Import and use the sign_request function
         from tests.sign_request import sign_request
 
-        headers = sign_request(method, path, query_params, timestamp, nonce, self.private_key_pem)
+        headers = sign_request(method, path, query_params, timestamp, nonce, 'test-key-001', self.private_key_pem)
 
         # Verify headers are present
         self.assertEqual('ECDSA-SHA256', headers['X-Algorithm'])
         self.assertEqual(timestamp, headers['X-Timestamp'])
         self.assertEqual(nonce, headers['X-Nonce'])
+        self.assertIn('X-Key-Id', headers)
         self.assertIn('X-Signature', headers)
 
         # Verify signature can be decoded
@@ -259,12 +277,13 @@ class TestHmacAuth(TstLambdas):
         # Import and use the sign_request function
         from tests.sign_request import sign_request
 
-        headers = sign_request(method, path, query_params, timestamp, nonce, self.private_key_pem)
+        headers = sign_request(method, path, query_params, timestamp, nonce, 'test-key-001', self.private_key_pem)
 
         # Verify headers are present
         self.assertEqual('ECDSA-SHA256', headers['X-Algorithm'])
         self.assertEqual(timestamp, headers['X-Timestamp'])
         self.assertEqual(nonce, headers['X-Nonce'])
+        self.assertIn('X-Key-Id', headers)
         self.assertIn('X-Signature', headers)
 
         # Verify signature can be decoded
@@ -294,7 +313,11 @@ class TestHmacAuth(TstLambdas):
             'httpMethod': 'POST',
             'path': '/v1/compacts/aslp/jurisdictions/al/providers/query',
             'queryStringParameters': {'pageSize': '50', 'startDateTime': '2024-01-01T00:00:00Z'},
-            'headers': {'X-Timestamp': '2024-01-15T10:30:00Z', 'X-Nonce': '550e8400-e29b-41d4-a716-446655440000'},
+            'headers': {
+                'X-Timestamp': '2024-01-15T10:30:00Z',
+                'X-Nonce': '550e8400-e29b-41d4-a716-446655440000',
+                'X-Key-Id': 'test-key-001'
+            },
         }
 
         signature_string = _build_signature_string(event)
@@ -304,7 +327,8 @@ class TestHmacAuth(TstLambdas):
             '/v1/compacts/aslp/jurisdictions/al/providers/query\n'
             'pageSize=50&startDateTime=2024-01-01T00%3A00%3A00Z\n'
             '2024-01-15T10:30:00Z\n'
-            '550e8400-e29b-41d4-a716-446655440000'
+            '550e8400-e29b-41d4-a716-446655440000\n'
+            'test-key-001'
         )
 
         self.assertEqual(expected, signature_string)
@@ -318,7 +342,11 @@ class TestHmacAuth(TstLambdas):
             'httpMethod': 'GET',
             'path': '/v1/compacts/aslp/jurisdictions/al/providers/query',
             'queryStringParameters': {'zebra': 'last', 'alpha': 'first', 'beta': 'second'},
-            'headers': {'X-Timestamp': '2024-01-15T10:30:00Z', 'X-Nonce': '550e8400-e29b-41d4-a716-446655440000'},
+            'headers': {
+                'X-Timestamp': '2024-01-15T10:30:00Z',
+                'X-Nonce': '550e8400-e29b-41d4-a716-446655440000',
+                'X-Key-Id': 'test-key-001'
+            },
         }
 
         signature_string = _build_signature_string(event)
@@ -329,7 +357,8 @@ class TestHmacAuth(TstLambdas):
             '/v1/compacts/aslp/jurisdictions/al/providers/query\n'
             'alpha=first&beta=second&zebra=last\n'
             '2024-01-15T10:30:00Z\n'
-            '550e8400-e29b-41d4-a716-446655440000'
+            '550e8400-e29b-41d4-a716-446655440000\n'
+            'test-key-001'
         )
 
         self.assertEqual(expected, signature_string)
@@ -342,7 +371,11 @@ class TestHmacAuth(TstLambdas):
             'httpMethod': 'GET',
             'path': '/v1/compacts/aslp/jurisdictions/al/providers',
             'queryStringParameters': None,
-            'headers': {'X-Timestamp': '2024-01-15T10:30:00Z', 'X-Nonce': '550e8400-e29b-41d4-a716-446655440000'},
+            'headers': {
+                'X-Timestamp': '2024-01-15T10:30:00Z',
+                'X-Nonce': '550e8400-e29b-41d4-a716-446655440000',
+                'X-Key-Id': 'test-key-001'
+            },
         }
 
         signature_string = _build_signature_string(event)
@@ -352,7 +385,8 @@ class TestHmacAuth(TstLambdas):
             '/v1/compacts/aslp/jurisdictions/al/providers\n'
             '\n'
             '2024-01-15T10:30:00Z\n'
-            '550e8400-e29b-41d4-a716-446655440000'
+            '550e8400-e29b-41d4-a716-446655440000\n'
+            'test-key-001'
         )
 
         self.assertEqual(expected, signature_string)
@@ -370,7 +404,11 @@ class TestHmacAuth(TstLambdas):
                 'special': '!@#$%^&*()',
                 'unicode': 'café résumé',
             },
-            'headers': {'X-Timestamp': '2024-01-15T10:30:00Z', 'X-Nonce': '550e8400-e29b-41d4-a716-446655440000'},
+            'headers': {
+                'X-Timestamp': '2024-01-15T10:30:00Z',
+                'X-Nonce': '550e8400-e29b-41d4-a716-446655440000',
+                'X-Key-Id': 'test-key-001'
+            },
         }
 
         signature_string = _build_signature_string(event)
@@ -381,7 +419,8 @@ class TestHmacAuth(TstLambdas):
             '/v1/compacts/aslp/jurisdictions/al/providers/query\n'
             'filter=status%3Dactive%26type%3Dprovider&search=test%20value%20with%20spaces&special=%21%40%23%24%25%5E%26%2A%28%29&unicode=caf%C3%A9%20r%C3%A9sum%C3%A9\n'
             '2024-01-15T10:30:00Z\n'
-            '550e8400-e29b-41d4-a716-446655440000'
+            '550e8400-e29b-41d4-a716-446655440000\n'
+            'test-key-001'
         )
 
         self.assertEqual(expected, signature_string)
@@ -404,6 +443,7 @@ class TestHmacAuth(TstLambdas):
             'x-algorithm': event['headers']['X-Algorithm'],
             'X-Timestamp': event['headers']['X-Timestamp'],
             'x-nonce': event['headers']['X-Nonce'],
+            'x-key-id': event['headers']['X-Key-Id'],
             'X-Signature': event['headers']['X-Signature'],
         }
 
@@ -424,6 +464,7 @@ class TestHmacAuth(TstLambdas):
         # Generate current timestamp and nonce
         timestamp = datetime.now(UTC).isoformat()
         nonce = '550e8400-e29b-41d4-a716-446655440000'
+        key_id = 'test-key-001'
 
         # Import and use the sign_request function
         from tests.sign_request import sign_request
@@ -434,6 +475,7 @@ class TestHmacAuth(TstLambdas):
             query_params=event.get('queryStringParameters') or {},
             timestamp=timestamp,
             nonce=nonce,
+            key_id=key_id,
             private_key_pem=self.private_key_pem,
         )
 

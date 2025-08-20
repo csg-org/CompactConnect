@@ -17,7 +17,15 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 
 
-def sign_request(method: str, path: str, query_params: dict, timestamp: str, nonce: str, private_key_pem: str) -> dict:
+def sign_request(
+    method: str,
+    path: str,
+    query_params: dict,
+    timestamp: str,
+    nonce: str,
+    key_id: str,
+    private_key_pem: str,
+) -> dict:
     """
     Sign a request using ECDSA with SHA-256.
 
@@ -25,7 +33,7 @@ def sign_request(method: str, path: str, query_params: dict, timestamp: str, non
     how to properly sign requests for the CompactConnect HMAC authentication system.
 
     The signature string is constructed as:
-    HTTP_METHOD\nREQUEST_PATH\nSORTED_QUERY_PARAMETERS\nTIMESTAMP\nNONCE
+    HTTP_METHOD\nREQUEST_PATH\nSORTED_QUERY_PARAMETERS\nTIMESTAMP\nNONCE\nKEY_ID
 
     Where query parameters are sorted alphabetically and URL-encoded.
 
@@ -34,6 +42,7 @@ def sign_request(method: str, path: str, query_params: dict, timestamp: str, non
     :param query_params: Dictionary of query parameters
     :param timestamp: ISO 8601 timestamp in UTC (e.g., '2024-01-15T10:30:00Z' or '2024-01-15T10:30:00+00:00')
     :param nonce: Unique nonce (e.g., UUID4 string)
+    :param key_id: Key identifier for the signing key
     :param private_key_pem: PEM-encoded ECDSA private key
     :return: Dictionary containing headers to add to request
     """
@@ -43,7 +52,7 @@ def sign_request(method: str, path: str, query_params: dict, timestamp: str, non
     )
 
     # Create signature string
-    signature_string = '\n'.join([method, path, sorted_params, timestamp, nonce])
+    signature_string = '\n'.join([method, path, sorted_params, timestamp, nonce, key_id])
 
     # Load private key
     private_key = serialization.load_pem_private_key(private_key_pem.encode(), password=None)
@@ -56,5 +65,6 @@ def sign_request(method: str, path: str, query_params: dict, timestamp: str, non
         'X-Algorithm': 'ECDSA-SHA256',
         'X-Timestamp': timestamp,
         'X-Nonce': nonce,
+        'X-Key-Id': key_id,
         'X-Signature': base64.b64encode(signature).decode(),
     }

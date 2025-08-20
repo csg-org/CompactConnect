@@ -27,7 +27,7 @@ def hmac_auth_required(fn: Callable) -> Callable:
     Decorator to validate HMAC signatures for API requests.
 
     This decorator validates ECDSA signatures according to the specification:
-    - Extracts required headers (X-Algorithm, X-Timestamp, X-Nonce, X-Signature)
+    - Extracts required headers (X-Algorithm, X-Timestamp, X-Nonce, X-Signature, X-Key-Id)
     - Validates timestamp is within 5 minutes
     - Reconstructs signature string from request components
     - Verifies signature using public key from DynamoDB
@@ -39,89 +39,235 @@ def hmac_auth_required(fn: Callable) -> Callable:
 
     @wraps(fn)
     def validate_signature(event: dict, context: Any) -> Any:
-        # Extract headers using CaseInsensitiveDict for consistent handling
-        headers = CaseInsensitiveDict(event.get('headers') or {})
-
-        # Extract required HMAC headers
-        algorithm = headers.get('X-Algorithm')
-        timestamp_str = headers.get('X-Timestamp')
-        nonce = headers.get('X-Nonce')
-        signature_b64 = headers.get('X-Signature')
-
-        # Validate all required headers are present
-        if not all([algorithm, timestamp_str, nonce, signature_b64]):
-            logger.warning(
-                'Missing required HMAC headers',
-                algorithm=algorithm,
-                timestamp=timestamp_str,
-                nonce=nonce,
-                signature_present=bool(signature_b64),
-            )
-            raise CCUnauthorizedException('Missing required HMAC authentication headers')
-
-        # Validate algorithm
-        if algorithm != 'ECDSA-SHA256':
-            logger.warning('Unsupported HMAC algorithm', algorithm=algorithm)
-            raise CCUnauthorizedException('Unsupported signature algorithm')
-
-        # Validate timestamp
-        try:
-            timestamp = datetime.fromisoformat(timestamp_str)
-            now = datetime.now(UTC)
-            time_diff = abs((timestamp - now).total_seconds())
-
-            if time_diff > 300:  # 5 minutes
-                logger.warning(
-                    'Request timestamp too old or in future', timestamp=timestamp_str, time_diff_seconds=time_diff
-                )
-                raise CCUnauthorizedException('Request timestamp is too old or in the future')
-        except ValueError as e:
-            logger.warning('Invalid timestamp format', timestamp=timestamp_str, error=str(e))
-            raise CCInvalidRequestException('Invalid timestamp format') from e
-
         # Extract compact and jurisdiction from path parameters
-        path_params = event.get('pathParameters') or {}
-        compact = path_params.get('compact')
-        jurisdiction = path_params.get('jurisdiction')
+        compact, jurisdiction = _extract_path_parameters(event)
 
-        if not compact or not jurisdiction:
-            logger.error('Missing compact or jurisdiction in path parameters', path_params=path_params)
-            raise CCInvalidRequestException('Missing compact or jurisdiction parameters')
+        # Extract key ID from headers (required)
+        key_id = _extract_key_id(event)
+        if not key_id:
+            logger.error('Missing X-Key-Id header', compact=compact, jurisdiction=jurisdiction)
+            raise CCUnauthorizedException('Missing required X-Key-Id header')
 
-        # Get public key from DynamoDB
-        public_key_pem = _get_public_key_from_dynamodb(compact, jurisdiction)
+        # Get public key from DynamoDB (required)
+        public_key_pem = _get_public_key_from_dynamodb(compact, jurisdiction, key_id)
         if not public_key_pem:
-            logger.error('Public key not found for compact/jurisdiction', compact=compact, jurisdiction=jurisdiction)
-            raise CCUnauthorizedException('Public key not found for this compact/jurisdiction')
+            logger.error('Public key not found for compact/jurisdiction/key_id',
+                        compact=compact, jurisdiction=jurisdiction, key_id=key_id)
+            raise CCUnauthorizedException('Public key not found for this compact/jurisdiction/key_id')
 
-        # Reconstruct signature string
-        signature_string = _build_signature_string(event)
+        # Validate HMAC signature
+        _validate_hmac_signature(event, compact, jurisdiction, public_key_pem)
 
-        # Verify signature
-        if not _verify_signature(signature_string, signature_b64, public_key_pem):
-            logger.warning('Invalid signature for request', compact=compact, jurisdiction=jurisdiction)
-            raise CCUnauthorizedException('Invalid request signature')
-
-        logger.info('HMAC signature validated successfully', compact=compact, jurisdiction=jurisdiction)
-
+        logger.info('HMAC signature validated successfully', compact=compact, jurisdiction=jurisdiction, key_id=key_id)
         return fn(event, context)
 
     return validate_signature
 
 
-def _get_public_key_from_dynamodb(compact: str, jurisdiction: str) -> str | None:
+def optional_hmac_auth(fn: Callable) -> Callable:
     """
-    Retrieve the public key for a compact/jurisdiction combination from DynamoDB.
+    Decorator for optional HMAC signature validation.
+
+    This decorator checks if HMAC keys are configured for the compact/state combination.
+    If keys are configured and X-Key-Id is provided, it enforces HMAC signature validation.
+    If no keys are configured, it allows the request to proceed without HMAC validation.
+    If keys are configured but no X-Key-Id is provided, access is denied.
+
+    This is useful for endpoints that support both authenticated and unauthenticated access,
+    where the authentication requirement is determined by whether HMAC keys are configured.
+
+    :param fn: The function to decorate
+    :return: Decorated function
+    """
+    @wraps(fn)
+    def validate_optional_signature(event: dict, context: Any) -> Any:
+        # Extract compact and jurisdiction from path parameters
+        compact, jurisdiction = _extract_path_parameters(event)
+
+        # Get all configured keys for this compact/jurisdiction in a single query
+        configured_keys = _get_configured_keys_for_jurisdiction(compact, jurisdiction)
+
+        if not configured_keys:
+            # No keys configured - allow request to proceed without HMAC validation
+            logger.debug('No HMAC keys configured for compact/jurisdiction - proceeding without HMAC validation',
+                        compact=compact, jurisdiction=jurisdiction)
+            return fn(event, context)
+
+        # Keys are configured - check if X-Key-Id is provided
+        key_id = _extract_key_id(event)
+        if not key_id:
+            logger.warning('HMAC keys configured but no X-Key-Id provided - denying access',
+                         compact=compact, jurisdiction=jurisdiction)
+            raise CCUnauthorizedException('X-Key-Id header required when HMAC keys are configured')
+
+        # Get public key for the specific key ID from our cached keys
+        public_key_pem = configured_keys.get(key_id)
+        if not public_key_pem:
+            logger.error('Public key not found for compact/jurisdiction/key_id',
+                        compact=compact, jurisdiction=jurisdiction, key_id=key_id)
+            raise CCUnauthorizedException('Public key not found for this compact/jurisdiction/key_id')
+
+        # Validate HMAC signature
+        _validate_hmac_signature(event, compact, jurisdiction, public_key_pem)
+
+        logger.info(
+            'Optional HMAC signature validated successfully',
+            compact=compact,
+            jurisdiction=jurisdiction,
+            key_id=key_id
+        )
+        return fn(event, context)
+
+    return validate_optional_signature
+
+
+def _extract_path_parameters(event: dict) -> tuple[str, str]:
+    """
+    Extract compact and jurisdiction from path parameters.
+
+    :param event: API Gateway event
+    :return: Tuple of (compact, jurisdiction)
+    :raises CCInvalidRequestException: If compact or jurisdiction is missing
+    """
+    path_params = event.get('pathParameters') or {}
+    compact = path_params.get('compact')
+    jurisdiction = path_params.get('jurisdiction')
+
+    if not compact or not jurisdiction:
+        logger.error('Missing compact or jurisdiction in path parameters', path_params=path_params)
+        raise CCInvalidRequestException('Missing compact or jurisdiction parameters')
+
+    return compact, jurisdiction
+
+
+def _extract_key_id(event: dict) -> str | None:
+    """
+    Extract key ID from request headers.
+
+    :param event: API Gateway event
+    :return: Key ID or None if not present
+    """
+    headers = CaseInsensitiveDict(event.get('headers') or {})
+    return headers.get('X-Key-Id')
+
+
+def _validate_hmac_signature(event: dict, compact: str, jurisdiction: str, public_key_pem: str) -> None:
+    """
+    Validate HMAC signature for a request.
+
+    This function performs all the HMAC validation steps:
+    - Extracts and validates required headers
+    - Validates timestamp
+    - Reconstructs and verifies signature
+
+    :param event: API Gateway event
+    :param compact: Compact abbreviation
+    :param jurisdiction: Jurisdiction abbreviation
+    :param public_key_pem: PEM-encoded public key
+    :raises CCUnauthorizedException: If HMAC validation fails
+    :raises CCInvalidRequestException: If request format is invalid
+    """
+    # Extract headers using CaseInsensitiveDict for consistent handling
+    headers = CaseInsensitiveDict(event.get('headers') or {})
+
+    # Extract required HMAC headers
+    algorithm = headers.get('X-Algorithm')
+    timestamp_str = headers.get('X-Timestamp')
+    nonce = headers.get('X-Nonce')
+    signature_b64 = headers.get('X-Signature')
+    key_id = headers.get('X-Key-Id')
+
+    # Validate all required headers are present
+    if not all([algorithm, timestamp_str, nonce, signature_b64, key_id]):
+        logger.warning(
+            'Missing required HMAC headers',
+            algorithm=algorithm,
+            timestamp=timestamp_str,
+            nonce=nonce,
+            signature_present=bool(signature_b64),
+            key_id=key_id,
+            compact=compact,
+            jurisdiction=jurisdiction,
+        )
+        raise CCUnauthorizedException('Missing required HMAC authentication headers')
+
+    # Validate algorithm
+    if algorithm != 'ECDSA-SHA256':
+        logger.warning('Unsupported HMAC algorithm', algorithm=algorithm, compact=compact, jurisdiction=jurisdiction)
+        raise CCUnauthorizedException('Unsupported signature algorithm')
+
+    # Validate timestamp
+    try:
+        timestamp = datetime.fromisoformat(timestamp_str)
+        now = datetime.now(UTC)
+        time_diff = abs((timestamp - now).total_seconds())
+
+        if time_diff > 300:  # 5 minutes
+            logger.warning(
+                'Request timestamp too old or in future', timestamp=timestamp_str, time_diff_seconds=time_diff
+            )
+            raise CCUnauthorizedException('Request timestamp is too old or in the future')
+    except ValueError as e:
+        logger.warning('Invalid timestamp format', timestamp=timestamp_str, error=str(e))
+        raise CCInvalidRequestException('Invalid timestamp format') from e
+
+    # Reconstruct signature string
+    signature_string = _build_signature_string(event)
+
+    # Verify signature
+    if not _verify_signature(signature_string, signature_b64, public_key_pem):
+        logger.warning('Invalid signature for request', compact=compact, jurisdiction=jurisdiction)
+        raise CCUnauthorizedException('Invalid request signature')
+
+
+def _get_public_key_from_dynamodb(compact: str, jurisdiction: str, key_id: str) -> str | None:
+    """
+    Retrieve the public key for a compact/jurisdiction/key_id combination from DynamoDB.
 
     :param compact: The compact abbreviation
     :param jurisdiction: The jurisdiction abbreviation
+    :param key_id: The key ID
     :return: PEM-encoded public key or None if not found
     """
     # Query the compact configuration table for the public key
-    # Assuming the key is stored with pk=f"HMAC_KEYS#{compact}" and sk=f"{jurisdiction}"
-    response = config.compact_configuration_table.get_item(Key={'pk': f'HMAC_KEYS#{compact}', 'sk': jurisdiction})
+    # New schema: pk=f"{compact}#HMAC_KEYS", sk=f"{compact}#JURISDICTION#{jurisdiction}#{key_id}"
+    response = config.compact_configuration_table.get_item(
+        Key={
+            'pk': f'{compact}#HMAC_KEYS',
+            'sk': f'{compact}#JURISDICTION#{jurisdiction}#{key_id}'
+        }
+    )
 
     return response.get('Item', {}).get('publicKey')
+
+
+def _get_configured_keys_for_jurisdiction(compact: str, jurisdiction: str) -> dict[str, str]:
+    """
+    Retrieve all configured HMAC keys for a specific jurisdiction.
+
+    This function queries DynamoDB to get all key IDs and their corresponding public keys
+    for a given compact and jurisdiction. It returns a dictionary mapping key_id to public_key_pem.
+
+    :param compact: The compact abbreviation
+    :param jurisdiction: The jurisdiction abbreviation
+    :return: Dictionary of key_id to public_key_pem
+    """
+    # Query for all keys with the jurisdiction prefix
+    response = config.compact_configuration_table.query(
+        KeyConditionExpression='pk = :pk AND begins_with(sk, :sk_prefix)',
+        ExpressionAttributeValues={
+            ':pk': f'{compact}#HMAC_KEYS',
+            ':sk_prefix': f'{compact}#JURISDICTION#{jurisdiction}#'
+        }
+    )
+
+    configured_keys: dict[str, str] = {}
+    for item in response.get('Items', []):
+        key_id = item['sk'].split('#')[-1] # Extract key_id from sk
+        public_key_pem = item['publicKey']
+        configured_keys[key_id] = public_key_pem
+
+    return configured_keys
 
 
 def _build_signature_string(event: dict) -> str:
@@ -129,7 +275,7 @@ def _build_signature_string(event: dict) -> str:
     Build the signature string according to the HMAC specification.
 
     The signature string is constructed as:
-    HTTP_METHOD\nREQUEST_PATH\nSORTED_QUERY_PARAMETERS\nTIMESTAMP\nNONCE
+    HTTP_METHOD\nREQUEST_PATH\nSORTED_QUERY_PARAMETERS\nTIMESTAMP\nNONCE\nKEY_ID
 
     :param event: API Gateway event
     :return: Signature string
@@ -144,13 +290,14 @@ def _build_signature_string(event: dict) -> str:
         f'{quote(str(k), safe="")}={quote(str(v), safe="")}' for k, v in sorted(query_params.items())
     )
 
-    # Extract timestamp and nonce from headers
+    # Extract timestamp, nonce, and key_id from headers
     headers = CaseInsensitiveDict(event.get('headers') or {})
     timestamp = headers.get('X-Timestamp', '')
     nonce = headers.get('X-Nonce', '')
+    key_id = headers.get('X-Key-Id', '')
 
     # Build signature string with newlines
-    return '\n'.join([http_method, path, sorted_params, timestamp, nonce])
+    return '\n'.join([http_method, path, sorted_params, timestamp, nonce, key_id])
 
 
 def _verify_signature(signature_string: str, signature_b64: str, public_key_pem: str) -> bool:
@@ -176,6 +323,6 @@ def _verify_signature(signature_string: str, signature_b64: str, public_key_pem:
         public_key.verify(signature_bytes, signature_string.encode(), ec.ECDSA(hashes.SHA256()))
 
         return True
-    except InvalidSignature:
-        logger.debug('Signature verification failed - invalid signature')
+    except (InvalidSignature, ValueError):
+        logger.debug('Signature verification failed - invalid signature or format')
         return False

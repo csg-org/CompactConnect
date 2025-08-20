@@ -14,7 +14,7 @@ Before creating a new app client, ensure you have:
 - Approval to grant the app client with the requested scopes
 - AWS credentials configured with permissions to create app clients for the State Auth user pool in the needed AWS
   accounts
-- Python 3.6+ installed with boto3 dependency (`pip install boto3`)
+- Python 3.10+ installed with boto3 dependency (`pip install boto3`)
 
 ### 2. Update Registry
 Add the new app client information to the external Google Sheet registry for tracking and disaster recovery purposes
