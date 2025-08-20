@@ -279,7 +279,6 @@ export class Licensee implements InterfaceLicensee {
         let bestLicense: License = new License();
         const bestHomeLicense: License = this.bestHomeJurisdictionLicense();
 
-        // Check if bestHomeLicense has meaningful data (not just an empty License object)
         if (bestHomeLicense.licenseeId) {
             bestLicense = bestHomeLicense;
         } else {
