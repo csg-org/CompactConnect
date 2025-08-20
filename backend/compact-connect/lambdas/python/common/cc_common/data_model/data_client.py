@@ -2568,7 +2568,7 @@ class DataClient:
         provider_id: str,
         jurisdiction: str,
         license_type_abbreviation: str,
-        effective_date: datetime,
+        effective_date: date,
     ) -> list[PrivilegeData]:
         """
         Encumber all unencumbered privileges associated with a home jurisdiction license.
@@ -2613,7 +2613,7 @@ class DataClient:
         transaction_items = []
 
         effective_date_time = datetime.combine(
-            effective_date.date(), dtime(12, 0, 0), tzinfo=config.expiration_resolution_timezone
+            effective_date, dtime(12, 0, 0), tzinfo=config.expiration_resolution_timezone
         )
 
         for privilege_data in unencumbered_privileges_associated_with_license:
