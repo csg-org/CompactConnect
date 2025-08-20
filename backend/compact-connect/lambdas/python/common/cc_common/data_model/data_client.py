@@ -1,5 +1,5 @@
 import time
-from datetime import date, datetime
+from datetime import date, datetime, time
 from urllib.parse import quote
 from uuid import uuid4
 
@@ -1428,7 +1428,7 @@ class DataClient:
             now = config.current_standard_datetime
 
             effective_date_time = datetime.combine(
-                adverse_action.effectiveStartDate, datetime.min.time(), tzinfo=config.expiration_resolution_timezone
+                adverse_action.effectiveStartDate, time(12, 00, 00), tzinfo=config.expiration_resolution_timezone
             )
 
             # Create the update record
@@ -1532,7 +1532,7 @@ class DataClient:
             now = config.current_standard_datetime
 
             effective_date_time = datetime.combine(
-                adverse_action.effectiveStartDate, datetime.min.time(), tzinfo=config.expiration_resolution_timezone
+                adverse_action.effectiveStartDate, time(12, 00, 00), tzinfo=config.expiration_resolution_timezone
             )
 
             # Create the update record
@@ -1677,7 +1677,7 @@ class DataClient:
                 now = config.current_standard_datetime
 
                 effective_date_time = datetime.combine(
-                    effective_lift_date, datetime.min.time(), tzinfo=config.expiration_resolution_timezone
+                    effective_lift_date, time(12, 00, 00), tzinfo=config.expiration_resolution_timezone
                 )
 
                 # Create privilege update record
@@ -1802,7 +1802,7 @@ class DataClient:
                 now = config.current_standard_datetime
 
                 effective_date_time = datetime.combine(
-                    effective_lift_date, datetime.min.time(), tzinfo=config.expiration_resolution_timezone
+                    effective_lift_date, time(12, 00, 00), tzinfo=config.expiration_resolution_timezone
                 )
 
                 # Create license update record
@@ -2612,7 +2612,7 @@ class DataClient:
         transaction_items = []
 
         effective_date_time = datetime.combine(
-            effective_date, datetime.min.time(), tzinfo=config.expiration_resolution_timezone
+            effective_date, time(12, 00, 00), tzinfo=config.expiration_resolution_timezone
         )
 
         for privilege_data in unencumbered_privileges_associated_with_license:
@@ -2728,7 +2728,7 @@ class DataClient:
         transaction_items = []
 
         effective_date_time = datetime.combine(
-            effective_date, datetime.min.time(), tzinfo=config.expiration_resolution_timezone
+            effective_date, time(12, 00, 00), tzinfo=config.expiration_resolution_timezone
         )
 
         for privilege_data in matching_privileges:

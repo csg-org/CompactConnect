@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, time
 
 from boto3.dynamodb.conditions import Attr
 from cc_common.config import config, logger
@@ -148,7 +148,7 @@ def _process_batch(updates: list[dict]) -> None:
                 continue
 
             effective_date_time = datetime.combine(
-                date.fromisoformat(effective_date), datetime.min.time(), tzinfo=config.expiration_resolution_timezone
+                date.fromisoformat(effective_date), time(12, 00, 00), tzinfo=config.expiration_resolution_timezone
             )
             effective_date_time_string = effective_date_time.isoformat()
 
