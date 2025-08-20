@@ -22,6 +22,7 @@
         "selectFiles": "Selecciona archivos",
         "replaceFile": "Reemplazar el archivo",
         "replaceFiles": "Reemplazar archivos",
+        "downloadFile": "Descargar",
         "change": "Cambiar",
         "add": "Agregar",
         "remove": "Eliminar",
@@ -768,6 +769,7 @@
         "purchaseUnavailableNoEligibleLicenses": "No tiene ninguna licencia que sea elegible para la participación en el convenio. Si cree que una de sus licencias debería ser elegible, comuníquese con el consejo estatal que emitió esa licencia.",
         "purchaseUnavailableEncumbrance": "Tiene una carga que le impide comprar privilegios. Si cree que no debería tener una carga, comuníquese con el consejo estatal que registró la carga.",
         "purchaseUnavailablePendingMilitaryStatus": "Ha iniciado el proceso de presentación de documentación para confirmar su condición de militar, pero no lo ha finalizado. Puede completar ese proceso",
+        "purchaseUnavailableEncumbranceLiftedWithinWaitPeriod": "Han pasado menos de dos años desde que se levantó su última carga. Puede comprar privilegios después de que pasen dos años desde el final de su última carga.",
         "militaryStatusLinkAriaLabel": "Ver página de estado militar"
     },
     "military": {
@@ -776,7 +778,9 @@
         "militaryDiscountText": "Descuento Militar",
         "viewMilitaryStatus": "Ver estado militar",
         "affiliationType": "Tipo de afiliación",
-        "previouslyUploadedDocuments": "Previously Uploaded Documents",
+        "uploadedDocuments": "Documentos de afiliación militar",
+        "previousDocuments": "Documentos cargados previamente",
+        "downloadUnavailable": "Indisponible",
         "endMilitaryAffiliation": "Parar afiliación militar",
         "editInfo": "Editar información",
         "noUploadedDocuments": "No documentos cargados",

@@ -204,6 +204,68 @@ class TestBackendPipeline(TstAppABC, TestCase):
             )
             self.assertEqual(0, len(implicit_grant_clients))
 
+    def test_cognito_risk_configuration_includes_notify_configuration_when_domain_configured(self):
+        """
+        Test that when a domain name is configured and security profile is RECOMMENDED,
+        the user pool risk configurations include the notify_configuration with a non-null from_ email address.
+        """
+        # Test prod stage which has domain configured and RECOMMENDED security
+        persistent_stack = self.app.prod_backend_pipeline_stack.prod_stage.persistent_stack
+        persistent_stack_template = Template.from_stack(persistent_stack)
+        provider_users_stack = self.app.prod_backend_pipeline_stack.prod_stage.provider_users_stack
+        provider_users_stack_template = Template.from_stack(provider_users_stack)
+
+        for template in [persistent_stack_template, provider_users_stack_template]:
+            # Get all risk configurations first
+            all_risk_configurations = template.find_resources(
+                CfnUserPoolRiskConfigurationAttachment.CFN_RESOURCE_TYPE_NAME,
+            )
+
+            # Find risk configurations that include notify_configuration
+            risk_configurations_with_notify = template.find_resources(
+                CfnUserPoolRiskConfigurationAttachment.CFN_RESOURCE_TYPE_NAME,
+                props={
+                    'Properties': {
+                        'AccountTakeoverRiskConfiguration': {
+                            'Actions': {
+                                'HighAction': {'EventAction': 'BLOCK', 'Notify': True},
+                                'LowAction': {'EventAction': 'BLOCK', 'Notify': True},
+                                'MediumAction': {'EventAction': 'BLOCK', 'Notify': True},
+                            },
+                            'NotifyConfiguration': Match.object_like(
+                                {
+                                    'SourceArn': Match.any_value(),
+                                    'BlockEmail': Match.any_value(),
+                                    'NoActionEmail': Match.any_value(),
+                                    'From': Match.any_value(),
+                                }
+                            ),
+                        },
+                        'CompromisedCredentialsRiskConfiguration': {'Actions': {'EventAction': 'BLOCK'}},
+                    }
+                },
+            )
+
+            # Every risk configuration should include notify_configuration when domain is configured
+            self.assertEqual(len(all_risk_configurations), len(risk_configurations_with_notify))
+
+            # Verify that each risk configuration has a non-null from_ email address
+            for logical_id, resource in risk_configurations_with_notify.items():
+                properties = resource['Properties']
+                notify_config = properties['AccountTakeoverRiskConfiguration']['NotifyConfiguration']
+                self.assertIsNotNone(
+                    notify_config['From'], f'Risk configuration {logical_id} missing from_ email address'
+                )
+                self.assertIn(
+                    '@',
+                    notify_config['From'],
+                    f'Risk configuration {logical_id} has invalid from_ email address: {notify_config["From"]}',
+                )
+                self.assertIsNotNone(notify_config['SourceArn'], f'Risk configuration {logical_id} missing source_arn')
+                self.assertIsNotNone(
+                    notify_config['BlockEmail'], f'Risk configuration {logical_id} missing block_email configuration'
+                )
+
     def test_synth_generates_python_lambda_layer_with_ssm_parameter(self):
         persistent_stack = self.app.test_backend_pipeline_stack.test_stage.persistent_stack
         persistent_stack_template = Template.from_stack(persistent_stack)
