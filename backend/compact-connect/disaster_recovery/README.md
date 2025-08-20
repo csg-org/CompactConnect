@@ -48,13 +48,13 @@ This design allows for:
 
 The following tables are configured for disaster recovery:
 
-| Table Name | Step Function Prefix | Purpose                                 |
-|------------|---------------------|-----------------------------------------|
-| TransactionHistoryTable | `TransactionHistoryTable` | transaction data from authorize.net     |
-| ProviderTable | `ProviderTable` | Provider information and GSIs           |
-| CompactConfigurationTable | `CompactConfigurationTable` | System configuration data               |
-| DataEventTable | `DataEventTable` | License data events                     |
-| UsersTable | `UsersTable` | Staff user permissions and account data |
+| Table Name | Step Function Prefix | Purpose | Recovery Notes |
+|------------|---------------------|---------|----------------|
+| TransactionHistoryTable | `TransactionHistoryTable` | transaction data from authorize.net | Can be rolled back independently. After DR rollback, run the Transaction History Processing Workflow Step Function for each compact for every day where data was lost to restore all transaction data from Authorize.net accounts. The Transaction History Processing Workflow step functions are idempotent. They can be run multiple times without producing duplicate transaction items in the table. |
+| ProviderTable | `ProviderTable` | Provider information and GSIs | **Dependent on SSN table** - Can be rolled back without updating SSN table since SSN table does not have a dependency on the provider table. **⚠️ WARNING**: If SSN table needs rollback, the provider table will likely need to be restored to same point in time as SSN table. Otherwise new provider IDs may be generated for existing SSNs causing data inconsistency/orphaned providers that won't receive license updates.|
+| CompactConfigurationTable | `CompactConfigurationTable` | System configuration data | Can be rolled back independently of other tables. Contains configuration set by compact and state admins. Admins may need to reset configurations that were lost as a result of the rollback. |
+| DataEventTable | `DataEventTable` | License data events | Used for downstream processing events  triggered by Event Bridge event bus. In the event of recovery, many of these events can likely be restored by replaying events placed on the event bus. See https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-archive.html |
+| UsersTable | `UsersTable` | Staff user permissions and account data | Can be rolled back independently. Contains staff user permissions and account information. Admins may need to re-invite new users or reset permissions that were lost as a result of the rollback. |
 
 > **Note**: The SSN table is excluded due to additional security requirements and will be handled in a future implementation.
 
