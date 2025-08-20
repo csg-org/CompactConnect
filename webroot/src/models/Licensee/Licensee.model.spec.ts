@@ -806,6 +806,52 @@ describe('Licensee model', () => {
 
         expect(bestLicense.licenseNumber).to.equal('ny-newer');
     });
+    it('should return best license with missing current license issueDate', () => {
+        const licensee = new Licensee({
+            homeJurisdiction: new State({ abbrev: 'co' }),
+            licenses: [
+                // Active non-home licenses where current.issueDate is missing
+                new License({
+                    licenseNumber: 'ny-with-date',
+                    issueState: new State({ abbrev: 'ny' }),
+                    issueDate: '2025-01-01',
+                    status: LicenseStatus.ACTIVE,
+                    licenseeId: 'test-provider-id',
+                }),
+                new License({
+                    licenseNumber: 'ny-no-date',
+                    issueState: new State({ abbrev: 'ny' }),
+                    // No issueDate (undefined)
+                    status: LicenseStatus.ACTIVE,
+                    licenseeId: 'test-provider-id',
+                })
+            ]
+        });
+        let bestLicense = licensee.bestLicense();
+
+        expect(bestLicense.licenseNumber).to.equal('ny-with-date');
+
+        // Inactive non-home licenses where current.issueDate is missing
+        licensee.licenses = [
+            new License({
+                licenseNumber: 'ma-with-date',
+                issueState: new State({ abbrev: 'ma' }),
+                issueDate: '2025-01-01',
+                status: LicenseStatus.INACTIVE,
+                licenseeId: 'test-provider-id',
+            }),
+            new License({
+                licenseNumber: 'ma-no-date',
+                issueState: new State({ abbrev: 'ma' }),
+                status: LicenseStatus.INACTIVE,
+                licenseeId: 'test-provider-id',
+            })
+        ];
+
+        bestLicense = licensee.bestLicense();
+
+        expect(bestLicense.licenseNumber).to.equal('ma-with-date');
+    });
     it('should return best home jurisdiction license', () => {
         // Scenario 1: Home jurisdiction license with missing issueDate
         const licenseeWithMissingIssueDate = new Licensee({
@@ -1077,51 +1123,5 @@ describe('Licensee model', () => {
         const transmit = LicenseeSerializer.toServer(licensee);
 
         expect(transmit.id).to.equal(licensee.id);
-    });
-    it('should return best license with missing current license issueDate', () => {
-        const licensee = new Licensee({
-            homeJurisdiction: new State({ abbrev: 'co' }),
-            licenses: [
-                // Active non-home licenses where current.issueDate is missing
-                new License({
-                    licenseNumber: 'ny-with-date',
-                    issueState: new State({ abbrev: 'ny' }),
-                    issueDate: '2025-01-01',
-                    status: LicenseStatus.ACTIVE,
-                    licenseeId: 'test-provider-id',
-                }),
-                new License({
-                    licenseNumber: 'ny-no-date',
-                    issueState: new State({ abbrev: 'ny' }),
-                    // No issueDate (undefined)
-                    status: LicenseStatus.ACTIVE,
-                    licenseeId: 'test-provider-id',
-                })
-            ]
-        });
-        let bestLicense = licensee.bestLicense();
-
-        expect(bestLicense.licenseNumber).to.equal('ny-with-date');
-
-        // Inactive non-home licenses where current.issueDate is missing
-        licensee.licenses = [
-            new License({
-                licenseNumber: 'ma-with-date',
-                issueState: new State({ abbrev: 'ma' }),
-                issueDate: '2025-01-01',
-                status: LicenseStatus.INACTIVE,
-                licenseeId: 'test-provider-id',
-            }),
-            new License({
-                licenseNumber: 'ma-no-date',
-                issueState: new State({ abbrev: 'ma' }),
-                status: LicenseStatus.INACTIVE,
-                licenseeId: 'test-provider-id',
-            })
-        ];
-
-        bestLicense = licensee.bestLicense();
-
-        expect(bestLicense.licenseNumber).to.equal('ma-with-date');
     });
 });
