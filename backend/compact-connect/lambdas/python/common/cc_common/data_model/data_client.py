@@ -1428,6 +1428,9 @@ class DataClient:
 
             now = config.current_standard_datetime
 
+            # The time selected here is somewhat arbitrary; however, we want this selection to not alter the date
+            # displayed for a user when it is transformed back to their timezone. We selected noon UTC-4:00 so that
+            # users across the entire US will see the same date
             effective_date_time = datetime.combine(
                 adverse_action.effectiveStartDate, dtime(12, 0, 0), tzinfo=config.expiration_resolution_timezone
             )
@@ -1532,6 +1535,9 @@ class DataClient:
 
             now = config.current_standard_datetime
 
+            # The time selected here is somewhat arbitrary; however, we want this selection to not alter the date
+            # displayed for a user when it is transformed back to their timezone. We selected noon UTC-4:00 so that
+            # users across the entire US will see the same date
             effective_date_time = datetime.combine(
                 adverse_action.effectiveStartDate, dtime(12, 0, 0), tzinfo=config.expiration_resolution_timezone
             )
@@ -1677,6 +1683,9 @@ class DataClient:
 
                 now = config.current_standard_datetime
 
+                # The time selected here is somewhat arbitrary; however, we want this selection to not alter the date
+                # displayed for a user when it is transformed back to their timezone. We selected noon UTC-4:00 so that
+                # users across the entire US will see the same date
                 effective_date_time = datetime.combine(
                     effective_lift_date, dtime(12, 0, 0), tzinfo=config.expiration_resolution_timezone
                 )
@@ -1802,6 +1811,9 @@ class DataClient:
 
                 now = config.current_standard_datetime
 
+                # The time selected here is somewhat arbitrary; however, we want this selection to not alter the date
+                # displayed for a user when it is transformed back to their timezone. We selected noon UTC-4:00 so that
+                # users across the entire US will see the same date
                 effective_date_time = datetime.combine(
                     effective_lift_date, dtime(12, 0, 0), tzinfo=config.expiration_resolution_timezone
                 )
@@ -2612,6 +2624,9 @@ class DataClient:
         # Build transaction items for all privileges
         transaction_items = []
 
+        # The time selected here is somewhat arbitrary; however, we want this selection to not alter the date
+        # displayed for a user when it is transformed back to their timezone. We selected noon UTC-4:00 so that
+        # users across the entire US will see the same date
         effective_date_time = datetime.combine(
             effective_date, dtime(12, 0, 0), tzinfo=config.expiration_resolution_timezone
         )
@@ -2728,6 +2743,9 @@ class DataClient:
         # Build transaction items for all privileges
         transaction_items = []
 
+        # The time selected here is somewhat arbitrary; however, we want this selection to not alter the date
+        # displayed for a user when it is transformed back to their timezone. We selected noon UTC-4:00 so that
+        # users across the entire US will see the same date
         effective_date_time = datetime.combine(
             effective_date, dtime(12, 0, 0), tzinfo=config.expiration_resolution_timezone
         )

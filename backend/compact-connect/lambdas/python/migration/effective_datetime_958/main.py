@@ -147,6 +147,9 @@ def _process_batch(updates: list[dict]) -> None:
                 )
                 continue
 
+            # The time selected here is somewhat arbitrary; however, we want this selection to not alter the date
+            # displayed for a user when it is transformed back to their timezone. We selected noon UTC-4:00 so that
+            # users across the entire US will see that same date
             effective_date_time = datetime.combine(
                 date.fromisoformat(effective_date), time(12, 00, 00), tzinfo=config.expiration_resolution_timezone
             )
