@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 
 from aws_cdk import Duration
-from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, MathExpression, Metric, Stats, TreatMissingData, CfnAlarm
+from aws_cdk.aws_cloudwatch import Alarm, CfnAlarm, ComparisonOperator, MathExpression, Metric, Stats, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_secretsmanager import Secret
 from cdk_nag import NagSuppressions
@@ -194,7 +194,6 @@ class ProviderUsersLambdas:
         )
         # Add the alarm to the SNS topic
         sustained_account_recovery_alarm.add_alarm_action(SnsAction(self.persistent_stack.alarm_topic))
-
 
         # We'll monitor longer access patterns to detect anomalies, over time.
         # The L2 construct, Alarm, doesn't yet support Anomaly Detection as a configuration
