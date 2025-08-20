@@ -41,7 +41,7 @@ def _provider_rate_limit_exceeded(*, compact: str, provider_id: str) -> bool:
             Select='COUNT',
             ConsistentRead=True,
         )
-        return response['Count'] >= 3
+        return response['Count'] > 3
     except ClientError as e:
         logger.error('Failed to query provider rate limit', error=str(e))
         # Fail closed to protect endpoint
@@ -60,6 +60,8 @@ def _record_provider_rate_limit_event(*, compact: str, provider_id: str) -> None
         )
     except ClientError as e:
         logger.error('Failed to record provider rate limit event', error=str(e))
+        # we will fail here, since we don't want rate-limiting to silently fail
+        raise CCInternalException('Internal Server Error') from e
 
 
 def _attempt_admin_password_auth(username: str, password: str) -> bool:
@@ -119,6 +121,7 @@ def initiate_account_recovery(event: dict, context: LambdaContext):  # noqa: ARG
 
     # license matched, record attempt against this particular provider for rate-limiting
     # Provider-based rate limiting (3 per hour)
+    _record_provider_rate_limit_event(compact=matching_record.compact, provider_id=str(matching_record.providerId))
     if _provider_rate_limit_exceeded(compact=matching_record.compact, provider_id=str(matching_record.providerId)):
         logger.warning(
             'MFA recovery initiate provider rate limit exceeded',
@@ -127,12 +130,9 @@ def initiate_account_recovery(event: dict, context: LambdaContext):  # noqa: ARG
         )
         metrics.add_metric(name='mfa-recovery-rate-limit-throttles', unit=MetricUnit.Count, value=1)
         metrics.add_metric(name=MFA_RECOVERY_INITIATE_ATTEMPT_METRIC, unit=MetricUnit.NoUnit, value=0)
-        # Record the attempt before returning so we track every attempt
-        _record_provider_rate_limit_event(compact=matching_record.compact, provider_id=str(matching_record.providerId))
         return GENERIC_REQUEST_PROCESSED_RESPONSE
 
-    # Record the attempt for provider-level rate limiting
-    _record_provider_rate_limit_event(compact=matching_record.compact, provider_id=str(matching_record.providerId))
+
 
     # Resolve provider record and validate email
     provider_record = config.data_client.get_provider_top_level_record(
@@ -209,7 +209,7 @@ def _provider_verify_rate_limit_exceeded(*, compact: str, provider_id: str) -> b
             Select='COUNT',
             ConsistentRead=True,
         )
-        return response['Count'] >= 2
+        return response['Count'] > 2
     except ClientError as e:
         logger.error('Failed to query provider verify rate limit', error=str(e))
         # Fail closed
@@ -228,6 +228,8 @@ def _record_provider_verify_rate_limit_event(*, compact: str, provider_id: str) 
         )
     except ClientError as e:
         logger.error('Failed to record provider verify rate limit event', error=str(e))
+        # we will fail here, since we don't want rate-limiting to silently fail
+        raise CCInternalException('Internal Server Error') from e
 
 
 def _validate_token_or_raise_exception(
@@ -297,16 +299,12 @@ def verify_account_recovery(event: dict, context: LambdaContext):  # noqa: ARG00
     compact = body['compact']
     provider_id = body['providerId']
     # Provider-based rate limiting for verification (2 per 15 minutes)
+    _record_provider_verify_rate_limit_event(compact=compact, provider_id=str(provider_id))
     if _provider_verify_rate_limit_exceeded(compact=compact, provider_id=str(provider_id)):
         logger.warning('MFA recovery verify provider rate limit exceeded', compact=compact, provider_id=provider_id)
         metrics.add_metric(name='mfa-recovery-rate-limit-throttles', unit=MetricUnit.Count, value=1)
         metrics.add_metric(name=MFA_RECOVERY_VERIFY_ATTEMPT_METRIC, unit=MetricUnit.NoUnit, value=0)
-        # Record the attempt regardless of outcome
-        _record_provider_verify_rate_limit_event(compact=compact, provider_id=str(provider_id))
         raise CCRateLimitingException('Please try again later.')
-
-    # Record the attempt regardless of outcome
-    _record_provider_verify_rate_limit_event(compact=compact, provider_id=str(provider_id))
 
     # Load provider record and validate recovery token
     try:
