@@ -20,17 +20,18 @@ system-wide failures, such as the following scenarios:
 ## Architecture
 
 ### Two-Phase Recovery Process
-
-The DR system uses a two-step approach for each table:
+DynamoDB PITR cannot directly restore data into your production database. Instead, it creates a new table with data matching the exact values you had in your production database at the specified timestamp. You as the owner of the database must decide what to do with that data from that point in time. For the purposes of disaster recovery rollback, we have determined to get the data into the production table by performing a 'hard reset', meaning **all the current data in the production table is deleted**, then we copy over the data from the temporary table into the production table. This process includes the following step functions. 
 
 1. **RestoreDynamoDbTable Step Function** (Parent)
-   - Creates a backup of the current table for forensic analysis
+   - Creates a backup of the current table for post-incident analysis
    - Restores a temporary table from the specified PITR timestamp
    - Invokes the SyncTableData Step Function
 
 2. **SyncTableData Step Function** (Child)
-   - **Delete Phase**: Removes all records from the destination table
-   - **Copy Phase**: Copies all records from the restored table to the destination table
+   - **Delete Phase**: Removes all records from the production table
+   - **Copy Phase**: Copies all records from the temporary table to the production table
+
+Once this process is complete, the data in the target table will be restored with the data from the specified point in time. 
 
 ### Per-Table Isolation
 
@@ -57,72 +58,14 @@ The following tables are configured for disaster recovery:
 
 > **Note**: The SSN table is excluded due to additional security requirements and will be handled in a future implementation.
 
-## Execution Process
+## Running the Disaster Recovery Workflow
 
-### Step-by-Step Flow
+## Pre-Execution Checklist
 
-1. **Input Validation**
-   - Validates required parameters (incident ID, PITR timestamp, table confirmation)
-   - Generates unique restored table name using incident ID
-
-2. **Parallel Operations** (Phase 1)
-   - **Backup Branch**: Creates an on-demand backup of the current table
-   - **Restore Branch**: Initiates PITR restore to a temporary table
-   - Both operations poll for completion with exponential backoff
-
-3. **Data Synchronization** (Phase 2)
-   - **Delete Phase**: Scans and deletes all records from the destination table
-   - **Copy Phase**: Scans and copies all records from the restored table
-   - Both phases use pagination to handle large datasets
-
-4. **Cleanup**
-   - Temporary restored table is automatically cleaned up
-   - Execution logs are retained for audit purposes
-
-## Required Input Parameters
-
-### Primary Parameters
-
-```json
-{
-  "incidentId": "string",
-  "pitrBackupTime": "ISO 8601 datetime string",
-  "tableNameRecoveryConfirmation": "string"
-}
-```
-
-#### Parameter Details
-
-- **`incidentId`** (required)
-  - Purpose: Unique identifier for tracking this recovery operation
-  - Format: String (80 chars or less, allows alphanumeric and hyphens)
-  - Example: `"incident-2025-001"`, `"corruption-fix-20250115"`
-  - Used in: Backup names, restored table names, execution tracking
-
-- **`pitrBackupTime`** (required)
-  - Purpose: The timestamp to restore the table to
-  - Format: ISO 8601 datetime string
-  - Example: `"2030-01-15T12:39:46+00:00"`
-  - Constraints: Must be within the PITR retention window (35 days)
-
-- **`tableNameRecoveryConfirmation`** (required)
-  - Purpose: Security guard rail to prevent accidental execution
-  - Format: Exact table name being recovered (you can copy this from the DynamoDB console)
-  - Example: `"Prod-PersistentStack-DataEventTable00A96798-C6VX9JVDOYGN"`
-  - Validation: Must match the actual destination table name
-
-## Example Execution
-
-### Example: Transaction History Recovery
-
-```json
-{
-  "incidentId": "transaction-corruption-20250115",
-  "pitrBackupTime": "2025-01-15T09:00:00+00:00",
-  "tableNameRecoveryConfirmation": "Prod-PersistentStack-TransactionHistoryTable00A96798-C6VX9JVDOYGN"
-}
-```
-## Complete Disaster Recovery Workflow
+1. ✅ **Verify Impact**: Confirm which applications/users will be affected
+2. ✅ **Communication**: Notify stakeholders of the planned recovery
+3. ✅ **Timestamp Selection**: Determine the UTC timestamp to restore to (must be within 35 days)
+4. ✅ **Access Verification**: Confirm you have necessary permissions (Currently only AWS account admins can trigger a DR)
 
 ### Step 1: Start Recovery Mode
 
@@ -139,26 +82,64 @@ python start_recovery_mode.py --environment Prod
 This will put the system into recovery mode by:
 - Setting reserved concurrency to 0 for all environment Lambda functions, so they can't be invoked
 - Leaving Disaster Recovery functions operational
-- **Important**: If any functions failed to throttle, investigate before proceeding
+- **Important**: If any functions failed to throttle, you may rerun the script or manually check their reserved concurrency settings if needed. The script is idempotent and can be run multiple times.
 
 ### Step 2: Execute Disaster Recovery Step Function For Specific Tables
-
 #### Prerequisites
 - Identify the exact table name from the DynamoDB console (needed for `tableNameRecoveryConfirmation`)
-- Determine the PITR timestamp to restore to (must be within 35 days)
-- Create a unique incident ID for tracking
+- Verify the PITR timestamp is correct
+- Create a unique incident ID for tracking (see [Execution Request Parameter Details](####execution-request-parameter-details))
 
-#### AWS Console Method
+When you are ready to perform a rollback, find the step function for the specific table you need to rollback (`DRRestoreDynamoDbTable{TableName}StateMachine`) and start an execution with the following input (replace placeholders with your values)
+
+```json
+{
+  "incidentId": "<YOUR INCIDENT ID HERE>",
+  "pitrBackupTime": "<ISO 8601 UTC datetime string>",
+  "tableNameRecoveryConfirmation": "<TABLE NAME YOU ARE TRYING TO RECOVER>"
+}
+```
+
+#### Execution Request Parameter Details
+
+- **`incidentId`** (required)
+  - Purpose: Unique identifier for tracking this recovery operation
+  - Format: String (80 chars or less, allows alphanumeric and hyphens)
+  - Example: `"incident-2025-001"`, `"corruption-fix-20250115"`
+  - Used in: Backup names, restored table names, execution tracking
+
+- **`pitrBackupTime`** (required)
+  - Purpose: The timestamp to restore the table to
+  - Format: ISO 8601 UTC datetime string
+  - Example: `"2030-01-15T12:39:46+00:00"`
+  - Constraints: Must be within the PITR retention window (35 days)
+
+- **`tableNameRecoveryConfirmation`** (required)
+  - Purpose: Security guard rail to prevent accidental execution
+  - Format: Exact table name being recovered (you can copy this from the DynamoDB console)
+  - Example: `"Prod-PersistentStack-DataEventTable00A96798-C6VX9JVDOYGN"`
+  - Validation: Must match the actual destination table name
+
+example:
+```json
+{
+  "incidentId": "transaction-corruption-20250115",
+  "pitrBackupTime": "2025-01-15T09:00:00+00:00",
+  "tableNameRecoveryConfirmation": "Prod-PersistentStack-TransactionHistoryTable00A96798-C6VX9JVDOYGN"
+}
+```
+
+#### Running Step Functions from AWS Console
 
 1. Navigate to Step Functions in the AWS Console
-2. Find the appropriate Step Function for the table you need to recover (e.g., `DRRestoreDynamoDbTableTransactionHistoryTableStateMachine`)
-3. Click "Start Execution"
+2. Find the appropriate Step Function(s) for the table(s) you need to recover (e.g., `DRRestoreDynamoDbTableTransactionHistoryTableStateMachine`)
+3. For each step function you need to run, Click "Start Execution"
 4. Enter the JSON payload in the input field
-5. Click "Start Execution" and wait for completion
+5. Click "Start Execution" and wait for completion (multiple Step functions can be run concurrently if you are restoring multiple tables)
 
 ### Step 3: End Recovery Mode
 
-**⚠️ CRITICAL**: Only proceed after ALL Step Functions have completed successfully.
+**⚠️CRITICAL**: Only proceed after ALL recovery Step Functions you have run have completed successfully.
 
 After the DR Step Function completes successfully for each table you need to restore, end the recovery mode to restore normal operations:
 
@@ -173,40 +154,23 @@ This will:
 - Complete the disaster recovery process
 - **Important**: If any functions failed to unthrottle, you may rerun the script or manually check their reserved concurrency settings if needed. The script is idempotent and can be run multiple times.
 
-## Pre-Execution Checklist
-
-1. ✅ **Verify Impact**: Confirm which applications/users will be affected
-2. ✅ **Communication**: Notify stakeholders of the planned recovery
-3. ✅ **Backup Verification**: Ensure current backups are available
-4. ✅ **Timestamp Validation**: Verify the PITR timestamp is correct
-5. ✅ **Access Verification**: Confirm you have necessary permissions
-
-### During Execution
-
-1. **Monitor Progress**: Watch Step Function execution in real-time
-2. **Check Logs**: Monitor CloudWatch logs for any warnings
-3. **Validate Data**: Spot-check data integrity during copy phase
-4. **Communicate Status**: Keep stakeholders informed of progress
-
 ### Post-Execution
 
 1. **Verify Recovery**: Confirm data integrity and completeness
 2. **Application Testing**: Test critical application functions
 3. **Documentation**: Update incident documentation with recovery details
-4. **Cleanup Review**: Verify temporary resources were cleaned up after forensic analysis.
+4. **Cleanup Review**: Cleanup temporary resources after post-incident analysis.
 
 ### Operational Constraints
 
-- **Downtime**: Applications using the table will be unavailable during restoration
 - **Data Loss**: All data newer than the PITR timestamp will be permanently lost. The backup snapshot may be restored post-recovery to determine which records can potentially be recovered.
-- **Dependencies**: Related tables may need coordinated restoration for consistency
-
+- **Dependencies**: Related tables may need coordinated restoration for consistency.
 
 ## Monitoring and Troubleshooting
 ### Common Issues and Solutions
 
 #### Invalid table name
-- **Cause**: `tableNameRecoveryConfirmation` doesn't match actual table name
+- **Cause**: `tableNameRecoveryConfirmation` doesn't match actual table name (this parameter is used to prevent accidental recovery on a database)
 - **Solution**: Copy exact table name from DynamoDB console
 
 #### Restore timestamp out of range
@@ -217,14 +181,8 @@ This will:
 
 **⚠️ CRITICAL**: This section applies ONLY when a DynamoDB table has been completely deleted and PITR is not available. This requires manual intervention and cannot use the automated Step Functions.
 
-### When to Use This Process
-
-Use this manual recovery process when:
-- A DynamoDB table has been completely deleted (not just corrupted data)
-- Point-in-Time Recovery (PITR) is not available
-- You need to restore from a backup snapshot (DynamoDB or AWS Backup)
-
 ### Recovery Steps
+Depending on how the table was deleted, there may be a latest 'snapshot' backup in the DynamoDB console that you can recover from. If that snapshot is not available, the system performs daily backups of our tables and store them in the AWS Backup service that you can recover from.
 
 #### Step 1: Locate the Latest Backup
 
@@ -272,11 +230,3 @@ Use this manual recovery process when:
    - Spot-check critical records
    - Verify record counts are reasonable
    - Verify application functionality with the restored table
-
-### Post-Recovery Validation
-
-1. **Technical Validation**:
-   - Table is accessible from applications
-   - All expected GSIs are queryable
-   - Encryption key is correct
-   - CDK app can be redeployed into environment
