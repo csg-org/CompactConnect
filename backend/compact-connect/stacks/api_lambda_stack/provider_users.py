@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 
 from aws_cdk import Duration
-from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, MathExpression, Metric, Stats, TreatMissingData
+from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, MathExpression, Metric, Stats, TreatMissingData, CfnAlarm
 from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_secretsmanager import Secret
 from cdk_nag import NagSuppressions
@@ -194,6 +194,44 @@ class ProviderUsersLambdas:
         )
         # Add the alarm to the SNS topic
         sustained_account_recovery_alarm.add_alarm_action(SnsAction(self.persistent_stack.alarm_topic))
+
+
+        # We'll monitor longer access patterns to detect anomalies, over time.
+        # The L2 construct, Alarm, doesn't yet support Anomaly Detection as a configuration
+        # so we're using the L1 construct, CfnAlarm
+        # This anomaly detector scans the count of requests to the initiate account recovery endpoint by
+        # the daily_account_recovery_attempts metric and uses machine-learning and pattern recognition to
+        # establish baselines of typical usage.
+        # See https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/LogsAnomalyDetection.html
+        self.ssn_anomaly_detection_alarm = CfnAlarm(
+            initiate_account_recovery_function,
+            'InitiateAccountRecoveryAnomalyAlarm',
+            alarm_description=f'{initiate_account_recovery_function.node.path} initiate account recovery anomaly '
+            'detection. The initiate account recovery endpoint has been'
+            'called an irregular number of times. Investigation required to ensure the endpoint is '
+            'not being abused.',
+            comparison_operator='GreaterThanUpperThreshold',
+            evaluation_periods=1,
+            treat_missing_data='notBreaching',
+            actions_enabled=True,
+            alarm_actions=[self.persistent_stack.alarm_topic.node.default_child.ref],
+            metrics=[
+                CfnAlarm.MetricDataQueryProperty(id='ad1', expression='ANOMALY_DETECTION_BAND(m1, 2)'),
+                CfnAlarm.MetricDataQueryProperty(
+                    id='m1',
+                    metric_stat=CfnAlarm.MetricStatProperty(
+                        metric=CfnAlarm.MetricProperty(
+                            metric_name=daily_account_recovery_attempts.metric_name,
+                            namespace=daily_account_recovery_attempts.namespace,
+                            dimensions=[CfnAlarm.DimensionProperty(name='service', value='common')],
+                        ),
+                        period=3600,
+                        stat='SampleCount',
+                    ),
+                ),
+            ],
+            threshold_metric_id='ad1',
+        )
 
         return initiate_account_recovery_function
 
