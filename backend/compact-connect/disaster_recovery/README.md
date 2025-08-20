@@ -88,7 +88,7 @@ This will put the system into recovery mode by:
 #### Prerequisites
 - Identify the exact table name from the DynamoDB console (needed for `tableNameRecoveryConfirmation`)
 - Verify the PITR timestamp is correct
-- Create a unique incident ID for tracking (see [Execution Request Parameter Details](####execution-request-parameter-details))
+- Create a unique incident ID for tracking (see [Execution Request Parameter Details](#execution-request-parameter-details))
 
 When you are ready to perform a rollback, find the step function for the specific table you need to rollback (`DRRestoreDynamoDbTable{TableName}StateMachine`) and start an execution with the following input (replace placeholders with your values)
 
@@ -186,12 +186,12 @@ Depending on how the table was deleted, there may be a latest 'snapshot' backup 
 
 #### Step 1: Locate the Latest Backup
 
-**Option A: DynamoDB Console**
+##### Option A: DynamoDB Console
 1. Navigate to DynamoDB Console → Backups
 2. Find the most recent backup for the deleted table
 3. Note the backup name and creation time
 
-**Option B: AWS Backup Console**
+##### Option B: AWS Backup Console
 1. Navigate to AWS Backup Console → Backup Vaults
 2. Find the most recent recovery point for the deleted table
 3. **CRITICAL**: Note the "Original table name" from the recovery point details
