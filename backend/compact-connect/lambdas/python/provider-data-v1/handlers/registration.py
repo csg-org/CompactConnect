@@ -15,11 +15,12 @@ from cc_common.exceptions import (
     CCNotFoundException,
     CCRateLimitingException,
 )
-from cc_common.utils import api_handler, verify_recaptcha
+from cc_common.utils import api_handler, delayed_function, verify_recaptcha
 from marshmallow import ValidationError
 
 RECAPTCHA_ATTEMPT_METRIC_NAME = 'recaptcha-attempt'
 REGISTRATION_ATTEMPT_METRIC_NAME = 'registration-attempt'
+
 
 def _rate_limit_exceeded(ip_address: str) -> bool:
     """Check if the IP address has exceeded the rate limit.
@@ -60,6 +61,7 @@ def _rate_limit_exceeded(ip_address: str) -> bool:
     except ClientError as e:
         logger.error('Failed to check rate limit', error=str(e))
         raise CCAwsServiceException('Failed to check rate limit') from e
+
 
 def _should_allow_reregistration(cognito_user: dict) -> bool:
     """Check if a user should be allowed to re-register based on their Cognito status.
@@ -128,6 +130,7 @@ def _send_registration_attempt_notification_and_complete(registered_email: str, 
 
 
 @api_handler
+@delayed_function(delay_seconds=2.0)
 def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """Endpoint for a practitioner to register an account with the system.
 

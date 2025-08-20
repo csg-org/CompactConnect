@@ -1,5 +1,6 @@
 import json
 from datetime import date, datetime, timedelta
+from functools import wraps
 from unittest.mock import MagicMock, PropertyMock, patch
 
 from moto import mock_aws
@@ -52,10 +53,25 @@ def generate_test_initiate_account_recovery_request():
     }
 
 
+def mock_delay_decorator(*args, **kwargs):  # noqa: ARG001 unused-argument
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            return f(*args, **kwargs)
+
+        return decorated_function
+
+    return decorator
+
+
 @mock_aws
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(MOCK_DATETIME_STRING))
-@patch('handlers.registration.config.email_service_client', mock_email_notification_service)
+@patch('handlers.account_recovery.config.email_service_client', mock_email_notification_service)
 class TestInitiateAccountRecovery(TstFunction):
+    def setUp(self):
+        super().setUp()
+        patch('cc_common.utils.delayed_function', mock_delay_decorator).start()
+
     def _get_api_event(self):
         return self.test_data_generator.generate_test_api_event()
 
@@ -263,6 +279,10 @@ def generate_test_verify_account_recovery_request():
 @mock_aws
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(MOCK_DATETIME_STRING))
 class TestVerifyAccountRecovery(TstFunction):
+    def setUp(self):
+        super().setUp()
+        patch('cc_common.utils.delayed_function', mock_delay_decorator).start()
+
     def _get_api_event(self):
         return self.test_data_generator.generate_test_api_event()
 
@@ -342,7 +362,7 @@ class TestVerifyAccountRecovery(TstFunction):
         from handlers.account_recovery import verify_account_recovery
 
         self._when_recovery_token_on_provider_record()
-        with patch('handlers.registration.config.cognito_client') as mock_cognito_client:
+        with patch('handlers.account_recovery.config.cognito_client') as mock_cognito_client:
             response = verify_account_recovery(self._get_test_event(), self.mock_context)
 
             self.assertEqual(200, response['statusCode'])

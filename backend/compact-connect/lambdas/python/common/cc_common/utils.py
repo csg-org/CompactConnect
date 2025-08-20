@@ -1,4 +1,5 @@
 import json
+import time
 from collections import UserDict
 from collections.abc import Callable
 from datetime import date
@@ -779,8 +780,10 @@ def get_provider_user_attributes_from_authorizer_claims(event: dict) -> tuple[st
 
     return compact, provider_id
 
+
 # Module level variable for caching
 _RECAPTCHA_SECRET = None
+
 
 def _get_recaptcha_secret() -> str:
     """Get the reCAPTCHA secret from Secrets Manager with module-level caching."""
@@ -797,6 +800,44 @@ def _get_recaptcha_secret() -> str:
             logger.error('Failed to load reCAPTCHA secret', error=str(e))
             raise CCInternalException('Failed to load reCAPTCHA secret') from e
     return _RECAPTCHA_SECRET
+
+
+def delayed_function(delay_seconds: float):
+    """
+    Delay the result of the decorated function by the specified number of seconds.
+
+    This decorator ensures consistent response times for security-sensitive endpoints,
+    helping to prevent timing attacks by making all responses take the same amount of time
+    regardless of the execution path taken.
+
+    :param float delay_seconds: The minimum number of seconds the function should take to return
+    """
+
+    def decorator(fn: Callable):
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            start_time = time.time()
+            try:
+                result = fn(*args, **kwargs)
+            except Exception as e:
+                # Even if an exception occurs, we still need to maintain consistent timing
+                elapsed_time = time.time() - start_time
+                remaining_time = delay_seconds - elapsed_time
+                if remaining_time > 0:
+                    time.sleep(remaining_time)
+                raise e
+
+            # Calculate how much time has elapsed and sleep for the remainder
+            elapsed_time = time.time() - start_time
+            remaining_time = delay_seconds - elapsed_time
+            if remaining_time > 0:
+                time.sleep(remaining_time)
+
+            return result
+
+        return wrapper
+
+    return decorator
 
 
 def verify_recaptcha(token: str) -> bool:

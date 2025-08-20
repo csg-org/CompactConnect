@@ -16,7 +16,7 @@ from cc_common.exceptions import (
     CCNotFoundException,
     CCRateLimitingException,
 )
-from cc_common.utils import api_handler, verify_recaptcha
+from cc_common.utils import api_handler, delayed_function, verify_recaptcha
 from marshmallow import ValidationError
 
 MFA_RECOVERY_INITIATE_ATTEMPT_METRIC = 'mfa-recovery-initiate'
@@ -81,6 +81,7 @@ def _attempt_admin_password_auth(username: str, password: str) -> bool:
 
 
 @api_handler
+@delayed_function(delay_seconds=5.0)
 def initiate_account_recovery(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     source_ip = event['requestContext']['identity']['sourceIp']
 
@@ -131,8 +132,6 @@ def initiate_account_recovery(event: dict, context: LambdaContext):  # noqa: ARG
         metrics.add_metric(name='mfa-recovery-rate-limit-throttles', unit=MetricUnit.Count, value=1)
         metrics.add_metric(name=MFA_RECOVERY_INITIATE_ATTEMPT_METRIC, unit=MetricUnit.NoUnit, value=0)
         return GENERIC_REQUEST_PROCESSED_RESPONSE
-
-
 
     # Resolve provider record and validate email
     provider_record = config.data_client.get_provider_top_level_record(
@@ -282,6 +281,7 @@ def _recreate_cognito_user(compact: str, provider_id: str, email: str):
 
 
 @api_handler
+@delayed_function(delay_seconds=3.0)
 def verify_account_recovery(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     try:
         body = ProviderAccountRecoveryVerifyRequestSchema().loads(event['body'])
