@@ -17,7 +17,6 @@ class TestCleanupRecords(TstFunction):
         }
 
     def test_lambda_returns_failed_delete_status_when_guard_rail_fails(self):
-        """Test getting the latest version of an attestation."""
         from handlers.cleanup_records import cleanup_records
 
         event = self._generate_test_event()
@@ -34,7 +33,6 @@ class TestCleanupRecords(TstFunction):
         )
 
     def test_lambda_returns_complete_delete_status_when_all_records_cleaned_up(self):
-        """Test getting the latest version of an attestation."""
         from handlers.cleanup_records import cleanup_records
 
         event = self._generate_test_event()
@@ -43,7 +41,6 @@ class TestCleanupRecords(TstFunction):
         self.assertEqual('COMPLETE', response['deleteStatus'])
 
     def test_lambda_iterates_over_all_records_to_clean_up(self):
-        """Test that the lambda iterates over all records to clean up."""
         from handlers.cleanup_records import cleanup_records
 
         for i in range(5000):
@@ -71,7 +68,6 @@ class TestCleanupRecords(TstFunction):
 
     @patch('handlers.cleanup_records.time')
     def test_lambda_returns_in_progress_when_time_limit_reached(self, mock_time):
-        """Test that the lambda iterates over all records to clean up."""
         from handlers.cleanup_records import cleanup_records
 
         # current time, start time + 1 second, start time 12 minutes + 2 seconds
@@ -91,6 +87,8 @@ class TestCleanupRecords(TstFunction):
 
         self.assertEqual(
             {
+                # in this test cases, the table items are very small, so we expect all 2000 to be returned within the
+                # single page (under the 1MB page limit)
                 'deletedCount': 2000,
                 'deleteStatus': 'IN_PROGRESS',
                 'destinationTableArn': self.mock_destination_table_arn,
