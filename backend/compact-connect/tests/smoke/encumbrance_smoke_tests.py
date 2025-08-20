@@ -423,6 +423,13 @@ def test_license_encumbrance_workflow():
 
         logger.info('Verified provider remains encumbered after lifting first encumbrance')
 
+        # wait 1 minute for downstream processing to complete
+        # this keeps the lifting events isolated from each other
+        total_periods = 6
+        for i in range(total_periods):
+            logger.info(f'pausing for downstream processing to complete: {i}/{total_periods}')
+            time.sleep(10)
+
         # Step 4: Lift final encumbrance (license should become unencumbered)
         logger.info('Step 4: Lifting final license encumbrance...')
 
@@ -639,6 +646,13 @@ def test_privilege_encumbrance_workflow():
 
         logger.info('Verified privilege remains encumbered after lifting first encumbrance')
 
+        # wait 1 minute for downstream processing to complete
+        # this keeps the lifting events isolated from each other
+        total_periods = 6
+        for i in range(total_periods):
+            logger.info(f'pausing for downstream processing to complete: {i}/{total_periods}')
+            time.sleep(10)
+
         # Step 3: Lift final encumbrance (privilege should become unencumbered)
         logger.info('Step 3: Lifting final privilege encumbrance...')
 
@@ -698,9 +712,6 @@ def run_encumbrance_smoke_tests():
         test_privilege_encumbrance_workflow()
 
         logger.info('All encumbrance smoke tests completed successfully!')
-
-        # Clean up adverse actions after tests
-        clean_adverse_actions()
 
     except Exception as e:
         logger.error(f'Encumbrance smoke tests failed: {str(e)}')
