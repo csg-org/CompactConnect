@@ -544,6 +544,7 @@ export const licensees = {
                     dateOfUpdate: moment().subtract(7, 'months').format(serverDateFormat),
                     dateOfRenewal: moment().subtract(2, 'months').format(serverDateFormat),
                     dateOfExpiration: moment().add(10, 'months').format(serverDateFormat),
+                    activeSince: moment().subtract(1, 'years').subtract(2, 'months').format(serverDateFormat),
                     attestations: attestationResponses.map((response) => ({ ...response })),
                     history: [
                         {
@@ -641,6 +642,7 @@ export const licensees = {
                     dateOfUpdate: moment().subtract(9, 'months').format(serverDateFormat),
                     dateOfRenewal: moment().subtract(9, 'months').format(serverDateFormat),
                     dateOfExpiration: moment().add(1, 'month').format(serverDateFormat),
+                    activeSince: moment().subtract(6, 'months').format(serverDateFormat),
                     attestations: attestationResponses.map((response) => ({ ...response })),
                     history: [
                         {
@@ -1004,6 +1006,7 @@ export const licensees = {
                     dateOfUpdate: moment().subtract(7, 'months').format(serverDateFormat),
                     dateOfRenewal: moment().subtract(2, 'months').format(serverDateFormat),
                     dateOfExpiration: moment().add(10, 'months').format(serverDateFormat),
+                    activeSince: moment().subtract(1, 'years').subtract(2, 'months').format(serverDateFormat),
                     attestations: attestationResponses.map((response) => ({ ...response })),
                     history: [
                         {
@@ -1184,6 +1187,7 @@ export const licensees = {
                     dateOfUpdate: moment().subtract(9, 'months').format(serverDateFormat),
                     dateOfRenewal: moment().subtract(9, 'months').format(serverDateFormat),
                     dateOfExpiration: moment().add(1, 'month').format(serverDateFormat),
+                    activeSince: moment().subtract(6, 'months').format(serverDateFormat),
                     attestations: attestationResponses.map((response) => ({ ...response })),
                     history: [
                         {
@@ -1346,10 +1350,11 @@ export const licensees = {
                     licenseJurisdiction: 'co',
                     persistedStatus: 'inactive',
                     status: 'inactive',
-                    dateOfIssuance: '2023-08-29',
-                    dateOfUpdate: '2024-08-29',
+                    dateOfIssuance: moment().subtract(10, 'months').subtract(1, 'year').format(serverDateFormat),
+                    dateOfUpdate: moment().subtract(10, 'months').subtract(1, 'year').format(serverDateFormat),
                     dateOfRenewal: '2024-08-29',
-                    dateOfExpiration: '2024-08-29',
+                    dateOfExpiration: moment().add(2, 'months').format(serverDateFormat),
+                    activeSince: moment().subtract(10, 'months').subtract(1, 'year').format(serverDateFormat),
                     attestations: [],
                 },
             ],
