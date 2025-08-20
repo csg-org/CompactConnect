@@ -239,17 +239,33 @@ export class Licensee implements InterfaceLicensee {
         const inactiveHomeJurisdictionLicenses = this.inactiveHomeJurisdictionLicenses();
 
         if (activeHomeJurisdictionLicenses.length) {
-            bestHomeLicense = activeHomeJurisdictionLicenses.reduce(
-                function getMostRecent(prev: License, current: License) {
-                    return (prev && moment(prev.issueDate).isAfter(current.issueDate)) ? prev : current;
-                } as any
-            );
+            bestHomeLicense = activeHomeJurisdictionLicenses.reduce((prev: License, current: License) => {
+                let result: License;
+
+                if (!prev.issueDate) {
+                    result = current;
+                } else if (!current.issueDate) {
+                    result = prev;
+                } else {
+                    result = moment(prev.issueDate).isAfter(current.issueDate) ? prev : current;
+                }
+
+                return result;
+            });
         } else if (inactiveHomeJurisdictionLicenses.length) {
-            bestHomeLicense = inactiveHomeJurisdictionLicenses.reduce(
-                function getMostRecent(prev: License, current: License) {
-                    return (prev && moment(prev.issueDate).isAfter(current.issueDate)) ? prev : current;
-                } as any
-            );
+            bestHomeLicense = inactiveHomeJurisdictionLicenses.reduce((prev: License, current: License) => {
+                let result: License;
+
+                if (!prev.issueDate) {
+                    result = current;
+                } else if (!current.issueDate) {
+                    result = prev;
+                } else {
+                    result = moment(prev.issueDate).isAfter(current.issueDate) ? prev : current;
+                }
+
+                return result;
+            });
         }
 
         return bestHomeLicense;
@@ -260,31 +276,62 @@ export class Licensee implements InterfaceLicensee {
     }
 
     public bestLicense(): License {
-        // First try to get the best home jurisdiction license
-        const bestHomeLicense = this.bestHomeJurisdictionLicense();
-        // If no home jurisdiction license, get the most recent active non-home state license
-        const nonHomeStateLicenses = (this.licenses?.filter((license: License) =>
-            license.issueState?.abbrev !== this.homeJurisdiction?.abbrev) || []) as License[];
+        let bestLicense: License = new License();
+        const bestHomeLicense: License = this.bestHomeJurisdictionLicense();
 
-        let bestNonHomeLicense = new License();
+        // Check if bestHomeLicense has meaningful data (not just an empty License object)
+        if (bestHomeLicense.licenseeId) {
+            bestLicense = bestHomeLicense;
+        } else {
+            // If no home jurisdiction license, get the most recent active non-home state license
+            const nonHomeStateLicenses: Array<License> = (this.licenses?.filter((license: License) =>
+                license.issueState?.abbrev !== this.homeJurisdiction?.abbrev) || []);
+            let bestNonHomeLicense: License = new License();
 
-        if (nonHomeStateLicenses.length) {
-            // First try active licenses
-            const activeNonHomeLicenses = nonHomeStateLicenses.filter((license: License) =>
-                license.status === LicenseStatus.ACTIVE);
+            if (nonHomeStateLicenses.length) {
+                // First check for active licenses
+                const activeNonHomeLicenses = nonHomeStateLicenses.filter((license: License) =>
+                    license.status === LicenseStatus.ACTIVE);
 
-            if (activeNonHomeLicenses.length) {
-                bestNonHomeLicense = activeNonHomeLicenses.reduce((prev: License, current: License) =>
-                    ((prev && moment(prev.issueDate).isAfter(current.issueDate)) ? prev : current));
-            } else {
-                // If no active, get most recent inactive
-                bestNonHomeLicense = nonHomeStateLicenses.reduce((prev: License, current: License) =>
-                    ((prev && moment(prev.issueDate).isAfter(current.issueDate)) ? prev : current));
+                if (activeNonHomeLicenses.length) {
+                    // Find the most recent active non-home license
+                    bestNonHomeLicense = activeNonHomeLicenses.reduce((prev: License, current: License) => {
+                        let result: License;
+
+                        if (!prev.issueDate) {
+                            result = current;
+                        } else if (!current.issueDate) {
+                            result = prev;
+                        } else {
+                            result = moment(prev.issueDate).isAfter(current.issueDate) ? prev : current;
+                        }
+
+                        return result;
+                    });
+                } else {
+                    // If no active found, get most recent inactive license
+                    bestNonHomeLicense = nonHomeStateLicenses.reduce((prev: License, current: License) => {
+                        let result: License;
+
+                        if (!prev.issueDate) {
+                            result = current;
+                        } else if (!current.issueDate) {
+                            result = prev;
+                        } else {
+                            result = moment(prev.issueDate).isAfter(current.issueDate) ? prev : current;
+                        }
+
+                        return result;
+                    });
+                }
+            }
+
+            if (bestNonHomeLicense.licenseeId) {
+                bestLicense = bestNonHomeLicense;
             }
         }
 
-        // Return the best available license (non-home takes precedence if available)
-        return (bestNonHomeLicense.licenseNumber) ? bestNonHomeLicense : bestHomeLicense;
+        return bestLicense;
     }
 
     public bestLicenseMailingAddress(): Address {
