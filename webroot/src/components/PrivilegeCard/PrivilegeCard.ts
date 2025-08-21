@@ -173,7 +173,7 @@ class PrivilegeCard extends mixins(MixinForm) {
     }
 
     get expiresContent(): string {
-        return (this.privilege?.isDeactivated()) ? this.$t('licensing.deactivated') : this.privilege?.expireDateDisplay() || '';
+        return this.privilege?.expireDateDisplay() || '';
     }
 
     get isEncumbered(): boolean {
