@@ -2,7 +2,7 @@
 from datetime import timedelta
 
 from marshmallow import ValidationError, validates_schema
-from marshmallow.fields import Date, DateTime, Email, Integer, List, Nested, Raw, String, UUID
+from marshmallow.fields import UUID, Date, DateTime, Email, Integer, List, Nested, Raw, String
 from marshmallow.validate import Length, OneOf, Regexp
 
 from cc_common.data_model.schema.base_record import ForgivingSchema
