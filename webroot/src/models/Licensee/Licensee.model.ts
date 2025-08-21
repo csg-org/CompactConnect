@@ -239,33 +239,9 @@ export class Licensee implements InterfaceLicensee {
         const inactiveHomeJurisdictionLicenses = this.inactiveHomeJurisdictionLicenses();
 
         if (activeHomeJurisdictionLicenses.length) {
-            bestHomeLicense = activeHomeJurisdictionLicenses.reduce((prev: License, current: License) => {
-                let result: License;
-
-                if (!prev.issueDate) {
-                    result = current;
-                } else if (!current.issueDate) {
-                    result = prev;
-                } else {
-                    result = moment(prev.issueDate).isAfter(current.issueDate) ? prev : current;
-                }
-
-                return result;
-            });
+            bestHomeLicense = this.findMostRecentLicense(activeHomeJurisdictionLicenses);
         } else if (inactiveHomeJurisdictionLicenses.length) {
-            bestHomeLicense = inactiveHomeJurisdictionLicenses.reduce((prev: License, current: License) => {
-                let result: License;
-
-                if (!prev.issueDate) {
-                    result = current;
-                } else if (!current.issueDate) {
-                    result = prev;
-                } else {
-                    result = moment(prev.issueDate).isAfter(current.issueDate) ? prev : current;
-                }
-
-                return result;
-            });
+            bestHomeLicense = this.findMostRecentLicense(inactiveHomeJurisdictionLicenses);
         }
 
         return bestHomeLicense;
@@ -273,6 +249,28 @@ export class Licensee implements InterfaceLicensee {
 
     public bestHomeJurisdictionLicenseMailingAddress(): Address {
         return this.bestHomeJurisdictionLicense().mailingAddress || new Address();
+    }
+
+    private findMostRecentLicense(licenses: Array<License>): License {
+        let result: License = new License();
+
+        if (licenses.length) {
+            result = licenses.reduce((prev: License, current: License) => {
+                let moreRecentLicense: License;
+
+                if (!prev.issueDate) {
+                    moreRecentLicense = current;
+                } else if (!current.issueDate) {
+                    moreRecentLicense = prev;
+                } else {
+                    moreRecentLicense = moment(prev.issueDate).isAfter(current.issueDate) ? prev : current;
+                }
+
+                return moreRecentLicense;
+            });
+        }
+
+        return result;
     }
 
     public bestLicense(): License {
@@ -294,34 +292,10 @@ export class Licensee implements InterfaceLicensee {
 
                 if (activeNonHomeLicenses.length) {
                     // Find the most recent active non-home license
-                    bestNonHomeLicense = activeNonHomeLicenses.reduce((prev: License, current: License) => {
-                        let result: License;
-
-                        if (!prev.issueDate) {
-                            result = current;
-                        } else if (!current.issueDate) {
-                            result = prev;
-                        } else {
-                            result = moment(prev.issueDate).isAfter(current.issueDate) ? prev : current;
-                        }
-
-                        return result;
-                    });
+                    bestNonHomeLicense = this.findMostRecentLicense(activeNonHomeLicenses);
                 } else {
                     // If no active found, get most recent inactive license
-                    bestNonHomeLicense = nonHomeStateLicenses.reduce((prev: License, current: License) => {
-                        let result: License;
-
-                        if (!prev.issueDate) {
-                            result = current;
-                        } else if (!current.issueDate) {
-                            result = prev;
-                        } else {
-                            result = moment(prev.issueDate).isAfter(current.issueDate) ? prev : current;
-                        }
-
-                        return result;
-                    });
+                    bestNonHomeLicense = this.findMostRecentLicense(nonHomeStateLicenses);
                 }
             }
 
@@ -380,7 +354,7 @@ export class LicenseeSerializer {
             middleName: json.middleName,
             lastName: json.familyName,
             // json.homeJurisdictionSelection has been deprecated and replaced with json.currentHomeJurisdiction
-            homeJurisdiction: (json.currentHomeJurisdiction && json.currentHomeJurisdiction !== 'unknown')
+            homeJurisdiction: (json.currentHomeJurisdiction && json.currentHomeJurisdiction.trim().toLowerCase() !== 'unknown')
                 ? new State({ abbrev: json.currentHomeJurisdiction })
                 : new State({ abbrev: json.licenseJurisdiction }),
             dob: json.dateOfBirth,
