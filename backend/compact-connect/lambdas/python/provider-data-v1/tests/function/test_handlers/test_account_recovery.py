@@ -71,6 +71,7 @@ class TestInitiateAccountRecovery(TstFunction):
     def setUp(self):
         super().setUp()
         patch('cc_common.utils.delayed_function', mock_delay_decorator).start()
+        mock_email_notification_service.reset_mock()
 
     def _get_api_event(self):
         return self.test_data_generator.generate_test_api_event()
@@ -233,6 +234,7 @@ class TestInitiateAccountRecovery(TstFunction):
 
     @patch('handlers.account_recovery.verify_recaptcha', return_valid_recaptcha)
     def test_initiate_account_recovery_sends_email_if_authenticated(self):
+        from cc_common.utils import verify_password
         from handlers.account_recovery import initiate_account_recovery
 
         self._when_license_record_matches()
@@ -252,7 +254,9 @@ class TestInitiateAccountRecovery(TstFunction):
             compact=TEST_COMPACT_ABBR, provider_id=MOCK_PROVIDER_ID
         )
 
-        self.assertIsNotNone(provider_record.recoveryToken)
+        self.assertTrue(
+            verify_password(provider_record.recoveryToken, mock_secret), 'stored password failed hash validation'
+        )
         # ensure the expiry is 15 minutes from now
         self.assertEqual(
             (self.config.current_standard_datetime + timedelta(minutes=15)), provider_record.recoveryExpiry

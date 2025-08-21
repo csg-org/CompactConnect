@@ -76,7 +76,7 @@ def _attempt_admin_password_auth(username: str, password: str) -> bool:
         return 'ChallengeName' in response or 'AuthenticationResult' in response
     except ClientError as e:
         error_code = e.response['Error'].get('Code')
-        logger.info('Cognito admin_initiate_auth failed', username=username, error_code=error_code)
+        logger.info('Cognito admin_initiate_auth failed', error_code=error_code)
         return False
 
 
