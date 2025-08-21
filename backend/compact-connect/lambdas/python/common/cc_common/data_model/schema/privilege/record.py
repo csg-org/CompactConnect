@@ -50,6 +50,13 @@ class DeactivationDetailsSchema(Schema):
     deactivatedByStaffUserId = UUID(required=True, allow_none=False)
     deactivatedByStaffUserName = String(required=True, allow_none=False)
 
+class EncumbranceDetailsSchema(Schema):
+    """
+    Schema for tracking details about an encumbrance.
+    """
+
+    note = String(required=False, allow_none=False, validate=Length(1, 256))
+    adverseActionId = UUID(required=True, allow_none=False)
 
 @BaseRecordSchema.register_schema('privilege')
 class PrivilegeRecordSchema(BaseRecordSchema, ValidatesLicenseTypeMixin):
