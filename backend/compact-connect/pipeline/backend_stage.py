@@ -2,6 +2,7 @@ from aws_cdk import Environment, Stage
 from common_constructs.stack import StandardTags
 from constructs import Construct
 from stacks.api_stack import ApiStack
+from stacks.disaster_recovery_stack import DisasterRecoveryStack
 from stacks.event_listener_stack import EventListenerStack
 from stacks.ingest_stack import IngestStack
 from stacks.managed_login_stack import ManagedLoginStack
@@ -148,6 +149,17 @@ class BackendStage(Stage):
         self.transaction_monitoring_stack = TransactionMonitoringStack(
             self,
             'TransactionMonitoringStack',
+            env=environment,
+            environment_name=environment_name,
+            environment_context=environment_context,
+            standard_tags=standard_tags,
+            persistent_stack=self.persistent_stack,
+        )
+
+        # Disaster recovery workflows for DynamoDB tables
+        self.disaster_recovery_stack = DisasterRecoveryStack(
+            self,
+            'DisasterRecoveryStack',
             env=environment,
             environment_name=environment_name,
             environment_context=environment_context,

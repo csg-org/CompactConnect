@@ -69,18 +69,19 @@ Add the new app client information to the external Google Sheet registry for tra
 
 ### 4. **Send Credentials to Consuming Team**
    **When using the Python script (recommended):**
-   The script will output comprehensive JSON with all necessary information for the consuming team:
+   The script will output two separate sections:
+
+   **A. Credentials JSON (for one-time link service):**
    ```json
    {
      "clientId": "6g34example89j",
-     "clientSecret": "1234example567890",
-     "compact": "octp",
-     "state": "la",
-     "authUrl": "https://compact-connect-state-auth-beta.auth.us-east-1.amazoncognito.com/oauth2/token",
-     "licenseUploadUrl": "https://api.beta.compactconnect.org/v1/compacts/octp/jurisdictions/la/licenses"
+     "clientSecret": "1234example567890"
    }
    ```
-   **Important:** These credentials should be securely transmitted to the consuming team via an encrypted channel (i.e., a one-time use link). The Python script output is ready to use directly with your one-time secret link generator. Once you have sent the credentials over to the IT staff, ensure you remove all remnants of the credentials from your device.
+   **Important:** These credentials should be securely transmitted to the consuming team via an encrypted channel (i.e., a one-time use link). Copy this JSON and use it with your one-time secret link generator. Once you have sent the credentials over to the IT staff, ensure you remove all remnants of the credentials from your device.
+
+   **B. Email Template:**
+   The script will also generate an email template with contextual information (compact name, state, auth URL, license upload URL) that you can copy/paste into your email client. This template includes a placeholder for the one-time link that you'll generate separately.
 
 
 #### Email Instructions for consuming team

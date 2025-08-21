@@ -59,6 +59,7 @@ class SSNTable(Table):
             billing_mode=BillingMode.PAY_PER_REQUEST,
             removal_policy=removal_policy,
             point_in_time_recovery=True,
+            deletion_protection=True if removal_policy == RemovalPolicy.RETAIN else False,
             partition_key=Attribute(name='pk', type=AttributeType.STRING),
             sort_key=Attribute(name='sk', type=AttributeType.STRING),
             resource_policy=PolicyDocument(
@@ -99,7 +100,7 @@ class SSNTable(Table):
         )
 
         # Restrict read access to only the ssnIndex GSI
-        # Because the primary keys include SSN and data events are recorded on a CloudTrail organizaiton trail,
+        # Because the primary keys include SSN and data events are recorded on a CloudTrail organization trail,
         # queries outside the ssnIndex will result in SSNs being logged into the data events trail. To reduce
         # sensitivity of the trail logs, we'll restrict read operations to only the ssnIndex, where queries
         # by Key include provider ids, not SSNs.

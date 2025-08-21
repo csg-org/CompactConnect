@@ -66,7 +66,7 @@ router.beforeEach(async (to, from, next) => {
 });
 
 router.afterEach(() => {
-    if (window.innerWidth < 770) {
+    if (window.innerWidth < 770 || window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
         store.dispatch('collapseNavMenu');
     }
 });

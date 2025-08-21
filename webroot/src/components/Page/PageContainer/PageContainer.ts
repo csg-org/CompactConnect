@@ -40,8 +40,10 @@ class PageContainer extends Vue {
         return this.$route?.name as string || '';
     }
 
-    get isPhone(): boolean {
-        return this.$matches.phone.only;
+    get isMenuTouchToggle(): boolean {
+        const { $matches } = this;
+
+        return $matches.phone.only || $matches.hover === 'none';
     }
 
     get includePageHeader(): boolean {
@@ -50,7 +52,7 @@ class PageContainer extends Vue {
             'LicenseeVerification',
         ];
 
-        return (this.isPhone && !nonHeaderRouteNames.includes(this.currentRouteName));
+        return (this.isMenuTouchToggle && !nonHeaderRouteNames.includes(this.currentRouteName));
     }
 
     get shouldPadTop(): boolean {

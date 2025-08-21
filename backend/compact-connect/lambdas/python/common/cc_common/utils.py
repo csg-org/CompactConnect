@@ -386,7 +386,7 @@ def _authorize_compact_with_scope(event: dict, resource_parameter: str, scope_pa
 
     required_scope = f'{resource_value}/{scope_value}.{action}'
     if required_scope not in scopes:
-        logger.warning('Forbidden access attempt!')
+        logger.warning('Forbidden access attempt!', scopes=scopes, required_scope=required_scope)
         raise CCAccessDeniedException('Forbidden access attempt!')
 
 

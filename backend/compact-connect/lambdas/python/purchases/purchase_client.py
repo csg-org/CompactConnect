@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import json
 import logging
 from abc import ABC, abstractmethod
 from decimal import Decimal
+from enum import StrEnum
 
 from authorizenet import apicontractsv1
 from authorizenet.apicontrollers import (
@@ -34,6 +37,12 @@ MAXIMUM_TRANSACTION_API_LIMIT = 1000
 # rejection that should be handled as a user error with retry guidance. You can review the description of these codes
 # by searching for them at https://developer.authorize.net/api/reference/responseCodes.html
 AUTHORIZE_NET_CARD_USER_ERROR_CODES = ['2', '5', '6', '7', '8', '11', '17', '65', 'E00114']
+
+
+class AuthorizeNetTransactionErrorStates(StrEnum):
+    SettlementError = 'settlementError'
+    GeneralError = 'generalError'
+
 
 # The authorizenet SDK emits many warnings due to a Pyxb issue that they will not address,
 # see https://github.com/AuthorizeNet/sdk-python/issues/133,
@@ -609,7 +618,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
             batch_ids = [str(batch.batchId) for batch in batch_response.batchList.batch]
             logger.info('Found settled batches', batch_ids=batch_ids)
             for batch in batch_response.batchList.batch:
-                if batch.settlementState == 'settlementError':
+                if batch.settlementState == AuthorizeNetTransactionErrorStates.SettlementError:
                     logger.warning(
                         'Settlement error found in batch.',
                         batch_id=batch.batchId,
@@ -787,7 +796,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                             tx = details_response.transaction
 
                             # Check if this transaction has a settlement error
-                            if str(tx.transactionStatus) == 'settlementError':
+                            if str(tx.transactionStatus) in AuthorizeNetTransactionErrorStates:
                                 settlement_error_transaction_ids.append(str(transaction.transId))
                                 logger.warning(
                                     'Transaction was not in settledSuccessfully state',

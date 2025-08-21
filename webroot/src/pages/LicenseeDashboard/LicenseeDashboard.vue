@@ -124,6 +124,9 @@
                                     {{ $t('common.here') }}
                                 </router-link>.
                             </li>
+                            <li v-if="hasEncumbranceLiftedWithinWaitPeriod">
+                                {{ $t('licensing.purchaseUnavailableEncumbranceLiftedWithinWaitPeriod') }}
+                            </li>
                         </ol>
                     </div>
                 </template>

@@ -47,6 +47,7 @@ class DataEventTable(Table):
             billing_mode=BillingMode.PAY_PER_REQUEST,
             removal_policy=removal_policy,
             point_in_time_recovery=True,
+            deletion_protection=True if removal_policy == RemovalPolicy.RETAIN else False,
             partition_key=Attribute(name='pk', type=AttributeType.STRING),
             sort_key=Attribute(name='sk', type=AttributeType.STRING),
             **kwargs,

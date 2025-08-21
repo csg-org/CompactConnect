@@ -22,6 +22,7 @@
         "selectFiles": "Selecciona archivos",
         "replaceFile": "Reemplazar el archivo",
         "replaceFiles": "Reemplazar archivos",
+        "downloadFile": "Descargar",
         "change": "Cambiar",
         "add": "Agregar",
         "remove": "Eliminar",
@@ -584,6 +585,7 @@
         "status": "Estado",
         "deselectState": "Deseleccionar estado",
         "issueDate": "Fecha de asunto",
+        "activeFrom": "Activo desde",
         "expirationDate": "Fecha de caducidad",
         "expiration": "Vencimiento",
         "expireDate": "Fecha de caducidad",
@@ -634,6 +636,7 @@
         "confirmPrivilegeDeactivateTitle": "¿Está seguro de que desea desactivar este privilegio?",
         "confirmPrivilegeDeactivateSubtext": "El profesional ya no podrá ejercer este privilegio. Esto no constituye una sanción disciplinaria.",
         "deactivateNotesTitle": "Notas de desactivación",
+        "deactivation": "Desactivación",
         "deactivateNotesPlaceholder": "Introduzca notas aquí",
         "confirmPrivilegeDeactivateSubmit": "Sí, desactivar privilegio",
         "encumber": "Cargar",
@@ -661,10 +664,11 @@
         "confirmPrivilegeUnencumberSuccess": "Está previsto que estos gravámenes se eliminen.",
         "confirmPrivilegeUnencumberSuccessEndDate": "Fecha de finalización",
         "expiringIn": "Expirando en",
+        "events": "Eventos",
         "licenseEvents": [
             {
                 "name": "Privilegio comprado",
-                "key": "purchased"
+                "key": "issuance"
             },
             {
                 "name": "Renovación",
@@ -672,11 +676,27 @@
             },
             {
                 "name": "Expirado",
-                "key": "expired"
+                "key": "expiration"
             },
             {
                 "name": "Desactivación",
                 "key": "deactivation"
+            },
+            {
+                "name": "Desactivación de Licencia",
+                "key": "licenseDeactivation"
+            },
+            {
+                "name": "Inicio Cambio de Jurisdicción",
+                "key": "homeJurisdictionChange"
+            },
+            {
+                "name": "Privilegio sin trabas",
+                "key": "lifting_encumbrance"
+            },
+            {
+                "name": "Encumbrance",
+                "key": "encumbrance"
             }
         ],
         "licenseTypes": [
@@ -760,6 +780,8 @@
         "activeDate": "Activa",
         "privilegeProofFooter": "Este documento es generado oficialmente por Compact Connect y sirve como prueba de las licencias y privilegios actuales del profesional.",
         "publicProfileLink": "Ver perfil público en",
+        "licenseDeactivationNote": "Desactivado debido a que la licencia asociada está desactivada",
+        "homeStateChangeNote": "Desactivado debido al cambio de estado de origen",
         "qrCodeAlt": "Código QR que enlaza al perfil público",
         "whyUnavailable": "¿Por qué no está disponible?",
         "whyUnavailableInfoButton": "Mostrar explicación de por qué la compra de privilegios no está disponible",
@@ -767,6 +789,7 @@
         "purchaseUnavailableNoEligibleLicenses": "No tiene ninguna licencia que sea elegible para la participación en el convenio. Si cree que una de sus licencias debería ser elegible, comuníquese con el consejo estatal que emitió esa licencia.",
         "purchaseUnavailableEncumbrance": "Tiene una carga que le impide comprar privilegios. Si cree que no debería tener una carga, comuníquese con el consejo estatal que registró la carga.",
         "purchaseUnavailablePendingMilitaryStatus": "Ha iniciado el proceso de presentación de documentación para confirmar su condición de militar, pero no lo ha finalizado. Puede completar ese proceso",
+        "purchaseUnavailableEncumbranceLiftedWithinWaitPeriod": "Han pasado menos de dos años desde que se levantó su última carga. Puede comprar privilegios después de que pasen dos años desde el final de su última carga.",
         "militaryStatusLinkAriaLabel": "Ver página de estado militar"
     },
     "military": {
@@ -775,7 +798,9 @@
         "militaryDiscountText": "Descuento Militar",
         "viewMilitaryStatus": "Ver estado militar",
         "affiliationType": "Tipo de afiliación",
-        "previouslyUploadedDocuments": "Previously Uploaded Documents",
+        "uploadedDocuments": "Documentos de afiliación militar",
+        "previousDocuments": "Documentos cargados previamente",
+        "downloadUnavailable": "Indisponible",
         "endMilitaryAffiliation": "Parar afiliación militar",
         "editInfo": "Editar información",
         "noUploadedDocuments": "No documentos cargados",
