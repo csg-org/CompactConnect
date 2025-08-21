@@ -75,6 +75,16 @@
     }
 
     .section-container {
+        &.licenses-container {
+            .cell-display-name {
+                margin-bottom: 1rem;
+
+                @media @tabletWidth {
+                    margin-bottom: 0;
+                }
+            }
+        }
+
         .section-title-container {
             display: flex;
             align-items: flex-end;
@@ -104,7 +114,7 @@
         .row {
             display: flex;
             flex-wrap: wrap;
-            align-items: center;
+            align-items: flex-start;
             width: 100%;
             margin-bottom: 1rem;
             padding: 2rem 2.4rem;
@@ -120,6 +130,7 @@
 
             @media @tabletWidth {
                 flex-wrap: nowrap;
+                align-items: center;
             }
 
             &.highlight {
@@ -133,8 +144,44 @@
                 font-weight: @fontWeightBold;
                 font-size: @fontSizeLarge;
 
+                &:first-child {
+                    width: 100%;
+                    margin-right: 0;
+
+                    @media @tabletWidth {
+                        width: auto;
+                        margin-right: 3.2rem;
+                    }
+                }
+
                 &.max-gap {
                     margin-left: auto;
+
+                    &:empty {
+                        display: none;
+
+                        @media @tabletWidth {
+                            display: flex;
+                        }
+                    }
+                }
+
+                &.home-state-cell {
+                    margin-top: 1rem;
+                    margin-left: 0;
+
+                    @media @tabletWidth {
+                        margin-top: 0;
+                        margin-left: auto;
+                    }
+                }
+
+                &.active-from-cell {
+                    margin-left: 0;
+
+                    @media @tabletWidth {
+                        margin-left: auto;
+                    }
                 }
 
                 .cell-display-name {
@@ -142,8 +189,13 @@
                 }
 
                 .cell-id {
+                    margin-bottom: 1rem;
                     font-weight: @fontWeightBold;
                     font-size: 1.5rem;
+
+                    @media @tabletWidth {
+                        margin-bottom: 0;
+                    }
                 }
 
                 .cell-title {

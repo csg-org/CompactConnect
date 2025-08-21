@@ -70,8 +70,8 @@
         </div>
         <div class="privilege-info-grid">
             <div class="info-item-container">
-                <div class="info-item-title">{{ $t('licensing.issued') }}</div>
-                <div class="info-item">{{issuedContent}}</div>
+                <div class="info-item-title">{{ $t('licensing.activeFrom') }}</div>
+                <div class="info-item">{{ (isActive) ? activeFromContent : $t('licensing.deactivated') }}</div>
             </div>
            <div class="info-item-container">
                 <div class="info-item-title">{{expiresTitle}}</div>

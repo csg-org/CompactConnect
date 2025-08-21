@@ -7,20 +7,22 @@
 
 <template>
     <div class="history-container">
-        <div v-for="(richEvent, idx) in preppedEvents" :key="idx" class="events">
-            <StatusTimeBlock
-                class="status-time-block"
-                :isStartOfVisualBlock="richEvent.isStartOfVisualBlock"
-                :isEndOfVisualBlock="richEvent.isEndOfVisualBlock"
-                :event="richEvent.event"
-                :isLastEvent="richEvent.isLastEvent"
-            />
-            <PrivilegeEventNode
-                :event="richEvent.event"
-                :eventLengthBucket="richEvent.eventLengthBucket"
-                class="event-node"
-            />
-        </div>
+        <ul
+            :aria-label="$t('licensing.events')"
+        >
+            <li
+                v-for="(richEvent, idx) in preppedEvents"
+                :key="idx"
+                class="events"
+            >
+                <div class="timeline-line" />
+                <PrivilegeEventNode
+                    :event="richEvent.event"
+                    :eventLengthBucket="richEvent.eventLengthBucket"
+                    class="event-node"
+                />
+            </li>
+        </ul>
         <div class="now-line">
             <div v-if="isActive" class="dot"></div>
             <div class="after-now">

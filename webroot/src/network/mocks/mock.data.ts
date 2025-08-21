@@ -770,6 +770,7 @@ export const licensees = {
                     dateOfIssuance: moment().subtract(2, 'years').subtract(7, 'months').format(serverDateFormat),
                     dateOfRenewal: moment().subtract(2, 'months').format(serverDateFormat),
                     dateOfExpiration: moment().add(10, 'months').format(serverDateFormat),
+                    activeSince: moment().subtract(1, 'years').subtract(2, 'months').format(serverDateFormat),
                     compactTransactionId: '120060088902',
                     attestations: [
                         {
@@ -1063,8 +1064,9 @@ export const licensees = {
                     licenseJurisdiction: 'ca',
                     licenseType: 'occupational therapist',
                     dateOfIssuance: moment().subtract(2, 'years').subtract(3, 'months').format(serverDateFormat),
-                    dateOfRenewal: moment().subtract(3, 'months').format(serverDateFormat),
-                    dateOfExpiration: moment().add(9, 'months').format(serverDateFormat),
+                    dateOfRenewal: moment().subtract(6, 'months').format(serverDateFormat),
+                    dateOfExpiration: moment().add(6, 'months').format(serverDateFormat),
+                    activeSince: moment().subtract(6, 'months').format(serverDateFormat),
                     compactTransactionId: '120060088903',
                     attestations: [
                         {
@@ -1518,6 +1520,7 @@ export const licensees = {
                     dateOfIssuance: moment().subtract(2, 'years').subtract(7, 'months').format(serverDateFormat),
                     dateOfRenewal: moment().subtract(2, 'months').format(serverDateFormat),
                     dateOfExpiration: moment().add(10, 'months').format(serverDateFormat),
+                    activeSince: moment().subtract(1, 'years').subtract(2, 'months').format(serverDateFormat),
                     compactTransactionId: '120060088901',
                     attestations: [
                         {
@@ -2027,6 +2030,7 @@ export const licensees = {
                     dateOfIssuance: moment().subtract(9, 'months').format(serverDateFormat),
                     dateOfRenewal: moment().subtract(9, 'months').format(serverDateFormat),
                     dateOfExpiration: moment().add(1, 'month').format(serverDateFormat),
+                    activeSince: moment().subtract(6, 'months').format(serverDateFormat),
                     compactTransactionId: '120060088901',
                     attestations: [
                         {
@@ -2528,6 +2532,7 @@ export const licensees = {
                     type: 'privilege',
                     dateOfIssuance: moment().subtract(10, 'months').subtract(1, 'year').format(serverDateFormat),
                     dateOfUpdate: moment().subtract(10, 'months').subtract(1, 'year').format(serverDateFormat),
+                    activeSince: moment().subtract(10, 'months').subtract(1, 'year').format(serverDateFormat),
                     status: 'active',
                     privilegeId: 'OCTP-AL-22'
                 }
@@ -3014,6 +3019,213 @@ export const stateConfig = {
         'summary@example.com',
     ],
 };
+
+export const mockPrivilegeHistoryResponses = [
+    {
+        providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
+        compact: 'octp',
+        jurisdiction: 'ne',
+        licenseType: 'occupational therapy assistant',
+        privilegeId: 'OT-NE-26',
+        events: [
+            {
+                type: 'privilegeUpdate',
+                updateType: 'issuance',
+                dateOfUpdate: '2024-06-23T07:46:19+00:00',
+                effectiveDate: '2024-06-23',
+                createDate: '2024-06-23T07:46:19+00:00'
+            },
+            {
+                type: 'privilegeUpdate',
+                updateType: 'encumbrance',
+                dateOfUpdate: '2025-07-17T17:04:38+00:00',
+                effectiveDate: '2025-07-01',
+                createDate: '2025-07-17T17:04:38+00:00'
+            },
+            {
+                type: 'privilegeUpdate',
+                updateType: 'lifting_encumbrance',
+                dateOfUpdate: '2025-07-29T23:10:15+00:00',
+                effectiveDate: '2025-07-18',
+                createDate: '2025-07-29T23:10:15+00:00'
+            },
+            {
+                type: 'privilegeUpdate',
+                updateType: 'deactivation',
+                dateOfUpdate: '2025-07-29T23:10:15+00:00',
+                effectiveDate: '2025-07-29',
+                createDate: '2025-07-29T23:10:15+00:00'
+            },
+            {
+                type: 'privilegeUpdate',
+                updateType: 'renewal',
+                dateOfUpdate: '2025-08-04T22:28:59+00:00',
+                effectiveDate: '2025-08-04',
+                createDate: '2025-08-04T22:28:59+00:00'
+            },
+            {
+                type: 'privilegeUpdate',
+                updateType: 'expiration',
+                dateOfUpdate: '2025-08-05T22:28:59+00:00',
+                effectiveDate: '2025-08-05',
+                createDate: '2025-08-05T22:28:59+00:00'
+            },
+            {
+                type: 'privilegeUpdate',
+                updateType: 'renewal',
+                dateOfUpdate: '2025-08-06T22:28:59+00:00',
+                effectiveDate: '2025-08-06',
+                createDate: '2025-08-06T22:28:59+00:00'
+            },
+            {
+                type: 'privilegeUpdate',
+                updateType: 'homeJurisdictionChange',
+                dateOfUpdate: '2025-08-07T20:36:31+00:00',
+                effectiveDate: '2025-08-07',
+                createDate: '2025-08-07T20:36:31+00:00'
+            },
+            {
+                type: 'privilegeUpdate',
+                updateType: 'renewal',
+                dateOfUpdate: '2025-08-08T20:42:14+00:00',
+                effectiveDate: '2025-08-08',
+                createDate: '2025-08-08T20:42:14+00:00'
+            },
+            {
+                type: 'privilegeUpdate',
+                updateType: 'licenseDeactivation',
+                dateOfUpdate: '2025-08-09T21:56:37+00:00',
+                effectiveDate: '2025-08-09',
+                createDate: '2025-08-09T21:56:37+00:00'
+            },
+            {
+                type: 'privilegeUpdate',
+                updateType: 'renewal',
+                dateOfUpdate: '2025-08-10T22:28:59+00:00',
+                effectiveDate: '2025-08-10',
+                createDate: '2025-08-10T22:28:59+00:00'
+            },
+        ]
+    },
+    {
+        providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
+        compact: 'octp',
+        jurisdiction: 'al',
+        licenseType: 'occupational therapy assistant',
+        privilegeId: 'OTA-AL-10',
+        events: [
+            {
+                type: 'privilegeUpdate',
+                updateType: 'issuance',
+                dateOfUpdate: '2022-06-23T07:46:19+00:00',
+                effectiveDate: '2022-06-23',
+                createDate: '2022-06-23T07:46:19+00:00'
+            },
+            {
+                type: 'privilegeUpdate',
+                updateType: 'expiration',
+                dateOfUpdate: '2024-08-05T22:28:59+00:00',
+                effectiveDate: '2024-08-05',
+                createDate: '2024-08-05T22:28:59+00:00'
+            },
+            {
+                type: 'privilegeUpdate',
+                updateType: 'renewal',
+                dateOfUpdate: '2024-08-06T22:28:59+00:00',
+                effectiveDate: '2024-08-06',
+                createDate: '2024-08-06T22:28:59+00:00'
+            },
+            {
+                type: 'privilegeUpdate',
+                updateType: 'encumbrance',
+                dateOfUpdate: '2025-07-17T17:04:38+00:00',
+                effectiveDate: '2025-07-01',
+                createDate: '2025-07-17T17:04:38+00:00'
+            },
+            {
+                type: 'privilegeUpdate',
+                updateType: 'lifting_encumbrance',
+                dateOfUpdate: '2025-07-29T23:10:15+00:00',
+                effectiveDate: '2025-07-18',
+                createDate: '2025-07-29T23:10:15+00:00'
+            },
+        ]
+    },
+    {
+        providerId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        compact: 'octp',
+        jurisdiction: 'ne',
+        licenseType: 'occupational therapy assistant',
+        privilegeId: 'OTA-NE-11',
+        events: [
+            {
+                type: 'privilegeUpdate',
+                updateType: 'issuance',
+                dateOfUpdate: '2022-06-23T07:46:19+00:00',
+                effectiveDate: '2022-06-23',
+                createDate: '2022-06-23T07:46:19+00:00'
+            },
+            {
+                type: 'privilegeUpdate',
+                updateType: 'expiration',
+                dateOfUpdate: '2024-08-05T22:28:59+00:00',
+                effectiveDate: '2024-08-05',
+                createDate: '2024-08-05T22:28:59+00:00'
+            },
+            {
+                type: 'privilegeUpdate',
+                updateType: 'renewal',
+                dateOfUpdate: '2024-08-06T22:28:59+00:00',
+                effectiveDate: '2024-08-06',
+                createDate: '2024-08-06T22:28:59+00:00'
+            },
+            {
+                type: 'privilegeUpdate',
+                updateType: 'encumbrance',
+                dateOfUpdate: '2025-07-17T17:04:38+00:00',
+                effectiveDate: '2025-07-01',
+                createDate: '2025-07-17T17:04:38+00:00'
+            },
+            {
+                type: 'privilegeUpdate',
+                updateType: 'lifting_encumbrance',
+                dateOfUpdate: '2025-07-29T23:10:15+00:00',
+                effectiveDate: '2025-07-18',
+                createDate: '2025-07-29T23:10:15+00:00'
+            },
+        ]
+    },
+    {
+        providerId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        compact: 'octp',
+        jurisdiction: 'oh',
+        licenseType: 'occupational therapist',
+        privilegeId: 'OT-OH-12',
+        events: [
+            {
+                type: 'privilegeUpdate',
+                updateType: 'issuance',
+                dateOfUpdate: '2022-06-23T07:46:19+00:00',
+                effectiveDate: '2022-06-23',
+                createDate: '2022-06-23T07:46:19+00:00'
+            },
+            {
+                type: 'privilegeUpdate',
+                updateType: 'expiration',
+                dateOfUpdate: '2024-08-05T22:28:59+00:00',
+                effectiveDate: '2024-08-05',
+                createDate: '2024-08-05T22:28:59+00:00'
+            },
+            {
+                type: 'privilegeUpdate',
+                updateType: 'renewal',
+                dateOfUpdate: '2025-08-06T22:28:59+00:00',
+                effectiveDate: '2025-08-06',
+                createDate: '2025-08-06T22:28:59+00:00'
+            },
+        ]
+    }
+];
 
 export const pets = [
     {

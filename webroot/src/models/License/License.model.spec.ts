@@ -51,6 +51,7 @@ describe('License model', () => {
         expect(license.licenseeId).to.equal(null);
         expect(license.issueState).to.be.an.instanceof(State);
         expect(license.issueDate).to.equal(null);
+        expect(license.activeFromDate).to.equal(null);
         expect(license.renewalDate).to.equal(null);
         expect(license.expireDate).to.equal(null);
         expect(license.npi).to.equal(null);
@@ -68,17 +69,12 @@ describe('License model', () => {
         expect(license.issueDateDisplay()).to.equal('');
         expect(license.renewalDateDisplay()).to.equal('');
         expect(license.expireDateDisplay()).to.equal('');
+        expect(license.activeFromDateDisplay()).to.equal('');
         expect(license.isExpired()).to.equal(false);
-        expect(license.isDeactivated()).to.equal(false);
+        expect(license.isAdminDeactivated()).to.equal(false);
         expect(license.isCompactEligible()).to.equal(false);
         expect(license.licenseTypeAbbreviation()).to.equal('');
         expect(license.displayName()).to.equal('Unknown');
-        expect(license.historyWithFabricatedEvents()).to.matchPattern([{
-            type: 'fabricatedEvent',
-            updateType: 'purchased',
-            dateOfUpdate: null,
-            '...': '',
-        }]);
         expect(license.isEncumbered()).to.equal(false);
         expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(false);
     });
@@ -114,6 +110,7 @@ describe('License model', () => {
         expect(license.licenseeId).to.equal(data.licenseeId);
         expect(license.issueState).to.be.an.instanceof(State);
         expect(license.issueDate).to.equal(data.issueDate);
+        expect(license.activeFromDate).to.be.null;
         expect(license.renewalDate).to.equal(data.renewalDate);
         expect(license.expireDate).to.equal(data.expireDate);
         expect(license.mailingAddress).to.be.an.instanceof(Address);
@@ -131,26 +128,13 @@ describe('License model', () => {
         expect(license.issueDateDisplay()).to.equal('Invalid date');
         expect(license.renewalDateDisplay()).to.equal('Invalid date');
         expect(license.expireDateDisplay()).to.equal('Invalid date');
+        expect(license.activeFromDateDisplay()).to.equal('');
         expect(license.isExpired()).to.equal(false);
-        expect(license.isDeactivated()).to.equal(false);
+        expect(license.isAdminDeactivated()).to.equal(false);
         expect(license.isCompactEligible()).to.equal(true);
         expect(license.licenseTypeAbbreviation()).to.equal('AUD');
         expect(license.displayName()).to.equal('Unknown - audiologist');
         expect(license.displayName(', ', true)).to.equal('Unknown, AUD');
-        expect(license.historyWithFabricatedEvents()).to.matchPattern([
-            {
-                type: 'fabricatedEvent',
-                updateType: 'purchased',
-                dateOfUpdate: data.issueDate,
-                '...': '',
-            },
-            {
-                type: null,
-                updateType: '',
-                dateOfUpdate: null,
-                '...': '',
-            },
-        ]);
         expect(license.isEncumbered()).to.equal(false);
         expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(false);
     });
@@ -177,6 +161,7 @@ describe('License model', () => {
             dateOfIssuance: moment().format(serverDateFormat),
             dateOfRenewal: moment().format(serverDateFormat),
             dateOfExpiration: moment().subtract(1, 'day').format(serverDateFormat),
+            activeSince: null,
             npi: 'npi',
             licenseNumber: 'licenseNumber',
             homeAddressStreet1: 'test-street1',
@@ -211,6 +196,7 @@ describe('License model', () => {
         expect(license.issueDate).to.equal(data.dateOfIssuance);
         expect(license.renewalDate).to.equal(data.dateOfRenewal);
         expect(license.expireDate).to.equal(data.dateOfExpiration);
+        expect(license.activeFromDate).to.equal(data.activeSince);
         expect(license.licenseType).to.equal(data.licenseType);
         expect(license.status).to.equal(data.licenseStatus);
         expect(license.statusDescription).to.equal(data.licenseStatusName);
@@ -229,25 +215,11 @@ describe('License model', () => {
             moment(data.dateOfExpiration, serverDateFormat).format(displayDateFormat)
         );
         expect(license.isExpired()).to.equal(true);
-        expect(license.isDeactivated()).to.equal(false);
+        expect(license.isAdminDeactivated()).to.equal(false);
         expect(license.isCompactEligible()).to.equal(true);
         expect(license.displayName()).to.equal('Alabama - audiologist');
         expect(license.displayName(', ', true)).to.equal('Alabama, AUD');
         expect(license.licenseTypeAbbreviation()).to.equal('AUD');
-        expect(license.historyWithFabricatedEvents()).to.matchPattern([
-            {
-                type: 'fabricatedEvent',
-                updateType: 'purchased',
-                dateOfUpdate: license.issueDate,
-                '...': '',
-            },
-            {
-                type: 'fabricatedEvent',
-                updateType: 'expired',
-                dateOfUpdate: license.expireDate,
-                '...': '',
-            },
-        ]);
         expect(license.isEncumbered()).to.equal(true);
         expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(false);
     });
@@ -263,6 +235,7 @@ describe('License model', () => {
             dateOfIssuance: '2022-03-19T21:51:26+00:00',
             dateOfRenewal: '2025-03-26T16:19:09+00:00',
             dateOfExpiration: '2025-02-12',
+            activeSince: '2025-05-26T16:19:09+00:00',
             compactTransactionId: '120060088901',
             adverseActions: [
                 {
@@ -568,9 +541,9 @@ describe('License model', () => {
         expect(license.issueDate).to.equal(data.dateOfIssuance);
         expect(license.renewalDate).to.equal(data.dateOfRenewal);
         expect(license.expireDate).to.equal(data.dateOfExpiration);
+        expect(license.activeFromDate).to.equal(data.activeSince);
         expect(license.licenseType).to.equal(data.licenseType);
         expect(license.privilegeId).to.equal(data.privilegeId);
-        expect(license.history[0]).to.be.an.instanceof(LicenseHistoryItem);
         expect(license.status).to.equal(data.status);
         expect(license.statusDescription).to.equal(null);
         expect(license.eligibility).to.equal(EligibilityStatus.NA);
@@ -588,23 +561,53 @@ describe('License model', () => {
         expect(license.expireDateDisplay()).to.equal(
             moment(data.dateOfExpiration, serverDateFormat).format(displayDateFormat)
         );
+        expect(license.activeFromDateDisplay()).to.equal(
+            moment(data.activeSince, serverDateFormat).format(displayDateFormat)
+        );
         expect(license.isExpired()).to.equal(true);
-        expect(license.isDeactivated()).to.equal(false);
+        expect(license.isAdminDeactivated()).to.equal(false);
         expect(license.isCompactEligible()).to.equal(false);
         expect(license.displayName()).to.equal('Nebraska - occupational therapy assistant');
         expect(license.displayName(', ', true)).to.equal('Nebraska, OTA');
         expect(license.licenseTypeAbbreviation()).to.equal('OTA');
-        expect(license.historyWithFabricatedEvents().length).to.equal(6);
-        expect(license.historyWithFabricatedEvents()[0].updateType).to.equal('purchased');
-        expect(license.historyWithFabricatedEvents()[1].updateType).to.equal('deactivation');
-        expect(license.historyWithFabricatedEvents()[2].updateType).to.equal('renewal');
-        expect(license.historyWithFabricatedEvents()[3].updateType).to.equal('expired');
-        expect(license.historyWithFabricatedEvents()[4].updateType).to.equal('renewal');
-        expect(license.historyWithFabricatedEvents()[5].updateType).to.equal('expired');
+        expect(license.history.length).to.equal(0);
         expect(license.isEncumbered()).to.equal(false);
         expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(true);
     });
-    it('should create a privilege with specific values through serializer (deactivated)', () => {
+    it('should populate isDeactivated correctly given license history (deactivation)', () => {
+        const data = {
+            dateOfUpdate: '2025-03-26T16:19:09+00:00',
+            type: 'privilege',
+            providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
+            compact: 'octp',
+            jurisdiction: 'ne',
+            licenseJurisdiction: 'ky',
+            licenseType: 'occupational therapy assistant',
+            dateOfIssuance: '2022-03-19T21:51:26+00:00',
+            dateOfRenewal: '2025-03-26T16:19:09+00:00',
+            dateOfExpiration: '2025-02-12',
+            activeSince: '2025-05-26T16:19:09+00:00',
+            compactTransactionId: '120060088901',
+            attestations: [],
+            privilegeId: 'OTA-NE-10',
+            persistedStatus: 'active',
+            status: 'inactive',
+        };
+        const license = LicenseSerializer.fromServer(data);
+
+        license.history = [ new LicenseHistoryItem({
+            type: 'privilegeUpdate',
+            updateType: 'deactivation',
+            dateOfUpdate: '2025-05-01T15:27:35+00:00',
+            effectiveDate: '2025-05-01',
+            createDate: '2025-05-01T15:27:35+00:00',
+            serverNote: 'Note'
+        })];
+
+        // Test field values
+        expect(license.isAdminDeactivated()).to.equal(true);
+    });
+    it('should populate isDeactivated correctly given license history (homeJurisdictionChange)', () => {
         const data = {
             dateOfUpdate: '2025-03-26T16:19:09+00:00',
             type: 'privilege',
@@ -621,69 +624,21 @@ describe('License model', () => {
             privilegeId: 'OTA-NE-10',
             persistedStatus: 'active',
             status: 'inactive',
-            history: [
-                {
-                    dateOfUpdate: '2022-03-19T22:02:17+00:00',
-                    type: 'privilegeUpdate',
-                    updateType: 'deactivation',
-                    providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
-                    compact: 'octp',
-                    jurisdiction: 'ne',
-                    licenseType: 'occupational therapy assistant',
-                    previous: {
-                        dateOfIssuance: '2025-03-19T21:51:26+00:00',
-                        dateOfRenewal: '2025-03-19T21:51:26+00:00',
-                        dateOfExpiration: '2026-02-12',
-                        dateOfUpdate: '2022-03-19T21:51:26+00:00',
-                        privilegeId: 'OTA-NE-10',
-                        compactTransactionId: '120059525522',
-                        attestations: [
-                            {
-                                attestationId: 'personal-information-address-attestation',
-                                version: '3'
-                            },
-                            {
-                                attestationId: 'personal-information-home-state-attestation',
-                                version: '1'
-                            },
-                            {
-                                attestationId: 'jurisprudence-confirmation',
-                                version: '1'
-                            },
-                            {
-                                attestationId: 'scope-of-practice-attestation',
-                                version: '1'
-                            },
-                            {
-                                attestationId: 'not-under-investigation-attestation',
-                                version: '1'
-                            },
-                            {
-                                attestationId: 'discipline-no-current-encumbrance-attestation',
-                                version: '1'
-                            },
-                            {
-                                attestationId: 'discipline-no-prior-encumbrance-attestation',
-                                version: '1'
-                            },
-                            {
-                                attestationId: 'provision-of-true-information-attestation',
-                                version: '1'
-                            }
-                        ],
-                        persistedStatus: 'active',
-                        licenseJurisdiction: 'ky'
-                    },
-                    updatedValues: {
-                        persistedStatus: 'inactive'
-                    }
-                }
-            ]
         };
+
         const license = LicenseSerializer.fromServer(data);
 
+        license.history = [ new LicenseHistoryItem({
+            type: 'privilegeUpdate',
+            updateType: 'homeJurisdictionChange',
+            dateOfUpdate: '2025-05-01T15:27:35+00:00',
+            effectiveDate: '2025-05-01',
+            createDate: '2025-05-01T15:27:35+00:00',
+            serverNote: 'Note'
+        })];
+
         // Test field values
-        expect(license.isDeactivated()).to.equal(true);
+        expect(license.isAdminDeactivated()).to.equal(true);
         expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(false);
     });
     it('should return false when isLatestLiftedEncumbranceWithinWaitPeriod called with no adverse actions', () => {
