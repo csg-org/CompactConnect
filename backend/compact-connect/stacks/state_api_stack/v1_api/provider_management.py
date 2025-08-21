@@ -4,6 +4,7 @@ import os
 
 from aws_cdk import Duration
 from aws_cdk.aws_apigateway import LambdaIntegration, MethodOptions, MethodResponse, Resource
+from aws_cdk.aws_dynamodb import ITable
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
 from common_constructs.cc_api import CCApi
@@ -41,6 +42,7 @@ class ProviderManagement:
             'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
             'PROV_FAM_GIV_MID_INDEX_NAME': persistent_stack.provider_table.provider_fam_giv_mid_index_name,
             'PROV_DATE_OF_UPDATE_INDEX_NAME': persistent_stack.provider_table.provider_date_of_update_index_name,
+            'COMPACT_CONFIGURATION_TABLE_NAME': persistent_stack.compact_configuration_table.table_name,
             # Default to test environment if no UI domain name is set
             'API_BASE_URL': f'https://{stack.ui_domain_name}'
             if stack.ui_domain_name is not None
@@ -55,12 +57,14 @@ class ProviderManagement:
             method_options=method_options,
             data_encryption_key=persistent_stack.shared_encryption_key,
             provider_data_table=persistent_stack.provider_table,
+            compact_configuration_table=persistent_stack.compact_configuration_table,
             lambda_environment=lambda_environment,
         )
         self._add_get_provider(
             method_options=method_options,
             data_encryption_key=persistent_stack.shared_encryption_key,
             provider_data_table=persistent_stack.provider_table,
+            compact_configuration_table=persistent_stack.compact_configuration_table,
             lambda_environment=lambda_environment,
         )
 
@@ -69,11 +73,13 @@ class ProviderManagement:
         method_options: MethodOptions,
         data_encryption_key: IKey,
         provider_data_table: ProviderTable,
+        compact_configuration_table: ITable,
         lambda_environment: dict,
     ):
         self.get_provider_handler = self._get_provider_handler(
             data_encryption_key=data_encryption_key,
             provider_data_table=provider_data_table,
+            compact_configuration_table=compact_configuration_table,
             lambda_environment=lambda_environment,
         )
         self.api.log_groups.append(self.get_provider_handler.log_group)
@@ -99,6 +105,7 @@ class ProviderManagement:
         method_options: MethodOptions,
         data_encryption_key: IKey,
         provider_data_table: ProviderTable,
+        compact_configuration_table: ITable,
         lambda_environment: dict,
     ):
         query_resource = self.resource.add_resource('query')
@@ -106,6 +113,7 @@ class ProviderManagement:
         handler = self._query_jurisdiction_providers_handler(
             data_encryption_key=data_encryption_key,
             provider_data_table=provider_data_table,
+            compact_configuration_table=compact_configuration_table,
             lambda_environment=lambda_environment,
         )
         self.api.log_groups.append(handler.log_group)
@@ -131,6 +139,7 @@ class ProviderManagement:
         self,
         data_encryption_key: IKey,
         provider_data_table: ProviderTable,
+        compact_configuration_table: ITable,
         lambda_environment: dict,
     ) -> PythonFunction:
         stack = Stack.of(self.resource)
@@ -146,6 +155,7 @@ class ProviderManagement:
         )
         data_encryption_key.grant_decrypt(handler)
         provider_data_table.grant_read_data(handler)
+        compact_configuration_table.grant_read_data(handler)
 
         NagSuppressions.add_resource_suppressions_by_path(
             stack,
@@ -164,6 +174,7 @@ class ProviderManagement:
         self,
         data_encryption_key: IKey,
         provider_data_table: ProviderTable,
+        compact_configuration_table: ITable,
         lambda_environment: dict,
     ) -> PythonFunction:
         self.query_jurisdiction_providers_handler = PythonFunction(
@@ -178,6 +189,7 @@ class ProviderManagement:
         )
         data_encryption_key.grant_decrypt(self.query_jurisdiction_providers_handler)
         provider_data_table.grant_read_data(self.query_jurisdiction_providers_handler)
+        compact_configuration_table.grant_read_data(self.query_jurisdiction_providers_handler)
 
         NagSuppressions.add_resource_suppressions_by_path(
             Stack.of(self.query_jurisdiction_providers_handler.role),

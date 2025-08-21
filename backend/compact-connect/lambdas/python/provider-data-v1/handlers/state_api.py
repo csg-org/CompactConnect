@@ -13,16 +13,21 @@ from cc_common.data_model.schema.provider.api import (
     StateProviderDetailPrivateResponseSchema,
 )
 from cc_common.exceptions import CCInternalException, CCInvalidRequestException, CCNotFoundException
+from cc_common.hmac_auth import optional_hmac_auth, required_hmac_auth
 from cc_common.utils import (
     _user_has_read_private_access_for_provider,
     api_handler,
     authorize_compact,
+    authorize_compact_jurisdiction,
     get_event_scopes,
 )
 from marshmallow import ValidationError
 
+from handlers.bulk_upload import _bulk_upload_url_handler
+
 
 @api_handler
+@required_hmac_auth
 @authorize_compact(action=CCPermissionsAction.READ_GENERAL)
 def query_jurisdiction_providers(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """Query providers with privileges in a specific jurisdiction. This endpoint is used by state IT systems to query
@@ -124,6 +129,7 @@ def _create_flattened_privilege(
 
 
 @api_handler
+@required_hmac_auth
 @authorize_compact(action=CCPermissionsAction.READ_GENERAL)
 def get_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """Return one provider's data, greatly simplified (flattened) for state IT system consumption
@@ -198,3 +204,18 @@ def get_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unused-ar
 
         # Sanitization happens on the way out, via schema load
         return response_schema.load(response_data)
+
+
+@api_handler
+@optional_hmac_auth
+@authorize_compact_jurisdiction(action='write')
+def bulk_upload_url_handler(event: dict, context: LambdaContext):
+    """Generate a pre-signed POST to the bulk-upload s3 bucket
+
+    Note: We need this distinct copy for the state api because our auth requirements
+    are different.
+
+    :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
+    :param LambdaContext context:
+    """
+    return _bulk_upload_url_handler(event, context)

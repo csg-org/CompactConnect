@@ -204,15 +204,18 @@ class TestOptionalHmacAuth(TstLambdas):
         def lambda_handler(event: dict, context: LambdaContext):
             # Check if we have HMAC headers to determine if authenticated
             headers = event.get('headers') or {}
-            has_hmac_headers = all([
-                headers.get('X-Algorithm'),
-                headers.get('X-Timestamp'),
-                headers.get('X-Nonce'),
-                headers.get('X-Signature')
-            ])
+            has_hmac_headers = all(
+                [
+                    headers.get('X-Algorithm'),
+                    headers.get('X-Timestamp'),
+                    headers.get('X-Nonce'),
+                    headers.get('X-Signature'),
+                ]
+            )
             return {'message': 'OK', 'authenticated': has_hmac_headers}
 
-                # Test with no public key configured
+            # Test with no public key configured
+
         with patch('cc_common.hmac_auth._get_configured_keys_for_jurisdiction') as mock_get_keys:
             mock_get_keys.return_value = {}
 
@@ -244,7 +247,8 @@ class TestOptionalHmacAuth(TstLambdas):
         nonce = '550e8400-e29b-41d4-a716-446655440000'
 
         # Import and use the sign_request function
-        from tests.sign_request import sign_request
+        from common_test.sign_request import sign_request
+
         headers = sign_request(
             method=event['httpMethod'],
             path=event['path'],
@@ -252,7 +256,7 @@ class TestOptionalHmacAuth(TstLambdas):
             timestamp=timestamp,
             nonce=nonce,
             key_id='test-key-001',
-            private_key_pem=self.private_key_pem
+            private_key_pem=self.private_key_pem,
         )
 
         # Add HMAC headers to event

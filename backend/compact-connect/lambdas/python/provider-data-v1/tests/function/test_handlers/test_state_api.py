@@ -1,8 +1,9 @@
 import json
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from unittest.mock import patch
 from uuid import uuid4
 
+from common_test.sign_request import sign_request
 from moto import mock_aws
 
 from tests.function import TstFunction
@@ -11,6 +12,53 @@ from tests.function import TstFunction
 @mock_aws
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
 class TestQueryJurisdictionProviders(TstFunction):
+    def setUp(self):
+        super().setUp()
+        # Load test keys for HMAC authentication
+        with open('../common/tests/resources/client_private_key.pem') as f:
+            self.private_key_pem = f.read()
+        with open('../common/tests/resources/client_public_key.pem') as f:
+            self.public_key_pem = f.read()
+
+        # Load HMAC public key into the compact configuration table for functional testing
+        self._load_hmac_public_key('aslp', 'oh', 'test-key-001', self.public_key_pem)
+        self._load_hmac_public_key('aslp', 'ne', 'test-key-001', self.public_key_pem)
+
+    def _load_hmac_public_key(self, compact: str, jurisdiction: str, key_id: str, public_key_pem: str):
+        """Load an HMAC public key into the compact configuration table."""
+        item = {
+            'pk': f'{compact}#HMAC_KEYS',
+            'sk': f'{compact}#JURISDICTION#{jurisdiction}#{key_id}',
+            'publicKey': public_key_pem,
+            'compact': compact,
+            'jurisdiction': jurisdiction,
+            'keyId': key_id,
+            'createdAt': '2024-01-01T00:00:00Z',
+        }
+        self._compact_configuration_table.put_item(Item=item)
+
+    def _create_signed_event(self, event: dict) -> dict:
+        """Add HMAC headers to an event for required HMAC authentication."""
+        # Generate current timestamp and nonce
+        timestamp = datetime.now(UTC).isoformat()
+        nonce = str(uuid4())
+        key_id = 'test-key-001'
+
+        # Sign the request
+        headers = sign_request(
+            method=event['httpMethod'],
+            path=event['path'],
+            query_params=event.get('queryStringParameters') or {},
+            timestamp=timestamp,
+            nonce=nonce,
+            key_id=key_id,
+            private_key_pem=self.private_key_pem,
+        )
+
+        # Add HMAC headers to event
+        event['headers'].update(headers)
+        return event
+
     def _generate_multiple_providers_with_privileges(
         self,
         count: int,
@@ -105,6 +153,9 @@ class TestQueryJurisdictionProviders(TstFunction):
             {'query': query, 'pagination': {'pageSize': 30}, 'sorting': {'direction': 'ascending'}}
         )
 
+        # Add HMAC authentication headers
+        event = self._create_signed_event(event)
+
         resp = query_jurisdiction_providers(event, self.mock_context)
         self.assertEqual(200, resp['statusCode'])
 
@@ -126,6 +177,10 @@ class TestQueryJurisdictionProviders(TstFunction):
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
         event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
         event['body'] = json.dumps({'invalid': 'field'})
+
+        # Add HMAC authentication headers
+        event = self._create_signed_event(event)
+
         resp = query_jurisdiction_providers(event, self.mock_context)
         self.assertEqual(400, resp['statusCode'])
 
@@ -145,6 +200,9 @@ class TestQueryJurisdictionProviders(TstFunction):
             }
         )
 
+        # Add HMAC authentication headers
+        event = self._create_signed_event(event)
+
         resp = query_jurisdiction_providers(event, self.mock_context)
         self.assertEqual(400, resp['statusCode'])
 
@@ -163,6 +221,9 @@ class TestQueryJurisdictionProviders(TstFunction):
                 'sorting': {'direction': 'ascending'},
             }
         )
+
+        # Add HMAC authentication headers
+        event = self._create_signed_event(event)
 
         resp = query_jurisdiction_providers(event, self.mock_context)
         self.assertEqual(400, resp['statusCode'])
@@ -218,6 +279,9 @@ class TestQueryJurisdictionProviders(TstFunction):
             }
         )
 
+        # Add HMAC authentication headers
+        event = self._create_signed_event(event)
+
         resp = query_jurisdiction_providers(event, self.mock_context)
         self.assertEqual(200, resp['statusCode'])
 
@@ -251,6 +315,9 @@ class TestQueryJurisdictionProviders(TstFunction):
             }
         )
 
+        # Add HMAC authentication headers
+        event = self._create_signed_event(event)
+
         resp = query_jurisdiction_providers(event, self.mock_context)
         self.assertEqual(400, resp['statusCode'])
 
@@ -270,6 +337,9 @@ class TestQueryJurisdictionProviders(TstFunction):
             }
         )
 
+        # Add HMAC authentication headers
+        event = self._create_signed_event(event)
+
         resp = query_jurisdiction_providers(event, self.mock_context)
         self.assertEqual(400, resp['statusCode'])
 
@@ -278,6 +348,53 @@ class TestQueryJurisdictionProviders(TstFunction):
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
 @patch('cc_common.config._Config.api_base_url', 'https://app.compactconnect.org')
 class TestGetProvider(TstFunction):
+    def setUp(self):
+        super().setUp()
+        # Load test keys for HMAC authentication
+        with open('../common/tests/resources/client_private_key.pem') as f:
+            self.private_key_pem = f.read()
+        with open('../common/tests/resources/client_public_key.pem') as f:
+            self.public_key_pem = f.read()
+
+        # Load HMAC public key into the compact configuration table for functional testing
+        self._load_hmac_public_key('aslp', 'oh', 'test-key-001', self.public_key_pem)
+        self._load_hmac_public_key('aslp', 'ne', 'test-key-001', self.public_key_pem)
+
+    def _load_hmac_public_key(self, compact: str, jurisdiction: str, key_id: str, public_key_pem: str):
+        """Load an HMAC public key into the compact configuration table."""
+        item = {
+            'pk': f'{compact}#HMAC_KEYS',
+            'sk': f'{compact}#JURISDICTION#{jurisdiction}#{key_id}',
+            'publicKey': public_key_pem,
+            'compact': compact,
+            'jurisdiction': jurisdiction,
+            'keyId': key_id,
+            'createdAt': '2024-01-01T00:00:00Z',
+        }
+        self._compact_configuration_table.put_item(Item=item)
+
+    def _create_signed_event(self, event: dict) -> dict:
+        """Add HMAC headers to an event for required HMAC authentication."""
+        # Generate current timestamp and nonce
+        timestamp = datetime.now(UTC).isoformat()
+        nonce = str(uuid4())
+        key_id = 'test-key-001'
+
+        # Sign the request
+        headers = sign_request(
+            method=event['httpMethod'],
+            path=event['path'],
+            query_params=event.get('queryStringParameters') or {},
+            timestamp=timestamp,
+            nonce=nonce,
+            key_id=key_id,
+            private_key_pem=self.private_key_pem,
+        )
+
+        # Add HMAC headers to event
+        event['headers'].update(headers)
+        return event
+
     def test_get_provider_success_with_general_permissions(self):
         """Test successful provider retrieval with general read permissions."""
         # Create a provider with privileges in 'ne' jurisdiction (matches test data)
@@ -294,7 +411,11 @@ class TestGetProvider(TstFunction):
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
         event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'ne', 'providerId': provider_id}
 
+        # Add HMAC authentication headers
+        event = self._create_signed_event(event)
+
         resp = get_provider(event, self.mock_context)
+
         self.assertEqual(200, resp['statusCode'])
 
         body = json.loads(resp['body'])
@@ -358,7 +479,11 @@ class TestGetProvider(TstFunction):
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral aslp/readPrivate'
         event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'ne', 'providerId': provider_id}
 
+        # Add HMAC authentication headers
+        event = self._create_signed_event(event)
+
         resp = get_provider(event, self.mock_context)
+
         self.assertEqual(200, resp['statusCode'])
 
         body = json.loads(resp['body'])
@@ -422,7 +547,11 @@ class TestGetProvider(TstFunction):
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.readPrivate'
         event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'ne', 'providerId': provider_id}
 
+        # Add HMAC authentication headers
+        event = self._create_signed_event(event)
+
         resp = get_provider(event, self.mock_context)
+
         self.assertEqual(200, resp['statusCode'])
 
         body = json.loads(resp['body'])
@@ -446,7 +575,11 @@ class TestGetProvider(TstFunction):
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
         event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'ne', 'providerId': provider_id}
 
+        # Add HMAC authentication headers
+        event = self._create_signed_event(event)
+
         resp = get_provider(event, self.mock_context)
+
         self.assertEqual(200, resp['statusCode'])
 
         body = json.loads(resp['body'])
@@ -472,7 +605,11 @@ class TestGetProvider(TstFunction):
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
         event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh', 'providerId': provider_id}
 
+        # Add HMAC authentication headers
+        event = self._create_signed_event(event)
+
         resp = get_provider(event, self.mock_context)
+
         self.assertEqual(404, resp['statusCode'])
 
     def test_get_provider_nonexistent_provider(self):
@@ -485,7 +622,11 @@ class TestGetProvider(TstFunction):
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
         event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'ne', 'providerId': 'nonexistent-provider'}
 
+        # Add HMAC authentication headers
+        event = self._create_signed_event(event)
+
         resp = get_provider(event, self.mock_context)
+
         self.assertEqual(404, resp['statusCode'])
 
     def test_get_provider_missing_parameters(self):
@@ -498,7 +639,11 @@ class TestGetProvider(TstFunction):
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
         event['pathParameters'] = {'compact': 'aslp'}  # Missing jurisdiction and providerId
 
+        # Add HMAC authentication headers
+        event = self._create_signed_event(event)
+
         resp = get_provider(event, self.mock_context)
+
         self.assertEqual(400, resp['statusCode'])
 
     def _generate_provider_with_privilege_in_jurisdiction(
@@ -534,3 +679,88 @@ class TestGetProvider(TstFunction):
         )
 
         return str(provider.providerId)
+
+
+@mock_aws
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
+class TestBulkUploadUrlHandler(TstFunction):
+    def setUp(self):
+        super().setUp()
+        # Load test keys for HMAC authentication
+        with open('../common/tests/resources/client_private_key.pem') as f:
+            self.private_key_pem = f.read()
+        with open('../common/tests/resources/client_public_key.pem') as f:
+            self.public_key_pem = f.read()
+
+        # Load HMAC public key into the compact configuration table for functional testing
+        self._load_hmac_public_key('aslp', 'oh', 'test-key-001', self.public_key_pem)
+
+    def _load_hmac_public_key(self, compact: str, jurisdiction: str, key_id: str, public_key_pem: str):
+        """Load an HMAC public key into the compact configuration table."""
+        item = {
+            'pk': f'{compact}#HMAC_KEYS',
+            'sk': f'{compact}#JURISDICTION#{jurisdiction}#{key_id}',
+            'publicKey': public_key_pem,
+            'compact': compact,
+            'jurisdiction': jurisdiction,
+            'keyId': key_id,
+            'createdAt': '2024-01-01T00:00:00Z',
+        }
+        self._compact_configuration_table.put_item(Item=item)
+
+    def _create_signed_event(self, event: dict) -> dict:
+        """Add HMAC headers to an event for optional HMAC authentication."""
+        # Generate current timestamp and nonce
+        timestamp = datetime.now(UTC).isoformat()
+        nonce = str(uuid4())
+        key_id = 'test-key-001'
+
+        # Sign the request
+        headers = sign_request(
+            method=event['httpMethod'],
+            path=event['path'],
+            query_params=event.get('queryStringParameters') or {},
+            timestamp=timestamp,
+            nonce=nonce,
+            key_id=key_id,
+            private_key_pem=self.private_key_pem,
+        )
+
+        # Add HMAC headers to event
+        event['headers'].update(headers)
+        return event
+
+    def test_bulk_upload_url_handler_success(self):
+        """Test successful bulk upload URL generation with optional HMAC authentication."""
+        from handlers.state_api import bulk_upload_url_handler
+
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        # The user has write permission for aslp/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.write'
+        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+
+        # Add HMAC authentication headers
+        event = self._create_signed_event(event)
+
+        resp = bulk_upload_url_handler(event, self.mock_context)
+
+        self.assertEqual(200, resp['statusCode'])
+
+        body = json.loads(resp['body'])
+        self.assertIn('upload', body)
+        upload = body['upload']
+        self.assertIn('url', upload)
+        self.assertIn('fields', upload)
+        self.assertIn('key', upload['fields'])
+        self.assertIn('policy', upload['fields'])
+        self.assertIn('x-amz-algorithm', upload['fields'])
+        self.assertIn('x-amz-credential', upload['fields'])
+        self.assertIn('x-amz-date', upload['fields'])
+        self.assertIn('x-amz-signature', upload['fields'])
+
+        # Verify the key follows the expected pattern: compact/jurisdiction/uuid
+        key = upload['fields']['key']
+        self.assertTrue(key.startswith('aslp/oh/'))
+        self.assertEqual(len(key.split('/')), 3)

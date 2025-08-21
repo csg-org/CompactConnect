@@ -4,6 +4,7 @@ import os
 
 from aws_cdk import Duration
 from aws_cdk.aws_apigateway import LambdaIntegration, MethodOptions, MethodResponse, Resource
+from aws_cdk.aws_dynamodb import ITable
 from aws_cdk.aws_iam import IRole
 from aws_cdk.aws_sqs import IQueue
 from common_constructs.cc_api import CCApi
@@ -35,15 +36,21 @@ class PostLicenses:
             method_options=method_options,
             license_preprocessing_queue=persistent_stack.ssn_table.preprocessor_queue.queue,
             license_upload_role=persistent_stack.ssn_table.license_upload_role,
+            compact_configuration_table=persistent_stack.compact_configuration_table,
         )
         self.api.log_groups.extend(self.log_groups)
 
     def _add_post_license(
-        self, method_options: MethodOptions, license_preprocessing_queue: IQueue, license_upload_role: IRole
+        self,
+        method_options: MethodOptions,
+        license_preprocessing_queue: IQueue,
+        license_upload_role: IRole,
+        compact_configuration_table: ITable,
     ):
         self.post_license_handler = self._post_licenses_handler(
             license_preprocessing_queue=license_preprocessing_queue,
             license_upload_role=license_upload_role,
+            compact_configuration_table=compact_configuration_table,
         )
 
         # Normally, we have two layers of request body schema validation: one at the API gateway level,
@@ -77,7 +84,9 @@ class PostLicenses:
             authorization_scopes=method_options.authorization_scopes,
         )
 
-    def _post_licenses_handler(self, license_preprocessing_queue: IQueue, license_upload_role: IRole) -> PythonFunction:
+    def _post_licenses_handler(
+        self, license_preprocessing_queue: IQueue, license_upload_role: IRole, compact_configuration_table: ITable
+    ) -> PythonFunction:
         stack: Stack = Stack.of(self.resource)
         handler = PythonFunction(
             self.api,
@@ -89,6 +98,7 @@ class PostLicenses:
             role=license_upload_role,
             environment={
                 'LICENSE_PREPROCESSING_QUEUE_URL': license_preprocessing_queue.queue_url,
+                'COMPACT_CONFIGURATION_TABLE_NAME': compact_configuration_table.table_name,
                 **stack.common_env_vars,
             },
             alarm_topic=self.api.alarm_topic,
@@ -96,6 +106,7 @@ class PostLicenses:
 
         # Grant permissions to put messages on the preprocessing queue
         license_preprocessing_queue.grant_send_messages(handler)
+        compact_configuration_table.grant_read_data(handler)
 
         self.log_groups.append(handler.log_group)
         return handler

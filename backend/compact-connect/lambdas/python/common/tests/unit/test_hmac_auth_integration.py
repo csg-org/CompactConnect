@@ -28,11 +28,11 @@ class TestHmacAuthIntegration(TstLambdas):
 
     def test_hmac_with_api_handler_success(self):
         """Test successful HMAC authentication with api_handler decorator."""
-        from cc_common.hmac_auth import hmac_auth_required
+        from cc_common.hmac_auth import required_hmac_auth
         from cc_common.utils import api_handler
 
         @api_handler
-        @hmac_auth_required
+        @required_hmac_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK', 'authenticated': True}
 
@@ -55,11 +55,11 @@ class TestHmacAuthIntegration(TstLambdas):
 
     def test_hmac_with_api_handler_unauthorized(self):
         """Test HMAC authentication failure with api_handler decorator returns 401."""
-        from cc_common.hmac_auth import hmac_auth_required
+        from cc_common.hmac_auth import required_hmac_auth
         from cc_common.utils import api_handler
 
         @api_handler
-        @hmac_auth_required
+        @required_hmac_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
@@ -78,11 +78,11 @@ class TestHmacAuthIntegration(TstLambdas):
 
     def test_hmac_with_api_handler_invalid_request(self):
         """Test HMAC validation failure with api_handler decorator returns 400."""
-        from cc_common.hmac_auth import hmac_auth_required
+        from cc_common.hmac_auth import required_hmac_auth
         from cc_common.utils import api_handler
 
         @api_handler
-        @hmac_auth_required
+        @required_hmac_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
@@ -105,11 +105,11 @@ class TestHmacAuthIntegration(TstLambdas):
 
     def test_hmac_with_api_handler_invalid_signature(self):
         """Test invalid signature with api_handler decorator returns 401."""
-        from cc_common.hmac_auth import hmac_auth_required
+        from cc_common.hmac_auth import required_hmac_auth
         from cc_common.utils import api_handler
 
         @api_handler
-        @hmac_auth_required
+        @required_hmac_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
@@ -129,11 +129,11 @@ class TestHmacAuthIntegration(TstLambdas):
 
     def test_hmac_with_api_handler_public_key_not_found(self):
         """Test public key not found with api_handler decorator returns 401."""
-        from cc_common.hmac_auth import hmac_auth_required
+        from cc_common.hmac_auth import required_hmac_auth
         from cc_common.utils import api_handler
 
         @api_handler
-        @hmac_auth_required
+        @required_hmac_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
@@ -152,13 +152,13 @@ class TestHmacAuthIntegration(TstLambdas):
 
     def test_decorator_order_matters(self):
         """Test that decorator order affects behavior (api_handler should be outermost)."""
-        from cc_common.hmac_auth import hmac_auth_required
+        from cc_common.hmac_auth import required_hmac_auth
         from cc_common.utils import api_handler
 
         # This test demonstrates that api_handler should be the outermost decorator
         # so it can properly handle exceptions from hmac_auth_required
 
-        @hmac_auth_required
+        @required_hmac_auth
         @api_handler
         def lambda_handler_wrong_order(event: dict, context: LambdaContext):
             return {'message': 'OK'}
@@ -178,11 +178,11 @@ class TestHmacAuthIntegration(TstLambdas):
 
     def test_hmac_with_api_handler_cors_handling(self):
         """Test that CORS headers are properly handled with HMAC authentication."""
-        from cc_common.hmac_auth import hmac_auth_required
+        from cc_common.hmac_auth import required_hmac_auth
         from cc_common.utils import api_handler
 
         @api_handler
-        @hmac_auth_required
+        @required_hmac_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
@@ -209,7 +209,7 @@ class TestHmacAuthIntegration(TstLambdas):
         nonce = '550e8400-e29b-41d4-a716-446655440000'
 
         # Import the sign_request function
-        from tests.sign_request import sign_request
+        from common_test.sign_request import sign_request
 
         # Sign the request
         headers = sign_request(

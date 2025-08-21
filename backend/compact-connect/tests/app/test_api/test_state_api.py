@@ -384,7 +384,7 @@ class TestStateApi(TestApi):
         lambda_functions = state_api_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME)
         bulk_upload_handler = None
         for logical_id, function_props in lambda_functions.items():
-            if function_props['Properties']['Handler'] == 'handlers.bulk_upload.bulk_upload_url_handler':
+            if function_props['Properties']['Handler'] == 'handlers.state_api.bulk_upload_url_handler':
                 bulk_upload_handler = logical_id
                 break
 

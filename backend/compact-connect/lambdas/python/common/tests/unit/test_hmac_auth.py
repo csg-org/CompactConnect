@@ -29,9 +29,9 @@ class TestHmacAuth(TstLambdas):
 
     def test_happy_path(self):
         """Test successful HMAC authentication."""
-        from cc_common.hmac_auth import hmac_auth_required
+        from cc_common.hmac_auth import required_hmac_auth
 
-        @hmac_auth_required
+        @required_hmac_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
@@ -49,9 +49,9 @@ class TestHmacAuth(TstLambdas):
 
     def test_missing_headers(self):
         """Test authentication failure when required headers are missing."""
-        from cc_common.hmac_auth import hmac_auth_required
+        from cc_common.hmac_auth import required_hmac_auth
 
-        @hmac_auth_required
+        @required_hmac_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
@@ -69,9 +69,9 @@ class TestHmacAuth(TstLambdas):
 
     def test_unsupported_algorithm(self):
         """Test authentication failure with unsupported algorithm."""
-        from cc_common.hmac_auth import hmac_auth_required
+        from cc_common.hmac_auth import required_hmac_auth
 
-        @hmac_auth_required
+        @required_hmac_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
@@ -90,9 +90,9 @@ class TestHmacAuth(TstLambdas):
 
     def test_invalid_timestamp(self):
         """Test authentication failure with invalid timestamp."""
-        from cc_common.hmac_auth import hmac_auth_required
+        from cc_common.hmac_auth import required_hmac_auth
 
-        @hmac_auth_required
+        @required_hmac_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
@@ -111,9 +111,9 @@ class TestHmacAuth(TstLambdas):
 
     def test_malformed_timestamp(self):
         """Test authentication failure with malformed timestamp."""
-        from cc_common.hmac_auth import hmac_auth_required
+        from cc_common.hmac_auth import required_hmac_auth
 
-        @hmac_auth_required
+        @required_hmac_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
@@ -132,9 +132,9 @@ class TestHmacAuth(TstLambdas):
 
     def test_timestamp_format_compatibility(self):
         """Test that both timestamp formats work with the same signature validation."""
-        from cc_common.hmac_auth import _build_signature_string, _verify_signature, hmac_auth_required
+        from cc_common.hmac_auth import _build_signature_string, _verify_signature, required_hmac_auth
 
-        @hmac_auth_required
+        @required_hmac_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
@@ -151,7 +151,7 @@ class TestHmacAuth(TstLambdas):
                 nonce = '550e8400-e29b-41d4-a716-446655440000'
 
                 # Import and use the sign_request function
-                from tests.sign_request import sign_request
+                from common_test.sign_request import sign_request
 
                 headers = sign_request(
                     method=event['httpMethod'],
@@ -179,9 +179,9 @@ class TestHmacAuth(TstLambdas):
 
     def test_missing_path_parameters(self):
         """Test authentication failure when compact/jurisdiction are missing."""
-        from cc_common.hmac_auth import hmac_auth_required
+        from cc_common.hmac_auth import required_hmac_auth
 
-        @hmac_auth_required
+        @required_hmac_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
@@ -196,9 +196,9 @@ class TestHmacAuth(TstLambdas):
 
     def test_public_key_not_found(self):
         """Test authentication failure when public key is not found in DynamoDB."""
-        from cc_common.hmac_auth import hmac_auth_required
+        from cc_common.hmac_auth import required_hmac_auth
 
-        @hmac_auth_required
+        @required_hmac_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
@@ -216,9 +216,9 @@ class TestHmacAuth(TstLambdas):
 
     def test_invalid_signature(self):
         """Test authentication failure with invalid signature."""
-        from cc_common.hmac_auth import hmac_auth_required
+        from cc_common.hmac_auth import required_hmac_auth
 
-        @hmac_auth_required
+        @required_hmac_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
@@ -245,7 +245,7 @@ class TestHmacAuth(TstLambdas):
         nonce = '550e8400-e29b-41d4-a716-446655440000'
 
         # Import and use the sign_request function
-        from tests.sign_request import sign_request
+        from common_test.sign_request import sign_request
 
         headers = sign_request(method, path, query_params, timestamp, nonce, 'test-key-001', self.private_key_pem)
 
@@ -275,7 +275,7 @@ class TestHmacAuth(TstLambdas):
         nonce = '550e8400-e29b-41d4-a716-446655440000'
 
         # Import and use the sign_request function
-        from tests.sign_request import sign_request
+        from common_test.sign_request import sign_request
 
         headers = sign_request(method, path, query_params, timestamp, nonce, 'test-key-001', self.private_key_pem)
 
@@ -316,7 +316,7 @@ class TestHmacAuth(TstLambdas):
             'headers': {
                 'X-Timestamp': '2024-01-15T10:30:00Z',
                 'X-Nonce': '550e8400-e29b-41d4-a716-446655440000',
-                'X-Key-Id': 'test-key-001'
+                'X-Key-Id': 'test-key-001',
             },
         }
 
@@ -345,7 +345,7 @@ class TestHmacAuth(TstLambdas):
             'headers': {
                 'X-Timestamp': '2024-01-15T10:30:00Z',
                 'X-Nonce': '550e8400-e29b-41d4-a716-446655440000',
-                'X-Key-Id': 'test-key-001'
+                'X-Key-Id': 'test-key-001',
             },
         }
 
@@ -374,7 +374,7 @@ class TestHmacAuth(TstLambdas):
             'headers': {
                 'X-Timestamp': '2024-01-15T10:30:00Z',
                 'X-Nonce': '550e8400-e29b-41d4-a716-446655440000',
-                'X-Key-Id': 'test-key-001'
+                'X-Key-Id': 'test-key-001',
             },
         }
 
@@ -407,7 +407,7 @@ class TestHmacAuth(TstLambdas):
             'headers': {
                 'X-Timestamp': '2024-01-15T10:30:00Z',
                 'X-Nonce': '550e8400-e29b-41d4-a716-446655440000',
-                'X-Key-Id': 'test-key-001'
+                'X-Key-Id': 'test-key-001',
             },
         }
 
@@ -427,9 +427,9 @@ class TestHmacAuth(TstLambdas):
 
     def test_case_insensitive_headers(self):
         """Test that header extraction is case insensitive using CaseInsensitiveDict."""
-        from cc_common.hmac_auth import hmac_auth_required
+        from cc_common.hmac_auth import required_hmac_auth
 
-        @hmac_auth_required
+        @required_hmac_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
@@ -467,7 +467,7 @@ class TestHmacAuth(TstLambdas):
         key_id = 'test-key-001'
 
         # Import and use the sign_request function
-        from tests.sign_request import sign_request
+        from common_test.sign_request import sign_request
 
         headers = sign_request(
             method=event['httpMethod'],

@@ -87,5 +87,6 @@ class V1Api:
             method_options=write_auth_method_options,
             bulk_uploads_bucket=persistent_stack.bulk_uploads_bucket,
             license_upload_role=persistent_stack.ssn_table.license_upload_role,
+            compact_configuration_table=persistent_stack.compact_configuration_table,
             api_model=self.api_model,
         )

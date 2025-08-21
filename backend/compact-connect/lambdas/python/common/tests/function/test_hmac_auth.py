@@ -3,10 +3,10 @@ import json
 import uuid
 from datetime import UTC, datetime
 
+from common_test.sign_request import sign_request
 from moto import mock_aws
 
 from tests.function import TstFunction
-from tests.sign_request import sign_request
 
 
 @mock_aws
@@ -29,7 +29,7 @@ class TestHmacAuthFunctional(TstFunction):
 
     def test_required_hmac_auth_success_with_public_key_in_database(self):
         """Test successful authentication when public key is in database."""
-        from cc_common.hmac_auth import hmac_auth_required
+        from cc_common.hmac_auth import required_hmac_auth
 
         # Add public key to database
         self._compact_configuration_table.put_item(
@@ -43,7 +43,7 @@ class TestHmacAuthFunctional(TstFunction):
             }
         )
 
-        @hmac_auth_required
+        @required_hmac_auth
         def lambda_handler(event: dict, context):
             return {'message': 'OK', 'authenticated': True}
 
@@ -57,7 +57,7 @@ class TestHmacAuthFunctional(TstFunction):
     def test_required_hmac_auth_signature_missing_access_denied(self):
         """Test access denied when signature is missing for required HMAC auth."""
         from cc_common.exceptions import CCUnauthorizedException
-        from cc_common.hmac_auth import hmac_auth_required
+        from cc_common.hmac_auth import required_hmac_auth
 
         # Add public key to database
         self._compact_configuration_table.put_item(
@@ -71,7 +71,7 @@ class TestHmacAuthFunctional(TstFunction):
             }
         )
 
-        @hmac_auth_required
+        @required_hmac_auth
         def lambda_handler(event: dict, context):
             return {'message': 'OK', 'authenticated': True}
 
@@ -87,11 +87,11 @@ class TestHmacAuthFunctional(TstFunction):
     def test_required_hmac_auth_public_key_not_in_database_access_denied(self):
         """Test access denied when public key is not in database for required HMAC auth."""
         from cc_common.exceptions import CCUnauthorizedException
-        from cc_common.hmac_auth import hmac_auth_required
+        from cc_common.hmac_auth import required_hmac_auth
 
         # Don't add public key to database
 
-        @hmac_auth_required
+        @required_hmac_auth
         def lambda_handler(event: dict, context):
             return {'message': 'OK', 'authenticated': True}
 
@@ -107,7 +107,7 @@ class TestHmacAuthFunctional(TstFunction):
     def test_required_hmac_auth_invalid_signature_access_denied(self):
         """Test access denied with invalid signature."""
         from cc_common.exceptions import CCUnauthorizedException
-        from cc_common.hmac_auth import hmac_auth_required
+        from cc_common.hmac_auth import required_hmac_auth
 
         # Add public key to database
         self._compact_configuration_table.put_item(
@@ -121,7 +121,7 @@ class TestHmacAuthFunctional(TstFunction):
             }
         )
 
-        @hmac_auth_required
+        @required_hmac_auth
         def lambda_handler(event: dict, context):
             return {'message': 'OK', 'authenticated': True}
 

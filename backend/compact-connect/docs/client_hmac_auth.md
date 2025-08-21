@@ -87,7 +87,7 @@ X-Signature: <base64_encoded_signature>
 
 #### Python Example
 
-We maintain an example implementation, which we use to test and validate our own authentication mechanism [here](../lambdas/python/common/tests/sign_request.py). Feel free to use this as a reference for your own implementation.
+We maintain an example implementation, which we use to test and validate our own authentication mechanism [here](../lambdas/python/common/common_test/sign_request.py). Feel free to use this as a reference for your own implementation.
 
 
 ## Security Considerations

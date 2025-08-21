@@ -86,6 +86,115 @@ Add the new app client information to the external Google Sheet registry for tra
 #### Email Instructions for consuming team
 As part of the email message sent to the consuming team, be sure to include the onboarding instructions document from the `it_staff_onboarding_instructions/` directory.
 
+## Managing HMAC Public Keys
+
+### Overview
+HMAC authentication provides an additional layer of security for API access to sensitive licensure data. Each compact/state combination can have multiple HMAC public keys configured to support key rotation and zero-downtime deployments.
+
+### Authorization Requirements
+**⚠️ CRITICAL SECURITY NOTICE:** Due to the sensitivity of the data protected by HMAC authentication (including partial Social Security Numbers, personal addresses, and professional license details), configuration of new HMAC public keys in production environments **MUST** include explicit authorization from the state board executive director.
+
+### Creating HMAC Public Keys
+
+#### 1. Prerequisites
+Before creating a new HMAC public key, ensure you have:
+- **Production Authorization**: Explicit approval from the state board executive director for production environments
+- Validated the identity of the individual providing the public key to you
+- Jurisdiction and compact information confirmed
+- Contact information for the state IT representative
+- The public key file (`.pub` format) from the state IT representative
+- AWS credentials configured with permissions to write to the compact configuration table
+- Python 3.10+ installed with boto3 dependency (`pip install boto3`)
+
+#### 2. Key ID Naming Convention
+The state IT department should provide you with an identifier, however you can recommend a descriptive key IDs that includes:
+- Environment indicator (if applicable)
+- Version or date suffix
+
+Examples:
+- `prod-key-001`
+- `beta-key-2024-01`
+
+#### 3. Create HMAC Public Key Using Interactive Python Script
+**Use the provided Python script in the bin directory for streamlined HMAC key management:**
+
+```bash
+python3 bin/manage_hmac_keys.py create -t <table_name>
+```
+
+**Interactive Process:**
+The script will prompt you for:
+- Compact (aslp, octp, coun)
+- State postal abbreviation (e.g., "ky", "la")
+- Key ID (e.g., "client-org-prod-key-001")
+
+**File Reading:**
+The script will:
+- Notify you that it will read the public key from `<key-id>.pub`
+- Validate the PEM format of the public key
+- Check for existing keys with the same ID
+- Write the key to the compact configuration database
+
+#### 4. Database Schema
+HMAC keys are stored in the compact configuration table with the following schema:
+- **Primary Key (pk)**: `{compact}#HMAC_KEYS`
+- **Sort Key (sk)**: `{compact}#JURISDICTION#{jurisdiction}#{key_id}`
+- **Additional Fields**:
+  - `publicKey`: PEM-encoded public key content
+  - `compact`: Compact abbreviation
+  - `jurisdiction`: Jurisdiction abbreviation
+  - `keyId`: Key identifier
+  - `createdAt`: Creation timestamp
+
+### Deleting HMAC Public Keys
+
+#### 1. Prerequisites
+Before deleting an HMAC public key, ensure you have:
+- Confirmation that the key is no longer in use by the state IT department
+- Confirmation of the key id to be deleted
+- Understanding of the impact on API access for the compact/state combination
+
+#### 2. Delete HMAC Public Key Using Interactive Python Script
+```bash
+python3 bin/manage_hmac_keys.py delete -t <table_name>
+```
+
+**Interactive Process:**
+The script will:
+- Prompt for compact and state
+- List all existing keys for the compact/state combination
+- Allow you to select the specific key ID to delete
+- Require typing "DELETE" to confirm the deletion
+- Remove the key from the compact configuration database
+
+### Key Rotation Best Practices
+
+#### 1. Planning
+- Coordinate with the State IT representative well in advance
+- Plan for zero-downtime deployment
+
+#### 2. Implementation
+- Create new keys before removing old ones
+- Allow both keys to be active during the transition period
+- Monitor API access and authentication success rates
+- Remove old keys only after confirming new keys are working correctly
+
+#### 3. Documentation
+- Document key rotation dates and reasons
+- Maintain audit trail of all key management activities
+
+### Security Considerations
+
+#### 1. Key Storage
+- Public keys are stored in DynamoDB with appropriate access controls
+- Private keys should never be stored in CompactConnect systems
+- State IT departments are responsible for secure private key management
+
+#### 2. Access Control
+- Only authorized technical staff should have access to key management resources
+- All key management activities should be logged and audited
+- Production key creation requires executive director approval
+
 ## Rotating App Client Credentials
 Unfortunately, AWS Cognito does not support rotating app client credentials for an existing app client. The only way to rotate credentials is to create a new app client with a new clientId and clientSecret and then delete the old one. The following process should be performed if credentials are accidentally exposed or in the event of a security breach where the old credentials are compromised.
 

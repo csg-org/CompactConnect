@@ -22,7 +22,7 @@ from cc_common.exceptions import CCInvalidRequestException, CCUnauthorizedExcept
 from cc_common.utils import CaseInsensitiveDict
 
 
-def hmac_auth_required(fn: Callable) -> Callable:
+def required_hmac_auth(fn: Callable) -> Callable:
     """
     Decorator to validate HMAC signatures for API requests.
 
@@ -51,8 +51,12 @@ def hmac_auth_required(fn: Callable) -> Callable:
         # Get public key from DynamoDB (required)
         public_key_pem = _get_public_key_from_dynamodb(compact, jurisdiction, key_id)
         if not public_key_pem:
-            logger.error('Public key not found for compact/jurisdiction/key_id',
-                        compact=compact, jurisdiction=jurisdiction, key_id=key_id)
+            logger.error(
+                'Public key not found for compact/jurisdiction/key_id',
+                compact=compact,
+                jurisdiction=jurisdiction,
+                key_id=key_id,
+            )
             raise CCUnauthorizedException('Public key not found for this compact/jurisdiction/key_id')
 
         # Validate HMAC signature
@@ -79,6 +83,7 @@ def optional_hmac_auth(fn: Callable) -> Callable:
     :param fn: The function to decorate
     :return: Decorated function
     """
+
     @wraps(fn)
     def validate_optional_signature(event: dict, context: Any) -> Any:
         # Extract compact and jurisdiction from path parameters
@@ -89,32 +94,39 @@ def optional_hmac_auth(fn: Callable) -> Callable:
 
         if not configured_keys:
             # No keys configured - allow request to proceed without HMAC validation
-            logger.debug('No HMAC keys configured for compact/jurisdiction - proceeding without HMAC validation',
-                        compact=compact, jurisdiction=jurisdiction)
+            logger.debug(
+                'No HMAC keys configured for compact/jurisdiction - proceeding without HMAC validation',
+                compact=compact,
+                jurisdiction=jurisdiction,
+            )
             return fn(event, context)
 
         # Keys are configured - check if X-Key-Id is provided
         key_id = _extract_key_id(event)
         if not key_id:
-            logger.warning('HMAC keys configured but no X-Key-Id provided - denying access',
-                         compact=compact, jurisdiction=jurisdiction)
+            logger.warning(
+                'HMAC keys configured but no X-Key-Id provided - denying access',
+                compact=compact,
+                jurisdiction=jurisdiction,
+            )
             raise CCUnauthorizedException('X-Key-Id header required when HMAC keys are configured')
 
         # Get public key for the specific key ID from our cached keys
         public_key_pem = configured_keys.get(key_id)
         if not public_key_pem:
-            logger.error('Public key not found for compact/jurisdiction/key_id',
-                        compact=compact, jurisdiction=jurisdiction, key_id=key_id)
+            logger.error(
+                'Public key not found for compact/jurisdiction/key_id',
+                compact=compact,
+                jurisdiction=jurisdiction,
+                key_id=key_id,
+            )
             raise CCUnauthorizedException('Public key not found for this compact/jurisdiction/key_id')
 
         # Validate HMAC signature
         _validate_hmac_signature(event, compact, jurisdiction, public_key_pem)
 
         logger.info(
-            'Optional HMAC signature validated successfully',
-            compact=compact,
-            jurisdiction=jurisdiction,
-            key_id=key_id
+            'Optional HMAC signature validated successfully', compact=compact, jurisdiction=jurisdiction, key_id=key_id
         )
         return fn(event, context)
 
@@ -232,10 +244,7 @@ def _get_public_key_from_dynamodb(compact: str, jurisdiction: str, key_id: str) 
     # Query the compact configuration table for the public key
     # New schema: pk=f"{compact}#HMAC_KEYS", sk=f"{compact}#JURISDICTION#{jurisdiction}#{key_id}"
     response = config.compact_configuration_table.get_item(
-        Key={
-            'pk': f'{compact}#HMAC_KEYS',
-            'sk': f'{compact}#JURISDICTION#{jurisdiction}#{key_id}'
-        }
+        Key={'pk': f'{compact}#HMAC_KEYS', 'sk': f'{compact}#JURISDICTION#{jurisdiction}#{key_id}'}
     )
 
     return response.get('Item', {}).get('publicKey')
@@ -257,13 +266,13 @@ def _get_configured_keys_for_jurisdiction(compact: str, jurisdiction: str) -> di
         KeyConditionExpression='pk = :pk AND begins_with(sk, :sk_prefix)',
         ExpressionAttributeValues={
             ':pk': f'{compact}#HMAC_KEYS',
-            ':sk_prefix': f'{compact}#JURISDICTION#{jurisdiction}#'
-        }
+            ':sk_prefix': f'{compact}#JURISDICTION#{jurisdiction}#',
+        },
     )
 
     configured_keys: dict[str, str] = {}
     for item in response.get('Items', []):
-        key_id = item['sk'].split('#')[-1] # Extract key_id from sk
+        key_id = item['sk'].split('#')[-1]  # Extract key_id from sk
         public_key_pem = item['publicKey']
         configured_keys[key_id] = public_key_pem
 
