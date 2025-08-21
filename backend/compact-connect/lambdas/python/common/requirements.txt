@@ -29,8 +29,10 @@ jmespath==1.0.1
     #   aws-lambda-powertools
     #   boto3
     #   botocore
-marshmallow==4.0.0
+marshmallow==3.26.1
     # via -r compact-connect/lambdas/python/common/requirements.in
+packaging==25.0
+    # via marshmallow
 pycparser==2.22
     # via cffi
 python-dateutil==2.9.0.post0
