@@ -2,7 +2,7 @@
 from datetime import timedelta
 
 from marshmallow import ValidationError, validates_schema
-from marshmallow.fields import Date, DateTime, Email, Integer, List, Nested, Raw, String
+from marshmallow.fields import Date, DateTime, Email, Integer, List, Nested, Raw, String, UUID
 from marshmallow.validate import Length, OneOf, Regexp
 
 from cc_common.data_model.schema.base_record import ForgivingSchema
@@ -255,7 +255,7 @@ class ProviderAccountRecoveryInitiateRequestSchema(CCRequestSchema):
     """
 
     username = Email(required=True, allow_none=False)
-    password = String(required=True, allow_none=False)
+    password = String(required=True, allow_none=False, load_only=True)
     compact = Compact(required=True, allow_none=False)
     jurisdiction = Jurisdiction(required=True, allow_none=False)
     givenName = String(required=True, allow_none=False)
@@ -263,7 +263,7 @@ class ProviderAccountRecoveryInitiateRequestSchema(CCRequestSchema):
     dob = Date(required=True, allow_none=False)
     partialSocial = String(required=True, allow_none=False, validate=Length(min=4, max=4))
     licenseType = String(required=True, allow_none=False)
-    recaptchaToken = String(required=True, allow_none=False)
+    recaptchaToken = String(required=True, allow_none=False, load_only=True)
 
 
 class ProviderAccountRecoveryVerifyRequestSchema(CCRequestSchema):
@@ -277,9 +277,9 @@ class ProviderAccountRecoveryVerifyRequestSchema(CCRequestSchema):
     """
 
     compact = Compact(required=True, allow_none=False)
-    providerId = String(required=True, allow_none=False)
-    recoveryToken = String(required=True, allow_none=False)
-    recaptchaToken = String(required=True, allow_none=False)
+    providerId = UUID(required=True, allow_none=False)
+    recoveryToken = String(required=True, allow_none=False, load_only=True)
+    recaptchaToken = String(required=True, allow_none=False, load_only=True)
 
 
 class StatePrivilegeGeneralResponseSchema(ForgivingSchema):
