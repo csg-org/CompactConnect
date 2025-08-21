@@ -16,7 +16,7 @@ from cc_common.exceptions import (
     CCNotFoundException,
     CCRateLimitingException,
 )
-from cc_common.utils import api_handler, delayed_function, verify_recaptcha
+from cc_common.utils import api_handler, delayed_function, hash_password, verify_password, verify_recaptcha
 from marshmallow import ValidationError
 
 MFA_RECOVERY_INITIATE_ATTEMPT_METRIC = 'mfa-recovery-initiate'
@@ -161,15 +161,17 @@ def initiate_account_recovery(event: dict, context: LambdaContext):  # noqa: ARG
 
     logger.info('Password authentication verified. Generating temporary recovery token.')
 
-    # Create cryptographically secure, URL-safe recovery token and store on provider record
+    # Create cryptographically secure, URL-safe recovery token and store hashed version on provider record
     # 32 bytes ~ 43 URL-safe chars; sufficient entropy for email deep links
     recovery_token = secrets.token_urlsafe(32)
+    # Hash the recovery token before storing per OWASP ASVS v3.0 requirement 2.13
+    hashed_recovery_token = hash_password(recovery_token)
     expiry_time = config.current_standard_datetime + timedelta(minutes=15)
     try:
         config.data_client.update_provider_account_recovery_data(
             compact=matching_record.compact,
             provider_id=matching_record.providerId,
-            recovery_token=recovery_token,
+            recovery_token=hashed_recovery_token,
             recovery_expiry=expiry_time,
         )
     except Exception as e:  # noqa: BLE001
@@ -177,13 +179,13 @@ def initiate_account_recovery(event: dict, context: LambdaContext):  # noqa: ARG
         metrics.add_metric(name=MFA_RECOVERY_INITIATE_ATTEMPT_METRIC, unit=MetricUnit.NoUnit, value=0)
         raise CCInternalException('Internal server error') from e
 
-    # Send email with confirmation link
+    # Send email with confirmation link (using plaintext token for the link)
     try:
         config.email_service_client.send_provider_account_recovery_confirmation_email(
             compact=matching_record.compact,
             provider_email=registered_email,
             provider_id=str(matching_record.providerId),
-            recovery_token=recovery_token,
+            recovery_token=recovery_token,  # Send plaintext token in email link
         )
     except Exception as e:  # noqa: BLE001
         logger.error('Failed to send account recovery confirmation email', error=str(e))
@@ -245,7 +247,8 @@ def _validate_token_or_raise_exception(
         metrics.add_metric(name=MFA_RECOVERY_VERIFY_ATTEMPT_METRIC, unit=MetricUnit.NoUnit, value=0)
         raise CCInvalidRequestException(GENERIC_INVALID_REQUEST_MESSAGE)
 
-    if token_from_request != record_token:
+    # Verify plaintext token against hashed token stored in database
+    if not verify_password(record_token, token_from_request):
         metrics.add_metric(name=MFA_RECOVERY_VERIFY_ATTEMPT_METRIC, unit=MetricUnit.NoUnit, value=0)
         raise CCInvalidRequestException(GENERIC_INVALID_REQUEST_MESSAGE)
 

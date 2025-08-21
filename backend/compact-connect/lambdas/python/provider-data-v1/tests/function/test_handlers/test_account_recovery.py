@@ -237,12 +237,15 @@ class TestInitiateAccountRecovery(TstFunction):
 
         self._when_license_record_matches()
 
-        response = initiate_account_recovery(self._get_test_event(), self.mock_context)
-        self.assertEqual(200, response['statusCode'])
-        self.assertEqual(
-            {'message': 'request processed'},
-            json.loads(response['body']),
-        )
+        mock_secret = 'some-url-encoded-secret-string'  # noqa: S105 this is not a real secret
+        with patch('handlers.account_recovery.secrets') as mock_secrets:
+            mock_secrets.token_urlsafe.return_value = mock_secret
+            response = initiate_account_recovery(self._get_test_event(), self.mock_context)
+            self.assertEqual(200, response['statusCode'])
+            self.assertEqual(
+                {'message': 'request processed'},
+                json.loads(response['body']),
+            )
 
         # ensure the provider record was not updated with the temp token
         provider_record = self.config.data_client.get_provider_top_level_record(
@@ -260,7 +263,7 @@ class TestInitiateAccountRecovery(TstFunction):
             compact=TEST_COMPACT_ABBR,
             provider_email=provider_record.compactConnectRegisteredEmailAddress,
             provider_id=MOCK_PROVIDER_ID,
-            recovery_token=provider_record.recoveryToken,
+            recovery_token=mock_secret,
         )
 
 
@@ -287,6 +290,8 @@ class TestVerifyAccountRecovery(TstFunction):
         return self.test_data_generator.generate_test_api_event()
 
     def _when_recovery_token_on_provider_record(self):
+        from cc_common.utils import hash_password
+
         self._create_provider_cognito_user(
             email=MOCK_COMPACT_CONNECT_REGISTERED_EMAIL_ADDRESS,
             provider_id=MOCK_PROVIDER_ID,
@@ -299,7 +304,7 @@ class TestVerifyAccountRecovery(TstFunction):
             'providerId': MOCK_PROVIDER_ID,
             'compactConnectRegisteredEmailAddress': MOCK_COMPACT_CONNECT_REGISTERED_EMAIL_ADDRESS,
             'currentHomeJurisdiction': MOCK_JURISDICTION_POSTAL_ABBR,
-            'recoveryToken': MOCK_RECOVERY_TOKEN,
+            'recoveryToken': hash_password(MOCK_RECOVERY_TOKEN),  # Store hashed version in DB
             'recoveryExpiry': datetime.fromisoformat(MOCK_DATETIME_STRING) + timedelta(minutes=15),
         }
 

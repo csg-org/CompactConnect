@@ -12,6 +12,8 @@ from typing import Any
 from uuid import UUID
 
 import requests
+from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError
 from aws_lambda_powertools import Logger
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
@@ -458,6 +460,44 @@ def sqs_handler(fn: Callable):
     return process_messages
 
 
+def delayed_function(delay_seconds: float):
+    """
+    Delay the result of the decorated function by the specified number of seconds.
+
+    This decorator ensures consistent response times for security-sensitive endpoints,
+    helping to prevent timing attacks by making all responses take the same amount of time
+    regardless of the execution path taken.
+
+    :param float delay_seconds: The minimum number of seconds the function should take to return
+    """
+
+    def decorator(fn: Callable):
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            start_time = time.time()
+            try:
+                result = fn(*args, **kwargs)
+            except Exception as e:
+                # Even if an exception occurs, we still need to maintain consistent timing
+                elapsed_time = time.time() - start_time
+                remaining_time = delay_seconds - elapsed_time
+                if remaining_time > 0:
+                    time.sleep(remaining_time)
+                raise e
+
+            # Calculate how much time has elapsed and sleep for the remainder
+            elapsed_time = time.time() - start_time
+            remaining_time = delay_seconds - elapsed_time
+            if remaining_time > 0:
+                time.sleep(remaining_time)
+
+            return result
+
+        return wrapper
+
+    return decorator
+
+
 def get_allowed_jurisdictions(*, compact: str, scopes: set[str]) -> list[str] | None:
     """Return a list of jurisdictions the user is allowed to access based on their scopes. If the scopes indicate
     the user is a compact admin, the function will return None, as they will do no jurisdiction-based filtering.
@@ -802,44 +842,6 @@ def _get_recaptcha_secret() -> str:
     return _RECAPTCHA_SECRET
 
 
-def delayed_function(delay_seconds: float):
-    """
-    Delay the result of the decorated function by the specified number of seconds.
-
-    This decorator ensures consistent response times for security-sensitive endpoints,
-    helping to prevent timing attacks by making all responses take the same amount of time
-    regardless of the execution path taken.
-
-    :param float delay_seconds: The minimum number of seconds the function should take to return
-    """
-
-    def decorator(fn: Callable):
-        @wraps(fn)
-        def wrapper(*args, **kwargs):
-            start_time = time.time()
-            try:
-                result = fn(*args, **kwargs)
-            except Exception as e:
-                # Even if an exception occurs, we still need to maintain consistent timing
-                elapsed_time = time.time() - start_time
-                remaining_time = delay_seconds - elapsed_time
-                if remaining_time > 0:
-                    time.sleep(remaining_time)
-                raise e
-
-            # Calculate how much time has elapsed and sleep for the remainder
-            elapsed_time = time.time() - start_time
-            remaining_time = delay_seconds - elapsed_time
-            if remaining_time > 0:
-                time.sleep(remaining_time)
-
-            return result
-
-        return wrapper
-
-    return decorator
-
-
 def verify_recaptcha(token: str) -> bool:
     """Verify the reCAPTCHA token with Google's API."""
 
@@ -861,3 +863,42 @@ def verify_recaptcha(token: str) -> bool:
     except ClientError as e:
         logger.error('Failed to verify reCAPTCHA token', error=str(e))
         return False
+
+
+# Module level PasswordHasher instance for password/token hashing
+_password_hasher = PasswordHasher()
+
+
+def hash_password(password: str) -> str:
+    """
+    Hash a password or sensitive token using Argon2.
+
+    Uses the argon2-cffi library with recommended parameters for secure password hashing.
+    This provides protection against brute force and password hash recovery attacks
+    as required by OWASP ASVS v3.0 requirement 2.13.
+
+    :param str password: The plaintext password or token to hash
+    :return: The Argon2 hash string
+    :rtype: str
+    """
+    return _password_hasher.hash(password)
+
+
+def verify_password(hashed_password: str, password: str) -> bool:
+    """
+    Verify a plaintext password against an Argon2 hash.
+
+    :param str hashed_password: The Argon2 hash to verify against
+    :param str password: The plaintext password to verify
+    :return: True if password matches the hash, False otherwise
+    :rtype: bool
+    """
+    try:
+        _password_hasher.verify(hashed_password, password)
+        return True
+    except VerifyMismatchError:
+        # This is expected when passwords don't match
+        return False
+    except Exception as e:
+        logger.error('Failed to verify password', error=str(e))
+        raise CCInternalException('Failed to verify password') from e
