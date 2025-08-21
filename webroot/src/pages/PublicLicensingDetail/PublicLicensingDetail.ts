@@ -29,7 +29,7 @@ export default class PublicLicensingDetail extends Vue {
     //
     // Lifecycle
     //
-    async mounted() {
+    async created() {
         if (!this.licenseePrivileges.length) {
             await this.fetchLicenseeData();
         }
