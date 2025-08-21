@@ -119,7 +119,7 @@ describe('Licensee model', () => {
                         zip: 'test-zip'
                     }),
                     licenseNumber: '1',
-                    licenseStatus: 'active'
+                    status: 'active'
                 }),
                 new License({
                     issueState: new State({ abbrev: 'co' }),
@@ -131,7 +131,7 @@ describe('Licensee model', () => {
                         zip: 'test-zip'
                     }),
                     licenseNumber: '2',
-                    licenseStatus: 'inactive'
+                    status: 'inactive'
                 }),
                 new License(),
             ],
@@ -233,13 +233,13 @@ describe('Licensee model', () => {
                 new License({
                     licenseNumber: 'test-id-1',
                     issueDate: '2025-01-02',
-                    licenseStatus: 'active',
+                    status: 'active',
                     licenseeId: 'test-provider-id',
                 }),
                 new License({
                     licenseNumber: 'test-id-2',
                     issueDate: '2025-01-01',
-                    licenseStatus: 'active',
+                    status: 'active',
                     licenseeId: 'test-provider-id',
                 }),
             ],
@@ -260,14 +260,14 @@ describe('Licensee model', () => {
             licenses: [
                 new License({
                     licenseNumber: 'test-id-1',
-                    dateOfIssuance: '2025-01-01',
-                    licenseStatus: 'active',
+                    issueDate: '2025-01-01',
+                    status: 'active',
                     licenseeId: 'test-provider-id',
                 }),
                 new License({
                     licenseNumber: 'test-id-2',
-                    dateOfIssuance: '2025-01-02',
-                    licenseStatus: 'active',
+                    issueDate: '2025-01-02',
+                    status: 'active',
                     licenseeId: 'test-provider-id',
                 }),
             ],
@@ -993,7 +993,7 @@ describe('Licensee model', () => {
                         state: new State({ abbrev: 'co' }),
                         zip: 'test-zip'
                     }),
-                    licenseStatus: LicenseStatus.ACTIVE,
+                    status: LicenseStatus.ACTIVE,
                     licenseeId: 'test-provider-id'
                 })
             ]
@@ -1014,7 +1014,7 @@ describe('Licensee model', () => {
                 new License({
                     licenseNumber: 'test-2',
                     issueState: new State({ abbrev: 'ny' }),
-                    licenseStatus: LicenseStatus.ACTIVE,
+                    status: LicenseStatus.ACTIVE,
                     licenseeId: 'test-provider-id'
                 })
             ]
@@ -1028,7 +1028,7 @@ describe('Licensee model', () => {
         // Create mock licenses with encumbered status
         const encumberedLicense = new License({
             licenseNumber: 'encumbered-license',
-            licenseStatus: LicenseStatus.INACTIVE,
+            status: LicenseStatus.INACTIVE,
         });
 
         // Mock the isEncumbered method
@@ -1036,7 +1036,7 @@ describe('Licensee model', () => {
 
         const encumberedPrivilege = new License({
             licenseNumber: 'encumbered-privilege',
-            licenseStatus: LicenseStatus.INACTIVE,
+            status: LicenseStatus.INACTIVE,
         });
 
         // Mock the isEncumbered method
@@ -1085,7 +1085,7 @@ describe('Licensee model', () => {
         // Create mock privileges with encumbrances lifted within wait period
         const privilegeWithRecentLift = new License({
             licenseNumber: 'privilege-with-recent-lift',
-            licenseStatus: LicenseStatus.ACTIVE,
+            status: LicenseStatus.ACTIVE,
         });
 
         // Mock the isLatestLiftedEncumbranceWithinWaitPeriod method
@@ -1093,7 +1093,7 @@ describe('Licensee model', () => {
 
         const privilegeWithoutRecentLift = new License({
             licenseNumber: 'privilege-without-recent-lift',
-            licenseStatus: LicenseStatus.ACTIVE,
+            status: LicenseStatus.ACTIVE,
         });
 
         // Mock the isLatestLiftedEncumbranceWithinWaitPeriod method

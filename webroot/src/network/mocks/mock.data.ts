@@ -1323,7 +1323,6 @@ export const licensees = {
                 },
             ],
             npi: '1234567890',
-            licenseNumber: 'A-555666777',
             givenName: 'Layne',
             emailAddress: 'test@example.com',
             compactConnectRegisteredEmailAddress: 'test@example.com',
