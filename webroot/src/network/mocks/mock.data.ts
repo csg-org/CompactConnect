@@ -770,6 +770,7 @@ export const licensees = {
                     dateOfIssuance: moment().subtract(2, 'years').subtract(7, 'months').format(serverDateFormat),
                     dateOfRenewal: moment().subtract(2, 'months').format(serverDateFormat),
                     dateOfExpiration: moment().add(10, 'months').format(serverDateFormat),
+                    activeSince: moment().subtract(1, 'years').subtract(2, 'months').format(serverDateFormat),
                     compactTransactionId: '120060088902',
                     attestations: [
                         {
@@ -1063,8 +1064,9 @@ export const licensees = {
                     licenseJurisdiction: 'ca',
                     licenseType: 'occupational therapist',
                     dateOfIssuance: moment().subtract(2, 'years').subtract(3, 'months').format(serverDateFormat),
-                    dateOfRenewal: moment().subtract(3, 'months').format(serverDateFormat),
-                    dateOfExpiration: moment().add(9, 'months').format(serverDateFormat),
+                    dateOfRenewal: moment().subtract(6, 'months').format(serverDateFormat),
+                    dateOfExpiration: moment().add(6, 'months').format(serverDateFormat),
+                    activeSince: moment().subtract(6, 'months').format(serverDateFormat),
                     compactTransactionId: '120060088903',
                     attestations: [
                         {
@@ -1523,6 +1525,7 @@ export const licensees = {
                     dateOfIssuance: moment().subtract(2, 'years').subtract(7, 'months').format(serverDateFormat),
                     dateOfRenewal: moment().subtract(2, 'months').format(serverDateFormat),
                     dateOfExpiration: moment().add(10, 'months').format(serverDateFormat),
+                    activeSince: moment().subtract(1, 'years').subtract(2, 'months').format(serverDateFormat),
                     compactTransactionId: '120060088901',
                     attestations: [
                         {
@@ -2032,6 +2035,7 @@ export const licensees = {
                     dateOfIssuance: moment().subtract(9, 'months').format(serverDateFormat),
                     dateOfRenewal: moment().subtract(9, 'months').format(serverDateFormat),
                     dateOfExpiration: moment().add(1, 'month').format(serverDateFormat),
+                    activeSince: moment().subtract(6, 'months').format(serverDateFormat),
                     compactTransactionId: '120060088901',
                     attestations: [
                         {
@@ -2543,6 +2547,7 @@ export const licensees = {
                     type: 'privilege',
                     dateOfIssuance: moment().subtract(10, 'months').subtract(1, 'year').format(serverDateFormat),
                     dateOfUpdate: moment().subtract(10, 'months').subtract(1, 'year').format(serverDateFormat),
+                    activeSince: moment().subtract(10, 'months').subtract(1, 'year').format(serverDateFormat),
                     status: 'active',
                     privilegeId: 'OCTP-AL-22'
                 }
