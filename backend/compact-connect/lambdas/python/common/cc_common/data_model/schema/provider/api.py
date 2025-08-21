@@ -332,7 +332,7 @@ class StatePrivilegePrivateResponseSchema(StatePrivilegeGeneralResponseSchema):
     ssnLastFour = String(required=False, allow_none=False, validate=Length(min=4, max=4))
     emailAddress = Email(required=False, allow_none=False)
     compactConnectRegisteredEmailAddress = Email(required=False, allow_none=False)
-    dateOfBirth = Date(required=False, allow_none=False)
+    dateOfBirth = Raw(required=False, allow_none=False)
     homeAddressStreet1 = String(required=False, allow_none=False, validate=Length(2, 100))
     homeAddressStreet2 = String(required=False, allow_none=False, validate=Length(1, 100))
     homeAddressCity = String(required=False, allow_none=False, validate=Length(2, 100))
