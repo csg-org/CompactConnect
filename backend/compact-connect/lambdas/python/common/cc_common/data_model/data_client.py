@@ -2764,6 +2764,11 @@ class DataClient:
             license_type_abbreviation=license_record.licenseTypeAbbreviation,
         )
 
+        if latest_effective_lift_date is None:
+            message = 'Unable to determine latest effective lift date for license encumbrance lift'
+            logger.error(message)
+            raise CCInternalException(message)
+
         # Build transaction items for all privileges
         transaction_items = []
 
