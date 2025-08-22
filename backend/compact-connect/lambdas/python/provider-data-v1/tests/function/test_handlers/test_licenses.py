@@ -131,6 +131,27 @@ class TestLicenses(TstFunction):
             {'message': 'Invalid JSON: Expecting value: line 1 column 1 (char 0)'}, json.loads(resp['body'])
         )
 
+    def test_post_licenses_handles_empty_request_body(self):
+        from handlers.licenses import post_licenses
+
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        # The user has write permission for aslp/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.write'
+        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+
+        # Test case where request body is not deserializable
+        event['body'] = None
+
+        resp = post_licenses(event, self.mock_context)
+
+        self.assertEqual(400, resp['statusCode'])
+        self.assertEqual(
+            {'message': 'Invalid request body: the JSON object must be str, bytes or '
+            'bytearray, not NoneType'}, json.loads(resp['body'])
+        )
+
     def test_post_licenses_unknown_field_returns_error(self):
         from handlers.licenses import post_licenses
 
