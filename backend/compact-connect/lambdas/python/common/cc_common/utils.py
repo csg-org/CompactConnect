@@ -166,7 +166,7 @@ def api_handler(fn: Callable):
                     'body': json.dumps({'message': e.message}),
                 }
             except CCInvalidRequestCustomResponseException as e:
-                logger.info('Invalid request with custom response', response_body=e.response_body)
+                logger.info('Invalid request with custom response')
                 return {
                     'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
                     'statusCode': 400,
