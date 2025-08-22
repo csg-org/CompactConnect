@@ -22,8 +22,8 @@ from cc_common.data_model.schema.provider.api import ProviderGeneralResponseSche
 from cc_common.exceptions import (
     CCAccessDeniedException,
     CCInternalException,
-    CCInvalidRequestException,
     CCInvalidRequestCustomResponseException,
+    CCInvalidRequestException,
     CCNotFoundException,
     CCRateLimitingException,
     CCUnauthorizedException,
