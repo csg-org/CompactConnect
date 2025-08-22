@@ -28,7 +28,7 @@ def required_hmac_auth(fn: Callable) -> Callable:
 
     This decorator validates ECDSA signatures according to the specification:
     - Extracts required headers (X-Algorithm, X-Timestamp, X-Nonce, X-Signature, X-Key-Id)
-    - Validates timestamp is within 5 minutes
+    - Validates timestamp is within configurable max clock skew
     - Reconstructs signature string from request components
     - Verifies signature using public key from DynamoDB
     - Raises appropriate exceptions for validation failures
@@ -214,9 +214,12 @@ def _validate_hmac_signature(event: dict, compact: str, jurisdiction: str, publi
         now = datetime.now(UTC)
         time_diff = abs((timestamp - now).total_seconds())
 
-        if time_diff > 300:  # 5 minutes
+        if time_diff > config.hmac_max_clock_skew_seconds:
             logger.warning(
-                'Request timestamp too old or in future', timestamp=timestamp_str, time_diff_seconds=time_diff
+                'Request timestamp too old or in future',
+                timestamp=timestamp_str,
+                time_diff_seconds=time_diff,
+                max_clock_skew_seconds=config.hmac_max_clock_skew_seconds,
             )
             raise CCUnauthorizedException('Request timestamp is too old or in the future')
     except ValueError as e:

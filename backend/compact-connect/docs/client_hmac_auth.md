@@ -93,7 +93,7 @@ We maintain an example implementation, which we use to test and validate our own
 ## Security Considerations
 
 ### Timestamp Validation
-- Requests must be made within 5 minutes of the timestamp
+- Requests must be made within 1 minute of the timestamp
 - Use UTC time in ISO 8601 format (`2024-01-15T10:30:00Z` or `2024-01-15T10:30:00+00:00`)
 - Ensure your system clock is synchronized
 
