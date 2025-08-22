@@ -55,8 +55,88 @@ class TestLicenses(TstFunction):
 
         self.assertEqual(400, resp['statusCode'])
         self.assertEqual(
-            {'message': {'0': {'licenseType': ['Must be one of: audiologist, speech-language pathologist.']}}},
+            {'errors': {'0': {'licenseType': ['Must be one of: audiologist, speech-language pathologist.']}}},
             json.loads(resp['body']),
+        )
+
+    def test_post_licenses_handles_invalid_json_request_body(self):
+        from handlers.licenses import post_licenses
+
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        # The user has write permission for aslp/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.write'
+        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+
+        with open('../common/tests/resources/api/license-post.json') as f:
+            license_data = json.load(f)
+        # Test case where list contains strings instead of dictionaries
+        event['body'] = json.dumps([
+            license_data,
+            ['this is totally a license'],
+            'and another license',
+        ])
+
+        resp = post_licenses(event, self.mock_context)
+
+        self.assertEqual(400, resp['statusCode'])
+        self.assertEqual(
+            {
+                "errors": {
+                    "1": {'INVALID_JSON_OBJECT': ['Must be a JSON object.']},
+                    "2": {'INVALID_JSON_OBJECT': ['Must be a JSON object.']},
+                }
+            },
+            json.loads(resp['body']),
+        )
+
+    def test_post_licenses_handles_invalid_request_body_not_list(self):
+        from handlers.licenses import post_licenses
+
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        # The user has write permission for aslp/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.write'
+        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+
+        # Test case where request body is not a list
+        event['body'] = json.dumps({
+            "message": "hi"
+        })
+
+        resp = post_licenses(event, self.mock_context)
+
+        self.assertEqual(400, resp['statusCode'])
+        self.assertEqual(
+            {
+                "message": "Request body must be an array of license objects"
+            },
+            json.loads(resp['body'])
+        )
+
+    def test_post_licenses_handles_invalid_request_body_not_json(self):
+        from handlers.licenses import post_licenses
+
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        # The user has write permission for aslp/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.write'
+        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+
+        # Test case where request body is not deserializable
+        event['body'] = 'hello'
+
+        resp = post_licenses(event, self.mock_context)
+
+        self.assertEqual(400, resp['statusCode'])
+        self.assertEqual(
+            {
+                "message": "Invalid JSON: Expecting value: line 1 column 1 (char 0)"
+            },
+            json.loads(resp['body'])
         )
 
     def test_post_licenses_unknown_field_returns_error(self):
@@ -76,7 +156,7 @@ class TestLicenses(TstFunction):
         resp = post_licenses(event, self.mock_context)
 
         self.assertEqual(400, resp['statusCode'])
-        self.assertEqual({'message': {'0': {'someOtherField': ['Unknown field.']}}}, json.loads(resp['body']))
+        self.assertEqual({'errors': {'0': {'someOtherField': ['Unknown field.']}}}, json.loads(resp['body']))
 
     def test_post_licenses_null_field_returns_error(self):
         from handlers.licenses import post_licenses
@@ -97,7 +177,7 @@ class TestLicenses(TstFunction):
         self.assertEqual(400, resp['statusCode'])
         self.assertEqual(
             {
-                'message': {
+                'errors': {
                     '0': {'licenseStatusName': ['Field may not be null.']},
                     '1': {'licenseStatusName': ['Field may not be null.']},
                 }
