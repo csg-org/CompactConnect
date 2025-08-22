@@ -4,8 +4,8 @@
 # The JSON file can be used for API testing or other purposes.
 #
 # Run from 'backend/compact-connect' like:
-# bin/generate_mock_license_data.py --count 100 --compact octp --jurisdiction ne --format csv
-# bin/generate_mock_license_data.py --count 100 --compact octp --jurisdiction ne --format json
+# bin/generate_mock_license_csv_upload_file.py --count 100 --compact octp --jurisdiction ne --format csv
+# bin/generate_mock_license_csv_upload_file.py --count 100 --compact octp --jurisdiction ne --format json
 import json
 import os
 import sys
