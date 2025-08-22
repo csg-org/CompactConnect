@@ -140,7 +140,7 @@ export default class PrivilegePurchaseInformationConfirmation extends mixins(Mix
         return Boolean(this.$envConfig.isDevelopment);
     }
 
-    get homeStateAttestation(): string {
+    get homeStateAttestationId(): string {
         return (this.licensee?.isMilitaryStatusActive())
             ? 'military-personal-information-home-state-attestation'
             : 'personal-information-home-state-attestation';
@@ -152,15 +152,15 @@ export default class PrivilegePurchaseInformationConfirmation extends mixins(Mix
         return {
             aslp: [
                 addressAttestationId,
-                this.homeStateAttestation,
+                this.homeStateAttestationId,
             ],
             coun: [
                 addressAttestationId,
-                this.homeStateAttestation,
+                this.homeStateAttestationId,
             ],
             octp: [
                 addressAttestationId,
-                this.homeStateAttestation,
+                this.homeStateAttestationId,
             ],
         };
     }
@@ -175,7 +175,7 @@ export default class PrivilegePurchaseInformationConfirmation extends mixins(Mix
             homeState: new FormInput({
                 id: 'home-state',
                 name: 'home-state',
-                label: this.getAttestation(this.homeStateAttestation)?.text || '',
+                label: this.getAttestation(this.homeStateAttestationId)?.text || '',
                 validation: Joi.boolean().invalid(false).messages(this.joiMessages.boolean),
                 value: false,
             }),
