@@ -115,8 +115,7 @@ class EncumbranceTestHelper:
         """
         Initialize the helper with provider data and set up all necessary resources.
 
-        Args:
-            provider_data: Result from call_provider_users_me_endpoint()
+        :param provider_data: Result from call_provider_users_me_endpoint()
         """
         self.provider_data = provider_data
         self.compact = provider_data['compact']
@@ -195,15 +194,12 @@ class EncumbranceTestHelper:
         """
         Call the license encumbrance endpoint and verify 200 status.
 
-        Args:
-            request_body: The request body for the API call
-            encumbrance_id: Optional encumbrance ID for PATCH operations (lifting)
+        :param request_body: The request body for the API call
+        :param encumbrance_id: Optional encumbrance ID for PATCH operations (lifting)
 
-        Returns:
-            The response JSON
+        :returns: The response JSON
 
-        Raises:
-            SmokeTestFailureException: If the API call fails
+        :raises: SmokeTestFailureException`: If the API call fails
         """
         url = self._generate_license_encumbrance_url(encumbrance_id)
 
@@ -226,15 +222,12 @@ class EncumbranceTestHelper:
         """
         Call the privilege encumbrance endpoint and verify 200 status.
 
-        Args:
-            request_body: The request body for the API call
-            encumbrance_id: Optional encumbrance ID for PATCH operations (lifting)
+        :param request_body: The request body for the API call
+        :param encumbrance_id: Optional encumbrance ID for PATCH operations (lifting)
 
-        Returns:
-            The response JSON
+        :returns: The response JSON
 
-        Raises:
-            SmokeTestFailureException: If the API call fails
+        :raises: SmokeTestFailureException`: If the API call fails
         """
         url = self._generate_privilege_encumbrance_url(encumbrance_id)
 
