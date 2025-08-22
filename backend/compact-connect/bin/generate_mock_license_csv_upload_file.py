@@ -68,14 +68,14 @@ FIELDS = (
 )
 
 
-def generate_mock_data_file(count, *, compact: str, jurisdiction: str = None, format: str = 'csv'):
+def generate_mock_data_file(count, *, compact: str, jurisdiction: str = None, file_format: str = 'csv'):
     """Generate mock license data and write it to a file in the specified format."""
-    if format == 'csv':
+    if file_format == 'csv':
         generate_mock_csv_file(count, compact=compact, jurisdiction=jurisdiction)
-    elif format == 'json':
+    elif file_format == 'json':
         generate_mock_json_file(count, compact=compact, jurisdiction=jurisdiction)
     else:
-        raise ValueError(f"Unsupported format: {format}")
+        raise ValueError(f'Unsupported format: {file_format}')
 
 
 def generate_mock_csv_file(count, *, compact: str, jurisdiction: str = None):
@@ -87,11 +87,12 @@ def generate_mock_csv_file(count, *, compact: str, jurisdiction: str = None):
         for row in generate_license_records(count, compact=compact, jurisdiction=jurisdiction):
             writer.writerow(row)
 
+
 def generate_mock_json_file(count, *, compact: str, jurisdiction: str = None):
     """Generate mock license data in JSON format."""
     licenses = list(generate_license_records(count, compact=compact, jurisdiction=jurisdiction))
     # Remove any fields that are None or empty strings, since API doesn't accept them
-    licenses = [{k: v for k, v in license.items() if v is not None and v != ''} for license in licenses]
+    licenses = [{k: v for k, v in license_record.items() if v is not None and v != ''} for license_record in licenses]
 
     filename = f'{compact}-{jurisdiction}-mock-data.json'
     with open(filename, 'w', encoding='utf-8') as data_file:
@@ -235,4 +236,4 @@ if __name__ == '__main__':
     )
 
     args = parser.parse_args()
-    generate_mock_data_file(args.count, compact=args.compact, jurisdiction=args.jurisdiction, format=args.format)
+    generate_mock_data_file(args.count, compact=args.compact, jurisdiction=args.jurisdiction, file_format=args.format)
