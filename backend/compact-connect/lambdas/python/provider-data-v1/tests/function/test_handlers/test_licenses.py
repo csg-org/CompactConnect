@@ -37,6 +37,40 @@ class TestLicenses(TstFunction):
         expected_message['eventTime'] = '2024-11-08T23:59:59+00:00'
         self.assertEqual(expected_message, json.loads(queue_messages[0].body))
 
+    def test_post_licenses_does_not_let_request_body_override_path_parameters(self):
+        from handlers.licenses import post_licenses
+
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        # The user has write permission for aslp/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.write'
+        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+        with open('../common/tests/resources/api/license-post.json') as f:
+            license_data = json.load(f)
+        # Test case where request body attempts to specify a different compact and jurisdiction
+        license_data.update({'compact': 'coun', 'jurisdiction': 'ne'})
+        event['body'] = json.dumps(
+            [
+                license_data,
+            ]
+        )
+
+        resp = post_licenses(event, self.mock_context)
+
+        self.assertEqual(200, resp['statusCode'])
+
+        # assert that the message was sent to the preprocessing queue
+        queue_messages = self._license_preprocessing_queue.receive_messages(MaxNumberOfMessages=10)
+        self.assertEqual(1, len(queue_messages))
+
+        expected_message = json.loads(event['body'])[0]
+        # the expected compact and jurisdiction from the path parameters should not be modified
+        expected_message['compact'] = 'aslp'
+        expected_message['jurisdiction'] = 'oh'
+        expected_message['eventTime'] = '2024-11-08T23:59:59+00:00'
+        self.assertEqual(expected_message, json.loads(queue_messages[0].body))
+
     def test_post_licenses_invalid_license_type(self):
         from handlers.licenses import post_licenses
 

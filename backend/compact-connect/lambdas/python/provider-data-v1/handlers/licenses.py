@@ -41,7 +41,7 @@ def post_licenses(event: dict, context: LambdaContext):  # noqa: ARG001 unused-a
             invalid_records.update({str(i): {'INVALID_JSON_OBJECT': ['Must be a JSON object.']}})
         # record is dictionary, add required fields and run schema validation against it
         else:
-            license_entry = {'compact': compact, 'jurisdiction': jurisdiction, **license_record}
+            license_entry = {**license_record, 'compact': compact, 'jurisdiction': jurisdiction}
             try:
                 licenses.append(schema.load(license_entry))
             except ValidationError as e:
