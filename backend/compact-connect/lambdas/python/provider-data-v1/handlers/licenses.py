@@ -26,7 +26,7 @@ def post_licenses(event: dict, context: LambdaContext):  # noqa: ARG001 unused-a
         logger.debug('Invalid JSON payload provided')
         raise CCInvalidRequestException(f'Invalid JSON: {e}') from e
     except TypeError as e:
-        raise CCInvalidRequestException(f'Invalid request body: {e}') from e
+        raise CCInvalidRequestException('Invalid request body') from e
 
     # Validate that the payload is a list
     if not isinstance(license_records, list):

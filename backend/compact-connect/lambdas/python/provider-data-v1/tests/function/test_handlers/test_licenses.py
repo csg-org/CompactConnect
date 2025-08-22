@@ -229,7 +229,7 @@ class TestLicenses(TstFunction):
 
         self.assertEqual(400, resp['statusCode'])
         self.assertEqual(
-            {'message': 'Invalid request body: the JSON object must be str, bytes or bytearray, not NoneType'},
+            {'message': 'Invalid request body'},
             json.loads(resp['body']),
         )
 
