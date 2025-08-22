@@ -49,20 +49,6 @@ export default class PrivilegePurchaseInformationConfirmation extends mixins(Mix
     //
     // Data
     //
-    attestationIds = {
-        aslp: [
-            'personal-information-address-attestation',
-            'personal-information-home-state-attestation',
-        ],
-        coun: [
-            'personal-information-address-attestation',
-            'personal-information-home-state-attestation',
-        ],
-        octp: [
-            'personal-information-address-attestation',
-            'personal-information-home-state-attestation',
-        ],
-    }
     attestationRecords: Array<PrivilegeAttestation> = []; // eslint-disable-line lines-between-class-members
     areFormInputsSet = false;
 
@@ -154,6 +140,31 @@ export default class PrivilegePurchaseInformationConfirmation extends mixins(Mix
         return Boolean(this.$envConfig.isDevelopment);
     }
 
+    get homeStateAttestation(): string {
+        return (this.licensee?.isMilitaryStatusActive())
+            ? 'military-personal-information-home-state-attestation'
+            : 'personal-information-home-state-attestation';
+    }
+
+    get attestationIds(): Record<string, string[]> {
+        const addressAttestationId = 'personal-information-address-attestation';
+
+        return {
+            aslp: [
+                addressAttestationId,
+                this.homeStateAttestation,
+            ],
+            coun: [
+                addressAttestationId,
+                this.homeStateAttestation,
+            ],
+            octp: [
+                addressAttestationId,
+                this.homeStateAttestation,
+            ],
+        };
+    }
+
     //
     // Methods
     //
@@ -164,7 +175,7 @@ export default class PrivilegePurchaseInformationConfirmation extends mixins(Mix
             homeState: new FormInput({
                 id: 'home-state',
                 name: 'home-state',
-                label: this.getAttestation('personal-information-home-state-attestation')?.text || '',
+                label: this.getAttestation(this.homeStateAttestation)?.text || '',
                 validation: Joi.boolean().invalid(false).messages(this.joiMessages.boolean),
                 value: false,
             }),
