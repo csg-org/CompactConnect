@@ -10,7 +10,7 @@ class CCInvalidRequestException(CCBaseException):
 
 class CCInvalidRequestCustomResponseException(CCInvalidRequestException):
     """Client error with custom response body format, corresponds to a 400 response"""
-    
+
     def __init__(self, response_body: dict | list):
         self.response_body = response_body
         # Still need a message for logging purposes

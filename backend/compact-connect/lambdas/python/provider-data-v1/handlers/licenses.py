@@ -1,11 +1,9 @@
 import json
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
-from jmespath.ast import index
-
 from cc_common.config import config, logger
 from cc_common.data_model.schema.license.api import LicensePostRequestSchema
-from cc_common.exceptions import CCInternalException, CCInvalidRequestException, CCInvalidRequestCustomResponseException
+from cc_common.exceptions import CCInternalException, CCInvalidRequestCustomResponseException, CCInvalidRequestException
 from cc_common.utils import api_handler, authorize_compact_jurisdiction, send_licenses_to_preprocessing_queue
 from marshmallow import ValidationError
 
@@ -46,17 +44,16 @@ def post_licenses(event: dict, context: LambdaContext):  # noqa: ARG001 unused-a
                 licenses.append(schema.load(license_entry))
             except ValidationError as e:
                 logger.debug(
-                    "invalid license record detected", compact=compact,
+                    'invalid license record detected',
+                    compact=compact,
                     jurisdiction=jurisdiction,
                     index=i,
-                    message=e.messages_dict
+                    message=e.messages_dict,
                 )
                 invalid_records.update({str(i): e.messages_dict})
 
     if invalid_records:
-        raise CCInvalidRequestCustomResponseException(response_body={
-            "errors": invalid_records
-        })
+        raise CCInvalidRequestCustomResponseException(response_body={'errors': invalid_records})
 
     event_time = config.current_standard_datetime
 

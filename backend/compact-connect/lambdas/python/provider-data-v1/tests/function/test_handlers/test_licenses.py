@@ -72,20 +72,22 @@ class TestLicenses(TstFunction):
         with open('../common/tests/resources/api/license-post.json') as f:
             license_data = json.load(f)
         # Test case where list contains strings instead of dictionaries
-        event['body'] = json.dumps([
-            license_data,
-            ['this is totally a license'],
-            'and another license',
-        ])
+        event['body'] = json.dumps(
+            [
+                license_data,
+                ['this is totally a license'],
+                'and another license',
+            ]
+        )
 
         resp = post_licenses(event, self.mock_context)
 
         self.assertEqual(400, resp['statusCode'])
         self.assertEqual(
             {
-                "errors": {
-                    "1": {'INVALID_JSON_OBJECT': ['Must be a JSON object.']},
-                    "2": {'INVALID_JSON_OBJECT': ['Must be a JSON object.']},
+                'errors': {
+                    '1': {'INVALID_JSON_OBJECT': ['Must be a JSON object.']},
+                    '2': {'INVALID_JSON_OBJECT': ['Must be a JSON object.']},
                 }
             },
             json.loads(resp['body']),
@@ -102,19 +104,12 @@ class TestLicenses(TstFunction):
         event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
 
         # Test case where request body is not a list
-        event['body'] = json.dumps({
-            "message": "hi"
-        })
+        event['body'] = json.dumps({'message': 'hi'})
 
         resp = post_licenses(event, self.mock_context)
 
         self.assertEqual(400, resp['statusCode'])
-        self.assertEqual(
-            {
-                "message": "Request body must be an array of license objects"
-            },
-            json.loads(resp['body'])
-        )
+        self.assertEqual({'message': 'Request body must be an array of license objects'}, json.loads(resp['body']))
 
     def test_post_licenses_handles_invalid_request_body_not_json(self):
         from handlers.licenses import post_licenses
@@ -133,10 +128,7 @@ class TestLicenses(TstFunction):
 
         self.assertEqual(400, resp['statusCode'])
         self.assertEqual(
-            {
-                "message": "Invalid JSON: Expecting value: line 1 column 1 (char 0)"
-            },
-            json.loads(resp['body'])
+            {'message': 'Invalid JSON: Expecting value: line 1 column 1 (char 0)'}, json.loads(resp['body'])
         )
 
     def test_post_licenses_unknown_field_returns_error(self):
