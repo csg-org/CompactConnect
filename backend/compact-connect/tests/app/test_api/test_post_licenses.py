@@ -53,6 +53,10 @@ class TestPostLicenseApi(TestApi):
                         'ResponseModels': {'application/json': {'Ref': response_model_logical_id_capture}},
                         'StatusCode': '200',
                     },
+                    {
+                        'ResponseModels': {'application/json': {'Ref': response_model_logical_id_capture}},
+                        'StatusCode': '400',
+                    },
                 ],
             },
         )
