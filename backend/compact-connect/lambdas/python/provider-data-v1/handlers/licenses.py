@@ -50,7 +50,7 @@ def post_licenses(event: dict, context: LambdaContext):  # noqa: ARG001 unused-a
                     compact=compact,
                     jurisdiction=jurisdiction,
                     index=i,
-                    message=e.messages_dict,
+                    error=e.messages_dict,
                 )
                 invalid_records.update({str(i): e.messages_dict})
 

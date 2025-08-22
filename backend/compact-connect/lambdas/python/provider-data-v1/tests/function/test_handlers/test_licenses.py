@@ -131,6 +131,49 @@ class TestLicenses(TstFunction):
             json.loads(resp['body']),
         )
 
+    def test_post_licenses_handles_empty_license_object(self):
+        from handlers.licenses import post_licenses
+
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        # The user has write permission for aslp/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.write'
+        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+
+        with open('../common/tests/resources/api/license-post.json') as f:
+            license_data = json.load(f)
+        # Test case where list contains strings instead of dictionaries
+        event['body'] = json.dumps(
+            [
+                license_data,
+                {}
+            ]
+        )
+
+        resp = post_licenses(event, self.mock_context)
+
+        self.assertEqual(400, resp['statusCode'])
+        self.assertEqual(
+            {
+                'message': 'Invalid license records in request. See errors for more detail.',
+                'errors': {'1': {'compactEligibility': ['Missing data for required field.'],
+                  'dateOfBirth': ['Missing data for required field.'],
+                  'dateOfExpiration': ['Missing data for required field.'],
+                  'dateOfIssuance': ['Missing data for required field.'],
+                  'familyName': ['Missing data for required field.'],
+                  'givenName': ['Missing data for required field.'],
+                  'homeAddressCity': ['Missing data for required field.'],
+                  'homeAddressPostalCode': ['Missing data for required field.'],
+                  'homeAddressState': ['Missing data for required field.'],
+                  'homeAddressStreet1': ['Missing data for required field.'],
+                  'licenseStatus': ['Missing data for required field.'],
+                  'licenseType': ['Missing data for required field.'],
+                  'ssn': ['Missing data for required field.']}},
+            },
+            json.loads(resp['body']),
+        )
+
     def test_post_licenses_handles_invalid_request_body_not_list(self):
         from handlers.licenses import post_licenses
 
