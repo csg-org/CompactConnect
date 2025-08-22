@@ -291,7 +291,8 @@ class EncumbranceTestHelper:
             :class:`~smoke_common.SmokeTestFailureException`: If the privilege status doesn't match within max_wait_time
         """
         logger.info(
-            f'Validating privilege encumbered status is "{expected_status}" for jurisdiction "{self.privilege_jurisdiction}"...'
+            f'Validating privilege encumbered status is "{expected_status}" '
+            f'for jurisdiction "{self.privilege_jurisdiction}"...'
         )
 
         start_time = time.time()
@@ -326,8 +327,8 @@ class EncumbranceTestHelper:
                 else:
                     actual_status = matching_privilege.get('encumberedStatus')
                     logger.info(
-                        f'Attempt {attempts}/{max_attempts}: Privilege encumberedStatus is "{actual_status}", expecting '
-                        f'"{expected_status}"'
+                        f'Attempt {attempts}/{max_attempts}: Privilege encumberedStatus is "{actual_status}", '
+                        f'expecting "{expected_status}"'
                     )
 
                     if actual_status == expected_status:
@@ -437,7 +438,7 @@ class EncumbranceTestHelper:
         for email, user_sub, compact in self.created_staff_users:
             try:
                 delete_test_staff_user(email, user_sub, compact)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(f'Failed to clean up staff user {email}: {e}')
         self.created_staff_users.clear()
 
