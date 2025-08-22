@@ -55,7 +55,10 @@ class TestLicenses(TstFunction):
 
         self.assertEqual(400, resp['statusCode'])
         self.assertEqual(
-            {'errors': {'0': {'licenseType': ['Must be one of: audiologist, speech-language pathologist.']}}},
+            {
+                'message': 'Invalid license records in request. See errors for more detail.',
+                'errors': {'0': {'licenseType': ['Must be one of: audiologist, speech-language pathologist.']}},
+            },
             json.loads(resp['body']),
         )
 
@@ -85,10 +88,11 @@ class TestLicenses(TstFunction):
         self.assertEqual(400, resp['statusCode'])
         self.assertEqual(
             {
+                'message': 'Invalid license records in request. See errors for more detail.',
                 'errors': {
                     '1': {'INVALID_JSON_OBJECT': ['Must be a JSON object.']},
                     '2': {'INVALID_JSON_OBJECT': ['Must be a JSON object.']},
-                }
+                },
             },
             json.loads(resp['body']),
         )
@@ -148,8 +152,8 @@ class TestLicenses(TstFunction):
 
         self.assertEqual(400, resp['statusCode'])
         self.assertEqual(
-            {'message': 'Invalid request body: the JSON object must be str, bytes or '
-            'bytearray, not NoneType'}, json.loads(resp['body'])
+            {'message': 'Invalid request body: the JSON object must be str, bytes or bytearray, not NoneType'},
+            json.loads(resp['body']),
         )
 
     def test_post_licenses_unknown_field_returns_error(self):
@@ -169,7 +173,13 @@ class TestLicenses(TstFunction):
         resp = post_licenses(event, self.mock_context)
 
         self.assertEqual(400, resp['statusCode'])
-        self.assertEqual({'errors': {'0': {'someOtherField': ['Unknown field.']}}}, json.loads(resp['body']))
+        self.assertEqual(
+            {
+                'message': 'Invalid license records in request. See errors for more detail.',
+                'errors': {'0': {'someOtherField': ['Unknown field.']}},
+            },
+            json.loads(resp['body']),
+        )
 
     def test_post_licenses_null_field_returns_error(self):
         from handlers.licenses import post_licenses
@@ -190,10 +200,11 @@ class TestLicenses(TstFunction):
         self.assertEqual(400, resp['statusCode'])
         self.assertEqual(
             {
+                'message': 'Invalid license records in request. See errors for more detail.',
                 'errors': {
                     '0': {'licenseStatusName': ['Field may not be null.']},
                     '1': {'licenseStatusName': ['Field may not be null.']},
-                }
+                },
             },
             json.loads(resp['body']),
         )
