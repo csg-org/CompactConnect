@@ -45,13 +45,13 @@ def required_hmac_auth(fn: Callable) -> Callable:
         # Extract key ID from headers (required)
         key_id = _extract_key_id(event)
         if not key_id:
-            logger.error('Missing X-Key-Id header', compact=compact, jurisdiction=jurisdiction)
+            logger.warning('Missing X-Key-Id header', compact=compact, jurisdiction=jurisdiction)
             raise CCUnauthorizedException('Missing required X-Key-Id header')
 
         # Get public key from DynamoDB (required)
         public_key_pem = _get_public_key_from_dynamodb(compact, jurisdiction, key_id)
         if not public_key_pem:
-            logger.error(
+            logger.warning(
                 'Public key not found for compact/jurisdiction/key_id',
                 compact=compact,
                 jurisdiction=jurisdiction,
@@ -94,7 +94,7 @@ def optional_hmac_auth(fn: Callable) -> Callable:
 
         if not configured_keys:
             # No keys configured - allow request to proceed without HMAC validation
-            logger.debug(
+            logger.info(
                 'No HMAC keys configured for compact/jurisdiction - proceeding without HMAC validation',
                 compact=compact,
                 jurisdiction=jurisdiction,
@@ -114,7 +114,7 @@ def optional_hmac_auth(fn: Callable) -> Callable:
         # Get public key for the specific key ID from our cached keys
         public_key_pem = configured_keys.get(key_id)
         if not public_key_pem:
-            logger.error(
+            logger.warning(
                 'Public key not found for compact/jurisdiction/key_id',
                 compact=compact,
                 jurisdiction=jurisdiction,

@@ -12,6 +12,7 @@ the create_app_client.py script.
 import argparse
 import json
 import sys
+from datetime import UTC, datetime
 from pathlib import Path
 
 import boto3
@@ -162,9 +163,7 @@ def read_public_key_file(key_id):
 
         return public_key_content
 
-    except Exception as e:
-        if isinstance(e, FileNotFoundError | ValueError):
-            raise
+    except (FileNotFoundError, ValueError) as e:
         raise ValueError(f'Error reading public key file: {e}') from e
 
 
@@ -207,9 +206,7 @@ def create_hmac_key(table_name, config):
             'compact': compact,
             'jurisdiction': state,
             'keyId': key_id,
-            'createdAt': boto3.client('dynamodb').meta.service_model.date_serializer.serialize(
-                boto3.client('dynamodb').meta.service_model.date_serializer.deserialize('2024-01-01T00:00:00Z')
-            ),
+            'createdAt': datetime.now(UTC).isoformat(),
         }
 
         # Write to DynamoDB
@@ -223,15 +220,12 @@ def create_hmac_key(table_name, config):
     except NoCredentialsError:
         print('Error: AWS credentials not found. Please configure your AWS credentials.')
         print("You can use 'aws configure' or set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables.")
-        sys.exit(1)
+        raise
     except ClientError as e:
         error_code = e.response['Error']['Code']
         error_message = e.response['Error']['Message']
         print(f'Error creating HMAC key: {error_code} - {error_message}')
-        sys.exit(1)
-    except (FileNotFoundError, ValueError, OSError) as e:
-        print(f'Error: {e}')
-        sys.exit(1)
+        raise
 
 
 def get_user_input_for_delete():
@@ -298,12 +292,12 @@ def list_existing_keys(table_name, config):
     except NoCredentialsError:
         print('Error: AWS credentials not found. Please configure your AWS credentials.')
         print("You can use 'aws configure' or set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables.")
-        sys.exit(1)
+        raise
     except ClientError as e:
         error_code = e.response['Error']['Code']
         error_message = e.response['Error']['Message']
         print(f'Error listing HMAC keys: {error_code} - {error_message}')
-        sys.exit(1)
+        raise
 
 
 def delete_hmac_key(table_name, config, key_id):
@@ -333,12 +327,12 @@ def delete_hmac_key(table_name, config, key_id):
     except NoCredentialsError:
         print('Error: AWS credentials not found. Please configure your AWS credentials.')
         print("You can use 'aws configure' or set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables.")
-        sys.exit(1)
+        raise
     except ClientError as e:
         error_code = e.response['Error']['Code']
         error_message = e.response['Error']['Message']
         print(f'Error deleting HMAC key: {error_code} - {error_message}')
-        sys.exit(1)
+        raise
 
 
 def main():
@@ -348,65 +342,48 @@ def main():
 
     args = parser.parse_args()
 
-    try:
-        print(f'Managing HMAC keys for {args.table_name} table...\n')
+    print(f'Managing HMAC keys for {args.table_name} table...\n')
 
-        if args.action == 'create':
-            # Create flow
-            config = get_user_input_for_create()
+    if args.action == 'create':
+        # Create flow
+        config = get_user_input_for_create()
 
-            # Notify user about file reading
-            print(f'\n📁 The script will read the public key from "{config["key_id"]}.pub"')
-            print('Please ensure this file exists in the current directory.')
+        create_hmac_key(args.table_name, config)
 
-            confirm = input('\nProceed with reading the file? (y/N): ').strip().lower()
-            if confirm != 'y':
-                print('Operation cancelled.')
-                sys.exit(0)
+    elif args.action == 'delete':
+        # Delete flow
+        config = get_user_input_for_delete()
 
-            create_hmac_key(args.table_name, config)
+        # List existing keys
+        existing_keys = list_existing_keys(args.table_name, config)
 
-        elif args.action == 'delete':
-            # Delete flow
-            config = get_user_input_for_delete()
+        if not existing_keys:
+            print('\nNo keys to delete.')
+            sys.exit(0)
 
-            # List existing keys
-            existing_keys = list_existing_keys(args.table_name, config)
+        # Get key ID to delete
+        while True:
+            key_id = input('\nEnter the exact key ID to delete: ').strip()
+            key_id = validate_key_id(key_id)
 
-            if not existing_keys:
-                print('\nNo keys to delete.')
-                sys.exit(0)
+            # Check if key exists
+            key_exists = any(item['sk'].split('#')[-1] == key_id for item in existing_keys)
+            if not key_exists:
+                print(f'Error: Key ID "{key_id}" not found in the list above')
+                continue
 
-            # Get key ID to delete
-            while True:
-                try:
-                    key_id = input('\nEnter the exact key ID to delete: ').strip()
-                    key_id = validate_key_id(key_id)
+            break
 
-                    # Check if key exists
-                    key_exists = any(item['sk'].split('#')[-1] == key_id for item in existing_keys)
-                    if not key_exists:
-                        print(f'Error: Key ID "{key_id}" not found in the list above')
-                        continue
+        # Final confirmation
+        print(f'\n⚠️  You are about to delete HMAC key "{key_id}" for {config["compact"]}/{config["state"]}')
+        print('This action cannot be undone.')
 
-                    break
-                except ValueError as e:
-                    print(f'Error: {e}')
-
-            # Final confirmation
-            print(f'\n⚠️  You are about to delete HMAC key "{key_id}" for {config["compact"]}/{config["state"]}')
-            print('This action cannot be undone.')
-
-            confirm = input('\nAre you sure you want to delete this key? Type "DELETE" to confirm: ').strip()
-            if confirm != 'DELETE':
-                print('Deletion cancelled.')
-                sys.exit(0)
+        confirm = input('\nAre you sure you want to delete this key? Type "DELETE" to confirm: ').strip()
+        if confirm != 'DELETE':
+            print('Deletion cancelled.')
+            sys.exit(0)
 
             delete_hmac_key(args.table_name, config, key_id)
-
-    except Exception as e:  # noqa: BLE001
-        print(f'Error: {e}')
-        sys.exit(1)
 
 
 if __name__ == '__main__':
