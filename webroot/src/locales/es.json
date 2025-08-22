@@ -885,7 +885,15 @@
         "enterVerificationCodeSubtext": "Deberías recibir un correo electrónico en tu nueva dirección con un código de confirmación. El código caducará en unos 15 minutos.",
         "enterCode": "Introduzca el código aquí",
         "emailUpdateSuccess": "Su correo electrónico ha sido actualizado exitosamente",
-        "noValuesChanged": "No se han cambiado valores"
+        "noValuesChanged": "No se han cambiado valores",
+        "lockedOut": "¿Está bloqueado de su cuenta?",
+        "resetAccount": "Restablecer su cuenta",
+        "resetAccountSubtext1": "Si su <em>cuenta de licencia</em> no está disponible y necesita restablecer su autenticación multifactor (MFA), restablezca su cuenta a continuación. Si es <em>miembro del personal</em> y su cuenta no está disponible, comuníquese con el administrador de su compacto.",
+        "resetAccountSubtext2": "La información que proporcione aquí debe coincidir <em>exactamente</em> con la que su estado de residencia tiene registrada. Si no coincide, no podrá crear una cuenta.",
+        "resetAccountEmailSubtext": "Esta dirección de correo electrónico es a la que le enviaremos información sobre su cuenta. Debe coincidir <em>exactamente con la dirección de correo electrónico</em> que utiliza en su cuenta actual.",
+        "resetAccountPasswordSubtext": "Esta contraseña debe coincidir con la <em>contraseña exacta</em> utilizada en su cuenta existente.",
+        "resetAccountForgotPassword": "¿Olvidaste tu contraseña?",
+        "resetAccountSummarySubtext": "Aquí está la información que envió para restablecer su cuenta. Si su información no coincide exactamente con la de nuestro sistema, el restablecimiento no se realizará correctamente."
     },
     "privacyPolicy": {
         "title": "Política de Privacidad",

@@ -161,5 +161,43 @@
         justify-content: center;
         width: 100%;
         margin-bottom: 1rem;
+
+        @media @desktopWidth {
+            flex-direction: row;
+        }
+
+        .footer-link {
+            @separatorSize: 0.4rem;
+            @separatorSpacing: 1.6rem;
+
+            position: relative;
+            display: flex;
+            margin-bottom: @separatorSpacing;
+
+            @media @desktopWidth {
+                &:not(:first-child) {
+                    margin-left: @separatorSpacing;
+                }
+
+                &:not(:last-child) {
+                    margin-right: @separatorSpacing;
+
+                    &::after {
+                        position: absolute;
+                        top: 50%;
+                        right: ~"calc(-@{separatorSpacing} - (@{separatorSize} / 2))";
+                        display: block;
+                        width: @separatorSize;
+                        height: @separatorSize;
+                        border-radius: 50%;
+                        background-color: @primaryColor;
+                        transform: translateY(-50%);
+                        cursor: default;
+                        content: ' ';
+                        pointer-events: none;
+                    }
+                }
+            }
+        }
     }
 }

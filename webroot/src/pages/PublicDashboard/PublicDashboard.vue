@@ -73,7 +73,12 @@
         </div>
         </div>
         <div class="dashboard-footer">
-            <router-link :to="{ name: 'PrivacyPolicy' }">{{ $t('privacyPolicy.title') }}</router-link>
+            <router-link :to="{ name: 'MfaResetStartLicensee' }" class="footer-link">
+                {{ $t('account.lockedOut') }}
+            </router-link>
+            <router-link :to="{ name: 'PrivacyPolicy' }" class="footer-link">
+                {{ $t('privacyPolicy.title') }}
+            </router-link>
         </div>
     </div>
 </template>
