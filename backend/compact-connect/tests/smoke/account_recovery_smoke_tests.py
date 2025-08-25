@@ -53,15 +53,14 @@ def test_account_recovery_flow():
         f'License: {given_name} {family_name}, DOB: {date_of_birth}, Type: {license_type}, Jurisdiction: {jurisdiction}'
     )
 
-    # Step 2: Ask developer for the provider's current password
     print('\nPRACTITIONER ACCOUNT RECOVERY SMOKE TEST')
     print('=' * 60)
     print(f'Testing account recovery for provider: {provider_email}')
 
-    current_password = config.test_provider_user_password
 
-    # Step 3: Call POST /v1/provider-users/initiateRecovery endpoint
+    # Step 2: Call POST /v1/provider-users/initiateRecovery endpoint
     logger.info('Initiating account recovery request')
+    current_password = config.test_provider_user_password
 
     initiate_request_body = {
         'username': provider_email,
@@ -95,7 +94,7 @@ def test_account_recovery_flow():
 
     logger.info('Account recovery initiated successfully')
 
-    # Step 4: Ask developer for the recovery link from the email
+    # Step 3: Ask developer for the recovery link from the email
     print(f'\nA recovery email has been sent to {provider_email}')
     print('The email should contain a recovery link.')
     recovery_link = input('\nPaste the complete recovery link from the email: ').strip()
@@ -103,7 +102,7 @@ def test_account_recovery_flow():
     if not recovery_link:
         raise SmokeTestFailureException('Recovery link is required')
 
-    # Step 5: Parse the recovery link to extract query parameters
+    # Step 4: Parse the recovery link to extract query parameters
     logger.info('Parsing recovery link to extract parameters')
 
     try:
@@ -133,7 +132,7 @@ def test_account_recovery_flow():
     except Exception as e:
         raise SmokeTestFailureException(f'Failed to parse recovery link: {str(e)}') from e
 
-    # Step 6: Call POST /v1/provider-users/verifyRecovery endpoint with valid token
+    # Step 5: Call POST /v1/provider-users/verifyRecovery endpoint with valid token
     logger.info('Verifying account recovery with valid token')
 
     verify_request_body = {
@@ -161,7 +160,7 @@ def test_account_recovery_flow():
 
     logger.info('Account recovery verification completed successfully')
 
-    # Step 7: Verify that the recovery token cannot be reused
+    # Step 6: Verify that the recovery token cannot be reused
     logger.info('Testing that recovery token cannot be reused')
 
     reuse_response = requests.post(
@@ -178,7 +177,7 @@ def test_account_recovery_flow():
 
     logger.info('Recovery token reuse prevention test passed')
 
-    # Step 8: Test rate limiting
+    # Step 7: Test rate limiting
     logger.info('Testing invalid recovery token to trigger rate limiting')
 
     invalid_verify_request_body = {

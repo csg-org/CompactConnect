@@ -249,7 +249,7 @@ class TestInitiateAccountRecovery(TstFunction):
                 json.loads(response['body']),
             )
 
-        # ensure the provider record was not updated with the temp token
+        # ensure the provider record was updated with the hashed temp token
         provider_record = self.config.data_client.get_provider_top_level_record(
             compact=TEST_COMPACT_ABBR, provider_id=MOCK_PROVIDER_ID
         )
@@ -262,7 +262,7 @@ class TestInitiateAccountRecovery(TstFunction):
             (self.config.current_standard_datetime + timedelta(minutes=15)), provider_record.recoveryExpiry
         )
 
-        # ensure the email was not sent
+        # ensure the email was sent
         mock_email_notification_service.send_provider_account_recovery_confirmation_email.assert_called_once_with(
             compact=TEST_COMPACT_ABBR,
             provider_email=provider_record.compactConnectRegisteredEmailAddress,
