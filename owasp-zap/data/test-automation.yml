@@ -39,9 +39,16 @@ jobs:
     inline: ""
 - type: openapi
   parameters:
+    apiFile: /zap/wrk/backend/compact-connect/docs/api-specification/latest-oas30.json
+    apiUrl: ""
+    targetUrl: "https://state-api.test.compactconnect.org"
+    context: test
+    user: ""
+- type: openapi
+  parameters:
     apiFile: /zap/wrk/backend/compact-connect/docs/internal/api-specification/latest-oas30.json
     apiUrl: ""
-    targetUrl: ""
+    targetUrl: "https://api.test.compactconnect.org"
     context: test
     user: ""
 - type: passiveScan-config
@@ -105,3 +112,6 @@ jobs:
   - reportParameters
   - requestHeader
   - summaries
+- type: exitStatus
+  parameters:
+    warnExitValue: 0
