@@ -3,23 +3,23 @@ attestations:
     displayName: "Jurisprudence Confirmation."
     description: "For displaying the jurisprudence confirmation."
     text: |-
-      I understand that an attestation is a legally binding statement. I understand that providing false information on this application could result in a loss of my licenses and/or privileges. I acknowledge that the Commission may audit jurisprudence attestations at their discretion.
+      I understand that my attestation is a legally binding statement. I understand that providing false information on this application could result in a loss of my licenses and/or privileges. I acknowledge that the Commission may audit jurisprudence attestations at their discretion.
     required: true
     locale: "en"
   - attestationId: "scope-of-practice-attestation"
     displayName: "Scope of Practice Attestation"
     description: "For displaying the scope of practice attestation."
     text: |-
-      I hereby attest and affirm that I have reviewed, understand, and will abide by this state's scope of practice and all applicable laws and rules when practicing in the state. I understand that the issuance of a Compact Privilege authorizes me to legally practice in the member jurisdiction in accordance with the laws and rules governing practice of my profession in that jurisdiction.
+      I hereby attest and affirm that I have reviewed, understand, and will abide by this state’s practice act, scope of practice, and all applicable laws and rules when practicing in the state. Practice in a state occurs when I am providing services to a client/patient located in that state at the time services are rendered. I understand that the issuance of a Compact Privilege authorizes me to legally practice in the member state only in accordance with the laws and rules governing the practice of my profession in that member state.
 
-      If I violate the practice act, the appropriate board may take action against my Compact Privilege, which may result in the revocation of other Compact Privileges or licenses I may hold. I will also be prohibited from obtaining any other Compact Privileges for a period of at least two (2) years.
+      If I violate the state’s practice act, scope of practice, or any applicable laws or rules, the appropriate board may take action against my Compact Privilege, which may result in the revocation of other Compact Privileges or licenses I may hold. I will also be prohibited from obtaining any other Compact Privileges for a period of at least two (2) years.
     required: true
     locale: "en"
   - attestationId: "personal-information-home-state-attestation"
     displayName: "Personal Information Home State Attestation"
     description: "For declaring that the applicant is a resident of the state they have listed as their home state."
     text: |-
-      I hereby attest and affirm that this is my personal and licensure information and that I am a resident of the state listed on this page.*
+      I hereby attest and affirm that this is my legal name, my accurate personal information and licensure information and that I am a resident of the state listed on this page.*
     required: true
     locale: "en"
   - attestationId: "military-personal-information-state-license-attestation"
@@ -33,21 +33,21 @@ attestations:
     displayName: "Personal Information Address Attestation"
     description: "For declaring that the applicant is a resident of the state they have listed as their home state."
     text: |-
-      I hereby attest and affirm that the address information provided herein is my current address. I further consent to accept service of process at this address. I will notify the Commission and my former and new Home States of a change in my Home State address or email address. I understand that I am only eligible for a Compact Privilege if I am a licensee in my Home State as defined by the Compact. If I mislead the Compact Commission about my Home State, the appropriate board may take action against my License or Compact Privilege, which may result in the revocation of other Compact Privileges I may hold. I may also be prohibited from obtaining other Compact Privileges for a period of two years.
+      I hereby attest and affirm that the address information provided herein is my current address. I further consent to accept service of process at this address and agree that I will be deemed to have been served upon constructive notice at this address. I will notify the Commission and my former and new Home States of a change in my Home State address or email address. I understand that I am only eligible for a Compact Privilege if I am a licensee in my Home State as defined by the Compact. If I mislead the Compact Commission about my Home State, the appropriate board may take action against my License or Compact Privilege, which may result in the revocation of other Compact Privileges I may hold. I may also be prohibited from obtaining other Compact Privileges for a period of two years.
     required: true
     locale: "en"
   - attestationId: "not-under-investigation-attestation"
     displayName: "Not Under Investigation Attestation"
     description: "For declaring that the applicant is not currently under investigation."
     text: |-
-      I hereby attest and affirm that I am not currently under investigation by any board, agency, department, association, certifying body, or other body.
+      I hereby attest and affirm that I am not currently under investigation by any board, agency, department, association, certifying entity, or other entity.
     required: true
     locale: "en"
   - attestationId: "under-investigation-attestation"
     displayName: "Under Investigation Attestation"
     description: "For declaring that the applicant is currently under investigation."
     text: |-
-      I hereby attest and affirm that I am currently under investigation by any board, agency, department, association, certifying body, or other body. I understand that if any investigation results in a disciplinary action, my Compact Privileges may be revoked.
+      I hereby attest and affirm that I am currently under investigation by any board, agency, department, association, certifying entity, or other entity. I understand that if any investigation results in a disciplinary action, my Compact Privileges may be revoked.
     required: true
     locale: "en"
   - attestationId: "discipline-no-current-encumbrance-attestation"
@@ -68,7 +68,7 @@ attestations:
     displayName: "Provision of True Information Attestation"
     description: "For declaring that the applicant has provided true information."
     text: |-
-      I hereby attest and affirm that all information contained in this privilege application is true to the best of my knowledge.
+      I hereby attest and affirm that all information contained in this privilege application is true. I understand that my attestation is a legally binding statement. I understand that providing false information on this application could result in a loss of my licenses and/or privileges.
     required: true
     locale: "en"
   - attestationId: "military-affiliation-confirmation-attestation"
