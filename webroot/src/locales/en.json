@@ -379,7 +379,7 @@
         "licensingPublic": "Search health providers",
         "users": "Manage users",
         "compactSettings": "Settings",
-        "purchasePrivileges": "Privilege purchasing",
+        "purchasePrivileges": "Obtain privileges",
         "styleGuide": "Styleguide",
         "account": "Account",
         "logout": "Logout"
@@ -602,7 +602,7 @@
         "revealFullSsn": "Reveal full SSN",
         "incorrectInfoDisclaimer": "The information on this page was provided by your home state. If the information is incorrect, you must reach out to that state and ask them to correct it. Refer to the compact FAQ page for more information.",
         "deselectState": "Deselect state",
-        "adminFee": "Administration Fee",
+        "adminFee": "Administrative Fee",
         "jurisdictionFee": "State Fee",
         "jurisdictionFeeMilitary": "State Fee (Military)",
         "licenseTypeSearch": "Profession type",
