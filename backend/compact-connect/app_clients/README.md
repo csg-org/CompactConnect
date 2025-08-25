@@ -11,7 +11,7 @@ Before creating a new app client, ensure you have:
 - Contact information for the consuming team
 - Approval to grant the app client with the requested scopes
 - AWS credentials configured with permissions to create app clients for the Staff Users user pool in the needed AWS accounts
-- Python 3.6+ installed with boto3 dependency (`pip install boto3`)
+- Python 3.9+ installed with boto3 dependency (`pip install boto3`)
 
 ### 2. Update Registry
 Add the new app client information to the external Google Sheet registry for tracking and disaster recovery purposes (ie a deployment error or AWS region outage causes app client data to be lost so it must be recreated).
@@ -99,5 +99,5 @@ Unfortunately, AWS Cognito does not support rotating app client credentials for 
 ### 3. Cleanup
 - Delete old app client from Cognito using the following cli command:
 ```
-aws cognito-idp delete-user-pool-client --user-pool-id '<staff users's user pool id>' --client-id '<old client id>'
+aws cognito-idp delete-user-pool-client --user-pool-id '<Staff Users user pool ID>' --client-id '<old client ID>'
 ```
