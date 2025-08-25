@@ -318,8 +318,9 @@ class TestStateApi(TestApi):
 
         self.assertEqual(post_handler['Handler'], 'handlers.licenses.post_licenses')
 
-        # Capture model logical ID for verification
-        response_model_logical_id_capture = Capture()
+        # Capture model logical IDs for verification
+        success_response_model_logical_id_capture = Capture()
+        failure_response_model_logical_id_capture = Capture()
 
         # Ensure the POST method is configured correctly
         state_api_stack_template.has_resource_properties(
@@ -338,20 +339,35 @@ class TestStateApi(TestApi):
                 ),
                 'MethodResponses': [
                     {
-                        'ResponseModels': {'application/json': {'Ref': response_model_logical_id_capture}},
+                        'ResponseModels': {'application/json': {'Ref': success_response_model_logical_id_capture}},
                         'StatusCode': '200',
+                    },
+                    {
+                        'ResponseModels': {'application/json': {'Ref': failure_response_model_logical_id_capture}},
+                        'StatusCode': '400',
                     },
                 ],
             },
         )
 
         # Verify response model schema
-        response_model = TestApi.get_resource_properties_by_logical_id(
-            response_model_logical_id_capture.as_string(),
+        success_response_model = TestApi.get_resource_properties_by_logical_id(
+            success_response_model_logical_id_capture.as_string(),
             state_api_stack_template.find_resources(CfnModel.CFN_RESOURCE_TYPE_NAME),
         )
+
+        failure_response_model = TestApi.get_resource_properties_by_logical_id(
+            failure_response_model_logical_id_capture.as_string(),
+            state_api_stack_template.find_resources(CfnModel.CFN_RESOURCE_TYPE_NAME),
+        )
+
         self.compare_snapshot(
-            response_model['Schema'],
+            success_response_model['Schema'],
+            'STANDARD_MESSAGE_RESPONSE_SCHEMA',
+            overwrite_snapshot=False,
+        )
+        self.compare_snapshot(
+            failure_response_model['Schema'],
             'STATE_API_POST_LICENSES_RESPONSE_SCHEMA',
             overwrite_snapshot=False,
         )
