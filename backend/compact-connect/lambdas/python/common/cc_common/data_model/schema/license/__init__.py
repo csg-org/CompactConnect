@@ -177,7 +177,7 @@ class LicenseUpdateData(CCDataClass):
         return self._data['createDate']
 
     @property
-    def effectiveDate(self) -> date:
+    def effectiveDate(self) -> datetime:
         return self._data['effectiveDate']
 
     @property

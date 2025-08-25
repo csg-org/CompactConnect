@@ -24,7 +24,7 @@ DEACTIVATION_EVENT = {
     'licenseType': 'speech-language pathologist',
     'createDate': '2024-11-08T23:59:59+00:00',
     'dateOfUpdate': '2024-11-08T23:59:59+00:00',
-    'effectiveDate': '2024-11-08',
+    'effectiveDate': '2024-11-08T23:59:59+00:00',
     'deactivationDetails': {
         'note': TEST_NOTE,
         'deactivatedByStaffUserId': TEST_STAFF_USER_ID,

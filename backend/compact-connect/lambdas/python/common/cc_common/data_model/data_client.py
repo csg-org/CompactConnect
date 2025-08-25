@@ -1,5 +1,6 @@
 import time
 from datetime import date, datetime
+from datetime import time as dtime
 from urllib.parse import quote
 from uuid import uuid4
 
@@ -1427,6 +1428,13 @@ class DataClient:
 
             now = config.current_standard_datetime
 
+            # The time selected here is somewhat arbitrary; however, we want this selection to not alter the date
+            # displayed for a user when it is transformed back to their timezone. We selected noon UTC-4:00 so that
+            # users across the entire US will see the same date
+            effective_date_time = datetime.combine(
+                adverse_action.effectiveStartDate, dtime(12, 0, 0), tzinfo=config.expiration_resolution_timezone
+            )
+
             # Create the update record
             # Use the schema to generate the update record with proper pk/sk
             privilege_update_record = PrivilegeUpdateData.create_new(
@@ -1438,7 +1446,7 @@ class DataClient:
                     'jurisdiction': adverse_action.jurisdiction,
                     'licenseType': privilege_data.licenseType,
                     'createDate': now,
-                    'effectiveDate': adverse_action.effectiveStartDate,
+                    'effectiveDate': effective_date_time,
                     'previous': {
                         # We're relying on the schema to trim out unneeded fields
                         **privilege_data.to_dict(),
@@ -1527,6 +1535,13 @@ class DataClient:
 
             now = config.current_standard_datetime
 
+            # The time selected here is somewhat arbitrary; however, we want this selection to not alter the date
+            # displayed for a user when it is transformed back to their timezone. We selected noon UTC-4:00 so that
+            # users across the entire US will see the same date
+            effective_date_time = datetime.combine(
+                adverse_action.effectiveStartDate, dtime(12, 0, 0), tzinfo=config.expiration_resolution_timezone
+            )
+
             # Create the update record
             # Use the schema to generate the update record with proper pk/sk
             license_update_record = LicenseUpdateData.create_new(
@@ -1538,7 +1553,7 @@ class DataClient:
                     'jurisdiction': adverse_action.jurisdiction,
                     'licenseType': license_data.licenseType,
                     'createDate': now,
-                    'effectiveDate': adverse_action.effectiveStartDate,
+                    'effectiveDate': effective_date_time,
                     'previous': {
                         # We're relying on the schema to trim out unneeded fields
                         **license_data.to_dict(),
@@ -1668,6 +1683,13 @@ class DataClient:
 
                 now = config.current_standard_datetime
 
+                # The time selected here is somewhat arbitrary; however, we want this selection to not alter the date
+                # displayed for a user when it is transformed back to their timezone. We selected noon UTC-4:00 so that
+                # users across the entire US will see the same date
+                effective_date_time = datetime.combine(
+                    effective_lift_date, dtime(12, 0, 0), tzinfo=config.expiration_resolution_timezone
+                )
+
                 # Create privilege update record
                 privilege_update_record = PrivilegeUpdateData.create_new(
                     {
@@ -1678,7 +1700,7 @@ class DataClient:
                         'jurisdiction': jurisdiction,
                         'licenseType': privilege_data.licenseType,
                         'createDate': now,
-                        'effectiveDate': effective_lift_date,
+                        'effectiveDate': effective_date_time,
                         'previous': privilege_data.to_dict(),
                         'updatedValues': {
                             'encumberedStatus': PrivilegeEncumberedStatusEnum.UNENCUMBERED,
@@ -1789,6 +1811,13 @@ class DataClient:
 
                 now = config.current_standard_datetime
 
+                # The time selected here is somewhat arbitrary; however, we want this selection to not alter the date
+                # displayed for a user when it is transformed back to their timezone. We selected noon UTC-4:00 so that
+                # users across the entire US will see the same date
+                effective_date_time = datetime.combine(
+                    effective_lift_date, dtime(12, 0, 0), tzinfo=config.expiration_resolution_timezone
+                )
+
                 # Create license update record
                 license_update_record = LicenseUpdateData.create_new(
                     {
@@ -1799,7 +1828,7 @@ class DataClient:
                         'jurisdiction': jurisdiction,
                         'licenseType': license_data.licenseType,
                         'createDate': now,
-                        'effectiveDate': effective_lift_date,
+                        'effectiveDate': effective_date_time,
                         'previous': license_data.to_dict(),
                         'updatedValues': {
                             'encumberedStatus': LicenseEncumberedStatusEnum.UNENCUMBERED,
@@ -2595,6 +2624,13 @@ class DataClient:
         # Build transaction items for all privileges
         transaction_items = []
 
+        # The time selected here is somewhat arbitrary; however, we want this selection to not alter the date
+        # displayed for a user when it is transformed back to their timezone. We selected noon UTC-4:00 so that
+        # users across the entire US will see the same date
+        effective_date_time = datetime.combine(
+            effective_date, dtime(12, 0, 0), tzinfo=config.expiration_resolution_timezone
+        )
+
         for privilege_data in unencumbered_privileges_associated_with_license:
             now = config.current_standard_datetime
 
@@ -2608,7 +2644,7 @@ class DataClient:
                     'jurisdiction': privilege_data.jurisdiction,
                     'licenseType': privilege_data.licenseType,
                     'createDate': now,
-                    'effectiveDate': effective_date,
+                    'effectiveDate': effective_date_time,
                     'previous': privilege_data.to_dict(),
                     'updatedValues': {
                         'encumberedStatus': PrivilegeEncumberedStatusEnum.LICENSE_ENCUMBERED,
@@ -2707,6 +2743,13 @@ class DataClient:
         # Build transaction items for all privileges
         transaction_items = []
 
+        # The time selected here is somewhat arbitrary; however, we want this selection to not alter the date
+        # displayed for a user when it is transformed back to their timezone. We selected noon UTC-4:00 so that
+        # users across the entire US will see the same date
+        effective_date_time = datetime.combine(
+            effective_date, dtime(12, 0, 0), tzinfo=config.expiration_resolution_timezone
+        )
+
         for privilege_data in matching_privileges:
             now = config.current_standard_datetime
 
@@ -2720,7 +2763,7 @@ class DataClient:
                     'jurisdiction': privilege_data.jurisdiction,
                     'licenseType': privilege_data.licenseType,
                     'createDate': now,
-                    'effectiveDate': effective_date,
+                    'effectiveDate': effective_date_time,
                     'previous': privilege_data.to_dict(),
                     'updatedValues': {
                         'encumberedStatus': PrivilegeEncumberedStatusEnum.UNENCUMBERED,

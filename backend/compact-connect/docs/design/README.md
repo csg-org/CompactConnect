@@ -483,6 +483,35 @@ The system supports encumbering privileges due to adverse actions:
 - **Privilege-Specific Encumbrance**: Targets individual privileges
 - **License-Based Encumbrance**: If the encumbered license is in the home state, all privileges tied to that license are also encumbered
 
+
+### Privilege History Timeline
+The system presents a timeline of events and updates that happen to a privilege. This will allow users to see the events that impacted the privilege in a chronological order to help make sense of the changes over time.
+
+#### We store the following privilege events / changes in our database:
+- `deactivation`
+- `renewal`
+- `encumbrance`
+- `homeJurisdictionChange`
+- `liftingEncumbrance`
+- `licenseDeactivation`
+
+#### We dynamically calculate the following events for display despite them not explicitly being in the database:
+- `issuance`
+- `expiration`
+
+
+In the timeline, the events are ordered chronologically by their effective datetime. We opted to use a datetime so that events occurring on the same day can be correctly ordered.  For most events their effective datetime is simply when it occurs in the system. However, for the following events there is more complexity:
+- **Encumbrances**
+  - Encumbrances are ordered and shown as having occurred at the effective date uploaded to the system by staff users
+  - The staff users do not upload a time explicitly, but we assign the time to be noon UTC-4:00 so that users across the US will see that same date uploaded by the staff user regardless of timezone
+- **Encumbrances Lifted**
+  - Lifted encumbrances follow the same pattern as encumbrances mentioned above
+- **Expirations**
+  - Expirations are assigned the time of 23:59 UTC-4:00 because a privilege does not expire until the first second of the day after the listed date of expiration
+  - All actions that occurred on that privilege during that day would therefor be correctly placed chronologically before the expiration while retaining the expiration's display date to be the privilege's date of expiration
+
+
+
 ## Attestations
 [Back to top](#backend-design)
 

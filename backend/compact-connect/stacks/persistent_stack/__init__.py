@@ -395,6 +395,29 @@ class PersistentStack(AppStack):
             ],
         )
 
+        update_effective_date_migration = DataMigration(
+            self,
+            '958EffectiveDatetime',
+            migration_dir='effective_datetime_958',
+            lambda_environment={
+                'PROVIDER_TABLE_NAME': self.provider_table.table_name,
+                **self.common_env_vars,
+            },
+        )
+        self.provider_table.grant_read_write_data(update_effective_date_migration)
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            f'{update_effective_date_migration.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'This policy contains wild-carded actions and resources but they are scoped to the '
+                    'specific actions, Table and Key that this lambda needs access to in order to perform the'
+                    'migration.',
+                },
+            ],
+        )
+
         QueryDefinition(
             self,
             'Migrations',
@@ -407,6 +430,7 @@ class PersistentStack(AppStack):
             log_groups=[
                 update_dates_migration.migration_function.log_group,
                 self.update_license_dates_migration.migration_function.log_group,
+                update_effective_date_migration.migration_function.log_group,
             ],
         )
 
