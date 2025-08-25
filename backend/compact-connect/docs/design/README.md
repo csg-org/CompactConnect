@@ -500,7 +500,7 @@ The system presents a timeline of events and updates that happen to a privilege.
 - `expiration`
 
 
-In the timeline, the events are ordered chronologically by their effective datetime. For most events this is simply when it occurs in the system. However, for the following events there is more complexity:
+In the timeline, the events are ordered chronologically by their effective datetime. We opted to use a datetime so that events occurring on the same day can be correctly ordered.  For most events their effective datetime is simply when it occurs in the system. However, for the following events there is more complexity:
 - **Encumbrances**
   - Encumbrances are ordered and shown as having occurred at the effective date uploaded to the system by staff users
   - The staff users do not upload a time explicitly, but we assign the time to be noon UTC-4:00 so that users across the US will see that same date uploaded by the staff user regardless of timezone
