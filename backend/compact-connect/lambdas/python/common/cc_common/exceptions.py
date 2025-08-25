@@ -14,7 +14,7 @@ class CCInvalidRequestCustomResponseException(CCInvalidRequestException):
     def __init__(self, response_body: dict | list):
         self.response_body = response_body
         # Still need a message for logging purposes
-        super().__init__("Invalid request")
+        super().__init__('Invalid request')
 
 
 class CCUnauthorizedException(CCInvalidRequestException):
