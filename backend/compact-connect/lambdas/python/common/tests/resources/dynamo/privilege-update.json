@@ -2,7 +2,7 @@
   "pk": "aslp#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570",
   "sk": "aslp#PROVIDER#privilege/ne/slp#UPDATE#1731110399/939a3c350708e34875f0a652bf7d7454",
   "type": "privilegeUpdate",
-  "updateType": "renewal",
+  "updateType": "encumbrance",
   "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
   "compact": "aslp",
   "jurisdiction": "ne",
@@ -11,6 +11,10 @@
   "dateOfUpdate": "2020-05-05T12:59:59+00:00",
   "createDate": "2020-05-05T12:59:59+00:00",
   "effectiveDate": "2020-05-05",
+  "encumbranceDetails" : {
+    "note": "Did bad things",
+    "licenseJurisdiction": "oh"
+  },
   "previous": {
     "attestations": [
       {"attestationId": "jurisprudence-confirmation", "version": "1"}

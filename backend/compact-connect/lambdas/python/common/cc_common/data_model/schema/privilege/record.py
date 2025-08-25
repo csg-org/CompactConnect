@@ -56,7 +56,7 @@ class EncumbranceDetailsSchema(Schema):
     """
 
     note = String(required=False, allow_none=False, validate=Length(1, 256))
-    adverseActionId = UUID(required=True, allow_none=False)
+    licenseJurisdiction = Jurisdiction(required=False, allow_none=False)
 
 @BaseRecordSchema.register_schema('privilege')
 class PrivilegeRecordSchema(BaseRecordSchema, ValidatesLicenseTypeMixin):
@@ -211,6 +211,8 @@ class PrivilegeUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin, ValidatesLi
     updatedValues = Nested(PrivilegeUpdatePreviousRecordSchema(partial=True), required=True, allow_none=False)
     # optional field that is only included if the update was a deactivation
     deactivationDetails = Nested(DeactivationDetailsSchema(), required=False, allow_none=False)
+    # optional field that is only included if the update was an encumbrance
+    encumbranceDetails = Nested(EncumbranceDetailsSchema(), required=False, allow_none=False)
     # List of field names that were present in the previous record but removed in the update
     removedValues = List(String(), required=False, allow_none=False)
 
