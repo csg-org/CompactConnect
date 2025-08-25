@@ -14,19 +14,9 @@ export interface InterfaceLicenseHistoryItem {
     type?: string | null;
     updateType?: string;
     dateOfUpdate?: string | null;
-    previousValues?: {
-        compactTransactionId?: string | null,
-        dateOfExpiration?: string | null,
-        dateOfIssuance?: string | null,
-        dateOfRenewal?: string | null,
-        dateOfUpdate?: string | null,
-    };
-    updatedValues?: {
-        compactTransactionId?: string | null,
-        dateOfExpiration?: string | null,
-        dateOfIssuance?: string | null,
-        dateOfRenewal?: string | null,
-    };
+    createDate?: string | null;
+    effectiveDate?: string | null;
+    serverNote?: string | null;
 }
 
 // ========================================================
@@ -38,8 +28,9 @@ export class LicenseHistoryItem implements InterfaceLicenseHistoryItem {
     public type? = null;
     public updateType? = '';
     public dateOfUpdate? = null;
-    public previousValues? = {};
-    public updatedValues? = {};
+    public createDate? = null;
+    public effectiveDate? = null;
+    public serverNote? = null;
 
     constructor(data?: InterfaceLicenseHistoryItem) {
         const cleanDataObject = deleteUndefinedProperties(data);
@@ -54,18 +45,24 @@ export class LicenseHistoryItem implements InterfaceLicenseHistoryItem {
         Object.assign(this, cleanDataObject);
     }
 
-    public dateOfUpdateDisplay(): string {
-        return dateDisplay(this.dateOfUpdate);
+    public effectiveDateDisplay(): string {
+        return dateDisplay(this.effectiveDate);
     }
 
     public isActivatingEvent(): boolean {
-        const activatingEvents = [ 'purchased', 'renewal' ];
+        const activatingEvents = ['renewal'];
 
         return activatingEvents.some((event) => (this.updateType && event === this.updateType));
     }
 
     public isDeactivatingEvent(): boolean {
-        const deactivatingEvents = ['expired', 'deactivation'];
+        const deactivatingEvents = [
+            'expired',
+            'deactivation',
+            'encumbrance',
+            'homeJurisdictionChange',
+            'licenseDeactivation'
+        ];
 
         return deactivatingEvents.some((event) => (this.updateType && event === this.updateType));
     }
@@ -74,9 +71,26 @@ export class LicenseHistoryItem implements InterfaceLicenseHistoryItem {
         const updateType = this.updateType || '';
         const events = this.$tm('licensing.licenseEvents') || [];
         const event = events.find((st) => st.key === updateType);
-        const eventName = event?.name || this.$t('common.stateUnknown');
+        let eventName = event?.name || this.$t('common.stateUnknown');
+
+        if (updateType === 'homeJurisdictionChange' || updateType === 'licenseDeactivation') {
+            eventName = this.$t('licensing.deactivation');
+        }
 
         return eventName;
+    }
+
+    public noteDisplay(): string {
+        const updateType = this.updateType || '';
+        let noteDisplay = this.serverNote || '';
+
+        if (updateType === 'homeJurisdictionChange') {
+            noteDisplay = this.$t('licensing.homeStateChangeNote');
+        } else if (updateType === 'licenseDeactivation') {
+            noteDisplay = this.$t('licensing.licenseDeactivationNote');
+        }
+
+        return noteDisplay;
     }
 }
 
@@ -87,23 +101,14 @@ export class LicenseHistoryItemSerializer {
     static fromServer(json: any): LicenseHistoryItem {
         // All license fields can possibly appear in the values below, however the frontend only utilizes
         // renewals at this time, these are the relevant fields for renewals
+
         const licenseHistoryData = {
             type: json.type,
             updateType: json.updateType,
+            createDate: json.createDate,
+            effectiveDate: json.effectiveDate,
             dateOfUpdate: json.dateOfUpdate,
-            previousValues: {
-                compactTransactionId: json.previous?.compactTransactionId || '',
-                dateOfExpiration: json.previous?.dateOfExpiration || '',
-                dateOfIssuance: json.previous?.dateOfIssuance || '',
-                dateOfRenewal: json.previous?.dateOfRenewal || '',
-                dateOfUpdate: json.previous?.dateOfUpdate || '',
-            },
-            updatedValues: {
-                compactTransactionId: json.updatedValues?.compactTransactionId || '',
-                dateOfExpiration: json.updatedValues?.dateOfExpiration || '',
-                dateOfIssuance: json.updatedValues?.dateOfIssuance || '',
-                dateOfRenewal: json.updatedValues?.dateOfRenewal || '',
-            }
+            serverNote: json.note,
         };
 
         return new LicenseHistoryItem(licenseHistoryData);

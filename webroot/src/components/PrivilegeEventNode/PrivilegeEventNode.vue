@@ -8,9 +8,8 @@
 <template>
     <div
         class="event-node-container"
-        role="listitem"
-        :aria-label="$t('licensing.eventNodeLabel', { eventNameDisplay, eventDate })"
         :class="eventLengthBucket"
+        :aria-label="$t('licensing.eventNodeLabel', { eventNameDisplay, eventDate })"
     >
         <div class="node"
             :class="{
@@ -21,7 +20,7 @@
         <div class="event-info">
             <div class="event-date">{{eventDate}}</div>
             <div class="event-type">{{eventNameDisplay}}</div>
-            <div class="event-detail"></div>
+            <div class="event-detail">{{detailDisplay}}</div>
         </div>
     </div>
 </template>

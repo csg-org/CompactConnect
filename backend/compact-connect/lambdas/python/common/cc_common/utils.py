@@ -22,6 +22,7 @@ from cc_common.data_model.schema.provider.api import ProviderGeneralResponseSche
 from cc_common.exceptions import (
     CCAccessDeniedException,
     CCInternalException,
+    CCInvalidRequestCustomResponseException,
     CCInvalidRequestException,
     CCNotFoundException,
     CCRateLimitingException,
@@ -163,6 +164,13 @@ def api_handler(fn: Callable):
                     'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
                     'statusCode': 429,
                     'body': json.dumps({'message': e.message}),
+                }
+            except CCInvalidRequestCustomResponseException as e:
+                logger.info('Invalid request with custom response')
+                return {
+                    'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
+                    'statusCode': 400,
+                    'body': json.dumps(e.response_body, cls=ResponseEncoder),
                 }
             except CCInvalidRequestException as e:
                 logger.info('Invalid request', exc_info=e)
@@ -384,7 +392,7 @@ def _authorize_compact_with_scope(event: dict, resource_parameter: str, scope_pa
 
     required_scope = f'{resource_value}/{scope_value}.{action}'
     if required_scope not in scopes:
-        logger.warning('Forbidden access attempt!')
+        logger.warning('Forbidden access attempt!', scopes=scopes, required_scope=required_scope)
         raise CCAccessDeniedException('Forbidden access attempt!')
 
 
@@ -675,8 +683,9 @@ def sanitize_provider_data_based_on_caller_scopes(compact: str, provider: dict, 
     # Currently, the UI bundles permissions for admins, granting them the readPrivate scope along with admin. Should
     # this ever change, we will need to account for that here. This 'or' conditional is a precautionary measure to keep
     # UI changes from unintentionally breaking existing functionality
-    if (caller_is_admin or
-            _user_has_read_private_access_for_provider(compact=compact, provider_information=provider, scopes=scopes)):
+    if caller_is_admin or _user_has_read_private_access_for_provider(
+        compact=compact, provider_information=provider, scopes=scopes
+    ):
         # return full object since caller has 'readPrivate' access for provider
         return provider
 

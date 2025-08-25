@@ -19,6 +19,12 @@ class PageHeader extends Vue {
         return this.$store.state;
     }
 
+    get isMenuTouchToggle(): boolean {
+        const { $matches } = this;
+
+        return $matches.phone.only || $matches.hover === 'none';
+    }
+
     //
     // Methods
     //

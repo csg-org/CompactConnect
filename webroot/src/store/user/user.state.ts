@@ -22,6 +22,7 @@ export interface State {
     isLoggedInAsLicensee: boolean;
     isLoggedInAsStaff: boolean;
     isLoadingAccount: boolean;
+    isLoadingPrivilegeHistory: boolean;
     isLoadingCompactStates: boolean;
     isLoadingPrivilegePurchaseOptions: boolean;
     refreshTokenTimeoutId: number | null;
@@ -36,6 +37,7 @@ export const state: State = {
     isLoggedInAsLicensee: Boolean(authStorage.getItem(AUTH_TYPE) === AuthTypes.LICENSEE),
     isLoggedInAsStaff: Boolean(authStorage.getItem(AUTH_TYPE) === AuthTypes.STAFF),
     isLoadingAccount: false,
+    isLoadingPrivilegeHistory: false,
     isLoadingCompactStates: false,
     isLoadingPrivilegePurchaseOptions: false,
     refreshTokenTimeoutId: null,

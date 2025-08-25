@@ -16,6 +16,7 @@ import {
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 import { LicenseeSerializer } from '@models/Licensee/Licensee.model';
 import { PrivilegeAttestation, PrivilegeAttestationSerializer } from '@models/PrivilegeAttestation/PrivilegeAttestation.model';
+import { LicenseHistoryItemSerializer, LicenseHistoryItem } from '@/models/LicenseHistoryItem/LicenseHistoryItem.model';
 
 export interface RequestParamsInterfaceLocal {
     isPublic?: boolean;
@@ -253,23 +254,26 @@ export class LicenseDataApi implements DataApiInterface {
 
     /**
      * POST Encumber License for a licensee.
-     * @param  {string}           compact      The compact string ID (aslp, otcp, coun).
-     * @param  {string}           licenseeId   The Licensee ID.
-     * @param  {string}           licenseState The 2-character state abbreviation for the License.
-     * @param  {string}           licenseType  The license type.
-     * @param  {string}           npdbCategory The NPDB category name.
-     * @param  {string}           startDate    The encumber start date.
-     * @return {Promise<object>}               The server response.
+     * @param  {string}           compact         The compact string ID (aslp, otcp, coun).
+     * @param  {string}           licenseeId      The Licensee ID.
+     * @param  {string}           licenseState    The 2-character state abbreviation for the License.
+     * @param  {string}           licenseType     The license type.
+     * @param  {string}           encumbranceType The discipline action type.
+     * @param  {string}           npdbCategory    The NPDB category name.
+     * @param  {string}           startDate       The encumber start date.
+     * @return {Promise<object>}                  The server response.
      */
     public async encumberLicense(
         compact: string,
         licenseeId: string,
         licenseState: string,
         licenseType: string,
+        encumbranceType: string,
         npdbCategory: string,
         startDate: string
     ) {
         const serverResponse: any = await this.api.post(`/v1/compacts/${compact}/providers/${licenseeId}/licenses/jurisdiction/${licenseState}/licenseType/${licenseType}/encumbrance`, {
+            encumbranceType,
             clinicalPrivilegeActionCategory: npdbCategory,
             encumbranceEffectiveDate: startDate,
         });
@@ -327,23 +331,26 @@ export class LicenseDataApi implements DataApiInterface {
 
     /**
      * POST Encumber Privilege for a licensee.
-     * @param  {string}           compact        The compact string ID (aslp, otcp, coun).
-     * @param  {string}           licenseeId     The Licensee ID.
-     * @param  {string}           privilegeState The 2-character state abbreviation for the Privilege.
-     * @param  {string}           licenseType    The license type.
-     * @param  {string}           npdbCategory   The NPDB category name.
-     * @param  {string}           startDate      The encumber start date.
-     * @return {Promise<object>}                 The server response.
+     * @param  {string}           compact         The compact string ID (aslp, otcp, coun).
+     * @param  {string}           licenseeId      The Licensee ID.
+     * @param  {string}           privilegeState  The 2-character state abbreviation for the Privilege.
+     * @param  {string}           licenseType     The license type.
+     * @param  {string}           encumbranceType The discipline action type.
+     * @param  {string}           npdbCategory    The NPDB category name.
+     * @param  {string}           startDate       The encumber start date.
+     * @return {Promise<object>}                  The server response.
      */
     public async encumberPrivilege(
         compact: string,
         licenseeId: string,
         privilegeState: string,
         licenseType: string,
+        encumbranceType: string,
         npdbCategory: string,
         startDate: string
     ) {
         const serverResponse: any = await this.api.post(`/v1/compacts/${compact}/providers/${licenseeId}/privileges/jurisdiction/${privilegeState}/licenseType/${licenseType}/encumbrance`, {
+            encumbranceType,
             clinicalPrivilegeActionCategory: npdbCategory,
             encumbranceEffectiveDate: startDate,
         });
@@ -394,6 +401,78 @@ export class LicenseDataApi implements DataApiInterface {
         });
 
         return serverResponse.data || {};
+    }
+
+    /**
+     * GET Authenticated Privilege History as a staff user.
+     * @param  {string}     compact compact of privilege
+     * @param  {string}     providerId providerId of privilege holder
+     * @param  {string}     jurisdiction jurisdiction of privilege
+     * @param  {string}     licenseTypeAbbrev licenseTypeAbbrev of privilege
+     * @return {Promise<object>} Privilege History data.
+     */
+    public async getPrivilegeHistoryStaff(
+        compact: string,
+        providerId: string,
+        jurisdiction: string,
+        licenseTypeAbbrev: string
+    ) {
+        const serverResponse: any = await this.api.get(
+            `/v1/compacts/${compact}/providers/${providerId}/privileges/jurisdiction/${jurisdiction.toLowerCase()}/licenseType/${licenseTypeAbbrev.toLowerCase()}/history`
+        );
+
+        const licenseHistoryData = {
+            compact: serverResponse.compact,
+            jurisdiction: serverResponse.jurisdiction,
+            licenseType: serverResponse.licenseType,
+            privilegeId: serverResponse.privilegeId,
+            providerId: serverResponse.providerId,
+            events: [] as Array<LicenseHistoryItem>,
+        };
+
+        if (Array.isArray(serverResponse.events)) {
+            serverResponse.events.forEach((serverHistoryItem) => {
+                licenseHistoryData.events.push(LicenseHistoryItemSerializer.fromServer(serverHistoryItem));
+            });
+        }
+
+        return licenseHistoryData;
+    }
+
+    /**
+     * GET Privilege History as an unauthenticated user.
+     * @param  {string}     compact compact of privilege
+     * @param  {string}     providerId providerId of privilege holder
+     * @param  {string}     jurisdiction jurisdiction of privilege
+     * @param  {string}     licenseTypeAbbrev licenseTypeAbbrev of privilege
+     * @return {Promise<object>} Privilege History data.
+     */
+    public async getPrivilegeHistoryPublic(
+        compact: string,
+        providerId: string,
+        jurisdiction: string,
+        licenseTypeAbbrev: string
+    ) {
+        const serverResponse: any = await this.api.get(
+            `/v1/public/compacts/${compact}/providers/${providerId}/jurisdiction/${jurisdiction.toLowerCase()}/licenseType/${licenseTypeAbbrev.toLowerCase()}/history`
+        );
+
+        const licenseHistoryData = {
+            compact: serverResponse.compact,
+            jurisdiction: serverResponse.jurisdiction,
+            licenseType: serverResponse.licenseType,
+            privilegeId: serverResponse.privilegeId,
+            providerId: serverResponse.providerId,
+            events: [] as Array<LicenseHistoryItem>,
+        };
+
+        if (Array.isArray(serverResponse.events)) {
+            serverResponse.events.forEach((serverHistoryItem) => {
+                licenseHistoryData.events.push(LicenseHistoryItemSerializer.fromServer(serverHistoryItem));
+            });
+        }
+
+        return licenseHistoryData;
     }
 }
 

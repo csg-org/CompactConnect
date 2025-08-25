@@ -39,6 +39,39 @@ class ApiModel:
         return self.api._v1_message_response_model
 
     @property
+    def post_licenses_error_response_model(self) -> Model:
+        """Response model for POST licenses which specifies error responses"""
+        if hasattr(self.api, '_v1_post_licenses_response_model'):
+            return self.api._v1_post_licenses_response_model
+        self.api._v1_post_licenses_response_model = self.api.add_model(
+            'V1PostLicensesResponseModel',
+            description='POST licenses response model supporting both success and error responses',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                properties={
+                    'message': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='Message indicating success or failure',
+                    ),
+                    'errors': JsonSchema(
+                        type=JsonSchemaType.OBJECT,
+                        description='Validation errors by record index',
+                        additional_properties=JsonSchema(
+                            type=JsonSchemaType.OBJECT,
+                            description='Errors for a specific record',
+                            additional_properties=JsonSchema(
+                                type=JsonSchemaType.ARRAY,
+                                items=JsonSchema(type=JsonSchemaType.STRING),
+                                description='List of error messages for a field',
+                            ),
+                        ),
+                    ),
+                },
+            ),
+        )
+        return self.api._v1_post_licenses_response_model
+
+    @property
     def put_provider_home_jurisdiction_request_model(self) -> Model:
         """Return the PUT home jurisdiction request model, which should only be created once per API"""
         if hasattr(self.api, '_v1_put_provider_home_jurisdiction_request_model'):
@@ -632,8 +665,13 @@ class ApiModel:
                     ),
                     'selectedJurisdictions': JsonSchema(
                         type=JsonSchemaType.ARRAY,
-                        # setting a max length to prevent abuse
-                        max_length=100,
+                        # Authorize.net has a limit of 30 line items per transaction. For every transaction, each
+                        # privilege takes up an individual line item, and we include an additional line item for
+                        # compact administrative fees, plus a line item for credit card transaction fees if the
+                        # compact collects those. In order to avoid ever hitting the limit of 30 line items, the system
+                        # sets a limit of 20 privileges per transaction (this gives the system space to add an
+                        # additional 8 line items to any transaction should the need arise)
+                        max_length=20,
                         items=JsonSchema(
                             type=JsonSchemaType.STRING,
                             description='Jurisdictions a provider has selected to purchase privileges in.',
