@@ -39,7 +39,7 @@ jobs:
     inline: ""
 - type: openapi
   parameters:
-    apiFile: /zap/wrk/backend/compact-connect/docs/api-specification/latest-oas30.json
+    apiFile: /zap/wrk/backend/compact-connect/docs/internal/api-specification/latest-oas30.json
     apiUrl: ""
     targetUrl: ""
     context: test
