@@ -4,9 +4,11 @@ env:
     urls:
     - https://app.test.compactconnect.org
     - https://api.test.compactconnect.org
+    - https://state-api.test.compactconnect.org
     includePaths:
     - https://app.test.compactconnect.org.*
     - https://api.test.compactconnect.org.*
+    - https://state-api.test.compactconnect.org.*
     authentication:
       verification:
         method: response
@@ -41,7 +43,14 @@ jobs:
   parameters:
     apiFile: /zap/wrk/backend/compact-connect/docs/api-specification/latest-oas30.json
     apiUrl: ""
-    targetUrl: ""
+    targetUrl: "https://state-api.test.compactconnect.org"
+    context: test
+    user: ""
+- type: openapi
+  parameters:
+    apiFile: /zap/wrk/backend/compact-connect/docs/internal/api-specification/latest-oas30.json
+    apiUrl: ""
+    targetUrl: "https://api.test.compactconnect.org"
     context: test
     user: ""
 - type: passiveScan-config
@@ -105,3 +114,6 @@ jobs:
   - reportParameters
   - requestHeader
   - summaries
+- type: exitStatus
+  parameters:
+    warnExitValue: 0
