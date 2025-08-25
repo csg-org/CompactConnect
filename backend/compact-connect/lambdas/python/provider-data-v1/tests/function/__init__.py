@@ -70,6 +70,11 @@ class TstFunction(TstLambdas):
             ClientName='TestUiClient',
             RefreshTokenValidity=3600,
             TokenValidityUnits={'RefreshToken': 'seconds'},
+            ExplicitAuthFlows=[
+                'ALLOW_USER_SRP_AUTH',
+                'ALLOW_ADMIN_USER_PASSWORD_AUTH',
+                'ALLOW_REFRESH_TOKEN_AUTH',
+            ],
         )
         os.environ['PROVIDER_USER_POOL_CLIENT_ID'] = ui_client_response['UserPoolClient']['ClientId']
         self._provider_user_pool_client_id = ui_client_response['UserPoolClient']['ClientId']
