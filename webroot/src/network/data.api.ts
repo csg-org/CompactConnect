@@ -159,20 +159,22 @@ export class DataApi {
 
     /**
      * POST Encumber License for a licensee.
-     * @param  {string}           compact      The compact string ID (aslp, otcp, coun).
-     * @param  {string}           licenseeId   The Licensee ID.
-     * @param  {string}           licenseState The 2-character state abbreviation for the License.
-     * @param  {string}           licenseType  The license type.
-     * @param  {string}           npdbCategory The NPDB category name.
-     * @param  {string}           startDate    The encumber start date.
-     * @return {Promise<object>}               The server response.
+     * @param  {string}           compact         The compact string ID (aslp, otcp, coun).
+     * @param  {string}           licenseeId      The Licensee ID.
+     * @param  {string}           licenseState    The 2-character state abbreviation for the License.
+     * @param  {string}           licenseType     The license type.
+     * @param  {string}           encumbranceType The discipline action type.
+     * @param  {string}           npdbCategory    The NPDB category name.
+     * @param  {string}           startDate       The encumber start date.
+     * @return {Promise<object>}                  The server response.
      */
-    public encumberLicense(compact, licenseeId, licenseState, licenseType, npdbCategory, startDate) {
+    public encumberLicense(compact, licenseeId, licenseState, licenseType, encumbranceType, npdbCategory, startDate) {
         return licenseDataApi.encumberLicense(
             compact,
             licenseeId,
             licenseState,
             licenseType,
+            encumbranceType,
             npdbCategory,
             startDate
         );
@@ -180,13 +182,13 @@ export class DataApi {
 
     /**
      * PATCH Un-encumber License for a licensee.
-     * @param  {string}           compact        The compact string ID (aslp, otcp, coun).
-     * @param  {string}           licenseeId     The Licensee ID.
-     * @param  {string}           licenseState The 2-character state abbreviation for the License.
-     * @param  {string}           licenseType    The license type.
-     * @param  {string}           encumbranceId  The Encumbrance ID.
-     * @param  {string}           endDate        The encumber end date.
-     * @return {Promise<object>}                 The server response.
+     * @param  {string}           compact       The compact string ID (aslp, otcp, coun).
+     * @param  {string}           licenseeId    The Licensee ID.
+     * @param  {string}           licenseState  The 2-character state abbreviation for the License.
+     * @param  {string}           licenseType   The license type.
+     * @param  {string}           encumbranceId The Encumbrance ID.
+     * @param  {string}           endDate       The encumber end date.
+     * @return {Promise<object>}                The server response.
      */
     public unencumberLicense(compact, licenseeId, licenseState, licenseType, encumbranceId, endDate) {
         return licenseDataApi.unencumberLicense(
@@ -214,20 +216,30 @@ export class DataApi {
 
     /**
      * POST Encumber Privilege for a licensee.
-     * @param  {string}           compact        The compact string ID (aslp, otcp, coun).
-     * @param  {string}           licenseeId     The Licensee ID.
-     * @param  {string}           privilegeState The 2-character state abbreviation for the Privilege.
-     * @param  {string}           licenseType    The license type.
-     * @param  {string}           npdbCategory   The NPDB category name.
-     * @param  {string}           startDate      The encumber start date.
-     * @return {Promise<object>}                 The server response.
+     * @param  {string}           compact         The compact string ID (aslp, otcp, coun).
+     * @param  {string}           licenseeId      The Licensee ID.
+     * @param  {string}           privilegeState  The 2-character state abbreviation for the Privilege.
+     * @param  {string}           licenseType     The license type.
+     * @param  {string}           encumbranceType The discipline action type.
+     * @param  {string}           npdbCategory    The NPDB category name.
+     * @param  {string}           startDate       The encumber start date.
+     * @return {Promise<object>}                  The server response.
      */
-    public encumberPrivilege(compact, licenseeId, privilegeState, licenseType, npdbCategory, startDate) {
+    public encumberPrivilege(
+        compact,
+        licenseeId,
+        privilegeState,
+        licenseType,
+        encumbranceType,
+        npdbCategory,
+        startDate
+    ) {
         return licenseDataApi.encumberPrivilege(
             compact,
             licenseeId,
             privilegeState,
             licenseType,
+            encumbranceType,
             npdbCategory,
             startDate
         );

@@ -39,6 +39,39 @@ class ApiModel:
         return self.api._v1_message_response_model
 
     @property
+    def post_licenses_error_response_model(self) -> Model:
+        """Response model for POST licenses which specifies error responses"""
+        if hasattr(self.api, '_v1_post_licenses_response_model'):
+            return self.api._v1_post_licenses_response_model
+        self.api._v1_post_licenses_response_model = self.api.add_model(
+            'V1PostLicensesResponseModel',
+            description='POST licenses response model supporting both success and error responses',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                properties={
+                    'message': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='Message indicating success or failure',
+                    ),
+                    'errors': JsonSchema(
+                        type=JsonSchemaType.OBJECT,
+                        description='Validation errors by record index',
+                        additional_properties=JsonSchema(
+                            type=JsonSchemaType.OBJECT,
+                            description='Errors for a specific record',
+                            additional_properties=JsonSchema(
+                                type=JsonSchemaType.ARRAY,
+                                items=JsonSchema(type=JsonSchemaType.STRING),
+                                description='List of error messages for a field',
+                            ),
+                        ),
+                    ),
+                },
+            ),
+        )
+        return self.api._v1_post_licenses_response_model
+
+    @property
     def query_providers_request_model(self) -> Model:
         """Return the query providers request model, which should only be created once per API"""
         if hasattr(self.api, '_v1_query_providers_request_model'):
