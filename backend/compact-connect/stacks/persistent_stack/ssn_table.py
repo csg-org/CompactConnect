@@ -175,10 +175,6 @@ class SSNTable(Table):
         )
         self.grant_read_write_data(self.ingest_role)
         self._role_suppressions(self.ingest_role)
-        # TODO - These dummy exports are required until the ingest stack has been deployed # noqa: FIX002
-        #  to stop consuming this role and key
-        Stack.of(self.ingest_role).export_value(self.ingest_role.role_arn)
-        Stack.of(self.key).export_value(self.key.key_arn)
 
         self.license_upload_role = Role(
             self,

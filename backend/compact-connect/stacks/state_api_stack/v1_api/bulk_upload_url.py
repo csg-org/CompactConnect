@@ -4,6 +4,7 @@ import os
 
 from aws_cdk import Duration
 from aws_cdk.aws_apigateway import AuthorizationType, LambdaIntegration, MethodOptions, MethodResponse, Resource
+from aws_cdk.aws_dynamodb import ITable
 from aws_cdk.aws_iam import IRole
 from aws_cdk.aws_s3 import IBucket
 from common_constructs.cc_api import CCApi
@@ -21,6 +22,7 @@ class BulkUploadUrl:
         method_options: MethodOptions,
         bulk_uploads_bucket: IBucket,
         license_upload_role: IRole,
+        compact_configuration_table: ITable,
         api_model: ApiModel,
     ):
         super().__init__()
@@ -33,11 +35,12 @@ class BulkUploadUrl:
             method_options=method_options,
             bulk_uploads_bucket=bulk_uploads_bucket,
             license_upload_role=license_upload_role,
+            compact_configuration_table=compact_configuration_table,
         )
         self.api.log_groups.extend(self.log_groups)
 
     def _get_bulk_upload_url_handler(
-        self, *, bulk_uploads_bucket: IBucket, license_upload_role: IRole
+        self, *, bulk_uploads_bucket: IBucket, license_upload_role: IRole, compact_configuration_table: ITable
     ) -> PythonFunction:
         stack: Stack = Stack.of(self.resource)
         handler = PythonFunction(
@@ -45,10 +48,14 @@ class BulkUploadUrl:
             'V1BulkUrlHandler',
             description='Get upload url handler',
             lambda_dir='provider-data-v1',
-            index=os.path.join('handlers', 'bulk_upload.py'),
+            index=os.path.join('handlers', 'state_api.py'),
             handler='bulk_upload_url_handler',
             role=license_upload_role,
-            environment={'BULK_BUCKET_NAME': bulk_uploads_bucket.bucket_name, **stack.common_env_vars},
+            environment={
+                'BULK_BUCKET_NAME': bulk_uploads_bucket.bucket_name,
+                'COMPACT_CONFIGURATION_TABLE_NAME': compact_configuration_table.table_name,
+                **stack.common_env_vars,
+            },
             alarm_topic=self.api.alarm_topic,
         )
         # Grant the handler permissions to write to the bulk bucket
@@ -58,7 +65,12 @@ class BulkUploadUrl:
         return handler
 
     def _add_bulk_upload_url(
-        self, *, method_options: MethodOptions, bulk_uploads_bucket: IBucket, license_upload_role: IRole
+        self,
+        *,
+        method_options: MethodOptions,
+        bulk_uploads_bucket: IBucket,
+        license_upload_role: IRole,
+        compact_configuration_table: ITable,
     ):
         self.resource.add_method(
             'GET',
@@ -71,7 +83,9 @@ class BulkUploadUrl:
             ],
             integration=LambdaIntegration(
                 self._get_bulk_upload_url_handler(
-                    bulk_uploads_bucket=bulk_uploads_bucket, license_upload_role=license_upload_role
+                    bulk_uploads_bucket=bulk_uploads_bucket,
+                    license_upload_role=license_upload_role,
+                    compact_configuration_table=compact_configuration_table,
                 ),
                 timeout=Duration.seconds(29),
             ),

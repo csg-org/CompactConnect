@@ -8,7 +8,7 @@ The Disaster Recovery (DR) system provides automated recovery capabilities for c
 
 ## When to Use
 
-This Disaster Recovery process should only be run in the event that the system experiences an event that causes 
+This Disaster Recovery process should only be run in the event that the system experiences an event that causes
 system-wide failures, such as the following scenarios:
 
 1. **Data Corruption**: When a table contains corrupted or invalid data that cannot be fixed through normal operations
@@ -20,7 +20,7 @@ system-wide failures, such as the following scenarios:
 ## Architecture
 
 ### Two-Phase Recovery Process
-DynamoDB PITR cannot directly restore data into your production database. Instead, it creates a new table with data matching the exact values you had in your production database at the specified timestamp. You as the owner of the database must decide what to do with that data from that point in time. For the purposes of disaster recovery rollback, we have determined to get the data into the production table by performing a 'hard reset', meaning **all the current data in the production table is deleted**, then we copy over the data from the temporary table into the production table. This process includes the following step functions. 
+DynamoDB PITR cannot directly restore data into your production database. Instead, it creates a new table with data matching the exact values you had in your production database at the specified timestamp. You as the owner of the database must decide what to do with that data from that point in time. For the purposes of disaster recovery rollback, we have determined to get the data into the production table by performing a 'hard reset', meaning **all the current data in the production table is deleted**, then we copy over the data from the temporary table into the production table. This process includes the following step functions.
 
 1. **RestoreDynamoDbTable Step Function** (Parent)
    - Creates a backup of the current table for post-incident analysis
@@ -31,7 +31,7 @@ DynamoDB PITR cannot directly restore data into your production database. Instea
    - **Delete Phase**: Removes all records from the production table
    - **Copy Phase**: Copies all records from the temporary table to the production table
 
-Once this process is complete, the data in the target table will be restored with the data from the specified point in time. 
+Once this process is complete, the data in the target table will be restored with the data from the specified point in time.
 
 ### Per-Table Isolation
 

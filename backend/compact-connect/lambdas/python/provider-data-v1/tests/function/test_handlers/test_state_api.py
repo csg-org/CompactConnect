@@ -1,16 +1,74 @@
 import json
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from unittest.mock import patch
 from uuid import uuid4
 
+from common_test.sign_request import sign_request
 from moto import mock_aws
 
 from tests.function import TstFunction
 
 
 @mock_aws
+class DsaTestBase(TstFunction):
+    """Base class for tests that require DSA authentication setup."""
+
+    def setUp(self):
+        super().setUp()
+        # Load test keys for DSA authentication
+        with open('../common/tests/resources/client_private_key.pem') as f:
+            self.private_key_pem = f.read()
+        with open('../common/tests/resources/client_public_key.pem') as f:
+            self.public_key_pem = f.read()
+
+        # Load DSA public keys into the compact configuration table for functional testing
+        self._setup_dsa_keys()
+
+    def _setup_dsa_keys(self):
+        """Setup DSA keys for testing. Override in subclasses to customize key setup."""
+        # Default setup - load keys for 'aslp' compact with 'oh' and 'ne' jurisdictions
+        self._load_dsa_public_key('aslp', 'oh', 'test-key-001', self.public_key_pem)
+        self._load_dsa_public_key('aslp', 'ne', 'test-key-001', self.public_key_pem)
+
+    def _load_dsa_public_key(self, compact: str, jurisdiction: str, key_id: str, public_key_pem: str):
+        """Load a DSA public key into the compact configuration table."""
+        item = {
+            'pk': f'{compact}#DSA_KEYS',
+            'sk': f'{compact}#JURISDICTION#{jurisdiction}#{key_id}',
+            'publicKey': public_key_pem,
+            'compact': compact,
+            'jurisdiction': jurisdiction,
+            'keyId': key_id,
+            'createdAt': '2024-01-01T00:00:00Z',
+        }
+        self._compact_configuration_table.put_item(Item=item)
+
+    def _create_signed_event(self, event: dict) -> dict:
+        """Add DSA headers to an event for DSA authentication."""
+        # Generate current timestamp and nonce
+        timestamp = datetime.now(UTC).isoformat()
+        nonce = str(uuid4())
+        key_id = 'test-key-001'
+
+        # Sign the request
+        headers = sign_request(
+            method=event['httpMethod'],
+            path=event['path'],
+            query_params=event.get('queryStringParameters') or {},
+            timestamp=timestamp,
+            nonce=nonce,
+            key_id=key_id,
+            private_key_pem=self.private_key_pem,
+        )
+
+        # Add DSA headers to event
+        event['headers'].update(headers)
+        return event
+
+
+@mock_aws
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
-class TestQueryJurisdictionProviders(TstFunction):
+class TestQueryJurisdictionProviders(DsaTestBase):
     def _generate_multiple_providers_with_privileges(
         self,
         count: int,
@@ -105,6 +163,9 @@ class TestQueryJurisdictionProviders(TstFunction):
             {'query': query, 'pagination': {'pageSize': 30}, 'sorting': {'direction': 'ascending'}}
         )
 
+        # Add DSA authentication headers
+        event = self._create_signed_event(event)
+
         resp = query_jurisdiction_providers(event, self.mock_context)
         self.assertEqual(200, resp['statusCode'])
 
@@ -126,6 +187,10 @@ class TestQueryJurisdictionProviders(TstFunction):
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
         event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
         event['body'] = json.dumps({'invalid': 'field'})
+
+        # Add DSA authentication headers
+        event = self._create_signed_event(event)
+
         resp = query_jurisdiction_providers(event, self.mock_context)
         self.assertEqual(400, resp['statusCode'])
 
@@ -145,6 +210,9 @@ class TestQueryJurisdictionProviders(TstFunction):
             }
         )
 
+        # Add DSA authentication headers
+        event = self._create_signed_event(event)
+
         resp = query_jurisdiction_providers(event, self.mock_context)
         self.assertEqual(400, resp['statusCode'])
 
@@ -163,6 +231,9 @@ class TestQueryJurisdictionProviders(TstFunction):
                 'sorting': {'direction': 'ascending'},
             }
         )
+
+        # Add DSA authentication headers
+        event = self._create_signed_event(event)
 
         resp = query_jurisdiction_providers(event, self.mock_context)
         self.assertEqual(400, resp['statusCode'])
@@ -218,6 +289,9 @@ class TestQueryJurisdictionProviders(TstFunction):
             }
         )
 
+        # Add DSA authentication headers
+        event = self._create_signed_event(event)
+
         resp = query_jurisdiction_providers(event, self.mock_context)
         self.assertEqual(200, resp['statusCode'])
 
@@ -251,6 +325,9 @@ class TestQueryJurisdictionProviders(TstFunction):
             }
         )
 
+        # Add DSA authentication headers
+        event = self._create_signed_event(event)
+
         resp = query_jurisdiction_providers(event, self.mock_context)
         self.assertEqual(400, resp['statusCode'])
 
@@ -270,6 +347,9 @@ class TestQueryJurisdictionProviders(TstFunction):
             }
         )
 
+        # Add DSA authentication headers
+        event = self._create_signed_event(event)
+
         resp = query_jurisdiction_providers(event, self.mock_context)
         self.assertEqual(400, resp['statusCode'])
 
@@ -277,7 +357,41 @@ class TestQueryJurisdictionProviders(TstFunction):
 @mock_aws
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
 @patch('cc_common.config._Config.api_base_url', 'https://app.compactconnect.org')
-class TestGetProvider(TstFunction):
+class TestGetProvider(DsaTestBase):
+    def _generate_provider_with_privilege_in_jurisdiction(
+        self, privilege_jurisdiction: str, license_jurisdiction: str
+    ) -> str:
+        """Helper method to generate a provider with a privilege in a specific jurisdiction."""
+
+        # Create a provider with privileges in the specified jurisdictions using test_data_generator
+        provider = self.test_data_generator.put_default_provider_record_in_provider_table(
+            value_overrides={
+                'licenseJurisdiction': license_jurisdiction,
+                # Set the jurisdiction where we'll create privileges
+                'privilegeJurisdictions': {privilege_jurisdiction},
+            },
+            is_registered=True,
+        )
+
+        self.test_data_generator.put_default_license_record_in_provider_table(
+            value_overrides={
+                'providerId': str(provider.providerId),
+                'jurisdiction': license_jurisdiction,
+            }
+        )
+
+        # Create privilege record directly using TestDataGenerator
+        self.test_data_generator.put_default_privilege_record_in_provider_table(
+            value_overrides={
+                'providerId': str(provider.providerId),
+                'jurisdiction': privilege_jurisdiction,
+                'licenseJurisdiction': license_jurisdiction,
+                'privilegeId': f'SLP-{privilege_jurisdiction.upper()}-1',
+            }
+        )
+
+        return str(provider.providerId)
+
     def test_get_provider_success_with_general_permissions(self):
         """Test successful provider retrieval with general read permissions."""
         # Create a provider with privileges in 'ne' jurisdiction (matches test data)
@@ -294,7 +408,11 @@ class TestGetProvider(TstFunction):
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
         event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'ne', 'providerId': provider_id}
 
+        # Add DSA authentication headers
+        event = self._create_signed_event(event)
+
         resp = get_provider(event, self.mock_context)
+
         self.assertEqual(200, resp['statusCode'])
 
         body = json.loads(resp['body'])
@@ -358,7 +476,11 @@ class TestGetProvider(TstFunction):
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral aslp/readPrivate'
         event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'ne', 'providerId': provider_id}
 
+        # Add DSA authentication headers
+        event = self._create_signed_event(event)
+
         resp = get_provider(event, self.mock_context)
+
         self.assertEqual(200, resp['statusCode'])
 
         body = json.loads(resp['body'])
@@ -422,7 +544,11 @@ class TestGetProvider(TstFunction):
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.readPrivate'
         event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'ne', 'providerId': provider_id}
 
+        # Add DSA authentication headers
+        event = self._create_signed_event(event)
+
         resp = get_provider(event, self.mock_context)
+
         self.assertEqual(200, resp['statusCode'])
 
         body = json.loads(resp['body'])
@@ -446,7 +572,11 @@ class TestGetProvider(TstFunction):
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
         event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'ne', 'providerId': provider_id}
 
+        # Add DSA authentication headers
+        event = self._create_signed_event(event)
+
         resp = get_provider(event, self.mock_context)
+
         self.assertEqual(200, resp['statusCode'])
 
         body = json.loads(resp['body'])
@@ -472,7 +602,11 @@ class TestGetProvider(TstFunction):
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
         event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh', 'providerId': provider_id}
 
+        # Add DSA authentication headers
+        event = self._create_signed_event(event)
+
         resp = get_provider(event, self.mock_context)
+
         self.assertEqual(404, resp['statusCode'])
 
     def test_get_provider_nonexistent_provider(self):
@@ -485,7 +619,11 @@ class TestGetProvider(TstFunction):
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
         event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'ne', 'providerId': 'nonexistent-provider'}
 
+        # Add DSA authentication headers
+        event = self._create_signed_event(event)
+
         resp = get_provider(event, self.mock_context)
+
         self.assertEqual(404, resp['statusCode'])
 
     def test_get_provider_missing_parameters(self):
@@ -498,39 +636,52 @@ class TestGetProvider(TstFunction):
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
         event['pathParameters'] = {'compact': 'aslp'}  # Missing jurisdiction and providerId
 
+        # Add DSA authentication headers
+        event = self._create_signed_event(event)
+
         resp = get_provider(event, self.mock_context)
+
         self.assertEqual(400, resp['statusCode'])
 
-    def _generate_provider_with_privilege_in_jurisdiction(
-        self, privilege_jurisdiction: str, license_jurisdiction: str
-    ) -> str:
-        """Helper method to generate a provider with a privilege in a specific jurisdiction."""
 
-        # Create a provider with privileges in the specified jurisdictions using test_data_generator
-        provider = self.test_data_generator.put_default_provider_record_in_provider_table(
-            value_overrides={
-                'licenseJurisdiction': license_jurisdiction,
-                # Set the jurisdiction where we'll create privileges
-                'privilegeJurisdictions': {privilege_jurisdiction},
-            },
-            is_registered=True,
-        )
+@mock_aws
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
+class TestBulkUploadUrlHandler(DsaTestBase):
+    def _setup_dsa_keys(self):
+        """Setup DSA keys for testing. Only need 'oh' jurisdiction for this test."""
+        self._load_dsa_public_key('aslp', 'oh', 'test-key-001', self.public_key_pem)
 
-        self.test_data_generator.put_default_license_record_in_provider_table(
-            value_overrides={
-                'providerId': str(provider.providerId),
-                'jurisdiction': license_jurisdiction,
-            }
-        )
+    def test_bulk_upload_url_handler_success(self):
+        """Test successful bulk upload URL generation with optional DSA authentication."""
+        from handlers.state_api import bulk_upload_url_handler
 
-        # Create privilege record directly using TestDataGenerator
-        self.test_data_generator.put_default_privilege_record_in_provider_table(
-            value_overrides={
-                'providerId': str(provider.providerId),
-                'jurisdiction': privilege_jurisdiction,
-                'licenseJurisdiction': license_jurisdiction,
-                'privilegeId': f'SLP-{privilege_jurisdiction.upper()}-1',
-            }
-        )
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
 
-        return str(provider.providerId)
+        # The user has write permission for aslp/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.write'
+        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+
+        # Add DSA authentication headers
+        event = self._create_signed_event(event)
+
+        resp = bulk_upload_url_handler(event, self.mock_context)
+
+        self.assertEqual(200, resp['statusCode'])
+
+        body = json.loads(resp['body'])
+        self.assertIn('upload', body)
+        upload = body['upload']
+        self.assertIn('url', upload)
+        self.assertIn('fields', upload)
+        self.assertIn('key', upload['fields'])
+        self.assertIn('policy', upload['fields'])
+        self.assertIn('x-amz-algorithm', upload['fields'])
+        self.assertIn('x-amz-credential', upload['fields'])
+        self.assertIn('x-amz-date', upload['fields'])
+        self.assertIn('x-amz-signature', upload['fields'])
+
+        # Verify the key follows the expected pattern: compact/jurisdiction/uuid
+        key = upload['fields']['key']
+        self.assertTrue(key.startswith('aslp/oh/'))
+        self.assertEqual(len(key.split('/')), 3)

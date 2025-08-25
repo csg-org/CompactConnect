@@ -1,7 +1,9 @@
 import json
-from datetime import datetime
+from datetime import UTC, datetime
 from unittest.mock import patch
+from uuid import uuid4
 
+from common_test.sign_request import sign_request
 from moto import mock_aws
 
 from .. import TstFunction
@@ -10,6 +12,52 @@ from .. import TstFunction
 @mock_aws
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
 class TestLicenses(TstFunction):
+    def setUp(self):
+        super().setUp()
+        # Load test keys for DSA authentication
+        with open('../common/tests/resources/client_private_key.pem') as f:
+            self.private_key_pem = f.read()
+        with open('../common/tests/resources/client_public_key.pem') as f:
+            self.public_key_pem = f.read()
+
+        # Load DSA public key into the compact configuration table for functional testing
+        self._load_dsa_public_key('aslp', 'oh', 'test-key-001', self.public_key_pem)
+
+    def _load_dsa_public_key(self, compact: str, jurisdiction: str, key_id: str, public_key_pem: str):
+        """Load a DSA public key into the compact configuration table."""
+        item = {
+            'pk': f'{compact}#DSA_KEYS',
+            'sk': f'{compact}#JURISDICTION#{jurisdiction}#{key_id}',
+            'publicKey': public_key_pem,
+            'compact': compact,
+            'jurisdiction': jurisdiction,
+            'keyId': key_id,
+            'createdAt': '2024-01-01T00:00:00Z',
+        }
+        self._compact_configuration_table.put_item(Item=item)
+
+    def _create_signed_event(self, event: dict) -> dict:
+        """Add DSA headers to an event for optional DSA authentication."""
+        # Generate current timestamp and nonce
+        timestamp = datetime.now(UTC).isoformat()
+        nonce = str(uuid4())
+        key_id = 'test-key-001'
+
+        # Sign the request
+        headers = sign_request(
+            method=event['httpMethod'],
+            path=event['path'],
+            query_params=event.get('queryStringParameters') or {},
+            timestamp=timestamp,
+            nonce=nonce,
+            key_id=key_id,
+            private_key_pem=self.private_key_pem,
+        )
+
+        # Add DSA headers to event
+        event['headers'].update(headers)
+        return event
+
     def test_post_licenses_puts_expected_messages_on_the_queue(self):
         from handlers.licenses import post_licenses
 
@@ -21,6 +69,9 @@ class TestLicenses(TstFunction):
         event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
         with open('../common/tests/resources/api/license-post.json') as f:
             event['body'] = json.dumps([json.load(f)])
+
+        # Add DSA authentication headers
+        event = self._create_signed_event(event)
 
         resp = post_licenses(event, self.mock_context)
 
@@ -56,6 +107,9 @@ class TestLicenses(TstFunction):
             ]
         )
 
+        # Add DSA authentication headers
+        event = self._create_signed_event(event)
+
         resp = post_licenses(event, self.mock_context)
 
         self.assertEqual(200, resp['statusCode'])
@@ -84,6 +138,9 @@ class TestLicenses(TstFunction):
             license_data = json.load(f)
         license_data['licenseType'] = 'occupational therapist'
         event['body'] = json.dumps([license_data])
+
+        # Add DSA authentication headers
+        event = self._create_signed_event(event)
 
         resp = post_licenses(event, self.mock_context)
 
@@ -117,6 +174,9 @@ class TestLicenses(TstFunction):
             ]
         )
 
+        # Add DSA authentication headers
+        event = self._create_signed_event(event)
+
         resp = post_licenses(event, self.mock_context)
 
         self.assertEqual(400, resp['statusCode'])
@@ -145,6 +205,9 @@ class TestLicenses(TstFunction):
             license_data = json.load(f)
         # Test case where list contains strings instead of dictionaries
         event['body'] = json.dumps([license_data, {}])
+
+        # Add DSA authentication headers
+        event = self._create_signed_event(event)
 
         resp = post_licenses(event, self.mock_context)
 
@@ -186,6 +249,9 @@ class TestLicenses(TstFunction):
         # Test case where request body is not a list
         event['body'] = json.dumps({'message': 'hi'})
 
+        # Add DSA authentication headers
+        event = self._create_signed_event(event)
+
         resp = post_licenses(event, self.mock_context)
 
         self.assertEqual(400, resp['statusCode'])
@@ -203,6 +269,9 @@ class TestLicenses(TstFunction):
 
         # Test case where request body is not deserializable
         event['body'] = 'hello'
+
+        # Add DSA authentication headers
+        event = self._create_signed_event(event)
 
         resp = post_licenses(event, self.mock_context)
 
@@ -223,6 +292,9 @@ class TestLicenses(TstFunction):
 
         # Test case where request body is not deserializable
         event['body'] = None
+
+        # Add DSA authentication headers
+        event = self._create_signed_event(event)
 
         resp = post_licenses(event, self.mock_context)
 
@@ -245,6 +317,9 @@ class TestLicenses(TstFunction):
             license_data = json.load(f)
             license_data['someOtherField'] = 'foobar'
         event['body'] = json.dumps([license_data])
+
+        # Add DSA authentication headers
+        event = self._create_signed_event(event)
 
         resp = post_licenses(event, self.mock_context)
 
@@ -270,6 +345,9 @@ class TestLicenses(TstFunction):
             license_data = json.load(f)
             license_data['licenseStatusName'] = None
         event['body'] = json.dumps([license_data, license_data])
+
+        # Add DSA authentication headers
+        event = self._create_signed_event(event)
 
         resp = post_licenses(event, self.mock_context)
 
@@ -317,6 +395,9 @@ class TestLicenses(TstFunction):
         request_body['emailAddress'] = '  ' + license_data['emailAddress'] + '  '
 
         event['body'] = json.dumps([request_body])
+
+        # Add DSA authentication headers
+        event = self._create_signed_event(event)
 
         resp = post_licenses(event, self.mock_context)
         self.assertEqual(200, resp['statusCode'])

@@ -6,12 +6,16 @@
 #
 aws-lambda-powertools==3.19.0
     # via -r compact-connect/lambdas/python/common/requirements.in
-boto3==1.40.8
+boto3==1.40.15
     # via -r compact-connect/lambdas/python/common/requirements.in
-botocore==1.40.8
+botocore==1.40.15
     # via
     #   boto3
     #   s3transfer
+cffi==1.17.1
+    # via cryptography
+cryptography==45.0.6
+    # via -r compact-connect/lambdas/python/common/requirements.in
 jmespath==1.0.1
     # via
     #   aws-lambda-powertools
@@ -19,6 +23,8 @@ jmespath==1.0.1
     #   botocore
 marshmallow==4.0.0
     # via -r compact-connect/lambdas/python/common/requirements.in
+pycparser==2.22
+    # via cffi
 python-dateutil==2.9.0.post0
     # via botocore
 s3transfer==0.13.1

@@ -4,7 +4,6 @@ import os
 
 from aws_cdk.aws_apigateway import AuthorizationType, IResource, MethodOptions
 from cdk_nag import NagSuppressions
-from common_constructs.cc_api import CCApi
 from common_constructs.python_function import PythonFunction
 from common_constructs.ssm_parameter_utility import SSMParameterUtility
 from common_constructs.stack import Stack
@@ -30,9 +29,11 @@ class V1Api:
 
     def __init__(self, root: IResource, persistent_stack: ps.PersistentStack, provider_users_stack: ProviderUsersStack):
         super().__init__()
+        from stacks.api_stack.api import LicenseApi
+
         self.root = root
         self.resource = root.add_resource('v1')
-        self.api: CCApi = root.api
+        self.api: LicenseApi = root.api
         self.api_model = ApiModel(api=self.api)
         stack: Stack = Stack.of(self.resource)
         data_event_bus = SSMParameterUtility.load_data_event_bus_from_ssm_parameter(stack)

@@ -12,9 +12,9 @@ aws-cdk-asset-awscli-v1==2.2.242
     # via aws-cdk-lib
 aws-cdk-asset-node-proxy-agent-v6==2.1.0
     # via aws-cdk-lib
-aws-cdk-cloud-assembly-schema==48.3.0
+aws-cdk-cloud-assembly-schema==48.5.0
     # via aws-cdk-lib
-aws-cdk-lib==2.210.0
+aws-cdk-lib==2.212.0
     # via -r multi-account/backups/requirements.in
 cattrs==25.1.1
     # via jsii
