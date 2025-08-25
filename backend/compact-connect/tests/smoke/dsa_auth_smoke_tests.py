@@ -376,8 +376,6 @@ def test_providers_query_endpoint_with_dsa(client_id: str, client_secret: str, p
     client_headers = get_client_auth_headers(client_id, client_secret)
 
     # Create request body with a 7-day time range
-    from datetime import UTC, datetime
-
     end_time = datetime.now(UTC)
     start_time = end_time - timedelta(days=7)
 

@@ -5,14 +5,14 @@
   "headers": {
     "Accept": "application/json",
     "Accept-Encoding": "gzip, deflate, br",
-    "Authorization": "Bearer ey...",
+    "Authorization": "Bearer <jwt>",
     "Cache-Control": "no-cache",
     "Content-Type": "application/json",
     "Host": "state-api.justin.jcc.iaapi.io",
     "Postman-Token": "6abca03f-897e-40a4-86fd-9b89bd9185b2",
     "User-Agent": "PostmanRuntime/7.45.0",
     "X-Amzn-Trace-Id": "Root=1-689b712b-288ca4441a564698563d2d8e",
-    "X-Forwarded-For": "30.100.100.100",
+    "X-Forwarded-For": "192.0.2.1",
     "X-Forwarded-Port": "443",
     "X-Forwarded-Proto": "https"
   },
@@ -42,7 +42,7 @@
       "Root=1-689b712b-288ca4441a564698563d2d8e"
     ],
     "X-Forwarded-For": [
-      "38.175.189.247"
+      "192.0.2.1"
     ],
     "X-Forwarded-Port": [
       "443"
@@ -90,7 +90,7 @@
       "accountId": null,
       "cognitoIdentityId": null,
       "caller": null,
-      "sourceIp": "38.175.189.247",
+      "sourceIp": "192.0.2.1",
       "principalOrgId": null,
       "accessKey": null,
       "cognitoAuthenticationType": null,

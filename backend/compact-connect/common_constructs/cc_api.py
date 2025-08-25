@@ -26,7 +26,7 @@ from aws_cdk.aws_logs import LogGroup, QueryDefinition, QueryString, RetentionDa
 from aws_cdk.aws_route53 import ARecord, IHostedZone, RecordTarget
 from aws_cdk.aws_route53_targets import ApiGateway
 from cdk_nag import NagSuppressions
-from constructs import Construct
+from constructs import IConstruct
 from stacks import persistent_stack as ps
 
 from common_constructs.security_profile import SecurityProfile
@@ -66,7 +66,7 @@ class NagSuppressOptionsNotAuthorized:
 class CCApi(RestApi):
     def __init__(
         self,
-        scope: Construct,
+        scope: IConstruct,
         construct_id: str,
         *,
         environment_name: str,

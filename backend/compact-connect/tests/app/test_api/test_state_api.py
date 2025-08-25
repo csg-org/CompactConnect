@@ -462,8 +462,7 @@ class TestStateApi(TestApi):
         state_api_stack_template = Template.from_stack(state_api_stack)
 
         # Get the state auth authorizer ID
-        state_auth_stack = self.app.sandbox_backend_stage.state_auth_stack
-        state_auth_authorizer_id = state_auth_stack.get_logical_id(
+        state_auth_authorizer_id = state_api_stack.get_logical_id(
             state_api_stack.api.state_auth_authorizer.node.default_child
         )
 

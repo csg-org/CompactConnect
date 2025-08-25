@@ -7,7 +7,7 @@
     "content-type": "application/json",
     "accept-encoding": "gzip, deflate, br, zstd",
     "accept-language": "en-US,en;q=0.5",
-    "Authorization": "Bearer ey...",
+    "Authorization": "Bearer <jwt>",
     "cache-control": "no-cache",
     "Host": "api.justin.jcc.iaapi.io",
     "origin": "https://app.justin.jcc.iaapi.io",
@@ -18,7 +18,7 @@
     "sec-fetch-site": "same-site",
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
     "X-Amzn-Trace-Id": "Root=1-689b64af-42fcf052722c8040376585b5",
-    "X-Forwarded-For": "30.100.100.100",
+    "X-Forwarded-For": "192.0.2.1",
     "X-Forwarded-Port": "443",
     "X-Forwarded-Proto": "https"
   },
@@ -63,7 +63,7 @@
       "Root=1-689b64af-42fcf052722c8040376585b5"
     ],
     "X-Forwarded-For": [
-      "38.175.189.247"
+      "192.0.2.1"
     ],
     "X-Forwarded-Port": [
       "443"
@@ -111,7 +111,7 @@
       "accountId": null,
       "cognitoIdentityId": null,
       "caller": null,
-      "sourceIp": "38.175.189.247",
+      "sourceIp": "192.0.2.1",
       "principalOrgId": null,
       "accessKey": null,
       "cognitoAuthenticationType": null,
