@@ -220,16 +220,28 @@
                                 background-color: @veryLightBlue;
                             }
 
+                            &.inactive {
+                                background-color: @veryLightGrey;
+                                cursor: auto;
+                            }
+
                             @media @desktopWidth {
                                 width: 65%;
                                 margin-bottom: 0;
+                            }
+
+                            .inactive-category {
+                                margin-bottom: 0.6rem;
+                                margin-left: 3rem;
+                                font-weight: @fontWeightBold;
+                                font-size: 1.6rem;
                             }
 
                             .checkbox-wrapper {
                                 padding-left: 3rem;
                             }
 
-                            .encumbrance-start-date {
+                            .encumbrance-dates {
                                 padding-left: 3rem;
                                 color: darken(@darkGrey, 10%);
                                 font-size: @fontSize;
