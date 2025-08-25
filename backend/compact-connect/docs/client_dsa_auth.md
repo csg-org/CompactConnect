@@ -36,7 +36,7 @@ CompactConnect supports two authentication modes:
 
 ### 1. Key Pair Generation
 
-Generate an ECDSA key pair using the P-256 curve for your client:
+Generate an ECDSA key pair using the P-256 curve for your client (you may need to install openssl first, depending on your operating system):
 
 ```bash
 # Generate private key
@@ -57,7 +57,7 @@ For each API request, you must:
    - Nonce (UUID4 or random string): `550e8400-e29b-41d4-a716-446655440000`
 
 2. **Create signature string** by joining these components with newlines (`\n`):
-   ```
+   ```text
    HTTP_METHOD
    REQUEST_PATH
    SORTED_QUERY_PARAMETERS
@@ -74,7 +74,7 @@ For each API request, you must:
 
 Every request to protected endpoints must include:
 
-```
+```http
 Authorization: Bearer <oauth2_access_token>
 X-Algorithm: ECDSA-SHA256
 X-Timestamp: <iso8601_timestamp>
@@ -87,7 +87,9 @@ X-Signature: <base64_encoded_signature>
 
 #### Python Example
 
-We maintain an example implementation, which we use to test and validate our own authentication mechanism [here](../lambdas/python/common/common_test/sign_request.py). Feel free to use this as a reference for your own implementation.
+We maintain an example implementation, which we use to test and validate our own authentication mechanism
+[here](../lambdas/python/common/common_test/sign_request.py). You can use this as a reference for your own
+implementation.
 
 
 ## Security Considerations

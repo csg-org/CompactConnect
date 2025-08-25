@@ -48,15 +48,17 @@ the app client to perform actions within a specific jurisdiction/compact combina
 scopes if the consuming team has a specific need for a jurisdiction/compact combination.
 
 The following scopes are available at the jurisdiction level:
-```
+```text
 {jurisdiction}/{compact}.admin
 {jurisdiction}/{compact}.write
 {jurisdiction}/{compact}.readPrivate
 {jurisdiction}/{compact}.readSSN
 ```
 
-Currently, the most common scope needed by app clients is the `{jurisdiction}/{compact}.write` scope. This scope
-allows the app client to upload license data for a jurisdiction/compact combination.
+Currently, the most common scope needed by app clients is `{jurisdiction}/{compact}.write`, which allows uploading
+license data for a jurisdiction/compact combination. Scopes that expose PII (e.g., `.readSSN`, `.readPrivate`) should
+be granted sparingly and will require valid request signatures once a signing public key is configured for the
+jurisdiction.
 
 ### 3. Create App Client Using Interactive Python Script
 
@@ -105,7 +107,27 @@ link that you'll generate separately.
 As part of the email message sent to the consuming team, be sure to include the onboarding instructions document from
 the `it_staff_onboarding_instructions/` directory.
 
-## Managing DSA Public Keys
+## Managing API Signing Public Keys (ECDSA-SHA256)
+
+### Overview
+
+CompactConnect requires clients to sign requests using ECDSA with SHA-256. Each compact/state combination can have
+multiple signing public keys configured to support key rotation and zero-downtime deployments.
+
+### Authorization Requirements
+
+**⚠️ CRITICAL SECURITY NOTICE:** Due to the sensitivity of data protected by request-signature verification (including
+partial Social Security Numbers, personal addresses, and professional license details), configuring new signing public keys
+in production environments **MUST** include explicit authorization from the state board executive director.
+
+### Adding a Signing Public Key
+
+Once a state configures a public key, they will be able to access signature-required API endpoints. API endpoints with
+_optional_ signature support will also begin to enforce signatures for that compact/state. **This means that, once a
+compact/state has a public key configured, they will be denied access to signature-optional endpoints, such as the
+`POST license` endpoint, unless they have also implemented request signing there as well.** Be sure that
+the representative is advised that they should begin signing those requests _before_ CompactConnect has a configured
+public key.
 
 ### Overview
 
@@ -118,6 +140,7 @@ deployments.
 **⚠️ CRITICAL SECURITY NOTICE:** Due to the sensitivity of the data protected by DSA authentication (including
 partial Social Security Numbers, personal addresses, and professional license details), configuration of new DSA
 public keys in production environments **MUST** include explicit authorization from the state board executive director.
+
 
 ### Creating DSA Public Keys
 
@@ -141,8 +164,7 @@ Before creating a new DSA public key, ensure you have:
 
 #### 2. Key ID Naming Convention
 
-The state IT department should provide you with an identifier, however you can recommend a descriptive key IDs that
-includes:
+The state IT department should provide an identifier; however, you can recommend a descriptive key ID that includes:
 - Environment indicator (if applicable)
 - Version or date suffix
 
@@ -251,6 +273,8 @@ where the old credentials are compromised.
 - Contact consuming team to schedule rotation
 - Follow "Creating a New App Client" steps above using either the Python script (recommended) or AWS CLI, you will
 increment clientName version suffix by 1 (e.g. "example-ky-app-client-v1" -> "example-ky-app-client-v2")
+- Follow “Creating a New App Client” using the Python script (recommended) or AWS CLI. Increment the client name’s
+  version suffix by 1 (e.g., “example-ky-app-client-v1” -> “example-ky-app-client-v2”).
 - Update the external Google Sheet registry with new client information
 
 ### 2. Migration

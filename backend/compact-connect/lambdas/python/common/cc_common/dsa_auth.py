@@ -15,7 +15,6 @@ from urllib.parse import quote
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec
-from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature
 
 from cc_common.config import config, logger
 from cc_common.exceptions import CCInvalidRequestException, CCUnauthorizedException
@@ -211,6 +210,9 @@ def _validate_dsa_signature(event: dict, compact: str, jurisdiction: str, public
     # Validate timestamp
     try:
         timestamp = datetime.fromisoformat(timestamp_str)
+        if timestamp.tzinfo is None:
+            # Treat naive timestamps as UTC to avoid mismatched aware vs naive comparisons
+            timestamp = timestamp.replace(tzinfo=UTC)
         now = datetime.now(UTC)
         time_diff = abs((timestamp - now).total_seconds())
 
@@ -327,9 +329,6 @@ def _verify_signature(signature_string: str, signature_b64: str, public_key_pem:
 
         # Decode the signature
         signature_bytes = base64.b64decode(signature_b64)
-
-        # Parse the signature (DSS format)
-        r, s = decode_dss_signature(signature_bytes)
 
         # Verify the signature
         public_key.verify(signature_bytes, signature_string.encode(), ec.ECDSA(hashes.SHA256()))

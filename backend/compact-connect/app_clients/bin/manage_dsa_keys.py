@@ -206,7 +206,7 @@ def create_dsa_key(table_name, config):
             'compact': compact,
             'jurisdiction': state,
             'keyId': key_id,
-            'createdAt': datetime.now(UTC).isoformat(),
+            'createdAt': datetime.now(tz=UTC).isoformat(),
         }
 
         # Write to DynamoDB

@@ -1,6 +1,7 @@
 # ruff: noqa: ARG001 unused-argument
 import base64
 import json
+from copy import deepcopy
 from datetime import UTC, datetime
 from unittest.mock import patch
 
@@ -56,7 +57,7 @@ class TestDsaAuth(TstLambdas):
             return {'message': 'OK'}
 
         # Create event without DSA headers
-        event = self.base_event.copy()
+        event = deepcopy(self.base_event)
 
         # Mock DynamoDB to return the public key
         with patch('cc_common.dsa_auth._get_public_key_from_dynamodb') as mock_get_key:
@@ -147,7 +148,7 @@ class TestDsaAuth(TstLambdas):
         for timestamp in timestamp_formats:
             with self.subTest(timestamp_format=timestamp):
                 # Create event with current timestamp format
-                event = self.base_event.copy()
+                event = deepcopy(self.base_event)
                 nonce = '550e8400-e29b-41d4-a716-446655440000'
 
                 # Import and use the sign_request function
@@ -438,7 +439,7 @@ class TestDsaAuth(TstLambdas):
 
         # Now create a new event with mixed case headers but keep the original signature
         # This tests that CaseInsensitiveDict can handle different header cases
-        mixed_case_event = self.base_event.copy()
+        mixed_case_event = deepcopy(self.base_event)
         mixed_case_event['headers'] = {
             'x-algorithm': event['headers']['X-Algorithm'],
             'X-Timestamp': event['headers']['X-Timestamp'],
@@ -459,7 +460,7 @@ class TestDsaAuth(TstLambdas):
     def _create_signed_event(self) -> dict:
         """Create a properly signed event for testing."""
         # Create base event
-        event = self.base_event.copy()
+        event = deepcopy(self.base_event)
 
         # Generate current timestamp and nonce
         timestamp = datetime.now(UTC).isoformat()

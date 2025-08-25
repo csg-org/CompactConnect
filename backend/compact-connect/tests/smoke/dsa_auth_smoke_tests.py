@@ -183,7 +183,7 @@ def configure_dsa_public_key(public_key_pem: str):
             'compact': COMPACT,
             'jurisdiction': JURISDICTION,
             'keyId': TEST_KEY_ID,
-            'createdAt': datetime.now(UTC).isoformat(),
+            'createdAt': datetime.now(tz=UTC).isoformat(),
         }
 
         # Write to DynamoDB
@@ -251,7 +251,7 @@ def create_signed_headers(method: str, path: str, query_params: dict, private_ke
     :return: Headers dictionary with DSA authentication headers
     """
     # Generate current timestamp and nonce
-    timestamp = datetime.now(UTC).isoformat()
+    timestamp = datetime.now(tz=UTC).isoformat()
     nonce = str(uuid.uuid4())
 
     # Sign the request
@@ -309,12 +309,11 @@ def test_bulk_upload_endpoint_without_dsa_after_key_configuration(client_id: str
         timeout=10,
     )
 
-    if response.status_code == 200:
-        raise SmokeTestFailureException('Bulk-upload endpoint should fail without DSA when keys are configured')
-
+    logger.info('Bulk-upload endpoint correctly rejected without DSA authentication')
     if response.status_code != 401:
-        logger.warning(f'Expected 401 but got {response.status_code}: {response.text}')
-
+        raise SmokeTestFailureException(
+            f'Expected 401 without DSA when keys are configured, got {response.status_code}: {response.text}'
+        )
     logger.info('Bulk-upload endpoint correctly rejected without DSA authentication')
 
 
@@ -376,7 +375,7 @@ def test_providers_query_endpoint_with_dsa(client_id: str, client_secret: str, p
     client_headers = get_client_auth_headers(client_id, client_secret)
 
     # Create request body with a 7-day time range
-    end_time = datetime.now(UTC)
+    end_time = datetime.now(tz=UTC)
     start_time = end_time - timedelta(days=7)
 
     request_body = {

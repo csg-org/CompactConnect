@@ -1,5 +1,6 @@
 # ruff: noqa: ARG001 unused-argument
 import json
+from copy import deepcopy
 from datetime import UTC, datetime
 from unittest.mock import patch
 
@@ -64,7 +65,7 @@ class TestDsaAuthIntegration(TstLambdas):
             return {'message': 'OK'}
 
         # Create event without DSA headers
-        event = self.base_event.copy()
+        event = deepcopy(self.base_event)
 
         # Mock DynamoDB to return the public key
         with patch('cc_common.dsa_auth._get_public_key_from_dynamodb') as mock_get_key:
@@ -123,9 +124,9 @@ class TestDsaAuthIntegration(TstLambdas):
 
             resp = lambda_handler(event, self.mock_context)
 
-            self.assertEqual(401, resp['statusCode'])
-            self.assertEqual('https://example.org', resp['headers']['Access-Control-Allow-Origin'])
-            self.assertEqual('{"message": "Unauthorized"}', resp['body'])
+        self.assertEqual(401, resp['statusCode'])
+        self.assertEqual('https://example.org', resp['headers']['Access-Control-Allow-Origin'])
+        self.assertEqual({'message': 'Unauthorized'}, json.loads(resp['body']))
 
     def test_dsa_with_api_handler_public_key_not_found(self):
         """Test public key not found with api_handler decorator returns 401."""
@@ -148,7 +149,7 @@ class TestDsaAuthIntegration(TstLambdas):
 
             self.assertEqual(401, resp['statusCode'])
             self.assertEqual('https://example.org', resp['headers']['Access-Control-Allow-Origin'])
-            self.assertEqual('{"message": "Unauthorized"}', resp['body'])
+            self.assertEqual({'message': 'Unauthorized'}, json.loads(resp['body']))
 
     def test_decorator_order_matters(self):
         """Test that decorator order affects behavior (api_handler should be outermost)."""
@@ -164,7 +165,7 @@ class TestDsaAuthIntegration(TstLambdas):
             return {'message': 'OK'}
 
         # Create event without DSA headers
-        event = self.base_event.copy()
+        event = deepcopy(self.base_event)
 
         # Mock DynamoDB to return the public key
         with patch('cc_common.dsa_auth._get_public_key_from_dynamodb') as mock_get_key:
@@ -202,7 +203,7 @@ class TestDsaAuthIntegration(TstLambdas):
     def _create_signed_event(self) -> dict:
         """Create a properly signed event for testing."""
         # Create base event
-        event = self.base_event.copy()
+        event = deepcopy(self.base_event)
 
         # Generate current timestamp and nonce
         timestamp = datetime.now(UTC).isoformat().replace('+00:00', 'Z')

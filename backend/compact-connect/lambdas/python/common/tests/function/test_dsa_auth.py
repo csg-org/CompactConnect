@@ -1,6 +1,7 @@
 # ruff: noqa: ARG001 unused-argument
 import json
 import uuid
+from copy import deepcopy
 from datetime import UTC, datetime
 
 from common_test.sign_request import sign_request
@@ -76,7 +77,7 @@ class TestDsaAuthFunctional(TstFunction):
             return {'message': 'OK', 'authenticated': True}
 
         # Create event without DSA headers
-        event = self.base_event.copy()
+        event = deepcopy(self.base_event)
 
         # Test access denied
         with self.assertRaises(CCUnauthorizedException) as cm:
@@ -186,7 +187,7 @@ class TestDsaAuthFunctional(TstFunction):
             return {'message': 'OK', 'authenticated': True}
 
         # Create event without DSA headers
-        event = self.base_event.copy()
+        event = deepcopy(self.base_event)
 
         # Test access denied
         with self.assertRaises(CCUnauthorizedException) as cm:
@@ -205,7 +206,7 @@ class TestDsaAuthFunctional(TstFunction):
             return {'message': 'OK', 'authenticated': False}
 
         # Create event without DSA headers
-        event = self.base_event.copy()
+        event = deepcopy(self.base_event)
 
         # Test successful access (no authentication required)
         result = lambda_handler(event, self.mock_context)
@@ -264,7 +265,7 @@ class TestDsaAuthFunctional(TstFunction):
     def _create_signed_event(self) -> dict:
         """Create a properly signed event for testing."""
         # Create base event
-        event = self.base_event.copy()
+        event = deepcopy(self.base_event)
 
         # Generate current timestamp and nonce
         timestamp = datetime.now(UTC).isoformat()

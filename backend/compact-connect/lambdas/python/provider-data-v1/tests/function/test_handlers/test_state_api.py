@@ -10,8 +10,9 @@ from tests.function import TstFunction
 
 
 @mock_aws
-@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
-class TestQueryJurisdictionProviders(TstFunction):
+class DsaTestBase(TstFunction):
+    """Base class for tests that require DSA authentication setup."""
+
     def setUp(self):
         super().setUp()
         # Load test keys for DSA authentication
@@ -20,7 +21,12 @@ class TestQueryJurisdictionProviders(TstFunction):
         with open('../common/tests/resources/client_public_key.pem') as f:
             self.public_key_pem = f.read()
 
-        # Load DSA public key into the compact configuration table for functional testing
+        # Load DSA public keys into the compact configuration table for functional testing
+        self._setup_dsa_keys()
+
+    def _setup_dsa_keys(self):
+        """Setup DSA keys for testing. Override in subclasses to customize key setup."""
+        # Default setup - load keys for 'aslp' compact with 'oh' and 'ne' jurisdictions
         self._load_dsa_public_key('aslp', 'oh', 'test-key-001', self.public_key_pem)
         self._load_dsa_public_key('aslp', 'ne', 'test-key-001', self.public_key_pem)
 
@@ -38,7 +44,7 @@ class TestQueryJurisdictionProviders(TstFunction):
         self._compact_configuration_table.put_item(Item=item)
 
     def _create_signed_event(self, event: dict) -> dict:
-        """Add DSA headers to an event for required DSA authentication."""
+        """Add DSA headers to an event for DSA authentication."""
         # Generate current timestamp and nonce
         timestamp = datetime.now(UTC).isoformat()
         nonce = str(uuid4())
@@ -59,6 +65,10 @@ class TestQueryJurisdictionProviders(TstFunction):
         event['headers'].update(headers)
         return event
 
+
+@mock_aws
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
+class TestQueryJurisdictionProviders(DsaTestBase):
     def _generate_multiple_providers_with_privileges(
         self,
         count: int,
@@ -347,53 +357,40 @@ class TestQueryJurisdictionProviders(TstFunction):
 @mock_aws
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
 @patch('cc_common.config._Config.api_base_url', 'https://app.compactconnect.org')
-class TestGetProvider(TstFunction):
-    def setUp(self):
-        super().setUp()
-        # Load test keys for DSA authentication
-        with open('../common/tests/resources/client_private_key.pem') as f:
-            self.private_key_pem = f.read()
-        with open('../common/tests/resources/client_public_key.pem') as f:
-            self.public_key_pem = f.read()
+class TestGetProvider(DsaTestBase):
+    def _generate_provider_with_privilege_in_jurisdiction(
+        self, privilege_jurisdiction: str, license_jurisdiction: str
+    ) -> str:
+        """Helper method to generate a provider with a privilege in a specific jurisdiction."""
 
-        # Load DSA public key into the compact configuration table for functional testing
-        self._load_dsa_public_key('aslp', 'oh', 'test-key-001', self.public_key_pem)
-        self._load_dsa_public_key('aslp', 'ne', 'test-key-001', self.public_key_pem)
-
-    def _load_dsa_public_key(self, compact: str, jurisdiction: str, key_id: str, public_key_pem: str):
-        """Load a DSA public key into the compact configuration table."""
-        item = {
-            'pk': f'{compact}#DSA_KEYS',
-            'sk': f'{compact}#JURISDICTION#{jurisdiction}#{key_id}',
-            'publicKey': public_key_pem,
-            'compact': compact,
-            'jurisdiction': jurisdiction,
-            'keyId': key_id,
-            'createdAt': '2024-01-01T00:00:00Z',
-        }
-        self._compact_configuration_table.put_item(Item=item)
-
-    def _create_signed_event(self, event: dict) -> dict:
-        """Add DSA headers to an event for required DSA authentication."""
-        # Generate current timestamp and nonce
-        timestamp = datetime.now(UTC).isoformat()
-        nonce = str(uuid4())
-        key_id = 'test-key-001'
-
-        # Sign the request
-        headers = sign_request(
-            method=event['httpMethod'],
-            path=event['path'],
-            query_params=event.get('queryStringParameters') or {},
-            timestamp=timestamp,
-            nonce=nonce,
-            key_id=key_id,
-            private_key_pem=self.private_key_pem,
+        # Create a provider with privileges in the specified jurisdictions using test_data_generator
+        provider = self.test_data_generator.put_default_provider_record_in_provider_table(
+            value_overrides={
+                'licenseJurisdiction': license_jurisdiction,
+                # Set the jurisdiction where we'll create privileges
+                'privilegeJurisdictions': {privilege_jurisdiction},
+            },
+            is_registered=True,
         )
 
-        # Add DSA headers to event
-        event['headers'].update(headers)
-        return event
+        self.test_data_generator.put_default_license_record_in_provider_table(
+            value_overrides={
+                'providerId': str(provider.providerId),
+                'jurisdiction': license_jurisdiction,
+            }
+        )
+
+        # Create privilege record directly using TestDataGenerator
+        self.test_data_generator.put_default_privilege_record_in_provider_table(
+            value_overrides={
+                'providerId': str(provider.providerId),
+                'jurisdiction': privilege_jurisdiction,
+                'licenseJurisdiction': license_jurisdiction,
+                'privilegeId': f'SLP-{privilege_jurisdiction.upper()}-1',
+            }
+        )
+
+        return str(provider.providerId)
 
     def test_get_provider_success_with_general_permissions(self):
         """Test successful provider retrieval with general read permissions."""
@@ -646,89 +643,13 @@ class TestGetProvider(TstFunction):
 
         self.assertEqual(400, resp['statusCode'])
 
-    def _generate_provider_with_privilege_in_jurisdiction(
-        self, privilege_jurisdiction: str, license_jurisdiction: str
-    ) -> str:
-        """Helper method to generate a provider with a privilege in a specific jurisdiction."""
-
-        # Create a provider with privileges in the specified jurisdictions using test_data_generator
-        provider = self.test_data_generator.put_default_provider_record_in_provider_table(
-            value_overrides={
-                'licenseJurisdiction': license_jurisdiction,
-                # Set the jurisdiction where we'll create privileges
-                'privilegeJurisdictions': {privilege_jurisdiction},
-            },
-            is_registered=True,
-        )
-
-        self.test_data_generator.put_default_license_record_in_provider_table(
-            value_overrides={
-                'providerId': str(provider.providerId),
-                'jurisdiction': license_jurisdiction,
-            }
-        )
-
-        # Create privilege record directly using TestDataGenerator
-        self.test_data_generator.put_default_privilege_record_in_provider_table(
-            value_overrides={
-                'providerId': str(provider.providerId),
-                'jurisdiction': privilege_jurisdiction,
-                'licenseJurisdiction': license_jurisdiction,
-                'privilegeId': f'SLP-{privilege_jurisdiction.upper()}-1',
-            }
-        )
-
-        return str(provider.providerId)
-
 
 @mock_aws
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
-class TestBulkUploadUrlHandler(TstFunction):
-    def setUp(self):
-        super().setUp()
-        # Load test keys for DSA authentication
-        with open('../common/tests/resources/client_private_key.pem') as f:
-            self.private_key_pem = f.read()
-        with open('../common/tests/resources/client_public_key.pem') as f:
-            self.public_key_pem = f.read()
-
-        # Load DSA public key into the compact configuration table for functional testing
+class TestBulkUploadUrlHandler(DsaTestBase):
+    def _setup_dsa_keys(self):
+        """Setup DSA keys for testing. Only need 'oh' jurisdiction for this test."""
         self._load_dsa_public_key('aslp', 'oh', 'test-key-001', self.public_key_pem)
-
-    def _load_dsa_public_key(self, compact: str, jurisdiction: str, key_id: str, public_key_pem: str):
-        """Load a DSA public key into the compact configuration table."""
-        item = {
-            'pk': f'{compact}#DSA_KEYS',
-            'sk': f'{compact}#JURISDICTION#{jurisdiction}#{key_id}',
-            'publicKey': public_key_pem,
-            'compact': compact,
-            'jurisdiction': jurisdiction,
-            'keyId': key_id,
-            'createdAt': '2024-01-01T00:00:00Z',
-        }
-        self._compact_configuration_table.put_item(Item=item)
-
-    def _create_signed_event(self, event: dict) -> dict:
-        """Add DSA headers to an event for optional DSA authentication."""
-        # Generate current timestamp and nonce
-        timestamp = datetime.now(UTC).isoformat()
-        nonce = str(uuid4())
-        key_id = 'test-key-001'
-
-        # Sign the request
-        headers = sign_request(
-            method=event['httpMethod'],
-            path=event['path'],
-            query_params=event.get('queryStringParameters') or {},
-            timestamp=timestamp,
-            nonce=nonce,
-            key_id=key_id,
-            private_key_pem=self.private_key_pem,
-        )
-
-        # Add DSA headers to event
-        event['headers'].update(headers)
-        return event
 
     def test_bulk_upload_url_handler_success(self):
         """Test successful bulk upload URL generation with optional DSA authentication."""
