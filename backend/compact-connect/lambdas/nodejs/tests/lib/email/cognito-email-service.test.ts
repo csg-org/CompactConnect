@@ -73,6 +73,8 @@ describe('CognitoEmailService', () => {
             expect(subject).toBe('Reset your password');
             expect(htmlContent).toContain('Enter the following code to proceed:');
             expect(htmlContent).toContain('{####}');
+            expect(htmlContent).toContain('<strong>Important:</strong> If you have lost access to your multi-factor authentication (MFA), you will need to recover your account by visiting the following link instead:');
+            expect(htmlContent).toContain('https://app.test.compactconnect.org/mfarecoverystart');
         });
 
         it('should generate UpdateUserAttribute message', () => {

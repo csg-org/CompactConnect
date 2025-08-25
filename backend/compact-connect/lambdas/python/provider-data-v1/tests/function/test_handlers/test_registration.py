@@ -1,5 +1,6 @@
 import json
 from datetime import datetime, timedelta
+from functools import wraps
 from unittest.mock import PropertyMock, patch
 
 from cc_common.exceptions import CCInternalException
@@ -64,11 +65,23 @@ def generate_test_request():
     }
 
 
+def mock_delay_decorator(*args, **kwargs):  # noqa: ARG001 unused-argument
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            return f(*args, **kwargs)
+
+        return decorated_function
+
+    return decorator
+
+
 @mock_aws
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP))
 class TestProviderRegistration(TstFunction):
     def setUp(self):
         super().setUp()
+        patch('cc_common.utils.delayed_function', mock_delay_decorator).start()
 
         self._load_compact_configuration(overrides=generate_default_compact_config_overrides())
         self._load_jurisdiction_configuration(overrides=generate_default_jurisdiction_config_overrides())

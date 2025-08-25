@@ -192,3 +192,33 @@ class TestEmailServiceClient(TstLambdas):
                 }
             ),
         )
+
+    def test_provider_account_recovery_confirmation_should_invoke_lambda_client_with_expected_parameters(self):
+        mock_lambda_client = MagicMock()
+        test_model = self._generate_test_model(mock_lambda_client)
+
+        test_model.send_provider_account_recovery_confirmation_email(
+            compact=TEST_COMPACT,
+            provider_email='123@example.com',
+            provider_id='123',
+            recovery_token='456',  # noqa: S106 test mock token
+        )
+
+        mock_lambda_client.invoke.assert_called_once_with(
+            FunctionName='test-lambda-name',
+            InvocationType='RequestResponse',
+            Payload=json.dumps(
+                {
+                    'compact': TEST_COMPACT,
+                    'template': 'providerAccountRecoveryConfirmation',
+                    'recipientType': 'SPECIFIC',
+                    'specificEmails': [
+                        '123@example.com',
+                    ],
+                    'templateVariables': {
+                        'providerId': '123',
+                        'recoveryToken': '456',
+                    },
+                }
+            ),
+        )

@@ -143,6 +143,8 @@ describe('CognitoEmailsLambda', () => {
         expect(response.response.emailSubject).toBe('Reset your password');
         expect(response.response.emailMessage).toContain('You requested to reset your password');
         expect(response.response.emailMessage).toContain('TEST-CODE-123');
+        expect(response.response.emailMessage).toContain('<strong>Important:</strong> If you have lost access to your multi-factor authentication (MFA), you will need to recover your account by visiting the following link instead:');
+        expect(response.response.emailMessage).toContain('https://app.test.compactconnect.org/mfarecoverystart');
     });
 
     it('should handle missing code parameter', async () => {

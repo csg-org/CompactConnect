@@ -1,0 +1,59 @@
+name: Check-Internal-API-Spec-Update
+
+on:
+  pull_request:
+    paths:
+      - backend/compact-connect/stacks/api_stack/v1_api/**
+
+env:
+  AWS_REGION : "us-east-1"
+
+# Permission can be added at job level or workflow level
+permissions:
+  id-token: write   # This is required for requesting the JWT
+  contents: read    # This is required for actions/checkout
+
+jobs:
+
+  CheckForApiSpecUpdate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch full history to compare with base branch
+
+      - name: Check for API spec update
+        run: |
+          echo "Checking if OpenAPI specification has been updated..."
+          echo "Since API stack files were modified (trigger condition), verifying spec file was also updated."
+          
+          # Get the base branch from GitHub context
+          BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
+          echo "Base branch: $BASE_BRANCH"
+          
+          # Check if the OpenAPI spec file was updated
+          SPEC_FILE_PATH="backend/compact-connect/docs/internal/api-specification/latest-oas30.json"
+          echo "Checking for changes to: $SPEC_FILE_PATH"
+          
+          CHANGED_SPEC_FILE=$(git diff origin/$BASE_BRANCH..HEAD --name-only -- '**/internal/api-specification/latest-oas30.json')
+          
+          if [ -n "$CHANGED_SPEC_FILE" ]; then
+            echo "✅ SUCCESS: OpenAPI spec file was updated: $SPEC_FILE_PATH"
+          else
+            echo ""
+            echo "🚨 ERROR: API stack files were modified but the OpenAPI specification was not updated!"
+            echo ""
+            echo "When you modify API stack files, you must also update the OpenAPI specification at:"
+            echo "  $SPEC_FILE_PATH"
+            echo ""
+            echo "This ensures that the API documentation stays in sync with the implementation."
+            echo ""
+            echo "Please update the OpenAPI spec file and commit it to this PR."
+            exit 1
+          fi

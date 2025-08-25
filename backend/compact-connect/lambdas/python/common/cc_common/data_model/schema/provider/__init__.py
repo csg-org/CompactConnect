@@ -1,6 +1,6 @@
 # ruff: noqa: N802 we use camelCase to match the marshmallow schema definition
 
-from datetime import date
+from datetime import date, datetime
 from uuid import UUID
 
 from cc_common.data_model.schema.common import CCDataClass
@@ -101,13 +101,27 @@ class ProviderData(CCDataClass):
         return self._data.get('emailVerificationCode')
 
     @property
-    def emailVerificationExpiry(self) -> str | None:
+    def emailVerificationExpiry(self) -> datetime | None:
         """
         The expiry datetime for the email verification code.
 
         Only present if the provider has requested an email change and is in the verification process.
         """
         return self._data.get('emailVerificationExpiry')
+
+    @property
+    def recoveryToken(self) -> str | None:
+        """
+        The token for the account recovery process.
+        """
+        return self._data.get('recoveryToken')
+
+    @property
+    def recoveryExpiry(self) -> datetime | None:
+        """
+        The expiry datetime for the account recovery process.
+        """
+        return self._data.get('recoveryExpiry')
 
     @property
     def birthMonthDay(self) -> str | None:

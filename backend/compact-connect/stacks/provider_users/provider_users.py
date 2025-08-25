@@ -63,6 +63,7 @@ class ProviderUsers(UserPool):
                 require_uppercase=False,
                 require_symbols=False,
                 temp_password_validity=Duration.days(1),
+                password_history_size=4,
             ),
             **kwargs,
         )

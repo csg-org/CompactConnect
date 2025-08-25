@@ -1,6 +1,7 @@
 from aws_cdk import Environment, Stage
 from common_constructs.stack import StandardTags
 from constructs import Construct
+from stacks.api_lambda_stack import ApiLambdaStack
 from stacks.api_stack import ApiStack
 from stacks.disaster_recovery_stack import DisasterRecoveryStack
 from stacks.event_listener_stack import EventListenerStack
@@ -79,6 +80,17 @@ class BackendStage(Stage):
             persistent_stack=self.persistent_stack,
         )
 
+        self.api_lambda_stack = ApiLambdaStack(
+            self,
+            'ApiLambdaStack',
+            env=environment,
+            environment_context=environment_context,
+            standard_tags=standard_tags,
+            environment_name=environment_name,
+            persistent_stack=self.persistent_stack,
+            provider_users_stack=self.provider_users_stack,
+        )
+
         self.api_stack = ApiStack(
             self,
             'APIStack',
@@ -88,6 +100,7 @@ class BackendStage(Stage):
             environment_name=environment_name,
             persistent_stack=self.persistent_stack,
             provider_users_stack=self.provider_users_stack,
+            api_lambda_stack=self.api_lambda_stack,
         )
 
         self.state_api_stack = StateApiStack(
