@@ -39,7 +39,7 @@ class ApiModel:
         return self.api._v1_message_response_model
 
     @property
-    def post_licenses_response_model(self) -> Model:
+    def post_licenses_error_response_model(self) -> Model:
         """Response model for POST licenses which specifies error responses"""
         if hasattr(self.api, '_v1_post_licenses_response_model'):
             return self.api._v1_post_licenses_response_model

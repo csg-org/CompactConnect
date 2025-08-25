@@ -67,7 +67,8 @@ class PostLicenses:
                     status_code='200', response_models={'application/json': self.api_model.message_response_model}
                 ),
                 MethodResponse(
-                    status_code='400', response_models={'application/json': self.api_model.post_licenses_response_model}
+                    status_code='400', response_models={'application/json':
+                                                            self.api_model.post_licenses_error_response_model}
                 ),
             ],
             integration=LambdaIntegration(
