@@ -32,12 +32,14 @@ from purchase_client import PurchaseClient
 REQUIRED_ATTESTATION_IDS = [
     'jurisprudence-confirmation',
     'scope-of-practice-attestation',
-    'personal-information-home-state-attestation',
     'personal-information-address-attestation',
     'discipline-no-current-encumbrance-attestation',
     'discipline-no-prior-encumbrance-attestation',
     'provision-of-true-information-attestation',
 ]
+
+# List of attestations that are required is practitioner is not active military
+NON_MILITARY_ATTESTATION_IDS = ['personal-information-home-state-attestation']
 
 # Attestations where exactly one must be provided
 INVESTIGATION_ATTESTATION_IDS = [
@@ -46,7 +48,10 @@ INVESTIGATION_ATTESTATION_IDS = [
 ]
 
 # Attestation required for users with active military affiliation
-MILITARY_ATTESTATION_ID = 'military-affiliation-confirmation-attestation'
+MILITARY_ATTESTATION_IDS = [
+    'military-affiliation-confirmation-attestation',
+    'military-personal-information-state-license-attestation',
+]
 
 
 def _get_caller_compact_custom_attribute(event: dict) -> str:
@@ -124,7 +129,9 @@ def _validate_attestations(compact: str, attestations: list[dict], has_active_mi
     # Build list of required attestations
     required_ids = REQUIRED_ATTESTATION_IDS.copy()
     if has_active_military_affiliation:
-        required_ids.append(MILITARY_ATTESTATION_ID)
+        required_ids.extend(MILITARY_ATTESTATION_IDS)
+    else:
+        required_ids.extend(NON_MILITARY_ATTESTATION_IDS)
 
     # Validate investigation attestations - exactly one must be provided
     investigation_attestations = [a for a in attestations if a['attestationId'] in INVESTIGATION_ATTESTATION_IDS]
