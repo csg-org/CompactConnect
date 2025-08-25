@@ -4,9 +4,11 @@ env:
     urls:
     - https://app.test.compactconnect.org
     - https://api.test.compactconnect.org
+    - https://state-api.test.compactconnect.org
     includePaths:
     - https://app.test.compactconnect.org.*
     - https://api.test.compactconnect.org.*
+    - https://state-api.test.compactconnect.org.*
     authentication:
       verification:
         method: response
