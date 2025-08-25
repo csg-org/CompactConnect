@@ -12,12 +12,14 @@ import MilitaryAffiliationInfoBlock from '@components/MilitaryAffiliationInfoBlo
 import { Compact } from '@models/Compact/Compact.model';
 import { LicenseeUser } from '@/models/LicenseeUser/LicenseeUser.model';
 import { Licensee } from '@/models/Licensee/Licensee.model';
+import AlertTriangle from '@components/Icons/AlertTriangle/AlertTriangle.vue';
 
 @Component({
     name: 'MilitaryStatus',
     components: {
         InputButton,
         MilitaryAffiliationInfoBlock,
+        AlertTriangle,
     }
 })
 export default class MilitaryStatus extends mixins(MixinForm) {
@@ -58,6 +60,10 @@ export default class MilitaryStatus extends mixins(MixinForm) {
 
     get statusTitleText(): string {
         return this.$t('licensing.status').toUpperCase();
+    }
+
+    get isMilitaryStatusInitializing(): boolean {
+        return this.licensee?.isMilitaryStatusInitializing() || false;
     }
 
     goBack(): void {

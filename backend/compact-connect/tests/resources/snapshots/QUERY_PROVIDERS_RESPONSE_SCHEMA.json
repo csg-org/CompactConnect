@@ -358,7 +358,7 @@
     }
   },
   "required": [
-    "items",
+    "providers",
     "pagination"
   ],
   "type": "object",

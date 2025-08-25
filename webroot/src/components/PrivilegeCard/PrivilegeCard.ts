@@ -160,6 +160,10 @@ class PrivilegeCard extends mixins(MixinForm) {
         return this.privilege?.issueDateDisplay() || '';
     }
 
+    get activeFromContent(): string {
+        return this.privilege?.activeFromDateDisplay() || '';
+    }
+
     get isExpired(): boolean {
         return Boolean(this.privilege?.isExpired());
     }
@@ -169,7 +173,7 @@ class PrivilegeCard extends mixins(MixinForm) {
     }
 
     get expiresContent(): string {
-        return (this.privilege?.isDeactivated()) ? this.$t('licensing.deactivated') : this.privilege?.expireDateDisplay() || '';
+        return this.privilege?.expireDateDisplay() || '';
     }
 
     get isEncumbered(): boolean {

@@ -6,13 +6,12 @@ from aws_cdk import Duration
 from aws_cdk.aws_apigateway import LambdaIntegration, MethodOptions, MethodResponse, Resource
 from aws_cdk.aws_iam import IRole
 from aws_cdk.aws_sqs import IQueue
+from common_constructs.cc_api import CCApi
 from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
 
 from stacks import persistent_stack as ps
 
-# Importing module level to allow lazy loading for typing
-from .. import cc_api
 from .api_model import ApiModel
 
 
@@ -28,7 +27,7 @@ class PostLicenses:
         super().__init__()
 
         self.resource = resource
-        self.api: cc_api.CCApi = resource.api
+        self.api: CCApi = resource.api
         self.api_model = api_model
         self.log_groups = []
 

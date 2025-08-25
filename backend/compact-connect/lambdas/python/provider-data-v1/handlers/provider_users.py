@@ -19,7 +19,7 @@ from cc_common.data_model.schema.provider.api import (
     ProviderEmailVerificationRequestSchema,
 )
 from cc_common.exceptions import CCInternalException, CCInvalidRequestException, CCNotFoundException
-from cc_common.utils import api_handler
+from cc_common.utils import api_handler, get_provider_user_attributes_from_authorizer_claims
 from marshmallow import ValidationError
 
 from . import get_provider_information
@@ -58,27 +58,13 @@ def provider_users_api_handler(event: dict, context: LambdaContext):
     raise CCInvalidRequestException(f'Unsupported method or resource: {http_method} {resource_path}')
 
 
-def _check_provider_user_attributes(event: dict) -> tuple[str, str]:
-    try:
-        # the two values for compact and providerId are stored as custom attributes in the user's cognito claims
-        # so we can access them directly from the event object
-        compact = event['requestContext']['authorizer']['claims']['custom:compact']
-        provider_id = event['requestContext']['authorizer']['claims']['custom:providerId']
-    except (KeyError, TypeError) as e:
-        # This shouldn't happen unless a provider user was created without these custom attributes.
-        logger.error(f'Missing custom provider attribute: {e}')
-        raise CCInvalidRequestException('Missing required user profile attribute') from e
-
-    return compact, provider_id
-
-
 def get_provider_user_me(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """Endpoint for a provider user to fetch their personal provider data.
 
     :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
     :param LambdaContext context:
     """
-    compact, provider_id = _check_provider_user_attributes(event)
+    compact, provider_id = get_provider_user_attributes_from_authorizer_claims(event)
 
     try:
         return get_provider_information(compact=compact, provider_id=provider_id)
@@ -105,7 +91,7 @@ def _put_provider_home_jurisdiction(event: dict, context: LambdaContext):  # noq
     if selected_jurisdiction not in config.jurisdictions and selected_jurisdiction != OTHER_JURISDICTION:
         raise CCInvalidRequestException('Invalid jurisdiction selected.')
 
-    compact, provider_id = _check_provider_user_attributes(event)
+    compact, provider_id = get_provider_user_attributes_from_authorizer_claims(event)
 
     # Log the request
     logger.info(
@@ -137,7 +123,7 @@ def _post_provider_military_affiliation(event, context):  # noqa: ARG001 unused-
     Handle the POST method for updating a provider's military affiliation.
     Creates a new military affiliation record and generates a S3 pre-signed URL for the user to upload their document.
     """
-    compact, provider_id = _check_provider_user_attributes(event)
+    compact, provider_id = get_provider_user_attributes_from_authorizer_claims(event)
 
     s3_document_prefix = (
         f'compact/{compact}/provider/{provider_id}/document-type/'
@@ -197,7 +183,7 @@ def _patch_provider_military_affiliation(event, context):  # noqa: ARG001 unused
     Handle the PATCH method for updating a provider's military affiliation.
     Updates the status of the user's military affiliation.
     """
-    compact, provider_id = _check_provider_user_attributes(event)
+    compact, provider_id = get_provider_user_attributes_from_authorizer_claims(event)
 
     event_body = json.loads(event['body'])
     # we only accept the status field with the value of 'inactive'
@@ -227,7 +213,7 @@ def _patch_provider_email(event: dict, context: LambdaContext):  # noqa: ARG001 
     :param context: Lambda context
     :return: Success message
     """
-    compact, provider_id = _check_provider_user_attributes(event)
+    compact, provider_id = get_provider_user_attributes_from_authorizer_claims(event)
 
     # Parse and validate the request body
     try:
@@ -303,7 +289,7 @@ def _post_provider_email_verify(event: dict, context: LambdaContext):  # noqa: A
     :param context: Lambda context
     :return: Success message
     """
-    compact, provider_id = _check_provider_user_attributes(event)
+    compact, provider_id = get_provider_user_attributes_from_authorizer_claims(event)
 
     # Parse and validate the request body
     try:

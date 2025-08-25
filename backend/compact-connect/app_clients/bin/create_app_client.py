@@ -223,8 +223,25 @@ def create_app_client(user_pool_id, config):
         sys.exit(1)
 
 
-def print_credentials(client_id, client_secret, environment, compact, state):
-    """Print the credentials and API information in JSON format for secure copy/paste."""
+def print_credentials(client_id, client_secret):
+    """Print only the sensitive credentials in JSON format for secure copy/paste."""
+    credentials = {
+        'clientId': client_id,
+        'clientSecret': client_secret,
+    }
+
+    print('\n' + '=' * 60)
+    print('APP CLIENT CREDENTIALS (FOR ONE-TIME LINK SERVICE)')
+    print('=' * 60)
+    print(json.dumps(credentials, indent=2))
+    print('=' * 60)
+    print('Please copy the JSON above and use it with your one-time secret link generator.')
+    print('Do not leave these credentials in terminal history or logs.')
+    print('=' * 60)
+
+
+def print_email_template(environment, compact, state):
+    """Print an email template with contextual information for the consuming team."""
     # Get environment-specific URLs
     auth_urls = {
         'beta': 'https://compact-connect-staff-beta.auth.us-east-1.amazoncognito.com/oauth2/token',
@@ -238,22 +255,40 @@ def print_credentials(client_id, client_secret, environment, compact, state):
         'test': 'https://api.test.compactconnect.org',
     }
 
-    credentials = {
-        'clientId': client_id,
-        'clientSecret': client_secret,
-        'compact': compact,
-        'state': state,
-        'authUrl': auth_urls.get(environment),
-        'licenseUploadUrl': f'{api_base_urls.get(environment)}/v1/compacts/{compact}/jurisdictions/{state}/licenses',
+    # Compact name mapping
+    compact_names = {
+        'aslp': 'Audiology and Speech Language Pathology',
+        'octp': 'Occupational Therapy',
+        'coun': 'Counseling',
     }
 
+    compact_name = compact_names.get(compact, compact.upper())
+    auth_url = auth_urls.get(environment)
+    license_upload_url = f'{api_base_urls.get(environment)}/v1/compacts/{compact}/jurisdictions/{state}/licenses'
+
+    email_template = f"""
+Thank you for integrating with Compact Connect! You have been designated as the IT professional who is able to handle
+credentials for secure machine-to-machine authentication between your state and CompactConnect.
+
+Details for these credentials are:
+Compact: {compact_name}
+State: {state.upper()}
+Auth URL: {auth_url}
+License Upload URL: {license_upload_url}
+
+Follow this link to your API credentials as soon as you are ready to securely store them. They will only be viewable
+once:
+<insert one-time link here>
+
+For more information on CompactConnect and how to integrate your state IT system with ours, see the documentation
+here:
+https://github.com/csg-org/CompactConnect/blob/development/backend/compact-connect/app_clients/it_staff_onboarding_instructions/README.md
+"""
+
     print('\n' + '=' * 60)
-    print('APP CLIENT CREDENTIALS AND API INFORMATION')
+    print('EMAIL TEMPLATE (COPY/PASTE INTO EMAIL CLIENT)')
     print('=' * 60)
-    print(json.dumps(credentials, indent=2))
-    print('=' * 60)
-    print('Please copy the JSON above and use it with your one-time secret link generator.')
-    print('Do not leave these credentials in terminal history or logs.')
+    print(email_template.strip())
     print('=' * 60)
 
 
@@ -291,7 +326,10 @@ def main():
         print(f'Client ID: {client_id}')
 
         # Print credentials for secure copy/paste
-        print_credentials(client_id, client_secret, args.environment, config['compact'], config['state'])
+        print_credentials(client_id, client_secret)
+
+        # Print email template
+        print_email_template(args.environment, config['compact'], config['state'])
 
         print('\n📝 Remember to add this app client to your external registry!')
 

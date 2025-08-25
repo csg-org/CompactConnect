@@ -101,7 +101,6 @@ class CognitoUserBackup(Construct):
                     enabled=True,
                     # Delete non-current versions after 1 day to minimize storage costs
                     noncurrent_version_expiration=Duration.days(1),
-
                 )
             ],
         )

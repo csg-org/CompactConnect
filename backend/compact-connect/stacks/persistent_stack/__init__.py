@@ -170,13 +170,15 @@ class PersistentStack(AppStack):
                 hosted_zone=self.hosted_zone,
                 master_key=self.shared_encryption_key,
             )
+            notification_from_email = f'no-reply@{self.hosted_zone.zone_name}'
             user_pool_email_settings = UserPoolEmail.with_ses(
-                from_email=f'no-reply@{self.hosted_zone.zone_name}',
+                from_email=notification_from_email,
                 ses_verified_domain=self.hosted_zone.zone_name,
                 configuration_set_name=self.user_email_notifications.config_set.configuration_set_name,
             )
         else:
             # if domain name is not provided, use the default cognito email settings
+            notification_from_email = None
             user_pool_email_settings = UserPoolEmail.with_cognito()
 
         self._create_email_notification_service()
@@ -192,6 +194,10 @@ class PersistentStack(AppStack):
             environment_context=environment_context,
             encryption_key=self.shared_encryption_key,
             user_pool_email=user_pool_email_settings,
+            notification_from_email=notification_from_email,
+            ses_identity_arn=self.user_email_notifications.email_identity.email_identity_arn
+            if self.hosted_zone
+            else None,
             security_profile=security_profile,
             removal_policy=removal_policy,
             backup_infrastructure_stack=self.backup_infrastructure_stack,
@@ -366,48 +372,25 @@ class PersistentStack(AppStack):
             ],
         )
 
-        self.provider_user_pool_migration = DataMigration(
+        self.update_license_dates_migration = DataMigration(
             self,
-            'ProviderUserPoolMigration',
-            migration_dir='provider_user_pool_migration_551',
+            '931LicenseUpdateEffectiveDate',
+            migration_dir='license_update_effective_date_931',
             lambda_environment={
                 'PROVIDER_TABLE_NAME': self.provider_table.table_name,
                 **self.common_env_vars,
             },
         )
-        self.provider_table.grant_read_write_data(self.provider_user_pool_migration)
+        self.provider_table.grant_read_write_data(self.update_license_dates_migration)
         NagSuppressions.add_resource_suppressions_by_path(
             self,
-            f'{self.provider_user_pool_migration.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': 'This policy contains wild-carded actions and resources but they are scoped to the '
-                    'specific table that this lambda needs access to in order to perform the user pool domain '
-                    'migration.',
-                },
-            ],
-        )
-
-        self.compact_configured_states_migration = DataMigration(
-            self,
-            'CompactConfiguredStatesMigration',
-            migration_dir='compact_configured_states_871',
-            lambda_environment={
-                'COMPACT_CONFIGURATION_TABLE_NAME': self.compact_configuration_table.table_name,
-                **self.common_env_vars,
-            },
-        )
-        self.compact_configuration_table.grant_read_write_data(self.compact_configured_states_migration)
-        NagSuppressions.add_resource_suppressions_by_path(
-            self,
-            f'{self.compact_configured_states_migration.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            f'{self.update_license_dates_migration.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
                     'reason': 'This policy contains wild-carded actions and resources but they are scoped to the '
                     'specific actions, Table and Key that this lambda needs access to in order to perform the'
-                    'compact configuredStates migration.',
+                    'migration.',
                 },
             ],
         )
@@ -423,8 +406,7 @@ class PersistentStack(AppStack):
             ),
             log_groups=[
                 update_dates_migration.migration_function.log_group,
-                self.provider_user_pool_migration.migration_function.log_group,
-                self.compact_configured_states_migration.migration_function.log_group,
+                self.update_license_dates_migration.migration_function.log_group,
             ],
         )
 

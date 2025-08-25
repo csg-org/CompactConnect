@@ -13,12 +13,15 @@ from uuid import UUID
 from aws_lambda_powertools import Logger
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
+from marshmallow import ValidationError
 
 from cc_common.config import config, logger, metrics
+from cc_common.data_model.schema.base_record import BaseRecordSchema
 from cc_common.data_model.schema.common import CCPermissionsAction
 from cc_common.data_model.schema.provider.api import ProviderGeneralResponseSchema
 from cc_common.exceptions import (
     CCAccessDeniedException,
+    CCInternalException,
     CCInvalidRequestException,
     CCNotFoundException,
     CCRateLimitingException,
@@ -381,7 +384,7 @@ def _authorize_compact_with_scope(event: dict, resource_parameter: str, scope_pa
 
     required_scope = f'{resource_value}/{scope_value}.{action}'
     if required_scope not in scopes:
-        logger.warning('Forbidden access attempt!')
+        logger.warning('Forbidden access attempt!', scopes=scopes, required_scope=required_scope)
         raise CCAccessDeniedException('Forbidden access attempt!')
 
 
@@ -570,6 +573,14 @@ def get_sub_from_user_attributes(attributes: list):
     raise ValueError('Failed to find user sub!')
 
 
+def caller_is_compact_admin(compact: str, caller_scopes: set[str]) -> bool:
+    if f'{compact}/{CCPermissionsAction.ADMIN}' in caller_scopes:
+        logger.debug('User has admin permission at compact level', compact=compact, scopes=caller_scopes)
+        return True
+
+    return False
+
+
 def _user_has_read_private_access_for_provider(compact: str, provider_information: dict, scopes: set[str]) -> bool:
     return _user_has_permission_for_action_on_user(
         action=CCPermissionsAction.READ_PRIVATE,
@@ -620,6 +631,30 @@ def _user_has_permission_for_action_on_user(
     return False
 
 
+def _inject_pre_signed_urls_into_military_affiliation_records(provider: dict):
+    """
+    Generates temporary S3 pre-signed urls to allow users with the link to access the associated document.
+    See https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-presigned-url.html
+    """
+    for record in provider['militaryAffiliations']:
+        try:
+            url = config.s3_client.generate_presigned_url(
+                'get_object',
+                # the 'documentKeys' field is a list of 1, as we only support uploading one military affiliation record
+                # for an affiliation record, but there were hints that this may change in the future in which case
+                # we would need to generate a link per document key.
+                Params={'Bucket': config.provider_user_bucket_name, 'Key': record['documentKeys'][0]},
+                # 2 hours in seconds, to avoid links becoming stale during their session.
+                ExpiresIn=7200,
+            )
+            # returning this as a list of one for now, to support multiple download links in the future
+            record['downloadLinks'] = [{'fileName': record['fileNames'][0], 'url': url}]
+        except ClientError as e:
+            # if the url could not be generated, we log the error and continue, so as to not fail the entire request
+            # for this peripheral feature
+            logger.error(e)
+
+
 def sanitize_provider_data_based_on_caller_scopes(compact: str, provider: dict, scopes: set[str]) -> dict:
     """
     Take a provider and a set of user scopes, then return a provider, with information sanitized based on what
@@ -627,10 +662,22 @@ def sanitize_provider_data_based_on_caller_scopes(compact: str, provider: dict, 
 
     :param str compact: The compact the user is trying to access.
     :param dict provider: The provider record to be sanitized.
-    :param set scopes: The user's scopes from the request.
+    :param set scopes: The caller's scopes from the request.
     :return: The provider record, sanitized based on the user's scopes.
     """
-    if _user_has_read_private_access_for_provider(compact=compact, provider_information=provider, scopes=scopes):
+
+    caller_is_admin = caller_is_compact_admin(compact, caller_scopes=scopes)
+    if caller_is_admin:
+        # compact admins have the ability to download military affiliation records
+        # so we generate a pre-signed url per military affiliation document
+        _inject_pre_signed_urls_into_military_affiliation_records(provider)
+
+    # Currently, the UI bundles permissions for admins, granting them the readPrivate scope along with admin. Should
+    # this ever change, we will need to account for that here. This 'or' conditional is a precautionary measure to keep
+    # UI changes from unintentionally breaking existing functionality
+    if caller_is_admin or _user_has_read_private_access_for_provider(
+        compact=compact, provider_information=provider, scopes=scopes
+    ):
         # return full object since caller has 'readPrivate' access for provider
         return provider
 
@@ -696,3 +743,29 @@ def send_licenses_to_preprocessing_queue(licenses_data: list[dict], event_time: 
 
     # Return success status and failure count
     return failed_license_numbers
+
+
+def load_records_into_schemas(records: list[dict]):
+    """Load records into their defined schema"""
+    try:
+        return [BaseRecordSchema.get_schema_by_type(item['type']).load(item) for item in records]
+    except ValidationError as e:
+        logger.error('Validation error', error=e)
+        raise CCInternalException('Data validation failure!') from e
+    except KeyError as e:
+        logger.error('Key error', error=e)
+        raise CCInternalException('Key error!') from e
+
+
+def get_provider_user_attributes_from_authorizer_claims(event: dict) -> tuple[str, str]:
+    try:
+        # the two values for compact and providerId are stored as custom attributes in the user's cognito claims
+        # so we can access them directly from the event object
+        compact = event['requestContext']['authorizer']['claims']['custom:compact']
+        provider_id = event['requestContext']['authorizer']['claims']['custom:providerId']
+    except (KeyError, TypeError) as e:
+        # This shouldn't happen unless a provider user was created without these custom attributes.
+        logger.error(f'Missing custom provider attribute: {e}')
+        raise CCInvalidRequestException('Missing required user profile attribute') from e
+
+    return compact, provider_id

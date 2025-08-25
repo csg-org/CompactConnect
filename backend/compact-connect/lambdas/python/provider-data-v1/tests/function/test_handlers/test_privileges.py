@@ -15,7 +15,7 @@ TEST_STAFF_USER_FIRST_NAME = 'Joe'
 TEST_STAFF_USER_LAST_NAME = 'Dokes'
 TEST_NOTE = 'User does not like having this privilege.'
 
-DEACTIVATION_HISTORY = {
+DEACTIVATION_EVENT = {
     'type': 'privilegeUpdate',
     'updateType': 'deactivation',
     'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
@@ -92,12 +92,13 @@ class TestDeactivatePrivilege(TstFunction):
         # Update expected provider data to include the deactivation
         expected_provider['privileges'][0]['administratorSetStatus'] = 'inactive'
         expected_provider['privileges'][0]['status'] = 'inactive'
-        # Add the deactivation history
-        expected_provider['privileges'][0]['history'].insert(0, DEACTIVATION_HISTORY)
+        # Add the deactivation event to end of history
+        expected_provider['privileges'][0]['history'].insert(2, DEACTIVATION_EVENT)
         expected_provider['privileges'][0]['dateOfUpdate'] = '2024-11-08T23:59:59+00:00'
+        # remove activeSince Field, since the privilege in this case would not be active
+        del expected_provider['privileges'][0]['activeSince']
 
         body = json.loads(resp['body'])
-
         self.assertEqual(expected_provider, body)
 
     def _request_deactivation_with_scopes(self, scopes: str):

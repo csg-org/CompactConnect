@@ -17,4 +17,7 @@ declare global {
             [elem: string]: any;
         }
     }
+    interface Array<T> {
+        at(index: number): T | undefined;
+    }
 }

@@ -7,7 +7,12 @@
 
 .input-submit-container {
     .response-message {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: flex-start;
         min-height: 24px;
+        margin-bottom: 1rem;
 
         .success {
             color: @midGreen;
@@ -15,6 +20,11 @@
 
         .error {
             color: @midRed;
+        }
+
+        .success,
+        .error {
+            overflow-wrap: anywhere;
         }
     }
 }

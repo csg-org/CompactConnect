@@ -63,10 +63,6 @@
             <div class="license-status-description" ref="statusDescription">{{statusDescriptionDisplay}}</div>
         </div>
         <div class="license-info-grid">
-            <div class="info-item-container">
-                <div class="info-item-title">{{ $t('licensing.issued') }}</div>
-                <div class="info-item">{{issuedContent}}</div>
-            </div>
            <div class="info-item-container">
                 <div class="info-item-title">{{expiresTitle}}</div>
                 <div class="info-item">{{expiresContent}}</div>

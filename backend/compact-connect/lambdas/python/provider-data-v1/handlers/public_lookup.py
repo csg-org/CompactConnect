@@ -77,7 +77,7 @@ def public_query_providers(event: dict, context: LambdaContext):  # noqa: ARG001
                         compact=compact,
                         jurisdiction=jurisdiction,
                         scan_forward=scan_forward,
-                        exclude_providers_without_privileges=True,
+                        only_providers_with_privileges=True,
                         pagination=body.get('pagination'),
                     ),
                 }

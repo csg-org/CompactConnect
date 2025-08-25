@@ -1,5 +1,6 @@
 import json
 from datetime import datetime
+from decimal import Decimal
 from unittest.mock import ANY, MagicMock, patch
 
 from moto import mock_aws
@@ -26,6 +27,9 @@ MOCK_CURRENT_BATCH_ID = 'mock_current_batch_id'
 MOCK_PROCESSED_BATCH_IDS = ['mock_processed_batch_id']
 
 MOCK_SCHEDULED_TIME = '2024-01-01T01:00:00Z'
+
+# Test jurisdiction data
+OHIO_JURISDICTION = {'postalAbbreviation': 'oh', 'jurisdictionName': 'ohio', 'sk': 'aslp#JURISDICTION#oh'}
 
 
 def _generate_mock_transaction(
@@ -74,6 +78,25 @@ def _generate_mock_transaction(
 @mock_aws
 class TestProcessSettledTransactions(TstFunction):
     """Test the process_settled_transactions Lambda function."""
+
+    def _add_compact_configuration_data(self, jurisdictions=None):
+        """
+        Use the canned test resources to load compact and jurisdiction information into the DB.
+
+        If jurisdictions is None, it will default to only include Ohio.
+        """
+        if jurisdictions is None:
+            jurisdictions = [OHIO_JURISDICTION]
+
+        with open('../common/tests/resources/dynamo/compact.json') as f:
+            record = json.load(f, parse_float=Decimal)
+            self._compact_configuration_table.put_item(Item=record)
+
+        with open('../common/tests/resources/dynamo/jurisdiction.json') as f:
+            record = json.load(f, parse_float=Decimal)
+            for jurisdiction in jurisdictions:
+                record.update(jurisdiction)
+                self._compact_configuration_table.put_item(Item=record)
 
     def _add_mock_privilege_to_database(
         self,
@@ -193,6 +216,7 @@ class TestProcessSettledTransactions(TstFunction):
         # transaction id and privilege id
         self._when_purchase_client_returns_transactions(mock_purchase_client_constructor)
         self._add_mock_privilege_to_database()
+        self._add_compact_configuration_data()
 
         event = self._when_testing_non_paginated_event()
         resp = process_settled_transactions(event, self.mock_context)
@@ -218,6 +242,7 @@ class TestProcessSettledTransactions(TstFunction):
             mock_purchase_client_constructor
         )
         self._add_mock_privilege_to_database()
+        self._add_compact_configuration_data()
 
         event = self._when_testing_paginated_event()
 
@@ -243,6 +268,7 @@ class TestProcessSettledTransactions(TstFunction):
         # transaction id and privilege id
         self._when_purchase_client_returns_transactions(mock_purchase_client_constructor)
         self._add_mock_privilege_to_database()
+        self._add_compact_configuration_data()
 
         event = self._when_testing_non_paginated_event()
 
@@ -308,6 +334,7 @@ class TestProcessSettledTransactions(TstFunction):
         # This same transaction should map to the exact same pk/sk pattern in an idempotent manner.
         self._when_purchase_client_returns_transactions(mock_purchase_client_constructor)
         self._add_mock_privilege_to_database()
+        self._add_compact_configuration_data()
 
         event = self._when_testing_non_paginated_event()
 
@@ -341,6 +368,7 @@ class TestProcessSettledTransactions(TstFunction):
         from handlers.transaction_history import process_settled_transactions
 
         self._when_purchase_client_returns_paginated_transactions(mock_purchase_client_constructor)
+        self._add_compact_configuration_data()
 
         event = self._when_testing_non_paginated_event()
         resp = process_settled_transactions(event, self.mock_context)
@@ -409,6 +437,7 @@ class TestProcessSettledTransactions(TstFunction):
             },
         ]
 
+        self._add_compact_configuration_data()
         event = self._when_testing_non_paginated_event()
         first_resp = process_settled_transactions(event, self.mock_context)
 
@@ -481,6 +510,7 @@ class TestProcessSettledTransactions(TstFunction):
         # in this test, there is one transaction, but no matching privilege. These should cause the system to set the
         # privilege id as UNKNOWN
         self._when_purchase_client_returns_transactions(mock_purchase_client_constructor)
+        self._add_compact_configuration_data()
 
         event = self._when_testing_non_paginated_event()
 
@@ -524,6 +554,7 @@ class TestProcessSettledTransactions(TstFunction):
             privilege_id=latest_transaction_privilege_id, transaction_id=latest_transaction_id, jurisdiction='ky'
         )
 
+        self._add_compact_configuration_data()
         event = self._when_testing_non_paginated_event()
 
         process_settled_transactions(event, self.mock_context)
@@ -596,6 +627,7 @@ class TestProcessSettledTransactions(TstFunction):
             privilege_id=privilege_id_ky, transaction_id=transaction_id, jurisdiction='ky'
         )
 
+        self._add_compact_configuration_data()
         event = self._when_testing_non_paginated_event()
 
         process_settled_transactions(event, self.mock_context)
@@ -638,3 +670,55 @@ class TestProcessSettledTransactions(TstFunction):
             ],
             stored_transactions['Items'][0]['lineItems'],
         )
+
+    @patch('handlers.transaction_history.PurchaseClient')
+    def test_process_settled_transactions_exits_early_when_compact_not_live(
+        self, mock_purchase_client_constructor
+    ):
+        """Test that the function exits early when compact is not yet live."""
+        from handlers.transaction_history import process_settled_transactions
+
+        # Don't add any compact configuration data - this simulates a compact that is not yet live
+        event = self._when_testing_non_paginated_event()
+        resp = process_settled_transactions(event, self.mock_context)
+
+        # Should return early with COMPLETE status
+        self.assertEqual(
+            {
+                'compact': TEST_COMPACT,
+                'scheduledTime': MOCK_SCHEDULED_TIME,
+                'status': 'COMPLETE',
+            },
+            resp,
+        )
+
+        # The purchase client should not be called since we exit early
+        mock_purchase_client_constructor.assert_not_called()
+
+    @patch('handlers.transaction_history.PurchaseClient')
+    def test_process_settled_transactions_exits_early_when_compact_exists_but_no_jurisdictions(
+        self, mock_purchase_client_constructor
+    ):
+        """Test that the function exits early when compact exists but no jurisdictions are configured."""
+        from handlers.transaction_history import process_settled_transactions
+
+        # Add only compact configuration data, no jurisdictions
+        with open('../common/tests/resources/dynamo/compact.json') as f:
+            record = json.load(f, parse_float=Decimal)
+            self._compact_configuration_table.put_item(Item=record)
+
+        event = self._when_testing_non_paginated_event()
+        resp = process_settled_transactions(event, self.mock_context)
+
+        # Should return early with COMPLETE status
+        self.assertEqual(
+            {
+                'compact': TEST_COMPACT,
+                'scheduledTime': MOCK_SCHEDULED_TIME,
+                'status': 'COMPLETE',
+            },
+            resp,
+        )
+
+        # The purchase client should not be called since we exit early
+        mock_purchase_client_constructor.assert_not_called()

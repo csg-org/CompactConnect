@@ -304,5 +304,13 @@ class _Config:
 
         return EventBusClient()
 
+    @property
+    def api_base_url(self):
+        """
+        Return the API base URL for constructing provider UI URLs.
+        Used by the state API to generate providerUIUrl in responses.
+        """
+        return os.environ['API_BASE_URL']
+
 
 config = _Config()

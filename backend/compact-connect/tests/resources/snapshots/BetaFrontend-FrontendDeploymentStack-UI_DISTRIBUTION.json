@@ -17,7 +17,7 @@
             "Compress": true,
             "PathPattern": "service-worker.js",
             "TargetOriginId": "BetaFrontendPipelineStackBetaFrontendFrontendDeploymentStackUIDistributionOrigin297996453",
-            "ViewerProtocolPolicy": "https-only"
+            "ViewerProtocolPolicy": "redirect-to-https"
           }
         ],
         "CustomErrorResponses": [
@@ -44,7 +44,7 @@
             }
           ],
           "TargetOriginId": "BetaFrontendPipelineStackBetaFrontendFrontendDeploymentStackUIDistributionOrigin12473EA36",
-          "ViewerProtocolPolicy": "https-only"
+          "ViewerProtocolPolicy": "redirect-to-https"
         },
         "DefaultRootObject": "index.html",
         "Enabled": true,

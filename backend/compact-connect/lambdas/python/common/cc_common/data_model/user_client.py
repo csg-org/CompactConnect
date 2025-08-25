@@ -400,7 +400,7 @@ class UserClient:
                     # by the garbage collector, as soon as possible.
                     # These passwords require at least one number, one uppercase, and one lowercase letter, so we add
                     # the prefix to meet these requirements
-                    Password='!1Ha'+token_hex(45),
+                    Password='!1Ha' + token_hex(45),
                     Permanent=False,
                 )
             # If the user is in any unexpected state, we'll raise an exception

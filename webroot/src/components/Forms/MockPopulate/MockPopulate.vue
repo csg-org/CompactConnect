@@ -12,7 +12,8 @@
         @keyup.enter="clicked"
         class="mock-populate"
     >
-        {{ $t('styleGuide.mockPopulate') }}
+        <template v-if="customLabel">{{ customLabel }}</template>
+        <template v-else>{{ $t('styleGuide.mockPopulate') }}</template>
     </div>
 </template>
 

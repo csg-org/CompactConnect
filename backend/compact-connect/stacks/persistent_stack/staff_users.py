@@ -40,6 +40,8 @@ class StaffUsers(UserPool):
         environment_context: dict,
         encryption_key: IKey,
         user_pool_email: UserPoolEmail,
+        notification_from_email: str | None,
+        ses_identity_arn: str | None,
         removal_policy,
         backup_infrastructure_stack: BackupInfrastructureStack | None,
         **kwargs,
@@ -54,6 +56,8 @@ class StaffUsers(UserPool):
             standard_attributes=StandardAttributes(email=StandardAttribute(required=True, mutable=True)),
             removal_policy=removal_policy,
             email=user_pool_email,
+            notification_from_email=notification_from_email,
+            ses_identity_arn=ses_identity_arn,
             **kwargs,
         )
         stack: ps.PersistentStack = ps.PersistentStack.of(self)

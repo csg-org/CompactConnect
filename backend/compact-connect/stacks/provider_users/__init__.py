@@ -39,12 +39,16 @@ class ProviderUsersStack(AppStack):
 
         # Get user pool email settings from persistent stack
         if persistent_stack.hosted_zone:
+            notification_from_email = f'no-reply@{persistent_stack.hosted_zone.zone_name}'
+            ses_identity_arn = persistent_stack.user_email_notifications.email_identity.email_identity_arn
             user_pool_email_settings = UserPoolEmail.with_ses(
-                from_email=f'no-reply@{persistent_stack.hosted_zone.zone_name}',
+                from_email=notification_from_email,
                 ses_verified_domain=persistent_stack.hosted_zone.zone_name,
                 configuration_set_name=persistent_stack.user_email_notifications.config_set.configuration_set_name,
             )
         else:
+            ses_identity_arn = None
+            notification_from_email = None
             user_pool_email_settings = UserPoolEmail.with_cognito()
 
         # Get security profile from environment context
@@ -64,6 +68,8 @@ class ProviderUsersStack(AppStack):
             encryption_key=persistent_stack.shared_encryption_key,
             sign_in_aliases=SignInAliases(email=True, username=False),
             user_pool_email=user_pool_email_settings,
+            notification_from_email=notification_from_email,
+            ses_identity_arn=ses_identity_arn,
             security_profile=security_profile,
             removal_policy=removal_policy,
             persistent_stack=persistent_stack,

@@ -42,7 +42,6 @@ def do_migration(_properties: dict) -> None:
             **scan_pagination,
         )
 
-
         items = response.get('Items', [])
         privilege_updates.extend(items)
         logger.info(f'Found {len(items)} privilege update records in current scan batch')

@@ -38,32 +38,24 @@ describe('LicenseHistoryItem model', () => {
         expect(licenseHistoryItem).to.be.an.instanceof(LicenseHistoryItem);
         expect(licenseHistoryItem.type).to.equal(null);
         expect(licenseHistoryItem.updateType).to.equal('');
-        expect(licenseHistoryItem.previousValues).to.matchPattern({});
-        expect(licenseHistoryItem.updatedValues).to.matchPattern({});
-
-        expect(licenseHistoryItem.dateOfUpdateDisplay()).to.equal('');
+        expect(licenseHistoryItem.dateOfUpdate).to.equal(null);
+        expect(licenseHistoryItem.createDate).to.equal(null);
+        expect(licenseHistoryItem.effectiveDate).to.equal(null);
+        expect(licenseHistoryItem.serverNote).to.equal(null);
+        expect(licenseHistoryItem.effectiveDateDisplay()).to.equal('');
         expect(licenseHistoryItem.isActivatingEvent()).to.equal(false);
         expect(licenseHistoryItem.isDeactivatingEvent()).to.equal(false);
         expect(licenseHistoryItem.updateTypeDisplay()).to.equal('Unknown');
+        expect(licenseHistoryItem.noteDisplay()).to.equal('');
     });
     it('should create a LicenseHistoryItem with specific values', () => {
         const data = {
             type: 'privilegeUpdate',
             updateType: 'renewal',
-            dateOfUpdate: '2023-08-29',
-            previousValues: {
-                compactTransactionId: '123',
-                dateOfIssuance: '2022-08-29',
-                dateOfRenewal: '2023-08-29',
-                dateOfUpdate: '2023-08-29',
-                dateOfExpiration: '2025-08-29',
-            },
-            updatedValues: {
-                compactTransactionId: '124',
-                dateOfIssuance: '2022-08-29',
-                dateOfRenewal: '2024-08-29',
-                dateOfExpiration: '2025-08-29',
-            }
+            dateOfUpdate: '2025-05-01T15:27:35+00:00',
+            effectiveDate: '2025-05-01',
+            createDate: '2025-05-01T15:27:35+00:00',
+            serverNote: 'Note'
         };
         const licenseHistoryItem = new LicenseHistoryItem(data);
 
@@ -71,96 +63,86 @@ describe('LicenseHistoryItem model', () => {
         expect(licenseHistoryItem).to.be.an.instanceof(LicenseHistoryItem);
         expect(licenseHistoryItem.type).to.equal(data.type);
         expect(licenseHistoryItem.updateType).to.equal(data.updateType);
-        expect(licenseHistoryItem.previousValues).to.matchPattern({
-            compactTransactionId: '123',
-            dateOfIssuance: '2022-08-29',
-            dateOfRenewal: '2023-08-29',
-            dateOfUpdate: '2023-08-29',
-            dateOfExpiration: '2025-08-29',
-        });
-        expect(licenseHistoryItem.updatedValues).to.matchPattern({
-            compactTransactionId: '124',
-            dateOfIssuance: '2022-08-29',
-            dateOfRenewal: '2024-08-29',
-            dateOfExpiration: '2025-08-29',
-        });
-
-        expect(licenseHistoryItem.dateOfUpdateDisplay()).to.equal('8/29/2023');
+        expect(licenseHistoryItem.dateOfUpdate).to.equal(data.dateOfUpdate);
+        expect(licenseHistoryItem.createDate).to.equal(data.createDate);
+        expect(licenseHistoryItem.effectiveDate).to.equal(data.effectiveDate);
+        expect(licenseHistoryItem.serverNote).to.equal(data.serverNote);
+        expect(licenseHistoryItem.effectiveDateDisplay()).to.equal('5/1/2025');
         expect(licenseHistoryItem.isActivatingEvent()).to.equal(true);
         expect(licenseHistoryItem.isDeactivatingEvent()).to.equal(false);
         expect(licenseHistoryItem.updateTypeDisplay()).to.equal('Renewal');
+        expect(licenseHistoryItem.noteDisplay()).to.equal('Note');
     });
     it('should create a LicenseHistoryItem with specific values through serializer', () => {
         const data = {
             type: 'privilegeUpdate',
-            updateType: 'deactivation',
-            dateOfUpdate: '2023-08-29',
-            previous: {
-                compactTransactionId: '123',
-                dateOfIssuance: '2022-08-29',
-                dateOfRenewal: '2023-08-29',
-                dateOfUpdate: '2023-08-29',
-                dateOfExpiration: '2025-08-29',
-            },
-            updatedValues: {
-                compactTransactionId: '124',
-                dateOfIssuance: '2022-08-29',
-                dateOfRenewal: '2024-08-29',
-                dateOfExpiration: '2025-08-29',
-            }
-        };
-        const licenseHistoryItem = LicenseHistoryItemSerializer.fromServer(data);
-
-        expect(licenseHistoryItem).to.be.an.instanceof(LicenseHistoryItem);
-        expect(licenseHistoryItem.type).to.equal(data.type);
-        expect(licenseHistoryItem.updateType).to.equal(data.updateType);
-        expect(licenseHistoryItem.previousValues).to.matchPattern({
-            compactTransactionId: '123',
-            dateOfIssuance: '2022-08-29',
-            dateOfRenewal: '2023-08-29',
-            dateOfUpdate: '2023-08-29',
-            dateOfExpiration: '2025-08-29',
-        });
-        expect(licenseHistoryItem.updatedValues).to.matchPattern({
-            compactTransactionId: '124',
-            dateOfIssuance: '2022-08-29',
-            dateOfRenewal: '2024-08-29',
-            dateOfExpiration: '2025-08-29',
-        });
-
-        expect(licenseHistoryItem.dateOfUpdateDisplay()).to.equal('8/29/2023');
-        expect(licenseHistoryItem.isActivatingEvent()).to.equal(false);
-        expect(licenseHistoryItem.isDeactivatingEvent()).to.equal(true);
-        expect(licenseHistoryItem.updateTypeDisplay()).to.equal('Deactivation');
-    });
-    it('should create a LicenseHistoryItem with empty values through serializer', () => {
-        const data = {
-            type: 'privilegeUpdate',
             updateType: 'renewal',
-            dateOfUpdate: '2023-08-29',
+            dateOfUpdate: '2025-05-01T15:27:35+00:00',
+            effectiveDate: '2025-05-01',
+            createDate: '2025-05-01T15:27:35+00:00',
+            note: 'Note'
         };
         const licenseHistoryItem = LicenseHistoryItemSerializer.fromServer(data);
 
         expect(licenseHistoryItem).to.be.an.instanceof(LicenseHistoryItem);
         expect(licenseHistoryItem.type).to.equal(data.type);
         expect(licenseHistoryItem.updateType).to.equal(data.updateType);
-        expect(licenseHistoryItem.previousValues).to.matchPattern({
-            compactTransactionId: '',
-            dateOfIssuance: '',
-            dateOfRenewal: '',
-            dateOfUpdate: '',
-            dateOfExpiration: '',
-        });
-        expect(licenseHistoryItem.updatedValues).to.matchPattern({
-            compactTransactionId: '',
-            dateOfIssuance: '',
-            dateOfRenewal: '',
-            dateOfExpiration: '',
-        });
-
-        expect(licenseHistoryItem.dateOfUpdateDisplay()).to.equal('8/29/2023');
+        expect(licenseHistoryItem.dateOfUpdate).to.equal(data.dateOfUpdate);
+        expect(licenseHistoryItem.createDate).to.equal(data.createDate);
+        expect(licenseHistoryItem.effectiveDate).to.equal(data.effectiveDate);
+        expect(licenseHistoryItem.serverNote).to.equal(data.note);
+        expect(licenseHistoryItem.effectiveDateDisplay()).to.equal('5/1/2025');
         expect(licenseHistoryItem.isActivatingEvent()).to.equal(true);
         expect(licenseHistoryItem.isDeactivatingEvent()).to.equal(false);
         expect(licenseHistoryItem.updateTypeDisplay()).to.equal('Renewal');
+        expect(licenseHistoryItem.noteDisplay()).to.equal('Note');
+    });
+    it('should create a LicenseHistoryItem with corrected display values for a homeJurisdictionChange', () => {
+        const data = {
+            type: 'privilegeUpdate',
+            updateType: 'homeJurisdictionChange',
+            dateOfUpdate: '2025-05-01T15:27:35+00:00',
+            effectiveDate: '2025-05-01',
+            createDate: '2025-05-01T15:27:35+00:00',
+            note: 'Note'
+        };
+        const licenseHistoryItem = LicenseHistoryItemSerializer.fromServer(data);
+
+        expect(licenseHistoryItem).to.be.an.instanceof(LicenseHistoryItem);
+        expect(licenseHistoryItem.type).to.equal(data.type);
+        expect(licenseHistoryItem.updateType).to.equal(data.updateType);
+        expect(licenseHistoryItem.dateOfUpdate).to.equal(data.dateOfUpdate);
+        expect(licenseHistoryItem.createDate).to.equal(data.createDate);
+        expect(licenseHistoryItem.effectiveDate).to.equal(data.effectiveDate);
+        expect(licenseHistoryItem.serverNote).to.equal(data.note);
+        expect(licenseHistoryItem.effectiveDateDisplay()).to.equal('5/1/2025');
+        expect(licenseHistoryItem.isActivatingEvent()).to.equal(false);
+        expect(licenseHistoryItem.isDeactivatingEvent()).to.equal(true);
+        expect(licenseHistoryItem.updateTypeDisplay()).to.equal('Deactivation');
+        expect(licenseHistoryItem.noteDisplay()).to.equal('Deactivated due to home state change');
+    });
+    it('should create a LicenseHistoryItem with corrected display values for a licenseDeactivation', () => {
+        const data = {
+            type: 'privilegeUpdate',
+            updateType: 'licenseDeactivation',
+            dateOfUpdate: '2025-05-01T15:27:35+00:00',
+            effectiveDate: '2025-05-01',
+            createDate: '2025-05-01T15:27:35+00:00',
+            note: 'Note'
+        };
+        const licenseHistoryItem = LicenseHistoryItemSerializer.fromServer(data);
+
+        expect(licenseHistoryItem).to.be.an.instanceof(LicenseHistoryItem);
+        expect(licenseHistoryItem.type).to.equal(data.type);
+        expect(licenseHistoryItem.updateType).to.equal(data.updateType);
+        expect(licenseHistoryItem.dateOfUpdate).to.equal(data.dateOfUpdate);
+        expect(licenseHistoryItem.createDate).to.equal(data.createDate);
+        expect(licenseHistoryItem.effectiveDate).to.equal(data.effectiveDate);
+        expect(licenseHistoryItem.serverNote).to.equal(data.note);
+        expect(licenseHistoryItem.effectiveDateDisplay()).to.equal('5/1/2025');
+        expect(licenseHistoryItem.isActivatingEvent()).to.equal(false);
+        expect(licenseHistoryItem.isDeactivatingEvent()).to.equal(true);
+        expect(licenseHistoryItem.updateTypeDisplay()).to.equal('Deactivation');
+        expect(licenseHistoryItem.noteDisplay()).to.equal('Deactivated due to associated license being deactivated');
     });
 });

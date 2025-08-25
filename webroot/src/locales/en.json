@@ -22,6 +22,7 @@
         "selectFiles": "Select files",
         "replaceFile": "Replace file",
         "replaceFiles": "Replace files",
+        "downloadFile": "Download",
         "change": "Change",
         "add": "Add",
         "remove": "Remove",
@@ -57,6 +58,7 @@
         "middleName": "Middle Name",
         "lastName": "Last name",
         "familyName": "Family Name",
+        "username": "Username",
         "selection": "Selection",
         "dateOfBirth": "Date of birth",
         "dateOfBirthShort": "DOB",
@@ -359,7 +361,8 @@
         "description": "Description",
         "copyright": "Copyright",
         "compact": "Compact",
-        "uploadDocument": "Upload document"
+        "uploadDocument": "Upload document",
+        "here": "here"
     },
     "navigation": {
         "dashboard": "Dashboard",
@@ -380,6 +383,21 @@
         "styleGuide": "Styleguide",
         "account": "Account",
         "logout": "Logout"
+    },
+    "privacyPolicy": {
+        "title": "Privacy Policy",
+        "introSubtext": "This privacy policy describes how the CompactConnect website stores and uses visitor data.",
+        "whatDataIsCollectedTitle": "What data is collected?",
+        "collectedDataEmail": "Email address of registered users",
+        "collectedDataDevice": "Type of device, browser, and IP address",
+        "whatIsDoneWithThisInfoTitle": "What is done with this information?",
+        "whatIsDoneWithThisInfoSubtext": "Information you provide helps us respond to your customer service requests and support needs more efficiently. We may use feedback you provide to improve our site. The information is not sold to third parties.",
+        "howIsMyDataProtectedTitle": "How is my data protected?",
+        "howIsMyDataProtectedSubtext": "We adopt industry standard data collection, storage, and processing practices and security measures to protect against unauthorized access, alteration, disclosure, or destruction of your personal information, username, password, transaction information, and data stored on our site.",
+        "changesToThisPolicyTitle": "Changes to this policy",
+        "changesToThisPolicySubtext": "CompactConnect has the discretion to update this privacy policy at any time. We encourage you to frequently check this page for any changes to stay informed about how we are helping to protect the personal information we collect. You acknowledge and agree that it is your responsibility to review this privacy policy periodically and become aware of modifications.",
+        "disclaimerTitle": "Disclaimer",
+        "disclaimerSubtext": "Other websites that are connected by hyperlinks to and / or from the CompactConnect website may not follow the same privacy constraints. We do not assume responsibility for the practices or content of any website which links to or from our site."
     },
     "paging": {
         "previousPage": "Previous",
@@ -593,6 +611,7 @@
         "status": "Status",
         "expired": "Expired",
         "issueDate": "Issue Date",
+        "activeFrom": "Active from",
         "state": "State",
         "issued": "Issued",
         "expirationDate": "Expiration date",
@@ -600,6 +619,7 @@
         "expireDate": "Expire Date",
         "expires": "Expires",
         "selectPrivileges": "Select privileges",
+        "privilegePurchaseLimit": "A maximum of 20 privileges may be selected in one transaction",
         "iUnderstand": "I understand",
         "jurisprudenceConfirmation": "Jurisprudence Confirmation",
         "lastUpdate": "Latest upload",
@@ -632,6 +652,7 @@
         "confirmPrivilegeDeactivateTitle": "Are you sure you want to deactivate this privilege?",
         "confirmPrivilegeDeactivateSubtext": "The practitioner will no longer be able to use this privilege. This does not constitute a disciplinary action.",
         "deactivateNotesTitle": "Deactivation notes",
+        "deactivation": "Deactivation",
         "deactivateNotesPlaceholder": "Enter notes here",
         "confirmPrivilegeDeactivateSubmit": "Yes, deactivate privilege",
         "encumber": "Encumber",
@@ -659,10 +680,11 @@
         "confirmPrivilegeUnencumberSuccess": "These encumbrances are set to be removed.",
         "confirmPrivilegeUnencumberSuccessEndDate": "End date",
         "expiringIn": "Expiring in",
+        "events": "Events",
         "licenseEvents": [
             {
                 "name": "Privilege purchased",
-                "key": "purchased"
+                "key": "issuance"
             },
             {
                 "name": "Renewal",
@@ -670,11 +692,27 @@
             },
             {
                 "name": "Expired",
-                "key": "expired"
+                "key": "expiration"
             },
             {
                 "name": "Deactivation",
                 "key": "deactivation"
+            },
+            {
+                "name": "License Deactivation",
+                "key": "licenseDeactivation"
+            },
+            {
+                "name": "Home Jurisdiction Change",
+                "key": "homeJurisdictionChange"
+            },
+            {
+                "name": "Privilege Unencumbered",
+                "key": "lifting_encumbrance"
+            },
+            {
+                "name": "Encumbrance",
+                "key": "encumbrance"
             }
         ],
         "licenseTypes": [
@@ -750,7 +788,6 @@
         "compactEligible": "Compact Eligible",
         "notCompactEligible": "Not Compact Eligible",
         "privilegeVerification": "Privilege Verification",
-        "licenseNumber": "License number",
         "privilegeId": "Privilege ID",
         "privilegeType": "Privilege type",
         "practitionerInformation": "Practitioner Information",
@@ -759,7 +796,17 @@
         "activeDate": "Active",
         "privilegeProofFooter": "This document is officially generated by Compact Connect and serves as proof of the practitioner's current licenses and privileges.",
         "publicProfileLink": "View public profile at",
-        "qrCodeAlt": "QR code linking to public profile"
+        "qrCodeAlt": "QR code linking to public profile",
+        "licenseDeactivationNote": "Deactivated due to associated license being deactivated",
+        "homeStateChangeNote": "Deactivated due to home state change",
+        "whyUnavailable": "Why is this unavailable?",
+        "whyUnavailableInfoButton": "Show explanation for why privilege purchase is unavailable",
+        "purchaseUnavailableMessage": "You are currently not eligible to purchase compact privileges. Please see the reason(s) below.",
+        "purchaseUnavailableNoEligibleLicenses": "You do not have any licenses which are eligible for compact participation. If you believe one of your licenses should be eligible, please contact the state board who issued that license.",
+        "purchaseUnavailableEncumbrance": "You have an encumbrance which prevents you from buying privileges. If you believe you should not have an encumbrance, please contact the state board who recorded the encumbrance.",
+        "purchaseUnavailablePendingMilitaryStatus": "You started the process of providing documentation to confirm your military status but did not finish. You can complete that process",
+        "purchaseUnavailableEncumbranceLiftedWithinWaitPeriod": "It has been fewer than two years since your most recent encumbrance was lifted. You will be able to purchase privileges after two years have passed from the end of your most recent encumbrance.",
+        "militaryStatusLinkAriaLabel": "View military status page"
     },
     "military": {
         "militaryStatusTitle": "Military status",
@@ -767,7 +814,9 @@
         "viewMilitaryStatus": "View military status",
         "militaryDiscountText": "Military Discount",
         "affiliationType": "Affiliation Type",
-        "previouslyUploadedDocuments": "Previously Uploaded Documents",
+        "uploadedDocuments": "Military Affiliation Documents",
+        "previousDocuments": "Previously Uploaded Documents",
+        "downloadUnavailable": "Unavailable",
         "endMilitaryAffiliation": "End military affiliation",
         "editInfo": "Edit info",
         "noUploadedDocuments": "No uploaded documents",
@@ -796,7 +845,9 @@
         "fileInstructions": "Only 1 file (PDF, docx, png, jpeg only)",
         "fileName": "File name",
         "dateUploaded": "Date uploaded",
-        "initializingMessage": "Your document is in an initializing state. This may indicate that there was an error uploading. You cannot purchase privileges in this state. If this status persists, try uploading your document again or clicking end military affiliation and then refreshing the page."
+        "initializingMessage": "Your document is in an initializing state. This may indicate that there was an error uploading. You cannot purchase privileges in this state. If this status persists, try uploading your document again or clicking end military affiliation and then refreshing the page.",
+        "militaryStatusInitializingErrorTitle": "There’s an error with your military status.",
+        "militaryStatusInitializingErrorSubtext": "To purchase privileges, you will need to either re-upload your document(s) or end your military affiliation."
     },
     "account": {
         "requestAccount": "Request account",

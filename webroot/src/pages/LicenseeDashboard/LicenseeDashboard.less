@@ -19,6 +19,84 @@
         padding: 0 12rem;
     }
 
+    .purchase-unavailable-modal {
+        :deep(.modal-container) {
+            padding: 2rem;
+
+            @media @tabletWidth {
+                max-width: 60rem;
+                padding: 4rem 4rem 2rem;
+            }
+
+            .modal-content {
+                .modal-content-text {
+                    margin-bottom: 2rem;
+
+                    .purchase-unavailable-message {
+                        font-size: 1.8rem;
+                    }
+
+                    .purchase-unavailable-list {
+                        border-spacing: 0 1rem;
+
+                        li {
+                            margin-bottom: 1rem;
+                            font-weight: @fontWeightLight;
+                            font-size: 1.8rem;
+                            list-style-position: inside;
+
+                            &::marker {
+                                font-weight: @fontWeightBold;
+                            }
+
+                            a {
+                                font-weight: @fontWeightBold;
+                                text-decoration: underline;
+
+                                &:focus {
+                                    border-radius: 4px;
+                                    outline: 2px solid @primaryColor;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            .modal-actions {
+                margin-bottom: 0;
+
+                .action-button-row {
+                    display: flex;
+                    flex-direction: row;
+                    justify-content: center;
+
+                    &.initial-action-buttons {
+                        flex-direction: column-reverse;
+                        align-items: center;
+
+                        @media @tabletWidth {
+                            flex-direction: row;
+                            align-items: flex-end;
+                        }
+                    }
+
+                    .cancel-btn {
+                        .input-button {
+                            color: @primaryColor;
+                            font-weight: @fontWeightBold;
+                            background: @white;
+                        }
+                    }
+
+                    .submit-btn {
+                        margin-left: 1rem;
+                    }
+                }
+            }
+        }
+    }
+
     .top-block {
         display: flex;
         flex-direction: column;
@@ -94,6 +172,23 @@
                     color: darken(@darkGrey, 10%);
                     font-size: 1.2rem;
                     text-align: right;
+
+                    &.why-unavailable-container {
+                        display: flex;
+                        flex-direction: row;
+                        align-items: center;
+                        justify-content: flex-end;
+
+                        .icon-info-circle-container {
+                            margin-left: 0.5rem;
+                        }
+
+                        .icon-info-circle {
+                            width: 1.3rem;
+                            height: 1.3rem;
+                            cursor: pointer;
+                        }
+                    }
                 }
             }
         }

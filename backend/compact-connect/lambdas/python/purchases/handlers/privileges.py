@@ -1,5 +1,5 @@
 import json
-from datetime import date
+from datetime import date, timedelta
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
@@ -63,6 +63,12 @@ def _get_caller_provider_id_custom_attribute(event: dict) -> str:
     except KeyError as e:
         logger.error(f'Missing custom provider attribute: {e}')
         raise CCInvalidRequestException('Missing required user profile attribute') from e
+
+
+def _get_latest_allowed_encumbrance_lift() -> date:
+    return_date = config.current_standard_datetime.astimezone(config.expiration_resolution_timezone)
+    return_date = return_date.replace(year=return_date.year - 2)
+    return (return_date - timedelta(days=1)).date()
 
 
 @api_handler
@@ -258,6 +264,17 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
         raise CCInternalException(
             'Invalid home state selection found for this user. '
             'User should not be able to request privileges in this state.'
+        )
+
+    # Check for any adverse actions that have been lifted 2 years ago
+    latest_allowed_encumbrance_lift = _get_latest_allowed_encumbrance_lift()
+    blocking_encumbrance_records = provider_user_records.get_adverse_action_records(
+        filter_condition=lambda record: record.effectiveLiftDate is None
+        or record.effectiveLiftDate > latest_allowed_encumbrance_lift
+    )
+    if blocking_encumbrance_records:
+        raise CCInvalidRequestException(
+            'You have a current or recent encumbrance that prevents you from purchasing privileges at this time.'
         )
 
     # we now validate that the license type matches one of the license types from the home state license records

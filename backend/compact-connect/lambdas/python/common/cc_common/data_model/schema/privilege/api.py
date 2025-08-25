@@ -29,20 +29,23 @@ class PrivilegeUpdatePreviousGeneralResponseSchema(ForgivingSchema):
     """
     A snapshot of a previous state of a privilege object
 
+    Note that none of these fields are required, as there are issuance events returned which do not have a
+    previous state since the record was created for the first time.
+
     Serialization direction:
     Python -> load() -> API
     """
 
-    administratorSetStatus = ActiveInactive(required=True, allow_none=False)
+    administratorSetStatus = ActiveInactive(required=False, allow_none=False)
     # list of attestations that were accepted when purchasing this privilege
     attestations = List(Nested(AttestationVersionResponseSchema()), required=False, allow_none=False)
     compactTransactionId = String(required=False, allow_none=False)
-    dateOfExpiration = Raw(required=True, allow_none=False)
-    dateOfIssuance = Raw(required=True, allow_none=False)
-    dateOfRenewal = Raw(required=True, allow_none=False)
-    dateOfUpdate = Raw(required=True, allow_none=False)
-    licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
-    privilegeId = String(required=True, allow_none=False)
+    dateOfExpiration = Raw(required=False, allow_none=False)
+    dateOfIssuance = Raw(required=False, allow_none=False)
+    dateOfRenewal = Raw(required=False, allow_none=False)
+    dateOfUpdate = Raw(required=False, allow_none=False)
+    licenseJurisdiction = Jurisdiction(required=False, allow_none=False)
+    privilegeId = String(required=False, allow_none=False)
 
 
 class PrivilegeUpdateGeneralResponseSchema(ForgivingSchema):
@@ -95,23 +98,29 @@ class PrivilegeGeneralResponseSchema(ForgivingSchema):
     # the human-friendly identifier for this privilege
     privilegeId = String(required=True, allow_none=False)
     status = ActiveInactive(required=True, allow_none=False)
+    # This field shows how long the privilege have been continuously active according to
+    # its history
+    activeSince = Raw(required=False, allow_none=False)
 
 
 class PrivilegeUpdatePreviousPublicResponseSchema(ForgivingSchema):
     """
     A snapshot of a previous state of a privilege object
 
+    Note that none of these fields are required, as there are issuance events returned which do not have a
+    previous state since the record was created for the first time.
+
     Serialization direction:
     Python -> load() -> API
     """
 
-    administratorSetStatus = ActiveInactive(required=True, allow_none=False)
-    dateOfExpiration = Raw(required=True, allow_none=False)
-    dateOfIssuance = Raw(required=True, allow_none=False)
-    dateOfRenewal = Raw(required=True, allow_none=False)
-    dateOfUpdate = Raw(required=True, allow_none=False)
-    licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
-    privilegeId = String(required=True, allow_none=False)
+    administratorSetStatus = ActiveInactive(required=False, allow_none=False)
+    dateOfExpiration = Raw(required=False, allow_none=False)
+    dateOfIssuance = Raw(required=False, allow_none=False)
+    dateOfRenewal = Raw(required=False, allow_none=False)
+    dateOfUpdate = Raw(required=False, allow_none=False)
+    licenseJurisdiction = Jurisdiction(required=False, allow_none=False)
+    privilegeId = String(required=False, allow_none=False)
 
 
 class PrivilegeUpdatePublicResponseSchema(ForgivingSchema):
@@ -160,3 +169,36 @@ class PrivilegePublicResponseSchema(ForgivingSchema):
     # the human-friendly identifier for this privilege
     privilegeId = String(required=True, allow_none=False)
     status = ActiveInactive(required=True, allow_none=False)
+    # This field shows how long the privilege have been continuously active according to
+    # its history
+    activeSince = Raw(required=False, allow_none=False)
+
+
+class PrivilegeHistoryEventPublicResponseSchema(ForgivingSchema):
+    """
+    Privilege history event object fields, as seen by the public lookup endpoint.
+    Serialization direction:
+    Python -> load() -> API
+    """
+
+    type = String(required=True, allow_none=False)
+    updateType = UpdateType(required=True, allow_none=False)
+    dateOfUpdate = Raw(required=True, allow_none=False)
+    effectiveDate = Raw(required=True, allow_none=False)
+    createDate = Raw(required=True, allow_none=False)
+    note = String(required=False, allow_none=True)
+
+
+class PrivilegeHistoryPublicResponseSchema(ForgivingSchema):
+    """
+    Privilege history object fields, as seen by the public lookup endpoint.
+    Serialization direction:
+    Python -> load() -> API
+    """
+
+    providerId = Raw(required=True, allow_none=False)
+    compact = Compact(required=True, allow_none=False)
+    jurisdiction = Jurisdiction(required=True, allow_none=False)
+    licenseType = String(required=True, allow_none=False)
+    privilegeId = String(required=True, allow_none=False)
+    events = List(Nested(PrivilegeHistoryEventPublicResponseSchema(), required=False, allow_none=False))

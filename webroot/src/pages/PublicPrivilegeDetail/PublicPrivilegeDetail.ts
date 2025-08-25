@@ -24,9 +24,13 @@ export default class PublicPrivilegeDetail extends Vue {
     //
     // Lifecycle
     //
-    mounted() {
+    async created() {
         if (!this.licenseeRecord) {
-            this.fetchLicenseePublicData();
+            await this.fetchLicenseePublicData();
+        }
+
+        if (!this.isPrivilegeHistoryLoaded) {
+            await this.fetchPrivilegeHistory();
         }
     }
 
@@ -83,6 +87,14 @@ export default class PublicPrivilegeDetail extends Vue {
         return `${this.privilege?.licenseTypeAbbreviation() || ''} - ${this.privilege?.issueState?.name() || ''}`;
     }
 
+    get privilegeLicenseTypeAbbrev(): string {
+        return this.privilege?.licenseTypeAbbreviation() || '';
+    }
+
+    get isPrivilegeHistoryLoaded(): boolean {
+        return Boolean(this.privilege?.history?.length);
+    }
+
     //
     // Methods
     //
@@ -98,5 +110,19 @@ export default class PublicPrivilegeDetail extends Vue {
             licenseeId,
             isPublic: true,
         });
+    }
+
+    async fetchPrivilegeHistory(): Promise<void> {
+        const issueStateAbbrev = this.privilege?.issueState?.abbrev;
+
+        if (issueStateAbbrev && this.privilegeLicenseTypeAbbrev) {
+            await this.$store.dispatch('license/getPrivilegeHistoryRequest', {
+                compact: this.compact,
+                providerId: this.licenseeId,
+                jurisdiction: issueStateAbbrev,
+                licenseTypeAbbrev: this.privilegeLicenseTypeAbbrev,
+                isPublic: true
+            });
+        }
     }
 }

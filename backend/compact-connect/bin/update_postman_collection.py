@@ -7,6 +7,7 @@ Note: This script requires the openapi2postmanv2 CLI tool to be installed.
 You can install it with: npm install -g openapi-to-postmanv2
 """
 
+import argparse
 import json
 import os
 import subprocess
@@ -191,13 +192,24 @@ def cleanup_collection(collection: dict[str, Any]):
 
 
 def main():
+    parser = argparse.ArgumentParser(description='Update Postman collection from OpenAPI specification')
+    parser.add_argument(
+        '-i', '--internal', action='store_true', help='Use internal API specification files instead of regular ones'
+    )
+
+    args = parser.parse_args()
+
     # Define paths relative to the script location
     script_dir = os.path.dirname(os.path.abspath(__file__))
     workspace_dir = os.path.dirname(script_dir)
 
-    openapi_path = os.path.join(workspace_dir, 'docs', 'api-specification', 'latest-oas30.json')
+    # Determine the base directory based on the internal flag
+    base_dir = os.path.join('internal', 'api-specification') if args.internal else os.path.join('api-specification')
+    postman_dir = os.path.join('internal', 'postman') if args.internal else os.path.join('postman')
+
+    openapi_path = os.path.join(workspace_dir, 'docs', base_dir, 'latest-oas30.json')
     tmp_path = os.path.join(workspace_dir, 'tmp.json')
-    postman_path = os.path.join(workspace_dir, 'docs', 'postman', 'postman-collection.json')
+    postman_path = os.path.join(workspace_dir, 'docs', postman_dir, 'postman-collection.json')
 
     # Generate new collection from OpenAPI spec
     generate_postman_collection(openapi_path, tmp_path)

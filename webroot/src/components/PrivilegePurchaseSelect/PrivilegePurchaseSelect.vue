@@ -21,6 +21,12 @@
                             @selected="mockPopulate"
                             class="mock-populate"
                         />
+                        <br /><MockPopulate
+                            :isEnabled="isMockPopulateEnabled"
+                            customLabel="Mock Populate All"
+                            @selected="mockPopulate(true)"
+                            class="mock-populate"
+                        />
                         <div class="lists-container">
                             <ul class="state-select-list">
                                 <li
@@ -30,9 +36,7 @@
                                 >
                                     <div v-if="isStateSelectDisabled(state)" class="state-select-unit">
                                         <div class="disabled-state-overlay" />
-                                        <InputCheckbox
-                                            :formInput="state"
-                                        />
+                                        <InputCheckbox :formInput="state" />
                                     </div>
                                     <div
                                         v-else
@@ -41,14 +45,12 @@
                                     >
                                         <div
                                             @click.prevent="toggleStateSelected(state)"
-                                            @keyup.enter="toggleStateSelected(state)"
                                             @keyup.space="toggleStateSelected(state)"
-                                            tabindex="0"
+                                            @keydown.space.prevent
                                             class="enabled-state-overlay"
+                                            tabindex="0"
                                         />
-                                        <InputCheckbox
-                                            :formInput="state"
-                                        />
+                                        <InputCheckbox :formInput="state" />
                                     </div>
                                     <Transition name="fade">
                                         <SelectedStatePurchaseInformation
@@ -64,7 +66,7 @@
                                     </Transition>
                                 </li>
                             </ul>
-                            <TransitionGroup tag="ul" name="list" v-if="!isPhone" class="selected-state-list">
+                            <TransitionGroup v-if="!isPhone" tag="ul" name="list" class="selected-state-list">
                                 <SelectedStatePurchaseInformation
                                     v-for="(state) in selectedStatePurchaseDataList"
                                     :key="state.jurisdiction.abbrev"
@@ -79,6 +81,13 @@
                             </TransitionGroup>
                         </div>
                     </div>
+                </div>
+                <div
+                    v-if="formErrorMessage"
+                    id="form-error-message"
+                    class="form-error-message"
+                >
+                    {{formErrorMessage}}
                 </div>
                 <div id="button-row" class="button-row">
                     <div class="form-nav-buttons">
