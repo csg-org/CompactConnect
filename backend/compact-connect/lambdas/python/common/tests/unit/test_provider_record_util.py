@@ -832,6 +832,246 @@ class TestProviderRecordUtility(TstLambdas):
         self.maxDiff = None
         self.assertEqual(expected_updates, enriched_history)
 
+    def test_construct_simplified_privilege_history_object_returns_deactivation_notes_properly(self):
+        """Test that construct_simplified_privilege_history_object extracts the deactivation note successfully"""
+        from cc_common.data_model.provider_record_util import ProviderRecordUtility
+
+        # mock_privilege_data_return
+        privilege_data = [
+            {
+                **self.base_privilege,
+                'providerId': 'test-provider-id',
+                'dateOfIssuance': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
+                'dateOfExpiration': date.fromisoformat('2028-03-15'),
+                'dateOfRenewal': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
+                'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
+            },
+            {
+                'compact': 'octp',
+                'compactTransactionIdGSIPK': 'COMPACT#octp#TX#120059525522#',
+                'dateOfUpdate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
+                'createDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
+                'effectiveDate': date.fromisoformat('2025-06-16'),
+                'jurisdiction': 'ne',
+                'licenseType': 'occupational therapy assistant',
+                'providerId': 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
+                'type': 'privilegeUpdate',
+                'updateType': 'deactivation',
+                'deactivationDetails': {
+                    'note': 'test deactivation note',
+                    'deactivatedByStaffUserId': 'a4182428-d061-701c-82e5-a3d1d547d797',
+                    'deactivatedByStaffUserName': 'John Doe',
+                },
+                'previous': {
+                    'dateOfIssuance': '2023-11-08T23:59:59+00:00',
+                    'dateOfRenewal': '2023-11-08T23:59:59+00:00',
+                    'dateOfExpiration': '2024-10-31',
+                    'dateOfUpdate': '2023-11-08T23:59:59+00:00',
+                    'compactTransactionId': '1234567890',
+                    'administratorSetStatus': 'active',
+                    'licenseJurisdiction': 'oh',
+                    'privilegeId': 'OTA-NE-1',
+                },
+                'updatedValues': {
+                    'administratorSetStatus': 'inactive',
+                },
+            },
+        ]
+
+        # Enrich the privilege history
+        history = ProviderRecordUtility.construct_simplified_privilege_history_object(
+            privilege_data
+        )
+
+        # Define the expected issuance update
+        expected_history = {
+            'compact': 'octp',
+            'jurisdiction': 'al',
+            'licenseType': 'occupational therapy assistant',
+            'privilegeId': 'OTA-AL-12',
+            'providerId': 'test-provider-id',
+            'events': [
+                {
+                    'createDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
+                    'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
+                    'effectiveDate': date.fromisoformat('2024-01-01'),
+                    'type': 'privilegeUpdate',
+                    'updateType': 'issuance'
+                },
+                {
+                    'createDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
+                    'dateOfUpdate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
+                    'effectiveDate': date.fromisoformat('2025-06-16'),
+                    'type': 'privilegeUpdate',
+                    'updateType': 'deactivation',
+                    'note': 'test deactivation note',
+                }
+            ]
+        }
+
+        # Check that the history contains exactly one update with the expected values
+        self.maxDiff = None
+        self.assertEqual(expected_history, history)
+
+    def test_construct_simplified_privilege_history_object_returns_encumbrance_notes_if_desired(self):
+        """Test that construct_simplified_privilege_history_object extracts the encumbrance notes successfully"""
+        from cc_common.data_model.provider_record_util import ProviderRecordUtility
+
+        # mock_privilege_data_return
+        privilege_data = [
+            {
+                **self.base_privilege,
+                'providerId': 'test-provider-id',
+                'dateOfIssuance': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
+                'dateOfExpiration': date.fromisoformat('2028-03-15'),
+                'dateOfRenewal': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
+                'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
+            },
+            {
+                'compact': 'aslp',
+                'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#120065729643#',
+                'createDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
+                'dateOfUpdate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
+                'effectiveDate': date.fromisoformat('2025-06-16'),
+                'jurisdiction': 'ky',
+                'licenseType': 'speech-language pathologist',
+                'previous': {
+                    'administratorSetStatus': 'active',
+                    'attestations': [],
+                    'compactTransactionId': '120065729643',
+                    'dateOfExpiration': date.fromisoformat('2025-12-11'),
+                    'dateOfIssuance': datetime.fromisoformat('2025-06-23T07:46:19+00:00'),
+                    'dateOfRenewal': datetime.fromisoformat('2025-06-23T07:46:19+00:00'),
+                    'dateOfUpdate': datetime.fromisoformat('2025-07-17T15:24:01+00:00'),
+                    'encumberedStatus': 'unencumbered',
+                    'licenseJurisdiction': 'oh',
+                    'privilegeId': 'SLP-KY-26',
+                },
+                'providerId': '1b6bcfa2-28ad-4f9a-acf4-bba771f6cc11',
+                'type': 'privilegeUpdate',
+                'updatedValues': {'encumberedStatus': 'licenseEncumbered'},
+                'updateType': 'encumbrance',
+                'encumbranceDetails': {
+                    'note': 'Did bad things',
+                    'licenseJurisdiction': 'oh',
+                },
+            },
+        ]
+
+        # Enrich the privilege history
+        history = ProviderRecordUtility.construct_simplified_privilege_history_object(
+            privilege_data
+        )
+
+        # Define the expected issuance update
+        expected_history = {
+            'compact': 'octp',
+            'jurisdiction': 'al',
+            'licenseType': 'occupational therapy assistant',
+            'privilegeId': 'OTA-AL-12',
+            'providerId': 'test-provider-id',
+            'events': [
+                {
+                    'createDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
+                    'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
+                    'effectiveDate': date.fromisoformat('2024-01-01'),
+                    'type': 'privilegeUpdate',
+                    'updateType': 'issuance'
+                },
+                {
+                    'createDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
+                    'dateOfUpdate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
+                    'effectiveDate': date.fromisoformat('2025-06-16'),
+                    'type': 'privilegeUpdate',
+                    'updateType': 'encumbrance',
+                    'note': 'Did bad things',
+                }
+            ]
+        }
+
+        # Check that the history contains exactly one update with the expected values
+        self.maxDiff = None
+        self.assertEqual(expected_history, history)
+
+    def test_construct_simplified_privilege_history_object_does_not_returns_encumbrance_notes_if_not_desired(self):
+        """Test that construct_simplified_privilege_history_object does not extract the encumbrance notes if
+        it should not"""
+        from cc_common.data_model.provider_record_util import ProviderRecordUtility
+
+        # mock_privilege_data_return
+        privilege_data = [
+            {
+                **self.base_privilege,
+                'providerId': 'test-provider-id',
+                'dateOfIssuance': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
+                'dateOfExpiration': date.fromisoformat('2028-03-15'),
+                'dateOfRenewal': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
+                'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
+            },
+            {
+                'compact': 'aslp',
+                'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#120065729643#',
+                'createDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
+                'dateOfUpdate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
+                'effectiveDate': date.fromisoformat('2025-06-16'),
+                'jurisdiction': 'ky',
+                'licenseType': 'speech-language pathologist',
+                'previous': {
+                    'administratorSetStatus': 'active',
+                    'attestations': [],
+                    'compactTransactionId': '120065729643',
+                    'dateOfExpiration': date.fromisoformat('2025-12-11'),
+                    'dateOfIssuance': datetime.fromisoformat('2025-06-23T07:46:19+00:00'),
+                    'dateOfRenewal': datetime.fromisoformat('2025-06-23T07:46:19+00:00'),
+                    'dateOfUpdate': datetime.fromisoformat('2025-07-17T15:24:01+00:00'),
+                    'encumberedStatus': 'unencumbered',
+                    'licenseJurisdiction': 'oh',
+                    'privilegeId': 'SLP-KY-26',
+                },
+                'providerId': '1b6bcfa2-28ad-4f9a-acf4-bba771f6cc11',
+                'type': 'privilegeUpdate',
+                'updatedValues': {'encumberedStatus': 'licenseEncumbered'},
+                'updateType': 'encumbrance',
+                'encumbranceDetails': {
+                    'note': 'Did bad things',
+                    'licenseJurisdiction': 'oh',
+                },
+            },
+        ]
+
+        # Enrich the privilege history
+        history = ProviderRecordUtility.construct_simplified_privilege_history_object(
+            privilege_data, False
+        )
+
+        # Define the expected issuance update
+        expected_history = {
+            'compact': 'octp',
+            'jurisdiction': 'al',
+            'licenseType': 'occupational therapy assistant',
+            'privilegeId': 'OTA-AL-12',
+            'providerId': 'test-provider-id',
+            'events': [
+                {
+                    'createDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
+                    'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
+                    'effectiveDate': date.fromisoformat('2024-01-01'),
+                    'type': 'privilegeUpdate',
+                    'updateType': 'issuance'
+                },
+                {
+                    'createDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
+                    'dateOfUpdate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
+                    'effectiveDate': date.fromisoformat('2025-06-16'),
+                    'type': 'privilegeUpdate',
+                    'updateType': 'encumbrance',
+                }
+            ]
+        }
+
+        # Check that the history contains exactly one update with the expected values
+        self.maxDiff = None
+        self.assertEqual(expected_history, history)
 
 class TestProviderRecordUtilityActiveSinceCalculation(TstLambdas):
     def setUp(self):

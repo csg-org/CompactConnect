@@ -174,7 +174,7 @@ class PrivilegePublicResponseSchema(ForgivingSchema):
     activeSince = Raw(required=False, allow_none=False)
 
 
-class PrivilegeHistoryEventPublicResponseSchema(ForgivingSchema):
+class PrivilegeHistoryEventResponseSchema(ForgivingSchema):
     """
     Privilege history event object fields, as seen by the public lookup endpoint.
     Serialization direction:
@@ -189,7 +189,7 @@ class PrivilegeHistoryEventPublicResponseSchema(ForgivingSchema):
     note = String(required=False, allow_none=True)
 
 
-class PrivilegeHistoryPublicResponseSchema(ForgivingSchema):
+class PrivilegeHistoryResponseSchema(ForgivingSchema):
     """
     Privilege history object fields, as seen by the public lookup endpoint.
     Serialization direction:
@@ -201,4 +201,4 @@ class PrivilegeHistoryPublicResponseSchema(ForgivingSchema):
     jurisdiction = Jurisdiction(required=True, allow_none=False)
     licenseType = String(required=True, allow_none=False)
     privilegeId = String(required=True, allow_none=False)
-    events = List(Nested(PrivilegeHistoryEventPublicResponseSchema(), required=False, allow_none=False))
+    events = List(Nested(PrivilegeHistoryEventResponseSchema(), required=False, allow_none=False))

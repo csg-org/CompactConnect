@@ -1426,6 +1426,9 @@ class DataClient:
                 )
 
             now = config.current_standard_datetime
+            encumbrance_details = {
+                'note': adverse_action.clinicalPrivilegeActionCategory
+            }
 
             # Create the update record
             # Use the schema to generate the update record with proper pk/sk
@@ -1439,6 +1442,7 @@ class DataClient:
                     'licenseType': privilege_data.licenseType,
                     'createDate': now,
                     'effectiveDate': adverse_action.effectiveStartDate,
+                    'encumbranceDetails': encumbrance_details,
                     'previous': {
                         # We're relying on the schema to trim out unneeded fields
                         **privilege_data.to_dict(),
@@ -2584,6 +2588,14 @@ class DataClient:
             )
         )
 
+        # previously_encumbered_privileges_associated_with_license = provider_user_records.get_privilege_records(
+        #     filter_condition=lambda p: (
+        #         p.licenseJurisdiction == jurisdiction
+        #         and p.licenseTypeAbbreviation == license_type_abbreviation
+        #         and (p.encumberedStatus is None or p.encumberedStatus == PrivilegeEncumberedStatusEnum.ENCUMBERED)
+        #     )
+        # )
+
         if not unencumbered_privileges_associated_with_license:
             logger.info('No unencumbered privileges found for this license.')
             return []
@@ -2591,6 +2603,8 @@ class DataClient:
         logger.info(
             'Found privileges to encumber', privilege_count=len(unencumbered_privileges_associated_with_license)
         )
+
+        # encumbrance_details =
 
         # Build transaction items for all privileges
         transaction_items = []

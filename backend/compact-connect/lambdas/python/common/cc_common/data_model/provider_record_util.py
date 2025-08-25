@@ -21,7 +21,7 @@ from cc_common.data_model.schema.license.api import LicenseUpdatePreviousRespons
 from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationData
 from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
 from cc_common.data_model.schema.privilege.api import (
-    PrivilegeHistoryPublicResponseSchema,
+    PrivilegeHistoryResponseSchema,
     PrivilegeUpdatePreviousGeneralResponseSchema,
 )
 from cc_common.data_model.schema.provider import ProviderData, ProviderUpdateData
@@ -232,7 +232,10 @@ class ProviderRecordUtility:
         )
 
     @staticmethod
-    def get_enriched_history_with_synthetic_updates_from_privilege(privilege: dict, history: list[dict]) -> list[dict]:
+    def get_enriched_history_with_synthetic_updates_from_privilege(
+            privilege: dict,
+            history: list[dict],
+    ) -> list[dict]:
         """
         Enrich the privilege history with 'synthetic updates'.
         Synthetic updates are pieces of history that are not explicitly recorded in the data
@@ -335,11 +338,16 @@ class ProviderRecordUtility:
         return sorted(enriched_history, key=lambda x: x['effectiveDate'])
 
     @staticmethod
-    def construct_simplified_privilege_history_object(privilege_data: list[dict]) -> dict:
+    def construct_simplified_privilege_history_object(
+            privilege_data: list[dict],
+            should_include_encumbrance_details: bool = True
+    ) -> dict:
         """
         Construct a simplified list of history events to be easily consumed by the front end
         :param privilege_data: All of the records associated with the privilege:
         the privilege, updates, and adverse actions
+        :param should_include_encumbrance_details: Whether the response should include verbose information on privilege
+        encumbrances
         :return: The simplified and enriched privilege history
         """
         privilege = list(filter(lambda x: x['type'] == 'privilege', privilege_data))[0]
@@ -349,6 +357,20 @@ class ProviderRecordUtility:
             privilege, history
         )
 
+        # Collect notes on event types that have notes if user should see those notes
+        for event in enriched_history:
+            if (
+                event['updateType'] == UpdateCategory.ENCUMBRANCE
+                and event['encumbranceDetails']
+                and should_include_encumbrance_details
+            ):
+                event['note'] = event['encumbranceDetails']['note']
+            elif (
+                event['updateType'] == UpdateCategory.DEACTIVATION
+                and event['deactivationDetails']
+            ):
+                event['note'] = event['deactivationDetails']['note']
+
         unsanitized_history = {
             'providerId': privilege['providerId'],
             'compact': privilege['compact'],
@@ -357,7 +379,7 @@ class ProviderRecordUtility:
             'privilegeId': privilege['privilegeId'],
             'events': enriched_history,
         }
-        history_schema = PrivilegeHistoryPublicResponseSchema()
+        history_schema = PrivilegeHistoryResponseSchema()
         return history_schema.load(unsanitized_history)
 
 
