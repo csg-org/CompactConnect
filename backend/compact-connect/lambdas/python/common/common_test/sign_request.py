@@ -1,13 +1,13 @@
 """
-Client Reference Implementation for HMAC Request Signing
+Client Reference Implementation for DSA Request Signing
 
 This module provides a validated reference implementation for signing API requests
-using ECDSA with SHA-256 as required by the CompactConnect HMAC authentication system.
+using ECDSA with SHA-256 as required by the CompactConnect DSA authentication system.
 
 The sign_request function in this module is tested and validated against the actual
 authentication system, making it a reliable reference for client implementations.
 
-For complete documentation, see: docs/client_hmac_auth.md
+For complete documentation, see: docs/client_dsa_auth.md
 """
 
 import base64
@@ -30,7 +30,7 @@ def sign_request(
     Sign a request using ECDSA with SHA-256.
 
     This function provides a reference implementation for clients to understand
-    how to properly sign requests for the CompactConnect HMAC authentication system.
+    how to properly sign requests for the CompactConnect DSA authentication system.
 
     The signature string is constructed as:
     HTTP_METHOD\nREQUEST_PATH\nSORTED_QUERY_PARAMETERS\nTIMESTAMP\nNONCE\nKEY_ID

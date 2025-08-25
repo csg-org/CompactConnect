@@ -14,20 +14,20 @@ from tests.function import TstFunction
 class TestQueryJurisdictionProviders(TstFunction):
     def setUp(self):
         super().setUp()
-        # Load test keys for HMAC authentication
+        # Load test keys for DSA authentication
         with open('../common/tests/resources/client_private_key.pem') as f:
             self.private_key_pem = f.read()
         with open('../common/tests/resources/client_public_key.pem') as f:
             self.public_key_pem = f.read()
 
-        # Load HMAC public key into the compact configuration table for functional testing
-        self._load_hmac_public_key('aslp', 'oh', 'test-key-001', self.public_key_pem)
-        self._load_hmac_public_key('aslp', 'ne', 'test-key-001', self.public_key_pem)
+        # Load DSA public key into the compact configuration table for functional testing
+        self._load_dsa_public_key('aslp', 'oh', 'test-key-001', self.public_key_pem)
+        self._load_dsa_public_key('aslp', 'ne', 'test-key-001', self.public_key_pem)
 
-    def _load_hmac_public_key(self, compact: str, jurisdiction: str, key_id: str, public_key_pem: str):
-        """Load an HMAC public key into the compact configuration table."""
+    def _load_dsa_public_key(self, compact: str, jurisdiction: str, key_id: str, public_key_pem: str):
+        """Load a DSA public key into the compact configuration table."""
         item = {
-            'pk': f'{compact}#HMAC_KEYS',
+            'pk': f'{compact}#DSA_KEYS',
             'sk': f'{compact}#JURISDICTION#{jurisdiction}#{key_id}',
             'publicKey': public_key_pem,
             'compact': compact,
@@ -38,7 +38,7 @@ class TestQueryJurisdictionProviders(TstFunction):
         self._compact_configuration_table.put_item(Item=item)
 
     def _create_signed_event(self, event: dict) -> dict:
-        """Add HMAC headers to an event for required HMAC authentication."""
+        """Add DSA headers to an event for required DSA authentication."""
         # Generate current timestamp and nonce
         timestamp = datetime.now(UTC).isoformat()
         nonce = str(uuid4())
@@ -55,7 +55,7 @@ class TestQueryJurisdictionProviders(TstFunction):
             private_key_pem=self.private_key_pem,
         )
 
-        # Add HMAC headers to event
+        # Add DSA headers to event
         event['headers'].update(headers)
         return event
 
@@ -153,7 +153,7 @@ class TestQueryJurisdictionProviders(TstFunction):
             {'query': query, 'pagination': {'pageSize': 30}, 'sorting': {'direction': 'ascending'}}
         )
 
-        # Add HMAC authentication headers
+        # Add DSA authentication headers
         event = self._create_signed_event(event)
 
         resp = query_jurisdiction_providers(event, self.mock_context)
@@ -178,7 +178,7 @@ class TestQueryJurisdictionProviders(TstFunction):
         event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
         event['body'] = json.dumps({'invalid': 'field'})
 
-        # Add HMAC authentication headers
+        # Add DSA authentication headers
         event = self._create_signed_event(event)
 
         resp = query_jurisdiction_providers(event, self.mock_context)
@@ -200,7 +200,7 @@ class TestQueryJurisdictionProviders(TstFunction):
             }
         )
 
-        # Add HMAC authentication headers
+        # Add DSA authentication headers
         event = self._create_signed_event(event)
 
         resp = query_jurisdiction_providers(event, self.mock_context)
@@ -222,7 +222,7 @@ class TestQueryJurisdictionProviders(TstFunction):
             }
         )
 
-        # Add HMAC authentication headers
+        # Add DSA authentication headers
         event = self._create_signed_event(event)
 
         resp = query_jurisdiction_providers(event, self.mock_context)
@@ -279,7 +279,7 @@ class TestQueryJurisdictionProviders(TstFunction):
             }
         )
 
-        # Add HMAC authentication headers
+        # Add DSA authentication headers
         event = self._create_signed_event(event)
 
         resp = query_jurisdiction_providers(event, self.mock_context)
@@ -315,7 +315,7 @@ class TestQueryJurisdictionProviders(TstFunction):
             }
         )
 
-        # Add HMAC authentication headers
+        # Add DSA authentication headers
         event = self._create_signed_event(event)
 
         resp = query_jurisdiction_providers(event, self.mock_context)
@@ -337,7 +337,7 @@ class TestQueryJurisdictionProviders(TstFunction):
             }
         )
 
-        # Add HMAC authentication headers
+        # Add DSA authentication headers
         event = self._create_signed_event(event)
 
         resp = query_jurisdiction_providers(event, self.mock_context)
@@ -350,20 +350,20 @@ class TestQueryJurisdictionProviders(TstFunction):
 class TestGetProvider(TstFunction):
     def setUp(self):
         super().setUp()
-        # Load test keys for HMAC authentication
+        # Load test keys for DSA authentication
         with open('../common/tests/resources/client_private_key.pem') as f:
             self.private_key_pem = f.read()
         with open('../common/tests/resources/client_public_key.pem') as f:
             self.public_key_pem = f.read()
 
-        # Load HMAC public key into the compact configuration table for functional testing
-        self._load_hmac_public_key('aslp', 'oh', 'test-key-001', self.public_key_pem)
-        self._load_hmac_public_key('aslp', 'ne', 'test-key-001', self.public_key_pem)
+        # Load DSA public key into the compact configuration table for functional testing
+        self._load_dsa_public_key('aslp', 'oh', 'test-key-001', self.public_key_pem)
+        self._load_dsa_public_key('aslp', 'ne', 'test-key-001', self.public_key_pem)
 
-    def _load_hmac_public_key(self, compact: str, jurisdiction: str, key_id: str, public_key_pem: str):
-        """Load an HMAC public key into the compact configuration table."""
+    def _load_dsa_public_key(self, compact: str, jurisdiction: str, key_id: str, public_key_pem: str):
+        """Load a DSA public key into the compact configuration table."""
         item = {
-            'pk': f'{compact}#HMAC_KEYS',
+            'pk': f'{compact}#DSA_KEYS',
             'sk': f'{compact}#JURISDICTION#{jurisdiction}#{key_id}',
             'publicKey': public_key_pem,
             'compact': compact,
@@ -374,7 +374,7 @@ class TestGetProvider(TstFunction):
         self._compact_configuration_table.put_item(Item=item)
 
     def _create_signed_event(self, event: dict) -> dict:
-        """Add HMAC headers to an event for required HMAC authentication."""
+        """Add DSA headers to an event for required DSA authentication."""
         # Generate current timestamp and nonce
         timestamp = datetime.now(UTC).isoformat()
         nonce = str(uuid4())
@@ -391,7 +391,7 @@ class TestGetProvider(TstFunction):
             private_key_pem=self.private_key_pem,
         )
 
-        # Add HMAC headers to event
+        # Add DSA headers to event
         event['headers'].update(headers)
         return event
 
@@ -411,7 +411,7 @@ class TestGetProvider(TstFunction):
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
         event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'ne', 'providerId': provider_id}
 
-        # Add HMAC authentication headers
+        # Add DSA authentication headers
         event = self._create_signed_event(event)
 
         resp = get_provider(event, self.mock_context)
@@ -479,7 +479,7 @@ class TestGetProvider(TstFunction):
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral aslp/readPrivate'
         event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'ne', 'providerId': provider_id}
 
-        # Add HMAC authentication headers
+        # Add DSA authentication headers
         event = self._create_signed_event(event)
 
         resp = get_provider(event, self.mock_context)
@@ -547,7 +547,7 @@ class TestGetProvider(TstFunction):
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.readPrivate'
         event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'ne', 'providerId': provider_id}
 
-        # Add HMAC authentication headers
+        # Add DSA authentication headers
         event = self._create_signed_event(event)
 
         resp = get_provider(event, self.mock_context)
@@ -575,7 +575,7 @@ class TestGetProvider(TstFunction):
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
         event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'ne', 'providerId': provider_id}
 
-        # Add HMAC authentication headers
+        # Add DSA authentication headers
         event = self._create_signed_event(event)
 
         resp = get_provider(event, self.mock_context)
@@ -605,7 +605,7 @@ class TestGetProvider(TstFunction):
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
         event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh', 'providerId': provider_id}
 
-        # Add HMAC authentication headers
+        # Add DSA authentication headers
         event = self._create_signed_event(event)
 
         resp = get_provider(event, self.mock_context)
@@ -622,7 +622,7 @@ class TestGetProvider(TstFunction):
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
         event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'ne', 'providerId': 'nonexistent-provider'}
 
-        # Add HMAC authentication headers
+        # Add DSA authentication headers
         event = self._create_signed_event(event)
 
         resp = get_provider(event, self.mock_context)
@@ -639,7 +639,7 @@ class TestGetProvider(TstFunction):
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
         event['pathParameters'] = {'compact': 'aslp'}  # Missing jurisdiction and providerId
 
-        # Add HMAC authentication headers
+        # Add DSA authentication headers
         event = self._create_signed_event(event)
 
         resp = get_provider(event, self.mock_context)
@@ -686,19 +686,19 @@ class TestGetProvider(TstFunction):
 class TestBulkUploadUrlHandler(TstFunction):
     def setUp(self):
         super().setUp()
-        # Load test keys for HMAC authentication
+        # Load test keys for DSA authentication
         with open('../common/tests/resources/client_private_key.pem') as f:
             self.private_key_pem = f.read()
         with open('../common/tests/resources/client_public_key.pem') as f:
             self.public_key_pem = f.read()
 
-        # Load HMAC public key into the compact configuration table for functional testing
-        self._load_hmac_public_key('aslp', 'oh', 'test-key-001', self.public_key_pem)
+        # Load DSA public key into the compact configuration table for functional testing
+        self._load_dsa_public_key('aslp', 'oh', 'test-key-001', self.public_key_pem)
 
-    def _load_hmac_public_key(self, compact: str, jurisdiction: str, key_id: str, public_key_pem: str):
-        """Load an HMAC public key into the compact configuration table."""
+    def _load_dsa_public_key(self, compact: str, jurisdiction: str, key_id: str, public_key_pem: str):
+        """Load a DSA public key into the compact configuration table."""
         item = {
-            'pk': f'{compact}#HMAC_KEYS',
+            'pk': f'{compact}#DSA_KEYS',
             'sk': f'{compact}#JURISDICTION#{jurisdiction}#{key_id}',
             'publicKey': public_key_pem,
             'compact': compact,
@@ -709,7 +709,7 @@ class TestBulkUploadUrlHandler(TstFunction):
         self._compact_configuration_table.put_item(Item=item)
 
     def _create_signed_event(self, event: dict) -> dict:
-        """Add HMAC headers to an event for optional HMAC authentication."""
+        """Add DSA headers to an event for optional DSA authentication."""
         # Generate current timestamp and nonce
         timestamp = datetime.now(UTC).isoformat()
         nonce = str(uuid4())
@@ -726,12 +726,12 @@ class TestBulkUploadUrlHandler(TstFunction):
             private_key_pem=self.private_key_pem,
         )
 
-        # Add HMAC headers to event
+        # Add DSA headers to event
         event['headers'].update(headers)
         return event
 
     def test_bulk_upload_url_handler_success(self):
-        """Test successful bulk upload URL generation with optional HMAC authentication."""
+        """Test successful bulk upload URL generation with optional DSA authentication."""
         from handlers.state_api import bulk_upload_url_handler
 
         with open('../common/tests/resources/api-event.json') as f:
@@ -741,7 +741,7 @@ class TestBulkUploadUrlHandler(TstFunction):
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.write'
         event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
 
-        # Add HMAC authentication headers
+        # Add DSA authentication headers
         event = self._create_signed_event(event)
 
         resp = bulk_upload_url_handler(event, self.mock_context)

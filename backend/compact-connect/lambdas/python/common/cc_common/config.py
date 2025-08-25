@@ -313,7 +313,7 @@ class _Config:
         return os.environ['API_BASE_URL']
 
     @property
-    def hmac_max_clock_skew_seconds(self):
+    def dsa_max_clock_skew_seconds(self):
         return 60
 
 

@@ -14,19 +14,19 @@ from .. import TstFunction
 class TestLicenses(TstFunction):
     def setUp(self):
         super().setUp()
-        # Load test keys for HMAC authentication
+        # Load test keys for DSA authentication
         with open('../common/tests/resources/client_private_key.pem') as f:
             self.private_key_pem = f.read()
         with open('../common/tests/resources/client_public_key.pem') as f:
             self.public_key_pem = f.read()
 
-        # Load HMAC public key into the compact configuration table for functional testing
-        self._load_hmac_public_key('aslp', 'oh', 'test-key-001', self.public_key_pem)
+        # Load DSA public key into the compact configuration table for functional testing
+        self._load_dsa_public_key('aslp', 'oh', 'test-key-001', self.public_key_pem)
 
-    def _load_hmac_public_key(self, compact: str, jurisdiction: str, key_id: str, public_key_pem: str):
-        """Load an HMAC public key into the compact configuration table."""
+    def _load_dsa_public_key(self, compact: str, jurisdiction: str, key_id: str, public_key_pem: str):
+        """Load a DSA public key into the compact configuration table."""
         item = {
-            'pk': f'{compact}#HMAC_KEYS',
+            'pk': f'{compact}#DSA_KEYS',
             'sk': f'{compact}#JURISDICTION#{jurisdiction}#{key_id}',
             'publicKey': public_key_pem,
             'compact': compact,
@@ -37,7 +37,7 @@ class TestLicenses(TstFunction):
         self._compact_configuration_table.put_item(Item=item)
 
     def _create_signed_event(self, event: dict) -> dict:
-        """Add HMAC headers to an event for optional HMAC authentication."""
+        """Add DSA headers to an event for optional DSA authentication."""
         # Generate current timestamp and nonce
         timestamp = datetime.now(UTC).isoformat()
         nonce = str(uuid4())
@@ -54,7 +54,7 @@ class TestLicenses(TstFunction):
             private_key_pem=self.private_key_pem,
         )
 
-        # Add HMAC headers to event
+        # Add DSA headers to event
         event['headers'].update(headers)
         return event
 
@@ -70,7 +70,7 @@ class TestLicenses(TstFunction):
         with open('../common/tests/resources/api/license-post.json') as f:
             event['body'] = json.dumps([json.load(f)])
 
-        # Add HMAC authentication headers
+        # Add DSA authentication headers
         event = self._create_signed_event(event)
 
         resp = post_licenses(event, self.mock_context)
@@ -102,7 +102,7 @@ class TestLicenses(TstFunction):
         license_data['licenseType'] = 'occupational therapist'
         event['body'] = json.dumps([license_data])
 
-        # Add HMAC authentication headers
+        # Add DSA authentication headers
         event = self._create_signed_event(event)
 
         resp = post_licenses(event, self.mock_context)
@@ -127,7 +127,7 @@ class TestLicenses(TstFunction):
             license_data['someOtherField'] = 'foobar'
         event['body'] = json.dumps([license_data])
 
-        # Add HMAC authentication headers
+        # Add DSA authentication headers
         event = self._create_signed_event(event)
 
         resp = post_licenses(event, self.mock_context)
@@ -149,7 +149,7 @@ class TestLicenses(TstFunction):
             license_data['licenseStatusName'] = None
         event['body'] = json.dumps([license_data, license_data])
 
-        # Add HMAC authentication headers
+        # Add DSA authentication headers
         event = self._create_signed_event(event)
 
         resp = post_licenses(event, self.mock_context)
@@ -198,7 +198,7 @@ class TestLicenses(TstFunction):
 
         event['body'] = json.dumps([request_body])
 
-        # Add HMAC authentication headers
+        # Add DSA authentication headers
         event = self._create_signed_event(event)
 
         resp = post_licenses(event, self.mock_context)

@@ -248,7 +248,7 @@ def create_signed_headers(method: str, path: str, query_params: dict, private_ke
     :param path: Request path
     :param query_params: Query parameters dictionary
     :param private_key_pem: PEM-encoded private key
-    :return: Headers dictionary with HMAC authentication headers
+    :return: Headers dictionary with DSA authentication headers
     """
     # Generate current timestamp and nonce
     timestamp = datetime.now(UTC).isoformat()

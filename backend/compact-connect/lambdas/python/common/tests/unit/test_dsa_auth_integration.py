@@ -8,8 +8,8 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from tests import TstLambdas
 
 
-class TestHmacAuthIntegration(TstLambdas):
-    """Testing HMAC authentication integration with the existing api_handler decorator."""
+class TestDsaAuthIntegration(TstLambdas):
+    """Testing DSA authentication integration with the existing api_handler decorator."""
 
     def setUp(self):
         """Set up test fixtures."""
@@ -26,13 +26,13 @@ class TestHmacAuthIntegration(TstLambdas):
         with open('tests/resources/api-client-event.json') as f:
             self.base_event = json.load(f)
 
-    def test_hmac_with_api_handler_success(self):
-        """Test successful HMAC authentication with api_handler decorator."""
-        from cc_common.hmac_auth import required_hmac_auth
+    def test_dsa_with_api_handler_success(self):
+        """Test successful DSA authentication with api_handler decorator."""
+        from cc_common.dsa_auth import required_dsa_auth
         from cc_common.utils import api_handler
 
         @api_handler
-        @required_hmac_auth
+        @required_dsa_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK', 'authenticated': True}
 
@@ -40,7 +40,7 @@ class TestHmacAuthIntegration(TstLambdas):
         event = self._create_signed_event()
 
         # Mock DynamoDB to return the public key
-        with patch('cc_common.hmac_auth._get_public_key_from_dynamodb') as mock_get_key:
+        with patch('cc_common.dsa_auth._get_public_key_from_dynamodb') as mock_get_key:
             mock_get_key.return_value = self.public_key_pem
 
             resp = lambda_handler(event, self.mock_context)
@@ -53,21 +53,21 @@ class TestHmacAuthIntegration(TstLambdas):
             self.assertEqual('OK', body['message'])
             self.assertTrue(body['authenticated'])
 
-    def test_hmac_with_api_handler_unauthorized(self):
-        """Test HMAC authentication failure with api_handler decorator returns 401."""
-        from cc_common.hmac_auth import required_hmac_auth
+    def test_dsa_with_api_handler_unauthorized(self):
+        """Test DSA authentication failure with api_handler decorator returns 401."""
+        from cc_common.dsa_auth import required_dsa_auth
         from cc_common.utils import api_handler
 
         @api_handler
-        @required_hmac_auth
+        @required_dsa_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
-        # Create event without HMAC headers
+        # Create event without DSA headers
         event = self.base_event.copy()
 
         # Mock DynamoDB to return the public key
-        with patch('cc_common.hmac_auth._get_public_key_from_dynamodb') as mock_get_key:
+        with patch('cc_common.dsa_auth._get_public_key_from_dynamodb') as mock_get_key:
             mock_get_key.return_value = self.public_key_pem
 
             resp = lambda_handler(event, self.mock_context)
@@ -76,13 +76,13 @@ class TestHmacAuthIntegration(TstLambdas):
             self.assertEqual('https://example.org', resp['headers']['Access-Control-Allow-Origin'])
         self.assertEqual('{"message": "Unauthorized"}', resp['body'])
 
-    def test_hmac_with_api_handler_invalid_request(self):
-        """Test HMAC validation failure with api_handler decorator returns 400."""
-        from cc_common.hmac_auth import required_hmac_auth
+    def test_dsa_with_api_handler_invalid_request(self):
+        """Test DSA validation failure with api_handler decorator returns 400."""
+        from cc_common.dsa_auth import required_dsa_auth
         from cc_common.utils import api_handler
 
         @api_handler
-        @required_hmac_auth
+        @required_dsa_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
@@ -91,7 +91,7 @@ class TestHmacAuthIntegration(TstLambdas):
         event['headers']['X-Timestamp'] = 'not-a-timestamp'
 
         # Mock DynamoDB to return the public key
-        with patch('cc_common.hmac_auth._get_public_key_from_dynamodb') as mock_get_key:
+        with patch('cc_common.dsa_auth._get_public_key_from_dynamodb') as mock_get_key:
             mock_get_key.return_value = self.public_key_pem
 
             resp = lambda_handler(event, self.mock_context)
@@ -103,13 +103,13 @@ class TestHmacAuthIntegration(TstLambdas):
         body = json.loads(resp['body'])
         self.assertIn('Invalid timestamp format', body['message'])
 
-    def test_hmac_with_api_handler_invalid_signature(self):
+    def test_dsa_with_api_handler_invalid_signature(self):
         """Test invalid signature with api_handler decorator returns 401."""
-        from cc_common.hmac_auth import required_hmac_auth
+        from cc_common.dsa_auth import required_dsa_auth
         from cc_common.utils import api_handler
 
         @api_handler
-        @required_hmac_auth
+        @required_dsa_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
@@ -118,7 +118,7 @@ class TestHmacAuthIntegration(TstLambdas):
         event['headers']['X-Signature'] = 'invalid-signature'
 
         # Mock DynamoDB to return the public key
-        with patch('cc_common.hmac_auth._get_public_key_from_dynamodb') as mock_get_key:
+        with patch('cc_common.dsa_auth._get_public_key_from_dynamodb') as mock_get_key:
             mock_get_key.return_value = self.public_key_pem
 
             resp = lambda_handler(event, self.mock_context)
@@ -127,13 +127,13 @@ class TestHmacAuthIntegration(TstLambdas):
             self.assertEqual('https://example.org', resp['headers']['Access-Control-Allow-Origin'])
             self.assertEqual('{"message": "Unauthorized"}', resp['body'])
 
-    def test_hmac_with_api_handler_public_key_not_found(self):
+    def test_dsa_with_api_handler_public_key_not_found(self):
         """Test public key not found with api_handler decorator returns 401."""
-        from cc_common.hmac_auth import required_hmac_auth
+        from cc_common.dsa_auth import required_dsa_auth
         from cc_common.utils import api_handler
 
         @api_handler
-        @required_hmac_auth
+        @required_dsa_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
@@ -141,7 +141,7 @@ class TestHmacAuthIntegration(TstLambdas):
         event = self._create_signed_event()
 
         # Mock DynamoDB to return None (key not found)
-        with patch('cc_common.hmac_auth._get_public_key_from_dynamodb') as mock_get_key:
+        with patch('cc_common.dsa_auth._get_public_key_from_dynamodb') as mock_get_key:
             mock_get_key.return_value = None
 
             resp = lambda_handler(event, self.mock_context)
@@ -152,22 +152,22 @@ class TestHmacAuthIntegration(TstLambdas):
 
     def test_decorator_order_matters(self):
         """Test that decorator order affects behavior (api_handler should be outermost)."""
-        from cc_common.hmac_auth import required_hmac_auth
+        from cc_common.dsa_auth import required_dsa_auth
         from cc_common.utils import api_handler
 
         # This test demonstrates that api_handler should be the outermost decorator
-        # so it can properly handle exceptions from hmac_auth_required
+        # so it can properly handle exceptions from dsa_auth_required
 
-        @required_hmac_auth
+        @required_dsa_auth
         @api_handler
         def lambda_handler_wrong_order(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
-        # Create event without HMAC headers
+        # Create event without DSA headers
         event = self.base_event.copy()
 
         # Mock DynamoDB to return the public key
-        with patch('cc_common.hmac_auth._get_public_key_from_dynamodb') as mock_get_key:
+        with patch('cc_common.dsa_auth._get_public_key_from_dynamodb') as mock_get_key:
             mock_get_key.return_value = self.public_key_pem
 
             # This should raise an exception directly instead of returning a proper API response
@@ -176,13 +176,13 @@ class TestHmacAuthIntegration(TstLambdas):
 
             self.assertIn('Missing required X-Key-Id header', str(cm.exception))
 
-    def test_hmac_with_api_handler_cors_handling(self):
-        """Test that CORS headers are properly handled with HMAC authentication."""
-        from cc_common.hmac_auth import required_hmac_auth
+    def test_dsa_with_api_handler_cors_handling(self):
+        """Test that CORS headers are properly handled with DSA authentication."""
+        from cc_common.dsa_auth import required_dsa_auth
         from cc_common.utils import api_handler
 
         @api_handler
-        @required_hmac_auth
+        @required_dsa_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
@@ -191,7 +191,7 @@ class TestHmacAuthIntegration(TstLambdas):
         event['headers']['origin'] = 'http://localhost:1234'
 
         # Mock DynamoDB to return the public key
-        with patch('cc_common.hmac_auth._get_public_key_from_dynamodb') as mock_get_key:
+        with patch('cc_common.dsa_auth._get_public_key_from_dynamodb') as mock_get_key:
             mock_get_key.return_value = self.public_key_pem
 
             resp = lambda_handler(event, self.mock_context)
@@ -222,7 +222,7 @@ class TestHmacAuthIntegration(TstLambdas):
             private_key_pem=self.private_key_pem,
         )
 
-        # Add HMAC headers to event
+        # Add DSA headers to event
         event['headers'].update(headers)
 
         return event

@@ -2,9 +2,9 @@
 # ruff: noqa: T201 we use print statements for scripts run locally
 
 """
-Script to manage HMAC public keys in the compact configuration database.
+Script to manage DSA public keys in the compact configuration database.
 
-This script allows users to create and delete HMAC public keys for different
+This script allows users to create and delete DSA public keys for different
 compact/jurisdiction combinations. It follows the same interactive style as
 the create_app_client.py script.
 """
@@ -87,8 +87,8 @@ def validate_key_id(key_id):
 
 
 def get_user_input_for_create():
-    """Get user input for creating an HMAC public key."""
-    print('=== HMAC Public Key Creation ===\n')
+    """Get user input for creating a DSA public key."""
+    print('=== DSA Public Key Creation ===\n')
 
     # Get compact
     while True:
@@ -167,13 +167,13 @@ def read_public_key_file(key_id):
         raise ValueError(f'Error reading public key file: {e}') from e
 
 
-def create_hmac_key(table_name, config):
-    """Create the HMAC public key in DynamoDB."""
+def create_dsa_key(table_name, config):
+    """Create the DSA public key in DynamoDB."""
     compact = config['compact']
     state = config['state']
     key_id = config['key_id']
 
-    print(f'\nCreating HMAC public key: {key_id}')
+    print(f'\nCreating DSA public key: {key_id}')
     print(f'For compact: {compact}, state: {state}')
 
     try:
@@ -182,7 +182,7 @@ def create_hmac_key(table_name, config):
         table = dynamodb.Table(table_name)
 
         # Check if key already exists
-        pk = f'{compact}#HMAC_KEYS'
+        pk = f'{compact}#DSA_KEYS'
         sk = f'{compact}#JURISDICTION#{state}#{key_id}'
 
         response = table.get_item(Key={'pk': pk, 'sk': sk})
@@ -212,7 +212,7 @@ def create_hmac_key(table_name, config):
         # Write to DynamoDB
         table.put_item(Item=item)
 
-        print('\n✅ HMAC public key created successfully!')
+        print('\n✅ DSA public key created successfully!')
         print(f'Key ID: {key_id}')
         print(f'Compact: {compact}')
         print(f'State: {state}')
@@ -224,13 +224,13 @@ def create_hmac_key(table_name, config):
     except ClientError as e:
         error_code = e.response['Error']['Code']
         error_message = e.response['Error']['Message']
-        print(f'Error creating HMAC key: {error_code} - {error_message}')
+        print(f'Error creating DSA key: {error_code} - {error_message}')
         raise
 
 
 def get_user_input_for_delete():
-    """Get user input for deleting an HMAC public key."""
-    print('=== HMAC Public Key Deletion ===\n')
+    """Get user input for deleting a DSA public key."""
+    print('=== DSA Public Key Deletion ===\n')
 
     # Get compact
     while True:
@@ -257,7 +257,7 @@ def get_user_input_for_delete():
 
 
 def list_existing_keys(table_name, config):
-    """List existing HMAC keys for the given compact/state combination."""
+    """List existing DSA keys for the given compact/state combination."""
     compact = config['compact']
     state = config['state']
 
@@ -267,7 +267,7 @@ def list_existing_keys(table_name, config):
         table = dynamodb.Table(table_name)
 
         # Query for existing keys
-        pk = f'{compact}#HMAC_KEYS'
+        pk = f'{compact}#DSA_KEYS'
         sk_prefix = f'{compact}#JURISDICTION#{state}#'
 
         response = table.query(
@@ -278,10 +278,10 @@ def list_existing_keys(table_name, config):
         items = response.get('Items', [])
 
         if not items:
-            print(f'\nNo HMAC keys found for {compact}/{state}')
+            print(f'\nNo DSA keys found for {compact}/{state}')
             return []
 
-        print(f'\nExisting HMAC keys for {compact}/{state}:')
+        print(f'\nExisting DSA keys for {compact}/{state}:')
         for i, item in enumerate(items, 1):
             key_id = item['sk'].split('#')[-1]
             created_at = item.get('createdAt', 'Unknown')
@@ -296,16 +296,16 @@ def list_existing_keys(table_name, config):
     except ClientError as e:
         error_code = e.response['Error']['Code']
         error_message = e.response['Error']['Message']
-        print(f'Error listing HMAC keys: {error_code} - {error_message}')
+        print(f'Error listing DSA keys: {error_code} - {error_message}')
         raise
 
 
-def delete_hmac_key(table_name, config, key_id):
-    """Delete the specified HMAC public key from DynamoDB."""
+def delete_dsa_key(table_name, config, key_id):
+    """Delete the specified DSA public key from DynamoDB."""
     compact = config['compact']
     state = config['state']
 
-    print(f'\nDeleting HMAC public key: {key_id}')
+    print(f'\nDeleting DSA public key: {key_id}')
     print(f'For compact: {compact}, state: {state}')
 
     try:
@@ -314,12 +314,12 @@ def delete_hmac_key(table_name, config, key_id):
         table = dynamodb.Table(table_name)
 
         # Delete the item
-        pk = f'{compact}#HMAC_KEYS'
+        pk = f'{compact}#DSA_KEYS'
         sk = f'{compact}#JURISDICTION#{state}#{key_id}'
 
         table.delete_item(Key={'pk': pk, 'sk': sk})
 
-        print('\n✅ HMAC public key deleted successfully!')
+        print('\n✅ DSA public key deleted successfully!')
         print(f'Key ID: {key_id}')
         print(f'Compact: {compact}')
         print(f'State: {state}')
@@ -331,24 +331,24 @@ def delete_hmac_key(table_name, config, key_id):
     except ClientError as e:
         error_code = e.response['Error']['Code']
         error_message = e.response['Error']['Message']
-        print(f'Error deleting HMAC key: {error_code} - {error_message}')
+        print(f'Error deleting DSA key: {error_code} - {error_message}')
         raise
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Manage HMAC public keys in the compact configuration database')
+    parser = argparse.ArgumentParser(description='Manage DSA public keys in the compact configuration database')
     parser.add_argument('action', choices=['create', 'delete'], help='Action to perform (create or delete)')
     parser.add_argument('-t', '--table-name', required=True, help='DynamoDB table name for compact configuration')
 
     args = parser.parse_args()
 
-    print(f'Managing HMAC keys for {args.table_name} table...\n')
+    print(f'Managing DSA keys for {args.table_name} table...\n')
 
     if args.action == 'create':
         # Create flow
         config = get_user_input_for_create()
 
-        create_hmac_key(args.table_name, config)
+        create_dsa_key(args.table_name, config)
 
     elif args.action == 'delete':
         # Delete flow
@@ -375,7 +375,7 @@ def main():
             break
 
         # Final confirmation
-        print(f'\n⚠️  You are about to delete HMAC key "{key_id}" for {config["compact"]}/{config["state"]}')
+        print(f'\n⚠️  You are about to delete DSA key "{key_id}" for {config["compact"]}/{config["state"]}')
         print('This action cannot be undone.')
 
         confirm = input('\nAre you sure you want to delete this key? Type "DELETE" to confirm: ').strip()
@@ -383,7 +383,7 @@ def main():
             print('Deletion cancelled.')
             sys.exit(0)
 
-            delete_hmac_key(args.table_name, config, key_id)
+        delete_dsa_key(args.table_name, config, key_id)
 
 
 if __name__ == '__main__':

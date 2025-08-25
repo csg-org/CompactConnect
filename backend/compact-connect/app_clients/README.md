@@ -105,32 +105,32 @@ link that you'll generate separately.
 As part of the email message sent to the consuming team, be sure to include the onboarding instructions document from
 the `it_staff_onboarding_instructions/` directory.
 
-## Managing HMAC Public Keys
+## Managing DSA Public Keys
 
 ### Overview
 
-HMAC authentication provides an additional layer of security for API access to sensitive licensure data. Each
-compact/state combination can have multiple HMAC public keys configured to support key rotation and zero-downtime
+DSA authentication provides an additional layer of security for API access to sensitive licensure data. Each
+compact/state combination can have multiple DSA public keys configured to support key rotation and zero-downtime
 deployments.
 
 ### Authorization Requirements
 
-**⚠️ CRITICAL SECURITY NOTICE:** Due to the sensitivity of the data protected by HMAC authentication (including
-partial Social Security Numbers, personal addresses, and professional license details), configuration of new HMAC
+**⚠️ CRITICAL SECURITY NOTICE:** Due to the sensitivity of the data protected by DSA authentication (including
+partial Social Security Numbers, personal addresses, and professional license details), configuration of new DSA
 public keys in production environments **MUST** include explicit authorization from the state board executive director.
 
-### Creating HMAC Public Keys
+### Creating DSA Public Keys
 
-Once a state configures a public key, they will be able to access the HMAC-required API endpoints. API endpoints with
-_optional_ HMAC support will also begin to enforce HMAC signatures for that combination of compact and state. **This
-means that, once a compact/state has a public key configured, they will be denied access to HMAC-Optional endpoints,
-such as the `POST license` endpoint, unless they have also implemented HMAC signatures there as well.** Be sure that
+Once a state configures a public key, they will be able to access the DSA-required API endpoints. API endpoints with
+_optional_ DSA support will also begin to enforce DSA signatures for that combination of compact and state. **This
+means that, once a compact/state has a public key configured, they will be denied access to DSA-Optional endpoints,
+such as the `POST license` endpoint, unless they have also implemented DSA signatures there as well.** Be sure that
 the representative is advised that they should begin signing those requests _before_ CompactConnect has a configured
 public key.
 
 #### 1. Prerequisites
 
-Before creating a new HMAC public key, ensure you have:
+Before creating a new DSA public key, ensure you have:
 - **Production Authorization**: Explicit approval from the state board executive director for production environments
 - Validated the identity of the individual providing the public key to you
 - Jurisdiction and compact information confirmed
@@ -150,12 +150,12 @@ Examples:
 - `prod-key-001`
 - `beta-key-2024-01`
 
-#### 3. Create HMAC Public Key Using Interactive Python Script
+#### 3. Create DSA Public Key Using Interactive Python Script
 
-**Use the provided Python script in the bin directory for streamlined HMAC key management:**
+**Use the provided Python script in the bin directory for streamlined DSA key management:**
 
 ```bash
-python3 bin/manage_hmac_keys.py create -t <table_name>
+python3 bin/manage_dsa_keys.py create -t <table_name>
 ```
 
 **Interactive Process:**
@@ -173,8 +173,8 @@ The script will:
 
 #### 4. Database Schema
 
-HMAC keys are stored in the compact configuration table with the following schema:
-- **Primary Key (pk)**: `{compact}#HMAC_KEYS`
+DSA keys are stored in the compact configuration table with the following schema:
+- **Primary Key (pk)**: `{compact}#DSA_KEYS`
 - **Sort Key (sk)**: `{compact}#JURISDICTION#{jurisdiction}#{key_id}`
 - **Additional Fields**:
   - `publicKey`: PEM-encoded public key content
@@ -183,19 +183,19 @@ HMAC keys are stored in the compact configuration table with the following schem
   - `keyId`: Key identifier
   - `createdAt`: Creation timestamp
 
-### Deleting HMAC Public Keys
+### Deleting DSA Public Keys
 
 #### 1. Prerequisites
 
-Before deleting an HMAC public key, ensure you have:
+Before deleting a DSA public key, ensure you have:
 - Confirmation that the key is no longer in use by the state IT department
 - Confirmation of the key id to be deleted
 - Understanding of the impact on API access for the compact/state combination
 
-#### 2. Delete HMAC Public Key Using Interactive Python Script
+#### 2. Delete DSA Public Key Using Interactive Python Script
 
 ```bash
-python3 bin/manage_hmac_keys.py delete -t <table_name>
+python3 bin/manage_dsa_keys.py delete -t <table_name>
 ```
 
 **Interactive Process:**

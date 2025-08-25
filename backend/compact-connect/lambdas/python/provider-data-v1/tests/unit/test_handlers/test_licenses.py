@@ -13,14 +13,14 @@ class TestPostLicenses(TstLambdas):
     # don't intend to set for these tests.
     @patch('handlers.licenses.config', autospec=False)
     @patch('handlers.licenses.send_licenses_to_preprocessing_queue')
-    @patch('cc_common.hmac_auth._get_configured_keys_for_jurisdiction')
+    @patch('cc_common.dsa_auth._get_configured_keys_for_jurisdiction')
     def test_post_licenses(self, mock_get_configured_keys, mock_send_licenses_to_preprocessing_queue, mock_config):
         from handlers.licenses import post_licenses
 
         mock_config.current_standard_datetime = datetime.fromisoformat('2024-11-08T23:59:59+00:00')
         # this method returns any license numbers that failed, so we return an empty list for this test
         mock_send_licenses_to_preprocessing_queue.return_value = []
-        # Mock HMAC authentication to return no configured keys (allows request to proceed without HMAC)
+        # Mock DSA authentication to return no configured keys (allows request to proceed without DSA)
         mock_get_configured_keys.return_value = {}
 
         with open('../common/tests/resources/api-event.json') as f:
@@ -56,11 +56,11 @@ class TestPostLicenses(TstLambdas):
     # We can't autospec because it causes the patch to evaluate properties that look up environment variables that we
     # don't intend to set for these tests.
     @patch('handlers.licenses.config', autospec=False)
-    @patch('cc_common.hmac_auth._get_configured_keys_for_jurisdiction')
+    @patch('cc_common.dsa_auth._get_configured_keys_for_jurisdiction')
     def test_cross_compact(self, mock_get_configured_keys, mock_config):
         from handlers.licenses import post_licenses
 
-        # Mock HMAC authentication to return no configured keys (allows request to proceed without HMAC)
+        # Mock DSA authentication to return no configured keys (allows request to proceed without DSA)
         mock_get_configured_keys.return_value = {}
 
         with open('../common/tests/resources/api-event.json') as f:
@@ -81,11 +81,11 @@ class TestPostLicenses(TstLambdas):
     # We can't autospec because it causes the patch to evaluate properties that look up environment variables that we
     # don't intend to set for these tests.
     @patch('handlers.licenses.config', autospec=False)
-    @patch('cc_common.hmac_auth._get_configured_keys_for_jurisdiction')
+    @patch('cc_common.dsa_auth._get_configured_keys_for_jurisdiction')
     def test_wrong_jurisdiction(self, mock_get_configured_keys, mock_config):  # noqa: ARG001 unused-argument
         from handlers.licenses import post_licenses
 
-        # Mock HMAC authentication to return no configured keys (allows request to proceed without HMAC)
+        # Mock DSA authentication to return no configured keys (allows request to proceed without DSA)
         mock_get_configured_keys.return_value = {}
 
         with open('../common/tests/resources/api-event.json') as f:
@@ -107,7 +107,7 @@ class TestPostLicenses(TstLambdas):
     # don't intend to set for these tests.
     @patch('handlers.licenses.config', autospec=False)
     @patch('handlers.licenses.send_licenses_to_preprocessing_queue')
-    @patch('cc_common.hmac_auth._get_configured_keys_for_jurisdiction')
+    @patch('cc_common.dsa_auth._get_configured_keys_for_jurisdiction')
     def test_event_error(self, mock_get_configured_keys, mock_send_licenses_to_preprocessing_queue, mock_config):
         """If we have trouble publishing our events to AWS EventBridge, we should
         return a 500 (raise a CCInternalException).
@@ -117,7 +117,7 @@ class TestPostLicenses(TstLambdas):
         mock_config.current_standard_datetime = datetime.fromisoformat('2024-11-08T23:59:59+00:00')
         # this method returns any license numbers that failed, so we return one here
         mock_send_licenses_to_preprocessing_queue.return_value = ['mock-license-number']
-        # Mock HMAC authentication to return no configured keys (allows request to proceed without HMAC)
+        # Mock DSA authentication to return no configured keys (allows request to proceed without DSA)
         mock_get_configured_keys.return_value = {}
 
         with open('../common/tests/resources/api-event.json') as f:

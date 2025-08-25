@@ -3,8 +3,8 @@ import json
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
 from cc_common.data_model.schema.license.api import LicensePostRequestSchema
+from cc_common.dsa_auth import optional_dsa_auth
 from cc_common.exceptions import CCInternalException, CCInvalidRequestException
-from cc_common.hmac_auth import optional_hmac_auth
 from cc_common.utils import api_handler, authorize_compact_jurisdiction, send_licenses_to_preprocessing_queue
 from marshmallow import ValidationError
 
@@ -12,7 +12,7 @@ schema = LicensePostRequestSchema()
 
 
 @api_handler
-@optional_hmac_auth
+@optional_dsa_auth
 @authorize_compact_jurisdiction(action='write')
 def post_licenses(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """Synchronously validate and submit an array of licenses
