@@ -59,8 +59,7 @@ Add the new app client information to the external Google Sheet registry for tra
    - Additional scopes (optional)
 
    **Automatic Scope Generation:**
-   The script automatically creates these standard scopes:
-   - `{compact}/readGeneral` - General read access for the compact
+   The script automatically adds the following scope:
    - `{state}/{compact}.write` - Write access for the specific state/compact combination
 
 
