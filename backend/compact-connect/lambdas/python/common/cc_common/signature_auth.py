@@ -258,7 +258,7 @@ def _validate_signature(event: dict, compact: str, jurisdiction: str, public_key
             raise CCUnauthorizedCustomResponseException('Request timestamp is too old or in the future')
     except ValueError as e:
         logger.warning('Invalid timestamp format', timestamp=timestamp_str, error=str(e))
-        raise CCInvalidRequestException('Invalid timestamp format') from e
+        raise CCUnauthorizedCustomResponseException('Invalid timestamp format') from e
 
     # Reconstruct signature string
     signature_string = _build_signature_string(event)
