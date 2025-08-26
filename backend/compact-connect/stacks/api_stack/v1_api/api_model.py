@@ -4,10 +4,10 @@
 from __future__ import annotations
 
 from aws_cdk.aws_apigateway import JsonSchema, JsonSchemaType, Model
-from common_constructs.stack import AppStack
 
 # Importing module level to allow lazy loading for typing
-from stacks.api_stack import cc_api
+from common_constructs import cc_api
+from common_constructs.stack import AppStack
 
 
 class ApiModel:
@@ -123,7 +123,7 @@ class ApiModel:
             description='Query providers response model',
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
-                required=['items', 'pagination'],
+                required=['providers', 'pagination'],
                 properties={
                     'providers': JsonSchema(
                         type=JsonSchemaType.ARRAY,
@@ -152,25 +152,31 @@ class ApiModel:
     @property
     def bulk_upload_response_model(self) -> Model:
         """Return the Bulk Upload Response Model, which should only be created once per API"""
-        if hasattr(self.api, 'bulk_upload_response_model'):
-            return self.api.bulk_upload_response_model
+        if hasattr(self.api, '_v1_bulk_upload_response_model'):
+            return self.api._v1_bulk_upload_response_model
 
-        self.api.bulk_upload_response_model = self.api.add_model(
+        self.api._v1_bulk_upload_response_model = self.api.add_model(
             'BulkUploadResponseModel',
             description='Bulk upload url response model',
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
-                required=['upload', 'fields'],
+                required=['upload'],
                 properties={
-                    'url': JsonSchema(type=JsonSchemaType.STRING),
-                    'fields': JsonSchema(
+                    'upload': JsonSchema(
                         type=JsonSchemaType.OBJECT,
-                        additional_properties=JsonSchema(type=JsonSchemaType.STRING),
-                    ),
+                        required=['url', 'fields'],
+                        properties={
+                            'url': JsonSchema(type=JsonSchemaType.STRING),
+                            'fields': JsonSchema(
+                                type=JsonSchemaType.OBJECT,
+                                additional_properties=JsonSchema(type=JsonSchemaType.STRING),
+                            ),
+                        },
+                    )
                 },
             ),
         )
-        return self.api.bulk_upload_response_model
+        return self.api._v1_bulk_upload_response_model
 
     @property
     def post_staff_user_model(self):
@@ -624,8 +630,13 @@ class ApiModel:
                     ),
                     'selectedJurisdictions': JsonSchema(
                         type=JsonSchemaType.ARRAY,
-                        # setting a max length to prevent abuse
-                        max_length=100,
+                        # Authorize.net has a limit of 30 line items per transaction. For every transaction, each
+                        # privilege takes up an individual line item, and we include an additional line item for
+                        # compact administrative fees, plus a line item for credit card transaction fees if the
+                        # compact collects those. In order to avoid ever hitting the limit of 30 line items, the system
+                        # sets a limit of 20 privileges per transaction (this gives the system space to add an
+                        # additional 8 line items to any transaction should the need arise)
+                        max_length=20,
                         items=JsonSchema(
                             type=JsonSchemaType.STRING,
                             description='Jurisdictions a provider has selected to purchase privileges in.',
@@ -1335,6 +1346,17 @@ class ApiModel:
                                 type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
                             ),
                             'status': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
+                            'downloadLinks': JsonSchema(
+                                type=JsonSchemaType.ARRAY,
+                                items=JsonSchema(
+                                    type=JsonSchemaType.OBJECT,
+                                    required=['url', 'fileName'],
+                                    properties={
+                                        'url': JsonSchema(type=JsonSchemaType.STRING),
+                                        'fileName': JsonSchema(type=JsonSchemaType.STRING),
+                                    },
+                                ),
+                            ),
                         },
                     ),
                 ),
@@ -1363,7 +1385,7 @@ class ApiModel:
             'licenseStatusName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
             'compactEligibility': JsonSchema(type=JsonSchemaType.STRING, enum=['eligible', 'ineligible']),
             'emailAddress': JsonSchema(type=JsonSchemaType.STRING, format='email', min_length=5, max_length=100),
-            'phoneNumber': JsonSchema(type=JsonSchemaType.STRING, pattern=r'^\+[0-9]{8,15}$'),
+            'phoneNumber': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.PHONE_NUMBER_FORMAT),
             'suffix': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
         }
 
@@ -2029,6 +2051,65 @@ class ApiModel:
             ),
         )
         return self.api._v1_public_query_providers_response_model
+
+    @property
+    def privilege_history_response_model(self) -> Model:
+        """Return the privilege history response model, which should only be created once per API"""
+        if hasattr(self.api, '_v1_privilege_history_response_model'):
+            return self.api._v1_privilege_history_response_model
+
+        self.api._v1_privilege_history_response_model = self.api.add_model(
+            'V1PrivilegeHistoryResponseModel',
+            description='Privilege history response model',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                required=[
+                    'providerId',
+                    'compact',
+                    'jurisdiction',
+                    'licenseType',
+                    'privilegeId',
+                    'events',
+                ],
+                properties={
+                    'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
+                    'compact': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.node.get_context('compacts')),
+                    'jurisdiction': JsonSchema(
+                        type=JsonSchemaType.STRING, enum=self.stack.node.get_context('jurisdictions')
+                    ),
+                    'licenseType': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.license_type_names),
+                    'privilegeId': JsonSchema(type=JsonSchemaType.STRING),
+                    'events': JsonSchema(
+                        type=JsonSchemaType.ARRAY,
+                        items=JsonSchema(
+                            type=JsonSchemaType.OBJECT,
+                            required=[
+                                'type',
+                                'updateType',
+                                'dateOfUpdate',
+                                'effectiveDate',
+                                'createDate',
+                            ],
+                            properties={
+                                'type': JsonSchema(type=JsonSchemaType.STRING, enum=['privilegeUpdate']),
+                                'updateType': JsonSchema(type=JsonSchemaType.STRING),
+                                'dateOfUpdate': JsonSchema(
+                                    type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
+                                ),
+                                'effectiveDate': JsonSchema(
+                                    type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
+                                ),
+                                'createDate': JsonSchema(
+                                    type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
+                                ),
+                                'note': JsonSchema(type=JsonSchemaType.STRING),
+                            },
+                        ),
+                    ),
+                },
+            ),
+        )
+        return self.api._v1_privilege_history_response_model
 
     @property
     def public_provider_response_model(self) -> Model:

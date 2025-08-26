@@ -86,6 +86,10 @@ describe('Licensee model', () => {
         expect(licensee.bestHomeJurisdictionLicenseMailingAddress()).to.be.an.instanceof(Address);
         expect(licensee.purchaseEligibleLicenses()).to.matchPattern([]);
         expect(licensee.canPurchasePrivileges()).to.equal(false);
+        expect(licensee.hasEncumberedLicenses()).to.equal(false);
+        expect(licensee.hasEncumberedPrivileges()).to.equal(false);
+        expect(licensee.isEncumbered()).to.equal(false);
+        expect(licensee.hasEncumbranceLiftedWithinWaitPeriod()).to.equal(false);
     });
     it('should create a Licensee with specific values', () => {
         const data = {
@@ -191,6 +195,10 @@ describe('Licensee model', () => {
         expect(licensee.bestHomeJurisdictionLicenseMailingAddress()).to.be.an.instanceof(Address);
         expect(licensee.purchaseEligibleLicenses()).to.matchPattern([]);
         expect(licensee.canPurchasePrivileges()).to.equal(false);
+        expect(licensee.hasEncumberedLicenses()).to.equal(false);
+        expect(licensee.hasEncumberedPrivileges()).to.equal(false);
+        expect(licensee.isEncumbered()).to.equal(false);
+        expect(licensee.hasEncumbranceLiftedWithinWaitPeriod()).to.equal(false);
     });
     it('should create a Licensee with specific values (null address fallbacks)', () => {
         const data = {
@@ -299,6 +307,10 @@ describe('Licensee model', () => {
                 dateOfUpload: '2025-01-03T23:50:17+00:00',
                 documentKeys: ['key'],
                 fileNames: ['file.png'],
+                downloadLinks: [{
+                    fileName: 'file.png',
+                    url: 'https://example.com',
+                }],
                 status: 'active'
             },
             {
@@ -308,6 +320,10 @@ describe('Licensee model', () => {
                 dateOfUpload: '2025-02-03T23:50:17+00:00',
                 documentKeys: ['key'],
                 fileNames: ['file.png'],
+                downloadLinks: [{
+                    fileName: 'file.png',
+                    url: 'https://example.com',
+                }],
                 status: 'inactive'
             }],
             licenses: [
@@ -440,6 +456,10 @@ describe('Licensee model', () => {
             dateOfUpload: '2025-01-03T23:50:17+00:00',
             documentKeys: ['key'],
             fileNames: ['file.png'],
+            downloadLinks: [{
+                filename: 'file.png',
+                url: 'https://example.com',
+            }],
             status: 'active'
         });
         expect(licensee.homeJurisdictionLicenses()).to.matchPattern([
@@ -475,6 +495,10 @@ describe('Licensee model', () => {
             },
         ]);
         expect(licensee.canPurchasePrivileges()).to.equal(true);
+        expect(licensee.hasEncumberedLicenses()).to.equal(false);
+        expect(licensee.hasEncumberedPrivileges()).to.equal(false);
+        expect(licensee.isEncumbered()).to.equal(false);
+        expect(licensee.hasEncumbranceLiftedWithinWaitPeriod()).to.equal(false);
     });
     it('should create a Licensee with specific values through serializer (with inactive best license)', () => {
         const data = {
@@ -604,6 +628,10 @@ describe('Licensee model', () => {
         expect(licensee.bestHomeJurisdictionLicenseMailingAddress()).to.be.an.instanceof(Address);
         expect(licensee.purchaseEligibleLicenses()).to.matchPattern([]);
         expect(licensee.canPurchasePrivileges()).to.equal(false);
+        expect(licensee.hasEncumberedLicenses()).to.equal(false);
+        expect(licensee.hasEncumberedPrivileges()).to.equal(false);
+        expect(licensee.isEncumbered()).to.equal(false);
+        expect(licensee.hasEncumbranceLiftedWithinWaitPeriod()).to.equal(false);
     });
     it('should create a Licensee with specific values through serializer (with initiliazing military status)', () => {
         const data = {
@@ -614,6 +642,10 @@ describe('Licensee model', () => {
                 dateOfUpload: '2025-01-03T23:50:17+00:00',
                 documentKeys: ['key'],
                 fileNames: ['file.png'],
+                downloadLinks: [{
+                    fileName: 'file.png',
+                    url: 'https://example.com',
+                }],
                 status: 'inactive'
             },
             {
@@ -635,6 +667,59 @@ describe('Licensee model', () => {
         expect(licensee.isMilitaryStatusActive()).to.equal(false);
         expect(licensee.isMilitaryStatusInitializing()).to.equal(true);
         expect(licensee.activeMilitaryAffiliation()).to.equal(null);
+    });
+    it('should create a Licensee with encumbered licenses and privileges', () => {
+        // Create mock licenses with encumbered status
+        const encumberedLicense = new License({
+            licenseNumber: 'encumbered-license',
+            licenseStatus: LicenseStatus.INACTIVE,
+        });
+
+        // Mock the isEncumbered method
+        encumberedLicense.isEncumbered = () => true;
+
+        const encumberedPrivilege = new License({
+            licenseNumber: 'encumbered-privilege',
+            licenseStatus: LicenseStatus.INACTIVE,
+        });
+
+        // Mock the isEncumbered method
+        encumberedPrivilege.isEncumbered = () => true;
+
+        const licensee = new Licensee({
+            licenses: [encumberedLicense],
+            privileges: [encumberedPrivilege],
+        });
+
+        // Test encumbered methods
+        expect(licensee.hasEncumberedLicenses()).to.equal(true);
+        expect(licensee.hasEncumberedPrivileges()).to.equal(true);
+        expect(licensee.isEncumbered()).to.equal(true);
+    });
+    it('should create a Licensee with privileges that have encumbrances lifted within wait period', () => {
+        // Create mock privileges with encumbrances lifted within wait period
+        const privilegeWithRecentLift = new License({
+            licenseNumber: 'privilege-with-recent-lift',
+            licenseStatus: LicenseStatus.ACTIVE,
+        });
+
+        // Mock the isLatestLiftedEncumbranceWithinWaitPeriod method
+        privilegeWithRecentLift.isLatestLiftedEncumbranceWithinWaitPeriod = () => true;
+
+        const privilegeWithoutRecentLift = new License({
+            licenseNumber: 'privilege-without-recent-lift',
+            licenseStatus: LicenseStatus.ACTIVE,
+        });
+
+        // Mock the isLatestLiftedEncumbranceWithinWaitPeriod method
+        privilegeWithoutRecentLift.isLatestLiftedEncumbranceWithinWaitPeriod = () => false;
+
+        const licensee = new Licensee({
+            privileges: [privilegeWithRecentLift, privilegeWithoutRecentLift],
+        });
+
+        // Test hasEncumbranceLiftedWithinWaitPeriod method
+        expect(licensee.hasEncumbranceLiftedWithinWaitPeriod()).to.equal(true);
     });
     it('should serialize a Licensee for transmission to server', () => {
         const licensee = LicenseeSerializer.fromServer({

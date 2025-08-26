@@ -14,6 +14,22 @@
     align-items: center;
     justify-content: center;
 
+    .dashboard-content-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        margin: 2rem 0;
+        padding: 4rem;
+        border-radius: 12px;
+        background-color: @white;
+
+        @media @desktopWidth {
+            width: calc(100% - 6rem);
+        }
+    }
+
     .dashboard-logo-container {
         display: flex;
         align-items: center;
@@ -136,5 +152,14 @@
             transition: fill 0.2s ease-out;
             fill: @darkBlue;
         }
+    }
+
+    .dashboard-footer {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        margin-bottom: 1rem;
     }
 }

@@ -1,5 +1,5 @@
 # ruff: noqa: N802 we use camelCase to match the marshmallow schema definition
-from datetime import date
+from datetime import date, datetime
 from uuid import UUID
 
 from cc_common.data_model.schema.common import CCDataClass
@@ -171,6 +171,14 @@ class LicenseUpdateData(CCDataClass):
     @property
     def licenseType(self) -> str:
         return self._data['licenseType']
+
+    @property
+    def createDate(self) -> datetime:
+        return self._data['createDate']
+
+    @property
+    def effectiveDate(self) -> date:
+        return self._data['effectiveDate']
 
     @property
     def previous(self) -> dict:

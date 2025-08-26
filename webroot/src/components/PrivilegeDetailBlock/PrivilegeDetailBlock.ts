@@ -32,15 +32,15 @@ class PrivilegeDetailBlock extends Vue {
     }
 
     get statusDisplay(): string {
-        return `${this.status} (${this.isDeactivated ? this.$t('licensing.deactivated') : this.expiryLabel}${this.expiresContent})`.trim();
+        return `${this.status} (${this.isAdminDeactivated ? this.$t('licensing.deactivated') : this.expiryLabel}${this.expiresContent})`.trim();
     }
 
     get isActive(): boolean {
         return this.privilege?.status === LicenseStatus.ACTIVE;
     }
 
-    get isDeactivated(): boolean {
-        return Boolean(this.privilege?.isDeactivated());
+    get isAdminDeactivated(): boolean {
+        return Boolean(this.privilege?.isAdminDeactivated());
     }
 
     get isExpired(): boolean {
@@ -60,7 +60,7 @@ class PrivilegeDetailBlock extends Vue {
     }
 
     get expiresContent(): string {
-        return this.isDeactivated ? '' : `: ${this.privilege?.expireDateDisplay() || ''}`;
+        return this.isAdminDeactivated ? '' : `: ${this.privilege?.expireDateDisplay() || ''}`;
     }
 
     get disciplineTitle(): string {

@@ -55,6 +55,7 @@ class TransactionHistoryProcessingWorkflow(Construct):
             timeout=Duration.minutes(15),
             environment={
                 'TRANSACTION_HISTORY_TABLE_NAME': persistent_stack.transaction_history_table.table_name,
+                'COMPACT_CONFIGURATION_TABLE_NAME': persistent_stack.compact_configuration_table.table_name,
                 'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
                 'COMPACT_TRANSACTION_ID_GSI_NAME': persistent_stack.provider_table.compact_transaction_gsi_name,
                 **stack.common_env_vars,
@@ -66,6 +67,7 @@ class TransactionHistoryProcessingWorkflow(Construct):
         )
         persistent_stack.transaction_history_table.grant_write_data(self.transaction_processor_handler)
         persistent_stack.provider_table.grant_read_data(self.transaction_processor_handler)
+        persistent_stack.compact_configuration_table.grant_read_data(self.transaction_processor_handler)
         persistent_stack.shared_encryption_key.grant_encrypt(self.transaction_processor_handler)
         # grant access to the compact specific secrets manager secrets following this namespace pattern
         # compact-connect/env/{environment_name}/compact/{compact_abbr}/credentials/payment-processor
@@ -210,7 +212,7 @@ class TransactionHistoryProcessingWorkflow(Construct):
         )
 
         # Create alarm for failed step function executions
-        alarm = Alarm(
+        Alarm(
             self,
             f'{compact}-StateMachineExecutionFailedAlarm',
             metric=state_machine.metric_failed(),
@@ -220,20 +222,7 @@ class TransactionHistoryProcessingWorkflow(Construct):
             alarm_description=f'{state_machine.node.path} failed to collect transactions',
             comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
             treat_missing_data=TreatMissingData.NOT_BREACHING,
-        )
-        # TODO: we have been asked to disable this until all compacts have valid authorize.net # noqa: FIX002
-        #  accounts put into place to avoid unnecessary alerting. Once the system is ready to
-        #  go live, this alarm action should be re-enabled.
-        # .add_alarm_action(SnsAction(persistent_stack.alarm_topic)))
-        NagSuppressions.add_resource_suppressions(
-            alarm,
-            suppressions=[
-                {
-                    'id': 'HIPAA.Security-CloudWatchAlarmAction',
-                    'reason': 'This alarm is temporary silenced until all compacts have valid authorize.net accounts',
-                }
-            ],
-        )
+        ).add_alarm_action(SnsAction(persistent_stack.alarm_topic))
 
     def _get_secrets_manager_compact_payment_processor_arn_for_compact(
         self, compact: str, environment_name: str

@@ -22,6 +22,7 @@
         "selectFiles": "Selecciona archivos",
         "replaceFile": "Reemplazar el archivo",
         "replaceFiles": "Reemplazar archivos",
+        "downloadFile": "Descargar",
         "change": "Cambiar",
         "add": "Agregar",
         "remove": "Eliminar",
@@ -56,6 +57,7 @@
         "givenName": "Nombre de pila",
         "middleName": "Segundo nombre",
         "lastName": "Apellido",
+        "username": "Nombre de usuario",
         "selection": "Selección",
         "dateOfBirth": "Fecha de nacimiento",
         "dateOfBirthShort": "Fecha de nacim.",
@@ -358,7 +360,8 @@
         "description": "Descripción",
         "copyright": "Copyright",
         "compact": "Compacto",
-        "uploadDocument": "Subir documento"
+        "uploadDocument": "Subir documento",
+        "here": "aquí"
     },
     "navigation": {
         "dashboard": "Panel",
@@ -582,6 +585,7 @@
         "status": "Estado",
         "deselectState": "Deseleccionar estado",
         "issueDate": "Fecha de asunto",
+        "activeFrom": "Activo desde",
         "expirationDate": "Fecha de caducidad",
         "expiration": "Vencimiento",
         "expireDate": "Fecha de caducidad",
@@ -598,6 +602,7 @@
         "expires": "Caduca",
         "iUnderstand": "Yo entiendo",
         "selectPrivileges": "Seleccionar privilegios",
+        "privilegePurchaseLimit": "Se pueden seleccionar un máximo de 20 privilegios en una transacción",
         "jurisprudenceConfirmation": "Confirmación de jurisprudencia",
         "adminFee": "Tarifa Administrativa",
         "jurisdictionFee": "Tarifa Estatal",
@@ -631,6 +636,7 @@
         "confirmPrivilegeDeactivateTitle": "¿Está seguro de que desea desactivar este privilegio?",
         "confirmPrivilegeDeactivateSubtext": "El profesional ya no podrá ejercer este privilegio. Esto no constituye una sanción disciplinaria.",
         "deactivateNotesTitle": "Notas de desactivación",
+        "deactivation": "Desactivación",
         "deactivateNotesPlaceholder": "Introduzca notas aquí",
         "confirmPrivilegeDeactivateSubmit": "Sí, desactivar privilegio",
         "encumber": "Cargar",
@@ -658,10 +664,11 @@
         "confirmPrivilegeUnencumberSuccess": "Está previsto que estos gravámenes se eliminen.",
         "confirmPrivilegeUnencumberSuccessEndDate": "Fecha de finalización",
         "expiringIn": "Expirando en",
+        "events": "Eventos",
         "licenseEvents": [
             {
                 "name": "Privilegio comprado",
-                "key": "purchased"
+                "key": "issuance"
             },
             {
                 "name": "Renovación",
@@ -669,11 +676,27 @@
             },
             {
                 "name": "Expirado",
-                "key": "expired"
+                "key": "expiration"
             },
             {
                 "name": "Desactivación",
                 "key": "deactivation"
+            },
+            {
+                "name": "Desactivación de Licencia",
+                "key": "licenseDeactivation"
+            },
+            {
+                "name": "Inicio Cambio de Jurisdicción",
+                "key": "homeJurisdictionChange"
+            },
+            {
+                "name": "Privilegio sin trabas",
+                "key": "lifting_encumbrance"
+            },
+            {
+                "name": "Encumbrance",
+                "key": "encumbrance"
             }
         ],
         "licenseTypes": [
@@ -749,7 +772,6 @@
         "compactEligible": "Elegible Compacto",
         "notCompactEligible": "No Compacto Elegible",
         "privilegeVerification": "Verificación de privilegios",
-        "licenseNumber": "Número de licencia",
         "privilegeId": "Identificación de privilegio",
         "privilegeType": "Tipo de privilegio",
         "practitionerInformation": "Información para profesionales",
@@ -758,7 +780,17 @@
         "activeDate": "Activa",
         "privilegeProofFooter": "Este documento es generado oficialmente por Compact Connect y sirve como prueba de las licencias y privilegios actuales del profesional.",
         "publicProfileLink": "Ver perfil público en",
-        "qrCodeAlt": "Código QR que enlaza al perfil público"
+        "licenseDeactivationNote": "Desactivado debido a que la licencia asociada está desactivada",
+        "homeStateChangeNote": "Desactivado debido al cambio de estado de origen",
+        "qrCodeAlt": "Código QR que enlaza al perfil público",
+        "whyUnavailable": "¿Por qué no está disponible?",
+        "whyUnavailableInfoButton": "Mostrar explicación de por qué la compra de privilegios no está disponible",
+        "purchaseUnavailableMessage": "Actualmente no es elegible para comprar privilegios compactos. Por favor, consulte la(s) razón(es) a continuación.",
+        "purchaseUnavailableNoEligibleLicenses": "No tiene ninguna licencia que sea elegible para la participación en el convenio. Si cree que una de sus licencias debería ser elegible, comuníquese con el consejo estatal que emitió esa licencia.",
+        "purchaseUnavailableEncumbrance": "Tiene una carga que le impide comprar privilegios. Si cree que no debería tener una carga, comuníquese con el consejo estatal que registró la carga.",
+        "purchaseUnavailablePendingMilitaryStatus": "Ha iniciado el proceso de presentación de documentación para confirmar su condición de militar, pero no lo ha finalizado. Puede completar ese proceso",
+        "purchaseUnavailableEncumbranceLiftedWithinWaitPeriod": "Han pasado menos de dos años desde que se levantó su última carga. Puede comprar privilegios después de que pasen dos años desde el final de su última carga.",
+        "militaryStatusLinkAriaLabel": "Ver página de estado militar"
     },
     "military": {
         "militaryStatusTitle": "Estado militar",
@@ -766,7 +798,9 @@
         "militaryDiscountText": "Descuento Militar",
         "viewMilitaryStatus": "Ver estado militar",
         "affiliationType": "Tipo de afiliación",
-        "previouslyUploadedDocuments": "Previously Uploaded Documents",
+        "uploadedDocuments": "Documentos de afiliación militar",
+        "previousDocuments": "Documentos cargados previamente",
+        "downloadUnavailable": "Indisponible",
         "endMilitaryAffiliation": "Parar afiliación militar",
         "editInfo": "Editar información",
         "noUploadedDocuments": "No documentos cargados",
@@ -795,7 +829,9 @@
         "fileInstructions": "Sólo 1 archivo (sólo PDF, docx, png, jpeg)",
         "fileName": "Nombre del archivo",
         "dateUploaded": "Fecha de carga",
-        "initializingMessage": "Su documento está en un estado de inicialización. Esto puede indicar que hubo un error de carga. No puede comprar privilegios en este estado. Si este estado persiste, intente cargar su documento nuevamente o haga clic en finalizar afiliación militar y luego actualice la página."
+        "initializingMessage": "Su documento está en un estado de inicialización. Esto puede indicar que hubo un error de carga. No puede comprar privilegios en este estado. Si este estado persiste, intente cargar su documento nuevamente o haga clic en finalizar afiliación militar y luego actualice la página.",
+        "militaryStatusInitializingErrorTitle": "Hay un error con su estado militar.",
+        "militaryStatusInitializingErrorSubtext": "Para comprar privilegios, necesitará volver a cargar su documento(s) o finalizar su afiliación militar."
     },
     "account": {
         "requestAccount": "Solicitar cuenta",
@@ -850,6 +886,21 @@
         "enterCode": "Introduzca el código aquí",
         "emailUpdateSuccess": "Su correo electrónico ha sido actualizado exitosamente",
         "noValuesChanged": "No se han cambiado valores"
+    },
+    "privacyPolicy": {
+        "title": "Política de Privacidad",
+        "introSubtext": "Esta política de privacidad describe cómo el sitio web CompactConnect almacena y utiliza los datos de los visitantes.",
+        "whatDataIsCollectedTitle": "¿Qué datos se recopilan?",
+        "collectedDataEmail": "Dirección de correo electrónico de usuarios registrados",
+        "collectedDataDevice": "Tipo de dispositivo, navegador y dirección IP",
+        "whatIsDoneWithThisInfoTitle": "¿Qué se hace con esta información?",
+        "whatIsDoneWithThisInfoSubtext": "La información que proporciona nos ayuda a responder a sus solicitudes de servicio al cliente y necesidades de soporte de manera más eficiente. Podemos usar los comentarios que proporcione para mejorar nuestro sitio. La información no se vende a terceros.",
+        "howIsMyDataProtectedTitle": "¿Cómo se protege mi información?",
+        "howIsMyDataProtectedSubtext": "Adoptamos prácticas estándar de la industria para la recopilación, almacenamiento y procesamiento de datos y medidas de seguridad para proteger contra el acceso no autorizado, alteración, divulgación o destrucción de su información personal, nombre de usuario, contraseña, información de transacciones y datos almacenados en nuestro sitio.",
+        "changesToThisPolicyTitle": "Cambios a esta política",
+        "changesToThisPolicySubtext": "CompactConnect tiene la discreción de actualizar esta política de privacidad en cualquier momento. Le recomendamos que revise frecuentemente esta página para cualquier cambio para mantenerse informado sobre cómo estamos ayudando a proteger la información personal que recopilamos. Usted reconoce y acepta que es su responsabilidad revisar esta política de privacidad periódicamente y conocer las modificaciones.",
+        "disclaimerTitle": "Descargo de responsabilidad",
+        "disclaimerSubtext": "Otros sitios web que están conectados por hipervínculos a y/o desde el sitio web CompactConnect pueden no seguir las mismas restricciones de privacidad. No asumimos responsabilidad por las prácticas o el contenido de cualquier sitio web que se vincule a o desde nuestro sitio."
     },
     "recaptcha": {
         "googleDesc": "Este sitio está protegido por reCAPTCHA y se aplican las políticas de privacidad de Google.",

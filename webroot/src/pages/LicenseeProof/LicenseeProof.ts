@@ -86,10 +86,10 @@ export default class LicenseeProof extends Vue {
             .filter((privilege: License) =>
                 privilege.status === LicenseStatus.ACTIVE)
             .sort((a: License, b: License) => {
-                const dateA = moment(a.issueDate);
-                const dateB = moment(b.issueDate);
+                const dateA = moment(a.activeFromDate);
+                const dateB = moment(b.activeFromDate);
 
-                return dateB.valueOf() - dateA.valueOf(); // Most recent issueDate first
+                return dateB.valueOf() - dateA.valueOf(); // Most recent activeFromDate first
             });
 
         return sortedPrivileges;

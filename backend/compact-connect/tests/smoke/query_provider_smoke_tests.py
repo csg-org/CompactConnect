@@ -3,6 +3,7 @@ import json
 
 import requests
 from config import config, logger
+from deepdiff import DeepDiff
 from smoke_common import (
     SmokeTestFailureException,
     call_provider_users_me_endpoint,
@@ -54,27 +55,37 @@ def get_general_provider_user_data_smoke_test():
     logger.info('Received success response from GET endpoint')
 
     # Step 3: Verify the Provider response matches the profile.
-    provider_object = get_provider_response.json()
+    get_provider_general_provider_object = get_provider_response.json()
 
     # verify the ssn is NOT in the response
-    if 'ssn' in provider_object:
+    if 'ssn' in get_provider_general_provider_object:
         raise SmokeTestFailureException(f'unexpected ssn field returned. Response: {get_provider_response.json()}')
 
     # remove the fields from the user profile that are not in the query response
-    test_user_profile.pop('ssn', None)
+    test_user_profile.pop('ssnLastFour', None)
     test_user_profile.pop('dateOfBirth', None)
+    test_user_profile.pop('encumberedStatus', None)
     for provider_license in test_user_profile['licenses']:
-        provider_license.pop('ssn', None)
+        provider_license.pop('ssnLastFour', None)
         provider_license.pop('dateOfBirth', None)
+        provider_license.pop('encumberedStatus', None)
+        for history_event in provider_license['history']:
+            history_event['previous'].pop('ssnLastFour', None)
+            history_event['previous'].pop('dateOfBirth', None)
+            history_event['previous'].pop('encumberedStatus', None)
     for military_affiliation in test_user_profile['militaryAffiliations']:
         military_affiliation.pop('documentKeys', None)
 
-    if provider_object != test_user_profile:
-        raise SmokeTestFailureException(
-            f'Provider object does not match the profile.\n'
-            f'Profile response: {json.dumps(test_user_profile)}\n'
-            f'Get Provider response: {json.dumps(provider_object)}'
+    if get_provider_general_provider_object != test_user_profile:
+        formatted_test_user_profile = json.dumps(test_user_profile, sort_keys=True, indent=4)
+        formatted_get_provider_response = json.dumps(get_provider_general_provider_object, sort_keys=True, indent=4)
+        logger.error(
+            'Provider object does not match the profile.',
+            provider_profile=formatted_test_user_profile,
+            get_provider_response=formatted_get_provider_response,
+            diff=DeepDiff(test_user_profile, get_provider_general_provider_object),
         )
+        raise SmokeTestFailureException('Get provider object response does not match the profile.')
     logger.info('Successfully fetched expected provider records.')
 
 
@@ -118,17 +129,16 @@ def query_provider_user_smoke_test():
         raise SmokeTestFailureException(f'unexpected ssn field returned. Response: {post_response.json()}')
 
     # remove the fields from the user profile that are not in the query response
-    test_user_profile.pop('ssn', None)
+    test_user_profile.pop('ssnLastFour', None)
     test_user_profile.pop('dateOfBirth', None)
     test_user_profile.pop('licenses')
     test_user_profile.pop('militaryAffiliations')
     test_user_profile.pop('privileges')
+    test_user_profile.pop('encumberedStatus', None)
 
     if provider_object != test_user_profile:
         raise SmokeTestFailureException(
-            f'Provider object does not match the profile.\n'
-            f'Profile response: {test_user_profile}\n'
-            f'Query Provider object: {provider_object}'
+            f'Provider list object does not match the profile.\n{DeepDiff(test_user_profile, provider_object)}'
         )
 
     logger.info('Successfully queried expected provider record.')
@@ -177,11 +187,34 @@ def get_provider_data_with_read_private_access_smoke_test(test_staff_user_id: st
 
     # Step 3: Verify the Provider response matches the profile.
     provider_object = get_provider_response.json()
+    # because this test staff user is a compact admin, there will be download links present for the
+    # military affiliation files, so we need to account for those here by removing them from the
+    # list of military records and checking the links to verify they are valid
+    for record in provider_object['militaryAffiliations']:
+        if 'downloadLinks' in record.keys():
+            download_links = record.pop('downloadLinks')
+            # Verify the download link is valid and can download the file
+            for download_link in download_links:
+                if 'url' not in download_link or 'fileName' not in download_link:
+                    raise SmokeTestFailureException(f'Invalid download link structure: {download_link}')
+
+                # Attempt to download the file using the pre-signed URL
+                logger.info(f'downloading test file from {download_link["url"]}')
+                download_response = requests.get(download_link['url'], timeout=30)
+                if download_response.status_code != 200:
+                    raise SmokeTestFailureException(
+                        f'Failed to download file from pre-signed URL. Status code: {download_response.status_code}, '
+                        f'URL: {download_link["url"]}, File name: {download_link["fileName"]}'
+                    )
+                logger.info(f'Successfully downloaded file: {download_link["fileName"]}')
+        else:
+            raise SmokeTestFailureException(
+                f'Missing expected download links for military affiliation. Military affiliation: {record}'
+            )
+
     if provider_object != test_user_profile:
         raise SmokeTestFailureException(
-            f'Provider object does not match the profile.\n'
-            f'Profile response: {test_user_profile}\n'
-            f'Get Provider response: {provider_object}'
+            f'Provider object does not match the profile.\n{DeepDiff(test_user_profile, provider_object)}'
         )
 
     logger.info('Successfully fetched expected user profile.')

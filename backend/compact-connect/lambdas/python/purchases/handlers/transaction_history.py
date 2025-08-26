@@ -3,6 +3,9 @@ from datetime import datetime, timedelta
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
+from cc_common.data_model.schema.compact import Compact
+from cc_common.data_model.schema.compact.common import COMPACT_TYPE
+from cc_common.data_model.schema.jurisdiction.common import JURISDICTION_TYPE
 from purchase_client import PurchaseClient
 
 
@@ -38,6 +41,25 @@ def process_settled_transactions(event: dict, context: LambdaContext) -> dict:  
     last_processed_transaction_id = event.get('lastProcessedTransactionId')
     current_batch_id = event.get('currentBatchId')
     processed_batch_ids = event.get('processedBatchIds', [])
+
+    # Get compact configuration and jurisdictions that are live for licensee registration
+    compact_configuration_client = config.compact_configuration_client
+    compact_configuration_options = compact_configuration_client.get_privilege_purchase_options(compact=compact)
+
+    compact_configuration = next(
+        (Compact(item) for item in compact_configuration_options['items'] if item['type'] == COMPACT_TYPE), None
+    )
+    jurisdiction_configurations = [
+        item for item in compact_configuration_options['items'] if item['type'] == JURISDICTION_TYPE
+    ]
+
+    if not compact_configuration or not jurisdiction_configurations:
+        logger.warning('The compact is not yet live - batch settlement data')
+        return {
+            'compact': compact,  # Always include the compact name
+            'scheduledTime': scheduled_time,  # Preserve scheduled time for subsequent iterations
+            'status': 'COMPLETE',  # This will skip straight to the end of the step function flow
+        }
 
     # Use the scheduled time from EventBridge for replay-ability
     # By default, the authorize.net accounts batch settlements at 4:00pm Pacific Time.

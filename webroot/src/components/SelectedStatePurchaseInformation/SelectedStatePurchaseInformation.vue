@@ -13,8 +13,8 @@
                 v-if="!isPriceCollapsed"
                 class="deselect-state"
                 :aria-label="$t('licensing.deselectState')"
-                @click="deselectState()"
-                @keyup.enter="deselectState()"
+                @click.prevent="deselectState()"
+                @keyup.enter.prevent="deselectState()"
             >X</button>
         </div>
         <div v-if="!isPriceCollapsed">

@@ -44,7 +44,6 @@ def test_home_jurisdiction_change_inactivates_privileges_when_no_license_in_new_
     logger.info(f'Original home jurisdiction: {original_jurisdiction}')
     new_jurisdiction = 'al'  # Alabama - assuming the provider doesn't have a license here
 
-
     # we must ensure we have a valid live jurisdiction configuration in place for the current, new, and privilege
     # states so the privilege can be moved over successfully
     test_jurisdiction_configuration(jurisdiction=original_jurisdiction, recreate_compact_config=True)
@@ -220,6 +219,7 @@ def add_license_for_provider(provider_record: dict, jurisdiction: str):
     time.sleep(1)
 
     return license_record
+
 
 def test_home_jurisdiction_change_moves_privileges_when_valid_license_in_new_jurisdiction():
     """
