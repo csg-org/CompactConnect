@@ -57,7 +57,7 @@ class SignatureTestBase(TstFunction):
             method=event['httpMethod'],
             path=event['path'],
             query_params=event.get('queryStringParameters') or {},
-            timestamp=timestamp,
+            timestamp=timestamp.isoformat(),
             nonce=nonce,
             key_id=key_id,
             private_key_pem=self.private_key_pem,
@@ -355,6 +355,29 @@ class TestQueryJurisdictionProviders(SignatureTestBase):
         resp = query_jurisdiction_providers(event, self.mock_context)
         self.assertEqual(400, resp['statusCode'])
 
+    def test_query_jurisdiction_providers_missing_signature_rejected(self):
+        """Test that query jurisdiction providers is rejected when signature authentication is missing."""
+        from handlers.state_api import query_jurisdiction_providers
+
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
+        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+        event['body'] = json.dumps({'query': {}, 'pagination': {'pageSize': 30}, 'sorting': {'direction': 'ascending'}})
+
+        # Do NOT add signature authentication headers - this should cause the request to be rejected
+        # since @required_signature_auth is used
+
+        resp = query_jurisdiction_providers(event, self.mock_context)
+
+        self.assertEqual(401, resp['statusCode'])
+
+        body = json.loads(resp['body'])
+        self.assertIn('message', body)
+        # The error message should indicate missing required signature authentication headers
+        self.assertIn('x-key-id', body['message'].lower())
+
 
 @mock_aws
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
@@ -645,6 +668,28 @@ class TestGetProvider(SignatureTestBase):
 
         self.assertEqual(400, resp['statusCode'])
 
+    def test_get_provider_missing_signature_rejected(self):
+        """Test that get provider is rejected when signature authentication is missing."""
+        from handlers.state_api import get_provider
+
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
+        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'ne', 'providerId': 'test-provider-id'}
+
+        # Do NOT add signature authentication headers - this should cause the request to be rejected
+        # since @required_signature_auth is used
+
+        resp = get_provider(event, self.mock_context)
+
+        self.assertEqual(401, resp['statusCode'])
+
+        body = json.loads(resp['body'])
+        self.assertIn('message', body)
+        # The error message should indicate missing required signature authentication headers
+        self.assertIn('x-key-id', body['message'].lower())
+
 
 @mock_aws
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
@@ -688,3 +733,29 @@ class TestBulkUploadUrlHandler(SignatureTestBase):
         key = upload['fields']['key']
         self.assertTrue(key.startswith('aslp/oh/'))
         self.assertEqual(len(key.split('/')), 3)
+
+    def test_bulk_upload_url_handler_missing_signature_rejected(self):
+        """
+        Test that bulk upload URL generation is rejected when signature keys are configured but no signature is
+        provided.
+        """
+        from handlers.state_api import bulk_upload_url_handler
+
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        # The user has write permission for aslp/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.write'
+        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+
+        # Do NOT add signature authentication headers - this should cause the request to be rejected
+        # since signature keys are configured for this compact/jurisdiction
+
+        resp = bulk_upload_url_handler(event, self.mock_context)
+
+        self.assertEqual(401, resp['statusCode'])
+
+        body = json.loads(resp['body'])
+        self.assertIn('message', body)
+        # The error message should indicate missing required signature authentication headers
+        self.assertIn('x-key-id', body['message'].lower())

@@ -245,7 +245,7 @@ def _validate_signature(event: dict, compact: str, jurisdiction: str, public_key
         if timestamp.tzinfo is None:
             # Treat naive timestamps as UTC to avoid mismatched aware vs naive comparisons
             timestamp = timestamp.replace(tzinfo=UTC)
-        now = datetime.now(UTC)
+        now = config.current_standard_datetime
         time_diff = abs((timestamp - now).total_seconds())
 
         if time_diff > config.signature_max_clock_skew_seconds:
