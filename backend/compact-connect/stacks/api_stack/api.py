@@ -9,6 +9,7 @@ from common_constructs.stack import Stack
 from constructs import Construct
 
 from stacks import persistent_stack as ps
+from stacks.api_lambda_stack import ApiLambdaStack
 from stacks.provider_users import ProviderUsersStack
 
 
@@ -20,6 +21,7 @@ class LicenseApi(CCApi):
         *,
         persistent_stack: ps.PersistentStack,
         provider_users_stack: ProviderUsersStack,
+        api_lambda_stack: ApiLambdaStack,
         **kwargs,
     ):
         super().__init__(
@@ -33,7 +35,11 @@ class LicenseApi(CCApi):
         self._provider_users_stack = provider_users_stack
         self._staff_users = persistent_stack.staff_users
 
-        self.v1_api = V1Api(self.root, persistent_stack=persistent_stack, provider_users_stack=provider_users_stack)
+        self.v1_api = V1Api(
+            self.root,
+            persistent_stack=persistent_stack,
+            api_lambda_stack=api_lambda_stack,
+        )
 
         # Create the QueryDefinition after all API modules have been initialized and added their log groups
         self.create_runtime_query_definition()
