@@ -195,6 +195,7 @@ def license_encumbrance_listener(message: dict):
     compact = detail['compact']
     provider_id = detail['providerId']
     jurisdiction = detail['jurisdiction']
+    adverse_action_category = detail['adverseActionCategory']
     license_type_abbreviation = detail['licenseTypeAbbreviation']
     effective_date = detail['effectiveDate']
 
@@ -212,6 +213,7 @@ def license_encumbrance_listener(message: dict):
             compact=compact,
             provider_id=provider_id,
             jurisdiction=jurisdiction,
+            adverse_action_category=adverse_action_category,
             license_type_abbreviation=license_type_abbreviation,
             effective_date=effective_date,
         )

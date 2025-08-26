@@ -133,6 +133,10 @@
           "dateOfUpdate": "2020-05-05T12:59:59+00:00",
           "effectiveDate": "2020-05-05",
           "createDate": "2020-05-05T12:59:59+00:00",
+            "encumbranceDetails" : {
+              "note": "Did bad things",
+              "licenseJurisdiction": "oh"
+            },
           "previous": {
             "dateOfIssuance": "2016-05-05T12:59:59+00:00",
             "dateOfRenewal": "2016-05-05T12:59:59+00:00",

@@ -142,6 +142,7 @@ def handle_license_encumbrance(event: dict) -> dict:
         compact=adverse_action.compact,
         provider_id=adverse_action.providerId,
         jurisdiction=adverse_action.jurisdiction,
+        adverse_action_category=adverse_action.clinicalPrivilegeActionCategory,
         license_type_abbreviation=adverse_action.licenseTypeAbbreviation,
         effective_date=adverse_action.effectiveStartDate,
     )
