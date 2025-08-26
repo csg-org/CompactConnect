@@ -1757,7 +1757,7 @@ export const compactStates = [
 ];
 
 export const compactConfig = {
-    compactAbbr: 'otcp',
+    compactAbbr: 'octp',
     compactName: 'Occupational Therapy',
     compactCommissionFee: {
         feeType: 'FLAT_RATE',
@@ -1805,7 +1805,7 @@ export const compactConfig = {
 };
 
 export const stateConfig = {
-    compact: 'otcp',
+    compact: 'octp',
     jurisdictionName: 'Kentucky',
     postalAbbreviation: 'ky',
     licenseeRegistrationEnabled: false,
