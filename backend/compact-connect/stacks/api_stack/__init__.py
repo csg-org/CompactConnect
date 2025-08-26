@@ -6,6 +6,7 @@ from common_constructs.stack import AppStack
 from constructs import Construct
 
 from stacks import persistent_stack as ps
+from stacks.api_lambda_stack import ApiLambdaStack
 from stacks.provider_users import ProviderUsersStack
 
 from .v1_api import V1Api
@@ -19,6 +20,7 @@ class _LicenseApi(CCApi):
         *,
         persistent_stack: ps.PersistentStack,
         provider_users_stack: ProviderUsersStack,
+        api_lambda_stack: ApiLambdaStack,
         **kwargs,
     ):
         super().__init__(
@@ -28,7 +30,11 @@ class _LicenseApi(CCApi):
             provider_users_stack=provider_users_stack,
             **kwargs,
         )
-        self.v1_api = V1Api(self.root, persistent_stack=persistent_stack, provider_users_stack=provider_users_stack)
+        self.v1_api = V1Api(
+            self.root,
+            persistent_stack=persistent_stack,
+            api_lambda_stack=api_lambda_stack,
+        )
 
 
 class ApiStack(AppStack):
@@ -41,6 +47,7 @@ class ApiStack(AppStack):
         environment_context: dict,
         persistent_stack: ps.PersistentStack,
         provider_users_stack: ProviderUsersStack,
+        api_lambda_stack: ApiLambdaStack,
         **kwargs,
     ):
         super().__init__(
@@ -56,5 +63,6 @@ class ApiStack(AppStack):
             security_profile=security_profile,
             persistent_stack=persistent_stack,
             provider_users_stack=provider_users_stack,
+            api_lambda_stack=api_lambda_stack,
             domain_name=self.api_domain_name,
         )

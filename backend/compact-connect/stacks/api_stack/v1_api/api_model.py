@@ -2060,6 +2060,138 @@ class ApiModel:
         return self.api._v1_put_jurisdiction_request_model
 
     @property
+    def provider_account_recovery_initiate_request_model(self) -> Model:
+        """Return the provider account recovery initiate request model, which should only be created once per API"""
+        if hasattr(self.api, '_v1_provider_account_recovery_initiate_request_model'):
+            return self.api._v1_provider_account_recovery_initiate_request_model
+
+        self.api._v1_provider_account_recovery_initiate_request_model = self.api.add_model(
+            'V1ProviderAccountRecoveryInitiateRequestModel',
+            description='Provider account recovery initiate request model',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                additional_properties=False,
+                required=[
+                    'username',
+                    'password',
+                    'compact',
+                    'jurisdiction',
+                    'givenName',
+                    'familyName',
+                    'dob',
+                    'partialSocial',
+                    'licenseType',
+                    'recaptchaToken',
+                ],
+                properties={
+                    'username': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description="Provider's email address (username)",
+                        format='email',
+                        min_length=5,
+                        max_length=100,
+                    ),
+                    'password': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description="Provider's current password",
+                        # passwords must be a minimum of 12 and can be up to 256 characters
+                        min_length=12,
+                        max_length=256,
+                    ),
+                    'compact': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='Compact abbreviation',
+                        enum=self.api.node.get_context('compacts'),
+                    ),
+                    'jurisdiction': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='Two-letter jurisdiction code',
+                        enum=self.api.node.get_context('jurisdictions'),
+                    ),
+                    'givenName': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description="Provider's given name",
+                        min_length=1,
+                        max_length=200,
+                    ),
+                    'familyName': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description="Provider's family name",
+                        min_length=1,
+                        max_length=200,
+                    ),
+                    'dob': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='Date of birth in YYYY-MM-DD format',
+                        format='date',
+                        pattern=cc_api.YMD_FORMAT,
+                    ),
+                    'partialSocial': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='Last 4 digits of SSN',
+                        pattern='^[0-9]{4}$',
+                    ),
+                    'licenseType': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='Type of license',
+                        enum=self.stack.license_type_names,
+                    ),
+                    'recaptchaToken': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='ReCAPTCHA token for verification',
+                        min_length=1,
+                    ),
+                },
+            ),
+        )
+        return self.api._v1_provider_account_recovery_initiate_request_model
+
+    @property
+    def provider_account_recovery_verify_request_model(self) -> Model:
+        """Return the provider account recovery verify request model, which should only be created once per API"""
+        if hasattr(self.api, '_v1_provider_account_recovery_verify_request_model'):
+            return self.api._v1_provider_account_recovery_verify_request_model
+
+        self.api._v1_provider_account_recovery_verify_request_model = self.api.add_model(
+            'V1ProviderAccountRecoveryVerifyRequestModel',
+            description='Provider account recovery verify request model',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                additional_properties=False,
+                required=[
+                    'compact',
+                    'providerId',
+                    'recoveryToken',
+                    'recaptchaToken',
+                ],
+                properties={
+                    'compact': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='Compact abbreviation',
+                        enum=self.api.node.get_context('compacts'),
+                    ),
+                    'providerId': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='Provider UUID',
+                        pattern=cc_api.UUID4_FORMAT,
+                    ),
+                    'recoveryToken': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='Recovery token from the email link',
+                        min_length=1,
+                        max_length=256,
+                    ),
+                    'recaptchaToken': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='ReCAPTCHA token for verification',
+                        min_length=1,
+                    ),
+                },
+            ),
+        )
+        return self.api._v1_provider_account_recovery_verify_request_model
+
+    @property
     def get_provider_ssn_response_model(self) -> Model:
         """Return the provider SSN response model, which should only be created once per API"""
         if hasattr(self.api, '_v1_get_provider_ssn_response_model'):

@@ -564,3 +564,34 @@ class EmailServiceClient:
         }
 
         return self._invoke_lambda(payload)
+
+    def send_provider_account_recovery_confirmation_email(
+        self,
+        *,
+        compact: str,
+        provider_email: str,
+        provider_id: str,
+        recovery_token: str,
+    ) -> dict[str, str]:
+        """
+        Send an account recovery confirmation email to a provider with a secure link.
+
+        :param compact: The compact name
+        :param provider_email: Email address of the provider
+        :param provider_id: The id of the provider
+        :param recovery_token: Recovery token
+        :return: Response from the email notification service
+        """
+
+        payload = {
+            'compact': compact,
+            'template': 'providerAccountRecoveryConfirmation',
+            'recipientType': 'SPECIFIC',
+            'specificEmails': [provider_email],
+            'templateVariables': {
+                'providerId': str(provider_id),
+                'recoveryToken': str(recovery_token),
+            },
+        }
+
+        return self._invoke_lambda(payload)

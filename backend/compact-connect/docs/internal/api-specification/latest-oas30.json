@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "LicenseApi",
-    "version": "2025-08-25T23:18:19Z"
+    "version": "2025-08-26T22:24:44Z"
   },
   "servers": [
     {
@@ -1909,6 +1909,32 @@
         ]
       }
     },
+    "/v1/provider-users/initiateRecovery": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SandboLicenDIGClZTMHMeN"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SandboLicenmbpMIz6MrP1s"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/provider-users/me": {
       "get": {
         "parameters": [
@@ -2197,6 +2223,32 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/SandboLicen7ukin0mgVL4A"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SandboLicenmbpMIz6MrP1s"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/provider-users/verifyRecovery": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SandboLicenHat95m9exWQy"
               }
             }
           },
@@ -3766,6 +3818,43 @@
               }
             },
             "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "SandboLicenHat95m9exWQy": {
+        "required": [
+          "compact",
+          "providerId",
+          "recaptchaToken",
+          "recoveryToken"
+        ],
+        "type": "object",
+        "properties": {
+          "compact": {
+            "type": "string",
+            "description": "Compact abbreviation",
+            "enum": [
+              "aslp",
+              "octp",
+              "coun"
+            ]
+          },
+          "providerId": {
+            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+            "type": "string",
+            "description": "Provider UUID"
+          },
+          "recaptchaToken": {
+            "minLength": 1,
+            "type": "string",
+            "description": "ReCAPTCHA token for verification"
+          },
+          "recoveryToken": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string",
+            "description": "Recovery token from the email link"
           }
         },
         "additionalProperties": false
@@ -6262,6 +6351,144 @@
               "wy",
               "other"
             ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "SandboLicenDIGClZTMHMeN": {
+        "required": [
+          "compact",
+          "dob",
+          "familyName",
+          "givenName",
+          "jurisdiction",
+          "licenseType",
+          "partialSocial",
+          "password",
+          "recaptchaToken",
+          "username"
+        ],
+        "type": "object",
+        "properties": {
+          "licenseType": {
+            "type": "string",
+            "description": "Type of license",
+            "enum": [
+              "audiologist",
+              "speech-language pathologist",
+              "occupational therapist",
+              "occupational therapy assistant",
+              "licensed professional counselor"
+            ]
+          },
+          "password": {
+            "maxLength": 256,
+            "minLength": 12,
+            "type": "string",
+            "description": "Provider's current password"
+          },
+          "compact": {
+            "type": "string",
+            "description": "Compact abbreviation",
+            "enum": [
+              "aslp",
+              "octp",
+              "coun"
+            ]
+          },
+          "dob": {
+            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+            "type": "string",
+            "description": "Date of birth in YYYY-MM-DD format",
+            "format": "date"
+          },
+          "jurisdiction": {
+            "type": "string",
+            "description": "Two-letter jurisdiction code",
+            "enum": [
+              "al",
+              "ak",
+              "az",
+              "ar",
+              "ca",
+              "co",
+              "ct",
+              "de",
+              "dc",
+              "fl",
+              "ga",
+              "hi",
+              "id",
+              "il",
+              "in",
+              "ia",
+              "ks",
+              "ky",
+              "la",
+              "me",
+              "md",
+              "ma",
+              "mi",
+              "mn",
+              "ms",
+              "mo",
+              "mt",
+              "ne",
+              "nv",
+              "nh",
+              "nj",
+              "nm",
+              "ny",
+              "nc",
+              "nd",
+              "oh",
+              "ok",
+              "or",
+              "pa",
+              "pr",
+              "ri",
+              "sc",
+              "sd",
+              "tn",
+              "tx",
+              "ut",
+              "vt",
+              "va",
+              "vi",
+              "wa",
+              "wv",
+              "wi",
+              "wy"
+            ]
+          },
+          "givenName": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string",
+            "description": "Provider's given name"
+          },
+          "familyName": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string",
+            "description": "Provider's family name"
+          },
+          "recaptchaToken": {
+            "minLength": 1,
+            "type": "string",
+            "description": "ReCAPTCHA token for verification"
+          },
+          "partialSocial": {
+            "pattern": "^[0-9]{4}$",
+            "type": "string",
+            "description": "Last 4 digits of SSN"
+          },
+          "username": {
+            "maxLength": 100,
+            "minLength": 5,
+            "type": "string",
+            "description": "Provider's email address (username)",
+            "format": "email"
           }
         },
         "additionalProperties": false
