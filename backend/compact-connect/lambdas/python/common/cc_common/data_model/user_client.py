@@ -326,6 +326,16 @@ class UserClient:
                     Username=attributes['email'],
                 )
                 user_id = get_sub_from_user_attributes(resp['UserAttributes'])
+
+                # If the user was previously disabled, re-enable them
+                if not resp.get('Enabled', True):
+                    logger.info('Re-enabling previously disabled user', user_id=user_id, email=attributes['email'])
+                    self.config.cognito_client.admin_enable_user(
+                        UserPoolId=self.config.user_pool_id, Username=attributes['email']
+                    )
+                    # resend the invitation to the user after they have been re-enabled to force them to reset
+                    # credentials
+                    self.reinvite_user(email=attributes['email'])
             else:
                 raise
 
@@ -372,6 +382,7 @@ class UserClient:
             self.config.users_table.delete_item(
                 Key={'pk': f'USER#{user_id}', 'sk': f'COMPACT#{compact}'}, ConditionExpression=Attr('pk').exists()
             )
+            logger.info('deleted user record from staff users table', user_id=user_id)
         except ClientError as e:
             if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
                 raise CCNotFoundException('User not found') from e

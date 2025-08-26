@@ -26,6 +26,8 @@ class TestPostUser(TstFunction):
             api_user = json.load(f)
 
         # The user has admin permission for aslp/oh
+        caller_id = self._when_testing_with_valid_caller()
+        event['requestContext']['authorizer']['claims']['sub'] = caller_id
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin oh/aslp.admin'
         event['pathParameters'] = {'compact': 'aslp'}
 
@@ -49,6 +51,7 @@ class TestPostUser(TstFunction):
         from handlers.users import get_one_user, post_user
 
         self._when_testing_with_valid_jurisdiction()
+        caller_id = self._when_testing_with_valid_caller()
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
@@ -60,6 +63,7 @@ class TestPostUser(TstFunction):
         event['body'] = json.dumps(api_user)
 
         # The user has admin permission for aslp admin
+        event['requestContext']['authorizer']['claims']['sub'] = caller_id
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin oh/aslp.admin'
         event['pathParameters'] = {'compact': 'aslp'}
 
@@ -113,6 +117,7 @@ class TestPostUser(TstFunction):
         from handlers.users import post_user
 
         self._load_compact_active_member_jurisdictions()
+        caller_id = self._when_testing_with_valid_caller()
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
@@ -125,6 +130,7 @@ class TestPostUser(TstFunction):
         event['body'] = json.dumps(api_user)
 
         # The user has admin permission for aslp
+        event['requestContext']['authorizer']['claims']['sub'] = caller_id
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin oh/aslp.admin'
         event['pathParameters'] = {'compact': 'aslp'}
 

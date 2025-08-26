@@ -89,7 +89,7 @@ asynchronous data ingest perform the following steps:
 3) Call the `GET /v1/compacts/{compact}/jurisdictions/{jurisdiction}/licenses/bulk-upload` endpoint to receive an upload
    URL and upload fields to use when uploading your file.
 4) `POST` to the provided url, with `Content-Type: multipart/form-data`, providing all the fields returned from the
-   `GET` endpoint as form-data fields in addition to your file.
+   `GET` endpoint as form-data fields, **plus a `content-type` field set to `text/csv`**, in addition to your file.
 
 For your convenience, use of this feature is included in the [Postman Collection](./postman/postman-collection.json).
 

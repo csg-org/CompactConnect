@@ -42,7 +42,11 @@ def _bulk_upload_url_handler(event: dict, context: LambdaContext):  # noqa: ARG0
         Key=f'{compact}/{jurisdiction}/{uuid4().hex}',
         ExpiresIn=config.presigned_post_ttl_seconds,
         # Limit content length to ~30MB, ~200k licenses
-        Conditions=[['content-length-range', 1, 30_000_000]],
+        Conditions=[
+            ['content-length-range', 1, 30_000_000],
+            # Enforce that only CSV files can be uploaded
+            ['eq', '$Content-Type', 'text/csv'],
+        ],
     )
     logger.info('Created pre-signed POST', url=upload['url'])
     return {'upload': upload}

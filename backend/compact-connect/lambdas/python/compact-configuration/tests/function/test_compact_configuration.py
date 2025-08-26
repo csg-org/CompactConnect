@@ -17,7 +17,7 @@ COMPACT_CONFIGURATION_ENDPOINT_RESOURCE = '/v1/compacts/{compact}'
 JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE = '/v1/compacts/{compact}/jurisdictions/{jurisdiction}'
 
 
-def generate_test_event(method: str, resource: str) -> dict:
+def generate_test_event(method: str, resource: str, scopes: str = None) -> dict:
     with open('../common/tests/resources/api-event.json') as f:
         event = json.load(f)
         event['httpMethod'] = method
@@ -25,6 +25,9 @@ def generate_test_event(method: str, resource: str) -> dict:
         event['pathParameters'] = {
             'compact': 'aslp',
         }
+
+        if scopes:
+            event['requestContext']['authorizer']['claims']['scope'] = scopes
 
     return event
 
@@ -196,7 +199,9 @@ class TestStaffUsersCompactConfiguration(TstFunction):
 
     def _when_testing_get_compact_configuration_with_existing_compact_configuration(self):
         compact_config = self.test_data_generator.put_default_compact_configuration_in_configuration_table()
-        event = generate_test_event('GET', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE)
+        event = generate_test_event(
+            'GET', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE, scopes=f'{compact_config.compactAbbr}/admin'
+        )
         event['pathParameters']['compact'] = compact_config['compactAbbr']
         return event, compact_config
 
@@ -274,7 +279,7 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         """Test getting a compact configuration returns an invalid exception if the HTTP method is invalid."""
         from handlers.compact_configuration import compact_configuration_api_handler
 
-        event = generate_test_event('PATCH', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE)
+        event = generate_test_event('PATCH', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE, scopes='aslp/admin')
 
         response = compact_configuration_api_handler(event, self.mock_context)
         self.assertEqual(400, response['statusCode'], msg=json.loads(response['body']))
@@ -285,19 +290,19 @@ class TestStaffUsersCompactConfiguration(TstFunction):
             response_body,
         )
 
-    def test_get_compact_configuration_returns_invalid_exception_if_invalid_compact(self):
+    def test_get_compact_configuration_returns_unauthorized_exception_if_invalid_compact(self):
         """Test getting an error if invalid compact is provided."""
         from handlers.compact_configuration import compact_configuration_api_handler
 
-        event = generate_test_event('GET', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE)
+        event = generate_test_event('GET', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE, scopes='aslp/admin')
         event['pathParameters']['compact'] = 'invalid_compact'
 
         response = compact_configuration_api_handler(event, self.mock_context)
-        self.assertEqual(400, response['statusCode'], msg=json.loads(response['body']))
+        self.assertEqual(403, response['statusCode'], msg=json.loads(response['body']))
         response_body = json.loads(response['body'])
 
         self.assertEqual(
-            {'message': 'Invalid compact abbreviation: invalid_compact'},
+            {'message': 'Access denied'},
             response_body,
         )
 
@@ -305,7 +310,7 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         """Test getting a compact configuration returns a compact configuration."""
         from handlers.compact_configuration import compact_configuration_api_handler
 
-        event = generate_test_event('GET', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE)
+        event = generate_test_event('GET', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE, scopes='aslp/admin')
 
         response = compact_configuration_api_handler(event, self.mock_context)
         self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
@@ -332,7 +337,7 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         event = generate_test_event('PUT', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE)
         event['pathParameters']['compact'] = 'foo'
         # add compact admin scope to the event
-        event['requestContext']['authorizer']['scopes'] = 'aslp/admin'
+        event['requestContext']['authorizer']['claims']['scopes'] = 'aslp/admin'
 
         response = compact_configuration_api_handler(event, self.mock_context)
         self.assertEqual(403, response['statusCode'])
@@ -682,7 +687,7 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
         """Test getting a jurisdiction configuration returns an invalid exception if the HTTP method is invalid."""
         from handlers.compact_configuration import compact_configuration_api_handler
 
-        event = generate_test_event('PATCH', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE)
+        event = generate_test_event('PATCH', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE, scopes='ky/aslp.admin')
         event['pathParameters']['jurisdiction'] = 'ky'
 
         response = compact_configuration_api_handler(event, self.mock_context)
@@ -694,36 +699,36 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
             response_body,
         )
 
-    def test_get_jurisdiction_configuration_returns_invalid_exception_if_invalid_compact(self):
+    def test_get_jurisdiction_configuration_returns_unauthorized_exception_if_invalid_compact(self):
         """Test getting an error if invalid compact is provided."""
         from handlers.compact_configuration import compact_configuration_api_handler
 
-        event = generate_test_event('GET', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE)
+        event = generate_test_event('GET', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE, scopes='ky/aslp.admin')
         event['pathParameters']['compact'] = 'invalid_compact'
         event['pathParameters']['jurisdiction'] = 'ky'
 
         response = compact_configuration_api_handler(event, self.mock_context)
-        self.assertEqual(400, response['statusCode'], msg=json.loads(response['body']))
+        self.assertEqual(403, response['statusCode'], msg=json.loads(response['body']))
         response_body = json.loads(response['body'])
 
         self.assertEqual(
-            {'message': 'Invalid compact abbreviation: invalid_compact'},
+            {'message': 'Access denied'},
             response_body,
         )
 
-    def test_get_jurisdiction_configuration_returns_invalid_exception_if_invalid_jurisdiction(self):
+    def test_get_jurisdiction_configuration_returns_unauthorized_exception_if_invalid_jurisdiction(self):
         """Test getting an error if invalid jurisdiction is provided."""
         from handlers.compact_configuration import compact_configuration_api_handler
 
-        event = generate_test_event('GET', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE)
+        event = generate_test_event('GET', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE, scopes='ky/aslp.admin')
         event['pathParameters']['jurisdiction'] = 'invalid_jurisdiction'
 
         response = compact_configuration_api_handler(event, self.mock_context)
-        self.assertEqual(400, response['statusCode'], msg=json.loads(response['body']))
+        self.assertEqual(403, response['statusCode'], msg=json.loads(response['body']))
         response_body = json.loads(response['body'])
 
         self.assertEqual(
-            {'message': 'Invalid jurisdiction postal abbreviation: invalid_jurisdiction'},
+            {'message': 'Access denied'},
             response_body,
         )
 
@@ -732,7 +737,7 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
         from cc_common.license_util import LicenseUtility
         from handlers.compact_configuration import compact_configuration_api_handler
 
-        event = generate_test_event('GET', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE)
+        event = generate_test_event('GET', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE, scopes='ky/aslp.admin')
         event['pathParameters']['jurisdiction'] = 'ky'
 
         response = compact_configuration_api_handler(event, self.mock_context)
@@ -775,7 +780,11 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
         )
 
         # Now retrieve it
-        event = generate_test_event('GET', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE)
+        event = generate_test_event(
+            'GET',
+            JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE,
+            scopes=f'{test_jurisdiction_config.postalAbbreviation}/{test_jurisdiction_config.compact}.admin',
+        )
         event['pathParameters']['jurisdiction'] = test_jurisdiction_config.postalAbbreviation
 
         response = compact_configuration_api_handler(event, self.mock_context)
