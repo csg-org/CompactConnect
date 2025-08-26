@@ -4,9 +4,9 @@
 #
 #    pip-compile --no-emit-index-url compact-connect/lambdas/python/staff-users/requirements-dev.in
 #
-boto3==1.40.15
+boto3==1.40.18
     # via moto
-botocore==1.40.15
+botocore==1.40.18
     # via
     #   boto3
     #   moto
@@ -33,13 +33,13 @@ jmespath==1.0.1
     # via
     #   boto3
     #   botocore
-joserfc==1.2.2
+joserfc==1.3.0
     # via moto
 markupsafe==3.0.2
     # via
     #   jinja2
     #   werkzeug
-moto[cognitoidp,dynamodb,s3]==5.1.10
+moto[cognitoidp,dynamodb,s3]==5.1.11
     # via -r compact-connect/lambdas/python/staff-users/requirements-dev.in
 py-partiql-parser==0.6.1
     # via moto

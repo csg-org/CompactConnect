@@ -9,12 +9,12 @@ from common_constructs.ssm_parameter_utility import SSMParameterUtility
 from common_constructs.stack import Stack
 
 from stacks import persistent_stack as ps
+from stacks.api_lambda_stack import ApiLambdaStack
 from stacks.api_stack.v1_api.attestations import Attestations
 from stacks.api_stack.v1_api.bulk_upload_url import BulkUploadUrl
 from stacks.api_stack.v1_api.provider_management import ProviderManagement
 from stacks.api_stack.v1_api.provider_users import ProviderUsers
 from stacks.api_stack.v1_api.purchases import Purchases
-from stacks.provider_users import ProviderUsersStack
 
 from .api_model import ApiModel
 from .compact_configuration_api import CompactConfigurationApi
@@ -27,7 +27,12 @@ from .staff_users import StaffUsers
 class V1Api:
     """v1 of the Provider Data API"""
 
-    def __init__(self, root: IResource, persistent_stack: ps.PersistentStack, provider_users_stack: ProviderUsersStack):
+    def __init__(
+        self,
+        root: IResource,
+        persistent_stack: ps.PersistentStack,
+        api_lambda_stack: ApiLambdaStack,
+    ):
         super().__init__()
         from stacks.api_stack.api import LicenseApi
 
@@ -137,10 +142,9 @@ class V1Api:
         self.provider_users_resource = self.resource.add_resource('provider-users')
         self.provider_users = ProviderUsers(
             resource=self.provider_users_resource,
-            persistent_stack=persistent_stack,
-            provider_users_stack=provider_users_stack,
             api_model=self.api_model,
             privilege_history_function=self.privilege_history_function,
+            api_lambda_stack=api_lambda_stack,
         )
 
         # /v1/purchases
