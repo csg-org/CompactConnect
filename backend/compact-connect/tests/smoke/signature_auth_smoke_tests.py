@@ -25,10 +25,10 @@ from common_test.sign_request import sign_request  # noqa: E402
 
 COMPACT = 'aslp'
 JURISDICTION = 'ne'
-TEST_CLIENT_NAME = 'test-dsa-auth-client'
-TEST_KEY_ID = 'test-dsa-key-001'
+TEST_CLIENT_NAME = 'test-signature-auth-client'
+TEST_KEY_ID = 'test-signature-key-001'
 
-# This script can be run locally to test the DSA authentication flow against a sandbox environment
+# This script can be run locally to test the SIGNATURE authentication flow against a sandbox environment
 # of the Compact Connect State API.
 # To run this script, create a smoke_tests_env.json file in the same directory as this script using the
 # 'smoke_tests_env_example.json' file as a template.
@@ -51,7 +51,7 @@ def get_state_auth_url():
 
 def create_test_app_client():
     """
-    Create a test app client in Cognito for DSA authentication testing.
+    Create a test app client in Cognito for SIGNATURE authentication testing.
 
     :return: Dictionary containing client_id and client_secret
     """
@@ -155,25 +155,25 @@ def get_client_auth_headers(client_id: str, client_secret: str):
     return {'Authorization': f'Bearer {access_token}'}
 
 
-def configure_dsa_public_key(public_key_pem: str):
+def configure_signature_public_key(public_key_pem: str):
     """
-    Configure a DSA public key in the compact configuration table.
+    Configure a SIGNATURE public key in the compact configuration table.
 
     :param public_key_pem: PEM-encoded public key content
     """
-    logger.info(f'Configuring DSA public key: {TEST_KEY_ID}')
+    logger.info(f'Configuring SIGNATURE public key: {TEST_KEY_ID}')
 
     try:
         table = get_compact_configuration_table()
 
         # Check if key already exists
-        pk = f'{COMPACT}#DSA_KEYS'
+        pk = f'{COMPACT}#SIGNATURE_KEYS'
         sk = f'{COMPACT}#JURISDICTION#{JURISDICTION}#{TEST_KEY_ID}'
 
         response = table.get_item(Key={'pk': pk, 'sk': sk})
 
         if 'Item' in response:
-            logger.info(f'DSA key {TEST_KEY_ID} already exists, overwriting')
+            logger.info(f'SIGNATURE key {TEST_KEY_ID} already exists, overwriting')
 
         # Create the item
         item = {
@@ -189,26 +189,26 @@ def configure_dsa_public_key(public_key_pem: str):
         # Write to DynamoDB
         table.put_item(Item=item)
 
-        logger.info(f'Successfully configured DSA public key: {TEST_KEY_ID}')
+        logger.info(f'Successfully configured SIGNATURE public key: {TEST_KEY_ID}')
 
     except ClientError as e:
-        logger.error(f'Failed to configure DSA public key: {str(e)}')
-        raise SmokeTestFailureException(f'Failed to configure DSA public key: {str(e)}') from e
+        logger.error(f'Failed to configure SIGNATURE public key: {str(e)}')
+        raise SmokeTestFailureException(f'Failed to configure SIGNATURE public key: {str(e)}') from e
 
 
-def remove_dsa_public_key():
-    """Remove the test DSA public key from the compact configuration table."""
+def remove_signature_public_key():
+    """Remove the test SIGNATURE public key from the compact configuration table."""
     try:
         table = get_compact_configuration_table()
 
-        pk = f'{COMPACT}#DSA_KEYS'
+        pk = f'{COMPACT}#SIGNATURE_KEYS'
         sk = f'{COMPACT}#JURISDICTION#{JURISDICTION}#{TEST_KEY_ID}'
 
         table.delete_item(Key={'pk': pk, 'sk': sk})
-        logger.info(f'Successfully removed DSA public key: {TEST_KEY_ID}')
+        logger.info(f'Successfully removed SIGNATURE public key: {TEST_KEY_ID}')
 
     except ClientError as e:
-        logger.error(f'Failed to remove DSA public key: {str(e)}')
+        logger.error(f'Failed to remove SIGNATURE public key: {str(e)}')
         # Don't raise here as this is cleanup
 
 
@@ -242,13 +242,13 @@ def load_test_keys():
 
 def create_signed_headers(method: str, path: str, query_params: dict, private_key_pem: str):
     """
-    Create DSA-signed headers for a request.
+    Create SIGNATURE-signed headers for a request.
 
     :param method: HTTP method (e.g., 'GET', 'POST')
     :param path: Request path
     :param query_params: Query parameters dictionary
     :param private_key_pem: PEM-encoded private key
-    :return: Headers dictionary with DSA authentication headers
+    :return: Headers dictionary with SIGNATURE authentication headers
     """
     # Generate current timestamp and nonce
     timestamp = datetime.now(tz=UTC).isoformat()
@@ -266,14 +266,14 @@ def create_signed_headers(method: str, path: str, query_params: dict, private_ke
     )
 
 
-def test_bulk_upload_endpoint_without_dsa(client_id: str, client_secret: str):
+def test_bulk_upload_endpoint_without_signature(client_id: str, client_secret: str):
     """
-    Test the bulk-upload endpoint without DSA authentication (should succeed when no keys configured).
+    Test the bulk-upload endpoint without SIGNATURE authentication (should succeed when no keys configured).
 
     :param client_id: The client ID for authentication
     :param client_secret: The client secret for authentication
     """
-    logger.info('Testing bulk-upload endpoint without DSA authentication')
+    logger.info('Testing bulk-upload endpoint without SIGNATURE authentication')
 
     headers = get_client_auth_headers(client_id, client_secret)
 
@@ -285,21 +285,21 @@ def test_bulk_upload_endpoint_without_dsa(client_id: str, client_secret: str):
 
     if response.status_code != 200:
         raise SmokeTestFailureException(
-            f'Bulk-upload endpoint should succeed without DSA when no keys configured. '
+            f'Bulk-upload endpoint should succeed without SIGNATURE when no keys configured. '
             f'Response: {response.status_code} - {response.text}'
         )
 
-    logger.info('Bulk-upload endpoint succeeded without DSA authentication (as expected)')
+    logger.info('Bulk-upload endpoint succeeded without SIGNATURE authentication (as expected)')
 
 
-def test_bulk_upload_endpoint_without_dsa_after_key_configuration(client_id: str, client_secret: str):
+def test_bulk_upload_endpoint_without_signature_after_key_configuration(client_id: str, client_secret: str):
     """
-    Test the bulk-upload endpoint without DSA authentication after keys are configured (should fail).
+    Test the bulk-upload endpoint without SIGNATURE authentication after keys are configured (should fail).
 
     :param client_id: The client ID for authentication
     :param client_secret: The client secret for authentication
     """
-    logger.info('Testing bulk-upload endpoint without DSA authentication after key configuration')
+    logger.info('Testing bulk-upload endpoint without SIGNATURE authentication after key configuration')
 
     headers = get_client_auth_headers(client_id, client_secret)
 
@@ -309,29 +309,29 @@ def test_bulk_upload_endpoint_without_dsa_after_key_configuration(client_id: str
         timeout=10,
     )
 
-    logger.info('Bulk-upload endpoint correctly rejected without DSA authentication')
+    logger.info('Bulk-upload endpoint correctly rejected without SIGNATURE authentication')
     if response.status_code != 401:
         raise SmokeTestFailureException(
-            f'Expected 401 without DSA when keys are configured, got {response.status_code}: {response.text}'
+            f'Expected 401 without SIGNATURE when keys are configured, got {response.status_code}: {response.text}'
         )
-    logger.info('Bulk-upload endpoint correctly rejected without DSA authentication')
+    logger.info('Bulk-upload endpoint correctly rejected without SIGNATURE authentication')
 
 
-def test_bulk_upload_endpoint_with_dsa(client_id: str, client_secret: str, private_key_pem: str):
+def test_bulk_upload_endpoint_with_signature(client_id: str, client_secret: str, private_key_pem: str):
     """
-    Test the bulk-upload endpoint with valid DSA authentication.
+    Test the bulk-upload endpoint with valid SIGNATURE authentication.
 
     :param client_id: The client ID for authentication
     :param client_secret: The client secret for authentication
     :param private_key_pem: PEM-encoded private key for signing
     """
-    logger.info('Testing bulk-upload endpoint with DSA authentication')
+    logger.info('Testing bulk-upload endpoint with SIGNATURE authentication')
 
     # Get client credentials headers
     client_headers = get_client_auth_headers(client_id, client_secret)
 
-    # Create DSA headers
-    dsa_headers = create_signed_headers(
+    # Create SIGNATURE headers
+    signature_headers = create_signed_headers(
         method='GET',
         path=f'/v1/compacts/{COMPACT}/jurisdictions/{JURISDICTION}/licenses/bulk-upload',
         query_params={},
@@ -339,7 +339,7 @@ def test_bulk_upload_endpoint_with_dsa(client_id: str, client_secret: str, priva
     )
 
     # Combine headers
-    headers = {**client_headers, **dsa_headers}
+    headers = {**client_headers, **signature_headers}
 
     response = requests.get(
         url=get_state_api_base_url() + f'/v1/compacts/{COMPACT}/jurisdictions/{JURISDICTION}/licenses/bulk-upload',
@@ -349,7 +349,7 @@ def test_bulk_upload_endpoint_with_dsa(client_id: str, client_secret: str, priva
 
     if response.status_code != 200:
         raise SmokeTestFailureException(
-            f'Bulk-upload endpoint should succeed with valid DSA authentication. '
+            f'Bulk-upload endpoint should succeed with valid SIGNATURE authentication. '
             f'Response: {response.status_code} - {response.text}'
         )
 
@@ -358,18 +358,18 @@ def test_bulk_upload_endpoint_with_dsa(client_id: str, client_secret: str, priva
     if 'upload' not in response_data:
         raise SmokeTestFailureException('Bulk-upload response missing upload field')
 
-    logger.info('Bulk-upload endpoint succeeded with DSA authentication')
+    logger.info('Bulk-upload endpoint succeeded with SIGNATURE authentication')
 
 
-def test_providers_query_endpoint_with_dsa(client_id: str, client_secret: str, private_key_pem: str):
+def test_providers_query_endpoint_with_signature(client_id: str, client_secret: str, private_key_pem: str):
     """
-    Test the providers/query endpoint with valid DSA authentication.
+    Test the providers/query endpoint with valid SIGNATURE authentication.
 
     :param client_id: The client ID for authentication
     :param client_secret: The client secret for authentication
     :param private_key_pem: PEM-encoded private key for signing
     """
-    logger.info('Testing providers/query endpoint with DSA authentication')
+    logger.info('Testing providers/query endpoint with SIGNATURE authentication')
 
     # Get client credentials headers
     client_headers = get_client_auth_headers(client_id, client_secret)
@@ -385,8 +385,8 @@ def test_providers_query_endpoint_with_dsa(client_id: str, client_secret: str, p
         }
     }
 
-    # Create DSA headers
-    dsa_headers = create_signed_headers(
+    # Create SIGNATURE headers
+    signature_headers = create_signed_headers(
         method='POST',
         path=f'/v1/compacts/{COMPACT}/jurisdictions/{JURISDICTION}/providers/query',
         query_params={},
@@ -394,7 +394,7 @@ def test_providers_query_endpoint_with_dsa(client_id: str, client_secret: str, p
     )
 
     # Combine headers
-    headers = {**client_headers, **dsa_headers}
+    headers = {**client_headers, **signature_headers}
     headers['Content-Type'] = 'application/json'
 
     response = requests.post(
@@ -406,7 +406,7 @@ def test_providers_query_endpoint_with_dsa(client_id: str, client_secret: str, p
 
     if response.status_code != 200:
         raise SmokeTestFailureException(
-            f'Providers/query endpoint should succeed with valid DSA authentication. '
+            f'Providers/query endpoint should succeed with valid SIGNATURE authentication. '
             f'Response: {response.status_code} - {response.text}'
         )
 
@@ -418,22 +418,22 @@ def test_providers_query_endpoint_with_dsa(client_id: str, client_secret: str, p
     if 'pagination' not in response_data:
         raise SmokeTestFailureException('Providers/query response missing pagination field')
 
-    logger.info('Providers/query endpoint succeeded with DSA authentication')
+    logger.info('Providers/query endpoint succeeded with SIGNATURE authentication')
 
 
-def dsa_authentication_smoke_test():
+def signature_authentication_smoke_test():
     """
-    Comprehensive smoke test for DSA authentication system.
+    Comprehensive smoke test for SIGNATURE authentication system.
 
-    This test exercises the DSA authentication by:
+    This test exercises the SIGNATURE authentication by:
     1. Creating a test app client in Cognito
-    2. Testing bulk-upload endpoint without DSA (should succeed when no keys configured)
-    3. Configuring a DSA public key for the test compact/state
-    4. Testing bulk-upload endpoint without DSA (keys configured - should fail)
-    5. Testing bulk-upload endpoint with valid DSA authentication
-    6. Testing providers/query endpoint with valid DSA authentication
+    2. Testing bulk-upload endpoint without SIGNATURE (should succeed when no keys configured)
+    3. Configuring a SIGNATURE public key for the test compact/state
+    4. Testing bulk-upload endpoint without SIGNATURE (keys configured - should fail)
+    5. Testing bulk-upload endpoint with valid SIGNATURE authentication
+    6. Testing providers/query endpoint with valid SIGNATURE authentication
     """
-    logger.info('Starting DSA authentication smoke test')
+    logger.info('Starting SIGNATURE authentication smoke test')
 
     # Load test keys
     private_key_pem, public_key_pem = load_test_keys()
@@ -444,27 +444,27 @@ def dsa_authentication_smoke_test():
     client_secret = client_credentials['client_secret']
 
     try:
-        # Step 1: Test bulk-upload endpoint without DSA (no keys configured)
-        test_bulk_upload_endpoint_without_dsa(client_id, client_secret)
+        # Step 1: Test bulk-upload endpoint without SIGNATURE (no keys configured)
+        test_bulk_upload_endpoint_without_signature(client_id, client_secret)
 
-        # Step 2: Configure DSA public key
-        configure_dsa_public_key(public_key_pem)
+        # Step 2: Configure SIGNATURE public key
+        configure_signature_public_key(public_key_pem)
 
-        # Step 3: Test bulk-upload endpoint without DSA (keys configured - should fail)
-        test_bulk_upload_endpoint_without_dsa_after_key_configuration(client_id, client_secret)
+        # Step 3: Test bulk-upload endpoint without SIGNATURE (keys configured - should fail)
+        test_bulk_upload_endpoint_without_signature_after_key_configuration(client_id, client_secret)
 
-        # Step 4: Test bulk-upload endpoint with valid DSA authentication
-        test_bulk_upload_endpoint_with_dsa(client_id, client_secret, private_key_pem)
+        # Step 4: Test bulk-upload endpoint with valid SIGNATURE authentication
+        test_bulk_upload_endpoint_with_signature(client_id, client_secret, private_key_pem)
 
-        # Step 5: Test providers/query endpoint with valid DSA authentication
-        test_providers_query_endpoint_with_dsa(client_id, client_secret, private_key_pem)
+        # Step 5: Test providers/query endpoint with valid SIGNATURE authentication
+        test_providers_query_endpoint_with_signature(client_id, client_secret, private_key_pem)
 
-        logger.info('DSA authentication smoke test completed successfully')
+        logger.info('SIGNATURE authentication smoke test completed successfully')
 
     finally:
         # Cleanup
         logger.info('Cleaning up test resources')
-        remove_dsa_public_key()
+        remove_signature_public_key()
         delete_test_app_client(client_id)
 
 
@@ -472,8 +472,8 @@ if __name__ == '__main__':
     load_smoke_test_env()
 
     try:
-        dsa_authentication_smoke_test()
-        logger.info('DSA authentication smoke test passed')
+        signature_authentication_smoke_test()
+        logger.info('SIGNATURE authentication smoke test passed')
     except SmokeTestFailureException as e:
-        logger.error(f'DSA authentication smoke test failed: {str(e)}')
+        logger.error(f'SIGNATURE authentication smoke test failed: {str(e)}')
         raise

@@ -1,8 +1,8 @@
 """
-DSA Authentication Module
+Signature Authentication Module
 
-This module provides decorators for validating ECDSA-based request signatures
-as described in the client_dsa_auth.md documentation.
+This module provides decorators for validating ECDSA-based request signatures as described in the
+client_signature_auth.md documentation.
 """
 
 import base64
@@ -21,9 +21,9 @@ from cc_common.exceptions import CCInvalidRequestException, CCUnauthorizedExcept
 from cc_common.utils import CaseInsensitiveDict
 
 
-def required_dsa_auth(fn: Callable) -> Callable:
+def required_signature_auth(fn: Callable) -> Callable:
     """
-    Decorator to validate DSA signatures for API requests.
+    Decorator to validate signatures for API requests.
 
     This decorator validates ECDSA signatures according to the specification:
     - Extracts required headers (X-Algorithm, X-Timestamp, X-Nonce, X-Signature, X-Key-Id)
@@ -58,26 +58,26 @@ def required_dsa_auth(fn: Callable) -> Callable:
             )
             raise CCUnauthorizedException('Public key not found for this compact/jurisdiction/key_id')
 
-        # Validate DSA signature
-        _validate_dsa_signature(event, compact, jurisdiction, public_key_pem)
+        # Validate signature
+        _validate_signature(event, compact, jurisdiction, public_key_pem)
 
-        logger.info('DSA signature validated successfully', compact=compact, jurisdiction=jurisdiction, key_id=key_id)
+        logger.info('Signature validated successfully', compact=compact, jurisdiction=jurisdiction, key_id=key_id)
         return fn(event, context)
 
     return validate_signature
 
 
-def optional_dsa_auth(fn: Callable) -> Callable:
+def optional_signature_auth(fn: Callable) -> Callable:
     """
-    Decorator for optional DSA signature validation.
+    Decorator for optional signature validation.
 
-    This decorator checks if DSA keys are configured for the compact/state combination.
-    If keys are configured and X-Key-Id is provided, it enforces DSA signature validation.
-    If no keys are configured, it allows the request to proceed without DSA validation.
+    This decorator checks if signature keys are configured for the compact/state combination.
+    If keys are configured and X-Key-Id is provided, it enforces signature validation.
+    If no keys are configured, it allows the request to proceed without signature validation.
     If keys are configured but no X-Key-Id is provided, access is denied.
 
     This is useful for endpoints that support both authenticated and unauthenticated access,
-    where the authentication requirement is determined by whether DSA keys are configured.
+    where the authentication requirement is determined by whether signature keys are configured.
 
     :param fn: The function to decorate
     :return: Decorated function
@@ -92,9 +92,9 @@ def optional_dsa_auth(fn: Callable) -> Callable:
         configured_keys = _get_configured_keys_for_jurisdiction(compact, jurisdiction)
 
         if not configured_keys:
-            # No keys configured - allow request to proceed without DSA validation
+            # No keys configured - allow request to proceed without signature validation
             logger.info(
-                'No DSA keys configured for compact/jurisdiction - proceeding without DSA validation',
+                'No signature keys configured for compact/jurisdiction - proceeding without signature validation',
                 compact=compact,
                 jurisdiction=jurisdiction,
             )
@@ -104,11 +104,11 @@ def optional_dsa_auth(fn: Callable) -> Callable:
         key_id = _extract_key_id(event)
         if not key_id:
             logger.warning(
-                'DSA keys configured but no X-Key-Id provided - denying access',
+                'Signature keys configured but no X-Key-Id provided - denying access',
                 compact=compact,
                 jurisdiction=jurisdiction,
             )
-            raise CCUnauthorizedException('X-Key-Id header required when DSA keys are configured')
+            raise CCUnauthorizedException('X-Key-Id header required when signature keys are configured')
 
         # Get public key for the specific key ID from our cached keys
         public_key_pem = configured_keys.get(key_id)
@@ -121,11 +121,11 @@ def optional_dsa_auth(fn: Callable) -> Callable:
             )
             raise CCUnauthorizedException('Public key not found for this compact/jurisdiction/key_id')
 
-        # Validate DSA signature
-        _validate_dsa_signature(event, compact, jurisdiction, public_key_pem)
+        # Validate signature
+        _validate_signature(event, compact, jurisdiction, public_key_pem)
 
         logger.info(
-            'Optional DSA signature validated successfully', compact=compact, jurisdiction=jurisdiction, key_id=key_id
+            'Optional signature validated successfully', compact=compact, jurisdiction=jurisdiction, key_id=key_id
         )
         return fn(event, context)
 
@@ -162,11 +162,11 @@ def _extract_key_id(event: dict) -> str | None:
     return headers.get('X-Key-Id')
 
 
-def _validate_dsa_signature(event: dict, compact: str, jurisdiction: str, public_key_pem: str) -> None:
+def _validate_signature(event: dict, compact: str, jurisdiction: str, public_key_pem: str) -> None:
     """
-    Validate DSA signature for a request.
+    Validate signature for a request.
 
-    This function performs all the DSA validation steps:
+    This function performs all the signature validation steps:
     - Extracts and validates required headers
     - Validates timestamp
     - Reconstructs and verifies signature
@@ -175,13 +175,13 @@ def _validate_dsa_signature(event: dict, compact: str, jurisdiction: str, public
     :param compact: Compact abbreviation
     :param jurisdiction: Jurisdiction abbreviation
     :param public_key_pem: PEM-encoded public key
-    :raises CCUnauthorizedException: If DSA validation fails
+    :raises CCUnauthorizedException: If signature validation fails
     :raises CCInvalidRequestException: If request format is invalid
     """
     # Extract headers using CaseInsensitiveDict for consistent handling
     headers = CaseInsensitiveDict(event.get('headers') or {})
 
-    # Extract required DSA headers
+    # Extract required signature headers
     algorithm = headers.get('X-Algorithm')
     timestamp_str = headers.get('X-Timestamp')
     nonce = headers.get('X-Nonce')
@@ -191,7 +191,7 @@ def _validate_dsa_signature(event: dict, compact: str, jurisdiction: str, public
     # Validate all required headers are present
     if not all([algorithm, timestamp_str, nonce, signature_b64, key_id]):
         logger.warning(
-            'Missing required DSA headers',
+            'Missing required signature headers',
             algorithm=algorithm,
             timestamp=timestamp_str,
             nonce=nonce,
@@ -200,11 +200,13 @@ def _validate_dsa_signature(event: dict, compact: str, jurisdiction: str, public
             compact=compact,
             jurisdiction=jurisdiction,
         )
-        raise CCUnauthorizedException('Missing required DSA authentication headers')
+        raise CCUnauthorizedException('Missing required signature authentication headers')
 
     # Validate algorithm
     if algorithm != 'ECDSA-SHA256':
-        logger.warning('Unsupported DSA algorithm', algorithm=algorithm, compact=compact, jurisdiction=jurisdiction)
+        logger.warning(
+            'Unsupported signature algorithm', algorithm=algorithm, compact=compact, jurisdiction=jurisdiction
+        )
         raise CCUnauthorizedException('Unsupported signature algorithm')
 
     # Validate timestamp
@@ -216,12 +218,12 @@ def _validate_dsa_signature(event: dict, compact: str, jurisdiction: str, public
         now = datetime.now(UTC)
         time_diff = abs((timestamp - now).total_seconds())
 
-        if time_diff > config.dsa_max_clock_skew_seconds:
+        if time_diff > config.signature_max_clock_skew_seconds:
             logger.warning(
                 'Request timestamp too old or in future',
                 timestamp=timestamp_str,
                 time_diff_seconds=time_diff,
-                max_clock_skew_seconds=config.dsa_max_clock_skew_seconds,
+                max_clock_skew_seconds=config.signature_max_clock_skew_seconds,
             )
             raise CCUnauthorizedException('Request timestamp is too old or in the future')
     except ValueError as e:
@@ -247,9 +249,9 @@ def _get_public_key_from_dynamodb(compact: str, jurisdiction: str, key_id: str) 
     :return: PEM-encoded public key or None if not found
     """
     # Query the compact configuration table for the public key
-    # New schema: pk=f"{compact}#DSA_KEYS", sk=f"{compact}#JURISDICTION#{jurisdiction}#{key_id}"
+    # New schema: pk=f"{compact}#SIGNATURE_KEYS", sk=f"{compact}#JURISDICTION#{jurisdiction}#{key_id}"
     response = config.compact_configuration_table.get_item(
-        Key={'pk': f'{compact}#DSA_KEYS', 'sk': f'{compact}#JURISDICTION#{jurisdiction}#{key_id}'}
+        Key={'pk': f'{compact}#SIGNATURE_KEYS', 'sk': f'{compact}#JURISDICTION#{jurisdiction}#{key_id}'}
     )
 
     return response.get('Item', {}).get('publicKey')
@@ -257,7 +259,7 @@ def _get_public_key_from_dynamodb(compact: str, jurisdiction: str, key_id: str) 
 
 def _get_configured_keys_for_jurisdiction(compact: str, jurisdiction: str) -> dict[str, str]:
     """
-    Retrieve all configured DSA keys for a specific jurisdiction.
+    Retrieve all configured signature keys for a specific jurisdiction.
 
     This function queries DynamoDB to get all key IDs and their corresponding public keys
     for a given compact and jurisdiction. It returns a dictionary mapping key_id to public_key_pem.
@@ -270,7 +272,7 @@ def _get_configured_keys_for_jurisdiction(compact: str, jurisdiction: str) -> di
     response = config.compact_configuration_table.query(
         KeyConditionExpression='pk = :pk AND begins_with(sk, :sk_prefix)',
         ExpressionAttributeValues={
-            ':pk': f'{compact}#DSA_KEYS',
+            ':pk': f'{compact}#SIGNATURE_KEYS',
             ':sk_prefix': f'{compact}#JURISDICTION#{jurisdiction}#',
         },
     )
@@ -286,7 +288,7 @@ def _get_configured_keys_for_jurisdiction(compact: str, jurisdiction: str) -> di
 
 def _build_signature_string(event: dict) -> str:
     """
-    Build the signature string according to the DSA specification.
+    Build the signature string according to the signature specification.
 
     The signature string is constructed as:
     HTTP_METHOD\nREQUEST_PATH\nSORTED_QUERY_PARAMETERS\nTIMESTAMP\nNONCE\nKEY_ID

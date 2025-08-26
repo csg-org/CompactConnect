@@ -1,8 +1,8 @@
 # ruff: noqa: ARG001 unused-argument
 """
-Tests for the optional DSA authentication decorator.
+Tests for the optional signature authentication decorator.
 
-This module tests the optional_dsa_auth decorator which allows endpoints to
+This module tests the optional_signature_auth decorator which allows endpoints to
 support both authenticated and unauthenticated access based on whether a
 public key is configured for the compact/state combination.
 """
@@ -17,8 +17,8 @@ from cc_common.exceptions import CCInvalidRequestException, CCUnauthorizedExcept
 from tests import TstLambdas
 
 
-class TestOptionalDsaAuth(TstLambdas):
-    """Test the optional_dsa_auth decorator."""
+class TestOptionalSignatureAuth(TstLambdas):
+    """Test the optional_signature_auth decorator."""
 
     def setUp(self):
         """Set up test fixtures."""
@@ -37,26 +37,26 @@ class TestOptionalDsaAuth(TstLambdas):
 
     def test_no_public_key_configured_allows_request(self):
         """Test that requests proceed when no public key is configured."""
-        from cc_common.dsa_auth import optional_dsa_auth
+        from cc_common.signature_auth import optional_signature_auth
 
-        @optional_dsa_auth
+        @optional_signature_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK', 'authenticated': False}
 
         # Mock DynamoDB to return empty dict (no public key configured)
-        with patch('cc_common.dsa_auth._get_configured_keys_for_jurisdiction') as mock_get_keys:
+        with patch('cc_common.signature_auth._get_configured_keys_for_jurisdiction') as mock_get_keys:
             mock_get_keys.return_value = {}
 
             resp = lambda_handler(self.base_event, self.mock_context)
 
-            # Should proceed without DSA validation
+            # Should proceed without signature validation
             self.assertEqual({'message': 'OK', 'authenticated': False}, resp)
 
-    def test_public_key_configured_enforces_dsa_validation(self):
-        """Test that DSA validation is enforced when public key is configured."""
-        from cc_common.dsa_auth import optional_dsa_auth
+    def test_public_key_configured_enforces_signature_validation(self):
+        """Test that signature validation is enforced when public key is configured."""
+        from cc_common.signature_auth import optional_signature_auth
 
-        @optional_dsa_auth
+        @optional_signature_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK', 'authenticated': True}
 
@@ -64,36 +64,36 @@ class TestOptionalDsaAuth(TstLambdas):
         event = self._create_signed_event()
 
         # Mock DynamoDB to return the public key
-        with patch('cc_common.dsa_auth._get_configured_keys_for_jurisdiction') as mock_get_keys:
+        with patch('cc_common.signature_auth._get_configured_keys_for_jurisdiction') as mock_get_keys:
             mock_get_keys.return_value = {'test-key-001': self.public_key_pem}
 
             resp = lambda_handler(event, self.mock_context)
 
-            # Should validate DSA and proceed
+            # Should validate signature and proceed
             self.assertEqual({'message': 'OK', 'authenticated': True}, resp)
 
     def test_public_key_configured_missing_headers_rejected(self):
-        """Test that missing DSA headers are rejected when public key is configured."""
-        from cc_common.dsa_auth import optional_dsa_auth
+        """Test that missing signature headers are rejected when public key is configured."""
+        from cc_common.signature_auth import optional_signature_auth
 
-        @optional_dsa_auth
+        @optional_signature_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
         # Mock DynamoDB to return True (keys configured)
-        with patch('cc_common.dsa_auth._get_configured_keys_for_jurisdiction') as mock_get_keys:
+        with patch('cc_common.signature_auth._get_configured_keys_for_jurisdiction') as mock_get_keys:
             mock_get_keys.return_value = {'test-key-001': self.public_key_pem}
 
             with self.assertRaises(CCUnauthorizedException) as cm:
                 lambda_handler(self.base_event, self.mock_context)
 
-            self.assertIn('X-Key-Id header required when DSA keys are configured', str(cm.exception))
+            self.assertIn('X-Key-Id header required when signature keys are configured', str(cm.exception))
 
     def test_public_key_configured_invalid_signature_rejected(self):
         """Test that invalid signatures are rejected when public key is configured."""
-        from cc_common.dsa_auth import optional_dsa_auth
+        from cc_common.signature_auth import optional_signature_auth
 
-        @optional_dsa_auth
+        @optional_signature_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
@@ -102,7 +102,7 @@ class TestOptionalDsaAuth(TstLambdas):
         event['headers']['X-Signature'] = 'invalid-signature'
 
         # Mock DynamoDB to return the public key
-        with patch('cc_common.dsa_auth._get_configured_keys_for_jurisdiction') as mock_get_keys:
+        with patch('cc_common.signature_auth._get_configured_keys_for_jurisdiction') as mock_get_keys:
             mock_get_keys.return_value = {'test-key-001': self.public_key_pem}
 
             with self.assertRaises(CCUnauthorizedException) as cm:
@@ -112,9 +112,9 @@ class TestOptionalDsaAuth(TstLambdas):
 
     def test_missing_path_parameters_rejected(self):
         """Test that missing path parameters are rejected regardless of public key configuration."""
-        from cc_common.dsa_auth import optional_dsa_auth
+        from cc_common.signature_auth import optional_signature_auth
 
-        @optional_dsa_auth
+        @optional_signature_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
@@ -123,7 +123,7 @@ class TestOptionalDsaAuth(TstLambdas):
         event['pathParameters'] = {}
 
         # Should be rejected even if no public key is configured
-        with patch('cc_common.dsa_auth._get_configured_keys_for_jurisdiction') as mock_get_keys:
+        with patch('cc_common.signature_auth._get_configured_keys_for_jurisdiction') as mock_get_keys:
             mock_get_keys.return_value = {}
 
             with self.assertRaises(CCInvalidRequestException) as cm:
@@ -133,9 +133,9 @@ class TestOptionalDsaAuth(TstLambdas):
 
     def test_public_key_configured_invalid_timestamp_rejected(self):
         """Test that invalid timestamps are rejected when public key is configured."""
-        from cc_common.dsa_auth import optional_dsa_auth
+        from cc_common.signature_auth import optional_signature_auth
 
-        @optional_dsa_auth
+        @optional_signature_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
@@ -144,7 +144,7 @@ class TestOptionalDsaAuth(TstLambdas):
         event['headers']['X-Timestamp'] = '2020-01-01T00:00:00Z'
 
         # Mock DynamoDB to return the public key
-        with patch('cc_common.dsa_auth._get_configured_keys_for_jurisdiction') as mock_get_keys:
+        with patch('cc_common.signature_auth._get_configured_keys_for_jurisdiction') as mock_get_keys:
             mock_get_keys.return_value = {'test-key-001': self.public_key_pem}
 
             with self.assertRaises(CCUnauthorizedException) as cm:
@@ -154,9 +154,9 @@ class TestOptionalDsaAuth(TstLambdas):
 
     def test_public_key_configured_malformed_timestamp_rejected(self):
         """Test that malformed timestamps are rejected when public key is configured."""
-        from cc_common.dsa_auth import optional_dsa_auth
+        from cc_common.signature_auth import optional_signature_auth
 
-        @optional_dsa_auth
+        @optional_signature_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
@@ -165,7 +165,7 @@ class TestOptionalDsaAuth(TstLambdas):
         event['headers']['X-Timestamp'] = 'not-a-timestamp'
 
         # Mock DynamoDB to return the public key
-        with patch('cc_common.dsa_auth._get_configured_keys_for_jurisdiction') as mock_get_keys:
+        with patch('cc_common.signature_auth._get_configured_keys_for_jurisdiction') as mock_get_keys:
             mock_get_keys.return_value = {'test-key-001': self.public_key_pem}
 
             with self.assertRaises(CCInvalidRequestException) as cm:
@@ -175,9 +175,9 @@ class TestOptionalDsaAuth(TstLambdas):
 
     def test_public_key_configured_unsupported_algorithm_rejected(self):
         """Test that unsupported algorithms are rejected when public key is configured."""
-        from cc_common.dsa_auth import optional_dsa_auth
+        from cc_common.signature_auth import optional_signature_auth
 
-        @optional_dsa_auth
+        @optional_signature_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
@@ -186,7 +186,7 @@ class TestOptionalDsaAuth(TstLambdas):
         event['headers']['X-Algorithm'] = 'RSA-SHA256'
 
         # Mock DynamoDB to return the public key
-        with patch('cc_common.dsa_auth._get_configured_keys_for_jurisdiction') as mock_get_keys:
+        with patch('cc_common.signature_auth._get_configured_keys_for_jurisdiction') as mock_get_keys:
             mock_get_keys.return_value = {'test-key-001': self.public_key_pem}
 
             with self.assertRaises(CCUnauthorizedException) as cm:
@@ -195,16 +195,16 @@ class TestOptionalDsaAuth(TstLambdas):
             self.assertIn('Unsupported signature algorithm', str(cm.exception))
 
     def test_integration_with_api_handler(self):
-        """Test that optional_dsa_auth works correctly with api_handler decorator."""
-        from cc_common.dsa_auth import optional_dsa_auth
+        """Test that optional_signature_auth works correctly with api_handler decorator."""
+        from cc_common.signature_auth import optional_signature_auth
         from cc_common.utils import api_handler
 
         @api_handler
-        @optional_dsa_auth
+        @optional_signature_auth
         def lambda_handler(event: dict, context: LambdaContext):
-            # Check if we have DSA headers to determine if authenticated
+            # Check if we have signature headers to determine if authenticated
             headers = event.get('headers') or {}
-            has_dsa_headers = all(
+            has_signature_headers = all(
                 [
                     headers.get('X-Algorithm'),
                     headers.get('X-Timestamp'),
@@ -212,11 +212,11 @@ class TestOptionalDsaAuth(TstLambdas):
                     headers.get('X-Signature'),
                 ]
             )
-            return {'message': 'OK', 'authenticated': has_dsa_headers}
+            return {'message': 'OK', 'authenticated': has_signature_headers}
 
             # Test with no public key configured
 
-        with patch('cc_common.dsa_auth._get_configured_keys_for_jurisdiction') as mock_get_keys:
+        with patch('cc_common.signature_auth._get_configured_keys_for_jurisdiction') as mock_get_keys:
             mock_get_keys.return_value = {}
 
             resp = lambda_handler(self.base_event, self.mock_context)
@@ -228,7 +228,7 @@ class TestOptionalDsaAuth(TstLambdas):
         # Test with public key configured and valid signature
         event = self._create_signed_event()
 
-        with patch('cc_common.dsa_auth._get_configured_keys_for_jurisdiction') as mock_get_keys:
+        with patch('cc_common.signature_auth._get_configured_keys_for_jurisdiction') as mock_get_keys:
             mock_get_keys.return_value = {'test-key-001': self.public_key_pem}
 
             resp = lambda_handler(event, self.mock_context)
@@ -259,7 +259,7 @@ class TestOptionalDsaAuth(TstLambdas):
             private_key_pem=self.private_key_pem,
         )
 
-        # Add DSA headers to event
+        # Add signature headers to event
         event['headers'].update(headers)
 
         return event

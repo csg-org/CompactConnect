@@ -12,8 +12,8 @@ from cc_common.data_model.schema.provider.api import (
     StateProviderDetailGeneralResponseSchema,
     StateProviderDetailPrivateResponseSchema,
 )
-from cc_common.dsa_auth import optional_dsa_auth, required_dsa_auth
 from cc_common.exceptions import CCInternalException, CCInvalidRequestException, CCNotFoundException
+from cc_common.signature_auth import optional_signature_auth, required_signature_auth
 from cc_common.utils import (
     _user_has_read_private_access_for_provider,
     api_handler,
@@ -27,7 +27,7 @@ from handlers.bulk_upload import _bulk_upload_url_handler
 
 
 @api_handler
-@required_dsa_auth
+@required_signature_auth
 @authorize_compact(action=CCPermissionsAction.READ_GENERAL)
 def query_jurisdiction_providers(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """Query providers with privileges in a specific jurisdiction. This endpoint is used by state IT systems to query
@@ -129,7 +129,7 @@ def _create_flattened_privilege(
 
 
 @api_handler
-@required_dsa_auth
+@required_signature_auth
 @authorize_compact(action=CCPermissionsAction.READ_GENERAL)
 def get_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """Return one provider's data, greatly simplified (flattened) for state IT system consumption
@@ -207,7 +207,7 @@ def get_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unused-ar
 
 
 @api_handler
-@optional_dsa_auth
+@optional_signature_auth
 @authorize_compact_jurisdiction(action='write')
 def bulk_upload_url_handler(event: dict, context: LambdaContext):
     """Generate a pre-signed POST to the bulk-upload s3 bucket

@@ -10,30 +10,30 @@ from tests.function import TstFunction
 
 
 @mock_aws
-class DsaTestBase(TstFunction):
-    """Base class for tests that require DSA authentication setup."""
+class SignatureTestBase(TstFunction):
+    """Base class for tests that require signature authentication setup."""
 
     def setUp(self):
         super().setUp()
-        # Load test keys for DSA authentication
+        # Load test keys for signature authentication
         with open('../common/tests/resources/client_private_key.pem') as f:
             self.private_key_pem = f.read()
         with open('../common/tests/resources/client_public_key.pem') as f:
             self.public_key_pem = f.read()
 
-        # Load DSA public keys into the compact configuration table for functional testing
-        self._setup_dsa_keys()
+        # Load signature public keys into the compact configuration table for functional testing
+        self._setup_signature_keys()
 
-    def _setup_dsa_keys(self):
-        """Setup DSA keys for testing. Override in subclasses to customize key setup."""
+    def _setup_signature_keys(self):
+        """Setup signature keys for testing. Override in subclasses to customize key setup."""
         # Default setup - load keys for 'aslp' compact with 'oh' and 'ne' jurisdictions
-        self._load_dsa_public_key('aslp', 'oh', 'test-key-001', self.public_key_pem)
-        self._load_dsa_public_key('aslp', 'ne', 'test-key-001', self.public_key_pem)
+        self._load_signature_public_key('aslp', 'oh', 'test-key-001', self.public_key_pem)
+        self._load_signature_public_key('aslp', 'ne', 'test-key-001', self.public_key_pem)
 
-    def _load_dsa_public_key(self, compact: str, jurisdiction: str, key_id: str, public_key_pem: str):
-        """Load a DSA public key into the compact configuration table."""
+    def _load_signature_public_key(self, compact: str, jurisdiction: str, key_id: str, public_key_pem: str):
+        """Load a signature public key into the compact configuration table."""
         item = {
-            'pk': f'{compact}#DSA_KEYS',
+            'pk': f'{compact}#SIGNATURE_KEYS',
             'sk': f'{compact}#JURISDICTION#{jurisdiction}#{key_id}',
             'publicKey': public_key_pem,
             'compact': compact,
@@ -44,7 +44,7 @@ class DsaTestBase(TstFunction):
         self._compact_configuration_table.put_item(Item=item)
 
     def _create_signed_event(self, event: dict) -> dict:
-        """Add DSA headers to an event for DSA authentication."""
+        """Add signature headers to an event for signature authentication."""
         # Generate current timestamp and nonce
         timestamp = datetime.now(UTC).isoformat()
         nonce = str(uuid4())
@@ -61,14 +61,14 @@ class DsaTestBase(TstFunction):
             private_key_pem=self.private_key_pem,
         )
 
-        # Add DSA headers to event
+        # Add signature headers to event
         event['headers'].update(headers)
         return event
 
 
 @mock_aws
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
-class TestQueryJurisdictionProviders(DsaTestBase):
+class TestQueryJurisdictionProviders(SignatureTestBase):
     def _generate_multiple_providers_with_privileges(
         self,
         count: int,
@@ -163,7 +163,7 @@ class TestQueryJurisdictionProviders(DsaTestBase):
             {'query': query, 'pagination': {'pageSize': 30}, 'sorting': {'direction': 'ascending'}}
         )
 
-        # Add DSA authentication headers
+        # Add signature authentication headers
         event = self._create_signed_event(event)
 
         resp = query_jurisdiction_providers(event, self.mock_context)
@@ -188,7 +188,7 @@ class TestQueryJurisdictionProviders(DsaTestBase):
         event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
         event['body'] = json.dumps({'invalid': 'field'})
 
-        # Add DSA authentication headers
+        # Add signature authentication headers
         event = self._create_signed_event(event)
 
         resp = query_jurisdiction_providers(event, self.mock_context)
@@ -210,7 +210,7 @@ class TestQueryJurisdictionProviders(DsaTestBase):
             }
         )
 
-        # Add DSA authentication headers
+        # Add signature authentication headers
         event = self._create_signed_event(event)
 
         resp = query_jurisdiction_providers(event, self.mock_context)
@@ -232,7 +232,7 @@ class TestQueryJurisdictionProviders(DsaTestBase):
             }
         )
 
-        # Add DSA authentication headers
+        # Add signature authentication headers
         event = self._create_signed_event(event)
 
         resp = query_jurisdiction_providers(event, self.mock_context)
@@ -289,7 +289,7 @@ class TestQueryJurisdictionProviders(DsaTestBase):
             }
         )
 
-        # Add DSA authentication headers
+        # Add signature authentication headers
         event = self._create_signed_event(event)
 
         resp = query_jurisdiction_providers(event, self.mock_context)
@@ -325,7 +325,7 @@ class TestQueryJurisdictionProviders(DsaTestBase):
             }
         )
 
-        # Add DSA authentication headers
+        # Add signature authentication headers
         event = self._create_signed_event(event)
 
         resp = query_jurisdiction_providers(event, self.mock_context)
@@ -347,7 +347,7 @@ class TestQueryJurisdictionProviders(DsaTestBase):
             }
         )
 
-        # Add DSA authentication headers
+        # Add signature authentication headers
         event = self._create_signed_event(event)
 
         resp = query_jurisdiction_providers(event, self.mock_context)
@@ -357,7 +357,7 @@ class TestQueryJurisdictionProviders(DsaTestBase):
 @mock_aws
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
 @patch('cc_common.config._Config.api_base_url', 'https://app.compactconnect.org')
-class TestGetProvider(DsaTestBase):
+class TestGetProvider(SignatureTestBase):
     def _generate_provider_with_privilege_in_jurisdiction(
         self, privilege_jurisdiction: str, license_jurisdiction: str
     ) -> str:
@@ -408,7 +408,7 @@ class TestGetProvider(DsaTestBase):
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
         event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'ne', 'providerId': provider_id}
 
-        # Add DSA authentication headers
+        # Add signature authentication headers
         event = self._create_signed_event(event)
 
         resp = get_provider(event, self.mock_context)
@@ -476,7 +476,7 @@ class TestGetProvider(DsaTestBase):
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral aslp/readPrivate'
         event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'ne', 'providerId': provider_id}
 
-        # Add DSA authentication headers
+        # Add signature authentication headers
         event = self._create_signed_event(event)
 
         resp = get_provider(event, self.mock_context)
@@ -544,7 +544,7 @@ class TestGetProvider(DsaTestBase):
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.readPrivate'
         event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'ne', 'providerId': provider_id}
 
-        # Add DSA authentication headers
+        # Add signature authentication headers
         event = self._create_signed_event(event)
 
         resp = get_provider(event, self.mock_context)
@@ -572,7 +572,7 @@ class TestGetProvider(DsaTestBase):
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
         event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'ne', 'providerId': provider_id}
 
-        # Add DSA authentication headers
+        # Add signature authentication headers
         event = self._create_signed_event(event)
 
         resp = get_provider(event, self.mock_context)
@@ -602,7 +602,7 @@ class TestGetProvider(DsaTestBase):
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
         event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh', 'providerId': provider_id}
 
-        # Add DSA authentication headers
+        # Add signature authentication headers
         event = self._create_signed_event(event)
 
         resp = get_provider(event, self.mock_context)
@@ -619,7 +619,7 @@ class TestGetProvider(DsaTestBase):
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
         event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'ne', 'providerId': 'nonexistent-provider'}
 
-        # Add DSA authentication headers
+        # Add signature authentication headers
         event = self._create_signed_event(event)
 
         resp = get_provider(event, self.mock_context)
@@ -636,7 +636,7 @@ class TestGetProvider(DsaTestBase):
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
         event['pathParameters'] = {'compact': 'aslp'}  # Missing jurisdiction and providerId
 
-        # Add DSA authentication headers
+        # Add signature authentication headers
         event = self._create_signed_event(event)
 
         resp = get_provider(event, self.mock_context)
@@ -646,13 +646,14 @@ class TestGetProvider(DsaTestBase):
 
 @mock_aws
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
-class TestBulkUploadUrlHandler(DsaTestBase):
-    def _setup_dsa_keys(self):
-        """Setup DSA keys for testing. Only need 'oh' jurisdiction for this test."""
-        self._load_dsa_public_key('aslp', 'oh', 'test-key-001', self.public_key_pem)
+class TestBulkUploadUrlHandler(SignatureTestBase):
+    def _setup_signature_keys(self):
+        """Setup signature keys for testing. Only need 'oh' jurisdiction for this test."""
+
+        self._load_signature_public_key('aslp', 'oh', 'test-key-001', self.public_key_pem)
 
     def test_bulk_upload_url_handler_success(self):
-        """Test successful bulk upload URL generation with optional DSA authentication."""
+        """Test successful bulk upload URL generation with optional signature authentication."""
         from handlers.state_api import bulk_upload_url_handler
 
         with open('../common/tests/resources/api-event.json') as f:
@@ -662,7 +663,7 @@ class TestBulkUploadUrlHandler(DsaTestBase):
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.write'
         event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
 
-        # Add DSA authentication headers
+        # Add signature authentication headers
         event = self._create_signed_event(event)
 
         resp = bulk_upload_url_handler(event, self.mock_context)

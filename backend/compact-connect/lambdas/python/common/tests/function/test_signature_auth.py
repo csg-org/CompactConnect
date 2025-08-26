@@ -11,8 +11,8 @@ from tests.function import TstFunction
 
 
 @mock_aws
-class TestDsaAuthFunctional(TstFunction):
-    """Functional tests for DSA authentication using real database interactions."""
+class TestSignatureAuthFunctional(TstFunction):
+    """Functional tests for signature authentication using real database interactions."""
 
     def setUp(self):
         super().setUp()
@@ -28,14 +28,14 @@ class TestDsaAuthFunctional(TstFunction):
         with open('tests/resources/client_public_key.pem') as f:
             self.public_key_pem = f.read()
 
-    def test_required_dsa_auth_success_with_public_key_in_database(self):
+    def test_required_signature_auth_success_with_public_key_in_database(self):
         """Test successful authentication when public key is in database."""
-        from cc_common.dsa_auth import required_dsa_auth
+        from cc_common.signature_auth import required_signature_auth
 
         # Add public key to database
         self._compact_configuration_table.put_item(
             Item={
-                'pk': 'aslp#DSA_KEYS',
+                'pk': 'aslp#SIGNATURE_KEYS',
                 'sk': 'aslp#JURISDICTION#al#test-key-001',
                 'publicKey': self.public_key_pem,
                 'compact': 'aslp',
@@ -44,7 +44,7 @@ class TestDsaAuthFunctional(TstFunction):
             }
         )
 
-        @required_dsa_auth
+        @required_signature_auth
         def lambda_handler(event: dict, context):
             return {'message': 'OK', 'authenticated': True}
 
@@ -55,15 +55,15 @@ class TestDsaAuthFunctional(TstFunction):
         result = lambda_handler(event, self.mock_context)
         self.assertEqual({'message': 'OK', 'authenticated': True}, result)
 
-    def test_required_dsa_auth_signature_missing_access_denied(self):
-        """Test access denied when signature is missing for required DSA auth."""
-        from cc_common.dsa_auth import required_dsa_auth
+    def test_required_signature_auth_signature_missing_access_denied(self):
+        """Test access denied when signature is missing for required signature auth."""
         from cc_common.exceptions import CCUnauthorizedException
+        from cc_common.signature_auth import required_signature_auth
 
         # Add public key to database
         self._compact_configuration_table.put_item(
             Item={
-                'pk': 'aslp#DSA_KEYS',
+                'pk': 'aslp#SIGNATURE_KEYS',
                 'sk': 'aslp#JURISDICTION#al#test-key-001',
                 'publicKey': self.public_key_pem,
                 'compact': 'aslp',
@@ -72,11 +72,11 @@ class TestDsaAuthFunctional(TstFunction):
             }
         )
 
-        @required_dsa_auth
+        @required_signature_auth
         def lambda_handler(event: dict, context):
             return {'message': 'OK', 'authenticated': True}
 
-        # Create event without DSA headers
+        # Create event without signature headers
         event = deepcopy(self.base_event)
 
         # Test access denied
@@ -85,14 +85,14 @@ class TestDsaAuthFunctional(TstFunction):
 
         self.assertIn('Missing required X-Key-Id header', str(cm.exception))
 
-    def test_required_dsa_auth_public_key_not_in_database_access_denied(self):
-        """Test access denied when public key is not in database for required DSA auth."""
-        from cc_common.dsa_auth import required_dsa_auth
+    def test_required_signature_auth_public_key_not_in_database_access_denied(self):
+        """Test access denied when public key is not in database for required signature auth."""
         from cc_common.exceptions import CCUnauthorizedException
+        from cc_common.signature_auth import required_signature_auth
 
         # Don't add public key to database
 
-        @required_dsa_auth
+        @required_signature_auth
         def lambda_handler(event: dict, context):
             return {'message': 'OK', 'authenticated': True}
 
@@ -105,15 +105,15 @@ class TestDsaAuthFunctional(TstFunction):
 
         self.assertIn('Public key not found for this compact/jurisdiction/key_id', str(cm.exception))
 
-    def test_required_dsa_auth_invalid_signature_access_denied(self):
+    def test_required_signature_auth_invalid_signature_access_denied(self):
         """Test access denied with invalid signature."""
-        from cc_common.dsa_auth import required_dsa_auth
         from cc_common.exceptions import CCUnauthorizedException
+        from cc_common.signature_auth import required_signature_auth
 
         # Add public key to database
         self._compact_configuration_table.put_item(
             Item={
-                'pk': 'aslp#DSA_KEYS',
+                'pk': 'aslp#SIGNATURE_KEYS',
                 'sk': 'aslp#JURISDICTION#al#test-key-001',
                 'publicKey': self.public_key_pem,
                 'compact': 'aslp',
@@ -122,7 +122,7 @@ class TestDsaAuthFunctional(TstFunction):
             }
         )
 
-        @required_dsa_auth
+        @required_signature_auth
         def lambda_handler(event: dict, context):
             return {'message': 'OK', 'authenticated': True}
 
@@ -138,14 +138,14 @@ class TestDsaAuthFunctional(TstFunction):
 
         self.assertIn('Invalid request signature', str(cm.exception))
 
-    def test_optional_dsa_auth_success_with_public_key_in_database(self):
-        """Test successful authentication when public key is in database for optional DSA auth."""
-        from cc_common.dsa_auth import optional_dsa_auth
+    def test_optional_signature_auth_success_with_public_key_in_database(self):
+        """Test successful authentication when public key is in database for optional signature auth."""
+        from cc_common.signature_auth import optional_signature_auth
 
         # Add public key to database
         self._compact_configuration_table.put_item(
             Item={
-                'pk': 'aslp#DSA_KEYS',
+                'pk': 'aslp#SIGNATURE_KEYS',
                 'sk': 'aslp#JURISDICTION#al#test-key-001',
                 'publicKey': self.public_key_pem,
                 'compact': 'aslp',
@@ -154,7 +154,7 @@ class TestDsaAuthFunctional(TstFunction):
             }
         )
 
-        @optional_dsa_auth
+        @optional_signature_auth
         def lambda_handler(event: dict, context):
             return {'message': 'OK', 'authenticated': True}
 
@@ -165,15 +165,15 @@ class TestDsaAuthFunctional(TstFunction):
         result = lambda_handler(event, self.mock_context)
         self.assertEqual({'message': 'OK', 'authenticated': True}, result)
 
-    def test_optional_dsa_auth_signature_missing_with_public_key_access_denied(self):
-        """Test access denied when signature is missing but public key exists for optional DSA auth."""
-        from cc_common.dsa_auth import optional_dsa_auth
+    def test_optional_signature_auth_signature_missing_with_public_key_access_denied(self):
+        """Test access denied when signature is missing but public key exists for optional signature auth."""
         from cc_common.exceptions import CCUnauthorizedException
+        from cc_common.signature_auth import optional_signature_auth
 
         # Add public key to database
         self._compact_configuration_table.put_item(
             Item={
-                'pk': 'aslp#DSA_KEYS',
+                'pk': 'aslp#SIGNATURE_KEYS',
                 'sk': 'aslp#JURISDICTION#al#test-key-001',
                 'publicKey': self.public_key_pem,
                 'compact': 'aslp',
@@ -182,43 +182,43 @@ class TestDsaAuthFunctional(TstFunction):
             }
         )
 
-        @optional_dsa_auth
+        @optional_signature_auth
         def lambda_handler(event: dict, context):
             return {'message': 'OK', 'authenticated': True}
 
-        # Create event without DSA headers
+        # Create event without signature headers
         event = deepcopy(self.base_event)
 
         # Test access denied
         with self.assertRaises(CCUnauthorizedException) as cm:
             lambda_handler(event, self.mock_context)
 
-        self.assertIn('X-Key-Id header required when DSA keys are configured', str(cm.exception))
+        self.assertIn('X-Key-Id header required when signature keys are configured', str(cm.exception))
 
-    def test_optional_dsa_auth_no_public_key_no_signature_success(self):
-        """Test successful access when no public key in database and no signature for optional DSA auth."""
-        from cc_common.dsa_auth import optional_dsa_auth
+    def test_optional_signature_auth_no_public_key_no_signature_success(self):
+        """Test successful access when no public key in database and no signature for optional signature auth."""
+        from cc_common.signature_auth import optional_signature_auth
 
         # Don't add public key to database
 
-        @optional_dsa_auth
+        @optional_signature_auth
         def lambda_handler(event: dict, context):
             return {'message': 'OK', 'authenticated': False}
 
-        # Create event without DSA headers
+        # Create event without signature headers
         event = deepcopy(self.base_event)
 
         # Test successful access (no authentication required)
         result = lambda_handler(event, self.mock_context)
         self.assertEqual({'message': 'OK', 'authenticated': False}, result)
 
-    def test_optional_dsa_auth_no_public_key_with_signature_success(self):
-        """Test successful access when no public key in database but signature provided for optional DSA auth."""
-        from cc_common.dsa_auth import optional_dsa_auth
+    def test_optional_signature_auth_no_public_key_with_signature_success(self):
+        """Test successful access when no public key in database but signature provided for optional signature auth."""
+        from cc_common.signature_auth import optional_signature_auth
 
         # Don't add public key to database
 
-        @optional_dsa_auth
+        @optional_signature_auth
         def lambda_handler(event: dict, context):
             return {'message': 'OK', 'authenticated': False}
 
@@ -229,15 +229,15 @@ class TestDsaAuthFunctional(TstFunction):
         result = lambda_handler(event, self.mock_context)
         self.assertEqual({'message': 'OK', 'authenticated': False}, result)
 
-    def test_optional_dsa_auth_invalid_signature_access_denied(self):
+    def test_optional_signature_auth_invalid_signature_access_denied(self):
         """Test access denied with invalid signature."""
-        from cc_common.dsa_auth import optional_dsa_auth
         from cc_common.exceptions import CCUnauthorizedException
+        from cc_common.signature_auth import optional_signature_auth
 
         # Add public key to database
         self._compact_configuration_table.put_item(
             Item={
-                'pk': 'aslp#DSA_KEYS',
+                'pk': 'aslp#SIGNATURE_KEYS',
                 'sk': 'aslp#JURISDICTION#al#test-key-001',
                 'publicKey': self.public_key_pem,
                 'compact': 'aslp',
@@ -246,7 +246,7 @@ class TestDsaAuthFunctional(TstFunction):
             }
         )
 
-        @optional_dsa_auth
+        @optional_signature_auth
         def lambda_handler(event: dict, context):
             return {'message': 'OK', 'authenticated': True}
 
@@ -284,7 +284,7 @@ class TestDsaAuthFunctional(TstFunction):
             private_key_pem=self.private_key_pem,
         )
 
-        # Add DSA headers to event
+        # Add signature headers to event
         event['headers'].update(headers)
 
         return event

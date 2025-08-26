@@ -107,53 +107,33 @@ link that you'll generate separately.
 As part of the email message sent to the consuming team, be sure to include the onboarding instructions document from
 the `it_staff_onboarding_instructions/` directory.
 
-## Managing API Signing Public Keys (ECDSA-SHA256)
+## Managing API Signing Public Keys (ECSIGNATURE-SHA256)
 
 ### Overview
 
-CompactConnect requires clients to sign requests using ECDSA with SHA-256. Each compact/state combination can have
-multiple signing public keys configured to support key rotation and zero-downtime deployments.
-
-### Authorization Requirements
-
-**⚠️ CRITICAL SECURITY NOTICE:** Due to the sensitivity of data protected by request-signature verification (including
-partial Social Security Numbers, personal addresses, and professional license details), configuring new signing public keys
-in production environments **MUST** include explicit authorization from the state board executive director.
-
-### Adding a Signing Public Key
-
-Once a state configures a public key, they will be able to access signature-required API endpoints. API endpoints with
-_optional_ signature support will also begin to enforce signatures for that compact/state. **This means that, once a
-compact/state has a public key configured, they will be denied access to signature-optional endpoints, such as the
-`POST license` endpoint, unless they have also implemented request signing there as well.** Be sure that
-the representative is advised that they should begin signing those requests _before_ CompactConnect has a configured
-public key.
-
-### Overview
-
-DSA authentication provides an additional layer of security for API access to sensitive licensure data. Each
-compact/state combination can have multiple DSA public keys configured to support key rotation and zero-downtime
+Signature-based authentication provides an additional layer of security for API access to sensitive licensure data. Each
+compact/state combination can have multiple SIGNATURE public keys configured to support key rotation and zero-downtime
 deployments.
 
 ### Authorization Requirements
 
-**⚠️ CRITICAL SECURITY NOTICE:** Due to the sensitivity of the data protected by DSA authentication (including
-partial Social Security Numbers, personal addresses, and professional license details), configuration of new DSA
+**⚠️ CRITICAL SECURITY NOTICE:** Due to the sensitivity of the data protected by SIGNATURE authentication (including
+partial Social Security Numbers, personal addresses, and professional license details), configuration of new SIGNATURE
 public keys in production environments **MUST** include explicit authorization from the state board executive director.
 
 
-### Creating DSA Public Keys
+### Creating SIGNATURE Public Keys
 
-Once a state configures a public key, they will be able to access the DSA-required API endpoints. API endpoints with
-_optional_ DSA support will also begin to enforce DSA signatures for that combination of compact and state. **This
-means that, once a compact/state has a public key configured, they will be denied access to DSA-Optional endpoints,
-such as the `POST license` endpoint, unless they have also implemented DSA signatures there as well.** Be sure that
+Once a state configures a public key, they will be able to access the SIGNATURE-required API endpoints. API endpoints with
+_optional_ SIGNATURE support will also begin to enforce SIGNATURE signatures for that combination of compact and state. **This
+means that, once a compact/state has a public key configured, they will be denied access to SIGNATURE-Optional endpoints,
+such as the `POST license` endpoint, unless they have also implemented SIGNATURE signatures there as well.** Be sure that
 the representative is advised that they should begin signing those requests _before_ CompactConnect has a configured
 public key.
 
 #### 1. Prerequisites
 
-Before creating a new DSA public key, ensure you have:
+Before creating a new SIGNATURE public key, ensure you have:
 - **Production Authorization**: Explicit approval from the state board executive director for production environments
 - Validated the identity of the individual providing the public key to you
 - Jurisdiction and compact information confirmed
@@ -172,12 +152,12 @@ Examples:
 - `prod-key-001`
 - `beta-key-2024-01`
 
-#### 3. Create DSA Public Key Using Interactive Python Script
+#### 3. Create SIGNATURE Public Key Using Interactive Python Script
 
-**Use the provided Python script in the bin directory for streamlined DSA key management:**
+**Use the provided Python script in the bin directory for streamlined SIGNATURE key management:**
 
 ```bash
-python3 bin/manage_dsa_keys.py create -t <table_name>
+python3 bin/manage_signature_keys.py create -t <table_name>
 ```
 
 **Interactive Process:**
@@ -195,8 +175,8 @@ The script will:
 
 #### 4. Database Schema
 
-DSA keys are stored in the compact configuration table with the following schema:
-- **Primary Key (pk)**: `{compact}#DSA_KEYS`
+SIGNATURE keys are stored in the compact configuration table with the following schema:
+- **Primary Key (pk)**: `{compact}#SIGNATURE_KEYS`
 - **Sort Key (sk)**: `{compact}#JURISDICTION#{jurisdiction}#{key_id}`
 - **Additional Fields**:
   - `publicKey`: PEM-encoded public key content
@@ -205,19 +185,19 @@ DSA keys are stored in the compact configuration table with the following schema
   - `keyId`: Key identifier
   - `createdAt`: Creation timestamp
 
-### Deleting DSA Public Keys
+### Deleting SIGNATURE Public Keys
 
 #### 1. Prerequisites
 
-Before deleting a DSA public key, ensure you have:
+Before deleting a SIGNATURE public key, ensure you have:
 - Confirmation that the key is no longer in use by the state IT department
 - Confirmation of the key id to be deleted
 - Understanding of the impact on API access for the compact/state combination
 
-#### 2. Delete DSA Public Key Using Interactive Python Script
+#### 2. Delete SIGNATURE Public Key Using Interactive Python Script
 
 ```bash
-python3 bin/manage_dsa_keys.py delete -t <table_name>
+python3 bin/manage_signature_keys.py delete -t <table_name>
 ```
 
 **Interactive Process:**

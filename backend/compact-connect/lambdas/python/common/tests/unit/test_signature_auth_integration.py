@@ -9,8 +9,8 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from tests import TstLambdas
 
 
-class TestDsaAuthIntegration(TstLambdas):
-    """Testing DSA authentication integration with the existing api_handler decorator."""
+class TestSignatureAuthIntegration(TstLambdas):
+    """Testing signature authentication integration with the existing api_handler decorator."""
 
     def setUp(self):
         """Set up test fixtures."""
@@ -27,13 +27,13 @@ class TestDsaAuthIntegration(TstLambdas):
         with open('tests/resources/api-client-event.json') as f:
             self.base_event = json.load(f)
 
-    def test_dsa_with_api_handler_success(self):
-        """Test successful DSA authentication with api_handler decorator."""
-        from cc_common.dsa_auth import required_dsa_auth
+    def test_signature_with_api_handler_success(self):
+        """Test successful signature authentication with api_handler decorator."""
+        from cc_common.signature_auth import required_signature_auth
         from cc_common.utils import api_handler
 
         @api_handler
-        @required_dsa_auth
+        @required_signature_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK', 'authenticated': True}
 
@@ -41,7 +41,7 @@ class TestDsaAuthIntegration(TstLambdas):
         event = self._create_signed_event()
 
         # Mock DynamoDB to return the public key
-        with patch('cc_common.dsa_auth._get_public_key_from_dynamodb') as mock_get_key:
+        with patch('cc_common.signature_auth._get_public_key_from_dynamodb') as mock_get_key:
             mock_get_key.return_value = self.public_key_pem
 
             resp = lambda_handler(event, self.mock_context)
@@ -54,21 +54,21 @@ class TestDsaAuthIntegration(TstLambdas):
             self.assertEqual('OK', body['message'])
             self.assertTrue(body['authenticated'])
 
-    def test_dsa_with_api_handler_unauthorized(self):
-        """Test DSA authentication failure with api_handler decorator returns 401."""
-        from cc_common.dsa_auth import required_dsa_auth
+    def test_signature_with_api_handler_unauthorized(self):
+        """Test signature authentication failure with api_handler decorator returns 401."""
+        from cc_common.signature_auth import required_signature_auth
         from cc_common.utils import api_handler
 
         @api_handler
-        @required_dsa_auth
+        @required_signature_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
-        # Create event without DSA headers
+        # Create event without signature headers
         event = deepcopy(self.base_event)
 
         # Mock DynamoDB to return the public key
-        with patch('cc_common.dsa_auth._get_public_key_from_dynamodb') as mock_get_key:
+        with patch('cc_common.signature_auth._get_public_key_from_dynamodb') as mock_get_key:
             mock_get_key.return_value = self.public_key_pem
 
             resp = lambda_handler(event, self.mock_context)
@@ -77,13 +77,13 @@ class TestDsaAuthIntegration(TstLambdas):
             self.assertEqual('https://example.org', resp['headers']['Access-Control-Allow-Origin'])
         self.assertEqual('{"message": "Unauthorized"}', resp['body'])
 
-    def test_dsa_with_api_handler_invalid_request(self):
-        """Test DSA validation failure with api_handler decorator returns 400."""
-        from cc_common.dsa_auth import required_dsa_auth
+    def test_signature_with_api_handler_invalid_request(self):
+        """Test signature validation failure with api_handler decorator returns 400."""
+        from cc_common.signature_auth import required_signature_auth
         from cc_common.utils import api_handler
 
         @api_handler
-        @required_dsa_auth
+        @required_signature_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
@@ -92,7 +92,7 @@ class TestDsaAuthIntegration(TstLambdas):
         event['headers']['X-Timestamp'] = 'not-a-timestamp'
 
         # Mock DynamoDB to return the public key
-        with patch('cc_common.dsa_auth._get_public_key_from_dynamodb') as mock_get_key:
+        with patch('cc_common.signature_auth._get_public_key_from_dynamodb') as mock_get_key:
             mock_get_key.return_value = self.public_key_pem
 
             resp = lambda_handler(event, self.mock_context)
@@ -104,13 +104,13 @@ class TestDsaAuthIntegration(TstLambdas):
         body = json.loads(resp['body'])
         self.assertIn('Invalid timestamp format', body['message'])
 
-    def test_dsa_with_api_handler_invalid_signature(self):
+    def test_signature_with_api_handler_invalid_signature(self):
         """Test invalid signature with api_handler decorator returns 401."""
-        from cc_common.dsa_auth import required_dsa_auth
+        from cc_common.signature_auth import required_signature_auth
         from cc_common.utils import api_handler
 
         @api_handler
-        @required_dsa_auth
+        @required_signature_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
@@ -119,7 +119,7 @@ class TestDsaAuthIntegration(TstLambdas):
         event['headers']['X-Signature'] = 'invalid-signature'
 
         # Mock DynamoDB to return the public key
-        with patch('cc_common.dsa_auth._get_public_key_from_dynamodb') as mock_get_key:
+        with patch('cc_common.signature_auth._get_public_key_from_dynamodb') as mock_get_key:
             mock_get_key.return_value = self.public_key_pem
 
             resp = lambda_handler(event, self.mock_context)
@@ -128,13 +128,13 @@ class TestDsaAuthIntegration(TstLambdas):
         self.assertEqual('https://example.org', resp['headers']['Access-Control-Allow-Origin'])
         self.assertEqual({'message': 'Unauthorized'}, json.loads(resp['body']))
 
-    def test_dsa_with_api_handler_public_key_not_found(self):
+    def test_signature_with_api_handler_public_key_not_found(self):
         """Test public key not found with api_handler decorator returns 401."""
-        from cc_common.dsa_auth import required_dsa_auth
+        from cc_common.signature_auth import required_signature_auth
         from cc_common.utils import api_handler
 
         @api_handler
-        @required_dsa_auth
+        @required_signature_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
@@ -142,7 +142,7 @@ class TestDsaAuthIntegration(TstLambdas):
         event = self._create_signed_event()
 
         # Mock DynamoDB to return None (key not found)
-        with patch('cc_common.dsa_auth._get_public_key_from_dynamodb') as mock_get_key:
+        with patch('cc_common.signature_auth._get_public_key_from_dynamodb') as mock_get_key:
             mock_get_key.return_value = None
 
             resp = lambda_handler(event, self.mock_context)
@@ -153,22 +153,22 @@ class TestDsaAuthIntegration(TstLambdas):
 
     def test_decorator_order_matters(self):
         """Test that decorator order affects behavior (api_handler should be outermost)."""
-        from cc_common.dsa_auth import required_dsa_auth
+        from cc_common.signature_auth import required_signature_auth
         from cc_common.utils import api_handler
 
         # This test demonstrates that api_handler should be the outermost decorator
-        # so it can properly handle exceptions from dsa_auth_required
+        # so it can properly handle exceptions from signature_auth_required
 
-        @required_dsa_auth
+        @required_signature_auth
         @api_handler
         def lambda_handler_wrong_order(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
-        # Create event without DSA headers
+        # Create event without signature headers
         event = deepcopy(self.base_event)
 
         # Mock DynamoDB to return the public key
-        with patch('cc_common.dsa_auth._get_public_key_from_dynamodb') as mock_get_key:
+        with patch('cc_common.signature_auth._get_public_key_from_dynamodb') as mock_get_key:
             mock_get_key.return_value = self.public_key_pem
 
             # This should raise an exception directly instead of returning a proper API response
@@ -177,13 +177,13 @@ class TestDsaAuthIntegration(TstLambdas):
 
             self.assertIn('Missing required X-Key-Id header', str(cm.exception))
 
-    def test_dsa_with_api_handler_cors_handling(self):
-        """Test that CORS headers are properly handled with DSA authentication."""
-        from cc_common.dsa_auth import required_dsa_auth
+    def test_signature_with_api_handler_cors_handling(self):
+        """Test that CORS headers are properly handled with signature authentication."""
+        from cc_common.signature_auth import required_signature_auth
         from cc_common.utils import api_handler
 
         @api_handler
-        @required_dsa_auth
+        @required_signature_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
@@ -192,7 +192,7 @@ class TestDsaAuthIntegration(TstLambdas):
         event['headers']['origin'] = 'http://localhost:1234'
 
         # Mock DynamoDB to return the public key
-        with patch('cc_common.dsa_auth._get_public_key_from_dynamodb') as mock_get_key:
+        with patch('cc_common.signature_auth._get_public_key_from_dynamodb') as mock_get_key:
             mock_get_key.return_value = self.public_key_pem
 
             resp = lambda_handler(event, self.mock_context)
@@ -223,7 +223,7 @@ class TestDsaAuthIntegration(TstLambdas):
             private_key_pem=self.private_key_pem,
         )
 
-        # Add DSA headers to event
+        # Add signature headers to event
         event['headers'].update(headers)
 
         return event

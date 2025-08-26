@@ -10,8 +10,8 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from tests import TstLambdas
 
 
-class TestDsaAuth(TstLambdas):
-    """Testing that the dsa_auth_required decorator is working as expected."""
+class TestSignatureAuth(TstLambdas):
+    """Testing that the signature_auth_required decorator is working as expected."""
 
     def setUp(self):
         """Set up test fixtures."""
@@ -29,10 +29,10 @@ class TestDsaAuth(TstLambdas):
             self.base_event = json.load(f)
 
     def test_happy_path(self):
-        """Test successful DSA authentication."""
-        from cc_common.dsa_auth import required_dsa_auth
+        """Test successful signature authentication."""
+        from cc_common.signature_auth import required_signature_auth
 
-        @required_dsa_auth
+        @required_signature_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
@@ -40,7 +40,7 @@ class TestDsaAuth(TstLambdas):
         event = self._create_signed_event()
 
         # Mock DynamoDB to return the public key
-        with patch('cc_common.dsa_auth._get_public_key_from_dynamodb') as mock_get_key:
+        with patch('cc_common.signature_auth._get_public_key_from_dynamodb') as mock_get_key:
             mock_get_key.return_value = self.public_key_pem
 
             resp = lambda_handler(event, self.mock_context)
@@ -50,17 +50,17 @@ class TestDsaAuth(TstLambdas):
 
     def test_missing_headers(self):
         """Test authentication failure when required headers are missing."""
-        from cc_common.dsa_auth import required_dsa_auth
+        from cc_common.signature_auth import required_signature_auth
 
-        @required_dsa_auth
+        @required_signature_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
-        # Create event without DSA headers
+        # Create event without signature headers
         event = deepcopy(self.base_event)
 
         # Mock DynamoDB to return the public key
-        with patch('cc_common.dsa_auth._get_public_key_from_dynamodb') as mock_get_key:
+        with patch('cc_common.signature_auth._get_public_key_from_dynamodb') as mock_get_key:
             mock_get_key.return_value = self.public_key_pem
 
             with self.assertRaises(Exception) as cm:
@@ -70,9 +70,9 @@ class TestDsaAuth(TstLambdas):
 
     def test_unsupported_algorithm(self):
         """Test authentication failure with unsupported algorithm."""
-        from cc_common.dsa_auth import required_dsa_auth
+        from cc_common.signature_auth import required_signature_auth
 
-        @required_dsa_auth
+        @required_signature_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
@@ -81,7 +81,7 @@ class TestDsaAuth(TstLambdas):
         event['headers']['X-Algorithm'] = 'RSA-SHA256'
 
         # Mock DynamoDB to return the public key
-        with patch('cc_common.dsa_auth._get_public_key_from_dynamodb') as mock_get_key:
+        with patch('cc_common.signature_auth._get_public_key_from_dynamodb') as mock_get_key:
             mock_get_key.return_value = self.public_key_pem
 
             with self.assertRaises(Exception) as cm:
@@ -91,9 +91,9 @@ class TestDsaAuth(TstLambdas):
 
     def test_invalid_timestamp(self):
         """Test authentication failure with invalid timestamp."""
-        from cc_common.dsa_auth import required_dsa_auth
+        from cc_common.signature_auth import required_signature_auth
 
-        @required_dsa_auth
+        @required_signature_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
@@ -102,7 +102,7 @@ class TestDsaAuth(TstLambdas):
         event['headers']['X-Timestamp'] = '2020-01-01T00:00:00Z'
 
         # Mock DynamoDB to return the public key
-        with patch('cc_common.dsa_auth._get_public_key_from_dynamodb') as mock_get_key:
+        with patch('cc_common.signature_auth._get_public_key_from_dynamodb') as mock_get_key:
             mock_get_key.return_value = self.public_key_pem
 
             with self.assertRaises(Exception) as cm:
@@ -112,9 +112,9 @@ class TestDsaAuth(TstLambdas):
 
     def test_malformed_timestamp(self):
         """Test authentication failure with malformed timestamp."""
-        from cc_common.dsa_auth import required_dsa_auth
+        from cc_common.signature_auth import required_signature_auth
 
-        @required_dsa_auth
+        @required_signature_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
@@ -123,7 +123,7 @@ class TestDsaAuth(TstLambdas):
         event['headers']['X-Timestamp'] = 'not-a-timestamp'
 
         # Mock DynamoDB to return the public key
-        with patch('cc_common.dsa_auth._get_public_key_from_dynamodb') as mock_get_key:
+        with patch('cc_common.signature_auth._get_public_key_from_dynamodb') as mock_get_key:
             mock_get_key.return_value = self.public_key_pem
 
             with self.assertRaises(Exception) as cm:
@@ -133,9 +133,9 @@ class TestDsaAuth(TstLambdas):
 
     def test_timestamp_format_compatibility(self):
         """Test that both timestamp formats work with the same signature validation."""
-        from cc_common.dsa_auth import _build_signature_string, _verify_signature, required_dsa_auth
+        from cc_common.signature_auth import _build_signature_string, _verify_signature, required_signature_auth
 
-        @required_dsa_auth
+        @required_signature_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
@@ -172,7 +172,7 @@ class TestDsaAuth(TstLambdas):
                 self.assertTrue(is_valid)
 
                 # Mock DynamoDB to return the public key
-                with patch('cc_common.dsa_auth._get_public_key_from_dynamodb') as mock_get_key:
+                with patch('cc_common.signature_auth._get_public_key_from_dynamodb') as mock_get_key:
                     mock_get_key.return_value = self.public_key_pem
 
                     resp = lambda_handler(event, self.mock_context)
@@ -180,9 +180,9 @@ class TestDsaAuth(TstLambdas):
 
     def test_missing_path_parameters(self):
         """Test authentication failure when compact/jurisdiction are missing."""
-        from cc_common.dsa_auth import required_dsa_auth
+        from cc_common.signature_auth import required_signature_auth
 
-        @required_dsa_auth
+        @required_signature_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
@@ -197,9 +197,9 @@ class TestDsaAuth(TstLambdas):
 
     def test_public_key_not_found(self):
         """Test authentication failure when public key is not found in DynamoDB."""
-        from cc_common.dsa_auth import required_dsa_auth
+        from cc_common.signature_auth import required_signature_auth
 
-        @required_dsa_auth
+        @required_signature_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
@@ -207,7 +207,7 @@ class TestDsaAuth(TstLambdas):
         event = self._create_signed_event()
 
         # Mock DynamoDB to return None (key not found)
-        with patch('cc_common.dsa_auth._get_public_key_from_dynamodb') as mock_get_key:
+        with patch('cc_common.signature_auth._get_public_key_from_dynamodb') as mock_get_key:
             mock_get_key.return_value = None
 
             with self.assertRaises(Exception) as cm:
@@ -217,9 +217,9 @@ class TestDsaAuth(TstLambdas):
 
     def test_invalid_signature(self):
         """Test authentication failure with invalid signature."""
-        from cc_common.dsa_auth import required_dsa_auth
+        from cc_common.signature_auth import required_signature_auth
 
-        @required_dsa_auth
+        @required_signature_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
@@ -228,7 +228,7 @@ class TestDsaAuth(TstLambdas):
         event['headers']['X-Signature'] = 'invalid-signature'
 
         # Mock DynamoDB to return the public key
-        with patch('cc_common.dsa_auth._get_public_key_from_dynamodb') as mock_get_key:
+        with patch('cc_common.signature_auth._get_public_key_from_dynamodb') as mock_get_key:
             mock_get_key.return_value = self.public_key_pem
 
             with self.assertRaises(Exception) as cm:
@@ -297,7 +297,7 @@ class TestDsaAuth(TstLambdas):
         # search=test%20value%20with%20spaces&special=%21%40%23%24%25%5E%26%2A%28%29\n...
         # We can't directly verify the signature string, but we can verify the signature is valid
         # by creating a test event and validating it
-        from cc_common.dsa_auth import _build_signature_string, _verify_signature
+        from cc_common.signature_auth import _build_signature_string, _verify_signature
 
         test_event = {'httpMethod': method, 'path': path, 'queryStringParameters': query_params, 'headers': headers}
 
@@ -307,7 +307,7 @@ class TestDsaAuth(TstLambdas):
 
     def test_signature_string_construction(self):
         """Test that signature string is constructed correctly."""
-        from cc_common.dsa_auth import _build_signature_string
+        from cc_common.signature_auth import _build_signature_string
 
         # Create event with specific components
         event = {
@@ -336,7 +336,7 @@ class TestDsaAuth(TstLambdas):
 
     def test_query_parameters_sorting(self):
         """Test that query parameters are sorted correctly in signature string."""
-        from cc_common.dsa_auth import _build_signature_string
+        from cc_common.signature_auth import _build_signature_string
 
         # Create event with unsorted query parameters
         event = {
@@ -366,7 +366,7 @@ class TestDsaAuth(TstLambdas):
 
     def test_empty_query_parameters(self):
         """Test signature string construction with no query parameters."""
-        from cc_common.dsa_auth import _build_signature_string
+        from cc_common.signature_auth import _build_signature_string
 
         event = {
             'httpMethod': 'GET',
@@ -394,7 +394,7 @@ class TestDsaAuth(TstLambdas):
 
     def test_url_encoded_query_parameters(self):
         """Test that query parameters are properly URL-encoded in signature string."""
-        from cc_common.dsa_auth import _build_signature_string
+        from cc_common.signature_auth import _build_signature_string
 
         event = {
             'httpMethod': 'GET',
@@ -428,9 +428,9 @@ class TestDsaAuth(TstLambdas):
 
     def test_case_insensitive_headers(self):
         """Test that header extraction is case insensitive using CaseInsensitiveDict."""
-        from cc_common.dsa_auth import required_dsa_auth
+        from cc_common.signature_auth import required_signature_auth
 
-        @required_dsa_auth
+        @required_signature_auth
         def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
@@ -449,7 +449,7 @@ class TestDsaAuth(TstLambdas):
         }
 
         # Mock DynamoDB to return the public key
-        with patch('cc_common.dsa_auth._get_public_key_from_dynamodb') as mock_get_key:
+        with patch('cc_common.signature_auth._get_public_key_from_dynamodb') as mock_get_key:
             mock_get_key.return_value = self.public_key_pem
 
             resp = lambda_handler(mixed_case_event, self.mock_context)
@@ -480,7 +480,7 @@ class TestDsaAuth(TstLambdas):
             private_key_pem=self.private_key_pem,
         )
 
-        # Add DSA headers to event
+        # Add signature headers to event
         event['headers'].update(headers)
 
         return event

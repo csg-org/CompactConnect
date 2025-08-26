@@ -1,8 +1,8 @@
-# Client DSA Authentication
+# Client Signature Authentication
 
 ## Overview
 
-CompactConnect implements a dual-authentication system for API access to sensitive licensure data. In addition to OAuth2 client credentials authentication via Cognito User Pools, clients must also implement DSA-based request signing using ECDSA public/private key pairs.
+CompactConnect implements a dual-authentication system for API access to sensitive licensure data. In addition to OAuth2 client credentials authentication via Cognito User Pools, clients must also implement request signing using ECDSA public/private key pairs.
 
 ## Purpose and Justification
 
@@ -14,7 +14,7 @@ The licensure data shared through CompactConnect contains highly sensitive perso
 - Professional license details
 - Disciplinary actions
 
-A single authentication mechanism creates a single point of failure. If OAuth2 credentials are compromised, an attacker could potentially access all protected data. The DSA authentication layer provides:
+A single authentication mechanism creates a single point of failure. If OAuth2 credentials are compromised, an attacker could potentially access protected data. The signature authentication layer provides:
 
 - **Defense in depth**: Two independent authentication mechanisms must be compromised
 - **Request integrity**: Each request is cryptographically signed, preventing tampering
@@ -31,8 +31,8 @@ This dual authentication approach helps meet regulatory requirements for protect
 
 CompactConnect supports two authentication modes:
 
-1. **Required DSA Authentication** (`@dsa_auth_required`): Endpoints that always require valid DSA signatures
-2. **Optional DSA Authentication** (`@optional_dsa_auth`): Endpoints that require DSA signatures only when a public key is configured for the compact/state combination
+1. **Required Signature Authentication**: Endpoints that always require valid signatures. If a state has no configured public key, they will not have access to these endpoints.
+2. **Optional Signature Authentication**: Endpoints that require signatures only when a public key is configured for the compact/state combination (i.e. the POST license endpoint). If a state has no configured public key, they will still have access to this endpoint, however, once the state configures a public key, they will be required to include signatures to requests on these endpoints as well.
 
 ### 1. Key Pair Generation
 
@@ -66,7 +66,8 @@ For each API request, you must:
    KEY_ID
    ```
 
-3. **Sign the string** using ECDSA with SHA-256
+3. **Sign the string** using ECDSA with SHA-256. The signature format MUST be ASN.1 DER (most libraries produce DER by default).
+4. **Base64-encode** the DER signature (do not hex-encode).
 4. **Base64 encode** the signature
 5. **Add headers** to your request
 
@@ -112,12 +113,12 @@ implementation.
 
 ### Error Handling
 - Authentication failures will return HTTP 401 or 403
-- Check both OAuth2 token validity and DSA signature
+- Check both OAuth2 token validity and signature
 - Implement retry logic with exponential backoff
 
 ## Client Registration
 
-To implement DSA authentication:
+To implement signature authentication:
 
 1. **Receive client credentials and test your client credentials grant flow**
    [See here for more](../app_clients/it_staff_onboarding_instructions/README.md).
@@ -132,7 +133,7 @@ CompactConnect supports key rotation to allow clients to update their signing ke
 - **Key IDs**: Each public key is associated with a unique key ID that clients must include in the `X-Key-Id` header
 - **Multiple Keys**: Clients can have multiple active keys simultaneously during rotation periods
 - **Key Rollover**: When rotating keys, clients can continue using old keys while new keys are being validated
-- **Database Schema**: Keys are stored with the pattern `pk: <compact>#DSA_KEYS`, `sk: <compact>#JURISDICTION#<jurisdiction>#<key-id>`
+- **Database Schema**: Keys are stored with the pattern `pk: <compact>#SIGNATURE_KEYS`, `sk: <compact>#JURISDICTION#<jurisdiction>#<key-id>`
 
 ## Troubleshooting
 
@@ -149,19 +150,19 @@ CompactConnect supports key rotation to allow clients to update their signing ke
 
 ### Testing Your Implementation
 
-Use the provided test vectors and sandbox environment to validate your DSA implementation before production deployment.
+Use the provided beta environment to validate your signature implementation before production deployment.
 
-### Optional DSA Authentication
+### Optional Signature Authentication
 
-For endpoints that support optional DSA authentication:
+For endpoints that support optional signature authentication:
 
-- If no public key is configured for the compact/state combination, requests proceed without DSA validation
-- If a public key is configured, full DSA validation is enforced
-- This allows for gradual rollout of DSA authentication across different compacts and states
+- If no public key is configured for the compact/state combination, requests proceed without signature validation
+- If a public key is configured, full signature validation is enforced
+- This allows for gradual rollout of signature authentication across different compacts and states
 
 ## Support
 
-For technical assistance with DSA authentication implementation, contact the CompactConnect technical support team with:
+For technical assistance with signature authentication implementation, contact the CompactConnect technical support team with:
 - Your client ID
 - Sample signature strings (without private keys)
 - Error messages or response codes
