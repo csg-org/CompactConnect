@@ -64,7 +64,13 @@ For each API request, you must:
    TIMESTAMP
    NONCE
    KEY_ID
-   ```
+
+#### Canonical query string
+
+- Percent-encode keys and values per RFC 3986 (space as %20, not +; do not encode unreserved characters).
+- Sort first by key, then by value, using byte-order of the percent-encoded strings.
+- Join as `key=value` pairs with `&` as the separator.
+- Omit the entire line if there are no query parameters (leave it empty in the signature string).
 
 3. **Sign the string** using ECDSA with SHA-256. The signature format MUST be ASN.1 DER (most libraries produce DER by default).
 4. **Base64-encode** the DER signature (do not hex-encode).
