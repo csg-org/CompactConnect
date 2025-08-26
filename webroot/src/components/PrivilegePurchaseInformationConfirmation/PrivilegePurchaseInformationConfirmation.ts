@@ -142,7 +142,7 @@ export default class PrivilegePurchaseInformationConfirmation extends mixins(Mix
 
     get homeStateAttestationId(): string {
         return (this.licensee?.isMilitaryStatusActive())
-            ? 'military-personal-information-home-state-attestation'
+            ? 'military-personal-information-state-license-attestation'
             : 'personal-information-home-state-attestation';
     }
 

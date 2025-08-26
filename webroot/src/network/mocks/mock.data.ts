@@ -2905,7 +2905,7 @@ export const getAttestation = (attestationId) => {
     case 'personal-information-address-attestation':
         attestationObj.text = 'I hereby attest and affirm that the address information I have provided herein and is my current address. I further consent to accept service of process at this address. I will notify the Commission of a change in my Home State address or email address via updating personal information records in this system. I understand that I am only eligible for a Compact Privilege if I am a licensee in my Home State as defined by the Compact. If I mislead the Compact Commission about my Home State, the appropriate board may take action against my Compact Privilege, which may result in the revocation of other Compact Privileges I may hold. I will also be prohibited from obtaining any other Compact Privileges for a period of at least two (2) years.*';
         break;
-    case 'military-personal-information-home-state-attestation':
+    case 'military-personal-information-state-license-attestation':
         attestationObj.text = `As active duty military or the spouse of such, I hereby attest and affirm that this is my personal and licensure information and I hold an eligible license in the state listed on this page.*`;
         break;
     case 'personal-information-home-state-attestation':
