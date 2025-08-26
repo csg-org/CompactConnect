@@ -81,24 +81,8 @@ dateOfIssuance,npi,licenseNumber,dateOfBirth,licenseType,familyName,homeAddressC
 
 ### Machine-to-machine automated uploads
 
-The data system API supports uploading of a large CSV file for asynchronous data ingest. The feature involves using two
-endpoints, which are described in the [Open API Specification](#open-api-specification). To upload a file for
-asynchronous data ingest perform the following steps:
-1) Request a dedicated client for your automated integration. Note that there may be some lead time for that request.
-2) Authenticate your client using the **OAuth2.0 client-credentials-grant** to obtain an access token for the API.
-3) Call the `GET /v1/compacts/{compact}/jurisdictions/{jurisdiction}/licenses/bulk-upload` endpoint to receive an upload
-   URL and upload fields to use when uploading your file.
-4) `POST` to the provided url, with `Content-Type: multipart/form-data`, providing all the fields returned from the
-   `GET` endpoint as form-data fields in addition to your file.
-
-For your convenience, use of this feature is included in the [Postman Collection](./postman/postman-collection.json).
-
-Note that, when using the bulk-upload feature, processing of licenses is asynchronous, and so feedback on invalid
-licenses is slow. The operational reports contact email will be sent a nightly report with a sample of validation
-errors, if there were any, from the day's uploads. For faster feedback, there is also a POST licenses endpoint,
-where up to 100 json-formatted licenses can be uploaded in a single request, with synchronous validation results. We
-highly recommend that states with the capability integrate with this JSON endpoint instead, for more efficient
-communication and feedback. See the API specification for more details.
+The data system API supports uploading of a large CSV file for asynchronous data ingest, as well as JSON license records
+for synchronous data ingest. See the [CompactConnect Automated License Data Upload Instructions](./it_staff_onboarding_instructions.md) for more information.
 
 ## Open API Specification
 [Back to top](#compact-connect---technical-user-guide)

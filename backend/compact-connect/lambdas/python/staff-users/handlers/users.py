@@ -1,8 +1,9 @@
 import json
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
+from botocore.exceptions import ClientError
 from cc_common.config import config, logger, metrics
-from cc_common.exceptions import CCAccessDeniedException, CCNotFoundException
+from cc_common.exceptions import CCAccessDeniedException, CCInternalException, CCNotFoundException
 from cc_common.utils import (
     api_handler,
     authorize_compact,
@@ -97,6 +98,10 @@ def patch_user(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argu
     user_id = event['pathParameters']['userId']
     scopes = get_event_scopes(event)
     path_compact = event['pathParameters']['compact']
+
+    # this will raise an exception if the caller was disabled
+    _verify_caller_is_active(event)
+
     permission_changes = json.loads(event['body']).get('permissions', {}).get(compact, {})
     logger.debug('Requested changes', permission_changes=permission_changes)
     changes = collect_and_authorize_changes(
@@ -114,6 +119,9 @@ def post_user(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argum
     scopes = get_event_scopes(event)
     compact = event['pathParameters']['compact']
     body = json.loads(event['body'])
+
+    # this will raise an exception if the caller was disabled
+    _verify_caller_is_active(event)
 
     # Verify that the client has permission to create a user with the requested permissions
     for compact, compact_permissions in body['permissions'].items():
@@ -140,11 +148,15 @@ def delete_user(event: dict, context: LambdaContext):  # noqa: ARG001 unused-arg
     # must remove those permissions first before this operation will succeed. A compact admin can delete any user in
     # their compact, regardless of where they have permissions.
     allowed_jurisdictions = get_allowed_jurisdictions(compact=compact, scopes=get_event_scopes(event))
+    # this will raise an exception if the caller was disabled
+    _verify_caller_is_active(event)
+
+    # Get user information (we need it for permission checks and for sign out)
+    user = config.user_client.get_user_in_compact(compact=compact, user_id=user_id)
 
     # None means they are a compact admin - no jurisdiction restrictions at all
     if allowed_jurisdictions is not None:
         allowed_jurisdictions = set(allowed_jurisdictions)
-        user = config.user_client.get_user_in_compact(compact=compact, user_id=user_id)
         user_jurisdictions = user['permissions']['jurisdictions'].keys()
         disallowed_jurisdictions = user_jurisdictions - allowed_jurisdictions
         common_jurisdictions = allowed_jurisdictions.intersection(user_jurisdictions)
@@ -163,6 +175,16 @@ def delete_user(event: dict, context: LambdaContext):  # noqa: ARG001 unused-arg
     # At this time, 'delete' really means just deleting their compact permission record but doing nothing to the actual
     # Cognito user.
     config.user_client.delete_user(compact=compact, user_id=user_id)
+
+    # Disable the user in Cognito
+    # This is a security measure to ensure deactivated users cannot continue generating access tokens
+    try:
+        config.cognito_client.admin_disable_user(UserPoolId=config.user_pool_id, Username=user_id)
+        logger.info('Successfully disabled user in Cognito', user_id=user_id)
+    except ClientError as e:
+        logger.error('Failed to disable user in Cognito', user_id=user_id, error=str(e), exc_info=e)
+        raise CCInternalException('Failed to disable user in Cognito') from e
+
     return {'message': 'User deleted'}
 
 
@@ -171,6 +193,8 @@ def delete_user(event: dict, context: LambdaContext):  # noqa: ARG001 unused-arg
 def reinvite_user(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     compact = event['pathParameters']['compact']
     user_id = event['pathParameters']['userId']
+    # this will raise an exception if the caller was disabled
+    _verify_caller_is_active(event)
 
     allowed_jurisdictions = get_allowed_jurisdictions(compact=compact, scopes=get_event_scopes(event))
 
@@ -188,3 +212,13 @@ def reinvite_user(event: dict, context: LambdaContext):  # noqa: ARG001 unused-a
 
     config.user_client.reinvite_user(email=user['attributes']['email'])
     return {'message': 'User reinvited'}
+
+
+def _verify_caller_is_active(event):
+    caller_sub = event['requestContext']['authorizer']['claims']['sub']
+    # Ensure the caller has not been previously deleted
+    try:
+        config.user_client.get_user(user_id=caller_sub)
+    except CCNotFoundException as e:
+        logger.warning('Unable to find user account', caller_user_id=caller_sub)
+        raise CCAccessDeniedException('Access denied') from e

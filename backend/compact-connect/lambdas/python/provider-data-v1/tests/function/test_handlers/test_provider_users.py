@@ -3,6 +3,7 @@ from datetime import datetime
 from unittest.mock import patch
 
 from boto3.dynamodb.conditions import Key
+from cc_common.config import config
 from cc_common.exceptions import CCInternalException
 from common_test.test_constants import (
     DEFAULT_COMPACT,
@@ -36,10 +37,45 @@ class TestGetProvider(TstFunction):
 
         return event
 
+    def _when_testing_provider_user_event_with_recovery_fields_in_record(self):
+        self._load_provider_data()
+        test_provider = self.test_data_generator.put_default_provider_record_in_provider_table(
+            value_overrides={
+                'emailVerificationExpiry': config.current_standard_datetime,
+                'emailVerificationCode': '1234',
+                'pendingEmailAddress': 'test@example.com',
+                'recoveryToken': '1234',
+                'recoveryExpiry': config.current_standard_datetime,
+            },
+            date_of_update_override=DEFAULT_PROVIDER_UPDATE_DATETIME,
+        )
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+            event['httpMethod'] = 'GET'
+            event['resource'] = '/v1/provider-users/me'
+            event['requestContext']['authorizer']['claims']['custom:providerId'] = test_provider.providerId
+            event['requestContext']['authorizer']['claims']['custom:compact'] = test_provider.compact
+
+        return event
+
     def test_get_provider_returns_provider_information(self):
         from handlers.provider_users import provider_users_api_handler
 
         event = self._when_testing_provider_user_event_with_custom_claims()
+
+        resp = provider_users_api_handler(event, self.mock_context)
+
+        self.assertEqual(200, resp['statusCode'])
+        provider_data = json.loads(resp['body'])
+
+        expected_provider = self.test_data_generator.generate_default_provider_detail_response()
+
+        self.assertEqual(expected_provider, provider_data)
+
+    def test_get_provider_filters_sensitive_profile_recovery_fields(self):
+        from handlers.provider_users import provider_users_api_handler
+
+        event = self._when_testing_provider_user_event_with_recovery_fields_in_record()
 
         resp = provider_users_api_handler(event, self.mock_context)
 
