@@ -182,7 +182,7 @@ def create_signature_key(table_name, config):
         table = dynamodb.Table(table_name)
 
         # Check if key already exists
-        pk = f'{compact}#SIGNATURE_KEYS'
+        pk = f'{compact}#SIGNATURE_KEYS#{state}'
         sk = f'{compact}#JURISDICTION#{state}#{key_id}'
 
         response = table.get_item(Key={'pk': pk, 'sk': sk})
@@ -267,7 +267,7 @@ def list_existing_keys(table_name, config):
         table = dynamodb.Table(table_name)
 
         # Query for existing keys
-        pk = f'{compact}#SIGNATURE_KEYS'
+        pk = f'{compact}#SIGNATURE_KEYS#{state}'
         sk_prefix = f'{compact}#JURISDICTION#{state}#'
 
         response = table.query(
@@ -314,7 +314,7 @@ def delete_signature_key(table_name, config, key_id):
         table = dynamodb.Table(table_name)
 
         # Delete the item
-        pk = f'{compact}#SIGNATURE_KEYS'
+        pk = f'{compact}#SIGNATURE_KEYS#{state}'
         sk = f'{compact}#JURISDICTION#{state}#{key_id}'
 
         table.delete_item(Key={'pk': pk, 'sk': sk})

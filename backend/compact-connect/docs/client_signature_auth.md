@@ -103,7 +103,9 @@ implementation.
 ### Nonce Management
 - Generate a unique nonce for each request
 - UUIDs or cryptographically random strings are recommended
-- Do not reuse nonces within the timestamp window
+- **Never reuse nonces** - each nonce must be unique across requests
+- Nonces can only contain alphanumeric characters (a-z, A-Z, 0-9) and hyphens (-)
+- Nonces cannot be longer than 256 characters
 
 ### Private Key Security
 - Store private keys securely (HSM, key vault, encrypted storage)
@@ -133,7 +135,7 @@ CompactConnect supports key rotation to allow clients to update their signing ke
 - **Key IDs**: Each public key is associated with a unique key ID that clients must include in the `X-Key-Id` header
 - **Multiple Keys**: Clients can have multiple active keys simultaneously during rotation periods
 - **Key Rollover**: When rotating keys, clients can continue using old keys while new keys are being validated
-- **Database Schema**: Keys are stored with the pattern `pk: <compact>#SIGNATURE_KEYS`, `sk: <compact>#JURISDICTION#<jurisdiction>#<key-id>`
+- **Database Schema**: Keys are stored with the pattern `pk: <compact>#SIGNATURE_KEYS#<jurisdiction>`, `sk: <compact>#JURISDICTION#<jurisdiction>#<key-id>`
 
 ## Troubleshooting
 
@@ -147,6 +149,7 @@ CompactConnect supports key rotation to allow clients to update their signing ke
 - **Signature format**: Ensure proper ECDSA with SHA-256
 - **Algorithm header**: Must specify `ECDSA-SHA256` in X-Algorithm header
 - **Key ID header**: Must include `X-Key-Id` header with a valid key identifier
+- **Nonce format**: Nonces can only contain alphanumeric characters and hyphens, and cannot exceed 256 characters
 
 ### Testing Your Implementation
 

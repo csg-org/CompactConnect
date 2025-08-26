@@ -11,6 +11,8 @@ from common_constructs.cc_api import CCApi
 from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
 
+from stacks import persistent_stack as ps
+
 from .api_model import ApiModel
 
 
@@ -23,6 +25,7 @@ class BulkUploadUrl:
         bulk_uploads_bucket: IBucket,
         license_upload_role: IRole,
         compact_configuration_table: ITable,
+        persistent_stack: ps.PersistentStack,
         api_model: ApiModel,
     ):
         super().__init__()
@@ -36,11 +39,17 @@ class BulkUploadUrl:
             bulk_uploads_bucket=bulk_uploads_bucket,
             license_upload_role=license_upload_role,
             compact_configuration_table=compact_configuration_table,
+            persistent_stack=persistent_stack,
         )
         self.api.log_groups.extend(self.log_groups)
 
     def _get_bulk_upload_url_handler(
-        self, *, bulk_uploads_bucket: IBucket, license_upload_role: IRole, compact_configuration_table: ITable
+        self,
+        *,
+        bulk_uploads_bucket: IBucket,
+        license_upload_role: IRole,
+        compact_configuration_table: ITable,
+        persistent_stack: ps.PersistentStack,
     ) -> PythonFunction:
         stack: Stack = Stack.of(self.resource)
         handler = PythonFunction(
@@ -54,12 +63,14 @@ class BulkUploadUrl:
             environment={
                 'BULK_BUCKET_NAME': bulk_uploads_bucket.bucket_name,
                 'COMPACT_CONFIGURATION_TABLE_NAME': compact_configuration_table.table_name,
+                'RATE_LIMITING_TABLE_NAME': persistent_stack.rate_limiting_table.table_name,
                 **stack.common_env_vars,
             },
             alarm_topic=self.api.alarm_topic,
         )
         # Grant the handler permissions to write to the bulk bucket
         bulk_uploads_bucket.grant_write(handler)
+        persistent_stack.rate_limiting_table.grant_read_write_data(handler)
         self.log_groups.append(handler.log_group)
 
         return handler
@@ -71,6 +82,7 @@ class BulkUploadUrl:
         bulk_uploads_bucket: IBucket,
         license_upload_role: IRole,
         compact_configuration_table: ITable,
+        persistent_stack: ps.PersistentStack,
     ):
         self.resource.add_method(
             'GET',
@@ -86,6 +98,7 @@ class BulkUploadUrl:
                     bulk_uploads_bucket=bulk_uploads_bucket,
                     license_upload_role=license_upload_role,
                     compact_configuration_table=compact_configuration_table,
+                    persistent_stack=persistent_stack,
                 ),
                 timeout=Duration.seconds(29),
             ),

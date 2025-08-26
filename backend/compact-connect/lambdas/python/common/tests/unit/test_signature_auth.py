@@ -43,10 +43,14 @@ class TestSignatureAuth(TstLambdas):
         with patch('cc_common.signature_auth._get_public_key_from_dynamodb') as mock_get_key:
             mock_get_key.return_value = self.public_key_pem
 
-            resp = lambda_handler(event, self.mock_context)
+            # Mock the rate limiting table for nonce storage
+            with patch('cc_common.config._Config.rate_limiting_table') as mock_table:
+                mock_table.put_item.return_value = None
 
-            # The decorator returns the raw function result, not an API Gateway response
-            self.assertEqual({'message': 'OK'}, resp)
+                resp = lambda_handler(event, self.mock_context)
+
+                # The decorator returns the raw function result, not an API Gateway response
+                self.assertEqual({'message': 'OK'}, resp)
 
     def test_missing_headers(self):
         """Test authentication failure when required headers are missing."""
@@ -175,7 +179,11 @@ class TestSignatureAuth(TstLambdas):
                 with patch('cc_common.signature_auth._get_public_key_from_dynamodb') as mock_get_key:
                     mock_get_key.return_value = self.public_key_pem
 
-                    resp = lambda_handler(event, self.mock_context)
+                    # Mock the rate limiting table for nonce storage
+                    with patch('cc_common.config._Config.rate_limiting_table') as mock_table:
+                        mock_table.put_item.return_value = None
+
+                        resp = lambda_handler(event, self.mock_context)
                     self.assertEqual({'message': 'OK'}, resp)
 
     def test_missing_path_parameters(self):
@@ -452,10 +460,14 @@ class TestSignatureAuth(TstLambdas):
         with patch('cc_common.signature_auth._get_public_key_from_dynamodb') as mock_get_key:
             mock_get_key.return_value = self.public_key_pem
 
-            resp = lambda_handler(mixed_case_event, self.mock_context)
+            # Mock the rate limiting table for nonce storage
+            with patch('cc_common.config._Config.rate_limiting_table') as mock_table:
+                mock_table.put_item.return_value = None
 
-            # The decorator returns the raw function result, not an API Gateway response
-            self.assertEqual({'message': 'OK'}, resp)
+                resp = lambda_handler(mixed_case_event, self.mock_context)
+
+                # The decorator returns the raw function result, not an API Gateway response
+                self.assertEqual({'message': 'OK'}, resp)
 
     def _create_signed_event(self) -> dict:
         """Create a properly signed event for testing."""
@@ -484,3 +496,243 @@ class TestSignatureAuth(TstLambdas):
         event['headers'].update(headers)
 
         return event
+
+    def _create_signed_event_with_nonce(self, nonce: str) -> dict:
+        """Create a properly signed event with a specific nonce for testing."""
+        # Create base event
+        event = deepcopy(self.base_event)
+
+        # Generate current timestamp
+        timestamp = datetime.now(UTC).isoformat()
+        key_id = 'test-key-001'
+
+        # Import and use the sign_request function
+        from common_test.sign_request import sign_request
+
+        headers = sign_request(
+            method=event['httpMethod'],
+            path=event['path'],
+            query_params=event.get('queryStringParameters') or {},
+            timestamp=timestamp,
+            nonce=nonce,
+            key_id=key_id,
+            private_key_pem=self.private_key_pem,
+        )
+
+        # Add signature headers to event
+        event['headers'].update(headers)
+
+        return event
+
+    def test_nonce_reuse_prevention(self):
+        """Test that nonce reuse is prevented."""
+        from botocore.exceptions import ClientError
+        from cc_common.signature_auth import required_signature_auth
+
+        @required_signature_auth
+        def lambda_handler(event: dict, context: LambdaContext):
+            return {'message': 'OK'}
+
+        # Create a properly signed request
+        event = self._create_signed_event()
+
+        # Mock DynamoDB to return the public key
+        with patch('cc_common.signature_auth._get_public_key_from_dynamodb') as mock_get_key:
+            mock_get_key.return_value = self.public_key_pem
+
+            # Mock the rate limiting table for the first call (successful nonce storage)
+            with patch('cc_common.config._Config.rate_limiting_table') as mock_table:
+                # First call should succeed (nonce doesn't exist)
+                mock_table.put_item.return_value = None
+
+                # First request should succeed
+                resp = lambda_handler(event, self.mock_context)
+                self.assertEqual({'message': 'OK'}, resp)
+
+                # Verify the nonce was stored
+                mock_table.put_item.assert_called_once()
+                call_args = mock_table.put_item.call_args
+                self.assertEqual('NONCE#aslp#JURISDICTION#al', call_args[1]['Item']['pk'])
+                self.assertEqual(f'NONCE#{event["headers"]["X-Nonce"]}', call_args[1]['Item']['sk'])
+
+                # Reset the mock for the second call
+                mock_table.put_item.reset_mock()
+
+                # Mock the second call to simulate nonce already exists
+                error_response = {
+                    'Error': {'Code': 'ConditionalCheckFailedException', 'Message': 'The conditional request failed'}
+                }
+                mock_table.put_item.side_effect = ClientError(error_response, 'PutItem')
+
+                # Second request with same nonce should fail
+                with self.assertRaises(Exception) as cm:
+                    lambda_handler(event, self.mock_context)
+
+                self.assertIn('Nonce has already been used', str(cm.exception))
+
+    def test_nonce_storage_failure(self):
+        """Test handling of nonce storage failures."""
+        from botocore.exceptions import ClientError
+        from cc_common.signature_auth import required_signature_auth
+
+        @required_signature_auth
+        def lambda_handler(event: dict, context: LambdaContext):
+            return {'message': 'OK'}
+
+        # Create a properly signed request
+        event = self._create_signed_event()
+
+        # Mock DynamoDB to return the public key
+        with patch('cc_common.signature_auth._get_public_key_from_dynamodb') as mock_get_key:
+            mock_get_key.return_value = self.public_key_pem
+
+            # Mock the rate limiting table to simulate a different error
+            with patch('cc_common.config._Config.rate_limiting_table') as mock_table:
+                error_response = {
+                    'Error': {'Code': 'ProvisionedThroughputExceededException', 'Message': 'Rate exceeded'}
+                }
+                mock_table.put_item.side_effect = ClientError(error_response, 'PutItem')
+
+                # Request should fail with nonce validation error
+                with self.assertRaises(Exception) as cm:
+                    lambda_handler(event, self.mock_context)
+
+                self.assertIn('Failed to validate nonce', str(cm.exception))
+
+    def test_nonce_format_validation_empty_nonce(self):
+        """Test that empty nonces are rejected."""
+        from cc_common.signature_auth import required_signature_auth
+
+        @required_signature_auth
+        def lambda_handler(event: dict, context: LambdaContext):
+            return {'message': 'OK'}
+
+        # Create event with empty nonce
+        event = self._create_signed_event()
+        event['headers']['X-Nonce'] = ''
+
+        # Mock DynamoDB to return the public key
+        with patch('cc_common.signature_auth._get_public_key_from_dynamodb') as mock_get_key:
+            mock_get_key.return_value = self.public_key_pem
+
+            with self.assertRaises(Exception) as cm:
+                lambda_handler(event, self.mock_context)
+
+            # Empty nonce is caught by the missing headers check
+            self.assertIn('Missing required signature authentication headers', str(cm.exception))
+
+    def test_nonce_format_validation_too_long_nonce(self):
+        """Test that nonces longer than 256 characters are rejected."""
+        from cc_common.signature_auth import required_signature_auth
+
+        @required_signature_auth
+        def lambda_handler(event: dict, context: LambdaContext):
+            return {'message': 'OK'}
+
+        # Create event with nonce that's too long
+        event = self._create_signed_event()
+        event['headers']['X-Nonce'] = 'a' * 257  # 257 characters
+
+        # Mock DynamoDB to return the public key
+        with patch('cc_common.signature_auth._get_public_key_from_dynamodb') as mock_get_key:
+            mock_get_key.return_value = self.public_key_pem
+
+            with self.assertRaises(Exception) as cm:
+                lambda_handler(event, self.mock_context)
+
+            self.assertIn('Nonce cannot be longer than 256 characters', str(cm.exception))
+
+    def test_nonce_format_validation_invalid_characters(self):
+        """Test that nonces with invalid characters are rejected."""
+        from cc_common.signature_auth import required_signature_auth
+
+        @required_signature_auth
+        def lambda_handler(event: dict, context: LambdaContext):
+            return {'message': 'OK'}
+
+        # Test various invalid characters
+        invalid_nonces = [
+            'test@nonce',  # @ symbol
+            'test nonce',  # space
+            'test_nonce',  # underscore
+            'test.nonce',  # period
+            'test+nonce',  # plus
+            'test=nonce',  # equals
+            'test/nonce',  # slash
+            'test\\nonce',  # backslash
+            'test(nonce)',  # parentheses
+            'test[nonce]',  # brackets
+            'test{nonce}',  # braces
+            'test#nonce',  # hash
+            'test$nonce',  # dollar
+            'test%nonce',  # percent
+            'test^nonce',  # caret
+            'test&nonce',  # ampersand
+            'test*nonce',  # asterisk
+            'test|nonce',  # pipe
+            'test~nonce',  # tilde
+            'test`nonce',  # backtick
+            'test;nonce',  # semicolon
+            'test:nonce',  # colon
+            'test"nonce',  # quote
+            "test'nonce",  # single quote
+            'test<nonce',  # less than
+            'test>nonce',  # greater than
+            'test,nonce',  # comma
+            'test?nonce',  # question mark
+            'test!nonce',  # exclamation
+        ]
+
+        for invalid_nonce in invalid_nonces:
+            with self.subTest(nonce=invalid_nonce):
+                # Create event with invalid nonce
+                event = self._create_signed_event()
+                event['headers']['X-Nonce'] = invalid_nonce
+
+                # Mock DynamoDB to return the public key
+                with patch('cc_common.signature_auth._get_public_key_from_dynamodb') as mock_get_key:
+                    mock_get_key.return_value = self.public_key_pem
+
+                    with self.assertRaises(Exception) as cm:
+                        lambda_handler(event, self.mock_context)
+
+                    self.assertIn('Nonce can only contain alphanumeric characters and hyphens', str(cm.exception))
+
+    def test_nonce_format_validation_valid_characters(self):
+        """Test that nonces with valid characters are accepted."""
+        from cc_common.signature_auth import required_signature_auth
+
+        @required_signature_auth
+        def lambda_handler(event: dict, context: LambdaContext):
+            return {'message': 'OK'}
+
+        # Test various valid nonces
+        valid_nonces = [
+            'test-nonce',  # hyphen
+            'test123',  # numbers
+            'TEST123',  # uppercase
+            'test123-nonce',  # mixed alphanumeric with hyphen
+            'a',  # single character
+            'a' * 256,  # exactly 256 characters
+            '1234567890',  # all numbers
+            'abcdefghijklmnopqrstuvwxyz',  # all lowercase
+            'ABCDEFGHIJKLMNOPQRSTUVWXYZ',  # all uppercase
+            'a1b2c3-d4e5f6',  # mixed with hyphens
+        ]
+
+        for valid_nonce in valid_nonces:
+            with self.subTest(nonce=valid_nonce):
+                # Create event with valid nonce and recalculate signature
+                event = self._create_signed_event_with_nonce(valid_nonce)
+
+                # Mock DynamoDB to return the public key
+                with patch('cc_common.signature_auth._get_public_key_from_dynamodb') as mock_get_key:
+                    mock_get_key.return_value = self.public_key_pem
+
+                    # Mock the rate limiting table for nonce storage
+                    with patch('cc_common.config._Config.rate_limiting_table') as mock_table:
+                        mock_table.put_item.return_value = None
+
+                        # Should succeed
+                        resp = lambda_handler(event, self.mock_context)
+                        self.assertEqual({'message': 'OK'}, resp)

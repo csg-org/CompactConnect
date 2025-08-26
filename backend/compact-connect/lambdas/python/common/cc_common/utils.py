@@ -26,6 +26,7 @@ from cc_common.exceptions import (
     CCInvalidRequestException,
     CCNotFoundException,
     CCRateLimitingException,
+    CCUnauthorizedCustomResponseException,
     CCUnauthorizedException,
     CCUnsupportedMediaTypeException,
 )
@@ -129,6 +130,13 @@ def api_handler(fn: Callable):
                     'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
                     'statusCode': 200,
                     'body': json.dumps(fn(event, context), cls=ResponseEncoder),
+                }
+            except CCUnauthorizedCustomResponseException as e:
+                logger.info('Unauthorized request', exc_info=e)
+                return {
+                    'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
+                    'statusCode': 401,
+                    'body': json.dumps({'message': e.message}),
                 }
             except CCUnauthorizedException as e:
                 logger.info('Unauthorized request', exc_info=e)

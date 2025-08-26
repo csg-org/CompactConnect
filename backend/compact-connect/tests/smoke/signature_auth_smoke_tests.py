@@ -167,7 +167,7 @@ def configure_signature_public_key(public_key_pem: str):
         table = get_compact_configuration_table()
 
         # Check if key already exists
-        pk = f'{COMPACT}#SIGNATURE_KEYS'
+        pk = f'{COMPACT}#SIGNATURE_KEYS#{JURISDICTION}'
         sk = f'{COMPACT}#JURISDICTION#{JURISDICTION}#{TEST_KEY_ID}'
 
         response = table.get_item(Key={'pk': pk, 'sk': sk})
@@ -201,7 +201,7 @@ def remove_signature_public_key():
     try:
         table = get_compact_configuration_table()
 
-        pk = f'{COMPACT}#SIGNATURE_KEYS'
+        pk = f'{COMPACT}#SIGNATURE_KEYS#{JURISDICTION}'
         sk = f'{COMPACT}#JURISDICTION#{JURISDICTION}#{TEST_KEY_ID}'
 
         table.delete_item(Key={'pk': pk, 'sk': sk})

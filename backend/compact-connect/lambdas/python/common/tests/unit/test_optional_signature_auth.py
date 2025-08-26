@@ -67,10 +67,14 @@ class TestOptionalSignatureAuth(TstLambdas):
         with patch('cc_common.signature_auth._get_configured_keys_for_jurisdiction') as mock_get_keys:
             mock_get_keys.return_value = {'test-key-001': self.public_key_pem}
 
-            resp = lambda_handler(event, self.mock_context)
+            # Mock the rate limiting table for nonce storage
+            with patch('cc_common.config._Config.rate_limiting_table') as mock_table:
+                mock_table.put_item.return_value = None
 
-            # Should validate signature and proceed
-            self.assertEqual({'message': 'OK', 'authenticated': True}, resp)
+                resp = lambda_handler(event, self.mock_context)
+
+                # Should validate signature and proceed
+                self.assertEqual({'message': 'OK', 'authenticated': True}, resp)
 
     def test_public_key_configured_missing_headers_rejected(self):
         """Test that missing signature headers are rejected when public key is configured."""
@@ -231,11 +235,15 @@ class TestOptionalSignatureAuth(TstLambdas):
         with patch('cc_common.signature_auth._get_configured_keys_for_jurisdiction') as mock_get_keys:
             mock_get_keys.return_value = {'test-key-001': self.public_key_pem}
 
-            resp = lambda_handler(event, self.mock_context)
+            # Mock the rate limiting table for nonce storage
+            with patch('cc_common.config._Config.rate_limiting_table') as mock_table:
+                mock_table.put_item.return_value = None
 
-            # Should return API Gateway response format
-            self.assertEqual(200, resp['statusCode'])
-            self.assertEqual('{"message": "OK", "authenticated": true}', resp['body'])
+                resp = lambda_handler(event, self.mock_context)
+
+                # Should return API Gateway response format
+                self.assertEqual(200, resp['statusCode'])
+                self.assertEqual('{"message": "OK", "authenticated": true}', resp['body'])
 
     def _create_signed_event(self) -> dict:
         """Create a properly signed event for testing."""

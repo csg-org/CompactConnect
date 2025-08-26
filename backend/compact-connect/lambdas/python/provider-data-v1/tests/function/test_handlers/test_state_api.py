@@ -33,7 +33,7 @@ class SignatureTestBase(TstFunction):
     def _load_signature_public_key(self, compact: str, jurisdiction: str, key_id: str, public_key_pem: str):
         """Load a signature public key into the compact configuration table."""
         item = {
-            'pk': f'{compact}#SIGNATURE_KEYS',
+            'pk': f'{compact}#SIGNATURE_KEYS#{jurisdiction}',
             'sk': f'{compact}#JURISDICTION#{jurisdiction}#{key_id}',
             'publicKey': public_key_pem,
             'compact': compact,

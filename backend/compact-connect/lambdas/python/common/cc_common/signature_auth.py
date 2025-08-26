@@ -12,12 +12,18 @@ from functools import wraps
 from typing import Any
 from urllib.parse import quote
 
+from boto3.dynamodb.conditions import Attr, Key
+from botocore.exceptions import ClientError
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 
 from cc_common.config import config, logger
-from cc_common.exceptions import CCInvalidRequestException, CCUnauthorizedException
+from cc_common.exceptions import (
+    CCInvalidRequestException,
+    CCUnauthorizedCustomResponseException,
+    CCUnauthorizedException,
+)
 from cc_common.utils import CaseInsensitiveDict
 
 
@@ -45,7 +51,7 @@ def required_signature_auth(fn: Callable) -> Callable:
         key_id = _extract_key_id(event)
         if not key_id:
             logger.warning('Missing X-Key-Id header', compact=compact, jurisdiction=jurisdiction)
-            raise CCUnauthorizedException('Missing required X-Key-Id header')
+            raise CCUnauthorizedCustomResponseException('Missing required X-Key-Id header')
 
         # Get public key from DynamoDB (required)
         public_key_pem = _get_public_key_from_dynamodb(compact, jurisdiction, key_id)
@@ -56,7 +62,7 @@ def required_signature_auth(fn: Callable) -> Callable:
                 jurisdiction=jurisdiction,
                 key_id=key_id,
             )
-            raise CCUnauthorizedException('Public key not found for this compact/jurisdiction/key_id')
+            raise CCUnauthorizedCustomResponseException('Public key not found for this compact/jurisdiction/key-id')
 
         # Validate signature
         _validate_signature(event, compact, jurisdiction, public_key_pem)
@@ -108,7 +114,7 @@ def optional_signature_auth(fn: Callable) -> Callable:
                 compact=compact,
                 jurisdiction=jurisdiction,
             )
-            raise CCUnauthorizedException('X-Key-Id header required when signature keys are configured')
+            raise CCUnauthorizedCustomResponseException('X-Key-Id header required when signature keys are configured')
 
         # Get public key for the specific key ID from our cached keys
         public_key_pem = configured_keys.get(key_id)
@@ -119,7 +125,7 @@ def optional_signature_auth(fn: Callable) -> Callable:
                 jurisdiction=jurisdiction,
                 key_id=key_id,
             )
-            raise CCUnauthorizedException('Public key not found for this compact/jurisdiction/key_id')
+            raise CCUnauthorizedCustomResponseException('Public key not found for this compact/jurisdiction/key-id')
 
         # Validate signature
         _validate_signature(event, compact, jurisdiction, public_key_pem)
@@ -162,6 +168,28 @@ def _extract_key_id(event: dict) -> str | None:
     return headers.get('X-Key-Id')
 
 
+def _validate_nonce_format(nonce: str) -> None:
+    """
+    Validate that a nonce contains only alphanumeric characters and hyphens, and is not longer than 256 characters.
+
+    :param nonce: The nonce to validate
+    :raises CCInvalidRequestException: If the nonce format is invalid
+    """
+    if not nonce:
+        raise CCUnauthorizedCustomResponseException('Nonce cannot be empty')
+
+    if len(nonce) > 256:
+        logger.warning('Nonce too long', nonce_length=len(nonce), max_length=256)
+        raise CCUnauthorizedCustomResponseException('Nonce cannot be longer than 256 characters')
+
+    # Check that nonce contains only alphanumeric characters and hyphens
+    import re
+
+    if not re.match(r'^[a-zA-Z0-9-]+$', nonce):
+        logger.warning('Invalid nonce format - contains invalid characters', nonce=nonce)
+        raise CCUnauthorizedCustomResponseException('Nonce can only contain alphanumeric characters and hyphens')
+
+
 def _validate_signature(event: dict, compact: str, jurisdiction: str, public_key_pem: str) -> None:
     """
     Validate signature for a request.
@@ -176,7 +204,6 @@ def _validate_signature(event: dict, compact: str, jurisdiction: str, public_key
     :param jurisdiction: Jurisdiction abbreviation
     :param public_key_pem: PEM-encoded public key
     :raises CCUnauthorizedException: If signature validation fails
-    :raises CCInvalidRequestException: If request format is invalid
     """
     # Extract headers using CaseInsensitiveDict for consistent handling
     headers = CaseInsensitiveDict(event.get('headers') or {})
@@ -200,14 +227,17 @@ def _validate_signature(event: dict, compact: str, jurisdiction: str, public_key
             compact=compact,
             jurisdiction=jurisdiction,
         )
-        raise CCUnauthorizedException('Missing required signature authentication headers')
+        raise CCUnauthorizedCustomResponseException('Missing required signature authentication headers')
+
+    # Validate nonce format (before we try to calculate the signature string)
+    _validate_nonce_format(nonce)
 
     # Validate algorithm
     if algorithm != 'ECDSA-SHA256':
         logger.warning(
             'Unsupported signature algorithm', algorithm=algorithm, compact=compact, jurisdiction=jurisdiction
         )
-        raise CCUnauthorizedException('Unsupported signature algorithm')
+        raise CCUnauthorizedCustomResponseException('Unsupported signature algorithm')
 
     # Validate timestamp
     try:
@@ -225,7 +255,7 @@ def _validate_signature(event: dict, compact: str, jurisdiction: str, public_key
                 time_diff_seconds=time_diff,
                 max_clock_skew_seconds=config.signature_max_clock_skew_seconds,
             )
-            raise CCUnauthorizedException('Request timestamp is too old or in the future')
+            raise CCUnauthorizedCustomResponseException('Request timestamp is too old or in the future')
     except ValueError as e:
         logger.warning('Invalid timestamp format', timestamp=timestamp_str, error=str(e))
         raise CCInvalidRequestException('Invalid timestamp format') from e
@@ -236,7 +266,10 @@ def _validate_signature(event: dict, compact: str, jurisdiction: str, public_key
     # Verify signature
     if not _verify_signature(signature_string, signature_b64, public_key_pem):
         logger.warning('Invalid signature for request', compact=compact, jurisdiction=jurisdiction)
-        raise CCUnauthorizedException('Invalid request signature')
+        raise CCUnauthorizedCustomResponseException('Invalid request signature')
+
+    # Validate and store nonce to prevent reuse
+    _validate_and_store_nonce(compact, jurisdiction, nonce)
 
 
 def _get_public_key_from_dynamodb(compact: str, jurisdiction: str, key_id: str) -> str | None:
@@ -249,9 +282,8 @@ def _get_public_key_from_dynamodb(compact: str, jurisdiction: str, key_id: str) 
     :return: PEM-encoded public key or None if not found
     """
     # Query the compact configuration table for the public key
-    # New schema: pk=f"{compact}#SIGNATURE_KEYS", sk=f"{compact}#JURISDICTION#{jurisdiction}#{key_id}"
     response = config.compact_configuration_table.get_item(
-        Key={'pk': f'{compact}#SIGNATURE_KEYS', 'sk': f'{compact}#JURISDICTION#{jurisdiction}#{key_id}'}
+        Key={'pk': f'{compact}#SIGNATURE_KEYS#{jurisdiction}', 'sk': f'{compact}#JURISDICTION#{jurisdiction}#{key_id}'}
     )
 
     return response.get('Item', {}).get('publicKey')
@@ -270,11 +302,8 @@ def _get_configured_keys_for_jurisdiction(compact: str, jurisdiction: str) -> di
     """
     # Query for all keys with the jurisdiction prefix
     response = config.compact_configuration_table.query(
-        KeyConditionExpression='pk = :pk AND begins_with(sk, :sk_prefix)',
-        ExpressionAttributeValues={
-            ':pk': f'{compact}#SIGNATURE_KEYS',
-            ':sk_prefix': f'{compact}#JURISDICTION#{jurisdiction}#',
-        },
+        KeyConditionExpression=Key('pk').eq(f'{compact}#SIGNATURE_KEYS#{jurisdiction}')
+        & Key('sk').begins_with(f'{compact}#JURISDICTION#{jurisdiction}#'),
     )
 
     configured_keys: dict[str, str] = {}
@@ -314,6 +343,48 @@ def _build_signature_string(event: dict) -> str:
 
     # Build signature string with newlines
     return '\n'.join([http_method, path, sorted_params, timestamp, nonce, key_id])
+
+
+def _validate_and_store_nonce(compact: str, jurisdiction: str, nonce: str) -> None:
+    """
+    Validate that a nonce has not been used before and store it to prevent reuse.
+
+    This function uses a conditional write to DynamoDB to atomically check if the nonce
+    already exists and store it if it doesn't. If the nonce already exists, it raises
+    a CCUnauthorizedException.
+
+    :param compact: The compact abbreviation
+    :param jurisdiction: The jurisdiction abbreviation
+    :param nonce: The nonce to validate and store
+    :raises CCUnauthorizedException: If the nonce has already been used
+    """
+    try:
+        # Calculate TTL based on 3x the configured signature clock skew
+        ttl = int(config.current_standard_datetime.timestamp()) + (3 * config.signature_max_clock_skew_seconds)
+
+        # Attempt to store the nonce with a condition that it doesn't already exist
+        config.rate_limiting_table.put_item(
+            Item={
+                'pk': f'NONCE#{compact}#JURISDICTION#{jurisdiction}',
+                'sk': f'NONCE#{nonce}',
+                'ttl': ttl,
+            },
+            ConditionExpression=Attr('pk').not_exists() & Attr('sk').not_exists(),
+        )
+
+        logger.debug('Nonce stored successfully', compact=compact, jurisdiction=jurisdiction, nonce=nonce)
+
+    except ClientError as e:
+        if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
+            logger.warning(
+                'Nonce reuse detected',
+                compact=compact,
+                jurisdiction=jurisdiction,
+                nonce=nonce,
+            )
+            raise CCUnauthorizedCustomResponseException('Nonce has already been used') from e
+        logger.error('Failed to validate nonce', error=str(e), compact=compact, jurisdiction=jurisdiction)
+        raise CCUnauthorizedException('Failed to validate nonce') from e
 
 
 def _verify_signature(signature_string: str, signature_b64: str, public_key_pem: str) -> bool:

@@ -44,15 +44,19 @@ class TestSignatureAuthIntegration(TstLambdas):
         with patch('cc_common.signature_auth._get_public_key_from_dynamodb') as mock_get_key:
             mock_get_key.return_value = self.public_key_pem
 
-            resp = lambda_handler(event, self.mock_context)
+            # Mock the rate limiting table for nonce storage
+            with patch('cc_common.config._Config.rate_limiting_table') as mock_table:
+                mock_table.put_item.return_value = None
 
-            self.assertEqual(200, resp['statusCode'])
-            self.assertEqual('https://example.org', resp['headers']['Access-Control-Allow-Origin'])
+                resp = lambda_handler(event, self.mock_context)
 
-            # Parse response body to verify content
-            body = json.loads(resp['body'])
-            self.assertEqual('OK', body['message'])
-            self.assertTrue(body['authenticated'])
+                self.assertEqual(200, resp['statusCode'])
+                self.assertEqual('https://example.org', resp['headers']['Access-Control-Allow-Origin'])
+
+                # Parse response body to verify content
+                body = json.loads(resp['body'])
+                self.assertEqual('OK', body['message'])
+                self.assertTrue(body['authenticated'])
 
     def test_signature_with_api_handler_unauthorized(self):
         """Test signature authentication failure with api_handler decorator returns 401."""
@@ -75,7 +79,7 @@ class TestSignatureAuthIntegration(TstLambdas):
 
             self.assertEqual(401, resp['statusCode'])
             self.assertEqual('https://example.org', resp['headers']['Access-Control-Allow-Origin'])
-        self.assertEqual('{"message": "Unauthorized"}', resp['body'])
+        self.assertEqual('{"message": "Missing required X-Key-Id header"}', resp['body'])
 
     def test_signature_with_api_handler_invalid_request(self):
         """Test signature validation failure with api_handler decorator returns 400."""
@@ -97,12 +101,9 @@ class TestSignatureAuthIntegration(TstLambdas):
 
             resp = lambda_handler(event, self.mock_context)
 
-            self.assertEqual(400, resp['statusCode'])
+            self.assertEqual(401, resp['statusCode'])
             self.assertEqual('https://example.org', resp['headers']['Access-Control-Allow-Origin'])
-
-        # Parse response body to verify error message
-        body = json.loads(resp['body'])
-        self.assertIn('Invalid timestamp format', body['message'])
+            self.assertEqual({'message': 'Invalid timestamp format'}, json.loads(resp['body']))
 
     def test_signature_with_api_handler_invalid_signature(self):
         """Test invalid signature with api_handler decorator returns 401."""
@@ -126,7 +127,7 @@ class TestSignatureAuthIntegration(TstLambdas):
 
         self.assertEqual(401, resp['statusCode'])
         self.assertEqual('https://example.org', resp['headers']['Access-Control-Allow-Origin'])
-        self.assertEqual({'message': 'Unauthorized'}, json.loads(resp['body']))
+        self.assertEqual({'message': 'Invalid request signature'}, json.loads(resp['body']))
 
     def test_signature_with_api_handler_public_key_not_found(self):
         """Test public key not found with api_handler decorator returns 401."""
@@ -149,7 +150,9 @@ class TestSignatureAuthIntegration(TstLambdas):
 
             self.assertEqual(401, resp['statusCode'])
             self.assertEqual('https://example.org', resp['headers']['Access-Control-Allow-Origin'])
-            self.assertEqual({'message': 'Unauthorized'}, json.loads(resp['body']))
+            self.assertEqual(
+                {'message': 'Public key not found for this compact/jurisdiction/key-id'}, json.loads(resp['body'])
+            )
 
     def test_decorator_order_matters(self):
         """Test that decorator order affects behavior (api_handler should be outermost)."""
@@ -195,10 +198,14 @@ class TestSignatureAuthIntegration(TstLambdas):
         with patch('cc_common.signature_auth._get_public_key_from_dynamodb') as mock_get_key:
             mock_get_key.return_value = self.public_key_pem
 
-            resp = lambda_handler(event, self.mock_context)
+            # Mock the rate limiting table for nonce storage
+            with patch('cc_common.config._Config.rate_limiting_table') as mock_table:
+                mock_table.put_item.return_value = None
 
-            self.assertEqual(200, resp['statusCode'])
-            self.assertEqual('http://localhost:1234', resp['headers']['Access-Control-Allow-Origin'])
+                resp = lambda_handler(event, self.mock_context)
+
+                self.assertEqual(200, resp['statusCode'])
+                self.assertEqual('http://localhost:1234', resp['headers']['Access-Control-Allow-Origin'])
 
     def _create_signed_event(self) -> dict:
         """Create a properly signed event for testing."""

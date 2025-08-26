@@ -176,7 +176,7 @@ The script will:
 #### 4. Database Schema
 
 SIGNATURE keys are stored in the compact configuration table with the following schema:
-- **Primary Key (pk)**: `{compact}#SIGNATURE_KEYS`
+- **Primary Key (pk)**: `{compact}#SIGNATURE_KEYS#{state}`
 - **Sort Key (sk)**: `{compact}#JURISDICTION#{jurisdiction}#{key_id}`
 - **Additional Fields**:
   - `publicKey`: PEM-encoded public key content

@@ -35,7 +35,7 @@ class TestSignatureAuthFunctional(TstFunction):
         # Add public key to database
         self._compact_configuration_table.put_item(
             Item={
-                'pk': 'aslp#SIGNATURE_KEYS',
+                'pk': 'aslp#SIGNATURE_KEYS#al',
                 'sk': 'aslp#JURISDICTION#al#test-key-001',
                 'publicKey': self.public_key_pem,
                 'compact': 'aslp',
@@ -63,7 +63,7 @@ class TestSignatureAuthFunctional(TstFunction):
         # Add public key to database
         self._compact_configuration_table.put_item(
             Item={
-                'pk': 'aslp#SIGNATURE_KEYS',
+                'pk': 'aslp#SIGNATURE_KEYS#al',
                 'sk': 'aslp#JURISDICTION#al#test-key-001',
                 'publicKey': self.public_key_pem,
                 'compact': 'aslp',
@@ -103,7 +103,7 @@ class TestSignatureAuthFunctional(TstFunction):
         with self.assertRaises(CCUnauthorizedException) as cm:
             lambda_handler(event, self.mock_context)
 
-        self.assertIn('Public key not found for this compact/jurisdiction/key_id', str(cm.exception))
+        self.assertIn('Public key not found for this compact/jurisdiction/key-id', str(cm.exception))
 
     def test_required_signature_auth_invalid_signature_access_denied(self):
         """Test access denied with invalid signature."""
@@ -113,7 +113,7 @@ class TestSignatureAuthFunctional(TstFunction):
         # Add public key to database
         self._compact_configuration_table.put_item(
             Item={
-                'pk': 'aslp#SIGNATURE_KEYS',
+                'pk': 'aslp#SIGNATURE_KEYS#al',
                 'sk': 'aslp#JURISDICTION#al#test-key-001',
                 'publicKey': self.public_key_pem,
                 'compact': 'aslp',
@@ -145,7 +145,7 @@ class TestSignatureAuthFunctional(TstFunction):
         # Add public key to database
         self._compact_configuration_table.put_item(
             Item={
-                'pk': 'aslp#SIGNATURE_KEYS',
+                'pk': 'aslp#SIGNATURE_KEYS#al',
                 'sk': 'aslp#JURISDICTION#al#test-key-001',
                 'publicKey': self.public_key_pem,
                 'compact': 'aslp',
@@ -173,7 +173,7 @@ class TestSignatureAuthFunctional(TstFunction):
         # Add public key to database
         self._compact_configuration_table.put_item(
             Item={
-                'pk': 'aslp#SIGNATURE_KEYS',
+                'pk': 'aslp#SIGNATURE_KEYS#al',
                 'sk': 'aslp#JURISDICTION#al#test-key-001',
                 'publicKey': self.public_key_pem,
                 'compact': 'aslp',
@@ -237,7 +237,7 @@ class TestSignatureAuthFunctional(TstFunction):
         # Add public key to database
         self._compact_configuration_table.put_item(
             Item={
-                'pk': 'aslp#SIGNATURE_KEYS',
+                'pk': 'aslp#SIGNATURE_KEYS#al',
                 'sk': 'aslp#JURISDICTION#al#test-key-001',
                 'publicKey': self.public_key_pem,
                 'compact': 'aslp',
@@ -261,6 +261,74 @@ class TestSignatureAuthFunctional(TstFunction):
             lambda_handler(event, self.mock_context)
 
         self.assertIn('Invalid request signature', str(cm.exception))
+
+    def test_required_signature_auth_nonce_reuse_rejected(self):
+        """Test that nonce reuse is rejected for required signature auth."""
+        from cc_common.exceptions import CCUnauthorizedException
+        from cc_common.signature_auth import required_signature_auth
+
+        # Add public key to database
+        self._compact_configuration_table.put_item(
+            Item={
+                'pk': 'aslp#SIGNATURE_KEYS#al',
+                'sk': 'aslp#JURISDICTION#al#test-key-001',
+                'publicKey': self.public_key_pem,
+                'compact': 'aslp',
+                'jurisdiction': 'al',
+                'keyId': 'test-key-001',
+            }
+        )
+
+        @required_signature_auth
+        def lambda_handler(event: dict, context):
+            return {'message': 'OK', 'authenticated': True}
+
+        # Create a signed event
+        event = self._create_signed_event()
+
+        # First request should succeed
+        result = lambda_handler(event, self.mock_context)
+        self.assertEqual({'message': 'OK', 'authenticated': True}, result)
+
+        # Second request with the same nonce should fail (replay attack simulation)
+        with self.assertRaises(CCUnauthorizedException) as cm:
+            lambda_handler(event, self.mock_context)
+
+        self.assertIn('Nonce has already been used', str(cm.exception))
+
+    def test_optional_signature_auth_nonce_reuse_rejected(self):
+        """Test that nonce reuse is rejected for optional signature auth."""
+        from cc_common.exceptions import CCUnauthorizedException
+        from cc_common.signature_auth import optional_signature_auth
+
+        # Add public key to database
+        self._compact_configuration_table.put_item(
+            Item={
+                'pk': 'aslp#SIGNATURE_KEYS#al',
+                'sk': 'aslp#JURISDICTION#al#test-key-001',
+                'publicKey': self.public_key_pem,
+                'compact': 'aslp',
+                'jurisdiction': 'al',
+                'keyId': 'test-key-001',
+            }
+        )
+
+        @optional_signature_auth
+        def lambda_handler(event: dict, context):
+            return {'message': 'OK', 'authenticated': True}
+
+        # Create a signed event
+        event = self._create_signed_event()
+
+        # First request should succeed
+        result = lambda_handler(event, self.mock_context)
+        self.assertEqual({'message': 'OK', 'authenticated': True}, result)
+
+        # Second request with the same nonce should fail (replay attack simulation)
+        with self.assertRaises(CCUnauthorizedException) as cm:
+            lambda_handler(event, self.mock_context)
+
+        self.assertIn('Nonce has already been used', str(cm.exception))
 
     def _create_signed_event(self) -> dict:
         """Create a properly signed event for testing."""
