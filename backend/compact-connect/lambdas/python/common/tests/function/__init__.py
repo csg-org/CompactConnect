@@ -50,6 +50,7 @@ class TstFunction(TstLambdas):
         waiter.wait(TableName=self._provider_table.name)
         waiter.wait(TableName=self._users_table.name)
         waiter.wait(TableName=self._transaction_history_table.name)
+        waiter.wait(TableName=self._rate_limiting_table.name)
 
         # Create a new Cognito user pool
         cognito_client = boto3.client('cognito-idp')
@@ -185,6 +186,7 @@ class TstFunction(TstLambdas):
         self._users_table.delete()
         self._transaction_history_table.delete()
         self._license_preprocessing_queue.delete()
+        self._rate_limiting_table.delete()
 
         waiter = self._users_table.meta.client.get_waiter('table_not_exists')
         waiter.wait(TableName=self._compact_configuration_table.name)
@@ -192,6 +194,7 @@ class TstFunction(TstLambdas):
         waiter.wait(TableName=self._users_table.name)
         waiter.wait(TableName=self._transaction_history_table.name)
         waiter.wait(TableName=self._ssn_table.name)
+        waiter.wait(TableName=self._rate_limiting_table.name)
 
         # Delete the Cognito user pool
         cognito_client = boto3.client('cognito-idp')

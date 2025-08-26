@@ -1,5 +1,5 @@
 import json
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 from unittest.mock import patch
 from uuid import uuid4
 
@@ -45,8 +45,10 @@ class SignatureTestBase(TstFunction):
 
     def _create_signed_event(self, event: dict) -> dict:
         """Add signature headers to an event for signature authentication."""
+        from cc_common.config import config
+
         # Generate current timestamp and nonce
-        timestamp = datetime.now(UTC).isoformat()
+        timestamp = config.current_standard_datetime
         nonce = str(uuid4())
         key_id = 'test-key-001'
 
