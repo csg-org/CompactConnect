@@ -423,4 +423,45 @@ export class EmailNotificationService extends BaseEmailService {
 
         await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send email change notification' });
     }
+
+    /**
+     * Sends an account recovery confirmation email to a provider with a secure recovery link
+     * @param compact - The compact name
+     * @param specificEmails - The email address(es) to send the confirmation to (provider's current email)
+     * @param providerId - The provider's ID
+     * @param recoveryUuid - The recovery UUID used to validate and complete recovery
+     */
+    public async sendProviderAccountRecoveryConfirmationEmail(
+        compact: string,
+        specificEmails: string[] | undefined,
+        providerId: string,
+        recoveryToken: string
+    ): Promise<void> {
+        this.logger.info('Sending provider account recovery confirmation email', { compact: compact, providerId: providerId });
+
+        const recipients = specificEmails || [];
+
+        if (recipients.length === 0) {
+            throw new Error('No recipients found for provider account recovery confirmation email');
+        }
+
+        const emailContent = this.getNewEmailTemplate();
+        const subject = 'Confirm Account Recovery - Compact Connect';
+
+        const baseUrl = environmentVariableService.getUiBasePathUrl();
+        const recoveryUrl = `${baseUrl}/Dashboard?bypass=recovery-practitioner&compact=${compact}&providerId=${providerId}&recoveryId=${recoveryToken}`;
+
+        const bodyText = `A request was made to recover access to your Compact Connect user account.\n\n` +
+            `If you initiated this request, please confirm by clicking the link below to continue account recovery. ` +
+            `\n\n${recoveryUrl}\n\n` +
+            `**If you did not request this, your password has likely been compromised and you should reset your password immediately**. To reset your password, please visit the following link:\n\n${baseUrl}/Dashboard?bypass=login-practitioner\n\n Select 'Forgot your password?' and follow the instructions.`;
+
+        this.insertHeader(emailContent, 'Confirm Account Recovery');
+        this.insertBody(emailContent, bodyText, 'center', true);
+        this.insertFooter(emailContent);
+
+        const htmlContent = renderToStaticMarkup(emailContent, { rootBlockId: 'root' });
+
+        await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send provider account recovery confirmation email' });
+    }
 }
