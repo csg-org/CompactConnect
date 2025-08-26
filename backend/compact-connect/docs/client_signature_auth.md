@@ -74,7 +74,6 @@ For each API request, you must:
 
 3. **Sign the string** using ECDSA with SHA-256. The signature format MUST be ASN.1 DER (most libraries produce DER by default).
 4. **Base64-encode** the DER signature (do not hex-encode).
-4. **Base64 encode** the signature
 5. **Add headers** to your request
 
 ### 3. Required Headers
