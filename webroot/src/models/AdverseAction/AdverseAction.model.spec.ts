@@ -55,6 +55,8 @@ describe('AdverseAction model', () => {
         expect(adverseAction.creationDateDisplay()).to.equal('');
         expect(adverseAction.startDateDisplay()).to.equal('');
         expect(adverseAction.endDateDisplay()).to.equal('');
+        expect(adverseAction.hasEndDate()).to.equal(false);
+        expect(adverseAction.encumbranceTypeName()).to.equal('');
         expect(adverseAction.npdbTypeName()).to.equal('');
         expect(adverseAction.isActive()).to.equal(false);
     });
@@ -65,6 +67,7 @@ describe('AdverseAction model', () => {
             providerId: 'test-providerId',
             state: new State(),
             type: 'test-type',
+            encumbranceType: 'test-encumbranceType',
             npdbType: 'test-npdbType',
             creationDate: 'test-creationDate',
             startDate: 'test-startDate',
@@ -88,6 +91,8 @@ describe('AdverseAction model', () => {
         expect(adverseAction.creationDateDisplay()).to.equal('Invalid date');
         expect(adverseAction.startDateDisplay()).to.equal('Invalid date');
         expect(adverseAction.endDateDisplay()).to.equal('Invalid date');
+        expect(adverseAction.hasEndDate()).to.equal(true);
+        expect(adverseAction.encumbranceTypeName()).to.equal('');
         expect(adverseAction.npdbTypeName()).to.equal('');
         expect(adverseAction.isActive()).to.equal(false);
     });
@@ -141,6 +146,7 @@ describe('AdverseAction model', () => {
             providerId: 'test-providerId',
             jurisdiction: 'al',
             type: 'test-type',
+            encumbranceType: 'fine',
             clinicalPrivilegeActionCategory: 'Non-compliance With Requirements',
             creationDate: moment.utc().format(serverDatetimeFormat),
             effectiveStartDate: moment().subtract(1, 'day').format(serverDateFormat),
@@ -169,6 +175,8 @@ describe('AdverseAction model', () => {
         expect(adverseAction.endDateDisplay()).to.equal(
             moment(data.effectiveLiftDate, serverDateFormat).format(displayDateFormat)
         );
+        expect(adverseAction.hasEndDate()).to.equal(true);
+        expect(adverseAction.encumbranceTypeName()).to.equal('Fine');
         expect(adverseAction.npdbTypeName()).to.equal('Non-compliance With Requirements');
         expect(adverseAction.isActive()).to.equal(true);
     });

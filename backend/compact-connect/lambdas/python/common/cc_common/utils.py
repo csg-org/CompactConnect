@@ -22,6 +22,7 @@ from cc_common.data_model.schema.provider.api import ProviderGeneralResponseSche
 from cc_common.exceptions import (
     CCAccessDeniedException,
     CCInternalException,
+    CCInvalidRequestCustomResponseException,
     CCInvalidRequestException,
     CCNotFoundException,
     CCRateLimitingException,
@@ -163,6 +164,13 @@ def api_handler(fn: Callable):
                     'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
                     'statusCode': 429,
                     'body': json.dumps({'message': e.message}),
+                }
+            except CCInvalidRequestCustomResponseException as e:
+                logger.info('Invalid request with custom response')
+                return {
+                    'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
+                    'statusCode': 400,
+                    'body': json.dumps(e.response_body, cls=ResponseEncoder),
                 }
             except CCInvalidRequestException as e:
                 logger.info('Invalid request', exc_info=e)
