@@ -34,7 +34,7 @@ information about your integration. After retrieving the credentials, please:
 
 > **Important**: If the link provided has already been used when you attempt to access the credentials, please contact
 > the individual who sent the link to you as the credentials will need to be regenerated and sent using another link.
-> 
+>
 > Likewise, if these credentials are ever accidentally shared or compromised, please inform the CompactConnect team as
 > soon as possible, so the credentials can be deactivated and regenerated to prevent abuse of the system.
 

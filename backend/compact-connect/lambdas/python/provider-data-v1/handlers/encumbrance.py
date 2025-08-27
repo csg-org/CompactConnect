@@ -11,6 +11,7 @@ from cc_common.data_model.schema.common import (
     AdverseActionAgainstEnum,
     CCPermissionsAction,
     ClinicalPrivilegeActionCategory,
+    EncumbranceType,
 )
 from cc_common.exceptions import CCInvalidRequestException
 from cc_common.license_util import LicenseUtility
@@ -99,6 +100,7 @@ def _generate_adverse_action_for_record_type(
     adverse_action.licenseTypeAbbreviation = license_type.abbreviation
     adverse_action.licenseType = license_type.name
     adverse_action.actionAgainst = adverse_action_against_record_type
+    adverse_action.encumbranceType = EncumbranceType(adverse_action_request['encumbranceType'])
     adverse_action.clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategory(
         adverse_action_request['clinicalPrivilegeActionCategory']
     )

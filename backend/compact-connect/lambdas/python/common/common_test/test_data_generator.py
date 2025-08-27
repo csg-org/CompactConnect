@@ -138,6 +138,7 @@ class TestDataGenerator:
             'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
             'licenseType': DEFAULT_LICENSE_TYPE,
             'actionAgainst': DEFAULT_ACTION_AGAINST_PRIVILEGE,
+            'encumbranceType': DEFAULT_ENCUMBRANCE_TYPE,
             'clinicalPrivilegeActionCategory': DEFAULT_CLINICAL_PRIVILEGE_ACTION_CATEGORY,
             'effectiveStartDate': date.fromisoformat(DEFAULT_CREATION_EFFECTIVE_DATE),
             'submittingUser': DEFAULT_AA_SUBMITTING_USER_ID,
