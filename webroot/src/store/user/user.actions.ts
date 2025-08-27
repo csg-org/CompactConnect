@@ -410,4 +410,22 @@ export default {
     updateHomeJurisdictionFailure: ({ commit }, error: Error) => {
         commit(MutationTypes.UPDATE_HOME_JURISDICTION_FAILURE, error);
     },
+    // RESET MFA LICENSEE ACCOUNT
+    resetMfaLicenseeAccountRequest: async ({ commit, dispatch }, { data }: any) => {
+        commit(MutationTypes.RESET_MFA_LICENSEE_ACCOUNT_REQUEST);
+        return dataApi.resetMfaLicenseeAccount(data).then(async (response) => {
+            dispatch('resetMfaLicenseeAccountSuccess');
+
+            return response;
+        }).catch((error) => {
+            dispatch('resetMfaLicenseeAccountFailure', error);
+            throw error;
+        });
+    },
+    resetMfaLicenseeAccountSuccess: ({ commit }) => {
+        commit(MutationTypes.RESET_MFA_LICENSEE_ACCOUNT_SUCCESS);
+    },
+    resetMfaLicenseeAccountFailure: ({ commit }, error: Error) => {
+        commit(MutationTypes.RESET_MFA_LICENSEE_ACCOUNT_FAILURE, error);
+    },
 };

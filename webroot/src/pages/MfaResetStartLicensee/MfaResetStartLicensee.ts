@@ -17,7 +17,7 @@ import {
     ComputedRef,
     nextTick
 } from 'vue';
-import { stateList, dateFormatPatterns } from '@/app.config';
+import { stateList, dateFormatPatterns, AuthTypes } from '@/app.config';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import Section from '@components/Section/Section.vue';
 import Card from '@components/Card/Card.vue';
@@ -157,6 +157,24 @@ class MfaResetStartLicensee extends mixins(MixinForm) {
         }
 
         return formattedDob;
+    }
+
+    get hostedForgotPasswordUriLicensee(): string {
+        const { domain, cognitoAuthDomainLicensee, cognitoClientIdLicensee } = this.$envConfig;
+        const loginScopes = 'email openid phone profile aws.cognito.signin.user.admin';
+        const loginResponseType = 'code';
+        const loginRedirectPath = '/auth/callback';
+        const forgotPasswordUriQuery = [
+            `?client_id=${cognitoClientIdLicensee}`,
+            `&response_type=${loginResponseType}`,
+            `&scope=${encodeURIComponent(loginScopes)}`,
+            `&state=${AuthTypes.LICENSEE}`,
+            `&redirect_uri=${encodeURIComponent(`${domain}${loginRedirectPath}`)}`,
+        ].join('');
+        const idpPath = '/forgotPassword';
+        const forgotPasswordUri = `${cognitoAuthDomainLicensee}${idpPath}${forgotPasswordUriQuery}`;
+
+        return forgotPasswordUri;
     }
 
     //
@@ -308,17 +326,16 @@ class MfaResetStartLicensee extends mixins(MixinForm) {
             } else if (reenterPassword?.value) {
                 this.handleExtraFields();
             } else {
-                const data = this.prepRequestData();
+                const data = this.prepRequestData(compact);
 
                 await this.handleRecaptcha(data).catch(() => {
                     this.setError(this.$t('account.requestErrorRecaptcha'));
                 });
 
                 if (!this.isFormError) {
-                    // await this.$store.dispatch('user/createLicenseeAccountRequest', { compact, data }).catch((err) => {
-                    //     this.handleErrorResponse(err);
-                    // });
-                    console.log({ compact, ...data });
+                    await this.$store.dispatch('user/resetMfaLicenseeAccountRequest', { data }).catch((err) => {
+                        this.handleErrorResponse(err);
+                    });
                 }
             }
 
@@ -355,7 +372,7 @@ class MfaResetStartLicensee extends mixins(MixinForm) {
         this.endFormLoading();
     }
 
-    prepRequestData(): object {
+    prepRequestData(compact: string): object {
         const {
             firstName,
             lastName,
@@ -364,16 +381,19 @@ class MfaResetStartLicensee extends mixins(MixinForm) {
             dob,
             licenseState,
             licenseType,
+            password
         } = this.formValues;
 
         return {
+            compact,
             givenName: firstName,
             familyName: lastName,
-            email,
+            username: email,
             partialSocial: ssnLastFour,
             dob,
             jurisdiction: licenseState,
             licenseType,
+            password,
         };
     }
 
@@ -392,7 +412,7 @@ class MfaResetStartLicensee extends mixins(MixinForm) {
                 });
             }).catch((err) => { throw err; });
 
-            data.token = recaptchaToken;
+            data.recaptchaToken = recaptchaToken;
         }
     }
 
@@ -443,8 +463,14 @@ class MfaResetStartLicensee extends mixins(MixinForm) {
         this.formData.dob.value = '2000-01-01';
         this.formData.licenseState.value = this.stateOptions[1]?.value || 'co';
         this.formData.licenseType.value = this.licenseTypeOptions[1]?.value || 'audiologist';
+        this.formData.password.value = 'example.com';
         await nextTick();
         this.validateAll({ asTouched: true });
+
+        if (this.isFormValid) {
+            await nextTick();
+            this.scrollIntoView(this.formData.handleSubmitInitial.id);
+        }
     }
 
     //

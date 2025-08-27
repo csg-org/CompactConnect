@@ -972,6 +972,7 @@
         "resetAccountEmailSubtext": "This email address is where we will send information regarding your account. It must match the <em>exact email</em> used in your existing account.",
         "resetAccountPasswordSubtext": "This password must match the <em>exact password</em> used in your existing account.",
         "resetAccountForgotPassword": "Forgot your password?",
+        "resetAccountSummary": "Reset account summary",
         "resetAccountSummarySubtext": "Here is the information you submitted for your account reset. If your information does not match exactly with the information in our system, the account reset will not be successful."
     },
     "recaptcha": {

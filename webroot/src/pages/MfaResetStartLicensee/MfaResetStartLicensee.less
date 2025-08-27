@@ -73,6 +73,10 @@
                 &.license-type-value {
                     text-transform: capitalize;
                 }
+
+                &.placeholder {
+                    font-style: italic;
+                }
             }
         }
 
@@ -116,9 +120,17 @@
         font-size: 1.2rem;
     }
 
-    .input-submit:deep(.input-submit) {
+    .forgot-password-container {
+        margin-top: 1.2rem;
+
+        .forgot-password-link {
+            font-weight: @fontWeightBold;
+            font-size: @fontSize;
+        }
+    }
+
+    .continue-button:deep(.input-submit) {
         width: 100%;
-        margin-top: 1.8rem;
     }
 
     .mfa-reset-licensee-success-container {

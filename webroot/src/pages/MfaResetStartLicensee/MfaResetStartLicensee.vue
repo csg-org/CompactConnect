@@ -67,12 +67,21 @@
                             <div class="input-email-subtext" v-html="$t('account.resetAccountEmailSubtext')" />
                             <InputPassword
                                 :formInput="formData.password"
-                                :joiMessages="{}"
+                                :joiMessages="joiMessages"
                                 :showEyeIcon="true"
                                 :showRequirements="false"
                                 class="input-password-component"
                             />
                             <div class="input-password-subtext" v-html="$t('account.resetAccountPasswordSubtext')" />
+                            <div class="forgot-password-container">
+                                <a
+                                    :href="hostedForgotPasswordUriLicensee"
+                                    class="forgot-password-link"
+                                    rel="noopener noreferrer"
+                                >
+                                    {{ $t('account.resetAccountForgotPassword') }}
+                                </a>
+                            </div>
                             <label ref="reenterPassword">
                                 {{ $t('common.password') }}
                                 <input
@@ -96,12 +105,12 @@
                         </div>
                         <div v-else class="mfa-reset-licensee-summary-container">
                             <h1 class="mfa-reset-licensee-title summary-title" id="summary-heading">
-                                {{ $t('account.accountSummary') }}
+                                {{ $t('account.resetAccountSummary') }}
                             </h1>
                             <section role="region" aria-labelledby="summary-heading">
                                 <div
                                     class="mfa-reset-licensee-subtext summary-subtext"
-                                    v-html="$t('account.accountSummarySubtext')"
+                                    v-html="$t('account.resetAccountSummarySubtext')"
                                 />
                                 <div class="mfa-reset-licensee-summary-row">
                                     <div class="mfa-reset-licensee-summary-row-label">
@@ -157,6 +166,14 @@
                                     </div>
                                     <div class="mfa-reset-licensee-summary-row-value">
                                         {{ formattedDob }}
+                                    </div>
+                                </div>
+                                <div class="mfa-reset-licensee-summary-row">
+                                    <div class="mfa-reset-licensee-summary-row-label">
+                                        {{ $t('common.password') }}
+                                    </div>
+                                    <div class="mfa-reset-licensee-summary-row-value placeholder">
+                                        Hidden for security
                                     </div>
                                 </div>
                                 <div class="mfa-reset-licensee-summary-row-button-container">

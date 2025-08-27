@@ -956,6 +956,7 @@
         "resetAccountEmailSubtext": "Esta dirección de correo electrónico es a la que le enviaremos información sobre su cuenta. Debe coincidir <em>exactamente con la dirección de correo electrónico</em> que utiliza en su cuenta actual.",
         "resetAccountPasswordSubtext": "Esta contraseña debe coincidir con la <em>contraseña exacta</em> utilizada en su cuenta existente.",
         "resetAccountForgotPassword": "¿Olvidaste tu contraseña?",
+        "resetAccountSummary": "Restablecer resumen de cuenta",
         "resetAccountSummarySubtext": "Aquí está la información que envió para restablecer su cuenta. Si su información no coincide exactamente con la de nuestro sistema, el restablecimiento no se realizará correctamente."
     },
     "privacyPolicy": {

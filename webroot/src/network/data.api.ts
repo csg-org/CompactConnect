@@ -514,6 +514,15 @@ export class DataApi {
         return userDataApi.getPrivilegeHistoryLicensee(jurisdiction, licenseTypeAbbrev);
     }
 
+    /**
+     * POST Reset MFA Request for Licensee Account.
+     * @param  {object}          data The user request data.
+     * @return {Promise<object>}      The server response.
+     */
+    public resetMfaLicenseeAccount(data: object) {
+        return userDataApi.resetMfaLicenseeAccount(data);
+    }
+
     // ========================================================================
     //                              EXAMPLE API
     // ========================================================================
