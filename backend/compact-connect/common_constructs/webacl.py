@@ -163,7 +163,19 @@ class WebACLRules:
             priority=2,
             statement=CfnWebACL.StatementProperty(
                 managed_rule_group_statement=CfnWebACL.ManagedRuleGroupStatementProperty(
-                    name='AWSManagedRulesCommonRuleSet', vendor_name='AWS'
+                    name='AWSManagedRulesCommonRuleSet',
+                    vendor_name='AWS',
+                    rule_action_overrides=[
+                        # This common rule set blocks request bodies over 16kb by default, which is much smaller than
+                        # our synchronous license upload endpoint is intended to support (100 license records per
+                        # requests averages around 70kb),
+                        # We manage request body schema and size validation at the API Gateway and lambda levels, so we
+                        # override this rule to count requests with large request bodies rather than blocking them.
+                        CfnWebACL.RuleActionOverrideProperty(
+                            name='SizeRestrictions_BODY',
+                            action_to_use=CfnWebACL.RuleActionProperty(count=CfnWebACL.CountActionProperty()),
+                        )
+                    ],
                 )
             ),
             visibility_config=CfnWebACL.VisibilityConfigProperty(

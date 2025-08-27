@@ -2998,3 +2998,74 @@ class DataClient:
         except ClientError as e:
             logger.error('Failed to complete provider email update transaction', error=str(e))
             raise CCAwsServiceException('Failed to complete provider email update') from e
+
+    @logger_inject_kwargs(logger, 'compact', 'provider_id')
+    def update_provider_account_recovery_data(
+        self,
+        *,
+        compact: str,
+        provider_id: str,
+        recovery_token: str,
+        recovery_expiry: datetime,
+    ) -> None:
+        """
+        Update the provider record with MFA account recovery data (UUID and expiry).
+
+        :param compact: The compact name
+        :param provider_id: The provider ID
+        :param recovery_token: The recovery UUID to store
+        :param recovery_expiry: The expiration datetime of the recovery UUID
+        """
+        logger.info('Updating provider account recovery data')
+
+        try:
+            self.config.provider_table.update_item(
+                Key={'pk': f'{compact}#PROVIDER#{provider_id}', 'sk': f'{compact}#PROVIDER'},
+                UpdateExpression=(
+                    'SET recoveryToken = :recovery_token, '
+                    'recoveryExpiry = :recovery_expiry, '
+                    'dateOfUpdate = :date_of_update'
+                ),
+                ExpressionAttributeValues={
+                    ':recovery_token': recovery_token,
+                    ':recovery_expiry': recovery_expiry.isoformat(),
+                    ':date_of_update': self.config.current_standard_datetime.isoformat(),
+                },
+                ConditionExpression='attribute_exists(pk)',
+            )
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
+                logger.error('Provider not found when updating account recovery data', error=str(e))
+                raise CCInternalException('Provider not found') from e
+            logger.error('Failed to update provider account recovery data', error=str(e))
+            raise CCAwsServiceException('Failed to update provider account recovery data') from e
+
+    @logger_inject_kwargs(logger, 'compact', 'provider_id')
+    def clear_provider_account_recovery_data(
+        self,
+        *,
+        compact: str,
+        provider_id: str,
+    ) -> None:
+        """
+        Clear account recovery data from the provider record.
+
+        :param compact: The compact name
+        :param provider_id: The provider ID
+        """
+        logger.info('Clearing provider account recovery data')
+
+        try:
+            self.config.provider_table.update_item(
+                Key={'pk': f'{compact}#PROVIDER#{provider_id}', 'sk': f'{compact}#PROVIDER'},
+                UpdateExpression=('REMOVE recoveryToken, recoveryExpiry SET dateOfUpdate = :date_of_update'),
+                ExpressionAttributeValues={
+                    ':date_of_update': self.config.current_standard_datetime.isoformat(),
+                },
+                ConditionExpression='attribute_exists(pk)',
+            )
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
+                raise CCInternalException('Provider not found') from e
+            logger.error('Failed to clear provider account recovery data', error=str(e))
+            raise CCInternalException('Failed to clear provider account recovery data') from e

@@ -1,4 +1,5 @@
 import json
+import time
 from collections import UserDict
 from collections.abc import Callable
 from datetime import date
@@ -10,6 +11,9 @@ from types import MethodType
 from typing import Any
 from uuid import UUID
 
+import requests
+from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError
 from aws_lambda_powertools import Logger
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
@@ -22,6 +26,7 @@ from cc_common.data_model.schema.provider.api import ProviderGeneralResponseSche
 from cc_common.exceptions import (
     CCAccessDeniedException,
     CCInternalException,
+    CCInvalidRequestCustomResponseException,
     CCInvalidRequestException,
     CCNotFoundException,
     CCRateLimitingException,
@@ -163,6 +168,13 @@ def api_handler(fn: Callable):
                     'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
                     'statusCode': 429,
                     'body': json.dumps({'message': e.message}),
+                }
+            except CCInvalidRequestCustomResponseException as e:
+                logger.info('Invalid request with custom response')
+                return {
+                    'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
+                    'statusCode': 400,
+                    'body': json.dumps(e.response_body, cls=ResponseEncoder),
                 }
             except CCInvalidRequestException as e:
                 logger.info('Invalid request', exc_info=e)
@@ -446,6 +458,44 @@ def sqs_handler(fn: Callable):
         return {'batchItemFailures': batch_failures}
 
     return process_messages
+
+
+def delayed_function(delay_seconds: float):
+    """
+    Delay the result of the decorated function by the specified number of seconds.
+
+    This decorator ensures consistent response times for security-sensitive endpoints,
+    helping to prevent timing attacks by making all responses take the same amount of time
+    regardless of the execution path taken.
+
+    :param float delay_seconds: The minimum number of seconds the function should take to return
+    """
+
+    def decorator(fn: Callable):
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            start_time = time.time()
+            try:
+                result = fn(*args, **kwargs)
+            except Exception as e:
+                # Even if an exception occurs, we still need to maintain consistent timing
+                elapsed_time = time.time() - start_time
+                remaining_time = delay_seconds - elapsed_time
+                if remaining_time > 0:
+                    time.sleep(remaining_time)
+                raise e
+
+            # Calculate how much time has elapsed and sleep for the remainder
+            elapsed_time = time.time() - start_time
+            remaining_time = delay_seconds - elapsed_time
+            if remaining_time > 0:
+                time.sleep(remaining_time)
+
+            return result
+
+        return wrapper
+
+    return decorator
 
 
 def get_allowed_jurisdictions(*, compact: str, scopes: set[str]) -> list[str] | None:
@@ -769,3 +819,86 @@ def get_provider_user_attributes_from_authorizer_claims(event: dict) -> tuple[st
         raise CCInvalidRequestException('Missing required user profile attribute') from e
 
     return compact, provider_id
+
+
+# Module level variable for caching
+_RECAPTCHA_SECRET = None
+
+
+def _get_recaptcha_secret() -> str:
+    """Get the reCAPTCHA secret from Secrets Manager with module-level caching."""
+    global _RECAPTCHA_SECRET
+    if _RECAPTCHA_SECRET is None:
+        logger.info('Loading reCAPTCHA secret')
+        try:
+            _RECAPTCHA_SECRET = json.loads(
+                config.secrets_manager_client.get_secret_value(
+                    SecretId=f'compact-connect/env/{config.environment_name}/recaptcha/token'
+                )['SecretString']
+            )['token']
+        except Exception as e:
+            logger.error('Failed to load reCAPTCHA secret', error=str(e))
+            raise CCInternalException('Failed to load reCAPTCHA secret') from e
+    return _RECAPTCHA_SECRET
+
+
+def verify_recaptcha(token: str) -> bool:
+    """Verify the reCAPTCHA token with Google's API."""
+
+    # Sandbox environments don't always have recaptcha configured, but our persistent environments
+    # do. This checks if we are running in a sandbox environment. Else we call the Google verification endpoint
+    if config.environment_name.lower() not in ['test', 'beta', 'prod']:
+        return True
+
+    try:
+        response = requests.post(
+            'https://www.google.com/recaptcha/api/siteverify',
+            data={
+                'secret': _get_recaptcha_secret(),
+                'response': token,
+            },
+            timeout=5,
+        )
+        return response.json().get('success', False)
+    except ClientError as e:
+        logger.error('Failed to verify reCAPTCHA token', error=str(e))
+        return False
+
+
+# Module level PasswordHasher instance for password/token hashing
+_password_hasher = PasswordHasher()
+
+
+def hash_password(password: str) -> str:
+    """
+    Hash a password or sensitive token using Argon2.
+
+    Uses the argon2-cffi library with recommended parameters for secure password hashing.
+    This provides protection against brute force and password hash recovery attacks
+    as required by OWASP ASVS v3.0 requirement 2.13.
+
+    :param str password: The plaintext password or token to hash
+    :return: The Argon2 hash string
+    :rtype: str
+    """
+    return _password_hasher.hash(password)
+
+
+def verify_password(hashed_password: str, password: str) -> bool:
+    """
+    Verify a plaintext password against an Argon2 hash.
+
+    :param str hashed_password: The Argon2 hash to verify against
+    :param str password: The plaintext password to verify
+    :return: True if password matches the hash, False otherwise
+    :rtype: bool
+    """
+    try:
+        _password_hasher.verify(hashed_password, password)
+        return True
+    except VerifyMismatchError:
+        # This is expected when passwords don't match
+        return False
+    except Exception as e:
+        logger.error('Failed to verify password', error=str(e))
+        raise CCInternalException('Failed to verify password') from e

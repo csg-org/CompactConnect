@@ -343,6 +343,20 @@ export class Lambda implements LambdaInterface {
                 event.templateVariables.newEmailAddress
             );
             break;
+        case 'providerAccountRecoveryConfirmation':
+            if (!event.specificEmails?.length) {
+                throw new Error('No recipients found for provider account recovery confirmation email');
+            }
+            if (!event.templateVariables?.providerId || !event.templateVariables?.recoveryToken) {
+                throw new Error('Missing required template variables for providerAccountRecoveryConfirmation template');
+            }
+            await this.emailService.sendProviderAccountRecoveryConfirmationEmail(
+                event.compact,
+                event.specificEmails,
+                event.templateVariables.providerId,
+                event.templateVariables.recoveryToken
+            );
+            break;
         default:
             logger.info('Unsupported email template provided', { template: event.template });
             throw new Error(`Unsupported email template: ${event.template}`);

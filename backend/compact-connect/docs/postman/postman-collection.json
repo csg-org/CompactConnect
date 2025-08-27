@@ -10,7 +10,7 @@
         "type": "bearer"
     },
     "info": {
-        "_postman_id": "32733100-2ef2-487f-8607-bd7ba1996448",
+        "_postman_id": "c1f9bd3b-cf12-4a12-980c-158a958f198b",
         "description": {
             "content": "",
             "type": "text/plain"
@@ -410,7 +410,7 @@
                                                     "item": [
                                                         {
                                                             "event": [],
-                                                            "id": "2e59c634-83ec-4c20-9553-4fcce7ee9811",
+                                                            "id": "4d68c1e9-eda2-4acd-8039-213d93fef33b",
                                                             "name": "/v1/compacts/:compact/jurisdictions/:jurisdiction/licenses",
                                                             "protocolProfileBehavior": {
                                                                 "disableBodyPruning": true
@@ -424,7 +424,7 @@
                                                                             "language": "json"
                                                                         }
                                                                     },
-                                                                    "raw": "[\n  {\n    \"compactEligibility\": \"ineligible\",\n    \"dateOfBirth\": \"1661-08-10\",\n    \"dateOfExpiration\": \"1315-11-24\",\n    \"dateOfIssuance\": \"1524-03-31\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeAddressCity\": \"<string>\",\n    \"homeAddressPostalCode\": \"<string>\",\n    \"homeAddressState\": \"<string>\",\n    \"homeAddressStreet1\": \"<string>\",\n    \"licenseStatus\": \"active\",\n    \"licenseType\": \"occupational therapy assistant\",\n    \"ssn\": \"614-37-4710\",\n    \"homeAddressStreet2\": \"<string>\",\n    \"npi\": \"2193286939\",\n    \"suffix\": \"<string>\",\n    \"emailAddress\": \"<email>\",\n    \"phoneNumber\": \"+992065885224415\",\n    \"dateOfRenewal\": \"1612-12-13\",\n    \"licenseNumber\": \"<string>\",\n    \"middleName\": \"<string>\",\n    \"licenseStatusName\": \"<string>\"\n  },\n  {\n    \"compactEligibility\": \"ineligible\",\n    \"dateOfBirth\": \"1811-10-31\",\n    \"dateOfExpiration\": \"2041-11-30\",\n    \"dateOfIssuance\": \"1805-03-30\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeAddressCity\": \"<string>\",\n    \"homeAddressPostalCode\": \"<string>\",\n    \"homeAddressState\": \"<string>\",\n    \"homeAddressStreet1\": \"<string>\",\n    \"licenseStatus\": \"inactive\",\n    \"licenseType\": \"occupational therapist\",\n    \"ssn\": \"737-52-6548\",\n    \"homeAddressStreet2\": \"<string>\",\n    \"npi\": \"2781148506\",\n    \"suffix\": \"<string>\",\n    \"emailAddress\": \"<email>\",\n    \"phoneNumber\": \"+749138880424\",\n    \"dateOfRenewal\": \"1256-10-31\",\n    \"licenseNumber\": \"<string>\",\n    \"middleName\": \"<string>\",\n    \"licenseStatusName\": \"<string>\"\n  }\n]"
+                                                                    "raw": "[\n  {\n    \"compactEligibility\": \"eligible\",\n    \"dateOfBirth\": \"2192-02-30\",\n    \"dateOfExpiration\": \"1977-02-08\",\n    \"dateOfIssuance\": \"2152-12-31\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeAddressCity\": \"<string>\",\n    \"homeAddressPostalCode\": \"<string>\",\n    \"homeAddressState\": \"<string>\",\n    \"homeAddressStreet1\": \"<string>\",\n    \"licenseStatus\": \"active\",\n    \"licenseType\": \"occupational therapist\",\n    \"ssn\": \"069-16-9593\",\n    \"homeAddressStreet2\": \"<string>\",\n    \"npi\": \"0509018048\",\n    \"suffix\": \"<string>\",\n    \"emailAddress\": \"<email>\",\n    \"phoneNumber\": \"+12593907635130\",\n    \"dateOfRenewal\": \"1588-10-09\",\n    \"licenseNumber\": \"<string>\",\n    \"middleName\": \"<string>\",\n    \"licenseStatusName\": \"<string>\"\n  },\n  {\n    \"compactEligibility\": \"ineligible\",\n    \"dateOfBirth\": \"2083-08-31\",\n    \"dateOfExpiration\": \"1249-07-31\",\n    \"dateOfIssuance\": \"1660-08-09\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeAddressCity\": \"<string>\",\n    \"homeAddressPostalCode\": \"<string>\",\n    \"homeAddressState\": \"<string>\",\n    \"homeAddressStreet1\": \"<string>\",\n    \"licenseStatus\": \"inactive\",\n    \"licenseType\": \"occupational therapy assistant\",\n    \"ssn\": \"506-91-0502\",\n    \"homeAddressStreet2\": \"<string>\",\n    \"npi\": \"9803058672\",\n    \"suffix\": \"<string>\",\n    \"emailAddress\": \"<email>\",\n    \"phoneNumber\": \"+604983812419\",\n    \"dateOfRenewal\": \"1252-05-30\",\n    \"licenseNumber\": \"<string>\",\n    \"middleName\": \"<string>\",\n    \"licenseStatusName\": \"<string>\"\n  }\n]"
                                                                 },
                                                                 "description": {},
                                                                 "header": [
@@ -488,7 +488,7 @@
                                                                             "value": "application/json"
                                                                         }
                                                                     ],
-                                                                    "id": "906bb132-d9b4-4443-bb0f-4bb4c5c6b684",
+                                                                    "id": "27410941-24fe-4339-bc08-baeaa2babce0",
                                                                     "name": "200 response",
                                                                     "originalRequest": {
                                                                         "body": {
@@ -499,7 +499,7 @@
                                                                                     "language": "json"
                                                                                 }
                                                                             },
-                                                                            "raw": "[\n  {\n    \"compactEligibility\": \"ineligible\",\n    \"dateOfBirth\": \"1661-08-10\",\n    \"dateOfExpiration\": \"1315-11-24\",\n    \"dateOfIssuance\": \"1524-03-31\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeAddressCity\": \"<string>\",\n    \"homeAddressPostalCode\": \"<string>\",\n    \"homeAddressState\": \"<string>\",\n    \"homeAddressStreet1\": \"<string>\",\n    \"licenseStatus\": \"active\",\n    \"licenseType\": \"occupational therapy assistant\",\n    \"ssn\": \"614-37-4710\",\n    \"homeAddressStreet2\": \"<string>\",\n    \"npi\": \"2193286939\",\n    \"suffix\": \"<string>\",\n    \"emailAddress\": \"<email>\",\n    \"phoneNumber\": \"+992065885224415\",\n    \"dateOfRenewal\": \"1612-12-13\",\n    \"licenseNumber\": \"<string>\",\n    \"middleName\": \"<string>\",\n    \"licenseStatusName\": \"<string>\"\n  },\n  {\n    \"compactEligibility\": \"ineligible\",\n    \"dateOfBirth\": \"1811-10-31\",\n    \"dateOfExpiration\": \"2041-11-30\",\n    \"dateOfIssuance\": \"1805-03-30\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeAddressCity\": \"<string>\",\n    \"homeAddressPostalCode\": \"<string>\",\n    \"homeAddressState\": \"<string>\",\n    \"homeAddressStreet1\": \"<string>\",\n    \"licenseStatus\": \"inactive\",\n    \"licenseType\": \"occupational therapist\",\n    \"ssn\": \"737-52-6548\",\n    \"homeAddressStreet2\": \"<string>\",\n    \"npi\": \"2781148506\",\n    \"suffix\": \"<string>\",\n    \"emailAddress\": \"<email>\",\n    \"phoneNumber\": \"+749138880424\",\n    \"dateOfRenewal\": \"1256-10-31\",\n    \"licenseNumber\": \"<string>\",\n    \"middleName\": \"<string>\",\n    \"licenseStatusName\": \"<string>\"\n  }\n]"
+                                                                            "raw": "[\n  {\n    \"compactEligibility\": \"eligible\",\n    \"dateOfBirth\": \"2192-02-30\",\n    \"dateOfExpiration\": \"1977-02-08\",\n    \"dateOfIssuance\": \"2152-12-31\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeAddressCity\": \"<string>\",\n    \"homeAddressPostalCode\": \"<string>\",\n    \"homeAddressState\": \"<string>\",\n    \"homeAddressStreet1\": \"<string>\",\n    \"licenseStatus\": \"active\",\n    \"licenseType\": \"occupational therapist\",\n    \"ssn\": \"069-16-9593\",\n    \"homeAddressStreet2\": \"<string>\",\n    \"npi\": \"0509018048\",\n    \"suffix\": \"<string>\",\n    \"emailAddress\": \"<email>\",\n    \"phoneNumber\": \"+12593907635130\",\n    \"dateOfRenewal\": \"1588-10-09\",\n    \"licenseNumber\": \"<string>\",\n    \"middleName\": \"<string>\",\n    \"licenseStatusName\": \"<string>\"\n  },\n  {\n    \"compactEligibility\": \"ineligible\",\n    \"dateOfBirth\": \"2083-08-31\",\n    \"dateOfExpiration\": \"1249-07-31\",\n    \"dateOfIssuance\": \"1660-08-09\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeAddressCity\": \"<string>\",\n    \"homeAddressPostalCode\": \"<string>\",\n    \"homeAddressState\": \"<string>\",\n    \"homeAddressStreet1\": \"<string>\",\n    \"licenseStatus\": \"inactive\",\n    \"licenseType\": \"occupational therapy assistant\",\n    \"ssn\": \"506-91-0502\",\n    \"homeAddressStreet2\": \"<string>\",\n    \"npi\": \"9803058672\",\n    \"suffix\": \"<string>\",\n    \"emailAddress\": \"<email>\",\n    \"phoneNumber\": \"+604983812419\",\n    \"dateOfRenewal\": \"1252-05-30\",\n    \"licenseNumber\": \"<string>\",\n    \"middleName\": \"<string>\",\n    \"licenseStatusName\": \"<string>\"\n  }\n]"
                                                                         },
                                                                         "header": [
                                                                             {
@@ -537,6 +537,67 @@
                                                                         }
                                                                     },
                                                                     "status": "OK"
+                                                                },
+                                                                {
+                                                                    "_postman_previewlanguage": "json",
+                                                                    "body": "{\n  \"message\": \"<string>\",\n  \"errors\": {\n    \"cupidatatb\": {\n      \"dolore5\": [\n        \"<string>\",\n        \"<string>\"\n      ]\n    },\n    \"laboris6\": {\n      \"enimdb\": [\n        \"<string>\",\n        \"<string>\"\n      ]\n    }\n  }\n}",
+                                                                    "code": 400,
+                                                                    "cookie": [],
+                                                                    "header": [
+                                                                        {
+                                                                            "key": "Content-Type",
+                                                                            "value": "application/json"
+                                                                        }
+                                                                    ],
+                                                                    "id": "f10f3ebe-d139-40d0-bc93-f9be6256fadc",
+                                                                    "name": "400 response",
+                                                                    "originalRequest": {
+                                                                        "body": {
+                                                                            "mode": "raw",
+                                                                            "options": {
+                                                                                "raw": {
+                                                                                    "headerFamily": "json",
+                                                                                    "language": "json"
+                                                                                }
+                                                                            },
+                                                                            "raw": "[\n  {\n    \"compactEligibility\": \"eligible\",\n    \"dateOfBirth\": \"2192-02-30\",\n    \"dateOfExpiration\": \"1977-02-08\",\n    \"dateOfIssuance\": \"2152-12-31\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeAddressCity\": \"<string>\",\n    \"homeAddressPostalCode\": \"<string>\",\n    \"homeAddressState\": \"<string>\",\n    \"homeAddressStreet1\": \"<string>\",\n    \"licenseStatus\": \"active\",\n    \"licenseType\": \"occupational therapist\",\n    \"ssn\": \"069-16-9593\",\n    \"homeAddressStreet2\": \"<string>\",\n    \"npi\": \"0509018048\",\n    \"suffix\": \"<string>\",\n    \"emailAddress\": \"<email>\",\n    \"phoneNumber\": \"+12593907635130\",\n    \"dateOfRenewal\": \"1588-10-09\",\n    \"licenseNumber\": \"<string>\",\n    \"middleName\": \"<string>\",\n    \"licenseStatusName\": \"<string>\"\n  },\n  {\n    \"compactEligibility\": \"ineligible\",\n    \"dateOfBirth\": \"2083-08-31\",\n    \"dateOfExpiration\": \"1249-07-31\",\n    \"dateOfIssuance\": \"1660-08-09\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeAddressCity\": \"<string>\",\n    \"homeAddressPostalCode\": \"<string>\",\n    \"homeAddressState\": \"<string>\",\n    \"homeAddressStreet1\": \"<string>\",\n    \"licenseStatus\": \"inactive\",\n    \"licenseType\": \"occupational therapy assistant\",\n    \"ssn\": \"506-91-0502\",\n    \"homeAddressStreet2\": \"<string>\",\n    \"npi\": \"9803058672\",\n    \"suffix\": \"<string>\",\n    \"emailAddress\": \"<email>\",\n    \"phoneNumber\": \"+604983812419\",\n    \"dateOfRenewal\": \"1252-05-30\",\n    \"licenseNumber\": \"<string>\",\n    \"middleName\": \"<string>\",\n    \"licenseStatusName\": \"<string>\"\n  }\n]"
+                                                                        },
+                                                                        "header": [
+                                                                            {
+                                                                                "key": "Content-Type",
+                                                                                "value": "application/json"
+                                                                            },
+                                                                            {
+                                                                                "key": "Accept",
+                                                                                "value": "application/json"
+                                                                            },
+                                                                            {
+                                                                                "description": {
+                                                                                    "content": "Added as a part of security scheme: apikey",
+                                                                                    "type": "text/plain"
+                                                                                },
+                                                                                "key": "Authorization",
+                                                                                "value": "<API Key>"
+                                                                            }
+                                                                        ],
+                                                                        "method": "POST",
+                                                                        "url": {
+                                                                            "host": [
+                                                                                "{{baseUrl}}"
+                                                                            ],
+                                                                            "path": [
+                                                                                "v1",
+                                                                                "compacts",
+                                                                                ":compact",
+                                                                                "jurisdictions",
+                                                                                ":jurisdiction",
+                                                                                "licenses"
+                                                                            ],
+                                                                            "query": [],
+                                                                            "variable": []
+                                                                        }
+                                                                    },
+                                                                    "status": "Bad Request"
                                                                 }
                                                             ]
                                                         },
@@ -570,7 +631,7 @@
                                                                             }
                                                                         }
                                                                     ],
-                                                                    "id": "507f8af4-8ddc-4282-b68a-9a7f7d4da2a7",
+                                                                    "id": "cad51da7-deb1-493b-b8bb-a24609349d32",
                                                                     "name": "/v1/compacts/:compact/jurisdictions/:jurisdiction/licenses/bulk-upload",
                                                                     "protocolProfileBehavior": {
                                                                         "disableBodyPruning": true
@@ -627,7 +688,7 @@
                                                                     "response": [
                                                                         {
                                                                             "_postman_previewlanguage": "json",
-                                                                            "body": "{\n  \"upload\": {\n    \"fields\": {\n      \"deseruntc\": \"<string>\",\n      \"nostrud5\": \"<string>\"\n    },\n    \"url\": \"<string>\"\n  }\n}",
+                                                                            "body": "{\n  \"upload\": {\n    \"fields\": {\n      \"ea_8\": \"<string>\",\n      \"sed_6e4\": \"<string>\",\n      \"incididuntd17\": \"<string>\"\n    },\n    \"url\": \"<string>\"\n  }\n}",
                                                                             "code": 200,
                                                                             "cookie": [],
                                                                             "header": [
@@ -636,7 +697,7 @@
                                                                                     "value": "application/json"
                                                                                 }
                                                                             ],
-                                                                            "id": "52c31520-bf40-460f-a0f8-648994ea8f57",
+                                                                            "id": "4ae436f5-a666-45d7-8b6a-8cdc99babc97",
                                                                             "name": "200 response",
                                                                             "originalRequest": {
                                                                                 "body": {},
@@ -690,7 +751,7 @@
                                                             "item": [
                                                                 {
                                                                     "event": [],
-                                                                    "id": "9c07bf08-5af8-489d-99b3-8e85699e2550",
+                                                                    "id": "6f15505f-529b-4bf0-b735-3743e38f8a1f",
                                                                     "name": "/v1/compacts/:compact/jurisdictions/:jurisdiction/providers/query",
                                                                     "protocolProfileBehavior": {
                                                                         "disableBodyPruning": true
@@ -704,7 +765,7 @@
                                                                                     "language": "json"
                                                                                 }
                                                                             },
-                                                                            "raw": "{\n  \"query\": {\n    \"endDateTime\": \"1385-11-25T20:32:44Z\",\n    \"startDateTime\": \"2961-12-31T23:19:36.438Z\"\n  },\n  \"pagination\": {\n    \"lastKey\": \"<string>\",\n    \"pageSize\": \"<integer>\"\n  },\n  \"sorting\": {\n    \"direction\": \"descending\"\n  }\n}"
+                                                                            "raw": "{\n  \"query\": {\n    \"endDateTime\": \"1756-10-30T01:50:40.2Z\",\n    \"startDateTime\": \"2702-03-31T21:18:38.676Z\"\n  },\n  \"pagination\": {\n    \"lastKey\": \"<string>\",\n    \"pageSize\": \"<integer>\"\n  },\n  \"sorting\": {\n    \"direction\": \"ascending\"\n  }\n}"
                                                                         },
                                                                         "description": {},
                                                                         "header": [
@@ -760,7 +821,7 @@
                                                                     "response": [
                                                                         {
                                                                             "_postman_previewlanguage": "json",
-                                                                            "body": "{\n  \"pagination\": {\n    \"prevLastKey\": {},\n    \"lastKey\": {},\n    \"pageSize\": \"<integer>\"\n  },\n  \"providers\": [\n    {\n      \"birthMonthDay\": \"00-39\",\n      \"compact\": \"coun\",\n      \"compactEligibility\": \"ineligible\",\n      \"dateOfExpiration\": \"1013-11-14\",\n      \"dateOfUpdate\": \"2801-07-31\",\n      \"familyName\": \"<string>\",\n      \"givenName\": \"<string>\",\n      \"jurisdictionUploadedCompactEligibility\": \"ineligible\",\n      \"jurisdictionUploadedLicenseStatus\": \"active\",\n      \"licenseJurisdiction\": \"mn\",\n      \"licenseStatus\": \"active\",\n      \"privilegeJurisdictions\": [\n        \"ga\",\n        \"ne\"\n      ],\n      \"providerId\": \"b811b740-8f9a-4796-9ae4-aca5f982699c\",\n      \"type\": \"provider\",\n      \"npi\": \"3707177178\",\n      \"dateOfBirth\": \"2184-12-30\",\n      \"suffix\": \"<string>\",\n      \"ssnLastFour\": \"7953\",\n      \"middleName\": \"<string>\",\n      \"compactConnectRegisteredEmailAddress\": \"<email>\"\n    },\n    {\n      \"birthMonthDay\": \"02-29\",\n      \"compact\": \"aslp\",\n      \"compactEligibility\": \"eligible\",\n      \"dateOfExpiration\": \"2741-03-02\",\n      \"dateOfUpdate\": \"2776-07-01\",\n      \"familyName\": \"<string>\",\n      \"givenName\": \"<string>\",\n      \"jurisdictionUploadedCompactEligibility\": \"ineligible\",\n      \"jurisdictionUploadedLicenseStatus\": \"inactive\",\n      \"licenseJurisdiction\": \"wa\",\n      \"licenseStatus\": \"active\",\n      \"privilegeJurisdictions\": [\n        \"pr\",\n        \"wv\"\n      ],\n      \"providerId\": \"cf27bf1e-fe35-4e90-bd8e-2ed08d7e6f6c\",\n      \"type\": \"provider\",\n      \"npi\": \"8073837491\",\n      \"dateOfBirth\": \"1640-12-02\",\n      \"suffix\": \"<string>\",\n      \"ssnLastFour\": \"9361\",\n      \"middleName\": \"<string>\",\n      \"compactConnectRegisteredEmailAddress\": \"<email>\"\n    }\n  ],\n  \"sorting\": {\n    \"direction\": \"ascending\"\n  }\n}",
+                                                                            "body": "{\n  \"pagination\": {\n    \"prevLastKey\": {},\n    \"lastKey\": {},\n    \"pageSize\": \"<integer>\"\n  },\n  \"providers\": [\n    {\n      \"birthMonthDay\": \"12-14\",\n      \"compact\": \"octp\",\n      \"compactEligibility\": \"ineligible\",\n      \"dateOfExpiration\": \"1914-11-25\",\n      \"dateOfUpdate\": \"2584-09-16\",\n      \"familyName\": \"<string>\",\n      \"givenName\": \"<string>\",\n      \"jurisdictionUploadedCompactEligibility\": \"ineligible\",\n      \"jurisdictionUploadedLicenseStatus\": \"inactive\",\n      \"licenseJurisdiction\": \"nv\",\n      \"licenseStatus\": \"active\",\n      \"privilegeJurisdictions\": [\n        \"pr\",\n        \"ca\"\n      ],\n      \"providerId\": \"d7ce1316-ed77-4821-8e57-e807c595933f\",\n      \"type\": \"provider\",\n      \"npi\": \"4230718669\",\n      \"dateOfBirth\": \"2955-05-05\",\n      \"suffix\": \"<string>\",\n      \"ssnLastFour\": \"8619\",\n      \"middleName\": \"<string>\",\n      \"compactConnectRegisteredEmailAddress\": \"<email>\"\n    },\n    {\n      \"birthMonthDay\": \"07-04\",\n      \"compact\": \"coun\",\n      \"compactEligibility\": \"ineligible\",\n      \"dateOfExpiration\": \"2727-06-21\",\n      \"dateOfUpdate\": \"2421-12-31\",\n      \"familyName\": \"<string>\",\n      \"givenName\": \"<string>\",\n      \"jurisdictionUploadedCompactEligibility\": \"ineligible\",\n      \"jurisdictionUploadedLicenseStatus\": \"active\",\n      \"licenseJurisdiction\": \"wi\",\n      \"licenseStatus\": \"active\",\n      \"privilegeJurisdictions\": [\n        \"az\",\n        \"ms\"\n      ],\n      \"providerId\": \"4850b159-ffd5-463e-8434-d0eed19db50f\",\n      \"type\": \"provider\",\n      \"npi\": \"9811831077\",\n      \"dateOfBirth\": \"2961-01-31\",\n      \"suffix\": \"<string>\",\n      \"ssnLastFour\": \"5645\",\n      \"middleName\": \"<string>\",\n      \"compactConnectRegisteredEmailAddress\": \"<email>\"\n    }\n  ],\n  \"sorting\": {\n    \"direction\": \"ascending\"\n  }\n}",
                                                                             "code": 200,
                                                                             "cookie": [],
                                                                             "header": [
@@ -769,7 +830,7 @@
                                                                                     "value": "application/json"
                                                                                 }
                                                                             ],
-                                                                            "id": "d59df93c-422d-4e32-b565-04358b42b00c",
+                                                                            "id": "4cc5aacf-ee1d-4e66-b1b6-246dec5b5a64",
                                                                             "name": "200 response",
                                                                             "originalRequest": {
                                                                                 "body": {
@@ -780,7 +841,7 @@
                                                                                             "language": "json"
                                                                                         }
                                                                                     },
-                                                                                    "raw": "{\n  \"query\": {\n    \"endDateTime\": \"1385-11-25T20:32:44Z\",\n    \"startDateTime\": \"2961-12-31T23:19:36.438Z\"\n  },\n  \"pagination\": {\n    \"lastKey\": \"<string>\",\n    \"pageSize\": \"<integer>\"\n  },\n  \"sorting\": {\n    \"direction\": \"descending\"\n  }\n}"
+                                                                                    "raw": "{\n  \"query\": {\n    \"endDateTime\": \"1756-10-30T01:50:40.2Z\",\n    \"startDateTime\": \"2702-03-31T21:18:38.676Z\"\n  },\n  \"pagination\": {\n    \"lastKey\": \"<string>\",\n    \"pageSize\": \"<integer>\"\n  },\n  \"sorting\": {\n    \"direction\": \"ascending\"\n  }\n}"
                                                                                 },
                                                                                 "header": [
                                                                                     {
@@ -830,7 +891,7 @@
                                                             "item": [
                                                                 {
                                                                     "event": [],
-                                                                    "id": "6dcb9a35-aa1b-475f-9dca-b7b0f5c770fd",
+                                                                    "id": "6bcade61-2b78-428b-8953-7431e298495d",
                                                                     "name": "/v1/compacts/:compact/jurisdictions/:jurisdiction/providers/:providerId",
                                                                     "protocolProfileBehavior": {
                                                                         "disableBodyPruning": true
@@ -897,7 +958,7 @@
                                                                     "response": [
                                                                         {
                                                                             "_postman_previewlanguage": "json",
-                                                                            "body": "{\n  \"privileges\": [\n    {\n      \"compact\": \"octp\",\n      \"compactEligibility\": \"ineligible\",\n      \"dateOfExpiration\": \"2686-02-31\",\n      \"dateOfIssuance\": \"2795-07-30\",\n      \"dateOfRenewal\": \"2631-10-07\",\n      \"dateOfUpdate\": \"1265-10-07\",\n      \"familyName\": \"<string>\",\n      \"givenName\": \"<string>\",\n      \"jurisdiction\": \"id\",\n      \"licenseJurisdiction\": \"md\",\n      \"licenseStatus\": \"active\",\n      \"licenseType\": \"occupational therapist\",\n      \"privilegeId\": \"<string>\",\n      \"providerId\": \"8c857658-1e97-4e20-9aea-0f4f4cc319ef\",\n      \"status\": \"inactive\",\n      \"type\": \"statePrivilege\",\n      \"homeAddressStreet2\": \"<string>\",\n      \"homeAddressStreet1\": \"<string>\",\n      \"suffix\": \"<string>\",\n      \"emailAddress\": \"<email>\",\n      \"homeAddressState\": \"<string>\",\n      \"homeAddressCity\": \"<string>\",\n      \"licenseNumber\": \"<string>\",\n      \"compactConnectRegisteredEmailAddress\": \"<email>\",\n      \"npi\": \"0192122787\",\n      \"homeAddressPostalCode\": \"<string>\",\n      \"dateOfBirth\": \"2506-04-31\",\n      \"ssnLastFour\": \"5626\",\n      \"phoneNumber\": \"+0425136345426\",\n      \"middleName\": \"<string>\",\n      \"licenseStatusName\": \"<string>\"\n    },\n    {\n      \"compact\": \"octp\",\n      \"compactEligibility\": \"ineligible\",\n      \"dateOfExpiration\": \"2166-07-31\",\n      \"dateOfIssuance\": \"1831-01-03\",\n      \"dateOfRenewal\": \"1555-03-31\",\n      \"dateOfUpdate\": \"1772-05-31\",\n      \"familyName\": \"<string>\",\n      \"givenName\": \"<string>\",\n      \"jurisdiction\": \"ut\",\n      \"licenseJurisdiction\": \"or\",\n      \"licenseStatus\": \"inactive\",\n      \"licenseType\": \"licensed professional counselor\",\n      \"privilegeId\": \"<string>\",\n      \"providerId\": \"39b689af-1003-468f-8342-7e8f1e937d6a\",\n      \"status\": \"active\",\n      \"type\": \"statePrivilege\",\n      \"homeAddressStreet2\": \"<string>\",\n      \"homeAddressStreet1\": \"<string>\",\n      \"suffix\": \"<string>\",\n      \"emailAddress\": \"<email>\",\n      \"homeAddressState\": \"<string>\",\n      \"homeAddressCity\": \"<string>\",\n      \"licenseNumber\": \"<string>\",\n      \"compactConnectRegisteredEmailAddress\": \"<email>\",\n      \"npi\": \"1375245692\",\n      \"homeAddressPostalCode\": \"<string>\",\n      \"dateOfBirth\": \"1191-06-25\",\n      \"ssnLastFour\": \"9346\",\n      \"phoneNumber\": \"+8756479625629\",\n      \"middleName\": \"<string>\",\n      \"licenseStatusName\": \"<string>\"\n    }\n  ],\n  \"providerUIUrl\": \"<uri>\"\n}",
+                                                                            "body": "{\n  \"privileges\": [\n    {\n      \"compact\": \"octp\",\n      \"compactEligibility\": \"eligible\",\n      \"dateOfExpiration\": \"2244-08-12\",\n      \"dateOfIssuance\": \"1447-12-31\",\n      \"dateOfRenewal\": \"2551-12-30\",\n      \"dateOfUpdate\": \"2709-04-02\",\n      \"familyName\": \"<string>\",\n      \"givenName\": \"<string>\",\n      \"jurisdiction\": \"hi\",\n      \"licenseJurisdiction\": \"ks\",\n      \"licenseStatus\": \"active\",\n      \"licenseType\": \"speech-language pathologist\",\n      \"privilegeId\": \"<string>\",\n      \"providerId\": \"a8437e05-3649-4fb3-938f-5e946c5fc50b\",\n      \"status\": \"active\",\n      \"type\": \"statePrivilege\",\n      \"homeAddressStreet2\": \"<string>\",\n      \"homeAddressStreet1\": \"<string>\",\n      \"suffix\": \"<string>\",\n      \"emailAddress\": \"<email>\",\n      \"homeAddressState\": \"<string>\",\n      \"homeAddressCity\": \"<string>\",\n      \"licenseNumber\": \"<string>\",\n      \"compactConnectRegisteredEmailAddress\": \"<email>\",\n      \"npi\": \"2669939401\",\n      \"homeAddressPostalCode\": \"<string>\",\n      \"dateOfBirth\": \"1287-11-27\",\n      \"ssnLastFour\": \"9607\",\n      \"phoneNumber\": \"+09229586691\",\n      \"middleName\": \"<string>\",\n      \"licenseStatusName\": \"<string>\"\n    },\n    {\n      \"compact\": \"coun\",\n      \"compactEligibility\": \"eligible\",\n      \"dateOfExpiration\": \"1794-11-25\",\n      \"dateOfIssuance\": \"2700-10-18\",\n      \"dateOfRenewal\": \"2476-12-09\",\n      \"dateOfUpdate\": \"1761-08-30\",\n      \"familyName\": \"<string>\",\n      \"givenName\": \"<string>\",\n      \"jurisdiction\": \"md\",\n      \"licenseJurisdiction\": \"nh\",\n      \"licenseStatus\": \"inactive\",\n      \"licenseType\": \"occupational therapy assistant\",\n      \"privilegeId\": \"<string>\",\n      \"providerId\": \"0dcd2efb-94ee-4547-98ca-5093e49ec9c0\",\n      \"status\": \"active\",\n      \"type\": \"statePrivilege\",\n      \"homeAddressStreet2\": \"<string>\",\n      \"homeAddressStreet1\": \"<string>\",\n      \"suffix\": \"<string>\",\n      \"emailAddress\": \"<email>\",\n      \"homeAddressState\": \"<string>\",\n      \"homeAddressCity\": \"<string>\",\n      \"licenseNumber\": \"<string>\",\n      \"compactConnectRegisteredEmailAddress\": \"<email>\",\n      \"npi\": \"3128415231\",\n      \"homeAddressPostalCode\": \"<string>\",\n      \"dateOfBirth\": \"1343-06-27\",\n      \"ssnLastFour\": \"2639\",\n      \"phoneNumber\": \"+2167910965769\",\n      \"middleName\": \"<string>\",\n      \"licenseStatusName\": \"<string>\"\n    }\n  ],\n  \"providerUIUrl\": \"<uri>\"\n}",
                                                                             "code": 200,
                                                                             "cookie": [],
                                                                             "header": [
@@ -906,7 +967,7 @@
                                                                                     "value": "application/json"
                                                                                 }
                                                                             ],
-                                                                            "id": "2d66fd47-a59a-4faa-91cd-193531bc0aa0",
+                                                                            "id": "75a3b59e-746c-41ee-8d6e-c2c61a1fafa3",
                                                                             "name": "200 response",
                                                                             "originalRequest": {
                                                                                 "body": {},

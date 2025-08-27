@@ -199,6 +199,10 @@ class _Config:
         return os.environ['PROVIDER_USER_POOL_ID']
 
     @property
+    def provider_user_pool_ui_client_id(self):
+        return os.environ['PROVIDER_USER_POOL_CLIENT_ID']
+
+    @property
     def users_table_name(self):
         """
         Get the staff users table name
