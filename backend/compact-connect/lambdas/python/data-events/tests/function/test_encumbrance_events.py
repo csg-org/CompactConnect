@@ -1621,7 +1621,7 @@ class TestEncumbranceEvents(TstFunction):
             value_overrides={'compactConnectRegisteredEmailAddress': 'provider@example.com'}
         )
 
-        # Add the privilege where encumbrance is being lifted (in DEFAULT_PRIVILEGE_JURISDICTION = 'ne')
+        # Add the privilege where encumbrance is being lifted
         self.test_data_generator.put_default_privilege_record_in_provider_table(
             value_overrides={'encumberedStatus': 'unencumbered', 'licenseJurisdiction': 'co'}
         )
@@ -1696,7 +1696,7 @@ class TestEncumbranceEvents(TstFunction):
         # Verify state notifications were sent to all relevant jurisdictions
         self.assertEqual(4, mock_state_email.call_count)
 
-        # Check each call individually since they have different provider_id values
+        # Check each call individually since they have different jurisdiction values
         calls = mock_state_email.call_args_list
         call_jurisdictions = [call.kwargs['jurisdiction'] for call in calls]
         self.assertEqual(sorted(call_jurisdictions), ['co', 'ky', 'ne', 'tx'])
@@ -1739,7 +1739,7 @@ class TestEncumbranceEvents(TstFunction):
             value_overrides={'compactConnectRegisteredEmailAddress': 'provider@example.com'}
         )
 
-        # Add the privilege where encumbrance is being lifted (in DEFAULT_PRIVILEGE_JURISDICTION = 'ne')
+        # Add the privilege where encumbrance is being lifted
         self.test_data_generator.put_default_privilege_record_in_provider_table(
             value_overrides={'encumberedStatus': 'unencumbered', 'licenseJurisdiction': 'co'}
         )
@@ -1804,7 +1804,7 @@ class TestEncumbranceEvents(TstFunction):
         # Verify state notifications were sent to all relevant jurisdictions
         self.assertEqual(4, mock_state_email.call_count)
 
-        # Check each call individually since they have different provider_id values
+        # Check each call individually since they have different jurisdiction values
         calls = mock_state_email.call_args_list
         call_jurisdictions = [call.kwargs['jurisdiction'] for call in calls]
         self.assertEqual(sorted(call_jurisdictions), ['co', 'ky', 'ne', 'tx'])
@@ -2689,12 +2689,12 @@ class TestEncumbranceEvents(TstFunction):
             }
         )
 
-        # Create a privilege that should be unencumbered due to license lifting
+        # Create a privilege that will become unencumbered due to license lifting
         self.test_data_generator.put_default_privilege_record_in_provider_table(
             value_overrides={
                 'licenseJurisdiction': DEFAULT_LICENSE_JURISDICTION,
                 'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
-                'encumberedStatus': 'licenseEncumbered',  # Should be unencumbered
+                'encumberedStatus': 'licenseEncumbered',  # will be unencumbered due to lifting
                 'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
             }
         )
