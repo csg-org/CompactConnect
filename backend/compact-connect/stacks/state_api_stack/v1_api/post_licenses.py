@@ -34,9 +34,7 @@ class PostLicenses:
 
         self._add_post_license(
             method_options=method_options,
-            license_preprocessing_queue=persistent_stack.ssn_table.preprocessor_queue.queue,
             license_upload_role=persistent_stack.ssn_table.license_upload_role,
-            compact_configuration_table=persistent_stack.compact_configuration_table,
             persistent_stack=persistent_stack,
         )
         self.api.log_groups.extend(self.log_groups)
@@ -44,15 +42,11 @@ class PostLicenses:
     def _add_post_license(
         self,
         method_options: MethodOptions,
-        license_preprocessing_queue: IQueue,
         license_upload_role: IRole,
-        compact_configuration_table: ITable,
         persistent_stack: ps.PersistentStack,
     ):
         self.post_license_handler = self._post_licenses_handler(
-            license_preprocessing_queue=license_preprocessing_queue,
             license_upload_role=license_upload_role,
-            compact_configuration_table=compact_configuration_table,
             persistent_stack=persistent_stack,
         )
 
@@ -93,9 +87,7 @@ class PostLicenses:
 
     def _post_licenses_handler(
         self,
-        license_preprocessing_queue: IQueue,
         license_upload_role: IRole,
-        compact_configuration_table: ITable,
         persistent_stack: ps.PersistentStack,
     ) -> PythonFunction:
         stack: Stack = Stack.of(self.resource)
@@ -108,8 +100,8 @@ class PostLicenses:
             handler='post_licenses',
             role=license_upload_role,
             environment={
-                'LICENSE_PREPROCESSING_QUEUE_URL': license_preprocessing_queue.queue_url,
-                'COMPACT_CONFIGURATION_TABLE_NAME': compact_configuration_table.table_name,
+                'LICENSE_PREPROCESSING_QUEUE_URL': persistent_stack.ssn_table.preprocessor_queue.queue.queue_url,
+                'COMPACT_CONFIGURATION_TABLE_NAME': persistent_stack.compact_configuration_table.table_name,
                 'RATE_LIMITING_TABLE_NAME': persistent_stack.rate_limiting_table.table_name,
                 **stack.common_env_vars,
             },
@@ -117,8 +109,8 @@ class PostLicenses:
         )
 
         # Grant permissions to put messages on the preprocessing queue
-        license_preprocessing_queue.grant_send_messages(handler)
-        compact_configuration_table.grant_read_data(handler)
+        persistent_stack.ssn_table.preprocessor_queue.queue.grant_send_messages(handler)
+        persistent_stack.compact_configuration_table.grant_read_data(handler)
         persistent_stack.rate_limiting_table.grant_read_write_data(handler)
 
         self.log_groups.append(handler.log_group)

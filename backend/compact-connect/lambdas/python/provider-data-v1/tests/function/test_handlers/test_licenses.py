@@ -424,3 +424,43 @@ class TestLicenses(TstFunction):
         self.assertEqual(license_data.get('suffix', 'Jr.'), message_data['suffix'])  # Should be trimmed
         self.assertEqual(license_data['licenseNumber'], message_data['licenseNumber'])  # Should be trimmed
         self.assertEqual(license_data['emailAddress'], message_data['emailAddress'])  # Should be trimmed
+
+    def test_post_licenses_succeeds_without_signature_when_no_keys_configured(self):
+        """Test that posting licenses succeeds without signature when no signature keys are configured for the jurisdiction."""
+        from handlers.licenses import post_licenses
+
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        # The user has write permission for aslp/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.write'
+        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+        with open('../common/tests/resources/api/license-post.json') as f:
+            event['body'] = json.dumps([json.load(f)])
+
+        # Do NOT add signature authentication headers - this should succeed when no keys are configured
+        # First, remove any existing signature keys for this jurisdiction
+        try:
+            self._compact_configuration_table.delete_item(
+                Key={
+                    'pk': 'aslp#SIGNATURE_KEYS#oh',
+                    'sk': 'aslp#JURISDICTION#oh#test-key-001'
+                }
+            )
+        except:
+            pass  # Key might not exist, which is fine
+
+        resp = post_licenses(event, self.mock_context)
+
+        self.assertEqual(200, resp['statusCode'])
+
+        # assert that the message was sent to the preprocessing queue
+        queue_messages = self._license_preprocessing_queue.receive_messages(MaxNumberOfMessages=10)
+        self.assertEqual(1, len(queue_messages))
+
+        expected_message = json.loads(event['body'])[0]
+        # add the compact, jurisdiction, and eventTime to the expected message
+        expected_message['compact'] = 'aslp'
+        expected_message['jurisdiction'] = 'oh'
+        expected_message['eventTime'] = '2024-11-08T23:59:59+00:00'
+        self.assertEqual(expected_message, json.loads(queue_messages[0].body))

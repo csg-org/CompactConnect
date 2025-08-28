@@ -341,7 +341,6 @@ class TestSignatureAuthFunctional(TstFunction):
         key_id = 'test-key-001'
 
         # Import and use the sign_request function
-
         headers = sign_request(
             method=event['httpMethod'],
             path=event['path'],

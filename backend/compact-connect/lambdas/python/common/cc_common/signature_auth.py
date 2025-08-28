@@ -82,7 +82,7 @@ def optional_signature_auth(fn: Callable) -> Callable:
     If no keys are configured, it allows the request to proceed without signature validation.
     If keys are configured but no X-Key-Id is provided, access is denied.
 
-    This is useful for endpoints that support both authenticated and unauthenticated access,
+    This is useful for endpoints that support both signature-authenticated and Oauth-only access,
     where the authentication requirement is determined by whether signature keys are configured.
 
     :param fn: The function to decorate

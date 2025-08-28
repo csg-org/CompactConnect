@@ -9,7 +9,7 @@ CompactConnect implements a dual-authentication system for API access to sensiti
 ### Why Dual Authentication?
 
 The licensure data shared through CompactConnect contains highly sensitive personal information including:
-- Partial Social Security Numbers
+- Last four of Social Security Numbers
 - Personal addresses and contact information
 - Professional license details
 - Disciplinary actions
@@ -64,6 +64,7 @@ For each API request, you must:
    TIMESTAMP
    NONCE
    KEY_ID
+   ```
 
 #### Canonical query string
 
