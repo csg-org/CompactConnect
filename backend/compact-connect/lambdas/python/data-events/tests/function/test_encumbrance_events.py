@@ -2733,9 +2733,7 @@ class TestEncumbranceEvents(TstFunction):
 
         # The key assertion: effectiveDate should be the LATEST lift date (2024-03-15), not the event date (2024-03-01)
         expected_effective_date = datetime.combine(
-            date(2024, 3, 15),
-            time(12, 0, 0),
-            tzinfo=self.config.expiration_resolution_timezone
+            date(2024, 3, 15), time(12, 0, 0), tzinfo=self.config.expiration_resolution_timezone
         )
         self.assertEqual(expected_effective_date, update_record.effectiveDate)
         self.assertEqual('lifting_encumbrance', update_record.updateType)

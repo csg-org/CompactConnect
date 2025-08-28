@@ -293,7 +293,6 @@ class ProviderRecordUtility:
                 update['effectiveDate'], datetime.min.time(), tzinfo=config.expiration_resolution_timezone
             )
             if datetime_of_expiration_trigger <= effective_date_time:
-
                 # We have assigned the maximum time in the day at UTC-4:00 because the expiration event happens at the
                 # first second of the date of expiration's passing. However, we want the expiration events to display as
                 # occurring on their expiration date and also have any events that occurred during that day come before
