@@ -4,6 +4,7 @@
 //
 //  Created by InspiringApps on 4/27/21.
 //
+import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 import localStorage from '@store/local.storage';
 
 // =========================
@@ -14,6 +15,62 @@ export enum AuthTypes {
     LICENSEE = 'licensee',
     PUBLIC = 'public',
 }
+
+export const staffLoginScopes = 'email openid phone profile aws.cognito.signin.user.admin';
+export const licenseeLoginScopes = 'email openid phone profile aws.cognito.signin.user.admin';
+
+export type CognitoConfig = {
+    scopes: string;
+    clientId: string;
+    authDomain: string;
+};
+export const getCognitoConfig = (authType: AuthTypes): CognitoConfig => {
+    const config: CognitoConfig = {
+        scopes: '',
+        clientId: '',
+        authDomain: '',
+    };
+
+    switch (authType) {
+    case AuthTypes.STAFF:
+        config.scopes = staffLoginScopes;
+        if (envConfig.cognitoClientIdStaff) {
+            config.clientId = envConfig.cognitoClientIdStaff;
+        }
+        if (envConfig.cognitoAuthDomainStaff) {
+            config.authDomain = envConfig.cognitoAuthDomainStaff;
+        }
+        break;
+    case AuthTypes.LICENSEE:
+        config.scopes = licenseeLoginScopes;
+        if (envConfig.cognitoClientIdLicensee) {
+            config.clientId = envConfig.cognitoClientIdLicensee;
+        }
+        if (envConfig.cognitoAuthDomainLicensee) {
+            config.authDomain = envConfig.cognitoAuthDomainLicensee;
+        }
+        break;
+    default:
+        break;
+    }
+
+    return config;
+};
+
+export const getHostedLoginUri = (authType: AuthTypes, hostedIdpPath = '/login'): string => {
+    const { domain } = envConfig;
+    const { scopes, clientId, authDomain } = getCognitoConfig(authType);
+    const loginUriQuery = [
+        `?client_id=${clientId}`,
+        `&response_type=code`,
+        `&scope=${encodeURIComponent(scopes)}`,
+        `&state=${authType}`,
+        `&redirect_uri=${encodeURIComponent(`${domain}/auth/callback`)}`,
+    ].join('');
+    const loginUri = `${authDomain}${hostedIdpPath}${loginUriQuery}`;
+
+    return loginUri;
+};
 
 // =========================
 // =   Permission Types    =

@@ -58,6 +58,12 @@ const routes: Array<RouteConfig> = [
         beforeEnter: guards.noAuthGuard,
     },
     {
+        path: '/MfaResetConfirm',
+        name: 'MfaResetConfirmLicensee',
+        component: () => import(/* webpackChunkName: "register" */ '@pages/MfaResetConfirmLicensee/MfaResetConfirmLicensee.vue'),
+        beforeEnter: guards.noAuthGuard,
+    },
+    {
         path: '/auth/callback',
         name: 'AuthCallback',
         component: () => import(/* webpackChunkName: "home" */ '@pages/AuthCallback/AuthCallback.vue'),

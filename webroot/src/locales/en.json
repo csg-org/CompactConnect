@@ -973,7 +973,14 @@
         "resetAccountPasswordSubtext": "This password must match the <em>exact password</em> used in your existing account.",
         "resetAccountForgotPassword": "Forgot your password?",
         "resetAccountSummary": "Reset account summary",
-        "resetAccountSummarySubtext": "Here is the information you submitted for your account reset. If your information does not match exactly with the information in our system, the account reset will not be successful."
+        "resetAccountSummarySubtext": "Here is the information you submitted for your account reset. If your information does not match exactly with the information in our system, the account reset will not be successful.",
+        "resetAccountVerifying": "Verifying account",
+        "resetAccountSuccessTitle": "Account reset successful!",
+        "resetAccountSuccessSubtext": "The next time you login you will be asked to setup a new MFA method.",
+        "resetAccountErrorTitle": "Verification error",
+        "resetAccountErrorSubtext": "If you are trying to reuse a link that was sent to you, be aware that the links are only valid for a short period of time and can only be used once.",
+        "resetAccountActionLogin": "Go to login",
+        "resetAccountActionDashboard": "Go to dashboard"
     },
     "recaptcha": {
         "googleDesc": "This site is protected by reCAPTCHA and the Google",

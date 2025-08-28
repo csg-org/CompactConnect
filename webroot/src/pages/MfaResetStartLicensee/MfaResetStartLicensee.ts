@@ -17,7 +17,12 @@ import {
     ComputedRef,
     nextTick
 } from 'vue';
-import { stateList, dateFormatPatterns, AuthTypes } from '@/app.config';
+import {
+    stateList,
+    dateFormatPatterns,
+    AuthTypes,
+    getHostedLoginUri
+} from '@/app.config';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import Section from '@components/Section/Section.vue';
 import Card from '@components/Card/Card.vue';
@@ -160,21 +165,11 @@ class MfaResetStartLicensee extends mixins(MixinForm) {
     }
 
     get hostedForgotPasswordUriLicensee(): string {
-        const { domain, cognitoAuthDomainLicensee, cognitoClientIdLicensee } = this.$envConfig;
-        const loginScopes = 'email openid phone profile aws.cognito.signin.user.admin';
-        const loginResponseType = 'code';
-        const loginRedirectPath = '/auth/callback';
-        const forgotPasswordUriQuery = [
-            `?client_id=${cognitoClientIdLicensee}`,
-            `&response_type=${loginResponseType}`,
-            `&scope=${encodeURIComponent(loginScopes)}`,
-            `&state=${AuthTypes.LICENSEE}`,
-            `&redirect_uri=${encodeURIComponent(`${domain}${loginRedirectPath}`)}`,
-        ].join('');
-        const idpPath = '/forgotPassword';
-        const forgotPasswordUri = `${cognitoAuthDomainLicensee}${idpPath}${forgotPasswordUriQuery}`;
+        return getHostedLoginUri(AuthTypes.LICENSEE, '/forgotPassword');
+    }
 
-        return forgotPasswordUri;
+    get isUsingMockApi(): boolean {
+        return this.$envConfig.isUsingMockApi || false;
     }
 
     //

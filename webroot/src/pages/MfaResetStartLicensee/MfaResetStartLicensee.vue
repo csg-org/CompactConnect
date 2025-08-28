@@ -205,6 +205,19 @@
                     <router-link :to="{ name: 'DashboardPublic' }" class="nav-button">
                         {{ $t('navigation.goToDashboard') }}
                     </router-link>
+                    <div v-if="isUsingMockApi" class="mock-nav">
+                        <router-link :to="{
+                            name: 'DashboardPublic',
+                            query: {
+                                bypass: 'recovery-practitioner',
+                                compact: 'octp',
+                                providerId: 'test-provider-id',
+                                recoveryId: 'test-recovery-id',
+                            },
+                        }">
+                            Mock go to confirmation URL
+                        </router-link>
+                    </div>
                 </div>
             </Transition>
         </Card>

@@ -957,7 +957,14 @@
         "resetAccountPasswordSubtext": "Esta contraseña debe coincidir con la <em>contraseña exacta</em> utilizada en su cuenta existente.",
         "resetAccountForgotPassword": "¿Olvidaste tu contraseña?",
         "resetAccountSummary": "Restablecer resumen de cuenta",
-        "resetAccountSummarySubtext": "Aquí está la información que envió para restablecer su cuenta. Si su información no coincide exactamente con la de nuestro sistema, el restablecimiento no se realizará correctamente."
+        "resetAccountSummarySubtext": "Aquí está la información que envió para restablecer su cuenta. Si su información no coincide exactamente con la de nuestro sistema, el restablecimiento no se realizará correctamente.",
+        "resetAccountVerifying": "Verificando cuenta",
+        "resetAccountSuccessTitle": "Restablecimiento de cuenta exitoso!",
+        "resetAccountSuccessSubtext": "La próxima vez que inicie sesión se le pedirá que configure un nuevo método MFA.",
+        "resetAccountErrorTitle": "Error de verificación",
+        "resetAccountErrorSubtext": "Si intenta reutilizar un enlace que le enviaron, tenga en cuenta que los enlaces solo son válidos por un corto período de tiempo y solo se pueden usar una vez.",
+        "resetAccountActionLogin": "Ir a iniciar sesión",
+        "resetAccountActionDashboard": "Ir al panel de control"
     },
     "privacyPolicy": {
         "title": "Política de Privacidad",
