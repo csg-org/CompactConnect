@@ -11,6 +11,7 @@ import {
     Prop,
     toNative
 } from 'vue-facing-decorator';
+import { nextTick } from 'vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 
 @Component({
@@ -42,7 +43,7 @@ class Modal extends Vue {
         this.$store.dispatch('setModalIsOpen', true);
 
         // Focus the modal content for screen readers to read title then content automatically
-        this.$nextTick(() => {
+        nextTick(() => {
             (this.$refs.modalContent as HTMLElement)?.focus();
         });
     }
