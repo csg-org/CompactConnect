@@ -96,6 +96,7 @@
         <TransitionGroup>
             <Modal
                 v-if="isDeactivatePrivilegeModalDisplayed"
+                modalId="deactivate-privilege-modal"
                 class="privilege-edit-modal deactivate-privilege-modal"
                 :title="$t('licensing.confirmPrivilegeDeactivateTitle')"
                 :showActions="false"
@@ -103,7 +104,7 @@
                 @keyup.esc="closeDeactivatePrivilegeModal"
             >
                 <template v-slot:content>
-                    <div class="modal-content deactivate-modal-content">
+                    <div class="deactivate-modal-content">
                         {{ $t('licensing.confirmPrivilegeDeactivateSubtext') }}
                         <form class="privilege-edit-form" @submit.prevent="submitDeactivatePrivilege">
                             <MockPopulate
@@ -144,6 +145,7 @@
             </Modal>
             <Modal
                 v-if="isEncumberPrivilegeModalDisplayed"
+                modalId="encumber-privilege-modal"
                 class="privilege-edit-modal encumber-privilege-modal"
                 :title="!isEncumberPrivilegeModalSuccess ? $t('licensing.confirmPrivilegeEncumberTitle') : ' '"
                 :showActions="false"
@@ -151,7 +153,7 @@
                 @keyup.esc="closeEncumberPrivilegeModal"
             >
                 <template v-slot:content>
-                    <div v-if="!isEncumberPrivilegeModalSuccess" class="modal-content encumber-modal-content">
+                    <div v-if="!isEncumberPrivilegeModalSuccess" class="encumber-modal-content">
                         {{ $t('licensing.confirmPrivilegeEncumberSubtext') }}
                         <form
                             id="encumber-modal-form"
@@ -223,7 +225,11 @@
                             </div>
                         </form>
                     </div>
-                    <div v-else class="modal-content encumber-modal-content modal-content-success">
+                    <div v-else
+                        class="modal-content encumber-modal-content modal-content-success"
+                        ref="encumberModalSuccess"
+                        tabindex="0"
+                    >
                         <div class="icon-container"><CheckCircleIcon /></div>
                         <h1 class="modal-title">{{ $t('licensing.confirmPrivilegeEncumberSuccess') }}</h1>
                         <div class="success-container">
@@ -241,6 +247,7 @@
             </Modal>
             <Modal
                 v-if="isUnencumberPrivilegeModalDisplayed"
+                modalId="unencumber-privilege-modal"
                 class="privilege-edit-modal unencumber-privilege-modal"
                 :title="!isUnencumberPrivilegeModalSuccess ? $t('licensing.confirmPrivilegeUnencumberTitle') : ' '"
                 :showActions="false"
@@ -248,7 +255,7 @@
                 @keyup.esc="closeUnencumberPrivilegeModal"
             >
                 <template v-slot:content>
-                    <div v-if="!isUnencumberPrivilegeModalSuccess" class="modal-content unencumber-modal-content">
+                    <div v-if="!isUnencumberPrivilegeModalSuccess" class="unencumber-modal-content">
                         <form
                             id="unencumber-modal-form"
                             class="privilege-edit-form unencumber-privilege-form"
@@ -329,7 +336,11 @@
                             </div>
                         </form>
                     </div>
-                    <div v-else class="modal-content unencumber-modal-content modal-content-success">
+                    <div v-else
+                        class="modal-content unencumber-modal-content modal-content-success"
+                        ref="unencumberModalSuccess"
+                        tabindex="0"
+                    >
                         <div class="icon-container"><CheckCircleIcon /></div>
                         <h1 class="modal-title">{{ $t('licensing.confirmPrivilegeUnencumberSuccess') }}</h1>
                         <div class="success-container">

@@ -27,6 +27,7 @@ class Modal extends Vue {
     @Prop({ default: false }) private isErrorModal?: boolean;
     @Prop({ default: true }) private showActions?: boolean;
     @Prop({ default: [] }) private customActions?: Array<{ label: string; emitEventName: string; closeAfter: boolean }>
+    @Prop({ default: '' }) private modalId?: string;
 
     globalStore: any = {};
 
@@ -39,6 +40,15 @@ class Modal extends Vue {
 
     mounted() {
         this.$store.dispatch('setModalIsOpen', true);
+
+        // Focus the modal content so VoiceOver reads title then content
+        this.$nextTick(() => {
+            const modalContent = this.$refs.modalContent as HTMLElement;
+
+            if (modalContent) {
+                modalContent.focus();
+            }
+        });
     }
 
     beforeUnmount() {
@@ -58,6 +68,12 @@ class Modal extends Vue {
 
     get isLogoutOnly(): boolean {
         return this.globalStore.isModalLogoutOnly;
+    }
+
+    get titleId(): string {
+        const baseId = this.modalId || 'modal';
+
+        return `${baseId}-title`;
     }
 
     //

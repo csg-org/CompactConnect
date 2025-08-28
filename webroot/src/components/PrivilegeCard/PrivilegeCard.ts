@@ -353,8 +353,6 @@ class PrivilegeCard extends mixins(MixinForm) {
 
             if (this.isDeactivatePrivilegeModalDisplayed) {
                 this.initFormInputs();
-                await nextTick();
-                document.getElementById(this.formData.deactivateModalNotes.id)?.focus();
             }
         }
     }
@@ -427,8 +425,6 @@ class PrivilegeCard extends mixins(MixinForm) {
 
         if (this.isEncumberPrivilegeModalDisplayed) {
             this.initFormInputs();
-            await nextTick();
-            document.getElementById(this.formData.encumberModalDisciplineAction.id)?.focus();
         }
     }
 
@@ -490,7 +486,7 @@ class PrivilegeCard extends mixins(MixinForm) {
                 await this.$store.dispatch('license/getLicenseeRequest', { compact: compactType, licenseeId });
                 this.isEncumberPrivilegeModalSuccess = true;
                 await nextTick();
-                document.getElementById('encumber-modal-cancel-button')?.focus();
+                (this.$refs.encumberModalSuccess as HTMLElement)?.focus();
             }
 
             this.endFormLoading();
@@ -580,11 +576,6 @@ class PrivilegeCard extends mixins(MixinForm) {
 
         if (this.isUnencumberPrivilegeModalDisplayed) {
             this.initFormInputs();
-            await nextTick();
-            const firstEnabledInputId = this.getFirstEnabledFormInputId();
-            const firstTabIndex = document.getElementById(firstEnabledInputId);
-
-            firstTabIndex?.focus();
         }
     }
 
@@ -656,7 +647,7 @@ class PrivilegeCard extends mixins(MixinForm) {
                 await this.$store.dispatch('license/getLicenseeRequest', { compact: compactType, licenseeId });
                 this.isUnencumberPrivilegeModalSuccess = true;
                 await nextTick();
-                document.getElementById('unencumber-modal-cancel-button')?.focus();
+                (this.$refs.unencumberModalSuccess as HTMLElement)?.focus();
             }
 
             this.endFormLoading();

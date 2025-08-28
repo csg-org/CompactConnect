@@ -77,6 +77,7 @@
         </div>
         <Modal
             v-if="shouldShowEndAffiliationModal"
+            modalId="end-affiliation-modal"
             class="end-affiliation-modal"
             :closeOnBackgroundClick="true"
             :showActions="false"

@@ -209,8 +209,6 @@ class UpdateHomeJurisdiction extends mixins(MixinForm) {
         this.isSuccess = false;
         this.isError = false;
         this.errorMessage = '';
-        await nextTick();
-        document.getElementById('jurisdiction-cancel-btn')?.focus();
     }
 
     closeConfirmJurisdictionModal(): void {
@@ -233,15 +231,19 @@ class UpdateHomeJurisdiction extends mixins(MixinForm) {
                 jurisdiction: newHomeJurisdiction
             };
 
-            await this.$store.dispatch('user/updateHomeJurisdictionRequest', jurisdictionUpdateData).then(async () => {
+            await this.$store.dispatch('user/updateHomeJurisdictionRequest', jurisdictionUpdateData).then(() => {
                 this.isSuccess = true;
                 this.isFormLoading = false;
-                await nextTick();
-                document.getElementById('jurisdiction-close-btn')?.focus();
+                nextTick(() => {
+                    (this.$refs.confirmJurisdictionModalContent as HTMLElement)?.focus();
+                });
             }).catch((err: any) => {
                 this.isError = true;
                 this.errorMessage = err?.message || this.$t('common.tryAgain');
                 this.isFormLoading = false;
+                nextTick(() => {
+                    (this.$refs.confirmJurisdictionModalContent as HTMLElement)?.focus();
+                });
             });
         }
     }

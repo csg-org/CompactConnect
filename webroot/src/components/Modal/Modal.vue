@@ -18,6 +18,8 @@
                     class="modal-container"
                     :class="{ 'modal-error': isErrorModal }"
                     role="dialog"
+                    aria-modal="true"
+                    :aria-labelledby="titleId"
                 >
                     <div class="header-container">
                         <h1 v-if="displayTitle" class="modal-title">{{ displayTitle }}</h1>
@@ -33,7 +35,7 @@
                         <slot name="header-fixed"></slot>
                     </div>
                     <form @submit.prevent>
-                        <div class="modal-content">
+                        <div ref="modalContent" class="modal-content" tabindex="0">
                             <slot name="content"></slot>
                         </div>
                         <div

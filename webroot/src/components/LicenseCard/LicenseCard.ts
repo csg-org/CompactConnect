@@ -370,8 +370,6 @@ class LicenseCard extends mixins(MixinForm) {
 
         if (this.isEncumberLicenseModalDisplayed) {
             this.initFormInputs();
-            await nextTick();
-            document.getElementById(this.formData.encumberModalDisciplineAction.id)?.focus();
         }
     }
 
@@ -433,7 +431,7 @@ class LicenseCard extends mixins(MixinForm) {
                 await this.$store.dispatch('license/getLicenseeRequest', { compact: compactType, licenseeId });
                 this.isEncumberLicenseModalSuccess = true;
                 await nextTick();
-                document.getElementById('encumber-modal-cancel-button')?.focus();
+                (this.$refs.encumberModalSuccess as HTMLElement)?.focus();
             }
 
             this.endFormLoading();
@@ -523,11 +521,6 @@ class LicenseCard extends mixins(MixinForm) {
 
         if (this.isUnencumberLicenseModalDisplayed) {
             this.initFormInputs();
-            await nextTick();
-            const firstEnabledInputId = this.getFirstEnabledFormInputId();
-            const firstTabIndex = document.getElementById(firstEnabledInputId);
-
-            firstTabIndex?.focus();
         }
     }
 
@@ -599,7 +592,7 @@ class LicenseCard extends mixins(MixinForm) {
                 await this.$store.dispatch('license/getLicenseeRequest', { compact: compactType, licenseeId });
                 this.isUnencumberLicenseModalSuccess = true;
                 await nextTick();
-                document.getElementById('unencumber-modal-cancel-button')?.focus();
+                (this.$refs.unencumberModalSuccess as HTMLElement)?.focus();
             }
 
             this.endFormLoading();

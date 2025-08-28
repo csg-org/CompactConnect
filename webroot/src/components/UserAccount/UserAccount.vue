@@ -23,6 +23,7 @@
             <TransitionGroup>
                 <Modal
                     v-if="isEmailVerificationModalDisplayed"
+                    modalId="confirm-email-modal"
                     class="confirm-email-modal"
                     :title="(!isEmailVerificationModalSuccess) ? $t('account.enterVerificationCode') : ' '"
                     :showActions="false"

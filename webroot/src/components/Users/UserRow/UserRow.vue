@@ -214,6 +214,7 @@
             </div>
             <Modal
                 v-else-if="isReinviteUserModalDisplayed"
+                modalId="reinvite-user-modal"
                 class="reinvite-user-modal"
                 :title="$t('account.confirmUserReinviteTitle', { name: accountFullName })"
                 :closeOnBackgroundClick="true"
@@ -247,6 +248,7 @@
             </Modal>
             <Modal
                 v-else-if="isDeactivateUserModalDisplayed"
+                modalId="deactivate-user-modal"
                 class="deactivate-user-modal"
                 :title="accountFullName"
                 :closeOnBackgroundClick="true"

@@ -91,6 +91,7 @@
         <TransitionGroup>
             <Modal
                 v-if="isEncumberLicenseModalDisplayed"
+                modalId="encumber-license-modal"
                 class="license-edit-modal encumber-license-modal"
                 :title="!isEncumberLicenseModalSuccess ? $t('licensing.confirmLicenseEncumberTitle') : ' '"
                 :showActions="false"
@@ -169,9 +170,16 @@
                             </div>
                         </form>
                     </div>
-                    <div v-else class="modal-content encumber-modal-content modal-content-success">
+                    <div v-else
+                        class="modal-content encumber-modal-content modal-content-success"
+                        ref="encumberModalSuccess"
+                        tabindex="0"
+                    >
                         <div class="icon-container"><CheckCircleIcon /></div>
-                        <h1 class="modal-title">{{ $t('licensing.confirmLicenseEncumberSuccess') }}</h1>
+                        <h1
+                            id="encumber-modal-success-title"
+                            class="modal-title">{{ $t('licensing.confirmLicenseEncumberSuccess') }}
+                        </h1>
                         <div class="success-container">
                             <div class="input-label static-label">{{ licenseeName }}</div>
                             <div class="static-value">{{ stateContent }}</div>
@@ -188,6 +196,7 @@
             </Modal>
             <Modal
                 v-if="isUnencumberLicenseModalDisplayed"
+                modalId="unencumber-license-modal"
                 class="license-edit-modal unencumber-license-modal"
                 :title="!isUnencumberLicenseModalSuccess ? $t('licensing.confirmLicenseUnencumberTitle') : ' '"
                 :showActions="false"
@@ -275,7 +284,11 @@
                             </div>
                         </form>
                     </div>
-                    <div v-else class="modal-content unencumber-modal-content modal-content-success">
+                    <div v-else
+                        class="modal-content unencumber-modal-content modal-content-success"
+                        ref="unencumberModalSuccess"
+                        tabindex="0"
+                    >
                         <div class="icon-container"><CheckCircleIcon /></div>
                         <h1 class="modal-title">{{ $t('licensing.confirmLicenseUnencumberSuccess') }}</h1>
                         <div class="success-container">
