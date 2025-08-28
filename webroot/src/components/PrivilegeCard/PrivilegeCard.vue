@@ -96,6 +96,7 @@
         <TransitionGroup>
             <Modal
                 v-if="isDeactivatePrivilegeModalDisplayed"
+                modalId="deactivate-privilege-modal"
                 class="privilege-edit-modal deactivate-privilege-modal"
                 :title="$t('licensing.confirmPrivilegeDeactivateTitle')"
                 :showActions="false"
@@ -118,7 +119,12 @@
                                     :shouldResizeY="true"
                                 />
                             </div>
-                            <div v-if="modalErrorMessage" class="modal-error">{{ modalErrorMessage }}</div>
+                            <div
+                                v-if="modalErrorMessage"
+                                class="modal-error"
+                                aria-live="assertive"
+                                role="alert"
+                            >{{ modalErrorMessage }}</div>
                             <div class="action-button-row">
                                 <InputButton
                                     id="deactivate-modal-cancel-button"
@@ -144,6 +150,7 @@
             </Modal>
             <Modal
                 v-if="isEncumberPrivilegeModalDisplayed"
+                modalId="encumber-privilege-modal"
                 class="privilege-edit-modal encumber-privilege-modal"
                 :title="!isEncumberPrivilegeModalSuccess ? $t('licensing.confirmPrivilegeEncumberTitle') : ' '"
                 :showActions="false"
@@ -201,7 +208,12 @@
                                 />
                             </div>
                             </div>
-                            <div v-if="modalErrorMessage" class="modal-error">{{ modalErrorMessage }}</div>
+                            <div
+                                v-if="modalErrorMessage"
+                                class="modal-error"
+                                aria-live="assertive"
+                                role="alert"
+                            >{{ modalErrorMessage }}</div>
                             <div class="action-button-row">
                                 <InputButton
                                     id="encumber-modal-cancel-button"
@@ -223,8 +235,13 @@
                             </div>
                         </form>
                     </div>
-                    <div v-else class="modal-content encumber-modal-content modal-content-success">
-                        <div class="icon-container"><CheckCircleIcon /></div>
+                    <div v-else
+                        class="modal-content encumber-modal-content modal-content-success"
+                        tabindex="0"
+                        aria-live="polite"
+                        role="status"
+                    >
+                        <div class="icon-container"><CheckCircleIcon aria-hidden="true" /></div>
                         <h1 class="modal-title">{{ $t('licensing.confirmPrivilegeEncumberSuccess') }}</h1>
                         <div class="success-container">
                             <div class="input-label static-label">{{ licenseeName }}</div>
@@ -241,6 +258,7 @@
             </Modal>
             <Modal
                 v-if="isUnencumberPrivilegeModalDisplayed"
+                modalId="unencumber-privilege-modal"
                 class="privilege-edit-modal unencumber-privilege-modal"
                 :title="!isUnencumberPrivilegeModalSuccess ? $t('licensing.confirmPrivilegeUnencumberTitle') : ' '"
                 :showActions="false"
@@ -307,7 +325,12 @@
                                 />
                             </div>
                             </div>
-                            <div v-if="modalErrorMessage" class="modal-error">{{ modalErrorMessage }}</div>
+                            <div
+                                v-if="modalErrorMessage"
+                                class="modal-error"
+                                aria-live="assertive"
+                                role="alert"
+                            >{{ modalErrorMessage }}</div>
                             <div class="action-button-row">
                                 <InputButton
                                     id="unencumber-modal-cancel-button"
@@ -329,8 +352,13 @@
                             </div>
                         </form>
                     </div>
-                    <div v-else class="modal-content unencumber-modal-content modal-content-success">
-                        <div class="icon-container"><CheckCircleIcon /></div>
+                    <div v-else
+                        class="modal-content unencumber-modal-content modal-content-success"
+                        tabindex="0"
+                        aria-live="polite"
+                        role="status"
+                    >
+                        <div class="icon-container"><CheckCircleIcon aria-hidden="true" /></div>
                         <h1 class="modal-title">{{ $t('licensing.confirmPrivilegeUnencumberSuccess') }}</h1>
                         <div class="success-container">
                             <div

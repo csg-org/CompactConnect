@@ -91,6 +91,7 @@
         <TransitionGroup>
             <Modal
                 v-if="isEncumberLicenseModalDisplayed"
+                modalId="encumber-license-modal"
                 class="license-edit-modal encumber-license-modal"
                 :title="!isEncumberLicenseModalSuccess ? $t('licensing.confirmLicenseEncumberTitle') : ' '"
                 :showActions="false"
@@ -147,7 +148,12 @@
                                 />
                             </div>
                             </div>
-                            <div v-if="modalErrorMessage" class="modal-error">{{ modalErrorMessage }}</div>
+                            <div
+                                v-if="modalErrorMessage"
+                                class="modal-error"
+                                aria-live="assertive"
+                                role="alert"
+                            >{{ modalErrorMessage }}</div>
                             <div class="action-button-row">
                                 <InputButton
                                     id="encumber-modal-cancel-button"
@@ -169,8 +175,13 @@
                             </div>
                         </form>
                     </div>
-                    <div v-else class="modal-content encumber-modal-content modal-content-success">
-                        <div class="icon-container"><CheckCircleIcon /></div>
+                    <div v-else
+                        class="modal-content encumber-modal-content modal-content-success"
+                        tabindex="0"
+                        aria-live="polite"
+                        role="status"
+                    >
+                        <div class="icon-container"><CheckCircleIcon aria-hidden="true" /></div>
                         <h1 class="modal-title">{{ $t('licensing.confirmLicenseEncumberSuccess') }}</h1>
                         <div class="success-container">
                             <div class="input-label static-label">{{ licenseeName }}</div>
@@ -188,6 +199,7 @@
             </Modal>
             <Modal
                 v-if="isUnencumberLicenseModalDisplayed"
+                modalId="unencumber-license-modal"
                 class="license-edit-modal unencumber-license-modal"
                 :title="!isUnencumberLicenseModalSuccess ? $t('licensing.confirmLicenseUnencumberTitle') : ' '"
                 :showActions="false"
@@ -253,7 +265,12 @@
                                 />
                             </div>
                             </div>
-                            <div v-if="modalErrorMessage" class="modal-error">{{ modalErrorMessage }}</div>
+                            <div
+                                v-if="modalErrorMessage"
+                                class="modal-error"
+                                aria-live="assertive"
+                                role="alert"
+                            >{{ modalErrorMessage }}</div>
                             <div class="action-button-row">
                                 <InputButton
                                     id="unencumber-modal-cancel-button"
@@ -275,8 +292,13 @@
                             </div>
                         </form>
                     </div>
-                    <div v-else class="modal-content unencumber-modal-content modal-content-success">
-                        <div class="icon-container"><CheckCircleIcon /></div>
+                    <div v-else
+                        class="modal-content unencumber-modal-content modal-content-success"
+                        tabindex="0"
+                        aria-live="polite"
+                        role="status"
+                    >
+                        <div class="icon-container"><CheckCircleIcon aria-hidden="true" /></div>
                         <h1 class="modal-title">{{ $t('licensing.confirmLicenseUnencumberSuccess') }}</h1>
                         <div class="success-container">
                             <div

@@ -23,6 +23,7 @@
             <TransitionGroup>
                 <Modal
                     v-if="isEmailVerificationModalDisplayed"
+                    modalId="confirm-email-modal"
                     class="confirm-email-modal"
                     :title="(!isEmailVerificationModalSuccess) ? $t('account.enterVerificationCode') : ' '"
                     :showActions="false"
@@ -30,7 +31,7 @@
                     @keyup.esc="closeEmailVerificationModal"
                 >
                     <template v-slot:content>
-                        <div class="modal-content confirm-modal-content">
+                        <div class="modal-content confirm-modal-content" tabindex="0">
                             <template v-if="!isEmailVerificationModalSuccess">
                                 <div class="confirm-email-subtext">
                                     {{ $t('account.enterVerificationCodeSubtext') }}
@@ -40,11 +41,16 @@
                                     class="verification-code-input-container"
                                 />
                             </template>
-                            <div v-else class="verification-code-success">
-                                <div class="icon-container"><CheckCircleIcon /></div>
+                            <div v-else class="verification-code-success" aria-live="polite" role="status">
+                                <div class="icon-container"><CheckCircleIcon aria-hidden="true" /></div>
                                 {{ $t('account.emailUpdateSuccess') }}
                             </div>
-                            <div v-if="emailVerificationErrorMessage" class="modal-error">
+                            <div
+                                v-if="emailVerificationErrorMessage"
+                                class="modal-error"
+                                aria-live="assertive"
+                                role="alert"
+                            >
                                 {{ emailVerificationErrorMessage }}
                             </div>
                             <div class="action-button-row">

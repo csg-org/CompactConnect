@@ -11,6 +11,7 @@ import {
     Prop,
     toNative
 } from 'vue-facing-decorator';
+import { nextTick } from 'vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 
 @Component({
@@ -27,6 +28,7 @@ class Modal extends Vue {
     @Prop({ default: false }) private isErrorModal?: boolean;
     @Prop({ default: true }) private showActions?: boolean;
     @Prop({ default: [] }) private customActions?: Array<{ label: string; emitEventName: string; closeAfter: boolean }>
+    @Prop({ default: '' }) private modalId?: string;
 
     globalStore: any = {};
 
@@ -39,6 +41,11 @@ class Modal extends Vue {
 
     mounted() {
         this.$store.dispatch('setModalIsOpen', true);
+
+        // Focus the modal content for screen readers to read title then content automatically
+        nextTick(() => {
+            (this.$refs.modalContent as HTMLElement)?.focus();
+        });
     }
 
     beforeUnmount() {
@@ -58,6 +65,12 @@ class Modal extends Vue {
 
     get isLogoutOnly(): boolean {
         return this.globalStore.isModalLogoutOnly;
+    }
+
+    get titleId(): string {
+        const baseId = this.modalId || 'modal';
+
+        return `${baseId}-title`;
     }
 
     //

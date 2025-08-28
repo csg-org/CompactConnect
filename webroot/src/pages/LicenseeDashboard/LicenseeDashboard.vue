@@ -93,6 +93,7 @@
         <TransitionGroup>
             <Modal
                 v-if="isPurchaseUnavailableModalDisplayed"
+                modalId="purchase-unavailable-modal"
                 class="purchase-unavailable-modal"
                 title=" "
                 :showActions="true"
@@ -105,11 +106,7 @@
                         <p id="purchase-unavailable-modal-title" class="purchase-unavailable-message">
                             {{ $t('licensing.purchaseUnavailableMessage') }}
                         </p>
-                        <ol
-                            id="purchase-unavailable-modal-reasons"
-                            class="purchase-unavailable-list good-wrap"
-                            tabindex="-1"
-                        >
+                        <ol class="purchase-unavailable-list good-wrap">
                             <li v-if="!hasEligibleLicenses">
                                 {{ $t('licensing.purchaseUnavailableNoEligibleLicenses') }}
                             </li>
