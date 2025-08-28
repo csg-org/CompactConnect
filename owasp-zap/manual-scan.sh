@@ -1,9 +1,6 @@
 #/usr/bin/env bash
 set -e
 
-# Copy our official API doc to ZAP data
-cp backend/compact-connect/docs/internal/api-specification/latest-oas30.json owasp-zap/data/latest-oas30.json
-
 # Log in as a user to get a token
 TOKEN="$(cd owasp-zap/authenticator; node main.js | jq -r '.accessToken')"
 
