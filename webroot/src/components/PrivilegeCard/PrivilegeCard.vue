@@ -119,7 +119,12 @@
                                     :shouldResizeY="true"
                                 />
                             </div>
-                            <div v-if="modalErrorMessage" class="modal-error">{{ modalErrorMessage }}</div>
+                            <div
+                                v-if="modalErrorMessage"
+                                class="modal-error"
+                                aria-live="assertive"
+                                role="alert"
+                            >{{ modalErrorMessage }}</div>
                             <div class="action-button-row">
                                 <InputButton
                                     id="deactivate-modal-cancel-button"
@@ -203,7 +208,12 @@
                                 />
                             </div>
                             </div>
-                            <div v-if="modalErrorMessage" class="modal-error">{{ modalErrorMessage }}</div>
+                            <div
+                                v-if="modalErrorMessage"
+                                class="modal-error"
+                                aria-live="assertive"
+                                role="alert"
+                            >{{ modalErrorMessage }}</div>
                             <div class="action-button-row">
                                 <InputButton
                                     id="encumber-modal-cancel-button"
@@ -229,6 +239,8 @@
                         class="modal-content encumber-modal-content modal-content-success"
                         ref="encumberModalSuccess"
                         tabindex="0"
+                        aria-live="polite"
+                        role="status"
                     >
                         <div class="icon-container"><CheckCircleIcon /></div>
                         <h1 class="modal-title">{{ $t('licensing.confirmPrivilegeEncumberSuccess') }}</h1>
@@ -314,7 +326,12 @@
                                 />
                             </div>
                             </div>
-                            <div v-if="modalErrorMessage" class="modal-error">{{ modalErrorMessage }}</div>
+                            <div
+                                v-if="modalErrorMessage"
+                                class="modal-error"
+                                aria-live="assertive"
+                                role="alert"
+                            >{{ modalErrorMessage }}</div>
                             <div class="action-button-row">
                                 <InputButton
                                     id="unencumber-modal-cancel-button"
@@ -340,6 +357,8 @@
                         class="modal-content unencumber-modal-content modal-content-success"
                         ref="unencumberModalSuccess"
                         tabindex="0"
+                        aria-live="polite"
+                        role="status"
                     >
                         <div class="icon-container"><CheckCircleIcon /></div>
                         <h1 class="modal-title">{{ $t('licensing.confirmPrivilegeUnencumberSuccess') }}</h1>

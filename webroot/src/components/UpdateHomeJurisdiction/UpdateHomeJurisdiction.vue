@@ -49,10 +49,14 @@
                     <template v-else-if="isSuccess">
                         <div class="icon-container"><CheckCircleIcon /></div>
                         <h1 class="modal-title">{{ $t('homeJurisdictionChange.successTitle') }}</h1>
-                        <div class="modal-subtext">{{ $t('homeJurisdictionChange.successSubtext') }}</div>
+                        <div
+                            class="modal-subtext"
+                            aria-live="polite"
+                            role="status"
+                        >{{ $t('homeJurisdictionChange.successSubtext') }}</div>
                     </template>
                     <template v-else-if="isError">
-                        <div class="modal-subtext">{{ errorMessage }}</div>
+                        <div class="modal-subtext" aria-live="assertive" role="alert">{{ errorMessage }}</div>
                     </template>
                 </div>
             </template>

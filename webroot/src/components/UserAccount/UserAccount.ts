@@ -203,6 +203,9 @@ class UserAccount extends mixins(MixinForm) {
                 this.setError(err.message);
             });
 
+        await nextTick();
+        (this.$refs.confirmEmailModalContent as HTMLElement)?.focus();
+
         if (!this.isFormError) {
             this.isFormSuccessful = true;
             this.updateFormSubmitSuccess(this.$t('common.success'));
@@ -229,13 +232,14 @@ class UserAccount extends mixins(MixinForm) {
                 });
             this.endFormLoading();
         }
+
+        await nextTick();
+        (this.$refs.confirmEmailModalContent as HTMLElement)?.focus();
     }
 
     async openEmailVerificationModal(): Promise<void> {
         this.isEmailVerificationModalDisplayed = true;
         this.initFormInputs();
-        await nextTick();
-        document.getElementById(this.formData.emailVerificationCode.id)?.focus();
     }
 
     async closeEmailVerificationModal(): Promise<void> {
@@ -287,13 +291,14 @@ class UserAccount extends mixins(MixinForm) {
 
                 if (!isError) {
                     this.isEmailVerificationModalSuccess = true;
-                    await nextTick();
-                    document.getElementById('confirm-modal-cancel-button')?.focus();
                     await this.$store.dispatch(`user/getLicenseeAccountRequest`);
                 }
 
                 this.endFormLoading();
             }
+
+            await nextTick();
+            (this.$refs.confirmEmailModalContent as HTMLElement)?.focus();
         }
     }
 
