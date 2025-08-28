@@ -444,10 +444,7 @@ class TestLicenses(TstFunction):
         # Do NOT add signature authentication headers - this should succeed when no keys are configured
         # First, remove any existing signature keys for this jurisdiction
         self._compact_configuration_table.delete_item(
-            Key={
-                'pk': 'aslp#SIGNATURE_KEYS#oh',
-                'sk': 'aslp#JURISDICTION#oh#test-key-001'
-            }
+            Key={'pk': 'aslp#SIGNATURE_KEYS#oh', 'sk': 'aslp#JURISDICTION#oh#test-key-001'}
         )
 
         resp = post_licenses(event, self.mock_context)
