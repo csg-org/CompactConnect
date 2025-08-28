@@ -48,26 +48,26 @@ class PrivilegeUpdatePreviousGeneralResponseSchema(ForgivingSchema):
     privilegeId = String(required=False, allow_none=False)
 
 
-class PrivilegeUpdateGeneralResponseSchema(ForgivingSchema):
-    """
-    Schema for privilege update history entries in the privilege object
-
-    Serialization direction:
-    Python -> load() -> API
-    """
-
-    type = String(required=True, allow_none=False)
-    updateType = UpdateType(required=True, allow_none=False)
-    providerId = Raw(required=True, allow_none=False)
-    compact = Compact(required=True, allow_none=False)
-    jurisdiction = Jurisdiction(required=True, allow_none=False)
-    licenseType = String(required=True, allow_none=False)
-    dateOfUpdate = Raw(required=True, allow_none=False)
-    createDate = Raw(required=True, allow_none=False)
-    effectiveDate = Raw(required=True, allow_none=False)
-    previous = Nested(PrivilegeUpdatePreviousGeneralResponseSchema(), required=True, allow_none=False)
-    # We'll allow any fields that can show up in the previous field to be here as well, but none are required
-    updatedValues = Nested(PrivilegeUpdatePreviousGeneralResponseSchema(partial=True), required=True, allow_none=False)
+# class PrivilegeUpdateGeneralResponseSchema(ForgivingSchema):
+#     """
+#     Schema for privilege update history entries in the privilege object
+#
+#     Serialization direction:
+#     Python -> load() -> API
+#     """
+#
+#     type = String(required=True, allow_none=False)
+#     updateType = UpdateType(required=True, allow_none=False)
+#     providerId = Raw(required=True, allow_none=False)
+#     compact = Compact(required=True, allow_none=False)
+#     jurisdiction = Jurisdiction(required=True, allow_none=False)
+#     licenseType = String(required=True, allow_none=False)
+#     dateOfUpdate = Raw(required=True, allow_none=False)
+#     createDate = Raw(required=True, allow_none=False)
+#     effectiveDate = Raw(required=True, allow_none=False)
+#     previous = Nested(PrivilegeUpdatePreviousGeneralResponseSchema(), required=True, allow_none=False)
+#     # We'll allow any fields that can show up in the previous field to be here as well, but none are required
+#     updatedValues = Nested(PrivilegeUpdatePreviousGeneralResponseSchema(partial=True), required=True, allow_none=False)
 
 
 class PrivilegeGeneralResponseSchema(ForgivingSchema):
@@ -88,7 +88,7 @@ class PrivilegeGeneralResponseSchema(ForgivingSchema):
     dateOfRenewal = Raw(required=True, allow_none=False)
     dateOfExpiration = Raw(required=True, allow_none=False)
     dateOfUpdate = Raw(required=True, allow_none=False)
-    history = List(Nested(PrivilegeUpdateGeneralResponseSchema, required=False, allow_none=False))
+    # history = List(Nested(PrivilegeUpdateGeneralResponseSchema, required=False, allow_none=False))
     adverseActions = List(Nested(AdverseActionGeneralResponseSchema, required=False, allow_none=False))
     administratorSetStatus = ActiveInactive(required=True, allow_none=False)
     # the id of the transaction that was made when the user purchased this privilege
