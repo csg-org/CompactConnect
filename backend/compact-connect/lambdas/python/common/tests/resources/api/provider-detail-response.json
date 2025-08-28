@@ -58,7 +58,7 @@
           "compact": "aslp",
           "jurisdiction": "oh",
           "createDate": "2024-11-08T23:59:59+00:00",
-          "effectiveDate": "2024-11-08",
+          "effectiveDate": "2024-11-08T23:59:59+00:00",
           "licenseType": "speech-language pathologist",
           "dateOfUpdate": "2020-04-07T12:59:59+00:00",
           "previous": {
@@ -115,7 +115,7 @@
           "compact": "aslp",
           "createDate": "2016-05-05T12:59:59+00:00",
           "dateOfUpdate": "2016-05-05T12:59:59+00:00",
-          "effectiveDate": "2016-05-05",
+          "effectiveDate": "2016-05-05T12:59:59+00:00",
           "jurisdiction": "ne",
           "licenseType": "speech-language pathologist",
           "previous": {},
@@ -131,7 +131,7 @@
           "jurisdiction": "ne",
           "licenseType": "speech-language pathologist",
           "dateOfUpdate": "2020-05-05T12:59:59+00:00",
-          "effectiveDate": "2020-05-05",
+          "effectiveDate": "2020-05-05T12:59:59+00:00",
           "createDate": "2020-05-05T12:59:59+00:00",
             "encumbranceDetails" : {
               "note": "Did bad things",

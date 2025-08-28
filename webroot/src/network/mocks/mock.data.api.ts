@@ -7,6 +7,7 @@
 
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 import { LicenseeSerializer } from '@models/Licensee/Licensee.model';
+import { LicenseHistoryItem, LicenseHistoryItemSerializer } from '@/models/LicenseHistoryItem/LicenseHistoryItem.model';
 import { LicenseeUserSerializer } from '@models/LicenseeUser/LicenseeUser.model';
 import { StaffUserSerializer } from '@models/StaffUser/StaffUser.model';
 import { PrivilegePurchaseOptionSerializer } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
@@ -24,7 +25,9 @@ import {
     getAttestation,
     compactStates,
     compactConfig,
-    stateConfig
+    stateConfig,
+    mockPrivilegeHistoryResponses
+
 } from '@network/mocks/mock.data';
 
 let mockStore: any = null;
@@ -194,7 +197,7 @@ export class DataApi {
     }
 
     // Encumber License for a licensee.
-    public encumberLicense(compact, licenseeId, licenseState, licenseType, npdbCategory, startDate) {
+    public encumberLicense(compact, licenseeId, licenseState, licenseType, encumbranceType, npdbCategory, startDate) {
         if (!compact) {
             return Promise.reject(new Error('failed license encumber'));
         }
@@ -205,6 +208,7 @@ export class DataApi {
             licenseeId,
             licenseState,
             licenseType,
+            encumbranceType,
             npdbCategory,
             startDate,
         }));
@@ -243,7 +247,15 @@ export class DataApi {
     }
 
     // Encumber Privilege for a licensee.
-    public encumberPrivilege(compact, licenseeId, privilegeState, licenseType, npdbCategory, startDate) {
+    public encumberPrivilege(
+        compact,
+        licenseeId,
+        privilegeState,
+        licenseType,
+        encumbranceType,
+        npdbCategory,
+        startDate
+    ) {
         if (!compact) {
             return Promise.reject(new Error('failed privilege encumber'));
         }
@@ -254,6 +266,7 @@ export class DataApi {
             licenseeId,
             privilegeState,
             licenseType,
+            encumbranceType,
             npdbCategory,
             startDate,
         }));
@@ -283,6 +296,110 @@ export class DataApi {
             compact,
             licenseeId,
         }));
+    }
+
+    // Get Privilege History (Public)
+    public getPrivilegeHistoryPublic(
+        compact,
+        providerId,
+        jurisdiction,
+        licenseTypeAbbrev
+    ) {
+        const [ janetNE, janetAL, layneNE, layneOH ] = mockPrivilegeHistoryResponses;
+        let response;
+        let responseData = janetNE;
+
+        if (providerId === 'aa2e057d-6972-4a68-a55d-aad1c3d05278' && jurisdiction === 'al') {
+            responseData = janetAL;
+        } else if (providerId === 'f47ac10b-58cc-4372-a567-0e02b2c3d479' && jurisdiction === 'ne') {
+            responseData = layneNE;
+        } else if (providerId === 'f47ac10b-58cc-4372-a567-0e02b2c3d479' && jurisdiction === 'oh') {
+            responseData = layneOH;
+        }
+
+        if (responseData
+            && compact
+            && providerId
+            && jurisdiction
+            && licenseTypeAbbrev
+        ) {
+            response = wait(500).then(() => {
+                const licenseHistoryData = {
+                    compact: responseData.compact,
+                    jurisdiction: responseData.jurisdiction,
+                    licenseType: responseData.licenseType,
+                    privilegeId: responseData.privilegeId,
+                    providerId: responseData.providerId,
+                    events: [] as Array<LicenseHistoryItem>,
+                };
+
+                if (Array.isArray(responseData.events)) {
+                    responseData.events.forEach((serverHistoryItem) => {
+                        licenseHistoryData.events.push(LicenseHistoryItemSerializer.fromServer(serverHistoryItem));
+                    });
+                }
+
+                return licenseHistoryData;
+            });
+        } else {
+            response = wait(500).then(() => {
+                throw new Error('not found');
+            });
+        }
+
+        return response;
+    }
+
+    // Get Privilege History (Staff)
+    public getPrivilegeHistoryStaff(
+        compact,
+        providerId,
+        jurisdiction,
+        licenseTypeAbbrev
+    ) {
+        const [ janetNE, janetAL, layneNE, layneOH ] = mockPrivilegeHistoryResponses;
+        let response;
+        let responseData = janetNE;
+
+        if (providerId === 'aa2e057d-6972-4a68-a55d-aad1c3d05278' && jurisdiction === 'al') {
+            responseData = janetAL;
+        } else if (providerId === 'f47ac10b-58cc-4372-a567-0e02b2c3d479' && jurisdiction === 'ne') {
+            responseData = layneNE;
+        } else if (providerId === 'f47ac10b-58cc-4372-a567-0e02b2c3d479' && jurisdiction === 'oh') {
+            responseData = layneOH;
+        }
+
+        if (responseData
+            && compact
+            && providerId
+            && jurisdiction
+            && licenseTypeAbbrev
+        ) {
+            response = wait(500).then(() => {
+                const licenseHistoryData = {
+                    compact: responseData.compact,
+                    jurisdiction: responseData.jurisdiction,
+                    licenseType: responseData.licenseType,
+                    privilegeId: responseData.privilegeId,
+                    providerId: responseData.providerId,
+                    events: [] as Array<LicenseHistoryItem>,
+                };
+
+                if (Array.isArray(responseData.events)) {
+                    responseData.events.forEach((serverHistoryItem) => {
+                        licenseHistoryData.events.push(LicenseHistoryItemSerializer.fromServer(serverHistoryItem));
+                    });
+                }
+
+                return licenseHistoryData;
+            });
+        } else {
+            response = wait(500).then(() => {
+                throw new Error('not found');
+            });
+        }
+
+        return response;
     }
 
     // ========================================================================
@@ -422,6 +539,51 @@ export class DataApi {
         return wait(500).then(() => ({
             message: 'success',
         }));
+    }
+
+    /**
+     * GET Authenticated Licensee User privilege's history.
+     * @param  {string}     jurisdiction jurisdiction of privilege
+     * @param  {string}     licenseTypeAbbrev license type abbreviation of privilege
+     * @return {Promise<>} A User model instance.
+     */
+    public getPrivilegeHistoryLicensee(jurisdiction: string, licenseTypeAbbrev: string) {
+        const [ janetNE, , layneNE, layneOH ] = mockPrivilegeHistoryResponses;
+        let response;
+        let responseData = janetNE;
+
+        if (jurisdiction === 'ne' && licenseTypeAbbrev === 'OTA') {
+            responseData = layneNE;
+        } else if (jurisdiction === 'oh' && licenseTypeAbbrev === 'OT') {
+            responseData = layneOH;
+        }
+
+        if (responseData && jurisdiction && licenseTypeAbbrev) {
+            response = wait(500).then(() => {
+                const licenseHistoryData = {
+                    compact: responseData.compact,
+                    jurisdiction: responseData.jurisdiction,
+                    licenseType: responseData.licenseType,
+                    privilegeId: responseData.privilegeId,
+                    providerId: responseData.providerId,
+                    events: [] as Array<LicenseHistoryItem>,
+                };
+
+                if (Array.isArray(responseData.events)) {
+                    responseData.events.forEach((serverHistoryItem) => {
+                        licenseHistoryData.events.push(LicenseHistoryItemSerializer.fromServer(serverHistoryItem));
+                    });
+                }
+
+                return licenseHistoryData;
+            });
+        } else {
+            response = wait(500).then(() => {
+                throw new Error('not found');
+            });
+        }
+
+        return response;
     }
 
     // ========================================================================

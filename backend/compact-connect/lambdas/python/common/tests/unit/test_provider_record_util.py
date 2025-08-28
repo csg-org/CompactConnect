@@ -187,7 +187,7 @@ class TestProviderRecordUtility(TstLambdas):
             'compact': 'octp',
             'createDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
             'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
-            'effectiveDate': date.fromisoformat('2024-01-01'),
+            'effectiveDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
             'jurisdiction': 'al',
             'licenseType': 'occupational therapy assistant',
             'previous': {},
@@ -229,7 +229,7 @@ class TestProviderRecordUtility(TstLambdas):
                 'compact': 'octp',
                 'createDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
-                'effectiveDate': date.fromisoformat('2024-01-01'),
+                'effectiveDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'jurisdiction': 'al',
                 'licenseType': 'occupational therapy assistant',
                 'previous': {},
@@ -242,7 +242,7 @@ class TestProviderRecordUtility(TstLambdas):
                 'compact': 'octp',
                 'createDate': datetime.fromisoformat('2024-02-02T04:00:00+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2024-02-02T04:00:00+00:00'),
-                'effectiveDate': date.fromisoformat('2024-02-01'),
+                'effectiveDate': datetime.fromisoformat('2024-02-02T03:59:59:999999+00:00'),
                 'jurisdiction': 'al',
                 'licenseType': 'occupational therapy assistant',
                 'previous': {},
@@ -286,7 +286,7 @@ class TestProviderRecordUtility(TstLambdas):
                 'compact': 'octp',
                 'createDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
-                'effectiveDate': date.fromisoformat('2024-01-01'),
+                'effectiveDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'jurisdiction': 'al',
                 'licenseType': 'occupational therapy assistant',
                 'previous': {},
@@ -299,7 +299,7 @@ class TestProviderRecordUtility(TstLambdas):
                 'compact': 'octp',
                 'createDate': datetime.fromisoformat('2024-02-02T04:00:00+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2024-02-02T04:00:00+00:00'),
-                'effectiveDate': date.fromisoformat('2024-02-01'),
+                'effectiveDate': datetime.fromisoformat('2024-02-02T03:59:59:999999+00:00'),
                 'jurisdiction': 'al',
                 'licenseType': 'occupational therapy assistant',
                 'previous': {},
@@ -343,7 +343,7 @@ class TestProviderRecordUtility(TstLambdas):
                 'compact': 'octp',
                 'createDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
-                'effectiveDate': date.fromisoformat('2024-01-01'),
+                'effectiveDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'jurisdiction': 'al',
                 'licenseType': 'occupational therapy assistant',
                 'previous': {},
@@ -387,7 +387,7 @@ class TestProviderRecordUtility(TstLambdas):
                 'compact': 'octp',
                 'createDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
-                'effectiveDate': date.fromisoformat('2024-01-01'),
+                'effectiveDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'jurisdiction': 'al',
                 'licenseType': 'occupational therapy assistant',
                 'previous': {},
@@ -424,7 +424,7 @@ class TestProviderRecordUtility(TstLambdas):
                 'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#120065729643#',
                 'createDate': datetime.fromisoformat('2025-07-17T15:27:35+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2025-07-17T15:27:35+00:00'),
-                'effectiveDate': date.fromisoformat('2025-05-01'),
+                'effectiveDate': datetime.fromisoformat('2025-05-01T23:59:00+00:00'),
                 'jurisdiction': 'ky',
                 'licenseType': 'speech-language pathologist',
                 'previous': {
@@ -449,7 +449,7 @@ class TestProviderRecordUtility(TstLambdas):
                 'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#120064106492#',
                 'createDate': datetime.fromisoformat('2025-07-17T15:24:01+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2025-07-17T15:24:01+00:00'),
-                'effectiveDate': date.fromisoformat('2025-07-15'),
+                'effectiveDate': datetime.fromisoformat('2025-07-15T23:59:00+00:00'),
                 'jurisdiction': 'ne',
                 'licenseType': 'speech-language pathologist',
                 'previous': {
@@ -474,7 +474,7 @@ class TestProviderRecordUtility(TstLambdas):
                 'compactTransactionIdGSIPK': 'COMPACT#octp#TX#120059525522#',
                 'dateOfUpdate': datetime.fromisoformat('2022-08-19T19:03:56+00:00'),
                 'createDate': datetime.fromisoformat('2025-07-17T15:24:01+00:00'),
-                'effectiveDate': date.fromisoformat('2025-08-15'),
+                'effectiveDate': datetime.fromisoformat('2025-08-15T15:24:01+00:00'),
                 'jurisdiction': 'ne',
                 'licenseType': 'occupational therapy assistant',
                 'previous': {
@@ -510,7 +510,7 @@ class TestProviderRecordUtility(TstLambdas):
                 'compact': 'octp',
                 'createDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
-                'effectiveDate': date.fromisoformat('2024-01-01'),
+                'effectiveDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'jurisdiction': 'al',
                 'licenseType': 'occupational therapy assistant',
                 'previous': {},
@@ -524,7 +524,7 @@ class TestProviderRecordUtility(TstLambdas):
                 'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#120065729643#',
                 'createDate': datetime.fromisoformat('2025-07-17T15:27:35+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2025-07-17T15:27:35+00:00'),
-                'effectiveDate': date.fromisoformat('2025-05-01'),
+                'effectiveDate': datetime.fromisoformat('2025-05-01T23:59:00+00:00'),
                 'jurisdiction': 'ky',
                 'licenseType': 'speech-language pathologist',
                 'previous': {
@@ -548,7 +548,7 @@ class TestProviderRecordUtility(TstLambdas):
                 'compact': 'octp',
                 'createDate': datetime.fromisoformat('2025-06-16T04:00:00+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2025-06-16T04:00:00+00:00'),
-                'effectiveDate': date.fromisoformat('2025-06-15'),
+                'effectiveDate': datetime.fromisoformat('2025-06-16T03:59:59:999999+00:00'),
                 'jurisdiction': 'al',
                 'licenseType': 'occupational therapy assistant',
                 'previous': {},
@@ -562,7 +562,7 @@ class TestProviderRecordUtility(TstLambdas):
                 'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#120064106492#',
                 'createDate': datetime.fromisoformat('2025-07-17T15:24:01+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2025-07-17T15:24:01+00:00'),
-                'effectiveDate': date.fromisoformat('2025-07-15'),
+                'effectiveDate': datetime.fromisoformat('2025-07-15T23:59:00+00:00'),
                 'jurisdiction': 'ne',
                 'licenseType': 'speech-language pathologist',
                 'previous': {
@@ -587,7 +587,7 @@ class TestProviderRecordUtility(TstLambdas):
                 'compactTransactionIdGSIPK': 'COMPACT#octp#TX#120059525522#',
                 'dateOfUpdate': datetime.fromisoformat('2022-08-19T19:03:56+00:00'),
                 'createDate': datetime.fromisoformat('2025-07-17T15:24:01+00:00'),
-                'effectiveDate': date.fromisoformat('2025-08-15'),
+                'effectiveDate': datetime.fromisoformat('2025-08-15T15:24:01+00:00'),
                 'jurisdiction': 'ne',
                 'licenseType': 'occupational therapy assistant',
                 'previous': {
@@ -639,7 +639,7 @@ class TestProviderRecordUtility(TstLambdas):
                 'compactTransactionIdGSIPK': 'COMPACT#octp#TX#120059525522#',
                 'dateOfUpdate': datetime.fromisoformat('2025-06-15T23:59:00+04:00'),
                 'createDate': datetime.fromisoformat('2025-06-15T23:59:00+04:00'),
-                'effectiveDate': date.fromisoformat('2025-06-15'),
+                'effectiveDate': datetime.fromisoformat('2025-06-15T23:59:00+04:00'),
                 'jurisdiction': 'ne',
                 'licenseType': 'occupational therapy assistant',
                 'previous': {
@@ -675,7 +675,7 @@ class TestProviderRecordUtility(TstLambdas):
                 'compact': 'octp',
                 'createDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
-                'effectiveDate': date.fromisoformat('2024-01-01'),
+                'effectiveDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'jurisdiction': 'al',
                 'licenseType': 'occupational therapy assistant',
                 'previous': {},
@@ -689,7 +689,7 @@ class TestProviderRecordUtility(TstLambdas):
                 'compactTransactionIdGSIPK': 'COMPACT#octp#TX#120059525522#',
                 'dateOfUpdate': datetime.fromisoformat('2025-06-15T23:59:00+04:00'),
                 'createDate': datetime.fromisoformat('2025-06-15T23:59:00+04:00'),
-                'effectiveDate': date.fromisoformat('2025-06-15'),
+                'effectiveDate': datetime.fromisoformat('2025-06-15T23:59:00+04:00'),
                 'jurisdiction': 'ne',
                 'licenseType': 'occupational therapy assistant',
                 'previous': {
@@ -718,7 +718,7 @@ class TestProviderRecordUtility(TstLambdas):
         self.maxDiff = None
         self.assertEqual(expected_updates, enriched_history)
 
-    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2028-03-15T00:00:00+00:00'))
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2027-03-18T00:00:00+04:00'))
     def test_enrich_privilege_history_does_inject_expiration_if_renewed_on_second_of_expiration(self):
         """Test that get_enriched_history_with_synthetic_updates_from_privilege adds expiration if privilege renewed
         one second over expiration cutoff"""
@@ -738,9 +738,9 @@ class TestProviderRecordUtility(TstLambdas):
             {
                 'compact': 'octp',
                 'compactTransactionIdGSIPK': 'COMPACT#octp#TX#120059525522#',
-                'dateOfUpdate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
-                'createDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
-                'effectiveDate': date.fromisoformat('2025-06-16'),
+                'dateOfUpdate': datetime.fromisoformat('2025-06-16T04:00:00+00:00'),
+                'createDate': datetime.fromisoformat('2025-06-16T04:00:00+00:00'),
+                'effectiveDate': datetime.fromisoformat('2025-06-16T04:00:00+00:00'),
                 'jurisdiction': 'ne',
                 'licenseType': 'occupational therapy assistant',
                 'previous': {
@@ -776,7 +776,7 @@ class TestProviderRecordUtility(TstLambdas):
                 'compact': 'octp',
                 'createDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
-                'effectiveDate': date.fromisoformat('2024-01-01'),
+                'effectiveDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'jurisdiction': 'al',
                 'licenseType': 'occupational therapy assistant',
                 'previous': {},
@@ -789,7 +789,7 @@ class TestProviderRecordUtility(TstLambdas):
                 'compact': 'octp',
                 'dateOfUpdate': datetime.fromisoformat('2025-06-16T04:00:00+00:00'),
                 'createDate': datetime.fromisoformat('2025-06-16T04:00:00+00:00'),
-                'effectiveDate': date.fromisoformat('2025-06-15'),
+                'effectiveDate': datetime.fromisoformat('2025-06-16T03:59:59:999999+00:00'),
                 'jurisdiction': 'al',
                 'licenseType': 'occupational therapy assistant',
                 'previous': {},
@@ -801,9 +801,9 @@ class TestProviderRecordUtility(TstLambdas):
             {
                 'compact': 'octp',
                 'compactTransactionIdGSIPK': 'COMPACT#octp#TX#120059525522#',
-                'dateOfUpdate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
-                'createDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
-                'effectiveDate': date.fromisoformat('2025-06-16'),
+                'dateOfUpdate': datetime.fromisoformat('2025-06-16T04:00:00+00:00'),
+                'createDate': datetime.fromisoformat('2025-06-16T04:00:00+00:00'),
+                'effectiveDate': datetime.fromisoformat('2025-06-16T04:00:00+00:00'),
                 'jurisdiction': 'ne',
                 'licenseType': 'occupational therapy assistant',
                 'previous': {

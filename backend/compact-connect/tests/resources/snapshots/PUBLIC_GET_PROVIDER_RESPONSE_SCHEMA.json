@@ -195,9 +195,17 @@
                 },
                 "updateType": {
                   "enum": [
-                    "renewal",
                     "deactivation",
-                    "other"
+                    "expiration",
+                    "issuance",
+                    "other",
+                    "renewal",
+                    "encumbrance",
+                    "homeJurisdictionChange",
+                    "registration",
+                    "lifting_encumbrance",
+                    "licenseDeactivation",
+                    "emailChange"
                   ],
                   "type": "string"
                 },

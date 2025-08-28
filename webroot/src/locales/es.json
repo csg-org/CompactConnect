@@ -378,7 +378,7 @@
         "licensingPublic": "Buscar proveedores de salud",
         "users": "Usuarios",
         "compactSettings": "Ajustes",
-        "purchasePrivileges": "Compras con privilegios",
+        "purchasePrivileges": "Obtener privilegios",
         "styleGuide": "Guía de estilo",
         "account": "Cuenta",
         "logout": "Cerrar sesión"
@@ -585,6 +585,7 @@
         "status": "Estado",
         "deselectState": "Deseleccionar estado",
         "issueDate": "Fecha de asunto",
+        "activeFrom": "Activo desde",
         "expirationDate": "Fecha de caducidad",
         "expiration": "Vencimiento",
         "expireDate": "Fecha de caducidad",
@@ -635,11 +636,13 @@
         "confirmPrivilegeDeactivateTitle": "¿Está seguro de que desea desactivar este privilegio?",
         "confirmPrivilegeDeactivateSubtext": "El profesional ya no podrá ejercer este privilegio. Esto no constituye una sanción disciplinaria.",
         "deactivateNotesTitle": "Notas de desactivación",
+        "deactivation": "Desactivación",
         "deactivateNotesPlaceholder": "Introduzca notas aquí",
         "confirmPrivilegeDeactivateSubmit": "Sí, desactivar privilegio",
         "encumber": "Cargar",
         "encumbered": "Gravado",
-        "npdbCategoryLabel": "Categoría NPDB",
+        "encumberAction": "Acción disciplinaria",
+        "npdbCategoryLabel": "Base para la acción / Categoría NPDB",
         "encumberStartDate": "Inicio del gravamen",
         "confirmLicenseEncumberTitle": "¿Estás seguro de que quieres gravar esta licencia?",
         "confirmLicenseEncumberSubtext": "El profesional ya no podrá utilizar esta licencia.",
@@ -662,10 +665,11 @@
         "confirmPrivilegeUnencumberSuccess": "Está previsto que estos gravámenes se eliminen.",
         "confirmPrivilegeUnencumberSuccessEndDate": "Fecha de finalización",
         "expiringIn": "Expirando en",
+        "events": "Eventos",
         "licenseEvents": [
             {
                 "name": "Privilegio comprado",
-                "key": "purchased"
+                "key": "issuance"
             },
             {
                 "name": "Renovación",
@@ -673,11 +677,27 @@
             },
             {
                 "name": "Expirado",
-                "key": "expired"
+                "key": "expiration"
             },
             {
                 "name": "Desactivación",
                 "key": "deactivation"
+            },
+            {
+                "name": "Desactivación de Licencia",
+                "key": "licenseDeactivation"
+            },
+            {
+                "name": "Inicio Cambio de Jurisdicción",
+                "key": "homeJurisdictionChange"
+            },
+            {
+                "name": "Privilegio sin trabas",
+                "key": "lifting_encumbrance"
+            },
+            {
+                "name": "Encumbrance",
+                "key": "encumbrance"
             }
         ],
         "licenseTypes": [
@@ -710,6 +730,68 @@
                 "key": "licensed professional counselor",
                 "compactKey": "coun",
                 "abbrev": "lpc"
+            }
+        ],
+        "disciplineTypes": [
+            {
+                "name": "Multa",
+                "key": "fine"
+            },
+            {
+                "name": "Reprimenda",
+                "key": "reprimand"
+            },
+            {
+                "name": "Supervisión requerida",
+                "key": "required supervision"
+            },
+            {
+                "name": "Finalización de la formación continua",
+                "key": "completion of continuing education"
+            },
+            {
+                "name": "Reprimenda pública",
+                "key": "public reprimand"
+            },
+            {
+                "name": "Libertad condicional",
+                "key": "probation"
+            },
+            {
+                "name": "Acción cautelar",
+                "key": "injunctive action"
+            },
+            {
+                "name": "Suspensión",
+                "key": "suspension"
+            },
+            {
+                "name": "Revocación",
+                "key": "revocation"
+            },
+            {
+                "name": "Negación",
+                "key": "denial"
+            },
+            {
+                "name": "Entrega de licencia",
+                "key": "surrender of license"
+            },
+            {
+                "name": "Modificación de la acción-extensión anterior",
+                "key": "modification of previous action-extension"
+            },
+            {
+                "name": "Modificación de la acción-reducción anterior",
+                "key": "modification of previous action-reduction"
+            },
+            {
+                "name": "Otros seguimientos",
+                "key": "other monitoring"
+            },
+            {
+                "name": "Otra acción adjudicada no listada",
+                "key": "other adjudicated action not listed"
             }
         ],
         "npdbTypes": [
@@ -761,6 +843,8 @@
         "activeDate": "Activa",
         "privilegeProofFooter": "Este documento es generado oficialmente por Compact Connect y sirve como prueba de las licencias y privilegios actuales del profesional.",
         "publicProfileLink": "Ver perfil público en",
+        "licenseDeactivationNote": "Desactivado debido a que la licencia asociada está desactivada",
+        "homeStateChangeNote": "Desactivado debido al cambio de estado de origen",
         "qrCodeAlt": "Código QR que enlaza al perfil público",
         "whyUnavailable": "¿Por qué no está disponible?",
         "whyUnavailableInfoButton": "Mostrar explicación de por qué la compra de privilegios no está disponible",
