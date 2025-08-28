@@ -52,7 +52,7 @@
                         <div class="modal-subtext">{{ $t('homeJurisdictionChange.modalSubtext') }}</div>
                     </template>
                     <template v-else-if="isSuccess">
-                        <div class="icon-container"><CheckCircleIcon /></div>
+                        <div class="icon-container"><CheckCircleIcon aria-hidden="true" /></div>
                         <h1 class="modal-title">{{ $t('homeJurisdictionChange.successTitle') }}</h1>
                         <div class="modal-subtext">{{ $t('homeJurisdictionChange.successSubtext') }}</div>
                     </template>

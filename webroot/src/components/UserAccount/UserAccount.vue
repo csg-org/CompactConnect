@@ -42,7 +42,7 @@
                                 />
                             </template>
                             <div v-else class="verification-code-success" aria-live="polite" role="status">
-                                <div class="icon-container"><CheckCircleIcon /></div>
+                                <div class="icon-container"><CheckCircleIcon aria-hidden="true" /></div>
                                 {{ $t('account.emailUpdateSuccess') }}
                             </div>
                             <div

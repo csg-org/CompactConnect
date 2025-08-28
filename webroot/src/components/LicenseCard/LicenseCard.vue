@@ -181,7 +181,7 @@
                         aria-live="polite"
                         role="status"
                     >
-                        <div class="icon-container"><CheckCircleIcon /></div>
+                        <div class="icon-container"><CheckCircleIcon aria-hidden="true" /></div>
                         <h1 class="modal-title">{{ $t('licensing.confirmLicenseEncumberSuccess') }}</h1>
                         <div class="success-container">
                             <div class="input-label static-label">{{ licenseeName }}</div>
@@ -298,7 +298,7 @@
                         aria-live="polite"
                         role="status"
                     >
-                        <div class="icon-container"><CheckCircleIcon /></div>
+                        <div class="icon-container"><CheckCircleIcon aria-hidden="true" /></div>
                         <h1 class="modal-title">{{ $t('licensing.confirmLicenseUnencumberSuccess') }}</h1>
                         <div class="success-container">
                             <div
