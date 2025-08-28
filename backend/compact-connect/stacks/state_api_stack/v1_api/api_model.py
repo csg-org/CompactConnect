@@ -119,7 +119,7 @@ class ApiModel:
                 properties={
                     'providers': JsonSchema(
                         type=JsonSchemaType.ARRAY,
-                        max_length=100,
+                        max_items=100,
                         items=self._providers_response_schema,
                     ),
                     'pagination': self._pagination_response_schema,
@@ -181,7 +181,7 @@ class ApiModel:
             description='POST licenses request model',
             schema=JsonSchema(
                 type=JsonSchemaType.ARRAY,
-                max_length=100,
+                max_items=100,
                 items=JsonSchema(
                     type=JsonSchemaType.OBJECT,
                     required=[

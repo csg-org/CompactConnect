@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "LicenseApi",
-    "version": "2025-08-26T23:18:59Z"
+    "version": "2025-08-28T18:13:05Z"
   },
   "servers": [
     {
@@ -3366,9 +3366,17 @@
                       "updateType": {
                         "type": "string",
                         "enum": [
-                          "renewal",
                           "deactivation",
-                          "other"
+                          "expiration",
+                          "issuance",
+                          "other",
+                          "renewal",
+                          "encumbrance",
+                          "homeJurisdictionChange",
+                          "registration",
+                          "lifting_encumbrance",
+                          "licenseDeactivation",
+                          "emailChange"
                         ]
                       }
                     }
@@ -4964,7 +4972,8 @@
       "SandboLicenAKvYsexFE18E": {
         "required": [
           "clinicalPrivilegeActionCategory",
-          "encumbranceEffectiveDate"
+          "encumbranceEffectiveDate",
+          "encumbranceType"
         ],
         "type": "object",
         "properties": {
@@ -4973,6 +4982,27 @@
             "type": "string",
             "description": "The effective date of the encumbrance",
             "format": "date"
+          },
+          "encumbranceType": {
+            "type": "string",
+            "description": "The type of encumbrance",
+            "enum": [
+              "fine",
+              "reprimand",
+              "required supervision",
+              "completion of continuing education",
+              "public reprimand",
+              "probation",
+              "injunctive action",
+              "suspension",
+              "revocation",
+              "denial",
+              "surrender of license",
+              "modification of previous action-extension",
+              "modification of previous action-reduction",
+              "other monitoring",
+              "other adjudicated action not listed"
+            ]
           },
           "clinicalPrivilegeActionCategory": {
             "type": "string",
@@ -5637,7 +5667,8 @@
       "SandboLicenGmoqDPz89Bxa": {
         "required": [
           "clinicalPrivilegeActionCategory",
-          "encumbranceEffectiveDate"
+          "encumbranceEffectiveDate",
+          "encumbranceType"
         ],
         "type": "object",
         "properties": {
@@ -5646,6 +5677,27 @@
             "type": "string",
             "description": "The effective date of the encumbrance",
             "format": "date"
+          },
+          "encumbranceType": {
+            "type": "string",
+            "description": "The type of encumbrance",
+            "enum": [
+              "fine",
+              "reprimand",
+              "required supervision",
+              "completion of continuing education",
+              "public reprimand",
+              "probation",
+              "injunctive action",
+              "suspension",
+              "revocation",
+              "denial",
+              "surrender of license",
+              "modification of previous action-extension",
+              "modification of previous action-reduction",
+              "other monitoring",
+              "other adjudicated action not listed"
+            ]
           },
           "clinicalPrivilegeActionCategory": {
             "type": "string",
@@ -6045,7 +6097,20 @@
                   "format": "date"
                 },
                 "updateType": {
-                  "type": "string"
+                  "type": "string",
+                  "enum": [
+                    "deactivation",
+                    "expiration",
+                    "issuance",
+                    "other",
+                    "renewal",
+                    "encumbrance",
+                    "homeJurisdictionChange",
+                    "registration",
+                    "lifting_encumbrance",
+                    "licenseDeactivation",
+                    "emailChange"
+                  ]
                 },
                 "createDate": {
                   "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
@@ -7258,9 +7323,17 @@
                       "updateType": {
                         "type": "string",
                         "enum": [
-                          "renewal",
                           "deactivation",
-                          "other"
+                          "expiration",
+                          "issuance",
+                          "other",
+                          "renewal",
+                          "encumbrance",
+                          "homeJurisdictionChange",
+                          "registration",
+                          "lifting_encumbrance",
+                          "licenseDeactivation",
+                          "emailChange"
                         ]
                       }
                     }
@@ -7325,6 +7398,7 @@
                       "creationDate",
                       "dateOfUpdate",
                       "effectiveStartDate",
+                      "encumbranceType",
                       "jurisdiction",
                       "licenseType",
                       "licenseTypeAbbreviation",
@@ -7435,6 +7509,9 @@
                         "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                         "type": "string",
                         "format": "date"
+                      },
+                      "encumbranceType": {
+                        "type": "string"
                       },
                       "clinicalPrivilegeActionCategory": {
                         "type": "string"
@@ -8277,9 +8354,17 @@
                       "updateType": {
                         "type": "string",
                         "enum": [
-                          "renewal",
                           "deactivation",
-                          "other"
+                          "expiration",
+                          "issuance",
+                          "other",
+                          "renewal",
+                          "encumbrance",
+                          "homeJurisdictionChange",
+                          "registration",
+                          "lifting_encumbrance",
+                          "licenseDeactivation",
+                          "emailChange"
                         ]
                       }
                     }
@@ -8321,6 +8406,7 @@
                       "creationDate",
                       "dateOfUpdate",
                       "effectiveStartDate",
+                      "encumbranceType",
                       "jurisdiction",
                       "licenseType",
                       "licenseTypeAbbreviation",
@@ -8431,6 +8517,9 @@
                         "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                         "type": "string",
                         "format": "date"
+                      },
+                      "encumbranceType": {
+                        "type": "string"
                       },
                       "clinicalPrivilegeActionCategory": {
                         "type": "string"

@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "StateApi",
-    "version": "2025-08-26T23:13:14Z"
+    "version": "2025-08-28T18:10:00Z"
   },
   "servers": [
     {
@@ -314,7 +314,7 @@
   "components": {
     "schemas": {
       "SandboStateL1ljdv5KYmFX": {
-        "maxLength": 100,
+        "maxItems": 100,
         "type": "array",
         "items": {
           "required": [
@@ -932,7 +932,7 @@
             "description": "How to sort results"
           },
           "providers": {
-            "maxLength": 100,
+            "maxItems": 100,
             "type": "array",
             "items": {
               "required": [

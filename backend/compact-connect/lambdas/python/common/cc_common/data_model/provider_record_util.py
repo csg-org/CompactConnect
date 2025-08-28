@@ -269,7 +269,7 @@ class ProviderRecordUtility:
                 'compact': privilege['compact'],
                 'jurisdiction': privilege['jurisdiction'],
                 'licenseType': privilege['licenseType'],
-                'effectiveDate': privilege['dateOfIssuance'].date(),
+                'effectiveDate': privilege['dateOfIssuance'],
                 'createDate': privilege['dateOfIssuance'],
                 'previous': {},
                 'updatedValues': {},
@@ -292,6 +292,15 @@ class ProviderRecordUtility:
                 update['effectiveDate'], datetime.min.time(), tzinfo=config.expiration_resolution_timezone
             )
             if datetime_of_expiration_trigger <= effective_date_time:
+
+                # We have assigned the maximum time in the day at UTC-4:00 because the expiration event happens at the
+                # first second of the date of expiration's passing. However, we want the expiration events to display as
+                # occurring on their expiration date and also have any events that occurred during that day come before
+                # the expiration chronologically. Putting the datetime of expiration as the max time in the day on the
+                # date of expiration best achieves those goals
+                effective_datetime_of_expiration = datetime.combine(
+                    date_of_expiration, datetime.max.time(), tzinfo=config.expiration_resolution_timezone
+                )
                 enriched_history.append(
                     {
                         'type': 'privilegeUpdate',
@@ -300,7 +309,7 @@ class ProviderRecordUtility:
                         'compact': privilege['compact'],
                         'jurisdiction': privilege['jurisdiction'],
                         'licenseType': privilege['licenseType'],
-                        'effectiveDate': date_of_expiration,
+                        'effectiveDate': effective_datetime_of_expiration.astimezone(UTC),
                         'createDate': datetime_of_expiration_trigger.astimezone(UTC),
                         'previous': {},
                         'updatedValues': {},
@@ -316,6 +325,14 @@ class ProviderRecordUtility:
         )
 
         if privilege_datetime_of_expiration_trigger <= now.astimezone(config.expiration_resolution_timezone):
+            # We have assigned the maximum time in the day at UTC-4:00 because the expiration event happens at the
+            # first second of the date of expiration's passing. However, we want the expiration events to display as
+            # occurring on their expiration date and also have any events that occurred during that day come before
+            # the expiration chronologically. Putting the datetime of expiration as the max time in the day on the
+            # date of expiration best achieves those goals
+            effective_datetime_of_expiration = datetime.combine(
+                privilege_date_of_expiration, datetime.max.time(), tzinfo=config.expiration_resolution_timezone
+            )
             enriched_history.append(
                 {
                     'type': 'privilegeUpdate',
@@ -324,7 +341,7 @@ class ProviderRecordUtility:
                     'compact': privilege['compact'],
                     'jurisdiction': privilege['jurisdiction'],
                     'licenseType': privilege['licenseType'],
-                    'effectiveDate': privilege_date_of_expiration,
+                    'effectiveDate': effective_datetime_of_expiration.astimezone(UTC),
                     'createDate': privilege_datetime_of_expiration_trigger.astimezone(UTC),
                     'previous': {},
                     'updatedValues': {},
