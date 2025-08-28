@@ -19,10 +19,10 @@
                     :class="{ 'modal-error': isErrorModal }"
                     role="dialog"
                     aria-modal="true"
-                    :aria-labelledby="titleId"
+                    :aria-labelledby="(displayTitle) ? titleId : undefined"
                 >
                     <div class="header-container">
-                        <h1 v-if="displayTitle" class="modal-title">{{ displayTitle }}</h1>
+                        <h1 v-if="displayTitle" :id="titleId" class="modal-title">{{ displayTitle }}</h1>
                         <InputButton
                             label="X"
                             v-if="hasCloseIcon"
