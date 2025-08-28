@@ -426,7 +426,10 @@ class TestLicenses(TstFunction):
         self.assertEqual(license_data['emailAddress'], message_data['emailAddress'])  # Should be trimmed
 
     def test_post_licenses_succeeds_without_signature_when_no_keys_configured(self):
-        """Test that posting licenses succeeds without signature when no signature keys are configured for the jurisdiction."""
+        """
+        Test that posting licenses succeeds without signature when no signature keys are configured for the
+        jurisdiction.
+        """
         from handlers.licenses import post_licenses
 
         with open('../common/tests/resources/api-event.json') as f:
@@ -440,15 +443,12 @@ class TestLicenses(TstFunction):
 
         # Do NOT add signature authentication headers - this should succeed when no keys are configured
         # First, remove any existing signature keys for this jurisdiction
-        try:
-            self._compact_configuration_table.delete_item(
-                Key={
-                    'pk': 'aslp#SIGNATURE_KEYS#oh',
-                    'sk': 'aslp#JURISDICTION#oh#test-key-001'
-                }
-            )
-        except:
-            pass  # Key might not exist, which is fine
+        self._compact_configuration_table.delete_item(
+            Key={
+                'pk': 'aslp#SIGNATURE_KEYS#oh',
+                'sk': 'aslp#JURISDICTION#oh#test-key-001'
+            }
+        )
 
         resp = post_licenses(event, self.mock_context)
 
