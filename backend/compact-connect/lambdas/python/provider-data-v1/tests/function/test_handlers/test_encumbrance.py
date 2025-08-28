@@ -35,6 +35,9 @@ LICENSE_ENCUMBRANCE_ID_ENDPOINT_RESOURCE = (
 
 TEST_ENCUMBRANCE_EFFECTIVE_DATE = '2023-01-15'
 
+# Noon UTC-4, designated encumbrance time to make date consistent across US timezones
+TEST_ENCUMBRANCE_EFFECTIVE_DATETIME = '2023-01-15T12:00:00-04:00'
+
 
 def _generate_test_body():
     from cc_common.data_model.schema.common import ClinicalPrivilegeActionCategory, EncumbranceType
@@ -155,7 +158,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
             value_overrides={
                 'updateType': 'encumbrance',
                 'updatedValues': {'encumberedStatus': 'encumbered'},
-                'effectiveDate': datetime.fromisoformat(TEST_ENCUMBRANCE_EFFECTIVE_DATE),
+                'effectiveDate': datetime.fromisoformat(TEST_ENCUMBRANCE_EFFECTIVE_DATETIME),
                 'createDate': datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP),
             }
         )
@@ -408,7 +411,7 @@ class TestPostLicenseEncumbrance(TstFunction):
                 'updateType': 'encumbrance',
                 'updatedValues': {'encumberedStatus': 'encumbered'},
                 'createDate': datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP),
-                'effectiveDate': date.fromisoformat(TEST_ENCUMBRANCE_EFFECTIVE_DATE),
+                'effectiveDate': datetime.fromisoformat(TEST_ENCUMBRANCE_EFFECTIVE_DATETIME),
             }
         )
         loaded_license_update_data = LicenseUpdateData.from_database_record(item)
