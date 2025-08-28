@@ -57,7 +57,7 @@
         <TransitionGroup>
             <Modal
                 v-if="isConfirmConfigModalDisplayed"
-                modalId="confirm-config-modal"
+                modalId="confirm-compact-config-modal"
                 class="confirm-config-modal"
                 :title="$t('compact.confirmSaveCompactTitle')"
                 :showActions="false"

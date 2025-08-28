@@ -45,8 +45,8 @@
                 <div
                     class="jurisdiction-modal-content"
                     tabindex="0"
-                    aria-live="polite"
-                    role="status"
+                    :aria-live="(isSuccess) ? 'polite' : undefined"
+                    :role="(isSuccess) ? 'status' : undefined"
                 >
                     <template v-if="!isSuccess && !isError">
                         <div class="modal-subtext">{{ $t('homeJurisdictionChange.modalSubtext') }}</div>
