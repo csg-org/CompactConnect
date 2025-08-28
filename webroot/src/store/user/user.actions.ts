@@ -428,4 +428,21 @@ export default {
     resetMfaLicenseeAccountFailure: ({ commit }, error: Error) => {
         commit(MutationTypes.RESET_MFA_LICENSEE_ACCOUNT_FAILURE, error);
     },
+    confirmMfaLicenseeAccountRequest: async ({ commit, dispatch }, { data }: any) => {
+        commit(MutationTypes.CONFIRM_MFA_LICENSEE_ACCOUNT_REQUEST);
+        return dataApi.confirmMfaLicenseeAccount(data).then(async (response) => {
+            dispatch('confirmMfaLicenseeAccountSuccess');
+
+            return response;
+        }).catch((error) => {
+            dispatch('confirmMfaLicenseeAccountFailure', error);
+            throw error;
+        });
+    },
+    confirmMfaLicenseeAccountSuccess: ({ commit }) => {
+        commit(MutationTypes.CONFIRM_MFA_LICENSEE_ACCOUNT_SUCCESS);
+    },
+    confirmMfaLicenseeAccountFailure: ({ commit }, error: Error) => {
+        commit(MutationTypes.CONFIRM_MFA_LICENSEE_ACCOUNT_FAILURE, error);
+    },
 };

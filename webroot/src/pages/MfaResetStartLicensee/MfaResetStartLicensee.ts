@@ -458,7 +458,7 @@ class MfaResetStartLicensee extends mixins(MixinForm) {
         this.formData.dob.value = '2000-01-01';
         this.formData.licenseState.value = this.stateOptions[1]?.value || 'co';
         this.formData.licenseType.value = this.licenseTypeOptions[1]?.value || 'audiologist';
-        this.formData.password.value = 'example.com';
+        this.formData.password.value = 'example-example';
         await nextTick();
         this.validateAll({ asTouched: true });
 

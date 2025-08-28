@@ -6,7 +6,13 @@
 //
 
 import { Component, Vue, toNative } from 'vue-facing-decorator';
-import { AuthTypes, getHostedLoginUri } from '@/app.config';
+import {
+    authStorage,
+    AuthTypes,
+    getHostedLoginUri,
+    AUTH_LOGIN_GOTO_PATH,
+    AUTH_LOGIN_GOTO_PATH_AUTH_TYPE
+} from '@/app.config';
 import Section from '@components/Section/Section.vue';
 import Card from '@components/Card/Card.vue';
 import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
@@ -70,24 +76,108 @@ class MfaResetConfirmLicensee extends Vue {
     //
     async initiateRecoveryConfirmation(): Promise<void> {
         const { compactQuery, providerIdQuery, recoveryIdQuery } = this;
+        const firstName = document.getElementById('first-name') as HTMLInputElement;
+        let isError = false;
 
-        if (compactQuery && providerIdQuery && recoveryIdQuery) {
-            this.isSuccess = true;
-        }
+        if (compactQuery && providerIdQuery && recoveryIdQuery && !firstName?.value) {
+            const data = {
+                compact: compactQuery,
+                providerId: providerIdQuery,
+                recoveryToken: recoveryIdQuery,
+                recaptchaToken: '',
+            };
 
-        if (this.isUsingMockApi) {
-            await new Promise((resolve) => setTimeout(() => { resolve(true); }, 2000));
+            await this.handleRecaptcha(data).catch(() => {
+                this.serverMessage = this.$t('account.requestErrorRecaptcha');
+                isError = true;
+            });
+
+            if (!isError) {
+                await this.$store.dispatch('user/confirmMfaLicenseeAccountRequest', { data }).catch((err) => {
+                    this.serverMessage = this.handleErrorResponse(err);
+                    isError = true;
+                });
+            }
+
+            if (!isError) {
+                this.isSuccess = true;
+            }
         }
 
         this.isLoading = false;
     }
 
+    async handleRecaptcha(data): Promise<void> {
+        const { recaptchaKey, isUsingMockApi } = this.$envConfig;
+
+        if (!isUsingMockApi) {
+            const { grecaptcha } = window as any; // From the SDK loaded in initRecaptcha() above
+            const recaptchaToken = await new Promise((resolve, reject) => {
+                grecaptcha.ready(() => {
+                    grecaptcha.execute(recaptchaKey, { action: 'submit' }).then((token) => {
+                        resolve(token);
+                    }).catch((err) => {
+                        reject(err);
+                    });
+                });
+            }).catch((err) => { throw err; });
+
+            data.recaptchaToken = recaptchaToken;
+        }
+    }
+
+    handleErrorResponse(err): string {
+        const { message = '', responseStatus } = err || {};
+        let errorMessage = '';
+
+        switch (responseStatus) {
+        case 400:
+            errorMessage = message || this.$t('serverErrors.networkError');
+            break;
+        case 429:
+            errorMessage = this.$t('serverErrors.rateLimit');
+            break;
+        default:
+            errorMessage = message;
+            break;
+        }
+
+        return errorMessage;
+    }
+
     goToLogin(): void {
-        window.location.replace(this.hostedLoginUriLicensee);
+        if (this.isUsingMockApi) {
+            this.mockLicenseeLogin();
+        } else {
+            window.location.replace(this.hostedLoginUriLicensee);
+        }
     }
 
     goToDashboard(): void {
         this.$router.replace({ name: 'DashboardPublic' });
+    }
+
+    async mockLicenseeLogin(): Promise<void> {
+        const goto = authStorage.getItem(AUTH_LOGIN_GOTO_PATH);
+        const gotoAuthType = authStorage.getItem(AUTH_LOGIN_GOTO_PATH_AUTH_TYPE);
+        const data = {
+            access_token: 'mock_access_token',
+            token_type: 'Bearer',
+            expires_in: '100000000',
+            id_token: 'mock_id_token',
+            refresh_token: 'mock_refresh_token'
+        };
+
+        authStorage.removeItem(AUTH_LOGIN_GOTO_PATH);
+        authStorage.removeItem(AUTH_LOGIN_GOTO_PATH_AUTH_TYPE);
+        await this.$store.dispatch('user/updateAuthTokens', { tokenResponse: data, authType: AuthTypes.LICENSEE });
+        this.$store.dispatch('user/loginSuccess', AuthTypes.LICENSEE);
+
+        if (goto && (!gotoAuthType || gotoAuthType === AuthTypes.LICENSEE)) {
+            this.$router.replace({ path: goto });
+        } else {
+            this.$router.replace({ name: 'Home' });
+        }
     }
 }
 

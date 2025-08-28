@@ -485,6 +485,31 @@ describe('Use Store Mutations', () => {
         expect(state.isLoadingAccount).to.equal(false);
         expect(state.error).to.equal(null);
     });
+    it('should successfully confirm mfa licensee account request', () => {
+        const state = {};
+
+        mutations[MutationTypes.CONFIRM_MFA_LICENSEE_ACCOUNT_REQUEST](state);
+
+        expect(state.isLoadingAccount).to.equal(false);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully confirm mfa licensee account failure', () => {
+        const state = {};
+        const error = new Error();
+
+        mutations[MutationTypes.CONFIRM_MFA_LICENSEE_ACCOUNT_FAILURE](state, error);
+
+        expect(state.isLoadingAccount).to.equal(false);
+        expect(state.error).to.equal(error);
+    });
+    it('should successfully confirm mfa licensee account success', () => {
+        const state = {};
+
+        mutations[MutationTypes.CONFIRM_MFA_LICENSEE_ACCOUNT_SUCCESS](state);
+
+        expect(state.isLoadingAccount).to.equal(false);
+        expect(state.error).to.equal(null);
+    });
 });
 describe('User Store Actions', async () => {
     it('should successfully start login request', () => {
@@ -975,14 +1000,12 @@ describe('User Store Actions', async () => {
         expect(dispatch.calledWith('setStoreUser')).to.equal(true);
         expect(dispatch.calledWith('updateHomeJurisdictionSuccess')).to.equal(true);
     });
-
     it('should successfully start updateHomeJurisdictionSuccess', () => {
         const commit = sinon.spy();
 
         actions.updateHomeJurisdictionSuccess({ commit });
         expect(commit.calledWith(MutationTypes.UPDATE_HOME_JURISDICTION_SUCCESS)).to.equal(true);
     });
-
     it('should successfully start updateHomeJurisdictionFailure', () => {
         const commit = sinon.spy();
         const error = new Error('Test error');
@@ -1063,6 +1086,49 @@ describe('User Store Actions', async () => {
 
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.RESET_MFA_LICENSEE_ACCOUNT_FAILURE, error]);
+    });
+    it('should successfully confirm mfa licensee account request', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const payload = { data: {}};
+
+        await actions.confirmMfaLicenseeAccountRequest({ commit, dispatch }, payload);
+
+        expect(commit.calledOnce, 'commit').to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.CONFIRM_MFA_LICENSEE_ACCOUNT_REQUEST]);
+        expect(dispatch.calledOnce, 'dispatch').to.equal(true);
+    });
+    it('should successfully confirm mfa licensee account request (intentional error)', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const payload = {};
+
+        await actions.confirmMfaLicenseeAccountRequest({ commit, dispatch }, payload).catch((error) => {
+            expect(error).to.be.an('error').with.property('message', 'failed mfa reset confirm');
+        });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.CONFIRM_MFA_LICENSEE_ACCOUNT_REQUEST]);
+        expect(dispatch.calledOnce).to.equal(true);
+        expect(dispatch.firstCall.args[0]).to.equal('confirmMfaLicenseeAccountFailure');
+    });
+    it('should successfully confirm mfa licensee account success', () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+
+        actions.confirmMfaLicenseeAccountSuccess({ commit, dispatch });
+
+        expect(commit.calledOnce, 'commit').to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.CONFIRM_MFA_LICENSEE_ACCOUNT_SUCCESS]);
+    });
+    it('should successfully confirm mfa licensee account failure', () => {
+        const commit = sinon.spy();
+        const error = new Error();
+
+        actions.confirmMfaLicenseeAccountFailure({ commit }, error);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.CONFIRM_MFA_LICENSEE_ACCOUNT_FAILURE, error]);
     });
 });
 describe('User Store Getters', async () => {
