@@ -31,7 +31,7 @@
                     @keyup.esc="closeEmailVerificationModal"
                 >
                     <template v-slot:content>
-                        <div ref="confirmEmailModalContent" class="modal-content confirm-modal-content" tabindex="0">
+                        <div class="modal-content confirm-modal-content" tabindex="0">
                             <template v-if="!isEmailVerificationModalSuccess">
                                 <div class="confirm-email-subtext">
                                     {{ $t('account.enterVerificationCodeSubtext') }}

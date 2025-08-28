@@ -485,8 +485,6 @@ class PrivilegeCard extends mixins(MixinForm) {
                 this.isFormSuccessful = true;
                 await this.$store.dispatch('license/getLicenseeRequest', { compact: compactType, licenseeId });
                 this.isEncumberPrivilegeModalSuccess = true;
-                await nextTick();
-                (this.$refs.encumberModalSuccess as HTMLElement)?.focus();
             }
 
             this.endFormLoading();
@@ -646,8 +644,6 @@ class PrivilegeCard extends mixins(MixinForm) {
                 this.isFormSuccessful = true;
                 await this.$store.dispatch('license/getLicenseeRequest', { compact: compactType, licenseeId });
                 this.isUnencumberPrivilegeModalSuccess = true;
-                await nextTick();
-                (this.$refs.unencumberModalSuccess as HTMLElement)?.focus();
             }
 
             this.endFormLoading();

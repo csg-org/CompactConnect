@@ -42,21 +42,26 @@
             @keyup.esc="closeConfirmJurisdictionModal"
         >
             <template v-slot:content>
-                <div ref="confirmJurisdictionModalContent" class="jurisdiction-modal-content" tabindex="0">
+                <div
+                    class="jurisdiction-modal-content"
+                    tabindex="0"
+                    aria-live="polite"
+                    role="status"
+                >
                     <template v-if="!isSuccess && !isError">
                         <div class="modal-subtext">{{ $t('homeJurisdictionChange.modalSubtext') }}</div>
                     </template>
                     <template v-else-if="isSuccess">
                         <div class="icon-container"><CheckCircleIcon /></div>
                         <h1 class="modal-title">{{ $t('homeJurisdictionChange.successTitle') }}</h1>
-                        <div
-                            class="modal-subtext"
-                            aria-live="polite"
-                            role="status"
-                        >{{ $t('homeJurisdictionChange.successSubtext') }}</div>
+                        <div class="modal-subtext">{{ $t('homeJurisdictionChange.successSubtext') }}</div>
                     </template>
                     <template v-else-if="isError">
-                        <div class="modal-subtext" aria-live="assertive" role="alert">{{ errorMessage }}</div>
+                        <div
+                            class="modal-subtext"
+                            aria-live="assertive"
+                            role="alert"
+                        >{{ errorMessage }}</div>
                     </template>
                 </div>
             </template>

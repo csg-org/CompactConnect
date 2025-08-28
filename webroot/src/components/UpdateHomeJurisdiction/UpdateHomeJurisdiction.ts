@@ -14,8 +14,7 @@ import {
 import {
     reactive,
     computed,
-    ComputedRef,
-    nextTick
+    ComputedRef
 } from 'vue';
 import { stateList } from '@/app.config';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
@@ -234,15 +233,10 @@ class UpdateHomeJurisdiction extends mixins(MixinForm) {
             await this.$store.dispatch('user/updateHomeJurisdictionRequest', jurisdictionUpdateData).then(async () => {
                 this.isSuccess = true;
                 this.isFormLoading = false;
-                await nextTick();
-                (this.$refs.confirmJurisdictionModalContent as HTMLElement)?.focus();
             }).catch((err: any) => {
                 this.isError = true;
                 this.errorMessage = err?.message || this.$t('common.tryAgain');
                 this.isFormLoading = false;
-                nextTick(() => {
-                    (this.$refs.confirmJurisdictionModalContent as HTMLElement)?.focus();
-                });
             });
         }
     }

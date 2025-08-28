@@ -430,8 +430,6 @@ class LicenseCard extends mixins(MixinForm) {
                 this.isFormSuccessful = true;
                 await this.$store.dispatch('license/getLicenseeRequest', { compact: compactType, licenseeId });
                 this.isEncumberLicenseModalSuccess = true;
-                await nextTick();
-                (this.$refs.encumberModalSuccess as HTMLElement)?.focus();
             }
 
             this.endFormLoading();
@@ -591,8 +589,6 @@ class LicenseCard extends mixins(MixinForm) {
                 this.isFormSuccessful = true;
                 await this.$store.dispatch('license/getLicenseeRequest', { compact: compactType, licenseeId });
                 this.isUnencumberLicenseModalSuccess = true;
-                await nextTick();
-                (this.$refs.unencumberModalSuccess as HTMLElement)?.focus();
             }
 
             this.endFormLoading();

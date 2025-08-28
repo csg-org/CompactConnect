@@ -237,7 +237,6 @@
                     </div>
                     <div v-else
                         class="modal-content encumber-modal-content modal-content-success"
-                        ref="encumberModalSuccess"
                         tabindex="0"
                         aria-live="polite"
                         role="status"
@@ -355,7 +354,6 @@
                     </div>
                     <div v-else
                         class="modal-content unencumber-modal-content modal-content-success"
-                        ref="unencumberModalSuccess"
                         tabindex="0"
                         aria-live="polite"
                         role="status"

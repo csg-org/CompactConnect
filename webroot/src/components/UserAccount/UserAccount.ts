@@ -203,9 +203,6 @@ class UserAccount extends mixins(MixinForm) {
                 this.setError(err.message);
             });
 
-        await nextTick();
-        (this.$refs.confirmEmailModalContent as HTMLElement)?.focus();
-
         if (!this.isFormError) {
             this.isFormSuccessful = true;
             this.updateFormSubmitSuccess(this.$t('common.success'));
@@ -232,9 +229,6 @@ class UserAccount extends mixins(MixinForm) {
                 });
             this.endFormLoading();
         }
-
-        await nextTick();
-        (this.$refs.confirmEmailModalContent as HTMLElement)?.focus();
     }
 
     async openEmailVerificationModal(): Promise<void> {
@@ -296,9 +290,6 @@ class UserAccount extends mixins(MixinForm) {
 
                 this.endFormLoading();
             }
-
-            await nextTick();
-            (this.$refs.confirmEmailModalContent as HTMLElement)?.focus();
         }
     }
 
