@@ -1,5 +1,5 @@
 import json
-from datetime import date, datetime
+from datetime import date, datetime, time
 from unittest.mock import patch
 from uuid import UUID
 
@@ -2732,7 +2732,12 @@ class TestEncumbranceEvents(TstFunction):
         update_record = privilege_update_records[0]
 
         # The key assertion: effectiveDate should be the LATEST lift date (2024-03-15), not the event date (2024-03-01)
-        self.assertEqual(date(2024, 3, 15), update_record.effectiveDate)
+        expected_effective_date = datetime.combine(
+            date(2024, 3, 15),
+            time(12, 0, 0),
+            tzinfo=self.config.expiration_resolution_timezone
+        )
+        self.assertEqual(expected_effective_date, update_record.effectiveDate)
         self.assertEqual('lifting_encumbrance', update_record.updateType)
         self.assertEqual({'encumberedStatus': 'unencumbered'}, update_record.updatedValues)
 
