@@ -42,7 +42,7 @@
             @keyup.esc="closeConfirmJurisdictionModal"
         >
             <template v-slot:content>
-                <div ref="confirmJurisdictionModalContent" tabindex="0">
+                <div ref="confirmJurisdictionModalContent" class="jurisdiction-modal-content" tabindex="0">
                     <template v-if="!isSuccess && !isError">
                         <div class="modal-subtext">{{ $t('homeJurisdictionChange.modalSubtext') }}</div>
                     </template>

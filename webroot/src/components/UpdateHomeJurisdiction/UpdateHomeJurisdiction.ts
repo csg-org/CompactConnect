@@ -231,10 +231,10 @@ class UpdateHomeJurisdiction extends mixins(MixinForm) {
                 jurisdiction: newHomeJurisdiction
             };
 
-            await this.$store.dispatch('user/updateHomeJurisdictionRequest', jurisdictionUpdateData).then(() => {
+            await this.$store.dispatch('user/updateHomeJurisdictionRequest', jurisdictionUpdateData).then(async () => {
                 this.isSuccess = true;
                 this.isFormLoading = false;
-                nextTick(() => {
+                await nextTick(() => {
                     (this.$refs.confirmJurisdictionModalContent as HTMLElement)?.focus();
                 });
             }).catch((err: any) => {
