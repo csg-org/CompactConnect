@@ -41,13 +41,9 @@ class Modal extends Vue {
     mounted() {
         this.$store.dispatch('setModalIsOpen', true);
 
-        // Focus the modal content so VoiceOver reads title then content
+        // Focus the modal content for screen readers to read title then content automatically
         this.$nextTick(() => {
-            const modalContent = this.$refs.modalContent as HTMLElement;
-
-            if (modalContent) {
-                modalContent.focus();
-            }
+            (this.$refs.modalContent as HTMLElement)?.focus();
         });
     }
 

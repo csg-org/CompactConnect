@@ -176,10 +176,7 @@
                         tabindex="0"
                     >
                         <div class="icon-container"><CheckCircleIcon /></div>
-                        <h1
-                            id="encumber-modal-success-title"
-                            class="modal-title">{{ $t('licensing.confirmLicenseEncumberSuccess') }}
-                        </h1>
+                        <h1 class="modal-title">{{ $t('licensing.confirmLicenseEncumberSuccess') }}</h1>
                         <div class="success-container">
                             <div class="input-label static-label">{{ licenseeName }}</div>
                             <div class="static-value">{{ stateContent }}</div>

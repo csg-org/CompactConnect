@@ -153,7 +153,7 @@
                 @keyup.esc="closeEncumberPrivilegeModal"
             >
                 <template v-slot:content>
-                    <div v-if="!isEncumberPrivilegeModalSuccess" class="encumber-modal-content">
+                    <div v-if="!isEncumberPrivilegeModalSuccess" class="modal-content encumber-modal-content">
                         {{ $t('licensing.confirmPrivilegeEncumberSubtext') }}
                         <form
                             id="encumber-modal-form"
