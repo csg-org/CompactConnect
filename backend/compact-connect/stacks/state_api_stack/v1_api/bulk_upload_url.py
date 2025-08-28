@@ -62,6 +62,7 @@ class BulkUploadUrl:
         )
         # Grant the handler permissions to write to the bulk bucket
         persistent_stack.bulk_uploads_bucket.grant_write(handler)
+        persistent_stack.compact_configuration_table.grant_read_data(handler)
         persistent_stack.rate_limiting_table.grant_read_write_data(handler)
         self.log_groups.append(handler.log_group)
 
