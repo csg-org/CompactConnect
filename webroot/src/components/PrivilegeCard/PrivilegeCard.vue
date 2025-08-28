@@ -104,7 +104,7 @@
                 @keyup.esc="closeDeactivatePrivilegeModal"
             >
                 <template v-slot:content>
-                    <div class="deactivate-modal-content">
+                    <div class="modal-content deactivate-modal-content">
                         {{ $t('licensing.confirmPrivilegeDeactivateSubtext') }}
                         <form class="privilege-edit-form" @submit.prevent="submitDeactivatePrivilege">
                             <MockPopulate
@@ -255,7 +255,7 @@
                 @keyup.esc="closeUnencumberPrivilegeModal"
             >
                 <template v-slot:content>
-                    <div v-if="!isUnencumberPrivilegeModalSuccess" class="unencumber-modal-content">
+                    <div v-if="!isUnencumberPrivilegeModalSuccess" class="modal-content unencumber-modal-content">
                         <form
                             id="unencumber-modal-form"
                             class="privilege-edit-form unencumber-privilege-form"
