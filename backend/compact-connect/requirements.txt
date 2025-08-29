@@ -12,18 +12,18 @@ aws-cdk-asset-awscli-v1==2.2.242
     # via aws-cdk-lib
 aws-cdk-asset-node-proxy-agent-v6==2.1.0
     # via aws-cdk-lib
-aws-cdk-aws-lambda-python-alpha==2.212.0a0
+aws-cdk-aws-lambda-python-alpha==2.213.0a0
     # via -r compact-connect/requirements.in
-aws-cdk-cloud-assembly-schema==48.4.0
+aws-cdk-cloud-assembly-schema==48.6.0
     # via aws-cdk-lib
-aws-cdk-lib==2.212.0
+aws-cdk-lib==2.213.0
     # via
     #   -r compact-connect/requirements.in
     #   aws-cdk-aws-lambda-python-alpha
     #   cdk-nag
 cattrs==25.1.1
     # via jsii
-cdk-nag==2.37.7
+cdk-nag==2.37.11
     # via -r compact-connect/requirements.in
 constructs==10.4.2
     # via
@@ -68,7 +68,7 @@ typeguard==2.13.3
     #   cdk-nag
     #   constructs
     #   jsii
-typing-extensions==4.14.1
+typing-extensions==4.15.0
     # via
     #   cattrs
     #   jsii

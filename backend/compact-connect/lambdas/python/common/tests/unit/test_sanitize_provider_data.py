@@ -50,8 +50,6 @@ class TestSanitizeProviderData(TstLambdas):
         loaded_provider['militaryAffiliations'][0]['documentKeys'] = mock_doc_keys
         loaded_provider['licenses'][0]['ssnLastFour'] = mock_ssn
         loaded_provider['licenses'][0]['dateOfBirth'] = mock_dob
-        loaded_provider['licenses'][0]['history'][0]['previous']['ssnLastFour'] = mock_ssn
-        loaded_provider['licenses'][0]['history'][0]['previous']['dateOfBirth'] = mock_dob
 
         # test provider has a license in oh and privilege in ne
         resp = sanitize_provider_data_based_on_caller_scopes(compact='aslp', provider=loaded_provider, scopes=scopes)
@@ -64,8 +62,6 @@ class TestSanitizeProviderData(TstLambdas):
         # also remove the ssn from the license record
         del expected_provider['licenses'][0]['ssnLastFour']
         del expected_provider['licenses'][0]['dateOfBirth']
-        del expected_provider['licenses'][0]['history'][0]['previous']['ssnLastFour']
-        del expected_provider['licenses'][0]['history'][0]['previous']['dateOfBirth']
         # cast to set to match schema
         expected_provider['privilegeJurisdictions'] = set(expected_provider['privilegeJurisdictions'])
 

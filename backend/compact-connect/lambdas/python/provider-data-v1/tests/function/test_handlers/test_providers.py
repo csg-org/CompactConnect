@@ -373,8 +373,6 @@ class TestGetProvider(TstFunction):
             expected_provider['militaryAffiliations'][0].pop('documentKeys')
             del expected_provider['licenses'][0]['ssnLastFour']
             del expected_provider['licenses'][0]['dateOfBirth']
-            del expected_provider['licenses'][0]['history'][0]['previous']['ssnLastFour']
-            del expected_provider['licenses'][0]['history'][0]['previous']['dateOfBirth']
 
         self._when_testing_get_provider_response_based_on_read_access(
             scopes='openid email aslp/readGeneral', expected_provider=expected_provider

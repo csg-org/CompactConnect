@@ -22,7 +22,7 @@ from marshmallow import ValidationError
 from cc_common.config import config, logger, metrics
 from cc_common.data_model.schema.base_record import BaseRecordSchema
 from cc_common.data_model.schema.common import CCPermissionsAction
-from cc_common.data_model.schema.provider.api import ProviderGeneralResponseSchema
+from cc_common.data_model.schema.provider.api import ProviderGeneralResponseSchema, ProviderReadPrivateResponseSchema
 from cc_common.exceptions import (
     CCAccessDeniedException,
     CCInternalException,
@@ -728,8 +728,9 @@ def sanitize_provider_data_based_on_caller_scopes(compact: str, provider: dict, 
     if caller_is_admin or _user_has_read_private_access_for_provider(
         compact=compact, provider_information=provider, scopes=scopes
     ):
-        # return full object since caller has 'readPrivate' access for provider
-        return provider
+        provider_read_private_schema = ProviderReadPrivateResponseSchema()
+        # we filter the record to ensure that we are only returning the desired fields
+        return provider_read_private_schema.load(provider)
 
     logger.debug(
         'Caller does not have readPrivate at compact or jurisdiction level, removing private information',

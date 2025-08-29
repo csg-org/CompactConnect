@@ -1427,6 +1427,9 @@ class DataClient:
                 )
 
             now = config.current_standard_datetime
+            encumbrance_details = {
+                'note': adverse_action.clinicalPrivilegeActionCategory
+            }
 
             # The time selected here is somewhat arbitrary; however, we want this selection to not alter the date
             # displayed for a user when it is transformed back to their timezone. We selected noon UTC-4:00 so that
@@ -1446,6 +1449,7 @@ class DataClient:
                     'jurisdiction': adverse_action.jurisdiction,
                     'licenseType': privilege_data.licenseType,
                     'createDate': now,
+                    'encumbranceDetails': encumbrance_details,
                     'effectiveDate': effective_date_time,
                     'previous': {
                         # We're relying on the schema to trim out unneeded fields
@@ -2579,6 +2583,7 @@ class DataClient:
         compact: str,
         provider_id: str,
         jurisdiction: str,
+        adverse_action_category: str,
         license_type_abbreviation: str,
         effective_date: date,
     ) -> list[PrivilegeData]:
@@ -2591,6 +2596,7 @@ class DataClient:
         :param str compact: The compact name.
         :param str provider_id: The provider ID.
         :param str jurisdiction: The jurisdiction of the license.
+        :param adverse_action_category: The type of adverse action perpetrated
         :param str license_type_abbreviation: The license type abbreviation
         :param str effective_date: effective date of the encumbrance on the license and therefore privilege
         :return: List of privileges that were encumbered
@@ -2613,6 +2619,14 @@ class DataClient:
             )
         )
 
+        previously_encumbered_privileges_associated_with_license = provider_user_records.get_privilege_records(
+            filter_condition=lambda p: (
+                p.licenseJurisdiction == jurisdiction
+                and p.licenseTypeAbbreviation == license_type_abbreviation
+                and (p.encumberedStatus is None or p.encumberedStatus == PrivilegeEncumberedStatusEnum.ENCUMBERED)
+            )
+        )
+
         if not unencumbered_privileges_associated_with_license:
             logger.info('No unencumbered privileges found for this license.')
             return []
@@ -2620,6 +2634,11 @@ class DataClient:
         logger.info(
             'Found privileges to encumber', privilege_count=len(unencumbered_privileges_associated_with_license)
         )
+
+        encumbrance_details = {
+            'note': adverse_action_category,
+            'licenseJurisdiction': jurisdiction,
+        }
 
         # Build transaction items for all privileges
         transaction_items = []
@@ -2644,6 +2663,7 @@ class DataClient:
                     'jurisdiction': privilege_data.jurisdiction,
                     'licenseType': privilege_data.licenseType,
                     'createDate': now,
+                    'encumbrance_details': encumbrance_details,
                     'effectiveDate': effective_date_time,
                     'previous': privilege_data.to_dict(),
                     'updatedValues': {
@@ -2662,6 +2682,30 @@ class DataClient:
                     privilege_encumbered_status=PrivilegeEncumberedStatusEnum.LICENSE_ENCUMBERED,
                 )
             )
+
+            for encumbered_privilege in previously_encumbered_privileges_associated_with_license:
+                now = config.current_standard_datetime
+
+                # Create privilege update record
+                privilege_update_record = PrivilegeUpdateData.create_new(
+                    {
+                        'type': 'privilegeUpdate',
+                        'updateType': UpdateCategory.ENCUMBRANCE,
+                        'providerId': provider_id,
+                        'compact': compact,
+                        'jurisdiction': encumbered_privilege.jurisdiction,
+                        'licenseType': encumbered_privilege.licenseType,
+                        'createDate': now,
+                        'effectiveDate': effective_date,
+                        'encumbrance_details': encumbrance_details,
+                        'previous': privilege_data.to_dict(),
+                        'updatedValues': {},
+                    }
+                ).serialize_to_database_record()
+
+                # Add PUT transaction for privilege update record
+                transaction_items.append(self._generate_put_transaction_item(privilege_update_record))
+
 
         # Execute transactions in batches of 100 (DynamoDB limit)
         batch_size = 100

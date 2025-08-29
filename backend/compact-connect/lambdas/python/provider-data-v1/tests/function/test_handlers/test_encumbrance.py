@@ -160,6 +160,9 @@ class TestPostPrivilegeEncumbrance(TstFunction):
                 'updatedValues': {'encumberedStatus': 'encumbered'},
                 'effectiveDate': datetime.fromisoformat(TEST_ENCUMBRANCE_EFFECTIVE_DATETIME),
                 'createDate': datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP),
+                'encumbranceDetails': {
+                    'note': 'Unsafe Practice or Substandard Care'
+                }
             }
         )
         loaded_privilege_update_data = PrivilegeUpdateData.from_database_record(item)
