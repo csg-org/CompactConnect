@@ -149,6 +149,7 @@ Replace:
 - `<compact>` with the lower-cased compact abbreviation (e.g., `aslp`, `octp`, or `coun`) - this information was
   provided in the email.
 - `<jurisdiction>` with your lower-cased two-letter state code (e.g., `ky`) - this information was provided in the email
+- The `User-Agent` header value with your own application name, version, and contact information
 - The example payload shown here with your test license data
 Note: The URL was provided during onboarding and is already configured for your jurisdiction and compact.
 
@@ -157,8 +158,66 @@ Note: The URL was provided during onboarding and is already configured for your 
 In addition to calling the POST endpoint, there is also an option to upload license data in a CSV file format.
 This method may be preferable for larger datasets or for systems that already generate CSV exports.
 
-For detailed documentation on CSV file uploads, including required fields, formatting requirements, and the upload
-process, please refer to [the technical user guide](./README.md#machine-to-machine-automated-uploads).
+#### CSV Upload Process
+
+The CSV upload process involves two steps:
+
+**Step 2a: Get Upload Configuration**
+
+First, obtain the upload URL and required form fields:
+
+```bash
+curl --location --request GET 'https://api.beta.compactconnect.org/v1/compacts/<compact>/jurisdictions/<jurisdiction>/licenses/bulk-upload' \
+--header 'Authorization: Bearer <access_token>' \
+--header 'Accept: application/json' \
+--header 'User-Agent: <your-app-name>/<version> (<contact-email-or-url>)'
+```
+
+Replace:
+- `<access_token>` with the access token from Step 1
+- `<compact>` with the lower-cased compact abbreviation (e.g., `aslp`, `octp`, or `coun`) - this information was
+  provided in the email.
+- `<jurisdiction>` with your lower-cased two-letter state code (e.g., `ky`) - this information was provided in the email
+- The `User-Agent` header value with your own application name, version, and contact information
+
+This will return a response like:
+```json
+{
+  "upload": {
+    "url": "<url>",
+    "fields": {
+      "key": "<object key>",
+      "x-amz-algorithm": "AWS4-HMAC-SHA256",
+      "x-amz-credential": "<credentials>",
+      "x-amz-date": "20240101T000000Z",
+      "x-amz-security-token": "<token>",
+      "policy": "<policy>",
+      "x-amz-signature": "<signature>",
+    }
+  }
+}
+```
+
+**Step 2b: Upload Your CSV File**
+
+Using the URL and fields from Step 2a, upload your CSV file. **Important**: You must include all the fields from the response, plus a `content-type` field set to `text/csv`, and your file:
+
+```bash
+curl --location --request POST '<upload_url_from_step_2a>' \
+--form 'key="<key_from_response>"' \
+--form 'x-amz-algorithm="<algorithm_from_response>"' \
+--form 'x-amz-credential="<credential_from_response>"' \
+--form 'x-amz-date="<date_from_response>"' \
+--form 'x-amz-signature="<signature_from_response>"' \
+--form 'x-amz-security-token="<token_from_response>"' \
+--form 'policy="<policy_from_response>"' \
+--form 'content-type="text/csv"' \
+--form 'file=@"/path/to/your/licenses.csv"'
+```
+
+**Note**: The order of form fields matters for S3 uploads. Ensure the `file` field comes last, and all AWS signature fields are included as shown.
+
+For detailed documentation on CSV file format, required fields, and formatting requirements, please refer to [the technical user guide](./README.md#machine-to-machine-automated-uploads).
 
 ## License Data Schema Requirements
 

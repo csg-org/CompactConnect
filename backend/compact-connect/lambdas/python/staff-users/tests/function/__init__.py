@@ -4,6 +4,7 @@ import os
 
 import boto3
 from boto3.dynamodb.types import TypeDeserializer
+from common_test.test_constants import DEFAULT_FAMILY_NAME, DEFAULT_GIVEN_NAME
 from faker import Faker
 from moto import mock_aws
 
@@ -200,6 +201,20 @@ class TstFunction(TstLambdas):
             DesiredDeliveryMediums=['EMAIL'],
         )
         return get_sub_from_user_attributes(user_data['User']['Attributes'])
+
+    def _when_testing_with_valid_caller(self, compact: str = 'aslp'):
+        # creates a user for endpoints that require the caller to have an active database record
+        user = self.config.user_client.create_user(
+            compact=compact,
+            attributes={
+                'email': 'someEmail@test.com',
+                'familyName': DEFAULT_FAMILY_NAME,
+                'givenName': DEFAULT_GIVEN_NAME,
+            },
+            permissions={'actions': set(), 'jurisdictions': {}},
+        )
+
+        return user['userId']
 
     @staticmethod
     def _create_write_permissions(jurisdiction: str):

@@ -96,6 +96,8 @@ export class StateDataApi implements DataApiInterface {
         s3FieldOrder.forEach((field) => {
             formData.append(field, fields[field]);
         });
+        // Add Content-Type field required by S3 pre-signed POST condition
+        formData.append('Content-Type', 'text/csv');
         formData.append('file', file);
 
         return axios.post(url, formData, {

@@ -118,6 +118,7 @@ def _get_public_compact_jurisdictions(event: dict, context: LambdaContext):  # n
     return CompactJurisdictionsPublicResponseSchema().load(compact_jurisdictions, many=True)
 
 
+@authorize_compact_level_only_action(action=CCPermissionsAction.ADMIN)
 def _get_staff_users_compact_configuration(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """
     Endpoint for staff users to get the compact configuration.
@@ -310,6 +311,7 @@ def _validate_configured_states_transitions(
                 )
 
 
+@authorize_state_level_only_action(action=CCPermissionsAction.ADMIN)
 def _get_staff_users_jurisdiction_configuration(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """
     Endpoint for staff users to get the jurisdiction configuration.

@@ -22,6 +22,8 @@ class TestPatchUser(TstFunction):
             event = json.load(f)
 
         # The user has admin permission for aslp/oh
+        caller_id = self._when_testing_with_valid_caller()
+        event['requestContext']['authorizer']['claims']['sub'] = caller_id
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/aslp.admin'
         event['pathParameters'] = {'compact': 'aslp', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = json.dumps({'permissions': {'aslp': {'jurisdictions': {'oh': {'actions': {'admin': True}}}}}})
@@ -74,6 +76,8 @@ class TestPatchUser(TstFunction):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
+        caller_id = self._when_testing_with_valid_caller()
+        event['requestContext']['authorizer']['claims']['sub'] = caller_id
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email octp/admin oh/octp.admin'
         event['pathParameters'] = {'compact': 'octp', 'userId': '648864e8-10f1-702f-e666-2e0ff3482502'}
         event['body'] = json.dumps(
@@ -130,6 +134,8 @@ class TestPatchUser(TstFunction):
         api_user['permissions'] = {'aslp': {'jurisdictions': {}}}
         event['body'] = json.dumps(api_user)
 
+        caller_id = self._when_testing_with_valid_caller()
+        event['requestContext']['authorizer']['claims']['sub'] = caller_id
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin'
         event['pathParameters'] = {'compact': 'aslp'}
 
@@ -170,6 +176,8 @@ class TestPatchUser(TstFunction):
         with open('tests/resources/api/user-post.json') as f:
             api_user = json.load(f)
 
+        caller_id = self._when_testing_with_valid_caller()
+        event['requestContext']['authorizer']['claims']['sub'] = caller_id
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin'
         event['pathParameters'] = {'compact': 'aslp'}
         event['body'] = json.dumps(api_user)
@@ -210,6 +218,8 @@ class TestPatchUser(TstFunction):
             event = json.load(f)
 
         # The user has admin permission for oh/aslp not ne/aslp
+        caller_id = self._when_testing_with_valid_caller()
+        event['requestContext']['authorizer']['claims']['sub'] = caller_id
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/aslp.admin'
         event['pathParameters'] = {'compact': 'aslp', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = json.dumps({'permissions': {'aslp': {'jurisdictions': {'ne': {'actions': {'admin': True}}}}}})
@@ -227,6 +237,8 @@ class TestPatchUser(TstFunction):
             event = json.load(f)
 
         # The caller has admin permission for oh/aslp not ne/aslp
+        caller_id = self._when_testing_with_valid_caller()
+        event['requestContext']['authorizer']['claims']['sub'] = caller_id
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/aslp.admin'
         # The staff user does not exist
         event['pathParameters'] = {'compact': 'aslp', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
@@ -248,6 +260,8 @@ class TestPatchUser(TstFunction):
             event = json.load(f)
 
         # The user has admin permission for compact and oh
+        caller_id = self._when_testing_with_valid_caller()
+        event['requestContext']['authorizer']['claims']['sub'] = caller_id
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/aslp.admin aslp/admin'
         event['pathParameters'] = {'compact': 'aslp', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = json.dumps(
@@ -295,6 +309,8 @@ class TestPatchUser(TstFunction):
             event = json.load(f)
 
         # The user has admin permission for aslp
+        caller_id = self._when_testing_with_valid_caller()
+        event['requestContext']['authorizer']['claims']['sub'] = caller_id
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin'
         event['pathParameters'] = {'compact': 'aslp', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         # in this case, the user is attempting to add permission for inactive compact, which is not valid
