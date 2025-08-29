@@ -53,7 +53,13 @@ export enum MutationTypes {
     SAVE_PURCHASE_FLOW_STEP = '[User] Save a Purchase Flow Step to the Store',
     UPDATE_HOME_JURISDICTION_REQUEST = '[User] Update Home Jurisdiction Request',
     UPDATE_HOME_JURISDICTION_FAILURE = '[User] Update Home Jurisdiction Failure',
-    UPDATE_HOME_JURISDICTION_SUCCESS = '[User] Update Home Jurisdiction Success'
+    UPDATE_HOME_JURISDICTION_SUCCESS = '[User] Update Home Jurisdiction Success',
+    RESET_MFA_LICENSEE_ACCOUNT_REQUEST = '[User] Reset MFA Licensee Account Request',
+    RESET_MFA_LICENSEE_ACCOUNT_FAILURE = '[User] Reset MFA Licensee Account Failure',
+    RESET_MFA_LICENSEE_ACCOUNT_SUCCESS = '[User] Reset MFA Licensee Account Success',
+    CONFIRM_MFA_LICENSEE_ACCOUNT_REQUEST = '[User] Confirm MFA Licensee Account Request',
+    CONFIRM_MFA_LICENSEE_ACCOUNT_FAILURE = '[User] Confirm MFA Licensee Account Failure',
+    CONFIRM_MFA_LICENSEE_ACCOUNT_SUCCESS = '[User] Confirm MFA Licensee Account Success',
 }
 
 export default {
@@ -247,5 +253,29 @@ export default {
     [MutationTypes.UPDATE_HOME_JURISDICTION_SUCCESS]: (state: any) => {
         state.isLoadingAccount = false;
         state.error = null;
-    }
+    },
+    [MutationTypes.RESET_MFA_LICENSEE_ACCOUNT_REQUEST]: (state: any) => {
+        state.isLoadingAccount = true;
+        state.error = null;
+    },
+    [MutationTypes.RESET_MFA_LICENSEE_ACCOUNT_FAILURE]: (state: any, error: Error) => {
+        state.isLoadingAccount = false;
+        state.error = error;
+    },
+    [MutationTypes.RESET_MFA_LICENSEE_ACCOUNT_SUCCESS]: (state: any) => {
+        state.isLoadingAccount = false;
+        state.error = null;
+    },
+    [MutationTypes.CONFIRM_MFA_LICENSEE_ACCOUNT_REQUEST]: (state: any) => {
+        state.isLoadingAccount = false;
+        state.error = null;
+    },
+    [MutationTypes.CONFIRM_MFA_LICENSEE_ACCOUNT_FAILURE]: (state: any, error: Error) => {
+        state.isLoadingAccount = false;
+        state.error = error;
+    },
+    [MutationTypes.CONFIRM_MFA_LICENSEE_ACCOUNT_SUCCESS]: (state: any) => {
+        state.isLoadingAccount = false;
+        state.error = null;
+    },
 };

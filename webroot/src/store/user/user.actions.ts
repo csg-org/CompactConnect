@@ -410,4 +410,39 @@ export default {
     updateHomeJurisdictionFailure: ({ commit }, error: Error) => {
         commit(MutationTypes.UPDATE_HOME_JURISDICTION_FAILURE, error);
     },
+    // RESET MFA LICENSEE ACCOUNT
+    resetMfaLicenseeAccountRequest: async ({ commit, dispatch }, { data }: any) => {
+        commit(MutationTypes.RESET_MFA_LICENSEE_ACCOUNT_REQUEST);
+        return dataApi.resetMfaLicenseeAccount(data).then(async (response) => {
+            dispatch('resetMfaLicenseeAccountSuccess');
+
+            return response;
+        }).catch((error) => {
+            dispatch('resetMfaLicenseeAccountFailure', error);
+            throw error;
+        });
+    },
+    resetMfaLicenseeAccountSuccess: ({ commit }) => {
+        commit(MutationTypes.RESET_MFA_LICENSEE_ACCOUNT_SUCCESS);
+    },
+    resetMfaLicenseeAccountFailure: ({ commit }, error: Error) => {
+        commit(MutationTypes.RESET_MFA_LICENSEE_ACCOUNT_FAILURE, error);
+    },
+    confirmMfaLicenseeAccountRequest: async ({ commit, dispatch }, { data }: any) => {
+        commit(MutationTypes.CONFIRM_MFA_LICENSEE_ACCOUNT_REQUEST);
+        return dataApi.confirmMfaLicenseeAccount(data).then(async (response) => {
+            dispatch('confirmMfaLicenseeAccountSuccess');
+
+            return response;
+        }).catch((error) => {
+            dispatch('confirmMfaLicenseeAccountFailure', error);
+            throw error;
+        });
+    },
+    confirmMfaLicenseeAccountSuccess: ({ commit }) => {
+        commit(MutationTypes.CONFIRM_MFA_LICENSEE_ACCOUNT_SUCCESS);
+    },
+    confirmMfaLicenseeAccountFailure: ({ commit }, error: Error) => {
+        commit(MutationTypes.CONFIRM_MFA_LICENSEE_ACCOUNT_FAILURE, error);
+    },
 };

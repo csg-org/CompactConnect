@@ -586,6 +586,24 @@ export class DataApi {
         return response;
     }
 
+    // POST Reset MFA Request for Licensee Account
+    public resetMfaLicenseeAccount(data: object) {
+        if (!data) {
+            return Promise.reject(new Error('failed mfa reset request'));
+        }
+
+        return wait(500).then(() => ({ message: 'success', ...data }));
+    }
+
+    // POST Confirm MFA Request for Licensee Account
+    public confirmMfaLicenseeAccount(data: object) {
+        if (!data) {
+            return Promise.reject(new Error('failed mfa reset confirm'));
+        }
+
+        return wait(2000).then(() => ({ message: 'success', ...data }));
+    }
+
     // ========================================================================
     //                              EXAMPLE API
     // ========================================================================

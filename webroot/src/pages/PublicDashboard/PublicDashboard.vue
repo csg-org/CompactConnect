@@ -48,6 +48,9 @@
                 class="login-link small"
                 @click="mockLicenseeLogin"
                 @keyup.enter="mockLicenseeLogin"
+                tabindex="0"
+                role="button"
+                :aria-label="$t('navigation.loginAsProvider')"
             >
                 <LicenseeUserIcon class="login-icon" />
                 {{ $t('navigation.loginAsProvider') }}
@@ -66,6 +69,9 @@
                 class="login-link small"
                 @click="mockStaffLogin"
                 @keyup.enter="mockStaffLogin"
+                tabindex="0"
+                role="button"
+                :aria-label="$t('navigation.loginAsStaff')"
             >
                 <StaffUserIcon class="login-icon" />
                 {{ $t('navigation.loginAsStaff') }}
@@ -73,7 +79,12 @@
         </div>
         </div>
         <div class="dashboard-footer">
-            <router-link :to="{ name: 'PrivacyPolicy' }">{{ $t('privacyPolicy.title') }}</router-link>
+            <router-link :to="{ name: 'MfaResetStartLicensee' }" class="footer-link">
+                {{ $t('account.lockedOut') }}
+            </router-link>
+            <router-link :to="{ name: 'PrivacyPolicy' }" class="footer-link">
+                {{ $t('privacyPolicy.title') }}
+            </router-link>
         </div>
     </div>
 </template>

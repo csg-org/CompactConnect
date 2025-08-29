@@ -1,0 +1,229 @@
+//
+//  MfaResetStartLicensee.less
+//  CompactConnect
+//
+//  Created by InspiringApps on 8/22/2025.
+//
+
+.mfa-reset-licensee-section-container {
+    align-items: center;
+    width: 90%;
+    max-width: 40rem;
+    margin: 0 auto 2.4rem auto;
+
+    .mfa-reset-licensee-logo-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 12.8rem;
+        margin-bottom: 3.2rem;
+        text-align: center;
+
+        .mfa-reset-licensee-logo {
+            display: inline-block;
+            width: auto;
+            height: 100%;
+        }
+    }
+
+    .mfa-reset-licensee-icon-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 6.4rem;
+        height: 6.4rem;
+        margin-bottom: 1.6rem;
+        overflow: hidden;
+    }
+
+    .mfa-reset-licensee-title {
+        margin-bottom: 1rem;
+
+        &.summary-title {
+            text-align: center;
+        }
+    }
+
+    .mfa-reset-licensee-subtext {
+        margin-bottom: 1.8rem;
+        font-size: 1.4rem;
+        text-align: center;
+
+        &.summary-subtext {
+            font-size: @fontSizeMedium;
+        }
+    }
+
+    .mfa-reset-licensee-card {
+        width: 100%;
+
+        .mfa-reset-licensee-summary-row {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.6rem;
+
+            .mfa-reset-licensee-summary-row-label {
+                font-weight: @fontWeightBold;
+            }
+
+            .mfa-reset-licensee-summary-row-value {
+                &.license-type-value {
+                    text-transform: capitalize;
+                }
+
+                &.placeholder {
+                    font-style: italic;
+                }
+            }
+        }
+
+        .mfa-reset-licensee-summary-row-button-container {
+            display: flex;
+            flex-direction: row;
+            gap: 1.4rem;
+            align-items: flex-end;
+            justify-content: center;
+            width: 100%;
+
+            .input-container {
+                margin: 0;
+            }
+        }
+    }
+
+    .mfa-reset-licensee-form-container {
+        width: 100%;
+
+        &:deep(.mfa-reset-licensee-continue-to-confirmation-button) {
+            width: 100%;
+            margin-top: 1.8rem;
+        }
+    }
+
+    .input-email-component {
+        margin-bottom: 0.4rem;
+        padding-top: 1.8rem;
+        border-top: 1px solid @lightGrey;
+    }
+
+    .input-password-component {
+        margin-top: 1.6rem;
+        margin-bottom: 0.4rem;
+    }
+
+    .input-email-subtext,
+    .input-password-subtext {
+        color: darken(@darkGrey, 10%);
+        font-size: 1.2rem;
+    }
+
+    .forgot-password-container {
+        margin-top: 1.2rem;
+
+        .forgot-password-link {
+            font-weight: @fontWeightBold;
+            font-size: @fontSize;
+        }
+    }
+
+    .continue-button:deep(.input-submit) {
+        width: 100%;
+    }
+
+    .mfa-reset-licensee-success-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 3.2rem 0;
+
+        .mfa-reset-licensee-icon-container {
+            border-radius: 50%;
+            background-color: @lightGreen;
+
+            .icon-check-circle {
+                width: 100%;
+                fill: @white;
+            }
+        }
+
+        .mfa-reset-licensee-success-title {
+            font-weight: @fontWeightBold;
+            font-size: 2.6rem;
+            text-align: center;
+        }
+
+        .mfa-reset-licensee-success-subtext {
+            margin-top: 1.2rem;
+            text-align: center;
+        }
+
+        .nav-button {
+            .button-primary();
+
+            margin-top: 4rem;
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+        }
+    }
+
+    .mfa-reset-licensee-error-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 3.2rem 0;
+
+        .icon {
+            display: inline-block;
+            width: 100%;
+            height: auto;
+        }
+
+        .mfa-reset-licensee-error-title {
+            font-weight: @fontWeightBold;
+            font-size: 2.6rem;
+            text-align: center;
+        }
+
+        .mfa-reset-licensee-error-subtext {
+            margin-top: 2.4rem;
+            text-align: center;
+        }
+    }
+
+    &:deep(.mock-populate) {
+        width: fit-content;
+    }
+
+    .clear-form {
+        display: inline-block;
+        margin-bottom: 1.2rem;
+        font-style: italic;
+        cursor: pointer;
+    }
+
+    .recaptcha-terms {
+        margin: 2.4rem;
+        font-size: @fontSizeSmall;
+        text-align: center;
+
+        .recaptcha-link {
+            text-decoration: underline;
+        }
+    }
+
+    .mock-nav {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 2rem;
+
+        .mock-link:not(:first-child) {
+            margin-top: 2rem;
+        }
+    }
+}
