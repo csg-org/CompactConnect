@@ -7,6 +7,7 @@ from aws_cdk.aws_s3 import (
     BucketEncryption,
     IntelligentTieringConfiguration,
     LifecycleRule,
+    ObjectLockRetention,
     ObjectOwnership,
     StorageClass,
     Transition,
@@ -39,6 +40,7 @@ class AccessLogsBucket(Bucket):
             removal_policy=RemovalPolicy.RETAIN,
             versioned=True,
             object_lock_enabled=True,
+            object_lock_default_retention=ObjectLockRetention.compliance(Duration.days(90)),
             # This is a lifecycle rule that transitions all objects to Glacier Instant Retrieval after 0 days
             # and Glacier after 180 days. This makes it a lot cheaper, since we don't read the logs very often.
             intelligent_tiering_configurations=[
