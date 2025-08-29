@@ -5,7 +5,12 @@
 //  Created by InspiringApps on 8/22/2025.
 //
 
-import { Component, Vue, toNative } from 'vue-facing-decorator';
+import {
+    Component,
+    Vue,
+    Watch,
+    toNative
+} from 'vue-facing-decorator';
 import {
     authStorage,
     AuthTypes,
@@ -35,15 +40,21 @@ class MfaResetConfirmLicensee extends Vue {
     //
     // Data
     //
+    recaptchaCheckIntervalId: number | null = null;
+    isRecaptchaLoaded = false;
     isLoading = true;
     isSuccess = false;
-    serverMessage = 'Sample message from server';
+    serverMessage = '';
 
     //
     // Lifecycle
     //
-    created(): void {
-        this.initiateRecoveryConfirmation();
+    mounted(): void {
+        this.initRecaptcha();
+    }
+
+    beforeUnmount(): void {
+        this.removeRecaptchaCheck();
     }
 
     //
@@ -74,6 +85,27 @@ class MfaResetConfirmLicensee extends Vue {
     //
     // Methods
     //
+    initRecaptcha(): void {
+        const recaptchaContainer: HTMLElement = this.$refs.recaptcha as HTMLElement;
+        const scriptEl = document.createElement('script');
+        const src = `https://www.google.com/recaptcha/api.js?render=${this.$envConfig.recaptchaKey}`;
+        const windowRef = window as any;
+
+        scriptEl.setAttribute('src', src);
+        recaptchaContainer.appendChild(scriptEl);
+
+        this.recaptchaCheckIntervalId = windowRef.setInterval(() => {
+            if (windowRef.grecaptcha && typeof windowRef.grecaptcha.ready === 'function') {
+                this.isRecaptchaLoaded = true;
+            }
+        }, 2000);
+    }
+
+    removeRecaptchaCheck(): void {
+        (window as any).clearInterval(this.recaptchaCheckIntervalId);
+        this.recaptchaCheckIntervalId = null;
+    }
+
     async initiateRecoveryConfirmation(): Promise<void> {
         const { compactQuery, providerIdQuery, recoveryIdQuery } = this;
         const firstName = document.getElementById('first-name') as HTMLInputElement;
@@ -177,6 +209,16 @@ class MfaResetConfirmLicensee extends Vue {
             this.$router.replace({ path: goto });
         } else {
             this.$router.replace({ name: 'Home' });
+        }
+    }
+
+    //
+    // Watch
+    //
+    @Watch('isRecaptchaLoaded') recaptchaLoaded() {
+        if (this.isRecaptchaLoaded) {
+            this.removeRecaptchaCheck();
+            this.initiateRecoveryConfirmation();
         }
     }
 }

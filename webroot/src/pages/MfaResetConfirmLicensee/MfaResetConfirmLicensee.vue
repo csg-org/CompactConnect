@@ -14,7 +14,8 @@
         <Card v-else-if="isSuccess" class="status-card success">
             <div class="icon-container"><CheckCircle /></div>
             <div class="status-title">{{ $t('account.resetAccountSuccessTitle') }}</div>
-            <div class="status-description">{{ $t('account.resetAccountSuccessSubtext') }}</div>
+            <div class="status-description">{{ $t('account.resetAccountSuccessSubtext1') }}</div>
+            <div class="status-description">{{ $t('account.resetAccountSuccessSubtext2') }}</div>
             <div class="actions">
                 <InputButton
                     @click="goToLogin"
@@ -41,6 +42,7 @@
                 />
             </div>
         </Card>
+        <div ref="recaptcha"></div>
     </Section>
 </template>
 

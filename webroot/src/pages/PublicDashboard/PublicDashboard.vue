@@ -48,6 +48,7 @@
                 class="login-link small"
                 @click="mockLicenseeLogin"
                 @keyup.enter="mockLicenseeLogin"
+                tabindex="0"
             >
                 <LicenseeUserIcon class="login-icon" />
                 {{ $t('navigation.loginAsProvider') }}
@@ -66,6 +67,7 @@
                 class="login-link small"
                 @click="mockStaffLogin"
                 @keyup.enter="mockStaffLogin"
+                tabindex="0"
             >
                 <StaffUserIcon class="login-icon" />
                 {{ $t('navigation.loginAsStaff') }}
