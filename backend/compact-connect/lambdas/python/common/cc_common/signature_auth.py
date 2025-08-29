@@ -250,12 +250,12 @@ def _validate_signature(event: dict, compact: str, jurisdiction: str, public_key
 
         if time_diff > config.signature_max_clock_skew_seconds:
             logger.warning(
-                'Request timestamp too old or in future',
+                'Request timestamp too old or too far in the future',
                 timestamp=timestamp_str,
                 time_diff_seconds=time_diff,
                 max_clock_skew_seconds=config.signature_max_clock_skew_seconds,
             )
-            raise CCUnauthorizedCustomResponseException('Request timestamp is too old or in the future')
+            raise CCUnauthorizedCustomResponseException('Request timestamp is too old or too far in the future')
     except ValueError as e:
         logger.warning('Invalid timestamp format', timestamp=timestamp_str, error=str(e))
         raise CCUnauthorizedCustomResponseException('Invalid timestamp format') from e

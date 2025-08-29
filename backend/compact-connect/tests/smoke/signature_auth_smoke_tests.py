@@ -361,6 +361,46 @@ def test_bulk_upload_endpoint_with_signature(client_id: str, client_secret: str,
     logger.info('Bulk-upload endpoint succeeded with SIGNATURE authentication')
 
 
+def test_providers_query_endpoint_without_signature(client_id: str, client_secret: str):
+    """
+    Test the providers/query endpoint with valid SIGNATURE authentication.
+
+    :param client_id: The client ID for authentication
+    :param client_secret: The client secret for authentication
+    :param private_key_pem: PEM-encoded private key for signing
+    """
+    logger.info('Testing providers/query endpoint with SIGNATURE authentication')
+
+    # Get client credentials headers
+    client_headers = get_client_auth_headers(client_id, client_secret)
+
+    # Create request body with a 7-day time range
+    end_time = datetime.now(tz=UTC)
+    start_time = end_time - timedelta(days=7)
+
+    request_body = {
+        'query': {
+            'startDateTime': start_time.strftime('%Y-%m-%dT%H:%M:%SZ'),
+            'endDateTime': end_time.strftime('%Y-%m-%dT%H:%M:%SZ'),
+        }
+    }
+
+    response = requests.post(
+        url=get_state_api_base_url() + f'/v1/compacts/{COMPACT}/jurisdictions/{JURISDICTION}/providers/query',
+        headers={'Content-Type': 'application/json', **client_headers},
+        json=request_body,
+        timeout=10,
+    )
+
+    if response.status_code != 401:
+        raise SmokeTestFailureException(
+            f'Providers/query endpoint should fail without required signature authentication. '
+            f'Response: {response.status_code} - {response.text}'
+        )
+
+    logger.info('Providers/query endpoint succeeded with SIGNATURE authentication')
+
+
 def test_providers_query_endpoint_with_signature(client_id: str, client_secret: str, private_key_pem: str):
     """
     Test the providers/query endpoint with valid SIGNATURE authentication.
@@ -447,16 +487,19 @@ def signature_authentication_smoke_test():
         # Step 1: Test bulk-upload endpoint without SIGNATURE (no keys configured)
         test_bulk_upload_endpoint_without_signature(client_id, client_secret)
 
-        # Step 2: Configure SIGNATURE public key
+        # Step 2: Test query endpoint fails without SIGNATURE (required signature)
+        test_providers_query_endpoint_without_signature(client_id, client_secret)
+
+        # Step 3: Configure SIGNATURE public key
         configure_signature_public_key(public_key_pem)
 
-        # Step 3: Test bulk-upload endpoint without SIGNATURE (keys configured - should fail)
+        # Step 4: Test bulk-upload endpoint without SIGNATURE (keys configured - should fail)
         test_bulk_upload_endpoint_without_signature_after_key_configuration(client_id, client_secret)
 
-        # Step 4: Test bulk-upload endpoint with valid SIGNATURE authentication
+        # Step 5: Test bulk-upload endpoint with valid SIGNATURE authentication
         test_bulk_upload_endpoint_with_signature(client_id, client_secret, private_key_pem)
 
-        # Step 5: Test providers/query endpoint with valid SIGNATURE authentication
+        # Step 6: Test providers/query endpoint with valid SIGNATURE authentication
         test_providers_query_endpoint_with_signature(client_id, client_secret, private_key_pem)
 
         logger.info('SIGNATURE authentication smoke test completed successfully')

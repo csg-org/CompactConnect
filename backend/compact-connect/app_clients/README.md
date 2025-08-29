@@ -157,7 +157,7 @@ Examples:
 **Use the provided Python script in the bin directory for streamlined SIGNATURE key management:**
 
 ```bash
-python3 bin/manage_signature_keys.py create -t <table_name>
+python3 bin/manage_signature_keys.py create -t <compact_configuration_table_name>
 ```
 
 **Interactive Process:**
