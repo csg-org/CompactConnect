@@ -442,6 +442,7 @@ class MfaResetStartLicensee extends mixins(MixinForm) {
         this.formData.dob.value = '';
         this.formData.licenseState.value = '';
         this.formData.licenseType.value = '';
+        this.formData.password.value = '';
         this.isFormLoading = false;
         this.isFormSuccessful = false;
         this.isConfirmationScreen = false;

@@ -56,14 +56,14 @@ describe('PublicDashboard page', async () => {
         expect(component.hostedLoginUriStaff).to.contain('&response_type=code');
         expect(component.hostedLoginUriStaff).to.contain('%2Fauth%2Fcallback');
     });
-    it('should get correct hosted login uri config for licnesee', async () => {
+    it('should get correct hosted login uri config for licensee', async () => {
         const wrapper = await mountShallow(PublicDashboard);
         const component = wrapper.vm;
 
         expect(component.hostedLoginUriLicensee).to.contain('/login');
         expect(component.hostedLoginUriLicensee).to.contain('scope=email%20openid%20phone%20profile%20aws.cognito.signin.user.admin');
         expect(component.hostedLoginUriLicensee).to.contain('&state=licensee');
-        expect(component.hostedLoginUriStaff).to.contain('&response_type=code');
+        expect(component.hostedLoginUriLicensee).to.contain('&response_type=code');
         expect(component.hostedLoginUriLicensee).to.contain('%2Fauth%2Fcallback');
     });
 });

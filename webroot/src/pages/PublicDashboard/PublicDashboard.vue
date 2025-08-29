@@ -49,6 +49,8 @@
                 @click="mockLicenseeLogin"
                 @keyup.enter="mockLicenseeLogin"
                 tabindex="0"
+                role="button"
+                :aria-label="$t('navigation.loginAsProvider')"
             >
                 <LicenseeUserIcon class="login-icon" />
                 {{ $t('navigation.loginAsProvider') }}
@@ -68,6 +70,8 @@
                 @click="mockStaffLogin"
                 @keyup.enter="mockStaffLogin"
                 tabindex="0"
+                role="button"
+                :aria-label="$t('navigation.loginAsStaff')"
             >
                 <StaffUserIcon class="login-icon" />
                 {{ $t('navigation.loginAsStaff') }}
