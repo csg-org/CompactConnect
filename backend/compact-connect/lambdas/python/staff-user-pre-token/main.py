@@ -48,7 +48,7 @@ def customize_scopes(event: dict, context: LambdaContext):  # noqa: ARG001 unuse
         return event
 
     event['response']['claimsAndScopeOverrideDetails'] = {
-        'accessTokenGeneration': {'scopesToAdd': list(user_data.scopes)}
+        'accessTokenGeneration': {'scopesToAdd': list(user_data.scopes), 'scopesToSuppress': list}
     }
 
     return event
