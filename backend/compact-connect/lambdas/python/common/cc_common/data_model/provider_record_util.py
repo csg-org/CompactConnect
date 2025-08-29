@@ -17,13 +17,9 @@ from cc_common.data_model.schema.common import (
     UpdateCategory,
 )
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
-from cc_common.data_model.schema.license.api import LicenseUpdatePreviousResponseSchema
 from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationData
 from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
-from cc_common.data_model.schema.privilege.api import (
-    PrivilegeHistoryResponseSchema,
-    PrivilegeUpdatePreviousGeneralResponseSchema,
-)
+from cc_common.data_model.schema.privilege.api import PrivilegeHistoryResponseSchema
 from cc_common.data_model.schema.provider import ProviderData, ProviderUpdateData
 from cc_common.exceptions import CCInternalException
 
@@ -57,9 +53,6 @@ class ProviderRecordUtility:
     """
     A class for housing official logic for how to handle provider records without making database queries.
     """
-
-    license_previous_update_schema = LicenseUpdatePreviousResponseSchema()
-    privilege_previous_update_schema = PrivilegeUpdatePreviousGeneralResponseSchema()
 
     @staticmethod
     def get_records_of_type(

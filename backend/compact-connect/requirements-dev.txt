@@ -18,7 +18,7 @@ charset-normalizer==3.4.3
     # via requests
 click==8.2.1
     # via pip-tools
-coverage[toml]==7.10.4
+coverage[toml]==7.10.5
     # via
     #   -r compact-connect/requirements-dev.in
     #   pytest-cov
@@ -58,7 +58,7 @@ pip-requirements-parser==32.0.1
     # via pip-audit
 pip-tools==7.5.0
     # via -r compact-connect/requirements-dev.in
-platformdirs==4.3.8
+platformdirs==4.4.0
     # via pip-audit
 pluggy==1.6.0
     # via
@@ -90,7 +90,7 @@ requests==2.32.5
     #   pip-audit
 rich==14.1.0
     # via pip-audit
-ruff==0.12.9
+ruff==0.12.11
     # via -r compact-connect/requirements-dev.in
 six==1.17.0
     # via python-dateutil

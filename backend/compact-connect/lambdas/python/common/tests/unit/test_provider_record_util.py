@@ -851,7 +851,7 @@ class TestProviderRecordUtility(TstLambdas):
                 'compactTransactionIdGSIPK': 'COMPACT#octp#TX#120059525522#',
                 'dateOfUpdate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
                 'createDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
-                'effectiveDate': date.fromisoformat('2025-06-16'),
+                'effectiveDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
                 'jurisdiction': 'ne',
                 'licenseType': 'occupational therapy assistant',
                 'providerId': 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
@@ -894,14 +894,14 @@ class TestProviderRecordUtility(TstLambdas):
                 {
                     'createDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                     'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
-                    'effectiveDate': date.fromisoformat('2024-01-01'),
+                    'effectiveDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                     'type': 'privilegeUpdate',
                     'updateType': 'issuance'
                 },
                 {
                     'createDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
                     'dateOfUpdate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
-                    'effectiveDate': date.fromisoformat('2025-06-16'),
+                    'effectiveDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
                     'type': 'privilegeUpdate',
                     'updateType': 'deactivation',
                     'note': 'test deactivation note',
@@ -932,7 +932,7 @@ class TestProviderRecordUtility(TstLambdas):
                 'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#120065729643#',
                 'createDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
                 'dateOfUpdate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
-                'effectiveDate': date.fromisoformat('2025-06-16'),
+                'effectiveDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
                 'jurisdiction': 'ky',
                 'licenseType': 'speech-language pathologist',
                 'previous': {
@@ -974,14 +974,14 @@ class TestProviderRecordUtility(TstLambdas):
                 {
                     'createDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                     'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
-                    'effectiveDate': date.fromisoformat('2024-01-01'),
+                    'effectiveDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                     'type': 'privilegeUpdate',
                     'updateType': 'issuance'
                 },
                 {
                     'createDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
                     'dateOfUpdate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
-                    'effectiveDate': date.fromisoformat('2025-06-16'),
+                    'effectiveDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
                     'type': 'privilegeUpdate',
                     'updateType': 'encumbrance',
                     'note': 'Did bad things',
@@ -1013,7 +1013,7 @@ class TestProviderRecordUtility(TstLambdas):
                 'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#120065729643#',
                 'createDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
                 'dateOfUpdate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
-                'effectiveDate': date.fromisoformat('2025-06-16'),
+                'effectiveDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
                 'jurisdiction': 'ky',
                 'licenseType': 'speech-language pathologist',
                 'previous': {
@@ -1055,14 +1055,14 @@ class TestProviderRecordUtility(TstLambdas):
                 {
                     'createDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                     'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
-                    'effectiveDate': date.fromisoformat('2024-01-01'),
+                    'effectiveDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                     'type': 'privilegeUpdate',
                     'updateType': 'issuance'
                 },
                 {
                     'createDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
                     'dateOfUpdate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
-                    'effectiveDate': date.fromisoformat('2025-06-16'),
+                    'effectiveDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
                     'type': 'privilegeUpdate',
                     'updateType': 'encumbrance',
                 }

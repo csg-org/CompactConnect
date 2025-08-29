@@ -33,12 +33,7 @@ class TestGetProvider(TstFunction):
 
     def _when_testing_public_endpoint(self):
         self._load_provider_data()
-        test_provider = self.test_data_generator.put_default_provider_record_in_provider_table(value_overrides={
-            'providerId': provider_uuid,
-            'compact': 'aslp',
-            'licenseJurisdiction': 'oh',
-            'privilegeJurisdictions': set(jurisdictions),
-        })
+        test_provider = self.test_data_generator.put_default_provider_record_in_provider_table()
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
             event['httpMethod'] = 'GET'
@@ -128,8 +123,9 @@ class TestGetProvider(TstFunction):
                     'createDate': '2020-05-05T12:59:59+00:00',
                     'dateOfUpdate': '2020-05-05T12:59:59+00:00',
                     'effectiveDate': '2020-05-05T12:59:59+00:00',
+                    'note': 'Did bad things',
                     'type': 'privilegeUpdate',
-                    'updateType': 'renewal',
+                    'updateType': 'encumbrance',
                 },
             ],
             'jurisdiction': 'ne',
@@ -165,7 +161,7 @@ class TestGetProvider(TstFunction):
                     'dateOfUpdate': '2020-05-05T12:59:59+00:00',
                     'effectiveDate': '2020-05-05T12:59:59+00:00',
                     'type': 'privilegeUpdate',
-                    'updateType': 'renewal',
+                    'updateType': 'encumbrance',
                 },
             ],
             'jurisdiction': 'ne',
@@ -201,7 +197,7 @@ class TestGetProvider(TstFunction):
                     'dateOfUpdate': '2020-05-05T12:59:59+00:00',
                     'effectiveDate': '2020-05-05T12:59:59+00:00',
                     'type': 'privilegeUpdate',
-                    'updateType': 'renewal',
+                    'updateType': 'encumbrance',
                 },
             ],
             'jurisdiction': 'ne',
