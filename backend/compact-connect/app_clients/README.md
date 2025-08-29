@@ -107,7 +107,7 @@ link that you'll generate separately.
 As part of the email message sent to the consuming team, be sure to include the onboarding instructions document from
 the `it_staff_onboarding_instructions/` directory.
 
-## Managing API Signing Public Keys (ECSIGNATURE-SHA256)
+## Managing API Signing Public Keys
 
 ### Overview
 
