@@ -1,5 +1,5 @@
 from aws_cdk import ArnFormat, Duration, NestedStack, RemovalPolicy
-from aws_cdk.aws_backup import BackupVault
+from aws_cdk.aws_backup import BackupVault, LockConfiguration
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Metric, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_events import EventPattern, Rule
@@ -187,6 +187,8 @@ class BackupInfrastructureStack(NestedStack):
             backup_vault_name=f'CompactConnect-{self.environment_name}-BackupVault',
             encryption_key=self.local_backup_key,
             removal_policy=self.removal_policy,
+            # note the changeable_for field is not set, so this lock is set under governance mode
+            lock_configuration=LockConfiguration(min_retention=Duration.days(180)),
             access_policy=PolicyDocument(
                 statements=[
                     PolicyStatement(
@@ -221,6 +223,8 @@ class BackupInfrastructureStack(NestedStack):
             backup_vault_name=f'CompactConnect-{self.environment_name}-SSNBackupVault',
             encryption_key=self.local_ssn_backup_key,
             removal_policy=self.removal_policy,
+            # note the changeable_for field is not set, so this lock is set under governance mode
+            lock_configuration=LockConfiguration(min_retention=Duration.days(180)),
             access_policy=PolicyDocument(
                 statements=[
                     PolicyStatement(
