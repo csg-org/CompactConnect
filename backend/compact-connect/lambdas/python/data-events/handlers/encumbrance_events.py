@@ -608,6 +608,12 @@ def license_encumbrance_lifting_notification_listener(message: dict):
         target_license = provider_records.get_specific_license_record(
             jurisdiction=jurisdiction, license_abbreviation=license_type_abbreviation
         )
+
+        if target_license is None:
+            message = 'License record not found for lifting event'
+            logger.error(message)
+            raise CCInternalException(message)
+
         if (
             target_license.encumberedStatus is not None
             and target_license.encumberedStatus != LicenseEncumberedStatusEnum.UNENCUMBERED
