@@ -112,7 +112,7 @@ class TestSignatureAuth(TstLambdas):
             with self.assertRaises(Exception) as cm:
                 lambda_handler(event, self.mock_context)
 
-            self.assertIn('Request timestamp is too old or in the future', str(cm.exception))
+            self.assertIn('Request timestamp is too old or too far in the future', str(cm.exception))
 
     def test_malformed_timestamp(self):
         """Test authentication failure with malformed timestamp."""

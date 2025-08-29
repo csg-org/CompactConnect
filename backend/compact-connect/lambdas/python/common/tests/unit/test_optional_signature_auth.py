@@ -154,7 +154,7 @@ class TestOptionalSignatureAuth(TstLambdas):
             with self.assertRaises(CCUnauthorizedException) as cm:
                 lambda_handler(event, self.mock_context)
 
-            self.assertIn('Request timestamp is too old or in the future', str(cm.exception))
+            self.assertIn('Request timestamp is too old or too far in the future', str(cm.exception))
 
     def test_public_key_configured_malformed_timestamp_rejected(self):
         """Test that malformed timestamps are rejected when public key is configured."""
