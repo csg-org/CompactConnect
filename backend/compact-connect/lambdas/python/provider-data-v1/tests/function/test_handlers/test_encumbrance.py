@@ -525,7 +525,9 @@ class TestPostLicenseEncumbrance(TstFunction):
 class TestPatchPrivilegeEncumbranceLifting(TstFunction):
     """Test suite for privilege encumbrance lifting endpoints."""
 
-    def _setup_privilege_with_adverse_action(self, adverse_action_overrides=None, privilege_overrides=None):
+    def _setup_privilege_with_adverse_action(
+        self, adverse_action_overrides=None, privilege_overrides=None, license_overrides=None
+    ):
         """Helper method to set up a privilege with an adverse action for testing."""
         self.test_data_generator.put_default_provider_record_in_provider_table(
             value_overrides={'encumberedStatus': 'encumbered'}
@@ -539,6 +541,17 @@ class TestPatchPrivilegeEncumbranceLifting(TstFunction):
                 'jurisdiction': test_privilege_record.jurisdiction,
                 'licenseType': test_privilege_record.licenseType,
                 **(adverse_action_overrides or {}),
+            }
+        )
+
+        # Set up license with encumbered status
+        self.test_data_generator.put_default_license_record_in_provider_table(
+            value_overrides={
+                'providerId': test_privilege_record.providerId,
+                'compact': test_privilege_record.compact,
+                'jurisdiction': test_privilege_record.licenseJurisdiction,
+                'licenseType': test_privilege_record.licenseType,
+                **(license_overrides or {}),
             }
         )
         return test_privilege_record, test_adverse_action
@@ -780,15 +793,10 @@ class TestPatchPrivilegeEncumbranceLifting(TstFunction):
         from cc_common.data_model.schema.common import LicenseEncumberedStatusEnum
         from handlers.encumbrance import encumbrance_handler
 
-        # Set up privilege with adverse action
-        privilege_record, adverse_action = self._setup_privilege_with_adverse_action()
-
-        # Set up license with encumbered status
-        self.test_data_generator.put_default_license_record_in_provider_table(
-            value_overrides={
+        # Set up privilege with adverse action and encumbered license
+        privilege_record, adverse_action = self._setup_privilege_with_adverse_action(
+            license_overrides={
                 'encumberedStatus': 'encumbered',
-                'providerId': privilege_record.providerId,
-                'compact': privilege_record.compact,
             }
         )
 
@@ -804,6 +812,37 @@ class TestPatchPrivilegeEncumbranceLifting(TstFunction):
 
         loaded_provider_data = provider_records.get_provider_record()
         self.assertEqual(LicenseEncumberedStatusEnum.ENCUMBERED, loaded_provider_data.encumberedStatus)
+
+    def test_should_update_privilege_to_license_encumbered_when_associated_license_is_encumbered(self):
+        """Test that lifting a privilege encumbrance sets privilege to LICENSE_ENCUMBERED when associated
+        license is encumbered."""
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from cc_common.data_model.schema.common import PrivilegeEncumberedStatusEnum
+        from handlers.encumbrance import encumbrance_handler
+
+        # Set up privilege with adverse action and encumbered license
+        privilege_record, adverse_action = self._setup_privilege_with_adverse_action(
+            privilege_overrides={'encumberedStatus': 'encumbered'}, license_overrides={'encumberedStatus': 'encumbered'}
+        )
+
+        event = self._generate_lift_encumbrance_event(privilege_record, adverse_action)
+
+        response = encumbrance_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'])
+
+        # Verify privilege record is now LICENSE_ENCUMBERED (not UNENCUMBERED)
+        provider_records: ProviderUserRecords = self.config.data_client.get_provider_user_records(
+            compact=privilege_record.compact, provider_id=str(privilege_record.providerId)
+        )
+
+        privilege_records = provider_records.get_privilege_records(
+            filter_condition=lambda p: (
+                p.jurisdiction == privilege_record.jurisdiction and p.licenseType == privilege_record.licenseType
+            )
+        )
+
+        self.assertEqual(1, len(privilege_records))
+        self.assertEqual(PrivilegeEncumberedStatusEnum.LICENSE_ENCUMBERED, privilege_records[0].encumberedStatus)
 
     def test_should_return_access_denied_if_compact_admin_attempts_to_lift_privilege_encumbrance(self):
         """Verifying that only state admins are allowed to lift privilege encumbrances"""
