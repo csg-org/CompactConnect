@@ -98,7 +98,7 @@ export class EmailNotificationService extends BaseEmailService {
         providerFirstName: string,
         providerLastName: string
     ): Promise<void> {
-        
+
         this.logger.info('Sending privilege deactivation jurisdiction notification email', { compact: compact, jurisdiction: jurisdiction });
 
         const recipients = await this.getJurisdictionRecipients(
@@ -280,7 +280,7 @@ export class EmailNotificationService extends BaseEmailService {
             jurisdiction: string,
             licenseTypeAbbrev: string,
             privilegeId: string
-        }[], 
+        }[],
         totalCost: string,
         costLineItems: {
                 name: string,
@@ -308,7 +308,7 @@ export class EmailNotificationService extends BaseEmailService {
         privileges.forEach((privilege) => {
             const titleText = `${privilege.licenseTypeAbbrev.toUpperCase()} - ${privilege.jurisdiction.toUpperCase()}`;
             const privilegeIdText = `Privilege Id: ${privilege.privilegeId}`;
-    
+
             this.insertTuple(emailContent, titleText, privilegeIdText);
         });
 

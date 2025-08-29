@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "LicenseApi",
-    "version": "2025-08-26T22:24:44Z"
+    "version": "2025-08-28T18:13:05Z"
   },
   "servers": [
     {
@@ -44,7 +44,7 @@
         },
         "security": [
           {
-            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
+            "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "aslp/readGeneral",
               "octp/readGeneral",
               "coun/readGeneral"
@@ -95,7 +95,7 @@
         },
         "security": [
           {
-            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
+            "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "aslp/admin",
               "al/aslp.admin",
               "ak/aslp.admin",
@@ -224,7 +224,7 @@
         },
         "security": [
           {
-            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
+            "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "aslp/admin",
               "al/aslp.admin",
               "ak/aslp.admin",
@@ -296,7 +296,7 @@
         },
         "security": [
           {
-            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
+            "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "aslp/readGeneral",
               "octp/readGeneral",
               "coun/readGeneral"
@@ -347,7 +347,7 @@
         },
         "security": [
           {
-            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
+            "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "aslp/readGeneral",
               "octp/readGeneral",
               "coun/readGeneral"
@@ -406,7 +406,7 @@
         },
         "security": [
           {
-            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
+            "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "aslp/admin",
               "al/aslp.admin",
               "ak/aslp.admin",
@@ -496,7 +496,7 @@
         },
         "security": [
           {
-            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
+            "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "aslp/write",
               "al/aslp.write",
               "ak/aslp.write",
@@ -576,7 +576,7 @@
         },
         "security": [
           {
-            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
+            "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "aslp/write",
               "al/aslp.write",
               "ak/aslp.write",
@@ -658,7 +658,7 @@
         },
         "security": [
           {
-            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
+            "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "aslp/readGeneral",
               "octp/readGeneral",
               "coun/readGeneral"
@@ -709,7 +709,7 @@
         },
         "security": [
           {
-            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
+            "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "aslp/readGeneral",
               "octp/readGeneral",
               "coun/readGeneral"
@@ -786,7 +786,7 @@
         },
         "security": [
           {
-            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
+            "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "aslp/admin",
               "al/aslp.admin",
               "ak/aslp.admin",
@@ -900,7 +900,7 @@
         },
         "security": [
           {
-            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
+            "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "aslp/admin",
               "al/aslp.admin",
               "ak/aslp.admin",
@@ -1006,7 +1006,7 @@
         },
         "security": [
           {
-            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
+            "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "aslp/admin",
               "al/aslp.admin",
               "ak/aslp.admin",
@@ -1112,7 +1112,7 @@
         },
         "security": [
           {
-            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
+            "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "aslp/admin",
               "al/aslp.admin",
               "ak/aslp.admin",
@@ -1226,7 +1226,7 @@
         },
         "security": [
           {
-            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
+            "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "aslp/admin",
               "al/aslp.admin",
               "ak/aslp.admin",
@@ -1322,7 +1322,7 @@
         },
         "security": [
           {
-            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
+            "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "aslp/readGeneral",
               "octp/readGeneral",
               "coun/readGeneral"
@@ -1373,7 +1373,7 @@
         },
         "security": [
           {
-            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
+            "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "aslp/readSSN",
               "al/aslp.readSSN",
               "ak/aslp.readSSN",
@@ -1444,7 +1444,7 @@
         },
         "security": [
           {
-            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
+            "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "aslp/admin",
               "al/aslp.admin",
               "ak/aslp.admin",
@@ -1523,7 +1523,7 @@
         },
         "security": [
           {
-            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
+            "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "aslp/admin",
               "al/aslp.admin",
               "ak/aslp.admin",
@@ -1612,7 +1612,7 @@
         },
         "security": [
           {
-            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
+            "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "aslp/admin",
               "al/aslp.admin",
               "ak/aslp.admin",
@@ -1692,7 +1692,7 @@
         },
         "security": [
           {
-            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
+            "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "aslp/admin",
               "al/aslp.admin",
               "ak/aslp.admin",
@@ -1789,7 +1789,7 @@
         },
         "security": [
           {
-            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
+            "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "aslp/admin",
               "al/aslp.admin",
               "ak/aslp.admin",
@@ -1871,7 +1871,7 @@
         },
         "security": [
           {
-            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
+            "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "aslp/admin",
               "al/aslp.admin",
               "ak/aslp.admin",
@@ -2519,7 +2519,7 @@
         },
         "security": [
           {
-            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
+            "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "profile"
             ]
           }
@@ -2567,7 +2567,7 @@
         },
         "security": [
           {
-            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
+            "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "profile"
             ]
           }
@@ -8701,7 +8701,7 @@
       }
     },
     "securitySchemes": {
-      "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": {
+      "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": {
         "type": "apiKey",
         "name": "Authorization",
         "in": "header",

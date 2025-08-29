@@ -6,11 +6,11 @@
 #
 aws-lambda-powertools==3.19.0
     # via -r compact-connect/lambdas/python/cognito-backup/requirements-dev.in
-boto3==1.40.14
+boto3==1.40.18
     # via
     #   -r compact-connect/lambdas/python/cognito-backup/requirements-dev.in
     #   moto
-botocore==1.40.14
+botocore==1.40.18
     # via
     #   -r compact-connect/lambdas/python/cognito-backup/requirements-dev.in
     #   boto3
@@ -39,7 +39,7 @@ markupsafe==3.0.2
     # via
     #   jinja2
     #   werkzeug
-moto[cognito-idp,s3]==5.1.10
+moto[cognito-idp,s3]==5.1.11
     # via -r compact-connect/lambdas/python/cognito-backup/requirements-dev.in
 packaging==25.0
     # via pytest
@@ -71,7 +71,7 @@ s3transfer==0.13.1
     # via boto3
 six==1.17.0
     # via python-dateutil
-typing-extensions==4.14.1
+typing-extensions==4.15.0
     # via aws-lambda-powertools
 urllib3==2.5.0
     # via

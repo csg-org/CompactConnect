@@ -702,7 +702,7 @@ describe('EmailNotificationService', () => {
     describe('Provider Email Verification Code', () => {
         it('should send email verification code with all expected content', async () => {
             const verificationCode = '1234';
-            
+
             await emailService.sendProviderEmailVerificationCode(
                 'aslp',
                 'newuser@example.com',
@@ -787,7 +787,7 @@ describe('EmailNotificationService', () => {
         it('should send account recovery confirmation email with all expected content', async () => {
             const providerId = 'provider-123';
             const recoveryToken = 'secure-recovery-token-abc123';
-            
+
             await emailService.sendProviderAccountRecoveryConfirmationEmail(
                 'aslp',
                 ['user@example.com'],
@@ -823,12 +823,12 @@ describe('EmailNotificationService', () => {
             expect(htmlContent).toContain('A request was made to recover access to your Compact Connect user account.');
             expect(htmlContent).toContain('If you initiated this request, please confirm by clicking the link below to continue account recovery.');
             expect(htmlContent).toContain('Confirm Account Recovery');
-            
+
             // Verify recovery URL is correctly formatted (HTML encoded in email)
             const expectedRecoveryUrl = `https://app.test.compactconnect.org/Dashboard?bypass=recovery-practitioner&amp;compact=aslp&amp;providerId=${providerId}&amp;recoveryId=${recoveryToken}`;
 
             expect(htmlContent).toContain(expectedRecoveryUrl);
-            
+
             // Verify security warning text (HTML encoded)
             expect(htmlContent).toContain('<strong>If you did not request this, your password has likely been compromised and you should reset your password immediately</strong>');
             expect(htmlContent).toContain('https://app.test.compactconnect.org/Dashboard?bypass=login-practitioner');
