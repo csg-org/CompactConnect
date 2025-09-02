@@ -4,6 +4,9 @@
 # VS Code
 .vscode
 
+# Cursor
+.cursorignore
+
 #OS
 .DS_Store
 .tmp

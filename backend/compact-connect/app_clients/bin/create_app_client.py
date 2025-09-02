@@ -244,15 +244,15 @@ def print_email_template(environment, compact, state):
     """Print an email template with contextual information for the consuming team."""
     # Get environment-specific URLs
     auth_urls = {
-        'beta': 'https://compact-connect-staff-beta.auth.us-east-1.amazoncognito.com/oauth2/token',
-        'prod': 'https://compact-connect-staff.auth.us-east-1.amazoncognito.com/oauth2/token',
-        'test': 'https://compact-connect-staff-test.auth.us-east-1.amazoncognito.com/oauth2/token',
+        'beta': 'https://compact-connect-state-auth-beta.auth.us-east-1.amazoncognito.com/oauth2/token',
+        'prod': 'https://compact-connect-state-auth.auth.us-east-1.amazoncognito.com/oauth2/token',
+        'test': 'https://compact-connect-state-auth-test.auth.us-east-1.amazoncognito.com/oauth2/token',
     }
 
     api_base_urls = {
-        'beta': 'https://api.beta.compactconnect.org',
-        'prod': 'https://api.compactconnect.org',
-        'test': 'https://api.test.compactconnect.org',
+        'beta': 'https://state-api.beta.compactconnect.org',
+        'prod': 'https://state-api.compactconnect.org',
+        'test': 'https://state-api.test.compactconnect.org',
     }
 
     # Compact name mapping
@@ -282,7 +282,7 @@ once:
 
 For more information on CompactConnect and how to integrate your state IT system with ours, see the documentation
 here:
-https://github.com/csg-org/CompactConnect/blob/development/backend/compact-connect/app_clients/it_staff_onboarding_instructions/README.md
+https://github.com/csg-org/CompactConnect/blob/development/backend/compact-connect/docs/it_staff_onboarding_instructions.md
 """
 
     print('\n' + '=' * 60)
