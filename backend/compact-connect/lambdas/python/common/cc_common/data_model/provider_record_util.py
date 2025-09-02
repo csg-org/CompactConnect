@@ -371,13 +371,13 @@ class ProviderRecordUtility:
         for event in enriched_history:
             if (
                 event['updateType'] == UpdateCategory.ENCUMBRANCE
-                and event['encumbranceDetails']
+                and event.get('encumbranceDetails')
                 and should_include_encumbrance_details
             ):
                 event['note'] = event['encumbranceDetails']['note']
             elif (
                 event['updateType'] == UpdateCategory.DEACTIVATION
-                and event['deactivationDetails']
+                and event.get('deactivationDetails')
             ):
                 event['note'] = event['deactivationDetails']['note']
 

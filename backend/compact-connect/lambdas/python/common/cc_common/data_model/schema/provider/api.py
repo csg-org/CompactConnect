@@ -77,7 +77,9 @@ class ProviderReadPrivateResponseSchema(ForgivingSchema):
     # so we check for them here and sanitize them if they are present
     licenses = List(Nested(LicenseReadPrivateResponseSchema(), required=False, allow_none=False))
     privileges = List(Nested(PrivilegeReadPrivateResponseSchema(), required=False, allow_none=False))
-    militaryAffiliations = List(Nested(MilitaryAffiliationReadPrivateResponseSchema(), required=False, allow_none=False))
+    militaryAffiliations = List(
+        Nested(MilitaryAffiliationReadPrivateResponseSchema(), required=False, allow_none=False)
+    )
 
     # these fields are specific to the read private role
     dateOfBirth = Raw(required=True, allow_none=False)

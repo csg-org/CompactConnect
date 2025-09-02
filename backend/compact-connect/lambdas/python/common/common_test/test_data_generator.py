@@ -428,7 +428,6 @@ class TestDataGenerator:
 
         return provider_data
 
-
     @staticmethod
     def _override_date_of_update_for_record(data_class: CCDataClass, date_of_update: datetime):
         # we have to access this here, as in runtime code dateOfUpdate is not to be modified
