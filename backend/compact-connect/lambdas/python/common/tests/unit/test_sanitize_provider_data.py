@@ -14,6 +14,9 @@ class TestSanitizeProviderData(TstLambdas):
 
         resp = sanitize_provider_data_based_on_caller_scopes(compact='aslp', provider=test_provider, scopes=scopes)
 
+        # cast to set to match schema
+        expected_provider['privilegeJurisdictions'] = set(expected_provider['privilegeJurisdictions'])
+
         self.assertEqual(resp, expected_provider)
 
     def test_full_provider_record_returned_if_caller_has_compact_read_private_permissions(self):

@@ -1,5 +1,5 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
-from marshmallow.fields import List, Nested, Raw, String
+from marshmallow.fields import Dict, List, Nested, Raw, String
 from marshmallow.validate import OneOf
 
 from cc_common.config import config
@@ -64,5 +64,5 @@ class MilitaryAffiliationReadPrivateResponseSchema(ForgivingSchema):
 
     # this will only be present for compact admins
     documentKeys = List(String(required=True, allow_none=False), required=False, allow_none=False)
-    downloadLinks = List(String(required=True, allow_none=False), required=False, allow_none=False)
+    downloadLinks = List(Dict(required=True, allow_none=False), required=False, allow_none=False)
 

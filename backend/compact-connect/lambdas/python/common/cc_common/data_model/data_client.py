@@ -2623,13 +2623,9 @@ class DataClient:
             filter_condition=lambda p: (
                 p.licenseJurisdiction == jurisdiction
                 and p.licenseTypeAbbreviation == license_type_abbreviation
-                and (p.encumberedStatus is None or p.encumberedStatus == PrivilegeEncumberedStatusEnum.ENCUMBERED)
+                and (p.encumberedStatus == PrivilegeEncumberedStatusEnum.ENCUMBERED)
             )
         )
-
-        if not unencumbered_privileges_associated_with_license:
-            logger.info('No unencumbered privileges found for this license.')
-            return []
 
         logger.info(
             'Found privileges to encumber', privilege_count=len(unencumbered_privileges_associated_with_license)
@@ -2663,7 +2659,7 @@ class DataClient:
                     'jurisdiction': privilege_data.jurisdiction,
                     'licenseType': privilege_data.licenseType,
                     'createDate': now,
-                    'encumbrance_details': encumbrance_details,
+                    'encumbranceDetails': encumbrance_details,
                     'effectiveDate': effective_date_time,
                     'previous': privilege_data.to_dict(),
                     'updatedValues': {
@@ -2683,28 +2679,28 @@ class DataClient:
                 )
             )
 
-            for encumbered_privilege in previously_encumbered_privileges_associated_with_license:
-                now = config.current_standard_datetime
+        for encumbered_privilege in previously_encumbered_privileges_associated_with_license:
+            now = config.current_standard_datetime
 
-                # Create privilege update record
-                privilege_update_record = PrivilegeUpdateData.create_new(
-                    {
-                        'type': 'privilegeUpdate',
-                        'updateType': UpdateCategory.ENCUMBRANCE,
-                        'providerId': provider_id,
-                        'compact': compact,
-                        'jurisdiction': encumbered_privilege.jurisdiction,
-                        'licenseType': encumbered_privilege.licenseType,
-                        'createDate': now,
-                        'effectiveDate': effective_date,
-                        'encumbrance_details': encumbrance_details,
-                        'previous': privilege_data.to_dict(),
-                        'updatedValues': {},
-                    }
-                ).serialize_to_database_record()
+            # Create privilege update record
+            privilege_update_record = PrivilegeUpdateData.create_new(
+                {
+                    'type': 'privilegeUpdate',
+                    'updateType': UpdateCategory.ENCUMBRANCE,
+                    'providerId': provider_id,
+                    'compact': compact,
+                    'jurisdiction': encumbered_privilege.jurisdiction,
+                    'licenseType': encumbered_privilege.licenseType,
+                    'createDate': now,
+                    'effectiveDate': effective_date_time,
+                    'encumbranceDetails': encumbrance_details,
+                    'previous': encumbered_privilege.to_dict(),
+                    'updatedValues': {},
+                }
+            ).serialize_to_database_record()
 
-                # Add PUT transaction for privilege update record
-                transaction_items.append(self._generate_put_transaction_item(privilege_update_record))
+            # Add PUT transaction for privilege update record
+            transaction_items.append(self._generate_put_transaction_item(privilege_update_record))
 
 
         # Execute transactions in batches of 100 (DynamoDB limit)
@@ -2721,7 +2717,10 @@ class DataClient:
                 raise CCAwsServiceException('Failed to encumber privileges for license') from e
 
         logger.info('Successfully encumbered associated privileges for license')
-        return unencumbered_privileges_associated_with_license
+
+        return (unencumbered_privileges_associated_with_license
+                + previously_encumbered_privileges_associated_with_license)
+
 
     def lift_home_jurisdiction_license_privilege_encumbrances(
         self,

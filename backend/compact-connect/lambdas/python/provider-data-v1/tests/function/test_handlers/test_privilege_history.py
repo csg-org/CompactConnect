@@ -21,6 +21,17 @@ class TestGetProvider(TstFunction):
     def _when_testing_provider_user_event_with_custom_claims(self):
         self._load_provider_data()
         test_provider = self.test_data_generator.put_default_provider_record_in_provider_table()
+        self.test_data_generator.put_default_privilege_update_record_in_provider_table(
+            value_overrides={
+                'updateType': 'encumbrance',
+                'encumbranceDetails': {
+                    'note': 'Did bad things',
+                    'licenseJurisdiction': 'oh',
+                },
+                'createDate': datetime.fromisoformat('2023-05-05T12:59:59+00:00'),
+                'effectiveDate': datetime.fromisoformat('2022-05-05T12:59:59+00:00'),
+            }
+        )
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
             event['httpMethod'] = 'GET'
@@ -34,6 +45,17 @@ class TestGetProvider(TstFunction):
     def _when_testing_public_endpoint(self):
         self._load_provider_data()
         test_provider = self.test_data_generator.put_default_provider_record_in_provider_table()
+        self.test_data_generator.put_default_privilege_update_record_in_provider_table(
+            value_overrides={
+                'updateType': 'encumbrance',
+                'encumbranceDetails': {
+                    'note': 'Did bad things',
+                    'licenseJurisdiction': 'oh',
+                },
+                'createDate': datetime.fromisoformat('2023-05-05T12:59:59+00:00'),
+                'effectiveDate': datetime.fromisoformat('2022-05-05T12:59:59+00:00'),
+            }
+        )
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
             event['httpMethod'] = 'GET'
@@ -52,11 +74,22 @@ class TestGetProvider(TstFunction):
     def _when_testing_staff_endpoint(self):
         self._load_provider_data()
         test_provider = self.test_data_generator.put_default_provider_record_in_provider_table()
+        self.test_data_generator.put_default_privilege_update_record_in_provider_table(
+            value_overrides={
+                'updateType': 'encumbrance',
+                'encumbranceDetails': {
+                    'note': 'Did bad things',
+                    'licenseJurisdiction': 'oh',
+                },
+                'createDate': datetime.fromisoformat('2023-05-05T12:59:59+00:00'),
+                'effectiveDate': datetime.fromisoformat('2022-05-05T12:59:59+00:00'),
+            }
+        )
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
             event['httpMethod'] = 'GET'
             event['resource'] = (
-                '/v1/public/compacts/{compact}/providers/{providerId}/jurisdiction/{jurisdiction}/licenseType/{licenseType}/history'
+                '/v1/compacts/{compact}/providers/{providerId}/privileges/jurisdiction/{jurisdiction}/licenseType/{licenseType}/history'
             )
             event['pathParameters'] = {
                 'jurisdiction': 'ne',
@@ -123,6 +156,13 @@ class TestGetProvider(TstFunction):
                     'createDate': '2020-05-05T12:59:59+00:00',
                     'dateOfUpdate': '2020-05-05T12:59:59+00:00',
                     'effectiveDate': '2020-05-05T12:59:59+00:00',
+                    'type': 'privilegeUpdate',
+                    'updateType': 'renewal',
+                },
+                {
+                    'createDate': '2023-05-05T12:59:59+00:00',
+                    'dateOfUpdate': '2024-11-08T23:59:59+00:00',
+                    'effectiveDate': '2022-05-05T12:59:59+00:00',
                     'note': 'Did bad things',
                     'type': 'privilegeUpdate',
                     'updateType': 'encumbrance',
@@ -161,6 +201,13 @@ class TestGetProvider(TstFunction):
                     'dateOfUpdate': '2020-05-05T12:59:59+00:00',
                     'effectiveDate': '2020-05-05T12:59:59+00:00',
                     'type': 'privilegeUpdate',
+                    'updateType': 'renewal',
+                },
+                {
+                    'createDate': '2023-05-05T12:59:59+00:00',
+                    'dateOfUpdate': '2024-11-08T23:59:59+00:00',
+                    'effectiveDate': '2022-05-05T12:59:59+00:00',
+                    'type': 'privilegeUpdate',
                     'updateType': 'encumbrance',
                 },
             ],
@@ -197,7 +244,15 @@ class TestGetProvider(TstFunction):
                     'dateOfUpdate': '2020-05-05T12:59:59+00:00',
                     'effectiveDate': '2020-05-05T12:59:59+00:00',
                     'type': 'privilegeUpdate',
+                    'updateType': 'renewal',
+                },
+                {
+                    'createDate': '2023-05-05T12:59:59+00:00',
+                    'dateOfUpdate': '2024-11-08T23:59:59+00:00',
+                    'effectiveDate': '2022-05-05T12:59:59+00:00',
+                    'type': 'privilegeUpdate',
                     'updateType': 'encumbrance',
+                    'note': 'Did bad things',
                 },
             ],
             'jurisdiction': 'ne',
