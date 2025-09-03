@@ -19,10 +19,11 @@ class EffectiveDatetimeMigration(CustomResourceHandler):
         No roll-back on delete.
         """
 
+
 on_event = EffectiveDatetimeMigration('effective-datetime')
 
-def _do_license_migration(_properties: dict) -> None:
 
+def _do_license_migration(_properties: dict) -> None:
     # Scan for all privilege update records
     license_updates = []
     scan_pagination = {}
@@ -73,8 +74,8 @@ def _do_license_migration(_properties: dict) -> None:
     if error_count > 0:
         raise RuntimeError(f'License update migration completed with {error_count} errors')
 
-def _do_privilege_migration(_properties: dict) -> None:
 
+def _do_privilege_migration(_properties: dict) -> None:
     # Scan for all privilege update records
     privilege_updates = []
     scan_pagination = {}
@@ -200,6 +201,7 @@ def _process_batch(updates: list[dict]) -> None:
         logger.info('Transaction completed successfully')
     else:
         logger.warning('No valid transaction items to process in this batch')
+
 
 def do_migration(_properties: dict) -> None:
     """

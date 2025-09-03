@@ -57,7 +57,6 @@ def test_account_recovery_flow():
     print('=' * 60)
     print(f'Testing account recovery for provider: {provider_email}')
 
-
     # Step 2: Call POST /v1/provider-users/initiateRecovery endpoint
     logger.info('Initiating account recovery request')
     current_password = config.test_provider_user_password
