@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 from unittest.mock import patch
 
-from common_test.test_constants import DEFAULT_ADVERSE_ACTION_ID,DEFAULT_DATE_OF_UPDATE_TIMESTAMP
+from common_test.test_constants import DEFAULT_ADVERSE_ACTION_ID, DEFAULT_DATE_OF_UPDATE_TIMESTAMP
 from moto import mock_aws
 
 from .. import TstFunction

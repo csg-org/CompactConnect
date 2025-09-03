@@ -4,8 +4,6 @@ from datetime import UTC, date, datetime, timedelta
 from unittest.mock import patch
 
 from boto3.dynamodb.conditions import Key
-from werkzeug.routing import UUIDConverter
-
 from cc_common.exceptions import CCInternalException
 from common_test.test_constants import (
     DEFAULT_AA_SUBMITTING_USER_ID,
