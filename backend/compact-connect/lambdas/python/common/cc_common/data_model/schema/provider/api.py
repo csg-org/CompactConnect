@@ -33,7 +33,7 @@ from cc_common.data_model.schema.privilege.api import (
 
 class ProviderReadPrivateResponseSchema(ForgivingSchema):
     """
-    Provider object fields that are sanitized for users with the 'readGeneral' permission.
+    Provider object fields that are sanitized for users with the 'readPrivate' permission.
 
     This schema is intended to be used to filter from the database in order to remove all fields not defined here.
     It should NEVER be used to load data into the database. Use the ProviderRecordSchema for that.
