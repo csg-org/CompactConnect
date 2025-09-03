@@ -114,7 +114,7 @@ class PrivilegeReadPrivateResponseSchema(ForgivingSchema):
 
     # these fields are specific to the read private role
     dateOfBirth = Raw(required=False, allow_none=False)
-    ssnLastFour = String(required=False, allow_none=False, validate=Length(3, 5))
+    ssnLastFour = String(required=False, allow_none=False, validate=Length(equal=4))
 
 
 class PrivilegePublicResponseSchema(ForgivingSchema):
