@@ -1,4 +1,5 @@
 import json
+from uuid import uuid4
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
@@ -107,6 +108,7 @@ def _generate_adverse_action_for_record_type(
     adverse_action.effectiveStartDate = encumbrance_effective_date
     adverse_action.submittingUser = _get_submitting_user_id(event)
     adverse_action.creationDate = config.current_standard_datetime
+    adverse_action.adverseActionId = uuid4()
 
     return adverse_action
 
@@ -136,6 +138,9 @@ def handle_license_encumbrance(event: dict) -> dict:
         event=event, adverse_action_against_record_type=AdverseActionAgainstEnum.LICENSE
     )
     logger.info('Processing adverse action updates for license record')
+
+    adverse_action.serialize_to_database_record()
+
     config.data_client.encumber_license(adverse_action)
 
     # Publish license encumbrance event
@@ -143,6 +148,7 @@ def handle_license_encumbrance(event: dict) -> dict:
         source='org.compactconnect.provider-data',
         compact=adverse_action.compact,
         provider_id=adverse_action.providerId,
+        adverse_action_id=adverse_action.adverseActionId,
         jurisdiction=adverse_action.jurisdiction,
         adverse_action_category=adverse_action.clinicalPrivilegeActionCategory,
         license_type_abbreviation=adverse_action.licenseTypeAbbreviation,

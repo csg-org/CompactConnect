@@ -5,6 +5,7 @@ from uuid import UUID
 
 from boto3.dynamodb.conditions import Key
 from common_test.test_constants import (
+    DEFAULT_ADVERSE_ACTION_ID,
     DEFAULT_CLINICAL_PRIVILEGE_ACTION_CATEGORY,
     DEFAULT_COMPACT,
     DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
@@ -35,7 +36,8 @@ class TestEncumbranceEvents(TstFunction):
                 'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
                 'eventTime': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
                 'effectiveDate': DEFAULT_EFFECTIVE_DATE,
-                'adverseActionCategory': DEFAULT_CLINICAL_PRIVILEGE_ACTION_CATEGORY
+                'adverseActionId': DEFAULT_ADVERSE_ACTION_ID,
+                'adverseActionCategory': DEFAULT_CLINICAL_PRIVILEGE_ACTION_CATEGORY,
             }
         }
         if message_overrides:
@@ -234,6 +236,7 @@ class TestEncumbranceEvents(TstFunction):
         update_record = privilege_update_records['Items'][0]
         update_encumbrance_details = update_record['encumbranceDetails']
         self.assertEqual(update_encumbrance_details, {
+            'adverseActionId': DEFAULT_ADVERSE_ACTION_ID,
             'licenseJurisdiction': 'oh',
             'note': 'Unsafe Practice or Substandard Care'
         })

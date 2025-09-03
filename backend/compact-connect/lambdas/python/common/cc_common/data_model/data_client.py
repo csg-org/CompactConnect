@@ -1428,7 +1428,8 @@ class DataClient:
 
             now = config.current_standard_datetime
             encumbrance_details = {
-                'note': adverse_action.clinicalPrivilegeActionCategory
+                'note': adverse_action.clinicalPrivilegeActionCategory,
+                'adverseActionId': adverse_action.adverseActionId,
             }
 
             # The time selected here is somewhat arbitrary; however, we want this selection to not alter the date
@@ -2604,6 +2605,7 @@ class DataClient:
         provider_id: str,
         jurisdiction: str,
         adverse_action_category: str,
+        adverse_action_id: str,
         license_type_abbreviation: str,
         effective_date: date,
     ) -> list[PrivilegeData]:
@@ -2617,6 +2619,7 @@ class DataClient:
         :param str provider_id: The provider ID.
         :param str jurisdiction: The jurisdiction of the license.
         :param adverse_action_category: The type of adverse action perpetrated
+        :param adverse_action_id: The ID of the adverse action
         :param str license_type_abbreviation: The license type abbreviation
         :param str effective_date: effective date of the encumbrance on the license and therefore privilege
         :return: List of privileges that were encumbered
@@ -2654,6 +2657,7 @@ class DataClient:
         encumbrance_details = {
             'note': adverse_action_category,
             'licenseJurisdiction': jurisdiction,
+            'adverseActionId': adverse_action_id,
         }
 
         # Build transaction items for all privileges

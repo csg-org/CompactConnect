@@ -1,11 +1,15 @@
 import json
+import uuid
 from datetime import UTC, date, datetime, timedelta
 from unittest.mock import patch
 
 from boto3.dynamodb.conditions import Key
+from werkzeug.routing import UUIDConverter
+
 from cc_common.exceptions import CCInternalException
 from common_test.test_constants import (
     DEFAULT_AA_SUBMITTING_USER_ID,
+    DEFAULT_ADVERSE_ACTION_ID,
     DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
     DEFAULT_ENCUMBRANCE_TYPE,
     DEFAULT_LICENSE_JURISDICTION,
@@ -161,11 +165,13 @@ class TestPostPrivilegeEncumbrance(TstFunction):
                 'effectiveDate': datetime.fromisoformat(TEST_ENCUMBRANCE_EFFECTIVE_DATETIME),
                 'createDate': datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP),
                 'encumbranceDetails': {
-                    'note': 'Unsafe Practice or Substandard Care'
+                    'note': 'Unsafe Practice or Substandard Care',
+                    'adverseActionId': DEFAULT_ADVERSE_ACTION_ID,
                 }
             }
         )
         loaded_privilege_update_data = PrivilegeUpdateData.from_database_record(item)
+        loaded_privilege_update_data.encumbranceDetails['adverseActionId']= uuid.UUID(DEFAULT_ADVERSE_ACTION_ID)
 
         self.assertEqual(
             expected_privilege_update_data.to_dict(),

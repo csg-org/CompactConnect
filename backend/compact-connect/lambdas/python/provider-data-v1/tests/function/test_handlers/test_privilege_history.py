@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 from unittest.mock import patch
 
-from common_test.test_constants import DEFAULT_DATE_OF_UPDATE_TIMESTAMP
+from common_test.test_constants import DEFAULT_ADVERSE_ACTION_ID,DEFAULT_DATE_OF_UPDATE_TIMESTAMP
 from moto import mock_aws
 
 from .. import TstFunction
@@ -27,6 +27,7 @@ class TestGetProvider(TstFunction):
                 'encumbranceDetails': {
                     'note': 'Did bad things',
                     'licenseJurisdiction': 'oh',
+                    'adverseActionId': DEFAULT_ADVERSE_ACTION_ID,
                 },
                 'createDate': datetime.fromisoformat('2023-05-05T12:59:59+00:00'),
                 'effectiveDate': datetime.fromisoformat('2022-05-05T12:59:59+00:00'),
@@ -51,6 +52,7 @@ class TestGetProvider(TstFunction):
                 'encumbranceDetails': {
                     'note': 'Did bad things',
                     'licenseJurisdiction': 'oh',
+                    'adverseActionId': DEFAULT_ADVERSE_ACTION_ID,
                 },
                 'createDate': datetime.fromisoformat('2023-05-05T12:59:59+00:00'),
                 'effectiveDate': datetime.fromisoformat('2022-05-05T12:59:59+00:00'),
@@ -80,6 +82,7 @@ class TestGetProvider(TstFunction):
                 'encumbranceDetails': {
                     'note': 'Did bad things',
                     'licenseJurisdiction': 'oh',
+                    'adverseActionId': DEFAULT_ADVERSE_ACTION_ID,
                 },
                 'createDate': datetime.fromisoformat('2023-05-05T12:59:59+00:00'),
                 'effectiveDate': datetime.fromisoformat('2022-05-05T12:59:59+00:00'),
