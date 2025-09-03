@@ -9,7 +9,7 @@ from app import CompactConnectApp
 from aws_cdk.assertions import Annotations, Match, Template
 from aws_cdk.aws_apigateway import CfnGatewayResponse, CfnMethod
 from aws_cdk.aws_cloudfront import CfnDistribution
-from aws_cdk.aws_cognito import CfnUserPool, CfnUserPoolClient
+from aws_cdk.aws_cognito import CfnUserPool, CfnUserPoolClient, CfnUserPoolDomain, CfnUserPoolResourceServer
 from aws_cdk.aws_dynamodb import CfnTable
 from aws_cdk.aws_events import CfnRule
 from aws_cdk.aws_kms import CfnKey
@@ -23,6 +23,7 @@ from stacks.api_stack import ApiStack
 from stacks.frontend_deployment_stack import FrontendDeploymentStack
 from stacks.persistent_stack import PersistentStack
 from stacks.provider_users import ProviderUsersStack
+from stacks.state_auth import StateAuthStack
 
 
 class _AppSynthesizer:
@@ -168,6 +169,42 @@ class TstAppABC(ABC):
                 ['custom:compact', 'custom:providerId', 'email'],
             )
             self.assertEqual(provider_users_user_pool_app_client['WriteAttributes'], ['email'])
+
+    def _inspect_state_auth_stack(
+        self,
+        state_auth_stack: StateAuthStack,
+    ):
+        with self.subTest(state_auth_stack.stack_name):
+            state_auth_stack_template = Template.from_stack(state_auth_stack)
+
+            # Basic resource count validation
+            state_auth_stack_template.resource_count_is(CfnUserPool.CFN_RESOURCE_TYPE_NAME, 1)
+            state_auth_stack_template.resource_count_is(
+                CfnUserPoolClient.CFN_RESOURCE_TYPE_NAME, 0
+            )  # Manual provisioning
+            state_auth_stack_template.resource_count_is('AWS::Cognito::UserPoolDomain', 1)
+
+            # Fundamental security configuration
+            state_auth_stack_template.has_resource_properties(
+                CfnUserPool.CFN_RESOURCE_TYPE_NAME,
+                {
+                    'AdminCreateUserConfig': {
+                        'AllowAdminCreateUserOnly': True,
+                    },
+                    'Policies': {
+                        'PasswordPolicy': {
+                            'MinimumLength': 32,
+                            'RequireNumbers': True,
+                            'RequireLowercase': True,
+                            'RequireUppercase': True,
+                            'RequireSymbols': True,
+                            'TemporaryPasswordValidityDays': 1,
+                        },
+                    },
+                },
+            )
+            state_auth_stack_template.has_resource(CfnUserPoolDomain.CFN_RESOURCE_TYPE_NAME, {})
+            state_auth_stack_template.has_resource(CfnUserPoolResourceServer.CFN_RESOURCE_TYPE_NAME, {})
 
     def _inspect_persistent_stack(
         self,

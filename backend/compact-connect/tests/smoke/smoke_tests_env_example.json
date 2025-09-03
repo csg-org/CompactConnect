@@ -1,5 +1,8 @@
 {
   "CC_TEST_API_BASE_URL": "https://api.test.compactconnect.org",
+  "CC_TEST_STATE_API_BASE_URL": "https://state-api.test.compactconnect.org",
+  "CC_TEST_STATE_AUTH_URL": "https://compact-connect-state-auth-test.auth.us-east-1.amazoncognito.com/oauth2/token",
+  "CC_TEST_COGNITO_STATE_AUTH_USER_POOL_ID": "us-east-1_12345",
   "CC_TEST_PROVIDER_DYNAMO_TABLE_NAME": "Sandbox-PersistentStack-ProviderTable12345",
   "CC_TEST_COMPACT_CONFIGURATION_DYNAMO_TABLE_NAME": "Sandbox-PersistentStack-CompactConfigTable12345",
   "CC_TEST_RATE_LIMITING_DYNAMO_TABLE_NAME": "Sandbox-PersistentStack-RateLimitingTable12345",

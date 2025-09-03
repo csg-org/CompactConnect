@@ -4,6 +4,7 @@
 #
 #    pip-compile --no-emit-index-url compact-connect/lambdas/python/custom-resources/requirements-dev.in
 #
+
 boto3==1.40.19
     # via moto
 botocore==1.40.19

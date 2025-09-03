@@ -21,6 +21,10 @@ class CCUnauthorizedException(CCInvalidRequestException):
     """Client is not authorized, corresponds to a 401 response"""
 
 
+class CCUnauthorizedCustomResponseException(CCUnauthorizedException):
+    """Client is not authorized, corresponds to a 401 response with a custom response body"""
+
+
 class CCAccessDeniedException(CCInvalidRequestException):
     """Client is forbidden, corresponds to a 403 response"""
 

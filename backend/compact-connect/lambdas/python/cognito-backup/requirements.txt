@@ -6,9 +6,15 @@
 #
 aws-lambda-powertools==3.19.0
     # via -r compact-connect/lambdas/python/cognito-backup/requirements.in
+<<<<<<< HEAD
 boto3==1.40.19
     # via -r compact-connect/lambdas/python/cognito-backup/requirements.in
 botocore==1.40.19
+=======
+boto3==1.40.18
+    # via -r compact-connect/lambdas/python/cognito-backup/requirements.in
+botocore==1.40.18
+>>>>>>> development
     # via
     #   -r compact-connect/lambdas/python/cognito-backup/requirements.in
     #   boto3

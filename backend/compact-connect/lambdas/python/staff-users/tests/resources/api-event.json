@@ -21,7 +21,7 @@
         "Via": "1.1 f0f1092b2ad1f0e573a4fcbefe4fb620.cloudfront.net (CloudFront)",
         "X-Amz-Cf-Id": "QHDmaz0LJQgmM6R7BcPxdn_AOzrvklxaAQWMFIp6vU5iC00sOenZeA==",
         "X-Amzn-Trace-Id": "Root=1-65bd6123-0212598f4d09694c1f4bb8fe",
-        "X-Forwarded-For": "54.86.50.139, 70.132.32.86",
+        "X-Forwarded-For": "192.0.2.1, 198.51.100.1",
         "X-Forwarded-Port": "443",
         "X-Forwarded-Proto": "https"
     },
@@ -78,7 +78,7 @@
             "Root=1-65bd6123-0212598f4d09694c1f4bb8fe"
         ],
         "X-Forwarded-For": [
-            "54.86.50.139, 70.132.32.86"
+            "192.0.2.1, 198.51.100.1"
         ],
         "X-Forwarded-Port": [
             "443"
@@ -123,7 +123,7 @@
             "accountId": null,
             "cognitoIdentityId": null,
             "caller": null,
-            "sourceIp": "54.86.50.139",
+            "sourceIp": "192.0.2.1",
             "principalOrgId": null,
             "accessKey": null,
             "cognitoAuthenticationType": null,
