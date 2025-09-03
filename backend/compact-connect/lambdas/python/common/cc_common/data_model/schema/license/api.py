@@ -120,7 +120,7 @@ class LicenseGeneralResponseSchema(ForgivingSchema):
 
 class LicenseReadPrivateResponseSchema(ForgivingSchema):
     """
-    License object fields, as seen by staff users with only the 'readGeneral' permission.
+    License object fields, as seen by staff users with only the 'readPrivate' permission.
 
     Serialization direction:
     Python -> load() -> API
