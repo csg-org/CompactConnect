@@ -38,8 +38,8 @@ class ProviderReadPrivateResponseSchema(ForgivingSchema):
     This schema is intended to be used to filter from the database in order to remove all fields not defined here.
     It should NEVER be used to load data into the database. Use the ProviderRecordSchema for that.
 
-    This schema should be used by any endpoint that returns provider information to staff users with read private permissions
-    (ie the query provider and GET provider endpoints).
+    This schema should be used by any endpoint that returns provider information to staff users with read private
+    permissions (ie the query provider and GET provider endpoints).
 
     Serialization direction:
     Python -> load() -> API
