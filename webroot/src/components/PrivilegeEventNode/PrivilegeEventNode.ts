@@ -43,6 +43,14 @@ class PrivilegeEventNode extends Vue {
     get detailDisplay(): string {
         return this.event?.noteDisplay() || '';
     }
+
+    get updateType(): string {
+        return this.event?.updateType || '';
+    }
+
+    get uploadOnDisplay(): string {
+        return this.updateType === 'encumbrance' || this.updateType === 'lifting_encumbrance' ? `${this.$t('licensing.uploadedOn')}: ${this.event?.createDateDisplay()}` : '';
+    }
 }
 
 export default toNative(PrivilegeEventNode);
