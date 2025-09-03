@@ -1,6 +1,7 @@
 from aws_cdk import Environment, Stage
 from common_constructs.stack import StandardTags
 from constructs import Construct
+from stacks.api_lambda_stack import ApiLambdaStack
 from stacks.api_stack import ApiStack
 from stacks.disaster_recovery_stack import DisasterRecoveryStack
 from stacks.event_listener_stack import EventListenerStack
@@ -11,6 +12,7 @@ from stacks.persistent_stack import PersistentStack
 from stacks.provider_users import ProviderUsersStack
 from stacks.reporting_stack import ReportingStack
 from stacks.state_api_stack import StateApiStack
+from stacks.state_auth import StateAuthStack
 from stacks.transaction_monitoring_stack import TransactionMonitoringStack
 
 
@@ -58,6 +60,17 @@ class BackendStage(Stage):
             persistent_stack=self.persistent_stack,
         )
 
+        self.state_auth_stack = StateAuthStack(
+            self,
+            'StateAuthStack',
+            env=environment,
+            environment_context=environment_context,
+            standard_tags=standard_tags,
+            app_name=app_name,
+            environment_name=environment_name,
+            persistent_stack=self.persistent_stack,
+        )
+
         self.managed_login_stack = ManagedLoginStack(
             self,
             'ManagedLoginStack',
@@ -79,6 +92,17 @@ class BackendStage(Stage):
             persistent_stack=self.persistent_stack,
         )
 
+        self.api_lambda_stack = ApiLambdaStack(
+            self,
+            'ApiLambdaStack',
+            env=environment,
+            environment_context=environment_context,
+            standard_tags=standard_tags,
+            environment_name=environment_name,
+            persistent_stack=self.persistent_stack,
+            provider_users_stack=self.provider_users_stack,
+        )
+
         self.api_stack = ApiStack(
             self,
             'APIStack',
@@ -88,6 +112,7 @@ class BackendStage(Stage):
             environment_name=environment_name,
             persistent_stack=self.persistent_stack,
             provider_users_stack=self.provider_users_stack,
+            api_lambda_stack=self.api_lambda_stack,
         )
 
         self.state_api_stack = StateApiStack(
@@ -98,7 +123,7 @@ class BackendStage(Stage):
             standard_tags=standard_tags,
             environment_name=environment_name,
             persistent_stack=self.persistent_stack,
-            provider_users_stack=self.provider_users_stack,
+            state_auth_stack=self.state_auth_stack,
         )
 
         self.event_listener_stack = EventListenerStack(

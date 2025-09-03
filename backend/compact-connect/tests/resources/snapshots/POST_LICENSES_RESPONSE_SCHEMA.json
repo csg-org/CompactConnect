@@ -1,13 +1,25 @@
 {
-  "additionalProperties": false,
   "properties": {
     "message": {
+      "description": "Message indicating success or failure",
       "type": "string"
+    },
+    "errors": {
+      "additionalProperties": {
+        "additionalProperties": {
+          "description": "List of error messages for a field",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "description": "Errors for a specific record",
+        "type": "object"
+      },
+      "description": "Validation errors by record index",
+      "type": "object"
     }
   },
-  "required": [
-    "message"
-  ],
   "type": "object",
   "$schema": "http://json-schema.org/draft-04/schema#"
 }

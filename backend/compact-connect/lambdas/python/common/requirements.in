@@ -1,3 +1,6 @@
+argon2-cffi>=25.1.0, <26.0.0
 aws-lambda-powertools>=3.5.0, <4
 boto3>=1.34.33, <2
-marshmallow>=3.21.3
+cryptography>=45.0.5, <46
+marshmallow>=3.21.3, <4.0.0
+requests>=2.31.0, <3.0.0

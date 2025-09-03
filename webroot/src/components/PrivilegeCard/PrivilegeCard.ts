@@ -188,6 +188,20 @@ class PrivilegeCard extends mixins(MixinForm) {
         return this.privilege?.adverseActions || [];
     }
 
+    get encumberDisciplineOptions(): Array<{ value: string, name: string | ComputedRef<string> }> {
+        const options = this.$tm('licensing.disciplineTypes').map((disciplineType) => ({
+            value: disciplineType.key,
+            name: disciplineType.name,
+        }));
+
+        options.unshift({
+            value: '',
+            name: computed(() => this.$t('common.selectOption')),
+        });
+
+        return options;
+    }
+
     get npdbCategoryOptions(): Array<{ value: string, name: string | ComputedRef<string> }> {
         const options = this.$tm('licensing.npdbTypes').map((npdbType) => ({
             value: npdbType.key,
@@ -243,6 +257,13 @@ class PrivilegeCard extends mixins(MixinForm) {
 
     initFormInputsEncumberPrivilege(): void {
         this.formData = reactive({
+            encumberModalDisciplineAction: new FormInput({
+                id: 'discipline-action',
+                name: 'discipline-action',
+                label: computed(() => this.$t('licensing.encumberAction')),
+                validation: Joi.string().required().messages(this.joiMessages.string),
+                valueOptions: this.encumberDisciplineOptions,
+            }),
             encumberModalNpdbCategory: new FormInput({
                 id: 'npdb-category',
                 name: 'npdb-category',
@@ -282,6 +303,7 @@ class PrivilegeCard extends mixins(MixinForm) {
                 id: `adverse-action-data-${adverseActionId}`,
                 name: `adverse-action-data-${adverseActionId}`,
                 label: adverseAction.npdbTypeName(),
+                isDisabled: Boolean(adverseAction.endDate),
             });
 
             this.formData[`adverse-action-data-${adverseActionId}`] = adverseActionInput;
@@ -406,7 +428,7 @@ class PrivilegeCard extends mixins(MixinForm) {
         if (this.isEncumberPrivilegeModalDisplayed) {
             this.initFormInputs();
             await nextTick();
-            document.getElementById(this.formData.encumberModalNpdbCategory.id)?.focus();
+            document.getElementById(this.formData.encumberModalDisciplineAction.id)?.focus();
         }
     }
 
@@ -417,7 +439,7 @@ class PrivilegeCard extends mixins(MixinForm) {
     }
 
     focusTrapEncumberPrivilegeModal(event: KeyboardEvent): void {
-        const firstTabIndex = document.getElementById('npdb-category')
+        const firstTabIndex = document.getElementById('discipline-action')
             || document.getElementById('encumber-modal-cancel-button');
         const lastTabIndex = (this.isFormValid && !this.isFormLoading && !this.isEncumberPrivilegeModalSuccess)
             ? document.getElementById(this.formData.encumberModalContinue.id)
@@ -455,6 +477,7 @@ class PrivilegeCard extends mixins(MixinForm) {
                 licenseeId,
                 privilegeState: stateAbbrev,
                 licenseType: privilegeTypeAbbrev.toLowerCase(),
+                encumbranceType: this.formData.encumberModalDisciplineAction.value,
                 npdbCategory: this.formData.encumberModalNpdbCategory.value,
                 startDate: this.formData.encumberModalStartDate.value,
             }).catch((err) => {
@@ -663,6 +686,7 @@ class PrivilegeCard extends mixins(MixinForm) {
             await nextTick();
             this.validateAll({ asTouched: true });
         } else if (this.isEncumberPrivilegeModalDisplayed) {
+            this.formData.encumberModalDisciplineAction.value = this.encumberDisciplineOptions[1]?.value;
             this.formData.encumberModalNpdbCategory.value = this.npdbCategoryOptions[1]?.value;
             this.formData.encumberModalStartDate.value = moment().format('YYYY-MM-DD');
             await nextTick();
@@ -671,11 +695,13 @@ class PrivilegeCard extends mixins(MixinForm) {
             this.selectedEncumbrances.forEach((selected) => {
                 this.clickUnencumberItem(selected);
             });
-            await Promise.all(this.adverseActions.map(async (adverseAction) => {
-                this.clickUnencumberItem(adverseAction);
-                await nextTick();
-                this.formData[`adverse-action-end-date-${adverseAction.id}`].value = moment().format('YYYY-MM-DD');
-            }));
+            await Promise.all(this.adverseActions
+                .filter((adverseAction) => !adverseAction.hasEndDate())
+                .map(async (adverseAction) => {
+                    this.clickUnencumberItem(adverseAction);
+                    await nextTick();
+                    this.formData[`adverse-action-end-date-${adverseAction.id}`].value = moment().format('YYYY-MM-DD');
+                }));
             await nextTick();
             this.validateAll({ asTouched: true });
         }

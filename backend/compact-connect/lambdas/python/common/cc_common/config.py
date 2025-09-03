@@ -199,6 +199,10 @@ class _Config:
         return os.environ['PROVIDER_USER_POOL_ID']
 
     @property
+    def provider_user_pool_ui_client_id(self):
+        return os.environ['PROVIDER_USER_POOL_CLIENT_ID']
+
+    @property
     def users_table_name(self):
         """
         Get the staff users table name
@@ -311,6 +315,10 @@ class _Config:
         Used by the state API to generate providerUIUrl in responses.
         """
         return os.environ['API_BASE_URL']
+
+    @property
+    def signature_max_clock_skew_seconds(self):
+        return 60
 
 
 config = _Config()

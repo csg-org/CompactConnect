@@ -4,10 +4,9 @@ import json
 from functools import cached_property
 
 import jsii
-from aws_cdk import ArnFormat, Aspects, CfnOutput, Duration, IAspect
+from aws_cdk import Aspects, CfnOutput, Duration, IAspect
 from aws_cdk.aws_apigateway import (
     AccessLogFormat,
-    CognitoUserPoolsAuthorizer,
     Cors,
     CorsOptions,
     DomainNameOptions,
@@ -27,12 +26,11 @@ from aws_cdk.aws_logs import LogGroup, QueryDefinition, QueryString, RetentionDa
 from aws_cdk.aws_route53 import ARecord, IHostedZone, RecordTarget
 from aws_cdk.aws_route53_targets import ApiGateway
 from cdk_nag import NagSuppressions
-from constructs import Construct
+from constructs import IConstruct
 from stacks import persistent_stack as ps
-from stacks.provider_users import ProviderUsersStack
 
 from common_constructs.security_profile import SecurityProfile
-from common_constructs.stack import AppStack, Stack
+from common_constructs.stack import AppStack
 from common_constructs.webacl import WebACL, WebACLScope
 
 MD_FORMAT = r'^[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$'
@@ -68,13 +66,12 @@ class NagSuppressOptionsNotAuthorized:
 class CCApi(RestApi):
     def __init__(
         self,
-        scope: Construct,
+        scope: IConstruct,
         construct_id: str,
         *,
         environment_name: str,
         security_profile: SecurityProfile = SecurityProfile.RECOMMENDED,
         persistent_stack: ps.PersistentStack,
-        provider_users_stack: ProviderUsersStack,
         domain_name: str | None = None,
         **kwargs,
     ):
@@ -170,11 +167,10 @@ class CCApi(RestApi):
         self.alarm_topic = persistent_stack.alarm_topic
 
         self._persistent_stack = persistent_stack
-        self._provider_users_stack = provider_users_stack
 
         self.web_acl = WebACL(self, 'WebACL', acl_scope=WebACLScope.REGIONAL, security_profile=security_profile)
         self.web_acl.associate_stage(self.deployment_stage)
-        self.log_groups = [access_log_group, self.web_acl.log_group]
+        self.log_groups.append(self.web_acl.log_group)
         self._configure_alarms()
 
         # These canned Gateway Response headers do not support dynamic values, so we have to set a static value for the
@@ -200,18 +196,6 @@ class CCApi(RestApi):
             status_code='403',
             response_headers={'Access-Control-Allow-Origin': f"'{gateway_response_origin}'"},
             templates={'application/json': '{"message": "Access denied"}'},
-        )
-
-        QueryDefinition(
-            self,
-            'RuntimeQuery',
-            query_definition_name=f'{construct_id}/Lambdas',
-            query_string=QueryString(
-                fields=['@timestamp', '@log', 'level', 'status', 'message', 'method', 'path', '@message'],
-                filter_statements=['level in ["INFO", "WARNING", "ERROR"]'],
-                sort='@timestamp desc',
-            ),
-            log_groups=self.log_groups,
         )
 
         stack = AppStack.of(self)
@@ -241,21 +225,6 @@ class CCApi(RestApi):
                     'HTTP requests to backend systems.',
                 },
             ],
-        )
-
-    @cached_property
-    def staff_users_authorizer(self):
-        return CognitoUserPoolsAuthorizer(
-            self,
-            'StaffPoolsAuthorizer',
-            cognito_user_pools=[self._persistent_stack.staff_users],
-            results_cache_ttl=Duration.minutes(5),  # Default ttl is 5 minutes. We're setting this just to be explicit
-        )
-
-    @cached_property
-    def provider_users_authorizer(self):
-        return CognitoUserPoolsAuthorizer(
-            self, 'ProviderUsersPoolAuthorizer', cognito_user_pools=[self._provider_users_stack.provider_users]
         )
 
     @cached_property
@@ -297,32 +266,6 @@ class CCApi(RestApi):
 
         CfnOutput(self, 'APIBaseUrl', value=api_domain_name)
         CfnOutput(self, 'APIId', value=self.rest_api_id)
-
-    def get_secrets_manager_compact_payment_processor_arns(self):
-        """
-        For each supported compact in the system, return the secret arn for the payment processor credentials.
-        The secret arn follows this pattern:
-        compact-connect/env/{environment_name}/compact/{compact_abbr}/credentials/payment-processor
-
-
-        This is used to scope the permissions granted to the lambda to only the secrets it needs to access.
-        """
-        stack = Stack.of(self)
-        environment_name = stack.common_env_vars['ENVIRONMENT_NAME']
-        compacts = json.loads(stack.common_env_vars['COMPACTS'])
-        return [
-            stack.format_arn(
-                service='secretsmanager',
-                arn_format=ArnFormat.COLON_RESOURCE_NAME,
-                resource='secret',
-                resource_name=(
-                    # add wildcard characters to account for 6-character
-                    # random version suffix appended to secret name by secrets manager
-                    f'compact-connect/env/{environment_name}/compact/{compact}/credentials/payment-processor-??????'
-                ),
-            )
-            for compact in compacts
-        ]
 
     def _configure_alarms(self):
         # Any time the API returns a 5XX
@@ -367,3 +310,17 @@ class CCApi(RestApi):
             evaluate_low_sample_count_percentile='evaluate',
         )
         latency_alarm.add_alarm_action(SnsAction(self.alarm_topic))
+
+    def create_runtime_query_definition(self):
+        """Create the QueryDefinition for runtime logs after all API modules have been initialized."""
+        QueryDefinition(
+            self,
+            'RuntimeQuery',
+            query_definition_name=f'{self.node.id}/Lambdas',
+            query_string=QueryString(
+                fields=['@timestamp', '@log', 'level', 'status', 'message', 'method', 'path', '@message'],
+                filter_statements=['level in ["INFO", "WARNING", "ERROR"]'],
+                sort='@timestamp desc',
+            ),
+            log_groups=self.log_groups,
+        )

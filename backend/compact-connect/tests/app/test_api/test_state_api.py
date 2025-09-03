@@ -1,5 +1,5 @@
-from aws_cdk.assertions import Capture, Template
-from aws_cdk.aws_apigateway import CfnMethod, CfnModel, CfnResource
+from aws_cdk.assertions import Capture, Match, Template
+from aws_cdk.aws_apigateway import CfnAuthorizer, CfnMethod, CfnModel, CfnResource
 from aws_cdk.aws_lambda import CfnFunction
 
 from tests.app.test_api import TestApi
@@ -29,6 +29,18 @@ class TestStateApi(TestApi):
             props={
                 'Name': 'StateApi',
             },
+        )
+
+    def test_state_authorizer_uses_state_user_pool(self):
+        """Test that the state authorizer uses the state user pool."""
+        state_api_stack = self.app.sandbox_backend_stage.state_api_stack
+        state_api_stack_template = Template.from_stack(state_api_stack)
+
+        # Ensure the state authorizer uses the state user pool
+        state_api_stack_template.has_resource_properties(
+            type=CfnAuthorizer.CFN_RESOURCE_TYPE_NAME,
+            # An import from the state auth stack
+            props={'ProviderARNs': [{'Fn::ImportValue': Match.string_like_regexp('Sandbox-StateAuthStack:.*')}]},
         )
 
     def test_synth_generates_v1_resource(self):
@@ -175,9 +187,7 @@ class TestStateApi(TestApi):
             props={
                 'HttpMethod': 'GET',
                 'AuthorizerId': {
-                    'Ref': state_api_stack.get_logical_id(
-                        state_api_stack.api.staff_users_authorizer.node.default_child
-                    ),
+                    'Ref': state_api_stack.get_logical_id(state_api_stack.api.state_auth_authorizer.node.default_child),
                 },
                 'Integration': TestApi.generate_expected_integration_object(
                     state_api_stack.get_logical_id(
@@ -242,9 +252,7 @@ class TestStateApi(TestApi):
             props={
                 'HttpMethod': 'POST',
                 'AuthorizerId': {
-                    'Ref': state_api_stack.get_logical_id(
-                        state_api_stack.api.staff_users_authorizer.node.default_child
-                    ),
+                    'Ref': state_api_stack.get_logical_id(state_api_stack.api.state_auth_authorizer.node.default_child),
                 },
                 'Integration': TestApi.generate_expected_integration_object(
                     state_api_stack.get_logical_id(
@@ -318,8 +326,9 @@ class TestStateApi(TestApi):
 
         self.assertEqual(post_handler['Handler'], 'handlers.licenses.post_licenses')
 
-        # Capture model logical ID for verification
-        response_model_logical_id_capture = Capture()
+        # Capture model logical IDs for verification
+        success_response_model_logical_id_capture = Capture()
+        failure_response_model_logical_id_capture = Capture()
 
         # Ensure the POST method is configured correctly
         state_api_stack_template.has_resource_properties(
@@ -327,9 +336,7 @@ class TestStateApi(TestApi):
             props={
                 'HttpMethod': 'POST',
                 'AuthorizerId': {
-                    'Ref': state_api_stack.get_logical_id(
-                        state_api_stack.api.staff_users_authorizer.node.default_child
-                    ),
+                    'Ref': state_api_stack.get_logical_id(state_api_stack.api.state_auth_authorizer.node.default_child),
                 },
                 'Integration': TestApi.generate_expected_integration_object(
                     state_api_stack.get_logical_id(
@@ -338,20 +345,35 @@ class TestStateApi(TestApi):
                 ),
                 'MethodResponses': [
                     {
-                        'ResponseModels': {'application/json': {'Ref': response_model_logical_id_capture}},
+                        'ResponseModels': {'application/json': {'Ref': success_response_model_logical_id_capture}},
                         'StatusCode': '200',
+                    },
+                    {
+                        'ResponseModels': {'application/json': {'Ref': failure_response_model_logical_id_capture}},
+                        'StatusCode': '400',
                     },
                 ],
             },
         )
 
         # Verify response model schema
-        response_model = TestApi.get_resource_properties_by_logical_id(
-            response_model_logical_id_capture.as_string(),
+        success_response_model = TestApi.get_resource_properties_by_logical_id(
+            success_response_model_logical_id_capture.as_string(),
             state_api_stack_template.find_resources(CfnModel.CFN_RESOURCE_TYPE_NAME),
         )
+
+        failure_response_model = TestApi.get_resource_properties_by_logical_id(
+            failure_response_model_logical_id_capture.as_string(),
+            state_api_stack_template.find_resources(CfnModel.CFN_RESOURCE_TYPE_NAME),
+        )
+
         self.compare_snapshot(
-            response_model['Schema'],
+            success_response_model['Schema'],
+            'STANDARD_MESSAGE_RESPONSE_SCHEMA',
+            overwrite_snapshot=False,
+        )
+        self.compare_snapshot(
+            failure_response_model['Schema'],
             'STATE_API_POST_LICENSES_RESPONSE_SCHEMA',
             overwrite_snapshot=False,
         )
@@ -378,7 +400,7 @@ class TestStateApi(TestApi):
         lambda_functions = state_api_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME)
         bulk_upload_handler = None
         for logical_id, function_props in lambda_functions.items():
-            if function_props['Properties']['Handler'] == 'handlers.bulk_upload.bulk_upload_url_handler':
+            if function_props['Properties']['Handler'] == 'handlers.state_api.bulk_upload_url_handler':
                 bulk_upload_handler = logical_id
                 break
 
@@ -393,9 +415,7 @@ class TestStateApi(TestApi):
             props={
                 'HttpMethod': 'GET',
                 'AuthorizerId': {
-                    'Ref': state_api_stack.get_logical_id(
-                        state_api_stack.api.staff_users_authorizer.node.default_child
-                    ),
+                    'Ref': state_api_stack.get_logical_id(state_api_stack.api.state_auth_authorizer.node.default_child),
                 },
                 'Integration': TestApi.generate_expected_integration_object(bulk_upload_handler),
                 'MethodResponses': [
@@ -451,6 +471,31 @@ class TestStateApi(TestApi):
                     method_props['Properties'],
                     f'Method {logical_id} should have authorization scopes',
                 )
+
+    def test_state_api_uses_state_auth_authorizer(self):
+        """Test that the State API uses the state auth authorizer instead of staff users authorizer."""
+        state_api_stack = self.app.sandbox_backend_stage.state_api_stack
+        state_api_stack_template = Template.from_stack(state_api_stack)
+
+        # Get the state auth authorizer ID
+        state_auth_authorizer_id = state_api_stack.get_logical_id(
+            state_api_stack.api.state_auth_authorizer.node.default_child
+        )
+
+        # Get all methods in the state API
+        methods = state_api_stack_template.find_resources(CfnMethod.CFN_RESOURCE_TYPE_NAME)
+
+        # Check that all methods use the state auth authorizer (excluding OPTIONS methods for CORS)
+        for logical_id, method_props in methods.items():
+            # Skip OPTIONS methods which are CORS preflight requests
+            if method_props['Properties']['HttpMethod'] == 'OPTIONS':
+                continue
+
+            self.assertEqual(
+                method_props['Properties']['AuthorizerId']['Ref'],
+                state_auth_authorizer_id,
+                f'Method {logical_id} should use the state auth authorizer',
+            )
 
     def test_state_api_lambda_environment_variables(self):
         """Test that the State API lambda functions have the correct environment variables."""

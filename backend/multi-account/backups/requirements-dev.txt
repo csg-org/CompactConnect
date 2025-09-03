@@ -4,9 +4,9 @@
 #
 #    pip-compile --no-emit-index-url multi-account/backups/requirements-dev.in
 #
-boto3==1.40.8
+boto3==1.40.18
     # via moto
-botocore==1.40.8
+botocore==1.40.18
     # via
     #   boto3
     #   moto
@@ -33,7 +33,7 @@ markupsafe==3.0.2
     # via
     #   jinja2
     #   werkzeug
-moto==5.1.10
+moto==5.1.11
     # via -r multi-account/backups/requirements-dev.in
 packaging==25.0
     # via pytest
@@ -51,7 +51,7 @@ python-dateutil==2.9.0.post0
     #   moto
 pyyaml==6.0.2
     # via responses
-requests==2.32.4
+requests==2.32.5
     # via
     #   moto
     #   responses

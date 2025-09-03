@@ -241,7 +241,7 @@
         ],
         "type": "object"
       },
-      "maxLength": 100,
+      "maxItems": 100,
       "type": "array"
     },
     "pagination": {

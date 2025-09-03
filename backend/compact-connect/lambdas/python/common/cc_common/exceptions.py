@@ -8,8 +8,21 @@ class CCInvalidRequestException(CCBaseException):
     """Client error in the request, corresponds to a 400 response"""
 
 
+class CCInvalidRequestCustomResponseException(CCInvalidRequestException):
+    """Client error with custom response body format, corresponds to a 400 response"""
+
+    def __init__(self, response_body: dict | list):
+        self.response_body = response_body
+        # Still need a message for logging purposes
+        super().__init__('Invalid request')
+
+
 class CCUnauthorizedException(CCInvalidRequestException):
     """Client is not authorized, corresponds to a 401 response"""
+
+
+class CCUnauthorizedCustomResponseException(CCUnauthorizedException):
+    """Client is not authorized, corresponds to a 401 response with a custom response body"""
 
 
 class CCAccessDeniedException(CCInvalidRequestException):

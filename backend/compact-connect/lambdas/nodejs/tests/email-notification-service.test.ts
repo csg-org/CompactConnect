@@ -1317,4 +1317,95 @@ describe('EmailNotificationServiceLambda', () => {
                 .toThrow('Missing required template variables for providerEmailChangeNotification template');
         });
     });
+
+    describe('Provider Account Recovery Confirmation', () => {
+        const SAMPLE_PROVIDER_ACCOUNT_RECOVERY_CONFIRMATION_EVENT: EmailNotificationEvent = {
+            template: 'providerAccountRecoveryConfirmation',
+            recipientType: 'SPECIFIC',
+            compact: 'aslp',
+            specificEmails: ['user@example.com'],
+            templateVariables: {
+                providerId: 'provider-123',
+                recoveryToken: 'secure-recovery-token-abc123'
+            }
+        };
+
+        it('should successfully send provider account recovery confirmation email', async () => {
+            const response = await lambda.handler(SAMPLE_PROVIDER_ACCOUNT_RECOVERY_CONFIRMATION_EVENT, {} as any);
+
+            expect(response).toEqual({
+                message: 'Email message sent'
+            });
+
+            // Verify email was sent with correct parameters
+            expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
+                Destination: {
+                    ToAddresses: ['user@example.com']
+                },
+                Message: {
+                    Body: {
+                        Html: {
+                            Charset: 'UTF-8',
+                            Data: expect.any(String)
+                        }
+                    },
+                    Subject: {
+                        Charset: 'UTF-8',
+                        Data: 'Confirm Account Recovery - Compact Connect'
+                    }
+                },
+                Source: 'Compact Connect <noreply@example.org>'
+            });
+
+            // Get the actual HTML content for detailed validation
+            const emailCall = mockSESClient.commandCalls(SendEmailCommand)[0];
+            const htmlContent = emailCall.args[0].input.Message?.Body?.Html?.Data;
+
+            expect(htmlContent).toBeDefined();
+            expect(htmlContent).toContain('A request was made to recover access to your Compact Connect user account.');
+            expect(htmlContent).toContain('Confirm Account Recovery');
+
+            // Verify recovery URL is correctly formatted (HTML encoded in email)
+            const expectedRecoveryUrl = 'https://app.test.compactconnect.org/Dashboard?bypass=recovery-practitioner&amp;compact=aslp&amp;providerId=provider-123&amp;recoveryId=secure-recovery-token-abc123';
+
+            expect(htmlContent).toContain(expectedRecoveryUrl);
+        });
+
+        it('should throw error when no recipients found', async () => {
+            const eventWithNoRecipients: EmailNotificationEvent = {
+                ...SAMPLE_PROVIDER_ACCOUNT_RECOVERY_CONFIRMATION_EVENT,
+                specificEmails: []
+            };
+
+            await expect(lambda.handler(eventWithNoRecipients, {} as any))
+                .rejects
+                .toThrow('No recipients found for provider account recovery confirmation email');
+        });
+
+        it('should throw error when providerId is missing', async () => {
+            const eventWithMissingProviderId: EmailNotificationEvent = {
+                ...SAMPLE_PROVIDER_ACCOUNT_RECOVERY_CONFIRMATION_EVENT,
+                templateVariables: {
+                    recoveryToken: 'secure-recovery-token-abc123'
+                }
+            };
+
+            await expect(lambda.handler(eventWithMissingProviderId, {} as any))
+                .rejects
+                .toThrow('Missing required template variables for providerAccountRecoveryConfirmation template');
+        });
+
+        it('should throw error when recoveryToken is missing', async () => {
+            const eventWithMissingRecoveryToken: EmailNotificationEvent = {
+                ...SAMPLE_PROVIDER_ACCOUNT_RECOVERY_CONFIRMATION_EVENT,
+                templateVariables: {
+                    providerId: 'provider-123'
+                }
+            };
+
+            await expect(lambda.handler(eventWithMissingRecoveryToken, {} as any))
+                .rejects
+                .toThrow('Missing required template variables for providerAccountRecoveryConfirmation template');
+        });
+    });
 });

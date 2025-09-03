@@ -17,6 +17,26 @@ class _Config:
         return os.environ['CC_TEST_API_BASE_URL']
 
     @property
+    def state_api_base_url(self):
+        return os.environ['CC_TEST_STATE_API_BASE_URL']
+
+    @property
+    def state_auth_url(self):
+        return os.environ['CC_TEST_STATE_AUTH_URL']
+
+    @property
+    def cognito_state_auth_user_pool_id(self):
+        return os.environ['CC_TEST_COGNITO_STATE_AUTH_USER_POOL_ID']
+
+    @property
+    def environment_name(self):
+        return os.environ['ENVIRONMENT_NAME']
+
+    @property
+    def aws_region(self):
+        return os.environ['AWS_DEFAULT_REGION']
+
+    @property
     def provider_user_dynamodb_table(self):
         return boto3.resource('dynamodb').Table(os.environ['CC_TEST_PROVIDER_DYNAMO_TABLE_NAME'])
 
@@ -31,6 +51,10 @@ class _Config:
     @property
     def compact_configuration_dynamodb_table(self):
         return boto3.resource('dynamodb').Table(os.environ['CC_TEST_COMPACT_CONFIGURATION_DYNAMO_TABLE_NAME'])
+
+    @property
+    def compact_configuration_table_name(self):
+        return os.environ['CC_TEST_COMPACT_CONFIGURATION_DYNAMO_TABLE_NAME']
 
     @property
     def cognito_staff_user_client_id(self):

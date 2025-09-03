@@ -4,6 +4,7 @@ import os
 
 from aws_cdk import Duration
 from aws_cdk.aws_apigateway import LambdaIntegration, MethodOptions, MethodResponse, Resource
+from aws_cdk.aws_dynamodb import ITable
 from aws_cdk.aws_iam import IRole
 from aws_cdk.aws_sqs import IQueue
 from common_constructs.cc_api import CCApi
@@ -34,16 +35,25 @@ class PostLicenses:
         self._add_post_license(
             method_options=method_options,
             license_preprocessing_queue=persistent_stack.ssn_table.preprocessor_queue.queue,
+            compact_configuration_table=persistent_stack.compact_configuration_table,
             license_upload_role=persistent_stack.ssn_table.license_upload_role,
+            rate_limiting_table=persistent_stack.rate_limiting_table,
         )
         self.api.log_groups.extend(self.log_groups)
 
     def _add_post_license(
-        self, method_options: MethodOptions, license_preprocessing_queue: IQueue, license_upload_role: IRole
+        self,
+        method_options: MethodOptions,
+        license_preprocessing_queue: IQueue,
+        license_upload_role: IRole,
+        compact_configuration_table: ITable,
+        rate_limiting_table: ITable,
     ):
         self.post_license_handler = self._post_licenses_handler(
             license_preprocessing_queue=license_preprocessing_queue,
+            compact_configuration_table=compact_configuration_table,
             license_upload_role=license_upload_role,
+            rate_limiting_table=rate_limiting_table,
         )
 
         # Normally, we have two layers of request body schema validation: one at the API gateway level,
@@ -63,7 +73,11 @@ class PostLicenses:
             request_validator=self.api.parameter_body_validator,
             method_responses=[
                 MethodResponse(
-                    status_code='200', response_models={'application/json': self.api.message_response_model}
+                    status_code='200', response_models={'application/json': self.api_model.message_response_model}
+                ),
+                MethodResponse(
+                    status_code='400',
+                    response_models={'application/json': self.api_model.post_licenses_error_response_model},
                 ),
             ],
             integration=LambdaIntegration(
@@ -76,7 +90,13 @@ class PostLicenses:
             authorization_scopes=method_options.authorization_scopes,
         )
 
-    def _post_licenses_handler(self, license_preprocessing_queue: IQueue, license_upload_role: IRole) -> PythonFunction:
+    def _post_licenses_handler(
+        self,
+        license_preprocessing_queue: IQueue,
+        license_upload_role: IRole,
+        compact_configuration_table: ITable,
+        rate_limiting_table: ITable,
+    ) -> PythonFunction:
         stack: Stack = Stack.of(self.resource)
         handler = PythonFunction(
             self.api,
@@ -88,6 +108,8 @@ class PostLicenses:
             role=license_upload_role,
             environment={
                 'LICENSE_PREPROCESSING_QUEUE_URL': license_preprocessing_queue.queue_url,
+                'COMPACT_CONFIGURATION_TABLE_NAME': compact_configuration_table.table_name,
+                'RATE_LIMITING_TABLE_NAME': rate_limiting_table.table_name,
                 **stack.common_env_vars,
             },
             alarm_topic=self.api.alarm_topic,
@@ -95,6 +117,8 @@ class PostLicenses:
 
         # Grant permissions to put messages on the preprocessing queue
         license_preprocessing_queue.grant_send_messages(handler)
+        compact_configuration_table.grant_read_data(handler)
+        rate_limiting_table.grant_read_write_data(handler)
 
         self.log_groups.append(handler.log_group)
         return handler

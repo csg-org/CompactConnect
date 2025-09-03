@@ -137,9 +137,17 @@
                 },
                 "updateType": {
                   "enum": [
-                    "renewal",
                     "deactivation",
-                    "other"
+                    "expiration",
+                    "issuance",
+                    "other",
+                    "renewal",
+                    "encumbrance",
+                    "homeJurisdictionChange",
+                    "registration",
+                    "lifting_encumbrance",
+                    "licenseDeactivation",
+                    "emailChange"
                   ],
                   "type": "string"
                 },
@@ -614,6 +622,9 @@
                   "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                   "type": "string"
                 },
+                "encumbranceType": {
+                  "type": "string"
+                },
                 "clinicalPrivilegeActionCategory": {
                   "type": "string"
                 },
@@ -633,6 +644,7 @@
                 "creationDate",
                 "adverseActionId",
                 "dateOfUpdate",
+                "encumbranceType",
                 "clinicalPrivilegeActionCategory"
               ],
               "type": "object"
@@ -771,9 +783,17 @@
                 },
                 "updateType": {
                   "enum": [
-                    "renewal",
                     "deactivation",
-                    "other"
+                    "expiration",
+                    "issuance",
+                    "other",
+                    "renewal",
+                    "encumbrance",
+                    "homeJurisdictionChange",
+                    "registration",
+                    "lifting_encumbrance",
+                    "licenseDeactivation",
+                    "emailChange"
                   ],
                   "type": "string"
                 },
@@ -1408,6 +1428,9 @@
                   "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                   "type": "string"
                 },
+                "encumbranceType": {
+                  "type": "string"
+                },
                 "clinicalPrivilegeActionCategory": {
                   "type": "string"
                 },
@@ -1427,6 +1450,7 @@
                 "creationDate",
                 "adverseActionId",
                 "dateOfUpdate",
+                "encumbranceType",
                 "clinicalPrivilegeActionCategory"
               ],
               "type": "object"
