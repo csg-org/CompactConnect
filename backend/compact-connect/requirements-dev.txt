@@ -90,11 +90,7 @@ requests==2.32.5
     #   pip-audit
 rich==14.1.0
     # via pip-audit
-<<<<<<< HEAD
 ruff==0.12.11
-=======
-ruff==0.12.10
->>>>>>> development
     # via -r compact-connect/requirements-dev.in
 six==1.17.0
     # via python-dateutil
