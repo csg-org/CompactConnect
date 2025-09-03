@@ -30,6 +30,7 @@ from cc_common.exceptions import (
     CCInvalidRequestException,
     CCNotFoundException,
     CCRateLimitingException,
+    CCUnauthorizedCustomResponseException,
     CCUnauthorizedException,
     CCUnsupportedMediaTypeException,
 )
@@ -98,19 +99,19 @@ def api_handler(fn: Callable):
     @metrics.log_metrics
     @logger.inject_lambda_context
     def caught_handler(event, context: LambdaContext):
+        event['headers'] = CaseInsensitiveDict(event.get('headers') or {})
         # We have to jump through extra hoops to handle the case where APIGW sets headers to null
-        headers = CaseInsensitiveDict(event.get('headers')) or {}
-        headers.pop('Authorization', None)
+        (event.get('headers') or {}).pop('Authorization', None)
         (event.get('multiValueHeaders') or {}).pop('Authorization', None)
 
         # Determine the appropriate CORS origin header value
-        origin = headers.get('Origin')
+        origin = event['headers'].get('Origin')
         if origin in config.allowed_origins:
             cors_origin = origin
         else:
             cors_origin = config.allowed_origins[0]
 
-        content_type = headers.get('Content-Type')
+        content_type = event['headers'].get('Content-Type')
 
         # Propagate these keys to all log messages in this with block
         with logger.append_context_keys(
@@ -133,6 +134,13 @@ def api_handler(fn: Callable):
                     'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
                     'statusCode': 200,
                     'body': json.dumps(fn(event, context), cls=ResponseEncoder),
+                }
+            except CCUnauthorizedCustomResponseException as e:
+                logger.info('Unauthorized request', exc_info=e)
+                return {
+                    'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
+                    'statusCode': 401,
+                    'body': json.dumps({'message': e.message}),
                 }
             except CCUnauthorizedException as e:
                 logger.info('Unauthorized request', exc_info=e)
