@@ -679,7 +679,7 @@ describe('Licensee model', () => {
                     status: LicenseStatus.ACTIVE,
                     licenseeId: 'test-provider-id',
                 }),
-                // Active non-home license (Priority 2)
+                // Active non-home license (Priority 3)
                 new License({
                     licenseNumber: 'ny-active',
                     issueState: new State({ abbrev: 'ny' }),
@@ -687,14 +687,22 @@ describe('Licensee model', () => {
                     status: LicenseStatus.ACTIVE,
                     licenseeId: 'test-provider-id',
                 }),
-                // Inactive non-home license (Priority 3)
+                // Inactive non-home license (Priority 4)
                 new License({
                     licenseNumber: 'ma-inactive',
                     issueState: new State({ abbrev: 'ma' }),
                     issueDate: '2025-01-03',
                     status: LicenseStatus.INACTIVE,
                     licenseeId: 'test-provider-id',
-                })
+                }),
+                // Inactive home license (Priority 2)
+                new License({
+                    licenseNumber: 'home-inactive',
+                    issueState: new State({ abbrev: 'co' }),
+                    issueDate: '2024-12-31',
+                    status: LicenseStatus.INACTIVE,
+                    licenseeId: 'test-provider-id',
+                }),
             ]
         });
 
@@ -703,12 +711,17 @@ describe('Licensee model', () => {
 
         expect(bestLicense.licenseNumber).to.equal('home-license');
 
-        // Remove home license, should return active non-home (Priority 2)
+        // Remove active home license, should return inactive home (Priority 2)
+        licensee.licenses = licensee.licenses.filter((license) => license.licenseNumber !== 'home-license');
+        bestLicense = licensee.bestLicense();
+        expect(bestLicense.licenseNumber).to.equal('home-inactive');
+
+        // Remove home license, should return active non-home (Priority 3)
         licensee.licenses = licensee.licenses.filter((license) => license.issueState?.abbrev !== 'co');
         bestLicense = licensee.bestLicense();
         expect(bestLicense.licenseNumber).to.equal('ny-active');
 
-        // Remove active non-home, should return inactive non-home (Priority 3)
+        // Remove active non-home, should return inactive non-home (Priority 4)
         licensee.licenses = licensee.licenses.filter((license) => license.status !== LicenseStatus.ACTIVE);
         bestLicense = licensee.bestLicense();
         expect(bestLicense.licenseNumber).to.equal('ma-inactive');
@@ -926,6 +939,52 @@ describe('Licensee model', () => {
 
         expect(bestHomeLicense.licenseNumber).to.equal('co-same-date-2');
 
+        // Scenario 3b: Same issue date, but active vs inactive (active should win)
+        const licenseeWithSameDateActiveInactive = new Licensee({
+            homeJurisdiction: new State({ abbrev: 'co' }),
+            licenses: [
+                new License({
+                    licenseNumber: 'co-inactive-same-date',
+                    issueState: new State({ abbrev: 'co' }),
+                    issueDate: '2025-01-02',
+                    status: LicenseStatus.INACTIVE,
+                }),
+                new License({
+                    licenseNumber: 'co-active-same-date',
+                    issueState: new State({ abbrev: 'co' }),
+                    issueDate: '2025-01-01', // Same date as inactive
+                    status: LicenseStatus.ACTIVE,
+                })
+            ]
+        });
+
+        bestHomeLicense = licenseeWithSameDateActiveInactive.bestHomeJurisdictionLicense();
+
+        expect(bestHomeLicense.licenseNumber).to.equal('co-active-same-date');
+
+        // Scenario 3c: Same issue date, active vs inactive in reverse order (active should still win)
+        const licenseeWithSameDateActiveInactiveReverse = new Licensee({
+            homeJurisdiction: new State({ abbrev: 'co' }),
+            licenses: [
+                new License({
+                    licenseNumber: 'co-active-first',
+                    issueState: new State({ abbrev: 'co' }),
+                    issueDate: '2025-01-01',
+                    status: LicenseStatus.ACTIVE,
+                }),
+                new License({
+                    licenseNumber: 'co-inactive-second',
+                    issueState: new State({ abbrev: 'co' }),
+                    issueDate: '2025-01-02', // Same date as active
+                    status: LicenseStatus.INACTIVE,
+                })
+            ]
+        });
+
+        bestHomeLicense = licenseeWithSameDateActiveInactiveReverse.bestHomeJurisdictionLicense();
+
+        expect(bestHomeLicense.licenseNumber).to.equal('co-active-first');
+
         // Scenario 4: Home jurisdiction is undefined
         const licenseeWithUndefinedHome = new Licensee({
             homeJurisdiction: undefined,
@@ -943,7 +1002,7 @@ describe('Licensee model', () => {
 
         expect(bestHomeLicense.licenseNumber).to.equal(null);
     });
-    it('should return home hurisdiction', () => {
+    it('should return home jurisdiction', () => {
         const licenseeWithFilteringTest = new Licensee({
             homeJurisdiction: new State({ abbrev: 'co' }),
             licenses: [
