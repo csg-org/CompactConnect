@@ -1577,7 +1577,8 @@ export const mockPrivilegeHistoryResponses = [
                 updateType: 'deactivation',
                 dateOfUpdate: '2025-07-29T23:10:15+00:00',
                 effectiveDate: '2025-07-29T17:04:38+00:00',
-                createDate: '2025-07-29T23:10:15+00:00'
+                createDate: '2025-07-29T23:10:15+00:00',
+                note: 'Bought wrong state'
             },
             {
                 type: 'privilegeUpdate',
