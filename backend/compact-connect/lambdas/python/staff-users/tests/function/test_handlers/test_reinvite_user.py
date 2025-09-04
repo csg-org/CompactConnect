@@ -14,6 +14,8 @@ class TestReinviteUser(TstFunction):
             event = json.load(f)
 
         # The user has admin permission for all of aslp
+        caller_id = self._when_testing_with_valid_caller()
+        event['requestContext']['authorizer']['claims']['sub'] = caller_id
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin'
         event['pathParameters'] = {'compact': 'aslp', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = None
@@ -29,6 +31,8 @@ class TestReinviteUser(TstFunction):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
+        caller_id = self._when_testing_with_valid_caller()
+        event['requestContext']['authorizer']['claims']['sub'] = caller_id
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/aslp.admin'
         event['pathParameters'] = {'compact': 'aslp', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = None
@@ -47,7 +51,9 @@ class TestReinviteUser(TstFunction):
             event = json.load(f)
 
         # The user has admin permission for all of aslp
+        caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin'
+        event['requestContext']['authorizer']['claims']['sub'] = caller_id
         event['pathParameters'] = {'compact': 'aslp', 'userId': user_id}
         event['body'] = None
 
@@ -67,6 +73,8 @@ class TestReinviteUser(TstFunction):
             event = json.load(f)
 
         # The user has admin permission for aslp/oh
+        caller_id = self._when_testing_with_valid_caller()
+        event['requestContext']['authorizer']['claims']['sub'] = caller_id
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/aslp.admin'
         event['pathParameters'] = {'compact': 'aslp', 'userId': user_id}
         event['body'] = None
@@ -87,6 +95,8 @@ class TestReinviteUser(TstFunction):
             event = json.load(f)
 
         # The user has admin permission for aslp/ne, user does not have aslp/oh permissions
+        caller_id = self._when_testing_with_valid_caller()
+        event['requestContext']['authorizer']['claims']['sub'] = caller_id
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email ne/aslp.admin'
         event['pathParameters'] = {'compact': 'aslp', 'userId': user_id}
         event['body'] = None

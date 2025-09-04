@@ -205,13 +205,15 @@ class UserPool(CdkUserPool):
                 flows=OAuthFlows(authorization_code_grant=True, implicit_code_grant=False),
                 scopes=ui_scopes,
             ),
-            access_token_validity=Duration.minutes(60),
+            access_token_validity=Duration.minutes(5),
+            id_token_validity=Duration.minutes(5),
             auth_session_validity=Duration.minutes(15),
             enable_token_revocation=True,
             generate_secret=False,
             refresh_token_validity=Duration.days(30),
             write_attributes=write_attributes,
             read_attributes=read_attributes,
+            prevent_user_existence_errors=True,
         )
 
     def _add_risk_configuration(self, security_profile: SecurityProfile):

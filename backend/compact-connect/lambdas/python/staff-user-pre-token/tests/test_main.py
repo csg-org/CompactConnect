@@ -42,6 +42,41 @@ class TestCustomizeScopes(TstLambdas):
         record = self._table.get_item(Key={'pk': f'USER#{sub}', 'sk': 'COMPACT#aslp'})
         self.assertEqual(StaffUserStatus.ACTIVE.value, record['Item']['status'])
 
+    def test_should_suppress_cognito_admin_scope(self):
+        """
+        Ensure that no access token can be generated with the 'aws.cognito.signin.user.admin' scope. Which
+        Would allow them to change their email address directly through the Cognito API.
+        """
+        from cc_common.data_model.schema.common import StaffUserStatus
+        from main import customize_scopes
+
+        with open('tests/resources/pre-token-event.json') as f:
+            event = json.load(f)
+        sub = event['request']['userAttributes']['sub']
+
+        # Create a DB record for this user's permissions
+        self._table.put_item(
+            Item={
+                'pk': f'USER#{sub}',
+                'sk': 'COMPACT#aslp',
+                'compact': 'aslp',
+                'status': StaffUserStatus.INACTIVE.value,
+                'permissions': {
+                    'jurisdictions': {
+                        # should correspond to the 'al/aslp.write' scope
+                        'al': {'write'}
+                    },
+                },
+            }
+        )
+
+        resp = customize_scopes(event, self.mock_context)
+
+        self.assertEqual(
+            sorted(['aws.cognito.signin.user.admin']),
+            sorted(resp['response']['claimsAndScopeOverrideDetails']['accessTokenGeneration']['scopesToSuppress']),
+        )
+
     def test_multiple_compact(self):
         from cc_common.data_model.schema.common import StaffUserStatus
         from main import customize_scopes

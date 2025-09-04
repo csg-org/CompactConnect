@@ -30,7 +30,7 @@ def customize_scopes(event: dict, context: LambdaContext):  # noqa: ARG001 unuse
         user_data = UserData(sub)
         logger.debug('Adding scopes', scopes=user_data.scopes)
 
-        # Get all of the user's records and set their status to active
+        # Get all the user's records and set their status to active
         for record in user_data.records:
             # Only update the status if it's not already active
             if record['status'] != StaffUserStatus.ACTIVE.value:
@@ -48,7 +48,12 @@ def customize_scopes(event: dict, context: LambdaContext):  # noqa: ARG001 unuse
         return event
 
     event['response']['claimsAndScopeOverrideDetails'] = {
-        'accessTokenGeneration': {'scopesToAdd': list(user_data.scopes)}
+        'accessTokenGeneration': {
+            'scopesToAdd': list(user_data.scopes),
+            # we explicitly suppress the cognito admin scope,
+            # so they cannot change their email directly with the Cognito API
+            'scopesToSuppress': ['aws.cognito.signin.user.admin'],
+        }
     }
 
     return event

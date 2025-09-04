@@ -63,6 +63,24 @@ class ProviderRecordUtility:
     privilege_previous_update_schema = PrivilegeUpdatePreviousGeneralResponseSchema()
 
     @staticmethod
+    def sanitize_provider_account_profile_fields_from_response(provider_response: dict) -> dict:
+        """
+        Remove sensitive profile related fields from a provider response.
+
+        These fields are only present if the provider has requested an email change or account recovery.
+        They should not be present in the provider response for any endpoint.
+
+        :param provider_response: The provider response to sanitize
+        :return: The provider response with sensitive profile related fields removed
+        """
+        provider_response.pop('emailVerificationExpiry', None)
+        provider_response.pop('emailVerificationCode', None)
+        provider_response.pop('pendingEmailAddress', None)
+        provider_response.pop('recoveryToken', None)
+        provider_response.pop('recoveryExpiry', None)
+        return provider_response
+
+    @staticmethod
     def get_records_of_type(
         provider_records: Iterable[dict],
         record_type: ProviderRecordType,
@@ -763,5 +781,7 @@ class ProviderUserRecords:
         provider['licenses'] = licenses
         provider['privileges'] = privileges
         provider['militaryAffiliations'] = military_affiliations
+
+        ProviderRecordUtility.sanitize_provider_account_profile_fields_from_response(provider)
 
         return provider
