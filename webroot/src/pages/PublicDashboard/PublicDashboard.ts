@@ -55,7 +55,7 @@ export default class DashboardPublic extends Vue {
 
     get hostedLoginUriStaff(): string {
         const { domain, cognitoAuthDomainStaff, cognitoClientIdStaff } = this.$envConfig;
-        const loginScopes = 'email openid phone profile aws.cognito.signin.user.admin';
+        const loginScopes = 'email openid profile';
         const loginResponseType = 'code';
         const loginRedirectPath = '/auth/callback';
         const loginUriQuery = [
@@ -73,7 +73,7 @@ export default class DashboardPublic extends Vue {
 
     get hostedLoginUriLicensee(): string {
         const { domain, cognitoAuthDomainLicensee, cognitoClientIdLicensee } = this.$envConfig;
-        const loginScopes = 'email openid phone profile aws.cognito.signin.user.admin';
+        const loginScopes = 'email openid profile';
         const loginResponseType = 'code';
         const loginRedirectPath = '/auth/callback';
         const loginUriQuery = [
