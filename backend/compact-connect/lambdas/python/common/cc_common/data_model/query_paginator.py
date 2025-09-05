@@ -22,12 +22,13 @@ class paginated_query:  # noqa: N801 invalid-name
         'lastKey': <encoded pagination key>
     }
 
-    IMPORTANT: When a FilterExpression is used over a large partition space, DynamoDB can return fewer items than is specified as
-    the pageSize. To ensure that we always return the full pageSize, this decorator will repeat queries as needed until it has a full page of
-    items to return. In order to reduce the number of queries made when using filter expressions, you should set the 
-    set_query_limit_to_match_page_size flag to False. This will not set the Limit parameter on the query, so DynamoDB will evaluate as many 
-    items as it can within a single query, returning all evaluated items that match the filter expression. The decorator will handle truncating
-    the items to fit within the pageSize, and will also handle calculating the lastKey for the next page of results.
+    IMPORTANT: When a FilterExpression is used over a large partition space, DynamoDB can return fewer items than is
+    specified as the pageSize. To ensure that we always return the full pageSize, this decorator will repeat queries as
+    needed until it has a full page of items to return. In order to reduce the number of queries made when using filter
+    expressions, you should set the set_query_limit_to_match_page_size flag to False. This will not set the Limit
+    parameter on the query, so DynamoDB will evaluate as many items as it can within a single query, returning all
+    evaluated items that match the filter expression. The decorator will handle truncating the items to fit within the
+    pageSize, and will also handle calculating the lastKey for the next page of results.
     """
 
     def __init__(self, set_query_limit_to_match_page_size: bool = True):
