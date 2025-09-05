@@ -24,6 +24,7 @@ ALL_ATTESTATION_IDS = [
     'provision-of-true-information-attestation',
     'not-under-investigation-attestation',
     'military-affiliation-confirmation-attestation',
+    'military-personal-information-state-license-attestation',
     'under-investigation-attestation',
 ]
 
@@ -37,17 +38,28 @@ MOCK_DATA_DESCRIPTOR = 'COMMON.ACCEPT.INAPP.PAYMENT'
 MOCK_DATA_VALUE = 'eyJjbMockDataValue'
 
 
-def generate_default_attestation_list():
-    return [
+def generate_default_attestation_list(active_military: bool = False):
+    attestation_list = [
         {'attestationId': 'jurisprudence-confirmation', 'version': '1'},
         {'attestationId': 'scope-of-practice-attestation', 'version': '1'},
-        {'attestationId': 'personal-information-home-state-attestation', 'version': '1'},
         {'attestationId': 'personal-information-address-attestation', 'version': '1'},
         {'attestationId': 'discipline-no-current-encumbrance-attestation', 'version': '1'},
         {'attestationId': 'discipline-no-prior-encumbrance-attestation', 'version': '1'},
         {'attestationId': 'provision-of-true-information-attestation', 'version': '1'},
         {'attestationId': 'not-under-investigation-attestation', 'version': '1'},
     ]
+
+    if active_military:
+        attestation_list.extend(
+            [
+                {'attestationId': 'military-affiliation-confirmation-attestation', 'version': '1'},
+                {'attestationId': 'military-personal-information-state-license-attestation', 'version': '1'},
+            ]
+        )
+    else:
+        attestation_list.extend([{'attestationId': 'personal-information-home-state-attestation', 'version': '1'}])
+
+    return attestation_list
 
 
 def _generate_test_request_body(
@@ -299,10 +311,8 @@ class TestPostPurchasePrivileges(TstFunction):
         )
         event = self._when_testing_provider_user_event_with_custom_claims()
         self._load_military_affiliation_record_data(status=military_affiliation_status)
-        attestations = generate_default_attestation_list()
-        # add the military affiliation attestation if active
-        if military_affiliation_status == 'active':
-            attestations.append({'attestationId': 'military-affiliation-confirmation-attestation', 'version': '1'})
+        attestations = generate_default_attestation_list(active_military=military_affiliation_status == 'active')
+
         event['body'] = _generate_test_request_body(attestations=attestations)
 
         resp = post_purchase_privileges(event, self.mock_context)
@@ -947,9 +957,19 @@ class TestPostPurchasePrivileges(TstFunction):
 
         # Add military attestation and verify it works
         event_body = json.loads(event['body'])
-        event_body['attestations'].append(
-            {'attestationId': 'military-affiliation-confirmation-attestation', 'version': '1'}
+        event_body['attestations'].extend(
+            [
+                {'attestationId': 'military-affiliation-confirmation-attestation', 'version': '1'},
+                {'attestationId': 'military-personal-information-state-license-attestation', 'version': '1'},
+            ]
         )
+        # remove the personal information home state attestation which is not included for military users
+        attestation_index_to_remove = next(
+            index
+            for index, attestation in enumerate(event_body['attestations'])
+            if attestation['attestationId'] == 'personal-information-home-state-attestation'
+        )
+        event_body['attestations'].pop(attestation_index_to_remove)
         event['body'] = json.dumps(event_body)
 
         resp = post_purchase_privileges(event, self.mock_context)
