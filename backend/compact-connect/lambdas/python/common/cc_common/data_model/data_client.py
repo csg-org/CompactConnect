@@ -141,7 +141,7 @@ class DataClient:
 
         return LicenseData.from_database_record(matching_records[0]) if matching_records else None
 
-    @paginated_query
+    @paginated_query(set_query_limit_to_match_page_size=True)
     @logger_inject_kwargs(logger, 'compact', 'provider_id')
     def get_provider(
         self,
@@ -203,7 +203,7 @@ class DataClient:
 
         return ProviderUserRecords(resp['Items'])
 
-    @paginated_query
+    @paginated_query(set_query_limit_to_match_page_size=False)
     @logger_inject_kwargs(logger, 'compact', 'provider_name', 'jurisdiction')
     def get_providers_sorted_by_family_name(
         self,
@@ -257,7 +257,7 @@ class DataClient:
             **dynamo_pagination,
         )
 
-    @paginated_query
+    @paginated_query(set_query_limit_to_match_page_size=False)
     @logger_inject_kwargs(logger, 'compact', 'jurisdiction')
     def get_providers_sorted_by_updated(
         self,

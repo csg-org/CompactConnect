@@ -42,7 +42,7 @@ class UserClient:
         self.user_attributes_schema = UserAttributesRecordSchema()
         self.compact_permissions_schema = CompactPermissionsRecordSchema()
 
-    @paginated_query
+    @paginated_query(set_query_limit_to_match_page_size=True)
     def get_user(self, *, user_id: str, dynamo_pagination: dict, scan_forward: bool = True) -> list[dict]:
         resp = self.config.users_table.query(
             KeyConditionExpression=Key('pk').eq(f'USER#{user_id}'),
@@ -60,7 +60,7 @@ class UserClient:
             raise CCNotFoundException('User not found')
         return self.schema.load(user)
 
-    @paginated_query
+    @paginated_query(set_query_limit_to_match_page_size=True)
     def get_users_sorted_by_family_name(
         self,
         *,
