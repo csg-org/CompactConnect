@@ -152,8 +152,7 @@ def get_user_input():
             print(f'Error: {e}')
 
     # Get additional scopes (optional)
-    print('\nThe following scopes will be automatically included:')
-    print(f'  - {compact}/readGeneral')
+    print('\nThe following scope will be automatically included:')
     print(f'  - {state}/{compact}.write')
 
     additional_scopes = []
@@ -167,7 +166,7 @@ def get_user_input():
             continue
 
     # Generate final scope list
-    scopes = [f'{compact}/readGeneral', f'{state}/{compact}.write']
+    scopes = [f'{state}/{compact}.write']
     scopes.extend(additional_scopes)
 
     # Remove duplicates

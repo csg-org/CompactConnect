@@ -6,6 +6,7 @@ from aws_cdk.aws_s3 import (
     BucketEncryption,
     IntelligentTieringConfiguration,
     LifecycleRule,
+    ObjectLockRetention,
     ObjectOwnership,
     StorageClass,
     Transition,
@@ -18,6 +19,8 @@ from constructs import Construct
 class AccessLogsBucket(CdkBucket):
     def __init__(self, scope: Construct, construct_id: str, **kwargs):
         stack = Stack.of(scope)
+        removal_policy = kwargs.get('removal_policy')
+        retain_logs = removal_policy == RemovalPolicy.RETAIN
 
         super().__init__(
             scope,
@@ -28,6 +31,8 @@ class AccessLogsBucket(CdkBucket):
             object_ownership=ObjectOwnership.BUCKET_OWNER_PREFERRED,
             access_control=BucketAccessControl.LOG_DELIVERY_WRITE,
             versioned=True,
+            object_lock_enabled=retain_logs,
+            object_lock_default_retention=ObjectLockRetention.compliance(Duration.days(90)) if retain_logs else None,
             intelligent_tiering_configurations=[
                 IntelligentTieringConfiguration(name='ArchiveAfter6Mo', archive_access_tier_time=Duration.days(180)),
             ],
@@ -47,7 +52,7 @@ class AccessLogsBucket(CdkBucket):
 
         if (
             auto_delete_provider is not None
-            and kwargs.get('removal_policy') == RemovalPolicy.DESTROY
+            and removal_policy == RemovalPolicy.DESTROY
             and kwargs.get('auto_delete_objects', False)
         ):
             # Except for the auto delete provider role

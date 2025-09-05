@@ -57,6 +57,9 @@ class TestBackupInfrastructureStack(TstAppABC, TestCase):
             {
                 'BackupVaultName': f'CompactConnect-{environment_name}-BackupVault',
                 'EncryptionKeyArn': Match.any_value(),
+                'LockConfiguration': {
+                    'MinRetentionDays': 180,
+                },
             },
         )
 
@@ -68,6 +71,9 @@ class TestBackupInfrastructureStack(TstAppABC, TestCase):
             {
                 'BackupVaultName': f'CompactConnect-{environment_name}-SSNBackupVault',
                 'EncryptionKeyArn': Match.any_value(),
+                'LockConfiguration': {
+                    'MinRetentionDays': 180,
+                },
             },
         )
 

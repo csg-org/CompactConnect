@@ -64,6 +64,7 @@ jurisdiction.
 
 **Use the provided Python script in the bin directory for streamlined app client creation:**
 
+
 ```bash
 python3 bin/create_app_client.py -e <environment> -u <user_pool_id>
 ```
