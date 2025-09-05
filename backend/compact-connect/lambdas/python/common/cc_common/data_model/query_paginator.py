@@ -19,7 +19,11 @@ class paginated_query:  # noqa: N801 invalid-name
 
     {
         'items': response['Items'],
-        'lastKey': <encoded pagination key>
+        'pagination': {
+            'pageSize': <page size>,
+            'prevLastKey': <encoded pagination key if available>,
+            'lastKey': <encoded pagination key if available>
+        }
     }
 
     IMPORTANT: When a FilterExpression is used over a large partition space, DynamoDB can return fewer items than is
