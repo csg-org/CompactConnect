@@ -38,7 +38,7 @@ REQUIRED_ATTESTATION_IDS = [
     'provision-of-true-information-attestation',
 ]
 
-# List of attestations that are required is practitioner is not active military
+# List of attestations that are required if practitioner is not active military
 NON_MILITARY_ATTESTATION_IDS = ['personal-information-home-state-attestation']
 
 # Attestations where exactly one must be provided
