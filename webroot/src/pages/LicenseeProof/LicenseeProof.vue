@@ -105,7 +105,10 @@
                 </div>
             </div>
         </div>
-        <div class="print-footer">{{ $t('licensing.privilegeProofFooter') }}</div>
+        <div
+            class="print-footer"
+            v-html="$t('licensing.privilegeProofFooter')"
+        />
     </div>
 </template>
 
