@@ -220,6 +220,7 @@ class PublicLookupApi:
         )
         persistent_stack.shared_encryption_key.grant_decrypt(self.query_providers_handler)
         persistent_stack.provider_table.grant_read_data(self.query_providers_handler)
+        persistent_stack.compact_configuration_table.grant_read_data(self.query_providers_handler)
 
         NagSuppressions.add_resource_suppressions_by_path(
             Stack.of(self.query_providers_handler.role),
