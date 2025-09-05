@@ -152,22 +152,16 @@ export default class LicensingDetail extends Vue {
     }
 
     get addressLine1(): string {
-        return this.licensee?.bestHomeJurisdictionLicenseMailingAddress()?.street1
-        || this.licensee?.homeJurisdictionLicenseAddress?.street1
-        || '';
+        return this.licensee?.bestLicenseMailingAddress()?.street1 || '';
     }
 
     get addressLine2(): string {
-        return this.licensee?.bestHomeJurisdictionLicenseMailingAddress()?.street2
-        || this.licensee?.homeJurisdictionLicenseAddress?.street2
-        || '';
+        return this.licensee?.bestLicenseMailingAddress()?.street2 || '';
     }
 
     get addressLine3(): string {
-        const homeJurisdictionLicenseAddress = this.licensee?.bestHomeJurisdictionLicenseMailingAddress()
-        || this.licensee?.homeJurisdictionLicenseAddress
-        || {};
-        const { city = '', state = null, zip = '' } = homeJurisdictionLicenseAddress;
+        const bestLicenseAddress = this.licensee?.bestLicenseMailingAddress() || {};
+        const { city = '', state = null, zip = '' } = bestLicenseAddress;
         const stateAbbrev = state?.abbrev?.toUpperCase();
         const delim = (city && stateAbbrev) ? ', ' : '';
 

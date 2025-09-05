@@ -241,7 +241,7 @@ export class LicenseDataApi implements DataApiInterface {
 
     /**
      * GET Attestations by ID for a compact.
-     * @param  {string}           compact       The compact string ID (aslp, otcp, coun).
+     * @param  {string}           compact       The compact string ID (aslp, octp, coun).
      * @param  {string}           attestationId The attestationId (from /backend/compact-connect/compact-config/*.yml).
      * @return {Promise<object>}                A PrivilegeAttestation model instance.
      */
@@ -254,7 +254,7 @@ export class LicenseDataApi implements DataApiInterface {
 
     /**
      * POST Encumber License for a licensee.
-     * @param  {string}           compact         The compact string ID (aslp, otcp, coun).
+     * @param  {string}           compact         The compact string ID (aslp, octp, coun).
      * @param  {string}           licenseeId      The Licensee ID.
      * @param  {string}           licenseState    The 2-character state abbreviation for the License.
      * @param  {string}           licenseType     The license type.
@@ -283,7 +283,7 @@ export class LicenseDataApi implements DataApiInterface {
 
     /**
      * PATCH Un-encumber License for a licensee.
-     * @param  {string}           compact       The compact string ID (aslp, otcp, coun).
+     * @param  {string}           compact       The compact string ID (aslp, octp, coun).
      * @param  {string}           licenseeId    The Licensee ID.
      * @param  {string}           licenseState  The 2-character state abbreviation for the License.
      * @param  {string}           licenseType   The license type.
@@ -308,7 +308,7 @@ export class LicenseDataApi implements DataApiInterface {
 
     /**
      * DELETE Privilege for a licensee.
-     * @param  {string}           compact        The compact string ID (aslp, otcp, coun).
+     * @param  {string}           compact        The compact string ID (aslp, octp, coun).
      * @param  {string}           licenseeId     The Licensee ID.
      * @param  {string}           privilegeState The 2-character state abbreviation for the Privilege.
      * @param  {string}           licenseType    The license type.
@@ -331,7 +331,7 @@ export class LicenseDataApi implements DataApiInterface {
 
     /**
      * POST Encumber Privilege for a licensee.
-     * @param  {string}           compact         The compact string ID (aslp, otcp, coun).
+     * @param  {string}           compact         The compact string ID (aslp, octp, coun).
      * @param  {string}           licenseeId      The Licensee ID.
      * @param  {string}           privilegeState  The 2-character state abbreviation for the Privilege.
      * @param  {string}           licenseType     The license type.
@@ -360,7 +360,7 @@ export class LicenseDataApi implements DataApiInterface {
 
     /**
      * PATCH Un-encumber Privilege for a licensee.
-     * @param  {string}           compact        The compact string ID (aslp, otcp, coun).
+     * @param  {string}           compact        The compact string ID (aslp, octp, coun).
      * @param  {string}           licenseeId     The Licensee ID.
      * @param  {string}           privilegeState The 2-character state abbreviation for the Privilege.
      * @param  {string}           licenseType    The license type.
