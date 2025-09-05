@@ -316,5 +316,9 @@ class _Config:
         """
         return os.environ['API_BASE_URL']
 
+    @property
+    def signature_max_clock_skew_seconds(self):
+        return 60
+
 
 config = _Config()

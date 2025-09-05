@@ -23,6 +23,7 @@ from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
 from common_constructs.cc_api import CCApi
 from common_constructs.python_function import PythonFunction
+from common_constructs.user_pool import UserPool
 
 from stacks import persistent_stack as ps
 
@@ -411,6 +412,7 @@ class StaffUsers:
             env_vars=env_vars,
             data_encryption_key=persistent_stack.shared_encryption_key,
             user_table=persistent_stack.staff_users.user_table,
+            staff_user_pool=persistent_stack.staff_users,
         )
 
         # Add the method to the resource
@@ -439,7 +441,9 @@ class StaffUsers:
         # Add the function's log group to the list for retention setting
         self.log_groups.append(self.delete_user_handler.log_group)
 
-    def _delete_user_handler(self, env_vars: dict, data_encryption_key: IKey, user_table: ITable):
+    def _delete_user_handler(
+        self, env_vars: dict, data_encryption_key: IKey, user_table: ITable, staff_user_pool: UserPool
+    ):
         handler = PythonFunction(
             self.stack,
             'DeleteStaffUserFunction',
@@ -452,6 +456,7 @@ class StaffUsers:
         # Grant permissions to the function
         data_encryption_key.grant_encrypt_decrypt(handler)
         user_table.grant_read_write_data(handler)
+        staff_user_pool.grant(handler, 'cognito-idp:AdminDisableUser')
 
         NagSuppressions.add_resource_suppressions_by_path(
             self.stack,
@@ -597,6 +602,8 @@ class StaffUsers:
             'cognito-idp:AdminDisableUser',
             'cognito-idp:AdminEnableUser',
             'cognito-idp:AdminGetUser',
+            'cognito-idp:AdminResetUserPassword',
+            'cognito-idp:AdminSetUserPassword',
         )
 
         self.log_groups.append(handler.log_group)

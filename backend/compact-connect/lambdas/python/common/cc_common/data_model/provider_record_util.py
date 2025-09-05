@@ -1,6 +1,7 @@
 from collections.abc import Callable, Iterable
 from datetime import (
     UTC,
+    date,
     datetime,
     timedelta,
 )
@@ -60,6 +61,24 @@ class ProviderRecordUtility:
 
     license_previous_update_schema = LicenseUpdatePreviousResponseSchema()
     privilege_previous_update_schema = PrivilegeUpdatePreviousGeneralResponseSchema()
+
+    @staticmethod
+    def sanitize_provider_account_profile_fields_from_response(provider_response: dict) -> dict:
+        """
+        Remove sensitive profile related fields from a provider response.
+
+        These fields are only present if the provider has requested an email change or account recovery.
+        They should not be present in the provider response for any endpoint.
+
+        :param provider_response: The provider response to sanitize
+        :return: The provider response with sensitive profile related fields removed
+        """
+        provider_response.pop('emailVerificationExpiry', None)
+        provider_response.pop('emailVerificationCode', None)
+        provider_response.pop('pendingEmailAddress', None)
+        provider_response.pop('recoveryToken', None)
+        provider_response.pop('recoveryExpiry', None)
+        return provider_response
 
     @staticmethod
     def get_records_of_type(
@@ -269,7 +288,7 @@ class ProviderRecordUtility:
                 'compact': privilege['compact'],
                 'jurisdiction': privilege['jurisdiction'],
                 'licenseType': privilege['licenseType'],
-                'effectiveDate': privilege['dateOfIssuance'].date(),
+                'effectiveDate': privilege['dateOfIssuance'],
                 'createDate': privilege['dateOfIssuance'],
                 'previous': {},
                 'updatedValues': {},
@@ -292,6 +311,14 @@ class ProviderRecordUtility:
                 update['effectiveDate'], datetime.min.time(), tzinfo=config.expiration_resolution_timezone
             )
             if datetime_of_expiration_trigger <= effective_date_time:
+                # We have assigned the maximum time in the day at UTC-4:00 because the expiration event happens at the
+                # first second of the date of expiration's passing. However, we want the expiration events to display as
+                # occurring on their expiration date and also have any events that occurred during that day come before
+                # the expiration chronologically. Putting the datetime of expiration as the max time in the day on the
+                # date of expiration best achieves those goals
+                effective_datetime_of_expiration = datetime.combine(
+                    date_of_expiration, datetime.max.time(), tzinfo=config.expiration_resolution_timezone
+                )
                 enriched_history.append(
                     {
                         'type': 'privilegeUpdate',
@@ -300,7 +327,7 @@ class ProviderRecordUtility:
                         'compact': privilege['compact'],
                         'jurisdiction': privilege['jurisdiction'],
                         'licenseType': privilege['licenseType'],
-                        'effectiveDate': date_of_expiration,
+                        'effectiveDate': effective_datetime_of_expiration.astimezone(UTC),
                         'createDate': datetime_of_expiration_trigger.astimezone(UTC),
                         'previous': {},
                         'updatedValues': {},
@@ -316,6 +343,14 @@ class ProviderRecordUtility:
         )
 
         if privilege_datetime_of_expiration_trigger <= now.astimezone(config.expiration_resolution_timezone):
+            # We have assigned the maximum time in the day at UTC-4:00 because the expiration event happens at the
+            # first second of the date of expiration's passing. However, we want the expiration events to display as
+            # occurring on their expiration date and also have any events that occurred during that day come before
+            # the expiration chronologically. Putting the datetime of expiration as the max time in the day on the
+            # date of expiration best achieves those goals
+            effective_datetime_of_expiration = datetime.combine(
+                privilege_date_of_expiration, datetime.max.time(), tzinfo=config.expiration_resolution_timezone
+            )
             enriched_history.append(
                 {
                     'type': 'privilegeUpdate',
@@ -324,7 +359,7 @@ class ProviderRecordUtility:
                     'compact': privilege['compact'],
                     'jurisdiction': privilege['jurisdiction'],
                     'licenseType': privilege['licenseType'],
-                    'effectiveDate': privilege_date_of_expiration,
+                    'effectiveDate': effective_datetime_of_expiration.astimezone(UTC),
                     'createDate': privilege_datetime_of_expiration_trigger.astimezone(UTC),
                     'previous': {},
                     'updatedValues': {},
@@ -422,6 +457,23 @@ class ProviderUserRecords:
             None,
         )
 
+    def get_specific_privilege_record(self, jurisdiction: str, license_abbreviation: str) -> PrivilegeData | None:
+        """
+        Get a specific privilege record from a list of provider records.
+
+        :param jurisdiction: The jurisdiction of the license.
+        :param license_abbreviation: The abbreviation of the license type.
+        :return: The license record if found, else None.
+        """
+        return next(
+            (
+                record
+                for record in self._privilege_records
+                if record.jurisdiction == jurisdiction and record.licenseTypeAbbreviation == license_abbreviation
+            ),
+            None,
+        )
+
     def get_privilege_records(
         self,
         filter_condition: Callable[[PrivilegeData], bool] | None = None,
@@ -465,6 +517,56 @@ class ProviderUserRecords:
             and record.licenseTypeAbbreviation == license_type_abbreviation
             and (filter_condition is None or filter_condition(record))
         ]
+
+    def _get_latest_effective_lift_date_for_adverse_actions(
+        self, adverse_actions: list[AdverseActionData]
+    ) -> date | None:
+        if not adverse_actions:
+            logger.info('No adverse actions found. Returning None')
+            return None
+
+        # Find the latest effective lift date among all lifted adverse actions
+        latest_effective_lift_date = None
+        for adverse_action in adverse_actions:
+            if adverse_action.effectiveLiftDate is None:
+                logger.info('found adverse action without effective lift date. Returning None')
+                return None
+            if latest_effective_lift_date is None or adverse_action.effectiveLiftDate > latest_effective_lift_date:
+                latest_effective_lift_date = adverse_action.effectiveLiftDate
+
+        return latest_effective_lift_date
+
+    def get_latest_effective_lift_date_for_license_adverse_actions(
+        self, license_jurisdiction: str, license_type_abbreviation: str
+    ) -> date | None:
+        """
+        Get the latest effective lift date for a license if all adverse actions have been lifted.
+
+        If any of the adverse actions have not been lifted, or there are no adverse actions, None is returned.
+        """
+        # Get all adverse action records for this license to determine the correct effective date
+        # for privilege lifting (should be the maximum effective lift date among all lifted encumbrances)
+        license_adverse_actions = self.get_adverse_action_records_for_license(
+            license_jurisdiction=license_jurisdiction,
+            license_type_abbreviation=license_type_abbreviation,
+        )
+        return self._get_latest_effective_lift_date_for_adverse_actions(license_adverse_actions)
+
+    def get_latest_effective_lift_date_for_privilege_adverse_actions(
+        self, privilege_jurisdiction: str, license_type_abbreviation: str
+    ) -> date | None:
+        """
+        Get the latest effective lift date for a privilege if all adverse actions have been lifted.
+
+        If any of the adverse actions have not been lifted, or there are no adverse actions, None is returned.
+        """
+        # Get all adverse action records for this privilege to determine the correct effective date
+        # for privilege lifting (should be the maximum effective lift date among all lifted encumbrances)
+        privilege_adverse_actions = self.get_adverse_action_records_for_privilege(
+            privilege_jurisdiction=privilege_jurisdiction,
+            privilege_license_type_abbreviation=license_type_abbreviation,
+        )
+        return self._get_latest_effective_lift_date_for_adverse_actions(privilege_adverse_actions)
 
     def get_adverse_action_records_for_privilege(
         self,
@@ -679,5 +781,7 @@ class ProviderUserRecords:
         provider['licenses'] = licenses
         provider['privileges'] = privileges
         provider['militaryAffiliations'] = military_affiliations
+
+        ProviderRecordUtility.sanitize_provider_account_profile_fields_from_response(provider)
 
         return provider

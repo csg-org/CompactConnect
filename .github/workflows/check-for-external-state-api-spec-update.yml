@@ -36,13 +36,13 @@ jobs:
           # Get the base branch from GitHub context
           BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
           echo "Base branch: $BASE_BRANCH"
-          
+
           # Check if the OpenAPI spec file was updated using the suggested git diff command
           SPEC_FILE_PATH="backend/compact-connect/docs/api-specification/latest-oas30.json"
           echo "Checking for changes to: $SPEC_FILE_PATH"
-          
+
           CHANGED_SPEC_FILE=$(git diff origin/$BASE_BRANCH..HEAD --name-only -- '**/docs/api-specification/latest-oas30.json')
-          
+
           if [ -n "$CHANGED_SPEC_FILE" ]; then
             echo "✅ SUCCESS: State OpenAPI spec file was updated: $SPEC_FILE_PATH"
           else
@@ -57,4 +57,3 @@ jobs:
             echo "Please update the OpenAPI spec file and commit it to this PR."
             exit 1
           fi
-

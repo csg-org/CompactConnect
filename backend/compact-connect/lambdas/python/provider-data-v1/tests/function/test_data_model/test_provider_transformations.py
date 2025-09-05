@@ -236,7 +236,7 @@ class TestTransformations(TstFunction):
                 'compact': 'aslp',
                 'createDate': '2024-11-08T23:59:59+00:00',
                 'dateOfUpdate': '2024-11-08T23:59:59+00:00',
-                'effectiveDate': '2024-11-08',
+                'effectiveDate': '2024-11-08T23:59:59+00:00',
                 'jurisdiction': 'ne',
                 'licenseType': 'speech-language pathologist',
                 'previous': {},

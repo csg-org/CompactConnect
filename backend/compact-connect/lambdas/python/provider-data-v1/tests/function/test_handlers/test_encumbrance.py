@@ -7,6 +7,7 @@ from cc_common.exceptions import CCInternalException
 from common_test.test_constants import (
     DEFAULT_AA_SUBMITTING_USER_ID,
     DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
+    DEFAULT_ENCUMBRANCE_TYPE,
     DEFAULT_LICENSE_JURISDICTION,
     DEFAULT_LICENSE_TYPE_ABBREVIATION,
     DEFAULT_PRIVILEGE_JURISDICTION,
@@ -34,13 +35,18 @@ LICENSE_ENCUMBRANCE_ID_ENDPOINT_RESOURCE = (
 
 TEST_ENCUMBRANCE_EFFECTIVE_DATE = '2023-01-15'
 
+# Noon UTC-4, designated encumbrance time to make date consistent across US timezones
+TEST_ENCUMBRANCE_EFFECTIVE_DATETIME = '2023-01-15T12:00:00-04:00'
+
 
 def _generate_test_body():
-    from cc_common.data_model.schema.common import ClinicalPrivilegeActionCategory
+    from cc_common.data_model.schema.common import ClinicalPrivilegeActionCategory, EncumbranceType
 
     return {
         'encumbranceEffectiveDate': TEST_ENCUMBRANCE_EFFECTIVE_DATE,
-        'clinicalPrivilegeActionCategory': ClinicalPrivilegeActionCategory.UNSAFE_PRACTICE,
+        # These Enums are expected to be `str` type, so we'll directly access their .value
+        'encumbranceType': EncumbranceType.SUSPENSION.value,
+        'clinicalPrivilegeActionCategory': ClinicalPrivilegeActionCategory.UNSAFE_PRACTICE.value,
     }
 
 
@@ -115,6 +121,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
         default_adverse_action_encumbrance = self.test_data_generator.generate_default_adverse_action(
             value_overrides={
                 'adverseActionId': item['adverseActionId'],
+                'encumbranceType': DEFAULT_ENCUMBRANCE_TYPE,
                 'effectiveStartDate': date.fromisoformat(TEST_ENCUMBRANCE_EFFECTIVE_DATE),
                 'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
             }
@@ -151,7 +158,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
             value_overrides={
                 'updateType': 'encumbrance',
                 'updatedValues': {'encumberedStatus': 'encumbered'},
-                'effectiveDate': datetime.fromisoformat(TEST_ENCUMBRANCE_EFFECTIVE_DATE),
+                'effectiveDate': datetime.fromisoformat(TEST_ENCUMBRANCE_EFFECTIVE_DATETIME),
                 'createDate': datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP),
             }
         )
@@ -367,6 +374,7 @@ class TestPostLicenseEncumbrance(TstFunction):
             value_overrides={
                 'actionAgainst': 'license',
                 'adverseActionId': item['adverseActionId'],
+                'encumbranceType': DEFAULT_ENCUMBRANCE_TYPE,
                 'effectiveStartDate': date.fromisoformat(TEST_ENCUMBRANCE_EFFECTIVE_DATE),
                 'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
             }
@@ -403,7 +411,7 @@ class TestPostLicenseEncumbrance(TstFunction):
                 'updateType': 'encumbrance',
                 'updatedValues': {'encumberedStatus': 'encumbered'},
                 'createDate': datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP),
-                'effectiveDate': date.fromisoformat(TEST_ENCUMBRANCE_EFFECTIVE_DATE),
+                'effectiveDate': datetime.fromisoformat(TEST_ENCUMBRANCE_EFFECTIVE_DATETIME),
             }
         )
         loaded_license_update_data = LicenseUpdateData.from_database_record(item)
@@ -517,7 +525,9 @@ class TestPostLicenseEncumbrance(TstFunction):
 class TestPatchPrivilegeEncumbranceLifting(TstFunction):
     """Test suite for privilege encumbrance lifting endpoints."""
 
-    def _setup_privilege_with_adverse_action(self, adverse_action_overrides=None, privilege_overrides=None):
+    def _setup_privilege_with_adverse_action(
+        self, adverse_action_overrides=None, privilege_overrides=None, license_overrides=None
+    ):
         """Helper method to set up a privilege with an adverse action for testing."""
         self.test_data_generator.put_default_provider_record_in_provider_table(
             value_overrides={'encumberedStatus': 'encumbered'}
@@ -531,6 +541,17 @@ class TestPatchPrivilegeEncumbranceLifting(TstFunction):
                 'jurisdiction': test_privilege_record.jurisdiction,
                 'licenseType': test_privilege_record.licenseType,
                 **(adverse_action_overrides or {}),
+            }
+        )
+
+        # Set up license with encumbered status
+        self.test_data_generator.put_default_license_record_in_provider_table(
+            value_overrides={
+                'providerId': test_privilege_record.providerId,
+                'compact': test_privilege_record.compact,
+                'jurisdiction': test_privilege_record.licenseJurisdiction,
+                'licenseType': test_privilege_record.licenseType,
+                **(license_overrides or {}),
             }
         )
         return test_privilege_record, test_adverse_action
@@ -772,15 +793,10 @@ class TestPatchPrivilegeEncumbranceLifting(TstFunction):
         from cc_common.data_model.schema.common import LicenseEncumberedStatusEnum
         from handlers.encumbrance import encumbrance_handler
 
-        # Set up privilege with adverse action
-        privilege_record, adverse_action = self._setup_privilege_with_adverse_action()
-
-        # Set up license with encumbered status
-        self.test_data_generator.put_default_license_record_in_provider_table(
-            value_overrides={
+        # Set up privilege with adverse action and encumbered license
+        privilege_record, adverse_action = self._setup_privilege_with_adverse_action(
+            license_overrides={
                 'encumberedStatus': 'encumbered',
-                'providerId': privilege_record.providerId,
-                'compact': privilege_record.compact,
             }
         )
 
@@ -796,6 +812,37 @@ class TestPatchPrivilegeEncumbranceLifting(TstFunction):
 
         loaded_provider_data = provider_records.get_provider_record()
         self.assertEqual(LicenseEncumberedStatusEnum.ENCUMBERED, loaded_provider_data.encumberedStatus)
+
+    def test_should_update_privilege_to_license_encumbered_when_associated_license_is_encumbered(self):
+        """Test that lifting a privilege encumbrance sets privilege to LICENSE_ENCUMBERED when associated
+        license is encumbered."""
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from cc_common.data_model.schema.common import PrivilegeEncumberedStatusEnum
+        from handlers.encumbrance import encumbrance_handler
+
+        # Set up privilege with adverse action and encumbered license
+        privilege_record, adverse_action = self._setup_privilege_with_adverse_action(
+            privilege_overrides={'encumberedStatus': 'encumbered'}, license_overrides={'encumberedStatus': 'encumbered'}
+        )
+
+        event = self._generate_lift_encumbrance_event(privilege_record, adverse_action)
+
+        response = encumbrance_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'])
+
+        # Verify privilege record is now LICENSE_ENCUMBERED (not UNENCUMBERED)
+        provider_records: ProviderUserRecords = self.config.data_client.get_provider_user_records(
+            compact=privilege_record.compact, provider_id=str(privilege_record.providerId)
+        )
+
+        privilege_records = provider_records.get_privilege_records(
+            filter_condition=lambda p: (
+                p.jurisdiction == privilege_record.jurisdiction and p.licenseType == privilege_record.licenseType
+            )
+        )
+
+        self.assertEqual(1, len(privilege_records))
+        self.assertEqual(PrivilegeEncumberedStatusEnum.LICENSE_ENCUMBERED, privilege_records[0].encumberedStatus)
 
     def test_should_return_access_denied_if_compact_admin_attempts_to_lift_privilege_encumbrance(self):
         """Verifying that only state admins are allowed to lift privilege encumbrances"""

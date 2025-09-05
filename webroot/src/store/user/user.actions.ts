@@ -228,7 +228,7 @@ export default {
         }
 
         const params = new URLSearchParams();
-        const refreshInMs = moment().add(expiresIn, 'seconds').subtract(5, 'minutes').diff(moment(), 'milliseconds');
+        const refreshInMs = moment().add(expiresIn, 'seconds').subtract(1, 'minutes').diff(moment(), 'milliseconds');
         const refreshTokens = async () => {
             let isError = false;
 
