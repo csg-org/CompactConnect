@@ -89,8 +89,6 @@ class TestIngest(TstFunction):
 
         # Reset the expected data to match the canned response
         expected_provider = self._set_provider_data_to_empty_values(expected_provider)
-        for license_data in expected_provider['licenses']:
-            license_data['history'] = []
 
         # Removing/setting dynamic fields for comparison
         del expected_provider['dateOfUpdate']
@@ -260,47 +258,6 @@ class TestIngest(TstFunction):
 
         # Reset the expected data to match the canned response
         expected_provider = self._set_provider_data_to_empty_values(expected_provider)
-        for license_data in expected_provider['licenses']:
-            # We uploaded a 'deactivation' by just switching 'licenseStatus' to 'inactive', so this change
-            # should show up in the license history
-            license_data['history'] = [
-                {
-                    'type': 'licenseUpdate',
-                    'updateType': 'deactivation',
-                    'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
-                    'compact': 'aslp',
-                    'createDate': '2024-11-08T23:59:59+00:00',
-                    'effectiveDate': '2024-11-08T23:59:59+00:00',
-                    'jurisdiction': 'oh',
-                    'licenseType': 'speech-language pathologist',
-                    'previous': {
-                        'ssnLastFour': '1234',
-                        'npi': '0608337260',
-                        'licenseNumber': 'A0608337260',
-                        'jurisdictionUploadedLicenseStatus': 'active',
-                        'licenseStatusName': 'DEFINITELY_A_HUMAN',
-                        'jurisdictionUploadedCompactEligibility': 'eligible',
-                        'givenName': 'Björk',
-                        'middleName': 'Gunnar',
-                        'familyName': 'Guðmundsdóttir',
-                        'dateOfIssuance': '2010-06-06',
-                        'dateOfBirth': '1985-06-06',
-                        'dateOfExpiration': '2025-04-04',
-                        'dateOfRenewal': '2020-04-04',
-                        'homeAddressStreet1': '123 A St.',
-                        'homeAddressStreet2': 'Apt 321',
-                        'homeAddressCity': 'Columbus',
-                        'homeAddressState': 'oh',
-                        'homeAddressPostalCode': '43004',
-                        'emailAddress': 'björk@example.com',
-                        'phoneNumber': '+13213214321',
-                    },
-                    'updatedValues': {
-                        'jurisdictionUploadedLicenseStatus': 'inactive',
-                        'jurisdictionUploadedCompactEligibility': 'ineligible',
-                    },
-                }
-            ]
 
         # Removing/setting dynamic fields for comparison
         del expected_provider['dateOfUpdate']
@@ -311,9 +268,6 @@ class TestIngest(TstFunction):
             license_data['providerId'] = provider_id
         for license_data in provider_data['licenses']:
             del license_data['dateOfUpdate']
-            for hist in license_data['history']:
-                del hist['dateOfUpdate']
-                del hist['previous']['dateOfUpdate']
 
         self.assertEqual(expected_provider, provider_data)
         # Assert that an event was sent for the deactivation
@@ -425,51 +379,6 @@ class TestIngest(TstFunction):
         # Reset the expected data to match the canned response
         expected_provider = self._set_provider_data_to_empty_values(expected_provider)
 
-        for license_data in expected_provider['licenses']:
-            # We uploaded a 'renewal' by just updating the dateOfRenewal and dateOfExpiration
-            # This should show up in the license history
-            license_data['history'] = [
-                {
-                    'type': 'licenseUpdate',
-                    'updateType': 'renewal',
-                    'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
-                    'compact': 'aslp',
-                    'jurisdiction': 'oh',
-                    'createDate': '2024-11-08T23:59:59+00:00',
-                    'effectiveDate': '2024-11-08T23:59:59+00:00',
-                    'licenseType': 'speech-language pathologist',
-                    'previous': {
-                        'ssnLastFour': '1234',
-                        'npi': '0608337260',
-                        'licenseNumber': 'A0608337260',
-                        'jurisdictionUploadedLicenseStatus': 'active',
-                        'licenseStatusName': 'DEFINITELY_A_HUMAN',
-                        'jurisdictionUploadedCompactEligibility': 'eligible',
-                        'givenName': 'Björk',
-                        'middleName': 'Gunnar',
-                        'familyName': 'Guðmundsdóttir',
-                        'dateOfIssuance': '2010-06-06',
-                        'dateOfBirth': '1985-06-06',
-                        'dateOfExpiration': '2025-04-04',
-                        'dateOfRenewal': '2020-04-04',
-                        'homeAddressStreet1': '123 A St.',
-                        'homeAddressStreet2': 'Apt 321',
-                        'homeAddressCity': 'Columbus',
-                        'homeAddressState': 'oh',
-                        'homeAddressPostalCode': '43004',
-                        'emailAddress': 'björk@example.com',
-                        'phoneNumber': '+13213214321',
-                    },
-                    'updatedValues': {
-                        'dateOfRenewal': '2025-03-03',
-                        'dateOfExpiration': '2030-03-03',
-                    },
-                }
-            ]
-            if omit_date_of_renewal:
-                del license_data['history'][0]['previous']['dateOfRenewal']
-                del license_data['history'][0]['updatedValues']['dateOfRenewal']
-
         # Removing/setting dynamic fields for comparison
         del expected_provider['dateOfUpdate']
         del provider_data['dateOfUpdate']
@@ -479,9 +388,6 @@ class TestIngest(TstFunction):
             license_data['providerId'] = provider_id
         for license_data in provider_data['licenses']:
             del license_data['dateOfUpdate']
-            for hist in license_data['history']:
-                del hist['dateOfUpdate']
-                del hist['previous']['dateOfUpdate']
 
         self.assertEqual(expected_provider, provider_data)
 
@@ -522,47 +428,6 @@ class TestIngest(TstFunction):
         # Reset the expected data to match the canned response
         expected_provider = self._set_provider_data_to_empty_values(expected_provider)
 
-        for license_data in expected_provider['licenses']:
-            # We uploaded a 'name change' by just updating the familyName
-            # This should show up in the license history
-            license_data['history'] = [
-                {
-                    'type': 'licenseUpdate',
-                    'updateType': 'other',
-                    'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
-                    'compact': 'aslp',
-                    'jurisdiction': 'oh',
-                    'createDate': '2024-11-08T23:59:59+00:00',
-                    'effectiveDate': '2024-11-08T23:59:59+00:00',
-                    'licenseType': 'speech-language pathologist',
-                    'previous': {
-                        'ssnLastFour': '1234',
-                        'npi': '0608337260',
-                        'licenseNumber': 'A0608337260',
-                        'jurisdictionUploadedLicenseStatus': 'active',
-                        'licenseStatusName': 'DEFINITELY_A_HUMAN',
-                        'jurisdictionUploadedCompactEligibility': 'eligible',
-                        'givenName': 'Björk',
-                        'middleName': 'Gunnar',
-                        'familyName': 'Guðmundsdóttir',
-                        'dateOfIssuance': '2010-06-06',
-                        'dateOfBirth': '1985-06-06',
-                        'dateOfExpiration': '2025-04-04',
-                        'dateOfRenewal': '2020-04-04',
-                        'homeAddressStreet1': '123 A St.',
-                        'homeAddressStreet2': 'Apt 321',
-                        'homeAddressCity': 'Columbus',
-                        'homeAddressState': 'oh',
-                        'homeAddressPostalCode': '43004',
-                        'emailAddress': 'björk@example.com',
-                        'phoneNumber': '+13213214321',
-                    },
-                    'updatedValues': {
-                        'familyName': 'VonSmitherton',
-                    },
-                }
-            ]
-
         # Removing/setting dynamic fields for comparison
         del expected_provider['dateOfUpdate']
         del provider_data['dateOfUpdate']
@@ -572,9 +437,6 @@ class TestIngest(TstFunction):
             license_data['providerId'] = provider_id
         for license_data in provider_data['licenses']:
             del license_data['dateOfUpdate']
-            for hist in license_data['history']:
-                del hist['dateOfUpdate']
-                del hist['previous']['dateOfUpdate']
 
         self.assertEqual(expected_provider, provider_data)
 
@@ -599,9 +461,6 @@ class TestIngest(TstFunction):
 
         # Reset the expected data to match the canned response
         expected_provider = self._set_provider_data_to_empty_values(expected_provider)
-        for license_data in expected_provider['licenses']:
-            # No changes should show up in the license history
-            license_data['history'] = []
 
         # Removing/setting dynamic fields for comparison
         del expected_provider['dateOfUpdate']
@@ -612,9 +471,6 @@ class TestIngest(TstFunction):
             license_data['providerId'] = provider_id
         for license_data in provider_data['licenses']:
             del license_data['dateOfUpdate']
-            for hist in license_data['history']:
-                del hist['dateOfUpdate']
-                del hist['previous']['dateOfUpdate']
 
         self.assertEqual(expected_provider, provider_data)
 
@@ -646,42 +502,6 @@ class TestIngest(TstFunction):
             # We uploaded a license with no email by just deleting emailAddress
             # This should show up in the license history
             del license_data['emailAddress']
-            license_data['history'] = [
-                {
-                    'type': 'licenseUpdate',
-                    'updateType': 'other',
-                    'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
-                    'compact': 'aslp',
-                    'jurisdiction': 'oh',
-                    'createDate': '2024-11-08T23:59:59+00:00',
-                    'effectiveDate': '2024-11-08T23:59:59+00:00',
-                    'licenseType': 'speech-language pathologist',
-                    'previous': {
-                        'ssnLastFour': '1234',
-                        'npi': '0608337260',
-                        'licenseNumber': 'A0608337260',
-                        'jurisdictionUploadedLicenseStatus': 'active',
-                        'licenseStatusName': 'DEFINITELY_A_HUMAN',
-                        'jurisdictionUploadedCompactEligibility': 'eligible',
-                        'givenName': 'Björk',
-                        'middleName': 'Gunnar',
-                        'familyName': 'Guðmundsdóttir',
-                        'dateOfIssuance': '2010-06-06',
-                        'dateOfBirth': '1985-06-06',
-                        'dateOfExpiration': '2025-04-04',
-                        'dateOfRenewal': '2020-04-04',
-                        'homeAddressStreet1': '123 A St.',
-                        'homeAddressStreet2': 'Apt 321',
-                        'homeAddressCity': 'Columbus',
-                        'homeAddressState': 'oh',
-                        'homeAddressPostalCode': '43004',
-                        'emailAddress': 'björk@example.com',
-                        'phoneNumber': '+13213214321',
-                    },
-                    'updatedValues': {},
-                    'removedValues': ['emailAddress'],
-                }
-            ]
 
         # Removing/setting dynamic fields for comparison
         del expected_provider['dateOfUpdate']
@@ -692,9 +512,6 @@ class TestIngest(TstFunction):
             license_data['providerId'] = provider_id
         for license_data in provider_data['licenses']:
             del license_data['dateOfUpdate']
-            for hist in license_data['history']:
-                del hist['dateOfUpdate']
-                del hist['previous']['dateOfUpdate']
 
         self.assertEqual(expected_provider, provider_data)
 
@@ -720,45 +537,6 @@ class TestIngest(TstFunction):
         # Reset the expected data to match the canned response
         expected_provider = self._set_provider_data_to_empty_values(expected_provider)
 
-        for license_data in expected_provider['licenses']:
-            # We added an emailAddress. This should show up in the license history
-            license_data['history'] = [
-                {
-                    'type': 'licenseUpdate',
-                    'updateType': 'other',
-                    'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
-                    'compact': 'aslp',
-                    'jurisdiction': 'oh',
-                    'licenseType': 'speech-language pathologist',
-                    'createDate': '2024-11-08T23:59:59+00:00',
-                    'effectiveDate': '2024-11-08T23:59:59+00:00',
-                    'previous': {
-                        'ssnLastFour': '1234',
-                        'npi': '0608337260',
-                        'licenseNumber': 'A0608337260',
-                        'jurisdictionUploadedLicenseStatus': 'active',
-                        'licenseStatusName': 'DEFINITELY_A_HUMAN',
-                        'jurisdictionUploadedCompactEligibility': 'eligible',
-                        'givenName': 'Björk',
-                        'middleName': 'Gunnar',
-                        'familyName': 'Guðmundsdóttir',
-                        'dateOfIssuance': '2010-06-06',
-                        'dateOfBirth': '1985-06-06',
-                        'dateOfExpiration': '2025-04-04',
-                        'dateOfRenewal': '2020-04-04',
-                        'homeAddressStreet1': '123 A St.',
-                        'homeAddressStreet2': 'Apt 321',
-                        'homeAddressCity': 'Columbus',
-                        'homeAddressState': 'oh',
-                        'homeAddressPostalCode': '43004',
-                        'phoneNumber': '+13213214321',
-                    },
-                    'updatedValues': {
-                        'emailAddress': 'björk@example.com',
-                    },
-                }
-            ]
-
         # Removing/setting dynamic fields for comparison
         del expected_provider['dateOfUpdate']
         del provider_data['dateOfUpdate']
@@ -768,9 +546,6 @@ class TestIngest(TstFunction):
             license_data['providerId'] = provider_id
         for license_data in provider_data['licenses']:
             del license_data['dateOfUpdate']
-            for hist in license_data['history']:
-                del hist['dateOfUpdate']
-                del hist['previous']['dateOfUpdate']
 
         self.assertEqual(expected_provider, provider_data)
 

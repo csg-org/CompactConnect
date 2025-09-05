@@ -173,6 +173,8 @@ class EventBusClient:
         compact: str,
         provider_id: UUID,
         jurisdiction: str,
+        adverse_action_id: UUID,
+        adverse_action_category: str,
         license_type_abbreviation: str,
         effective_date: date,
         event_batch_writer: EventBatchWriter | None = None,
@@ -184,6 +186,8 @@ class EventBusClient:
         :param compact: The compact name
         :param provider_id: The provider ID
         :param jurisdiction: The jurisdiction of the license
+        :param adverse_action_id: The adverse action ID
+        :param adverse_action_category: The type of adverse action perpetrated
         :param license_type_abbreviation: The license type abbreviation
         :param effective_date: The date when the encumbrance became effective
         :param event_batch_writer: Optional EventBatchWriter for efficient batch publishing
@@ -192,6 +196,8 @@ class EventBusClient:
             'compact': compact,
             'providerId': provider_id,
             'jurisdiction': jurisdiction,
+            'adverseActionId': adverse_action_id,
+            'adverseActionCategory': adverse_action_category,
             'licenseTypeAbbreviation': license_type_abbreviation,
             'effectiveDate': effective_date,
             'eventTime': config.current_standard_datetime,

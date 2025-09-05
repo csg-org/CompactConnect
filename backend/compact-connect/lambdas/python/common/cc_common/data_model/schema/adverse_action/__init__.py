@@ -117,6 +117,10 @@ class AdverseActionData(CCDataClass):
     def adverseActionId(self) -> UUID:
         return self._data['adverseActionId']
 
+    @adverseActionId.setter
+    def adverseActionId(self, value: UUID) -> None:
+        self._data['adverseActionId'] = value
+
     @property
     def effectiveLiftDate(self) -> date | None:
         return self._data.get('effectiveLiftDate')

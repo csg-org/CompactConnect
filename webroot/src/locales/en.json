@@ -682,6 +682,7 @@
         "confirmPrivilegeUnencumberSuccessEndDate": "End date",
         "expiringIn": "Expiring in",
         "events": "Events",
+        "uploadedOn": "Uploaded on",
         "licenseEvents": [
             {
                 "name": "Privilege purchased",
