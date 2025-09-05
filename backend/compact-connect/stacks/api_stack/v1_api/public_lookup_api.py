@@ -34,6 +34,7 @@ class PublicLookupApi:
             'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
             'PROV_FAM_GIV_MID_INDEX_NAME': persistent_stack.provider_table.provider_fam_giv_mid_index_name,
             'PROV_DATE_OF_UPDATE_INDEX_NAME': persistent_stack.provider_table.provider_date_of_update_index_name,
+            'COMPACT_CONFIGURATION_TABLE_NAME': persistent_stack.compact_configuration_table.table_name,
             **stack.common_env_vars,
         }
 
