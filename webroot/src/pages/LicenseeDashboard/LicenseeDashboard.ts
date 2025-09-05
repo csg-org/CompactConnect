@@ -6,7 +6,7 @@
 //
 
 import { Component, Vue } from 'vue-facing-decorator';
-import { reactive, nextTick } from 'vue';
+import { reactive } from 'vue';
 import { FormInput } from '@/models/FormInput/FormInput.model';
 import HomeStateBlock from '@/components/HomeStateBlock/HomeStateBlock.vue';
 import LicenseCard from '@/components/LicenseCard/LicenseCard.vue';
@@ -152,8 +152,6 @@ export default class LicenseeDashboard extends Vue {
 
     async openPurchaseUnavailableModal(): Promise<void> {
         this.isPurchaseUnavailableModalDisplayed = true;
-        await nextTick();
-        document.getElementById('purchase-unavailable-modal-reasons')?.focus();
     }
 
     closePurchaseUnavailableModal(): void {
@@ -171,10 +169,9 @@ export default class LicenseeDashboard extends Vue {
 
     focusTrapPurchaseUnavailable(event: KeyboardEvent): void {
         const closeButton = document.getElementById('submit-close-purchase-unavailable');
-        const reasonsList = document.getElementById('purchase-unavailable-modal-reasons');
         const militaryLink = document.getElementById('military-status-link');
         // Array of focusable elements in order
-        const focusables = [reasonsList, militaryLink, closeButton]
+        const focusables = [militaryLink, closeButton]
             .filter((element) => element !== null) as HTMLElement[];
         const currentIndex = focusables.indexOf(document.activeElement as HTMLElement);
         let nextIndex;

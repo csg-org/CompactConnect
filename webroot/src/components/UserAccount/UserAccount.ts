@@ -234,8 +234,6 @@ class UserAccount extends mixins(MixinForm) {
     async openEmailVerificationModal(): Promise<void> {
         this.isEmailVerificationModalDisplayed = true;
         this.initFormInputs();
-        await nextTick();
-        document.getElementById(this.formData.emailVerificationCode.id)?.focus();
     }
 
     async closeEmailVerificationModal(): Promise<void> {
@@ -287,8 +285,6 @@ class UserAccount extends mixins(MixinForm) {
 
                 if (!isError) {
                     this.isEmailVerificationModalSuccess = true;
-                    await nextTick();
-                    document.getElementById('confirm-modal-cancel-button')?.focus();
                     await this.$store.dispatch(`user/getLicenseeAccountRequest`);
                 }
 
