@@ -414,6 +414,30 @@ export class UserDataApi implements DataApiInterface {
 
         return serverResponse;
     }
+
+    /**
+     * POST Reset MFA Request for Licensee Account
+     * @param  {object}          data The user request data.
+     * @return {Promise<object>}      The server response.
+     */
+    public async resetMfaLicenseeAccount(data: object) {
+        const requestData = { ...data };
+        const serverResponse = await this.api.post(`/v1/provider-users/initiateRecovery`, requestData);
+
+        return serverResponse;
+    }
+
+    /**
+     * POST Confirm MFA Request for Licensee Account
+     * @param  {object}          data The user request data.
+     * @return {Promise<object>}      The server response.
+     */
+    public async confirmMfaLicenseeAccount(data: object) {
+        const requestData = { ...data };
+        const serverResponse = await this.api.post(`/v1/provider-users/verifyRecovery`, requestData);
+
+        return serverResponse;
+    }
 }
 
 export const userDataApi = new UserDataApi();

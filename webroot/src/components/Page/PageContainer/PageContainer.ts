@@ -50,6 +50,7 @@ class PageContainer extends Vue {
         const nonHeaderRouteNames: Array<string> = [
             'Logout',
             'LicenseeVerification',
+            'MfaResetConfirmLicensee',
         ];
 
         return (this.isMenuTouchToggle && !nonHeaderRouteNames.includes(this.currentRouteName));
@@ -60,6 +61,7 @@ class PageContainer extends Vue {
             'LicensingDetail',
             'LicenseeDetailPublic',
             'LicenseeVerification',
+            'MfaResetConfirmLicensee',
         ];
 
         return !nonPadTopRouteNames.includes(this.currentRouteName);
@@ -68,6 +70,7 @@ class PageContainer extends Vue {
     get includeMainNav(): boolean {
         const nonMainNavRouteNames: Array<string> = [
             'LicenseeVerification', // This is a printer-friendly page
+            'MfaResetConfirmLicensee', // This is a standalone automation page accessed from emailed link
         ];
 
         return !nonMainNavRouteNames.includes(this.currentRouteName);
