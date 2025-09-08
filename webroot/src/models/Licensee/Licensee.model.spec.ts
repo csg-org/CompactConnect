@@ -952,7 +952,7 @@ describe('Licensee model', () => {
                 new License({
                     licenseNumber: 'co-active-same-date',
                     issueState: new State({ abbrev: 'co' }),
-                    issueDate: '2025-01-01', // Same date as inactive
+                    issueDate: '2025-01-02', // Same date as inactive
                     status: LicenseStatus.ACTIVE,
                 })
             ]
@@ -975,7 +975,7 @@ describe('Licensee model', () => {
                 new License({
                     licenseNumber: 'co-inactive-second',
                     issueState: new State({ abbrev: 'co' }),
-                    issueDate: '2025-01-02', // Same date as active
+                    issueDate: '2025-01-01', // Same date as active
                     status: LicenseStatus.INACTIVE,
                 })
             ]
