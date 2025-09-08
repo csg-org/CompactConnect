@@ -769,21 +769,9 @@ describe('User Store Actions', async () => {
         const commit = sinon.spy();
         const dispatch = sinon.spy();
         const state = { currentCompact: new Compact({ type: CompactType.ASLP }) };
-
-        const data = {
-            jurisdiction: new State({ abbrev: 'ca' }),
-            compactType: CompactType.ASLP,
-            fee: 5,
-            isMilitaryDiscountActive: true,
-            militaryDiscountType: FeeTypes.FLAT_RATE,
-            militaryDiscountAmount: 10,
-            isJurisprudenceRequired: true,
-        };
-        const privilegePurchaseOption = new PrivilegePurchaseOption(data);
-
         const privilegePurchaseData = {
-            privilegePurchaseOptions: [ privilegePurchaseOption ],
-            compactCommissionFee: { compactType: CompactType.ASLP, feeType: 'FLAT_RATE', feeAmount: 3.5 }
+            privilegePurchaseOptions: [ new PrivilegePurchaseOption() ],
+            compactCommissionFee: { compactType: CompactType.ASLP, feeType: FeeTypes.FLAT_RATE, feeAmount: 3.5 }
         };
 
         await actions.getPrivilegePurchaseInformationSuccess({ commit, dispatch, state }, privilegePurchaseData);
