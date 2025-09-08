@@ -73,6 +73,12 @@ class Modal extends Vue {
         return `${baseId}-title`;
     }
 
+    get contentId(): string {
+        const baseId = this.modalId || 'modal';
+
+        return `${baseId}-content`;
+    }
+
     //
     // Methods
     //

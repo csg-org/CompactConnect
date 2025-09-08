@@ -20,6 +20,7 @@
                     role="dialog"
                     aria-modal="true"
                     :aria-labelledby="(displayTitle) ? titleId : undefined"
+                    :aria-describedby="contentId"
                 >
                     <div class="header-container">
                         <h1 v-if="displayTitle" :id="titleId" class="modal-title">{{ displayTitle }}</h1>
@@ -35,7 +36,7 @@
                         <slot name="header-fixed"></slot>
                     </div>
                     <form @submit.prevent>
-                        <div ref="modalContent" class="modal-content" tabindex="0">
+                        <div ref="modalContent" :id="contentId" class="modal-content" tabindex="0">
                             <slot name="content"></slot>
                         </div>
                         <div

@@ -76,7 +76,7 @@
         "race": "Raza",
         "ethnicity": "Origen étnico",
         "finish": "Termina",
-        "cannotBeUndone": "Esta acción no se puede deshacer",
+        "cannotBeUndone": "Esta acción no se puede deshacer.",
         "daysOfTheWeek": {
             "monday": {
                 "full": "Lunes",

@@ -76,7 +76,7 @@
         "ethnicity": "Ethnicity",
         "welcome": "Welcome",
         "finish": "Finish",
-        "cannotBeUndone": "This action cannot be undone",
+        "cannotBeUndone": "This action cannot be undone.",
         "formValidationErrorMessage": "Please correct the errors on the form shown in red and check the box acknowledging no refunds",
         "daysOfTheWeek": {
             "monday": {

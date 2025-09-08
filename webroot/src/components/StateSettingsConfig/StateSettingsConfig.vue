@@ -60,32 +60,34 @@
                 modalId="confirm-state-config-modal"
                 class="confirm-config-modal"
                 :title="$t('compact.confirmSaveCompactTitle')"
-                :showActions="false"
+                :showActions="true"
                 @keydown.tab="focusTrapConfirmConfigModal($event)"
                 @keyup.esc="closeConfirmConfigModal"
             >
                 <template v-slot:content>
                     <div class="modal-content confirm-modal-content">
                         {{ $t('common.cannotBeUndone') }}
-                        <div class="action-button-row">
-                            <InputButton
-                                id="confirm-modal-submit-button"
-                                @click="submitConfirmConfigModal"
-                                class="action-button submit-button continue-button"
-                                :label="(isFormLoading)
-                                    ? $t('common.loading')
-                                    : $t('compact.confirmSaveCompactYes')"
-                                :isTransparent="true"
-                                :isEnabled="!isFormLoading"
-                            />
-                            <InputButton
-                                id="confirm-modal-cancel-button"
-                                class="action-button cancel-button"
-                                :label="$t('common.cancel')"
-                                :isWarning="true"
-                                :onClick="closeConfirmConfigModal"
-                            />
-                        </div>
+                    </div>
+                </template>
+                <template v-slot:actions>
+                    <div class="action-button-row">
+                        <InputButton
+                            id="confirm-modal-submit-button"
+                            @click="submitConfirmConfigModal"
+                            class="action-button submit-button continue-button"
+                            :label="(isFormLoading)
+                                ? $t('common.loading')
+                                : $t('compact.confirmSaveCompactYes')"
+                            :isTransparent="true"
+                            :isEnabled="!isFormLoading"
+                        />
+                        <InputButton
+                            id="confirm-modal-cancel-button"
+                            class="action-button cancel-button"
+                            :label="$t('common.cancel')"
+                            :isWarning="true"
+                            :onClick="closeConfirmConfigModal"
+                        />
                     </div>
                 </template>
             </Modal>
