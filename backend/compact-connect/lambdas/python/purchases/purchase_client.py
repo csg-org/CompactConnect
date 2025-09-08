@@ -610,13 +610,15 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         batch_response = batch_controller.getresponse()
 
         if batch_response is None:
-            logger.error('Failed to get settled batch list. SDK returned null response',
-                         start_time=start_time, end_time=end_time)
+            logger.error(
+                'Failed to get settled batch list. SDK returned null response', start_time=start_time, end_time=end_time
+            )
             raise CCInternalException('Failed to get settled batch list. Null response from Authorize.net')
 
         if batch_response.messages.resultCode != OK_TRANSACTION_MESSAGE_RESULT_CODE:
-            logger.error('Failed to get settled batch list',
-                         error_text=str(batch_response.messages.message[0]['text'].text))
+            logger.error(
+                'Failed to get settled batch list', error_text=str(batch_response.messages.message[0]['text'].text)
+            )
             raise CCInternalException('Failed to get settled batch list')
 
         # Check for settlement errors in any batch

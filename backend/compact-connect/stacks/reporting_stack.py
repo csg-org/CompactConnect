@@ -130,8 +130,7 @@ class ReportingStack(AppStack):
         )
 
     def _add_transaction_reporting_chain(self, persistent_stack: ps.PersistentStack):
-        """Add the transaction reporting lambda and event rules.
-        """
+        """Add the transaction reporting lambda and event rules."""
         self.transaction_reporter = PythonFunction(
             self,
             'TransactionReporter',
