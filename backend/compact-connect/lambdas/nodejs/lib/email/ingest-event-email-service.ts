@@ -12,7 +12,11 @@ interface IIngestEvents {
  * Email service for handling ingest event reporting
  */
 export class IngestEventEmailService extends BaseEmailService {
-    public async sendReportEmail(events: IIngestEvents, compactName: string, jurisdiction: string, recipients: string[]) {
+    public async sendReportEmail(events: IIngestEvents,
+        compactName: string,
+        jurisdiction: string,
+        recipients: string[]
+    ) {
         this.logger.info('Sending report email', { recipients: recipients });
 
         // Generate the HTML report
