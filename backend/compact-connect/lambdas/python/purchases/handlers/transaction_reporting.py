@@ -115,8 +115,8 @@ def _store_compact_reports_in_s3(
     # Create and store combined zip with uncompressed CSVs
     zip_buffer = BytesIO()
     with ZipFile(zip_buffer, 'w', compression=ZIP_DEFLATED) as zip_file:
-        zip_file.writestr(f'{compact}-financial-summary-{date_range}.csv', summary_report.encode('utf-8'))
-        zip_file.writestr(f'{compact}-transaction-detail-{date_range}.csv', transaction_detail.encode('utf-8'))
+        zip_file.writestr(f'financial-summary-{date_range}.csv', summary_report.encode('utf-8'))
+        zip_file.writestr(f'transaction-detail-{date_range}.csv', transaction_detail.encode('utf-8'))
     s3_client.put_object(Bucket=bucket_name, Key=paths['report_zip'], Body=zip_buffer.getvalue())
 
     return paths

@@ -322,7 +322,7 @@ class TestGenerateTransactionReports(TstFunction):
 
         with ZipFile(BytesIO(compact_zip_obj['Body'].read())) as zip_file:
             # Check financial summary
-            with zip_file.open(f'{TEST_COMPACT}-financial-summary-{date_range}.csv') as f:
+            with zip_file.open(f'financial-summary-{date_range}.csv') as f:
                 summary_content = f.read().decode('utf-8')
                 self.assertEqual(
                     'Privileges purchased for Ohio,0\n'
@@ -334,7 +334,7 @@ class TestGenerateTransactionReports(TstFunction):
                 )
 
             # Check transaction detail
-            with zip_file.open(f'{TEST_COMPACT}-transaction-detail-{date_range}.csv') as f:
+            with zip_file.open(f'transaction-detail-{date_range}.csv') as f:
                 detail_content = f.read().decode('utf-8')
                 self.assertEqual(
                     'Licensee First Name,Licensee Last Name,Licensee Id,Transaction Settlement Date UTC,State,State Fee,Administrative Fee,Collected Transaction Fee,Transaction Id,Privilege Id,Transaction Status\n'
@@ -432,7 +432,7 @@ class TestGenerateTransactionReports(TstFunction):
 
         with ZipFile(BytesIO(compact_zip_obj['Body'].read())) as zip_file:
             # Check financial summary
-            with zip_file.open(f'{TEST_COMPACT}-financial-summary-{date_range}.csv') as f:
+            with zip_file.open(f'financial-summary-{date_range}.csv') as f:
                 summary_content = f.read().decode('utf-8')
                 self.assertEqual(
                     'Privileges purchased for Kentucky,1\n'
@@ -446,7 +446,7 @@ class TestGenerateTransactionReports(TstFunction):
                 )
 
             # Check transaction detail
-            with zip_file.open(f'{TEST_COMPACT}-transaction-detail-{date_range}.csv') as f:
+            with zip_file.open(f'transaction-detail-{date_range}.csv') as f:
                 detail_content = f.read().decode('utf-8')
                 self.assertEqual(
                     f'Licensee First Name,Licensee Last Name,Licensee Id,Transaction Settlement Date UTC,State,State Fee,Administrative Fee,Collected Transaction Fee,Transaction Id,Privilege Id,Transaction Status\n'
@@ -525,7 +525,7 @@ class TestGenerateTransactionReports(TstFunction):
 
         with ZipFile(BytesIO(compact_zip_obj['Body'].read())) as zip_file:
             # Check financial summary
-            with zip_file.open(f'{TEST_COMPACT}-financial-summary-{date_range}.csv') as f:
+            with zip_file.open(f'financial-summary-{date_range}.csv') as f:
                 summary_content = f.read().decode('utf-8')
                 self.assertEqual(
                     'Privileges purchased for Kentucky,1\n'
@@ -541,7 +541,7 @@ class TestGenerateTransactionReports(TstFunction):
                 )
 
             # Check transaction detail
-            with zip_file.open(f'{TEST_COMPACT}-transaction-detail-{date_range}.csv') as f:
+            with zip_file.open(f'transaction-detail-{date_range}.csv') as f:
                 detail_content = f.read().decode('utf-8')
                 expected_lines = [
                     'Licensee First Name,Licensee Last Name,Licensee Id,Transaction Settlement Date UTC,State,State Fee,Administrative Fee,Collected Transaction Fee,Transaction Id,Privilege Id,Transaction Status'
@@ -630,7 +630,7 @@ class TestGenerateTransactionReports(TstFunction):
 
         with ZipFile(BytesIO(compact_zip_obj['Body'].read())) as zip_file:
             # Check financial summary
-            with zip_file.open(f'{TEST_COMPACT}-financial-summary-{date_range}.csv') as f:
+            with zip_file.open(f'financial-summary-{date_range}.csv') as f:
                 summary_content = f.read().decode('utf-8')
                 self.assertEqual(
                     'Privileges purchased for Kentucky,300\n'
@@ -644,7 +644,7 @@ class TestGenerateTransactionReports(TstFunction):
                 )
 
             # Check transaction detail
-            with zip_file.open(f'{TEST_COMPACT}-transaction-detail-{date_range}.csv') as f:
+            with zip_file.open(f'transaction-detail-{date_range}.csv') as f:
                 detail_content = f.read().decode('utf-8').split('\n')
                 # Verify header
                 self.assertEqual(
@@ -774,7 +774,7 @@ class TestGenerateTransactionReports(TstFunction):
 
         with ZipFile(BytesIO(compact_zip_obj['Body'].read())) as zip_file:
             # Check financial summary
-            with zip_file.open(f'{TEST_COMPACT}-financial-summary-{date_range}.csv') as f:
+            with zip_file.open(f'financial-summary-{date_range}.csv') as f:
                 summary_content = f.read().decode('utf-8')
                 # Verify compact summary includes unknown jurisdiction
                 self.assertEqual(
@@ -883,7 +883,7 @@ class TestGenerateTransactionReports(TstFunction):
 
         with ZipFile(BytesIO(compact_zip_obj['Body'].read())) as zip_file:
             # Check financial summary
-            with zip_file.open(f'{TEST_COMPACT}-financial-summary-{date_range}.csv') as f:
+            with zip_file.open(f'financial-summary-{date_range}.csv') as f:
                 summary_content = f.read().decode('utf-8')
                 self.assertEqual(
                     'Privileges purchased for Kentucky,1\n'
@@ -983,7 +983,7 @@ class TestGenerateTransactionReports(TstFunction):
 
         with ZipFile(BytesIO(compact_zip_obj['Body'].read())) as zip_file:
             # Check financial summary
-            with zip_file.open(f'{TEST_COMPACT}-financial-summary-{date_range}.csv') as f:
+            with zip_file.open(f'financial-summary-{date_range}.csv') as f:
                 summary_content = f.read().decode('utf-8')
                 self.assertEqual(
                     'Privileges purchased for Kentucky,1\n'
@@ -1044,7 +1044,7 @@ class TestGenerateTransactionReports(TstFunction):
 
         with ZipFile(BytesIO(compact_zip_obj['Body'].read())) as zip_file:
             # Check financial summary
-            with zip_file.open(f'{TEST_COMPACT}-financial-summary-{date_range}.csv') as f:
+            with zip_file.open(f'financial-summary-{date_range}.csv') as f:
                 summary_content = f.read().decode('utf-8')
                 self.assertEqual(
                     'Privileges purchased for Kentucky,1\n'
@@ -1061,7 +1061,7 @@ class TestGenerateTransactionReports(TstFunction):
                 )
 
             # Check transaction detail
-            with zip_file.open(f'{TEST_COMPACT}-transaction-detail-{date_range}.csv') as f:
+            with zip_file.open(f'transaction-detail-{date_range}.csv') as f:
                 detail_content = f.read().decode('utf-8')
                 expected_lines = [
                     'Licensee First Name,Licensee Last Name,Licensee Id,Transaction Settlement Date UTC,State,State Fee,Administrative Fee,Collected Transaction Fee,Transaction Id,Privilege Id,Transaction Status'
@@ -1129,7 +1129,7 @@ class TestGenerateTransactionReports(TstFunction):
 
         with ZipFile(BytesIO(compact_zip_obj['Body'].read())) as zip_file:
             # Check financial summary
-            with zip_file.open(f'{TEST_COMPACT}-financial-summary-{date_range}.csv') as f:
+            with zip_file.open(f'financial-summary-{date_range}.csv') as f:
                 summary_content = f.read().decode('utf-8')
                 self.assertEqual(
                     'Privileges purchased for Kentucky,1\n'
@@ -1198,7 +1198,7 @@ class TestGenerateTransactionReports(TstFunction):
 
         with ZipFile(BytesIO(compact_zip_obj['Body'].read())) as zip_file:
             # Check financial summary, which in this case should only include the successful transaction
-            with zip_file.open(f'{TEST_COMPACT}-financial-summary-{date_range}.csv') as f:
+            with zip_file.open(f'financial-summary-{date_range}.csv') as f:
                 summary_content = f.read().decode('utf-8')
                 self.assertEqual(
                     'Privileges purchased for Kentucky,1\n'
@@ -1212,7 +1212,7 @@ class TestGenerateTransactionReports(TstFunction):
                 )
 
             # Check transaction detail, which in this case should only include the successful transaction
-            with zip_file.open(f'{TEST_COMPACT}-transaction-detail-{date_range}.csv') as f:
+            with zip_file.open(f'transaction-detail-{date_range}.csv') as f:
                 detail_content = f.read().decode('utf-8')
                 self.assertEqual(
                     'Licensee First Name,Licensee Last Name,Licensee Id,Transaction Settlement Date UTC,State,State Fee,Administrative Fee,Collected Transaction Fee,Transaction Id,Privilege Id,Transaction Status\n'
