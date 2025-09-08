@@ -167,7 +167,7 @@ describe('EmailNotificationServiceLambda', () => {
                 },
                 Subject: {
                     Charset: 'UTF-8',
-                    Data: 'Transactions Failed to Settle for ASLP Payment Processor'
+                    Data: 'Transactions Failed to Settle for Audiology and Speech Language Pathology Payment Processor'
                 }
             },
             Source: 'Compact Connect <noreply@example.org>'
@@ -238,13 +238,14 @@ describe('EmailNotificationServiceLambda', () => {
             const rawEmailString = rawEmailData?.toString();
 
             expect(rawEmailString).toContain('Content-Type: application/zip;');
-            expect(rawEmailString).toContain('name=aslp-settled-transaction-report-2024-03-01--2024-03-07.zip');
+            expect(rawEmailString).toContain('name=settled-transaction-report-2024-03-01--2024-03-07.zip');
             expect(rawEmailString).toContain('Content-Disposition: attachment;');
-            expect(rawEmailString).toContain('filename=aslp-settled-transaction-report-2024-03-01--2024-03-07.zip');
-            expect(rawEmailString).toContain('Weekly Report for Compact ASLP');
-            expect(rawEmailString).toContain('Please find attached the weekly settled');
-            expect(rawEmailString).toContain('transaction reports for the compact for the period 2024-03-01 to');
-            expect(rawEmailString).toContain('2024-03-07:</p>');
+            expect(rawEmailString).toContain('filename=settled-transaction-report-2024-03-01--2024-03-07.zip');
+            expect(rawEmailString).toContain('Weekly Report for Audiology and Speech Language Pathology');
+            expect(rawEmailString).toContain('Please find');
+            expect(rawEmailString).toContain('attached the weekly settled transaction reports for the compact');
+            expect(rawEmailString).toContain('2024-03-01');
+            expect(rawEmailString).toContain('2024-03-07');
             expect(rawEmailString).toContain('To: summary@example.com');
         });
 
@@ -337,10 +338,11 @@ describe('EmailNotificationServiceLambda', () => {
             expect(rawEmailString).toContain('name=oh-settled-transaction-report-2024-03-01--2024-03-07.zip');
             expect(rawEmailString).toContain('Content-Disposition: attachment;');
             expect(rawEmailString).toContain('filename=oh-settled-transaction-report-2024-03-01--2024-03-07.zip');
-            expect(rawEmailString).toContain('Ohio Weekly Report for Compact ASLP');
-            expect(rawEmailString).toContain('Please find attached the weekly settled');
-            expect(rawEmailString).toContain('transaction report for your jurisdiction for the period 2024-03-01 to');
-            expect(rawEmailString).toContain('2024-03-07.</div>');
+            expect(rawEmailString).toContain('Ohio Weekly Report for Audiology and Speech Language Pathology');
+            expect(rawEmailString).toContain('Please find attached the');
+            expect(rawEmailString).toContain('weekly settled transaction report for your jurisdiction');
+            expect(rawEmailString).toContain('2024-03-01');
+            expect(rawEmailString).toContain('2024-03-07');
             expect(rawEmailString).toContain('To: ohio@example.com');
         });
 
@@ -435,7 +437,7 @@ describe('EmailNotificationServiceLambda', () => {
                     },
                     Subject: {
                         Charset: 'UTF-8',
-                        Data: 'A Privilege was Deactivated in the ASLP Compact'
+                        Data: 'A Privilege was Deactivated in the Audiology and Speech Language Pathology Compact'
                     }
                 },
                 Source: 'Compact Connect <noreply@example.org>'

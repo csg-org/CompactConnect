@@ -12,27 +12,27 @@ interface IIngestEvents {
  * Email service for handling ingest event reporting
  */
 export class IngestEventEmailService extends BaseEmailService {
-    public async sendReportEmail(events: IIngestEvents, compact: string, jurisdiction: string, recipients: string[]) {
+    public async sendReportEmail(events: IIngestEvents, compactName: string, jurisdiction: string, recipients: string[]) {
         this.logger.info('Sending report email', { recipients: recipients });
 
         // Generate the HTML report
-        const htmlContent = this.generateReport(events, compact, jurisdiction);
+        const htmlContent = this.generateReport(events, compactName, jurisdiction);
 
         return this.sendEmail({
             htmlContent,
-            subject: `License Data Error Summary: ${compact} / ${jurisdiction}`,
+            subject: `License Data Error Summary: ${compactName} / ${jurisdiction}`,
             recipients,
             errorMessage: 'Error sending report email'
         });
     }
 
-    public async sendAllsWellEmail(compact: string, jurisdiction: string, recipients: string[]) {
+    public async sendAllsWellEmail(compactName: string, jurisdiction: string, recipients: string[]) {
         this.logger.info('Sending alls well email', { recipients: recipients });
 
         // Generate the HTML report
         const report = this.getNewEmailTemplate();
 
-        this.insertHeaderWithJurisdiction(report, compact, jurisdiction, 'License Data Summary');
+        this.insertHeaderWithJurisdiction(report, compactName, jurisdiction, 'License Data Summary');
         this.insertNoErrorImage(report);
         this.insertSubHeading(report, 'There have been no license data errors this week!');
         this.insertFooter(report);
@@ -41,19 +41,19 @@ export class IngestEventEmailService extends BaseEmailService {
 
         return this.sendEmail({
             htmlContent,
-            subject: `License Data Summary: ${compact} / ${jurisdiction}`,
+            subject: `License Data Summary: ${compactName} / ${jurisdiction}`,
             recipients,
             errorMessage: 'Error sending alls well email'
         });
     }
 
-    public async sendNoLicenseUpdatesEmail(compact: string, jurisdiction: string, recipients: string[]) {
+    public async sendNoLicenseUpdatesEmail(compactName: string, jurisdiction: string, recipients: string[]) {
         this.logger.info('Sending no license updates email', { recipients: recipients });
 
         // Generate the HTML report
         const report = this.getNewEmailTemplate();
 
-        this.insertHeaderWithJurisdiction(report, compact, jurisdiction, 'License Data Summary');
+        this.insertHeaderWithJurisdiction(report, compactName, jurisdiction, 'License Data Summary');
         this.insertClockImage(report);
         this.insertSubHeading(report, 'There have been no licenses uploaded in the last 7 days.');
         this.insertFooter(report);
@@ -62,18 +62,18 @@ export class IngestEventEmailService extends BaseEmailService {
 
         return this.sendEmail({
             htmlContent,
-            subject: `No License Updates for Last 7 Days: ${compact} / ${jurisdiction}`,
+            subject: `No License Updates for Last 7 Days: ${compactName} / ${jurisdiction}`,
             recipients,
             errorMessage: 'Error sending no license updates email'
         });
     }
 
-    public generateReport(events: IIngestEvents, compact: string, jurisdiction: string): string {
+    public generateReport(events: IIngestEvents, compactName: string, jurisdiction: string): string {
         const report = this.getNewEmailTemplate();
 
         this.insertHeaderWithJurisdiction(
             report,
-            compact,
+            compactName,
             jurisdiction,
             'License Data Error Summary'
         );
