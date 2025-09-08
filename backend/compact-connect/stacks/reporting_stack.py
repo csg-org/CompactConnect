@@ -131,12 +131,6 @@ class ReportingStack(AppStack):
 
     def _add_transaction_reporting_chain(self, persistent_stack: ps.PersistentStack):
         """Add the transaction reporting lambda and event rules.
-
-        Based on our initial load testing, we determined that this lambda can process up to 70,000 transactions
-        in a single invocation. The limit is set by the size of the payload we can send to the
-        email-notification-service lambda (6MB) which is a hard limit. If we need to process more transactions than
-        this, we will need to update the system to use an S3 bucket to store the transaction data and have the
-        email-notification-service lambda read from the bucket.
         """
         self.transaction_reporter = PythonFunction(
             self,
@@ -146,6 +140,9 @@ class ReportingStack(AppStack):
             lambda_dir='purchases',
             index=os.path.join('handlers', 'transaction_reporting.py'),
             timeout=Duration.minutes(15),
+            # This lambda sends email notifications, so we do not want it to retry in the event of a failure
+            # we will instead trigger an alert for support to investigate and address as needed.
+            retry_attempts=0,
             # Setting this memory size higher than others because it can potentially pull in a lot of data from
             # DynamoDB, and we want to ensure it has enough memory to handle that.
             memory_size=3008,
