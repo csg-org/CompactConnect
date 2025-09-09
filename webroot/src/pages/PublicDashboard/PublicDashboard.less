@@ -174,7 +174,6 @@
             display: flex;
             margin-bottom: @separatorSpacing;
 
-            // Override focus styles to use box-shadow instead of outline
             &:focus {
                 border-radius: 2px;
                 outline: none;
@@ -204,7 +203,6 @@
                         pointer-events: none;
                     }
 
-                    // Prevent focus styles from affecting the separator
                     &:focus::after {
                         box-shadow: none;
                     }
