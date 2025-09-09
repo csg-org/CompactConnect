@@ -381,7 +381,8 @@
         "purchasePrivileges": "Obtener privilegios",
         "styleGuide": "Guía de estilo",
         "account": "Cuenta",
-        "logout": "Cerrar sesión"
+        "logout": "Cerrar sesión",
+        "helpCenter": "Centro de ayuda"
     },
     "paging": {
         "previousPage": "Pagina anterior",
