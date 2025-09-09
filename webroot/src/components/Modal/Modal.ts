@@ -39,13 +39,11 @@ class Modal extends Vue {
         this.globalStore = this.$store.state;
     }
 
-    mounted() {
+    async mounted() {
         this.$store.dispatch('setModalIsOpen', true);
 
-        // Focus the modal content for screen readers to read title then content automatically
-        nextTick(() => {
-            (this.$refs.modalContent as HTMLElement)?.focus();
-        });
+        await nextTick();
+        await this.initializeModalAccessibility();
     }
 
     beforeUnmount() {
@@ -82,6 +80,21 @@ class Modal extends Vue {
     //
     // Methods
     //
+    async initializeModalAccessibility() {
+        const modalContainer = document.querySelector('.modal-container[role="dialog"]') as HTMLElement;
+        const modalContent = this.$refs.modalContent as HTMLElement;
+
+        if (modalContainer && modalContent) {
+            // Focus dialog container first for title announcement
+            modalContainer.setAttribute('tabindex', '-1');
+            modalContainer.focus();
+
+            await nextTick();
+            // Focus content for keyboard navigation and content reading
+            modalContent.focus();
+        }
+    }
+
     closeModal() {
         this.$emit('close-modal');
         this.$store.dispatch('setModalIsOpen', false);
