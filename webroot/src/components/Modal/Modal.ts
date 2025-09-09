@@ -81,17 +81,21 @@ class Modal extends Vue {
     // Methods
     //
     async initializeModalAccessibility() {
-        const modalContainer = document.querySelector('.modal-container[role="dialog"]') as HTMLElement;
-        const modalContent = this.$refs.modalContent as HTMLElement;
+        const root = this.$el as HTMLElement | null;
+        const modalContainer = root?.querySelector('.modal-container[role="dialog"]') as HTMLElement | null;
+        const modalContent = this.$refs.modalContent as (HTMLElement | undefined);
 
-        if (modalContainer && modalContent) {
-            // Focus dialog container first for title announcement
+        // Focus dialog container first for title announcement (even if content not yet rendered)
+        if (modalContainer) {
             modalContainer.setAttribute('tabindex', '-1');
-            modalContainer.focus();
+            modalContainer.focus({ preventScroll: true });
+        }
 
-            await nextTick();
-            // Focus content for keyboard navigation and content reading
-            modalContent.focus();
+        await nextTick();
+
+        // Optionally move focus to content for reading/keyboard nav if present
+        if (modalContent && document.contains(modalContent)) {
+            modalContent.focus({ preventScroll: true });
         }
     }
 
