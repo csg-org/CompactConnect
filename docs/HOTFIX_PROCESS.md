@@ -56,22 +56,19 @@ git push origin hotfix/<issue-description>
 
 - Monitor the AWS CodePipeline execution
 - Watch for any deployment failures
-- Verify the fix is working in production
 - Monitor application metrics and logs
+- Verify the fix is working in production
+
 
 ### 5. Pull Request into Development
 
 - Open Pull Request to merge same hotfix branch into development branch
-- Merge into main using **Merge commit** (NOT SQUASH OR REBASE)
+- Merge into development using **Merge commit** (NOT SQUASH OR REBASE)
+- verify hotfix is successfully deployed to development environment.
 
 ### 6. Delete Hotfix Branch
 
 - delete both local and remote hotfix branch
-
-```bash
-# Delete local hotfix branch
-git branch -d hotfix/<issue-description>
-```
 
 ## Emergency Hotfix Checklist
 
