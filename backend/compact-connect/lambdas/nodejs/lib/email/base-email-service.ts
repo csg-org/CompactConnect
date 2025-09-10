@@ -30,6 +30,7 @@ export abstract class BaseEmailService {
     protected readonly compactConfigurationClient: CompactConfigurationClient;
     protected readonly jurisdictionClient: JurisdictionClient;
     private readonly environmentBannerService = new EnvironmentBannerService();
+    protected readonly shouldShowEnvironmentBannerIfNonProdEnvironment: boolean = true;
     private readonly emailTemplate: TReaderDocument = {
         'root': {
             'type': 'EmailLayout',
@@ -163,7 +164,9 @@ export abstract class BaseEmailService {
         heading: string) {
 
         // Insert environment banner first (above logo)
-        this.environmentBannerService.insertEnvironmentBannerIfNonProd(report);
+        if (this.shouldShowEnvironmentBannerIfNonProdEnvironment) {
+            this.environmentBannerService.insertEnvironmentBannerIfNonProd(report);
+        }
 
         const blockLogoId = 'block-logo';
         const blockHeaderId = 'block-header';
@@ -265,7 +268,9 @@ export abstract class BaseEmailService {
 
     protected insertHeader(report: TReaderDocument, heading: string) {
         // Insert environment banner first (above logo)
-        this.environmentBannerService.insertEnvironmentBannerIfNonProd(report);
+        if (this.shouldShowEnvironmentBannerIfNonProdEnvironment) {
+            this.environmentBannerService.insertEnvironmentBannerIfNonProd(report);
+        }
 
         const blockLogoId = 'block-logo';
         const blockHeaderId = 'block-header';
@@ -578,6 +583,8 @@ export abstract class BaseEmailService {
         report['root']['data']['childrenIds'].push(blockId);
 
         // Insert test email warning footer last (below copyright)
-        this.environmentBannerService.insertTestEmailFooterIfNonProd(report);
+        if (this.shouldShowEnvironmentBannerIfNonProdEnvironment) {
+            this.environmentBannerService.insertTestEmailFooterIfNonProd(report);
+        }
     }
 }
