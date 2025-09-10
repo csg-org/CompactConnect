@@ -382,7 +382,8 @@
         "purchasePrivileges": "Obtain privileges",
         "styleGuide": "Styleguide",
         "account": "Account",
-        "logout": "Logout"
+        "logout": "Logout",
+        "helpCenter": "Help Center"
     },
     "privacyPolicy": {
         "title": "Privacy Policy",
