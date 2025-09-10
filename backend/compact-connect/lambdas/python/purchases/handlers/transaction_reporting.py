@@ -3,6 +3,7 @@ from __future__ import annotations
 import csv
 from datetime import datetime, timedelta
 from decimal import Decimal
+from enum import StrEnum
 from io import BytesIO, StringIO
 from zipfile import ZIP_DEFLATED, ZipFile
 
@@ -12,7 +13,12 @@ from cc_common.data_model.schema.compact import Compact
 from cc_common.data_model.schema.compact.common import COMPACT_TYPE
 from cc_common.data_model.schema.jurisdiction.common import JURISDICTION_TYPE
 from cc_common.exceptions import CCInternalException
-from purchase_client import AuthorizeNetTransactionErrorStates
+
+
+class ReportableTransactionStatuses(StrEnum):
+    """Transaction statuses that should be included in financial reports.
+    """
+    SettledSuccessfully = 'settledSuccessfully'
 
 
 def _get_display_date_range(reporting_cycle: str) -> tuple[datetime, datetime]:
@@ -222,13 +228,13 @@ def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  
         compact=compact, start_epoch=start_epoch, end_epoch=end_epoch
     )
 
-    # For now, we only report on transactions that have been successfully settled, so we filter out any transactions
-    # that have a settlement error. This is because in the case of a settlement error, no money was transferred for that
-    # transaction, and the transaction will be reprocessed in a future batch by Authorize.net after the account owners
-    # have worked with their MSP to resolve the issue that caused the settlement error.
+    # For now, we only report on transactions that have been successfully settled, so we filter to only include
+    # transactions with a 'settledSuccessfully' status. This is because in the case of a settlement error, no money was
+    # transferred for that transaction, and the transaction will be reprocessed in a future batch by Authorize.net after
+    # the account owners have worked with their MSP to resolve the issue that caused the settlement error.
     # See https://community.developer.cybersource.com/t5/Integration-and-Testing/What-happens-to-a-batch-having-a-settlementState-of/td-p/58993
     # for more information on how settlement errors are reprocessed.
-    transactions = [t for t in transactions if t.get('transactionStatus') not in AuthorizeNetTransactionErrorStates]
+    transactions = [t for t in transactions if t.get('transactionStatus') in ReportableTransactionStatuses]
 
     # Get unique provider IDs from transactions and their details
     provider_ids = {t['licenseeId'] for t in transactions}
