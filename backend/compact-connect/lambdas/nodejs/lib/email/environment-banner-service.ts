@@ -43,6 +43,7 @@ export class EnvironmentBannerService {
     private shouldShowBanner(): boolean {
         try {
             const envName = this.environmentVariablesService.getEnvironmentName().toLowerCase().trim();
+
             return envName !== 'prod';
         } catch (error) {
             // If environment detection fails, default to not showing banner
@@ -122,7 +123,7 @@ export class EnvironmentBannerService {
                     }
                 },
                 'props': {
-                    'text': "You're viewing a test email.",
+                    'text': 'You\'re viewing a test email.',
                     'markdown': false
                 }
             }
