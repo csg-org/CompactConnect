@@ -57,14 +57,7 @@ export class EnvironmentBannerService {
      * Gets environment-specific banner text
      */
     private getBannerText(): string {
-        try {
-            const envName = this.environmentVariablesService.getEnvironmentName().toLowerCase().trim();
-
-            return `⚠️ TEST: The info in this email is from a ${envName} environment and is for testing purposes only.`;
-        } catch (error) {
-            console.error('Error getting banner text, using default:', error);
-            return '⚠️ TEST: The info in this email is from a non-production environment and is for testing purposes only.';
-        }
+        return `⚠️ TEST: The info in this email is from a testing environment and is for testing purposes only.`;
     }
 
     /**
@@ -110,7 +103,6 @@ export class EnvironmentBannerService {
             'type': 'Text',
             'data': {
                 'style': {
-                    'backgroundColor': null,
                     'color': '#DA2525',
                     'fontSize': 13,
                     'fontWeight': 'normal',
