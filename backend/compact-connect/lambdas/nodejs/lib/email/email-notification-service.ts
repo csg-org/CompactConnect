@@ -67,8 +67,9 @@ export class EmailNotificationService extends BaseEmailService {
             throw new Error(`No recipients found for compact ${compact} with recipient type ${recipientType}`);
         }
 
+        const compactConfig = await this.compactConfigurationClient.getCompactConfiguration(compact);
         const report = this.getNewEmailTemplate();
-        const subject = `Transactions Failed to Settle for ${compact.toUpperCase()} Payment Processor`;
+        const subject = `Transactions Failed to Settle for ${compactConfig.compactName} Payment Processor`;
         const bodyText = 'A transaction settlement error was detected within the payment processing account for the compact. ' +
             'Please reach out to your payment processing representative to determine the cause. ' +
             'Transactions made in the account will not be able to be settled until the issue is addressed.';
@@ -111,8 +112,9 @@ export class EmailNotificationService extends BaseEmailService {
             throw new Error(`No recipients found for jurisdiction ${jurisdiction} in compact ${compact}`);
         }
 
+        const compactConfig = await this.compactConfigurationClient.getCompactConfiguration(compact);
         const report = this.getNewEmailTemplate();
-        const subject = `A Privilege was Deactivated in the ${compact.toUpperCase()} Compact`;
+        const subject = `A Privilege was Deactivated in the ${compactConfig.compactName} Compact`;
         const bodyText = `This message is to notify you that privilege ${privilegeId} held by ${providerFirstName} ${providerLastName} was deactivated and can no longer be used to practice.`;
 
         this.insertHeader(report, subject);
@@ -182,8 +184,9 @@ export class EmailNotificationService extends BaseEmailService {
 
         const reportZipBuffer = Buffer.from(await reportZipResponse.Body.transformToByteArray());
 
+        const compactConfig = await this.compactConfigurationClient.getCompactConfiguration(compact);
         const report = this.getNewEmailTemplate();
-        const subject = `${reportingCycle === 'weekly' ? 'Weekly' : 'Monthly'} Report for Compact ${compact.toUpperCase()}`;
+        const subject = `${reportingCycle === 'weekly' ? 'Weekly' : 'Monthly'} Report for ${compactConfig.compactName}`;
         const bodyText = `Please find attached the ${reportingCycle} settled transaction reports for the compact for the period ${startDate} to ${endDate}:\n\n` +
             '- Financial Summary Report - A summary of all settled transactions and fees\n' +
             '- Transaction Detail Report - A detailed list of all settled transactions';
@@ -201,7 +204,7 @@ export class EmailNotificationService extends BaseEmailService {
             errorMessage: 'Unable to send compact transaction report email',
             attachments: [
                 {
-                    filename: `${compact}-settled-transaction-report-${startDate}--${endDate}.zip`,
+                    filename: `settled-transaction-report-${startDate}--${endDate}.zip`,
                     content: reportZipBuffer,
                     contentType: 'application/zip'
                 }
@@ -241,8 +244,9 @@ export class EmailNotificationService extends BaseEmailService {
 
         const reportZipBuffer = Buffer.from(await reportZipResponse.Body.transformToByteArray());
 
+        const compactConfig = await this.compactConfigurationClient.getCompactConfiguration(compact);
         const report = this.getNewEmailTemplate();
-        const subject = `${jurisdictionConfig.jurisdictionName} ${reportingCycle === 'weekly' ? 'Weekly' : 'Monthly'} Report for Compact ${compact.toUpperCase()}`;
+        const subject = `${jurisdictionConfig.jurisdictionName} ${reportingCycle === 'weekly' ? 'Weekly' : 'Monthly'} Report for ${compactConfig.compactName}`;
         const bodyText = `Please find attached the ${reportingCycle} settled transaction report for your jurisdiction for the period ${startDate} to ${endDate}.`;
 
         this.insertHeader(report, subject);
