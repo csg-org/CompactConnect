@@ -88,9 +88,12 @@ class _PaginatedQueryDecorator:
             # for the last key if we have one
             if last_known_evaluated_key is not None:
                 last_key = {k: last_item[k] for k in last_known_evaluated_key.keys()}
-            # else the first query was the last query, but there were more items returned than the page size
-            # in this case, we need to determine the last key by making a query with a limit of 1
-            # so we can get the last key from the response and use it for the last item in the list
+            # Else the first query was the last query, but there were more items to be returned than the specified page
+            # size. In this case, we need to determine the last key for getting the next page. The keys needed by the
+            # last key are not static (for example, if you are querying by a GSI you must include the GSI fields as
+            # part of the last key) so to have a generic solution for this scenario, we make a query with a limit of 1
+            # so we can get the LastEvaluatedKey from the response, and then map the keys from that to the values of
+            # the last item that will be returned in the response to create our own last key.
             else:
                 last_key_resp = self._caught_query(client_filter, *args, dynamo_pagination={'Limit': 1}, **kwargs)
                 last_known_evaluated_key = last_key_resp.get('LastEvaluatedKey')

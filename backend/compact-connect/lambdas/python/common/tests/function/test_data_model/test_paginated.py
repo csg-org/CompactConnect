@@ -12,8 +12,10 @@ MOCK_PROVIDER_ID_PREFIX = '89a6377e-c3a5-40e5-bca5-317ec854c5'
 @mock_aws
 class TestPaginated(TstFunction):
     def test_pagination_returns_pagination_key_if_more_items_than_page_size_on_first_query(self):
-        """Test edge case: page size 5, 10 providers total, no limit set, 8 providers match filter.
-        Should return expected last key since there are more matching providers that were truncated due to page size.
+        """Test edge case: page size 5, 10 providers total, 8 providers match filter. Only 5 should be returned within
+        the response. The call should handle generating the expected last key since there are more matching providers
+        that were truncated due to page size. So even though DynamoDB itself won't return a last key from the initial
+        query, we ensure that a valid last key is returned for the caller to get all records.
         """
         # Create 10 provider records with different jurisdictions
         # 8 will have 'ky' jurisdiction (match filter), 2 will have 'oh' jurisdiction (don't match filter)
@@ -62,9 +64,8 @@ class TestPaginated(TstFunction):
         self.assertIsNone(resp['pagination']['lastKey'])
 
     def test_pagination_does_not_return_pagination_key_if_number_of_items_is_exact_match_to_page_size(self):
-        """Test edge case: page size 5, 5 providers total, flag set to False, all 5 providers match filter.
-        Should return no last key since all available providers fit in the response.
-        Uses actual DynamoDB queries with moto mocking.
+        """Test edge case: page size 5, 5 providers total, all 5 providers match filter.
+        Verify the code does not return a last key since all available providers fit in the response page size.
         """
         # Create exactly 5 provider records - all will match the filter
         provider_ids = []
