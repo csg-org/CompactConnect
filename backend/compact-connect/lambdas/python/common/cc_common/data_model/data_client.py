@@ -1428,7 +1428,7 @@ class DataClient:
 
             now = config.current_standard_datetime
             encumbrance_details = {
-                'note': adverse_action.clinicalPrivilegeActionCategory,
+                'clinicalPrivilegeActionCategory': adverse_action.clinicalPrivilegeActionCategory,
                 'adverseActionId': adverse_action.adverseActionId,
             }
 
@@ -2655,7 +2655,7 @@ class DataClient:
         )
 
         encumbrance_details = {
-            'note': adverse_action_category,
+            'clinicalPrivilegeActionCategory,': adverse_action_category,
             'licenseJurisdiction': jurisdiction,
             'adverseActionId': adverse_action_id,
         }

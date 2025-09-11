@@ -25,7 +25,7 @@ class TestGetProvider(TstFunction):
             value_overrides={
                 'updateType': 'encumbrance',
                 'encumbranceDetails': {
-                    'note': 'Did bad things',
+                    'clinicalPrivilegeActionCategory': 'Did bad things',
                     'licenseJurisdiction': 'oh',
                     'adverseActionId': DEFAULT_ADVERSE_ACTION_ID,
                 },
@@ -50,7 +50,7 @@ class TestGetProvider(TstFunction):
             value_overrides={
                 'updateType': 'encumbrance',
                 'encumbranceDetails': {
-                    'note': 'Did bad things',
+                    'clinicalPrivilegeActionCategory': 'Did bad things',
                     'licenseJurisdiction': 'oh',
                     'adverseActionId': DEFAULT_ADVERSE_ACTION_ID,
                 },
@@ -80,7 +80,7 @@ class TestGetProvider(TstFunction):
             value_overrides={
                 'updateType': 'encumbrance',
                 'encumbranceDetails': {
-                    'note': 'Did bad things',
+                    'clinicalPrivilegeActionCategory': 'Did bad things',
                     'licenseJurisdiction': 'oh',
                     'adverseActionId': DEFAULT_ADVERSE_ACTION_ID,
                 },

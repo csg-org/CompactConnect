@@ -1732,7 +1732,7 @@ export const mockPrivilegeHistoryResponses = [
                 type: 'privilegeUpdate',
                 updateType: 'issuance',
                 dateOfUpdate: '2024-12-11T07:46:19+00:00',
-                effectiveDate: '2024-12-1117:04:38+00:00',
+                effectiveDate: '2024-12-11T17:04:38+00:00',
                 createDate: '2024-12-11T07:46:19+00:00'
             },
             {

@@ -55,8 +55,9 @@ class EncumbranceDetailsSchema(Schema):
     Schema for tracking details about an encumbrance.
     """
 
-    note = String(required=False, allow_none=False, validate=Length(1, 256))
+    clinicalPrivilegeActionCategory = String(required=False, allow_none=False, validate=Length(1, 256))
     adverseActionId = UUID(required=True, allow_none=False)
+    # present iff update is created by upstream license encumbrance
     licenseJurisdiction = Jurisdiction(required=False, allow_none=False)
 
 @BaseRecordSchema.register_schema('privilege')

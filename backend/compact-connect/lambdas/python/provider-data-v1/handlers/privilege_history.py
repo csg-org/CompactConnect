@@ -77,7 +77,9 @@ def _get_privilege_history_public(event: dict):
         license_type_abbr=license_type_abbr,
     )
 
-    return ProviderRecordUtility.construct_simplified_privilege_history_object(privilege_data, False)
+    return ProviderRecordUtility.construct_simplified_privilege_history_object(
+        privilege_data, should_include_encumbrance_details=False
+    )
 
 
 def _get_privilege_history_provider_user_me(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument

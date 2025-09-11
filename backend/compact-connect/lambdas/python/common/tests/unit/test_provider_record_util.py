@@ -952,7 +952,7 @@ class TestProviderRecordUtility(TstLambdas):
                 'updatedValues': {'encumberedStatus': 'licenseEncumbered'},
                 'updateType': 'encumbrance',
                 'encumbranceDetails': {
-                    'note': 'Did bad things',
+                    'clinicalPrivilegeActionCategory': 'Did bad things',
                     'licenseJurisdiction': 'oh',
                 },
             },

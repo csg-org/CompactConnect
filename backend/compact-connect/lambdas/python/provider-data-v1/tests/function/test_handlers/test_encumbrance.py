@@ -163,7 +163,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
                 'effectiveDate': datetime.fromisoformat(TEST_ENCUMBRANCE_EFFECTIVE_DATETIME),
                 'createDate': datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP),
                 'encumbranceDetails': {
-                    'note': 'Unsafe Practice or Substandard Care',
+                    'clinicalPrivilegeActionCategory': 'Unsafe Practice or Substandard Care',
                     'adverseActionId': DEFAULT_ADVERSE_ACTION_ID,
                 }
             }

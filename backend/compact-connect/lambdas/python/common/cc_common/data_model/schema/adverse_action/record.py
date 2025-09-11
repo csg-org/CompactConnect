@@ -48,7 +48,6 @@ class AdverseActionRecordSchema(BaseRecordSchema):
 
     @pre_dump
     def generate_pk_sk(self, in_data, **_kwargs):
-        in_data = self._populate_adverse_action_id(in_data)
         in_data['pk'] = f'{in_data["compact"]}#PROVIDER#{in_data["providerId"]}'
         # ensure this is passed in lowercase
         license_type_abbr = in_data['licenseTypeAbbreviation'].lower()

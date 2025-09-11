@@ -374,7 +374,7 @@ class ProviderRecordUtility:
                 and event.get('encumbranceDetails')
                 and should_include_encumbrance_details
             ):
-                event['note'] = event['encumbranceDetails']['note']
+                event['note'] = event['encumbranceDetails']['clinicalPrivilegeActionCategory']
             elif (
                 event['updateType'] == UpdateCategory.DEACTIVATION
                 and event.get('deactivationDetails')
