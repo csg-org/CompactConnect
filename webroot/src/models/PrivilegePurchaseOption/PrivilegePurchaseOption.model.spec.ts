@@ -92,11 +92,6 @@ describe('PrivilegePurchaseOption model', () => {
                     amount: 100
                 }
             ],
-            militaryDiscount: {
-                active: true,
-                discountType: 'FLAT_RATE',
-                discountAmount: 10
-            },
             jurisprudenceRequirements: {
                 required: true,
                 linkToDocumentation: 'https://example.com',
@@ -133,7 +128,6 @@ describe('PrivilegePurchaseOption model', () => {
                     licenseTypeAbbreviation: 'aud'
                 }
             ],
-            militaryDiscount: null,
             jurisprudenceRequirements: {
                 required: true,
                 linkToDocumentation: 'https://example.com',

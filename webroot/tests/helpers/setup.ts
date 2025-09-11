@@ -6,7 +6,7 @@
 //
 
 /* eslint-disable import/no-extraneous-dependencies */
-import { mount, shallowMount } from '@vue/test-utils';
+import { mount, shallowMount, config as vueTestConfig } from '@vue/test-utils';
 import { createRouter, createWebHistory } from 'vue-router';
 import routes from '@router/routes';
 import { DataApi } from '@network/mocks/mock.data.api';
@@ -20,10 +20,31 @@ import momentTz from 'moment-timezone';
 import sinon from 'sinon';
 import { VirtualConsole } from 'jsdom';
 
-// Create stub instance of mock API
-const mockApi = sinon.createStubInstance(DataApi);
+// Stabilize browser language default for tests
+try {
+    Object.defineProperty(window.navigator, 'language', { value: 'en-US', configurable: true });
+} catch (err) {
+    // ignore if not configurable in this environment
+}
 
-// Create stub instance of 'window' methods
+// Ensure transitions are stubbed in tests and avoid transition timing issues
+vueTestConfig.global = vueTestConfig.global || {} as any;
+vueTestConfig.global.stubs = {
+    ...(vueTestConfig.global.stubs || {}),
+    transition: true,
+    'transition-group': true,
+};
+
+// Polyfill requestAnimationFrame() for tests
+const requestAnimationFrameStub = (cb: FrameRequestCallback) => setTimeout(() => cb(0), 0) as unknown as number;
+const cancelAnimationFrameStub = (id: number) => clearTimeout(id as unknown as NodeJS.Timeout);
+
+(window as any).requestAnimationFrame = requestAnimationFrameStub;
+(window as any).cancelAnimationFrame = cancelAnimationFrameStub;
+(global as any).requestAnimationFrame = requestAnimationFrameStub;
+(global as any).cancelAnimationFrame = cancelAnimationFrameStub;
+
+// Polyfill matchMedia() for tests
 window.matchMedia = sinon.stub().callsFake((query) => ({
     matches: false,
     media: query,
@@ -94,9 +115,17 @@ const failTestOn = (errorWatchList: Array<string>) => {
     };
 };
 
+//
+// Mocha setup / teardown methods
+//
 beforeEach(() => {
     const { tm: $tm, t: $t } = i18n.global;
 
+    // Force English locale for every test
+    (i18n.global as any).locale = 'en';
+    (i18n.global as any).fallbackLocale = 'en';
+
+    // Force global setup since main.ts works differently for tests
     (window as any).Vue = {
         config: {
             globalProperties: {
@@ -105,15 +134,12 @@ beforeEach(() => {
             }
         }
     };
-
-    window.scrollTo = () => { /* empty */ };
-});
-
-//
-// Mocha setup / teardown methods
-//
-beforeEach(() => {
     setMomentRelativeFormats();
+
+    // Reset the the scrollTo() polyfill
+    window.scrollTo = () => { /* empty */ };
+
+    // Ensure tests fail on what would otherwise just be vue-test-utils console output
     failTestOn(['Vue warn', 'unhandledRejection']);
 });
 
@@ -123,6 +149,9 @@ beforeEach(() => {
         console.error('unhandledRejection', err.stack);
     }
 });
+
+// Create stub instance of mock API
+const mockApi = sinon.createStubInstance(DataApi);
 
 /**
  * Shallow-mount a component with mocks.
@@ -153,6 +182,10 @@ const mountShallow = async (component, mountConfig: any = {}) => {
                 $api: mockApi,
                 $t: sinon.spy(() => ''),
                 $i18n: { locale: 'en' },
+            },
+            stubs: {
+                transition: true,
+                'transition-group': true,
             },
         },
     };
@@ -199,6 +232,10 @@ const mountFull = async (component, mountConfig: any = {}) => {
                 $api: mockApi,
                 $t: sinon.spy(() => ''),
                 $i18n: { locale: 'en' },
+            },
+            stubs: {
+                transition: true,
+                'transition-group': true,
             },
         },
     };

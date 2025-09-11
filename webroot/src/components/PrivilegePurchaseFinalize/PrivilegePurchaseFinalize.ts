@@ -128,15 +128,9 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
 
     get selectedStatePurchaseDataList(): Array<PrivilegePurchaseOption> {
         return this.purchaseDataList.filter((option) => {
-            let includes = false;
+            const stateAbbrev = option.jurisdiction?.abbrev || '';
 
-            const stateAbbrev = option?.jurisdiction?.abbrev;
-
-            if (stateAbbrev) {
-                includes = this.statesSelected?.includes(stateAbbrev);
-            }
-
-            return includes;
+            return Boolean(stateAbbrev) && this.statesSelected?.includes(stateAbbrev);
         });
     }
 
@@ -144,22 +138,19 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
         const licenseTypeKey = this.licenseTypeSelected;
 
         return this.selectedStatePurchaseDataList.map((state) => {
+            // Prepare the fee description and amount text
             const feeConfig = state?.fees?.[licenseTypeKey];
-
-            let stateFeeText = '';
+            let stateFeeText = state?.jurisdiction?.name() || '';
             let stateFeeDisplay = '';
 
             if (feeConfig) {
                 const shouldUseMilitaryRate = this.shouldUseMilitaryRate(feeConfig);
 
-                stateFeeText = `${state?.jurisdiction?.name()} ${shouldUseMilitaryRate
-                    ? this.$t('payment.compactPrivilegeStateFeeMilitary')
-                    : this.$t('payment.compactPrivilegeStateFee')
-                }`;
-
                 if (shouldUseMilitaryRate) {
+                    stateFeeText += ` ${this.$t('payment.compactPrivilegeStateFeeMilitary')}`;
                     stateFeeDisplay = feeConfig.militaryRate.toFixed(2);
                 } else {
+                    stateFeeText += ` ${this.$t('payment.compactPrivilegeStateFee')}`;
                     stateFeeDisplay = (feeConfig?.baseRate || 0).toFixed(2);
                 }
             }
@@ -169,6 +160,19 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
                 stateFeeDisplay,
                 stateFeeText,
             };
+        }).sort((a, b) => {
+            // Sort selected states by name
+            const stateName1 = (a?.jurisdiction?.name() || '').toLowerCase();
+            const stateName2 = (b?.jurisdiction?.name() || '').toLowerCase();
+            let sort = 0;
+
+            if (stateName1 > stateName2) {
+                sort = 1;
+            } else if (stateName1 < stateName2) {
+                sort = -1;
+            }
+
+            return sort;
         });
     }
 

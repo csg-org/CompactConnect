@@ -176,18 +176,15 @@ export const createStatePrivilegePurchaseOption = (config: any = {}) => {
         privilegeFees: [
             {
                 licenseTypeAbbreviation: 'ot',
-                amount: 200
+                amount: 200,
+                militaryRate: (config?.hasMilitaryDiscount) ? 90 : undefined,
             },
             {
                 licenseTypeAbbreviation: 'ota',
-                amount: 100
+                amount: 100,
+                militaryRate: (config?.hasMilitaryDiscount) ? 50 : undefined,
             }
         ],
-        militaryDiscount: {
-            active: Boolean(config?.hasMilitaryDiscount),
-            discountType: 'FLAT_RATE',
-            discountAmount: 10,
-        },
         jurisprudenceRequirements: {
             required: Boolean(config?.hasJurisprudence),
         },
