@@ -56,13 +56,6 @@ class AdverseActionRecordSchema(BaseRecordSchema):
         )
         return in_data
 
-    def _populate_adverse_action_id(self, in_data):
-        """
-        If the adverseActionId is not provided, generate a new one
-        """
-        in_data.setdefault('adverseActionId', uuid4())
-        return in_data
-
     @validates_schema
     def validate_license_type(self, data, **_kwargs):  # noqa: ARG001 unused-argument
         compact = data['compact']

@@ -17,6 +17,7 @@ from cc_common.data_model.schema.common import (
 )
 from cc_common.data_model.schema.fields import (
     ActiveInactive,
+    ClinicalPrivilegeActionCategoryField,
     Compact,
     HomeJurisdictionChangeStatusField,
     Jurisdiction,
@@ -55,9 +56,9 @@ class EncumbranceDetailsSchema(Schema):
     Schema for tracking details about an encumbrance.
     """
 
-    clinicalPrivilegeActionCategory = String(required=False, allow_none=False, validate=Length(1, 256))
+    clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategoryField(required=False, allow_none=False)
     adverseActionId = UUID(required=True, allow_none=False)
-    # present iff update is created by upstream license encumbrance
+    # present if update is created by upstream license encumbrance
     licenseJurisdiction = Jurisdiction(required=False, allow_none=False)
 
 @BaseRecordSchema.register_schema('privilege')
