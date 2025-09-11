@@ -158,7 +158,7 @@ export class EncumbranceNotificationService extends BaseEmailService {
             const subject = `License Encumbrance Notification - ${providerFirstName} ${providerLastName}`;
             const bodyText = `This message is to notify you that the *${licenseType}* license held by ${providerFirstName} ${providerLastName} ` +
                 `in ${affectedJurisdictionConfig.jurisdictionName} was encumbered, effective **${effectiveStartDate}**.\n\n` +
-                `This encumbrance restricts the provider's ability to practice under the ${compactConfig.compactName} compact.` +
+                `This encumbrance restricts the provider's ability to practice under the ${compactConfig.compactName} compact.\n\n` +
                 `Provider Details: ${environmentVariableService.getUiBasePathUrl()}/${compact}/Licensing/${providerId}\n\n` +
                 'If the above link does not work, you can copy and paste the url into a browser tab, where you are already logged in.';
 

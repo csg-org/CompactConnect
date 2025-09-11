@@ -7,6 +7,7 @@ export class EnvironmentVariablesService {
     private readonly debugVariable = 'DEBUG';
     private readonly transactionReportsBucketNameVariable = 'TRANSACTION_REPORTS_BUCKET_NAME';
     private readonly userPoolTypeVariable = 'USER_POOL_TYPE';
+    private readonly environmentNameVariable = 'ENVIRONMENT_NAME';
 
     public getEnvVar(name: string): string {
         return process.env[name]?.trim() || '';
@@ -42,5 +43,9 @@ export class EnvironmentVariablesService {
 
     public getUserPoolType() {
         return this.getEnvVar(this.userPoolTypeVariable);
+    }
+
+    public getEnvironmentName() {
+        return this.getEnvVar(this.environmentNameVariable);
     }
 }

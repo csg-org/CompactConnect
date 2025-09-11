@@ -8,6 +8,7 @@ import { TReaderDocument } from '@usewaypoint/email-builder';
 import { CompactConfigurationClient } from '../compact-configuration-client';
 import { JurisdictionClient } from '../jurisdiction-client';
 import { EnvironmentVariablesService } from '../environment-variables-service';
+import { EnvironmentBannerService } from './environment-banner-service';
 
 const environmentVariableService = new EnvironmentVariablesService();
 
@@ -28,6 +29,8 @@ export abstract class BaseEmailService {
     protected readonly s3Client: S3Client;
     protected readonly compactConfigurationClient: CompactConfigurationClient;
     protected readonly jurisdictionClient: JurisdictionClient;
+    private readonly environmentBannerService = new EnvironmentBannerService();
+    protected readonly shouldShowEnvironmentBannerIfNonProdEnvironment: boolean = true;
     private readonly emailTemplate: TReaderDocument = {
         'root': {
             'type': 'EmailLayout',
@@ -160,6 +163,11 @@ export abstract class BaseEmailService {
         jurisdiction: string,
         heading: string) {
 
+        // Insert environment banner first (above logo)
+        if (this.shouldShowEnvironmentBannerIfNonProdEnvironment) {
+            this.environmentBannerService.insertEnvironmentBannerIfNonProd(report);
+        }
+
         const blockLogoId = 'block-logo';
         const blockHeaderId = 'block-header';
         const blockJurisdictionId = 'block-jurisdiction';
@@ -259,6 +267,11 @@ export abstract class BaseEmailService {
     }
 
     protected insertHeader(report: TReaderDocument, heading: string) {
+        // Insert environment banner first (above logo)
+        if (this.shouldShowEnvironmentBannerIfNonProdEnvironment) {
+            this.environmentBannerService.insertEnvironmentBannerIfNonProd(report);
+        }
+
         const blockLogoId = 'block-logo';
         const blockHeaderId = 'block-header';
 
@@ -568,5 +581,10 @@ export abstract class BaseEmailService {
         };
 
         report['root']['data']['childrenIds'].push(blockId);
+
+        // Insert test email warning footer last (below copyright)
+        if (this.shouldShowEnvironmentBannerIfNonProdEnvironment) {
+            this.environmentBannerService.insertTestEmailFooterIfNonProd(report);
+        }
     }
 }
