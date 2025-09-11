@@ -1,6 +1,4 @@
 # ruff: noqa: N801, N815  invalid-name
-from uuid import uuid4
-
 from marshmallow import ValidationError, pre_dump, validates_schema
 from marshmallow.fields import UUID, Date, DateTime, String
 from marshmallow.validate import OneOf
