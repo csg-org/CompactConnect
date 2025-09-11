@@ -131,10 +131,6 @@ class PersistentStack(AppStack):
             removal_policy=removal_policy,
             auto_delete_objects=removal_policy == RemovalPolicy.DESTROY,
         )
-        # TODO: remove these exports after CF Distribution has been moved over to frontend pipeline.  # noqa: FIX002
-        self.export_value(self.access_logs_bucket.bucket_name)
-        self.export_value(self.access_logs_bucket.bucket_arn)
-        self.export_value(self.access_logs_bucket.bucket_regional_domain_name)
 
         # This resource should not be referenced directly as a cross stack reference, any reference should
         # be made through the SSM parameter
@@ -258,9 +254,6 @@ class PersistentStack(AppStack):
             license_preprocessing_queue=self.ssn_table.preprocessor_queue.queue,
             license_upload_role=self.ssn_table.license_upload_role,
         )
-        # TODO - This dummy export is required until the api stack has been deployed # noqa: FIX002
-        #  to stop referencing this bucket arn
-        self.export_value(self.bulk_uploads_bucket.bucket_arn)
 
         self.transaction_reports_bucket = TransactionReportsBucket(
             self,
