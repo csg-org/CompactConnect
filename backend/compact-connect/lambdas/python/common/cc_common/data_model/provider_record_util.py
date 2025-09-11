@@ -18,13 +18,9 @@ from cc_common.data_model.schema.common import (
     UpdateCategory,
 )
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
-from cc_common.data_model.schema.license.api import LicenseUpdatePreviousResponseSchema
 from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationData
 from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
-from cc_common.data_model.schema.privilege.api import (
-    PrivilegeHistoryPublicResponseSchema,
-    PrivilegeUpdatePreviousGeneralResponseSchema,
-)
+from cc_common.data_model.schema.privilege.api import PrivilegeHistoryResponseSchema
 from cc_common.data_model.schema.provider import ProviderData, ProviderUpdateData
 from cc_common.exceptions import CCInternalException
 
@@ -58,9 +54,6 @@ class ProviderRecordUtility:
     """
     A class for housing official logic for how to handle provider records without making database queries.
     """
-
-    license_previous_update_schema = LicenseUpdatePreviousResponseSchema()
-    privilege_previous_update_schema = PrivilegeUpdatePreviousGeneralResponseSchema()
 
     @staticmethod
     def sanitize_provider_account_profile_fields_from_response(provider_response: dict) -> dict:
@@ -251,7 +244,10 @@ class ProviderRecordUtility:
         )
 
     @staticmethod
-    def get_enriched_history_with_synthetic_updates_from_privilege(privilege: dict, history: list[dict]) -> list[dict]:
+    def get_enriched_history_with_synthetic_updates_from_privilege(
+            privilege: dict,
+            history: list[dict],
+    ) -> list[dict]:
         """
         Enrich the privilege history with 'synthetic updates'.
         Synthetic updates are pieces of history that are not explicitly recorded in the data
@@ -370,11 +366,16 @@ class ProviderRecordUtility:
         return sorted(enriched_history, key=lambda x: x['effectiveDate'])
 
     @staticmethod
-    def construct_simplified_privilege_history_object(privilege_data: list[dict]) -> dict:
+    def construct_simplified_privilege_history_object(
+            privilege_data: list[dict],
+            should_include_encumbrance_details: bool = True
+    ) -> dict:
         """
         Construct a simplified list of history events to be easily consumed by the front end
         :param privilege_data: All of the records associated with the privilege:
         the privilege, updates, and adverse actions
+        :param should_include_encumbrance_details: Whether the response should include verbose information on privilege
+        encumbrances
         :return: The simplified and enriched privilege history
         """
         privilege = list(filter(lambda x: x['type'] == 'privilege', privilege_data))[0]
@@ -384,6 +385,20 @@ class ProviderRecordUtility:
             privilege, history
         )
 
+        # Collect notes on event types that have notes if user should see those notes
+        for event in enriched_history:
+            if (
+                event['updateType'] == UpdateCategory.ENCUMBRANCE
+                and event.get('encumbranceDetails')
+                and should_include_encumbrance_details
+            ):
+                event['note'] = event['encumbranceDetails']['clinicalPrivilegeActionCategory']
+            elif (
+                event['updateType'] == UpdateCategory.DEACTIVATION
+                and event.get('deactivationDetails')
+            ):
+                event['note'] = event['deactivationDetails']['note']
+
         unsanitized_history = {
             'providerId': privilege['providerId'],
             'compact': privilege['compact'],
@@ -392,7 +407,7 @@ class ProviderRecordUtility:
             'privilegeId': privilege['privilegeId'],
             'events': enriched_history,
         }
-        history_schema = PrivilegeHistoryPublicResponseSchema()
+        history_schema = PrivilegeHistoryResponseSchema()
         return history_schema.load(unsanitized_history)
 
 
@@ -739,10 +754,6 @@ class ProviderUserRecords:
             # 2026: license uploaded into compact connect with current expiration and issuance date
             # In this case, our system has no visibility into previous expiration periods,
             # so we cannot know if the license has been continuously active since issued.
-            license_dict['history'] = [
-                rec.to_dict()
-                for rec in self.get_update_records_for_license(license_record.jurisdiction, license_record.licenseType)
-            ]
             license_dict['adverseActions'] = [
                 rec.to_dict()
                 for rec in self.get_adverse_action_records_for_license(
@@ -756,12 +767,6 @@ class ProviderUserRecords:
             privilege_dict = privilege_record.to_dict()
             privilege_updates = self.get_update_records_for_privilege(
                 privilege_record.jurisdiction, privilege_record.licenseType
-            )
-            # add the synthetic issuance/expiration events to history
-            privilege_dict['history'] = (
-                ProviderRecordUtility.get_enriched_history_with_synthetic_updates_from_privilege(
-                    privilege=privilege_dict, history=[rec.to_dict() for rec in privilege_updates]
-                )
             )
 
             privilege_dict['adverseActions'] = [
