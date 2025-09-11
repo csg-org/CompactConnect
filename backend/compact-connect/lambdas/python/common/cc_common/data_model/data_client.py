@@ -2655,7 +2655,7 @@ class DataClient:
         )
 
         encumbrance_details = {
-            'clinicalPrivilegeActionCategory,': adverse_action_category,
+            'clinicalPrivilegeActionCategory': adverse_action_category,
             'licenseJurisdiction': jurisdiction,
             'adverseActionId': adverse_action_id,
         }
