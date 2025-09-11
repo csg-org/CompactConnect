@@ -49,7 +49,7 @@ class PrivilegeEventNode extends Vue {
     }
 
     get uploadOnDisplay(): string {
-        return this.updateType === 'encumbrance' || this.updateType === 'lifting_encumbrance' ? `${this.$t('licensing.uploadedOn')}: ${this.event?.createDateDisplay()}` : '';
+        return (this.updateType === 'encumbrance' || this.updateType === 'lifting_encumbrance') ? `${this.$t('licensing.uploadedOn')}: ${this.event?.createDateDisplay()}` : '';
     }
 }
 

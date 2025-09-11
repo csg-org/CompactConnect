@@ -1686,9 +1686,9 @@ export const mockPrivilegeHistoryResponses = [
             {
                 type: 'privilegeUpdate',
                 updateType: 'issuance',
-                dateOfUpdate: '2022-06-23T07:46:19+00:00',
-                effectiveDate: '2022-06-23T17:04:38+00:00',
-                createDate: '2022-06-23T07:46:19+00:00'
+                dateOfUpdate: '2023-02-11T07:46:19+00:00',
+                effectiveDate: '2023-02-11T17:04:38+00:00',
+                createDate: '2023-02-11T07:46:19+00:00'
             },
             {
                 type: 'privilegeUpdate',
@@ -1731,16 +1731,16 @@ export const mockPrivilegeHistoryResponses = [
             {
                 type: 'privilegeUpdate',
                 updateType: 'issuance',
-                dateOfUpdate: '2022-06-23T07:46:19+00:00',
-                effectiveDate: '2022-06-23T17:04:38+00:00',
-                createDate: '2022-06-23T07:46:19+00:00'
+                dateOfUpdate: '2024-12-11T07:46:19+00:00',
+                effectiveDate: '2024-12-1117:04:38+00:00',
+                createDate: '2024-12-11T07:46:19+00:00'
             },
             {
                 type: 'privilegeUpdate',
                 updateType: 'expiration',
-                dateOfUpdate: '2024-08-05T22:28:59+00:00',
-                effectiveDate: '2024-08-05T17:04:38+00:00',
-                createDate: '2024-08-05T22:28:59+00:00'
+                dateOfUpdate: '2025-02-03T22:28:59+00:00',
+                effectiveDate: '2025-02-03T17:04:38+00:00',
+                createDate: '2025-02-03T22:28:59+00:00'
             },
             {
                 type: 'privilegeUpdate',
