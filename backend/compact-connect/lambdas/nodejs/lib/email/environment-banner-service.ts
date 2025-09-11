@@ -44,7 +44,8 @@ export class EnvironmentBannerService {
         try {
             const envName = this.environmentVariablesService.getEnvironmentName().toLowerCase().trim();
 
-            return envName !== 'prod';
+            // only show banner for non-production environments and if the environment is defined
+            return envName !== 'prod' && envName !== '';
         } catch (error) {
             // If environment detection fails, default to not showing banner
             // (better to not show than to show the banner in a prod environment)
