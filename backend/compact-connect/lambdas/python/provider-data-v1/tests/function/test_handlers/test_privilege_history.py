@@ -25,7 +25,7 @@ class TestGetProvider(TstFunction):
             value_overrides={
                 'updateType': 'encumbrance',
                 'encumbranceDetails': {
-                    'clinicalPrivilegeActionCategory': 'Did bad things',
+                    'clinicalPrivilegeActionCategory': 'Non-compliance With Requirements',
                     'licenseJurisdiction': 'oh',
                     'adverseActionId': DEFAULT_ADVERSE_ACTION_ID,
                 },
@@ -50,7 +50,7 @@ class TestGetProvider(TstFunction):
             value_overrides={
                 'updateType': 'encumbrance',
                 'encumbranceDetails': {
-                    'clinicalPrivilegeActionCategory': 'Did bad things',
+                    'clinicalPrivilegeActionCategory': 'Non-compliance With Requirements',
                     'licenseJurisdiction': 'oh',
                     'adverseActionId': DEFAULT_ADVERSE_ACTION_ID,
                 },
@@ -80,7 +80,7 @@ class TestGetProvider(TstFunction):
             value_overrides={
                 'updateType': 'encumbrance',
                 'encumbranceDetails': {
-                    'clinicalPrivilegeActionCategory': 'Did bad things',
+                    'clinicalPrivilegeActionCategory': 'Non-compliance With Requirements',
                     'licenseJurisdiction': 'oh',
                     'adverseActionId': DEFAULT_ADVERSE_ACTION_ID,
                 },
@@ -166,7 +166,7 @@ class TestGetProvider(TstFunction):
                     'createDate': '2023-05-05T12:59:59+00:00',
                     'dateOfUpdate': '2024-11-08T23:59:59+00:00',
                     'effectiveDate': '2022-05-05T12:59:59+00:00',
-                    'note': 'Did bad things',
+                    'note': 'Non-compliance With Requirements',
                     'type': 'privilegeUpdate',
                     'updateType': 'encumbrance',
                 },
@@ -255,7 +255,7 @@ class TestGetProvider(TstFunction):
                     'effectiveDate': '2022-05-05T12:59:59+00:00',
                     'type': 'privilegeUpdate',
                     'updateType': 'encumbrance',
-                    'note': 'Did bad things',
+                    'note': 'Non-compliance With Requirements',
                 },
             ],
             'jurisdiction': 'ne',

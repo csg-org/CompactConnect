@@ -952,7 +952,7 @@ class TestProviderRecordUtility(TstLambdas):
                 'updatedValues': {'encumberedStatus': 'licenseEncumbered'},
                 'updateType': 'encumbrance',
                 'encumbranceDetails': {
-                    'clinicalPrivilegeActionCategory': 'Did bad things',
+                    'clinicalPrivilegeActionCategory': 'Non-compliance With Requirements',
                     'licenseJurisdiction': 'oh',
                 },
             },
@@ -984,7 +984,7 @@ class TestProviderRecordUtility(TstLambdas):
                     'effectiveDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
                     'type': 'privilegeUpdate',
                     'updateType': 'encumbrance',
-                    'note': 'Did bad things',
+                    'note': 'Non-compliance With Requirements',
                 }
             ]
         }
@@ -1033,7 +1033,7 @@ class TestProviderRecordUtility(TstLambdas):
                 'updatedValues': {'encumberedStatus': 'licenseEncumbered'},
                 'updateType': 'encumbrance',
                 'encumbranceDetails': {
-                    'note': 'Did bad things',
+                    'note': 'Non-compliance With Requirements',
                     'licenseJurisdiction': 'oh',
                 },
             },
