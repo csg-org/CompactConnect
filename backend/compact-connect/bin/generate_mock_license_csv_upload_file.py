@@ -69,38 +69,48 @@ FIELDS = (
 
 
 def generate_mock_data_file(
-    count, *, compact: str, jurisdiction: str = None, file_format: str = 'csv', ssn_prefix: str, all_active: bool
+    count,
+    *,
+    compact: str,
+    jurisdiction: str = None,
+    file_format: str = 'csv',
+    ssn_prefix: str,
+    allow_inactive: bool = False,
 ):
     """Generate mock license data and write it to a file in the specified format."""
     if file_format == 'csv':
         generate_mock_csv_file(
-            count, compact=compact, jurisdiction=jurisdiction, ssn_prefix=ssn_prefix, all_active=all_active
+            count, compact=compact, jurisdiction=jurisdiction, ssn_prefix=ssn_prefix, allow_inactive=allow_inactive
         )
     elif file_format == 'json':
         generate_mock_json_file(
-            count, compact=compact, jurisdiction=jurisdiction, ssn_prefix=ssn_prefix, all_active=all_active
+            count, compact=compact, jurisdiction=jurisdiction, ssn_prefix=ssn_prefix, allow_inactive=allow_inactive
         )
     else:
         raise ValueError(f'Unsupported format: {file_format}')
 
 
-def generate_mock_csv_file(count, *, compact: str, jurisdiction: str = None, ssn_prefix: str, all_active: bool):
+def generate_mock_csv_file(
+    count, *, compact: str, jurisdiction: str = None, ssn_prefix: str, allow_inactive: bool = False
+):
     """Generate mock license data in CSV format."""
     filename = f'{compact}-{jurisdiction}-mock-data.csv'
     with open(filename, 'w', encoding='utf-8') as data_file:
         writer = DictWriter(data_file, fieldnames=FIELDS)
         writer.writeheader()
         for row in generate_license_records(
-            count, compact=compact, jurisdiction=jurisdiction, ssn_prefix=ssn_prefix, all_active=all_active
+            count, compact=compact, jurisdiction=jurisdiction, ssn_prefix=ssn_prefix, allow_inactive=allow_inactive
         ):
             writer.writerow(row)
 
 
-def generate_mock_json_file(count, *, compact: str, jurisdiction: str = None, ssn_prefix: str, all_active: bool):
+def generate_mock_json_file(
+    count, *, compact: str, jurisdiction: str = None, ssn_prefix: str, allow_inactive: bool = False
+):
     """Generate mock license data in JSON format."""
     licenses = list(
         generate_license_records(
-            count, compact=compact, jurisdiction=jurisdiction, ssn_prefix=ssn_prefix, all_active=all_active
+            count, compact=compact, jurisdiction=jurisdiction, ssn_prefix=ssn_prefix, allow_inactive=allow_inactive
         )
     )
     # Remove any fields that are None or empty strings, since API doesn't accept them
@@ -113,12 +123,14 @@ def generate_mock_json_file(count, *, compact: str, jurisdiction: str = None, ss
     sys.stdout.write(f'Generated {len(licenses)} license records in {filename}')
 
 
-def generate_license_records(count, *, compact: str, jurisdiction: str = None, ssn_prefix: str, all_active: bool):
+def generate_license_records(
+    count, *, compact: str, jurisdiction: str = None, ssn_prefix: str, allow_inactive: bool = False
+):
     """Generate a specified number of mock license records."""
     i = 0
     while i < count:
         yield get_mock_license(
-            i, compact=compact, jurisdiction=jurisdiction, ssn_prefix=ssn_prefix, all_active=all_active
+            i, compact=compact, jurisdiction=jurisdiction, ssn_prefix=ssn_prefix, allow_inactive=allow_inactive
         )
         i += 1
         if i % 1000 == 0:
@@ -126,7 +138,9 @@ def generate_license_records(count, *, compact: str, jurisdiction: str = None, s
     sys.stdout.write(f'Final record count: {i}\n')
 
 
-def get_mock_license(i: int, *, compact: str, jurisdiction: str = None, ssn_prefix: str, all_active: bool) -> dict:
+def get_mock_license(
+    i: int, *, compact: str, jurisdiction: str = None, ssn_prefix: str, allow_inactive: bool = False
+) -> dict:
     if jurisdiction is None:
         jurisdiction = faker.state_abbr().lower()
     license_data = {
@@ -151,7 +165,7 @@ def get_mock_license(i: int, *, compact: str, jurisdiction: str = None, ssn_pref
         'phoneNumber': f'+1{randint(1_000_000_000, 9_999_999_999)}',
     }
     license_data = _set_address_state(license_data, jurisdiction)
-    license_data = _set_dates_and_statuses(license_data, all_active=all_active)
+    license_data = _set_dates_and_statuses(license_data, allow_inactive=allow_inactive)
     return schema.dump(license_data)
 
 
@@ -180,20 +194,22 @@ def _set_address_state(license_data: dict, jurisdiction: str) -> dict:
     return license_data
 
 
-def _set_dates_and_statuses(license_data: dict, all_active: bool = False) -> dict:
+def _set_dates_and_statuses(license_data: dict, allow_inactive: bool = False) -> dict:
     date_of_birth = faker.date_of_birth()
     # Issuance between when they were ~22 and ~40 years old, but still in the past
     now = datetime.now(tz=UTC).date()
     date_of_issuance = min(date_of_birth + timedelta(days=randint(22 * 365, 40 * 365)), now - timedelta(days=1))
-    # For simplicity, we'll assume that under-70-year-olds are active, over are inactive.
-    # Unless all_active is True, then all licenses are active and eligible
-    if all_active:
+
+    # By default, all licenses are active and eligible
+    if not allow_inactive:
         is_active = True
         # We'll have renewal be within the last year, but on or after issuance.
         date_of_renewal = max(now - timedelta(days=randint(1, 365)), date_of_issuance)
         # Expiry, one year from renewal
         date_of_expiry = date_of_renewal + timedelta(days=365)
         compact_eligibility = CompactEligibilityStatus.ELIGIBLE
+    # If we are mixing in inactive records, for simplicity, we'll assume that under-70-year-olds are active,
+    # over are inactive.
     elif date_of_birth + 70 * timedelta(days=365) > now:
         is_active = True
         # We'll have renewal be within the last year, but on or after issuance.
@@ -230,15 +246,15 @@ def _set_dates_and_statuses(license_data: dict, all_active: bool = False) -> dic
     return license_data
 
 
-def _initialize_name_faker(us_names_only: bool = False):
+def _initialize_name_faker(include_international_names: bool = False):
     """Initialize the name_faker based on localization preference."""
     global name_faker
-    if us_names_only:
-        # Only use US English names
-        name_faker = Faker(['en_US'])
-    else:
+    if include_international_names:
         # We'll grab three different localizations to provide a variety of names/characters
         name_faker = Faker(['en_US', 'ja_JP', 'es_MX'])
+    else:
+        # Only use US English names by default
+        name_faker = Faker(['en_US'])
 
 
 if __name__ == '__main__':
@@ -265,8 +281,8 @@ if __name__ == '__main__':
         required=False,
     )
     parser.add_argument(
-        '--us-names-only',
-        help='Use only US English names instead of mixed localizations',
+        '--include-international-names',
+        help='Include international names (Japanese, Mexican) in addition to US English (default: US names only)',
         action='store_true',
         required=False,
     )
@@ -277,8 +293,8 @@ if __name__ == '__main__':
         required=False,
     )
     parser.add_argument(
-        '--all-active',
-        help='Allow all licenses to be active and eligible',
+        '--allow-inactive',
+        help='Allow some licenses to be inactive and ineligible (default: all active and eligible)',
         action='store_true',
         required=False,
     )
@@ -287,7 +303,7 @@ if __name__ == '__main__':
     if len(args.ssn_prefix) != 3 or not args.ssn_prefix.isdigit():
         parser.error('--ssn-prefix must be exactly 3 digits (000-999).')
 
-    _initialize_name_faker(args.us_names_only)
+    _initialize_name_faker(args.include_international_names)
 
     generate_mock_data_file(
         args.count,
@@ -295,5 +311,5 @@ if __name__ == '__main__':
         jurisdiction=args.jurisdiction,
         file_format=args.format,
         ssn_prefix=args.ssn_prefix,
-        all_active=args.all_active,
+        allow_inactive=args.allow_inactive,
     )
