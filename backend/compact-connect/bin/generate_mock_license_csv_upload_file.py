@@ -187,7 +187,7 @@ def _set_dates_and_statuses(license_data: dict, all_active: bool = False) -> dic
     date_of_issuance = min(date_of_birth + timedelta(days=randint(22 * 365, 40 * 365)), now - timedelta(days=1))
     # For simplicity, we'll assume that under-70-year-olds are active, over are inactive.
     # Unless all_active is True, then all licenses are active and eligible
-    if all_active or date_of_birth + 70 * timedelta(days=365) > now:
+    if all_active:
         is_active = True
         # We'll have renewal be within the last year, but on or after issuance.
         date_of_renewal = max(now - timedelta(days=randint(1, 365)), date_of_issuance)
@@ -278,12 +278,15 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         '--all-active',
-        help='all all licenses to be active and eligible',
+        help='Allow all licenses to be active and eligible',
         action='store_true',
         required=False,
     )
 
     args = parser.parse_args()
+    if len(args.ssn_prefix) != 3 or not args.ssn_prefix.isdigit():
+        parser.error('--ssn-prefix must be exactly 3 digits (000-999).')
+
     _initialize_name_faker(args.us_names_only)
 
     generate_mock_data_file(
