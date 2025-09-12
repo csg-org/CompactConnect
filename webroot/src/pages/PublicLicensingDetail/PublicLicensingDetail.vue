@@ -46,6 +46,15 @@
                             />
                         </div>
                         <div class="title-text">{{ $t('licensing.privileges') }}</div>
+                            <div class="clock-logo-wrapper">
+                                <div class="clock-logo-container">
+                                    <img
+                                        class="clock-logo-img"
+                                        src="@assets/icons/ico-clock.svg"
+                                        :alt="$t('licensing.privilegeExpirationIcon')"
+                                    />
+                                </div>
+                            </div>
                     </div>
                     <CollapseCaretButton @toggleCollapse="togglePrivsCollapsed" />
                 </div>

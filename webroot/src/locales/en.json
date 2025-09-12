@@ -588,6 +588,7 @@
         "birthMonthDay": "Birth month-day",
         "pastPrivilegesTitle": "Past privileges",
         "privilegeIcon": "Privilege icon",
+        "privilegeExpirationIcon": "Clock icon",
         "pInfoIcon": "Personal info icon",
         "licenseDetails": "License details",
         "licenseNumSymbol": "License #",

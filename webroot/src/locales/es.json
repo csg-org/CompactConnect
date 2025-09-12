@@ -568,6 +568,7 @@
         "privilegeNumSymbol": "Privilegio #",
         "licenseIcon": "Icono de licencia",
         "privilegeIcon": "Icono de Privilegio",
+        "privilegeExpirationIcon": "Icono de reloj",
         "pInfoIcon": "Icono de información personal",
         "licenseExpired": "Licencia caducada",
         "selectLicense": "Seleccione una licencia",
