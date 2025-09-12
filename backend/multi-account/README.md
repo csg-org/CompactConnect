@@ -16,7 +16,9 @@ instructions do not cover every detail.
 5) [Disable Root in all OUs](#disallow-root)
 6) Create an access-logs s3 bucket in the logs account to serve as a log replication target from across the
    organization. _FURTHER DETAILS TBD_.
-7) [Bootstrap the workflow accounts](#bootstrap-the-workflow-accounts)
+7) [Bootstrap the deploy account](#bootstrap-the-deploy-account)
+8) [Deploy the pipeline stacks](#deploy-the-pipeline-stacks)
+9) [Bootstrap the application accounts](#bootstrap-the-application-accounts)
 
 ### Provision root account
 Work with your IT department (as applicable) to provision a single AWS account that will serve as the root of your
@@ -86,7 +88,7 @@ new AWS organization that we will set up here. Have them:
     ├── PreProd
     │   └── Test
     │   └── Test Secondary (Backups and Disaster Recovery)
-    │   └── Beta 
+    │   └── Beta
     └── Prod
         └── Production
         └── Production Secondary (Backups and Disaster Recovery)
@@ -109,13 +111,53 @@ new AWS organization that we will set up here. Have them:
 - At the top right of the page, select Control Actions, Enable
 - Select every Organizational Unit available, then select Enable Controls
 
-### Bootstrap the workflow accounts
+### Bootstrap the deploy account
 - Configure your cli and CDK to use the new Deploy account via your IAM Identity Center user
-- Make note of your Deploy AWS account ID
+- Make note of your Deploy AWS account ID and region (typically `us-east-1`)
 - Run `cdk bootstrap <deploy account id>/us-east-1`
+
+### Deploy the pipeline stacks
+Before bootstrapping the application accounts, you must deploy the pipeline stacks to create the cross-account roles that the bootstrap templates reference:
+
+- Navigate to the `backend/compact-connect` directory
+- Configure your CLI to use the Deploy account
+- Follow the pipeline deployment instructions in the [CompactConnect README](../compact-connect/README.md#first-deploy-to-the-production-environment) to deploy:
+  - TestBackendPipelineStack and TestFrontendPipelineStack
+  - BetaBackendPipelineStack and BetaFrontendPipelineStack
+  - ProdBackendPipelineStack and ProdFrontendPipelineStack
+
+**Important**: The pipeline stacks create the cross-account roles (e.g., `CompactConnect-test-Backend-CrossAccountRole`) that the application account bootstrap templates trust. These roles must exist before the bootstrap can succeed.
+
+### Bootstrap the application accounts
+For enhanced security, use the secure bootstrap templates that trust only specific pipeline roles instead of the entire deploy account root. Each environment has its own template with hardcoded role names to avoid conflicts.
+
+**Prerequisites**: The pipeline stacks must be deployed first (see step 8 above) because the bootstrap templates reference specific cross-account roles that must exist.
+
 - For your Test, Beta, and Production accounts:
-  - Configure your CLI to use the account
-  - Run `cdk bootstrap <target account>/us-east-1 --trust <deploy account> --trust-for-lookup <deploy account> --cloudformation-execution-policies 'arn:aws:iam::aws:policy/AdministratorAccess'`
+  - Configure your CLI to use the target account
+  - Run the secure bootstrap command with environment-specific templates:
+
+  ```bash
+  # Run these commands from the backend/compact-connect directory
+
+  # For Test account
+  cdk bootstrap <test account>/us-east-1 \
+    --template resources/bootstrap-stack-test.yaml \
+    --trust <deploy account id> \
+    --cloudformation-execution-policies 'arn:aws:iam::aws:policy/AdministratorAccess'
+
+  # For Beta account
+  cdk bootstrap <beta account>/us-east-1 \
+    --template resources/bootstrap-stack-beta.yaml \
+    --trust <deploy account id> \
+    --cloudformation-execution-policies 'arn:aws:iam::aws:policy/AdministratorAccess'
+
+  # For Production account
+  cdk bootstrap <prod account>/us-east-1 \
+    --template resources/bootstrap-stack-prod.yaml \
+    --trust <deploy account id> \
+    --cloudformation-execution-policies 'arn:aws:iam::aws:policy/AdministratorAccess'
+  ```
 
 ### Bootstrap the secondary accounts
 See ./backups/README for instructions on setting up the secondary accounts and backup resources.
