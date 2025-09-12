@@ -22,6 +22,7 @@
         </PageContainer>
         <Modal
             v-if="showMessageModal"
+            modalId="message-modal"
             :closeOnBackgroundClick="!isErrorModal"
             :isErrorModal="isErrorModal"
             @close-modal="closeModal"

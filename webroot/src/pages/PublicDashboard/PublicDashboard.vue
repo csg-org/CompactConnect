@@ -85,6 +85,14 @@
             <router-link :to="{ name: 'PrivacyPolicy' }" class="footer-link">
                 {{ $t('privacyPolicy.title') }}
             </router-link>
+            <a
+                href="https://compactconnect.zendesk.com/hc/en-us"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="footer-link"
+            >
+                {{ $t('navigation.helpCenter') }}
+            </a>
         </div>
     </div>
 </template>

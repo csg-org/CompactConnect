@@ -10,7 +10,6 @@ from aws_cdk.aws_logs import QueryDefinition, QueryString
 from cdk_nag import NagSuppressions
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.alarm_topic import AlarmTopic
-from common_constructs.data_migration import DataMigration
 from common_constructs.frontend_app_config_utility import PersistentStackFrontendAppConfigUtility
 from common_constructs.nodejs_function import NodejsFunction
 from common_constructs.python_function import COMMON_PYTHON_LAMBDA_LAYER_SSM_PARAMETER_NAME
@@ -149,7 +148,6 @@ class PersistentStack(AppStack):
         self._add_data_resources(
             removal_policy=removal_policy, backup_infrastructure_stack=self.backup_infrastructure_stack
         )
-        self._add_migrations()
 
         self.compact_configuration_upload = CompactConfigurationUpload(
             self,
@@ -334,97 +332,6 @@ class PersistentStack(AppStack):
             removal_policy=removal_policy,
             backup_infrastructure_stack=backup_infrastructure_stack,
             environment_context=self.environment_context,
-        )
-
-    def _add_migrations(self):
-        """
-        Whenever a change is introduced that requires a schema migration (ie a new GSI or removing a deprecated field)
-        there should be an associated migration script that is run as part of the deployment. These are short-lived
-        custom resources that should be removed from the CDK app once the migration has been run in all environments.
-        """
-        update_dates_migration = DataMigration(
-            self,
-            '887CreateEffectiveDate',
-            migration_dir='create_effective_date_887',
-            lambda_environment={
-                'PROVIDER_TABLE_NAME': self.provider_table.table_name,
-                **self.common_env_vars,
-            },
-        )
-        self.provider_table.grant_read_write_data(update_dates_migration)
-        NagSuppressions.add_resource_suppressions_by_path(
-            self,
-            f'{update_dates_migration.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': 'This policy contains wild-carded actions and resources but they are scoped to the '
-                    'specific actions, Table and Key that this lambda needs access to in order to perform the'
-                    'migration.',
-                },
-            ],
-        )
-
-        self.update_license_dates_migration = DataMigration(
-            self,
-            '931LicenseUpdateEffectiveDate',
-            migration_dir='license_update_effective_date_931',
-            lambda_environment={
-                'PROVIDER_TABLE_NAME': self.provider_table.table_name,
-                **self.common_env_vars,
-            },
-        )
-        self.provider_table.grant_read_write_data(self.update_license_dates_migration)
-        NagSuppressions.add_resource_suppressions_by_path(
-            self,
-            f'{self.update_license_dates_migration.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': 'This policy contains wild-carded actions and resources but they are scoped to the '
-                    'specific actions, Table and Key that this lambda needs access to in order to perform the'
-                    'migration.',
-                },
-            ],
-        )
-
-        update_effective_date_migration = DataMigration(
-            self,
-            '958EffectiveDatetime',
-            migration_dir='effective_datetime_958',
-            lambda_environment={
-                'PROVIDER_TABLE_NAME': self.provider_table.table_name,
-                **self.common_env_vars,
-            },
-        )
-        self.provider_table.grant_read_write_data(update_effective_date_migration)
-        NagSuppressions.add_resource_suppressions_by_path(
-            self,
-            f'{update_effective_date_migration.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': 'This policy contains wild-carded actions and resources but they are scoped to the '
-                    'specific actions, Table and Key that this lambda needs access to in order to perform the'
-                    'migration.',
-                },
-            ],
-        )
-
-        QueryDefinition(
-            self,
-            'Migrations',
-            query_definition_name='Migrations/Lambdas',
-            query_string=QueryString(
-                fields=['@timestamp', 'level', 'compact', 'provider_id', 'message'],
-                filter_statements=['level in ["INFO", "WARNING", "ERROR"]'],
-                sort='@timestamp desc',
-            ),
-            log_groups=[
-                update_dates_migration.migration_function.log_group,
-                self.update_license_dates_migration.migration_function.log_group,
-                update_effective_date_migration.migration_function.log_group,
-            ],
         )
 
     def _create_email_notification_service(self) -> None:

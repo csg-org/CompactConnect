@@ -156,7 +156,7 @@ export abstract class BaseEmailService {
     }
 
     protected insertHeaderWithJurisdiction(report: TReaderDocument,
-        compact: string,
+        compactName: string,
         jurisdiction: string,
         heading: string) {
 
@@ -222,7 +222,7 @@ export abstract class BaseEmailService {
                 },
                 'props': {
                     'markdown': true,
-                    'text': `${compact}  /  ${jurisdiction}`
+                    'text': `${compactName}  /  ${jurisdiction}`
                 }
             }
         };

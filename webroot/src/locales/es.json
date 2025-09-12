@@ -76,7 +76,7 @@
         "race": "Raza",
         "ethnicity": "Origen étnico",
         "finish": "Termina",
-        "cannotBeUndone": "Esta acción no se puede deshacer",
+        "cannotBeUndone": "Esta acción no se puede deshacer.",
         "daysOfTheWeek": {
             "monday": {
                 "full": "Lunes",
@@ -381,7 +381,8 @@
         "purchasePrivileges": "Obtener privilegios",
         "styleGuide": "Guía de estilo",
         "account": "Cuenta",
-        "logout": "Cerrar sesión"
+        "logout": "Cerrar sesión",
+        "helpCenter": "Centro de ayuda"
     },
     "paging": {
         "previousPage": "Pagina anterior",
@@ -841,7 +842,7 @@
         "practitionerName": "Nombre del profesional",
         "homeStateLicenses": "Licencias del estado de origen",
         "activeDate": "Activa",
-        "privilegeProofFooter": "Este documento es generado oficialmente por Compact Connect y sirve como prueba de las licencias y privilegios actuales del profesional.",
+        "privilegeProofFooter": "Este documento es emitido por Compact Connect como prueba oficial de los privilegios actuales del profesional para practicar.<br/>Confirma el estado de privilegio-a-practicar solo y no está destinado a ser una verificación de la licencia estatal.",
         "publicProfileLink": "Ver perfil público en",
         "licenseDeactivationNote": "Desactivado debido a que la licencia asociada está desactivada",
         "homeStateChangeNote": "Desactivado debido al cambio de estado de origen",

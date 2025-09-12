@@ -45,6 +45,23 @@ def public_query_providers(event: dict, context: LambdaContext):  # noqa: ARG001
 
         jurisdiction = query.get('jurisdiction')
 
+        if jurisdiction:
+            # If the request is for a jurisdiction that is not live yet in the compact,
+            # we return empty results to reduce the number of queries made
+            # otherwise the request will search through the entire data set
+            if not config.compact_configuration_client.is_jurisdiction_live_in_compact(compact, jurisdiction):
+                logger.info(
+                    'Jurisdiction is not live in compact, returning empty results',
+                    compact=compact,
+                    jurisdiction=jurisdiction,
+                )
+                return {
+                    'query': query,
+                    'sorting': body.get('sorting', {}),
+                    'providers': [],
+                    'pagination': body.get('pagination', {}),
+                }
+
         sorting = body.get('sorting', {})
         sorting_key = sorting.get('key')
 

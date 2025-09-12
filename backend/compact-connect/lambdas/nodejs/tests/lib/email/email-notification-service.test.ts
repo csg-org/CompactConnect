@@ -122,7 +122,7 @@ describe('EmailNotificationService', () => {
                         },
                         Subject: {
                             Charset: 'UTF-8',
-                            Data: 'Transactions Failed to Settle for ASLP Payment Processor'
+                            Data: 'Transactions Failed to Settle for Audiology and Speech Language Pathology Payment Processor'
                         }
                     },
                     Source: 'Compact Connect <noreply@example.org>'
@@ -131,6 +131,8 @@ describe('EmailNotificationService', () => {
         });
 
         it('should send email using specific emails', async () => {
+            mockCompactConfigurationClient.getCompactConfiguration.mockResolvedValue(SAMPLE_COMPACT_CONFIG);
+
             await emailService.sendTransactionBatchSettlementFailureEmail(
                 'aslp',
                 'SPECIFIC',
@@ -143,7 +145,18 @@ describe('EmailNotificationService', () => {
                     Destination: {
                         ToAddresses: ['specific@example.com']
                     },
-                    Message: expect.any(Object),
+                    Message: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.stringContaining('<!DOCTYPE html>')
+                            }
+                        },
+                        Subject: {
+                            Charset: 'UTF-8',
+                            Data: 'Transactions Failed to Settle for Audiology and Speech Language Pathology Payment Processor'
+                        }
+                    },
                     Source: 'Compact Connect <noreply@example.org>'
                 }
             );
@@ -198,7 +211,7 @@ describe('EmailNotificationService', () => {
                         },
                         Subject: {
                             Charset: 'UTF-8',
-                            Data: 'Transactions Failed to Settle for ASLP Payment Processor'
+                            Data: 'Transactions Failed to Settle for Audiology and Speech Language Pathology Payment Processor'
                         }
                     },
                     Source: 'Compact Connect <noreply@example.org>'
@@ -251,6 +264,7 @@ describe('EmailNotificationService', () => {
 
     describe('Privilege Deactivation Jurisdiction Notification', () => {
         it('should send jurisdiction privilege deactivation notification email with expected subject', async () => {
+            mockCompactConfigurationClient.getCompactConfiguration.mockResolvedValue(SAMPLE_COMPACT_CONFIG);
             mockJurisdictionClient.getJurisdictionConfiguration.mockResolvedValue(SAMPLE_JURISDICTION_CONFIG);
 
             await emailService.sendPrivilegeDeactivationJurisdictionNotificationEmail(
@@ -277,7 +291,7 @@ describe('EmailNotificationService', () => {
                         },
                         Subject: {
                             Charset: 'UTF-8',
-                            Data: `A Privilege was Deactivated in the ASLP Compact`
+                            Data: `A Privilege was Deactivated in the Audiology and Speech Language Pathology Compact`
                         }
                     },
                     Source: 'Compact Connect <noreply@example.org>'
@@ -349,16 +363,25 @@ describe('EmailNotificationService', () => {
             expect(MOCK_TRANSPORT.sendMail).toHaveBeenCalledWith({
                 from: 'Compact Connect <noreply@example.org>',
                 to: ['summary@example.com'],
-                subject: 'Weekly Report for Compact ASLP',
-                html: expect.stringContaining('Please find attached the weekly settled transaction reports for the compact for the period 2024-03-01 to 2024-03-07'),
+                subject: 'Weekly Report for Audiology and Speech Language Pathology',
+                html: expect.any(String),
                 attachments: [
                     {
-                        filename: 'aslp-settled-transaction-report-2024-03-01--2024-03-07.zip',
+                        filename: 'settled-transaction-report-2024-03-01--2024-03-07.zip',
                         content: expect.any(Buffer),
                         contentType: 'application/zip'
                     }
                 ]
             });
+
+            // Get the actual HTML content for detailed validation
+            const emailCall = MOCK_TRANSPORT.sendMail.mock.calls[0][0] as any;
+            const htmlContent = emailCall.html;
+
+            expect(htmlContent).toBeDefined();
+            expect(htmlContent).toContain('Please find attached the weekly settled transaction reports for the compact for the period 2024-03-01 to 2024-03-07');
+            expect(htmlContent).toContain('Financial Summary Report - A summary of all settled transactions and fees');
+            expect(htmlContent).toContain('Transaction Detail Report - A detailed list of all settled transactions');
         });
 
         it('should use monthly subject when reporting cycle is monthly', async () => {
@@ -372,10 +395,17 @@ describe('EmailNotificationService', () => {
 
             expect(MOCK_TRANSPORT.sendMail).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    subject: 'Monthly Report for Compact ASLP',
-                    html: expect.stringContaining('Please find attached the monthly settled transaction reports for the compact for the period 2024-03-01 to 2024-03-31')
+                    subject: 'Monthly Report for Audiology and Speech Language Pathology',
+                    html: expect.any(String)
                 })
             );
+
+            // Get the actual HTML content for detailed validation
+            const emailCall = MOCK_TRANSPORT.sendMail.mock.calls[0][0] as any;
+            const htmlContent = emailCall.html;
+
+            expect(htmlContent).toBeDefined();
+            expect(htmlContent).toContain('Please find attached the monthly settled transaction reports for the compact for the period 2024-03-01 to 2024-03-31');
         });
 
         it('should throw error when no recipients found', async () => {
@@ -463,8 +493,8 @@ describe('EmailNotificationService', () => {
             expect(MOCK_TRANSPORT.sendMail).toHaveBeenCalledWith({
                 from: 'Compact Connect <noreply@example.org>',
                 to: ['oh-summary@example.com'],
-                subject: 'Ohio Weekly Report for Compact ASLP',
-                html: expect.stringContaining('Please find attached the weekly settled transaction report for your jurisdiction for the period 2024-03-01 to 2024-03-07'),
+                subject: 'Ohio Weekly Report for Audiology and Speech Language Pathology',
+                html: expect.any(String),
                 attachments: [
                     {
                         filename: 'oh-settled-transaction-report-2024-03-01--2024-03-07.zip',
@@ -473,6 +503,13 @@ describe('EmailNotificationService', () => {
                     }
                 ]
             });
+
+            // Get the actual HTML content for detailed validation
+            const emailCall = MOCK_TRANSPORT.sendMail.mock.calls[0][0] as any;
+            const htmlContent = emailCall.html;
+
+            expect(htmlContent).toBeDefined();
+            expect(htmlContent).toContain('Please find attached the weekly settled transaction report for your jurisdiction for the period 2024-03-01 to 2024-03-07');
         });
 
         it('should use monthly subject when reporting cycle is monthly', async () => {
@@ -487,10 +524,17 @@ describe('EmailNotificationService', () => {
 
             expect(MOCK_TRANSPORT.sendMail).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    subject: 'Ohio Monthly Report for Compact ASLP',
-                    html: expect.stringContaining('Please find attached the monthly settled transaction report for your jurisdiction for the period 2024-03-01 to 2024-03-31')
+                    subject: 'Ohio Monthly Report for Audiology and Speech Language Pathology',
+                    html: expect.any(String)
                 })
             );
+
+            // Get the actual HTML content for detailed validation
+            const emailCall = MOCK_TRANSPORT.sendMail.mock.calls[0][0] as any;
+            const htmlContent = emailCall.html;
+
+            expect(htmlContent).toBeDefined();
+            expect(htmlContent).toContain('Please find attached the monthly settled transaction report for your jurisdiction for the period 2024-03-01 to 2024-03-31');
         });
 
         it('should throw error when no recipients found', async () => {

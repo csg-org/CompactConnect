@@ -8,7 +8,7 @@
 import { deleteUndefinedProperties } from '@models/_helpers';
 import { dateDisplay, relativeFromNowDisplay } from '@models/_formatters/date';
 import { formatPhoneNumber, stripPhoneNumber } from '@models/_formatters/phone';
-import { Address, AddressSerializer } from '@models/Address/Address.model';
+import { Address } from '@models/Address/Address.model';
 import {
     License,
     LicenseType,
@@ -41,7 +41,6 @@ export interface InterfaceLicensee {
     firstName?: string | null;
     middleName?: string | null;
     lastName?: string | null;
-    homeJurisdictionLicenseAddress?: Address;
     homeJurisdiction?: State;
     dob?: string | null;
     birthMonthDay?: string | null;
@@ -70,7 +69,6 @@ export class Licensee implements InterfaceLicensee {
     public middleName? = null;
     public lastName? = null;
     public homeJurisdiction? = new State();
-    public homeJurisdictionLicenseAddress? = new Address();
     public dob? = null;
     public birthMonthDay? = null;
     public ssnLastFour? = null;
@@ -241,17 +239,9 @@ export class Licensee implements InterfaceLicensee {
         const inactiveHomeJurisdictionLicenses = this.inactiveHomeJurisdictionLicenses();
 
         if (activeHomeJurisdictionLicenses.length) {
-            bestHomeLicense = activeHomeJurisdictionLicenses.reduce(
-                function getMostRecent(prev: License, current: License) {
-                    return (prev && moment(prev.issueDate).isAfter(current.issueDate)) ? prev : current;
-                } as any
-            );
+            bestHomeLicense = this.findMostRecentLicense(activeHomeJurisdictionLicenses);
         } else if (inactiveHomeJurisdictionLicenses.length) {
-            bestHomeLicense = inactiveHomeJurisdictionLicenses.reduce(
-                function getMostRecent(prev: License, current: License) {
-                    return (prev && moment(prev.issueDate).isAfter(current.issueDate)) ? prev : current;
-                } as any
-            );
+            bestHomeLicense = this.findMostRecentLicense(inactiveHomeJurisdictionLicenses);
         }
 
         return bestHomeLicense;
@@ -259,6 +249,66 @@ export class Licensee implements InterfaceLicensee {
 
     public bestHomeJurisdictionLicenseMailingAddress(): Address {
         return this.bestHomeJurisdictionLicense().mailingAddress || new Address();
+    }
+
+    private findMostRecentLicense(licenses: Array<License>): License {
+        let result: License = new License();
+
+        if (licenses.length) {
+            result = licenses.reduce((prev: License, current: License) => {
+                let moreRecentLicense: License;
+
+                if (!prev.issueDate) {
+                    moreRecentLicense = current;
+                } else if (!current.issueDate) {
+                    moreRecentLicense = prev;
+                } else {
+                    moreRecentLicense = moment(prev.issueDate).isAfter(current.issueDate) ? prev : current;
+                }
+
+                return moreRecentLicense;
+            });
+        }
+
+        return result;
+    }
+
+    public bestLicense(): License {
+        let bestLicense: License = new License();
+        const bestHomeLicense: License = this.bestHomeJurisdictionLicense();
+
+        if (bestHomeLicense.licenseeId) {
+            bestLicense = bestHomeLicense;
+        } else {
+            // If no home jurisdiction license, get the most recent active non-home state license
+            const nonHomeStateLicenses: Array<License> = (this.licenses?.filter((license: License) =>
+                license.issueState?.abbrev !== this.homeJurisdiction?.abbrev) || []);
+            let bestNonHomeLicense: License = new License();
+
+            if (nonHomeStateLicenses.length) {
+                // First check for active licenses
+                const activeNonHomeLicenses = nonHomeStateLicenses.filter((license: License) =>
+                    license.status === LicenseStatus.ACTIVE);
+
+                if (activeNonHomeLicenses.length) {
+                    // Find the most recent active non-home license
+                    bestNonHomeLicense = this.findMostRecentLicense(activeNonHomeLicenses);
+                } else {
+                    // If no active found, get most recent inactive license
+                    bestNonHomeLicense = this.findMostRecentLicense(nonHomeStateLicenses);
+                }
+            }
+
+            if (bestNonHomeLicense.licenseeId) {
+                bestLicense = bestNonHomeLicense;
+            }
+        }
+
+        return bestLicense;
+    }
+
+    public bestLicenseMailingAddress(): Address {
+        return this.bestLicense().mailingAddress || new Address();
     }
 
     public hasEncumberedLicenses(): boolean {
@@ -304,18 +354,9 @@ export class LicenseeSerializer {
             middleName: json.middleName,
             lastName: json.familyName,
             // json.homeJurisdictionSelection has been deprecated and replaced with json.currentHomeJurisdiction
-            homeJurisdiction: json.currentHomeJurisdiction
+            homeJurisdiction: (json.currentHomeJurisdiction && json.currentHomeJurisdiction.trim().toLowerCase() !== 'unknown')
                 ? new State({ abbrev: json.currentHomeJurisdiction })
                 : new State({ abbrev: json.licenseJurisdiction }),
-            // This value is updated to equal bestHomeJurisdictionLicenseMailingAddress() whenever a License record is added or updated for the user.
-            // In the edge case where the user's best home state license expires this can get out of sync with that calulated value.
-            homeJurisdictionLicenseAddress: AddressSerializer.fromServer({
-                street1: json.homeAddressStreet1,
-                street2: json.homeAddressStreet2,
-                city: json.homeAddressCity,
-                state: json.homeAddressState,
-                zip: json.homeAddressPostalCode,
-            }),
             dob: json.dateOfBirth,
             birthMonthDay: json.birthMonthDay,
             ssnLastFour: json.ssnLastFour,
