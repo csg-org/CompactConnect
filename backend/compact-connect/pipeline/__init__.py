@@ -437,7 +437,7 @@ class TestBackendPipelineStack(BaseBackendPipelineStack):
             ssm_parameter=self.parameter,
             pipeline_stack_name=self.stack_name,
             environment_context=self.pipeline_environment_context,
-            self_mutation=False,
+            self_mutation=True,
             removal_policy=self.removal_policy,
         )
 
@@ -499,7 +499,7 @@ class TestFrontendPipelineStack(BaseFrontendPipelineStack):
             ssm_parameter=self.parameter,
             pipeline_stack_name=self.stack_name,
             environment_context=self.pipeline_environment_context,
-            self_mutation=False,
+            self_mutation=True,
             removal_policy=self.removal_policy,
         )
 

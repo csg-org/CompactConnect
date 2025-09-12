@@ -588,6 +588,8 @@ Resources:
               - apigateway:*
               # AWS Backup
               - backup:*
+              # AWS Backup Storage
+              - backup-storage:*
               # AWS Certificate Manager
               - acm:*
               # AWS Chatbot
@@ -651,13 +653,23 @@ Resources:
               # Prevent marketplace changes
               - aws-marketplace:*
             Resource: "*"
-          - Sid: DenySecurityBypass
-            Effect: Deny
+          - Sid: AllowPassSelf
+            Effect: Allow
             Action:
-              # Deny all IAM actions on the CloudFormation execution role and boundary policies
-              - iam:*
+              - iam:PassRole
             Resource:
               - Fn::Sub: arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-${Qualifier}-cfn-exec-role-${AWS::AccountId}-${AWS::Region}
+          - Sid: DenySelfTampering
+            Effect: Deny
+            NotAction:
+              - iam:PassRole
+            Resource:
+              - Fn::Sub: arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-${Qualifier}-cfn-exec-role-${AWS::AccountId}-${AWS::Region}
+          - Sid: DenyBoundaryPolicyTampering
+            Effect: Deny
+            Action:
+              - iam:*
+            Resource:
               - Fn::Sub: arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/cdk-${Qualifier}-cfn-exec-boundary-${AWS::AccountId}-${AWS::Region}
               - Fn::Sub: arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/cdk-${Qualifier}-permissions-boundary-${AWS::AccountId}-${AWS::Region}
         Version: "2012-10-17"
