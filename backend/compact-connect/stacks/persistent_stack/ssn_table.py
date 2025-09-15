@@ -209,12 +209,27 @@ class SSNTable(Table):
         self.grant_read_data(self.api_query_role)
         self._role_suppressions(self.api_query_role)
 
+        self.disaster_recovery_role = Role(
+            self,
+            'DisasterRecoveryRole',
+            assumed_by=ServicePrincipal('lambda.amazonaws.com'),
+            description='Dedicated role for SSN table disaster recovery operations',
+            managed_policies=[ManagedPolicy.from_aws_managed_policy_name('service-role/AWSLambdaBasicExecutionRole')],
+        )
+        # This role is used by the disaster recovery process to copy data from a recovered
+        # table to the production table. It needs to be able to read and write data to the table,
+        # and to encrypt and decrypt pagination keys using the SSN KMS key.
+        self.grant_read_write_data(self.disaster_recovery_role)
+        self.key.grant_encrypt_decrypt(self.disaster_recovery_role)
+        self._role_suppressions(self.disaster_recovery_role)
+
         # This explicitly blocks any principals (including account admins) from reading data
         # encrypted with this key other than our IAM roles declared here and dynamodb itself
         allowed_principal_arns = [
             self.ingest_role.role_arn,
             self.license_upload_role.role_arn,
             self.api_query_role.role_arn,
+            self.disaster_recovery_role.role_arn,
         ]
         # Only include backup service role if backup is enabled
         if self.backup_service_role is not None:
