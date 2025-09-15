@@ -223,7 +223,6 @@ class SSNTable(Table):
         # and to encrypt and decrypt pagination keys using the SSN KMS key.
         self.grant_read_write_data(self.disaster_recovery_role)
         self.key.grant_encrypt_decrypt(self.disaster_recovery_role)
-        self._role_suppressions(self.disaster_recovery_role)
         # Prefix for restored (source) ssn tables created by the restore workflow. The
         # SyncTableData construct uses this to grant read permissions on any
         # restored table that follows this naming convention.
@@ -244,19 +243,7 @@ class SSNTable(Table):
                 ],
             )
         )
-        NagSuppressions.add_resource_suppressions_by_path(
-            stack=stack,
-            path=f'{self.disaster_recovery_role.node.path}/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': """
-                              This policy contains wild-carded resources but they are scoped to the
-                              disaster recovery restored tables this lambda needs access to.
-                              """,
-                },
-            ],
-        )
+        self._role_suppressions(self.disaster_recovery_role)
 
         # This explicitly blocks any principals (including account admins) from reading data
         # encrypted with this key other than our IAM roles declared here and dynamodb itself
