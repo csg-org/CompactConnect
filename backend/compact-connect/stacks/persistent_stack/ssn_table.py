@@ -1,6 +1,6 @@
 import os
 
-from aws_cdk import Duration, RemovalPolicy
+from aws_cdk import ArnFormat, Duration, RemovalPolicy
 from aws_cdk.aws_backup import BackupResource
 from aws_cdk.aws_dynamodb import (
     Attribute,
@@ -209,6 +209,8 @@ class SSNTable(Table):
         self.grant_read_data(self.api_query_role)
         self._role_suppressions(self.api_query_role)
 
+        stack = Stack.of(self)
+
         self.disaster_recovery_role = Role(
             self,
             'DisasterRecoveryRole',
@@ -222,6 +224,39 @@ class SSNTable(Table):
         self.grant_read_write_data(self.disaster_recovery_role)
         self.key.grant_encrypt_decrypt(self.disaster_recovery_role)
         self._role_suppressions(self.disaster_recovery_role)
+        # Prefix for restored (source) ssn tables created by the restore workflow. The
+        # SyncTableData construct uses this to grant read permissions on any
+        # restored table that follows this naming convention.
+        ssn_restored_table_name_prefix = 'DR-TEMP-SSN'
+        self.disaster_recovery_role.add_to_policy(
+            PolicyStatement(
+                actions=['dynamodb:Scan'],
+                resources=[
+                    stack.format_arn(
+                        partition=stack.partition,
+                        service='dynamodb',
+                        region=stack.region,
+                        account=stack.account,
+                        resource='table',
+                        resource_name=f'{ssn_restored_table_name_prefix}*',
+                        arn_format=ArnFormat.SLASH_RESOURCE_NAME,
+                    )
+                ],
+            )
+        )
+        NagSuppressions.add_resource_suppressions_by_path(
+            stack=stack,
+            path=f'{self.disaster_recovery_role.node.path}/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': """
+                              This policy contains wild-carded resources but they are scoped to the
+                              disaster recovery restored tables this lambda needs access to.
+                              """,
+                },
+            ],
+        )
 
         # This explicitly blocks any principals (including account admins) from reading data
         # encrypted with this key other than our IAM roles declared here and dynamodb itself
