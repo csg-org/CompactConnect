@@ -8,6 +8,9 @@ const environmentVariableService = new EnvironmentVariablesService();
  * Email service for handling Cognito custom messages
  */
 export class CognitoEmailService extends BaseEmailService {
+    // We don't want to show the environment banner for Cognito emails
+    // so that users know the welcome email is valid and not a test email
+    protected readonly shouldShowEnvironmentBannerIfNonProdEnvironment: boolean = false;
     /**
      * Generates the appropriate email template based on Cognito trigger source
      * @param triggerSource - The Cognito trigger source
