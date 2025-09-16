@@ -1,0 +1,71 @@
+//
+//  ExpirationExplanationIcon.less
+//  CompactConnect
+//
+//  Created by InspiringApps on 9/15/2025.
+//
+.clock-logo-wrapper {
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-left: 0.4rem;
+
+    @media @tabletWidth {
+        flex-direction: row;
+    }
+
+    .clock-logo-container {
+        width: 1.4rem;
+        margin-top: 0.15rem;
+
+        .clock-logo-img {
+            width: 100%;
+            cursor: pointer;
+        }
+    }
+
+    .expiration-explanation-wrapper {
+        position: absolute;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 2.2rem;
+
+        @media @tabletWidth {
+            flex-direction: row;
+            margin-top: unset;
+            margin-left: 2.0rem;
+        }
+
+        .triangle {
+            width: 0;
+            height: 0;
+            border-right: 8px solid transparent;
+            border-bottom: 12px solid @darkBlue;
+            border-left: 8px solid transparent;
+
+            @media @tabletWidth {
+                border-top: 8px solid transparent;
+                border-right: 12px solid @darkBlue;
+                border-bottom: 8px solid transparent;
+                border-left: unset;
+            }
+        }
+
+        .expiration-explanation {
+            z-index: 3;
+            width: 26rem;
+            padding: 1.4rem;
+            border-radius: 20px;
+            color: white;
+            font-size: @fontSizeSmaller;
+            background-color: @darkBlue;
+
+            @media @tabletWidth {
+                width: 34rem;
+                padding: 2rem;
+            }
+        }
+    }
+}
