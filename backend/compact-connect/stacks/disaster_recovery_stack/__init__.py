@@ -10,6 +10,7 @@ from stacks.disaster_recovery_stack.restore_dynamo_db_table_step_function import
     RestoreDynamoDbTableStepFunctionConstruct,
 )
 from stacks.disaster_recovery_stack.sync_table_step_function import SyncTableDataStepFunctionConstruct
+from stacks.persistent_stack.ssn_table import SSN_RESTORED_TABLE_NAME_PREFIX, SSNTable
 
 
 class DisasterRecoveryStack(AppStack):
@@ -64,9 +65,6 @@ class DisasterRecoveryStack(AppStack):
             persistent_stack.compact_configuration_table,
             persistent_stack.data_event_table,
             persistent_stack.staff_users.user_table,
-            # DR for the SSN table will be handled in a future ticket due to the extra security considerations
-            # around it. See https://github.com/csg-org/CompactConnect/issues/988
-            # persistent_stack.ssn_table,
         ]
 
         for table in dr_enabled_tables:
@@ -74,13 +72,13 @@ class DisasterRecoveryStack(AppStack):
                 table=table, shared_persistent_stack_key=persistent_stack.shared_encryption_key
             )
 
-    def _create_dynamodb_table_dr_recovery_workflow(self, table: Table, shared_persistent_stack_key: Key):
-        """Create the DR workflow for a single DynamoDB table.
+        # Enable DR for the SSN table with special handling for security
+        self.dr_workflows[persistent_stack.ssn_table.table_name] = (
+            self._create_ssn_dynamodb_table_dr_recovery_workflow(ssn_table=persistent_stack.ssn_table),
+        )
 
-        Phase 1 scope: Only create the SyncTableData step function construct that
-        deletes all records from the destination table and then copies records from
-        the restored source table, with full pagination support.
-        """
+    def _create_dynamodb_table_dr_recovery_workflow(self, table: Table, shared_persistent_stack_key: Key):
+        """Create the DR workflow for a standard DynamoDB table."""
         # Prefix for restored (source) tables created by the restore workflow. The
         # SyncTableData construct uses this to grant read permissions on any
         # restored table that follows this naming convention.
@@ -100,6 +98,29 @@ class DisasterRecoveryStack(AppStack):
             restored_table_name_prefix=restored_table_name_prefix,
             table=table,
             sync_table_data_state_machine_arn=sync_table_step_function.state_machine.state_machine_arn,
-            shared_persistent_stack_key=shared_persistent_stack_key,
+            encryption_key_for_restore=shared_persistent_stack_key,
             dr_shared_encryption_key=self.dr_shared_encryption_key,
+        )
+
+    def _create_ssn_dynamodb_table_dr_recovery_workflow(self, ssn_table: SSNTable):
+        """Create the DR workflow for the SSN DynamoDB table."""
+        ssn_sync_table_step_function = SyncTableDataStepFunctionConstruct(
+            self,
+            f'{ssn_table.node.id[0:50]}-SyncTableData',
+            table=ssn_table,
+            source_table_name_prefix=SSN_RESTORED_TABLE_NAME_PREFIX,
+            dr_shared_encryption_key=self.dr_shared_encryption_key,
+            ssn_encryption_key=ssn_table.key,
+            ssn_dr_lambda_role=ssn_table.disaster_recovery_lambda_role,
+        )
+
+        return RestoreDynamoDbTableStepFunctionConstruct(
+            self,
+            f'DR-RestoreTableStepFunction-{ssn_table.node.id[0:50]}',
+            restored_table_name_prefix=SSN_RESTORED_TABLE_NAME_PREFIX,
+            table=ssn_table,
+            sync_table_data_state_machine_arn=ssn_sync_table_step_function.state_machine.state_machine_arn,
+            encryption_key_for_restore=ssn_table.key,
+            dr_shared_encryption_key=self.dr_shared_encryption_key,
+            ssn_dr_step_function_role=ssn_table.disaster_recovery_step_function_role,
         )

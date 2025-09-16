@@ -15,7 +15,6 @@ from aws_cdk.aws_events import EventBus
 from aws_cdk.aws_iam import (
     Effect,
     ManagedPolicy,
-    PolicyDocument,
     PolicyStatement,
     Role,
     ServicePrincipal,
@@ -32,6 +31,11 @@ from common_constructs.python_function import PythonFunction
 from common_constructs.queued_lambda_processor import QueuedLambdaProcessor
 from stacks.backup_infrastructure_stack import BackupInfrastructureStack
 
+# Name for SSN disaster recovery sync table state machine for specific permissions
+SSN_SYNC_STATE_MACHINE_NAME = 'SSNTable-SSNSyncTableData'
+# Name prefix for all SSN tables recovered through disaster recovery process
+# Used to grant read permissions on any restored table that follows this naming convention.
+SSN_RESTORED_TABLE_NAME_PREFIX = 'DR-TEMP-SSN-'
 
 class SSNTable(Table):
     """DynamoDB table to house provider Social Security Numbers"""
@@ -70,30 +74,6 @@ class SSNTable(Table):
             deletion_protection=True if removal_policy == RemovalPolicy.RETAIN else False,
             partition_key=Attribute(name='pk', type=AttributeType.STRING),
             sort_key=Attribute(name='sk', type=AttributeType.STRING),
-            resource_policy=PolicyDocument(
-                statements=[
-                    PolicyStatement(
-                        # No actions that involve reading/writing more than one record at a time. In the event of a
-                        # compromise, this slows down a potential data extraction, since each record would need to be
-                        # pulled, one at a time
-                        effect=Effect.DENY,
-                        actions=[
-                            'dynamodb:BatchGetItem',
-                            'dynamodb:BatchWriteItem',
-                            'dynamodb:PartiQL*',
-                            'dynamodb:Scan',
-                        ],
-                        principals=[StarPrincipal()],
-                        resources=['*'],
-                        conditions={
-                            'StringNotEquals': {
-                                # We will allow DynamoDB itself, so it can do internal operations like backups
-                                'aws:PrincipalServiceName': 'dynamodb.amazonaws.com',
-                            }
-                        },
-                    )
-                ]
-            ),
             **kwargs,
         )
 
@@ -211,25 +191,23 @@ class SSNTable(Table):
 
         stack = Stack.of(self)
 
-        self.disaster_recovery_role = Role(
+        # This role is used by the disaster recovery Lambda functions to copy data from a recovered
+        # table to the production table.
+        self.disaster_recovery_lambda_role = Role(
             self,
-            'DisasterRecoveryRole',
+            'DisasterRecoveryLambdaRole',
             assumed_by=ServicePrincipal('lambda.amazonaws.com'),
-            description='Dedicated role for SSN table disaster recovery operations',
+            description='Dedicated role for SSN table disaster recovery Lambda operations',
             managed_policies=[ManagedPolicy.from_aws_managed_policy_name('service-role/AWSLambdaBasicExecutionRole')],
         )
-        # This role is used by the disaster recovery process to copy data from a recovered
-        # table to the production table. It needs to be able to read and write data to the table,
-        # and to encrypt and decrypt pagination keys using the SSN KMS key.
-        self.grant_read_write_data(self.disaster_recovery_role)
-        self.key.grant_encrypt_decrypt(self.disaster_recovery_role)
-        # Prefix for restored (source) ssn tables created by the restore workflow. The
-        # SyncTableData construct uses this to grant read permissions on any
-        # restored table that follows this naming convention.
-        ssn_restored_table_name_prefix = 'DR-TEMP-SSN'
-        self.disaster_recovery_role.add_to_policy(
+
+        # Configure permissions for the Lambda role
+        # Add scan permissions for restored tables (needed by copy_records Lambda)
+        self.disaster_recovery_lambda_role.add_to_policy(
             PolicyStatement(
-                actions=['dynamodb:Scan'],
+                actions=[
+                    'dynamodb:Scan',
+                ],
                 resources=[
                     stack.format_arn(
                         partition=stack.partition,
@@ -237,13 +215,156 @@ class SSNTable(Table):
                         region=stack.region,
                         account=stack.account,
                         resource='table',
-                        resource_name=f'{ssn_restored_table_name_prefix}*',
+                        resource_name=f'{SSN_RESTORED_TABLE_NAME_PREFIX}*',
                         arn_format=ArnFormat.SLASH_RESOURCE_NAME,
-                    )
+                    ),
+                    self.table_arn,
                 ],
             )
         )
-        self._role_suppressions(self.disaster_recovery_role)
+
+        self.disaster_recovery_lambda_role.add_to_policy(
+            PolicyStatement(
+                actions=[
+                    'dynamodb:BatchWriteItem',
+                    'dynamodb:DeleteItem',
+                    'dynamodb:PutItem',
+                ],
+                resources=[
+                    self.table_arn,
+                ],
+            )
+        )
+
+        # Add KMS permissions for Lambda role (needed for pagination key encryption/decryption)
+        self.key.grant_encrypt_decrypt(self.disaster_recovery_lambda_role)
+
+        # Add specific suppressions for the Lambda role
+        NagSuppressions.add_resource_suppressions_by_path(
+            stack,
+            f'{self.disaster_recovery_lambda_role.node.path}/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'appliesTo': [
+                        f'Resource::arn:aws:dynamodb:{stack.region}:{stack.account}:table/{SSN_RESTORED_TABLE_NAME_PREFIX}*',
+                        'Action::kms:ReEncrypt*',
+                        'Action::kms:GenerateDataKey*',
+                    ],
+                    'reason': """
+                            This policy contains wild-carded actions and resources but they are scoped to the specific
+                            DynamoDB table DR operations and KMS actions that this role needs for disaster recovery.
+                            """,
+                },
+            ],
+        )
+        self._role_suppressions(self.disaster_recovery_lambda_role)
+
+        # This role is used by the disaster recovery Step Functions to orchestrate the recovery process.
+        self.disaster_recovery_step_function_role = Role(
+            self,
+            'DisasterRecoveryStepFunctionRole',
+            assumed_by=ServicePrincipal('states.amazonaws.com'),
+            description='Dedicated role for SSN table disaster recovery Step Function operations',
+        )
+        # Configure permissions for the Step Function role
+        # Add permissions for the step function role to perform restore operations
+        self.disaster_recovery_step_function_role.add_to_policy(
+            PolicyStatement(
+                actions=[
+                    'dynamodb:CreateBackup',  # For backup creation
+                    'dynamodb:DescribeBackup',  # For backup status polling
+                    'dynamodb:RestoreTableToPointInTime',  # For creating table from PITR backup
+                    'dynamodb:DescribeTable',  # For table status polling
+                    # The following permissions are needed for restoring data into the PITR table
+                    'dynamodb:BatchWriteItem',
+                    'dynamodb:DeleteItem',
+                    'dynamodb:GetItem',
+                    'dynamodb:PutItem',
+                    'dynamodb:Query',
+                    'dynamodb:Scan',
+                    'dynamodb:UpdateItem',
+                ],
+                resources=[
+                    self.table_arn,  # Table for backup operations
+                    f'{self.table_arn}/backup/*',  # Backup resources
+                    f'arn:aws:dynamodb:{stack.region}:{stack.account}:table/{SSN_RESTORED_TABLE_NAME_PREFIX}*',
+                    f'arn:aws:dynamodb:{stack.region}:{stack.account}:table/{SSN_RESTORED_TABLE_NAME_PREFIX}*/index/*',
+                ],
+            )
+        )
+
+        # Add permissions for the step function role to start execution of the SSN sync table step function
+        self.disaster_recovery_step_function_role.add_to_policy(
+            PolicyStatement(
+                actions=['states:StartExecution'],
+                resources=[
+                    # Grant permission to start execution of the SSN sync table state machine specifically
+                    stack.format_arn(
+                        partition=stack.partition,
+                        service='states',
+                        region=stack.region,
+                        account=stack.account,
+                        resource='stateMachine',
+                        resource_name=f'{SSN_SYNC_STATE_MACHINE_NAME}',
+                        arn_format=ArnFormat.COLON_RESOURCE_NAME,
+                    ),
+                ],
+            )
+        )
+
+        # Add EventBridge permissions needed for step function to track synchronous events
+        self.disaster_recovery_step_function_role.add_to_policy(
+            PolicyStatement(
+                actions=[
+                    'events:PutTargets',
+                    'events:PutRule',
+                    'events:DescribeRule',
+                ],
+                resources=[
+                    # rule used for tracking step function execution events
+                    f'arn:aws:events:{stack.region}:{stack.account}:rule/StepFunctionsGetEventsForStepFunctionsExecutionRule',
+                ],
+            )
+        )
+
+        # Add KMS permissions needed for step function role to recover the encrypted table
+        self.disaster_recovery_step_function_role.add_to_policy(
+            PolicyStatement(
+                actions=[
+                    # this is needed to recover a table that is encrypted with a custom managed KMS key
+                    'kms:DescribeKey',
+                    'kms:CreateGrant',
+                    'kms:Decrypt',
+                    'kms:Encrypt',
+                    'kms:GenerateDataKey*',
+                    'kms:ReEncrypt*'
+                ],
+                resources=[self.key.key_arn],
+            )
+        )
+        # Add specific suppressions for the Step Function role
+        NagSuppressions.add_resource_suppressions_by_path(
+            stack,
+            f'{self.disaster_recovery_step_function_role.node.path}/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'appliesTo': [
+                        f'Resource::arn:aws:dynamodb:{stack.region}:{stack.account}:table/{SSN_RESTORED_TABLE_NAME_PREFIX}*',
+                        f'Resource::arn:aws:dynamodb:{stack.region}:{stack.account}:table/{SSN_RESTORED_TABLE_NAME_PREFIX}*/index/*',
+                        f'Resource::<{stack.get_logical_id(self.node.default_child)}.Arn>/backup/*',
+                        'Resource::*',
+                        'Action::kms:ReEncrypt*',
+                        'Action::kms:GenerateDataKey*',
+                    ],
+                    'reason': """
+                    This policy contains wild-carded actions and resources but they are scoped to the specific
+                    DynamoDB table DR operations and KMS actions that this Step Function needs for disaster recovery.
+                    """,
+                },
+            ],
+        )
 
         # This explicitly blocks any principals (including account admins) from reading data
         # encrypted with this key other than our IAM roles declared here and dynamodb itself
@@ -251,7 +372,8 @@ class SSNTable(Table):
             self.ingest_role.role_arn,
             self.license_upload_role.role_arn,
             self.api_query_role.role_arn,
-            self.disaster_recovery_role.role_arn,
+            self.disaster_recovery_lambda_role.role_arn,
+            self.disaster_recovery_step_function_role.role_arn,
         ]
         # Only include backup service role if backup is enabled
         if self.backup_service_role is not None:
@@ -273,6 +395,30 @@ class SSNTable(Table):
         )
         self.key.grant_decrypt(self.api_query_role)
         self.key.grant_encrypt_decrypt(self.ingest_role)
+
+        self.add_to_resource_policy(PolicyStatement(
+                # No actions that involve reading/writing more than one record at a time. In the event of a
+                # compromise, this slows down a potential data extraction, since each record would need to be
+                # pulled, one at a time
+                effect=Effect.DENY,
+                actions=[
+                    'dynamodb:BatchGetItem',
+                    'dynamodb:BatchWriteItem',
+                    'dynamodb:PartiQL*',
+                    'dynamodb:Scan',
+                ],
+                principals=[StarPrincipal()],
+                resources=['*'],
+                conditions={
+                    'StringNotEquals': {
+                        # We will allow DynamoDB itself, so it can do internal operations like backups
+                        'aws:PrincipalServiceName': 'dynamodb.amazonaws.com',
+                        # We allow the DR lambda role as it restores the full table
+                        'aws:PrincipalArn': [self.disaster_recovery_lambda_role],
+                    }
+                },
+            )
+        )
 
     def _setup_license_preprocessor_queue(self, data_event_bus: EventBus, alarm_topic: ITopic):
         """Set up the license preprocessor queue and handler"""

@@ -23,6 +23,7 @@ from common_constructs.stack import Stack
 from constructs import Construct
 
 from common_constructs.python_function import PythonFunction
+from stacks.persistent_stack.ssn_table import SSN_SYNC_STATE_MACHINE_NAME
 
 
 class SyncTableDataStepFunctionConstruct(Construct):
@@ -35,7 +36,7 @@ class SyncTableDataStepFunctionConstruct(Construct):
         source_table_name_prefix: str,
         dr_shared_encryption_key: Key,
         ssn_encryption_key: Key | None = None,
-        ssn_dr_role: Role | None = None,
+        ssn_dr_lambda_role: Role | None = None,
         **kwargs,
     ):
         super().__init__(scope, construct_id, **kwargs)
@@ -47,7 +48,7 @@ class SyncTableDataStepFunctionConstruct(Construct):
             table,
             source_table_name_prefix=source_table_name_prefix,
             ssn_encryption_key=ssn_encryption_key,
-            ssn_dr_role=ssn_dr_role
+            ssn_dr_lambda_role=ssn_dr_lambda_role,
         )
 
         # Build Step Function definition with separate delete and copy phases
@@ -71,6 +72,7 @@ class SyncTableDataStepFunctionConstruct(Construct):
                 include_execution_data=True,
             ),
             tracing_enabled=True,
+            state_machine_name=SSN_SYNC_STATE_MACHINE_NAME if ssn_dr_lambda_role is not None else None,
         )
         # allow step function to call these lambdas
         self.cleanup_records_function.grant_invoke(self.state_machine)
@@ -95,7 +97,7 @@ class SyncTableDataStepFunctionConstruct(Construct):
         table: Table,
         source_table_name_prefix: str,
         ssn_encryption_key: Key | None = None,
-        ssn_dr_role: Role | None = None
+        ssn_dr_lambda_role: Role | None = None,
     ):
         """Create Lambda functions for delete and copy operations."""
         stack = Stack.of(self)
@@ -114,22 +116,26 @@ class SyncTableDataStepFunctionConstruct(Construct):
             # used we want to process this recovery process quickly. Increasing the memory for these
             # also increases the performance.
             memory_size=3008,
+            # Use ssn role if provided, otherwise PythonFunction creates default
+            role=ssn_dr_lambda_role if ssn_dr_lambda_role else None,
         )
-        table.grant_read_write_data(self.cleanup_records_function)
 
-        NagSuppressions.add_resource_suppressions_by_path(
-            stack=stack,
-            path=f'{self.cleanup_records_function.role.node.path}/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': """
-                            This policy contains wild-carded actions and resources but they are scoped to the
-                            specific table that this lambda needs access to.
-                            """,
-                },
-            ],
-        )
+        if not ssn_dr_lambda_role:
+            table.grant_read_write_data(self.cleanup_records_function)
+
+            NagSuppressions.add_resource_suppressions_by_path(
+                stack=stack,
+                path=f'{self.cleanup_records_function.role.node.path}/DefaultPolicy/Resource',
+                suppressions=[
+                    {
+                        'id': 'AwsSolutions-IAM5',
+                        'reason': """
+                                This policy contains wild-carded actions and resources but they are scoped to the
+                                specific table that this lambda needs access to.
+                                """,
+                    },
+                ],
+            )
 
         # Prepare environment variables for copy_records_function
         copy_env_vars = {**stack.common_env_vars}
@@ -149,12 +155,13 @@ class SyncTableDataStepFunctionConstruct(Construct):
             # used we want to process this recovery process quickly. Increasing the memory for these
             # also increases the performance.
             memory_size=3008,
-            role=ssn_dr_role,  # Use provided role if available, otherwise PythonFunction creates default
+            # Use ssn role if provided, otherwise PythonFunction creates default
+            role=ssn_dr_lambda_role,
         )
         # Grant permissions to copy_records_function
-        # If using a custom SSN DR role, permissions should already be configured on that role
+        # If using a custom SSN DR Lambda role, permissions should already be configured on that role
         # Otherwise grant standard permissions for other tables
-        if not ssn_dr_role:
+        if not ssn_dr_lambda_role:
             table.grant_write_data(self.copy_records_function)
             # the source table name for these will be determined when the DR is actually run, so we grant a policy to allow
             # this lambda to read from any table prefixed with the name prefix defined in CDK.
@@ -176,19 +183,19 @@ class SyncTableDataStepFunctionConstruct(Construct):
                 )
             )
 
-        NagSuppressions.add_resource_suppressions_by_path(
-            stack=stack,
-            path=f'{self.copy_records_function.role.node.path}/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': """
-                              This policy contains wild-carded actions and resources but they are scoped to the
-                              specific destination table and prefixed source tables this lambda needs access to.
-                              """,
-                },
-            ],
-        )
+            NagSuppressions.add_resource_suppressions_by_path(
+                stack=stack,
+                path=f'{self.copy_records_function.role.node.path}/DefaultPolicy/Resource',
+                suppressions=[
+                    {
+                        'id': 'AwsSolutions-IAM5',
+                        'reason': """
+                                  This policy contains wild-carded actions and resources but they are scoped to the
+                                  specific destination table and prefixed source tables this lambda needs access to.
+                                  """,
+                    },
+                ],
+            )
 
     def _build_sync_table_data_state_machine_definition(self, destination_table: Table) -> IChainable:
         """
