@@ -37,6 +37,7 @@ SSN_SYNC_STATE_MACHINE_NAME = 'SSNTable-SSNSyncTableData'
 # Used to grant read permissions on any restored table that follows this naming convention.
 SSN_RESTORED_TABLE_NAME_PREFIX = 'DR-TEMP-SSN-'
 
+
 class SSNTable(Table):
     """DynamoDB table to house provider Social Security Numbers"""
 
@@ -336,7 +337,7 @@ class SSNTable(Table):
                     'kms:Decrypt',
                     'kms:Encrypt',
                     'kms:GenerateDataKey*',
-                    'kms:ReEncrypt*'
+                    'kms:ReEncrypt*',
                 ],
                 resources=[self.key.key_arn],
             )
@@ -394,7 +395,8 @@ class SSNTable(Table):
         self.key.grant_decrypt(self.api_query_role)
         self.key.grant_encrypt_decrypt(self.ingest_role)
 
-        self.add_to_resource_policy(PolicyStatement(
+        self.add_to_resource_policy(
+            PolicyStatement(
                 # No actions that involve reading/writing more than one record at a time. In the event of a
                 # compromise, this slows down a potential data extraction, since each record would need to be
                 # pulled, one at a time
@@ -418,7 +420,8 @@ class SSNTable(Table):
             )
         )
 
-        self.add_to_resource_policy(PolicyStatement(
+        self.add_to_resource_policy(
+            PolicyStatement(
                 # No actions that involve backing up the SSN table. Developers should not
                 # be able to perform on demand backups, to reduce replication of this
                 # sensitive information
