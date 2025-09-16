@@ -100,7 +100,6 @@ class SSNTable(Table):
                         effect=Effect.DENY,
                         actions=[
                             'dynamodb:CreateBackup',
-                            'dynamodb:DescribeBackup',
                         ],
                         principals=[StarPrincipal()],
                         resources=['*'],
