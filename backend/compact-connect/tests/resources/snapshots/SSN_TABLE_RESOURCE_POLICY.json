@@ -1,10 +1,7 @@
 {
   "Statement": [
     {
-      "Action": [
-        "dynamodb:CreateBackup",
-        "dynamodb:DescribeBackup"
-      ],
+      "Action": "dynamodb:CreateBackup",
       "Condition": {
         "StringNotEquals": {
           "aws:PrincipalServiceName": "dynamodb.amazonaws.com"
