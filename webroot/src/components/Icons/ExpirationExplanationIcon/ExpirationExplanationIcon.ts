@@ -17,6 +17,14 @@ class ExpirationExplanationIcon extends Vue {
     shouldShowExpirationExplanation = false;
 
     //
+    // Computed
+    //
+    get elementTransitionMode(): string {
+        // Test utils have a bug with transition modes; this only includes the mode in non-test contexts.
+        return (this.$envConfig.isTest) ? '' : 'out-in';
+    }
+
+    //
     // Methods
     //
     toggleExpirationExplanation() {
