@@ -27,8 +27,12 @@ class ExpirationExplanationIcon extends Vue {
     //
     // Methods
     //
-    toggleExpirationExplanation() {
+    toggleExpirationExplanation(): void {
         this.shouldShowExpirationExplanation = !this.shouldShowExpirationExplanation;
+    }
+
+    hideExpirationExplanation(): void {
+        this.shouldShowExpirationExplanation = false;
     }
 }
 

@@ -6,7 +6,7 @@
 -->
 
 <template>
-    <div class="clock-logo-wrapper">
+    <div class="clock-logo-wrapper" v-click-outside="hideExpirationExplanation">
         <div class="clock-logo-container">
             <img
                 role="button"
@@ -14,6 +14,7 @@
                 class="clock-logo-img"
                 src="@assets/icons/ico-clock.svg"
                 :alt="$t('licensing.privilegeExpirationIcon')"
+
                 @click="toggleExpirationExplanation"
                 @keyup.enter="toggleExpirationExplanation"
             />
