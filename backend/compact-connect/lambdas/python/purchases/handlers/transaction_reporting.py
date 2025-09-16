@@ -16,8 +16,8 @@ from cc_common.exceptions import CCInternalException
 
 
 class ReportableTransactionStatuses(StrEnum):
-    """Transaction statuses that should be included in financial reports.
-    """
+    """Transaction statuses that should be included in financial reports."""
+
     SettledSuccessfully = 'settledSuccessfully'
 
 

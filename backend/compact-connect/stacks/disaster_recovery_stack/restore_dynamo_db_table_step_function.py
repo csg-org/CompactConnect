@@ -49,7 +49,7 @@ class RestoreDynamoDbTableStepFunctionConstruct(Construct):
             restored_table_name_prefix=restored_table_name_prefix,
             sync_table_data_state_machine_arn=sync_table_data_state_machine_arn,
             persistent_stack_encryption_key=encryption_key_for_restore,
-            ssn_restore_workflow=ssn_dr_step_function_role is not None
+            ssn_restore_workflow=ssn_dr_step_function_role is not None,
         )
 
         state_machine_log_group = LogGroup(
@@ -158,7 +158,7 @@ class RestoreDynamoDbTableStepFunctionConstruct(Construct):
         restored_table_name_prefix: str,
         sync_table_data_state_machine_arn: str,
         persistent_stack_encryption_key: Key,
-        ssn_restore_workflow: bool
+        ssn_restore_workflow: bool,
     ):
         """Builds restore + backup in parallel, then sync execution with polling loops."""
         stack = Stack.of(self)

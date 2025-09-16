@@ -30,7 +30,7 @@ def encrypt_pagination_key(key_data: dict, kms_key_id: str) -> str:
 
 def decrypt_pagination_key(encrypted_key: str, kms_key_id: str) -> dict:
     """Decrypt pagination key using KMS.
-    
+
     :param str encrypted_key: Base64-encoded encrypted pagination key
     :param str kms_key_id: The KMS key ID used for encryption (for logging purposes)
     :returns: Decrypted pagination key dictionary
@@ -68,7 +68,7 @@ def copy_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused-ar
     # Check if SSN encryption is enabled via environment variable
     ssn_encryption_key_id = os.environ.get('SSN_ENCRYPTION_KMS_KEY_ID')
     is_ssn_table = ssn_encryption_key_id is not None
-    
+
     if is_ssn_table:
         logger.info('SSN encryption enabled for disaster recovery')
 
@@ -126,13 +126,13 @@ def copy_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused-ar
 
             if elapsed_time > max_execution_time:
                 logger.info(f'Approaching time limit after {elapsed_time:.2f} seconds. Returning IN_PROGRESS status.')
-                
+
                 # Encrypt pagination key for SSN tables, use base64 encoding for others
                 if is_ssn_table and last_evaluated_key:
                     encrypted_key = encrypt_pagination_key(last_evaluated_key, ssn_encryption_key_id)
                 else:
                     encrypted_key = b64encode(json.dumps(last_evaluated_key).encode('utf-8')).decode('utf-8')
-                
+
                 return {
                     'copyStatus': 'IN_PROGRESS',
                     'copyLastEvaluatedKey': encrypted_key,
