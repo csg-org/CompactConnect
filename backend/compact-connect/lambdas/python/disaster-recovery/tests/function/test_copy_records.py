@@ -173,7 +173,7 @@ class TestCopyRecords(TstFunction):
         )
 
     def test_pagination_key_can_be_encrypted_and_decrypted(self):
-        from handlers.copy_records import encrypt_pagination_key, decrypt_pagination_key
+        from handlers.copy_records import decrypt_pagination_key, encrypt_pagination_key
 
         # Create a mock KMS key
         kms_client = boto3.client('kms', region_name='us-east-1')
