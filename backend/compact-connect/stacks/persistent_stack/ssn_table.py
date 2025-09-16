@@ -18,7 +18,7 @@ from aws_cdk.aws_iam import (
     PolicyStatement,
     Role,
     ServicePrincipal,
-    StarPrincipal,
+    StarPrincipal, PolicyDocument,
 )
 from aws_cdk.aws_kms import Key
 from aws_cdk.aws_sns import ITopic
@@ -36,6 +36,9 @@ SSN_SYNC_STATE_MACHINE_NAME = 'SSNTable-SSNSyncTableData'
 # Name prefix for all SSN tables recovered through disaster recovery process
 # Used to grant read permissions on any restored table that follows this naming convention.
 SSN_RESTORED_TABLE_NAME_PREFIX = 'DR-TEMP-SSN-'
+
+
+SSN_TABLE_NAME = 'ssn-table-DataEventsLog'
 
 
 class SSNTable(Table):
@@ -61,12 +64,25 @@ class SSNTable(Table):
             removal_policy=removal_policy,
         )
 
+        # This role is used by the disaster recovery Lambda functions to copy data from a recovered
+        # table to the production table. It is defined up here so we can reference it in the table policy
+        # the table policy must be defined in the constructor due to an ongoing issue with CDK where any attempt
+        # to add policy statements outside the constructor will not actually be added.
+        # see https://github.com/aws/aws-cdk/issues/35062
+        self.disaster_recovery_lambda_role = Role(
+            scope,
+            'DisasterRecoveryLambdaRole',
+            assumed_by=ServicePrincipal('lambda.amazonaws.com'),
+            description='Dedicated role for SSN table disaster recovery Lambda operations',
+            managed_policies=[ManagedPolicy.from_aws_managed_policy_name('service-role/AWSLambdaBasicExecutionRole')],
+        )
+
         super().__init__(
             scope,
             construct_id,
             # Forcing this resource name to comply with a naming-pattern-based CloudTrail log, to be
             # implemented in issue https://github.com/csg-org/CompactConnect/issues/397
-            table_name='ssn-table-DataEventsLog',
+            table_name=SSN_TABLE_NAME,
             encryption=TableEncryption.CUSTOMER_MANAGED,
             encryption_key=self.key,
             billing_mode=BillingMode.PAY_PER_REQUEST,
@@ -75,6 +91,51 @@ class SSNTable(Table):
             deletion_protection=True if removal_policy == RemovalPolicy.RETAIN else False,
             partition_key=Attribute(name='pk', type=AttributeType.STRING),
             sort_key=Attribute(name='sk', type=AttributeType.STRING),
+            resource_policy=PolicyDocument(
+                statements=[
+                    PolicyStatement(
+                        # No actions that involve manual backups of the SSN table. Developers should not
+                        # be able to perform on-demand backups, to reduce replication of this
+                        # sensitive information
+                        effect=Effect.DENY,
+                        actions=[
+                            'dynamodb:CreateBackup',
+                            'dynamodb:DescribeBackup',
+                        ],
+                        principals=[StarPrincipal()],
+                        resources=['*'],
+                        conditions={
+                            'StringNotEquals': {
+                                # We will allow DynamoDB itself, so it can do internal operations
+                                'aws:PrincipalServiceName': 'dynamodb.amazonaws.com',
+                            }
+                        },
+                    ),
+                    PolicyStatement(
+                        # No actions that involve reading/writing more than one record at a time. In the event of a
+                        # compromise, this slows down a potential data extraction, since each record would need to be
+                        # pulled, one at a time
+                        effect=Effect.DENY,
+                        actions=[
+                            'dynamodb:BatchGetItem',
+                            'dynamodb:BatchWriteItem',
+                            'dynamodb:PartiQL*',
+                            'dynamodb:Scan',
+                        ],
+                        principals=[StarPrincipal()],
+                        resources=['*'],
+                        conditions={
+                            'StringNotEquals': {
+                                # We will allow DynamoDB itself, so it can do internal operations like backups
+                                'aws:PrincipalServiceName': 'dynamodb.amazonaws.com',
+                                # We allow the DR lambda role as it restores the full table
+                                'aws:PrincipalArn': [self.disaster_recovery_lambda_role.role_arn],
+                            }
+                        },
+                    )
+
+                ]
+            ),
             **kwargs,
         )
 
@@ -191,16 +252,6 @@ class SSNTable(Table):
         self._role_suppressions(self.api_query_role)
 
         stack = Stack.of(self)
-
-        # This role is used by the disaster recovery Lambda functions to copy data from a recovered
-        # table to the production table.
-        self.disaster_recovery_lambda_role = Role(
-            self,
-            'DisasterRecoveryLambdaRole',
-            assumed_by=ServicePrincipal('lambda.amazonaws.com'),
-            description='Dedicated role for SSN table disaster recovery Lambda operations',
-            managed_policies=[ManagedPolicy.from_aws_managed_policy_name('service-role/AWSLambdaBasicExecutionRole')],
-        )
 
         # Configure permissions for the Lambda role
         # Add scan permissions for restored tables (needed by copy_records Lambda)
@@ -395,51 +446,6 @@ class SSNTable(Table):
         self.key.grant_decrypt(self.api_query_role)
         self.key.grant_encrypt_decrypt(self.ingest_role)
 
-        self.add_to_resource_policy(
-            PolicyStatement(
-                # No actions that involve reading/writing more than one record at a time. In the event of a
-                # compromise, this slows down a potential data extraction, since each record would need to be
-                # pulled, one at a time
-                effect=Effect.DENY,
-                actions=[
-                    'dynamodb:BatchGetItem',
-                    'dynamodb:BatchWriteItem',
-                    'dynamodb:PartiQL*',
-                    'dynamodb:Scan',
-                ],
-                principals=[StarPrincipal()],
-                resources=['*'],
-                conditions={
-                    'StringNotEquals': {
-                        # We will allow DynamoDB itself, so it can do internal operations like backups
-                        'aws:PrincipalServiceName': 'dynamodb.amazonaws.com',
-                        # We allow the DR lambda role as it restores the full table
-                        'aws:PrincipalArn': [self.disaster_recovery_lambda_role],
-                    }
-                },
-            )
-        )
-
-        self.add_to_resource_policy(
-            PolicyStatement(
-                # No actions that involve backing up the SSN table. Developers should not
-                # be able to perform on demand backups, to reduce replication of this
-                # sensitive information
-                effect=Effect.DENY,
-                actions=[
-                    'dynamodb:CreateBackup',
-                    'dynamodb:DescribeBackup',
-                ],
-                principals=[StarPrincipal()],
-                resources=['*'],
-                conditions={
-                    'StringNotEquals': {
-                        # We will allow DynamoDB itself, so it can do internal operations
-                        'aws:PrincipalServiceName': 'dynamodb.amazonaws.com',
-                    }
-                },
-            )
-        )
 
     def _setup_license_preprocessor_queue(self, data_event_bus: EventBus, alarm_topic: ITopic):
         """Set up the license preprocessor queue and handler"""
