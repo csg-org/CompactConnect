@@ -272,8 +272,6 @@ class SSNTable(Table):
         self.disaster_recovery_step_function_role.add_to_policy(
             PolicyStatement(
                 actions=[
-                    'dynamodb:CreateBackup',  # For backup creation
-                    'dynamodb:DescribeBackup',  # For backup status polling
                     'dynamodb:RestoreTableToPointInTime',  # For creating table from PITR backup
                     'dynamodb:DescribeTable',  # For table status polling
                     # The following permissions are needed for restoring data into the PITR table
@@ -415,6 +413,26 @@ class SSNTable(Table):
                         'aws:PrincipalServiceName': 'dynamodb.amazonaws.com',
                         # We allow the DR lambda role as it restores the full table
                         'aws:PrincipalArn': [self.disaster_recovery_lambda_role],
+                    }
+                },
+            )
+        )
+
+        self.add_to_resource_policy(PolicyStatement(
+                # No actions that involve backing up the SSN table. Developers should not
+                # be able to perform on demand backups, to reduce replication of this
+                # sensitive information
+                effect=Effect.DENY,
+                actions=[
+                    'dynamodb:CreateBackup',
+                    'dynamodb:DescribeBackup',
+                ],
+                principals=[StarPrincipal()],
+                resources=['*'],
+                conditions={
+                    'StringNotEquals': {
+                        # We will allow DynamoDB itself, so it can do internal operations
+                        'aws:PrincipalServiceName': 'dynamodb.amazonaws.com',
                     }
                 },
             )
