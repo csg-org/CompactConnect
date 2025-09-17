@@ -187,8 +187,9 @@ The pipelined environments leverage a custom bootstrap stack, which includes cro
 as well as a permissions boundary around the CloudFormation execution role. If new AWS services are added to the app
 architecture, that permissions boundary will need to be updated to allow access to the new service. See the
 [multi-account documentation](../multi-account/README.md#bootstrap-the-application-accounts) for details on how to
-deploy the custom bootstrap stack. The custom stack can also be deployed to a sandbox account for testing, using the
-same steps.
+deploy the custom bootstrap stack. If you want to test the bootstrap stack customizations in your sandbox, for example,
+to make sure the new resources you are creating in your sandbox won't be blocked by the CloudFormation execution role's
+permission boundary, you can deploy the custom stack to a sandbox account for testing, using the same steps.
 
 ### Verifying SES configuration for Cognito User Notifications
 If your account is in the SES sandbox, the simplest way to verify that SES is integrated with your cognito user pool is

@@ -166,7 +166,6 @@ class BasePipelineStack(Stack):
         """Create a predictable cross-account role that will be trusted by bootstrap roles.
 
         :param pipeline_type: 'Backend' or 'Frontend'
-        :param role_type: 'Deploy' (for construct naming)
         :return: The cross-account role with predictable name for bootstrap trust policies
         """
         # Create environment and pipeline-type specific cross-account roles
