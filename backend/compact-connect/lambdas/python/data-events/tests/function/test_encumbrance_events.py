@@ -5,6 +5,8 @@ from uuid import UUID
 
 from boto3.dynamodb.conditions import Key
 from common_test.test_constants import (
+    DEFAULT_ADVERSE_ACTION_ID,
+    DEFAULT_CLINICAL_PRIVILEGE_ACTION_CATEGORY,
     DEFAULT_COMPACT,
     DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
     DEFAULT_EFFECTIVE_DATE,
@@ -34,6 +36,8 @@ class TestEncumbranceEvents(TstFunction):
                 'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
                 'eventTime': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
                 'effectiveDate': DEFAULT_EFFECTIVE_DATE,
+                'adverseActionId': DEFAULT_ADVERSE_ACTION_ID,
+                'adverseActionCategory': DEFAULT_CLINICAL_PRIVILEGE_ACTION_CATEGORY,
             }
         }
         if message_overrides:
@@ -103,15 +107,20 @@ class TestEncumbranceEvents(TstFunction):
         self.assertEqual(PrivilegeEncumberedStatusEnum.ENCUMBERED, previously_encumbered_privilege.encumberedStatus)
 
         # Verify that a privilege encumbrance event was published for the affected privilege
-        mock_publish_event.assert_called_once()
-        call_args = mock_publish_event.call_args[1]
+        self.assertEqual(mock_publish_event.call_count, 2)
+        call_args_list = mock_publish_event.call_args_list
+        call_args_1 = call_args_list[0][1]
+        call_args_2 = call_args_list[1][1]
 
         # Extract and verify event_batch_writer separately
-        called_event_batch_writer = call_args.pop('event_batch_writer')
+        called_event_batch_writer_1 = call_args_1.pop('event_batch_writer')
+        called_event_batch_writer_2 = call_args_2.pop('event_batch_writer')
         from cc_common.event_batch_writer import EventBatchWriter
 
-        self.assertIsInstance(called_event_batch_writer, EventBatchWriter)
+        self.assertIsInstance(called_event_batch_writer_1, EventBatchWriter)
+        self.assertIsInstance(called_event_batch_writer_2, EventBatchWriter)
 
+        # Now verify the rest with comprehensive assertion
         # Now verify the rest with comprehensive assertion
         self.assertEqual(
             {
@@ -126,7 +135,23 @@ class TestEncumbranceEvents(TstFunction):
                     'eventTime': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
                 },
             },
-            call_args,
+            call_args_1,
+        )
+
+        self.assertEqual(
+            {
+                'source': 'org.compactconnect.data-events',
+                'detail_type': 'privilege.encumbrance',
+                'detail': {
+                    'compact': DEFAULT_COMPACT,
+                    'providerId': DEFAULT_PROVIDER_ID,
+                    'jurisdiction': 'ky',  # The privilege jurisdiction
+                    'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
+                    'effectiveDate': DEFAULT_EFFECTIVE_DATE,
+                    'eventTime': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
+                },
+            },
+            call_args_2,
         )
 
     @patch('cc_common.event_bus_client.EventBusClient._publish_event')
@@ -175,7 +200,7 @@ class TestEncumbranceEvents(TstFunction):
         self.test_data_generator.put_default_provider_record_in_provider_table()
 
         # Create privileges that are already encumbered
-        self.test_data_generator.put_default_privilege_record_in_provider_table(
+        privilege = self.test_data_generator.put_default_privilege_record_in_provider_table(
             value_overrides={
                 'licenseJurisdiction': DEFAULT_LICENSE_JURISDICTION,
                 'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
@@ -197,10 +222,27 @@ class TestEncumbranceEvents(TstFunction):
 
         privileges = provider_records.get_privilege_records()
         self.assertEqual(1, len(privileges))
+
+        serialized_privilege = privilege.serialize_to_database_record()
         self.assertEqual(PrivilegeEncumberedStatusEnum.ENCUMBERED, privileges[0].encumberedStatus)
 
-        # Verify no privilege encumbrance events were published since no privileges were affected
-        mock_publish_event.assert_not_called()
+        privilege_update_records = self._provider_table.query(
+            Select='ALL_ATTRIBUTES',
+            KeyConditionExpression=Key('pk').eq(serialized_privilege['pk'])
+            & Key('sk').begins_with(f'{serialized_privilege["sk"]}UPDATE'),
+        )
+
+        self.assertEqual(1, len(privilege_update_records['Items']))
+        update_record = privilege_update_records['Items'][0]
+        update_encumbrance_details = update_record['encumbranceDetails']
+        self.assertEqual({
+            'adverseActionId': DEFAULT_ADVERSE_ACTION_ID,
+            'licenseJurisdiction': 'oh',
+            'clinicalPrivilegeActionCategory': 'Unsafe Practice or Substandard Care'
+        }, update_encumbrance_details)
+
+        # Verify one event was published for the privilege update
+        mock_publish_event.assert_called_once()
 
     def test_license_encumbrance_listener_creates_privilege_update_records(self):
         """Test that license encumbrance event creates appropriate privilege update records."""

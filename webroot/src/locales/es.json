@@ -669,6 +669,7 @@
         "expiringIn": "Expirando en",
         "events": "Eventos",
         "expirationTimeExplanation": "Las fechas privilegiadas utilizan la <em>zona horaria UTC-4</em>. Esto significa que los privilegios expirarán a las 11:59 hora del este de EE. UU. durante el horario de verano (verano) y a las 12:59 a. m. del día siguiente en la zona horaria del este de EE. UU. durante la hora estándar (invierno)",
+        "uploadedOn": "Subido en",
         "licenseEvents": [
             {
                 "name": "Privilegio comprado",
