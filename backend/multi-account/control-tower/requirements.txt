@@ -15,13 +15,18 @@ aws-cdk-asset-node-proxy-agent-v6==2.1.0
 aws-cdk-cloud-assembly-schema==48.10.0
     # via aws-cdk-lib
 aws-cdk-lib==2.215.0
-    # via -r control-tower/requirements.in
+    # via
+    #   -r control-tower/requirements.in
+    #   cdk-nag
 cattrs==25.2.0
     # via jsii
+cdk-nag==2.37.29
+    # via -r control-tower/requirements.in
 constructs==10.4.2
     # via
     #   -r control-tower/requirements.in
     #   aws-cdk-lib
+    #   cdk-nag
 importlib-resources==6.5.2
     # via jsii
 jsii==1.114.1
@@ -30,6 +35,7 @@ jsii==1.114.1
     #   aws-cdk-asset-node-proxy-agent-v6
     #   aws-cdk-cloud-assembly-schema
     #   aws-cdk-lib
+    #   cdk-nag
     #   constructs
 publication==0.0.3
     # via
@@ -37,6 +43,7 @@ publication==0.0.3
     #   aws-cdk-asset-node-proxy-agent-v6
     #   aws-cdk-cloud-assembly-schema
     #   aws-cdk-lib
+    #   cdk-nag
     #   constructs
     #   jsii
 python-dateutil==2.9.0.post0
@@ -49,6 +56,7 @@ typeguard==2.13.3
     #   aws-cdk-asset-node-proxy-agent-v6
     #   aws-cdk-cloud-assembly-schema
     #   aws-cdk-lib
+    #   cdk-nag
     #   constructs
     #   jsii
 typing-extensions==4.15.0

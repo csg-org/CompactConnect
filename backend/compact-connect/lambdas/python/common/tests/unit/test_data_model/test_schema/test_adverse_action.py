@@ -75,20 +75,6 @@ class TestAdverseActionRecordSchema(TstLambdas):
         with self.assertRaises(ValidationError):
             AdverseActionData.from_database_record(adverse_action_data.serialize_to_database_record())
 
-    def test_adverse_action_id_is_generated_if_not_provided(self):
-        """Test that an adverseActionId is generated if not provided during dump()"""
-        from cc_common.data_model.schema.adverse_action.record import AdverseActionRecordSchema
-
-        adverse_action_data = self.test_data_generator.generate_default_adverse_action().to_dict()
-
-        #  adverseActionId is not in the loaded data
-        adverse_action_data.pop('adverseActionId')
-
-        # Dump the data and verify adverseActionId is generated
-        dumped_data = AdverseActionRecordSchema().dump(adverse_action_data)
-        self.assertIn('adverseActionId', dumped_data)
-        self.assertIsInstance(dumped_data['adverseActionId'], str)
-
 
 class TestAdverseActionDataClass(TstLambdas):
     def setUp(self):

@@ -148,6 +148,13 @@ class PrivilegeUpdateData(CCDataClass):
         return self._data.get('deactivationDetails')
 
     @property
+    def encumbranceDetails(self) -> dict | None:
+        """
+        This property is only present if the update type is an encumbrance.
+        """
+        return self._data.get('encumbranceDetails')
+
+    @property
     def removedValues(self) -> list[str] | None:
         """
         This property is only present if the update type is a deactivation.

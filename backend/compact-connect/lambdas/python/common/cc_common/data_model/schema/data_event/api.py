@@ -48,8 +48,10 @@ class PrivilegeRenewalDetailSchema(DataEventDetailBaseSchema):
 
 class EncumbranceEventDetailSchema(DataEventDetailBaseSchema):
     providerId = UUID(required=True, allow_none=False)
+    adverseActionId = UUID(required=False, allow_none=False)
     licenseTypeAbbreviation = String(required=True, allow_none=False)
     effectiveDate = Date(required=True, allow_none=False)
+    adverseActionCategory = String(required=False, allow_none=False)
 
 
 class LicenseDeactivationDetailSchema(DataEventDetailBaseSchema):

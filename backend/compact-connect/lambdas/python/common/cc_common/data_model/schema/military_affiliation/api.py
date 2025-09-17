@@ -1,5 +1,5 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
-from marshmallow.fields import List, Nested, Raw, String
+from marshmallow.fields import Dict, List, Nested, Raw, String
 from marshmallow.validate import OneOf
 
 from cc_common.config import config
@@ -41,3 +41,27 @@ class MilitaryAffiliationGeneralResponseSchema(ForgivingSchema):
     )
     dateOfUpload = Raw(required=True, allow_none=False)
     status = String(required=True, allow_none=False, validate=OneOf([e.value for e in MilitaryAffiliationStatus]))
+
+
+class MilitaryAffiliationReadPrivateResponseSchema(ForgivingSchema):
+    """
+    Schema defining fields available to staff users with the 'readPrivate' or higher permission.
+
+    Serialization direction:
+    Python -> load() -> API
+    """
+
+    type = String(required=True, allow_none=False)
+    dateOfUpdate = Raw(required=True, allow_none=False)
+    providerId = Raw(required=True, allow_none=False)
+    compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
+    fileNames = List(String(required=True, allow_none=False), required=True, allow_none=False)
+    affiliationType = String(
+        required=True, allow_none=False, validate=OneOf([e.value for e in MilitaryAffiliationType])
+    )
+    dateOfUpload = Raw(required=True, allow_none=False)
+    status = String(required=True, allow_none=False, validate=OneOf([e.value for e in MilitaryAffiliationStatus]))
+
+    # this will only be present for compact admins
+    documentKeys = List(String(required=True, allow_none=False), required=False, allow_none=False)
+    downloadLinks = List(Dict(required=True, allow_none=False), required=False, allow_none=False)
