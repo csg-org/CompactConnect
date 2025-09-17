@@ -1,7 +1,7 @@
 from aws_cdk import RemovalPolicy
-from common_constructs.stack import AppStack
 from constructs import Construct
 
+from common_constructs.stack import AppStack
 from stacks.persistent_stack import PersistentStack
 from stacks.state_auth.state_auth_users import StateAuthUsers
 

@@ -11,8 +11,9 @@ from aws_cdk.aws_ssm import IParameter
 from aws_cdk.pipelines import CodeBuildOptions, CodePipelineSource, ShellStep
 from aws_cdk.pipelines import CodePipeline as CdkCodePipeline
 from cdk_nag import NagSuppressions
-from common_constructs.bucket import Bucket
 from constructs import Construct
+
+from common_constructs.bucket import Bucket
 
 
 class BackendPipeline(CdkCodePipeline):

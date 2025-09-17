@@ -22,13 +22,13 @@ from aws_cdk.aws_s3 import BucketEncryption, LifecycleRule
 from aws_cdk.aws_sns import ITopic
 from cdk_nag import NagSuppressions
 from constructs import Construct
-from stacks.backup_infrastructure_stack import BackupInfrastructureStack
 
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.backup_plan import CCBackupPlan
 from common_constructs.bucket import Bucket
 from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
+from stacks.backup_infrastructure_stack import BackupInfrastructureStack
 
 
 class CognitoUserBackup(Construct):

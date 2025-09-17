@@ -12,7 +12,7 @@
     "test:csp": "mocha cloudfront-csp/test",
     "lint:csp": "grunt check",
     "lint": "eslint '**/*.ts' && grunt check",
-    "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest --coverage && mocha cloudfront-csp/test",
+    "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest --coverage",
     "audit:dependencies": "yarn audit --groups dependencies --level moderate",
     "grunt": "grunt"
   },
