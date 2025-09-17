@@ -6,6 +6,7 @@ from aws_cdk import Duration
 from aws_cdk.aws_apigateway import AuthorizationType, LambdaIntegration, MethodOptions, MethodResponse, Resource
 from aws_cdk.aws_iam import IRole
 from aws_cdk.aws_s3 import IBucket
+
 from common_constructs.cc_api import CCApi
 from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack

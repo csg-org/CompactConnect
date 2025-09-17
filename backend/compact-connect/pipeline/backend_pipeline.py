@@ -17,6 +17,8 @@ from common_constructs.bucket import Bucket
 
 import pipeline
 
+from common_constructs.bucket import Bucket
+
 
 class BackendPipeline(CdkCodePipeline):
     """

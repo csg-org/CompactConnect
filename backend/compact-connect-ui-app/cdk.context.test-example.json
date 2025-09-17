@@ -1,0 +1,65 @@
+{
+  "ssm_context": {
+    "github_repo_string": "csg-org/CompactConnect",
+    "app_name": "compact-connect",
+    "environments": {
+      "pipeline": {
+        "account_id": "000000000000",
+        "region": "us-east-1",
+        "connection_arn": "arn:aws:codestar-connections:us-east-1:000000000000:connection/11111111-1111-1111-111111111111"
+      },
+      "test": {
+        "account_id": "111122223333",
+        "region": "us-east-1",
+        "domain_name": "test.compactconnect.org",
+        "backup_enabled": true,
+        "allow_local_ui": true,
+        "recaptcha_public_key": "123-KFEUsjehfuejILDVUKkRnAF9SSzb8o9uv5lY7Ih",
+        "robots_meta": "noindex,nofollow",
+        "notifications": {
+          "ses_operations_support_email": "justin@example.com",
+          "email": [
+            "justin@example.com"
+          ],
+          "slack": [
+            {
+              "channel_name": "preprod-ops-monitoring",
+              "channel_id": "C1234567890",
+              "workspace_id": "T01234567"
+            }
+          ]
+        },
+        "backup_policies": {
+          "general_data": {
+            "schedule": {
+              "week_day": "5",
+              "year": "*",
+              "month": "*",
+              "hour": "5",
+              "minute": "0"
+            },
+            "delete_after_days": 180,
+            "cold_storage_after_days": 30
+          },
+          "frequent_updates": {
+            "schedule": {
+              "week_day": "5",
+              "year": "*",
+              "month": "*",
+              "hour": "5",
+              "minute": "0"
+            },
+            "delete_after_days": 180,
+            "cold_storage_after_days": 30
+          }
+        }
+      }
+    },
+    "backup_config": {
+      "backup_account_id": "111122223333",
+      "backup_region": "us-west-2",
+      "general_vault_name": "CompactConnectBackupVault",
+      "ssn_vault_name": "CompactConnectBackupVault-SSN"
+    }
+  }
+}

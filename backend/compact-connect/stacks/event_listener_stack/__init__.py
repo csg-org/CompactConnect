@@ -5,12 +5,12 @@ import os
 from aws_cdk import Duration
 from aws_cdk.aws_events import EventBus
 from cdk_nag import NagSuppressions
+from constructs import Construct
+
 from common_constructs.python_function import PythonFunction
 from common_constructs.queue_event_listener import QueueEventListener
 from common_constructs.ssm_parameter_utility import SSMParameterUtility
 from common_constructs.stack import AppStack
-from constructs import Construct
-
 from stacks import persistent_stack as ps
 
 

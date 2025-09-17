@@ -7,6 +7,8 @@
 #
 # To enable this hook, move this file to ".git/hooks/pre-commit".
 
+# TODO: Investigate a reasonable pre-commit testing approach with multi-service
+
 if git rev-parse --verify HEAD >/dev/null 2>&1
 then
     against=HEAD

@@ -2,6 +2,7 @@
 data_file = ../.coverage
 
 omit =
+  */site-packages/*
   */cdk.out/*
   */smoke-test/*
   */tests/*

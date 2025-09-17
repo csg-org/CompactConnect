@@ -1,0 +1,56 @@
+name: Check-Common-CDK
+
+on:
+  pull_request:
+    paths:
+      - backend/common-cdk/**
+
+env:
+  AWS_REGION : "us-east-1"
+
+# Permission can be added at job level or workflow level
+permissions:
+  id-token: write   # This is required for requesting the JWT
+  contents: read    # This is required for actions/checkout
+
+jobs:
+  LintPython:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - name: Install dev dependencies
+        run: "pip install -r backend/common-cdk/requirements-dev.in"
+
+      - name: Lint Code
+        run: "cd backend/common-cdk; ruff check $(git ls-files '*.py')"
+
+      - name: Check Dependencies
+        run: "pip-audit"
+
+  TestApp:
+    runs-on: ubuntu-latest
+    steps:
+      # Checks-out the repository under $GITHUB_WORKSPACE
+      - uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dev dependencies
+        run: "pip install -r backend/common-cdk/requirements-dev.in"
+
+      - name: Install all Python dependencies
+        run: "pip install -r backend/common-cdk/requirements.in"
+
+      - name: Test backend
+        # Start at 14%, because that's what our 'unit' coverage is, while we convert this to more stand-alone
+        # We will raise this up to 90 over time, to support these constructs more like a library
+        run: "cd backend/common-cdk; pytest tests --cov=common_constructs --cov-fail-under 14"
