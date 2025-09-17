@@ -11,9 +11,20 @@
 // @NOTE: Any custom keys in .env have to start with VUE_APP.... to be recognized at runtime
 //
 
+// Build environments (Node)
 const ENV_PRODUCTION = 'production';
 const ENV_TEST = 'test';
 const ENV_DEVELOPMENT = 'development';
+
+// App environments
+export const appEnvironments = {
+    APP_PRODUCTION: 'production',
+    APP_BETA: 'beta',
+    APP_TEST_IA: 'ia-test',
+    APP_TEST_CSG: 'csg-test',
+    APP_LOCAL: 'local',
+};
+
 const context = process.env;
 
 export interface EnvConfig {
@@ -21,6 +32,13 @@ export interface EnvConfig {
     isProduction?: boolean;
     isTest?: boolean;
     isDevelopment?: boolean;
+    appEnv?: string;
+    isAppProduction?: boolean;
+    isAppBeta?: boolean;
+    isAppTest?: boolean;
+    isAppTestIa?: boolean;
+    isAppTestCsg?: boolean;
+    isAppLocal?: boolean;
     baseUrl?: string;
     domain?: string;
     apiUrlState?: string;
@@ -34,6 +52,7 @@ export interface EnvConfig {
     cognitoAuthDomainLicensee?: string;
     cognitoClientIdLicensee?: string;
     recaptchaKey?: string;
+    statsigKey?: string;
     isUsingMockApi?: boolean;
 }
 
@@ -43,6 +62,13 @@ export const config: EnvConfig = {
     isProduction: (context.NODE_ENV === ENV_PRODUCTION),
     isTest: (context.NODE_ENV === ENV_TEST),
     isDevelopment: (context.NODE_ENV === ENV_DEVELOPMENT),
+    appEnv: context.VUE_APP_ENV,
+    isAppProduction: (context.APP_ENV === appEnvironments.APP_PRODUCTION),
+    isAppBeta: (context.APP_ENV === appEnvironments.APP_BETA),
+    isAppTest: (context.APP_ENV === appEnvironments.APP_TEST_IA || context.APP_ENV === appEnvironments.APP_TEST_CSG),
+    isAppTestIa: (context.APP_ENV === appEnvironments.APP_TEST_IA),
+    isAppTestCsg: (context.APP_ENV === appEnvironments.APP_TEST_CSG),
+    isAppLocal: (context.APP_ENV === appEnvironments.APP_LOCAL),
     baseUrl: context.BASE_URL,
     domain: context.VUE_APP_DOMAIN,
     apiUrlState: context.VUE_APP_API_STATE_ROOT,
@@ -56,6 +82,7 @@ export const config: EnvConfig = {
     cognitoAuthDomainLicensee: context.VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE,
     cognitoClientIdLicensee: context.VUE_APP_COGNITO_CLIENT_ID_LICENSEE,
     recaptchaKey: context.VUE_APP_RECAPTCHA_KEY,
+    statsigKey: context.VUE_APP_STATSIG_KEY,
     isUsingMockApi: (context.VUE_APP_MOCK_API === 'true'),
 };
 
