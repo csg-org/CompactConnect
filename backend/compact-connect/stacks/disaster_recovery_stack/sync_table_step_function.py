@@ -163,9 +163,10 @@ class SyncTableDataStepFunctionConstruct(Construct):
         # Otherwise grant standard permissions for other tables
         if not ssn_dr_lambda_role:
             table.grant_write_data(self.copy_records_function)
-            # the source table name for these will be determined when the DR is actually run, so we grant a policy to allow
-            # this lambda to read from any table prefixed with the name prefix defined in CDK.
-            # The parent step function to this will name the restored table to follow this prefix.
+            # The source table name for these will be determined when the DR is actually run,
+            # so we grant a policy to allow this lambda to read from any table prefixed with the
+            # name prefix defined in CDK. The parent step function to this will name the restored table
+            # to follow this prefix.
             self.copy_records_function.add_to_role_policy(
                 PolicyStatement(
                     actions=['dynamodb:Scan'],

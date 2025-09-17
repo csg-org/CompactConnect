@@ -15,10 +15,11 @@ from aws_cdk.aws_events import EventBus
 from aws_cdk.aws_iam import (
     Effect,
     ManagedPolicy,
+    PolicyDocument,
     PolicyStatement,
     Role,
     ServicePrincipal,
-    StarPrincipal, PolicyDocument,
+    StarPrincipal,
 )
 from aws_cdk.aws_kms import Key
 from aws_cdk.aws_sns import ITopic
@@ -131,8 +132,7 @@ class SSNTable(Table):
                                 'aws:PrincipalArn': [self.disaster_recovery_lambda_role.role_arn],
                             }
                         },
-                    )
-
+                    ),
                 ]
             ),
             **kwargs,
@@ -444,7 +444,6 @@ class SSNTable(Table):
         )
         self.key.grant_decrypt(self.api_query_role)
         self.key.grant_encrypt_decrypt(self.ingest_role)
-
 
     def _setup_license_preprocessor_queue(self, data_event_bus: EventBus, alarm_topic: ITopic):
         """Set up the license preprocessor queue and handler"""
