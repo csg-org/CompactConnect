@@ -360,7 +360,7 @@ class TestDataGenerator:
         value_overrides: dict | None = None
     ) -> PrivilegeUpdateData:
         """
-        Creates a default provider record and stores it in the provider table.
+        Creates a default privilege update and stores it in the provider table.
 
         :param value_overrides: Optional dictionary to override default values
         :return: The ProviderData instance that was stored

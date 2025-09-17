@@ -913,7 +913,7 @@ class TestProviderRecordUtility(TstLambdas):
         self.maxDiff = None
         self.assertEqual(expected_history, history)
 
-    def test_construct_simplified_privilege_history_object_returns_encumbrance_notes_if_desired(self):
+    def test_construct_simplified_privilege_history_object_returns_encumbrance_notes_if_requested(self):
         """Test that construct_simplified_privilege_history_object extracts the encumbrance notes successfully"""
         from cc_common.data_model.provider_record_util import ProviderRecordUtility
 
@@ -993,7 +993,7 @@ class TestProviderRecordUtility(TstLambdas):
         self.maxDiff = None
         self.assertEqual(expected_history, history)
 
-    def test_construct_simplified_privilege_history_object_does_not_returns_encumbrance_notes_if_not_desired(self):
+    def test_construct_simplified_privilege_history_object_does_not_return_encumbrance_notes_if_not_requested(self):
         """Test that construct_simplified_privilege_history_object does not extract the encumbrance notes if
         it should not"""
         from cc_common.data_model.provider_record_util import ProviderRecordUtility

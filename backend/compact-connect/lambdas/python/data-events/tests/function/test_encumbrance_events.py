@@ -241,7 +241,7 @@ class TestEncumbranceEvents(TstFunction):
             'clinicalPrivilegeActionCategory': 'Unsafe Practice or Substandard Care'
         }, update_encumbrance_details)
 
-        # Verify no privilege encumbrance events were published since no privileges were affected
+        # Verify one event was published for the privilege update
         mock_publish_event.assert_called_once()
 
     def test_license_encumbrance_listener_creates_privilege_update_records(self):
