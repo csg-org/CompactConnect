@@ -356,6 +356,23 @@ class TestDataGenerator:
         return PrivilegeUpdateData.create_new(privilege_update)
 
     @staticmethod
+    def put_default_privilege_update_record_in_provider_table(
+        value_overrides: dict | None = None
+    ) -> PrivilegeUpdateData:
+        """
+        Creates a default privilege update and stores it in the provider table.
+
+        :param value_overrides: Optional dictionary to override default values
+        :return: The ProviderData instance that was stored
+        """
+        update_data = TestDataGenerator.generate_default_privilege_update(value_overrides)
+        update_record = update_data.serialize_to_database_record()
+
+        TestDataGenerator.store_record_in_provider_table(update_record)
+
+        return update_data
+
+    @staticmethod
     def generate_default_provider(value_overrides: dict | None = None, is_registered: bool = True) -> ProviderData:
         """Generate a default provider"""
         default_provider = {

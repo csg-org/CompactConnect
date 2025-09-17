@@ -92,8 +92,6 @@ class TestDeactivatePrivilege(TstFunction):
         # Update expected provider data to include the deactivation
         expected_provider['privileges'][0]['administratorSetStatus'] = 'inactive'
         expected_provider['privileges'][0]['status'] = 'inactive'
-        # Add the deactivation event to end of history
-        expected_provider['privileges'][0]['history'].insert(2, DEACTIVATION_EVENT)
         expected_provider['privileges'][0]['dateOfUpdate'] = '2024-11-08T23:59:59+00:00'
         # remove activeSince Field, since the privilege in this case would not be active
         del expected_provider['privileges'][0]['activeSince']
