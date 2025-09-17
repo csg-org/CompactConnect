@@ -234,11 +234,14 @@
                 font-size: @fontSizeMedium;
                 text-align: center;
 
+                /* stylelint-disable order/properties-order */
                 a {
                     font-weight: @fontWeightBold;
                     white-space: pre-wrap;
                     text-decoration: underline;
+                    overflow-wrap: anywhere;
                     word-break: break-word;
+                    /* stylelint-enable order/properties-order */
                 }
             }
         }
