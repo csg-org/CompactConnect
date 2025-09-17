@@ -46,9 +46,6 @@ def decrypt_pagination_key(encrypted_key: str, kms_key_id: str) -> dict:
     except ClientError as e:
         logger.error(f'Failed to decrypt pagination key with KMS key {kms_key_id}: {str(e)}')
         raise
-    except (ValueError, json.JSONDecodeError) as e:
-        logger.error(f'Failed to parse decrypted pagination key: {str(e)}')
-        raise ValueError(f'Invalid decrypted pagination key data: {str(e)}')
 
 
 def copy_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
