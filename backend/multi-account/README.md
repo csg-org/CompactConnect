@@ -119,7 +119,7 @@ We do not want users updating runtime code out of bands of our CI/CD reviewal an
 	"Version": "2012-10-17",
 	"Statement": [
 		{
-			"Sid": "DenyLambdaAndBackupUpdates",
+			"Sid": "DenyComputeAndBackupUpdates",
 			"Effect": "Deny",
 			"Action": [
 				"lambda:Delete*",
@@ -139,7 +139,11 @@ We do not want users updating runtime code out of bands of our CI/CD reviewal an
 				"backup:Cancel*",
 				"backup:Revoke*",
 				"backup:Associate*",
-				"backup:Update*"
+				"backup:Update*",
+				"states:Create*",
+				"states:Update*",
+				"states:Publish*",
+				"states:Delete*"
 			],
 			"Resource": [
 				"*"
@@ -149,7 +153,7 @@ We do not want users updating runtime code out of bands of our CI/CD reviewal an
 }
 ```
 
-6. Name the policy `DenyLambdaAndBackupUpdates`
+6. Name the policy `DenyComputeAndBackupUpdates`
 7. Select "Create policy"
 8. The policy will automatically apply to all users assigned to the `AWSPowerUserAccess` permission set
 
