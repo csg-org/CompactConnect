@@ -1,5 +1,6 @@
 import csv
 import json
+from unittest.mock import patch
 from uuid import uuid4
 
 from botocore.exceptions import ClientError
@@ -185,3 +186,90 @@ class TestProcessObjects(TstFunction):
         self.assertEqual('1234567890', message_data['npi'])
         self.assertEqual('active', message_data['licenseStatus'])
         self.assertEqual('eligible', message_data['compactEligibility'])
+
+    def test_bulk_upload_prevents_compact_jurisdiction_overwrites(self):
+        """Test that CSV compact/jurisdiction fields cannot overwrite URL path values."""
+        from handlers.bulk_upload import parse_bulk_upload_file
+
+        # Create CSV content that includes compact and jurisdiction fields
+        # These should NOT be allowed to overwrite the values from the URL path
+        csv_content = (
+            'ssn,npi,licenseNumber,givenName,middleName,familyName,suffix,dateOfBirth,dateOfIssuance'
+            ',dateOfRenewal,dateOfExpiration,licenseStatus,compactEligibility,homeAddressStreet1'
+            ',homeAddressStreet2,homeAddressCity,homeAddressState,homeAddressPostalCode'
+            ',emailAddress,phoneNumber,licenseType,licenseStatusName,compact,jurisdiction\n'
+            '123-45-6789,1234567890,LICENSE123,John,Middle,Doe,Jr.,1990-01-01,2020-01-01,2021-01-01,2023-01-01,active,'
+            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,audiologist,Active,'
+            'malicious_compact,malicious_jurisdiction'
+        )
+
+        # Upload the CSV content directly to the mock S3 bucket
+        # URL path indicates aslp/oh, but CSV contains malicious_compact/malicious_jurisdiction
+        object_key = f'aslp/oh/{uuid4().hex}'
+        self._bucket.put_object(Key=object_key, Body=csv_content)
+
+        # Simulate the s3 bucket event
+        with open('../common/tests/resources/put-event.json') as f:
+            event = json.load(f)
+
+        event['Records'][0]['s3']['bucket'] = {
+            'name': self._bucket.name,
+            'arn': f'arn:aws:s3:::{self._bucket.name}',
+            'ownerIdentity': {'principalId': 'ASDFG123'},
+        }
+        event['Records'][0]['s3']['object']['key'] = object_key
+
+        # Mock EventBatchWriter to capture put_event calls
+        with patch('handlers.bulk_upload.EventBatchWriter') as mock_event_writer_class:
+            mock_event_writer = mock_event_writer_class.return_value.__enter__.return_value
+            # Mock the failed_entry_count attribute to return 0
+            mock_event_writer.failed_entry_count = 0
+
+            # Process the file - should not raise an exception
+            parse_bulk_upload_file(event, self.mock_context)
+
+            # Verify that put_event was called for the validation error
+            mock_event_writer.put_event.assert_called_once()
+
+            # Get the call arguments to verify the event details
+            call_args = mock_event_writer.put_event.call_args[1]['Entry']
+
+            # Verify the complete event structure
+            expected_entry = {
+                'Source': f'org.compactconnect.bulk-ingest.{object_key}',
+                'DetailType': 'license.validation-error',
+                'Detail': json.dumps(
+                    {
+                        'eventTime': '1970-01-01T00:00:00+00:00',
+                        'compact': 'aslp',
+                        'jurisdiction': 'oh',
+                        'recordNumber': 1,
+                        'validData': {
+                            'licenseType': 'audiologist',
+                            'licenseStatusName': 'Active',
+                            'licenseStatus': 'active',
+                            'compactEligibility': 'eligible',
+                            'npi': '1234567890',
+                            'licenseNumber': 'LICENSE123',
+                            'givenName': 'John',
+                            'middleName': 'Middle',
+                            'familyName': 'Doe',
+                            'suffix': 'Jr.',
+                            'dateOfIssuance': '2020-01-01',
+                            'dateOfRenewal': '2021-01-01',
+                            'dateOfExpiration': '2023-01-01',
+                            'homeAddressStreet1': '123 Main St',
+                            'homeAddressStreet2': 'Apt 1',
+                            'homeAddressCity': 'Columbus',
+                            'homeAddressState': 'OH',
+                            'homeAddressPostalCode': '43215',
+                            'emailAddress': 'test@example.com',
+                            'phoneNumber': '+15551234567',
+                        },
+                        'errors': ['License contains unsupported fields'],
+                    }
+                ),
+                'EventBusName': 'license-data-events',
+            }
+
+            self.assertEqual(expected_entry, call_args)

@@ -140,7 +140,14 @@ def process_bulk_upload_file(
         for i, raw_license in enumerate(reader.licenses(stream)):
             logger.debug('Processing line %s', i + 1)
             try:
-                validated_license = schema.load({'compact': compact, 'jurisdiction': jurisdiction, **raw_license})
+                try:
+                    # dict() here, because it prevents `compact` and `jurisdiction` from being allowed in the
+                    # raw_license
+                    validated_license = schema.load(dict(compact=compact, jurisdiction=jurisdiction, **raw_license))
+                except TypeError as e:
+                    # This will be raised, if `raw_license` includes compact and/or jurisdiction fields
+                    logger.error('License contains unsupported fields', fields=list(raw_license.keys()), exc_info=e)
+                    raise ValidationError('License contains unsupported fields') from e
                 current_batch.append(schema.dump(validated_license))
 
                 # When batch is full, send to preprocessing queue
