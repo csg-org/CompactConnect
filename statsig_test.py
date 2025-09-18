@@ -12,7 +12,7 @@ from statsig.statsig_user import StatsigUser
 def main():
     # Get the server secret key from environment variable
     # You'll need to set this: export STATSIG_SERVER_SECRET_KEY="your_actual_key_here"
-    server_secret_key = 'secret-z0vOLM3ENYOFrlAeNpJsTHHftdVbOybyk5JHDEKFdLe'
+    server_secret_key = os.environ.get('STATSIG_SERVER_SECRET_KEY')
     
     if not server_secret_key:
         print("Error: STATSIG_SERVER_SECRET_KEY environment variable not set")
