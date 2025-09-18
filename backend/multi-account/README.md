@@ -104,6 +104,59 @@ new AWS organization that we will set up here. Have them:
 - In the future, add any new IAM Identity Center users to these groups as appropriate (or create even more groups, with
   more granular permissions, as needed).
 
+### Configure Permission Set Inline Policies
+To enhance security, configure inline policies on IAM Identity Center permission sets to restrict certain actions:
+
+#### Lambda Function Code Update Protection
+We do not want users updating runtime code out of bands of our CI/CD reviewal and deployment process. Apply the following inline policy to the `AWSPowerUserAccess` permission set to prevent unauthorized Lambda function updates, as well as updates to our backup resources:
+
+1. Log into the AWS Management account console via your IAM Identity Center user
+2. Go to the IAM Identity Center service, Permission sets view
+3. Select the `AWSPowerUserAccess` permission set
+4. Go to the Permissions tab, then select "Create inline policy"
+5. Choose JSON and paste the following policy:
+
+```json
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Sid": "DenyLambdaAndBackupUpdates",
+			"Effect": "Deny",
+			"Action": [
+				"lambda:Delete*",
+				"lambda:Create*",
+				"lambda:Update*",
+				"lambda:Put*",
+				"lambda:Publish*",
+				"lambda:Add*",
+				"lambda:Remove*",
+				"backup:Create*",
+				"backup:Copy*",
+				"backup:Delete*",
+				"backup:Start*",
+				"backup:Put*",
+				"backup:Stop*",
+				"backup:Disassociate*",
+				"backup:Cancel*",
+				"backup:Revoke*",
+				"backup:Associate*",
+				"backup:Update*"
+			],
+			"Resource": [
+				"*"
+			]
+		}
+	]
+}
+```
+
+6. Name the policy `DenyLambdaAndBackupUpdates`
+7. Select "Create policy"
+8. The policy will automatically apply to all users assigned to the `AWSPowerUserAccess` permission set
+
+This policy prevents power users from modifying Lambda functions and backup resources while still allowing CloudFormation deployments to make updates during CI/CD processes.
+
 ### Disallow Root
 - Log into the AWS Management account console via your IAM Identity Center user
 - Go to the ControlTower service, All Controls view
