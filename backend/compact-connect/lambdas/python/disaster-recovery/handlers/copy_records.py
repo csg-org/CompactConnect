@@ -106,7 +106,7 @@ def copy_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused-ar
 
     logger.info(f'Starting copy of records from {source_table_name} to {destination_table_name}')
     if last_evaluated_key:
-        logger.info(f'Continuing from last evaluated key: {last_evaluated_key}')
+        logger.info('Last evaluated key found. Continuing copy from last evaluated key.')
 
     # Initialize DynamoDB resource
     dynamodb = boto3.resource('dynamodb')
