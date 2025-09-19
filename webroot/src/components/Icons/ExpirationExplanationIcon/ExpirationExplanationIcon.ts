@@ -5,12 +5,19 @@
 //  Created by InspiringApps on 9/15/2025.
 //
 
-import { Component, Vue, toNative } from 'vue-facing-decorator';
+import {
+    Component,
+    Vue,
+    Prop,
+    toNative
+} from 'vue-facing-decorator';
 
 @Component({
     name: 'ExpirationExplanationIcon',
 })
 class ExpirationExplanationIcon extends Vue {
+    @Prop({ default: true }) isCollapsibleExplanation?: boolean;
+
     //
     // Data
     //

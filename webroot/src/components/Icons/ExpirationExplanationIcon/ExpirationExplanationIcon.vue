@@ -6,25 +6,40 @@
 -->
 
 <template>
-    <div class="clock-logo-wrapper" v-click-outside="hideExpirationExplanation">
-        <div class="clock-logo-container">
-            <img
-                role="button"
-                tabindex="0"
-                class="clock-logo-img"
-                src="@assets/icons/ico-clock.svg"
-                :alt="$t('licensing.privilegeExpirationIcon')"
+    <div class="expiration-icon-container">
+        <div v-if="isCollapsibleExplanation" class="clock-button-wrapper" v-click-outside="hideExpirationExplanation">
+            <div class="clock-logo-container">
+                <img
+                    role="button"
+                    tabindex="0"
+                    class="clock-logo-img"
+                    src="@assets/icons/ico-clock.svg"
+                    :alt="$t('licensing.privilegeExpirationIcon')"
 
-                @click="toggleExpirationExplanation"
-                @keyup.enter="toggleExpirationExplanation"
-            />
-        </div>
-        <Transition name="fade" :mode="elementTransitionMode">
-            <div v-if="shouldShowExpirationExplanation" class="expiration-explanation-wrapper">
-                <div class="triangle" />
-                <div v-html="$t('licensing.expirationTimeExplanation')" class="expiration-explanation"/>
+                    @click="toggleExpirationExplanation"
+                    @keyup.enter="toggleExpirationExplanation"
+                />
             </div>
-        </Transition>
+            <Transition name="fade" :mode="elementTransitionMode">
+                <div
+                    v-if="shouldShowExpirationExplanation"
+                    class="collapsible-expiration-explanation-wrapper"
+                >
+                    <div class="triangle" />
+                    <div v-html="$t('licensing.expirationTimeExplanation')" class="expiration-explanation"/>
+                </div>
+            </Transition>
+        </div>
+        <div v-else class="clock-img-wrapper">
+            <div class="clock-logo-container">
+                <img
+                    class="clock-logo-img"
+                    src="@assets/icons/ico-clock.svg"
+                    :alt="$t('licensing.privilegeExpirationIcon')"
+                />
+            </div>
+            <div v-html="$t('licensing.expirationTimeExplanation')" class="expiration-explanation"/>
+        </div>
     </div>
 </template>
 
