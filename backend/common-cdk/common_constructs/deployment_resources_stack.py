@@ -5,10 +5,10 @@ from aws_cdk.aws_kms import Key
 from aws_cdk.aws_ssm import StringParameter
 from cdk_nag import NagSuppressions
 from constructs import Construct
-from pipeline import DEPLOY_ENVIRONMENT_NAME
 
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.alarm_topic import AlarmTopic
+from common_constructs.base_pipeline_stack import DEPLOY_ENVIRONMENT_NAME
 from common_constructs.stack import Stack
 
 
