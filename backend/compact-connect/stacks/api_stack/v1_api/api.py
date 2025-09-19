@@ -10,17 +10,17 @@ from common_constructs.ssm_parameter_utility import SSMParameterUtility
 from common_constructs.stack import Stack
 from stacks import persistent_stack as ps
 from stacks.api_lambda_stack import ApiLambdaStack
-from stacks.api_stack.v1_api.attestations import Attestations
-from stacks.api_stack.v1_api.bulk_upload_url import BulkUploadUrl
-from stacks.api_stack.v1_api.provider_management import ProviderManagement
-from stacks.api_stack.v1_api.provider_users import ProviderUsers
-from stacks.api_stack.v1_api.purchases import Purchases
 
 from .api_model import ApiModel
+from .attestations import Attestations
+from .bulk_upload_url import BulkUploadUrl
 from .compact_configuration_api import CompactConfigurationApi
 from .credentials import Credentials
 from .post_licenses import PostLicenses
+from .provider_management import ProviderManagement
+from .provider_users import ProviderUsers
 from .public_lookup_api import PublicLookupApi
+from .purchases import Purchases
 from .staff_users import StaffUsers
 
 

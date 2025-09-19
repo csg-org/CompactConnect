@@ -135,10 +135,10 @@ class WebACL(Resource):
 
 class WebACLRules:
     @staticmethod
-    def rate_limit_rule(limit: int = 100):
+    def rate_limit_rule(limit: int = 1000):
         """
         Limit calls to `limit` calls per 5 minutes for any IP
-        :param limit: The 5-minute call count limit. Default: 100.
+        :param limit: The 5-minute call count limit. Default: 1000.
         """
         # Limit calls to 100 per 5 minutes for any IP
         return CfnWebACL.RuleProperty(

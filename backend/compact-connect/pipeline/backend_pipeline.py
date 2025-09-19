@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 
 from aws_cdk import RemovalPolicy, Stack
@@ -11,8 +13,8 @@ from aws_cdk.aws_ssm import IParameter
 from aws_cdk.pipelines import CodeBuildOptions, CodePipelineSource, ShellStep
 from aws_cdk.pipelines import CodePipeline as CdkCodePipeline
 from cdk_nag import NagSuppressions
-from constructs import Construct
 
+import pipeline
 from common_constructs.bucket import Bucket
 
 
@@ -31,7 +33,7 @@ class BackendPipeline(CdkCodePipeline):
 
     def __init__(
         self,
-        scope: Construct,
+        scope: pipeline.BasePipelineStack,
         construct_id: str,
         *,
         pipeline_name: str,
@@ -69,11 +71,16 @@ class BackendPipeline(CdkCodePipeline):
             ],
         )
 
+        # Create predictable pipeline role before initializing the pipeline
+        pipeline_role = scope.create_predictable_pipeline_role('Backend')
+
         super().__init__(
             scope,
             construct_id,
             pipeline_name=pipeline_name,
             artifact_bucket=artifact_bucket,
+            role=pipeline_role,
+            use_pipeline_role_for_actions=True,
             synth=ShellStep(
                 'Synth',
                 input=CodePipelineSource.connection(
@@ -125,6 +132,22 @@ class BackendPipeline(CdkCodePipeline):
         self._ssm_parameter.grant_read(self.synth_project)
 
         stack = Stack.of(self)
+
+        # Add NAG suppressions for the cross-account role's default policy
+        NagSuppressions.add_resource_suppressions_by_path(
+            stack,
+            f'{stack.node.path}/BackendCrossAccountRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': (
+                        'Pipeline role requires wildcard permissions for CodePipeline service operations '
+                        'including S3 artifact access and cross-account role assumptions.'
+                    ),
+                },
+            ],
+        )
+
         NagSuppressions.add_resource_suppressions_by_path(
             stack,
             self.node.path,
