@@ -273,3 +273,66 @@ class TestProcessObjects(TstFunction):
             }
 
             self.assertEqual(expected_entry, call_args)
+
+    def test_bulk_upload_handles_bom_character(self):
+        """Test that CSV files with BOM characters are handled correctly."""
+        from handlers.bulk_upload import parse_bulk_upload_file
+
+        # Create CSV content without BOM in the string (BOM will be added during encoding)
+        csv_content = (
+            'dateOfIssuance,npi,licenseNumber,dateOfBirth,licenseType,familyName,homeAddressCity,middleName,'
+            'licenseStatus,licenseStatusName,compactEligibility,ssn,homeAddressStreet1,homeAddressStreet2,'
+            'dateOfExpiration,homeAddressState,homeAddressPostalCode,givenName,dateOfRenewal\n'
+            '2024-06-30,0608337260,BOM0608337260,2024-06-30,speech-language pathologist,TestFamily,Columbus,'
+            'TestMiddle,active,ACTIVE,eligible,529-31-5413,123 BOM Test St.,Apt 1,2024-06-30,oh,43215,'
+            'TestGiven,2024-06-30'
+        )
+
+        # Upload the CSV content with BOM added at byte level (simulates real BOM files)
+        object_key = f'aslp/oh/{uuid4().hex}'
+        self._bucket.put_object(Key=object_key, Body=csv_content.encode('utf-8-sig'))
+
+        # Simulate the s3 bucket event
+        with open('../common/tests/resources/put-event.json') as f:
+            event = json.load(f)
+
+        event['Records'][0]['s3']['bucket'] = {
+            'name': self._bucket.name,
+            'arn': f'arn:aws:s3:::{self._bucket.name}',
+            'ownerIdentity': {'principalId': 'ASDFG123'},
+        }
+        event['Records'][0]['s3']['object']['key'] = object_key
+
+        parse_bulk_upload_file(event, self.mock_context)
+
+        # Verify that one message was sent to the preprocessing queue
+        messages = self._license_preprocessing_queue.receive_messages(MaxNumberOfMessages=10)
+        self.assertEqual(1, len(messages))
+
+        message_data = json.loads(messages[0].body)
+
+        # Verify that the license was processed correctly despite the BOM character
+        self.assertEqual('BOM0608337260', message_data['licenseNumber'])
+        self.assertEqual('TestGiven', message_data['givenName'])
+        self.assertEqual('TestMiddle', message_data['middleName'])
+        self.assertEqual('TestFamily', message_data['familyName'])
+        self.assertEqual('Columbus', message_data['homeAddressCity'])
+        self.assertEqual('123 BOM Test St.', message_data['homeAddressStreet1'])
+        self.assertEqual('Apt 1', message_data['homeAddressStreet2'])
+        self.assertEqual('oh', message_data['homeAddressState'])
+        self.assertEqual('43215', message_data['homeAddressPostalCode'])
+        self.assertEqual('speech-language pathologist', message_data['licenseType'])
+        self.assertEqual('active', message_data['licenseStatus'])
+        self.assertEqual('ACTIVE', message_data['licenseStatusName'])
+        self.assertEqual('eligible', message_data['compactEligibility'])
+        self.assertEqual('529-31-5413', message_data['ssn'])
+        self.assertEqual('0608337260', message_data['npi'])
+
+        # Verify injected fields
+        self.assertEqual('aslp', message_data['compact'])
+        self.assertEqual('oh', message_data['jurisdiction'])
+        self.assertEqual('1970-01-01T00:00:00+00:00', message_data['eventTime'])
+
+        # The object should be gone, once parsing is complete
+        with self.assertRaises(ClientError):
+            self._bucket.Object(object_key).get()
