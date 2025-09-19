@@ -7,13 +7,14 @@ from aws_cdk import App, Environment
 # Make the `common_constructs` namespace package under `common-cdk` available to Python
 sys.path.insert(0, os.path.abspath(os.path.join('..', 'common-cdk')))
 
+from common_constructs.deployment_resources_stack import DeploymentResourcesStack
 from common_constructs.stack import StandardTags
+
 from pipeline import (
     ACTION_CONTEXT_KEY,
     PIPELINE_STACK_CONTEXT_KEY,
     PIPELINE_SYNTH_ACTION,
     BetaFrontendPipelineStack,
-    DeploymentResourcesStack,
     ProdFrontendPipelineStack,
     TestFrontendPipelineStack,
 )
@@ -23,7 +24,7 @@ from pipeline.frontend_stage import FrontendStage
 TEST_FRONTEND_PIPELINE_STACK = 'TestFrontendPipelineStack'
 BETA_FRONTEND_PIPELINE_STACK = 'BetaFrontendPipelineStack'
 PROD_FRONTEND_PIPELINE_STACK = 'ProdFrontendPipelineStack'
-DEPLOYMENT_RESOURCES_STACK = 'DeploymentResourcesStack'
+DEPLOYMENT_RESOURCES_STACK = 'FrontendDeploymentResourcesStack'
 
 # CDK path
 CDK_PATH = 'backend/compact-connect-ui-app'
@@ -66,32 +67,23 @@ class CompactConnectApp(App):
     def _setup_sandbox_environment(self):
         """Set up sandbox environment stacks"""
         # ssm_context must be provided locally for a sandbox deploy
-        # TODO: review what context is still needed in this reduced app
         ssm_context = self.node.get_context('ssm_context')
         environment_name = self.node.get_context('environment_name')
         environment_context = ssm_context['environments'][environment_name]
 
-        # TODO: review this toggle flow for what can be simplified
-        # TODO: update pipeline docs
-        # NOTE: for first-time sandbox deployments, ensure you deploy the backend stage successfully first
-        # by running `cdk deploy 'Sandbox/*'`, then if you have a domain name configured and want to deploy the UI for
-        # your sandbox environment, set the 'deploy_sandbox_ui' field to true and deploy this stack by running
-        # `cdk deploy 'SandboxUI/*'. This ensures the user pool values are configured to be bundled with the UI build
-        # artifact.
-        if environment_context.get('deploy_sandbox_ui', False):
-            if not environment_context.get('domain_name'):
-                raise ValueError(
-                    'Cannot deploy sandbox UI if domain name is not configured for your environment. '
-                    'You may still run the app from localhost. See README.md in the webroot folder for '
-                    'more information about running the app from localhost.'
-                )
-
-            self.sandbox_frontend_stage = FrontendStage(
-                self,
-                'SandboxUI',
-                environment_name=environment_name,
-                environment_context=environment_context,
+        if not environment_context.get('domain_name'):
+            raise ValueError(
+                'Cannot deploy sandbox UI if domain name is not configured for your environment. '
+                'You may still run the app from localhost. See README.md in the webroot folder for '
+                'more information about running the app from localhost.'
             )
+
+        self.sandbox_frontend_stage = FrontendStage(
+            self,
+            'SandboxUI',
+            environment_name=environment_name,
+            environment_context=environment_context,
+        )
 
     def _setup_pipeline_environment(self):
         """
@@ -131,7 +123,6 @@ class CompactConnectApp(App):
         stack resources in every environment.
         """
         # This stack must be declared first, as all other pipeline stacks depend on it.
-        # TODO: decide how we will handle these common deployment resources after breaking up into multiple apps
         self.add_deployment_resources_stack()
 
         self.add_test_frontend_pipeline_stack()
