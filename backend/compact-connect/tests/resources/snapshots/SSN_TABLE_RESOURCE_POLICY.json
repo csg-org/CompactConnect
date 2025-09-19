@@ -1,6 +1,17 @@
 {
   "Statement": [
     {
+      "Action": "dynamodb:CreateBackup",
+      "Condition": {
+        "StringNotEquals": {
+          "aws:PrincipalServiceName": "dynamodb.amazonaws.com"
+        }
+      },
+      "Effect": "Deny",
+      "Principal": "*",
+      "Resource": "*"
+    },
+    {
       "Action": [
         "dynamodb:BatchGetItem",
         "dynamodb:BatchWriteItem",
@@ -9,7 +20,15 @@
       ],
       "Condition": {
         "StringNotEquals": {
-          "aws:PrincipalServiceName": "dynamodb.amazonaws.com"
+          "aws:PrincipalServiceName": "dynamodb.amazonaws.com",
+          "aws:PrincipalArn": [
+            {
+              "Fn::GetAtt": [
+                "DisasterRecoveryLambdaRole4BDEAE6F",
+                "Arn"
+              ]
+            }
+          ]
         }
       },
       "Effect": "Deny",

@@ -1,5 +1,7 @@
+import os
 from unittest.mock import patch
 
+import boto3
 from moto import mock_aws
 
 from . import TstFunction
@@ -169,3 +171,62 @@ class TestCopyRecords(TstFunction):
             },
             response,
         )
+
+    def test_pagination_key_can_be_encrypted_and_decrypted(self):
+        from handlers.copy_records import decrypt_pagination_key, encrypt_pagination_key
+
+        # Create a mock KMS key
+        kms_client = boto3.client('kms', region_name='us-east-1')
+        key_response = kms_client.create_key(Description='Test SSN encryption key')
+        key_id = key_response['KeyMetadata']['KeyId']
+
+        # Test data
+        test_key_data = {'pk': 'test-ssn-123', 'sk': 'test-sk-456'}
+
+        # Encrypt then decrypt
+        encrypted_key = encrypt_pagination_key(test_key_data, key_id)
+        decrypted_key = decrypt_pagination_key(encrypted_key, key_id)
+
+        # Verify the decrypted data matches the original
+        self.assertEqual(test_key_data, decrypted_key)
+
+    @patch('handlers.copy_records.time')
+    def test_copy_records_encrypts_pagination_key_when_ssn_encryption_enabled_and_time_limit_reached(self, mock_time):
+        from handlers.copy_records import copy_records, decrypt_pagination_key
+
+        # Create a mock KMS key
+        kms_client = boto3.client('kms', region_name='us-east-1')
+        key_response = kms_client.create_key(Description='Test SSN encryption key')
+        key_id = key_response['KeyMetadata']['KeyId']
+
+        # Add test data
+        source_items = []
+        for i in range(3000):
+            source_item = {
+                'pk': str(i),
+                'sk': str(i),
+                'data': f'test_{i}',
+            }
+            source_items.append(source_item)
+            self.mock_source_table.put_item(Item=source_item)
+
+        # Mock time to trigger timeout on third call, then reset it back for the subsequent call
+        mock_time.time.side_effect = [0, 1, 12 * 60 + 2, 0, 1]
+
+        with patch.dict(os.environ, {'SSN_ENCRYPTION_KMS_KEY_ID': key_id}):
+            event = self._generate_test_event()
+            response = copy_records(event, self.mock_context)
+
+            self.assertEqual('IN_PROGRESS', response['copyStatus'])
+            encrypted_pagination_key = response['copyLastEvaluatedKey']
+            decrypted_key = decrypt_pagination_key(encrypted_pagination_key, key_id)
+            # because we use strings for the keys, the keys are sorted in lexicographical order
+            # this key is the 2000th record by that order
+            self.assertEqual({'pk': '2798', 'sk': '2798'}, decrypted_key)
+
+            # now call again with the key and expect to get back the remaining records
+            second_call_response = copy_records(response, self.mock_context)
+
+            # Should copy over the remaining records successfully
+            self.assertEqual('COMPLETE', second_call_response['copyStatus'])
+            self.assertEqual(3000, second_call_response['copiedCount'])
