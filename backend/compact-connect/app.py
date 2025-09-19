@@ -7,13 +7,13 @@ from aws_cdk import App, Environment
 # Make the `common_constructs` namespace package under `common-cdk` available to Python
 sys.path.insert(0, os.path.abspath(os.path.join('..', 'common-cdk')))
 
+from common_constructs.deployment_resources_stack import DeploymentResourcesStack
 from common_constructs.stack import StandardTags
 from pipeline import (
     ACTION_CONTEXT_KEY,
     PIPELINE_STACK_CONTEXT_KEY,
     PIPELINE_SYNTH_ACTION,
     BetaBackendPipelineStack,
-    DeploymentResourcesStack,
     ProdBackendPipelineStack,
     TestBackendPipelineStack,
 )

@@ -4,12 +4,28 @@
 
 ## Overview
 
-The CompactConnect CI/CD pipeline architecture implements an optimized deployment strategy built around AWS CDK Pipelines (see https://docs.aws.amazon.com/cdk/v2/guide/cdk_pipeline.html). It follows a multi-pipeline approach with separate backend and frontend pipelines to improve deployment speed, reliability, and security.
+The CompactConnect CI/CD pipeline architecture implements an optimized deployment strategy built around AWS CDK
+Pipelines (see https://docs.aws.amazon.com/cdk/v2/guide/cdk_pipeline.html). It follows a multi-pipeline approach with
+separate backend and frontend pipelines to improve deployment speed, reliability, and security.
 
 ## Key Components
 
-- **Backend Pipelines**: Deploy infrastructure resources and backend components first
-- **Frontend Pipelines**: Deploy frontend applications with backend configuration values
+### Backend Pipelines
+
+There are different backend pipelines for each environment, defined as part of this CDK app. Those pipelines deploy
+infrastructure resources and backend components to environment-specific application AWS accounts.
+
+### Frontend Pipelines
+
+There are also different frontend pipelines for each environment. These pipelines are defined as part of the separate
+[CompactConnect UI App](../../../compact-connect-ui-app/README.md). The frontend pipelines deploy application hosting
+infrastructure to the environment-specific application AWS accounts, based on backend configuration values, provide
+by the backend deploy process.
+
+### Deployment Resources Stack
+
+
+
 - **Deployment Resources Stack**: Shared resources used by all pipeline stacks across all environments
 - **Environments**: Test, Beta, and Production environments
 
@@ -19,13 +35,15 @@ The CompactConnect CI/CD pipeline architecture implements an optimized deploymen
 2. Backend Pipeline successful completion → Trigger Frontend Pipeline
 3. Frontend Pipeline deploys web application using configuration values from Backend
 
-Commits pushed to the 'development' branch trigger the test pipelines. Commits pushed to the 'main' branch trigger the beta and prod pipelines.
+Commits pushed to the 'development' branch trigger the test pipelines. Commits pushed to the 'main' branch trigger the
+beta and prod pipelines.
 
 ## Self-Mutation Feature and Optimization
 
 ### Understanding CDK Pipeline Self-Mutation
 
-AWS CDK Pipelines include a powerful "self-mutation" feature that allows the pipeline to update itself. When code changes affecting the pipeline's structure are pushed, the pipeline:
+AWS CDK Pipelines include a powerful "self-mutation" feature that allows the pipeline to update itself. When code
+changes affecting the pipeline's structure are pushed, the pipeline:
 
 1. Executes with its current configuration
 2. Synthesizes CloudFormation templates for all stacks in the app
@@ -34,19 +52,24 @@ AWS CDK Pipelines include a powerful "self-mutation" feature that allows the pip
 
 While powerful, this feature presents challenges:
 
-1. **Performance Impact**: By default, CDK synthesizes all stacks in the application even when only one pipeline needs to be updated. This can be extremely slow, especially for complex applications.
+1. **Performance Impact**: By default, CDK synthesizes all stacks in the application even when only one pipeline needs
+   to be updated. This can be extremely slow, especially for complex applications.
 
-2. **Unnecessary Processing**: Every pipeline synthesis includes bundling operations (like frontend builds) even when those components aren't changing.
+2. **Unnecessary Processing**: Every pipeline synthesis includes bundling operations (like frontend builds) even when
+   those components aren't changing.
 
 ### The SynthSubstituteStage and SynthSubstituteStack Solution
 
-To address these challenges, we've implemented the `SynthSubstituteStage` and `SynthSubstituteStack` classes that act as lightweight placeholders during the synthesis process:
+To address these challenges, we've implemented the `SynthSubstituteStage` and `SynthSubstituteStack` classes that act
+as lightweight placeholders during the synthesis process:
 
 #### How It Works
 
-1. During pipeline synthesis, we pass in cdk context variables to determine which specific pipeline is being synthesized.
+1. During pipeline synthesis, we pass in cdk context variables to determine which specific pipeline is being
+   synthesized.
 
-2. For any stage that isn't part of the current pipeline being synthesized, we replace it with a `SynthSubstituteStage` containing a minimal `SynthSubstituteStack`.
+2. For any stage that isn't part of the current pipeline being synthesized, we replace it with a `SynthSubstituteStage`
+   containing a minimal `SynthSubstituteStack`.
 
 3. The substitute stack synths a single SSM parameter resource, dramatically reducing synthesis time compared to full application stacks.
 
