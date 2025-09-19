@@ -1,0 +1,54 @@
+name: Check-Multi-Account
+
+on:
+  pull_request:
+    paths:
+      - backend/multi-account/**
+
+env:
+  AWS_REGION : "us-east-1"
+
+# Permission can be added at job level or workflow level
+permissions:
+  id-token: write   # This is required for requesting the JWT
+  contents: read    # This is required for actions/checkout
+
+jobs:
+  LintPython:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - name: Install dev dependencies
+        run: "pip install -r backend/multi-account/control-tower/requirements-dev.txt"
+
+      - name: Lint Code
+        run: "cd backend/multi-account; ruff check $(git ls-files '*.py')"
+
+      - name: Check Dependencies
+        run: "pip-audit"
+
+  TestApps:
+    runs-on: ubuntu-latest
+    steps:
+      # Checks-out the repository under $GITHUB_WORKSPACE
+      - uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dev dependencies
+        run: "pip install -r backend/multi-account/control-tower/requirements-dev.txt"
+
+      - name: Install all Python dependencies
+        run: "cd backend/multi-account; bin/sync_deps.sh"
+
+      - name: Test backend
+        run: "cd backend/multi-account; bin/run_tests.sh -l all -no"

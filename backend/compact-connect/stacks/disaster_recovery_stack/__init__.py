@@ -2,9 +2,9 @@ from aws_cdk import RemovalPolicy
 from aws_cdk.aws_dynamodb import Table
 from aws_cdk.aws_iam import PolicyStatement, ServicePrincipal
 from aws_cdk.aws_kms import Key
-from common_constructs.stack import AppStack
 from constructs import Construct
 
+from common_constructs.stack import AppStack
 from stacks import persistent_stack as ps
 from stacks.disaster_recovery_stack.restore_dynamo_db_table_step_function import (
     RestoreDynamoDbTableStepFunctionConstruct,

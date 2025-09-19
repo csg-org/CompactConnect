@@ -27,11 +27,11 @@ from aws_cdk.aws_route53 import ARecord, IHostedZone, RecordTarget
 from aws_cdk.aws_route53_targets import ApiGateway
 from cdk_nag import NagSuppressions
 from constructs import IConstruct
-from stacks import persistent_stack as ps
 
 from common_constructs.security_profile import SecurityProfile
 from common_constructs.stack import AppStack
 from common_constructs.webacl import WebACL, WebACLScope
+from stacks import persistent_stack as ps
 
 MD_FORMAT = r'^[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$'
 YMD_FORMAT = r'^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$'

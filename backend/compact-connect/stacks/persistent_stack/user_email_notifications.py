@@ -9,9 +9,10 @@ from aws_cdk.aws_ses import ConfigurationSet, EmailIdentity, EmailSendingEvent, 
 from aws_cdk.aws_sns import Subscription, SubscriptionProtocol, Topic
 from aws_cdk.custom_resources import Provider
 from cdk_nag import NagSuppressions
+from constructs import Construct
+
 from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
-from constructs import Construct
 
 
 class UserEmailNotifications(Construct):

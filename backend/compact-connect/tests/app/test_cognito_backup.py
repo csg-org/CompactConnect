@@ -12,8 +12,8 @@ from aws_cdk.assertions import Match, Template
 from aws_cdk.aws_cloudwatch import CfnAlarm
 from aws_cdk.aws_events import CfnRule
 from aws_cdk.aws_lambda import CfnFunction
-from common_constructs.cognito_user_backup import CognitoUserBackup
 
+from common_constructs.cognito_user_backup import CognitoUserBackup
 from tests.app.base import TstAppABC
 
 

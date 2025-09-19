@@ -4,10 +4,10 @@ import json
 from functools import cached_property
 
 from aws_cdk import ArnFormat
-from common_constructs.cc_api import CCApi
-from common_constructs.stack import Stack
 from constructs import Construct
 
+from common_constructs.cc_api import CCApi
+from common_constructs.stack import Stack
 from stacks import persistent_stack as ps
 from stacks.api_lambda_stack import ApiLambdaStack
 from stacks.provider_users import ProviderUsersStack

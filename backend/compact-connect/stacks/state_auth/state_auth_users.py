@@ -11,9 +11,9 @@ from aws_cdk.aws_cognito import (
     UserPool,
 )
 from cdk_nag import NagSuppressions
-from common_constructs.resource_scope_mixin import ResourceScopeMixin
 from constructs import Construct
 
+from common_constructs.resource_scope_mixin import ResourceScopeMixin
 from stacks import persistent_stack as ps
 
 

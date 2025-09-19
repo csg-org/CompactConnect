@@ -12,11 +12,11 @@ from aws_cdk.aws_cognito import (
     UserPoolOperation,
 )
 from aws_cdk.aws_kms import IKey
+from constructs import Construct
+
 from common_constructs.cognito_user_backup import CognitoUserBackup
 from common_constructs.nodejs_function import NodejsFunction
 from common_constructs.user_pool import UserPool
-from constructs import Construct
-
 from stacks import persistent_stack as ps
 
 
