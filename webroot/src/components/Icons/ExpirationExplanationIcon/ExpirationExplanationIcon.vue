@@ -15,7 +15,8 @@
                     class="clock-logo-img"
                     src="@assets/icons/ico-clock.svg"
                     :alt="$t('licensing.privilegeExpirationIcon')"
-
+                    :aria-describedby="(shouldShowExpirationExplanation) ? 'expiration-explanation' : undefined"
+                    :aria-expanded="shouldShowExpirationExplanation"
                     @click="toggleExpirationExplanation"
                     @keyup.enter="toggleExpirationExplanation"
                 />
@@ -26,7 +27,11 @@
                     class="collapsible-expiration-explanation-wrapper"
                 >
                     <div class="triangle" />
-                    <div v-html="$t('licensing.expirationTimeExplanation')" class="expiration-explanation"/>
+                    <div
+                        id="expiration-explanation"
+                        class="expiration-explanation"
+                        v-html="$t('licensing.expirationTimeExplanation')"
+                    />
                 </div>
             </Transition>
         </div>
