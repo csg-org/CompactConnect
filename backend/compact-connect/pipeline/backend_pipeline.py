@@ -14,7 +14,7 @@ from aws_cdk.pipelines import CodeBuildOptions, CodePipelineSource, ShellStep
 from aws_cdk.pipelines import CodePipeline as CdkCodePipeline
 from cdk_nag import NagSuppressions
 
-import pipeline
+import common_constructs.base_pipeline_stack
 from common_constructs.bucket import Bucket
 
 
@@ -33,7 +33,7 @@ class BackendPipeline(CdkCodePipeline):
 
     def __init__(
         self,
-        scope: pipeline.BasePipelineStack,
+        scope: common_constructs.base_pipeline_stack.BasePipelineStack,
         construct_id: str,
         *,
         pipeline_name: str,

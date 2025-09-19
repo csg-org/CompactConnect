@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 
+import common_constructs.base_pipeline_stack
 from aws_cdk import RemovalPolicy, Stack
 from aws_cdk.aws_codebuild import BuildSpec
 from aws_cdk.aws_codestarnotifications import NotificationRule
@@ -14,8 +15,6 @@ from aws_cdk.pipelines import CodeBuildOptions, CodePipelineSource, ShellStep
 from aws_cdk.pipelines import CodePipeline as CdkCodePipeline
 from cdk_nag import NagSuppressions
 from common_constructs.bucket import Bucket
-
-import pipeline
 
 
 class FrontendPipeline(CdkCodePipeline):
@@ -36,7 +35,7 @@ class FrontendPipeline(CdkCodePipeline):
 
     def __init__(
         self,
-        scope: pipeline.BasePipelineStack,
+        scope: common_constructs.base_pipeline_stack.BasePipelineStack,
         construct_id: str,
         *,
         pipeline_name: str,
