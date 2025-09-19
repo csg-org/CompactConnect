@@ -14,6 +14,7 @@ import PrivilegeCard from '@/components/PrivilegeCard/PrivilegeCard.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import CollapseCaretButton from '@components/CollapseCaretButton/CollapseCaretButton.vue';
+import ExpirationExplanationIcon from '@components/Icons/ExpirationExplanationIcon/ExpirationExplanationIcon.vue';
 import Modal from '@components/Modal/Modal.vue';
 import { Compact } from '@models/Compact/Compact.model';
 import { License, LicenseStatus } from '@models/License/License.model';
@@ -32,7 +33,8 @@ import InfoCircle from '@/components/Icons/InfoCircle/InfoCircle.vue';
         InputSubmit,
         CollapseCaretButton,
         Modal,
-        InfoCircle
+        InfoCircle,
+        ExpirationExplanationIcon
     }
 })
 export default class LicenseeDashboard extends Vue {
