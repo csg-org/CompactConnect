@@ -150,6 +150,36 @@ class BasePipelineStack(Stack):
         self.backup_config = self.ssm_context.get('backup_config', {})
         self.app_name = self.ssm_context['app_name']
 
+    def _get_predictable_role_name(self, pipeline_type: str, role_type: str) -> str:
+        """Generate predictable role name for bootstrap template integration.
+
+        :param pipeline_type: 'Backend' or 'Frontend'
+        :param role_type: 'Synth', 'SelfMutation', 'AssetPublishing', 'Deploy'
+        :return: Predictable role name following pattern: CompactConnect-{env}-{pipeline}-{role}Role
+        """
+        if self.environment_name not in ALLOWED_ENVIRONMENT_NAMES:
+            raise ValueError(f'Environment name must be one of {ALLOWED_ENVIRONMENT_NAMES}')
+
+        return f'CompactConnect-{self.environment_name}-{pipeline_type}-{role_type}Role'
+
+    def create_predictable_pipeline_role(self, pipeline_type: str) -> Role:
+        """Create a predictable cross-account role that will be trusted by bootstrap roles.
+
+        :param pipeline_type: 'Backend' or 'Frontend'
+        :return: The cross-account role with predictable name for bootstrap trust policies
+        """
+        # Create environment and pipeline-type specific cross-account roles
+        cross_account_role_name = f'CompactConnect-{self.environment_name}-{pipeline_type}-CrossAccountRole'
+
+        return Role(
+            self,
+            f'{pipeline_type}CrossAccountRole',
+            role_name=cross_account_role_name,
+            assumed_by=ServicePrincipal('codepipeline.amazonaws.com'),
+            description=f'Cross-account role for {self.environment_name} {pipeline_type.lower()}'
+            'pipeline bootstrap trust policies',
+        )
+
     def _add_pipeline_cdk_assume_role_policy(self, pipeline: CdkCodePipeline):
         pipeline.synth_project.add_to_role_policy(
             PolicyStatement(

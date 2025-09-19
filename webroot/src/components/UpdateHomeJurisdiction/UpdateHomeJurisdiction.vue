@@ -30,6 +30,7 @@
         </form>
         <Modal
             v-if="isConfirmJurisdictionModalOpen"
+            modalId="home-jurisdiction-modal"
             id="home-jurisdiction-modal"
             class="home-jurisdiction-modal"
             :class="{ 'is-success': isSuccess }"
@@ -41,17 +42,28 @@
             @keyup.esc="closeConfirmJurisdictionModal"
         >
             <template v-slot:content>
-                <template v-if="!isSuccess && !isError">
-                    <div class="modal-subtext">{{ $t('homeJurisdictionChange.modalSubtext') }}</div>
-                </template>
-                <template v-else-if="isSuccess">
-                    <div class="icon-container"><CheckCircleIcon /></div>
-                    <h1 class="modal-title">{{ $t('homeJurisdictionChange.successTitle') }}</h1>
-                    <div class="modal-subtext">{{ $t('homeJurisdictionChange.successSubtext') }}</div>
-                </template>
-                <template v-else-if="isError">
-                    <div class="modal-subtext">{{ errorMessage }}</div>
-                </template>
+                <div
+                    class="jurisdiction-modal-content"
+                    tabindex="0"
+                    :aria-live="(isSuccess) ? 'polite' : undefined"
+                    :role="(isSuccess) ? 'status' : undefined"
+                >
+                    <template v-if="!isSuccess && !isError">
+                        <div class="modal-subtext">{{ $t('homeJurisdictionChange.modalSubtext') }}</div>
+                    </template>
+                    <template v-else-if="isSuccess">
+                        <div class="icon-container"><CheckCircleIcon aria-hidden="true" /></div>
+                        <h1 class="modal-title">{{ $t('homeJurisdictionChange.successTitle') }}</h1>
+                        <div class="modal-subtext">{{ $t('homeJurisdictionChange.successSubtext') }}</div>
+                    </template>
+                    <template v-else-if="isError">
+                        <div
+                            class="modal-subtext"
+                            aria-live="assertive"
+                            role="alert"
+                        >{{ errorMessage }}</div>
+                    </template>
+                </div>
             </template>
             <template v-slot:actions>
                 <div v-if="!isSuccess && !isError" class="action-button-row initial-action-buttons">

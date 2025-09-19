@@ -15,6 +15,7 @@
         </div>
         <Modal
             v-if="isModalVisible"
+            modalId="example-modal"
             :closeOnBackgroundClick="true"
             :title="isErrorModal ? $t('styleGuide.errorModal') : $t('styleGuide.modal')"
             :isErrorModal="isErrorModal"

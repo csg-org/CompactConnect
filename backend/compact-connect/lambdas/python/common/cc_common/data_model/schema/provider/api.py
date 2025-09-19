@@ -16,10 +16,74 @@ from cc_common.data_model.schema.fields import (
     NationalProviderIdentifier,
     Set,
 )
-from cc_common.data_model.schema.license.api import LicenseGeneralResponseSchema
-from cc_common.data_model.schema.military_affiliation.api import MilitaryAffiliationGeneralResponseSchema
-from cc_common.data_model.schema.privilege.api import PrivilegeGeneralResponseSchema, PrivilegePublicResponseSchema
+from cc_common.data_model.schema.license.api import (
+    LicenseGeneralResponseSchema,
+    LicenseReadPrivateResponseSchema,
+)
+from cc_common.data_model.schema.military_affiliation.api import (
+    MilitaryAffiliationGeneralResponseSchema,
+    MilitaryAffiliationReadPrivateResponseSchema,
+)
+from cc_common.data_model.schema.privilege.api import (
+    PrivilegeGeneralResponseSchema,
+    PrivilegePublicResponseSchema,
+    PrivilegeReadPrivateResponseSchema,
+)
 
+
+class ProviderReadPrivateResponseSchema(ForgivingSchema):
+    """
+    Provider object fields that are sanitized for users with the 'readPrivate' permission.
+
+    This schema is intended to be used to filter from the database in order to remove all fields not defined here.
+    It should NEVER be used to load data into the database. Use the ProviderRecordSchema for that.
+
+    This schema should be used by any endpoint that returns provider information to staff users with read private
+    permissions (ie the query provider and GET provider endpoints).
+
+    Serialization direction:
+    Python -> load() -> API
+    """
+
+    providerId = Raw(required=True, allow_none=False)
+    type = String(required=True, allow_none=False)
+
+    dateOfUpdate = Raw(required=True, allow_none=False)
+    compact = Compact(required=True, allow_none=False)
+    licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
+    currentHomeJurisdiction = CurrentHomeJurisdictionField(required=False, allow_none=False)
+    licenseStatus = ActiveInactive(required=True, allow_none=False)
+    compactEligibility = CompactEligibility(required=True, allow_none=False)
+
+    npi = NationalProviderIdentifier(required=False, allow_none=False)
+    givenName = String(required=True, allow_none=False, validate=Length(1, 100))
+    middleName = String(required=False, allow_none=False, validate=Length(1, 100))
+    familyName = String(required=True, allow_none=False, validate=Length(1, 100))
+    suffix = String(required=False, allow_none=False, validate=Length(1, 100))
+    # This date is determined by the license records uploaded by a state
+    # they do not include a timestamp, so we use the Date field type
+    dateOfExpiration = Raw(required=True, allow_none=False)
+    compactConnectRegisteredEmailAddress = Email(required=False, allow_none=False)
+
+    jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
+    jurisdictionUploadedCompactEligibility = CompactEligibility(required=True, allow_none=False)
+
+    privilegeJurisdictions = Set(String, required=False, allow_none=False, load_default=set())
+    providerFamGivMid = String(required=False, allow_none=False, validate=Length(2, 400))
+    providerDateOfUpdate = Raw(required=False, allow_none=False)
+    birthMonthDay = String(required=True, allow_none=False, validate=Regexp('^[0-1]{1}[0-9]{1}-[0-3]{1}[0-9]{1}'))
+
+    # these records are present when getting provider information from the GET endpoint
+    # so we check for them here and sanitize them if they are present
+    licenses = List(Nested(LicenseReadPrivateResponseSchema(), required=False, allow_none=False))
+    privileges = List(Nested(PrivilegeReadPrivateResponseSchema(), required=False, allow_none=False))
+    militaryAffiliations = List(
+        Nested(MilitaryAffiliationReadPrivateResponseSchema(), required=False, allow_none=False)
+    )
+
+    # these fields are specific to the read private role
+    dateOfBirth = Raw(required=True, allow_none=False)
+    ssnLastFour = String(required=False, allow_none=False, validate=Length(equal=4))
 
 class ProviderGeneralResponseSchema(ForgivingSchema):
     """

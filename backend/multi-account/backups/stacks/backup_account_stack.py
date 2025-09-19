@@ -1,5 +1,5 @@
-from aws_cdk import ArnFormat, CfnOutput, RemovalPolicy, Stack
-from aws_cdk.aws_backup import BackupVault
+from aws_cdk import ArnFormat, CfnOutput, Duration, RemovalPolicy, Stack
+from aws_cdk.aws_backup import BackupVault, LockConfiguration
 from aws_cdk.aws_iam import (
     AccountPrincipal,
     AccountRootPrincipal,
@@ -219,6 +219,15 @@ class BackupAccountStack(Stack):
             encryption_key=self.backup_key,
             access_policy=vault_access_policy,
             removal_policy=RemovalPolicy.RETAIN,  # Prevents deletion - resources are retained when stack is deleted
+            lock_configuration=LockConfiguration(
+                min_retention=Duration.days(90),
+                # By setting this, the retention period can NEVER be changed after 6 months
+                # from the time this is set (it will be locked in compliance mode approximately March 2026)
+                # After that point in time, if the period needs to be changed, a new
+                # vault will need to be created.
+                # see https://docs.aws.amazon.com/aws-backup/latest/devguide/vault-lock.html
+                changeable_for=Duration.days(180),
+            ),
         )
 
     def _create_ssn_backup_vault(self) -> None:
@@ -272,6 +281,15 @@ class BackupAccountStack(Stack):
             encryption_key=self.ssn_backup_key,
             access_policy=ssn_vault_access_policy,
             removal_policy=RemovalPolicy.RETAIN,  # Prevents deletion - resources are retained when stack is deleted
+            lock_configuration=LockConfiguration(
+                min_retention=Duration.days(90),
+                # By setting this, the retention period can NEVER be changed after 6 months
+                # from the time this is set (it will be locked in compliance mode approximately March 2026)
+                # After that point in time, if the period needs to be changed, a new
+                # vault will need to be created.
+                # see https://docs.aws.amazon.com/aws-backup/latest/devguide/vault-lock.html
+                changeable_for=Duration.days(180),
+            ),
         )
 
     def _create_outputs(self) -> None:

@@ -9,6 +9,7 @@ import { Component, Vue } from 'vue-facing-decorator';
 import {
     authStorage,
     AuthTypes,
+    getHostedLoginUri,
     AUTH_LOGIN_GOTO_PATH,
     AUTH_LOGIN_GOTO_PATH_AUTH_TYPE
 } from '@/app.config';
@@ -53,40 +54,16 @@ export default class DashboardPublic extends Vue {
         return logoutQuery.toLowerCase() === 'true';
     }
 
-    get hostedLoginUriStaff(): string {
-        const { domain, cognitoAuthDomainStaff, cognitoClientIdStaff } = this.$envConfig;
-        const loginScopes = 'email openid profile';
-        const loginResponseType = 'code';
-        const loginRedirectPath = '/auth/callback';
-        const loginUriQuery = [
-            `?client_id=${cognitoClientIdStaff}`,
-            `&response_type=${loginResponseType}`,
-            `&scope=${encodeURIComponent(loginScopes)}`,
-            `&state=${AuthTypes.STAFF}`,
-            `&redirect_uri=${encodeURIComponent(`${domain}${loginRedirectPath}`)}`,
-        ].join('');
-        const idpPath = (this.shouldRemoteLogout) ? '/logout' : '/login';
-        const loginUri = `${cognitoAuthDomainStaff}${idpPath}${loginUriQuery}`;
+    get hostedLoginUriPath(): string {
+        return (this.shouldRemoteLogout) ? '/logout' : '/login';
+    }
 
-        return loginUri;
+    get hostedLoginUriStaff(): string {
+        return getHostedLoginUri(AuthTypes.STAFF, this.hostedLoginUriPath);
     }
 
     get hostedLoginUriLicensee(): string {
-        const { domain, cognitoAuthDomainLicensee, cognitoClientIdLicensee } = this.$envConfig;
-        const loginScopes = 'email openid profile';
-        const loginResponseType = 'code';
-        const loginRedirectPath = '/auth/callback';
-        const loginUriQuery = [
-            `?client_id=${cognitoClientIdLicensee}`,
-            `&response_type=${loginResponseType}`,
-            `&scope=${encodeURIComponent(loginScopes)}`,
-            `&state=${AuthTypes.LICENSEE}`,
-            `&redirect_uri=${encodeURIComponent(`${domain}${loginRedirectPath}`)}`,
-        ].join('');
-        const idpPath = (this.shouldRemoteLogout) ? '/logout' : '/login';
-        const loginUri = `${cognitoAuthDomainLicensee}${idpPath}${loginUriQuery}`;
-
-        return loginUri;
+        return getHostedLoginUri(AuthTypes.LICENSEE, this.hostedLoginUriPath);
     }
 
     get isUsingMockApi(): boolean {
@@ -103,6 +80,9 @@ export default class DashboardPublic extends Vue {
             break;
         case 'login-practitioner':
             this.bypassToLicenseeLogin();
+            break;
+        case 'recovery-practitioner':
+            this.bypassToLicenseeMfaRecovery();
             break;
         default:
             // Continue
@@ -125,6 +105,19 @@ export default class DashboardPublic extends Vue {
             this.$store.dispatch('startLoading');
             window.location.replace(this.hostedLoginUriLicensee);
         }
+    }
+
+    bypassToLicenseeMfaRecovery(): void {
+        const { compact, providerId, recoveryId } = this.$route.query;
+
+        this.$router.replace({
+            name: 'MfaResetConfirmLicensee',
+            query: {
+                compact,
+                providerId,
+                recoveryId,
+            },
+        });
     }
 
     async mockStaffLogin(): Promise<void> {

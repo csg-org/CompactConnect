@@ -11,6 +11,14 @@ from .. import TstFunction
 @mock_aws
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
 class TestPublicQueryProviders(TstFunction):
+    def _when_jurisdiction_is_live_in_compact(self, jurisdiction):
+        self.test_data_generator.put_default_compact_configuration_in_configuration_table(
+            value_overrides={
+                'compactAbbr': 'aslp',
+                'configuredStates': [{'postalAbbreviation': jurisdiction, 'isLive': True}],
+            }
+        )
+
     def test_public_query_by_provider_id_returns_public_allowed_fields(self):
         self._load_provider_data()
 
@@ -50,6 +58,8 @@ class TestPublicQueryProviders(TstFunction):
     def test_public_query_providers_updated_sorting(self):
         from handlers.public_lookup import public_query_providers
 
+        self._when_jurisdiction_is_live_in_compact(jurisdiction='oh')
+
         # 20 providers, 10 with licenses in oh, 10 with privileges in oh
         self._generate_providers(home='ne', privilege_jurisdiction='oh', start_serial=9999)
         self._generate_providers(home='oh', privilege_jurisdiction='ne', start_serial=9899)
@@ -79,6 +89,8 @@ class TestPublicQueryProviders(TstFunction):
     def test_public_query_providers_updated_sorting_only_returns_matching_providers_which_have_any_privileges(self):
         """Tests that the public endpoint only returns providers with privileges."""
         from handlers.public_lookup import public_query_providers
+
+        self._when_jurisdiction_is_live_in_compact(jurisdiction='oh')
 
         # 30 providers:
         # - 10 with licenses in oh and which have privileges
@@ -111,6 +123,8 @@ class TestPublicQueryProviders(TstFunction):
 
     def test_public_query_providers_family_name_sorting(self):
         from handlers.public_lookup import public_query_providers
+
+        self._when_jurisdiction_is_live_in_compact(jurisdiction='oh')
 
         # 20 providers, 10 with licenses in oh, 10 with privileges in oh
         # We'll force the first 10 names, to be a set of values we know are challenging characters
@@ -157,6 +171,8 @@ class TestPublicQueryProviders(TstFunction):
     def test_public_query_providers_by_family_name(self):
         from handlers.public_lookup import public_query_providers
 
+        self._when_jurisdiction_is_live_in_compact(jurisdiction='oh')
+
         # 10 providers, licenses in oh, and privileges in ne, including a Tess and Ted Testerly
         self._generate_providers(
             home='oh',
@@ -186,8 +202,51 @@ class TestPublicQueryProviders(TstFunction):
         body = json.loads(resp['body'])
         self.assertEqual(2, len(body['providers']))
 
+    def test_public_query_returns_empty_results_if_jurisdiction_is_not_live(self):
+        from handlers.public_lookup import public_query_providers
+
+        # 10 providers from ohio, but ohio is not live in the system, so we should return without querying
+        # for providers
+        self._generate_providers(
+            home='oh',
+            privilege_jurisdiction='ne',
+            start_serial=9999,
+            names=(('Testerly', 'Tess'), ('Testerly', 'Ted')),
+        )
+
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        # public endpoint does not have authorizer
+        del event['requestContext']['authorizer']
+        event['pathParameters'] = {'compact': 'aslp'}
+        event['body'] = json.dumps(
+            {
+                'sorting': {'key': 'familyName'},
+                'query': {'jurisdiction': 'oh', 'familyName': 'Testerly'},
+                'pagination': {'pageSize': 10},
+            },
+        )
+
+        resp = public_query_providers(event, self.mock_context)
+
+        self.assertEqual(200, resp['statusCode'])
+
+        body = json.loads(resp['body'])
+        self.assertEqual(
+            {
+                'pagination': {'pageSize': 10},
+                'providers': [],
+                'query': {'familyName': 'Testerly', 'jurisdiction': 'oh'},
+                'sorting': {'key': 'familyName'},
+            },
+            body,
+        )
+
     def test_public_query_providers_by_family_name_filters_providers_without_privileges(self):
         from handlers.public_lookup import public_query_providers
+
+        self._when_jurisdiction_is_live_in_compact(jurisdiction='oh')
 
         # 10 providers, licenses in oh, and privileges in ne, including a Tess and Ted Testerly
         self._generate_providers(
@@ -228,6 +287,8 @@ class TestPublicQueryProviders(TstFunction):
     def test_public_query_providers_given_name_only_not_allowed(self):
         from handlers.public_lookup import public_query_providers
 
+        self._when_jurisdiction_is_live_in_compact(jurisdiction='oh')
+
         # 10 providers, licenses in oh, and privileges in ne, including a Tess and Ted Testerly
         self._generate_providers(
             home='oh',
@@ -258,6 +319,8 @@ class TestPublicQueryProviders(TstFunction):
         """If sorting is not specified, familyName is default"""
         from handlers.public_lookup import public_query_providers
 
+        self._when_jurisdiction_is_live_in_compact(jurisdiction='oh')
+
         # 20 providers, 10 with licenses in oh, 10 with privileges in oh
         self._generate_providers(home='ne', privilege_jurisdiction='oh', start_serial=9999)
         self._generate_providers(home='oh', privilege_jurisdiction='ne', start_serial=9899)
@@ -286,6 +349,8 @@ class TestPublicQueryProviders(TstFunction):
     def test_public_query_providers_invalid_sorting(self):
         from handlers.public_lookup import public_query_providers
 
+        self._when_jurisdiction_is_live_in_compact(jurisdiction='oh')
+
         # 20 providers, 10 with licenses in oh, 10 with privileges in oh
         self._generate_providers(home='ne', privilege_jurisdiction='oh', start_serial=9999)
         self._generate_providers(home='oh', privilege_jurisdiction='ne', start_serial=9899)
@@ -306,6 +371,8 @@ class TestPublicQueryProviders(TstFunction):
     def test_public_query_providers_strips_whitespace_from_query_fields(self):
         """Test that whitespace is stripped from multiple fields simultaneously."""
         from handlers.public_lookup import public_query_providers
+
+        self._when_jurisdiction_is_live_in_compact(jurisdiction='oh')
 
         # Create providers with known names for testing
         self._generate_providers(
@@ -383,9 +450,6 @@ class TestPublicGetProvider(TstFunction):
             expected_provider.pop('licenses')
             expected_provider['privileges'][0].pop('attestations')
             expected_provider['privileges'][0].pop('compactTransactionId')
-            expected_provider['privileges'][0]['history'][1]['previous'].pop('attestations')
-            expected_provider['privileges'][0]['history'][1]['previous'].pop('compactTransactionId')
-            expected_provider['privileges'][0]['history'][1]['updatedValues'].pop('compactTransactionId')
             expected_provider.pop('dateOfExpiration')
             expected_provider.pop('jurisdictionUploadedLicenseStatus')
             expected_provider.pop('jurisdictionUploadedCompactEligibility')

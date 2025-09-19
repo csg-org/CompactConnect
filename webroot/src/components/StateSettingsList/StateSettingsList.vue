@@ -55,9 +55,10 @@
         <TransitionGroup>
             <Modal
                 v-if="isStateLiveModalDisplayed"
+                modalId="confirm-state-live-modal"
                 class="confirm-config-modal"
                 :title="$t('compact.confirmSaveCompactTitle')"
-                :showActions="false"
+                :showActions="true"
                 @keydown.tab="focusTrapStateLiveModal($event)"
                 @keyup.esc="closeStateLiveModal"
             >
@@ -65,26 +66,28 @@
                     <div class="modal-content confirm-modal-content">
                         {{ $t('common.cannotBeUndone') }}
                         <div v-if="modalErrorMessage" class="modal-error">{{ modalErrorMessage }}</div>
-                        <div class="action-button-row">
-                            <InputButton
-                                id="confirm-modal-submit-button"
-                                @click="submitStateLive"
-                                class="action-button submit-button continue-button"
-                                :label="(isFormLoading)
-                                    ? $t('common.loading')
-                                    : $t('compact.confirmSaveCompactYes')"
-                                :isTransparent="true"
-                                :isEnabled="!isFormLoading"
-                            />
-                            <InputButton
-                                id="confirm-modal-cancel-button"
-                                class="action-button cancel-button"
-                                :label="$t('common.cancel')"
-                                :isWarning="true"
-                                :isEnabled="isFormValid && !isFormLoading"
-                                :onClick="closeStateLiveModal"
-                            />
-                        </div>
+                    </div>
+                </template>
+                <template v-slot:actions>
+                    <div class="action-button-row">
+                        <InputButton
+                            id="confirm-modal-submit-button"
+                            @click="submitStateLive"
+                            class="action-button submit-button continue-button"
+                            :label="(isFormLoading)
+                                ? $t('common.loading')
+                                : $t('compact.confirmSaveCompactYes')"
+                            :isTransparent="true"
+                            :isEnabled="!isFormLoading"
+                        />
+                        <InputButton
+                            id="confirm-modal-cancel-button"
+                            class="action-button cancel-button"
+                            :label="$t('common.cancel')"
+                            :isWarning="true"
+                            :isEnabled="isFormValid && !isFormLoading"
+                            :onClick="closeStateLiveModal"
+                        />
                     </div>
                 </template>
             </Modal>

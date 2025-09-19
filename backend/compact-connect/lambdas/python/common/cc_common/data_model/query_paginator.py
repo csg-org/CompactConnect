@@ -19,17 +19,36 @@ class paginated_query:  # noqa: N801 invalid-name
 
     {
         'items': response['Items'],
-        'lastKey': <encoded pagination key>
+        'pagination': {
+            'pageSize': <page size>,
+            'prevLastKey': <encoded pagination key if available>,
+            'lastKey': <encoded pagination key if available>
+        }
     }
 
-    When a FilterExpression is used, DynamoDB can return fewer items than is specified as the pageSize. To ensure
-    that we always return the full pageSize, when there are enough results, this decorator will also potentially repeat
-    queries multiple times internally, until it has pageSize items to return.
+    IMPORTANT: When a FilterExpression is used over a large partition space, DynamoDB can return fewer items than is
+    specified as the pageSize. To ensure that we always return the full pageSize, this decorator will repeat queries as
+    needed until it has a full page of items to return. In order to reduce the number of queries made when using filter
+    expressions, you should set the set_query_limit_to_match_page_size flag to False. This will not set the Limit
+    parameter on the query, so DynamoDB will evaluate as many items as it can within a single query, returning all
+    evaluated items that match the filter expression. The decorator will handle truncating the items to fit within the
+    pageSize, and will also handle calculating the lastKey for the next page of results.
     """
 
-    def __init__(self, fn: Callable):
+    def __init__(self, set_query_limit_to_match_page_size: bool = True):
         super().__init__()
+        self.set_query_limit_to_match_page_size = set_query_limit_to_match_page_size
+
+    def __call__(self, fn: Callable):
+        return _PaginatedQueryDecorator(fn, self.set_query_limit_to_match_page_size)
+
+
+class _PaginatedQueryDecorator:
+    """Internal decorator class that handles the actual pagination logic."""
+
+    def __init__(self, fn: Callable, set_query_limit_to_match_page_size: bool):
         self.fn = fn
+        self.set_query_limit_to_match_page_size = set_query_limit_to_match_page_size
 
     def __get__(self, instance, owner):
         return MethodType(self, instance)
@@ -48,6 +67,7 @@ class paginated_query:  # noqa: N801 invalid-name
 
         items = []
         raw_resp = {}
+        last_known_evaluated_key = None
         for raw_resp in self._generate_pages(
             last_key=last_key,
             page_size=page_size,
@@ -56,22 +76,40 @@ class paginated_query:  # noqa: N801 invalid-name
             kwargs=kwargs,
         ):
             items.extend(raw_resp.get('Items', []))
+            # track the last key for the page, in the event more items are returned on the last page than the page size
+            last_known_evaluated_key = raw_resp.get('LastEvaluatedKey', last_known_evaluated_key)
 
-        # items can be longer than page_size, so trim it:
-        items = items[:page_size]
-        raw_last_key = raw_resp.get('LastEvaluatedKey')
+        # items can be longer than page_size, so we trim it to the page size:
+        if len(items) > page_size:
+            items = items[:page_size]
+            last_item = items[-1]
+            # Since we truncated our items, we need to recalculate the last key
+            # We will use the last known evaluated key to determine the needed fields
+            # for the last key if we have one
+            if last_known_evaluated_key is not None:
+                last_key = {k: last_item[k] for k in last_known_evaluated_key.keys()}
+            # Else the first query was the last query, but there were more items to be returned than the specified page
+            # size. In this case, we need to determine the last key for getting the next page. The keys needed by the
+            # last key are not static (for example, if you are querying by a GSI you must include the GSI fields as
+            # part of the last key) so to have a generic solution for this scenario, we make a query with a limit of 1
+            # so we can get the LastEvaluatedKey from the response, and then map the keys from that to the values of
+            # the last item that will be returned in the response to create our own last key.
+            else:
+                last_key_resp = self._caught_query(client_filter, *args, dynamo_pagination={'Limit': 1}, **kwargs)
+                last_known_evaluated_key = last_key_resp.get('LastEvaluatedKey')
+                last_key = {k: last_item[k] for k in last_known_evaluated_key.keys()}
+        # else if the page size matched the query, and there are more records to return, set the last key to match
+        elif raw_resp.get('LastEvaluatedKey'):
+            last_key = raw_resp.get('LastEvaluatedKey')
+        # else there are not more records to fetch, set last key to none
+        else:
+            last_key = None
 
         resp = {
             # Deserializing everything that comes out of the database
             'items': load_records_into_schemas(items),
             'pagination': {'pageSize': page_size, 'prevLastKey': pagination.get('lastKey')},
         }
-
-        # Since we truncated our items, we need to recalculate the last key
-        last_key = None
-        if raw_last_key is not None:
-            last_item = items[-1]
-            last_key = {k: last_item[k] for k in raw_last_key.keys()}
 
         # Last key, if present, will be a dict like {'pk': 'some-pk', 'sk': 'aslp/PROVIDER'}
         if last_key is not None:
@@ -89,7 +127,9 @@ class paginated_query:  # noqa: N801 invalid-name
         kwargs,
     ):
         """Repeat the wrapped query until we get everything or the full page_size of items"""
-        dynamo_pagination = {'Limit': page_size, **({'ExclusiveStartKey': last_key} if last_key is not None else {})}
+        dynamo_pagination = {**({'ExclusiveStartKey': last_key} if last_key is not None else {})}
+        if self.set_query_limit_to_match_page_size:
+            dynamo_pagination['Limit'] = page_size
 
         raw_resp = self._caught_query(client_filter, *args, dynamo_pagination=dynamo_pagination, **kwargs)
         count = raw_resp['Count']
@@ -97,10 +137,9 @@ class paginated_query:  # noqa: N801 invalid-name
 
         yield raw_resp
         while last_key is not None and count < page_size:
-            dynamo_pagination = {
-                'Limit': page_size,
-                **({'ExclusiveStartKey': last_key} if last_key is not None else {}),
-            }
+            dynamo_pagination = {**({'ExclusiveStartKey': last_key} if last_key is not None else {})}
+            if self.set_query_limit_to_match_page_size:
+                dynamo_pagination['Limit'] = page_size
 
             raw_resp = self._caught_query(client_filter, *args, dynamo_pagination=dynamo_pagination, **kwargs)
             count += raw_resp['Count']

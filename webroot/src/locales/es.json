@@ -76,7 +76,7 @@
         "race": "Raza",
         "ethnicity": "Origen étnico",
         "finish": "Termina",
-        "cannotBeUndone": "Esta acción no se puede deshacer",
+        "cannotBeUndone": "Esta acción no se puede deshacer.",
         "daysOfTheWeek": {
             "monday": {
                 "full": "Lunes",
@@ -381,7 +381,8 @@
         "purchasePrivileges": "Obtener privilegios",
         "styleGuide": "Guía de estilo",
         "account": "Cuenta",
-        "logout": "Cerrar sesión"
+        "logout": "Cerrar sesión",
+        "helpCenter": "Centro de ayuda"
     },
     "paging": {
         "previousPage": "Pagina anterior",
@@ -666,6 +667,7 @@
         "confirmPrivilegeUnencumberSuccessEndDate": "Fecha de finalización",
         "expiringIn": "Expirando en",
         "events": "Eventos",
+        "uploadedOn": "Subido en",
         "licenseEvents": [
             {
                 "name": "Privilegio comprado",
@@ -841,7 +843,7 @@
         "practitionerName": "Nombre del profesional",
         "homeStateLicenses": "Licencias del estado de origen",
         "activeDate": "Activa",
-        "privilegeProofFooter": "Este documento es generado oficialmente por Compact Connect y sirve como prueba de las licencias y privilegios actuales del profesional.",
+        "privilegeProofFooter": "Este documento es emitido por Compact Connect como prueba oficial de los privilegios actuales del profesional para practicar.<br/>Confirma el estado de privilegio-a-practicar solo y no está destinado a ser una verificación de la licencia estatal.",
         "publicProfileLink": "Ver perfil público en",
         "licenseDeactivationNote": "Desactivado debido a que la licencia asociada está desactivada",
         "homeStateChangeNote": "Desactivado debido al cambio de estado de origen",
@@ -948,7 +950,24 @@
         "enterVerificationCodeSubtext": "Deberías recibir un correo electrónico en tu nueva dirección con un código de confirmación. El código caducará en unos 15 minutos.",
         "enterCode": "Introduzca el código aquí",
         "emailUpdateSuccess": "Su correo electrónico ha sido actualizado exitosamente",
-        "noValuesChanged": "No se han cambiado valores"
+        "noValuesChanged": "No se han cambiado valores",
+        "lockedOut": "¿Está bloqueado de su cuenta?",
+        "resetAccount": "Restablecer su cuenta",
+        "resetAccountSubtext1": "Si su <em>cuenta de licencia</em> no está disponible y necesita restablecer su autenticación multifactor (MFA), restablezca su cuenta a continuación. Si es <em>miembro del personal</em> y su cuenta no está disponible, comuníquese con el administrador de su compacto.",
+        "resetAccountSubtext2": "La información que proporcione aquí debe coincidir <em>exactamente</em> con la que su estado de residencia tiene registrada. Si no coincide, no podrá crear una cuenta.",
+        "resetAccountEmailSubtext": "Esta dirección de correo electrónico es a la que le enviaremos información sobre su cuenta. Debe coincidir <em>exactamente con la dirección de correo electrónico</em> que utiliza en su cuenta actual.",
+        "resetAccountPasswordSubtext": "Esta contraseña debe coincidir con la <em>contraseña exacta</em> utilizada en su cuenta existente.",
+        "resetAccountForgotPassword": "¿Olvidaste tu contraseña?",
+        "resetAccountSummary": "Restablecer resumen de cuenta",
+        "resetAccountSummarySubtext": "Aquí está la información que envió para restablecer su cuenta. Si su información no coincide exactamente con la de nuestro sistema, el restablecimiento no se realizará correctamente.",
+        "resetAccountVerifying": "Verificando cuenta",
+        "resetAccountSuccessTitle": "Restablecimiento de cuenta exitoso!",
+        "resetAccountSuccessSubtext1": "Recibirá un nuevo correo electrónico de invitación de CompactConnect con una nueva contraseña temporal.",
+        "resetAccountSuccessSubtext2": "Asegúrese de seguir las instrucciones de invitación dentro del plazo especificado en el correo electrónico para evitar que se le bloquee el acceso a su cuenta.",
+        "resetAccountErrorTitle": "Error de verificación",
+        "resetAccountErrorSubtext": "Si intenta reutilizar un enlace que le enviaron, tenga en cuenta que los enlaces solo son válidos por un corto período de tiempo y solo se pueden usar una vez.",
+        "resetAccountActionLogin": "Ir a iniciar sesión",
+        "resetAccountActionDashboard": "Ir al panel de control"
     },
     "privacyPolicy": {
         "title": "Política de Privacidad",

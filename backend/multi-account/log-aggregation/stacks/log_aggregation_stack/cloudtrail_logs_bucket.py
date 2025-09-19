@@ -1,6 +1,12 @@
-from aws_cdk import RemovalPolicy
+from aws_cdk import Duration, RemovalPolicy
 from aws_cdk.aws_iam import Effect, PolicyStatement, ServicePrincipal, StarPrincipal
-from aws_cdk.aws_s3 import BlockPublicAccess, Bucket, BucketEncryption, ObjectOwnership
+from aws_cdk.aws_s3 import (
+    BlockPublicAccess,
+    Bucket,
+    BucketEncryption,
+    ObjectLockRetention,
+    ObjectOwnership,
+)
 from constructs import Construct
 
 
@@ -25,6 +31,7 @@ class CloudTrailLogsBucket(Bucket):
             versioned=True,
             # This allows us to lock objects in the bucket, so they cannot be deleted by anyone
             object_lock_enabled=True,
+            object_lock_default_retention=ObjectLockRetention.compliance(Duration.days(90)),
             server_access_logs_bucket=access_logs_bucket,
             server_access_logs_prefix=f'_logs/{scope.account}/{scope.region}/{scope.node.path}/{construct_id}/',
             **kwargs,

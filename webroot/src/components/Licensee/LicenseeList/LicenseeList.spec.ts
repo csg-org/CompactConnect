@@ -23,9 +23,6 @@ const populateComponentStorePagingKeys = (component) => {
 };
 
 describe('LicenseeList component', async () => {
-    before(() => {
-        global.requestAnimationFrame = (cb) => cb(); // JSDOM omits this global method, so we need to mock it ourselves
-    });
     it('should mount the component', async () => {
         const wrapper = await mountFull(LicenseeList); // mounting full here to get ahead of some vue-test-utils oddities in fast local environments
 

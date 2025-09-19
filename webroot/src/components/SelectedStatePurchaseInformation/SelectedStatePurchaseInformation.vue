@@ -71,6 +71,7 @@
         </div>
         <Modal
             v-if="isJurisprudencePending"
+            modalId="jurisprudence-modal"
             class="attestation-modal"
             :closeOnBackgroundClick="true"
             :showActions="false"
@@ -104,6 +105,7 @@
         </Modal>
         <Modal
             v-if="isScopeOfPracticePending"
+            modalId="scope-of-practice-modal"
             class="attestation-modal"
             :closeOnBackgroundClick="true"
             :showActions="false"
