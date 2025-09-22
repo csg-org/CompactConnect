@@ -49,6 +49,10 @@ export class LicenseHistoryItem implements InterfaceLicenseHistoryItem {
         return dateDisplay(this.effectiveDate);
     }
 
+    public createDateDisplay(): string {
+        return dateDisplay(this.createDate);
+    }
+
     public isActivatingEvent(): boolean {
         const activatingEvents = ['renewal'];
 
@@ -88,6 +92,12 @@ export class LicenseHistoryItem implements InterfaceLicenseHistoryItem {
             noteDisplay = this.$t('licensing.homeStateChangeNote');
         } else if (updateType === 'licenseDeactivation') {
             noteDisplay = this.$t('licensing.licenseDeactivationNote');
+        } else if (updateType === 'encumbrance') {
+            const npdbTypes = this.$tm('licensing.npdbTypes') || [];
+            const npdbType = npdbTypes.find((translate) => translate.key === this.serverNote);
+            const typeName = npdbType?.name || '';
+
+            noteDisplay = typeName;
         }
 
         return noteDisplay;
@@ -99,9 +109,6 @@ export class LicenseHistoryItem implements InterfaceLicenseHistoryItem {
 // ========================================================
 export class LicenseHistoryItemSerializer {
     static fromServer(json: any): LicenseHistoryItem {
-        // All license fields can possibly appear in the values below, however the frontend only utilizes
-        // renewals at this time, these are the relevant fields for renewals
-
         const licenseHistoryData = {
             type: json.type,
             updateType: json.updateType,

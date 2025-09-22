@@ -20,6 +20,7 @@
         <div class="event-info">
             <div class="event-date">{{eventDate}}</div>
             <div class="event-type">{{eventNameDisplay}}</div>
+            <div class="event-detail" v-if="uploadOnDisplay">{{uploadOnDisplay}}</div>
             <div class="event-detail">{{detailDisplay}}</div>
         </div>
     </div>

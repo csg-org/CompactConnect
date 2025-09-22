@@ -168,7 +168,8 @@ its environment:
 6) Configure your aws cli to authenticate against your own account. There are several ways to do this based on the
    type of authentication you use to login to your account. See the [AWS CLI Configuration Guide](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-quickstart.html).
 7) Complete the [Google reCAPTCHA Setup](#google-recaptcha-setup) steps for your sandbox environment.
-8) Run `cdk bootstrap` to add some base CDK support infrastructure to your AWS account.
+8) Run `cdk bootstrap` to add some base CDK support infrastructure to your AWS account. See
+   [Custom bootstrap stack](#custom-bootstrap-stack) below for optional custom stack deployment.
 9) Run `cdk deploy 'Sandbox/*'` to get the initial backend stack resources deployed.
 10) *Optional:* If you have a domain name configured for your sandbox environment, once the backend stacks have successfully deployed, you can deploy the frontend UI by setting the 'deploy_sandbox_ui' context field to `true` and run `cdk deploy 'SandboxUI/*'`. If you do not have a domain name configured, you can still run the UI from local host (see the README.md under the webroot folder for more information about running the app on localhost). If you do have a domain name configured, the application will be accessible at the 'app' subdomain of the configured domain name (e.g., app.[configured_domain.com]).
 
@@ -179,6 +180,16 @@ to reflect the changes in your code. Full deployment steps are:
 2) Run `bin/sync_deps.sh` from `backend/` to ensure you have the latest requirements installed.
 3) Configure your aws cli to authenticate against your own account.
 4) Run `cdk deploy 'Sandbox/*'` to deploy the app to your AWS account.
+
+### Custom bootstrap stack
+
+The pipelined environments leverage a custom bootstrap stack, which includes cross-account trusts to the deploy account
+as well as a permissions boundary around the CloudFormation execution role. If new AWS services are added to the app
+architecture, that permissions boundary will need to be updated to allow access to the new service. See the
+[multi-account documentation](../multi-account/README.md#bootstrap-the-application-accounts) for details on how to
+deploy the custom bootstrap stack. If you want to test the bootstrap stack customizations in your sandbox, for example,
+to make sure the new resources you are creating in your sandbox won't be blocked by the CloudFormation execution role's
+permission boundary, you can deploy the custom stack to a sandbox account for testing, using the same steps.
 
 ### Verifying SES configuration for Cognito User Notifications
 If your account is in the SES sandbox, the simplest way to verify that SES is integrated with your cognito user pool is
