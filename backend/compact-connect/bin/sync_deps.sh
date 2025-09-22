@@ -1,5 +1,5 @@
 (
-  cd compact-connect/lambdas/nodejs
+  cd lambdas/nodejs
   yarn install
 )
 
