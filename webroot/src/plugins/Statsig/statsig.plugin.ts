@@ -39,21 +39,47 @@ export const getStatsigEnvironment = () => {
     return statsigEnvironment;
 };
 
-export const initStatsig = async () => {
+export const getStatsigClient = async () => {
+    const { isAppProduction, isAppBeta, isAppTest } = envConfig;
     const statsigEnvironment = getStatsigEnvironment();
+    const plugins: any = [];
+
+    // Setup Statsig analytics
+    if (isAppProduction || isAppBeta || isAppTest) {
+        plugins.push(new StatsigAutoCapturePlugin());
+    }
+
+    // Setup Statsig session replay
+    if (isAppProduction || isAppBeta || isAppTest) {
+        plugins.push(new StatsigSessionReplayPlugin());
+    }
+
+    // Create and initialize the Statsig client
     const statsigClient = new StatsigClient(
         envConfig.statsigKey || '',
         {},
         {
             environment: { tier: statsigEnvironment },
-            plugins: [
-                new StatsigSessionReplayPlugin(),
-                new StatsigAutoCapturePlugin(),
-            ],
+            plugins,
         }
     );
 
     await statsigClient.initializeAsync();
+
+    return statsigClient;
+};
+
+export const getStatsigClientMock = async () => ({
+    checkGate: (gateId = '') => {
+        const disabledGates = ['disabled-gate-1'];
+
+        return !disabledGates.includes(gateId);
+    },
+});
+
+export const initStatsig = async () => {
+    const { isTest, isUsingMockApi } = envConfig;
+    const statsigClient = (isTest || isUsingMockApi) ? getStatsigClientMock() : await getStatsigClient();
 
     return statsigClient;
 };

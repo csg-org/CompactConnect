@@ -242,8 +242,8 @@ const setCspHeader = (headers = {}) => {
                 domains.cognitoStaff,
                 domains.cognitoProvider,
                 cognitoIdpUrl,
-                // Begin Statsig domains
                 'https://www.google.com/recaptcha/',
+                // Begin Statsig domains
                 'http://api.statsig.com/',
                 'http://featuregates.org/',
                 'http://statsigapi.net/',

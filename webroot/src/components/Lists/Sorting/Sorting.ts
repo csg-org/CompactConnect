@@ -103,7 +103,9 @@ class Sorting extends mixins(MixinForm) {
                 await this.$store.dispatch('sorting/updateSortOption', { sortingId, newOption });
             }
 
-            this.sortChange(sortOptions.value, Boolean(sortDirection.value === SortDirection.asc));
+            if (typeof this.sortChange === 'function') {
+                this.sortChange(sortOptions.value, Boolean(sortDirection.value === SortDirection.asc));
+            }
         }
     }
 
@@ -120,7 +122,9 @@ class Sorting extends mixins(MixinForm) {
                 await this.$store.dispatch('sorting/updateSortDirection', { sortingId, newDirection });
             }
 
-            this.sortChange(sortOptions.value, Boolean(sortDirection.value === SortDirection.asc)); // ...but we'll also fire the change method property too for now
+            if (typeof this.sortChange === 'function') {
+                this.sortChange(sortOptions.value, Boolean(sortDirection.value === SortDirection.asc));
+            }
         }
     }
 

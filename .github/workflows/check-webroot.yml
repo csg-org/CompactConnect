@@ -11,6 +11,7 @@ on:
       - development
       - ia-development
       - ia-web-development
+      - frontend/feature-flags # @TODO: Remove after feature branch
     paths:
       - webroot/**
 
@@ -78,6 +79,7 @@ jobs:
         env:
           NODE_ENV: production
           BASE_URL: ${{ env.BASE_URL }}
+          VUE_APP_ENV: production
           VUE_APP_DOMAIN: ${{ env.VUE_APP_DOMAIN }}
           VUE_APP_ROBOTS_META: ${{ env.VUE_APP_ROBOTS_META }}
           VUE_APP_API_STATE_ROOT: ${{ env.VUE_APP_API_STATE_ROOT }}
@@ -88,5 +90,6 @@ jobs:
           VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE: ${{ env.VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE }}
           VUE_APP_COGNITO_CLIENT_ID_LICENSEE: ${{ env.VUE_APP_COGNITO_CLIENT_ID_LICENSEE }}
           VUE_APP_RECAPTCHA_KEY: ${{ env.VUE_APP_RECAPTCHA_KEY }}
+          VUE_APP_MOCK_API: true
         run: yarn build
         working-directory: ./webroot

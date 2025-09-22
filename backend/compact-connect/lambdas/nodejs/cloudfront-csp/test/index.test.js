@@ -156,6 +156,18 @@ const buildCspHeaders = (environment) => {
         cognitoProviderUrl,
         cognitoIdpUrl,
         'https://www.google.com/recaptcha/',
+        // Begin Statsig domains
+        'http://api.statsig.com/',
+        'http://featuregates.org/',
+        'http://statsigapi.net/',
+        'http://events.statsigapi.net/',
+        'http://api.statsigcdn.com/',
+        'http://featureassets.org/',
+        'http://assetsconfigcdn.org/',
+        'http://prodregistryv2.org/',
+        'http://cloudflare-dns.com/',
+        'http://beyondwickedmapping.org/',
+        // End Statsig domains
     ].join(' ');
 
     return `${[
