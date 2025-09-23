@@ -30,7 +30,6 @@ class ProviderUsers(UserPool):
         scope: Construct,
         construct_id: str,
         *,
-        cognito_domain_prefix: str,
         environment_name: str,
         environment_context: dict,
         encryption_key: IKey,
@@ -43,7 +42,6 @@ class ProviderUsers(UserPool):
         super().__init__(
             scope,
             construct_id,
-            cognito_domain_prefix=cognito_domain_prefix,
             environment_name=environment_name,
             encryption_key=encryption_key,
             removal_policy=removal_policy,
@@ -66,6 +64,14 @@ class ProviderUsers(UserPool):
                 password_history_size=4,
             ),
             **kwargs,
+        )
+
+        # Create a custom domain for the cognito app client
+        self.cognito_custom_domain = self.add_cognito_custom_domain(
+                app_client_domain_prefix='Licensee',
+                scope=self,
+                base_domain_name=persistent_stack.hosted_zone.zone_name,
+                hosted_zone=persistent_stack.hosted_zone,
         )
 
         # Create an app client to allow the front-end to authenticate.

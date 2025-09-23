@@ -183,7 +183,6 @@ class PersistentStack(AppStack):
         self.staff_users = StaffUsers(
             self,
             'StaffUsersGreen',
-            cognito_domain_prefix=staff_prefix if environment_name == 'prod' else f'{staff_prefix}-{environment_name}',
             environment_name=environment_name,
             environment_context=environment_context,
             encryption_key=self.shared_encryption_key,
