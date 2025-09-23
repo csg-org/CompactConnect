@@ -1,4 +1,3 @@
-import { renderToStaticMarkup } from '@usewaypoint/email-builder';
 import { BaseEmailService } from './base-email-service';
 import { EnvironmentVariablesService } from '../environment-variables-service';
 import { IJurisdiction } from 'lib/models/jurisdiction';
@@ -117,7 +116,7 @@ export class EncumbranceNotificationService extends BaseEmailService {
         this.insertBody(report, bodyText, 'center', true);
         this.insertFooter(report);
 
-        const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
+        const htmlContent = this.renderTemplate(report);
 
         await this.sendEmail({ htmlContent, subject, recipients: specificEmails, errorMessage: 'Unable to send provider license encumbrance notification email' });
     }
@@ -166,7 +165,7 @@ export class EncumbranceNotificationService extends BaseEmailService {
             this.insertBody(report, bodyText, 'center', true);
             this.insertFooter(report);
 
-            const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
+            const htmlContent = this.renderTemplate(report);
 
             await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send state license encumbrance notification email' });
         }
@@ -213,7 +212,7 @@ export class EncumbranceNotificationService extends BaseEmailService {
         this.insertBody(report, bodyText, 'center', true);
         this.insertFooter(report);
 
-        const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
+        const htmlContent = this.renderTemplate(report);
 
         await this.sendEmail({ htmlContent, subject, recipients: specificEmails, errorMessage: 'Unable to send provider license encumbrance lifting notification email' });
     }
@@ -262,7 +261,7 @@ export class EncumbranceNotificationService extends BaseEmailService {
             this.insertBody(report, bodyText, 'center', true);
             this.insertFooter(report);
 
-            const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
+            const htmlContent = this.renderTemplate(report);
 
             await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send state license encumbrance lifting notification email' });
         }
@@ -309,7 +308,7 @@ export class EncumbranceNotificationService extends BaseEmailService {
         this.insertBody(report, bodyText, 'center', true);
         this.insertFooter(report);
 
-        const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
+        const htmlContent = this.renderTemplate(report);
 
         await this.sendEmail({ htmlContent, subject, recipients: specificEmails, errorMessage: 'Unable to send provider privilege encumbrance notification email' });
     }
@@ -358,7 +357,7 @@ export class EncumbranceNotificationService extends BaseEmailService {
             this.insertBody(report, bodyText, 'center', true);
             this.insertFooter(report);
 
-            const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
+            const htmlContent = this.renderTemplate(report);
 
             await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send state privilege encumbrance notification email' });
         }
@@ -405,7 +404,7 @@ export class EncumbranceNotificationService extends BaseEmailService {
         this.insertBody(report, bodyText, 'center', true);
         this.insertFooter(report);
 
-        const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
+        const htmlContent = this.renderTemplate(report);
 
         await this.sendEmail({ htmlContent, subject, recipients: specificEmails, errorMessage: 'Unable to send provider privilege encumbrance lifting notification email' });
     }
@@ -454,7 +453,7 @@ export class EncumbranceNotificationService extends BaseEmailService {
             this.insertBody(report, bodyText, 'center', true);
             this.insertFooter(report);
 
-            const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
+            const htmlContent = this.renderTemplate(report);
 
             await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send state privilege encumbrance lifting notification email' });
         }

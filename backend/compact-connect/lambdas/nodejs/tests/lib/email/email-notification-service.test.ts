@@ -9,7 +9,8 @@ import * as nodemailer from 'nodemailer';
 import { EmailNotificationService } from '../../../lib/email';
 import { CompactConfigurationClient } from '../../../lib/compact-configuration-client';
 import { JurisdictionClient } from '../../../lib/jurisdiction-client';
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { EmailTemplateCapture } from '../../utils/email-template-capture';
+import { describe, it, expect, beforeEach, beforeAll, jest } from '@jest/globals';
 
 jest.mock('nodemailer');
 
@@ -60,6 +61,14 @@ describe('EmailNotificationService', () => {
     let mockS3Client: ReturnType<typeof mockClient>;
     let mockCompactConfigurationClient: jest.Mocked<CompactConfigurationClient>;
     let mockJurisdictionClient: jest.Mocked<JurisdictionClient>;
+
+    beforeAll(() => {
+        // Mock the renderTemplate method if template capture is enabled
+        if (EmailTemplateCapture.isEnabled()) {
+            jest.spyOn(EmailNotificationService.prototype as any, 'renderTemplate')
+                .mockImplementation(EmailTemplateCapture.mockRenderTemplate);
+        }
+    });
 
     beforeEach(() => {
         jest.clearAllMocks();

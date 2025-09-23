@@ -6,7 +6,8 @@ import { S3Client } from '@aws-sdk/client-s3';
 import { EncumbranceNotificationService } from '../../../lib/email';
 import { CompactConfigurationClient } from '../../../lib/compact-configuration-client';
 import { JurisdictionClient } from '../../../lib/jurisdiction-client';
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { EmailTemplateCapture } from '../../utils/email-template-capture';
+import { describe, it, expect, beforeEach, beforeAll, jest } from '@jest/globals';
 import { Compact } from '../../../lib/models/compact';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 
@@ -62,6 +63,14 @@ describe('EncumbranceNotificationService', () => {
     let mockS3Client: ReturnType<typeof mockClient>;
     let mockCompactConfigurationClient: MockCompactConfigurationClient;
     let mockJurisdictionClient: jest.Mocked<JurisdictionClient>;
+
+    beforeAll(() => {
+        // Mock the renderTemplate method if template capture is enabled
+        if (EmailTemplateCapture.isEnabled()) {
+            jest.spyOn(EncumbranceNotificationService.prototype as any, 'renderTemplate')
+                .mockImplementation(EmailTemplateCapture.mockRenderTemplate);
+        }
+    });
 
     beforeEach(() => {
         jest.clearAllMocks();

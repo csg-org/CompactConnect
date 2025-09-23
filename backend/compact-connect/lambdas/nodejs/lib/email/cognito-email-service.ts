@@ -1,4 +1,3 @@
-import { renderToStaticMarkup } from '@usewaypoint/email-builder';
 import { BaseEmailService } from './base-email-service';
 import { EnvironmentVariablesService } from '../environment-variables-service';
 
@@ -65,25 +64,80 @@ export class CognitoEmailService extends BaseEmailService {
         this.insertHeader(template, subject);
         const userPoolType = environmentVariableService.getUserPoolType();
 
+        let loginText: string;
+
         if (userPoolType === 'provider') {
-            this.insertBody(template,
-                `Your temporary password is: \n\n${codeParameter}\n\nYour username is: \n\n${usernameParameter}\n\nThis temporary password is valid for 24 hours. Please sign in at ${environmentVariableService.getUiBasePathUrl()}/Dashboard?bypass=login-practitioner within the next 24 hours and change your password when prompted.`,
-                'center',
-                true
-            );
+            const loginUrl = `${environmentVariableService.getUiBasePathUrl()}/Dashboard?bypass=login-practitioner`;
+
+            loginText = `This temporary password is valid for 24 hours. Please sign in at [${loginUrl}](${loginUrl}) within the next 24 hours and change your password when prompted.`;
         } else {
-            this.insertBody(template,
-                `Your temporary password is: \n\n${codeParameter}\n\nYour username is: \n\n${usernameParameter}\n\nPlease sign in at ${environmentVariableService.getUiBasePathUrl()}/Dashboard?bypass=login-staff and change your password when prompted.`,
-                'center',
-                true
-            );
+            const loginUrl = `${environmentVariableService.getUiBasePathUrl()}/Dashboard?bypass=login-staff`;
+
+            loginText = `Please immediately sign in at [${loginUrl}](${loginUrl}) and change your password when prompted.`;
         }
+        this.insertBody(template,
+            `Your temporary password is: \n**${codeParameter}**\n\nYour username is: \n**${usernameParameter}**\n`,
+            'center',
+            true,
+            {
+                'padding': {
+                    'top': '8',
+                    'bottom': '8',
+                    'right': '40',
+                    'left': '40',
+                }
+            }
+        );
+
+        this.insertBody(template,
+            loginText,
+            'center',
+            true,
+            {
+                'size': 14,
+                'color': '#727272',
+                'padding': {
+                    'top': '8',
+                    'bottom': '16',
+                    'right': '40',
+                    'left': '40',
+                }
+            }
+        );
+
+        // Add MFA instructions block
+        this.insertStyledBlock(template, {
+            blockType: 'warning',
+            title: 'Multi-Factor Authentication (MFA) Required',
+            content: `For security, you'll need to set up Multi-Factor Authentication (MFA) after you first login. MFA adds an extra layer of security by requiring a second form of verification.
+
+**What is an Authenticator App?**
+An authenticator app generates time-based codes that change every 30 seconds. You'll use these codes along with your password to sign in.
+
+**Recommended Authenticator Apps:**
+- **Google Authenticator** - [Android](https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2) | [iOS](https://apps.apple.com/app/google-authenticator/id388497605)
+- **Microsoft Authenticator** - [Android](https://play.google.com/store/apps/details?id=com.azure.authenticator) | [iOS](https://apps.apple.com/app/microsoft-authenticator/id983156458)
+- **Authy** - [Android](https://play.google.com/store/apps/details?id=com.authy.authy) | [iOS](https://apps.apple.com/app/authy/id494168017)
+
+**Setup Steps:**
+1) Download one of the authenticator apps above
+2) Click the sign-in link above to CompactConnect with your temporary credentials
+3) Follow the MFA setup prompts when you first log in
+
+**How to Login with MFA (After Setup):**
+1) Go to ${environmentVariableService.getUiBasePathUrl()}
+2) Enter your username and password as usual
+3) When prompted, open your authenticator app
+4) Find the "CompactConnect" entry you created during setup in your authenticator app
+5) Enter the current 6-digit code (code refreshes every 30 seconds)
+6) Click "Verify" to complete your login`
+        });
 
         this.insertFooter(template);
 
         return {
             subject,
-            htmlContent: renderToStaticMarkup(template, { rootBlockId: 'root' })
+            htmlContent: this.renderTemplate(template)
         };
     }
 
@@ -111,7 +165,7 @@ export class CognitoEmailService extends BaseEmailService {
 
         return {
             subject,
-            htmlContent: renderToStaticMarkup(template, { rootBlockId: 'root' })
+            htmlContent: this.renderTemplate(template)
         };
     }
 
@@ -134,7 +188,7 @@ export class CognitoEmailService extends BaseEmailService {
 
         return {
             subject,
-            htmlContent: renderToStaticMarkup(template, { rootBlockId: 'root' })
+            htmlContent: this.renderTemplate(template)
         };
     }
 
@@ -158,7 +212,7 @@ export class CognitoEmailService extends BaseEmailService {
 
         return {
             subject,
-            htmlContent: renderToStaticMarkup(template, { rootBlockId: 'root' })
+            htmlContent: this.renderTemplate(template)
         };
     }
 
@@ -182,7 +236,7 @@ export class CognitoEmailService extends BaseEmailService {
 
         return {
             subject,
-            htmlContent: renderToStaticMarkup(template, { rootBlockId: 'root' })
+            htmlContent: this.renderTemplate(template)
         };
     }
 
@@ -206,7 +260,7 @@ export class CognitoEmailService extends BaseEmailService {
 
         return {
             subject,
-            htmlContent: renderToStaticMarkup(template, { rootBlockId: 'root' })
+            htmlContent: this.renderTemplate(template)
         };
     }
 }

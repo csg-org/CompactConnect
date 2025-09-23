@@ -8,6 +8,17 @@ export default {
     testPathIgnorePatterns: [
         '<rootDir>/node_modules/',
     ],
+    collectCoverageFrom: [
+        '**/*.{ts,js}',
+        // Moving cloudfront-csp to a separate test suite, in the near future
+        '!cloudfront-csp/**',
+        '!**/node_modules/**',
+        '!**/tests/**',
+        '!**/coverage/**',
+        '!**/*.config.*',
+        '!**/*.test.*',
+        '!**/*.spec.*'
+    ],
     coverageThreshold: {
         global: {
             branches: 90,
