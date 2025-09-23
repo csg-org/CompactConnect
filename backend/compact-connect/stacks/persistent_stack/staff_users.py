@@ -34,7 +34,6 @@ class StaffUsers(UserPool, ResourceScopeMixin):
         scope: Construct,
         construct_id: str,
         *,
-        cognito_domain_prefix: str | None,
         environment_name: str,
         environment_context: dict,
         encryption_key: IKey,
@@ -48,7 +47,6 @@ class StaffUsers(UserPool, ResourceScopeMixin):
         super().__init__(
             scope,
             construct_id,
-            cognito_domain_prefix=cognito_domain_prefix,
             environment_name=environment_name,
             encryption_key=encryption_key,
             sign_in_aliases=SignInAliases(email=True, username=False),
@@ -72,6 +70,14 @@ class StaffUsers(UserPool, ResourceScopeMixin):
         self._add_resource_servers(stack=stack)
         self._add_scope_customization(stack=stack)
         self._add_custom_message_lambda(stack=stack)
+
+        # Create a custom domain for the cognito app client
+        self.cognito_custom_domain = self.add_cognito_custom_domain(
+                app_client_domain_prefix='Staff',
+                scope=self,
+                base_domain_name=stack.hosted_zone.zone_name,
+                hosted_zone=stack.hosted_zone,
+        )
 
         # Do not allow resource server scopes via the client - they are assigned via token customization
         # to allow for user attribute-based access

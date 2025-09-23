@@ -54,15 +54,10 @@ class ProviderUsersStack(AppStack):
         # Get security profile from environment context
         security_profile = SecurityProfile[environment_context.get('security_profile', 'RECOMMENDED')]
 
-        # Set up provider domain prefix
-        provider_prefix = f'{app_name}-provider'
-        provider_prefix = provider_prefix if environment_name == 'prod' else f'{provider_prefix}-{environment_name}'
-
         # Create the new green provider user pool
         self.provider_users = ProviderUsers(
             self,
             'ProviderUsersGreen',
-            cognito_domain_prefix=provider_prefix,
             environment_name=environment_name,
             environment_context=environment_context,
             encryption_key=persistent_stack.shared_encryption_key,

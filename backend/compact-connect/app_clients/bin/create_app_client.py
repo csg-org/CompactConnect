@@ -242,6 +242,7 @@ def print_credentials(client_id, client_secret):
 def print_email_template(environment, compact, state):
     """Print an email template with contextual information for the consuming team."""
     # Get environment-specific URLs
+    # TODO change to new values
     auth_urls = {
         'beta': 'https://compact-connect-state-auth-beta.auth.us-east-1.amazoncognito.com/oauth2/token',
         'prod': 'https://compact-connect-state-auth.auth.us-east-1.amazoncognito.com/oauth2/token',
