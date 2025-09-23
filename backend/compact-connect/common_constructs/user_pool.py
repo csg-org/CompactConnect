@@ -9,9 +9,10 @@ from aws_cdk.aws_cognito import (
     AuthFlow,
     AutoVerifiedAttrs,
     CfnManagedLoginBranding,
+    CfnUserPoolDomain,
     CfnUserPoolRiskConfigurationAttachment,
     ClientAttributes,
-    CognitoDomainOptions,
+    CustomDomainOptions,
     DeviceTracking,
     FeaturePlan,
     ICustomAttribute,
@@ -28,7 +29,10 @@ from aws_cdk.aws_cognito import (
     UserPoolEmail,
 )
 from aws_cdk.aws_cognito import UserPool as CdkUserPool
+from aws_cdk.aws_certificatemanager import Certificate, CertificateValidation
 from aws_cdk.aws_kms import IKey
+from aws_cdk.aws_route53 import ARecord, IHostedZone, RecordTarget
+from aws_cdk.aws_route53_targets import UserPoolDomainTarget
 from cdk_nag import NagSuppressions
 from constructs import Construct
 
@@ -102,14 +106,14 @@ class UserPool(CdkUserPool):
         self.notification_from_email = notification_from_email
         self.ses_identity_arn = ses_identity_arn
 
-        if cognito_domain_prefix:
-            self.user_pool_domain = self.add_domain(
-                f'{construct_id}Domain',
-                cognito_domain=CognitoDomainOptions(domain_prefix=cognito_domain_prefix),
-                managed_login_version=ManagedLoginVersion.NEWER_MANAGED_LOGIN,
-            )
-
-            CfnOutput(self, f'{construct_id}UsersDomain', value=self.user_pool_domain.domain_name)
+        # if cognito_domain_prefix:
+        #     self.user_pool_domain = self.add_domain(
+        #         f'{construct_id}Domain',
+        #         cognito_domain=CognitoDomainOptions(domain_prefix=cognito_domain_prefix),
+        #         managed_login_version=ManagedLoginVersion.NEWER_MANAGED_LOGIN,
+        #     )
+        #
+        #     CfnOutput(self, f'{construct_id}UsersDomain', value=self.user_pool_domain.domain_name)
         CfnOutput(self, f'{construct_id}UserPoolId', value=self.user_pool_id)
 
         self._add_risk_configuration(security_profile)
@@ -140,6 +144,44 @@ class UserPool(CdkUserPool):
                 }
             ],
         )
+
+    def add_custom_domain_resources(
+            self,
+            app_client_domain_prefix: str,
+            base_domain_name: str,
+            hosted_zone: IHostedZone,
+            scope: Construct
+    ):
+
+        domain_prefix = f'{app_client_domain_prefix.lower()}-auth'
+        domain_name = f'{domain_prefix}.{base_domain_name}'
+        cert_id = f'{app_client_domain_prefix}AuthCert'
+        cert = Certificate(
+            scope,
+            cert_id,
+            domain_name=domain_name,
+            validation=CertificateValidation.from_dns(hosted_zone=hosted_zone)
+        )
+
+        domain = self.add_domain(
+            f'{app_client_domain_prefix}UserPoolDomain',
+            custom_domain=CustomDomainOptions(
+                certificate=Certificate.from_certificate_arn(self, cert_id, cert.certificate_arn),
+                domain_name=domain_name
+            ),
+            managed_login_version=ManagedLoginVersion.NEWER_MANAGED_LOGIN,
+        )
+
+        self.record = ARecord(
+            self,
+            f'{app_client_domain_prefix}AuthDomainARecord',
+            zone=hosted_zone,
+            record_name=domain_name,
+            target=RecordTarget.from_alias(UserPoolDomainTarget(domain)),
+        )
+
+        CfnOutput(self, f'{app_client_domain_prefix}UserPoolDomain', value=domain.domain_name)
+
 
     def add_ui_client(
         self,
