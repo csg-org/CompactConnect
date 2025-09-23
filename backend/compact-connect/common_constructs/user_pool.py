@@ -46,7 +46,6 @@ class UserPool(CdkUserPool):
         scope: Construct,
         construct_id: str,
         *,
-        cognito_domain_prefix: str,
         environment_name: str,
         encryption_key: IKey,
         sign_in_aliases: SignInAliases | None,
