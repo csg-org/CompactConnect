@@ -8,7 +8,7 @@
 /* eslint-disable import/no-extraneous-dependencies */
 
 import { config as envConfig, appEnvironments } from '@plugins/EnvConfig/envConfig.plugin';
-import { StatsigClient } from '@statsig/js-client';
+import { StatsigClient, StatsigPlugin } from '@statsig/js-client';
 import { StatsigSessionReplayPlugin } from '@statsig/session-replay';
 import { StatsigAutoCapturePlugin } from '@statsig/web-analytics';
 
@@ -42,7 +42,7 @@ export const getStatsigEnvironment = () => {
 export const getStatsigClient = async () => {
     const { isAppProduction, isAppBeta, isAppTest } = envConfig;
     const statsigEnvironment = getStatsigEnvironment();
-    const plugins: any = [];
+    const plugins: Array<StatsigPlugin<StatsigClient>> = [];
 
     // Setup Statsig analytics
     if (isAppProduction || isAppBeta || isAppTest) {
@@ -70,6 +70,7 @@ export const getStatsigClient = async () => {
 };
 
 export const getStatsigClientMock = async () => ({
+    updateUserAsync: async (user) => user,
     checkGate: (gateId = '') => {
         const disabledGates = ['disabled-gate-1'];
 

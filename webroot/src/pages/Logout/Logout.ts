@@ -91,9 +91,18 @@ export default class Logout extends Vue {
     async logoutChecklist(isRemoteLoggedInAsLicenseeOnly): Promise<void> {
         const authType = (isRemoteLoggedInAsLicenseeOnly) ? AuthTypes.LICENSEE : AuthTypes.STAFF;
 
+        this.unsetAnalyticsUser(); // Not awaiting analytics so it doesn't block other critical steps
         this.stashWorkingUri();
         this.$store.dispatch('user/clearRefreshTokenTimeout');
         await this.$store.dispatch('user/logoutRequest', authType);
+    }
+
+    async unsetAnalyticsUser(): Promise<void> {
+        try {
+            await this.$analytics.updateUserAsync({});
+        } catch (err) {
+            // Continue
+        }
     }
 
     stashWorkingUri(): void {

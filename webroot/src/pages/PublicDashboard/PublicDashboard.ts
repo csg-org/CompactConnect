@@ -37,12 +37,6 @@ export default class DashboardPublic extends Vue {
         if (this.bypassQuery) {
             this.bypassRedirect();
         }
-
-        if (this.$features.checkGate('test-feature-1')) {
-            console.log('ON all the way');
-        } else {
-            console.log('OFF bro');
-        }
     }
 
     //
@@ -74,6 +68,10 @@ export default class DashboardPublic extends Vue {
 
     get isUsingMockApi(): boolean {
         return this.$envConfig.isUsingMockApi || false;
+    }
+
+    get shouldShowSampleGateText(): boolean {
+        return this.$features.checkGate('test-feature-1');
     }
 
     //
