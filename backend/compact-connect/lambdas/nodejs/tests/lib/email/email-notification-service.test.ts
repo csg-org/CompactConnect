@@ -885,7 +885,7 @@ describe('EmailNotificationService', () => {
             // Verify security warning text (HTML encoded)
             expect(htmlContent).toContain('<strong>If you did not request this, your password has likely been compromised and you should reset your password immediately</strong>');
             expect(htmlContent).toContain('https://app.test.compactconnect.org/Dashboard?bypass=login-practitioner');
-            expect(htmlContent).toContain('Select &#x27;Forgot your password?&#x27; and follow the instructions');
+            expect(htmlContent).toContain('Select &#39;Forgot your password?&#39; and follow the instructions');
         });
 
         it('should throw error when no recipients provided', async () => {

@@ -57,7 +57,8 @@ describe('CognitoEmailService', () => {
                 expect(htmlContent).toContain('testuser');
                 expect(htmlContent).toContain('This temporary password is valid for 24 hours');
                 expect(htmlContent).toContain('within the next 24 hours');
-                expect(htmlContent).toContain('https://app.test.compactconnect.org/Dashboard?bypass=login-practitioner');
+                expect(htmlContent).toContain('<a href="https://app.test.compactconnect.org/Dashboard?bypass=login-practitioner" target="_blank">sign in</a>');
+                expect(htmlContent).toContain('<a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2" target="_blank">Android</a>');
             });
 
             it('should generate AdminCreateUser message for staff users with immediate login message', () => {
@@ -74,9 +75,9 @@ describe('CognitoEmailService', () => {
                 expect(htmlContent).toContain('TEST-CODE-123');
                 expect(htmlContent).toContain('Your username is:');
                 expect(htmlContent).toContain('testuser');
-                expect(htmlContent).toContain('Please immediately sign in at');
+                expect(htmlContent).toContain('Please immediately');
                 expect(htmlContent).toContain('and change your password when prompted');
-                expect(htmlContent).toContain('https://app.test.compactconnect.org/Dashboard?bypass=login-staff');
+                expect(htmlContent).toContain('<a href="https://app.test.compactconnect.org/Dashboard?bypass=login-staff" target="_blank">sign in</a>');
             });
 
             it('should generate AdminCreateUser message for unknown user pool type with immediate login message', () => {
@@ -93,9 +94,9 @@ describe('CognitoEmailService', () => {
                 expect(htmlContent).toContain('TEST-CODE-123');
                 expect(htmlContent).toContain('Your username is:');
                 expect(htmlContent).toContain('testuser');
-                expect(htmlContent).toContain('Please immediately sign in at');
+                expect(htmlContent).toContain('Please immediately');
                 expect(htmlContent).toContain('and change your password when prompted');
-                expect(htmlContent).toContain('https://app.test.compactconnect.org/Dashboard?bypass=login-staff');
+                expect(htmlContent).toContain('<a href="https://app.test.compactconnect.org/Dashboard?bypass=login-staff" target="_blank">sign in</a>');
             });
         });
 

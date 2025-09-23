@@ -109,7 +109,7 @@ describe('CognitoEmailsLambda', () => {
         expect(response.response.emailMessage).toContain('TEST-CODE-123');
         expect(response.response.emailMessage).toContain('Your username is:');
         expect(response.response.emailMessage).toContain('testuser');
-        expect(response.response.emailMessage).toContain('Please immediately sign in at');
+        expect(response.response.emailMessage).toContain('Please immediately');
         expect(response.response.emailMessage).toContain('and change your password when prompted');
     });
 

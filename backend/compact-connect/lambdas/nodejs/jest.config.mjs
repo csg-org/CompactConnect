@@ -9,9 +9,8 @@ export default {
         '<rootDir>/node_modules/',
     ],
     collectCoverageFrom: [
-        '**/*.{ts,js}',
+        '**/*.ts',
         // Moving cloudfront-csp to a separate test suite, in the near future
-        '!cloudfront-csp/**',
         '!**/node_modules/**',
         '!**/tests/**',
         '!**/coverage/**',

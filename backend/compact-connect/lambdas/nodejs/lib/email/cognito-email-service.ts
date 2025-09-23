@@ -65,15 +65,16 @@ export class CognitoEmailService extends BaseEmailService {
         const userPoolType = environmentVariableService.getUserPoolType();
 
         let loginText: string;
+        let loginUrl: string;
 
         if (userPoolType === 'provider') {
-            const loginUrl = `${environmentVariableService.getUiBasePathUrl()}/Dashboard?bypass=login-practitioner`;
+            loginUrl = `${environmentVariableService.getUiBasePathUrl()}/Dashboard?bypass=login-practitioner`;
 
-            loginText = `This temporary password is valid for 24 hours. Please sign in at [${loginUrl}](${loginUrl}) within the next 24 hours and change your password when prompted.`;
+            loginText = `This temporary password is valid for 24 hours. Please [sign in](${loginUrl}) within the next 24 hours and change your password when prompted.`;
         } else {
-            const loginUrl = `${environmentVariableService.getUiBasePathUrl()}/Dashboard?bypass=login-staff`;
+            loginUrl = `${environmentVariableService.getUiBasePathUrl()}/Dashboard?bypass=login-staff`;
 
-            loginText = `Please immediately sign in at [${loginUrl}](${loginUrl}) and change your password when prompted.`;
+            loginText = `Please immediately [sign in](${loginUrl}) and change your password when prompted.`;
         }
         this.insertBody(template,
             `Your temporary password is: \n**${codeParameter}**\n\nYour username is: \n**${usernameParameter}**\n`,
@@ -121,16 +122,19 @@ An authenticator app generates time-based codes that change every 30 seconds. Yo
 
 **Setup Steps:**
 1) Download one of the authenticator apps above
-2) Click the sign-in link above to CompactConnect with your temporary credentials
-3) Follow the MFA setup prompts when you first log in
+2) Click the sign-in link above and sign into CompactConnect with your temporary credentials
+3) Reset your password when prompted
+4) In your authtenticator app, add an account and scan the QR code presented in the MFA setup page
+5) Enter the 6-digit code from your authenticator into the CompactConnect MFA setup page (code refreshes every 30 seconds)
+6) Click "Sign In" to complete setup
 
 **How to Login with MFA (After Setup):**
-1) Go to ${environmentVariableService.getUiBasePathUrl()}
+1) Go to ${loginUrl}
 2) Enter your username and password as usual
 3) When prompted, open your authenticator app
-4) Find the "CompactConnect" entry you created during setup in your authenticator app
-5) Enter the current 6-digit code (code refreshes every 30 seconds)
-6) Click "Verify" to complete your login`
+4) Find the authenticator app entry you created during MFA setup
+5) Enter the current 6-digit code from your authenticator app (code refreshes every 30 seconds)
+6) Click "Sign In"`
         });
 
         this.insertFooter(template);

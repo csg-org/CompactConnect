@@ -35,20 +35,9 @@ export class EmailTemplateCapture {
     }
 
     /**
-     * Capture a template if capture is enabled
+     * Generate a sanitized filename based on the current test name
      */
-    static captureTemplate(template: TReaderDocument) {
-        if (!this.isEnabled()) {
-            return;
-        }
-
-        // Initialize output directory if not already set
-        if (!this.outputDir) {
-            this.outputDir = path.join(__dirname, '..', '..', 'generated-email-templates');
-            console.log('📧 Email template capture is ENABLED');
-        }
-
-        // Generate filename based on test name and context
+    private static generateFilename(extension: string): string {
         const testName = this.getCurrentTestName();
 
         // Extract the most meaningful part of the test name
@@ -79,13 +68,40 @@ export class EmailTemplateCapture {
             .toLowerCase()
             .substring(0, 80); // Increased limit to 80 characters
 
-        const filename = `${sanitizedTestName}.json`;
-        const filepath = path.join(this.outputDir, filename);
+        return `${sanitizedTestName}.${extension}`;
+    }
+
+    /**
+     * Ensure the output directory exists and return its path
+     */
+    private static ensureOutputDirectory(): string {
+        if (!this.outputDir) {
+            this.outputDir = path.join(__dirname, '..', '..', 'generated-email-templates');
+            console.log('📧 Email template capture is ENABLED');
+        }
+
+        // Ensure the directory exists
+        fs.mkdirSync(this.outputDir, { recursive: true });
+
+        return this.outputDir;
+    }
+
+    /**
+     * Capture a template if capture is enabled
+     */
+    static captureTemplate(template: TReaderDocument) {
+        if (!this.isEnabled()) {
+            return;
+        }
+
+        const outputDir = this.ensureOutputDirectory();
+        const filename = this.generateFilename('json');
+        const filepath = path.join(outputDir, filename);
 
         // Create template data with metadata
         const templateData = {
             metadata: {
-                testName: testName,
+                testName: this.getCurrentTestName(),
                 generatedAt: new Date().toISOString(),
                 rootBlockId: 'root'
             },
@@ -109,6 +125,41 @@ export class EmailTemplateCapture {
         EmailTemplateCapture.captureTemplate(template);
 
         // Always call the real renderToStaticMarkup function to get actual HTML
-        return realRenderToStaticMarkup(template, { rootBlockId: 'root' });
+        const html = realRenderToStaticMarkup(template, { rootBlockId: 'root' });
+
+        // Also capture the rendered HTML if enabled
+        if (EmailTemplateCapture.isEnabled()) {
+            EmailTemplateCapture.captureHtml(html, template);
+        }
+
+        return html;
+    }
+
+    /**
+     * Capture the rendered HTML output for debugging
+     */
+    static captureHtml(html: string, template: TReaderDocument) {
+        if (!this.isEnabled()) {
+            return;
+        }
+
+        const outputDir = this.ensureOutputDirectory();
+        const filename = this.generateFilename('html');
+        const filepath = path.join(outputDir, filename);
+
+        // Create HTML data with metadata
+        const htmlData = {
+            metadata: {
+                testName: this.getCurrentTestName(),
+                generatedAt: new Date().toISOString(),
+                rootBlockId: 'root',
+                note: 'This is the final rendered HTML output from EmailBuilderJS'
+            },
+            html: html
+        };
+
+        // Write to file
+        fs.writeFileSync(filepath, JSON.stringify(htmlData, null, 2));
+        console.log(`📧 Captured rendered HTML: ${filename}`);
     }
 }
