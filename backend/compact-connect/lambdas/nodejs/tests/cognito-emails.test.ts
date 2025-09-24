@@ -128,7 +128,6 @@ describe('CognitoEmailsLambda', () => {
 
         expect(response.response.emailSubject).toBe('Welcome to CompactConnect');
         expect(response.response.emailMessage).toContain('Your temporary password is:');
-        expect(response.response.emailMessage).toContain('undefined'); // Since codeParameter is undefined
         expect(response.response.emailMessage).toContain('Your username is:');
         expect(response.response.emailMessage).toContain('testuser');
         expect(response.response.emailMessage).toContain('This temporary password is valid for 24 hours');

@@ -14,7 +14,7 @@ export class EncumbranceNotificationService extends BaseEmailService {
         const recipients = jurisdictionConfig.jurisdictionAdverseActionsNotificationEmails;
 
         if (recipients.length === 0) {
-            // If the state hasn't provided a contact for adverse actions, we note it and move on, perferring to
+            // If the state hasn't provided a contact for adverse actions, we note it and move on, preferring to
             // continue with other notifications, rather than failing the entire notification process.
             this.logger.warn('No adverse action notification recipients found for jurisdiction', {
                 compact: jurisdictionConfig.compact,

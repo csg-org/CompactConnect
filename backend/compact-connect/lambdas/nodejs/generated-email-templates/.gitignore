@@ -1,2 +1,8 @@
-*.json
-*.html
+#
+# Generated email templates directory — ignore all build/test artifacts.
+# Allow only files that document or control ignoring.
+#
+
+*
+!.gitignore
+!README.md

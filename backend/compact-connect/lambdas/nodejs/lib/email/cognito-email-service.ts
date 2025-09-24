@@ -120,21 +120,21 @@ An authenticator app generates time-based codes that change every 30 seconds. Yo
 - **Microsoft Authenticator** - [Android](https://play.google.com/store/apps/details?id=com.azure.authenticator) | [iOS](https://apps.apple.com/app/microsoft-authenticator/id983156458)
 - **Authy** - [Android](https://play.google.com/store/apps/details?id=com.authy.authy) | [iOS](https://apps.apple.com/app/authy/id494168017)
 
-**Setup Steps:**
-1) Download one of the authenticator apps above
-2) Click the sign-in link above and sign into CompactConnect with your temporary credentials
-3) Reset your password when prompted
-4) In your authenticator app, add an account and scan the QR code presented in the MFA setup page
-5) Enter the 6-digit code from your authenticator into the CompactConnect MFA setup page (code refreshes every 30 seconds)
-6) Click "Sign In" to complete setup
+**Setup steps:**
+1. Download one of the authenticator apps above
+2. Click the sign-in link above and sign in to CompactConnect with your temporary credentials
+3. Reset your password when prompted
+4. In your authenticator app, add an account and scan the QR code presented on the MFA setup page
+5. Enter the 6-digit code from your authenticator into the CompactConnect MFA setup page (codes refresh every 30 seconds)
+6. Click "Sign in" to complete setup
 
 **How to sign in with MFA (after setup):**
-1) Go to ${loginUrl}
-2) Enter your username and password as usual
-3) When prompted, open your authenticator app
-4) Find the authenticator app entry you created during MFA setup
-5) Enter the current 6-digit code from your authenticator app (code refreshes every 30 seconds)
-6) Click "Sign In"`
+1. Click the sign-in link above or go to ${loginUrl}
+2. Enter your username and password as usual
+3. When prompted, open your authenticator app
+4. Find the authenticator app entry you created during MFA setup
+5. Enter the current 6-digit code from your authenticator app (codes refresh every 30 seconds)
+6. Click "Sign in"`
         });
 
         this.insertFooter(template);

@@ -80,9 +80,6 @@ export class EmailTemplateCapture {
             console.log('📧 Email template capture is ENABLED');
         }
 
-        // Ensure the directory exists
-        fs.mkdirSync(this.outputDir, { recursive: true });
-
         return this.outputDir;
     }
 
@@ -125,11 +122,16 @@ export class EmailTemplateCapture {
         EmailTemplateCapture.captureTemplate(template);
 
         // Always call the real renderToStaticMarkup function to get actual HTML
-        const html = realRenderToStaticMarkup(template, { rootBlockId: 'root' });
+        const options = { ...(args[1] as Record<string, unknown> | undefined) };
+
+        if ((options as any)?.rootBlockId == null) {
+            (options as any).rootBlockId = 'root';
+        }
+        const html = realRenderToStaticMarkup(template, options as any);
 
         // Also capture the rendered HTML if enabled
         if (EmailTemplateCapture.isEnabled()) {
-            EmailTemplateCapture.captureHtml(html, template);
+            EmailTemplateCapture.captureHtml(html, template, options as any);
         }
 
         return html;
@@ -138,7 +140,7 @@ export class EmailTemplateCapture {
     /**
      * Capture the rendered HTML output for debugging
      */
-    static captureHtml(html: string, template: TReaderDocument) {
+    static captureHtml(html: string, template: TReaderDocument, options?: Record<string, unknown>) {
         if (!this.isEnabled()) {
             return;
         }
@@ -146,20 +148,19 @@ export class EmailTemplateCapture {
         const outputDir = this.ensureOutputDirectory();
         const filename = this.generateFilename('html');
         const filepath = path.join(outputDir, filename);
+        const metaFilepath = path.join(outputDir, filename.replace(/\.html$/, '.meta.json'));
 
-        // Create HTML data with metadata
-        const htmlData = {
-            metadata: {
-                testName: this.getCurrentTestName(),
-                generatedAt: new Date().toISOString(),
-                rootBlockId: 'root',
-                note: 'This is the final rendered HTML output from EmailBuilderJS'
-            },
-            html: html
+        // Write metadata alongside the raw HTML
+        const meta = {
+            testName: this.getCurrentTestName(),
+            generatedAt: new Date().toISOString(),
+            rootBlockId: (options as any)?.rootBlockId ?? 'root',
+            note: 'Metadata for the final rendered HTML output from EmailBuilderJS'
         };
 
-        // Write to file
-        fs.writeFileSync(filepath, JSON.stringify(htmlData, null, 2));
-        console.log(`📧 Captured rendered HTML: ${filename}`);
+        fs.writeFileSync(metaFilepath, JSON.stringify(meta, null, 2));
+        // Write raw HTML for easy preview
+        fs.writeFileSync(filepath, html);
+        console.log(`📧 Captured rendered HTML: ${filename} (and metadata)`);
     }
 }

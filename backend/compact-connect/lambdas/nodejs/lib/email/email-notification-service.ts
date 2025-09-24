@@ -432,7 +432,7 @@ export class EmailNotificationService extends BaseEmailService {
      * @param compact - The compact name
      * @param specificEmails - The email address(es) to send the confirmation to (provider's current email)
      * @param providerId - The provider's ID
-     * @param recoveryUuid - The recovery UUID used to validate and complete recovery
+     * @param recoveryToken - The recovery token used to validate and complete recovery
      */
     public async sendProviderAccountRecoveryConfirmationEmail(
         compact: string,

@@ -7,7 +7,7 @@ import { EncumbranceNotificationService } from '../../../lib/email';
 import { CompactConfigurationClient } from '../../../lib/compact-configuration-client';
 import { JurisdictionClient } from '../../../lib/jurisdiction-client';
 import { EmailTemplateCapture } from '../../utils/email-template-capture';
-import { describe, it, expect, beforeEach, beforeAll, jest } from '@jest/globals';
+import { describe, it, expect, beforeEach, beforeAll, afterAll, jest } from '@jest/globals';
 import { Compact } from '../../../lib/models/compact';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 
@@ -70,6 +70,10 @@ describe('EncumbranceNotificationService', () => {
             jest.spyOn(EncumbranceNotificationService.prototype as any, 'renderTemplate')
                 .mockImplementation(EmailTemplateCapture.mockRenderTemplate);
         }
+    });
+
+    afterAll(() => {
+        jest.restoreAllMocks();
     });
 
     beforeEach(() => {

@@ -10,7 +10,7 @@ import { EmailNotificationService } from '../../../lib/email';
 import { CompactConfigurationClient } from '../../../lib/compact-configuration-client';
 import { JurisdictionClient } from '../../../lib/jurisdiction-client';
 import { EmailTemplateCapture } from '../../utils/email-template-capture';
-import { describe, it, expect, beforeEach, beforeAll, jest } from '@jest/globals';
+import { describe, it, expect, beforeEach, beforeAll, afterAll, jest } from '@jest/globals';
 
 jest.mock('nodemailer');
 
@@ -68,6 +68,10 @@ describe('EmailNotificationService', () => {
             jest.spyOn(EmailNotificationService.prototype as any, 'renderTemplate')
                 .mockImplementation(EmailTemplateCapture.mockRenderTemplate);
         }
+    });
+
+    afterAll(() => {
+        jest.restoreAllMocks();
     });
 
     beforeEach(() => {

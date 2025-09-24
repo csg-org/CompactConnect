@@ -4,7 +4,7 @@ import { Logger } from '@aws-lambda-powertools/logger';
 import { SESClient } from '@aws-sdk/client-ses';
 import { CognitoEmailService } from '../../../lib/email';
 import { EmailTemplateCapture } from '../../utils/email-template-capture';
-import { describe, it, expect, beforeEach, beforeAll, jest } from '@jest/globals';
+import { describe, it, expect, beforeEach, beforeAll, afterAll, jest } from '@jest/globals';
 
 const asSESClient = (mock: ReturnType<typeof mockClient>) =>
     mock as unknown as SESClient;
@@ -18,6 +18,12 @@ describe('CognitoEmailService', () => {
         if (EmailTemplateCapture.isEnabled()) {
             jest.spyOn(CognitoEmailService.prototype as any, 'renderTemplate')
                 .mockImplementation(EmailTemplateCapture.mockRenderTemplate);
+        }
+    });
+
+    afterAll(() => {
+        if (EmailTemplateCapture.isEnabled()) {
+            jest.restoreAllMocks();
         }
     });
 

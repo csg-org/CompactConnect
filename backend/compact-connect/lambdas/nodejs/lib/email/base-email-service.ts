@@ -334,7 +334,7 @@ export abstract class BaseEmailService {
         bodyText: string,
         textAlign: 'center' | 'right' | 'left' | null = null,
         markdown: boolean = false,
-        styleOverrides: object = {}
+        styleOverrides: Record<string, unknown> = {}
     ) {
         const blockId = `block-${crypto.randomUUID()}`;
 
@@ -583,7 +583,7 @@ export abstract class BaseEmailService {
                     }
                 },
                 'props': {
-                    'text': '© 2025 CompactConnect'
+                    'text': `© ${new Date().getFullYear()} CompactConnect`
                 }
             }
         };

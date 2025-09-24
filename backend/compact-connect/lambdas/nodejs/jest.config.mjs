@@ -10,10 +10,13 @@ export default {
     ],
     collectCoverageFrom: [
         '**/*.ts',
-        // Moving cloudfront-csp to a separate test suite, in the near future
         '!**/node_modules/**',
         '!**/tests/**',
         '!**/coverage/**',
+        '!**/*.d.ts',
+        '!**/__mocks__/**',
+        '!**/__fixtures__/**',
+        '!**/__snapshots__/**',
         '!**/*.config.*',
         '!**/*.test.*',
         '!**/*.spec.*'
