@@ -110,7 +110,7 @@ export class CognitoEmailService extends BaseEmailService {
         this.insertStyledBlock(template, {
             blockType: 'warning',
             title: 'Multi-Factor Authentication (MFA) Required',
-            content: `For security, you'll need to set up Multi-Factor Authentication (MFA) after you first login. MFA adds an extra layer of security by requiring a second form of verification.
+            content: `For security, you'll need to set up Multi-Factor Authentication (MFA) after your first login. MFA adds an extra layer of security by requiring a second form of verification.
 
 **What is an Authenticator App?**
 An authenticator app generates time-based codes that change every 30 seconds. You'll use these codes along with your password to sign in.
@@ -124,11 +124,11 @@ An authenticator app generates time-based codes that change every 30 seconds. Yo
 1) Download one of the authenticator apps above
 2) Click the sign-in link above and sign into CompactConnect with your temporary credentials
 3) Reset your password when prompted
-4) In your authtenticator app, add an account and scan the QR code presented in the MFA setup page
+4) In your authenticator app, add an account and scan the QR code presented in the MFA setup page
 5) Enter the 6-digit code from your authenticator into the CompactConnect MFA setup page (code refreshes every 30 seconds)
 6) Click "Sign In" to complete setup
 
-**How to Login with MFA (After Setup):**
+**How to sign in with MFA (after setup):**
 1) Go to ${loginUrl}
 2) Enter your username and password as usual
 3) When prompted, open your authenticator app
