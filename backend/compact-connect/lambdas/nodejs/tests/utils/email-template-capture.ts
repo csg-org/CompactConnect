@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { TReaderDocument, renderToStaticMarkup as realRenderToStaticMarkup } from '@usewaypoint/email-builder';
+import { TReaderDocument, renderToStaticMarkup as realRenderToStaticMarkup } from '@jusdino-ia/email-builder';
 
 /**
  * Utility for capturing email templates during testing

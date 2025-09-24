@@ -54,7 +54,7 @@
     "@aws-sdk/client-s3": "^3.682.0",
     "@aws-sdk/client-ses": "^3.682.0",
     "@aws-sdk/util-dynamodb": "^3.682.0",
-    "@usewaypoint/email-builder": "^0.0.8",
+    "@jusdino-ia/email-builder": "^0.0.9-alpha.2",
     "aws-lambda": "1.0.7",
     "nodemailer": "^6.9.12",
     "zod": "^3.23.8"

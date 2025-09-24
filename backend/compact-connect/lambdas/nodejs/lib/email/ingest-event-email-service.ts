@@ -1,5 +1,5 @@
 import * as crypto from 'crypto';
-import { TReaderDocument } from '@usewaypoint/email-builder';
+import { TReaderDocument } from '@jusdino-ia/email-builder';
 import { IIngestFailureEventRecord, IValidationErrorEventRecord } from '../models';
 import { BaseEmailService } from './base-email-service';
 
