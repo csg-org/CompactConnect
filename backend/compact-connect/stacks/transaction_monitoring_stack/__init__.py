@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import json
 
+from common_constructs.stack import AppStack
 from constructs import Construct
 
-from common_constructs.stack import AppStack
 from stacks import persistent_stack as ps
 
 from .transaction_history_processing_workflow import TransactionHistoryProcessingWorkflow

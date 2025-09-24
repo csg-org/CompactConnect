@@ -5,8 +5,6 @@ from aws_cdk.aws_s3 import IBucket
 from aws_cdk.aws_sns import ITopic
 from aws_cdk.pipelines import CodeBuildStep
 from cdk_nag import NagSuppressions
-from constructs import Construct
-
 from common_constructs.base_pipeline_stack import (
     ALLOWED_ENVIRONMENT_NAMES,
     BETA_ENVIRONMENT_NAME,
@@ -14,6 +12,8 @@ from common_constructs.base_pipeline_stack import (
     TEST_ENVIRONMENT_NAME,
     BasePipelineStack,
 )
+from constructs import Construct
+
 from pipeline.backend_pipeline import BackendPipeline
 from pipeline.backend_stage import BackendStage
 from pipeline.synth_substitute_stage import SynthSubstituteStage

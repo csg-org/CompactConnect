@@ -1,10 +1,10 @@
 from aws_cdk import RemovalPolicy
 from aws_cdk.aws_cognito import SignInAliases, UserPoolEmail
 from aws_cdk.aws_logs import QueryDefinition, QueryString
-from constructs import Construct
-
 from common_constructs.security_profile import SecurityProfile
 from common_constructs.stack import AppStack
+from constructs import Construct
+
 from stacks.persistent_stack import PersistentStack
 from stacks.provider_users.provider_users import ProviderUsers
 

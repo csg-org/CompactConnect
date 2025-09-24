@@ -20,9 +20,8 @@ from aws_cdk.aws_stepfunctions import (
     WaitTime,
 )
 from cdk_nag import NagSuppressions
-from constructs import Construct
-
 from common_constructs.stack import Stack
+from constructs import Construct
 
 
 class RestoreDynamoDbTableStepFunctionConstruct(Construct):

@@ -26,11 +26,11 @@ from aws_cdk.aws_logs import LogGroup, QueryDefinition, QueryString, RetentionDa
 from aws_cdk.aws_route53 import ARecord, IHostedZone, RecordTarget
 from aws_cdk.aws_route53_targets import ApiGateway
 from cdk_nag import NagSuppressions
-from constructs import IConstruct
-
 from common_constructs.security_profile import SecurityProfile
 from common_constructs.stack import AppStack
 from common_constructs.webacl import WebACL, WebACLScope
+from constructs import IConstruct
+
 from stacks import persistent_stack as ps
 
 MD_FORMAT = r'^[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$'

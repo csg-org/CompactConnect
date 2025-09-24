@@ -7,10 +7,10 @@ from aws_cdk.aws_kms import IKey
 from aws_cdk.aws_logs import RetentionDays
 from aws_cdk.custom_resources import Provider
 from cdk_nag import NagSuppressions
+from common_constructs.stack import Stack
 from constructs import Construct
 
 from common_constructs.python_function import PythonFunction
-from common_constructs.stack import Stack
 
 from .compact_configuration_table import CompactConfigurationTable
 

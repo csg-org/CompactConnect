@@ -9,6 +9,7 @@ sys.path.insert(0, os.path.abspath(os.path.join('..', 'common-cdk')))
 
 from common_constructs.deployment_resources_stack import DeploymentResourcesStack
 from common_constructs.stack import StandardTags
+
 from pipeline import (
     ACTION_CONTEXT_KEY,
     PIPELINE_STACK_CONTEXT_KEY,

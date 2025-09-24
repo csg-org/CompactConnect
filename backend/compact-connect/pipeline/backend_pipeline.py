@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 
+import common_constructs.base_pipeline_stack
 from aws_cdk import RemovalPolicy, Stack
 from aws_cdk.aws_codebuild import BuildSpec
 from aws_cdk.aws_codestarnotifications import NotificationRule
