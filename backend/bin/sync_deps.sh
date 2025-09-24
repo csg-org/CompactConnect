@@ -24,6 +24,8 @@ pip-sync \
   compact-connect/lambdas/python/data-events/requirements.txt \
   compact-connect/lambdas/python/disaster-recovery/requirements-dev.txt \
   compact-connect/lambdas/python/disaster-recovery/requirements.txt \
+  compact-connect/lambdas/python/feature-flag/requirements-dev.txt \
+  compact-connect/lambdas/python/feature-flag/requirements.txt \
   compact-connect/lambdas/python/provider-data-v1/requirements-dev.txt \
   compact-connect/lambdas/python/provider-data-v1/requirements.txt \
   compact-connect/lambdas/python/purchases/requirements-dev.txt \
