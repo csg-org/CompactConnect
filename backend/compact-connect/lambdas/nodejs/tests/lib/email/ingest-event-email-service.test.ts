@@ -4,6 +4,7 @@ import { Logger } from '@aws-lambda-powertools/logger';
 import { SendEmailCommand, SESClient } from '@aws-sdk/client-ses';
 import { IngestEventEmailService } from '../../../lib/email';
 import { EmailTemplateCapture } from '../../utils/email-template-capture';
+import { TReaderDocument } from '@jusdino-ia/email-builder';
 import {
     SAMPLE_SORTABLE_VALIDATION_ERROR_RECORDS,
     SAMPLE_UNMARSHALLED_INGEST_FAILURE_ERROR_RECORD,
@@ -21,8 +22,17 @@ describe('IngestEventEmailService', () => {
     beforeAll(() => {
         // Mock the renderTemplate method if template capture is enabled
         if (EmailTemplateCapture.isEnabled()) {
-            jest.spyOn(IngestEventEmailService.prototype as any, 'renderTemplate')
-                .mockImplementation(EmailTemplateCapture.mockRenderTemplate);
+            const original = (IngestEventEmailService.prototype as any).renderTemplate;
+
+            jest.spyOn(IngestEventEmailService.prototype as any, 'renderTemplate').mockImplementation(function (this: any, ...args: any[]) {
+                const [template, options] = args as [TReaderDocument, any];
+
+                EmailTemplateCapture.captureTemplate(template);
+                const html = original.apply(this, args);
+
+                EmailTemplateCapture.captureHtml(html, template, options);
+                return html;
+            });
         }
     });
 

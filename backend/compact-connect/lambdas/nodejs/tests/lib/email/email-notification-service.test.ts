@@ -10,6 +10,7 @@ import { EmailNotificationService } from '../../../lib/email';
 import { CompactConfigurationClient } from '../../../lib/compact-configuration-client';
 import { JurisdictionClient } from '../../../lib/jurisdiction-client';
 import { EmailTemplateCapture } from '../../utils/email-template-capture';
+import { TReaderDocument } from '@jusdino-ia/email-builder';
 import { describe, it, expect, beforeEach, beforeAll, afterAll, jest } from '@jest/globals';
 
 jest.mock('nodemailer');
@@ -65,8 +66,17 @@ describe('EmailNotificationService', () => {
     beforeAll(() => {
         // Mock the renderTemplate method if template capture is enabled
         if (EmailTemplateCapture.isEnabled()) {
-            jest.spyOn(EmailNotificationService.prototype as any, 'renderTemplate')
-                .mockImplementation(EmailTemplateCapture.mockRenderTemplate);
+            const original = (EmailNotificationService.prototype as any).renderTemplate;
+
+            jest.spyOn(EmailNotificationService.prototype as any, 'renderTemplate').mockImplementation(function (this: any, ...args: any[]) {
+                const [template, options] = args as [TReaderDocument, any];
+
+                EmailTemplateCapture.captureTemplate(template);
+                const html = original.apply(this, args);
+
+                EmailTemplateCapture.captureHtml(html, template, options);
+                return html;
+            });
         }
     });
 

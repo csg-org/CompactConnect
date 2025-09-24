@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { TReaderDocument, renderToStaticMarkup as realRenderToStaticMarkup } from '@jusdino-ia/email-builder';
+import { TReaderDocument } from '@jusdino-ia/email-builder';
 
 /**
  * Utility for capturing email templates during testing
@@ -111,31 +111,6 @@ export class EmailTemplateCapture {
         console.log(`📧 Captured email template: ${filename}`);
     }
 
-    /**
-     * Mock implementation of renderTemplate that captures templates and calls the real renderToStaticMarkup
-     * This should be used in tests to mock the BaseEmailService.renderTemplate method
-     */
-    static mockRenderTemplate(...args: unknown[]): string {
-        const template = args[0] as TReaderDocument;
-
-        // Capture the template if enabled
-        EmailTemplateCapture.captureTemplate(template);
-
-        // Always call the real renderToStaticMarkup function to get actual HTML
-        const options = { ...(args[1] as Record<string, unknown> | undefined) };
-
-        if ((options as any)?.rootBlockId == null) {
-            (options as any).rootBlockId = 'root';
-        }
-        const html = realRenderToStaticMarkup(template, options as any);
-
-        // Also capture the rendered HTML if enabled
-        if (EmailTemplateCapture.isEnabled()) {
-            EmailTemplateCapture.captureHtml(html, template, options as any);
-        }
-
-        return html;
-    }
 
     /**
      * Capture the rendered HTML output for debugging

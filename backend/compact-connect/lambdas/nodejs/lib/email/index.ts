@@ -1,3 +1,4 @@
+export { BaseEmailService } from './base-email-service';
 export { CognitoEmailService } from './cognito-email-service';
 export { EmailNotificationService } from './email-notification-service';
 export { EncumbranceNotificationService } from './encumbrance-notification-service';

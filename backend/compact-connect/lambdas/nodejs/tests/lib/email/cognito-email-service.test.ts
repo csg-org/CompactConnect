@@ -4,6 +4,7 @@ import { Logger } from '@aws-lambda-powertools/logger';
 import { SESClient } from '@aws-sdk/client-ses';
 import { CognitoEmailService } from '../../../lib/email';
 import { EmailTemplateCapture } from '../../utils/email-template-capture';
+import { TReaderDocument } from '@jusdino-ia/email-builder';
 import { describe, it, expect, beforeEach, beforeAll, afterAll, jest } from '@jest/globals';
 
 const asSESClient = (mock: ReturnType<typeof mockClient>) =>
@@ -16,8 +17,17 @@ describe('CognitoEmailService', () => {
     beforeAll(() => {
         // Mock the renderTemplate method if template capture is enabled
         if (EmailTemplateCapture.isEnabled()) {
-            jest.spyOn(CognitoEmailService.prototype as any, 'renderTemplate')
-                .mockImplementation(EmailTemplateCapture.mockRenderTemplate);
+            const original = (CognitoEmailService.prototype as any).renderTemplate;
+
+            jest.spyOn(CognitoEmailService.prototype as any, 'renderTemplate').mockImplementation(function (this: any, ...args: any[]) {
+                const [template, options] = args as [TReaderDocument, any];
+
+                EmailTemplateCapture.captureTemplate(template);
+                const html = original.apply(this, args);
+
+                EmailTemplateCapture.captureHtml(html, template, options);
+                return html;
+            });
         }
     });
 
