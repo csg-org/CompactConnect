@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+from common_constructs.stack import AppStack
 from constructs import Construct
 
-from common_constructs.stack import AppStack
 from stacks import persistent_stack as ps
 from stacks.provider_users import ProviderUsersStack
 

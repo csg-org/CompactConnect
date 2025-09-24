@@ -13,10 +13,10 @@ from aws_cdk.aws_events import CfnRule
 from aws_cdk.aws_kms import CfnKey
 from aws_cdk.aws_lambda import CfnEventSourceMapping
 from aws_cdk.aws_sqs import CfnQueue
+from common_constructs.stack import Stack
 
 from app import CompactConnectApp
 from common_constructs.backup_plan import CCBackupPlan
-from common_constructs.stack import Stack
 from pipeline import BackendStage
 from stacks.api_stack import ApiStack
 from stacks.persistent_stack import PersistentStack

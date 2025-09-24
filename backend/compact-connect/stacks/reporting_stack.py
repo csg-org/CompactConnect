@@ -10,11 +10,11 @@ from aws_cdk.aws_events import Rule, RuleTargetInput, Schedule
 from aws_cdk.aws_events_targets import LambdaFunction
 from aws_cdk.aws_logs import QueryDefinition, QueryString
 from cdk_nag import NagSuppressions
+from common_constructs.stack import AppStack
 from constructs import Construct
 
 from common_constructs.nodejs_function import NodejsFunction
 from common_constructs.python_function import PythonFunction
-from common_constructs.stack import AppStack
 from stacks import persistent_stack as ps
 
 

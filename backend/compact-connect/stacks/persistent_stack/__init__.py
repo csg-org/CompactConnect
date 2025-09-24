@@ -8,16 +8,16 @@ from aws_cdk.aws_lambda import Runtime
 from aws_cdk.aws_lambda_python_alpha import PythonLayerVersion
 from aws_cdk.aws_logs import QueryDefinition, QueryString
 from cdk_nag import NagSuppressions
-from constructs import Construct
-
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.alarm_topic import AlarmTopic
 from common_constructs.frontend_app_config_utility import PersistentStackFrontendAppConfigUtility
+from common_constructs.security_profile import SecurityProfile
+from common_constructs.stack import AppStack
+from constructs import Construct
+
 from common_constructs.nodejs_function import NodejsFunction
 from common_constructs.python_function import COMMON_PYTHON_LAMBDA_LAYER_SSM_PARAMETER_NAME
-from common_constructs.security_profile import SecurityProfile
 from common_constructs.ssm_parameter_utility import SSMParameterUtility
-from common_constructs.stack import AppStack
 from stacks.backup_infrastructure_stack import BackupInfrastructureStack
 from stacks.persistent_stack.bulk_uploads_bucket import BulkUploadsBucket
 from stacks.persistent_stack.compact_configuration_table import CompactConfigurationTable

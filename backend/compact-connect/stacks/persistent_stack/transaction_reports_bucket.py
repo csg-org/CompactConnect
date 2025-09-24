@@ -3,10 +3,9 @@ from __future__ import annotations
 from aws_cdk.aws_kms import IKey
 from aws_cdk.aws_s3 import BucketEncryption
 from cdk_nag import NagSuppressions
-from constructs import Construct
-
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.bucket import Bucket
+from constructs import Construct
 
 
 class TransactionReportsBucket(Bucket):

@@ -363,26 +363,6 @@ class TestBackendPipeline(TstAppABC, TestCase):
                     f'Should have exactly one backend pipeline role with name {expected_role_name}',
                 )
 
-        # Test frontend pipeline role naming - roles are environment-specific
-        frontend_test_cases = [
-            (self.app.test_frontend_pipeline_stack, 'CompactConnect-test-Frontend-CrossAccountRole'),
-            (self.app.beta_frontend_pipeline_stack, 'CompactConnect-beta-Frontend-CrossAccountRole'),
-            (self.app.prod_frontend_pipeline_stack, 'CompactConnect-prod-Frontend-CrossAccountRole'),
-        ]
-
-        for frontend_stack, expected_role_name in frontend_test_cases:
-            with self.subTest(role=expected_role_name):
-                frontend_template = Template.from_stack(frontend_stack)
-
-                # Look for the predictable frontend pipeline role
-                frontend_roles = frontend_template.find_resources(
-                    'AWS::IAM::Role', props={'Properties': {'RoleName': expected_role_name}}
-                )
-                self.assertEqual(
-                    len(frontend_roles),
-                    1,
-                    f'Should have exactly one frontend pipeline role with name {expected_role_name}',
-                )
 
     def test_pipeline_role_trust_policies(self):
         """Test that pipeline roles have correct trust policies for CodePipeline service."""
@@ -392,9 +372,6 @@ class TestBackendPipeline(TstAppABC, TestCase):
             (self.app.test_backend_pipeline_stack, 'CompactConnect-test-Backend-CrossAccountRole'),
             (self.app.beta_backend_pipeline_stack, 'CompactConnect-beta-Backend-CrossAccountRole'),
             (self.app.prod_backend_pipeline_stack, 'CompactConnect-prod-Backend-CrossAccountRole'),
-            (self.app.test_frontend_pipeline_stack, 'CompactConnect-test-Frontend-CrossAccountRole'),
-            (self.app.beta_frontend_pipeline_stack, 'CompactConnect-beta-Frontend-CrossAccountRole'),
-            (self.app.prod_frontend_pipeline_stack, 'CompactConnect-prod-Frontend-CrossAccountRole'),
         ]
 
         for stack, expected_role_name in test_cases:

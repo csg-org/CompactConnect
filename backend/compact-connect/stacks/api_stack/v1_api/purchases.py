@@ -8,10 +8,10 @@ from aws_cdk.aws_events import EventBus
 from aws_cdk.aws_iam import Effect, PolicyStatement
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
+from common_constructs.stack import Stack
 
 from common_constructs.cc_api import CCApi
 from common_constructs.python_function import PythonFunction
-from common_constructs.stack import Stack
 from stacks.persistent_stack import CompactConfigurationTable, ProviderTable
 
 from .api_model import ApiModel

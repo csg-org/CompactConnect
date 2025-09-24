@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from constructs import Construct
-
 from common_constructs.security_profile import SecurityProfile
 from common_constructs.stack import AppStack
+from constructs import Construct
+
 from stacks import persistent_stack as ps
 from stacks.api_lambda_stack import ApiLambdaStack
 from stacks.provider_users import ProviderUsersStack

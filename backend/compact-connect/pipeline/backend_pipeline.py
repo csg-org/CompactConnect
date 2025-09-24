@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 
+import common_constructs.base_pipeline_stack
 from aws_cdk import RemovalPolicy, Stack
 from aws_cdk.aws_codebuild import BuildSpec
 from aws_cdk.aws_codestarnotifications import NotificationRule
@@ -13,8 +14,6 @@ from aws_cdk.aws_ssm import IParameter
 from aws_cdk.pipelines import CodeBuildOptions, CodePipelineSource, ShellStep
 from aws_cdk.pipelines import CodePipeline as CdkCodePipeline
 from cdk_nag import NagSuppressions
-
-import common_constructs.base_pipeline_stack
 from common_constructs.bucket import Bucket
 
 

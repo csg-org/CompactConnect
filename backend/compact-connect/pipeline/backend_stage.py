@@ -1,7 +1,7 @@
 from aws_cdk import Environment, Stage
+from common_constructs.stack import StandardTags
 from constructs import Construct
 
-from common_constructs.stack import StandardTags
 from stacks.api_lambda_stack import ApiLambdaStack
 from stacks.api_stack import ApiStack
 from stacks.disaster_recovery_stack import DisasterRecoveryStack
