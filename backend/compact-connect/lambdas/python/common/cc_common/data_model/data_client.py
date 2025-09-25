@@ -2726,7 +2726,6 @@ class DataClient:
             # Add PUT transaction for privilege update record
             transaction_items.append(self._generate_put_transaction_item(privilege_update_record))
 
-
         # Execute transactions in batches of 100 (DynamoDB limit)
         batch_size = 100
         while transaction_items:
@@ -2742,9 +2741,9 @@ class DataClient:
 
         logger.info('Successfully encumbered associated privileges for license')
 
-        return (unencumbered_privileges_associated_with_license
-                + previously_encumbered_privileges_associated_with_license)
-
+        return (
+            unencumbered_privileges_associated_with_license + previously_encumbered_privileges_associated_with_license
+        )
 
     @logger_inject_kwargs(logger, 'compact', 'provider_id', 'jurisdiction', 'license_type_abbreviation')
     def lift_home_jurisdiction_license_privilege_encumbrances(
