@@ -70,10 +70,6 @@ export default class DashboardPublic extends Vue {
         return this.$envConfig.isUsingMockApi || false;
     }
 
-    get shouldShowSampleGateText(): boolean {
-        return this.$features.checkGate('test-feature-1');
-    }
-
     //
     // Methods
     //

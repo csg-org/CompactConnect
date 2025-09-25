@@ -19,6 +19,7 @@ import {
 import { MilitaryAffiliation, MilitaryAffiliationSerializer } from '@models/MilitaryAffiliation/MilitaryAffiliation.model';
 import { State } from '@models/State/State.model';
 import moment from 'moment';
+import { StatsigClient } from '@statsig/js-client';
 
 /**
  * This model is used to represent both get one and get all server responses
@@ -62,6 +63,7 @@ export interface InterfaceLicensee {
 export class Licensee implements InterfaceLicensee {
     public $tm?: any = () => [];
     public $t?: any = () => '';
+    public $features?: StatsigClient | null = null;
     public id? = null;
     public npi? = null;
     public licenseNumber?= null;
@@ -85,11 +87,15 @@ export class Licensee implements InterfaceLicensee {
     constructor(data?: InterfaceLicensee) {
         const cleanDataObject = deleteUndefinedProperties(data);
         const global = window as any;
-        const { $tm, $t } = global.Vue?.config?.globalProperties || {};
+        const { $tm, $t, $features } = global.Vue?.config?.globalProperties || {};
 
         if ($tm) {
             this.$tm = $tm;
             this.$t = $t;
+        }
+
+        if ($features) {
+            this.$features = $features;
         }
 
         Object.assign(this, cleanDataObject);

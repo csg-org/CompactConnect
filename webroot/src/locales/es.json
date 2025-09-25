@@ -1034,7 +1034,14 @@
         "openModalCustomActions": "Abre el modal con acciones personalizadas.",
         "loadingSpinner": "Indicador de funcionamiento",
         "showSpinner": "Mostrar el indicador",
-        "mobileStoreLinks": "Enlaces de tiendas móviles"
+        "mobileStoreLinks": "Enlaces de tiendas móviles",
+        "exampleFeatureGates": "Puertas de características de ejemplo",
+        "exampleFeatureGateLayerComponent": "Evaluado en componente",
+        "exampleFeatureGateLayerStore": "Evaluado en tienda",
+        "exampleFeatureGateLayerModel": "Evaluado en el modelo",
+        "exampleFeatureGateLayerNetwork": "Evaluado en la capa de red",
+        "exampleFeatureGateOn": "Activado",
+        "exampleFeatureGateOff": "Desactivado"
     },
     "homeJurisdictionChange": {
         "formTitle": "Cambiar estado de residencia",

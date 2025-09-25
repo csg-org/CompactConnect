@@ -6,6 +6,7 @@
 //
 
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
+import { FeatureGates } from '@/app.config';
 import { LicenseeSerializer } from '@models/Licensee/Licensee.model';
 import { LicenseHistoryItem, LicenseHistoryItemSerializer } from '@/models/LicenseHistoryItem/LicenseHistoryItem.model';
 import { LicenseeUserSerializer } from '@models/LicenseeUser/LicenseeUser.model';
@@ -625,6 +626,15 @@ export class DataApi {
 
             return serializedUser;
         });
+    }
+
+    // Perform an example feature gate check withn a network call
+    public getExampleFeatureGate() {
+        const { $features } = (window as any).Vue?.config?.globalProperties || {};
+
+        // Obviously network call functions aren't needed to *just* check a feature gate;
+        // This is just an example of how a feature gate can be evaluated in a network call if needed.
+        return wait(0).then(() => $features?.checkGate(FeatureGates.EXAMPLE_FEATURE_1) || false);
     }
 }
 

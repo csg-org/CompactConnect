@@ -1035,7 +1035,14 @@
         "openModalCustomActions": "Open Modal with Custom Actions",
         "loadingSpinner": "Loading Spinner",
         "showSpinner": "Show Spinner",
-        "mobileStoreLinks": "Mobile Store Links"
+        "mobileStoreLinks": "Mobile Store Links",
+        "exampleFeatureGates": "Example Feature Gates",
+        "exampleFeatureGateLayerComponent": "Evaluated in component",
+        "exampleFeatureGateLayerStore": "Evaluated in store",
+        "exampleFeatureGateLayerModel": "Evaluated in model",
+        "exampleFeatureGateLayerNetwork": "Evaluated in network layer",
+        "exampleFeatureGateOn": "Enabled",
+        "exampleFeatureGateOff": "Disabled"
     },
     "homeJurisdictionChange": {
         "formTitle": "Change home state",

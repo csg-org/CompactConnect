@@ -35,14 +35,40 @@ import './registerServiceWorker';
     network.dataApi.initInterceptors(router);
 
     //
+    // ALLOW ACCESS TO VUE INSTANCE SERVICES
+    //
+    // Attach any services that aren't automatically attached to the Vue instance
+    const { globalProperties } = app.config;
+    const { t: $t, tm: $tm } = i18n.global;
+
+    if (!globalProperties.$t) {
+        (globalProperties as any).$t = $t;
+    }
+
+    if (!globalProperties.$tm) {
+        (globalProperties as any).$tm = $tm;
+    }
+
+    if (!globalProperties.$features) {
+        (globalProperties as any).$features = statsigClient;
+    }
+
+    if (!globalProperties.$analytics) {
+        (globalProperties as any).$analytics = statsigClient;
+    }
+
+    // Make Vue available globally
+    (window as any).Vue = app || {};
+
+    //
     // INJECT PLUGINS
     //
     app.use(envConfig);
+    app.use(statsig, { statsigClient });
     app.use(router);
     app.use(store);
     app.use(i18n);
     app.use(api);
-    app.use(statsig, { statsigClient });
     app.use(vClickOutside);
     app.use(VueResponsiveness, {
         phone: 0,
@@ -82,32 +108,6 @@ import './registerServiceWorker';
             },
         },
     });
-
-    //
-    // ALLOW ACCESS TO VUE INSTANCE SERVICES
-    //
-    // Attach any services that aren't automatically attached to the Vue instance
-    const { globalProperties } = app.config;
-    const { t: $t, tm: $tm } = i18n.global;
-
-    if (!globalProperties.$t) {
-        (globalProperties as any).$t = $t;
-    }
-
-    if (!globalProperties.$tm) {
-        (globalProperties as any).$tm = $tm;
-    }
-
-    if (!globalProperties.$features) {
-        (globalProperties as any).$features = statsigClient;
-    }
-
-    if (!globalProperties.$analytics) {
-        (globalProperties as any).$analytics = statsigClient;
-    }
-
-    // Make Vue available globally
-    (window as any).Vue = app || {};
 
     //
     // MOUNT

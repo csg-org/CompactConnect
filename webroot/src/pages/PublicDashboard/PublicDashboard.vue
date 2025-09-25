@@ -15,9 +15,6 @@
                     :alt="$t('common.appName')"
                 />
             </div>
-        <div v-if="shouldShowSampleGateText" class="dashboard-row">
-            <h1>Sample gate text</h1>
-        </div>
         <div class="dashboard-row">
             <router-link
                 :to="{ name: 'LicneseeSearchPublic' }"
