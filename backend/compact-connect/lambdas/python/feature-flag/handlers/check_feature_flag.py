@@ -2,7 +2,7 @@ import json
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
-from cc_common.exceptions import CCInvalidRequestException
+from cc_common.exceptions import CCInternalException, CCInvalidRequestException
 from cc_common.utils import api_handler
 from feature_flag_client import FeatureFlagRequest, FeatureFlagValidationException, create_feature_flag_client
 
@@ -44,4 +44,4 @@ def check_feature_flag(event: dict, context: LambdaContext):  # noqa: ARG001 unu
         raise
     except Exception as e:
         logger.error(f'Unexpected error checking feature flag: {e}')
-        raise CCInvalidRequestException('Feature flag check failed') from e
+        raise CCInternalException('Feature flag check failed') from e
