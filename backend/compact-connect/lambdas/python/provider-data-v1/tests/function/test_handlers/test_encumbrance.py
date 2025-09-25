@@ -165,11 +165,11 @@ class TestPostPrivilegeEncumbrance(TstFunction):
                 'encumbranceDetails': {
                     'clinicalPrivilegeActionCategory': 'Unsafe Practice or Substandard Care',
                     'adverseActionId': DEFAULT_ADVERSE_ACTION_ID,
-                }
+                },
             }
         )
         loaded_privilege_update_data = PrivilegeUpdateData.from_database_record(item)
-        loaded_privilege_update_data.encumbranceDetails['adverseActionId']= uuid.UUID(DEFAULT_ADVERSE_ACTION_ID)
+        loaded_privilege_update_data.encumbranceDetails['adverseActionId'] = uuid.UUID(DEFAULT_ADVERSE_ACTION_ID)
 
         self.assertEqual(
             expected_privilege_update_data.to_dict(),

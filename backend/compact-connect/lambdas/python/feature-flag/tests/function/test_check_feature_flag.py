@@ -1,7 +1,7 @@
 import json
 from unittest.mock import MagicMock, patch
-import boto3
 
+import boto3
 from moto import mock_aws
 
 from . import TstFunction
