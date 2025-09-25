@@ -82,7 +82,6 @@ class FeatureFlagClient(ABC):
         :return: FeatureFlagResult indicating if flag is enabled
         :raises FeatureFlagException: If flag check fails
         """
-        pass
 
     def _get_secret(self, secret_name: str) -> dict[str, Any]:
         """
@@ -103,9 +102,7 @@ class FeatureFlagClient(ABC):
             response = client.get_secret_value(SecretId=secret_name)
 
             # Parse the secret string as JSON
-            secret_data = json.loads(response['SecretString'])
-
-            return secret_data
+            return json.loads(response['SecretString'])
 
         except ClientError as e:
             error_code = e.response['Error']['Code']
@@ -120,13 +117,9 @@ class FeatureFlagClient(ABC):
 class FeatureFlagException(Exception):
     """Base exception for feature flag operations"""
 
-    pass
-
 
 class FeatureFlagValidationException(FeatureFlagException):
     """Exception raised when feature flag validation fails"""
-
-    pass
 
 
 # Implementing Classes
@@ -174,8 +167,8 @@ class StatSigFeatureFlagClient(FeatureFlagClient):
         self._is_initialized = False
 
         # Retrieve StatSig configuration from AWS Secrets Manager
+        secret_name = f'compact-connect/env/{environment}/statsig/credentials'
         try:
-            secret_name = f'compact-connect/env/{environment}/statsig/credentials'
             secret_data = self._get_secret(secret_name)
             self._server_secret_key = secret_data.get('serverKey')
 
@@ -252,11 +245,10 @@ class StatSigFeatureFlagClient(FeatureFlagClient):
                 flag_name=request.flagName,
             )
 
-        except Exception as e:
+        except (FeatureFlagException, FeatureFlagValidationException) as e:
             # If it's already a FeatureFlagException, re-raise it
-            if isinstance(e, (FeatureFlagException, FeatureFlagValidationException)):
-                raise
-
+            raise e
+        except Exception as e:
             # Otherwise, wrap it in a FeatureFlagException
             raise FeatureFlagException(f"Failed to check feature flag '{request.flagName}': {e}") from e
 
