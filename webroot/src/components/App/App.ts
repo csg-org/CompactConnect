@@ -21,6 +21,7 @@ import {
 import { CompactType } from '@models/Compact/Compact.model';
 import PageContainer from '@components/Page/PageContainer/PageContainer.vue';
 import Modal from '@components/Modal/Modal.vue';
+import { StatsigUser } from '@statsig/js-client';
 import moment from 'moment';
 
 @Component({
@@ -38,6 +39,7 @@ class App extends Vue {
     // Data
     //
     body = document.body;
+    featureGateFetchIntervalId: number | undefined = undefined;
 
     //
     // Lifecycle
@@ -48,6 +50,11 @@ class App extends Vue {
         }
 
         this.setRelativeTimeFormats();
+        this.setFeatureGateRefetchInterval();
+    }
+
+    async beforeUnmount() {
+        this.clearFeatureGateRefetchInterval();
     }
 
     //
@@ -118,6 +125,38 @@ class App extends Vue {
         } else if (authType === AuthTypes.LICENSEE) {
             await this.$store.dispatch('user/getLicenseeAccountRequest');
         }
+
+        this.updateAnalyticsUser(); // Not awaiting analytics so it doesn't block other critical steps
+    }
+
+    async updateAnalyticsUser(): Promise<void> {
+        const { model: appUser } = this.userStore;
+        const analyticsUser: StatsigUser = {};
+
+        if (appUser?.id) {
+            analyticsUser.userID = appUser.id;
+        }
+        if (appUser?.compactConnectEmail) {
+            analyticsUser.email = appUser.compactConnectEmail;
+        }
+
+        try {
+            await this.$analytics.updateUserAsync(analyticsUser);
+        } catch (err) {
+            // Continue
+        }
+    }
+
+    setFeatureGateRefetchInterval(): void {
+        const refetchIntervalMs = moment.duration(1, 'minute').asMilliseconds();
+
+        this.featureGateFetchIntervalId = (window as Window).setInterval(() => {
+            this.updateAnalyticsUser();
+        }, refetchIntervalMs);
+    }
+
+    clearFeatureGateRefetchInterval(): void {
+        (window as Window).clearInterval(this.featureGateFetchIntervalId);
     }
 
     async setCurrentCompact(): Promise<void> {

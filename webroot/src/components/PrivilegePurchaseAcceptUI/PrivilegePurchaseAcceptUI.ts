@@ -157,6 +157,8 @@ class PrivilegePurchaseAcceptUI extends Vue {
         this.removeFocusTrapHandling();
 
         if (acceptUiContainer) {
+            window.setTimeout(() => { acceptUiContainer.classList.add('rr-block'); }, 0);
+
             // The AcceptUI.js widget will sometimes pop up partially or fully off-screen if the
             // launching page's <body> height is significantly taller than the viewport.
             // This is a simple adjustment to start the pop up near our content.
@@ -183,6 +185,7 @@ class PrivilegePurchaseAcceptUI extends Vue {
 
         if (iframe) {
             try {
+                iframe.classList.add('rr-block');
                 // Attempt to set the title attr on the iframe for better a11y
                 iframe.setAttribute('title', this.$t('payment.enterPaymentDetails'));
             } catch (err) {

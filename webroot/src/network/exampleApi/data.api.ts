@@ -5,7 +5,8 @@
 //  Created by InspiringApps on 5/6/20.
 //
 
-import axios, { AxiosInstance } from 'axios';
+import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
+import { FeatureGates } from '@/app.config';
 import {
     requestError,
     requestSuccess,
@@ -13,7 +14,7 @@ import {
     responseError
 } from '@network/exampleApi/interceptors';
 import { userData, pets } from '@network/mocks/mock.data';
-import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
+import axios, { AxiosInstance } from 'axios';
 
 export interface DataApiInterface {
     api: AxiosInstance;
@@ -177,6 +178,18 @@ export class ExampleDataApi implements DataApiInterface {
         }
 
         return this.wait(1000).then(() => response);
+    }
+
+    /**
+     * Example of a network layer function that can evaluate feature gates.
+     * @return {Promise<Boolean>} The feature gate evaluation.
+     */
+    public getExampleFeatureGate() {
+        const { $features } = (window as any).Vue?.config?.globalProperties || {};
+
+        // Obviously network call functions aren't needed to *just* check a feature gate;
+        // This is just an example of how a feature gate can be evaluated in a network call if needed.
+        return this.wait(0).then(() => $features?.checkGate(FeatureGates.EXAMPLE_FEATURE_1) || false);
     }
 }
 
