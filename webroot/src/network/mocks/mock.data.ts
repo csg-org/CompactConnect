@@ -869,8 +869,8 @@ export const licensees = {
                     persistedStatus: 'active',
                     status: 'active',
                     dateOfIssuance: moment().subtract(1, 'year').subtract(9, 'months').format(serverDateFormat),
-                    dateOfUpdate: moment().subtract(1, 'year').subtract(9, 'months').format(serverDateFormat),
-                    dateOfRenewal: moment().subtract(9, 'months').format(serverDateFormat),
+                    dateOfUpdate: moment().subtract(2, 'months').format(serverDateFormat),
+                    dateOfRenewal: moment().subtract(5, 'months').format(serverDateFormat),
                     dateOfExpiration: moment().add(3, 'month').format(serverDateFormat),
                     activeSince: moment().subtract(5, 'months').format(serverDateFormat),
                     attestations: attestationResponses.map((response) => ({ ...response })),
@@ -1729,8 +1729,8 @@ export const mockPrivilegeHistoryResponses = [
                 type: 'privilegeUpdate',
                 updateType: 'issuance',
                 dateOfUpdate: moment().subtract(9, 'months').format(serverDateFormat),
-                effectiveDate: moment().subtract(9, 'months').format(serverDateFormat),
-                createDate: moment().subtract(9, 'months').format(serverDateFormat)
+                effectiveDate: moment().subtract(9, 'months').subtract(1, 'year').format(serverDateFormat),
+                createDate: moment().subtract(9, 'months').subtract(1, 'year').format(serverDateFormat)
             }
         ]
     },
