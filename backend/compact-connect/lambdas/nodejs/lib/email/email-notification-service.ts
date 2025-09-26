@@ -1,5 +1,4 @@
 import { GetObjectCommand } from '@aws-sdk/client-s3';
-import { renderToStaticMarkup } from '@usewaypoint/email-builder';
 import { BaseEmailService } from './base-email-service';
 import { EnvironmentVariablesService } from '../environment-variables-service';
 import { RecipientType } from '../models/email-notification-service-event';
@@ -78,7 +77,7 @@ export class EmailNotificationService extends BaseEmailService {
         this.insertBody(report, bodyText);
         this.insertFooter(report);
 
-        const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
+        const htmlContent = this.renderTemplate(report);
 
         await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send transaction batch settlement failure email' });
     }
@@ -121,7 +120,7 @@ export class EmailNotificationService extends BaseEmailService {
         this.insertBody(report, bodyText);
         this.insertFooter(report);
 
-        const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
+        const htmlContent = this.renderTemplate(report);
 
         await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send privilege deactivation state notification email' });
     }
@@ -153,7 +152,7 @@ export class EmailNotificationService extends BaseEmailService {
         this.insertBody(report, bodyText);
         this.insertFooter(report);
 
-        const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
+        const htmlContent = this.renderTemplate(report);
 
         await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send provider privilege deactivation notification email' });
     }
@@ -195,7 +194,7 @@ export class EmailNotificationService extends BaseEmailService {
         this.insertBody(report, bodyText, 'left', true);
         this.insertFooter(report);
 
-        const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
+        const htmlContent = this.renderTemplate(report);
 
         await this.sendEmailWithAttachments({
             htmlContent,
@@ -253,7 +252,7 @@ export class EmailNotificationService extends BaseEmailService {
         this.insertBody(report, bodyText);
         this.insertFooter(report);
 
-        const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
+        const htmlContent = this.renderTemplate(report);
 
         await this.sendEmailWithAttachments({
             htmlContent,
@@ -336,7 +335,7 @@ export class EmailNotificationService extends BaseEmailService {
 
         this.insertFooter(emailContent);
 
-        const htmlContent = renderToStaticMarkup(emailContent, { rootBlockId: 'root' });
+        const htmlContent = this.renderTemplate(emailContent);
 
         await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send provider privilege purchase notification email' });
     }
@@ -367,7 +366,7 @@ export class EmailNotificationService extends BaseEmailService {
         this.insertBody(report, bodyText, 'center', true);
         this.insertFooter(report);
 
-        const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
+        const htmlContent = this.renderTemplate(report);
 
         await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send multiple registration attempt notification email' });
     }
@@ -395,7 +394,7 @@ export class EmailNotificationService extends BaseEmailService {
         this.insertBody(report, bodyText, 'center', true);
         this.insertFooter(report);
 
-        const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
+        const htmlContent = this.renderTemplate(report);
 
         await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send email verification code' });
     }
@@ -423,7 +422,7 @@ export class EmailNotificationService extends BaseEmailService {
         this.insertBody(report, bodyText, 'center');
         this.insertFooter(report);
 
-        const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
+        const htmlContent = this.renderTemplate(report);
 
         await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send email change notification' });
     }
@@ -433,7 +432,7 @@ export class EmailNotificationService extends BaseEmailService {
      * @param compact - The compact name
      * @param specificEmails - The email address(es) to send the confirmation to (provider's current email)
      * @param providerId - The provider's ID
-     * @param recoveryUuid - The recovery UUID used to validate and complete recovery
+     * @param recoveryToken - The recovery token used to validate and complete recovery
      */
     public async sendProviderAccountRecoveryConfirmationEmail(
         compact: string,
@@ -464,7 +463,7 @@ export class EmailNotificationService extends BaseEmailService {
         this.insertBody(emailContent, bodyText, 'center', true);
         this.insertFooter(emailContent);
 
-        const htmlContent = renderToStaticMarkup(emailContent, { rootBlockId: 'root' });
+        const htmlContent = this.renderTemplate(emailContent);
 
         await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send provider account recovery confirmation email' });
     }

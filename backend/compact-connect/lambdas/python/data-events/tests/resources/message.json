@@ -3,7 +3,7 @@
   "id": "44ec3255-8d59-a6ae-0783-5563a9318a58",
   "detail-type": "license.validation-error",
   "source": "org.compactconnect.bulk-ingest.aslp/oh/1234",
-  "account": "992382587219",
+  "account": "000000000000",
   "time": "2024-07-11T19:57:45Z",
   "region": "us-east-1",
   "resources": [],

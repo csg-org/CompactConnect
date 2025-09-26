@@ -197,9 +197,9 @@ class TestBackendPipeline(TstAppABC, TestCase):
                     'Properties': {
                         'AccountTakeoverRiskConfiguration': {
                             'Actions': {
-                                'HighAction': {'EventAction': 'BLOCK', 'Notify': True},
-                                'LowAction': {'EventAction': 'BLOCK', 'Notify': True},
-                                'MediumAction': {'EventAction': 'BLOCK', 'Notify': True},
+                                'HighAction': {'EventAction': 'MFA_REQUIRED', 'Notify': True},
+                                'LowAction': {'EventAction': 'MFA_REQUIRED', 'Notify': True},
+                                'MediumAction': {'EventAction': 'MFA_REQUIRED', 'Notify': True},
                             }
                         },
                         'CompromisedCredentialsRiskConfiguration': {'Actions': {'EventAction': 'BLOCK'}},
@@ -240,9 +240,9 @@ class TestBackendPipeline(TstAppABC, TestCase):
                     'Properties': {
                         'AccountTakeoverRiskConfiguration': {
                             'Actions': {
-                                'HighAction': {'EventAction': 'BLOCK', 'Notify': True},
-                                'LowAction': {'EventAction': 'BLOCK', 'Notify': True},
-                                'MediumAction': {'EventAction': 'BLOCK', 'Notify': True},
+                                'HighAction': {'EventAction': 'MFA_REQUIRED', 'Notify': True},
+                                'LowAction': {'EventAction': 'MFA_REQUIRED', 'Notify': True},
+                                'MediumAction': {'EventAction': 'MFA_REQUIRED', 'Notify': True},
                             },
                             'NotifyConfiguration': Match.object_like(
                                 {

@@ -1,4 +1,3 @@
-import { renderToStaticMarkup } from '@usewaypoint/email-builder';
 import { BaseEmailService } from './base-email-service';
 import { EnvironmentVariablesService } from '../environment-variables-service';
 
@@ -65,25 +64,86 @@ export class CognitoEmailService extends BaseEmailService {
         this.insertHeader(template, subject);
         const userPoolType = environmentVariableService.getUserPoolType();
 
+        let loginText: string;
+        let loginUrl: string;
+
         if (userPoolType === 'provider') {
-            this.insertBody(template,
-                `Your temporary password is: \n\n${codeParameter}\n\nYour username is: \n\n${usernameParameter}\n\nThis temporary password is valid for 24 hours. Please sign in at ${environmentVariableService.getUiBasePathUrl()}/Dashboard?bypass=login-practitioner within the next 24 hours and change your password when prompted.`,
-                'center',
-                true
-            );
+            loginUrl = `${environmentVariableService.getUiBasePathUrl()}/Dashboard?bypass=login-practitioner`;
+
+            loginText = `This temporary password is valid for 24 hours. Please [sign in](${loginUrl}) within the next 24 hours and change your password when prompted.`;
         } else {
-            this.insertBody(template,
-                `Your temporary password is: \n\n${codeParameter}\n\nYour username is: \n\n${usernameParameter}\n\nPlease sign in at ${environmentVariableService.getUiBasePathUrl()}/Dashboard?bypass=login-staff and change your password when prompted.`,
-                'center',
-                true
-            );
+            loginUrl = `${environmentVariableService.getUiBasePathUrl()}/Dashboard?bypass=login-staff`;
+
+            loginText = `Please immediately [sign in](${loginUrl}) and change your password when prompted.`;
         }
+        this.insertBody(template,
+            `Your temporary password is: \n**${codeParameter}**\n\nYour username is: \n**${usernameParameter}**\n`,
+            'center',
+            true,
+            {
+                'padding': {
+                    'top': '8',
+                    'bottom': '8',
+                    'right': '40',
+                    'left': '40',
+                }
+            }
+        );
+
+        this.insertBody(template,
+            loginText,
+            'center',
+            true,
+            {
+                'size': 14,
+                'color': '#727272',
+                'padding': {
+                    'top': '8',
+                    'bottom': '16',
+                    'right': '40',
+                    'left': '40',
+                }
+            }
+        );
+
+        // Add MFA instructions block
+        this.insertStyledBlock(template, {
+            blockType: 'warning',
+            title: 'Multi-Factor Authentication (MFA) Required',
+            content: `For security, you'll need to set up Multi-Factor Authentication (MFA) after your first login. MFA adds an extra layer of security by requiring a second form of verification.
+
+**What is an Authenticator App?**
+An authenticator app generates time-based codes that change every 30 seconds. You'll use these codes along with your password to sign in.
+
+**Recommended Authenticator Apps:**
+- **Google Authenticator** - [Android](https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2) | [iOS](https://apps.apple.com/app/google-authenticator/id388497605)
+- **Microsoft Authenticator** - [Android](https://play.google.com/store/apps/details?id=com.azure.authenticator) | [iOS](https://apps.apple.com/app/microsoft-authenticator/id983156458)
+- **Authy** - [Android](https://play.google.com/store/apps/details?id=com.authy.authy) | [iOS](https://apps.apple.com/app/authy/id494168017)
+
+**Setup steps:**
+1. Download one of the authenticator apps above
+2. Click the sign-in link above and sign in to CompactConnect with your temporary credentials
+3. Reset your password when prompted
+4. In your authenticator app, add an account and scan the QR code presented on the MFA setup page
+5. Enter the 6-digit code from your authenticator into the CompactConnect MFA setup page (codes refresh every 30 seconds)
+6. Click "Sign in" to complete setup
+
+> **Note:** There is a *3-minute time limit* from when you log in to when you must have your MFA set-up, before the login screen will kick you out and make you start over. If you are prompted to set up MFA again, *delete your previous account entry from your MFA app before you try again*.
+
+**How to sign in with MFA (after setup):**
+1. Click the sign-in link above or go to ${loginUrl}
+2. Enter your username and password as usual
+3. When prompted, open your authenticator app
+4. Find the authenticator app entry you created during MFA setup
+5. Enter the current 6-digit code from your authenticator app (codes refresh every 30 seconds)
+6. Click "Sign in"`
+        });
 
         this.insertFooter(template);
 
         return {
             subject,
-            htmlContent: renderToStaticMarkup(template, { rootBlockId: 'root' })
+            htmlContent: this.renderTemplate(template)
         };
     }
 
@@ -111,7 +171,7 @@ export class CognitoEmailService extends BaseEmailService {
 
         return {
             subject,
-            htmlContent: renderToStaticMarkup(template, { rootBlockId: 'root' })
+            htmlContent: this.renderTemplate(template)
         };
     }
 
@@ -134,7 +194,7 @@ export class CognitoEmailService extends BaseEmailService {
 
         return {
             subject,
-            htmlContent: renderToStaticMarkup(template, { rootBlockId: 'root' })
+            htmlContent: this.renderTemplate(template)
         };
     }
 
@@ -158,7 +218,7 @@ export class CognitoEmailService extends BaseEmailService {
 
         return {
             subject,
-            htmlContent: renderToStaticMarkup(template, { rootBlockId: 'root' })
+            htmlContent: this.renderTemplate(template)
         };
     }
 
@@ -182,7 +242,7 @@ export class CognitoEmailService extends BaseEmailService {
 
         return {
             subject,
-            htmlContent: renderToStaticMarkup(template, { rootBlockId: 'root' })
+            htmlContent: this.renderTemplate(template)
         };
     }
 
@@ -206,7 +266,7 @@ export class CognitoEmailService extends BaseEmailService {
 
         return {
             subject,
-            htmlContent: renderToStaticMarkup(template, { rootBlockId: 'root' })
+            htmlContent: this.renderTemplate(template)
         };
     }
 }

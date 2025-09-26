@@ -3,12 +3,14 @@ import 'aws-sdk-client-mock-jest';
 import { Logger } from '@aws-lambda-powertools/logger';
 import { SendEmailCommand, SESClient } from '@aws-sdk/client-ses';
 import { IngestEventEmailService } from '../../../lib/email';
+import { EmailTemplateCapture } from '../../utils/email-template-capture';
+import { TReaderDocument } from '@jusdino-ia/email-builder';
 import {
     SAMPLE_SORTABLE_VALIDATION_ERROR_RECORDS,
     SAMPLE_UNMARSHALLED_INGEST_FAILURE_ERROR_RECORD,
     SAMPLE_UNMARSHALLED_VALIDATION_ERROR_RECORD
 } from '../../sample-records';
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { describe, it, expect, beforeEach, beforeAll, afterAll, jest } from '@jest/globals';
 
 const asSESClient = (mock: ReturnType<typeof mockClient>) =>
     mock as unknown as SESClient;
@@ -16,6 +18,27 @@ const asSESClient = (mock: ReturnType<typeof mockClient>) =>
 describe('IngestEventEmailService', () => {
     let emailService: IngestEventEmailService;
     let mockSESClient: ReturnType<typeof mockClient>;
+
+    beforeAll(() => {
+        // Mock the renderTemplate method if template capture is enabled
+        if (EmailTemplateCapture.isEnabled()) {
+            const original = (IngestEventEmailService.prototype as any).renderTemplate;
+
+            jest.spyOn(IngestEventEmailService.prototype as any, 'renderTemplate').mockImplementation(function (this: any, ...args: any[]) {
+                const [template, options] = args as [TReaderDocument, any];
+
+                EmailTemplateCapture.captureTemplate(template);
+                const html = original.apply(this, args);
+
+                EmailTemplateCapture.captureHtml(html, template, options);
+                return html;
+            });
+        }
+    });
+
+    afterAll(() => {
+        jest.restoreAllMocks();
+    });
 
     beforeEach(() => {
         jest.clearAllMocks();
