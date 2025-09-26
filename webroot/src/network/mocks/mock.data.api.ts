@@ -44,7 +44,7 @@ const initMockStore = (store) => {
 };
 
 // Authenticated provider ID for the current session
-const authenticatedProviderUserId = 0;
+const authenticatedProviderUserIndex = 1;
 
 // License type mapping for matching abbreviations and full names to LicenseType enum values
 const licenseTypeMap = {
@@ -489,7 +489,7 @@ export class DataApi {
     // Get Authenticated Licensee User
     public getAuthenticatedLicenseeUser() {
         return wait(500).then(() => LicenseeUserSerializer
-            .fromServer(licensees.providers[authenticatedProviderUserId]));
+            .fromServer(licensees.providers[authenticatedProviderUserIndex]));
     }
 
     // Update Authenticated Licensee User email address
@@ -568,7 +568,7 @@ export class DataApi {
         let responseData: any = null;
 
         // Get the currently authenticated user
-        const authenticatedUser = licensees.providers[authenticatedProviderUserId];
+        const authenticatedUser = licensees.providers[authenticatedProviderUserIndex];
         const authenticatedProviderId = authenticatedUser.providerId;
 
         // Find the matching history entry dynamically
