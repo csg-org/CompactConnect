@@ -29,6 +29,7 @@ import {
     mockPrivilegeHistoryResponses
 
 } from '@network/mocks/mock.data';
+import { LicenseType } from '@models/License/License.model';
 
 let mockStore: any = null;
 
@@ -40,6 +41,15 @@ const initMockStore = (store) => {
     mockStore = store;
 
     return mockStore;
+};
+
+// Authenticated provider ID for the current session
+const authenticatedProviderUserId = 0;
+
+// License type mapping for matching abbreviations and full names to LicenseType enum values
+const licenseTypeMap = {
+    ot: LicenseType.OCCUPATIONAL_THERAPIST,
+    ota: LicenseType.OCCUPATIONAL_THERAPY_ASSISTANT
 };
 
 // Helper to simulate wait time on endpoints where desired, to test things like the loading UI
@@ -305,17 +315,19 @@ export class DataApi {
         jurisdiction,
         licenseTypeAbbrev
     ) {
-        const [ janetNE, janetAL, layneNE, layneOH ] = mockPrivilegeHistoryResponses;
         let response;
-        let responseData = janetNE;
+        let responseData: any = null;
 
-        if (providerId === 'aa2e057d-6972-4a68-a55d-aad1c3d05278' && jurisdiction === 'al') {
-            responseData = janetAL;
-        } else if (providerId === 'f47ac10b-58cc-4372-a567-0e02b2c3d479' && jurisdiction === 'ne') {
-            responseData = layneNE;
-        } else if (providerId === 'f47ac10b-58cc-4372-a567-0e02b2c3d479' && jurisdiction === 'oh') {
-            responseData = layneOH;
-        }
+        responseData = mockPrivilegeHistoryResponses.find((historyEntry) => {
+            const mappedLicenseType = licenseTypeMap[licenseTypeAbbrev.toLowerCase()];
+            const matches = Boolean(
+                historyEntry.providerId === providerId
+                && historyEntry.jurisdiction === jurisdiction
+                && historyEntry.licenseType === mappedLicenseType
+            );
+
+            return matches;
+        });
 
         if (responseData
             && compact
@@ -357,17 +369,20 @@ export class DataApi {
         jurisdiction,
         licenseTypeAbbrev
     ) {
-        const [ janetNE, janetAL, layneNE, layneOH ] = mockPrivilegeHistoryResponses;
         let response;
-        let responseData = janetNE;
+        let responseData: any = null;
 
-        if (providerId === 'aa2e057d-6972-4a68-a55d-aad1c3d05278' && jurisdiction === 'al') {
-            responseData = janetAL;
-        } else if (providerId === 'f47ac10b-58cc-4372-a567-0e02b2c3d479' && jurisdiction === 'ne') {
-            responseData = layneNE;
-        } else if (providerId === 'f47ac10b-58cc-4372-a567-0e02b2c3d479' && jurisdiction === 'oh') {
-            responseData = layneOH;
-        }
+        // Find the matching history entry dynamically
+        responseData = mockPrivilegeHistoryResponses.find((historyEntry) => {
+            const mappedLicenseType = licenseTypeMap[licenseTypeAbbrev.toLowerCase()];
+            const matches = Boolean(
+                historyEntry.providerId === providerId
+                && historyEntry.jurisdiction === jurisdiction
+                && historyEntry.licenseType === mappedLicenseType
+            );
+
+            return matches;
+        });
 
         if (responseData
             && compact
@@ -473,7 +488,8 @@ export class DataApi {
     // ========================================================================
     // Get Authenticated Licensee User
     public getAuthenticatedLicenseeUser() {
-        return wait(500).then(() => LicenseeUserSerializer.fromServer(licensees.providers[0]));
+        return wait(500).then(() => LicenseeUserSerializer
+            .fromServer(licensees.providers[authenticatedProviderUserId]));
     }
 
     // Update Authenticated Licensee User email address
@@ -548,15 +564,24 @@ export class DataApi {
      * @return {Promise<>} A User model instance.
      */
     public getPrivilegeHistoryLicensee(jurisdiction: string, licenseTypeAbbrev: string) {
-        const [ janetNE, , layneNE, layneOH ] = mockPrivilegeHistoryResponses;
         let response;
-        let responseData = janetNE;
+        let responseData: any = null;
 
-        if (jurisdiction === 'ne' && licenseTypeAbbrev === 'OTA') {
-            responseData = layneNE;
-        } else if (jurisdiction === 'oh' && licenseTypeAbbrev === 'OT') {
-            responseData = layneOH;
-        }
+        // Get the currently authenticated user
+        const authenticatedUser = licensees.providers[authenticatedProviderUserId];
+        const authenticatedProviderId = authenticatedUser.providerId;
+
+        // Find the matching history entry dynamically
+        responseData = mockPrivilegeHistoryResponses.find((historyEntry) => {
+            const mappedLicenseType = licenseTypeMap[licenseTypeAbbrev.toLowerCase()];
+            const matches = Boolean(
+                historyEntry.providerId === authenticatedProviderId
+                && historyEntry.jurisdiction === jurisdiction
+                && historyEntry.licenseType === mappedLicenseType
+            );
+
+            return matches;
+        });
 
         if (responseData && jurisdiction && licenseTypeAbbrev) {
             response = wait(500).then(() => {
