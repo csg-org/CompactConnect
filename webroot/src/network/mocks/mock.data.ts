@@ -1056,8 +1056,8 @@ export const licensees = {
                     persistedStatus: 'active',
                     status: 'active',
                     dateOfIssuance: moment().subtract(10, 'months').subtract(1, 'year').format(serverDateFormat),
-                    dateOfUpdate: moment().subtract(10, 'months').subtract(1, 'year').format(serverDateFormat),
-                    dateOfRenewal: null,
+                    dateOfUpdate: moment().subtract(10, 'months').format(serverDateFormat),
+                    dateOfRenewal: moment().subtract(10, 'months').format(serverDateFormat),
                     dateOfExpiration: moment().add(2, 'months').format(serverDateFormat),
                     attestations: [],
                 }
