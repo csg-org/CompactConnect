@@ -11,6 +11,7 @@ import { config as envConfig, appEnvironments } from '@plugins/EnvConfig/envConf
 import { StatsigClient, StatsigPlugin } from '@statsig/js-client';
 import { StatsigSessionReplayPlugin } from '@statsig/session-replay';
 import { StatsigAutoCapturePlugin } from '@statsig/web-analytics';
+import moment from 'moment';
 
 const STATSIG_PRODUCTION = 'production';
 const STATSIG_STAGING = 'staging';
@@ -39,6 +40,21 @@ export const getStatsigEnvironment = () => {
     return statsigEnvironment;
 };
 
+type StatsigClientMock = {
+    updateUserAsync: (user: any) => Promise<any>;
+    checkGate: (gateId?: string) => boolean;
+}
+
+export const getStatsigClientMock = async (isLiveFallback = false) => ({
+    updateUserAsync: async (user) => user,
+    checkGate: (gateId = '') => {
+        const disabledGates = ['disabled-gate-1'];
+        const isEnabled = (isLiveFallback) ? false : !disabledGates.includes(gateId);
+
+        return isEnabled;
+    },
+});
+
 export const getStatsigClient = async () => {
     const { isAppProduction, isAppBeta, isAppTest } = envConfig;
     const statsigEnvironment = getStatsigEnvironment();
@@ -55,7 +71,7 @@ export const getStatsigClient = async () => {
     }
 
     // Create and initialize the Statsig client
-    const statsigClient = new StatsigClient(
+    let statsigClient: StatsigClient | StatsigClientMock = new StatsigClient(
         envConfig.statsigKey || '',
         {},
         {
@@ -64,23 +80,27 @@ export const getStatsigClient = async () => {
         }
     );
 
-    await statsigClient.initializeAsync();
+    try {
+        await statsigClient.initializeAsync();
+    } catch (err) {
+        console.warn(`[Statsig] Failed to initialize. Falling back to mock with disabled flags.`);
+        console.error(err);
+        statsigClient = await getStatsigClientMock(true);
+    }
 
     return statsigClient;
 };
 
-export const getStatsigClientMock = async () => ({
-    updateUserAsync: async (user) => user,
-    checkGate: (gateId = '') => {
-        const disabledGates = ['disabled-gate-1'];
-
-        return !disabledGates.includes(gateId);
-    },
-});
-
 export const initStatsig = async () => {
+    const liveEnvironmentMaxWaitMs = moment.duration(2, 'seconds').asMilliseconds();
     const { isTest, isUsingMockApi } = envConfig;
-    const statsigClient = (isTest || isUsingMockApi) ? getStatsigClientMock() : await getStatsigClient();
+    const isLiveEnvironment = !(isTest || isUsingMockApi);
+    const mockStatsigClient = await getStatsigClientMock(isLiveEnvironment);
+    // Don't allow Statsig remote failures to block app loading - only wait for a set amount of time before just using a mock
+    const statsigClient = await Promise.race([
+        (isLiveEnvironment) ? getStatsigClient() : mockStatsigClient,
+        new Promise((resolve) => setTimeout(() => resolve(mockStatsigClient), liveEnvironmentMaxWaitMs)),
+    ]);
 
     return statsigClient;
 };

@@ -547,7 +547,7 @@ export class DataApi {
     /**
      * Example of app-specific API call which is defined in a subfolder
      * in the /network directory and which has their own data.api.ts & interceptors.ts.
-     * @return {Promise<Array<object>}
+     * @return {Promise<Array<object>>}
      */
     public getStyleguidePets(config?: any) {
         return exampleDataApi.getStyleguidePets(config);

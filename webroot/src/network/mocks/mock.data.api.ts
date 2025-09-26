@@ -628,7 +628,7 @@ export class DataApi {
         });
     }
 
-    // Perform an example feature gate check withn a network call
+    // Perform an example feature gate check within a network call
     public getExampleFeatureGate() {
         const { $features } = (window as any).Vue?.config?.globalProperties || {};
 
