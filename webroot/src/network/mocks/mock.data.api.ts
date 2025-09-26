@@ -43,7 +43,7 @@ const initMockStore = (store) => {
     return mockStore;
 };
 
-// Authenticated provider ID for the current session
+// Authenticated provider index for the current session
 const authenticatedProviderUserIndex = 0;
 
 // License type mapping for matching abbreviations and full names to LicenseType enum values
