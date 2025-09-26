@@ -227,7 +227,7 @@ class UserPool(CdkUserPool):
             # Applies to all clients
             client_id='ALL',
             user_pool_id=self.user_pool_id,
-            # If Cognito suspects an account take-over event, block all actions and notify the user
+            # If Cognito suspects an account take-over event, notify the user
             account_takeover_risk_configuration=CfnUserPoolRiskConfigurationAttachment.AccountTakeoverRiskConfigurationTypeProperty(
                 actions=CfnUserPoolRiskConfigurationAttachment.AccountTakeoverActionsTypeProperty(
                     high_action=CfnUserPoolRiskConfigurationAttachment.AccountTakeoverActionTypeProperty(
@@ -251,6 +251,11 @@ class UserPool(CdkUserPool):
                                 subject='CompactConnect: Account Security Alert',
                                 text_body=blocked_notify_text,
                                 html_body=f'<p>{blocked_notify_text}</p>',
+                            ),
+                            mfa_email=CfnUserPoolRiskConfigurationAttachment.NotifyEmailTypeProperty(
+                                subject='CompactConnect: Account Security Alert',
+                                text_body=no_action_notify_text,
+                                html_body=f'<p>{no_action_notify_text}</p>',
                             ),
                             no_action_email=CfnUserPoolRiskConfigurationAttachment.NotifyEmailTypeProperty(
                                 subject='CompactConnect: Account Security Alert',
