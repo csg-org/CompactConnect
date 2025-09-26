@@ -319,7 +319,7 @@ export class DataApi {
         let responseData: any = null;
 
         responseData = mockPrivilegeHistoryResponses.find((historyEntry) => {
-            const mappedLicenseType = licenseTypeMap[licenseTypeAbbrev.toLowerCase()];
+            const mappedLicenseType = licenseTypeMap[String(licenseTypeAbbrev ?? '').toLowerCase()];
             const matches = Boolean(
                 historyEntry.providerId === providerId
                 && historyEntry.jurisdiction === jurisdiction
@@ -374,7 +374,7 @@ export class DataApi {
 
         // Find the matching history entry dynamically
         responseData = mockPrivilegeHistoryResponses.find((historyEntry) => {
-            const mappedLicenseType = licenseTypeMap[licenseTypeAbbrev.toLowerCase()];
+            const mappedLicenseType = licenseTypeMap[String(licenseTypeAbbrev ?? '').toLowerCase()];
             const matches = Boolean(
                 historyEntry.providerId === providerId
                 && historyEntry.jurisdiction === jurisdiction
@@ -573,7 +573,7 @@ export class DataApi {
 
         // Find the matching history entry dynamically
         responseData = mockPrivilegeHistoryResponses.find((historyEntry) => {
-            const mappedLicenseType = licenseTypeMap[licenseTypeAbbrev.toLowerCase()];
+            const mappedLicenseType = licenseTypeMap[String(licenseTypeAbbrev ?? '').toLowerCase()];
             const matches = Boolean(
                 historyEntry.providerId === authenticatedProviderId
                 && historyEntry.jurisdiction === jurisdiction
