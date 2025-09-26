@@ -231,15 +231,15 @@ class UserPool(CdkUserPool):
             account_takeover_risk_configuration=CfnUserPoolRiskConfigurationAttachment.AccountTakeoverRiskConfigurationTypeProperty(
                 actions=CfnUserPoolRiskConfigurationAttachment.AccountTakeoverActionsTypeProperty(
                     high_action=CfnUserPoolRiskConfigurationAttachment.AccountTakeoverActionTypeProperty(
-                        event_action='BLOCK' if security_profile == SecurityProfile.RECOMMENDED else 'NO_ACTION',
+                        event_action='MFA_REQUIRED' if security_profile == SecurityProfile.RECOMMENDED else 'NO_ACTION',
                         notify=True,
                     ),
                     medium_action=CfnUserPoolRiskConfigurationAttachment.AccountTakeoverActionTypeProperty(
-                        event_action='BLOCK' if security_profile == SecurityProfile.RECOMMENDED else 'NO_ACTION',
+                        event_action='MFA_REQUIRED' if security_profile == SecurityProfile.RECOMMENDED else 'NO_ACTION',
                         notify=True,
                     ),
                     low_action=CfnUserPoolRiskConfigurationAttachment.AccountTakeoverActionTypeProperty(
-                        event_action='BLOCK' if security_profile == SecurityProfile.RECOMMENDED else 'NO_ACTION',
+                        event_action='MFA_REQUIRED' if security_profile == SecurityProfile.RECOMMENDED else 'NO_ACTION',
                         notify=True,
                     ),
                 ),
