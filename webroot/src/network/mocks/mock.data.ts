@@ -547,7 +547,7 @@ export const licensees = {
                     type: 'privilege',
                     jurisdiction: 'oh',
                     licenseJurisdiction: 'ca',
-                    licenseType: 'occupational therapist',
+                    licenseType: 'occupational therapy assistant',
                     persistedStatus: 'active',
                     status: 'active',
                     dateOfIssuance: moment().subtract(9, 'months').format(serverDateFormat),
@@ -1722,15 +1722,15 @@ export const mockPrivilegeHistoryResponses = [
         providerId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         compact: 'octp',
         jurisdiction: 'oh',
-        licenseType: 'occupational therapist',
+        licenseType: 'occupational therapy assistant',
         privilegeId: 'OTA-OH-12',
         events: [
             {
                 type: 'privilegeUpdate',
                 updateType: 'issuance',
                 dateOfUpdate: moment().subtract(9, 'months').format(serverDateFormat),
-                effectiveDate: moment().subtract(9, 'months').subtract(1, 'year').format(serverDateFormat),
-                createDate: moment().subtract(9, 'months').subtract(1, 'year').format(serverDateFormat)
+                effectiveDate: moment().subtract(9, 'months').format(serverDateFormat),
+                createDate: moment().subtract(9, 'months').format(serverDateFormat)
             }
         ]
     },
