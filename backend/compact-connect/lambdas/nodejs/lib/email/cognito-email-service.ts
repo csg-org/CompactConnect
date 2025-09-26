@@ -128,6 +128,8 @@ An authenticator app generates time-based codes that change every 30 seconds. Yo
 5. Enter the 6-digit code from your authenticator into the CompactConnect MFA setup page (codes refresh every 30 seconds)
 6. Click "Sign in" to complete setup
 
+> **Note:** There is a *3-minute time limit* from when you log in to when you must have your MFA set-up, before the login screen will kick you out and make you start over. If you are prompted to set up MFA again, *delete your previous account entry from your MFA app before you try again*.
+
 **How to sign in with MFA (after setup):**
 1. Click the sign-in link above or go to ${loginUrl}
 2. Enter your username and password as usual

@@ -193,10 +193,11 @@ class UserPool(CdkUserPool):
         return self.add_client(
             'UIClient',
             auth_flows=AuthFlow(
-                # we allow this in test environments for automated testing
-                admin_user_password=self.security_profile == SecurityProfile.VULNERABLE,
+                # Admin User Password is required for AdminInitiateAuth, which we use for account recovery
+                # (and automated testing in test environments)
+                admin_user_password=True,
                 custom=False,
-                user_srp=self.security_profile == SecurityProfile.VULNERABLE,
+                user_srp=False,
                 user_password=False,
             ),
             o_auth=OAuthSettings(
