@@ -78,6 +78,15 @@ class UserEmailNotifications(Construct):
         # grant cognito the ability to send email from this identity
         self.email_identity.grant_send_email(ServicePrincipal('cognito-idp.amazonaws.com'))
 
+        # Add SPF record for root domain
+        self.spf_record = TxtRecord(
+            self,
+            'SPFRecord',
+            zone=hosted_zone,
+            record_name=f'{domain_name}',
+            values=['v=spf1 include:amazonses.com ~all'],
+        )
+
         # Add DMARC record to Route 53 with policy set to 'reject'
         # this will cause email servers to reject emails that do not pass SPF and DKIM checks
         # see https://docs.aws.amazon.com/ses/latest/dg/send-email-authentication-dmarc.html

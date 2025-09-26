@@ -553,8 +553,8 @@ export const licensees = {
                     dateOfIssuance: moment().subtract(9, 'months').format(serverDateFormat),
                     dateOfUpdate: moment().subtract(9, 'months').format(serverDateFormat),
                     dateOfRenewal: moment().subtract(9, 'months').format(serverDateFormat),
-                    dateOfExpiration: moment().add(1, 'month').format(serverDateFormat),
-                    activeSince: moment().subtract(7, 'months').format(serverDateFormat),
+                    dateOfExpiration: moment().add(3, 'months').format(serverDateFormat),
+                    activeSince: moment().subtract(9, 'months').format(serverDateFormat),
                     attestations: attestationResponses.map((response) => ({ ...response })),
                     adverseActions: [],
                 },
@@ -1535,9 +1535,9 @@ export const mockPrivilegeHistoryResponses = [
             {
                 type: 'privilegeUpdate',
                 updateType: 'issuance',
-                dateOfUpdate: moment().subtract(2, 'years').subtract(2, 'months').format(serverDateFormat),
-                effectiveDate: moment().subtract(2, 'years').subtract(2, 'months').format(serverDateFormat),
-                createDate: moment().subtract(2, 'years').subtract(2, 'months').format(serverDateFormat)
+                dateOfUpdate: moment().subtract(2, 'years').subtract(7, 'months').format(serverDateFormat),
+                effectiveDate: moment().subtract(2, 'years').subtract(7, 'months').format(serverDateFormat),
+                createDate: moment().subtract(2, 'years').subtract(7, 'months').format(serverDateFormat)
             },
             {
                 type: 'privilegeUpdate',
@@ -1728,17 +1728,10 @@ export const mockPrivilegeHistoryResponses = [
             {
                 type: 'privilegeUpdate',
                 updateType: 'issuance',
-                dateOfUpdate: moment().subtract(7, 'months').subtract(1, 'year').format(serverDateFormat),
-                effectiveDate: moment().subtract(7, 'months').subtract(1, 'year').format(serverDateFormat),
-                createDate: moment().subtract(7, 'months').subtract(1, 'year').format(serverDateFormat)
-            },
-            {
-                type: 'privilegeUpdate',
-                updateType: 'renewal',
-                dateOfUpdate: moment().subtract(7, 'months').format(serverDateFormat),
-                effectiveDate: moment().subtract(7, 'months').format(serverDateFormat),
-                createDate: moment().subtract(7, 'months').format(serverDateFormat)
-            },
+                dateOfUpdate: moment().subtract(9, 'months').format(serverDateFormat),
+                effectiveDate: moment().subtract(9, 'months').format(serverDateFormat),
+                createDate: moment().subtract(9, 'months').format(serverDateFormat)
+            }
         ]
     },
     {
