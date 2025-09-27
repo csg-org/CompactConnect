@@ -12,7 +12,7 @@ from aws_cdk.aws_kms import IKey
 from aws_cdk.aws_s3 import BucketEncryption, IBucket
 from aws_cdk.aws_sns import ITopic
 from aws_cdk.aws_ssm import IParameter
-from aws_cdk.pipelines import CodeBuildOptions, CodePipelineSource, ShellStep
+from aws_cdk.pipelines import CodeBuildOptions, CodeBuildStep, CodePipelineSource
 from aws_cdk.pipelines import CodePipeline as CdkCodePipeline
 from cdk_nag import NagSuppressions
 from common_constructs.bucket import Bucket
@@ -85,7 +85,7 @@ class FrontendPipeline(CdkCodePipeline):
             artifact_bucket=artifact_bucket,
             role=pipeline_role,
             use_pipeline_role_for_actions=True,
-            synth=ShellStep(
+            synth=CodeBuildStep(
                 'Synth',
                 input=CodePipelineSource.connection(
                     repo_string=github_repo_string,
@@ -111,6 +111,7 @@ class FrontendPipeline(CdkCodePipeline):
                     # Only synthesize the specific pipeline stack needed
                     f'cdk synth --context pipelineStack={pipeline_stack_name} --context action=pipelineSynth',
                 ],
+                role=pipeline_role,
             ),
             synth_code_build_defaults=CodeBuildOptions(
                 partial_build_spec=BuildSpec.from_object(
