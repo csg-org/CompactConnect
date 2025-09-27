@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from aws_cdk.aws_cognito import ResourceServerScope, UserPoolResourceServer
+
 from stacks import persistent_stack as ps
 
 

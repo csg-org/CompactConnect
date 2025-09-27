@@ -15,11 +15,11 @@ from aws_cdk.aws_sqs import IQueue
 from cdk_nag import NagSuppressions
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.bucket import Bucket
-from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
 from constructs import Construct
 
 import stacks.persistent_stack as ps
+from common_constructs.python_function import PythonFunction
 
 
 class BulkUploadsBucket(Bucket):

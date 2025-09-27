@@ -65,4 +65,3 @@ class MilitaryAffiliationReadPrivateResponseSchema(ForgivingSchema):
     # this will only be present for compact admins
     documentKeys = List(String(required=True, allow_none=False), required=False, allow_none=False)
     downloadLinks = List(Dict(required=True, allow_none=False), required=False, allow_none=False)
-

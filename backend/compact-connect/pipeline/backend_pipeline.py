@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import os
 
+import common_constructs.base_pipeline_stack
 from aws_cdk import RemovalPolicy, Stack
 from aws_cdk.aws_codebuild import BuildSpec
+from aws_cdk.aws_codepipeline import PipelineType
 from aws_cdk.aws_codestarnotifications import NotificationRule
 from aws_cdk.aws_iam import ServicePrincipal
 from aws_cdk.aws_kms import IKey
@@ -14,8 +16,6 @@ from aws_cdk.pipelines import CodeBuildOptions, CodePipelineSource, ShellStep
 from aws_cdk.pipelines import CodePipeline as CdkCodePipeline
 from cdk_nag import NagSuppressions
 from common_constructs.bucket import Bucket
-
-import pipeline
 
 
 class BackendPipeline(CdkCodePipeline):
@@ -33,7 +33,7 @@ class BackendPipeline(CdkCodePipeline):
 
     def __init__(
         self,
-        scope: pipeline.BasePipelineStack,
+        scope: common_constructs.base_pipeline_stack.BasePipelineStack,
         construct_id: str,
         *,
         pipeline_name: str,
@@ -78,6 +78,7 @@ class BackendPipeline(CdkCodePipeline):
             scope,
             construct_id,
             pipeline_name=pipeline_name,
+            pipeline_type=PipelineType.V2,
             artifact_bucket=artifact_bucket,
             role=pipeline_role,
             use_pipeline_role_for_actions=True,

@@ -7,9 +7,9 @@ from aws_cdk.aws_cloudwatch import Alarm, CfnAlarm, ComparisonOperator, MathExpr
 from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_secretsmanager import Secret
 from cdk_nag import NagSuppressions
-from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
 
+from common_constructs.python_function import PythonFunction
 from stacks import persistent_stack as ps
 from stacks.provider_users import ProviderUsersStack
 

@@ -19,6 +19,7 @@ from aws_cdk.aws_lambda import CfnFunction
 from aws_cdk.aws_s3 import CfnBucket
 from aws_cdk.aws_sns import Topic
 from common_constructs.access_logs_bucket import AccessLogsBucket
+
 from common_constructs.cognito_user_backup import CognitoUserBackup
 from stacks.backup_infrastructure_stack import BackupInfrastructureStack
 

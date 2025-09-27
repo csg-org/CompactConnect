@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from functools import cached_property
 
-from common_constructs.cc_api import CCApi
 from constructs import Construct
 
+from common_constructs.cc_api import CCApi
 from stacks import persistent_stack as ps
 from stacks.state_auth import StateAuthStack
 
