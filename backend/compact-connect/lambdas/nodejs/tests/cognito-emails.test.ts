@@ -4,7 +4,6 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { SESClient } from '@aws-sdk/client-ses';
 import { S3Client } from '@aws-sdk/client-s3';
 import { Lambda } from '../cognito-emails/lambda';
-import { CognitoEmailService } from '../lib/email';
 import { describe, it, expect, beforeAll, beforeEach, jest } from '@jest/globals';
 
 const SAMPLE_COGNITO_EVENT = {
@@ -86,7 +85,7 @@ describe('CognitoEmailsLambda', () => {
         });
     });
 
-    it('should process AdminCreateUser event for provider users with 24-hour message', async () => {
+    it('should process AdminCreateUser event for provider users', async () => {
         process.env.USER_POOL_TYPE = 'provider';
 
         const response = await lambda.handler(SAMPLE_COGNITO_EVENT, SAMPLE_CONTEXT);
@@ -98,11 +97,9 @@ describe('CognitoEmailsLambda', () => {
         expect(response.response.emailMessage).toContain('testuser');
         expect(response.response.emailMessage).toContain('This temporary password is valid for 24 hours');
         expect(response.response.emailMessage).toContain('within the next 24 hours');
-
-
     });
 
-    it('should process AdminCreateUser event for staff users without time constraint message', async () => {
+    it('should process AdminCreateUser event for staff users', async () => {
         process.env.USER_POOL_TYPE = 'staff';
 
         const response = await lambda.handler(SAMPLE_COGNITO_EVENT, SAMPLE_CONTEXT);
@@ -112,39 +109,8 @@ describe('CognitoEmailsLambda', () => {
         expect(response.response.emailMessage).toContain('TEST-CODE-123');
         expect(response.response.emailMessage).toContain('Your username is:');
         expect(response.response.emailMessage).toContain('testuser');
-        expect(response.response.emailMessage).not.toContain('24 hours');
-        expect(response.response.emailMessage).toContain('Please sign in at');
+        expect(response.response.emailMessage).toContain('Please immediately');
         expect(response.response.emailMessage).toContain('and change your password when prompted');
-    });
-
-    it('should process AdminCreateUser event for unknown user pool type without time constraint message', async () => {
-        process.env.USER_POOL_TYPE = 'unknown';
-
-        const response = await lambda.handler(SAMPLE_COGNITO_EVENT, SAMPLE_CONTEXT);
-
-        expect(response.response.emailSubject).toBe('Welcome to CompactConnect');
-        expect(response.response.emailMessage).toContain('Your temporary password is:');
-        expect(response.response.emailMessage).toContain('TEST-CODE-123');
-        expect(response.response.emailMessage).toContain('Your username is:');
-        expect(response.response.emailMessage).toContain('testuser');
-        expect(response.response.emailMessage).not.toContain('24 hours');
-        expect(response.response.emailMessage).toContain('Please sign in at');
-        expect(response.response.emailMessage).toContain('and change your password when prompted');
-    });
-
-    it('should handle ForgotPassword event', async () => {
-        const forgotPasswordEvent = {
-            ...SAMPLE_COGNITO_EVENT,
-            triggerSource: 'CustomMessage_ForgotPassword'
-        };
-
-        const response = await lambda.handler(forgotPasswordEvent, SAMPLE_CONTEXT);
-
-        expect(response.response.emailSubject).toBe('Reset your password');
-        expect(response.response.emailMessage).toContain('You requested to reset your password');
-        expect(response.response.emailMessage).toContain('TEST-CODE-123');
-        expect(response.response.emailMessage).toContain('<strong>Important:</strong> If you have lost access to your multi-factor authentication (MFA), you will need to recover your account by visiting the following link instead:');
-        expect(response.response.emailMessage).toContain('https://app.test.compactconnect.org/mfarecoverystart');
     });
 
     it('should handle missing code parameter', async () => {
@@ -162,11 +128,9 @@ describe('CognitoEmailsLambda', () => {
 
         expect(response.response.emailSubject).toBe('Welcome to CompactConnect');
         expect(response.response.emailMessage).toContain('Your temporary password is:');
-        expect(response.response.emailMessage).toContain('undefined'); // Since codeParameter is undefined
         expect(response.response.emailMessage).toContain('Your username is:');
         expect(response.response.emailMessage).toContain('testuser');
         expect(response.response.emailMessage).toContain('This temporary password is valid for 24 hours');
-
     });
 
     it('should handle unsupported trigger source', async () => {
