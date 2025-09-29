@@ -43,14 +43,9 @@ export class User implements InterfaceUserCreate {
         const global = window as any;
         const { $tm, $t, $features } = global.Vue?.config?.globalProperties || {};
 
-        if ($tm) {
-            this.$tm = $tm;
-            this.$t = $t;
-        }
-
-        if ($features) {
-            this.$features = $features;
-        }
+        this.$tm = $tm;
+        this.$t = $t;
+        this.$features = $features;
 
         Object.assign(this, cleanDataObject);
     }

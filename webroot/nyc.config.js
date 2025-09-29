@@ -17,7 +17,6 @@ module.exports = {
         '**/*.d.ts',
         '**/mock*.ts',
         '**/exampleApi/**/*.*',
-        '**/statsig.plugin.ts',
     ],
     extension: [
         '.ts',

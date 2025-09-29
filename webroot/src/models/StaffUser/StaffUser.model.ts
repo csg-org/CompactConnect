@@ -48,14 +48,9 @@ export class StaffUser extends User implements InterfaceStaffUserCreate {
         const global = window as any;
         const { $tm, $t, $features } = global.Vue?.config?.globalProperties || {};
 
-        if ($tm) {
-            this.$tm = $tm;
-            this.$t = $t;
-        }
-
-        if ($features) {
-            this.$features = $features;
-        }
+        this.$tm = $tm;
+        this.$t = $t;
+        this.$features = $features;
 
         Object.assign(this, cleanDataObject);
     }

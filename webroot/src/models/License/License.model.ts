@@ -97,13 +97,8 @@ export class License implements InterfaceLicense {
         const global = window as any;
         const { $tm, $features } = global.Vue?.config?.globalProperties || {};
 
-        if ($tm) {
-            this.$tm = $tm;
-        }
-
-        if ($features) {
-            this.$features = $features;
-        }
+        this.$tm = $tm;
+        this.$features = $features;
 
         Object.assign(this, cleanDataObject);
     }

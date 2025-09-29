@@ -8,14 +8,14 @@
 /* eslint-disable import/no-extraneous-dependencies */
 
 import { config as envConfig, appEnvironments } from '@plugins/EnvConfig/envConfig.plugin';
-import { StatsigClient, StatsigPlugin } from '@statsig/js-client';
+import { StatsigClient, StatsigPlugin, LogLevel } from '@statsig/js-client';
 import { StatsigSessionReplayPlugin } from '@statsig/session-replay';
 import { StatsigAutoCapturePlugin } from '@statsig/web-analytics';
 import moment from 'moment';
 
-const STATSIG_PRODUCTION = 'production';
-const STATSIG_STAGING = 'staging';
-const STATSIG_DEVELOPMENT = 'development';
+export const STATSIG_PRODUCTION = 'production';
+export const STATSIG_STAGING = 'staging';
+export const STATSIG_DEVELOPMENT = 'development';
 
 export const getStatsigEnvironment = () => {
     let statsigEnvironment = '';
@@ -40,12 +40,13 @@ export const getStatsigEnvironment = () => {
     return statsigEnvironment;
 };
 
-type StatsigClientMock = {
+export type StatsigClientMock = {
     updateUserAsync: (user: any) => Promise<any>;
     checkGate: (gateId?: string) => boolean;
 }
 
 export const getStatsigClientMock = async (isLiveFallback = false) => ({
+    initializeAsync: async () => null,
     updateUserAsync: async (user) => user,
     checkGate: (gateId = '') => {
         const disabledGates = ['disabled-gate-1'];
@@ -61,25 +62,31 @@ export const getStatsigClient = async () => {
     const plugins: Array<StatsigPlugin<StatsigClient>> = [];
 
     // Setup Statsig analytics
-    if (isAppProduction || isAppBeta || isAppTest) {
+    if (isAppProduction) {
         plugins.push(new StatsigAutoCapturePlugin());
     }
 
     // Setup Statsig session replay
-    if (isAppProduction || isAppBeta || isAppTest) {
+    if (isAppBeta || isAppTest) {
         plugins.push(new StatsigSessionReplayPlugin());
     }
 
     // Create and initialize the Statsig client
+    /* istanbul ignore next */
     let statsigClient: StatsigClient | StatsigClientMock = new StatsigClient(
         envConfig.statsigKey || '',
         {},
         {
             environment: { tier: statsigEnvironment },
             plugins,
+            logLevel: (envConfig.isTest) ? LogLevel.None : LogLevel.Warn,
+            networkConfig: {
+                preventAllNetworkTraffic: envConfig.isTest,
+            },
         }
     );
 
+    /* istanbul ignore next */
     try {
         await statsigClient.initializeAsync();
     } catch (err) {
