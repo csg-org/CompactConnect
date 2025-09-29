@@ -69,6 +69,7 @@ describe('Statsig plugin', async () => {
         expect(statsigEnvironment).to.equal(STATSIG_DEVELOPMENT);
     });
     it('should get statsig environment for app local environment', async () => {
+        envConfig.appEnv = appEnvironments.APP_LOCAL;
         const statsigEnvironment = getStatsigEnvironment();
 
         expect(statsigEnvironment).to.equal(STATSIG_DEVELOPMENT);
