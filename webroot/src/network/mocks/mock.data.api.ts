@@ -568,8 +568,8 @@ export class DataApi {
         let responseData: any = null;
 
         // Get the currently authenticated user
-        const authenticatedUser = licensees.providers[authenticatedProviderUserIndex];
-        const authenticatedProviderId = authenticatedUser.providerId;
+        const authenticatedUser = licensees.providers[authenticatedProviderUserIndex] ?? licensees.providers[0];
+        const authenticatedProviderId = authenticatedUser?.providerId;
 
         // Find the matching history entry dynamically
         responseData = mockPrivilegeHistoryResponses.find((historyEntry) => {
