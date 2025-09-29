@@ -7,6 +7,7 @@
 
 import { FeeTypes } from '@/app.config';
 import { deleteUndefinedProperties } from '@models/_helpers';
+import { StatsigClient } from '@statsig/js-client';
 
 // ========================================================
 // =                       Interface                      =
@@ -30,6 +31,7 @@ export interface InterfaceCompactFeeConfigCreate {
 // =                        Model                         =
 // ========================================================
 export class CompactFeeConfig implements InterfaceCompactFeeConfigCreate {
+    public $features?: StatsigClient | null = null;
     public compactType? = '';
     public compactCommissionFee? = 0;
     public compactCommissionFeeType? = null;
@@ -39,6 +41,12 @@ export class CompactFeeConfig implements InterfaceCompactFeeConfigCreate {
 
     constructor(data?: InterfaceCompactFeeConfigCreate) {
         const cleanDataObject = deleteUndefinedProperties(data);
+        const global = window as any;
+        const { $features } = global.Vue?.config?.globalProperties || {};
+
+        if ($features) {
+            this.$features = $features;
+        }
 
         Object.assign(this, cleanDataObject);
     }

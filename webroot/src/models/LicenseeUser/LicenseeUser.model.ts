@@ -30,12 +30,11 @@ export class LicenseeUser extends User implements InterfaceLicenseeUserCreate {
         super(data);
         const cleanDataObject = deleteUndefinedProperties(data);
         const global = window as any;
-        const { $tm, $t } = global.Vue?.config?.globalProperties || {};
+        const { $tm, $t, $features } = global.Vue?.config?.globalProperties || {};
 
-        if ($tm) {
-            this.$tm = $tm;
-            this.$t = $t;
-        }
+        this.$tm = $tm;
+        this.$t = $t;
+        this.$features = $features;
 
         Object.assign(this, cleanDataObject);
     }

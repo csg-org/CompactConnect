@@ -33,7 +33,7 @@
                     </div>
                     <div class="chunk">
                         <div class="chunk-title">{{$t('licensing.licenseNumber')}}</div>
-                        <div class="chunk-text">{{licenseNumber}}</div>
+                        <div class="chunk-text rr-block">{{licenseNumber}}</div>
                     </div>
                     <div class="chunk">
                         <div class="chunk-title">{{$t('licensing.licenseExpirationDate')}}</div>
@@ -41,37 +41,37 @@
                     </div>
                     <div class="chunk">
                         <div class="chunk-title">{{$t('payment.streetAddress')}}</div>
-                        <div class="chunk-text">{{licenseSelectedMailingAddress.street1}}</div>
+                        <div class="chunk-text rr-block">{{licenseSelectedMailingAddress.street1}}</div>
                     </div>
                     <div class="chunk">
                         <div class="chunk-title">{{$t('payment.streetAddress2')}}</div>
-                        <div class="chunk-text">{{licenseSelectedMailingAddress.street2}}</div>
+                        <div class="chunk-text rr-block">{{licenseSelectedMailingAddress.street2}}</div>
                     </div>
                     <div class="chunk-row">
                         <div class="chunk in-row">
                             <div class="chunk-title">{{$t('common.city')}}</div>
-                            <div class="chunk-text">{{licenseSelectedMailingAddress.city}}</div>
+                            <div class="chunk-text rr-block">{{licenseSelectedMailingAddress.city}}</div>
                         </div>
                         <div class="chunk in-row">
                             <div class="chunk-title">{{$t('common.state')}}</div>
-                            <div class="chunk-text">{{mailingAddessStateDisplay}}</div>
+                            <div class="chunk-text rr-block">{{mailingAddessStateDisplay}}</div>
                         </div>
                         <div class="chunk in-row">
                             <div class="chunk-title">{{$t('common.zipCode')}}</div>
-                            <div class="chunk-text">{{licenseSelectedMailingAddress.zip}}</div>
+                            <div class="chunk-text rr-block">{{licenseSelectedMailingAddress.zip}}</div>
                         </div>
                     </div>
                     <div class="chunk">
                         <div class="chunk-title">{{$t('licensing.stateProvidedEmail')}}</div>
-                        <div class="chunk-text">{{stateProvidedEmail}}</div>
+                        <div class="chunk-text rr-block">{{stateProvidedEmail}}</div>
                     </div>
                     <div class="chunk">
                         <div class="chunk-title">{{$t('licensing.accountEmail')}}</div>
-                        <div class="chunk-text">{{accountEmail}}</div>
+                        <div class="chunk-text rr-block">{{accountEmail}}</div>
                     </div>
                     <div class="chunk">
                         <div class="chunk-title">{{$t('common.phoneNumber')}}</div>
-                        <div class="chunk-text">{{phoneNumber}}</div>
+                        <div class="chunk-text rr-block">{{phoneNumber}}</div>
                     </div>
                     <div class="chunk">
                         <div class="chunk-title">{{$t('licensing.attestations')}}</div>

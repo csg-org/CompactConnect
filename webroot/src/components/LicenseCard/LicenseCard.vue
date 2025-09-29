@@ -69,7 +69,7 @@
             </div>
             <div class="info-item-container">
                 <div class="info-item-title">{{$t('licensing.licenseNumSymbol')}}</div>
-                <div class="info-item">{{licenseNumber}}</div>
+                <div class="info-item rr-block">{{licenseNumber}}</div>
             </div>
             <div class="info-item-container">
                 <div class="info-item-title">{{ $t('licensing.disciplineStatus') }}</div>
@@ -121,7 +121,7 @@
                             </div>
                             <div class="form-row input-container static-input">
                                 <div class="input-label static-label">{{ $t('licensing.licenseNumber') }}</div>
-                                <div class="static-value">{{ licenseNumber }}</div>
+                                <div class="static-value rr-block">{{ licenseNumber }}</div>
                             </div>
                             <div class="form-row input-container static-input">
                                 <div class="input-label static-label">{{ $t('licensing.licenseType') }}</div>
