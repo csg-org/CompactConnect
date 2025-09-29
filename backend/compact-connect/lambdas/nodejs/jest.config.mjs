@@ -8,6 +8,19 @@ export default {
     testPathIgnorePatterns: [
         '<rootDir>/node_modules/',
     ],
+    collectCoverageFrom: [
+        '**/*.ts',
+        '!**/node_modules/**',
+        '!**/tests/**',
+        '!**/coverage/**',
+        '!**/*.d.ts',
+        '!**/__mocks__/**',
+        '!**/__fixtures__/**',
+        '!**/__snapshots__/**',
+        '!**/*.config.*',
+        '!**/*.test.*',
+        '!**/*.spec.*'
+    ],
     coverageThreshold: {
         global: {
             branches: 90,

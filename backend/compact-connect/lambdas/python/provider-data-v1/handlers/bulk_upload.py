@@ -128,7 +128,8 @@ def process_bulk_upload_file(
     schema = LicensePostRequestSchema()
     reader = LicenseCSVReader()
 
-    stream = TextIOWrapper(body, encoding='utf-8')
+    # We need to use utf-8-sig to handle potential BOM characters at the beginning of the file
+    stream = TextIOWrapper(body, encoding='utf-8-sig')
 
     # Define batch size for processing to limit memory footprint
     batch_size = 100

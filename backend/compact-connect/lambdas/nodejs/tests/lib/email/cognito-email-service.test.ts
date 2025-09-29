@@ -3,7 +3,9 @@ import 'aws-sdk-client-mock-jest';
 import { Logger } from '@aws-lambda-powertools/logger';
 import { SESClient } from '@aws-sdk/client-ses';
 import { CognitoEmailService } from '../../../lib/email';
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { EmailTemplateCapture } from '../../utils/email-template-capture';
+import { TReaderDocument } from '@jusdino-ia/email-builder';
+import { describe, it, expect, beforeEach, beforeAll, afterAll, jest } from '@jest/globals';
 
 const asSESClient = (mock: ReturnType<typeof mockClient>) =>
     mock as unknown as SESClient;
@@ -11,6 +13,29 @@ const asSESClient = (mock: ReturnType<typeof mockClient>) =>
 describe('CognitoEmailService', () => {
     let emailService: CognitoEmailService;
     let mockSESClient: ReturnType<typeof mockClient>;
+
+    beforeAll(() => {
+        // Mock the renderTemplate method if template capture is enabled
+        if (EmailTemplateCapture.isEnabled()) {
+            const original = (CognitoEmailService.prototype as any).renderTemplate;
+
+            jest.spyOn(CognitoEmailService.prototype as any, 'renderTemplate').mockImplementation(function (this: any, ...args: any[]) {
+                const [template, options] = args as [TReaderDocument, any];
+
+                EmailTemplateCapture.captureTemplate(template);
+                const html = original.apply(this, args);
+
+                EmailTemplateCapture.captureHtml(html, template, options);
+                return html;
+            });
+        }
+    });
+
+    afterAll(() => {
+        if (EmailTemplateCapture.isEnabled()) {
+            jest.restoreAllMocks();
+        }
+    });
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -31,37 +56,64 @@ describe('CognitoEmailService', () => {
     });
 
     describe('generateCognitoMessage', () => {
-        it('should generate AdminCreateUser message for provider users', () => {
-            const { subject, htmlContent } = emailService.generateCognitoMessage(
-                'CustomMessage_AdminCreateUser',
-                '{####}',
-                'testuser'
-            );
+        describe('AdminCreateUser template', () => {
+            it('should generate AdminCreateUser message for provider users with 24-hour message', () => {
+                process.env.USER_POOL_TYPE = 'provider';
 
-            expect(subject).toBe('Welcome to CompactConnect');
-            expect(htmlContent).toContain('Your temporary password is:');
-            expect(htmlContent).toContain('{####}');
-            expect(htmlContent).toContain('Your username is:');
-            expect(htmlContent).toContain('testuser');
-            expect(htmlContent).toContain('https://app.test.compactconnect.org/Dashboard?bypass=login-practitioner');
+                const { subject, htmlContent } = emailService.generateCognitoMessage(
+                    'CustomMessage_AdminCreateUser',
+                    '{####}',
+                    'testuser'
+                );
 
-        });
+                expect(subject).toBe('Welcome to CompactConnect');
+                expect(htmlContent).toContain('Your temporary password is:');
+                expect(htmlContent).toContain('{####}');
+                expect(htmlContent).toContain('Your username is:');
+                expect(htmlContent).toContain('testuser');
+                expect(htmlContent).toContain('This temporary password is valid for 24 hours');
+                expect(htmlContent).toContain('within the next 24 hours');
+                expect(htmlContent).toContain('<a href="https://app.test.compactconnect.org/Dashboard?bypass=login-practitioner" target="_blank">sign in</a>');
+                expect(htmlContent).toContain('<a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2" target="_blank">Android</a>');
+            });
 
-        it('should generate AdminCreateUser message for staff users', () => {
-            // Set up for staff user type
-            process.env.USER_POOL_TYPE = 'staff';
-            const { subject, htmlContent } = emailService.generateCognitoMessage(
-                'CustomMessage_AdminCreateUser',
-                '{####}',
-                'staffuser'
-            );
+            it('should generate AdminCreateUser message for staff users with immediate login message', () => {
+                process.env.USER_POOL_TYPE = 'staff';
 
-            expect(subject).toBe('Welcome to CompactConnect');
-            expect(htmlContent).toContain('Your temporary password is:');
-            expect(htmlContent).toContain('{####}');
-            expect(htmlContent).toContain('Your username is:');
-            expect(htmlContent).toContain('staffuser');
-            expect(htmlContent).toContain('https://app.test.compactconnect.org/Dashboard?bypass=login-staff');
+                const { subject, htmlContent } = emailService.generateCognitoMessage(
+                    'CustomMessage_AdminCreateUser',
+                    '{####}',
+                    'testuser'
+                );
+
+                expect(subject).toBe('Welcome to CompactConnect');
+                expect(htmlContent).toContain('Your temporary password is:');
+                expect(htmlContent).toContain('{####}');
+                expect(htmlContent).toContain('Your username is:');
+                expect(htmlContent).toContain('testuser');
+                expect(htmlContent).toContain('Please immediately');
+                expect(htmlContent).toContain('and change your password when prompted');
+                expect(htmlContent).toContain('<a href="https://app.test.compactconnect.org/Dashboard?bypass=login-staff" target="_blank">sign in</a>');
+            });
+
+            it('should generate AdminCreateUser message for unknown user pool type with immediate login message', () => {
+                process.env.USER_POOL_TYPE = 'unknown';
+
+                const { subject, htmlContent } = emailService.generateCognitoMessage(
+                    'CustomMessage_AdminCreateUser',
+                    '{####}',
+                    'testuser'
+                );
+
+                expect(subject).toBe('Welcome to CompactConnect');
+                expect(htmlContent).toContain('Your temporary password is:');
+                expect(htmlContent).toContain('{####}');
+                expect(htmlContent).toContain('Your username is:');
+                expect(htmlContent).toContain('testuser');
+                expect(htmlContent).toContain('Please immediately');
+                expect(htmlContent).toContain('and change your password when prompted');
+                expect(htmlContent).toContain('<a href="https://app.test.compactconnect.org/Dashboard?bypass=login-staff" target="_blank">sign in</a>');
+            });
         });
 
         it('should generate ForgotPassword message', () => {
@@ -71,7 +123,7 @@ describe('CognitoEmailService', () => {
             );
 
             expect(subject).toBe('Reset your password');
-            expect(htmlContent).toContain('Enter the following code to proceed:');
+            expect(htmlContent).toContain('You requested to reset your password');
             expect(htmlContent).toContain('{####}');
             expect(htmlContent).toContain('<strong>Important:</strong> If you have lost access to your multi-factor authentication (MFA), you will need to recover your account by visiting the following link instead:');
             expect(htmlContent).toContain('https://app.test.compactconnect.org/mfarecoverystart');
