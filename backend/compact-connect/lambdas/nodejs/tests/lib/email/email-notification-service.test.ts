@@ -9,7 +9,9 @@ import * as nodemailer from 'nodemailer';
 import { EmailNotificationService } from '../../../lib/email';
 import { CompactConfigurationClient } from '../../../lib/compact-configuration-client';
 import { JurisdictionClient } from '../../../lib/jurisdiction-client';
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { EmailTemplateCapture } from '../../utils/email-template-capture';
+import { TReaderDocument } from '@jusdino-ia/email-builder';
+import { describe, it, expect, beforeEach, beforeAll, afterAll, jest } from '@jest/globals';
 
 jest.mock('nodemailer');
 
@@ -60,6 +62,27 @@ describe('EmailNotificationService', () => {
     let mockS3Client: ReturnType<typeof mockClient>;
     let mockCompactConfigurationClient: jest.Mocked<CompactConfigurationClient>;
     let mockJurisdictionClient: jest.Mocked<JurisdictionClient>;
+
+    beforeAll(() => {
+        // Mock the renderTemplate method if template capture is enabled
+        if (EmailTemplateCapture.isEnabled()) {
+            const original = (EmailNotificationService.prototype as any).renderTemplate;
+
+            jest.spyOn(EmailNotificationService.prototype as any, 'renderTemplate').mockImplementation(function (this: any, ...args: any[]) {
+                const [template, options] = args as [TReaderDocument, any];
+
+                EmailTemplateCapture.captureTemplate(template);
+                const html = original.apply(this, args);
+
+                EmailTemplateCapture.captureHtml(html, template, options);
+                return html;
+            });
+        }
+    });
+
+    afterAll(() => {
+        jest.restoreAllMocks();
+    });
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -876,7 +899,7 @@ describe('EmailNotificationService', () => {
             // Verify security warning text (HTML encoded)
             expect(htmlContent).toContain('<strong>If you did not request this, your password has likely been compromised and you should reset your password immediately</strong>');
             expect(htmlContent).toContain('https://app.test.compactconnect.org/Dashboard?bypass=login-practitioner');
-            expect(htmlContent).toContain('Select &#x27;Forgot your password?&#x27; and follow the instructions');
+            expect(htmlContent).toContain('Select &#39;Forgot your password?&#39; and follow the instructions');
         });
 
         it('should throw error when no recipients provided', async () => {

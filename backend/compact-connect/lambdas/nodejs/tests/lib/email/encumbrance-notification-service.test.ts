@@ -6,7 +6,9 @@ import { S3Client } from '@aws-sdk/client-s3';
 import { EncumbranceNotificationService } from '../../../lib/email';
 import { CompactConfigurationClient } from '../../../lib/compact-configuration-client';
 import { JurisdictionClient } from '../../../lib/jurisdiction-client';
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { EmailTemplateCapture } from '../../utils/email-template-capture';
+import { TReaderDocument } from '@jusdino-ia/email-builder';
+import { describe, it, expect, beforeEach, beforeAll, afterAll, jest } from '@jest/globals';
 import { Compact } from '../../../lib/models/compact';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 
@@ -62,6 +64,27 @@ describe('EncumbranceNotificationService', () => {
     let mockS3Client: ReturnType<typeof mockClient>;
     let mockCompactConfigurationClient: MockCompactConfigurationClient;
     let mockJurisdictionClient: jest.Mocked<JurisdictionClient>;
+
+    beforeAll(() => {
+        // Mock the renderTemplate method if template capture is enabled
+        if (EmailTemplateCapture.isEnabled()) {
+            const original = (EncumbranceNotificationService.prototype as any).renderTemplate;
+
+            jest.spyOn(EncumbranceNotificationService.prototype as any, 'renderTemplate').mockImplementation(function (this: any, ...args: any[]) {
+                const [template, options] = args as [TReaderDocument, any];
+
+                EmailTemplateCapture.captureTemplate(template);
+                const html = original.apply(this, args);
+
+                EmailTemplateCapture.captureHtml(html, template, options);
+                return html;
+            });
+        }
+    });
+
+    afterAll(() => {
+        jest.restoreAllMocks();
+    });
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -437,7 +460,7 @@ describe('EncumbranceNotificationService', () => {
             const emailContent = mockSESClient.commandCalls(SendEmailCommand)[0]
                 .args[0].input.Message?.Body?.Html?.Data;
 
-            expect(emailContent).toContain('This encumbrance restricts the provider&#x27;s ability to practice in Ohio under the Audiology and Speech Language Pathology compact');
+            expect(emailContent).toContain('This encumbrance restricts the provider&#39;s ability to practice in Ohio under the Audiology and Speech Language Pathology compact');
         });
 
         it('should include provider detail link in email content', async () => {
@@ -455,8 +478,8 @@ describe('EncumbranceNotificationService', () => {
             const emailContent = mockSESClient.commandCalls(SendEmailCommand)[0].args[0]
                 .input.Message?.Body?.Html?.Data;
 
-            expect(emailContent).toContain('Provider Details: https://app.test.compactconnect.org/aslp/Licensing/provider-123');
-            expect(emailContent).toContain('This encumbrance restricts the provider&#x27;s ability to practice in Ohio under the Audiology and Speech Language Pathology compact');
+            expect(emailContent).toContain('Provider Details: <a href="https://app.test.compactconnect.org/aslp/Licensing/provider-123" target="_blank">https://app.test.compactconnect.org/aslp/Licensing/provider-123</a>');
+            expect(emailContent).toContain('This encumbrance restricts the provider&#39;s ability to practice in Ohio under the Audiology and Speech Language Pathology compact');
         });
 
         it('should log warning and continue when no recipients found for jurisdiction', async () => {
@@ -592,8 +615,8 @@ describe('EncumbranceNotificationService', () => {
             const emailContent = mockSESClient.commandCalls(SendEmailCommand)[0]
                 .args[0].input.Message?.Body?.Html?.Data;
 
-            expect(emailContent).toContain('Provider Details: https://app.test.compactconnect.org/aslp/Licensing/provider-123');
-            expect(emailContent).toContain('The encumbrance no longer restricts the provider&#x27;s ability to practice in Ohio under the Audiology and Speech Language Pathology compact');
+            expect(emailContent).toContain('Provider Details: <a href="https://app.test.compactconnect.org/aslp/Licensing/provider-123" target="_blank">https://app.test.compactconnect.org/aslp/Licensing/provider-123</a>');
+            expect(emailContent).toContain('The encumbrance no longer restricts the provider&#39;s ability to practice in Ohio under the Audiology and Speech Language Pathology compact');
         });
 
         it('should log warning and continue when no recipients found for jurisdiction', async () => {
