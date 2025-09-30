@@ -12,7 +12,7 @@ from marshmallow import Schema, ValidationError
 from marshmallow.fields import Dict as DictField
 from marshmallow.fields import Nested, String
 from marshmallow.validate import Length
-from statsig_python_core import StatsigOptions, Statsig, StatsigUser
+from statsig_python_core import Statsig, StatsigOptions, StatsigUser
 
 
 @dataclass
@@ -126,6 +126,7 @@ class FeatureFlagValidationException(FeatureFlagException):
 STATSIG_DEVELOPMENT_TIER = 'development'
 STATSIG_STAGING_TIER = 'staging'
 STATSIG_PRODUCTION_TIER = 'production'
+
 
 class StatSigContextSchema(Schema):
     """
