@@ -3,11 +3,11 @@ from __future__ import annotations
 import os
 
 import common_constructs.base_pipeline_stack
-from aws_cdk import RemovalPolicy, Stack
-from aws_cdk.aws_codebuild import BuildSpec
+from aws_cdk import ArnFormat, Fn, RemovalPolicy, Stack
+from aws_cdk.aws_codebuild import BuildSpec, CfnProject
 from aws_cdk.aws_codepipeline import PipelineType
 from aws_cdk.aws_codestarnotifications import NotificationRule
-from aws_cdk.aws_iam import ServicePrincipal
+from aws_cdk.aws_iam import Effect, PolicyStatement, Role, ServicePrincipal
 from aws_cdk.aws_kms import IKey
 from aws_cdk.aws_s3 import BucketEncryption, IBucket
 from aws_cdk.aws_sns import ITopic
@@ -77,6 +77,7 @@ class BackendPipeline(CdkCodePipeline):
 
         # Create predictable pipeline role before initializing the pipeline
         pipeline_role = scope.create_predictable_pipeline_role('Backend')
+        artifact_bucket.grant_read(pipeline_role)
 
         super().__init__(
             scope,
@@ -172,6 +173,7 @@ class BackendPipeline(CdkCodePipeline):
         )
 
         self._add_alarms()
+        self._add_codebuild_pipeline_role_override()
 
     def _add_alarms(self):
         NotificationRule(
@@ -190,3 +192,105 @@ class BackendPipeline(CdkCodePipeline):
         # Grant CodeStar permission to use the key that encrypts the alarm topic
         code_star_principal = ServicePrincipal('codestar-notifications.amazonaws.com')
         self._encryption_key.grant_encrypt_decrypt(code_star_principal)
+
+    def _add_codebuild_pipeline_role_override(self):
+        """
+        CodePipeline does not support automatically using the pipeline role for the CodeBuild steps it generates.
+        To allow the Assets step to assume roles into the environment accounts, we need to force it to use the
+        CodePipeline role for the Assets step.
+
+        This is done by overriding the CodeBuild role with the pipeline role for the Assets step.
+        """
+        assets_node = self.node.try_find_child('Assets')
+        # The pipeline won't _always_ build an Assets step (like for the substitution stack), so we need to handle
+        # it not existing
+        if assets_node is not None:
+            # Override the role used
+            stack = Stack.of(self)
+            pipeline_role: Role = self.pipeline.role
+            file_asset_node: CfnProject = assets_node.node.try_find_child('FileAsset').node.default_child
+            file_asset_node.add_property_override('ServiceRole', pipeline_role.role_arn)
+
+            # Add the permissions this role will need for the Assets step
+            # Note: many of the permissions needed for this step are already granted by virtue of being
+            # passed into the Synth CodeBuildStep, which automatically configures it with permissions.
+            # We don't duplicate those here.
+            pipeline_role.add_to_principal_policy(
+                PolicyStatement(
+                    effect=Effect.ALLOW,
+                    actions=[
+                        'logs:CreateLogGroup',
+                        'logs:CreateLogStream',
+                        'logs:PutLogEvents',
+                    ],
+                    resources=[
+                        stack.format_arn(
+                            partition=stack.partition,
+                            service='logs',
+                            region=stack.region,
+                            account=stack.account,
+                            resource='log-group',
+                            resource_name=Fn.join(
+                                '',
+                                [
+                                    '/aws/codebuild/',
+                                    Fn.ref(stack.get_logical_id(file_asset_node)),
+                                    ':*'
+                                ]
+                            ) ,
+                            arn_format=ArnFormat.COLON_RESOURCE_NAME,
+                        ),
+                    ],
+                )
+            )
+            pipeline_role.add_to_principal_policy(
+                PolicyStatement(
+                    effect=Effect.ALLOW,
+                    actions=[
+                        'sts:AssumeRole',
+                    ],
+                    resources=[
+                        stack.format_arn(
+                            partition=stack.partition,
+                            service='iam',
+                            region='',
+                            account='*',
+                            resource='role',
+                            resource_name=f'cdk-hnb659fds-file-publishing-role-*-{stack.region}',
+                        ),
+                    ],
+                )
+
+            )
+            pipeline_role.add_to_principal_policy(
+                PolicyStatement(
+                    effect=Effect.ALLOW,
+                    actions=[
+                        "codebuild:BatchPutCodeCoverages",
+                        "codebuild:BatchPutTestCases",
+                        "codebuild:CreateReport",
+                        "codebuild:CreateReportGroup",
+                        "codebuild:UpdateReport"
+                    ],
+                    resources=[
+                        Fn.join(
+                            '',
+                            [
+                                stack.format_arn(
+                                    partition=stack.partition,
+                                    service='codebuild',
+                                    region=stack.region,
+                                    account=stack.account,
+                                    resource='report-group',
+                                    resource_name='',
+                                ),
+                                Fn.ref(stack.get_logical_id(file_asset_node)),
+                                '-*',
+                            ]
+                        ),
+                    ]
+                )
+            )
+
+            # Now, remove the unused role and default policy
+            assets_node.node.try_remove_child('FileRole')

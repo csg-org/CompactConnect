@@ -1,7 +1,7 @@
 import json
 
 from aws_cdk import Environment, RemovalPolicy
-from aws_cdk.aws_iam import Effect, PolicyStatement, Role, ServicePrincipal
+from aws_cdk.aws_iam import CompositePrincipal, Effect, PolicyStatement, Role, ServicePrincipal
 from aws_cdk.aws_s3 import IBucket
 from aws_cdk.aws_ssm import StringParameter
 from aws_cdk.pipelines import CodePipeline as CdkCodePipeline
@@ -85,7 +85,10 @@ class BasePipelineStack(Stack):
             self,
             f'{pipeline_type}CrossAccountRole',
             role_name=cross_account_role_name,
-            assumed_by=ServicePrincipal('codepipeline.amazonaws.com'),
+            assumed_by=CompositePrincipal(
+                ServicePrincipal('codepipeline.amazonaws.com'),
+                ServicePrincipal('codebuild.amazonaws.com'),
+            ),
             description=f'Cross-account role for {self.environment_name} {pipeline_type.lower()}'
             'pipeline bootstrap trust policies',
         )
