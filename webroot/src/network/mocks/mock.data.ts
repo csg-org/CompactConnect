@@ -1526,6 +1526,61 @@ export const stateConfig = {
 
 export const mockPrivilegeHistoryResponses = [
     {
+        // ================================================================
+        //                         LAYNE CORNELL (NE OTA)
+        // ================================================================
+        providerId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        compact: 'octp',
+        jurisdiction: 'ne',
+        licenseType: 'occupational therapy assistant',
+        privilegeId: 'OTA-NE-11',
+        events: [
+            {
+                type: 'privilegeUpdate',
+                updateType: 'issuance',
+                dateOfUpdate: moment().subtract(2, 'years').subtract(7, 'months').format(serverDateFormat),
+                effectiveDate: moment().subtract(2, 'years').subtract(7, 'months').format(serverDateFormat),
+                createDate: moment().subtract(2, 'years').subtract(7, 'months').format(serverDateFormat)
+            },
+            {
+                type: 'privilegeUpdate',
+                updateType: 'renewal',
+                dateOfUpdate: moment().subtract(1, 'years').subtract(7, 'months').format(serverDateFormat),
+                effectiveDate: moment().subtract(1, 'years').subtract(7, 'months').format(serverDateFormat),
+                createDate: moment().subtract(1, 'years').subtract(7, 'months').format(serverDateFormat)
+            },
+            {
+                type: 'privilegeUpdate',
+                updateType: 'renewal',
+                dateOfUpdate: moment().subtract(2, 'months').format(serverDateFormat),
+                effectiveDate: moment().subtract(2, 'months').format(serverDateFormat),
+                createDate: moment().subtract(2, 'months').format(serverDateFormat)
+            },
+        ]
+    },
+    {
+        // ================================================================
+        //                         LAYNE CORNELL (OH OTA)
+        // ================================================================
+        providerId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        compact: 'octp',
+        jurisdiction: 'oh',
+        licenseType: 'occupational therapy assistant',
+        privilegeId: 'OTA-OH-12',
+        events: [
+            {
+                type: 'privilegeUpdate',
+                updateType: 'issuance',
+                dateOfUpdate: moment().subtract(9, 'months').format(serverDateFormat),
+                effectiveDate: moment().subtract(9, 'months').format(serverDateFormat),
+                createDate: moment().subtract(9, 'months').format(serverDateFormat)
+            }
+        ]
+    },
+    {
+        // ================================================================
+        //                         JANET DOE (NE OTA)
+        // ================================================================
         providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
         compact: 'octp',
         jurisdiction: 'ne',
@@ -1556,6 +1611,9 @@ export const mockPrivilegeHistoryResponses = [
         ]
     },
     {
+        // ================================================================
+        //                         JANET DOE (NE OTA)
+        // ================================================================
         providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
         compact: 'octp',
         jurisdiction: 'ne',
@@ -1644,6 +1702,9 @@ export const mockPrivilegeHistoryResponses = [
         ]
     },
     {
+        // ================================================================
+        //                         JANET DOE (AL OTA)
+        // ================================================================
         providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
         compact: 'octp',
         jurisdiction: 'al',
@@ -1689,52 +1750,9 @@ export const mockPrivilegeHistoryResponses = [
         ]
     },
     {
-        providerId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-        compact: 'octp',
-        jurisdiction: 'ne',
-        licenseType: 'occupational therapy assistant',
-        privilegeId: 'OTA-NE-11',
-        events: [
-            {
-                type: 'privilegeUpdate',
-                updateType: 'issuance',
-                dateOfUpdate: moment().subtract(2, 'years').subtract(7, 'months').format(serverDateFormat),
-                effectiveDate: moment().subtract(2, 'years').subtract(7, 'months').format(serverDateFormat),
-                createDate: moment().subtract(2, 'years').subtract(7, 'months').format(serverDateFormat)
-            },
-            {
-                type: 'privilegeUpdate',
-                updateType: 'renewal',
-                dateOfUpdate: moment().subtract(1, 'years').subtract(7, 'months').format(serverDateFormat),
-                effectiveDate: moment().subtract(1, 'years').subtract(7, 'months').format(serverDateFormat),
-                createDate: moment().subtract(1, 'years').subtract(7, 'months').format(serverDateFormat)
-            },
-            {
-                type: 'privilegeUpdate',
-                updateType: 'renewal',
-                dateOfUpdate: moment().subtract(2, 'months').format(serverDateFormat),
-                effectiveDate: moment().subtract(2, 'months').format(serverDateFormat),
-                createDate: moment().subtract(2, 'months').format(serverDateFormat)
-            },
-        ]
-    },
-    {
-        providerId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-        compact: 'octp',
-        jurisdiction: 'oh',
-        licenseType: 'occupational therapy assistant',
-        privilegeId: 'OTA-OH-12',
-        events: [
-            {
-                type: 'privilegeUpdate',
-                updateType: 'issuance',
-                dateOfUpdate: moment().subtract(9, 'months').format(serverDateFormat),
-                effectiveDate: moment().subtract(9, 'months').format(serverDateFormat),
-                createDate: moment().subtract(9, 'months').format(serverDateFormat)
-            }
-        ]
-    },
-    {
+        // ================================================================
+        //                         JANET DOE (NE OT)
+        // ================================================================
         providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
         compact: 'octp',
         jurisdiction: 'ne',
@@ -1759,6 +1777,9 @@ export const mockPrivilegeHistoryResponses = [
         ]
     },
     {
+        // ================================================================
+        //                         JANET DOE (OH OT)
+        // ================================================================
         providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
         compact: 'octp',
         jurisdiction: 'oh',
@@ -1783,6 +1804,9 @@ export const mockPrivilegeHistoryResponses = [
         ]
     },
     {
+        // ================================================================
+        //                         JANET DOE (OH OTA)
+        // ================================================================
         providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
         compact: 'octp',
         jurisdiction: 'oh',
@@ -1807,6 +1831,9 @@ export const mockPrivilegeHistoryResponses = [
         ]
     },
     {
+        // ================================================================
+        //                         TYLER DURDEN (AL OTA)
+        // ================================================================
         providerId: '2',
         compact: 'octp',
         jurisdiction: 'al',
@@ -1831,6 +1858,9 @@ export const mockPrivilegeHistoryResponses = [
         ]
     },
     {
+        // ================================================================
+        //                         MARLA SINGER (AL OTA)
+        // ================================================================
         providerId: '3',
         compact: 'octp',
         jurisdiction: 'al',
@@ -1854,6 +1884,9 @@ export const mockPrivilegeHistoryResponses = [
         ]
     },
     {
+        // ================================================================
+        //                         JANE DOE (AL OTA)
+        // ================================================================
         providerId: '4',
         compact: 'octp',
         jurisdiction: 'al',
@@ -1870,6 +1903,9 @@ export const mockPrivilegeHistoryResponses = [
         ]
     },
     {
+        // ================================================================
+        //                         JANE DOE (AK OTA)
+        // ================================================================
         providerId: '4',
         compact: 'octp',
         jurisdiction: 'ak',
@@ -1886,6 +1922,9 @@ export const mockPrivilegeHistoryResponses = [
         ]
     },
     {
+        // ================================================================
+        //                         JANE DOE (AR OTA)
+        // ================================================================
         providerId: '4',
         compact: 'octp',
         jurisdiction: 'ar',
