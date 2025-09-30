@@ -8,7 +8,7 @@ from constructs import Construct
 
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.alarm_topic import AlarmTopic
-from common_constructs.base_pipeline_stack import DEPLOY_ENVIRONMENT_NAME
+from common_constructs.base_pipeline_stack import DEPLOY_ENVIRONMENT_NAME, CCPipelineType
 from common_constructs.stack import Stack
 
 
@@ -19,6 +19,7 @@ class DeploymentResourcesStack(Stack):
         self,
         scope: Construct,
         construct_id: str,
+        pipeline_type: CCPipelineType,
         **kwargs,
     ):
         super().__init__(scope, construct_id, environment_name='deploy', **kwargs)
@@ -53,7 +54,14 @@ class DeploymentResourcesStack(Stack):
             removal_policy=RemovalPolicy.RETAIN,
         )
 
-        notifications = self.deploy_environment_context.get('notifications', {})
+        match pipeline_type:
+            case CCPipelineType.BACKEND:
+                notifications = self.deploy_environment_context.get('back_end_notifications', {})
+            case CCPipelineType.FRONTEND:
+                notifications = self.deploy_environment_context.get('front_end_notifications', {})
+            case _:
+                raise ValueError(f'Invalid pipeline type: {pipeline_type}')
+
         self.pipeline_alarm_topic = AlarmTopic(
             self,
             'AlarmTopic',

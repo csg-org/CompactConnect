@@ -7,6 +7,7 @@ from aws_cdk import App, Environment
 # Make the `common_constructs` namespace package under `common-cdk` available to Python
 sys.path.insert(0, os.path.abspath(os.path.join('..', 'common-cdk')))
 
+from common_constructs.base_pipeline_stack import CCPipelineType
 from common_constructs.deployment_resources_stack import DeploymentResourcesStack
 from common_constructs.stack import StandardTags
 
@@ -135,6 +136,7 @@ class CompactConnectApp(App):
         self.deployment_resources_stack = DeploymentResourcesStack(
             self,
             DEPLOYMENT_RESOURCES_STACK,
+            pipeline_type=CCPipelineType.BACKEND,
             env=self.environment,
             standard_tags=StandardTags(**self.tags, environment='deploy'),
         )
