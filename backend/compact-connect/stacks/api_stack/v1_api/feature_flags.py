@@ -1,7 +1,9 @@
 from __future__ import annotations
 
-from api_lambda_stack import ApiLambdaStack
 from aws_cdk.aws_apigateway import LambdaIntegration, Resource
+from cdk_nag import NagSuppressions
+
+from stacks.api_lambda_stack import ApiLambdaStack
 
 from .api_model import ApiModel
 
@@ -22,7 +24,7 @@ class FeatureFlagsApi:
 
         # POST /v1/flags/check
         check_resource = resource.add_resource('check')
-        check_resource.add_method(
+        self.check_flag_method = check_resource.add_method(
             'POST',
             integration=LambdaIntegration(api_lambda_stack.feature_flags_lambdas.check_feature_flag_function),
             request_models={'application/json': api_model.check_feature_flag_request_model},
@@ -30,6 +32,22 @@ class FeatureFlagsApi:
                 {
                     'statusCode': '200',
                     'responseModels': {'application/json': api_model.check_feature_flag_response_model},
+                },
+            ],
+        )
+
+        # Add suppressions for the public GET endpoint
+        NagSuppressions.add_resource_suppressions(
+            self.check_flag_method,
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-APIG4',
+                    'reason': 'This is a public endpoint that intentionally does not require authorization',
+                },
+                {
+                    'id': 'AwsSolutions-COG4',
+                    'reason': 'This is a public endpoint that intentionally '
+                              'does not use a Cognito user pool authorizer',
                 },
             ],
         )
