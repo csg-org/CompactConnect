@@ -6,6 +6,7 @@ from constructs import Construct
 from stacks import persistent_stack as ps
 from stacks.provider_users import ProviderUsersStack
 
+from .feature_flags import FeatureFlagsLambdas
 from .provider_users import ProviderUsersLambdas
 
 
@@ -27,6 +28,12 @@ class ApiLambdaStack(AppStack):
             environment_name=environment_name,
             environment_context=environment_context,
             **kwargs,
+        )
+
+        # Feature Flags related API lambdas
+        self.feature_flags_lambdas = FeatureFlagsLambdas(
+            scope=self,
+            persistent_stack=persistent_stack,
         )
 
         # Provider Users related API lambdas
