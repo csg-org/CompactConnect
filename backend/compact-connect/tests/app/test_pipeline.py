@@ -388,7 +388,10 @@ class TestBackendPipeline(TstAppABC, TestCase):
                                 [
                                     {
                                         'Effect': 'Allow',
-                                        'Principal': {'Service': 'codepipeline.amazonaws.com'},
+                                        'Principal': {'Service': [
+                                            'codebuild.amazonaws.com',
+                                            'codepipeline.amazonaws.com',
+                                        ]},
                                         'Action': 'sts:AssumeRole',
                                     }
                                 ]
