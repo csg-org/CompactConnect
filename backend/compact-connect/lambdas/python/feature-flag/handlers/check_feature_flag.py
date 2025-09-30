@@ -34,7 +34,7 @@ def check_feature_flag(event: dict, context: LambdaContext):  # noqa: ARG001 unu
         # Check the feature flag
         result = feature_flag_client.check_flag(flag_request)
 
-        logger.info('Feature flag checked', flag_name=validated_body['flagName'], enabled=result.enabled)
+        logger.debug('Feature flag checked', flag_name=validated_body['flagName'], enabled=result.enabled)
 
         # Return simple response with just the enabled status
         return {'enabled': result.enabled}

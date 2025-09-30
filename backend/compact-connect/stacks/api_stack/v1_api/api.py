@@ -16,6 +16,7 @@ from .attestations import Attestations
 from .bulk_upload_url import BulkUploadUrl
 from .compact_configuration_api import CompactConfigurationApi
 from .credentials import Credentials
+from .feature_flags import FeatureFlagsApi
 from .post_licenses import PostLicenses
 from .provider_management import ProviderManagement
 from .provider_users import ProviderUsers
@@ -120,6 +121,14 @@ class V1Api:
                     'and is scoped to one table and encryption key.',
                 },
             ],
+        )
+
+        # /v1/flags
+        self.flags_resource = self.resource.add_resource('flags')
+        self.feature_flags = FeatureFlagsApi(
+            resource=self.flags_resource,
+            api_model=self.api_model,
+            api_lambda_stack=api_lambda_stack,
         )
 
         # /v1/public
