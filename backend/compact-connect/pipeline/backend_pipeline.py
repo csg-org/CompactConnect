@@ -18,10 +18,6 @@ from cdk_nag import NagSuppressions
 from common_constructs.base_pipeline_stack import CCPipelineType
 from common_constructs.bucket import Bucket
 
-import pipeline
-
-from common_constructs.bucket import Bucket
-
 
 class BackendPipeline(CdkCodePipeline):
     """

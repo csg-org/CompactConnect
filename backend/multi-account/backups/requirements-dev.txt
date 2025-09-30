@@ -4,9 +4,9 @@
 #
 #    pip-compile --no-emit-index-url backups/requirements-dev.in
 #
-boto3==1.40.19
+boto3==1.40.33
     # via moto
-botocore==1.40.19
+botocore==1.40.33
     # via
     #   boto3
     #   moto
@@ -68,5 +68,5 @@ urllib3==2.5.0
     #   responses
 werkzeug==3.1.3
     # via moto
-xmltodict==1.0.1
+xmltodict==1.0.2
     # via moto
