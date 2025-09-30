@@ -47,7 +47,7 @@ class FeatureFlagsApi:
                 {
                     'id': 'AwsSolutions-COG4',
                     'reason': 'This is a public endpoint that intentionally '
-                              'does not use a Cognito user pool authorizer',
+                    'does not use a Cognito user pool authorizer',
                 },
             ],
         )

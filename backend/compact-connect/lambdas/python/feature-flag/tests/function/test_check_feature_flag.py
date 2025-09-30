@@ -29,10 +29,11 @@ class TestCheckFeatureFlag(TstFunction):
     def tearDown(self):
         """Clean up between tests to ensure test isolation"""
         super().tearDown()
-        
+
         # Reset the module-level feature_flag_client to force recreation in next test
         # without this the client gets cached and cannot be modified
         import sys
+
         if 'handlers.check_feature_flag' in sys.modules:
             del sys.modules['handlers.check_feature_flag']
 
