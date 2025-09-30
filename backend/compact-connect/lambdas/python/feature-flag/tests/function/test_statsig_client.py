@@ -8,7 +8,7 @@ from feature_flag_client import (
     StatSigFeatureFlagClient,
 )
 from moto import mock_aws
-from statsig import StatsigOptions
+from statsig_python_core import StatsigOptions
 
 from . import TstFunction
 
@@ -34,6 +34,18 @@ class TestStatSigClient(TstFunction):
 
         return boto3.client('secretsmanager', region_name='us-east-1')
 
+    def _setup_mock_statsig(self, mock_statsig, mock_flag_enabled_return: bool = True):
+        # Create a mock client instance
+        mock_client = MagicMock()
+        mock_client.initialize.return_value = MagicMock()
+        mock_client.check_gate.return_value = mock_flag_enabled_return
+        mock_client.shutdown.return_value = MagicMock()
+
+        # Make the Statsig constructor return our mock client
+        mock_statsig.return_value = mock_client
+
+        return mock_client
+
     def test_client_initialization_missing_secret(self):
         """Test that client initialization fails when secret is missing"""
         with self.assertRaises(FeatureFlagException) as context:
@@ -43,10 +55,10 @@ class TestStatSigClient(TstFunction):
             "Failed to retrieve secret 'compact-connect/env/nonexistent/statsig/credentials'", str(context.exception)
         )
 
-    @patch('feature_flag_client.statsig')
+    @patch('feature_flag_client.Statsig')
     def test_validate_request_success(self, mock_statsig):
         """Test request validation with valid data"""
-        mock_statsig.initialize.return_value = MagicMock()
+        self._setup_mock_statsig(mock_statsig)
 
         client = StatSigFeatureFlagClient(environment='test')
 
@@ -59,9 +71,10 @@ class TestStatSigClient(TstFunction):
         # Should validate successfully
         client.validate_request(request_data)
 
-    @patch('feature_flag_client.statsig')
+    @patch('feature_flag_client.Statsig')
     def test_validate_request_minimal_data(self, mock_statsig):
         """Test request validation with minimal valid data"""
+        self._setup_mock_statsig(mock_statsig)
         mock_statsig.initialize.return_value = MagicMock()
 
         client = StatSigFeatureFlagClient(environment='test')
@@ -75,10 +88,10 @@ class TestStatSigClient(TstFunction):
         self.assertEqual(validated['flagName'], 'test-flag')
         self.assertEqual(validated['context'], {})  # Default empty context
 
-    @patch('feature_flag_client.statsig')
+    @patch('feature_flag_client.Statsig')
     def test_validate_request_missing_flag_name(self, mock_statsig):
         """Test request validation fails when flagName is missing"""
-        mock_statsig.initialize.return_value = MagicMock()
+        self._setup_mock_statsig(mock_statsig)
 
         client = StatSigFeatureFlagClient(environment='test')
 
@@ -88,10 +101,10 @@ class TestStatSigClient(TstFunction):
         with self.assertRaises(FeatureFlagValidationException):
             client.validate_request(request_data)
 
-    @patch('feature_flag_client.statsig')
+    @patch('feature_flag_client.Statsig')
     def test_validate_request_invalid_flag_name(self, mock_statsig):
         """Test request validation fails when flagName is empty"""
-        mock_statsig.initialize.return_value = MagicMock()
+        self._setup_mock_statsig(mock_statsig)
 
         client = StatSigFeatureFlagClient(environment='test')
 
@@ -101,11 +114,10 @@ class TestStatSigClient(TstFunction):
         with self.assertRaises(FeatureFlagValidationException):
             client.validate_request(request_data)
 
-    @patch('feature_flag_client.statsig')
+    @patch('feature_flag_client.Statsig')
     def test_check_flag_enabled(self, mock_statsig):
         """Test check_flag returns enabled=True when StatSig returns True"""
-        mock_statsig.initialize.return_value = MagicMock()
-        mock_statsig.check_gate.return_value = True
+        mock_statsig_client = self._setup_mock_statsig(mock_statsig)
 
         client = StatSigFeatureFlagClient(environment='test')
 
@@ -120,19 +132,18 @@ class TestStatSigClient(TstFunction):
         self.assertEqual(result.flag_name, 'enabled-flag')
 
         # Verify StatSig was called correctly
-        mock_statsig.check_gate.assert_called_once()
-        call_args = mock_statsig.check_gate.call_args
+        mock_statsig_client.check_gate.assert_called_once()
+        call_args = mock_statsig_client.check_gate.call_args
         statsig_user = call_args[0][0]
         flag_name = call_args[0][1]
 
         self.assertEqual(statsig_user.user_id, 'user123')
         self.assertEqual(flag_name, 'enabled-flag')
 
-    @patch('feature_flag_client.statsig')
+    @patch('feature_flag_client.Statsig')
     def test_check_flag_disabled(self, mock_statsig):
         """Test check_flag returns enabled=False when StatSig returns False"""
-        mock_statsig.initialize.return_value = MagicMock()
-        mock_statsig.check_gate.return_value = False
+        self._setup_mock_statsig(mock_statsig, mock_flag_enabled_return=False)
 
         client = StatSigFeatureFlagClient(environment='test')
 
@@ -146,11 +157,10 @@ class TestStatSigClient(TstFunction):
         self.assertFalse(result.enabled)
         self.assertEqual(result.flag_name, 'disabled-flag')
 
-    @patch('feature_flag_client.statsig')
+    @patch('feature_flag_client.Statsig')
     def test_check_flag_with_custom_attributes(self, mock_statsig):
         """Test check_flag properly handles custom attributes"""
-        mock_statsig.initialize.return_value = MagicMock()
-        mock_statsig.check_gate.return_value = True
+        mock_statsig_client = self._setup_mock_statsig(mock_statsig)
 
         client = StatSigFeatureFlagClient(environment='test')
 
@@ -170,7 +180,7 @@ class TestStatSigClient(TstFunction):
         self.assertTrue(result.enabled)
 
         # Verify StatSig user was created with custom attributes
-        call_args = mock_statsig.check_gate.call_args
+        call_args = mock_statsig_client.check_gate.call_args
         statsig_user = call_args[0][0]
         flag_name = call_args[0][1]
 
@@ -178,11 +188,10 @@ class TestStatSigClient(TstFunction):
         self.assertEqual({'foo': 'bar'}, statsig_user.custom)
         self.assertEqual('custom-flag', flag_name)
 
-    @patch('feature_flag_client.statsig')
+    @patch('feature_flag_client.Statsig')
     def test_check_flag_default_user(self, mock_statsig):
         """Test check_flag uses default user when no userId provided"""
-        mock_statsig.initialize.return_value = MagicMock()
-        mock_statsig.check_gate.return_value = True
+        mock_statsig_client = self._setup_mock_statsig(mock_statsig)
 
         client = StatSigFeatureFlagClient(environment='test')
 
@@ -196,15 +205,15 @@ class TestStatSigClient(TstFunction):
         self.assertTrue(result.enabled)
 
         # Verify default user was used
-        call_args = mock_statsig.check_gate.call_args
+        call_args = mock_statsig_client.check_gate.call_args
         statsig_user = call_args[0][0]
 
         self.assertEqual(statsig_user.user_id, 'default_cc_user')
 
-    @patch('feature_flag_client.statsig')
+    @patch('feature_flag_client.Statsig')
     def test_environment_tier_mapping(self, mock_statsig):
         """Test that different environments map to correct StatSig tiers"""
-        mock_statsig.initialize.return_value = MagicMock()
+        self._setup_mock_statsig(mock_statsig)
 
         # Test different environments
         test_cases = [
@@ -228,12 +237,12 @@ class TestStatSigClient(TstFunction):
             StatSigFeatureFlagClient(environment=cc_env)
 
             # Verify StatSig was called correctly
-            mock_statsig.initialize.assert_called_once()
-            call_args = mock_statsig.initialize.call_args
+            mock_statsig.assert_called_once()
+            call_args = mock_statsig.call_args
             server_key = call_args[0][0]
             options: StatsigOptions = call_args.kwargs['options']
 
             self.assertEqual(MOCK_SERVER_KEY, server_key)
-            self.assertEqual(expected_tier, options.get_sdk_environment_tier())
+            self.assertEqual(expected_tier, options.environment)
 
             mock_statsig.reset_mock()
