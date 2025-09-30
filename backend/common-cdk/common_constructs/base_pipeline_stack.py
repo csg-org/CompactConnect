@@ -1,4 +1,5 @@
 import json
+from enum import StrEnum
 
 from aws_cdk import Environment, RemovalPolicy
 from aws_cdk.aws_iam import CompositePrincipal, Effect, PolicyStatement, Role, ServicePrincipal
@@ -12,7 +13,15 @@ from common_constructs.stack import Stack
 TEST_ENVIRONMENT_NAME = 'test'
 BETA_ENVIRONMENT_NAME = 'beta'
 PROD_ENVIRONMENT_NAME = 'prod'
+DEPLOY_ENVIRONMENT_NAME = 'deploy'
+
 ALLOWED_ENVIRONMENT_NAMES = [TEST_ENVIRONMENT_NAME, BETA_ENVIRONMENT_NAME, PROD_ENVIRONMENT_NAME]
+
+
+class CCPipelineType(StrEnum):
+    BACKEND = 'Backend'
+    FRONTEND = 'Frontend'
+
 
 class BasePipelineStack(Stack):
     """Base stack with common functionality for all pipeline stacks (both backend and frontend)."""
@@ -72,7 +81,7 @@ class BasePipelineStack(Stack):
 
         return f'CompactConnect-{self.environment_name}-{pipeline_type}-{role_type}Role'
 
-    def create_predictable_pipeline_role(self, pipeline_type: str) -> Role:
+    def create_predictable_pipeline_role(self, pipeline_type: CCPipelineType) -> Role:
         """Create a predictable cross-account role that will be trusted by bootstrap roles.
 
         :param pipeline_type: 'Backend' or 'Frontend'
@@ -127,6 +136,3 @@ class BasePipelineStack(Stack):
             account=self.env.account,
             resource=pipeline_name,
         )
-
-
-DEPLOY_ENVIRONMENT_NAME = 'deploy'

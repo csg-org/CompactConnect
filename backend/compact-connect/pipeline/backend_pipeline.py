@@ -15,6 +15,7 @@ from aws_cdk.aws_ssm import IParameter
 from aws_cdk.pipelines import CodeBuildOptions, CodeBuildStep, CodePipelineSource
 from aws_cdk.pipelines import CodePipeline as CdkCodePipeline
 from cdk_nag import NagSuppressions
+from common_constructs.base_pipeline_stack import CCPipelineType
 from common_constructs.bucket import Bucket
 
 
@@ -72,7 +73,7 @@ class BackendPipeline(CdkCodePipeline):
         )
 
         # Create predictable pipeline role before initializing the pipeline
-        pipeline_role = scope.create_predictable_pipeline_role('Backend')
+        pipeline_role = scope.create_predictable_pipeline_role(CCPipelineType.BACKEND)
         artifact_bucket.grant_read(pipeline_role)
 
         super().__init__(
