@@ -1,3 +1,2 @@
 # common requirements are managed in the common requirements.in file
-statsig==1.45.0
-requests==2.31.0
+statsig-python-core>=0.9.3, <1.0.0
