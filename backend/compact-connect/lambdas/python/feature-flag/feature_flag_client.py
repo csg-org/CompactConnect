@@ -12,8 +12,7 @@ from marshmallow import Schema, ValidationError
 from marshmallow.fields import Dict as DictField
 from marshmallow.fields import Nested, String
 from marshmallow.validate import Length
-from statsig import StatsigEnvironmentTier, StatsigOptions, statsig
-from statsig.statsig_user import StatsigUser
+from statsig_python_core import StatsigOptions, Statsig, StatsigUser
 
 
 @dataclass
@@ -124,6 +123,9 @@ class FeatureFlagValidationException(FeatureFlagException):
 
 # Implementing Classes
 
+STATSIG_DEVELOPMENT_TIER = 'development'
+STATSIG_STAGING_TIER = 'staging'
+STATSIG_PRODUCTION_TIER = 'production'
 
 class StatSigContextSchema(Schema):
     """
@@ -164,6 +166,7 @@ class StatSigFeatureFlagClient(FeatureFlagClient):
         super().__init__(StatSigFeatureFlagCheckRequestSchema())
 
         self.environment = environment
+        self.statsig_client = None
         self._is_initialized = False
 
         # Retrieve StatSig configuration from AWS Secrets Manager
@@ -192,16 +195,18 @@ class StatSigFeatureFlagClient(FeatureFlagClient):
         try:
             # Map environment tier string to StatsigEnvironmentTier enum
             tier_mapping = {
-                'prod': StatsigEnvironmentTier.production,
-                'beta': StatsigEnvironmentTier.staging,
-                'test': StatsigEnvironmentTier.development,
+                'prod': STATSIG_PRODUCTION_TIER,
+                'beta': STATSIG_STAGING_TIER,
+                'test': STATSIG_DEVELOPMENT_TIER,
             }
 
             # default to development for all other environments (ie sandbox environments)
-            tier = tier_mapping.get(self.environment.lower(), StatsigEnvironmentTier.development)
-            options = StatsigOptions(tier=tier)
+            tier = tier_mapping.get(self.environment.lower(), STATSIG_DEVELOPMENT_TIER)
+            options = StatsigOptions()
+            options.environment = tier
 
-            statsig.initialize(self._server_secret_key, options=options).wait()
+            self.statsig_client = Statsig(self._server_secret_key, options=options)
+            self.statsig_client.initialize().wait()
             self._is_initialized = True
 
         except Exception as e:
@@ -238,7 +243,7 @@ class StatSigFeatureFlagClient(FeatureFlagClient):
             statsig_user = self._create_statsig_user(request.context)
 
             # Check the gate (feature flag) using StatSig
-            enabled = statsig.check_gate(statsig_user, request.flagName)
+            enabled = self.statsig_client.check_gate(statsig_user, request.flagName)
 
             return FeatureFlagResult(
                 enabled=enabled,
@@ -257,7 +262,7 @@ class StatSigFeatureFlagClient(FeatureFlagClient):
         Shutdown the StatSig client to flush event logs to statsig.
         """
         if self._is_initialized:
-            statsig.shutdown().wait()
+            self.statsig_client.shutdown().wait()
             self._is_initialized = False
 
     def __del__(self):
