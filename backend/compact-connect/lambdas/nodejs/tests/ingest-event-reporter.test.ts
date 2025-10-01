@@ -73,7 +73,7 @@ const mockSendNoLicenseUpdatesEmail = jest.fn().mockImplementation(
     (recipients: string[]) => Promise.resolve('message-id-no-license-updates')
 );
 
-describe('Nightly runs', () => {
+describe('Frequent runs', () => {
     let mockSESClient: ReturnType<typeof mockClient>;
     let mockS3Client: ReturnType<typeof mockClient>;
     let lambda: Lambda;
@@ -459,7 +459,7 @@ describe('Weekly runs', () => {
         );
     });
 
-    it('should send a report email and not an alls well, when there were errors', async () => {
+    it('should send nothing, when there were errors', async () => {
         const mockDynamoDBClient = mockClient(DynamoDBClient);
         const mockS3Client = mockClient(S3Client);
 
@@ -524,7 +524,8 @@ describe('Weekly runs', () => {
         );
 
         // Verify an event report was sent
-        expect(mockSendReportEmail).toHaveBeenCalled();
+        expect(mockSendReportEmail).not.toHaveBeenCalled();
         expect(mockSendAllsWellEmail).not.toHaveBeenCalled();
+        expect(mockSendNoLicenseUpdatesEmail).not.toHaveBeenCalled();
     });
 });
