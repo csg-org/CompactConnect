@@ -13,6 +13,7 @@ import PrivilegeCard from '@/components/PrivilegeCard/PrivilegeCard.vue';
 import MilitaryAffiliationInfoBlock from '@components/MilitaryAffiliationInfoBlock/MilitaryAffiliationInfoBlock.vue';
 import CollapseCaretButton from '@components/CollapseCaretButton/CollapseCaretButton.vue';
 import LicenseIcon from '@components/Icons/LicenseIcon/LicenseIcon.vue';
+import ExpirationExplanationIcon from '@components/Icons/ExpirationExplanationIcon/ExpirationExplanationIcon.vue';
 import { CompactType } from '@models/Compact/Compact.model';
 import { StaffUser } from '@models/StaffUser/StaffUser.model';
 import { Licensee } from '@models/Licensee/Licensee.model';
@@ -28,7 +29,8 @@ import { dataApi } from '@network/data.api';
         PrivilegeCard,
         CollapseCaretButton,
         LicenseIcon,
-        MilitaryAffiliationInfoBlock
+        MilitaryAffiliationInfoBlock,
+        ExpirationExplanationIcon
     }
 })
 export default class LicensingDetail extends Vue {
