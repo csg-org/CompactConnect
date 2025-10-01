@@ -7,6 +7,7 @@ from common_constructs.base_pipeline_stack import (
     PROD_ENVIRONMENT_NAME,
     TEST_ENVIRONMENT_NAME,
     BasePipelineStack,
+    CCPipelineType,
 )
 from constructs import Construct
 
@@ -42,6 +43,7 @@ class BaseFrontendPipelineStack(BasePipelineStack):
             construct_id,
             environment_name=environment_name,
             env=env,
+            pipeline_type=CCPipelineType.FRONTEND,
             removal_policy=removal_policy,
             pipeline_access_logs_bucket=pipeline_access_logs_bucket,
             **kwargs,

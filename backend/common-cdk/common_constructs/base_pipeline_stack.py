@@ -32,6 +32,7 @@ class BasePipelineStack(Stack):
         construct_id: str,
         environment_name: str,
         env: Environment,
+        pipeline_type: CCPipelineType,
         removal_policy: RemovalPolicy,
         pipeline_access_logs_bucket: IBucket,
         **kwargs,
@@ -43,7 +44,10 @@ class BasePipelineStack(Stack):
         self.removal_policy = removal_policy
         self.access_logs_bucket = pipeline_access_logs_bucket
 
-        pipeline_context_parameter_name = f'{self.environment_name}-compact-connect-context'
+        if pipeline_type == CCPipelineType.BACKEND:
+            pipeline_context_parameter_name = f'{self.environment_name}-compact-connect-context'
+        else:
+            pipeline_context_parameter_name = f'{self.environment_name}-ui-compact-connect-context'
 
         # Fetch ssm_context if not provided locally
         self.parameter = StringParameter.from_string_parameter_name(

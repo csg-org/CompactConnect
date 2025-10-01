@@ -1,7 +1,5 @@
 {
   "ssm_context": {
-    "github_repo_string": "csg-org/CompactConnect",
-    "app_name": "compact-connect",
     "environments": {
       "deploy": {
         "account_id": "000000000000",

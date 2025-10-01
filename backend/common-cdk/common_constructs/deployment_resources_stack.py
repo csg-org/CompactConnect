@@ -24,7 +24,10 @@ class DeploymentResourcesStack(Stack):
     ):
         super().__init__(scope, construct_id, environment_name='deploy', **kwargs)
 
-        pipeline_context_parameter_name = f'{DEPLOY_ENVIRONMENT_NAME}-compact-connect-context'
+        if pipeline_type == CCPipelineType.BACKEND:
+            pipeline_context_parameter_name = f'{DEPLOY_ENVIRONMENT_NAME}-compact-connect-context'
+        else:
+            pipeline_context_parameter_name = f'{DEPLOY_ENVIRONMENT_NAME}-ui-compact-connect-context'
 
         # Fetch ssm_context if not provided locally
         self.parameter = StringParameter.from_string_parameter_name(
@@ -54,14 +57,7 @@ class DeploymentResourcesStack(Stack):
             removal_policy=RemovalPolicy.RETAIN,
         )
 
-        match pipeline_type:
-            case CCPipelineType.BACKEND:
-                notifications = self.deploy_environment_context.get('back_end_notifications', {})
-            case CCPipelineType.FRONTEND:
-                notifications = self.deploy_environment_context.get('front_end_notifications', {})
-            case _:
-                raise ValueError(f'Invalid pipeline type: {pipeline_type}')
-
+        notifications = self.deploy_environment_context.get('notifications', {})
         self.pipeline_alarm_topic = AlarmTopic(
             self,
             'AlarmTopic',
