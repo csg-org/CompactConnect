@@ -40,7 +40,6 @@ class CompactConnectApp(App):
 
     Pipeline Execution Flow:
     ----------------------
-    - GitHub push → Frontend Pipeline
     - GitHub push → Backend Pipeline → Frontend Pipeline
 
     Stack Structure:
