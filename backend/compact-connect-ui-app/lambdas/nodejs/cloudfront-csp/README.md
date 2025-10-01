@@ -28,7 +28,7 @@ _[back to top](#cloudfront-csp-header-edge-lambda)_
 ---
 ## Local development
 - **Linting**
-    - `yarn run grunt`
+    - `yarn run lint`
         - This lints all code in all the Lambda function + watches locally for changes
 - **Running an individual Lambda**
     - The easiest way to execute the Lambda is to run the tests ([see below](#tests))

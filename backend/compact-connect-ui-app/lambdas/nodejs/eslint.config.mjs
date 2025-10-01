@@ -1,5 +1,4 @@
-import typescriptParser from '@typescript-eslint/parser';
-import typescriptPlugin from '@typescript-eslint/eslint-plugin';
+// No TypeScript dependencies needed for JavaScript-only project
 
 const OFF = 0;
 const WARNING = 1;
@@ -10,18 +9,14 @@ export default [
     ignores: ['cdk.out/**/*'],
   },
   {
-    files: ['**/*.ts', '**/*.js'],
+    files: ['**/*.js'],
     languageOptions: {
       ecmaVersion: 2022,
-      sourceType: 'module',
-      parser: typescriptParser,
+      sourceType: 'commonjs',
       globals: {
         es2022: true,
         node: true,
       },
-    },
-    plugins: {
-      '@typescript-eslint': typescriptPlugin,
     },
     rules: {
       indent: [ERROR, 4],
@@ -55,7 +50,6 @@ export default [
       'lines-between-class-members': [ERROR, 'always', { exceptAfterSingleLine: true }],
       'implicit-arrow-linebreak': OFF,
       'class-methods-use-this': OFF,
-      '@typescript-eslint/no-explicit-any': OFF,
       'padding-line-between-statements': [
         ERROR,
         { blankLine: 'always', prev: ['const', 'let', 'var'], next: '*' },
@@ -64,19 +58,11 @@ export default [
     }
   },
   {
-    files: ['**/*.js'],
-    rules: {
-      '@typescript-eslint/no-var-requires': OFF,
-      '@typescript-eslint/camelcase': OFF,
-    },
-  },
-  {
-    files: ['**/__tests__/*.{j,t}s?(x)'],
+    files: ['**/__tests__/*.js'],
     rules: {
       'no-unused-expressions': OFF,
       'quote-props': OFF,
       'import/no-extraneous-dependencies': OFF,
-      '@typescript-eslint/no-var-requires': OFF,
     },
   }
 ];
