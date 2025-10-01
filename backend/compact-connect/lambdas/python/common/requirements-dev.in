@@ -1,2 +1,3 @@
 moto[dynamodb, s3]>=5.0.12, <6
 Faker>=28,<29
+cryptography>=45.0.5, <46

@@ -16,9 +16,9 @@ certifi==2025.8.3
     # via requests
 charset-normalizer==3.4.3
     # via requests
-click==8.2.1
+click==8.3.0
     # via pip-tools
-coverage[toml]==7.10.5
+coverage[toml]==7.10.7
     # via
     #   -r compact-connect/requirements-dev.in
     #   pytest-cov
@@ -70,17 +70,17 @@ pygments==2.19.2
     # via
     #   pytest
     #   rich
-pyparsing==3.2.3
+pyparsing==3.2.5
     # via pip-requirements-parser
 pyproject-hooks==1.2.0
     # via
     #   build
     #   pip-tools
-pytest==8.4.1
+pytest==8.4.2
     # via
     #   -r compact-connect/requirements-dev.in
     #   pytest-cov
-pytest-cov==6.2.1
+pytest-cov==7.0.0
     # via -r compact-connect/requirements-dev.in
 python-dateutil==2.9.0.post0
     # via faker
@@ -90,7 +90,7 @@ requests==2.32.5
     #   pip-audit
 rich==14.1.0
     # via pip-audit
-ruff==0.12.11
+ruff==0.13.2
     # via -r compact-connect/requirements-dev.in
 six==1.17.0
     # via python-dateutil
