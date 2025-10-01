@@ -27,6 +27,36 @@ export class EventClient {
     }
 
     /*
+     * Returns timestamps for the last complete 15-minute block
+     * i.e. if now is 13:05, returns 12:45-13:00
+     * if now is 13:15, returns 13:00-13:15
+     */
+    public getLast15MinuteTimestamps() {
+        const now: Date = new Date();
+        const last15MinuteBlockStart: Date = new Date();
+        const last15MinuteBlockEnd: Date = new Date();
+
+        // Calculate the start of the current 15-minute block
+        const currentBlockStartMinutes = now.getUTCMinutes() - (now.getUTCMinutes() % 15);
+        last15MinuteBlockStart.setUTCMinutes(currentBlockStartMinutes, 0, 0);
+
+        // The end of the previous complete block is the start of the current block
+        last15MinuteBlockEnd.setTime(last15MinuteBlockStart.getTime());
+
+        // The start of the previous complete block is 15 minutes before the end
+        last15MinuteBlockStart.setUTCMinutes(currentBlockStartMinutes - 15, 0, 0);
+
+        return [
+            Number.parseInt(
+                (last15MinuteBlockStart.valueOf()/1000).toString()
+            ),
+            Number.parseInt(
+                (last15MinuteBlockEnd.valueOf()/1000).toString()
+            )
+        ];
+    }
+
+    /*
      * Returns timestamps for the beginning and end of the previous UTC day
      */
     public getYesterdayTimestamps() {

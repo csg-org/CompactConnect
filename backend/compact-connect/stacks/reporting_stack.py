@@ -89,6 +89,15 @@ class ReportingStack(AppStack):
         Rule(
             self,
             'NightlyRule',
+            schedule=Schedule.cron(week_day='*', hour='*', minute='*/15', month='*', year='*'),
+            targets=[
+                LambdaFunction(handler=event_collector, event=RuleTargetInput.from_object({'eventType': 'frequent'}))
+            ],
+        )
+
+        Rule(
+            self,
+            'NightlyRule',
             schedule=Schedule.cron(week_day='1-6', hour='1', minute='0', month='*', year='*'),
             targets=[
                 LambdaFunction(handler=event_collector, event=RuleTargetInput.from_object({'eventType': 'nightly'}))

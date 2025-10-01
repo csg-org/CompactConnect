@@ -82,6 +82,19 @@ export class Lambda implements LambdaInterface {
                     compact, jurisdictionConfig.postalAbbreviation, startTimeStamp, endTimeStamp
                 );
 
+                switch (event.eventType) {
+                    case 'nightly':
+                        this.runNightlyReports();
+                        break;
+                    case 'weekly':
+                        this.runWeeklyReports();
+                        break;
+                    default:
+                        // frequent case (every 15 minutes)
+                        this.runFrequentReports();
+                        break;
+                }
+
                 // If there were any issues, send a report email summarizing them
                 if (ingestEvents.ingestFailures.length || ingestEvents.validationErrors.length) {
                     const messageId = await this.emailService.sendReportEmail(
@@ -150,7 +163,7 @@ export class Lambda implements LambdaInterface {
                             );
 
                             logger.warn(
-                                'No licenses uploaded withinin the last week',
+                                'No licenses uploaded within the last week',
                                 {
                                     compact: compactConfig.compactName,
                                     jurisdiction: jurisdictionConfig.postalAbbreviation,
