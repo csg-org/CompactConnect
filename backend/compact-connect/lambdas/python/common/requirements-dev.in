@@ -1,4 +1,4 @@
 moto[dynamodb, s3]>=5.0.12, <6
 boto3-stubs[full]
 Faker>=28,<29
-cryptography>=45.0.5, <46
+cryptography>=46, <47
