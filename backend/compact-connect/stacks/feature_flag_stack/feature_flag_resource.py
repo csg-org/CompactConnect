@@ -6,6 +6,7 @@ of StatSig feature flags across different environments.
 """
 
 import os
+from enum import Enum
 
 import jsii
 from aws_cdk import CustomResource, Duration, Stack
@@ -15,6 +16,14 @@ from aws_cdk.custom_resources import Provider
 from cdk_nag import NagSuppressions
 from common_constructs.python_function import PythonFunction
 from constructs import Construct
+
+
+class FeatureFlagEnvironmentName(Enum):
+    TEST = 'test'
+    BETA = 'beta'
+    PROD = 'prod'
+    # add sandbox environment names here if needed
+    # SANDBOX = 'sandbox'
 
 
 @jsii.implements(IGrantable)
@@ -32,7 +41,7 @@ class FeatureFlagResource(Construct):
         construct_id: str,
         *,
         flag_name: str,
-        auto_enable_envs: list[str],
+        auto_enable_envs: list[FeatureFlagEnvironmentName],
         custom_attributes: dict[str, str] | dict[str, list] | None = None,
         environment_name: str,
     ):
