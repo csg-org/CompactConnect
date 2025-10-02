@@ -9,7 +9,7 @@ import os
 
 from cc_common.config import logger
 from custom_resource_handler import CustomResourceHandler, CustomResourceResponse
-from feature_flag_client import StatSigFeatureFlagClient
+from feature_flag_client import FeatureFlagException, StatSigFeatureFlagClient
 
 
 class ManageFeatureFlagHandler(CustomResourceHandler):
@@ -60,7 +60,7 @@ class ManageFeatureFlagHandler(CustomResourceHandler):
         # Return the gate ID as the PhysicalResourceId for tracking
         return {'PhysicalResourceId': f'feature-flag-{flag_name}-{self.environment}', 'Data': {'gateId': gate_id}}
 
-    def on_update(self, properties: dict) -> CustomResourceResponse | None:
+    def on_update(self, properties: dict) -> CustomResourceResponse | None:  # noqa: ARG002
         """
         Flags are not updated once created in an environment.
 
@@ -86,9 +86,14 @@ class ManageFeatureFlagHandler(CustomResourceHandler):
 
         logger.info('Deleting feature flag resource', flag_name=flag_name, environment=self.environment)
 
-        # Delete flag or remove current environment
-        # The delete_flag method handles all logic internally (fetching, checking environments, etc.)
-        result = self.client.delete_flag(flag_name)
+        try:
+            # Delete flag or remove current environment
+            # The delete_flag method handles all logic internally (fetching, checking environments, etc.)
+            result = self.client.delete_flag(flag_name)
+        except FeatureFlagException:
+            # log the error and return so we don't fail deployment
+            logger.error('Failed to delete feature flag', flag_name=flag_name)
+            return None
 
         if result is None:
             logger.info('Feature gate does not exist, nothing to delete', flag_name=flag_name)
