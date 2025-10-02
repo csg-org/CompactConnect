@@ -354,53 +354,65 @@ class StatSigFeatureFlagClient(FeatureFlagClient):
         """
         Create or update a feature gate in StatSig.
 
-        In test environment: Creates a new gate if it doesn't exist.
-        In beta/prod: Updates existing gate to add current environment if auto_enable is True.
+        Each environment has its own rule (e.g., 'test-rule', 'beta-rule', 'prod-rule').
+        - If auto_enable is False: passPercentage is set to 0 (disabled)
+        - If auto_enable is True: passPercentage is set to 100 (enabled) and custom attributes are applied
 
         :param flag_name: Name of the feature gate
-        :param auto_enable: If True, enable the flag in the current environment (beta/prod only)
-        :param custom_attributes: Optional custom attributes for targeting
+        :param auto_enable: If True, enable the flag (passPercentage=100); if False, disable it (passPercentage=0)
+        :param custom_attributes: Optional custom attributes for targeting (only applied if auto_enable=True)
         :return: Flag data (with 'id' field)
         :raises FeatureFlagException: If operation fails
         """
         # Check if gate already exists
         existing_gate = self.get_flag(flag_name)
 
-        # According to our current policy, we always deploy the flag from our testing
-        # environment, and perform updates on any environment if the flag was set to auto enabled
-        if not existing_gate and (auto_enable or self.environment.lower() == 'test'):
-            # Create new gate with the environment associated with it
-            return self._create_new_gate(flag_name, custom_attributes)
-
-        # according to our current policy, we always deploy
-        if existing_gate and (auto_enable or self.environment.lower() == 'test'):
-            # Gate exists - update custom attributes if provided
+        if not existing_gate:
+            # Create new gate with environment-specific rule
+            return self._create_new_gate(flag_name, auto_enable, custom_attributes)
+        else:
+            # Gate exists - check if environment rule exists
             gate_id = existing_gate.get('id')
-            if custom_attributes:
-                updated_gate = self._prepare_gate_update(existing_gate, custom_attributes)
+            rule_name = f'{self.environment.lower()}-rule'
+            environment_rule = self._find_environment_rule(existing_gate, rule_name)
+
+            if not environment_rule:
+                # Environment rule doesn't exist - add it
+                updated_gate = self._add_environment_rule(existing_gate, auto_enable, custom_attributes)
                 self._update_gate(gate_id, updated_gate)
-            return existing_gate  # Return existing gate data
+            else:
+                # Environment rule exists, only update the rule if auto enabled or development environment
+                if auto_enable or self._is_development_environment():
+                    # Update the rule with new settings
+                    updated_gate = self._update_environment_rule(existing_gate, auto_enable, custom_attributes)
+                    self._update_gate(gate_id, updated_gate)
 
-        # Return empty dict (no action taken)
-        return {}
+            return existing_gate
 
-    def _create_new_gate(self, flag_name: str, custom_attributes: dict[str, Any] | None = None) -> dict[str, Any]:
+    def _is_development_environment(self) -> bool:
         """
-        Create a new feature gate in StatSig with the current environment enabled.
+        Check if the current environment is a development environment.
+        """
+        return self.environment.lower() != 'prod' and self.environment.lower() != 'beta'
+
+    def _create_new_gate(self, flag_name: str, auto_enable: bool, custom_attributes: dict[str, Any] | None = None) -> dict[str, Any]:
+        """
+        Create a new feature gate in StatSig with an environment-specific rule.
 
         :param flag_name: Name of the feature gate
-        :param custom_attributes: Optional custom attributes for targeting
+        :param auto_enable: If True, passPercentage=100; if False, passPercentage=0
+        :param custom_attributes: Optional custom attributes for targeting (only applied if auto_enable=True)
         :return: Created gate data (with 'id' field)
         :raises FeatureFlagException: If creation fails
         """
         # Get the StatSig environment tier for the current environment
         statsig_tier = STATSIG_ENVIRONMENT_MAPPING.get(self.environment.lower(), STATSIG_DEVELOPMENT_TIER)
+        rule_name = f'{self.environment.lower()}-rule'
 
-        # Build conditions for custom attributes if provided
+        # Build conditions for custom attributes if auto_enable is True
         conditions = []
         if custom_attributes:
-            for key, value in custom_attributes.items():
-                conditions.append({'type': 'custom_field', 'targetValue': [value], 'field': key, 'operator': 'any'})
+            conditions = self._build_conditions_from_attributes(custom_attributes)
 
         # Build the feature gate payload
         gate_payload = {
@@ -409,10 +421,10 @@ class StatSigFeatureFlagClient(FeatureFlagClient):
             'isEnabled': True,
             'rules': [
                 {
-                    'name': 'environment_toggle',
+                    'name': rule_name,
                     'conditions': conditions,
                     'environments': [statsig_tier],
-                    'passPercentage': 100,
+                    'passPercentage': 100 if auto_enable or self._is_development_environment() else 0,
                 }
             ],
         }
@@ -424,45 +436,102 @@ class StatSigFeatureFlagClient(FeatureFlagClient):
         else:
             raise FeatureFlagException(f'Failed to create feature gate: {response.status_code} - {response.text[:200]}')
 
-    def _prepare_gate_update(
-        self, gate_data: dict[str, Any], custom_attributes: dict[str, Any] | None = None
-    ) -> dict[str, Any]:
+    def _find_environment_rule(self, gate_data: dict[str, Any], rule_name: str) -> dict[str, Any] | None:
         """
-        Prepare an updated gate configuration with new custom attributes and/or environment.
+        Find an environment-specific rule in the gate data.
+
+        :param gate_data: Gate configuration
+        :param rule_name: Name of the rule to find (e.g., 'test-rule', 'beta-rule', 'prod-rule')
+        :return: Rule data if found, None otherwise
+        """
+        for rule in gate_data.get('rules', []):
+            if rule.get('name') == rule_name:
+                return rule
+        return None
+
+    def _build_conditions_from_attributes(self, custom_attributes: dict[str, Any]) -> list[dict[str, Any]]:
+        """
+        Build StatSig conditions from custom attributes.
+
+        :param custom_attributes: Dictionary of custom attributes
+        :return: List of condition dictionaries
+        :raises FeatureFlagException: If attribute value is not a string or list
+        """
+        conditions = []
+        for key, value in custom_attributes.items():
+            # Convert strings to lists, keep lists as-is, reject other types
+            if isinstance(value, str):
+                value = [value]
+            elif not isinstance(value, list):
+                raise FeatureFlagException(f'Custom attribute value must be a string or list: {value}')
+
+            conditions.append(
+                {'type': 'custom_field', 'targetValue': value, 'field': key, 'operator': 'any'}
+            )
+        return conditions
+
+    def _add_environment_rule(self, gate_data: dict[str, Any], auto_enable: bool, custom_attributes: dict[str, Any] | None = None) -> dict[str, Any]:
+        """
+        Add an environment-specific rule to an existing gate.
 
         :param gate_data: Original gate configuration
-        :param custom_attributes: New custom attributes to set (None = no change)
+        :param auto_enable: If True, passPercentage=100; if False, passPercentage=0
+        :param custom_attributes: Optional custom attributes for targeting (only applied if auto_enable=True)
         :return: Updated gate configuration
         """
-        updated_gate_configuration = gate_data.copy()
+        updated_gate = gate_data.copy()
+        statsig_tier = STATSIG_ENVIRONMENT_MAPPING.get(self.environment.lower(), STATSIG_DEVELOPMENT_TIER)
+        rule_name = f'{self.environment.lower()}-rule'
 
-        # Find the environment_toggle rule
-        for rule in updated_gate_configuration.get('rules', []):
-            if rule.get('name') == 'environment_toggle':
-                # Update custom attributes if provided
-                if custom_attributes is not None:
-                    new_conditions = []
-                    for key, value in custom_attributes.items():
-                        # if the value is a list, leave it as is
-                        # else, convert to list
-                        if isinstance(value, str):
-                            value = [value]
-                        elif not isinstance(value, list):
-                            raise FeatureFlagException(f'Custom attribute value must be a string or list: {value}')
+        # Build conditions if auto_enable is True
+        conditions = []
+        if auto_enable and custom_attributes:
+            conditions = self._build_conditions_from_attributes(custom_attributes)
 
-                        new_conditions.append(
-                            {'type': 'custom_field', 'targetValue': value, 'field': key, 'operator': 'any'}
-                        )
-                    rule['conditions'] = new_conditions
+        # Add new environment rule
+        new_rule = {
+            'name': rule_name,
+            'conditions': conditions,
+            'environments': [statsig_tier],
+            'passPercentage': 100 if auto_enable or self._is_development_environment() else 0,
+        }
 
-                # Add current environment if requested
-                statsig_tier = STATSIG_ENVIRONMENT_MAPPING.get(self.environment.lower(), STATSIG_DEVELOPMENT_TIER)
-                current_environments = rule.get('environments', [])
-                if statsig_tier not in current_environments:
-                    rule['environments'] = current_environments + [statsig_tier]
+        # Ensure rules list exists and add the new rule
+        if 'rules' not in updated_gate:
+            updated_gate['rules'] = []
+        updated_gate['rules'].append(new_rule)
+
+        return updated_gate
+
+    def _update_environment_rule(self, gate_data: dict[str, Any], auto_enable: bool, custom_attributes: dict[str, Any] | None = None) -> dict[str, Any]:
+        """
+        Update an existing environment-specific rule in the gate.
+
+        :param gate_data: Original gate configuration
+        :param auto_enable: If True, passPercentage=100; if False, passPercentage=0
+        :param custom_attributes: Optional custom attributes for targeting
+        :return: Updated gate configuration
+        """
+        updated_gate = gate_data.copy()
+        rule_name = f'{self.environment.lower()}-rule'
+        statsig_tier = STATSIG_ENVIRONMENT_MAPPING.get(self.environment.lower(), STATSIG_DEVELOPMENT_TIER)
+
+        # Find and update the environment rule
+        for rule in updated_gate.get('rules', []):
+            if rule.get('name') == rule_name:
+                # Update passPercentage
+                rule['passPercentage'] = 100 if auto_enable or self._is_development_environment() else 0
+
+                # Update conditions if custom_attributes provided
+                if custom_attributes:
+                    rule['conditions'] = self._build_conditions_from_attributes(custom_attributes)
+
+                # Ensure environment tier is set
+                if statsig_tier not in rule.get('environments', []):
+                    rule['environments'] = rule.get('environments', []) + [statsig_tier]
                 break
 
-        return updated_gate_configuration
+        return updated_gate
 
     def _update_gate(self, gate_id: str, gate_data: dict[str, Any]) -> bool:
         """
@@ -503,13 +572,13 @@ class StatSigFeatureFlagClient(FeatureFlagClient):
 
     def delete_flag(self, flag_name: str) -> bool | None:
         """
-        Delete a feature gate or remove current environment from it.
+        Delete a feature gate or remove current environment rule from it.
 
-        If the gate has multiple environments, only the current environment is removed.
-        If the gate has only the current environment, the entire gate is deleted.
+        If the gate has only the current environment's rule, the entire gate is deleted.
+        If the gate has multiple environment rules, only the current environment's rule is removed.
 
         :param flag_name: Name of the feature flag to delete
-        :return: True if flag was fully deleted, False if only environment was removed, None if flag doesn't exist
+        :return: True if flag was fully deleted, False if only environment rule was removed, None if flag doesn't exist
         :raises FeatureFlagException: If operation fails
         """
         # Get the flag data first
@@ -521,19 +590,19 @@ class StatSigFeatureFlagClient(FeatureFlagClient):
         if not flag_id:
             raise FeatureFlagException(f'Flag data missing ID field: {flag_name}')
 
-        # Get the StatSig environment tier for the current environment
-        statsig_tier = STATSIG_ENVIRONMENT_MAPPING[self.environment.lower()]
+        rule_name = f'{self.environment.lower()}-rule'
+        
+        # Check if current environment rule exists
+        environment_rule = self._find_environment_rule(flag_data, rule_name)
+        if not environment_rule:
+            # Environment rule doesn't exist, nothing to delete
+            return False
 
-        # Find the environment_toggle rule and check environment count
-        environments_in_flag = []
-        for rule in flag_data.get('rules', []):
-            if rule.get('name') == 'environment_toggle':
-                environments_in_flag = rule.get('environments', [])
-                break
+        # Count total number of rules in the gate
+        total_rules = len(flag_data.get('rules', []))
 
-        # Check if current environment is the only one (or one of only one)
-        if len(environments_in_flag) <= 1 and statsig_tier in environments_in_flag:
-            # Delete the entire gate
+        # If this is the only rule, delete the entire gate
+        if total_rules == 1:
             response = self._make_console_api_request('DELETE', f'/gates/{flag_id}')
 
             if response.status_code in [200, 204]:
@@ -543,43 +612,29 @@ class StatSigFeatureFlagClient(FeatureFlagClient):
                     f'Failed to delete feature gate: {response.status_code} - {response.text[:200]}'
                 )
         else:
-            # Remove only the current environment
-            removed = self._remove_current_environment_from_flag(flag_id, flag_data)
-            return False if removed else False  # Environment removed, not full deletion
+            # Remove only the current environment's rule
+            removed = self._remove_environment_rule_from_flag(flag_id, flag_data, rule_name)
+            return False if removed else False  # Environment rule removed, not full deletion
 
-    def _remove_current_environment_from_flag(self, flag_id: str, flag_data: dict[str, Any]) -> bool:
+    def _remove_environment_rule_from_flag(self, flag_id: str, flag_data: dict[str, Any], rule_name: str) -> bool:
         """
-        Remove the current environment from a feature gate.
+        Remove an environment-specific rule from a feature gate.
 
         :param flag_id: ID of the feature gate
         :param flag_data: Current flag configuration
-        :return: True if environment was removed, False if it wasn't present
+        :param rule_name: Name of the rule to remove (e.g., 'test-rule', 'beta-rule', 'prod-rule')
+        :return: True if rule was removed, False if it wasn't present
         :raises FeatureFlagException: If operation fails
         """
-        # Get the StatSig environment tier for the current environment
-        statsig_tier = STATSIG_ENVIRONMENT_MAPPING.get(self.environment.lower(), STATSIG_DEVELOPMENT_TIER)
+        # Prepare updated gate with the environment rule removed
+        updated_gate = flag_data.copy()
+        updated_rules = [rule for rule in updated_gate.get('rules', []) if rule.get('name') != rule_name]
 
-        # Check if current environment is present
-        environment_present = False
-        for rule in flag_data.get('rules', []):
-            if rule.get('name') == 'environment_toggle':
-                current_environments = rule.get('environments', [])
-                if statsig_tier in current_environments:
-                    environment_present = True
-                break
-
-        if not environment_present:
+        # If no rules were removed, the rule wasn't present
+        if len(updated_rules) == len(updated_gate.get('rules', [])):
             return False
 
-        # Prepare updated gate with environment removed
-        updated_gate = flag_data.copy()
-        for rule in updated_gate.get('rules', []):
-            if rule.get('name') == 'environment_toggle':
-                current_environments = rule.get('environments', [])
-                if statsig_tier in current_environments:
-                    current_environments.remove(statsig_tier)
-                    rule['environments'] = current_environments
-                break
+        updated_gate['rules'] = updated_rules
 
         # Update the gate
         self._update_gate(flag_id, updated_gate)
