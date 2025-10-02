@@ -84,7 +84,7 @@ class FeatureFlagStack(AppStack):
 
         # Feature Flags are deployed through a custom resource
         # one per flag
-        self.test_flag = FeatureFlagResource(
+        self.example_flag = FeatureFlagResource(
             self,
             'ExampleFlag',
             flag_name='example-flag',
@@ -93,6 +93,7 @@ class FeatureFlagStack(AppStack):
                 FeatureFlagEnvironmentName.TEST,
                 FeatureFlagEnvironmentName.BETA,
                 FeatureFlagEnvironmentName.PROD,
+                FeatureFlagEnvironmentName.SANDBOX
             ],
             # Note that flags are not updated once set and must be manually updated through the console
             custom_attributes={'compact': ['aslp']},

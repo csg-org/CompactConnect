@@ -23,7 +23,7 @@ class FeatureFlagEnvironmentName(Enum):
     BETA = 'beta'
     PROD = 'prod'
     # add sandbox environment names here if needed
-    # SANDBOX = 'sandbox'
+    SANDBOX = 'sandbox'
 
 
 @jsii.implements(IGrantable)
