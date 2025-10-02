@@ -45,9 +45,7 @@ class V1Api:
         data_event_bus = SSMParameterUtility.load_data_event_bus_from_ssm_parameter(stack)
         _active_compacts = persistent_stack.get_list_of_compact_abbreviations()
 
-        stack.common_env_vars.update({
-            'API_BASE_URL': f'https://{persistent_stack.api_domain_name}'
-        })
+        stack.common_env_vars.update({'API_BASE_URL': f'https://{persistent_stack.api_domain_name}'})
 
         read_scopes = []
         write_scopes = []
