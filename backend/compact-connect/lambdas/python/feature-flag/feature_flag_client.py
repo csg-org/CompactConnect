@@ -84,7 +84,9 @@ class FeatureFlagClient(ABC):
         """
 
     @abstractmethod
-    def upsert_flag(self, flag_name: str, auto_enable: bool = False, custom_attributes: dict[str, Any] | None = None) -> dict[str, Any]:
+    def upsert_flag(
+        self, flag_name: str, auto_enable: bool = False, custom_attributes: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """
         Create or update a feature flag in the provider.
 
@@ -368,7 +370,9 @@ class StatSigFeatureFlagClient(FeatureFlagClient):
         except requests.exceptions.RequestException as e:
             raise FeatureFlagException(f'StatSig Console API request failed: {e}') from e
 
-    def upsert_flag(self, flag_name: str, auto_enable: bool = False, custom_attributes: dict[str, Any] | None = None) -> dict[str, Any]:
+    def upsert_flag(
+        self, flag_name: str, auto_enable: bool = False, custom_attributes: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """
         Create or update a feature gate in StatSig.
 
@@ -407,11 +411,11 @@ class StatSigFeatureFlagClient(FeatureFlagClient):
             else:
                 # Gate exists - update it
                 gate_id = existing_gate.get('id')
-                
+
                 # Update the gate with new attributes and/or environment
                 updated_gate = self._prepare_gate_update(existing_gate, custom_attributes, auto_enable)
                 self._update_gate(gate_id, updated_gate)
-                
+
                 # Return updated gate data
                 return self.get_flag(flag_name) or existing_gate
 
@@ -453,11 +457,11 @@ class StatSigFeatureFlagClient(FeatureFlagClient):
         if response.status_code in [200, 201]:
             return response.json()
         else:
-            raise FeatureFlagException(
-                f'Failed to create feature gate: {response.status_code} - {response.text[:200]}'
-            )
+            raise FeatureFlagException(f'Failed to create feature gate: {response.status_code} - {response.text[:200]}')
 
-    def _prepare_gate_update(self, gate_data: dict[str, Any], custom_attributes: dict[str, Any] | None = None, add_current_env: bool = False) -> dict[str, Any]:
+    def _prepare_gate_update(
+        self, gate_data: dict[str, Any], custom_attributes: dict[str, Any] | None = None, add_current_env: bool = False
+    ) -> dict[str, Any]:
         """
         Prepare an updated gate configuration with new custom attributes and/or environment.
 
@@ -475,7 +479,9 @@ class StatSigFeatureFlagClient(FeatureFlagClient):
                 if custom_attributes is not None:
                     new_conditions = []
                     for key, value in custom_attributes.items():
-                        new_conditions.append({'type': 'custom_field', 'targetValue': [value], 'field': key, 'operator': 'any'})
+                        new_conditions.append(
+                            {'type': 'custom_field', 'targetValue': [value], 'field': key, 'operator': 'any'}
+                        )
                     rule['conditions'] = new_conditions
 
                 # Add current environment if requested
@@ -502,9 +508,7 @@ class StatSigFeatureFlagClient(FeatureFlagClient):
         if response.status_code in [200, 204]:
             return True
         else:
-            raise FeatureFlagException(
-                f'Failed to update feature gate: {response.status_code} - {response.text[:200]}'
-            )
+            raise FeatureFlagException(f'Failed to update feature gate: {response.status_code} - {response.text[:200]}')
 
     def get_flag(self, flag_name: str) -> dict[str, Any] | None:
         """
