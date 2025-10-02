@@ -370,19 +370,19 @@ class StatSigFeatureFlagClient(FeatureFlagClient):
         if not existing_gate:
             # Create new gate with environment-specific rule
             return self._create_new_gate(flag_name, auto_enable, custom_attributes)
-        else:
-            # Gate exists - check if environment rule exists
-            gate_id = existing_gate.get('id')
-            rule_name = f'{self.environment.lower()}-rule'
-            environment_rule = self._find_environment_rule(existing_gate, rule_name)
 
-            # we only set the environment rule if it doesn't already exist
-            # else we leave it alone to avoid overwriting manual changes
-            if not environment_rule:
-                updated_gate = self._add_environment_rule(existing_gate, auto_enable, custom_attributes)
-                self._update_gate(gate_id, updated_gate)
+        # Gate exists - check if environment rule exists
+        gate_id = existing_gate.get('id')
+        rule_name = f'{self.environment.lower()}-rule'
+        environment_rule = self._find_environment_rule(existing_gate, rule_name)
 
-            return existing_gate
+        # we only set the environment rule if it doesn't already exist
+        # else we leave it alone to avoid overwriting manual changes
+        if not environment_rule:
+            updated_gate = self._add_environment_rule(existing_gate, auto_enable, custom_attributes)
+            self._update_gate(gate_id, updated_gate)
+
+        return existing_gate
 
     def _create_new_gate(
         self, flag_name: str, auto_enable: bool, custom_attributes: dict[str, Any] | None = None
@@ -424,8 +424,8 @@ class StatSigFeatureFlagClient(FeatureFlagClient):
 
         if response.status_code in [200, 201]:
             return response.json()
-        else:
-            raise FeatureFlagException(f'Failed to create feature gate: {response.status_code} - {response.text[:200]}')
+
+        raise FeatureFlagException(f'Failed to create feature gate: {response.status_code} - {response.text[:200]}')
 
     def _find_environment_rule(self, gate_data: dict[str, Any], rule_name: str) -> dict[str, Any] | None:
         """
@@ -507,8 +507,8 @@ class StatSigFeatureFlagClient(FeatureFlagClient):
 
         if response.status_code in [200, 204]:
             return True
-        else:
-            raise FeatureFlagException(f'Failed to update feature gate: {response.status_code} - {response.text[:200]}')
+
+        raise FeatureFlagException(f'Failed to update feature gate: {response.status_code} - {response.text[:200]}')
 
     def get_flag(self, flag_name: str) -> dict[str, Any] | None:
         """
@@ -526,10 +526,9 @@ class StatSigFeatureFlagClient(FeatureFlagClient):
             for gate in gates_data.get('data', []):
                 if gate.get('name') == flag_name:
                     return gate
-
             return None
-        else:
-            raise FeatureFlagException(f'Failed to fetch gates: {response.status_code} - {response.text[:200]}')
+
+        raise FeatureFlagException(f'Failed to fetch gates: {response.status_code} - {response.text[:200]}')
 
     def delete_flag(self, flag_name: str) -> bool | None:
         """
@@ -568,14 +567,14 @@ class StatSigFeatureFlagClient(FeatureFlagClient):
 
             if response.status_code in [200, 204]:
                 return True  # Flag fully deleted
-            else:
-                raise FeatureFlagException(
-                    f'Failed to delete feature gate: {response.status_code} - {response.text[:200]}'
-                )
-        else:
-            # Remove only the current environment's rule
-            removed = self._remove_environment_rule_from_flag(flag_id, flag_data, rule_name)
-            return False if removed else False  # Environment rule removed, not full deletion
+
+            raise FeatureFlagException(
+                f'Failed to delete feature gate: {response.status_code} - {response.text[:200]}'
+            )
+
+        # Remove only the current environment's rule
+        removed = self._remove_environment_rule_from_flag(flag_id, flag_data, rule_name)
+        return False if removed else False  # Environment rule removed, not full deletion
 
     def _remove_environment_rule_from_flag(self, flag_id: str, flag_data: dict[str, Any], rule_name: str) -> bool:
         """
