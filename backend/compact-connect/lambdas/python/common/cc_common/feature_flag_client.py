@@ -43,7 +43,7 @@ class FeatureFlagContext:
         return result
 
 
-def is_feature_enabled(flag_name: str, context: FeatureFlagContext | None = None, fail_open: bool = False) -> bool:
+def is_feature_enabled(flag_name: str, context: FeatureFlagContext | None = None, fail_default: bool = False) -> bool:
     """
     Check if a feature flag is enabled.
 
@@ -52,7 +52,7 @@ def is_feature_enabled(flag_name: str, context: FeatureFlagContext | None = None
 
     :param flag_name: The name of the feature flag to check
     :param context: Optional FeatureFlagContext for feature flag evaluation
-    :param fail_open: If True, return True on errors; if False, return False on errors (default: False)
+    :param fail_default: If True, return True on errors; if False, return False on errors (default: False)
     :return: True if the feature flag is enabled, False otherwise (or fail_open value on error)
 
     Example:
@@ -109,14 +109,14 @@ def is_feature_enabled(flag_name: str, context: FeatureFlagContext | None = None
         if 'enabled' not in response_data:
             logger.info('Invalid response format - return fail_open value', response_data=response_data)
             # Invalid response format - return fail_open value
-            return fail_open
+            return fail_default
 
         return bool(response_data['enabled'])
 
     except Exception as e:
         # Any error (timeout, network, parsing, etc.) - return fail_open value
         logger.info('Error checking feature flag - return fail_open value', exc_info=e)
-        return fail_open
+        return fail_default
 
 
 def _get_api_base_url() -> str:
