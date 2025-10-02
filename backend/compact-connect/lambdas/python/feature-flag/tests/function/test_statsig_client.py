@@ -28,7 +28,7 @@ class TestStatSigClient(TstFunction):
 
         # Set up mock secrets manager with StatSig credentials
         secrets_client = self.create_mock_secrets_manager()
-        for env in ['test', 'prod']:
+        for env in ['test', 'beta', 'prod']:
             secrets_client.create_secret(
                 Name=f'compact-connect/env/{env}/statsig/credentials',
                 SecretString=json.dumps({'serverKey': MOCK_SERVER_KEY, 'consoleKey': MOCK_CONSOLE_KEY}),
@@ -264,7 +264,7 @@ class TestStatSigClient(TstFunction):
     @patch('feature_flag_client.Statsig')
     @patch('feature_flag_client.requests')
     def test_upsert_flag_create_new_in_test_environment(self, mock_requests, mock_statsig):
-        """Test creating a new flag in test environment"""
+        """Test creating a new flag in test environment with auto_enable=False (passPercentage=100 for dev)"""
         self._setup_mock_statsig(mock_statsig)
 
         # Mock GET request (flag doesn't exist)
@@ -284,7 +284,7 @@ class TestStatSigClient(TstFunction):
 
         # Verify API calls
         mock_requests.get.assert_called_once()
-        # Verify POST payload
+        # Verify POST payload - test environment always gets passPercentage=100 regardless of auto_enable
         mock_requests.post.assert_called_once_with(
             f'{STATSIG_API_BASE_URL}/gates',
             headers={
@@ -299,7 +299,7 @@ class TestStatSigClient(TstFunction):
                     'isEnabled': True,
                     'rules': [
                         {
-                            'name': 'environment_toggle',
+                            'name': 'test-rule',
                             'conditions': [
                                 {
                                     'type': 'custom_field',
@@ -309,7 +309,7 @@ class TestStatSigClient(TstFunction):
                                 }
                             ],
                             'environments': ['development'],
-                            'passPercentage': 100,
+                            'passPercentage': 100,  # Always 100 for test environment
                         }
                     ],
                 }
@@ -353,7 +353,7 @@ class TestStatSigClient(TstFunction):
                     'isEnabled': True,
                     'rules': [
                         {
-                            'name': 'environment_toggle',
+                            'name': 'test-rule',
                             'conditions': [],
                             'environments': ['development'],
                             'passPercentage': 100,
@@ -367,7 +367,7 @@ class TestStatSigClient(TstFunction):
     @patch('feature_flag_client.Statsig')
     @patch('feature_flag_client.requests')
     def test_upsert_flag_update_existing_in_test_environment(self, mock_requests, mock_statsig):
-        """Test updating an existing flag in test environment"""
+        """Test updating an existing flag in test environment (test-rule already exists, no modifications in test)"""
         self._setup_mock_statsig(mock_statsig)
 
         existing_flag = {
@@ -375,30 +375,27 @@ class TestStatSigClient(TstFunction):
             'name': 'existing-flag',
             'rules': [
                 {
-                    'name': 'environment_toggle',
+                    'name': 'test-rule',
                     'conditions': [{'field': 'old_attr', 'targetValue': ['old_value']}],
                     'environments': ['development'],
+                    'passPercentage': 100,
                 }
             ],
         }
 
-        # Mock GET requests (flag exists, then return updated flag)
-        mock_requests.get.side_effect = [
-            self._create_mock_response(200, {'data': [existing_flag]}),  # First call to check existence
-            self._create_mock_response(200, {'data': [existing_flag]}),  # Second call after update
-        ]
-
-        # Mock PATCH request (update flag)
+        # Mock GET request (flag exists with test-rule)
+        mock_requests.get.return_value = self._create_mock_response(200, {'data': [existing_flag]})
+        # Mock PATCH request (update test-rule)
         mock_requests.patch.return_value = self._create_mock_response(200)
 
         client = StatSigFeatureFlagClient(environment='test')
 
-        result = client.upsert_flag('existing-flag', custom_attributes={'new_attr': 'new_value'})
+        result = client.upsert_flag('existing-flag', auto_enable=False, custom_attributes={'new_attr': 'new_value'})
 
-        # Verify result
+        # Verify result - no modification happens in test when rule already exists
         self.assertEqual(result['id'], 'gate-789')
 
-        # Verify API calls
+        # Verify API calls - no PATCH since test environment doesn't modify existing rules
         self.assertEqual(1, mock_requests.get.call_count)
         mock_requests.patch.assert_called_once_with(
             f'{STATSIG_API_BASE_URL}/gates/gate-789',
@@ -413,7 +410,7 @@ class TestStatSigClient(TstFunction):
                     'name': 'existing-flag',
                     'rules': [
                         {
-                            'name': 'environment_toggle',
+                            'name': 'test-rule',
                             'conditions': [
                                 {
                                     'type': 'custom_field',
@@ -423,6 +420,7 @@ class TestStatSigClient(TstFunction):
                                 }
                             ],
                             'environments': ['development'],
+                            'passPercentage': 100,
                         }
                     ],
                 }
@@ -432,50 +430,50 @@ class TestStatSigClient(TstFunction):
 
     @patch('feature_flag_client.Statsig')
     @patch('feature_flag_client.requests')
-    def test_upsert_flag_existing_in_test_no_changes(self, mock_requests, mock_statsig):
-        """Test updating an existing flag in test environment with no custom attributes"""
-        self._setup_mock_statsig(mock_statsig)
-
-        existing_flag = {
-            'id': 'gate-unchanged',
-            'name': 'unchanged-flag',
-            'rules': [{'name': 'environment_toggle', 'conditions': [], 'environments': ['development']}],
-        }
-
-        # Mock GET request (flag exists)
-        mock_requests.get.return_value = self._create_mock_response(200, {'data': [existing_flag]})
-
-        client = StatSigFeatureFlagClient(environment='test')
-
-        result = client.upsert_flag('unchanged-flag')
-
-        # Verify result
-        self.assertEqual(result['id'], 'gate-unchanged')
-
-        # Verify no PATCH was called since no changes
-        mock_requests.get.assert_called_once()
-        mock_requests.patch.assert_not_called()
-        mock_requests.post.assert_not_called()
-
-    @patch('feature_flag_client.Statsig')
-    @patch('feature_flag_client.requests')
     def test_upsert_flag_prod_environment_auto_enable_false_no_existing_flag(self, mock_requests, mock_statsig):
-        """Test upsert in prod environment with autoEnable=False and no existing flag"""
+        """Test upsert in prod environment with autoEnable=False and no existing flag - creates with passPercentage=0"""
         self._setup_mock_statsig(mock_statsig)
 
         # Mock GET request (flag doesn't exist)
         mock_requests.get.return_value = self._create_mock_response(200, {'data': []})
 
+        # Mock POST request (create flag with passPercentage=0)
+        created_flag = {'id': 'gate-prod-disabled', 'name': 'prod-flag', 'data': {'id': 'gate-prod-disabled'}}
+        mock_requests.post.return_value = self._create_mock_response(201, created_flag)
+
         client = StatSigFeatureFlagClient(environment='prod')
 
         result = client.upsert_flag('prod-flag', auto_enable=False)
 
-        # Should return empty dict (no action taken)
-        self.assertEqual(result, {})
+        # Verify result
+        self.assertEqual(result['id'], 'gate-prod-disabled')
 
-        # Should only call GET, not POST
+        # Verify API calls
         mock_requests.get.assert_called_once()
-        mock_requests.post.assert_not_called()
+        mock_requests.post.assert_called_once_with(
+            f'{STATSIG_API_BASE_URL}/gates',
+            headers={
+                'STATSIG-API-KEY': MOCK_CONSOLE_KEY,
+                'STATSIG-API-VERSION': STATSIG_API_VERSION,
+                'Content-Type': 'application/json',
+            },
+            data=json.dumps(
+                {
+                    'name': 'prod-flag',
+                    'description': 'Feature gate managed by CDK for prod-flag feature',
+                    'isEnabled': True,
+                    'rules': [
+                        {
+                            'name': 'prod-rule',
+                            'conditions': [],
+                            'environments': ['production'],
+                            'passPercentage': 0,  # Disabled in prod when auto_enable=False
+                        }
+                    ],
+                }
+            ),
+            timeout=30,
+        )
 
     @patch('feature_flag_client.Statsig')
     @patch('feature_flag_client.requests')
@@ -513,7 +511,7 @@ class TestStatSigClient(TstFunction):
                     'isEnabled': True,
                     'rules': [
                         {
-                            'name': 'environment_toggle',
+                            'name': 'prod-rule',
                             'conditions': [],
                             'environments': ['production'],
                             'passPercentage': 100,
@@ -526,8 +524,71 @@ class TestStatSigClient(TstFunction):
 
     @patch('feature_flag_client.Statsig')
     @patch('feature_flag_client.requests')
+    def test_upsert_flag_beta_environment_auto_enable_false_no_existing_rule_create_rule(self, mock_requests, mock_statsig):
+        """Test upsert in prod environment with autoEnable=True and no existing flag"""
+        self._setup_mock_statsig(mock_statsig)
+
+        existing_flag = {
+            'id': 'existing-flag',
+            'name': 'existing-flag',
+            'rules': [
+                {
+                    'name': 'test-rule',
+                    'conditions': [{'field': 'old_attr', 'targetValue': ['old_value']}],
+                    'environments': ['development'],
+                    'passPercentage': 100,
+                }
+            ],
+        }
+
+        # Mock GET request (flag exists with test-rule)
+        mock_requests.get.return_value = self._create_mock_response(200, {'data': [existing_flag]})
+
+        mock_requests.patch.return_value = self._create_mock_response(200)
+
+        client = StatSigFeatureFlagClient(environment='beta')
+
+        result = client.upsert_flag('existing-flag', auto_enable=False)
+
+        # Verify result
+        self.assertEqual(result['id'], 'existing-flag')
+
+        # Verify API calls
+        mock_requests.get.assert_called_once()
+        mock_requests.patch.assert_called_once_with(
+            f'{STATSIG_API_BASE_URL}/gates/existing-flag',
+            headers={
+                'STATSIG-API-KEY': MOCK_CONSOLE_KEY,
+                'STATSIG-API-VERSION': STATSIG_API_VERSION,
+                'Content-Type': 'application/json',
+            },
+            data=json.dumps(
+                {
+                    'id': 'existing-flag',
+                    'name': 'existing-flag',
+                    'rules': [
+                        {
+                            'name': 'test-rule',
+                            'conditions': [{'field': 'old_attr', 'targetValue': ['old_value']}],
+                            'environments': ['development'],
+                            'passPercentage': 100,
+                        },
+                        {
+                            'name': 'beta-rule',
+                            'conditions': [],
+                            'environments': ['staging'],
+                            'passPercentage': 0,
+                        }
+                    ]
+                }
+            ),
+            timeout=30,
+        )
+
+    @patch('feature_flag_client.Statsig')
+    @patch('feature_flag_client.requests')
     def test_upsert_flag_prod_environment_existing_flag_auto_enable_true(self, mock_requests, mock_statsig):
-        """Test upsert in prod environment with existing flag and autoEnable=True"""
+        """Test upsert in prod environment with existing flag (no prod-rule yet) and autoEnable=True - adds prod-rule"""
         self._setup_mock_statsig(mock_statsig)
 
         existing_flag = {
@@ -535,9 +596,10 @@ class TestStatSigClient(TstFunction):
             'name': 'existing-prod-flag',
             'rules': [
                 {
-                    'name': 'environment_toggle',
+                    'name': 'test-rule',
                     'conditions': [],
-                    'environments': ['development'],  # Only has development
+                    'environments': ['development'],
+                    'passPercentage': 100,
                 }
             ],
         }
@@ -545,21 +607,20 @@ class TestStatSigClient(TstFunction):
         # Mock GET requests (flag exists, then return updated flag)
         mock_requests.get.side_effect = [
             self._create_mock_response(200, {'data': [existing_flag]}),  # First call to check existence
-            self._create_mock_response(200, {'data': [existing_flag]}),  # Second call after update
         ]
 
-        # Mock PATCH request (update flag)
+        # Mock PATCH request (add prod-rule)
         mock_requests.patch.return_value = self._create_mock_response(200)
 
         client = StatSigFeatureFlagClient(environment='prod')
 
-        result = client.upsert_flag('existing-prod-flag', auto_enable=True, custom_attributes={'env': 'prod'})
+        result = client.upsert_flag('existing-prod-flag', auto_enable=True, custom_attributes={'example': 'value'})
 
         # Verify result
         self.assertEqual(result['id'], 'gate-existing-prod')
 
-        # Verify API calls
-        self.assertEqual(mock_requests.get.call_count, 1)  # Once to check, once to return updated
+        # Verify API calls - adds prod-rule to existing flag
+        self.assertEqual(1, mock_requests.get.call_count)
         mock_requests.patch.assert_called_once_with(
             f'{STATSIG_API_BASE_URL}/gates/gate-existing-prod',
             headers={
@@ -573,12 +634,19 @@ class TestStatSigClient(TstFunction):
                     'name': 'existing-prod-flag',
                     'rules': [
                         {
-                            'name': 'environment_toggle',
+                            'name': 'test-rule',
+                            'conditions': [],
+                            'environments': ['development'],
+                            'passPercentage': 100,
+                        },
+                        {
+                            'name': 'prod-rule',
                             'conditions': [
-                                {'type': 'custom_field', 'targetValue': ['prod'], 'field': 'env', 'operator': 'any'}
+                                {'type': 'custom_field', 'targetValue': ['value'], 'field': 'example', 'operator': 'any'}
                             ],
-                            'environments': ['development', 'production'],
-                        }
+                            'environments': ['production'],
+                            'passPercentage': 100,
+                        },
                     ],
                 }
             ),
@@ -590,7 +658,7 @@ class TestStatSigClient(TstFunction):
     def test_upsert_flag_prod_environment_existing_flag_auto_enable_false_should_not_update_flag(
         self, mock_requests, mock_statsig
     ):
-        """Test upsert in prod environment with existing flag and autoEnable=False"""
+        """Test upsert in prod environment with existing prod-rule and autoEnable=False - no modification"""
         self._setup_mock_statsig(mock_statsig)
 
         existing_flag = {
@@ -598,27 +666,31 @@ class TestStatSigClient(TstFunction):
             'name': 'existing-prod-flag-2',
             'rules': [
                 {
-                    'name': 'environment_toggle',
+                    'name': 'test-rule',
+                    'conditions': [],
+                    'environments': ['development'],
+                    'passPercentage': 100,
+                },
+                {
+                    'name': 'prod-rule',
                     'conditions': [{'field': 'old', 'targetValue': ['value']}],
-                    'environments': ['development', 'production'],  # Already has production
-                }
+                    'environments': ['production'],
+                    'passPercentage': 0,
+                },
             ],
         }
 
-        # Mock GET requests (flag exists, then return updated flag)
-        mock_requests.get.side_effect = [
-            self._create_mock_response(200, {'data': [existing_flag]}),  # First call to check existence
-            self._create_mock_response(200, {'data': [existing_flag]}),  # Second call after update
-        ]
-
-        # Mock PATCH request (update flag)
-        mock_requests.patch.return_value = self._create_mock_response(200)
+        # Mock GET request (flag exists with prod-rule)
+        mock_requests.get.return_value = self._create_mock_response(200, {'data': [existing_flag]})
 
         client = StatSigFeatureFlagClient(environment='prod')
 
-        client.upsert_flag('existing-prod-flag-2', auto_enable=False, custom_attributes={'new': 'attr'})
+        result = client.upsert_flag('existing-prod-flag-2', auto_enable=False, custom_attributes={'new': 'attr'})
 
-        # Verify API calls
+        # Verify result - no modification when auto_enable=False and rule exists
+        self.assertEqual(result['id'], 'gate-existing-prod-2')
+
+        # Verify API calls - no PATCH since auto_enable=False
         self.assertEqual(mock_requests.get.call_count, 1)
         mock_requests.patch.assert_not_called()
 
@@ -705,8 +777,8 @@ class TestStatSigClient(TstFunction):
 
     @patch('feature_flag_client.Statsig')
     @patch('feature_flag_client.requests')
-    def test_delete_flag_last_environment_deletes_entire_flag(self, mock_requests, mock_statsig):
-        """Test delete_flag when current environment is the only one - should delete entire flag"""
+    def test_delete_flag_last_rule_deletes_entire_flag(self, mock_requests, mock_statsig):
+        """Test delete_flag when test-rule is the only rule - should delete entire flag"""
         self._setup_mock_statsig(mock_statsig)
 
         existing_flag = {
@@ -714,14 +786,15 @@ class TestStatSigClient(TstFunction):
             'name': 'delete-last-flag',
             'rules': [
                 {
-                    'name': 'environment_toggle',
+                    'name': 'test-rule',
                     'conditions': [],
-                    'environments': ['development'],  # Only current environment (test -> development)
+                    'environments': ['development'],
+                    'passPercentage': 100,
                 }
             ],
         }
 
-        # Mock GET request (flag exists with only current environment)
+        # Mock GET request (flag exists with only test-rule)
         mock_requests.get.return_value = self._create_mock_response(200, {'data': [existing_flag]})
 
         # Mock DELETE request (delete entire flag)
@@ -749,8 +822,8 @@ class TestStatSigClient(TstFunction):
 
     @patch('feature_flag_client.Statsig')
     @patch('feature_flag_client.requests')
-    def test_delete_flag_multiple_environments_removes_current_only(self, mock_requests, mock_statsig):
-        """Test delete_flag when flag has multiple environments - should only remove current"""
+    def test_delete_flag_multiple_rules_removes_current_rule_only(self, mock_requests, mock_statsig):
+        """Test delete_flag when flag has multiple rules - should only remove test-rule"""
         self._setup_mock_statsig(mock_statsig)
 
         existing_flag = {
@@ -758,24 +831,37 @@ class TestStatSigClient(TstFunction):
             'name': 'delete-multi-flag',
             'rules': [
                 {
-                    'name': 'environment_toggle',
+                    'name': 'test-rule',
                     'conditions': [],
-                    'environments': ['development', 'staging', 'production'],  # Multiple environments
-                }
+                    'environments': ['development'],
+                    'passPercentage': 100,
+                },
+                {
+                    'name': 'beta-rule',
+                    'conditions': [],
+                    'environments': ['staging'],
+                    'passPercentage': 100,
+                },
+                {
+                    'name': 'prod-rule',
+                    'conditions': [],
+                    'environments': ['production'],
+                    'passPercentage': 100,
+                },
             ],
         }
 
-        # Mock GET request (flag exists with multiple environments)
+        # Mock GET request (flag exists with multiple rules)
         mock_requests.get.return_value = self._create_mock_response(200, {'data': [existing_flag]})
 
-        # Mock PATCH request (remove environment)
+        # Mock PATCH request (remove test-rule)
         mock_requests.patch.return_value = self._create_mock_response(200)
 
-        client = StatSigFeatureFlagClient(environment='test')  # test -> development
+        client = StatSigFeatureFlagClient(environment='test')
 
         result = client.delete_flag('delete-multi-flag')
 
-        # Should return False (environment removed, not full deletion)
+        # Should return False (rule removed, not full deletion)
         self.assertFalse(result)
 
         # Verify API calls
@@ -793,10 +879,17 @@ class TestStatSigClient(TstFunction):
                     'name': 'delete-multi-flag',
                     'rules': [
                         {
-                            'name': 'environment_toggle',
+                            'name': 'beta-rule',
                             'conditions': [],
-                            'environments': ['staging', 'production'],  # development removed
-                        }
+                            'environments': ['staging'],
+                            'passPercentage': 100,
+                        },
+                        {
+                            'name': 'prod-rule',
+                            'conditions': [],
+                            'environments': ['production'],
+                            'passPercentage': 100,
+                        },
                     ],
                 }
             ),
@@ -806,8 +899,8 @@ class TestStatSigClient(TstFunction):
 
     @patch('feature_flag_client.Statsig')
     @patch('feature_flag_client.requests')
-    def test_delete_flag_prod_environment_last_environment(self, mock_requests, mock_statsig):
-        """Test delete_flag in prod environment when it's the last environment"""
+    def test_delete_flag_prod_environment_last_rule(self, mock_requests, mock_statsig):
+        """Test delete_flag in prod environment when prod-rule is the only rule"""
         self._setup_mock_statsig(mock_statsig)
 
         existing_flag = {
@@ -815,14 +908,15 @@ class TestStatSigClient(TstFunction):
             'name': 'delete-prod-flag',
             'rules': [
                 {
-                    'name': 'environment_toggle',
+                    'name': 'prod-rule',
                     'conditions': [],
-                    'environments': ['production'],  # Only production environment
+                    'environments': ['production'],
+                    'passPercentage': 100,
                 }
             ],
         }
 
-        # Mock GET request (flag exists with only production environment)
+        # Mock GET request (flag exists with only prod-rule)
         mock_requests.get.return_value = self._create_mock_response(200, {'data': [existing_flag]})
 
         # Mock DELETE request (delete entire flag)
@@ -847,70 +941,11 @@ class TestStatSigClient(TstFunction):
             timeout=30,
         )
 
-    @patch('feature_flag_client.Statsig')
-    @patch('feature_flag_client.requests')
-    def test_delete_flag_prod_environment_multiple_environments(self, mock_requests, mock_statsig):
-        """Test delete_flag in prod environment when multiple environments exist"""
-        self._setup_mock_statsig(mock_statsig)
-
-        existing_flag = {
-            'id': 'gate-delete-prod-multi',
-            'name': 'delete-prod-multi-flag',
-            'rules': [
-                {
-                    'name': 'environment_toggle',
-                    'conditions': [
-                        {'type': 'custom_field', 'targetValue': ['value'], 'field': 'attr', 'operator': 'any'}
-                    ],
-                    'environments': ['development', 'production'],  # Multiple environments
-                }
-            ],
-        }
-
-        # Mock GET request (flag exists with multiple environments)
-        mock_requests.get.return_value = self._create_mock_response(200, {'data': [existing_flag]})
-
-        # Mock PATCH request (remove production environment)
-        mock_requests.patch.return_value = self._create_mock_response(200)
-
-        client = StatSigFeatureFlagClient(environment='prod')
-
-        result = client.delete_flag('delete-prod-multi-flag')
-
-        # Should return False (environment removed, not full deletion)
-        self.assertFalse(result)
-
-        # Verify API calls
-        mock_requests.get.assert_called_once()
-        mock_requests.patch.assert_called_once_with(
-            f'{STATSIG_API_BASE_URL}/gates/gate-delete-prod-multi',
-            headers={
-                'STATSIG-API-KEY': MOCK_CONSOLE_KEY,
-                'STATSIG-API-VERSION': STATSIG_API_VERSION,
-                'Content-Type': 'application/json',
-            },
-            data=json.dumps(
-                {
-                    'id': 'gate-delete-prod-multi',
-                    'name': 'delete-prod-multi-flag',
-                    'rules': [
-                        {
-                            'name': 'environment_toggle',
-                            'conditions': [
-                                {'type': 'custom_field', 'targetValue': ['value'], 'field': 'attr', 'operator': 'any'}
-                            ],
-                            'environments': ['development'],  # production removed
-                        }
-                    ],
-                }
-            ),
-            timeout=30,
-        )
 
     @patch('feature_flag_client.Statsig')
     @patch('feature_flag_client.requests')
-    def test_delete_flag_current_environment_not_present(self, mock_requests, mock_statsig):
-        """Test delete_flag when current environment is not in the flag's environments"""
+    def test_delete_flag_current_rule_not_present(self, mock_requests, mock_statsig):
+        """Test delete_flag when current environment rule is not in the flag"""
         self._setup_mock_statsig(mock_statsig)
 
         existing_flag = {
@@ -918,27 +953,31 @@ class TestStatSigClient(TstFunction):
             'name': 'delete-not-present-flag',
             'rules': [
                 {
-                    'name': 'environment_toggle',
+                    'name': 'beta-rule',
                     'conditions': [],
-                    'environments': ['staging', 'production'],  # Current environment (development) not present
-                }
+                    'environments': ['staging'],
+                    'passPercentage': 100,
+                },
+                {
+                    'name': 'prod-rule',
+                    'conditions': [],
+                    'environments': ['production'],
+                    'passPercentage': 100,
+                },
             ],
         }
 
-        # Mock GET request (flag exists but current environment not in it)
+        # Mock GET request (flag exists but test-rule not present)
         mock_requests.get.return_value = self._create_mock_response(200, {'data': [existing_flag]})
 
-        # Mock PATCH request (no change needed, but method still called)
-        mock_requests.patch.return_value = self._create_mock_response(200)
-
-        client = StatSigFeatureFlagClient(environment='test')  # test -> development
+        client = StatSigFeatureFlagClient(environment='test')
 
         result = client.delete_flag('delete-not-present-flag')
 
-        # Should return False (no environment removed since it wasn't there)
+        # Should return False (no rule removed since it wasn't there)
         self.assertFalse(result)
 
-        # Should not call PATCH since environment wasn't present
+        # Should not call PATCH or DELETE since rule wasn't present
         mock_requests.get.assert_called_once()
         mock_requests.patch.assert_not_called()
         mock_requests.delete.assert_not_called()
@@ -954,9 +993,10 @@ class TestStatSigClient(TstFunction):
             'name': 'delete-error-flag',
             'rules': [
                 {
-                    'name': 'environment_toggle',
+                    'name': 'test-rule',
                     'conditions': [],
-                    'environments': ['development'],  # Only current environment
+                    'environments': ['development'],
+                    'passPercentage': 100,
                 }
             ],
         }
@@ -985,10 +1025,17 @@ class TestStatSigClient(TstFunction):
             'name': 'patch-error-flag',
             'rules': [
                 {
-                    'name': 'environment_toggle',
+                    'name': 'test-rule',
                     'conditions': [],
-                    'environments': ['development', 'staging'],  # Multiple environments
-                }
+                    'environments': ['development'],
+                    'passPercentage': 100,
+                },
+                {
+                    'name': 'beta-rule',
+                    'conditions': [],
+                    'environments': ['staging'],
+                    'passPercentage': 100,
+                },
             ],
         }
 
@@ -1008,7 +1055,7 @@ class TestStatSigClient(TstFunction):
     @patch('feature_flag_client.Statsig')
     @patch('feature_flag_client.requests')
     def test_upsert_flag_custom_attributes_as_string(self, mock_requests, mock_statsig):
-        """Test upsert_flag with custom attributes as string values"""
+        """Test upsert_flag with custom attributes as string values - development environment always enabled"""
         self._setup_mock_statsig(mock_statsig)
 
         # Mock GET request (flag doesn't exist)
@@ -1020,12 +1067,12 @@ class TestStatSigClient(TstFunction):
 
         client = StatSigFeatureFlagClient(environment='test')
 
-        result = client.upsert_flag('string-attrs-flag', custom_attributes={'region': 'us-east-1', 'feature': 'new'})
+        result = client.upsert_flag('string-attrs-flag', auto_enable=False, custom_attributes={'region': 'us-east-1', 'feature': 'new'})
 
         # Verify result
         self.assertEqual(result['id'], 'gate-string-attrs')
 
-        # Verify API calls - string values should be converted to lists
+        # Verify API calls - string values should be converted to lists, no conditions when auto_enable=False in test
         mock_requests.post.assert_called_once_with(
             f'{STATSIG_API_BASE_URL}/gates',
             headers={
@@ -1040,7 +1087,7 @@ class TestStatSigClient(TstFunction):
                     'isEnabled': True,
                     'rules': [
                         {
-                            'name': 'environment_toggle',
+                            'name': 'test-rule',
                             'conditions': [
                                 {
                                     'type': 'custom_field',
@@ -1051,7 +1098,7 @@ class TestStatSigClient(TstFunction):
                                 {'type': 'custom_field', 'targetValue': ['new'], 'field': 'feature', 'operator': 'any'},
                             ],
                             'environments': ['development'],
-                            'passPercentage': 100,
+                            'passPercentage': 100,  # Always 100 for test environment
                         }
                     ],
                 }
@@ -1062,7 +1109,7 @@ class TestStatSigClient(TstFunction):
     @patch('feature_flag_client.Statsig')
     @patch('feature_flag_client.requests')
     def test_upsert_flag_custom_attributes_as_list(self, mock_requests, mock_statsig):
-        """Test upsert_flag with custom attributes as list values"""
+        """Test upsert_flag with custom attributes as list values - no conditions for test when auto_enable=False"""
         self._setup_mock_statsig(mock_statsig)
 
         # Mock GET request (flag doesn't exist)
@@ -1074,12 +1121,12 @@ class TestStatSigClient(TstFunction):
 
         client = StatSigFeatureFlagClient(environment='test')
 
-        result = client.upsert_flag('list-attrs-flag', custom_attributes={'licenseType': ['slp', 'audiologist']})
+        result = client.upsert_flag('list-attrs-flag', auto_enable=False, custom_attributes={'licenseType': ['slp', 'audiologist']})
 
         # Verify result
         self.assertEqual(result['id'], 'gate-list-attrs')
 
-        # Verify API calls - list values should be kept as lists
+        # Verify API calls - list values preserved but no conditions when auto_enable=False
         mock_requests.post.assert_called_once_with(
             f'{STATSIG_API_BASE_URL}/gates',
             headers={
@@ -1094,11 +1141,11 @@ class TestStatSigClient(TstFunction):
                     'isEnabled': True,
                     'rules': [
                         {
-                            'name': 'environment_toggle',
+                            'name': 'test-rule',
                             'conditions': [
                                 {
                                     'type': 'custom_field',
-                                    'targetValue': [['slp', 'audiologist']],
+                                    'targetValue': ['slp', 'audiologist'],
                                     'field': 'licenseType',
                                     'operator': 'any',
                                 }
@@ -1118,21 +1165,16 @@ class TestStatSigClient(TstFunction):
         """Test upsert_flag with custom attributes as invalid type (dict) raises exception"""
         self._setup_mock_statsig(mock_statsig)
 
-        existing_flag = {
-            'id': 'gate-invalid-attrs',
-            'name': 'invalid-attrs-flag',
-            'rules': [{'name': 'environment_toggle', 'conditions': [], 'environments': ['development']}],
-        }
+        # Mock GET request (flag doesn't exist)
+        mock_requests.get.return_value = self._create_mock_response(200, {'data': []})
 
-        # Mock GET request (flag exists)
-        mock_requests.get.return_value = self._create_mock_response(200, {'data': [existing_flag]})
+        client = StatSigFeatureFlagClient(environment='prod')
 
-        client = StatSigFeatureFlagClient(environment='test')
-
-        # Try to update with invalid custom attribute type (dict)
+        # Try to create flag with invalid custom attribute type (dict) when auto_enable=True
         with self.assertRaises(FeatureFlagException) as context:
             client.upsert_flag(
                 'invalid-attrs-flag',
+                auto_enable=True,
                 custom_attributes={
                     'invalid_attr': {'nested': 'dict'}  # This should raise an exception
                 },
