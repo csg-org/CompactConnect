@@ -32,7 +32,7 @@ class FeatureFlagResource(Construct):
         construct_id: str,
         *,
         flag_name: str,
-        auto_enable: bool = False,
+        auto_enable_envs: list[str],
         custom_attributes: dict[str, str] | dict[str, list] | None = None,
         environment_name: str,
     ):
@@ -40,7 +40,7 @@ class FeatureFlagResource(Construct):
         Initialize the FeatureFlagResource construct.
 
         :param flag_name: Name of the feature flag to manage
-        :param auto_enable: If True, automatically enable the flag in this environment (beta/prod only)
+        :param auto_enable_envs: List of environments to automatically enable the flag for
         :param custom_attributes: Optional custom attributes for feature flag targeting
         :param environment_name: The environment name (test, beta, prod)
         """
@@ -139,7 +139,7 @@ class FeatureFlagResource(Construct):
         )
 
         # Build custom resource properties
-        properties = {'flagName': flag_name, 'autoEnable': auto_enable}
+        properties = {'flagName': flag_name, 'autoEnable': environment_name in auto_enable_envs}
 
         if custom_attributes:
             properties['customAttributes'] = custom_attributes
