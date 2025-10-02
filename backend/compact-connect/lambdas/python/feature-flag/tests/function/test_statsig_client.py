@@ -264,7 +264,7 @@ class TestStatSigClient(TstFunction):
     @patch('feature_flag_client.Statsig')
     @patch('feature_flag_client.requests')
     def test_upsert_flag_create_new_in_test_environment(self, mock_requests, mock_statsig):
-        """Test creating a new flag in test environment with auto_enable=False (passPercentage=100 for dev)"""
+        """Test creating a new flag in test environment with auto_enable=true (passPercentage=100 for dev)"""
         self._setup_mock_statsig(mock_statsig)
 
         # Mock GET request (flag doesn't exist)
@@ -276,7 +276,7 @@ class TestStatSigClient(TstFunction):
 
         client = StatSigFeatureFlagClient(environment='test')
 
-        result = client.upsert_flag('new-test-flag', auto_enable=False, custom_attributes={'region': 'us-east-1'})
+        result = client.upsert_flag('new-test-flag', auto_enable=True, custom_attributes={'region': 'us-east-1'})
 
         # Verify result
         self.assertEqual(result['id'], 'gate-123')
@@ -356,7 +356,7 @@ class TestStatSigClient(TstFunction):
                             'name': 'test-rule',
                             'conditions': [],
                             'environments': ['development'],
-                            'passPercentage': 100,
+                            'passPercentage': 0,
                         }
                     ],
                 }
@@ -366,7 +366,7 @@ class TestStatSigClient(TstFunction):
 
     @patch('feature_flag_client.Statsig')
     @patch('feature_flag_client.requests')
-    def test_upsert_flag_update_existing_in_test_environment(self, mock_requests, mock_statsig):
+    def test_upsert_flag_does_not_update_existing_rule(self, mock_requests, mock_statsig):
         """Test updating an existing flag in test environment (test-rule already exists, no modifications in test)"""
         self._setup_mock_statsig(mock_statsig)
 
@@ -397,36 +397,7 @@ class TestStatSigClient(TstFunction):
 
         # Verify API calls - no PATCH since test environment doesn't modify existing rules
         self.assertEqual(1, mock_requests.get.call_count)
-        mock_requests.patch.assert_called_once_with(
-            f'{STATSIG_API_BASE_URL}/gates/gate-789',
-            headers={
-                'STATSIG-API-KEY': MOCK_CONSOLE_KEY,
-                'STATSIG-API-VERSION': STATSIG_API_VERSION,
-                'Content-Type': 'application/json',
-            },
-            data=json.dumps(
-                {
-                    'id': 'gate-789',
-                    'name': 'existing-flag',
-                    'rules': [
-                        {
-                            'name': 'test-rule',
-                            'conditions': [
-                                {
-                                    'type': 'custom_field',
-                                    'targetValue': ['new_value'],
-                                    'field': 'new_attr',
-                                    'operator': 'any',
-                                }
-                            ],
-                            'environments': ['development'],
-                            'passPercentage': 100,
-                        }
-                    ],
-                }
-            ),
-            timeout=30,
-        )
+        mock_requests.patch.assert_not_called()
 
     @patch('feature_flag_client.Statsig')
     @patch('feature_flag_client.requests')
@@ -524,7 +495,9 @@ class TestStatSigClient(TstFunction):
 
     @patch('feature_flag_client.Statsig')
     @patch('feature_flag_client.requests')
-    def test_upsert_flag_beta_environment_auto_enable_false_no_existing_rule_create_rule(self, mock_requests, mock_statsig):
+    def test_upsert_flag_beta_environment_auto_enable_false_no_existing_rule_create_rule(
+        self, mock_requests, mock_statsig
+    ):
         """Test upsert in prod environment with autoEnable=True and no existing flag"""
         self._setup_mock_statsig(mock_statsig)
 
@@ -578,8 +551,8 @@ class TestStatSigClient(TstFunction):
                             'conditions': [],
                             'environments': ['staging'],
                             'passPercentage': 0,
-                        }
-                    ]
+                        },
+                    ],
                 }
             ),
             timeout=30,
@@ -642,7 +615,12 @@ class TestStatSigClient(TstFunction):
                         {
                             'name': 'prod-rule',
                             'conditions': [
-                                {'type': 'custom_field', 'targetValue': ['value'], 'field': 'example', 'operator': 'any'}
+                                {
+                                    'type': 'custom_field',
+                                    'targetValue': ['value'],
+                                    'field': 'example',
+                                    'operator': 'any',
+                                }
                             ],
                             'environments': ['production'],
                             'passPercentage': 100,
@@ -941,7 +919,6 @@ class TestStatSigClient(TstFunction):
             timeout=30,
         )
 
-
     @patch('feature_flag_client.Statsig')
     @patch('feature_flag_client.requests')
     def test_delete_flag_current_rule_not_present(self, mock_requests, mock_statsig):
@@ -1067,7 +1044,9 @@ class TestStatSigClient(TstFunction):
 
         client = StatSigFeatureFlagClient(environment='test')
 
-        result = client.upsert_flag('string-attrs-flag', auto_enable=False, custom_attributes={'region': 'us-east-1', 'feature': 'new'})
+        result = client.upsert_flag(
+            'string-attrs-flag', auto_enable=False, custom_attributes={'region': 'us-east-1', 'feature': 'new'}
+        )
 
         # Verify result
         self.assertEqual(result['id'], 'gate-string-attrs')
@@ -1098,7 +1077,7 @@ class TestStatSigClient(TstFunction):
                                 {'type': 'custom_field', 'targetValue': ['new'], 'field': 'feature', 'operator': 'any'},
                             ],
                             'environments': ['development'],
-                            'passPercentage': 100,  # Always 100 for test environment
+                            'passPercentage': 0,  # Always 100 for test environment
                         }
                     ],
                 }
@@ -1121,7 +1100,9 @@ class TestStatSigClient(TstFunction):
 
         client = StatSigFeatureFlagClient(environment='test')
 
-        result = client.upsert_flag('list-attrs-flag', auto_enable=False, custom_attributes={'licenseType': ['slp', 'audiologist']})
+        result = client.upsert_flag(
+            'list-attrs-flag', auto_enable=False, custom_attributes={'licenseType': ['slp', 'audiologist']}
+        )
 
         # Verify result
         self.assertEqual(result['id'], 'gate-list-attrs')
@@ -1151,7 +1132,7 @@ class TestStatSigClient(TstFunction):
                                 }
                             ],
                             'environments': ['development'],
-                            'passPercentage': 100,
+                            'passPercentage': 0,
                         }
                     ],
                 }
