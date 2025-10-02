@@ -15,6 +15,7 @@ class TstLambdas(TestCase):
                 'DEBUG': 'true',
                 'ALLOWED_ORIGINS': '["https://example.org"]',
                 'AWS_DEFAULT_REGION': 'us-east-1',
+                'ENVIRONMENT_NAME': 'test',
                 'COMPACTS': '["aslp", "octp", "coun"]',
                 'JURISDICTIONS': json.dumps(
                     [
@@ -75,4 +76,10 @@ class TstLambdas(TestCase):
                 ),
             },
         )
+        # Monkey-patch config object to be sure we have it based
+        # on the env vars we set above
+        import cc_common.config
+
+        cls.config = cc_common.config._Config()  # noqa: SLF001 protected-access
+        cc_common.config.config = cls.config
         cls.mock_context = MagicMock(name='MockLambdaContext', spec=LambdaContext)
