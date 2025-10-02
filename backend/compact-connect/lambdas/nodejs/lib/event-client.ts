@@ -31,7 +31,7 @@ export class EventClient {
      * i.e. if now is 13:05, returns 12:45-13:00
      * if now is 13:15, returns 13:00-13:15
      */
-    public getLast15MinuteTimestamps() {
+    public getLast15MinuteTimestamps(): [number, number] {
         const now: Date = new Date();
         const last15MinuteBlockStart: Date = new Date();
         const last15MinuteBlockEnd: Date = new Date();
@@ -48,12 +48,8 @@ export class EventClient {
         last15MinuteBlockStart.setUTCMinutes(currentBlockStartMinutes - 15, 0, 0);
 
         return [
-            Number.parseInt(
-                (last15MinuteBlockStart.valueOf()/1000).toString()
-            ),
-            Number.parseInt(
-                (last15MinuteBlockEnd.valueOf()/1000).toString()
-            )
+            Math.floor((last15MinuteBlockStart.valueOf()/1000)),
+            Math.floor((last15MinuteBlockEnd.valueOf()/1000)),
         ];
     }
 
