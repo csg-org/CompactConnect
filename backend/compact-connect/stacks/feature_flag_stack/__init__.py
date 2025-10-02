@@ -23,7 +23,9 @@ class FeatureFlagStack(AppStack):
             self,
             'ExampleFlag',
             flag_name='example-flag',
-            auto_enable=False,
-            custom_attributes={'compact': ['coun', 'aslp']},
+            # This causes the flag to automatically be set to enabled for every environment in the list
+            auto_enable_envs=['test', 'beta', 'prod'],
+            # Note that flags are not updated once set and must be manually updated through the console
+            custom_attributes={'compact': ['coun']},
             environment_name=environment_name,
         )
