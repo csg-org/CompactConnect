@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from typing import Any
 
 import boto3
+import requests
 from botocore.exceptions import ClientError
 from marshmallow import Schema, ValidationError
 from marshmallow.fields import Dict as DictField
@@ -82,6 +83,66 @@ class FeatureFlagClient(ABC):
         :raises FeatureFlagException: If flag check fails
         """
 
+    @abstractmethod
+    def upsert_flag(self, flag_name: str, auto_enable: bool = False, custom_attributes: dict[str, Any] | None = None) -> dict[str, Any]:
+        """
+        Create or update a feature flag in the provider.
+
+        In test environment: Creates a new flag if it doesn't exist.
+        In beta/prod: Updates existing flag to add current environment if auto_enable is True.
+
+        :param flag_name: Name of the feature flag to create
+        :param auto_enable: If True, enable the flag in the current environment
+        :param custom_attributes: Optional custom attributes for targeting rules
+        :return: Dictionary containing flag data (including 'id' field)
+        :raises FeatureFlagException: If operation fails
+        """
+
+    @abstractmethod
+    def get_flag(self, flag_name: str) -> dict[str, Any] | None:
+        """
+        Retrieve a feature flag by name.
+
+        :param flag_name: Name of the feature flag to retrieve
+        :return: Flag data dictionary, or None if not found
+        :raises FeatureFlagException: If retrieval fails
+        """
+
+    @abstractmethod
+    def add_current_environment_to_flag(self, flag_id: str, flag_data: dict[str, Any]) -> bool:
+        """
+        Add the current environment to an existing feature flag.
+
+        :param flag_id: ID of the feature flag to update
+        :param flag_data: Current flag configuration
+        :return: True if successful
+        :raises FeatureFlagException: If update fails
+        """
+
+    @abstractmethod
+    def delete_flag(self, flag_name: str) -> bool:
+        """
+        Delete a feature flag or remove current environment from it.
+
+        If the flag has multiple environments, only the current environment is removed.
+        If the flag has only the current environment, the entire flag is deleted.
+
+        :param flag_name: Name of the feature flag to delete
+        :return: True if flag was fully deleted, False if only environment was removed, None if flag doesn't exist
+        :raises FeatureFlagException: If operation fails
+        """
+
+    @abstractmethod
+    def remove_current_environment_from_flag(self, flag_id: str, flag_data: dict[str, Any]) -> bool:
+        """
+        Remove the current environment from a feature flag.
+
+        :param flag_id: ID of the feature flag
+        :param flag_data: Current flag configuration
+        :return: True if environment was removed, False if environment wasn't present
+        :raises FeatureFlagException: If operation fails
+        """
+
     def _get_secret(self, secret_name: str) -> dict[str, Any]:
         """
         Retrieve a secret from AWS Secrets Manager and return it as a JSON object.
@@ -126,6 +187,16 @@ class FeatureFlagValidationException(FeatureFlagException):
 STATSIG_DEVELOPMENT_TIER = 'development'
 STATSIG_STAGING_TIER = 'staging'
 STATSIG_PRODUCTION_TIER = 'production'
+
+STATSIG_ENVIRONMENT_MAPPING = {
+    'prod': STATSIG_PRODUCTION_TIER,
+    'beta': STATSIG_STAGING_TIER,
+    'test': STATSIG_DEVELOPMENT_TIER,
+}
+
+# StatSig Console API configuration
+STATSIG_API_BASE_URL = 'https://statsigapi.net/console/v1'
+STATSIG_API_VERSION = '20240601'
 
 
 class StatSigContextSchema(Schema):
@@ -175,9 +246,14 @@ class StatSigFeatureFlagClient(FeatureFlagClient):
         try:
             secret_data = self._get_secret(secret_name)
             self._server_secret_key = secret_data.get('serverKey')
+            self._console_api_key = secret_data.get('consoleKey')
 
             if not self._server_secret_key:
                 raise FeatureFlagException(f"Secret '{secret_name}' does not contain required 'serverKey' field")
+
+            # If console API key not provided, try to get it from secret
+            if not self._console_api_key:
+                raise FeatureFlagException(f"Secret '{secret_name}' does not contain required 'consoleKey' field")
 
         except Exception as e:
             if isinstance(e, FeatureFlagException):
@@ -194,15 +270,8 @@ class StatSigFeatureFlagClient(FeatureFlagClient):
             return
 
         try:
-            # Map environment tier string to StatsigEnvironmentTier enum
-            tier_mapping = {
-                'prod': STATSIG_PRODUCTION_TIER,
-                'beta': STATSIG_STAGING_TIER,
-                'test': STATSIG_DEVELOPMENT_TIER,
-            }
-
             # default to development for all other environments (ie sandbox environments)
-            tier = tier_mapping.get(self.environment.lower(), STATSIG_DEVELOPMENT_TIER)
+            tier = STATSIG_ENVIRONMENT_MAPPING.get(self.environment.lower(), STATSIG_DEVELOPMENT_TIER)
             options = StatsigOptions()
             options.environment = tier
 
@@ -257,6 +326,302 @@ class StatSigFeatureFlagClient(FeatureFlagClient):
         except Exception as e:
             # Otherwise, wrap it in a FeatureFlagException
             raise FeatureFlagException(f"Failed to check feature flag '{request.flagName}': {e}") from e
+
+    def _make_console_api_request(
+        self, method: str, endpoint: str, data: dict[str, Any] | None = None
+    ) -> requests.Response:
+        """
+        Make a request to the StatSig Console API.
+
+        :param method: HTTP method (GET, POST, PATCH, DELETE)
+        :param endpoint: API endpoint (e.g., '/gates')
+        :param data: Optional request payload
+        :return: Response object
+        :raises FeatureFlagException: If API key not configured or request fails
+        """
+        if not self._console_api_key:
+            raise FeatureFlagException(
+                'Console API key not configured. Required for management operations (create, update, delete).'
+            )
+
+        url = f'{STATSIG_API_BASE_URL}{endpoint}'
+        headers = {
+            'STATSIG-API-KEY': self._console_api_key,
+            'STATSIG-API-VERSION': STATSIG_API_VERSION,
+            'Content-Type': 'application/json',
+        }
+
+        try:
+            if method == 'GET':
+                response = requests.get(url, headers=headers, timeout=30)
+            elif method == 'POST':
+                response = requests.post(url, headers=headers, data=json.dumps(data), timeout=30)
+            elif method == 'PATCH':
+                response = requests.patch(url, headers=headers, data=json.dumps(data), timeout=30)
+            elif method == 'DELETE':
+                response = requests.delete(url, headers=headers, timeout=30)
+            else:
+                raise ValueError(f'Unsupported HTTP method: {method}')
+
+            return response
+
+        except requests.exceptions.RequestException as e:
+            raise FeatureFlagException(f'StatSig Console API request failed: {e}') from e
+
+    def upsert_flag(self, flag_name: str, auto_enable: bool = False, custom_attributes: dict[str, Any] | None = None) -> dict[str, Any]:
+        """
+        Create or update a feature gate in StatSig.
+
+        In test environment: Creates a new gate if it doesn't exist.
+        In beta/prod: Updates existing gate to add current environment if auto_enable is True.
+
+        :param flag_name: Name of the feature gate
+        :param auto_enable: If True, enable the flag in the current environment (beta/prod only)
+        :param custom_attributes: Optional custom attributes for targeting
+        :return: Flag data (with 'id' field)
+        :raises FeatureFlagException: If operation fails
+        """
+        # Check if gate already exists
+        existing_gate = self.get_flag(flag_name)
+
+        if self.environment.lower() == 'test':
+            # In test environment, create the gate if it doesn't exist
+            if existing_gate:
+                # Gate exists - update custom attributes if provided
+                gate_id = existing_gate.get('id')
+                if custom_attributes:
+                    updated_gate = self._prepare_gate_update(existing_gate, custom_attributes, False)
+                    self._update_gate(gate_id, updated_gate)
+                return existing_gate  # Return existing gate data
+            else:
+                # Create new gate with development environment
+                return self._create_new_gate(flag_name, custom_attributes)
+        else:
+            # In beta/prod environment
+            if not existing_gate and not auto_enable:
+                # Gate doesn't exist and auto_enable is False - return empty dict to signal no action
+                return {}
+            elif not existing_gate and auto_enable:
+                # Gate doesn't exist but auto_enable is True - create it
+                return self._create_new_gate(flag_name, custom_attributes)
+            else:
+                # Gate exists - update it
+                gate_id = existing_gate.get('id')
+                
+                # Update the gate with new attributes and/or environment
+                updated_gate = self._prepare_gate_update(existing_gate, custom_attributes, auto_enable)
+                self._update_gate(gate_id, updated_gate)
+                
+                # Return updated gate data
+                return self.get_flag(flag_name) or existing_gate
+
+    def _create_new_gate(self, flag_name: str, custom_attributes: dict[str, Any] | None = None) -> dict[str, Any]:
+        """
+        Create a new feature gate in StatSig with the current environment enabled.
+
+        :param flag_name: Name of the feature gate
+        :param custom_attributes: Optional custom attributes for targeting
+        :return: Created gate data (with 'id' field)
+        :raises FeatureFlagException: If creation fails
+        """
+        # Get the StatSig environment tier for the current environment
+        statsig_tier = STATSIG_ENVIRONMENT_MAPPING.get(self.environment.lower(), STATSIG_DEVELOPMENT_TIER)
+
+        # Build conditions for custom attributes if provided
+        conditions = []
+        if custom_attributes:
+            for key, value in custom_attributes.items():
+                conditions.append({'type': 'custom_field', 'targetValue': [value], 'field': key, 'operator': 'any'})
+
+        # Build the feature gate payload
+        gate_payload = {
+            'name': flag_name,
+            'description': f'Feature gate managed by CDK for {flag_name} feature',
+            'isEnabled': True,
+            'rules': [
+                {
+                    'name': 'environment_toggle',
+                    'conditions': conditions,
+                    'environments': [statsig_tier],
+                    'passPercentage': 100,
+                }
+            ],
+        }
+
+        response = self._make_console_api_request('POST', '/gates', gate_payload)
+
+        if response.status_code in [200, 201]:
+            return response.json()
+        else:
+            raise FeatureFlagException(
+                f'Failed to create feature gate: {response.status_code} - {response.text[:200]}'
+            )
+
+    def _prepare_gate_update(self, gate_data: dict[str, Any], custom_attributes: dict[str, Any] | None = None, add_current_env: bool = False) -> dict[str, Any]:
+        """
+        Prepare an updated gate configuration with new custom attributes and/or environment.
+
+        :param gate_data: Original gate configuration
+        :param custom_attributes: New custom attributes to set (None = no change)
+        :param add_current_env: Whether to add the current environment
+        :return: Updated gate configuration
+        """
+        updated_gate = gate_data.copy()
+
+        # Find the environment_toggle rule
+        for rule in updated_gate.get('rules', []):
+            if rule.get('name') == 'environment_toggle':
+                # Update custom attributes if provided
+                if custom_attributes is not None:
+                    new_conditions = []
+                    for key, value in custom_attributes.items():
+                        new_conditions.append({'type': 'custom_field', 'targetValue': [value], 'field': key, 'operator': 'any'})
+                    rule['conditions'] = new_conditions
+
+                # Add current environment if requested
+                if add_current_env:
+                    statsig_tier = STATSIG_ENVIRONMENT_MAPPING.get(self.environment.lower(), STATSIG_DEVELOPMENT_TIER)
+                    current_environments = rule.get('environments', [])
+                    if statsig_tier not in current_environments:
+                        rule['environments'] = current_environments + [statsig_tier]
+                break
+
+        return updated_gate
+
+    def _update_gate(self, gate_id: str, gate_data: dict[str, Any]) -> bool:
+        """
+        Update a feature gate using the PATCH endpoint.
+
+        :param gate_id: ID of the feature gate to update
+        :param gate_data: Updated gate configuration
+        :return: True if successful
+        :raises FeatureFlagException: If update fails
+        """
+        response = self._make_console_api_request('PATCH', f'/gates/{gate_id}', gate_data)
+
+        if response.status_code in [200, 204]:
+            return True
+        else:
+            raise FeatureFlagException(
+                f'Failed to update feature gate: {response.status_code} - {response.text[:200]}'
+            )
+
+    def get_flag(self, flag_name: str) -> dict[str, Any] | None:
+        """
+        Retrieve a feature gate by name.
+
+        :param flag_name: Name of the feature gate to retrieve
+        :return: Gate data dictionary, or None if not found
+        :raises FeatureFlagException: If retrieval fails
+        """
+        response = self._make_console_api_request('GET', '/gates')
+
+        if response.status_code == 200:
+            gates_data = response.json()
+
+            for gate in gates_data.get('data', []):
+                if gate.get('name') == flag_name:
+                    return gate
+
+            return None
+        else:
+            raise FeatureFlagException(f'Failed to fetch gates: {response.status_code} - {response.text[:200]}')
+
+    def add_current_environment_to_flag(self, flag_id: str, flag_data: dict[str, Any]) -> bool:
+        """
+        Add the current environment to an existing feature gate.
+
+        :param flag_id: ID of the feature gate to update
+        :param flag_data: Current gate configuration
+        :return: True if successful
+        :raises FeatureFlagException: If update fails
+        """
+        updated_gate = self._prepare_gate_update(flag_data, None, add_current_env=True)
+        return self._update_gate(flag_id, updated_gate)
+
+    def delete_flag(self, flag_name: str) -> bool | None:
+        """
+        Delete a feature gate or remove current environment from it.
+
+        If the gate has multiple environments, only the current environment is removed.
+        If the gate has only the current environment, the entire gate is deleted.
+
+        :param flag_name: Name of the feature flag to delete
+        :return: True if flag was fully deleted, False if only environment was removed, None if flag doesn't exist
+        :raises FeatureFlagException: If operation fails
+        """
+        # Get the flag data first
+        flag_data = self.get_flag(flag_name)
+        if not flag_data:
+            return None  # Flag doesn't exist
+
+        flag_id = flag_data.get('id')
+        if not flag_id:
+            raise FeatureFlagException(f'Flag data missing ID field: {flag_name}')
+
+        # Get the StatSig environment tier for the current environment
+        statsig_tier = STATSIG_ENVIRONMENT_MAPPING[self.environment.lower()]
+
+        # Find the environment_toggle rule and check environment count
+        environments_in_flag = []
+        for rule in flag_data.get('rules', []):
+            if rule.get('name') == 'environment_toggle':
+                environments_in_flag = rule.get('environments', [])
+                break
+
+        # Check if current environment is the only one (or one of only one)
+        if len(environments_in_flag) <= 1 and statsig_tier in environments_in_flag:
+            # Delete the entire gate
+            response = self._make_console_api_request('DELETE', f'/gates/{flag_id}')
+
+            if response.status_code in [200, 204]:
+                return True  # Flag fully deleted
+            else:
+                raise FeatureFlagException(
+                    f'Failed to delete feature gate: {response.status_code} - {response.text[:200]}'
+                )
+        else:
+            # Remove only the current environment
+            removed = self.remove_current_environment_from_flag(flag_id, flag_data)
+            return False if removed else False  # Environment removed, not full deletion
+
+    def remove_current_environment_from_flag(self, flag_id: str, flag_data: dict[str, Any]) -> bool:
+        """
+        Remove the current environment from a feature gate.
+
+        :param flag_id: ID of the feature gate
+        :param flag_data: Current flag configuration
+        :return: True if environment was removed, False if it wasn't present
+        :raises FeatureFlagException: If operation fails
+        """
+        # Get the StatSig environment tier for the current environment
+        statsig_tier = STATSIG_ENVIRONMENT_MAPPING.get(self.environment.lower(), STATSIG_DEVELOPMENT_TIER)
+
+        # Check if current environment is present
+        environment_present = False
+        for rule in flag_data.get('rules', []):
+            if rule.get('name') == 'environment_toggle':
+                current_environments = rule.get('environments', [])
+                if statsig_tier in current_environments:
+                    environment_present = True
+                break
+
+        if not environment_present:
+            return False
+
+        # Prepare updated gate with environment removed
+        updated_gate = flag_data.copy()
+        for rule in updated_gate.get('rules', []):
+            if rule.get('name') == 'environment_toggle':
+                current_environments = rule.get('environments', [])
+                if statsig_tier in current_environments:
+                    current_environments.remove(statsig_tier)
+                    rule['environments'] = current_environments
+                break
+
+        # Update the gate
+        self._update_gate(flag_id, updated_gate)
+        return True
 
     def _shutdown(self):
         """
