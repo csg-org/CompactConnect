@@ -38,6 +38,7 @@ export class EventClient {
 
         // Calculate the start of the current 15-minute block
         const currentBlockStartMinutes = now.getUTCMinutes() - (now.getUTCMinutes() % 15);
+
         last15MinuteBlockStart.setUTCMinutes(currentBlockStartMinutes, 0, 0);
 
         // The end of the previous complete block is the start of the current block

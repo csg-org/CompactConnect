@@ -78,13 +78,13 @@ export class Lambda implements LambdaInterface {
             // Loop over each jurisdiction that we have contacts configured for
             for (const jurisdictionConfig of jurisdictionConfigs) {
                 switch (event.eventType) {
-                    case 'weekly':
-                        await this.runWeeklyReports(compactConfig, jurisdictionConfig);
-                        break;
-                    default:
-                        // frequent case (every 15 minutes)
-                        await this.runFrequentReports(compactConfig, jurisdictionConfig);
-                        break;
+                case 'weekly':
+                    await this.runWeeklyReports(compactConfig, jurisdictionConfig);
+                    break;
+                default:
+                    // frequent case (every 15 minutes)
+                    await this.runFrequentReports(compactConfig, jurisdictionConfig);
+                    break;
                 };
 
             }
