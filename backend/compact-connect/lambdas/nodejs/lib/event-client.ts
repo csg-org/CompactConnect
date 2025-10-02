@@ -67,12 +67,8 @@ export class EventClient {
         // Uncomment to manually force today's events into the time window (for development/testing)
         // today.setUTCDate(today.getUTCDate() + 1);
         return [
-            Number.parseInt(
-                (yesterday.valueOf()/1000).toString()
-            ),
-            Number.parseInt(
-                (today.valueOf()/1000).toString()
-            )
+            Math.floor((yesterday.valueOf()/1000)),
+            Math.floor((today.valueOf()/1000)),
         ];
     }
 
@@ -90,12 +86,8 @@ export class EventClient {
         // Uncomment to manually force today's events into the time window (for development/testing)
         // today.setUTCDate(today.getUTCDate() + 1);
         return [
-            Number.parseInt(
-                (lastWeek.valueOf()/1000).toString()
-            ),
-            Number.parseInt(
-                (today.valueOf()/1000).toString()
-            )
+            Math.floor((lastWeek.valueOf()/1000)),
+            Math.floor((today.valueOf()/1000)),
         ];
     }
 
