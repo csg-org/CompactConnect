@@ -33,7 +33,7 @@ class FeatureFlagResource(Construct):
         *,
         flag_name: str,
         auto_enable: bool = False,
-        custom_attributes: dict[str, str] | None = None,
+        custom_attributes: dict[str, str] | dict[str, list] | None = None,
         environment_name: str,
     ):
         """
@@ -102,15 +102,24 @@ class FeatureFlagResource(Construct):
 
         NagSuppressions.add_resource_suppressions_by_path(
             Stack.of(self),
+            path=f'{self.manage_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'The actions in this policy contain a wildcard specifically to access the feature flag '
+                    'client credentials secret and all of its versions.',
+                },
+            ],
+        )
+
+        NagSuppressions.add_resource_suppressions_by_path(
+            Stack.of(self),
             path=f'{self.provider.node.path}/framework-onEvent/ServiceRole/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
-                    'reason': 'The actions in this policy are specifically what this lambda needs '
-                    'and is scoped appropriately.',
-                    'appliesTo': [
-                        f'Resource::arn:aws:secretsmanager:{Stack.of(self).region}:{Stack.of(self).account}:secret:{secret_name}-*',
-                    ],
+                    'reason': 'The actions in this policy contain a wildcard specifically to access the feature flag '
+                    'client credentials secret and all of its versions.',
                 },
             ],
         )

@@ -4,7 +4,6 @@ from typing import TypedDict
 
 from aws_lambda_powertools.logging.lambda_context import build_lambda_context_model
 from aws_lambda_powertools.utilities.typing import LambdaContext
-
 from cc_common.config import logger
 
 

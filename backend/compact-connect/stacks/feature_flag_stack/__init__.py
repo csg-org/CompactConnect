@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from common_constructs.stack import AppStack
 from constructs import Construct
-from feature_flag_stack.feature_flag_resource import FeatureFlagResource
+
+from stacks.feature_flag_stack.feature_flag_resource import FeatureFlagResource
 
 
 class FeatureFlagStack(AppStack):
@@ -22,6 +23,7 @@ class FeatureFlagStack(AppStack):
             self,
             'ExampleFlag',
             flag_name='example-flag',
-            custom_attributes={'hello': 'world'},
+            auto_enable=False,
+            custom_attributes={'compact': ['coun', 'aslp']},
             environment_name=environment_name,
         )
