@@ -559,7 +559,7 @@ class TestStatSigClient(TstFunction):
         self.assertEqual(result['id'], 'gate-existing-prod')
 
         # Verify API calls
-        self.assertEqual(mock_requests.get.call_count, 2)  # Once to check, once to return updated
+        self.assertEqual(mock_requests.get.call_count, 1)  # Once to check, once to return updated
         mock_requests.patch.assert_called_once_with(
             f'{STATSIG_API_BASE_URL}/gates/gate-existing-prod',
             headers={
@@ -587,7 +587,9 @@ class TestStatSigClient(TstFunction):
 
     @patch('feature_flag_client.Statsig')
     @patch('feature_flag_client.requests')
-    def test_upsert_flag_prod_environment_existing_flag_auto_enable_false(self, mock_requests, mock_statsig):
+    def test_upsert_flag_prod_environment_existing_flag_auto_enable_false_should_not_update_flag(
+        self, mock_requests, mock_statsig
+    ):
         """Test upsert in prod environment with existing flag and autoEnable=False"""
         self._setup_mock_statsig(mock_statsig)
 
@@ -614,37 +616,11 @@ class TestStatSigClient(TstFunction):
 
         client = StatSigFeatureFlagClient(environment='prod')
 
-        result = client.upsert_flag('existing-prod-flag-2', auto_enable=False, custom_attributes={'new': 'attr'})
-
-        # Verify result
-        self.assertEqual(result['id'], 'gate-existing-prod-2')
+        client.upsert_flag('existing-prod-flag-2', auto_enable=False, custom_attributes={'new': 'attr'})
 
         # Verify API calls
-        self.assertEqual(mock_requests.get.call_count, 2)  # Once to check, once to return updated
-        mock_requests.patch.assert_called_once_with(
-            f'{STATSIG_API_BASE_URL}/gates/gate-existing-prod-2',
-            headers={
-                'STATSIG-API-KEY': MOCK_CONSOLE_KEY,
-                'STATSIG-API-VERSION': STATSIG_API_VERSION,
-                'Content-Type': 'application/json',
-            },
-            data=json.dumps(
-                {
-                    'id': 'gate-existing-prod-2',
-                    'name': 'existing-prod-flag-2',
-                    'rules': [
-                        {
-                            'name': 'environment_toggle',
-                            'conditions': [
-                                {'type': 'custom_field', 'targetValue': ['attr'], 'field': 'new', 'operator': 'any'}
-                            ],
-                            'environments': ['development', 'production'],
-                        }
-                    ],
-                }
-            ),
-            timeout=30,
-        )
+        self.assertEqual(mock_requests.get.call_count, 1)
+        mock_requests.patch.assert_not_called()
 
     @patch('feature_flag_client.Statsig')
     @patch('feature_flag_client.requests')
@@ -1028,3 +1004,138 @@ class TestStatSigClient(TstFunction):
             client.delete_flag('patch-error-flag')
 
         self.assertIn('Failed to update feature gate', str(context.exception))
+
+    @patch('feature_flag_client.Statsig')
+    @patch('feature_flag_client.requests')
+    def test_upsert_flag_custom_attributes_as_string(self, mock_requests, mock_statsig):
+        """Test upsert_flag with custom attributes as string values"""
+        self._setup_mock_statsig(mock_statsig)
+
+        # Mock GET request (flag doesn't exist)
+        mock_requests.get.return_value = self._create_mock_response(200, {'data': []})
+
+        # Mock POST request (create flag)
+        created_flag = {'id': 'gate-string-attrs', 'name': 'string-attrs-flag', 'data': {'id': 'gate-string-attrs'}}
+        mock_requests.post.return_value = self._create_mock_response(201, created_flag)
+
+        client = StatSigFeatureFlagClient(environment='test')
+
+        result = client.upsert_flag('string-attrs-flag', custom_attributes={'region': 'us-east-1', 'feature': 'new'})
+
+        # Verify result
+        self.assertEqual(result['id'], 'gate-string-attrs')
+
+        # Verify API calls - string values should be converted to lists
+        mock_requests.post.assert_called_once_with(
+            f'{STATSIG_API_BASE_URL}/gates',
+            headers={
+                'STATSIG-API-KEY': MOCK_CONSOLE_KEY,
+                'STATSIG-API-VERSION': STATSIG_API_VERSION,
+                'Content-Type': 'application/json',
+            },
+            data=json.dumps(
+                {
+                    'name': 'string-attrs-flag',
+                    'description': 'Feature gate managed by CDK for string-attrs-flag feature',
+                    'isEnabled': True,
+                    'rules': [
+                        {
+                            'name': 'environment_toggle',
+                            'conditions': [
+                                {
+                                    'type': 'custom_field',
+                                    'targetValue': ['us-east-1'],
+                                    'field': 'region',
+                                    'operator': 'any',
+                                },
+                                {'type': 'custom_field', 'targetValue': ['new'], 'field': 'feature', 'operator': 'any'},
+                            ],
+                            'environments': ['development'],
+                            'passPercentage': 100,
+                        }
+                    ],
+                }
+            ),
+            timeout=30,
+        )
+
+    @patch('feature_flag_client.Statsig')
+    @patch('feature_flag_client.requests')
+    def test_upsert_flag_custom_attributes_as_list(self, mock_requests, mock_statsig):
+        """Test upsert_flag with custom attributes as list values"""
+        self._setup_mock_statsig(mock_statsig)
+
+        # Mock GET request (flag doesn't exist)
+        mock_requests.get.return_value = self._create_mock_response(200, {'data': []})
+
+        # Mock POST request (create flag)
+        created_flag = {'id': 'gate-list-attrs', 'name': 'list-attrs-flag', 'data': {'id': 'gate-list-attrs'}}
+        mock_requests.post.return_value = self._create_mock_response(201, created_flag)
+
+        client = StatSigFeatureFlagClient(environment='test')
+
+        result = client.upsert_flag('list-attrs-flag', custom_attributes={'licenseType': ['slp', 'audiologist']})
+
+        # Verify result
+        self.assertEqual(result['id'], 'gate-list-attrs')
+
+        # Verify API calls - list values should be kept as lists
+        mock_requests.post.assert_called_once_with(
+            f'{STATSIG_API_BASE_URL}/gates',
+            headers={
+                'STATSIG-API-KEY': MOCK_CONSOLE_KEY,
+                'STATSIG-API-VERSION': STATSIG_API_VERSION,
+                'Content-Type': 'application/json',
+            },
+            data=json.dumps(
+                {
+                    'name': 'list-attrs-flag',
+                    'description': 'Feature gate managed by CDK for list-attrs-flag feature',
+                    'isEnabled': True,
+                    'rules': [
+                        {
+                            'name': 'environment_toggle',
+                            'conditions': [
+                                {
+                                    'type': 'custom_field',
+                                    'targetValue': [['slp', 'audiologist']],
+                                    'field': 'licenseType',
+                                    'operator': 'any',
+                                }
+                            ],
+                            'environments': ['development'],
+                            'passPercentage': 100,
+                        }
+                    ],
+                }
+            ),
+            timeout=30,
+        )
+
+    @patch('feature_flag_client.Statsig')
+    @patch('feature_flag_client.requests')
+    def test_upsert_flag_custom_attributes_invalid_type_raises_exception(self, mock_requests, mock_statsig):
+        """Test upsert_flag with custom attributes as invalid type (dict) raises exception"""
+        self._setup_mock_statsig(mock_statsig)
+
+        existing_flag = {
+            'id': 'gate-invalid-attrs',
+            'name': 'invalid-attrs-flag',
+            'rules': [{'name': 'environment_toggle', 'conditions': [], 'environments': ['development']}],
+        }
+
+        # Mock GET request (flag exists)
+        mock_requests.get.return_value = self._create_mock_response(200, {'data': [existing_flag]})
+
+        client = StatSigFeatureFlagClient(environment='test')
+
+        # Try to update with invalid custom attribute type (dict)
+        with self.assertRaises(FeatureFlagException) as context:
+            client.upsert_flag(
+                'invalid-attrs-flag',
+                custom_attributes={
+                    'invalid_attr': {'nested': 'dict'}  # This should raise an exception
+                },
+            )
+
+        self.assertIn('Custom attribute value must be a string or list', str(context.exception))

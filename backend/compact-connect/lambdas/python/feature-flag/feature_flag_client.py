@@ -111,17 +111,6 @@ class FeatureFlagClient(ABC):
         """
 
     @abstractmethod
-    def add_current_environment_to_flag(self, flag_id: str, flag_data: dict[str, Any]) -> bool:
-        """
-        Add the current environment to an existing feature flag.
-
-        :param flag_id: ID of the feature flag to update
-        :param flag_data: Current flag configuration
-        :return: True if successful
-        :raises FeatureFlagException: If update fails
-        """
-
-    @abstractmethod
     def delete_flag(self, flag_name: str) -> bool:
         """
         Delete a feature flag or remove current environment from it.
@@ -131,17 +120,6 @@ class FeatureFlagClient(ABC):
 
         :param flag_name: Name of the feature flag to delete
         :return: True if flag was fully deleted, False if only environment was removed, None if flag doesn't exist
-        :raises FeatureFlagException: If operation fails
-        """
-
-    @abstractmethod
-    def remove_current_environment_from_flag(self, flag_id: str, flag_data: dict[str, Any]) -> bool:
-        """
-        Remove the current environment from a feature flag.
-
-        :param flag_id: ID of the feature flag
-        :param flag_data: Current flag configuration
-        :return: True if environment was removed, False if environment wasn't present
         :raises FeatureFlagException: If operation fails
         """
 
@@ -388,36 +366,23 @@ class StatSigFeatureFlagClient(FeatureFlagClient):
         # Check if gate already exists
         existing_gate = self.get_flag(flag_name)
 
-        if self.environment.lower() == 'test':
-            # In test environment, create the gate if it doesn't exist
-            if existing_gate:
-                # Gate exists - update custom attributes if provided
-                gate_id = existing_gate.get('id')
-                if custom_attributes:
-                    updated_gate = self._prepare_gate_update(existing_gate, custom_attributes, False)
-                    self._update_gate(gate_id, updated_gate)
-                return existing_gate  # Return existing gate data
-            else:
-                # Create new gate with development environment
-                return self._create_new_gate(flag_name, custom_attributes)
-        else:
-            # In beta/prod environment
-            if not existing_gate and not auto_enable:
-                # Gate doesn't exist and auto_enable is False - return empty dict to signal no action
-                return {}
-            elif not existing_gate and auto_enable:
-                # Gate doesn't exist but auto_enable is True - create it
-                return self._create_new_gate(flag_name, custom_attributes)
-            else:
-                # Gate exists - update it
-                gate_id = existing_gate.get('id')
+        # According to our current policy, we always deploy the flag from our testing
+        # environment, and perform updates on any environment if the flag was set to auto enabled
+        if not existing_gate and (auto_enable or self.environment.lower() == 'test'):
+            # Create new gate with the environment associated with it
+            return self._create_new_gate(flag_name, custom_attributes)
 
-                # Update the gate with new attributes and/or environment
-                updated_gate = self._prepare_gate_update(existing_gate, custom_attributes, auto_enable)
+        # according to our current policy, we always deploy
+        if existing_gate and (auto_enable or self.environment.lower() == 'test'):
+            # Gate exists - update custom attributes if provided
+            gate_id = existing_gate.get('id')
+            if custom_attributes:
+                updated_gate = self._prepare_gate_update(existing_gate, custom_attributes)
                 self._update_gate(gate_id, updated_gate)
+            return existing_gate  # Return existing gate data
 
-                # Return updated gate data
-                return self.get_flag(flag_name) or existing_gate
+        # Return empty dict (no action taken)
+        return {}
 
     def _create_new_gate(self, flag_name: str, custom_attributes: dict[str, Any] | None = None) -> dict[str, Any]:
         """
@@ -460,39 +425,44 @@ class StatSigFeatureFlagClient(FeatureFlagClient):
             raise FeatureFlagException(f'Failed to create feature gate: {response.status_code} - {response.text[:200]}')
 
     def _prepare_gate_update(
-        self, gate_data: dict[str, Any], custom_attributes: dict[str, Any] | None = None, add_current_env: bool = False
+        self, gate_data: dict[str, Any], custom_attributes: dict[str, Any] | None = None
     ) -> dict[str, Any]:
         """
         Prepare an updated gate configuration with new custom attributes and/or environment.
 
         :param gate_data: Original gate configuration
         :param custom_attributes: New custom attributes to set (None = no change)
-        :param add_current_env: Whether to add the current environment
         :return: Updated gate configuration
         """
-        updated_gate = gate_data.copy()
+        updated_gate_configuration = gate_data.copy()
 
         # Find the environment_toggle rule
-        for rule in updated_gate.get('rules', []):
+        for rule in updated_gate_configuration.get('rules', []):
             if rule.get('name') == 'environment_toggle':
                 # Update custom attributes if provided
                 if custom_attributes is not None:
                     new_conditions = []
                     for key, value in custom_attributes.items():
+                        # if the value is a list, leave it as is
+                        # else, convert to list
+                        if isinstance(value, str):
+                            value = [value]
+                        elif not isinstance(value, list):
+                            raise FeatureFlagException(f'Custom attribute value must be a string or list: {value}')
+
                         new_conditions.append(
-                            {'type': 'custom_field', 'targetValue': [value], 'field': key, 'operator': 'any'}
+                            {'type': 'custom_field', 'targetValue': value, 'field': key, 'operator': 'any'}
                         )
                     rule['conditions'] = new_conditions
 
                 # Add current environment if requested
-                if add_current_env:
-                    statsig_tier = STATSIG_ENVIRONMENT_MAPPING.get(self.environment.lower(), STATSIG_DEVELOPMENT_TIER)
-                    current_environments = rule.get('environments', [])
-                    if statsig_tier not in current_environments:
-                        rule['environments'] = current_environments + [statsig_tier]
+                statsig_tier = STATSIG_ENVIRONMENT_MAPPING.get(self.environment.lower(), STATSIG_DEVELOPMENT_TIER)
+                current_environments = rule.get('environments', [])
+                if statsig_tier not in current_environments:
+                    rule['environments'] = current_environments + [statsig_tier]
                 break
 
-        return updated_gate
+        return updated_gate_configuration
 
     def _update_gate(self, gate_id: str, gate_data: dict[str, Any]) -> bool:
         """
@@ -530,18 +500,6 @@ class StatSigFeatureFlagClient(FeatureFlagClient):
             return None
         else:
             raise FeatureFlagException(f'Failed to fetch gates: {response.status_code} - {response.text[:200]}')
-
-    def add_current_environment_to_flag(self, flag_id: str, flag_data: dict[str, Any]) -> bool:
-        """
-        Add the current environment to an existing feature gate.
-
-        :param flag_id: ID of the feature gate to update
-        :param flag_data: Current gate configuration
-        :return: True if successful
-        :raises FeatureFlagException: If update fails
-        """
-        updated_gate = self._prepare_gate_update(flag_data, None, add_current_env=True)
-        return self._update_gate(flag_id, updated_gate)
 
     def delete_flag(self, flag_name: str) -> bool | None:
         """
@@ -586,10 +544,10 @@ class StatSigFeatureFlagClient(FeatureFlagClient):
                 )
         else:
             # Remove only the current environment
-            removed = self.remove_current_environment_from_flag(flag_id, flag_data)
+            removed = self._remove_current_environment_from_flag(flag_id, flag_data)
             return False if removed else False  # Environment removed, not full deletion
 
-    def remove_current_environment_from_flag(self, flag_id: str, flag_data: dict[str, Any]) -> bool:
+    def _remove_current_environment_from_flag(self, flag_id: str, flag_data: dict[str, Any]) -> bool:
         """
         Remove the current environment from a feature gate.
 

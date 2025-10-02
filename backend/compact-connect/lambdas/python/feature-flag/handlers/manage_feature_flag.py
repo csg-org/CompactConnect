@@ -8,7 +8,7 @@ automatically creating and configuring flags across different environments.
 import os
 
 from cc_common.config import logger
-from cc_common.custom_resource_handler import CustomResourceHandler, CustomResourceResponse
+from custom_resource_handler import CustomResourceHandler, CustomResourceResponse
 from feature_flag_client import StatSigFeatureFlagClient
 
 
