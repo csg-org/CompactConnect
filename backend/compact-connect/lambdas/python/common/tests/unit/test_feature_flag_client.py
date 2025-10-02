@@ -4,7 +4,6 @@ from tests import TstLambdas
 
 
 class TestFeatureFlagClient(TstLambdas):
-
     def test_is_feature_enabled_returns_true_when_flag_enabled(self):
         """Test that is_feature_enabled returns True when the API returns enabled=true."""
         from cc_common.feature_flag_client import is_feature_enabled
@@ -60,7 +59,10 @@ class TestFeatureFlagClient(TstLambdas):
             # Verify the API was called with the context
             mock_post.assert_called_once_with(
                 'https://api.example.com/v1/flags/check',
-                json={'flagName': 'test-flag', 'context': {'userId': 'user123', 'customAttributes': {'licenseType': 'lpc'}}},
+                json={
+                    'flagName': 'test-flag',
+                    'context': {'userId': 'user123', 'customAttributes': {'licenseType': 'lpc'}},
+                },
                 timeout=5,
                 headers={'Content-Type': 'application/json'},
             )
@@ -197,9 +199,7 @@ class TestFeatureFlagClient(TstLambdas):
         context = FeatureFlagContext(user_id='user456', custom_attributes={'licenseType': 'physician'})
         result = context.to_dict()
 
-        self.assertEqual(
-            result, {'userId': 'user456', 'customAttributes': {'licenseType': 'physician'}}
-        )
+        self.assertEqual(result, {'userId': 'user456', 'customAttributes': {'licenseType': 'physician'}})
 
     def test_feature_flag_context_empty(self):
         """Test FeatureFlagContext to_dict with no fields set."""
@@ -233,4 +233,3 @@ class TestFeatureFlagClient(TstLambdas):
                 timeout=5,
                 headers={'Content-Type': 'application/json'},
             )
-

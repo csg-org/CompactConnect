@@ -43,9 +43,7 @@ class FeatureFlagContext:
         return result
 
 
-def is_feature_enabled(
-    flag_name: str, context: FeatureFlagContext | None = None, fail_open: bool = False
-) -> bool:
+def is_feature_enabled(flag_name: str, context: FeatureFlagContext | None = None, fail_open: bool = False) -> bool:
     """
     Check if a feature flag is enabled.
 
@@ -131,4 +129,3 @@ def _get_api_base_url() -> str:
     api_base_url = config.api_base_url
     # Remove trailing slash if present
     return api_base_url.rstrip('/')
-
