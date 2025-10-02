@@ -36,7 +36,7 @@ class TestManageFeatureFlagHandler(TstFunction):
 
         # Set up mock client instance
         mock_client = MagicMock()
-        mock_client.upsert_flag.return_value = {'id': 'gate-123', 'name': 'test-flag'}
+        mock_client.upsert_flag.return_value = {'id': 'test-flag', 'name': 'test-flag'}
         mock_client_class.return_value = mock_client
 
         handler = ManageFeatureFlagHandler()
@@ -53,7 +53,7 @@ class TestManageFeatureFlagHandler(TstFunction):
 
         # Verify response
         self.assertEqual(result['PhysicalResourceId'], 'feature-flag-test-flag-test')
-        self.assertEqual(result['Data']['gateId'], 'gate-123')
+        self.assertEqual(result['Data']['gateId'], 'test-flag')
 
     @patch('handlers.manage_feature_flag.StatSigFeatureFlagClient')
     def test_on_create_with_minimal_properties(self, mock_client_class):
@@ -62,7 +62,7 @@ class TestManageFeatureFlagHandler(TstFunction):
 
         # Set up mock client instance
         mock_client = MagicMock()
-        mock_client.upsert_flag.return_value = {'id': 'gate-456', 'name': 'minimal-flag'}
+        mock_client.upsert_flag.return_value = {'id': 'minimal-flag', 'name': 'minimal-flag'}
         mock_client_class.return_value = mock_client
 
         handler = ManageFeatureFlagHandler()
@@ -75,50 +75,7 @@ class TestManageFeatureFlagHandler(TstFunction):
 
         # Verify response
         self.assertEqual(result['PhysicalResourceId'], 'feature-flag-minimal-flag-test')
-        self.assertEqual(result['Data']['gateId'], 'gate-456')
-
-    @patch('handlers.manage_feature_flag.StatSigFeatureFlagClient')
-    def test_on_update_calls_upsert_flag_with_correct_params(self, mock_client_class):
-        from handlers.manage_feature_flag import ManageFeatureFlagHandler
-
-        """Test that on_update calls upsert_flag with the correct parameters"""
-        # Set up mock client instance
-        mock_client = MagicMock()
-        mock_client.upsert_flag.return_value = {'id': 'gate-789', 'name': 'update-flag'}
-        mock_client_class.return_value = mock_client
-
-        handler = ManageFeatureFlagHandler()
-        properties = {'flagName': 'update-flag', 'autoEnable': False, 'customAttributes': {'version': '2.0'}}
-
-        result = handler.on_update(properties)
-
-        # Verify client was initialized with correct environment
-        mock_client_class.assert_called_once_with(environment='test')
-
-        # Verify upsert_flag was called with correct parameters
-        mock_client.upsert_flag.assert_called_once_with('update-flag', False, {'version': '2.0'})
-
-        # Verify response
-        self.assertEqual(result['PhysicalResourceId'], 'feature-flag-update-flag-test')
-        self.assertEqual(result['Data']['gateId'], 'gate-789')
-
-    @patch('handlers.manage_feature_flag.StatSigFeatureFlagClient')
-    def test_on_update_raises_error_when_no_flag_returned(self, mock_client_class):
-        """Test on_update raises RuntimeError when upsert_flag returns empty dict"""
-        from handlers.manage_feature_flag import ManageFeatureFlagHandler
-
-        # Set up mock client instance
-        mock_client = MagicMock()
-        mock_client.upsert_flag.return_value = {}  # Empty dict means no action taken
-        mock_client_class.return_value = mock_client
-
-        handler = ManageFeatureFlagHandler()
-        properties = {'flagName': 'failed-update-flag'}
-
-        with self.assertRaises(RuntimeError) as context:
-            handler.on_update(properties)
-
-        self.assertIn("Feature gate 'failed-update-flag' could not be updated", str(context.exception))
+        self.assertEqual(result['Data']['gateId'], 'minimal-flag')
 
     @patch('handlers.manage_feature_flag.StatSigFeatureFlagClient')
     def test_on_delete_calls_delete_flag_with_correct_params(self, mock_client_class):

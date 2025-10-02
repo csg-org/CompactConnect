@@ -62,40 +62,18 @@ class ManageFeatureFlagHandler(CustomResourceHandler):
 
     def on_update(self, properties: dict) -> CustomResourceResponse | None:
         """
-        Handle Update events for feature flags.
-
-        Updates the feature gate configuration based on changed properties.
+        Flags are not updated once created in an environment.
 
         :param properties: ResourceProperties containing updated values
-        :return: Optional response data
+        :return: None (no-op)
         """
-        flag_name = properties.get('flagName')
-        auto_enable = properties.get('autoEnable', False)
-        custom_attributes = properties.get('customAttributes')
-
-        if not flag_name:
-            raise ValueError('flagName is required in ResourceProperties')
-
-        logger.info('Updating feature flag resource', flag_name=flag_name, environment=self.environment)
-
-        # Update the flag - client handles all environment-specific logic
-        flag_data = self.client.upsert_flag(flag_name, auto_enable, custom_attributes)
-
-        if not flag_data:
-            raise RuntimeError(f"Feature gate '{flag_name}' could not be updated")
-
-        # Extract gate ID from response
-        gate_id = flag_data.get('data', {}).get('id') or flag_data.get('id')
-
-        logger.info('Feature flag resource updated successfully', flag_name=flag_name, gate_id=gate_id)
-
-        return {'PhysicalResourceId': f'feature-flag-{flag_name}-{self.environment}', 'Data': {'gateId': gate_id}}
+        return None
 
     def on_delete(self, properties: dict) -> CustomResourceResponse | None:
         """
         Handle Delete events for feature flags.
 
-        Removes the environment from the feature gate. If it's the last environment,
+        Removes the environment rule from the feature gate. If it's the last environment,
         deletes the gate entirely.
 
         :param properties: ResourceProperties containing flagName
