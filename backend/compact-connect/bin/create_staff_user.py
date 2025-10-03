@@ -102,7 +102,10 @@ def create_cognito_user(*, email: str, permanent_password: str | None):
         user_data = cognito_client.admin_create_user(
             UserPoolId=USER_POOL_ID,
             Username=email,
-            UserAttributes=[{'Name': 'email', 'Value': email}],
+            UserAttributes=[
+                {'Name': 'email', 'Value': email},
+                {'Name': 'email_verified', 'Value': 'True'},
+            ],
             DesiredDeliveryMediums=['EMAIL'],
             **kwargs,
         )
