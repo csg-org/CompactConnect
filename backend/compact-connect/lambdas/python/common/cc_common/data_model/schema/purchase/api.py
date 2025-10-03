@@ -37,18 +37,15 @@ class PurchasePrivilegeOptionsResponseSchema(ForgivingSchema):
         if not isinstance(items, list):
             raise ValidationError({'items': ['Expected a list of items']})
 
+        sanitized_items = []
         for i, item in enumerate(items):
             # Ensure item is a dictionary
             if not isinstance(item, dict):
-                raise ValidationError({
-                    'items': {i: [f'Invalid item type: expected dict, got {type(item).__name__}']}
-                })
+                raise ValidationError({'items': {i: [f'Invalid item type: expected dict, got {type(item).__name__}']}})
 
             # Ensure item has a type field
             if 'type' not in item:
-                raise ValidationError({
-                    'items': {i: ['Item missing required "type" field']}
-                })
+                raise ValidationError({'items': {i: ['Item missing required "type" field']}})
 
             # Validate based on type
             item_type = item['type']
@@ -56,21 +53,20 @@ class PurchasePrivilegeOptionsResponseSchema(ForgivingSchema):
                 # Validate as compact option
                 compact_schema = CompactOptionsResponseSchema()
                 try:
-                    compact_schema.load(item)
+                    sanitized_items.append(compact_schema.load(item))
                 except ValidationError as e:
                     raise ValidationError({'items': {i: {'compact': e.messages}}}) from e
             elif item_type == JURISDICTION_TYPE:
                 # Validate as jurisdiction option
                 jurisdiction_schema = JurisdictionOptionsResponseSchema()
                 try:
-                    jurisdiction_schema.load(item)
+                    sanitized_items.append(jurisdiction_schema.load(item))
                 except ValidationError as e:
                     raise ValidationError({'items': {i: {'jurisdiction': e.messages}}}) from e
             else:
                 # Reject unsupported types
-                raise ValidationError({
-                    'items': {i: [f'Unsupported item type: {item_type}']}
-                })
+                raise ValidationError({'items': {i: [f'Unsupported item type: {item_type}']}})
+        data['items'] = sanitized_items  # Replace original items with sanitized ones
 
 
 class TransactionResponseSchema(ForgivingSchema):

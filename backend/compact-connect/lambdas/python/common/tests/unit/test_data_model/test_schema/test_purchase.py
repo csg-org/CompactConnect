@@ -1,3 +1,4 @@
+from copy import deepcopy
 from decimal import Decimal
 
 from marshmallow import ValidationError
@@ -15,6 +16,7 @@ class TestPurchasePrivilegeOptionsResponseSchema(TstLambdas):
             'items': [
                 {
                     'type': 'compact',
+                    'extra': 'field',
                     'compactAbbr': 'aslp',
                     'compactName': 'Audiology and Speech Language Pathology',
                     'compactCommissionFee': {'feeAmount': Decimal('10.00'), 'feeType': 'FLAT_RATE'},
@@ -29,6 +31,7 @@ class TestPurchasePrivilegeOptionsResponseSchema(TstLambdas):
                 },
                 {
                     'type': 'jurisdiction',
+                    'extra': 'field',
                     'jurisdictionName': 'Kentucky',
                     'postalAbbreviation': 'ky',
                     'compact': 'aslp',
@@ -44,10 +47,10 @@ class TestPurchasePrivilegeOptionsResponseSchema(TstLambdas):
         result = schema.load(valid_response)
 
         # Verify the response structure is maintained
-        self.assertIn('items', result)
-        self.assertEqual(len(result['items']), 2)
-        self.assertEqual(result['items'][0]['type'], 'compact')
-        self.assertEqual(result['items'][1]['type'], 'jurisdiction')
+        expected = deepcopy(valid_response)
+        expected['items'][0].pop('extra')
+        expected['items'][1].pop('extra')
+        self.assertEqual(expected, result)
 
     def test_string_in_items_list_raises_validation_error(self):
         """Test that having a string in the items list raises a validation error."""
