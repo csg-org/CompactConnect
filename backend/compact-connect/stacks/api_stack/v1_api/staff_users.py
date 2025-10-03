@@ -21,10 +21,10 @@ from aws_cdk.aws_cognito import IUserPool
 from aws_cdk.aws_dynamodb import ITable
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
+
 from common_constructs.cc_api import CCApi
 from common_constructs.python_function import PythonFunction
 from common_constructs.user_pool import UserPool
-
 from stacks import persistent_stack as ps
 
 from .api_model import ApiModel

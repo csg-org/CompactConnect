@@ -1,0 +1,109 @@
+name: Check-CompactConnect-UI-Infra
+
+on:
+  pull_request:
+    paths:
+      - backend/compact-connect-ui-app/**
+
+env:
+  AWS_REGION : "us-east-1"
+
+# Permission can be added at job level or workflow level
+permissions:
+  id-token: write   # This is required for requesting the JWT
+  contents: read    # This is required for actions/checkout
+
+jobs:
+  LintPython:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - name: Install dev dependencies
+        run: "pip install -r backend/compact-connect-ui-app/requirements-dev.txt"
+
+      - name: Lint Code
+        run: "cd backend/compact-connect-ui-app; ruff check $(git ls-files '*.py')"
+
+      - name: Check Dependencies
+        # Ignore pip vulnerability that does not affect Python 3.12+
+        run: "pip-audit --ignore-vuln GHSA-4xh5-x5gv-qwph"
+
+  LintNode:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
+      - run: echo "🖥️ The workflow is now ready to test your code on the runner."
+
+      # Setup Node
+      - name: Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: '22.1.0'
+
+      # Use any cached yarn dependencies (saves build time)
+      - uses: actions/cache@v4
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+
+      # Install Yarn Dependencies
+      - name: Install Node.js dependencies
+        run: yarn install
+        working-directory: ./backend/compact-connect-ui-app/lambdas/nodejs
+
+      # Run Linter Checks
+      - name: Run linter
+        run: yarn run lint
+        working-directory: ./backend/compact-connect-ui-app/lambdas/nodejs
+
+      # Audit dependencies for vulnerabilities
+      - name: Audit dependencies (Cloudfront CSP Lambda)
+        run: yarn run audit:dependencies
+        working-directory: ./backend/compact-connect-ui-app/lambdas/nodejs
+
+  TestApp:
+    runs-on: ubuntu-latest
+    steps:
+      # Checks-out the repository under $GITHUB_WORKSPACE
+      - uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Setup Node
+      - name: Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: '22.1.0'
+
+      # Use any cached yarn dependencies (saves build time)
+      - uses: actions/cache@v4
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+
+      # Install Yarn Dependencies
+      - name: Install Node.js dependencies
+        run: yarn install
+        working-directory: ./backend/compact-connect-ui-app/lambdas/nodejs
+
+      - name: Install dev dependencies
+        run: "pip install -r backend/compact-connect-ui-app/requirements-dev.txt"
+
+      - name: Install all Python dependencies
+        run: "cd backend/compact-connect-ui-app; bin/sync_deps.sh"
+
+      - name: Test backend
+        run: "cd backend/compact-connect-ui-app; bin/run_tests.sh -l all -no"

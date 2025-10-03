@@ -19,7 +19,7 @@ class TestEmailService extends BaseEmailService {
 
         this.insertHeader(template, 'Test Email');
         this.insertFooter(template);
-        
+
         // Return the template for inspection
         return JSON.stringify(template);
     }
@@ -58,7 +58,7 @@ describe('BaseEmailService Environment Banner', () => {
         // Find banner block (should be first element)
         const bannerBlockId = childrenIds[0];
         const bannerBlock = template[bannerBlockId];
-        
+
         expect(bannerBlock).toBeDefined();
         expect(bannerBlock.type).toBe('Text');
         expect(bannerBlock.data.style.backgroundColor).toBe('#FFA726');
@@ -68,11 +68,11 @@ describe('BaseEmailService Environment Banner', () => {
 
     const expectFooterPresent = (template: any) => {
         const childrenIds = template.root.data.childrenIds;
-        
+
         // Find footer warning block (should be last element)
         const footerWarningBlockId = childrenIds[childrenIds.length - 1];
         const footerWarningBlock = template[footerWarningBlockId];
-        
+
         expect(footerWarningBlock).toBeDefined();
         expect(footerWarningBlock.type).toBe('Text');
         expect(footerWarningBlock.data.props.text).toBe('You\'re viewing a test email.');

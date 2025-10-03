@@ -1,0 +1,17 @@
+{
+  "sandbox": true,
+  "environment_name": "justin",
+  "ssm_context": {
+    "github_repo_string": "csg-org/CompactConnect",
+    "app_name": "compact-connect",
+    "environments": {
+      "justin": {
+        "account_id": "111122223333",
+        "region": "us-east-1",
+        "domain_name": "justin.compactconnect.org",
+        "recaptcha_public_key": "123-KFEUsjehfuejILDVUKkRnAF9SSzb8o9uv5lY7Ih",
+        "robots_meta": "noindex,nofollow"
+      }
+    }
+  }
+}
