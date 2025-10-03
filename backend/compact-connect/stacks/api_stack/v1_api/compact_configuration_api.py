@@ -25,6 +25,7 @@ class CompactConfigurationApi:
         *,
         api: CCApi,
         compact_resource: Resource,
+        live_compacts_resource: Resource,
         jurisdictions_resource: Resource,
         public_jurisdictions_resource: Resource,
         jurisdiction_resource: Resource,
@@ -38,6 +39,8 @@ class CompactConfigurationApi:
         self.api = api
         # /v1/compacts/{compact}
         self.staff_users_compact_resource = compact_resource
+        # /v1/compacts/live
+        self.live_compacts_resource = live_compacts_resource
         # /v1/compacts/{compact}/jurisdictions
         self.staff_users_jurisdictions_resource = jurisdictions_resource
         # /v1/compacts/{compact}/jurisdictions/{jurisdiction}
@@ -85,6 +88,10 @@ class CompactConfigurationApi:
         )
 
         self._add_public_get_compact_jurisdictions_endpoint(
+            compact_configuration_api_handler=self.compact_configuration_api_function,
+        )
+
+        self._add_get_live_compact_jurisdictions_endpoint(
             compact_configuration_api_handler=self.compact_configuration_api_function,
         )
 
@@ -141,6 +148,37 @@ class CompactConfigurationApi:
         # Add suppressions for the public GET endpoint
         NagSuppressions.add_resource_suppressions(
             public_get_compact_jurisdictions_method,
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-APIG4',
+                    'reason': 'This is a public endpoint that intentionally does not require authorization',
+                },
+                {
+                    'id': 'AwsSolutions-COG4',
+                    'reason': 'This is a public endpoint that intentionally '
+                    'does not use a Cognito user pool authorizer',
+                },
+            ],
+        )
+
+    def _add_get_live_compact_jurisdictions_endpoint(self, compact_configuration_api_handler: PythonFunction):
+        """Add GET endpoint for /v1/compacts/live"""
+        get_live_compact_jurisdictions_method = self.live_compacts_resource.add_method(
+            'GET',
+            LambdaIntegration(compact_configuration_api_handler),
+            method_responses=[
+                MethodResponse(
+                    status_code='200',
+                ),
+            ],
+            request_parameters={
+                'method.request.querystring.compact': False,
+            },
+        )
+
+        # Add suppressions for the public GET endpoint
+        NagSuppressions.add_resource_suppressions(
+            get_live_compact_jurisdictions_method,
             suppressions=[
                 {
                     'id': 'AwsSolutions-APIG4',

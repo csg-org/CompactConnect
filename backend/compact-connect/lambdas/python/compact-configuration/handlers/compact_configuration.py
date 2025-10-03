@@ -28,6 +28,8 @@ def compact_configuration_api_handler(event: dict, context: LambdaContext):  # n
         return _get_staff_users_compact_jurisdictions(event, context)
     if event['httpMethod'] == 'GET' and event['resource'] == '/v1/public/compacts/{compact}/jurisdictions':
         return _get_public_compact_jurisdictions(event, context)
+    if event['httpMethod'] == 'GET' and event['resource'] == '/v1/compacts/live':
+        return _get_live_compact_jurisdictions(event, context)
     if event['httpMethod'] == 'GET' and event['resource'] == '/v1/compacts/{compact}':
         return _get_staff_users_compact_configuration(event, context)
     if event['httpMethod'] == 'PUT' and event['resource'] == '/v1/compacts/{compact}':
@@ -116,6 +118,41 @@ def _get_public_compact_jurisdictions(event: dict, context: LambdaContext):  # n
         return []
 
     return CompactJurisdictionsPublicResponseSchema().load(compact_jurisdictions, many=True)
+
+
+def _get_live_compact_jurisdictions(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
+    """
+    Endpoint to get all live jurisdictions, optionally filtered by compact.
+
+    :param event: API Gateway event with optional query parameter 'compact'
+    :param context: Lambda context
+    :return: Dictionary with compact abbreviations as keys and lists of live jurisdiction abbreviations as values
+    """
+    query_params = event.get('queryStringParameters') or {}
+    compact_filter = query_params.get('compact')
+
+    # Determine which compacts to query
+    compacts_to_query = []
+    if compact_filter:
+        # Validate the compact, if invalid treat as if no filter was provided
+        if compact_filter.lower() in config.compacts:
+            compacts_to_query = [compact_filter.lower()]
+            logger.info('Getting live jurisdictions for specific compact', compact=compact_filter)
+        else:
+            logger.info('Invalid compact provided, returning data for all compacts', compact=compact_filter)
+            compacts_to_query = config.compacts
+    else:
+        logger.info('Getting live jurisdictions for all compacts')
+        compacts_to_query = config.compacts
+
+    # Build result dictionary
+    result = {}
+    for compact in compacts_to_query:
+        live_jurisdictions = config.compact_configuration_client.get_live_compact_jurisdictions(compact=compact)
+        result[compact] = live_jurisdictions
+
+    logger.info('Returning live jurisdictions', compacts_count=len(result))
+    return result
 
 
 @authorize_compact_level_only_action(action=CCPermissionsAction.ADMIN)
