@@ -31,7 +31,8 @@ jobs:
         run: "cd backend/multi-account; ruff check $(git ls-files '*.py')"
 
       - name: Check Dependencies
-        run: "pip-audit"
+        # Ignore pip vulnerability that does not affect Python 3.12+
+        run: "pip-audit --ignore-vuln GHSA-4xh5-x5gv-qwph"
 
   TestApps:
     runs-on: ubuntu-latest
