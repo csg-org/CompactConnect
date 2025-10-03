@@ -67,6 +67,14 @@ Custom Attributes:
 
 from __future__ import annotations
 
+import os
+
+from aws_cdk import Duration
+from aws_cdk.aws_logs import RetentionDays
+from aws_cdk.aws_secretsmanager import Secret
+from aws_cdk.custom_resources import Provider
+from cdk_nag import NagSuppressions
+from common_constructs.python_function import PythonFunction
 from common_constructs.stack import AppStack
 from constructs import Construct
 
@@ -84,11 +92,14 @@ class FeatureFlagStack(AppStack):
     ):
         super().__init__(scope, construct_id, environment_name=environment_name, **kwargs)
 
-        # Feature Flags are deployed through a custom resource
-        # one per flag
+        self.provider = self._create_common_provider(environment_name)
+
+        # Feature Flags are deployed through custom resources
+        # All flags share the same custom resource provider defined above
         self.example_flag = FeatureFlagResource(
             self,
             'ExampleFlag',
+            provider=self.provider,  # Shared provider
             flag_name='example-flag',
             # This causes the flag to automatically be set to enabled for every environment in the list
             auto_enable_envs=[
@@ -101,3 +112,95 @@ class FeatureFlagStack(AppStack):
             custom_attributes={'compact': ['aslp']},
             environment_name=environment_name,
         )
+
+    def _create_common_provider(self, environment_name: str) -> Provider:
+        # Create shared Lambda function for managing all feature flags
+        # This function is reused across all FeatureFlagResource instances
+        self.manage_function = PythonFunction(
+            self,
+            'ManageFunction',
+            index=os.path.join('handlers', 'manage_feature_flag.py'),
+            lambda_dir='feature-flag',
+            handler='on_event',
+            log_retention=RetentionDays.ONE_MONTH,
+            environment={'ENVIRONMENT_NAME': environment_name},
+            timeout=Duration.minutes(5),
+            memory_size=256,
+        )
+
+        # Grant permissions to read secrets
+        self.statsig_secret = Secret.from_secret_name_v2(
+            self,
+            'StatsigSecret',
+            f'compact-connect/env/{environment_name}/statsig/credentials',
+        )
+        self.statsig_secret.grant_read(self.manage_function)
+
+        # Add CDK Nag suppressions for the Lambda function
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            path=f'{self.manage_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'The actions in this policy contain a wildcard specifically to access the feature flag '
+                    'client credentials secret and all of its versions.',
+                },
+            ],
+        )
+
+        # Create shared custom resource provider
+        # This provider is reused across all FeatureFlagResource instances
+        provider = Provider(
+            self, 'Provider', on_event_handler=self.manage_function, log_retention=RetentionDays.ONE_DAY
+        )
+
+        # Add CDK Nag suppressions for the provider framework
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            f'{provider.node.path}/framework-onEvent/Resource',
+            [
+                {'id': 'AwsSolutions-L1', 'reason': 'We do not control this runtime'},
+                {
+                    'id': 'HIPAA.Security-LambdaConcurrency',
+                    'reason': 'This function is only run at deploy time, by CloudFormation and has no need for '
+                    'concurrency limits.',
+                },
+                {
+                    'id': 'HIPAA.Security-LambdaDLQ',
+                    'reason': 'This is a synchronous function run at deploy time. It does not need a DLQ',
+                },
+                {
+                    'id': 'HIPAA.Security-LambdaInsideVPC',
+                    'reason': 'We may choose to move our lambdas into private VPC subnets in a future enhancement',
+                },
+            ],
+        )
+
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            path=f'{provider.node.path}/framework-onEvent/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'The actions in this policy contain a wildcard specifically to access the feature flag '
+                    'client credentials secret and all of its versions.',
+                },
+            ],
+        )
+
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            path=f'{provider.node.path}/framework-onEvent/ServiceRole/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM4',
+                    'appliesTo': [
+                        'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+                    ],
+                    'reason': 'This policy is appropriate for the custom resource lambda',
+                },
+            ],
+        )
+
+        return provider
