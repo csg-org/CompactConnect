@@ -6,7 +6,7 @@ of StatSig feature flags across different environments.
 """
 
 import os
-from enum import Enum
+from enum import StrEnum
 
 import jsii
 from aws_cdk import CustomResource, Duration, Stack
@@ -18,7 +18,7 @@ from common_constructs.python_function import PythonFunction
 from constructs import Construct
 
 
-class FeatureFlagEnvironmentName(Enum):
+class FeatureFlagEnvironmentName(StrEnum):
     TEST = 'test'
     BETA = 'beta'
     PROD = 'prod'
