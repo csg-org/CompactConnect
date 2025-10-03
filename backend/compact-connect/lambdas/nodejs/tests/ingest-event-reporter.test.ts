@@ -523,7 +523,7 @@ describe('Weekly runs', () => {
             }
         );
 
-        // Verify an event report was sent
+        // Verify an event report was not sent
         expect(mockSendReportEmail).not.toHaveBeenCalled();
         expect(mockSendAllsWellEmail).not.toHaveBeenCalled();
         expect(mockSendNoLicenseUpdatesEmail).not.toHaveBeenCalled();
