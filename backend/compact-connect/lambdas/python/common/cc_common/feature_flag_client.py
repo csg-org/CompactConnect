@@ -53,7 +53,7 @@ def is_feature_enabled(flag_name: str, context: FeatureFlagContext | None = None
     :param flag_name: The name of the feature flag to check
     :param context: Optional FeatureFlagContext for feature flag evaluation
     :param fail_default: If True, return True on errors; if False, return False on errors (default: False)
-    :return: True if the feature flag is enabled, False otherwise (or fail_open value on error)
+    :return: True if the feature flag is enabled, False otherwise (or fail_default value on error)
 
     Example:
         # Simple check without context
@@ -99,7 +99,7 @@ def is_feature_enabled(flag_name: str, context: FeatureFlagContext | None = None
 
         # Extract and return the 'enabled' field
         if 'enabled' not in response_data:
-            logger.info('Invalid response format - return fail_open value', response_data=response_data)
+            logger.info('Invalid response format - return fail_default value', response_data=response_data)
             # Invalid response format - return fail_default value
             return fail_default
 
@@ -108,7 +108,7 @@ def is_feature_enabled(flag_name: str, context: FeatureFlagContext | None = None
     # We catch all exceptions to prevent a feature flag issue causing the system from operating
     except Exception as e:  # noqa: BLE001
         # Any error (timeout, network, parsing, etc.) - return fail_default value
-        logger.info('Error checking feature flag - return fail_open value', exc_info=e)
+        logger.info('Error checking feature flag - return fail_default value', exc_info=e)
         return fail_default
 
 

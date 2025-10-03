@@ -1,7 +1,6 @@
 # ruff: noqa: N801, N815  invalid-name
 
 import json
-import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any
@@ -134,9 +133,7 @@ class FeatureFlagClient(ABC):
         try:
             # Create a Secrets Manager client
             session = boto3.session.Session()
-            client = session.client(
-                service_name='secretsmanager', region_name=os.environ.get('AWS_DEFAULT_REGION', 'us-east-1')
-            )
+            client = session.client(service_name='secretsmanager')
 
             # Retrieve the secret value
             response = client.get_secret_value(SecretId=secret_name)

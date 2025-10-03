@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from aws_cdk.aws_apigateway import LambdaIntegration, Resource
 from cdk_nag import NagSuppressions
+from common_constructs.cc_api import CCApi
 
 from stacks.api_lambda_stack import ApiLambdaStack
 
@@ -20,6 +21,7 @@ class FeatureFlagsApi:
     ):
         super().__init__()
         self.resource = resource
+        self.api: CCApi = resource.api
         self.api_model = api_model
 
         # POST /v1/flags/check
@@ -35,6 +37,8 @@ class FeatureFlagsApi:
                 },
             ],
         )
+
+        self.api.log_groups.append(api_lambda_stack.feature_flags_lambdas.check_feature_flag_function.log_group)
 
         # Add suppressions for the public GET endpoint
         NagSuppressions.add_resource_suppressions(
