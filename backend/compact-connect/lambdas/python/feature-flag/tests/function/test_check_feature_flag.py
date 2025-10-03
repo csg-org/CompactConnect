@@ -23,7 +23,10 @@ class TestCheckFeatureFlag(TstFunction):
         secrets_client = boto3.client('secretsmanager', region_name='us-east-1')
         secrets_client.create_secret(
             Name='compact-connect/env/test/statsig/credentials',
-            SecretString=json.dumps({'serverKey': 'test-server-key-123'}),
+            SecretString=json.dumps({
+                'serverKey': 'test-server-key-123',
+                'consoleKey': 'test-console-key-456'
+            }),
         )
 
     def tearDown(self):
