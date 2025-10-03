@@ -117,7 +117,7 @@ To execute the tests, simply run `bin/sync_deps.sh` then `bin/run_tests.sh` from
 
 Keeping documentation current is an important part of feature development in this project. If the feature involves a
 non-trivial amount of architecture or other technical design, be sure that the design and considerations are captured
-in the [design documentation](./docs/design).
+in the [design documentation](../compact-connect/docs/design).
 
 ## Deployment
 [Back to top](#compact-connect-ui---backend-developer-documentation)
