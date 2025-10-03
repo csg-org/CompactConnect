@@ -45,11 +45,10 @@ class V1Api:
         data_event_bus = SSMParameterUtility.load_data_event_bus_from_ssm_parameter(stack)
         _active_compacts = persistent_stack.get_list_of_compact_abbreviations()
 
-        api_base_url = (
-            f'https://{persistent_stack.api_domain_name}' if persistent_stack.api_domain_name else self.api.url
-        )
-
-        stack.common_env_vars.update({'API_BASE_URL': api_base_url})
+        # we only pass the API_BASE_URL env var if the API_DOMAIN_NAME is set
+        # this is because the API_BASE_URL is used by the feature flag client to call the flag check endpoint
+        if persistent_stack.api_domain_name:
+            stack.common_env_vars.update({'API_BASE_URL': f'https://{persistent_stack.api_domain_name}'})
 
         read_scopes = []
         write_scopes = []

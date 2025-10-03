@@ -1,5 +1,4 @@
 import json
-import uuid
 from datetime import UTC, date, datetime, timedelta
 from unittest.mock import patch
 
@@ -7,7 +6,6 @@ from boto3.dynamodb.conditions import Key
 from cc_common.exceptions import CCInternalException
 from common_test.test_constants import (
     DEFAULT_AA_SUBMITTING_USER_ID,
-    DEFAULT_ADVERSE_ACTION_ID,
     DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
     DEFAULT_ENCUMBRANCE_TYPE,
     DEFAULT_LICENSE_JURISDICTION,
