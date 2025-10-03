@@ -474,9 +474,9 @@ class StatSigFeatureFlagClient(FeatureFlagClient):
         statsig_tier = STATSIG_ENVIRONMENT_MAPPING.get(self.environment.lower(), STATSIG_DEVELOPMENT_TIER)
         rule_name = f'{self.environment.lower()}-rule'
 
-        # Build conditions if auto_enable is True
         conditions = []
-        if auto_enable and custom_attributes:
+        # Build conditions if custom attributes were passed in
+        if custom_attributes:
             conditions = self._build_conditions_from_attributes(custom_attributes)
 
         # Add new environment rule
@@ -571,8 +571,8 @@ class StatSigFeatureFlagClient(FeatureFlagClient):
             raise FeatureFlagException(f'Failed to delete feature gate: {response.status_code} - {response.text[:200]}')
 
         # Remove only the current environment's rule
-        removed = self._remove_environment_rule_from_flag(flag_id, flag_data, rule_name)
-        return False if removed else False  # Environment rule removed, not full deletion
+        self._remove_environment_rule_from_flag(flag_id, flag_data, rule_name)
+        return False  # Environment rule removed, not full deletion
 
     def _remove_environment_rule_from_flag(self, flag_id: str, flag_data: dict[str, Any], rule_name: str) -> bool:
         """
