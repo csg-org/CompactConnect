@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from common_constructs.stack import AppStack, Stack
+from common_constructs.stack import AppStack
 from constructs import Construct
 
 from stacks import persistent_stack as ps
