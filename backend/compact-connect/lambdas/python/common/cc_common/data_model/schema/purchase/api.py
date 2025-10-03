@@ -4,9 +4,8 @@ from cc_common.data_model.schema.compact.api import CompactOptionsResponseSchema
 from cc_common.data_model.schema.compact.common import COMPACT_TYPE
 from cc_common.data_model.schema.jurisdiction.api import JurisdictionOptionsResponseSchema
 from cc_common.data_model.schema.jurisdiction.common import JURISDICTION_TYPE
-from marshmallow import validates_schema
+from marshmallow import ValidationError, validates_schema
 from marshmallow.fields import Dict, List, String
-from marshmallow.validate import ValidationError
 
 
 class PurchasePrivilegeOptionsResponseSchema(ForgivingSchema):
