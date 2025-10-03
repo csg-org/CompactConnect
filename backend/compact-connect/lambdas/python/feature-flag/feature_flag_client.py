@@ -568,9 +568,7 @@ class StatSigFeatureFlagClient(FeatureFlagClient):
             if response.status_code in [200, 204]:
                 return True  # Flag fully deleted
 
-            raise FeatureFlagException(
-                f'Failed to delete feature gate: {response.status_code} - {response.text[:200]}'
-            )
+            raise FeatureFlagException(f'Failed to delete feature gate: {response.status_code} - {response.text[:200]}')
 
         # Remove only the current environment's rule
         removed = self._remove_environment_rule_from_flag(flag_id, flag_data, rule_name)
