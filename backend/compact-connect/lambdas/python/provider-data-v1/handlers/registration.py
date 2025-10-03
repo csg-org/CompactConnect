@@ -215,6 +215,7 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
             jurisdiction=body['jurisdiction'],
             environment=config.environment_name,
         )
+        metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
         raise CCInvalidRequestException('Registration is not currently available for the specified state.') from e
 
     # Check if the jurisdiction is configured and live in the compact's configuredStates

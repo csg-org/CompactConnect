@@ -13,6 +13,7 @@ class TstLambdas(TestCase):
             {
                 # Set to 'true' to enable debug logging
                 'DEBUG': 'false',
+                'API_BASE_URL': 'https://api.example.com',
                 'ALLOWED_ORIGINS': '["https://example.org", "http://localhost:1234"]',
                 'AWS_DEFAULT_REGION': 'us-east-1',
                 'BULK_BUCKET_NAME': 'cc-license-data-bulk-bucket',

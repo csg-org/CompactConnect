@@ -51,6 +51,7 @@ class DeactivationDetailsSchema(Schema):
     deactivatedByStaffUserId = UUID(required=True, allow_none=False)
     deactivatedByStaffUserName = String(required=True, allow_none=False)
 
+
 class EncumbranceDetailsSchema(Schema):
     """
     Schema for tracking details about an encumbrance.
@@ -60,6 +61,7 @@ class EncumbranceDetailsSchema(Schema):
     adverseActionId = UUID(required=True, allow_none=False)
     # present if update is created by upstream license encumbrance
     licenseJurisdiction = Jurisdiction(required=False, allow_none=False)
+
 
 @BaseRecordSchema.register_schema('privilege')
 class PrivilegeRecordSchema(BaseRecordSchema, ValidatesLicenseTypeMixin):
