@@ -56,24 +56,6 @@ class ProviderRecordUtility:
     """
 
     @staticmethod
-    def sanitize_provider_account_profile_fields_from_response(provider_response: dict) -> dict:
-        """
-        Remove sensitive profile related fields from a provider response.
-
-        These fields are only present if the provider has requested an email change or account recovery.
-        They should not be present in the provider response for any endpoint.
-
-        :param provider_response: The provider response to sanitize
-        :return: The provider response with sensitive profile related fields removed
-        """
-        provider_response.pop('emailVerificationExpiry', None)
-        provider_response.pop('emailVerificationCode', None)
-        provider_response.pop('pendingEmailAddress', None)
-        provider_response.pop('recoveryToken', None)
-        provider_response.pop('recoveryExpiry', None)
-        return provider_response
-
-    @staticmethod
     def get_records_of_type(
         provider_records: Iterable[dict],
         record_type: ProviderRecordType,
@@ -245,8 +227,8 @@ class ProviderRecordUtility:
 
     @staticmethod
     def get_enriched_history_with_synthetic_updates_from_privilege(
-            privilege: dict,
-            history: list[dict],
+        privilege: dict,
+        history: list[dict],
     ) -> list[dict]:
         """
         Enrich the privilege history with 'synthetic updates'.
@@ -367,8 +349,7 @@ class ProviderRecordUtility:
 
     @staticmethod
     def construct_simplified_privilege_history_object(
-            privilege_data: list[dict],
-            should_include_encumbrance_details: bool = True
+        privilege_data: list[dict], should_include_encumbrance_details: bool = True
     ) -> dict:
         """
         Construct a simplified list of history events to be easily consumed by the front end
@@ -393,10 +374,7 @@ class ProviderRecordUtility:
                 and should_include_encumbrance_details
             ):
                 event['note'] = event['encumbranceDetails']['clinicalPrivilegeActionCategory']
-            elif (
-                event['updateType'] == UpdateCategory.DEACTIVATION
-                and event.get('deactivationDetails')
-            ):
+            elif event['updateType'] == UpdateCategory.DEACTIVATION and event.get('deactivationDetails'):
                 event['note'] = event['deactivationDetails']['note']
 
         unsanitized_history = {
@@ -786,7 +764,5 @@ class ProviderUserRecords:
         provider['licenses'] = licenses
         provider['privileges'] = privileges
         provider['militaryAffiliations'] = military_affiliations
-
-        ProviderRecordUtility.sanitize_provider_account_profile_fields_from_response(provider)
 
         return provider

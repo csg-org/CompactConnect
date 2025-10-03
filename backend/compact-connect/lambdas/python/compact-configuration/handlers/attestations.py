@@ -1,5 +1,6 @@
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
+from cc_common.data_model.schema.attestation.api import AttestationResponseSchema
 from cc_common.exceptions import CCInvalidRequestException
 from cc_common.utils import api_handler
 
@@ -35,8 +36,12 @@ def _get_attestation(event: dict, context: LambdaContext):  # noqa: ARG001 unuse
         locale=locale,
     )
 
-    return config.compact_configuration_client.get_attestation(
+    attestation_data = config.compact_configuration_client.get_attestation(
         compact=compact,
         attestation_id=attestation_id,
         locale=locale,
     )
+
+    # Apply schema validation
+    response_schema = AttestationResponseSchema()
+    return response_schema.load(attestation_data)

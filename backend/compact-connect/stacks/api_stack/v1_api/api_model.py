@@ -1611,7 +1611,7 @@ class ApiModel:
                 type=JsonSchemaType.OBJECT,
                 properties={
                     'type': JsonSchema(type=JsonSchemaType.STRING, enum=['attestation']),
-                    'attestationType': JsonSchema(type=JsonSchemaType.STRING),
+                    'attestationId': JsonSchema(type=JsonSchemaType.STRING),
                     'compact': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.node.get_context('compacts')),
                     'version': JsonSchema(type=JsonSchemaType.STRING),
                     'dateCreated': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),

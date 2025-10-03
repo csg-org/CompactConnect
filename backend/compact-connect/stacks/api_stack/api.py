@@ -66,7 +66,6 @@ class LicenseApi(CCApi):
         The secret arn follows this pattern:
         compact-connect/env/{environment_name}/compact/{compact_abbr}/credentials/payment-processor
 
-
         This is used to scope the permissions granted to the lambda to only the secrets it needs to access.
         """
         stack = Stack.of(self)
