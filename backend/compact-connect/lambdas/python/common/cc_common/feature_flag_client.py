@@ -57,31 +57,23 @@ def is_feature_enabled(flag_name: str, context: FeatureFlagContext | None = None
 
     Example:
         # Simple check without context
-        is_feature_enabled('test-feature')
-        True
+        if is_feature_enabled('test-feature'):
+            # feature code here
 
         # Check with user ID
-        is_feature_enabled(
+        if is_feature_enabled(
             'test-feature',
             context=FeatureFlagContext(user_id='user123')
-        )
-        False
+        ):
 
         # Check with user ID and custom attributes
-        is_feature_enabled(
+        if is_feature_enabled(
             'test-feature',
             context=FeatureFlagContext(
                 user_id='user456',
                 custom_attributes={'licenseType': 'lpc', 'jurisdiction': 'oh'}
             )
-        )
-        True
-
-        # Fail open - if API fails, allow access
-        is_feature_enabled('critical-feature', fail_open=True)
-
-        # Fail closed - if API fails, deny access (default)
-        is_feature_enabled('new-feature', fail_open=False)
+        ):
     """
     try:
         api_base_url = _get_api_base_url()
@@ -108,13 +100,14 @@ def is_feature_enabled(flag_name: str, context: FeatureFlagContext | None = None
         # Extract and return the 'enabled' field
         if 'enabled' not in response_data:
             logger.info('Invalid response format - return fail_open value', response_data=response_data)
-            # Invalid response format - return fail_open value
+            # Invalid response format - return fail_default value
             return fail_default
 
         return bool(response_data['enabled'])
 
-    except Exception as e:
-        # Any error (timeout, network, parsing, etc.) - return fail_open value
+    # We catch all exceptions to prevent a feature flag issue causing the system from operating
+    except Exception as e:  # noqa: BLE001
+        # Any error (timeout, network, parsing, etc.) - return fail_default value
         logger.info('Error checking feature flag - return fail_open value', exc_info=e)
         return fail_default
 
