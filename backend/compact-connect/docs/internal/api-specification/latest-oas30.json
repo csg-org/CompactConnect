@@ -10,6 +10,45 @@
     }
   ],
   "paths": {
+    "/v1/compacts/live": {
+      "get": {
+        "summary": "Get live compact jurisdictions",
+        "description": "Returns all jurisdictions that are live (enabled for operations) across all compacts or for a specific compact if the optional compact query parameter is provided.",
+        "parameters": [
+          {
+            "name": "compact",
+            "in": "query",
+            "required": false,
+            "description": "Optional compact abbreviation to filter results. If not provided or invalid, returns data for all compacts.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 response - Returns a dictionary with compact abbreviations as keys and arrays of live jurisdiction postal abbreviations as values",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "example": {
+                    "aslp": ["co", "ne", "wy"],
+                    "octp": ["ak", "ky"]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/compacts/{compact}": {
       "get": {
         "parameters": [

@@ -450,3 +450,31 @@ class CompactConfigurationClient:
                 ':dou': self.config.current_standard_datetime.isoformat(),
             },
         )
+
+    def get_live_compact_jurisdictions(self, compact: str) -> list[str]:
+        """
+        Get all live (isLive: true) jurisdiction postal abbreviations for a specific compact.
+
+        :param compact: The compact abbreviation
+        :return: List of jurisdiction postal abbreviations that are live in the compact
+        """
+        logger.info('Getting live jurisdictions for compact', compact=compact)
+
+        try:
+            compact_config = self.get_compact_configuration(compact)
+        except CCNotFoundException:
+            logger.info('Compact configuration not found, returning empty list', compact=compact)
+            return []
+
+        # Filter configuredStates for those with isLive: true and extract postal abbreviations
+        live_jurisdictions = [
+            state['postalAbbreviation'] for state in compact_config.configuredStates if state.get('isLive', False)
+        ]
+
+        logger.info(
+            'Retrieved live jurisdictions for compact',
+            compact=compact,
+            live_jurisdictions_count=len(live_jurisdictions),
+        )
+
+        return live_jurisdictions
