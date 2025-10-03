@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from common_constructs.stack import AppStack
+from common_constructs.stack import AppStack, Stack
 from constructs import Construct
 
 from stacks import persistent_stack as ps
@@ -29,6 +29,11 @@ class ApiLambdaStack(AppStack):
             environment_context=environment_context,
             **kwargs,
         )
+
+        # we only pass the API_BASE_URL env var if the API_DOMAIN_NAME is set
+        # this is because the API_BASE_URL is used by the feature flag client to call the flag check endpoint
+        if persistent_stack.api_domain_name:
+            self.common_env_vars.update({'API_BASE_URL': f'https://{persistent_stack.api_domain_name}'})
 
         # Feature Flags related API lambdas
         self.feature_flags_lambdas = FeatureFlagsLambdas(

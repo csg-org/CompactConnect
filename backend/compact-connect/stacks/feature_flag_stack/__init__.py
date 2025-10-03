@@ -10,6 +10,8 @@ the respective StatSig account console.
 When a flag is no longer used, removing it from this stack should result in cleaning up all the environment based rules
 for the flag and deleting it from StatSig once it has been removed from all environments.
 
+NOTE: Flags are only currently supported if the environment has a domain name configured.
+
 Feature Flag Lifecycle:
 -----------------------
 1. **Creation** (on_create):
