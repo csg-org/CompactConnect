@@ -7,7 +7,10 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
 from botocore.response import StreamingBody
 from cc_common.config import config, logger
-from cc_common.data_model.schema.license.api import LicenseGeneralResponseSchema, LicensePostRequestSchema
+from cc_common.data_model.schema.license.api import (
+    LicensePostRequestSchema,
+    LicenseReportResponseSchema,
+)
 from cc_common.event_batch_writer import EventBatchWriter
 from cc_common.exceptions import CCInternalException
 from cc_common.utils import (
@@ -124,7 +127,7 @@ def process_bulk_upload_file(
     Stream each line of the new CSV file, validating it then publishing an ingest event for each line.
     Process licenses in batches to avoid loading the entire file into memory.
     """
-    general_schema = LicenseGeneralResponseSchema()
+    report_schema = LicenseReportResponseSchema()
     schema = LicensePostRequestSchema()
     reader = LicenseCSVReader()
 
@@ -163,14 +166,14 @@ def process_bulk_upload_file(
                 # and publish it as a failure event. Because this data may eventually be sent back over
                 # an email, we will only include the generally available values that we can still validate.
                 try:
-                    general_license_data = general_schema.load(raw_license)
+                    report_license_data = report_schema.load(raw_license)
                 except ValidationError as exc_second_try:
-                    general_license_data = exc_second_try.valid_data
+                    report_license_data = exc_second_try.valid_data
                 logger.info(
                     'Invalid license in line %s uploaded: %s',
                     i + 1,
                     str(e),
-                    valid_data=general_license_data,
+                    valid_data=report_license_data,
                     exc_info=e,
                 )
                 event_writer.put_event(
@@ -183,7 +186,7 @@ def process_bulk_upload_file(
                                 'compact': compact,
                                 'jurisdiction': jurisdiction,
                                 'recordNumber': i + 1,
-                                'validData': general_license_data,
+                                'validData': report_license_data,
                                 'errors': e.messages,
                             },
                             cls=ResponseEncoder,

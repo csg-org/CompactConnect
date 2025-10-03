@@ -77,6 +77,61 @@ describe('EventClient', () => {
         jest.clearAllMocks();
     });
 
+    it('should produce 15-minute timestamps 900 seconds (15 minutes) apart', async () => {
+        const eventClient = new EventClient({
+            logger: new Logger(),
+            dynamoDBClient: asDynamoDBClient(mockDynamoDBClient)
+        });
+
+        const [ startStamp, endStamp ] = eventClient.getLast15MinuteTimestamps();
+
+        expect(endStamp - startStamp).toEqual(900);
+    });
+
+    it('should produce 15-minute blocks', async () => {
+        const eventClient = new EventClient({
+            logger: new Logger(),
+            dynamoDBClient: asDynamoDBClient(mockDynamoDBClient)
+        });
+
+        // Test case 1: if 'now' is at 11:01, it should return timestamps at 10:45-11:00
+        jest.useFakeTimers();
+        jest.setSystemTime(new Date('2025-01-01T11:01:00.000Z'));
+
+        const [ startStamp1, endStamp1 ] = eventClient.getLast15MinuteTimestamps();
+        const expectedStart1 = Math.floor(new Date('2025-01-01T10:45:00.000Z').getTime() / 1000);
+        const expectedEnd1 = Math.floor(new Date('2025-01-01T11:00:00.000Z').getTime() / 1000);
+
+        expect(startStamp1).toEqual(expectedStart1);
+        expect(endStamp1).toEqual(expectedEnd1);
+        expect(endStamp1 - startStamp1).toEqual(900); // 15 minutes (10:45 to 11:00)
+
+        // Test case 2: if 'now' is at 2025-01-01T00:00:00.001Z, it should return timestamps for 2024-12-31T23:45:00.000Z-2025-01-01T00:00:00.000Z
+        jest.setSystemTime(new Date('2025-01-01T00:00:00.001Z'));
+
+        const [ startStamp2, endStamp2 ] = eventClient.getLast15MinuteTimestamps();
+        const expectedStart2 = Math.floor(new Date('2024-12-31T23:45:00.000Z').getTime() / 1000);
+        const expectedEnd2 = Math.floor(new Date('2025-01-01T00:00:00.000Z').getTime() / 1000);
+
+        expect(startStamp2).toEqual(expectedStart2);
+        expect(endStamp2).toEqual(expectedEnd2);
+        expect(endStamp2 - startStamp2).toEqual(900); // 15 minutes (23:45 to 00:00)
+
+        // Test case 3: if 'now' is at 12:35, it should return timestamps at 12:15-12:30
+        jest.setSystemTime(new Date('2025-01-01T12:35:00.000Z'));
+
+        const [ startStamp3, endStamp3 ] = eventClient.getLast15MinuteTimestamps();
+        const expectedStart3 = Math.floor(new Date('2025-01-01T12:15:00.000Z').getTime() / 1000);
+        const expectedEnd3 = Math.floor(new Date('2025-01-01T12:30:00.000Z').getTime() / 1000);
+
+        expect(startStamp3).toEqual(expectedStart3);
+        expect(endStamp3).toEqual(expectedEnd3);
+        expect(endStamp3 - startStamp3).toEqual(900); // 15 minutes (12:15 to 12:30)
+
+        // Restore real timers
+        jest.useRealTimers();
+    });
+
     it('should produce nightly timestamps 86400 seconds (24 hours) apart', async () => {
         const eventClient = new EventClient({
             logger: new Logger(),
