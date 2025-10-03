@@ -55,8 +55,8 @@ class FeatureFlagResource(Construct):
         """
         super().__init__(scope, construct_id)
 
-        if not flag_name:
-            raise ValueError('flag_name is required')
+        if not flag_name or not environment_name:
+            raise ValueError('flag_name and environment_name are required')
 
         # Lambda function for managing feature flags
         self.manage_function = PythonFunction(
