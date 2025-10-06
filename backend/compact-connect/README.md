@@ -188,11 +188,12 @@ its environment:
    The key under `environments` must match the value you put under `environment_name`.
 6) Configure your aws cli to authenticate against your own account. There are several ways to do this based on the
    type of authentication you use to login to your account. See the [AWS CLI Configuration Guide](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-quickstart.html).
-7) Complete the [Google reCAPTCHA Setup](#google-recaptcha-setup) steps for your sandbox environment.
-8) Run `cdk bootstrap` to add some base CDK support infrastructure to your AWS account. See
+7) Complete the [StatSig Feature Flag Setup](#statsig-feature-flag-setup) steps for your sandbox environment.
+8) Complete the [Google reCAPTCHA Setup](#google-recaptcha-setup) steps for your sandbox environment.
+9) Run `cdk bootstrap` to add some base CDK support infrastructure to your AWS account. See
    [Custom bootstrap stack](#custom-bootstrap-stack) below for optional custom stack deployment.
-9) Run `cdk deploy 'Sandbox/*'` to get the initial backend stack resources deployed.
-10) *Optional:* If you have a domain name configured for your sandbox environment, once the backend stacks have
+10) Run `cdk deploy 'Sandbox/*'` to get the initial backend stack resources deployed.
+11)*Optional:* If you have a domain name configured for your sandbox environment, once the backend stacks have
     successfully deployed, you can deploy the frontend UI app as well. See the
     [UI app for details](../compact-connect-ui-app/README.md).
 
@@ -230,6 +231,7 @@ authentication is working as expected.
 The production environment requires a few steps to fully set up before deploys can be automated. Refer to the
 [README.md](../multi-account/README.md) for details on setting up a full multi-account architecture environment. Once
 that is done, perform the following steps to deploy the CI/CD pipelines into the appropriate AWS account:
+- Complete the [StatSig Feature Flag Setup](#statsig-feature-flag-setup) steps for each environment you will be deploying to (test, beta, prod).
 - Complete the [Google reCAPTCHA Setup](#google-recaptcha-setup) steps for each environment you will be deploying to (test, beta, prod).
   Use the appropriate domain name for the environment (ie `app.test.compactconnect.org` for test environment,
   `app.beta.compactconnect.org` for beta environment, `app.compactconnect.org` for production). For the production
@@ -285,6 +287,41 @@ Once the pipelines are established with the above steps, deployments will be aut
   pipeline
 - Pushes to the `main` branch will trigger both the beta and production backend pipelines, which will then trigger
   their respective frontend pipelines.
+
+## StatSig Feature Flag Setup
+[Back to top](#compact-connect---backend-developer-documentation)
+
+The feature flag system uses StatSig to manage feature flags across different environments. Follow these steps to set up StatSig for your environment:
+
+1. **Create a StatSig Account**
+   - Visit [StatSig](https://www.statsig.com/) and create an account
+   - Set up your project and organization
+
+2. **Generate API Keys**
+   - Navigate to the [API Keys section](https://docs.statsig.com/guides/first-feature/#step-4---create-a-new-client-api-key) of the StatSig console
+   - You'll need to create three types of API keys:
+     - **Server Secret Key**: Used for server-side feature flag evaluation
+     - **Client API Key**: Used for client-side feature flag evaluation (optional for this backend setup)
+     - **Console API Key**: Used for programmatic management of feature flags via the Console API
+
+3. **Store Credentials in AWS Secrets Manager**
+   - For each environment (test, beta, prod), create a secret in AWS Secrets Manager with the following naming pattern:
+     ```
+     compact-connect/env/{environment_name}/statsig/credentials
+     ```
+   - The secret value should be a JSON object with the following structure:
+     ```json
+     {
+       "serverKey": "<your_server_secret_key>",
+       "consoleKey": "<your_console_api_key>"
+     }
+     ```
+   - You can create the secret for each environment account by logging into the respective environment account and using the AWS CLI:
+     ```bash
+     aws secretsmanager create-secret \
+       --name "compact-connect/env/{test | beta | prod}/statsig/credentials" \
+       --secret-string '{"serverKey": "<your_server_secret_key>", "consoleKey": "<your_console_api_key>"}'
+     ```
 
 ## Google reCAPTCHA Setup
 [Back to top](#compact-connect---backend-developer-documentation)
