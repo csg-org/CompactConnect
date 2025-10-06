@@ -74,10 +74,10 @@ from aws_cdk.aws_logs import RetentionDays
 from aws_cdk.aws_secretsmanager import Secret
 from aws_cdk.custom_resources import Provider
 from cdk_nag import NagSuppressions
-from common_constructs.python_function import PythonFunction
 from common_constructs.stack import AppStack
 from constructs import Construct
 
+from common_constructs.python_function import PythonFunction
 from stacks.feature_flag_stack.feature_flag_resource import FeatureFlagEnvironmentName, FeatureFlagResource
 
 
