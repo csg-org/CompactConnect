@@ -15,6 +15,7 @@
                     class="clock-logo-img"
                     src="@assets/icons/ico-clock.svg"
                     :alt="$t('licensing.privilegeExpirationIcon')"
+                    aria-label="toggle expiration explanation"
                     :aria-describedby="(shouldShowExpirationExplanation) ? 'expiration-explanation' : undefined"
                     :aria-expanded="shouldShowExpirationExplanation"
                     @click="toggleExpirationExplanation"
