@@ -332,9 +332,9 @@ class StatSigFeatureFlagClient(FeatureFlagClient):
             if method == 'GET':
                 response = requests.get(url, headers=headers, timeout=30)
             elif method == 'POST':
-                response = requests.post(url, headers=headers, data=json.dumps(data), timeout=30)
+                response = requests.post(url, headers=headers, json=data, timeout=30)
             elif method == 'PATCH':
-                response = requests.patch(url, headers=headers, data=json.dumps(data), timeout=30)
+                response = requests.patch(url, headers=headers, json=data, timeout=30)
             elif method == 'DELETE':
                 response = requests.delete(url, headers=headers, timeout=30)
             else:
@@ -376,8 +376,7 @@ class StatSigFeatureFlagClient(FeatureFlagClient):
         # we only set the environment rule if it doesn't already exist
         # else we leave it alone to avoid overwriting manual changes
         if not environment_rule:
-            updated_gate = self._add_environment_rule(existing_gate, auto_enable, custom_attributes)
-            self._update_gate(gate_id, updated_gate)
+            self._add_environment_rule(gate_id, existing_gate, auto_enable, custom_attributes)
 
         return existing_gate
 
@@ -457,8 +456,8 @@ class StatSigFeatureFlagClient(FeatureFlagClient):
         return conditions
 
     def _add_environment_rule(
-        self, gate_data: dict[str, Any], auto_enable: bool, custom_attributes: dict[str, Any] | None = None
-    ) -> dict[str, Any]:
+        self, gate_id: str, gate_data: dict[str, Any], auto_enable: bool, custom_attributes: dict[str, Any] | None = None
+    ) -> None:
         """
         Add an environment-specific rule to an existing gate.
 
@@ -489,7 +488,7 @@ class StatSigFeatureFlagClient(FeatureFlagClient):
             updated_gate['rules'] = []
         updated_gate['rules'].append(new_rule)
 
-        return updated_gate
+        self._update_gate(gate_id, updated_gate)
 
     def _update_gate(self, gate_id: str, gate_data: dict[str, Any]) -> bool:
         """

@@ -292,8 +292,7 @@ class TestStatSigClient(TstFunction):
                 'STATSIG-API-VERSION': STATSIG_API_VERSION,
                 'Content-Type': 'application/json',
             },
-            data=json.dumps(
-                {
+            json={
                     'name': 'new-test-flag',
                     'description': 'Feature gate managed by CDK for new-test-flag feature',
                     'isEnabled': True,
@@ -312,8 +311,7 @@ class TestStatSigClient(TstFunction):
                             'passPercentage': 100,  # Always 100 for test environment
                         }
                     ],
-                }
-            ),
+            },
             timeout=30,
         )
 
@@ -346,8 +344,7 @@ class TestStatSigClient(TstFunction):
                 'STATSIG-API-VERSION': STATSIG_API_VERSION,
                 'Content-Type': 'application/json',
             },
-            data=json.dumps(
-                {
+            json={
                     'name': 'simple-flag',
                     'description': 'Feature gate managed by CDK for simple-flag feature',
                     'isEnabled': True,
@@ -359,8 +356,7 @@ class TestStatSigClient(TstFunction):
                             'passPercentage': 0,
                         }
                     ],
-                }
-            ),
+            },
             timeout=30,
         )
 
@@ -428,8 +424,7 @@ class TestStatSigClient(TstFunction):
                 'STATSIG-API-VERSION': STATSIG_API_VERSION,
                 'Content-Type': 'application/json',
             },
-            data=json.dumps(
-                {
+            json={
                     'name': 'prod-flag',
                     'description': 'Feature gate managed by CDK for prod-flag feature',
                     'isEnabled': True,
@@ -441,8 +436,7 @@ class TestStatSigClient(TstFunction):
                             'passPercentage': 0,  # Disabled in prod when auto_enable=False
                         }
                     ],
-                }
-            ),
+            },
             timeout=30,
         )
 
@@ -475,8 +469,7 @@ class TestStatSigClient(TstFunction):
                 'STATSIG-API-VERSION': STATSIG_API_VERSION,
                 'Content-Type': 'application/json',
             },
-            data=json.dumps(
-                {
+            json={
                     'name': 'prod-flag',
                     'description': 'Feature gate managed by CDK for prod-flag feature',
                     'isEnabled': True,
@@ -488,8 +481,7 @@ class TestStatSigClient(TstFunction):
                             'passPercentage': 100,
                         }
                     ],
-                }
-            ),
+            },
             timeout=30,
         )
 
@@ -535,8 +527,7 @@ class TestStatSigClient(TstFunction):
                 'STATSIG-API-VERSION': STATSIG_API_VERSION,
                 'Content-Type': 'application/json',
             },
-            data=json.dumps(
-                {
+            json={
                     'id': 'existing-flag',
                     'name': 'existing-flag',
                     'rules': [
@@ -553,8 +544,7 @@ class TestStatSigClient(TstFunction):
                             'passPercentage': 0,
                         },
                     ],
-                }
-            ),
+            },
             timeout=30,
         )
 
@@ -601,8 +591,7 @@ class TestStatSigClient(TstFunction):
                 'STATSIG-API-VERSION': STATSIG_API_VERSION,
                 'Content-Type': 'application/json',
             },
-            data=json.dumps(
-                {
+            json={
                     'id': 'gate-existing-prod',
                     'name': 'existing-prod-flag',
                     'rules': [
@@ -626,8 +615,7 @@ class TestStatSigClient(TstFunction):
                             'passPercentage': 100,
                         },
                     ],
-                }
-            ),
+            },
             timeout=30,
         )
 
@@ -851,8 +839,7 @@ class TestStatSigClient(TstFunction):
                 'STATSIG-API-VERSION': STATSIG_API_VERSION,
                 'Content-Type': 'application/json',
             },
-            data=json.dumps(
-                {
+            json={
                     'id': 'gate-delete-multi',
                     'name': 'delete-multi-flag',
                     'rules': [
@@ -869,8 +856,7 @@ class TestStatSigClient(TstFunction):
                             'passPercentage': 100,
                         },
                     ],
-                }
-            ),
+            },
             timeout=30,
         )
         mock_requests.delete.assert_not_called()
@@ -1059,8 +1045,7 @@ class TestStatSigClient(TstFunction):
                 'STATSIG-API-VERSION': STATSIG_API_VERSION,
                 'Content-Type': 'application/json',
             },
-            data=json.dumps(
-                {
+            json={
                     'name': 'string-attrs-flag',
                     'description': 'Feature gate managed by CDK for string-attrs-flag feature',
                     'isEnabled': True,
@@ -1080,8 +1065,7 @@ class TestStatSigClient(TstFunction):
                             'passPercentage': 0,  # Always 100 for test environment
                         }
                     ],
-                }
-            ),
+            },
             timeout=30,
         )
 
@@ -1115,8 +1099,7 @@ class TestStatSigClient(TstFunction):
                 'STATSIG-API-VERSION': STATSIG_API_VERSION,
                 'Content-Type': 'application/json',
             },
-            data=json.dumps(
-                {
+            json={
                     'name': 'list-attrs-flag',
                     'description': 'Feature gate managed by CDK for list-attrs-flag feature',
                     'isEnabled': True,
@@ -1135,8 +1118,7 @@ class TestStatSigClient(TstFunction):
                             'passPercentage': 0,
                         }
                     ],
-                }
-            ),
+            },
             timeout=30,
         )
 
