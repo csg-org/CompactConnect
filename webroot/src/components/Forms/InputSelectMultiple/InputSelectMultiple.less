@@ -1,0 +1,54 @@
+//
+//  InputSelectMultiple.less
+//  CompactConnect
+//
+//  Created by InspiringApps on 10/2/2025.
+//
+
+.input-container {
+    .multi-select-description {
+        font-size: @fontSizeSmaller;
+        font-style: italic;
+    }
+
+    .select-dropdown {
+        resize: vertical;
+    }
+
+    .selected-container {
+        display: flex;
+        flex-wrap: wrap;
+        width: 100%;
+        margin-top: 2rem;
+
+        .selected-value {
+            @removeSize: 3.2rem;
+
+            display: flex;
+            flex-grow: 0;
+            flex-shrink: 1;
+            align-items: center;
+            width: fit-content;
+            min-height: @removeSize;
+            margin-bottom: 1rem;
+            padding: 0 @removeSize 0 0.8rem;
+            border: 1px solid @primaryColor;
+            border-radius: 8px;
+
+            &:not(:last-child) {
+                margin-right: 1rem;
+            }
+
+            .remove {
+                position: absolute;
+                top: 0;
+                right: 0;
+                width: @removeSize;
+                height: @removeSize;
+                margin-left: auto;
+                cursor: pointer;
+                stroke: @primaryColor;
+            }
+        }
+    }
+}

@@ -18,6 +18,7 @@
                     :shouldResizeY="true"
                 />
                 <InputSelect :formInput="formData.state" />
+                <InputSelectMultiple :formInput="formData.states" />
                 <InputCheckbox :formInput="formData.isSubscribed" />
                 <InputRadioGroup :formInput="formData.status" />
                 <InputDate :formInput="formData.dob" />
