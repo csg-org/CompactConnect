@@ -414,7 +414,7 @@ class ApiModel:
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
                 additional_properties=False,
-                required=['encumbranceEffectiveDate', 'encumbranceType', 'clinicalPrivilegeActionCategory'],
+                required=['encumbranceEffectiveDate', 'encumbranceType'],
                 properties={
                     'encumbranceEffectiveDate': JsonSchema(
                         type=JsonSchemaType.STRING,
@@ -425,7 +425,12 @@ class ApiModel:
                     'encumbranceType': self._encumbrance_type_schema,
                     'clinicalPrivilegeActionCategory': JsonSchema(
                         type=JsonSchemaType.STRING,
-                        description='The category of clinical privilege action',
+                        description='(Deprecated) The category of clinical privilege action. Use clinicalPrivilegeActionCategories instead.',
+                    ),
+                    'clinicalPrivilegeActionCategories': JsonSchema(
+                        type=JsonSchemaType.ARRAY,
+                        description='The categories of clinical privilege action',
+                        items=JsonSchema(type=JsonSchemaType.STRING),
                     ),
                 },
             ),
@@ -444,7 +449,7 @@ class ApiModel:
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
                 additional_properties=False,
-                required=['encumbranceEffectiveDate', 'encumbranceType', 'clinicalPrivilegeActionCategory'],
+                required=['encumbranceEffectiveDate', 'encumbranceType'],
                 properties={
                     'encumbranceEffectiveDate': JsonSchema(
                         type=JsonSchemaType.STRING,
@@ -455,7 +460,12 @@ class ApiModel:
                     'encumbranceType': self._encumbrance_type_schema,
                     'clinicalPrivilegeActionCategory': JsonSchema(
                         type=JsonSchemaType.STRING,
-                        description='The category of clinical privilege action',
+                        description='(Deprecated) The category of clinical privilege action. Use clinicalPrivilegeActionCategories instead.',
+                    ),
+                    'clinicalPrivilegeActionCategories': JsonSchema(
+                        type=JsonSchemaType.ARRAY,
+                        description='The categories of clinical privilege action',
+                        items=JsonSchema(type=JsonSchemaType.STRING),
                     ),
                 },
             ),
