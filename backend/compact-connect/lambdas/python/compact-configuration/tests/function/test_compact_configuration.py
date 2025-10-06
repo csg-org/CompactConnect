@@ -12,7 +12,7 @@ from . import TstFunction
 
 STAFF_USERS_COMPACT_JURISDICTION_ENDPOINT_RESOURCE = '/v1/compacts/{compact}/jurisdictions'
 PUBLIC_COMPACT_JURISDICTION_ENDPOINT_RESOURCE = '/v1/public/compacts/{compact}/jurisdictions'
-LIVE_COMPACT_JURISDICTIONS_ENDPOINT_RESOURCE = '/v1/compacts/live'
+LIVE_COMPACT_JURISDICTIONS_ENDPOINT_RESOURCE = '/v1/public/compacts/jurisdictions/live'
 
 COMPACT_CONFIGURATION_ENDPOINT_RESOURCE = '/v1/compacts/{compact}'
 JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE = '/v1/compacts/{compact}/jurisdictions/{jurisdiction}'

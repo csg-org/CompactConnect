@@ -28,7 +28,7 @@ def compact_configuration_api_handler(event: dict, context: LambdaContext):  # n
         return _get_staff_users_compact_jurisdictions(event, context)
     if event['httpMethod'] == 'GET' and event['resource'] == '/v1/public/compacts/{compact}/jurisdictions':
         return _get_public_compact_jurisdictions(event, context)
-    if event['httpMethod'] == 'GET' and event['resource'] == '/v1/compacts/live':
+    if event['httpMethod'] == 'GET' and event['resource'] == '/v1/public/compacts/jurisdictions/live':
         return _get_live_public_compact_jurisdictions(event, context)
     if event['httpMethod'] == 'GET' and event['resource'] == '/v1/compacts/{compact}':
         return _get_staff_users_compact_configuration(event, context)

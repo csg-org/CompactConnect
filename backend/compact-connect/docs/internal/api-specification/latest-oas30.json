@@ -10,7 +10,7 @@
     }
   ],
   "paths": {
-    "/v1/compacts/live": {
+    "/v1/public/compacts/jurisdictions/live": {
       "get": {
         "summary": "Get live compact jurisdictions",
         "description": "Returns all jurisdictions that are live (enabled for operations) across all compacts or for a specific compact if the optional compact query parameter is provided.",

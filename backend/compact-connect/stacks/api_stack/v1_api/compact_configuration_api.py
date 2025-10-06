@@ -25,7 +25,7 @@ class CompactConfigurationApi:
         *,
         api: CCApi,
         compact_resource: Resource,
-        live_compacts_resource: Resource,
+        live_compacts_jurisdictions_resource: Resource,
         jurisdictions_resource: Resource,
         public_jurisdictions_resource: Resource,
         jurisdiction_resource: Resource,
@@ -39,8 +39,8 @@ class CompactConfigurationApi:
         self.api = api
         # /v1/compacts/{compact}
         self.staff_users_compact_resource = compact_resource
-        # /v1/compacts/live
-        self.live_compacts_resource = live_compacts_resource
+        # /v1/public/compacts/jurisdictions/live
+        self.live_compacts_jurisdictions_resource = live_compacts_jurisdictions_resource
         # /v1/compacts/{compact}/jurisdictions
         self.staff_users_jurisdictions_resource = jurisdictions_resource
         # /v1/compacts/{compact}/jurisdictions/{jurisdiction}
@@ -162,8 +162,8 @@ class CompactConfigurationApi:
         )
 
     def _add_get_live_compact_jurisdictions_endpoint(self, compact_configuration_api_handler: PythonFunction):
-        """Add GET endpoint for /v1/compacts/live"""
-        get_live_compact_jurisdictions_method = self.live_compacts_resource.add_method(
+        """Add GET endpoint for /v1/public/compacts/jurisdictions/live"""
+        get_live_compact_jurisdictions_method = self.live_compacts_jurisdictions_resource.add_method(
             'GET',
             LambdaIntegration(compact_configuration_api_handler),
             method_responses=[
