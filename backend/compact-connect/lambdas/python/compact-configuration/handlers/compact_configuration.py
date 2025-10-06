@@ -29,7 +29,7 @@ def compact_configuration_api_handler(event: dict, context: LambdaContext):  # n
     if event['httpMethod'] == 'GET' and event['resource'] == '/v1/public/compacts/{compact}/jurisdictions':
         return _get_public_compact_jurisdictions(event, context)
     if event['httpMethod'] == 'GET' and event['resource'] == '/v1/compacts/live':
-        return _get_live_compact_jurisdictions(event, context)
+        return _get_live_public_compact_jurisdictions(event, context)
     if event['httpMethod'] == 'GET' and event['resource'] == '/v1/compacts/{compact}':
         return _get_staff_users_compact_configuration(event, context)
     if event['httpMethod'] == 'PUT' and event['resource'] == '/v1/compacts/{compact}':
@@ -120,7 +120,7 @@ def _get_public_compact_jurisdictions(event: dict, context: LambdaContext):  # n
     return CompactJurisdictionsPublicResponseSchema().load(compact_jurisdictions, many=True)
 
 
-def _get_live_compact_jurisdictions(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
+def _get_live_public_compact_jurisdictions(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """
     Endpoint to get all live jurisdictions, optionally filtered by compact.
 

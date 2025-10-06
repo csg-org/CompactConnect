@@ -145,6 +145,48 @@ class TestCompactConfigurationApi(TestApi):
             overwrite_snapshot=False,
         )
 
+    def test_synth_generates_get_live_compact_jurisdictions_resource(self):
+        """Test that the GET /v1/compacts/live endpoint is properly configured as a public endpoint"""
+        api_stack = self.app.sandbox_backend_stage.api_stack
+        api_stack_template = Template.from_stack(api_stack)
+
+        # Ensure the resource is created with expected path
+        api_stack_template.has_resource_properties(
+            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'ParentId': {
+                    # Verify the parent id matches the expected 'compacts' resource
+                    'Ref': api_stack.get_logical_id(api_stack.api.v1_api.compacts_resource.node.default_child),
+                },
+                'PathPart': 'live',
+            },
+        )
+
+        # Get the live compacts resource
+        live_compacts_resource_id = api_stack.get_logical_id(
+            api_stack.api.v1_api.live_compacts_resource.node.default_child
+        )
+
+        # Ensure the GET method is configured with the lambda integration (no authorizer since it's public)
+        api_stack_template.has_resource_properties(
+            type=CfnMethod.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'HttpMethod': 'GET',
+                'ResourceId': {'Ref': live_compacts_resource_id},
+                # ensure the lambda integration is configured with the expected handler
+                'Integration': TestApi.generate_expected_integration_object(
+                    api_stack.get_logical_id(
+                        api_stack.api.v1_api.compact_configuration_api.compact_configuration_api_function.node.default_child,
+                    ),
+                ),
+                'MethodResponses': [
+                    {
+                        'StatusCode': '200',
+                    },
+                ],
+            },
+        )
+
     def test_synth_generates_get_compact_configuration_endpoint(self):
         """Test that the GET /v1/compacts/{compact} endpoint is properly configured"""
         api_stack = self.app.sandbox_backend_stage.api_stack

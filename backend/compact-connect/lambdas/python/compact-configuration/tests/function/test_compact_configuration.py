@@ -12,6 +12,7 @@ from . import TstFunction
 
 STAFF_USERS_COMPACT_JURISDICTION_ENDPOINT_RESOURCE = '/v1/compacts/{compact}/jurisdictions'
 PUBLIC_COMPACT_JURISDICTION_ENDPOINT_RESOURCE = '/v1/public/compacts/{compact}/jurisdictions'
+LIVE_COMPACT_JURISDICTIONS_ENDPOINT_RESOURCE = '/v1/compacts/live'
 
 COMPACT_CONFIGURATION_ENDPOINT_RESOURCE = '/v1/compacts/{compact}'
 JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE = '/v1/compacts/{compact}/jurisdictions/{jurisdiction}'
@@ -190,6 +191,143 @@ class TestGetPublicCompactJurisdictions(TstFunction):
             ],
             sorted_response,
         )
+
+    def test_get_public_live_compact_jurisdictions_returns_list_of_all_live_jurisdictions(self):
+        """Test getting list of live jurisdictions across all compacts when no query param provided"""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        # Create compact configurations with some jurisdictions marked as live
+        # ASLP compact with some live jurisdictions
+        self.test_data_generator.put_default_compact_configuration_in_configuration_table(
+            value_overrides={
+                'compactAbbr': 'aslp',
+                'configuredStates': [
+                    {'postalAbbreviation': 'ky', 'isLive': True},
+                    {'postalAbbreviation': 'oh', 'isLive': True},
+                    {'postalAbbreviation': 'ne', 'isLive': False},
+                ],
+            },
+        )
+
+        # OCTP compact with different live jurisdictions
+        self.test_data_generator.put_default_compact_configuration_in_configuration_table(
+            value_overrides={
+                'compactAbbr': 'octp',
+                'configuredStates': [
+                    {'postalAbbreviation': 'ne', 'isLive': True},
+                    {'postalAbbreviation': 'oh', 'isLive': False},
+                ]
+            },
+        )
+
+        # COUN compact with no live jurisdictions
+        self.test_data_generator.put_default_compact_configuration_in_configuration_table(
+            value_overrides={
+                'compactAbbr': 'coun',
+                'configuredStates': [
+                    {'postalAbbreviation': 'ky', 'isLive': False},
+                ],
+            },
+        )
+
+        # Create event without query params
+        event = generate_test_event('GET', LIVE_COMPACT_JURISDICTIONS_ENDPOINT_RESOURCE)
+        event['queryStringParameters'] = None
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+        response_body = json.loads(response['body'])
+
+        # Should return all compacts with their live jurisdictions
+        self.assertIn('aslp', response_body)
+        self.assertIn('octp', response_body)
+        self.assertIn('coun', response_body)
+
+        # Verify the live jurisdictions for each compact
+        self.assertCountEqual(['oh', 'ky'], response_body['aslp'])
+        self.assertCountEqual(['ne'], response_body['octp'])
+        self.assertCountEqual([], response_body['coun'])
+
+    def test_get_public_live_compact_jurisdictions_returns_list_of_live_jurisdictions_in_compact(self):
+        """Test getting list of live jurisdictions for compact designated through query param"""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        # Create compact configurations
+        self.test_data_generator.put_default_compact_configuration_in_configuration_table(
+            value_overrides={
+                'compactAbbr': 'aslp',
+                'configuredStates': [
+                    {'postalAbbreviation': 'ky', 'isLive': True},
+                    {'postalAbbreviation': 'oh', 'isLive': True},
+                    {'postalAbbreviation': 'ne', 'isLive': False},
+                ],
+            },
+        )
+
+        self.test_data_generator.put_default_compact_configuration_in_configuration_table(
+            value_overrides={
+                'compactAbbr': 'octp',
+                'configuredStates': [
+                    {'postalAbbreviation': 'ne', 'isLive': True},
+                ],
+            },
+        )
+
+        # Create event with compact query param
+        event = generate_test_event('GET', LIVE_COMPACT_JURISDICTIONS_ENDPOINT_RESOURCE)
+        event['queryStringParameters'] = {'compact': 'aslp'}
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+        response_body = json.loads(response['body'])
+
+        # Should only return the specified compact
+        self.assertIn('aslp', response_body)
+        self.assertNotIn('octp', response_body)
+        self.assertNotIn('coun', response_body)
+
+        # Verify the live jurisdictions
+        self.assertCountEqual(['ky', 'oh'], response_body['aslp'])
+
+    def test_get_public_live_compact_jurisdictions_returns_list_of_all_live_jurisdictions_if_bad_compact_param(self):
+        """Test getting list of live jurisdictions across all compacts when invalid query param provided"""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        # Create compact configurations
+        self.test_data_generator.put_default_compact_configuration_in_configuration_table(
+            value_overrides={
+                'compactAbbr': 'aslp',
+                'configuredStates': [
+                    {'postalAbbreviation': 'ky', 'isLive': True},
+                ],
+            },
+        )
+
+        self.test_data_generator.put_default_compact_configuration_in_configuration_table(
+            value_overrides={
+                'compactAbbr': 'octp',
+                'configuredStates': [
+                    {'postalAbbreviation': 'oh', 'isLive': True},
+                ],
+            },
+        )
+
+        # Create event with invalid compact query param
+        event = generate_test_event('GET', LIVE_COMPACT_JURISDICTIONS_ENDPOINT_RESOURCE)
+        event['queryStringParameters'] = {'compact': 'invalid_compact'}
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+        response_body = json.loads(response['body'])
+
+        # Should return all compacts when invalid compact is provided
+        self.assertIn('aslp', response_body)
+        self.assertIn('octp', response_body)
+        self.assertIn('coun', response_body)
+
+        # Verify the live jurisdictions
+        self.assertCountEqual(['ky'], response_body['aslp'])
+        self.assertCountEqual(['oh'], response_body['octp'])
 
 
 @mock_aws
