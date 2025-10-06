@@ -70,7 +70,6 @@ class TestStatSigClient(TstFunction):
 
         # Valid request data
         request_data = {
-            'flagName': 'test-flag',
             'context': {'userId': 'user123', 'customAttributes': {'region': 'us-east-1'}},
         }
 
@@ -86,26 +85,12 @@ class TestStatSigClient(TstFunction):
         client = StatSigFeatureFlagClient(environment='test')
 
         # Minimal valid request data
-        request_data = {'flagName': 'test-flag'}
+        request_data = {}
 
         # Should validate successfully with defaults
         validated = client.validate_request(request_data)
 
-        self.assertEqual(validated['flagName'], 'test-flag')
         self.assertEqual(validated['context'], {})  # Default empty context
-
-    @patch('feature_flag_client.Statsig')
-    def test_validate_request_missing_flag_name(self, mock_statsig):
-        """Test request validation fails when flagName is missing"""
-        self._setup_mock_statsig(mock_statsig)
-
-        client = StatSigFeatureFlagClient(environment='test')
-
-        # Invalid request data - missing flagName
-        request_data = {'context': {'userId': 'user123'}}
-
-        with self.assertRaises(FeatureFlagValidationException):
-            client.validate_request(request_data)
 
     @patch('feature_flag_client.Statsig')
     def test_validate_request_invalid_flag_name(self, mock_statsig):

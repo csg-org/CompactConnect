@@ -2716,14 +2716,7 @@ class ApiModel:
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
                 additional_properties=False,
-                required=['flagName'],
                 properties={
-                    'flagName': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='The name of the feature flag to check',
-                        min_length=1,
-                        max_length=100,
-                    ),
                     'context': JsonSchema(
                         type=JsonSchemaType.OBJECT,
                         description='Optional context for feature flag evaluation',

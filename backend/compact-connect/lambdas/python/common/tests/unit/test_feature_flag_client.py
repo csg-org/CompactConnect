@@ -20,8 +20,8 @@ class TestFeatureFlagClient(TstLambdas):
 
             # Verify the API was called correctly
             mock_post.assert_called_once_with(
-                'https://api.example.com/v1/flags/check',
-                json={'flagName': 'test-flag'},
+                'https://api.example.com/v1/flags/test-flag/check',
+                json={},
                 timeout=5,
                 headers={'Content-Type': 'application/json'},
             )
@@ -58,9 +58,8 @@ class TestFeatureFlagClient(TstLambdas):
 
             # Verify the API was called with the context
             mock_post.assert_called_once_with(
-                'https://api.example.com/v1/flags/check',
+                'https://api.example.com/v1/flags/test-flag/check',
                 json={
-                    'flagName': 'test-flag',
                     'context': {'userId': 'user123', 'customAttributes': {'licenseType': 'lpc'}},
                 },
                 timeout=5,
@@ -228,8 +227,8 @@ class TestFeatureFlagClient(TstLambdas):
 
             # Verify the API was called with only userId in context
             mock_post.assert_called_once_with(
-                'https://api.example.com/v1/flags/check',
-                json={'flagName': 'test-flag', 'context': {'userId': 'user789'}},
+                'https://api.example.com/v1/flags/test-flag/check',
+                json={'context': {'userId': 'user789'}},
                 timeout=5,
                 headers={'Content-Type': 'application/json'},
             )

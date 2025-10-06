@@ -32,16 +32,6 @@ class FeatureFlagResult:
     metadata: dict[str, Any] | None = None
 
 
-class BaseFeatureFlagCheckRequestSchema(Schema):
-    """
-    Base schema for feature flag check requests.
-
-    All provider-specific schemas should inherit from this base schema.
-    """
-
-    flagName = String(required=True, allow_none=False, validate=Length(1, 100))  # noqa: N815
-
-
 class FeatureFlagClient(ABC):
     """
     Abstract base class for feature flag clients.
@@ -187,7 +177,7 @@ class StatSigContextSchema(Schema):
     customAttributes = DictField(required=False, allow_none=False, load_default=dict)
 
 
-class StatSigFeatureFlagCheckRequestSchema(BaseFeatureFlagCheckRequestSchema):
+class StatSigFeatureFlagCheckRequestSchema(Schema):
     """
     StatSig-specific schema for feature flag check requests.
 

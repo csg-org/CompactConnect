@@ -77,10 +77,10 @@ def is_feature_enabled(flag_name: str, context: FeatureFlagContext | None = None
     """
     try:
         api_base_url = _get_api_base_url()
-        endpoint_url = f'{api_base_url}/v1/flags/check'
+        endpoint_url = f'{api_base_url}/v1/flags/{flag_name}/check'
 
         # Build request payload
-        payload = {'flagName': flag_name}
+        payload = {}
         if context:
             payload['context'] = context.to_dict()
 

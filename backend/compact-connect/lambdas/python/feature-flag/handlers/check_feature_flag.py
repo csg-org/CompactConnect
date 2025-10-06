@@ -20,6 +20,13 @@ def check_feature_flag(event: dict, context: LambdaContext):  # noqa: ARG001 unu
     checking feature flags.
     """
     try:
+        # Extract flagId from path parameters
+        path_parameters = event.get('pathParameters') or {}
+        flag_id = path_parameters.get('flagId')
+
+        if not flag_id:
+            raise CCInvalidRequestException('flagId is required in the URL path')
+
         # Parse and validate request body using client's validation
         try:
             body = json.loads(event['body'])
@@ -28,13 +35,13 @@ def check_feature_flag(event: dict, context: LambdaContext):  # noqa: ARG001 unu
             logger.warning('Feature flag validation failed', error=str(e))
             raise CCInvalidRequestException(str(e)) from e
 
-        # Create request object for flag evaluation
-        flag_request = FeatureFlagRequest(**validated_body)
+        # Create request object for flag evaluation with flagId from path
+        flag_request = FeatureFlagRequest(flagName=flag_id, context=validated_body.get('context', {}))
 
         # Check the feature flag
         result = feature_flag_client.check_flag(flag_request)
 
-        logger.debug('Feature flag checked', flag_name=validated_body['flagName'], enabled=result.enabled)
+        logger.debug('Feature flag checked', flag_name=flag_id, enabled=result.enabled)
 
         # Return simple response with just the enabled status
         return {'enabled': result.enabled}

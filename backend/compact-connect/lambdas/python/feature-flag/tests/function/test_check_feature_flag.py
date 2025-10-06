@@ -37,10 +37,11 @@ class TestCheckFeatureFlag(TstFunction):
         if 'handlers.check_feature_flag' in sys.modules:
             del sys.modules['handlers.check_feature_flag']
 
-    def _generate_test_api_gateway_event(self, body: dict) -> dict:
-        """Generate a test API Gateway event"""
+    def _generate_test_api_gateway_event(self, body: dict, flag_id: str = 'test-flag') -> dict:
+        """Generate a test API Gateway event with flagId in path parameters"""
         event = self.test_data_generator.generate_test_api_event()
         event['body'] = json.dumps(body)
+        event['pathParameters'] = {'flagId': flag_id}
 
         return event
 
@@ -64,10 +65,9 @@ class TestCheckFeatureFlag(TstFunction):
 
         # Create test event
         test_body = {
-            'flagName': 'test-feature-flag',
             'context': {'userId': 'test-user-123', 'customAttributes': {'region': 'us-east-1'}},
         }
-        event = self._generate_test_api_gateway_event(test_body)
+        event = self._generate_test_api_gateway_event(test_body, flag_id='test-feature-flag')
 
         # Call the handler
         result = check_feature_flag(event, self.mock_context)
@@ -88,8 +88,8 @@ class TestCheckFeatureFlag(TstFunction):
         from handlers.check_feature_flag import check_feature_flag
 
         # Create test event
-        test_body = {'flagName': 'disabled-feature-flag', 'context': {'userId': 'test-user-456'}}
-        event = self._generate_test_api_gateway_event(test_body)
+        test_body = {'context': {'userId': 'test-user-456'}}
+        event = self._generate_test_api_gateway_event(test_body, flag_id='disabled-feature-flag')
 
         # Call the handler
         result = check_feature_flag(event, self.mock_context)
@@ -110,8 +110,8 @@ class TestCheckFeatureFlag(TstFunction):
         from handlers.check_feature_flag import check_feature_flag
 
         # Create test event with minimal context
-        test_body = {'flagName': 'minimal-test-flag', 'context': {}}
-        event = self._generate_test_api_gateway_event(test_body)
+        test_body = {'context': {}}
+        event = self._generate_test_api_gateway_event(test_body, flag_id='minimal-test-flag')
 
         # Call the handler
         result = check_feature_flag(event, self.mock_context)
@@ -122,3 +122,25 @@ class TestCheckFeatureFlag(TstFunction):
         # Parse and verify the JSON body
         response_body = json.loads(result['body'])
         self.assertEqual({'enabled': True}, response_body)
+
+    @patch('feature_flag_client.Statsig')
+    def test_missing_flag_id_returns_400(self, mock_statsig):
+        """Test that missing flagId in path parameters returns 400 error"""
+        self._setup_mock_statsig(mock_statsig, mock_flag_enabled_return=True)
+        from handlers.check_feature_flag import check_feature_flag
+
+        # Create test event without flagId in path parameters
+        test_body = {'context': {'userId': 'test-user-123'}}
+        event = self._generate_test_api_gateway_event(test_body)
+        # Remove pathParameters to simulate missing flagId
+        event['pathParameters'] = None
+
+        # Call the handler
+        result = check_feature_flag(event, self.mock_context)
+
+        # Verify the API Gateway response format
+        self.assertEqual(result['statusCode'], 400)
+
+        # Parse and verify the JSON body contains error message
+        response_body = json.loads(result['body'])
+        self.assertIn('flagId is required in the URL path', response_body['message'])

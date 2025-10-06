@@ -24,8 +24,9 @@ class FeatureFlagsApi:
         self.api: CCApi = resource.api
         self.api_model = api_model
 
-        # POST /v1/flags/check
-        check_resource = resource.add_resource('check')
+        # POST /v1/flags/{flagId}/check
+        flag_id_resource = resource.add_resource('{flagId}')
+        check_resource = flag_id_resource.add_resource('check')
         self.check_flag_method = check_resource.add_method(
             'POST',
             integration=LambdaIntegration(api_lambda_stack.feature_flags_lambdas.check_feature_flag_function),
