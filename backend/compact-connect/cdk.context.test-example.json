@@ -14,8 +14,6 @@
         "domain_name": "test.compactconnect.org",
         "backup_enabled": true,
         "allow_local_ui": true,
-        "recaptcha_public_key": "123-KFEUsjehfuejILDVUKkRnAF9SSzb8o9uv5lY7Ih",
-        "robots_meta": "noindex,nofollow",
         "notifications": {
           "ses_operations_support_email": "justin@example.com",
           "email": [

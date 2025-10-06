@@ -25,10 +25,10 @@ from aws_cdk.aws_stepfunctions import (
 )
 from aws_cdk.aws_stepfunctions_tasks import LambdaInvoke
 from cdk_nag import NagSuppressions
-from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
 from constructs import Construct
 
+from common_constructs.python_function import PythonFunction
 from stacks import persistent_stack as ps
 
 
