@@ -284,7 +284,7 @@ class TestStatSigClient(TstFunction):
 
         # Verify API calls
         mock_requests.get.assert_called_once()
-        # Verify POST payload - test environment always gets passPercentage=100 regardless of auto_enable
+        # Verify POST payload
         mock_requests.post.assert_called_once_with(
             f'{STATSIG_API_BASE_URL}/gates',
             headers={
@@ -308,7 +308,7 @@ class TestStatSigClient(TstFunction):
                             }
                         ],
                         'environments': ['development'],
-                        'passPercentage': 100,  # Always 100 for test environment
+                        'passPercentage': 100,  # Always 100 if auto_enable is true
                     }
                 ],
             },
@@ -490,7 +490,7 @@ class TestStatSigClient(TstFunction):
     def test_upsert_flag_beta_environment_auto_enable_false_no_existing_rule_create_rule(
         self, mock_requests, mock_statsig
     ):
-        """Test upsert in prod environment with autoEnable=True and no existing flag"""
+        """Test upsert in prod environment with autoEnable=True and no existing flag creates beta rule"""
         self._setup_mock_statsig(mock_statsig)
 
         existing_flag = {
@@ -1018,7 +1018,7 @@ class TestStatSigClient(TstFunction):
     @patch('feature_flag_client.Statsig')
     @patch('feature_flag_client.requests')
     def test_upsert_flag_custom_attributes_as_string(self, mock_requests, mock_statsig):
-        """Test upsert_flag with custom attributes as string values - development environment always enabled"""
+        """Test upsert_flag with custom attributes as string values"""
         self._setup_mock_statsig(mock_statsig)
 
         # Mock GET request (flag doesn't exist)
@@ -1037,7 +1037,7 @@ class TestStatSigClient(TstFunction):
         # Verify result
         self.assertEqual(result['id'], 'gate-string-attrs')
 
-        # Verify API calls - string values should be converted to lists, no conditions when auto_enable=False in test
+        # Verify API calls - string values should be converted to lists; conditions included even when auto_enable=False
         mock_requests.post.assert_called_once_with(
             f'{STATSIG_API_BASE_URL}/gates',
             headers={
@@ -1062,7 +1062,7 @@ class TestStatSigClient(TstFunction):
                             {'type': 'custom_field', 'targetValue': ['new'], 'field': 'feature', 'operator': 'any'},
                         ],
                         'environments': ['development'],
-                        'passPercentage': 0,  # 0 since auto_enabled is false
+                        'passPercentage': 0,  # 0 since auto_enable is false
                     }
                 ],
             },
@@ -1091,7 +1091,7 @@ class TestStatSigClient(TstFunction):
         # Verify result
         self.assertEqual(result['id'], 'gate-list-attrs')
 
-        # Verify API calls - list values preserved but no conditions when auto_enable=False
+        # Verify API calls - list values preserved; conditions included even when auto_enable=False
         mock_requests.post.assert_called_once_with(
             f'{STATSIG_API_BASE_URL}/gates',
             headers={

@@ -202,7 +202,6 @@ class StatSigFeatureFlagClient(FeatureFlagClient):
     StatSig implementation of the FeatureFlagClient interface.
 
     This client uses StatSig's Python SDK to check feature flags.
-    Configuration is handled through environment variables.
     """
 
     def __init__(self, environment: str):

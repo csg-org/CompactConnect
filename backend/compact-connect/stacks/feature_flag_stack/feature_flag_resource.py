@@ -17,7 +17,7 @@ class FeatureFlagEnvironmentName(StrEnum):
     BETA = 'beta'
     PROD = 'prod'
     # add sandbox environment names here if needed
-    SANDBOX = 'sandbox'
+    SANDBOX = 'landon'
 
 
 class FeatureFlagResource(Construct):
