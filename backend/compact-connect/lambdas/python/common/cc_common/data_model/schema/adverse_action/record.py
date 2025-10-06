@@ -1,6 +1,6 @@
 # ruff: noqa: N801, N815  invalid-name
 from marshmallow import ValidationError, pre_dump, validates_schema
-from marshmallow.fields import UUID, Date, DateTime, String
+from marshmallow.fields import UUID, Date, DateTime, List, String
 from marshmallow.validate import OneOf
 
 from cc_common.config import config
@@ -34,7 +34,10 @@ class AdverseActionRecordSchema(BaseRecordSchema):
 
     # Populated on creation
     encumbranceType = EncumbranceTypeField(required=True, allow_none=False)
-    clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategoryField(required=True, allow_none=False)
+    clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategoryField(required=False, allow_none=False)
+    clinicalPrivilegeActionCategories = List(
+        ClinicalPrivilegeActionCategoryField(), required=False, allow_none=False
+    )
     effectiveStartDate = Date(required=True, allow_none=False)
     submittingUser = UUID(required=True, allow_none=False)
     creationDate = DateTime(required=True, allow_none=False)

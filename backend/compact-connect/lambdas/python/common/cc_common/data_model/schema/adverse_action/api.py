@@ -1,5 +1,6 @@
 # ruff: noqa: N801, N815  invalid-name
-from marshmallow.fields import Date, Raw, String
+from marshmallow import ValidationError, validates_schema
+from marshmallow.fields import Date, List, Raw, String
 from marshmallow.validate import OneOf
 
 from cc_common.data_model.schema.base_record import ForgivingSchema
@@ -24,7 +25,27 @@ class AdverseActionPostRequestSchema(ForgivingSchema):
 
     encumbranceEffectiveDate = Date(required=True, allow_none=False)
     encumbranceType = EncumbranceTypeField(required=True, allow_none=False)
-    clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategoryField(required=True, allow_none=False)
+    clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategoryField(required=False, allow_none=False)
+    clinicalPrivilegeActionCategories = List(
+        ClinicalPrivilegeActionCategoryField(), required=False, allow_none=False
+    )
+
+    @validates_schema
+    def validate_clinical_privilege_action_category_fields(self, data, **kwargs):
+        """Ensure exactly one of the category fields is provided."""
+        has_singular = 'clinicalPrivilegeActionCategory' in data
+        has_plural = 'clinicalPrivilegeActionCategories' in data
+
+        if has_singular and has_plural:
+            raise ValidationError(
+                'Cannot provide both clinicalPrivilegeActionCategory and clinicalPrivilegeActionCategories. '
+                'Use clinicalPrivilegeActionCategories (the singular field is deprecated).'
+            )
+
+        if not has_singular and not has_plural:
+            raise ValidationError(
+                'Must provide either clinicalPrivilegeActionCategory or clinicalPrivilegeActionCategories.'
+            )
 
 
 class AdverseActionPatchRequestSchema(ForgivingSchema):
@@ -76,6 +97,9 @@ class AdverseActionGeneralResponseSchema(AdverseActionPublicResponseSchema):
     """
 
     encumbranceType = EncumbranceTypeField(required=True, allow_none=False)
-    clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategoryField(required=True, allow_none=False)
+    clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategoryField(required=False, allow_none=False)
+    clinicalPrivilegeActionCategories = List(
+        ClinicalPrivilegeActionCategoryField(), required=False, allow_none=False
+    )
     liftingUser = Raw(required=False, allow_none=False)
     submittingUser = Raw(required=True, allow_none=False)
