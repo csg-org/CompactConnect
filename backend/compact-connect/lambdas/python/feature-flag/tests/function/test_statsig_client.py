@@ -490,7 +490,7 @@ class TestStatSigClient(TstFunction):
     def test_upsert_flag_beta_environment_auto_enable_false_no_existing_rule_create_rule(
         self, mock_requests, mock_statsig
     ):
-        """Test upsert in prod environment with autoEnable=True and no existing flag creates beta rule"""
+        """Test upsert in beta environment with autoEnable=True and no existing flag creates beta rule"""
         self._setup_mock_statsig(mock_statsig)
 
         existing_flag = {
@@ -1072,7 +1072,7 @@ class TestStatSigClient(TstFunction):
     @patch('feature_flag_client.Statsig')
     @patch('feature_flag_client.requests')
     def test_upsert_flag_custom_attributes_as_list(self, mock_requests, mock_statsig):
-        """Test upsert_flag with custom attributes as list values - no conditions for test when auto_enable=False"""
+        """Test upsert_flag with custom attributes as list values"""
         self._setup_mock_statsig(mock_statsig)
 
         # Mock GET request (flag doesn't exist)
