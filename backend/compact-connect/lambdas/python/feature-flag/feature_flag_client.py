@@ -110,7 +110,7 @@ class FeatureFlagClient(ABC):
         """
 
     @abstractmethod
-    def delete_flag(self, flag_name: str) -> bool:
+    def delete_flag(self, flag_name: str) -> bool | None:
         """
         Delete a feature flag or remove current environment from it.
 

@@ -1062,7 +1062,7 @@ class TestStatSigClient(TstFunction):
                             {'type': 'custom_field', 'targetValue': ['new'], 'field': 'feature', 'operator': 'any'},
                         ],
                         'environments': ['development'],
-                        'passPercentage': 0,  # Always 100 for test environment
+                        'passPercentage': 0,  # 0 since auto_enabled is false
                     }
                 ],
             },
