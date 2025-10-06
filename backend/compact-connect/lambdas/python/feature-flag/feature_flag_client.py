@@ -456,7 +456,11 @@ class StatSigFeatureFlagClient(FeatureFlagClient):
         return conditions
 
     def _add_environment_rule(
-        self, gate_id: str, gate_data: dict[str, Any], auto_enable: bool, custom_attributes: dict[str, Any] | None = None
+        self,
+        gate_id: str,
+        gate_data: dict[str, Any],
+        auto_enable: bool,
+        custom_attributes: dict[str, Any] | None = None,
     ) -> None:
         """
         Add an environment-specific rule to an existing gate.

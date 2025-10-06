@@ -293,24 +293,24 @@ class TestStatSigClient(TstFunction):
                 'Content-Type': 'application/json',
             },
             json={
-                    'name': 'new-test-flag',
-                    'description': 'Feature gate managed by CDK for new-test-flag feature',
-                    'isEnabled': True,
-                    'rules': [
-                        {
-                            'name': 'test-rule',
-                            'conditions': [
-                                {
-                                    'type': 'custom_field',
-                                    'targetValue': ['us-east-1'],
-                                    'field': 'region',
-                                    'operator': 'any',
-                                }
-                            ],
-                            'environments': ['development'],
-                            'passPercentage': 100,  # Always 100 for test environment
-                        }
-                    ],
+                'name': 'new-test-flag',
+                'description': 'Feature gate managed by CDK for new-test-flag feature',
+                'isEnabled': True,
+                'rules': [
+                    {
+                        'name': 'test-rule',
+                        'conditions': [
+                            {
+                                'type': 'custom_field',
+                                'targetValue': ['us-east-1'],
+                                'field': 'region',
+                                'operator': 'any',
+                            }
+                        ],
+                        'environments': ['development'],
+                        'passPercentage': 100,  # Always 100 for test environment
+                    }
+                ],
             },
             timeout=30,
         )
@@ -345,17 +345,17 @@ class TestStatSigClient(TstFunction):
                 'Content-Type': 'application/json',
             },
             json={
-                    'name': 'simple-flag',
-                    'description': 'Feature gate managed by CDK for simple-flag feature',
-                    'isEnabled': True,
-                    'rules': [
-                        {
-                            'name': 'test-rule',
-                            'conditions': [],
-                            'environments': ['development'],
-                            'passPercentage': 0,
-                        }
-                    ],
+                'name': 'simple-flag',
+                'description': 'Feature gate managed by CDK for simple-flag feature',
+                'isEnabled': True,
+                'rules': [
+                    {
+                        'name': 'test-rule',
+                        'conditions': [],
+                        'environments': ['development'],
+                        'passPercentage': 0,
+                    }
+                ],
             },
             timeout=30,
         )
@@ -425,17 +425,17 @@ class TestStatSigClient(TstFunction):
                 'Content-Type': 'application/json',
             },
             json={
-                    'name': 'prod-flag',
-                    'description': 'Feature gate managed by CDK for prod-flag feature',
-                    'isEnabled': True,
-                    'rules': [
-                        {
-                            'name': 'prod-rule',
-                            'conditions': [],
-                            'environments': ['production'],
-                            'passPercentage': 0,  # Disabled in prod when auto_enable=False
-                        }
-                    ],
+                'name': 'prod-flag',
+                'description': 'Feature gate managed by CDK for prod-flag feature',
+                'isEnabled': True,
+                'rules': [
+                    {
+                        'name': 'prod-rule',
+                        'conditions': [],
+                        'environments': ['production'],
+                        'passPercentage': 0,  # Disabled in prod when auto_enable=False
+                    }
+                ],
             },
             timeout=30,
         )
@@ -470,17 +470,17 @@ class TestStatSigClient(TstFunction):
                 'Content-Type': 'application/json',
             },
             json={
-                    'name': 'prod-flag',
-                    'description': 'Feature gate managed by CDK for prod-flag feature',
-                    'isEnabled': True,
-                    'rules': [
-                        {
-                            'name': 'prod-rule',
-                            'conditions': [],
-                            'environments': ['production'],
-                            'passPercentage': 100,
-                        }
-                    ],
+                'name': 'prod-flag',
+                'description': 'Feature gate managed by CDK for prod-flag feature',
+                'isEnabled': True,
+                'rules': [
+                    {
+                        'name': 'prod-rule',
+                        'conditions': [],
+                        'environments': ['production'],
+                        'passPercentage': 100,
+                    }
+                ],
             },
             timeout=30,
         )
@@ -528,22 +528,22 @@ class TestStatSigClient(TstFunction):
                 'Content-Type': 'application/json',
             },
             json={
-                    'id': 'existing-flag',
-                    'name': 'existing-flag',
-                    'rules': [
-                        {
-                            'name': 'test-rule',
-                            'conditions': [{'field': 'old_attr', 'targetValue': ['old_value']}],
-                            'environments': ['development'],
-                            'passPercentage': 100,
-                        },
-                        {
-                            'name': 'beta-rule',
-                            'conditions': [],
-                            'environments': ['staging'],
-                            'passPercentage': 0,
-                        },
-                    ],
+                'id': 'existing-flag',
+                'name': 'existing-flag',
+                'rules': [
+                    {
+                        'name': 'test-rule',
+                        'conditions': [{'field': 'old_attr', 'targetValue': ['old_value']}],
+                        'environments': ['development'],
+                        'passPercentage': 100,
+                    },
+                    {
+                        'name': 'beta-rule',
+                        'conditions': [],
+                        'environments': ['staging'],
+                        'passPercentage': 0,
+                    },
+                ],
             },
             timeout=30,
         )
@@ -592,29 +592,29 @@ class TestStatSigClient(TstFunction):
                 'Content-Type': 'application/json',
             },
             json={
-                    'id': 'gate-existing-prod',
-                    'name': 'existing-prod-flag',
-                    'rules': [
-                        {
-                            'name': 'test-rule',
-                            'conditions': [],
-                            'environments': ['development'],
-                            'passPercentage': 100,
-                        },
-                        {
-                            'name': 'prod-rule',
-                            'conditions': [
-                                {
-                                    'type': 'custom_field',
-                                    'targetValue': ['value'],
-                                    'field': 'example',
-                                    'operator': 'any',
-                                }
-                            ],
-                            'environments': ['production'],
-                            'passPercentage': 100,
-                        },
-                    ],
+                'id': 'gate-existing-prod',
+                'name': 'existing-prod-flag',
+                'rules': [
+                    {
+                        'name': 'test-rule',
+                        'conditions': [],
+                        'environments': ['development'],
+                        'passPercentage': 100,
+                    },
+                    {
+                        'name': 'prod-rule',
+                        'conditions': [
+                            {
+                                'type': 'custom_field',
+                                'targetValue': ['value'],
+                                'field': 'example',
+                                'operator': 'any',
+                            }
+                        ],
+                        'environments': ['production'],
+                        'passPercentage': 100,
+                    },
+                ],
             },
             timeout=30,
         )
@@ -840,22 +840,22 @@ class TestStatSigClient(TstFunction):
                 'Content-Type': 'application/json',
             },
             json={
-                    'id': 'gate-delete-multi',
-                    'name': 'delete-multi-flag',
-                    'rules': [
-                        {
-                            'name': 'beta-rule',
-                            'conditions': [],
-                            'environments': ['staging'],
-                            'passPercentage': 100,
-                        },
-                        {
-                            'name': 'prod-rule',
-                            'conditions': [],
-                            'environments': ['production'],
-                            'passPercentage': 100,
-                        },
-                    ],
+                'id': 'gate-delete-multi',
+                'name': 'delete-multi-flag',
+                'rules': [
+                    {
+                        'name': 'beta-rule',
+                        'conditions': [],
+                        'environments': ['staging'],
+                        'passPercentage': 100,
+                    },
+                    {
+                        'name': 'prod-rule',
+                        'conditions': [],
+                        'environments': ['production'],
+                        'passPercentage': 100,
+                    },
+                ],
             },
             timeout=30,
         )
@@ -1046,25 +1046,25 @@ class TestStatSigClient(TstFunction):
                 'Content-Type': 'application/json',
             },
             json={
-                    'name': 'string-attrs-flag',
-                    'description': 'Feature gate managed by CDK for string-attrs-flag feature',
-                    'isEnabled': True,
-                    'rules': [
-                        {
-                            'name': 'test-rule',
-                            'conditions': [
-                                {
-                                    'type': 'custom_field',
-                                    'targetValue': ['us-east-1'],
-                                    'field': 'region',
-                                    'operator': 'any',
-                                },
-                                {'type': 'custom_field', 'targetValue': ['new'], 'field': 'feature', 'operator': 'any'},
-                            ],
-                            'environments': ['development'],
-                            'passPercentage': 0,  # Always 100 for test environment
-                        }
-                    ],
+                'name': 'string-attrs-flag',
+                'description': 'Feature gate managed by CDK for string-attrs-flag feature',
+                'isEnabled': True,
+                'rules': [
+                    {
+                        'name': 'test-rule',
+                        'conditions': [
+                            {
+                                'type': 'custom_field',
+                                'targetValue': ['us-east-1'],
+                                'field': 'region',
+                                'operator': 'any',
+                            },
+                            {'type': 'custom_field', 'targetValue': ['new'], 'field': 'feature', 'operator': 'any'},
+                        ],
+                        'environments': ['development'],
+                        'passPercentage': 0,  # Always 100 for test environment
+                    }
+                ],
             },
             timeout=30,
         )
@@ -1100,24 +1100,24 @@ class TestStatSigClient(TstFunction):
                 'Content-Type': 'application/json',
             },
             json={
-                    'name': 'list-attrs-flag',
-                    'description': 'Feature gate managed by CDK for list-attrs-flag feature',
-                    'isEnabled': True,
-                    'rules': [
-                        {
-                            'name': 'test-rule',
-                            'conditions': [
-                                {
-                                    'type': 'custom_field',
-                                    'targetValue': ['slp', 'audiologist'],
-                                    'field': 'licenseType',
-                                    'operator': 'any',
-                                }
-                            ],
-                            'environments': ['development'],
-                            'passPercentage': 0,
-                        }
-                    ],
+                'name': 'list-attrs-flag',
+                'description': 'Feature gate managed by CDK for list-attrs-flag feature',
+                'isEnabled': True,
+                'rules': [
+                    {
+                        'name': 'test-rule',
+                        'conditions': [
+                            {
+                                'type': 'custom_field',
+                                'targetValue': ['slp', 'audiologist'],
+                                'field': 'licenseType',
+                                'operator': 'any',
+                            }
+                        ],
+                        'environments': ['development'],
+                        'passPercentage': 0,
+                    }
+                ],
             },
             timeout=30,
         )

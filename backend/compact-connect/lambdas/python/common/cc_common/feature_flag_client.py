@@ -117,7 +117,7 @@ def _get_api_base_url() -> str:
     Get the API base URL from environment variables.
 
     :return: The base URL for the API
-    :raises ValueError: If API_BASE_URL is not set
+    :raises KeyError: If API_BASE_URL is not set
     """
     api_base_url = config.api_base_url
     # Remove trailing slash if present

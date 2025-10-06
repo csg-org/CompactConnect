@@ -37,7 +37,7 @@ class FeatureFlagResource(Construct):
         provider: Provider,
         flag_name: str,
         auto_enable_envs: list[FeatureFlagEnvironmentName],
-        custom_attributes: dict[str, str] | dict[str, list] | None = None,
+        custom_attributes: dict[str, str | list[str]] | None = None,
         environment_name: str,
     ):
         """
