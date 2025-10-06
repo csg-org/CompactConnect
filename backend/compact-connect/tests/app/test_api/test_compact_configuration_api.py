@@ -146,7 +146,8 @@ class TestCompactConfigurationApi(TestApi):
         )
 
     def test_synth_generates_get_live_compact_jurisdictions_resource(self):
-        """Test that the GET /v1/public/compacts/jurisdictions/live endpoint is properly configured as a public endpoint"""
+        """Test that the GET /v1/public/compacts/jurisdictions/live
+        endpoint is properly configured as a public endpoint"""
         api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
 
