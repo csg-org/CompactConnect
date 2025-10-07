@@ -23,7 +23,7 @@ This is an [AWS-CDK](https://aws.amazon.com/cdk/) based project for the backend 
 
 To deploy this app, you will need:
 1) Access to an AWS account
-2) Python>=3.12 installed on your machine, preferably through a virtual environment management tool like
+2) Python>=3.13 installed on your machine, preferably through a virtual environment management tool like
    [pyenv](https://github.com/pyenv/pyenv), for clean management of virtual environments across multiple Python
    versions.
 3) Otherwise, follow the [Prerequisites section](https://cdkworkshop.com/15-prerequisites.html) of the CDK workshop to

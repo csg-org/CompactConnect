@@ -62,7 +62,7 @@ class ReportingStack(AppStack):
 
         NagSuppressions.add_resource_suppressions_by_path(
             self,
-            f'{event_collector.node.path}/ServiceRole/DefaultPolicy/Resource',
+            f'{event_collector.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
@@ -164,7 +164,7 @@ class ReportingStack(AppStack):
 
         NagSuppressions.add_resource_suppressions_by_path(
             self,
-            f'{self.transaction_reporter.node.path}/ServiceRole/DefaultPolicy/Resource',
+            f'{self.transaction_reporter.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',

@@ -14,7 +14,7 @@ from aws_cdk.aws_cloudfront import (
     ViewerProtocolPolicy,
 )
 from aws_cdk.aws_cloudfront_origins import S3BucketOrigin
-from aws_cdk.aws_lambda import Code, Function, Runtime
+from aws_cdk.aws_lambda import Code, Function, LoggingFormat, Runtime
 from aws_cdk.aws_route53 import ARecord, RecordTarget
 from aws_cdk.aws_route53_targets import CloudFrontTarget
 from aws_cdk.aws_s3 import IBucket
@@ -127,11 +127,12 @@ class UIDistribution(Distribution):
             code=Code.from_inline(csp_function_code),
             runtime=Runtime.NODEJS_22_X,
             handler='index.handler',
+            logging_format=LoggingFormat.TEXT,
         )
 
         NagSuppressions.add_resource_suppressions_by_path(
             stack,
-            f'{self.csp_function.node.path}/ServiceRole/Resource',
+            f'{self.csp_function.role.node.path}/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM4',

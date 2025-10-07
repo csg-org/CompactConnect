@@ -297,7 +297,7 @@ class TestBackendPipeline(TstAppABC, TestCase):
         )
 
         # the other properties are dynamic, so here we just check to make sure it exists
-        self.assertEqual(['python3.12'], lambda_layer_parameter_properties['CompatibleRuntimes'])
+        self.assertEqual(['python3.13'], lambda_layer_parameter_properties['CompatibleRuntimes'])
 
     def test_synth_generates_provider_users_bucket_with_event_handler(self):
         persistent_stack = self.app.test_backend_pipeline_stack.test_stage.persistent_stack
@@ -363,7 +363,6 @@ class TestBackendPipeline(TstAppABC, TestCase):
                     f'Should have exactly one backend pipeline role with name {expected_role_name}',
                 )
 
-
     def test_pipeline_role_trust_policies(self):
         """Test that pipeline roles have correct trust policies for CodePipeline service."""
         # Test that all pipeline roles trust the CodePipeline service
@@ -388,10 +387,12 @@ class TestBackendPipeline(TstAppABC, TestCase):
                                 [
                                     {
                                         'Effect': 'Allow',
-                                        'Principal': {'Service': [
-                                            'codebuild.amazonaws.com',
-                                            'codepipeline.amazonaws.com',
-                                        ]},
+                                        'Principal': {
+                                            'Service': [
+                                                'codebuild.amazonaws.com',
+                                                'codepipeline.amazonaws.com',
+                                            ]
+                                        },
                                         'Action': 'sts:AssumeRole',
                                     }
                                 ]

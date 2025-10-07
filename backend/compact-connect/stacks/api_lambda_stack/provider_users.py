@@ -83,7 +83,7 @@ class ProviderUsersLambdas:
 
         NagSuppressions.add_resource_suppressions_by_path(
             self.stack,
-            path=f'{initiate_account_recovery_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            path=f'{initiate_account_recovery_function.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
@@ -255,7 +255,7 @@ class ProviderUsersLambdas:
 
         NagSuppressions.add_resource_suppressions_by_path(
             self.stack,
-            path=f'{verify_account_recovery_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            path=f'{verify_account_recovery_function.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
@@ -378,7 +378,7 @@ class ProviderUsersLambdas:
 
         NagSuppressions.add_resource_suppressions_by_path(
             self.stack,
-            path=f'{provider_users_me_handler.node.path}/ServiceRole/DefaultPolicy/Resource',
+            path=f'{provider_users_me_handler.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
@@ -417,7 +417,7 @@ class ProviderUsersLambdas:
 
         NagSuppressions.add_resource_suppressions_by_path(
             self.stack,
-            path=f'{provider_registration_handler.node.path}/ServiceRole/DefaultPolicy/Resource',
+            path=f'{provider_registration_handler.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',

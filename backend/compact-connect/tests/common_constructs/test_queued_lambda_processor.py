@@ -3,7 +3,7 @@ from unittest import TestCase
 from aws_cdk import App, Duration, Stack
 from aws_cdk.assertions import Template
 from aws_cdk.aws_kms import Key
-from aws_cdk.aws_lambda import CfnEventSourceMapping, Code, Function, Runtime
+from aws_cdk.aws_lambda import CfnEventSourceMapping, Code, Function, LoggingFormat, Runtime
 from aws_cdk.aws_sns import Topic
 from aws_cdk.aws_sqs import CfnQueue
 
@@ -21,8 +21,9 @@ class TestQueuedLambdaProcessor(TestCase):
             stack,
             'Function',
             handler='handle',
-            runtime=Runtime.PYTHON_3_12,
+            runtime=Runtime.PYTHON_3_13,
             code=Code.from_inline("""def handle(*args): return"""),
+            logging_format=LoggingFormat.TEXT,
         )
         processor = QueuedLambdaProcessor(
             stack,

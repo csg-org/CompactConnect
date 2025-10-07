@@ -106,7 +106,7 @@ class SyncTableDataStepFunctionConstruct(Construct):
 
         NagSuppressions.add_resource_suppressions_by_path(
             stack=stack,
-            path=f'{self.cleanup_records_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            path=f'{self.cleanup_records_function.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
@@ -157,7 +157,7 @@ class SyncTableDataStepFunctionConstruct(Construct):
 
         NagSuppressions.add_resource_suppressions_by_path(
             stack=stack,
-            path=f'{self.copy_records_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            path=f'{self.copy_records_function.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',

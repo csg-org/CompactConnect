@@ -86,7 +86,7 @@ class TransactionHistoryProcessingWorkflow(Construct):
         )
         NagSuppressions.add_resource_suppressions_by_path(
             stack=stack,
-            path=f'{self.transaction_processor_handler.node.path}/ServiceRole/DefaultPolicy/Resource',
+            path=f'{self.transaction_processor_handler.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',

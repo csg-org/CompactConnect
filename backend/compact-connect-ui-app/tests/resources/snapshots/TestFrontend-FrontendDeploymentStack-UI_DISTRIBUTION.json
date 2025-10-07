@@ -39,7 +39,7 @@
             {
               "EventType": "viewer-response",
               "LambdaFunctionARN": {
-                "Ref": "CSPFunctionCurrentVersionB61A66115988ea1180930366a7af32c8681342bd"
+                "Ref": "CSPFunctionCurrentVersionB61A6611010dcc4c90bb7a0318b2882b665d7375"
               }
             }
           ],

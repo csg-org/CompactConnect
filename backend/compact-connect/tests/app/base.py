@@ -513,6 +513,7 @@ class TstAppABC(ABC):
     def _check_no_backend_stage_annotations(self, stage: BackendStage):
         self._check_no_stack_annotations(stage.persistent_stack)
         self._check_no_stack_annotations(stage.api_stack)
+        self._check_no_stack_annotations(stage.api_lambda_stack)
         self._check_no_stack_annotations(stage.ingest_stack)
         self._check_no_stack_annotations(stage.transaction_monitoring_stack)
         # There is on reporting stack if no hosted zone is configured

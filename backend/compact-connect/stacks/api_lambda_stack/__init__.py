@@ -160,7 +160,7 @@ class ApiLambdaStack(AppStack):
 
         NagSuppressions.add_resource_suppressions_by_path(
             self,
-            path=f'{handler.node.path}/ServiceRole/DefaultPolicy/Resource',
+            path=f'{handler.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',

@@ -68,7 +68,7 @@ class PersistentStack(AppStack):
             self,
             'CompactConnectCommonPythonLayer',
             entry=os.path.join('lambdas', 'python', 'common'),
-            compatible_runtimes=[Runtime.PYTHON_3_12],
+            compatible_runtimes=[Runtime.PYTHON_3_13],
             description='A layer for common code shared between python lambdas',
             # We retain the layer versions in our environments, to avoid a situation where a consuming stack is unable
             # to roll back because old versions are destroyed. This means that over time, these versions
@@ -375,7 +375,7 @@ class PersistentStack(AppStack):
 
         NagSuppressions.add_resource_suppressions_by_path(
             self,
-            f'{self.email_notification_service_lambda.node.path}/ServiceRole/DefaultPolicy/Resource',
+            f'{self.email_notification_service_lambda.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
