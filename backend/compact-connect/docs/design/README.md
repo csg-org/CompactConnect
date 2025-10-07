@@ -675,6 +675,11 @@ For this reason, we use the batch settlement time as the timestamp for the trans
 transaction history table. This ensures that any transactions that are in a batch which fails to settle will eventually
 be processed and stored in the transaction history table.
 
+## CI/CD Pipelines
+
+This project leverages AWS CodePipeline to deploy the backend and frontend infrastructure. See the
+[pipeline architecture docs](./pipeline-architecture.md) for detailed discussion.
+
 ## Audit Logging
 [Back to top](#backend-design)
 

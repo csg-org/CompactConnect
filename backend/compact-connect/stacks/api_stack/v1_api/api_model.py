@@ -4,10 +4,10 @@
 from __future__ import annotations
 
 from aws_cdk.aws_apigateway import JsonSchema, JsonSchemaType, Model
+from common_constructs.stack import AppStack
 
 # Importing module level to allow lazy loading for typing
 from common_constructs import cc_api
-from common_constructs.stack import AppStack
 
 
 class ApiModel:
@@ -1611,7 +1611,7 @@ class ApiModel:
                 type=JsonSchemaType.OBJECT,
                 properties={
                     'type': JsonSchema(type=JsonSchemaType.STRING, enum=['attestation']),
-                    'attestationType': JsonSchema(type=JsonSchemaType.STRING),
+                    'attestationId': JsonSchema(type=JsonSchemaType.STRING),
                     'compact': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.node.get_context('compacts')),
                     'version': JsonSchema(type=JsonSchemaType.STRING),
                     'dateCreated': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),

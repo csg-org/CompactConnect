@@ -1,30 +1,30 @@
 #!/usr/bin/env python3
 import os
+import sys
 
 from aws_cdk import App, Environment
+
+# Make the `common_constructs` namespace package under `common-cdk` available to Python
+sys.path.insert(0, os.path.abspath(os.path.join('..', 'common-cdk')))
+
+from common_constructs.base_pipeline_stack import CCPipelineType
+from common_constructs.deployment_resources_stack import DeploymentResourcesStack
 from common_constructs.stack import StandardTags
+
 from pipeline import (
     ACTION_CONTEXT_KEY,
     PIPELINE_STACK_CONTEXT_KEY,
     PIPELINE_SYNTH_ACTION,
     BetaBackendPipelineStack,
-    BetaFrontendPipelineStack,
-    DeploymentResourcesStack,
     ProdBackendPipelineStack,
-    ProdFrontendPipelineStack,
     TestBackendPipelineStack,
-    TestFrontendPipelineStack,
 )
 from pipeline.backend_stage import BackendStage
-from pipeline.frontend_stage import FrontendStage
 
 # Pipeline stack name constants for DRY code
 TEST_BACKEND_PIPELINE_STACK = 'TestBackendPipelineStack'
-TEST_FRONTEND_PIPELINE_STACK = 'TestFrontendPipelineStack'
 BETA_BACKEND_PIPELINE_STACK = 'BetaBackendPipelineStack'
-BETA_FRONTEND_PIPELINE_STACK = 'BetaFrontendPipelineStack'
 PROD_BACKEND_PIPELINE_STACK = 'ProdBackendPipelineStack'
-PROD_FRONTEND_PIPELINE_STACK = 'ProdFrontendPipelineStack'
 DEPLOYMENT_RESOURCES_STACK = 'DeploymentResourcesStack'
 
 # CDK path
@@ -50,7 +50,6 @@ class CompactConnectApp(App):
     Stack Structure:
     ---------------
     - Backend Pipeline Stacks: TestBackendPipelineStack, BetaBackendPipelineStack, ProdBackendPipelineStack
-    - Frontend Pipeline Stacks: TestFrontendPipelineStack, BetaFrontendPipelineStack, ProdFrontendPipelineStack
     - DeploymentResourcesStack: Shared resources needed by all pipeline stacks
 
     Each pipeline type is in its own dedicated stack to avoid self-mutation conflicts.
@@ -86,25 +85,6 @@ class CompactConnectApp(App):
             environment_context=environment_context,
             backup_config=ssm_context.get('backup_config', {}),
         )
-        # NOTE: for first-time sandbox deployments, ensure you deploy the backend stage successfully first
-        # by running `cdk deploy 'Sandbox/*'`, then if you have a domain name configured and want to deploy the UI for
-        # your sandbox environment, set the 'deploy_sandbox_ui' field to true and deploy this stack by running
-        # `cdk deploy 'SandboxUI/*'. This ensures the user pool values are configured to be bundled with the UI build
-        # artifact.
-        if environment_context.get('deploy_sandbox_ui', False):
-            if not environment_context.get('domain_name'):
-                raise ValueError(
-                    'Cannot deploy sandbox UI if domain name is not configured for your environment. '
-                    'You may still run the app from localhost. See README.md in the webroot folder for '
-                    'more information about running the app from localhost.'
-                )
-
-            self.sandbox_frontend_stage = FrontendStage(
-                self,
-                'SandboxUI',
-                environment_name=environment_name,
-                environment_context=environment_context,
-            )
 
     def _setup_pipeline_environment(self):
         """
@@ -147,17 +127,15 @@ class CompactConnectApp(App):
         self.add_deployment_resources_stack()
 
         self.add_test_backend_pipeline_stack()
-        self.add_test_frontend_pipeline_stack()
         self.add_beta_backend_pipeline_stack()
-        self.add_beta_frontend_pipeline_stack()
         self.add_prod_backend_pipeline_stack()
-        self.add_prod_frontend_pipeline_stack()
 
     def add_deployment_resources_stack(self):
         """add the deployment resources stack"""
         self.deployment_resources_stack = DeploymentResourcesStack(
             self,
             DEPLOYMENT_RESOURCES_STACK,
+            pipeline_type=CCPipelineType.BACKEND,
             env=self.environment,
             standard_tags=StandardTags(**self.tags, environment='deploy'),
         )
@@ -176,20 +154,6 @@ class CompactConnectApp(App):
         )
         return self.test_backend_pipeline_stack
 
-    def add_test_frontend_pipeline_stack(self):
-        """add and return the Test Frontend Pipeline Stack"""
-        self.test_frontend_pipeline_stack = TestFrontendPipelineStack(
-            self,
-            TEST_FRONTEND_PIPELINE_STACK,
-            pipeline_shared_encryption_key=self.deployment_resources_stack.pipeline_shared_encryption_key,
-            pipeline_alarm_topic=self.deployment_resources_stack.pipeline_alarm_topic,
-            pipeline_access_logs_bucket=self.deployment_resources_stack.pipeline_access_logs_bucket,
-            env=self.environment,
-            standard_tags=StandardTags(**self.tags, environment='pipeline'),
-            cdk_path=CDK_PATH,
-        )
-        return self.test_frontend_pipeline_stack
-
     def add_beta_backend_pipeline_stack(self):
         """add and return the Beta Backend Pipeline Stack"""
         self.beta_backend_pipeline_stack = BetaBackendPipelineStack(
@@ -204,20 +168,6 @@ class CompactConnectApp(App):
         )
         return self.beta_backend_pipeline_stack
 
-    def add_beta_frontend_pipeline_stack(self):
-        """add and return the Beta Frontend Pipeline Stack"""
-        self.beta_frontend_pipeline_stack = BetaFrontendPipelineStack(
-            self,
-            BETA_FRONTEND_PIPELINE_STACK,
-            pipeline_shared_encryption_key=self.deployment_resources_stack.pipeline_shared_encryption_key,
-            pipeline_alarm_topic=self.deployment_resources_stack.pipeline_alarm_topic,
-            pipeline_access_logs_bucket=self.deployment_resources_stack.pipeline_access_logs_bucket,
-            env=self.environment,
-            standard_tags=StandardTags(**self.tags, environment='pipeline'),
-            cdk_path=CDK_PATH,
-        )
-        return self.beta_frontend_pipeline_stack
-
     def add_prod_backend_pipeline_stack(self):
         """add and return the Production Backend Pipeline Stack"""
         self.prod_backend_pipeline_stack = ProdBackendPipelineStack(
@@ -231,20 +181,6 @@ class CompactConnectApp(App):
             cdk_path=CDK_PATH,
         )
         return self.prod_backend_pipeline_stack
-
-    def add_prod_frontend_pipeline_stack(self):
-        """add and return the Production Frontend Pipeline Stack"""
-        self.prod_frontend_pipeline_stack = ProdFrontendPipelineStack(
-            self,
-            PROD_FRONTEND_PIPELINE_STACK,
-            pipeline_shared_encryption_key=self.deployment_resources_stack.pipeline_shared_encryption_key,
-            pipeline_alarm_topic=self.deployment_resources_stack.pipeline_alarm_topic,
-            pipeline_access_logs_bucket=self.deployment_resources_stack.pipeline_access_logs_bucket,
-            env=self.environment,
-            standard_tags=StandardTags(**self.tags, environment='pipeline'),
-            cdk_path=CDK_PATH,
-        )
-        return self.prod_frontend_pipeline_stack
 
 
 if __name__ == '__main__':

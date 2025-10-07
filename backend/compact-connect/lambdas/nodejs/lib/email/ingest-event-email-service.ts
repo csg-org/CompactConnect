@@ -1,5 +1,5 @@
 import * as crypto from 'crypto';
-import { renderToStaticMarkup, TReaderDocument } from '@usewaypoint/email-builder';
+import { TReaderDocument } from '@jusdino-ia/email-builder';
 import { IIngestFailureEventRecord, IValidationErrorEventRecord } from '../models';
 import { BaseEmailService } from './base-email-service';
 
@@ -41,7 +41,7 @@ export class IngestEventEmailService extends BaseEmailService {
         this.insertSubHeading(report, 'There have been no license data errors this week!');
         this.insertFooter(report);
 
-        const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
+        const htmlContent = this.renderTemplate(report);
 
         return this.sendEmail({
             htmlContent,
@@ -62,7 +62,7 @@ export class IngestEventEmailService extends BaseEmailService {
         this.insertSubHeading(report, 'There have been no licenses uploaded in the last 7 days.');
         this.insertFooter(report);
 
-        const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
+        const htmlContent = this.renderTemplate(report);
 
         return this.sendEmail({
             htmlContent,
@@ -101,7 +101,7 @@ export class IngestEventEmailService extends BaseEmailService {
 
         this.insertFooter(report);
 
-        return renderToStaticMarkup(report, { rootBlockId: 'root' });
+        return this.renderTemplate(report);
     }
 
     protected sortValidationErrors(validationErrors: IValidationErrorEventRecord[]) {

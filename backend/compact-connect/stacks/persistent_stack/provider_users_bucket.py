@@ -13,12 +13,12 @@ from aws_cdk.aws_s3 import BucketEncryption, CorsRule, EventType, HttpMethods
 from aws_cdk.aws_s3_notifications import LambdaDestination
 from cdk_nag import NagSuppressions
 from common_constructs.access_logs_bucket import AccessLogsBucket
-from common_constructs.backup_plan import CCBackupPlan
 from common_constructs.bucket import Bucket
-from common_constructs.python_function import PythonFunction
 from constructs import Construct
 
 import stacks.persistent_stack as ps
+from common_constructs.backup_plan import CCBackupPlan
+from common_constructs.python_function import PythonFunction
 from stacks.backup_infrastructure_stack import BackupInfrastructureStack
 
 
