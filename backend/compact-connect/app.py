@@ -50,7 +50,6 @@ class CompactConnectApp(App):
     Stack Structure:
     ---------------
     - Backend Pipeline Stacks: TestBackendPipelineStack, BetaBackendPipelineStack, ProdBackendPipelineStack
-    - Frontend Pipeline Stacks: TestFrontendPipelineStack, BetaFrontendPipelineStack, ProdFrontendPipelineStack
     - DeploymentResourcesStack: Shared resources needed by all pipeline stacks
 
     Each pipeline type is in its own dedicated stack to avoid self-mutation conflicts.

@@ -19,12 +19,10 @@ infrastructure resources and backend components to environment-specific applicat
 
 There are also different frontend pipelines for each environment. These pipelines are defined as part of the separate
 [CompactConnect UI App](../../../compact-connect-ui-app/README.md). The frontend pipelines deploy application hosting
-infrastructure to the environment-specific application AWS accounts, based on backend configuration values, provide
+infrastructure to the environment-specific application AWS accounts, based on backend configuration values provided
 by the backend deploy process.
 
 ### Deployment Resources Stack
-
-
 
 - **Deployment Resources Stack**: Shared resources used by all pipeline stacks across all environments
 - **Environments**: Test, Beta, and Production environments

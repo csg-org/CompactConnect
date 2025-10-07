@@ -93,7 +93,7 @@ in the cloud, you can do so by configuring context for your own sandbox AWS acco
 
 Once the deployment completes, you may want to run a local frontend. To do so, you must [populate a `.env`
 file](../../webroot/README.md#environment-variables) with data on certain AWS resources (for example, AWS Cognito auth
-domains and client IDs). A quick way to do that is to run `bin/fetch_aws_resources.py --as-env` from the
+domains and client IDs). A quick way to do that is to run `bin/sandbox_fetch_aws_resources.py --as-env` from the
 `backend/compact-connect` directory and copy/paste the output into `webroot/.env`. To see more data on your deployment
 in human-readable format (for example, DynamoDB table names), run `bin/fetch_aws_resources.py` without any additional
 flags.
@@ -117,7 +117,7 @@ To execute the tests, simply run `bin/sync_deps.sh` then `bin/run_tests.sh` from
 
 Keeping documentation current is an important part of feature development in this project. If the feature involves a
 non-trivial amount of architecture or other technical design, be sure that the design and considerations are captured
-in the [design documentation](./docs/design).
+in the [design documentation](../compact-connect/docs/design).
 
 ## Deployment
 [Back to top](#compact-connect-ui---backend-developer-documentation)
@@ -144,10 +144,10 @@ infrastructure to reflect the changes in your code. Full deployment steps are:
 The production environment requires a few steps to fully set up before deploys can be automated. Refer to the
 [README.md](../multi-account/README.md) for details on setting up a full multi-account architecture environment. Once
 that is done, perform the following steps to deploy the CI/CD pipelines into the appropriate AWS account:
-1. **Deploy the Backend Pipeline Stacks and applications first. See [the backend app](../compact-connect/README.md)
+1. **Deploy the Backend Pipeline Stacks and applications first:** See [the backend app](../compact-connect/README.md)
    for details.
 
-2. **Then deploy the Frontend Pipeline Stacks (approve the permission change requests for each stack deployment)**:
+2. **Then deploy the Frontend Pipeline Stacks (approve the permission change requests for each stack deployment):**
   `cdk deploy --context action=bootstrapDeploy TestFrontendPipelineStack BetaFrontendPipelineStack ProdFrontendPipelineStack`
 
 ### Subsequent production deploys
@@ -172,9 +172,10 @@ Once the pipelines are established with the above steps, deployments will be aut
 
 You can tear down resources associated with any of the CloudFormation stacks for this application with
 `cdk destroy <stack-name>`. Most resources in frontend infrastructure can be deleted with the stack, however some data
-storage resources, such as the access logs bucket, may not be configured to delete with the stack, depending on your.
-You can identify any resources that weren't destroyed by watching the stack deletion from the AWS CloudFormation
-Console, then looking at the resources after its delete is complete, to look for any with a `Delete Skipped` status.
+storage resources, such as the access logs bucket, may not be configured to delete with the stack, depending on your
+removal policy. You can identify any resources that weren't destroyed by watching the stack deletion from the AWS
+CloudFormation Console, then looking at the resources after its delete is complete, to look for any with a
+`Delete Skipped` status.
 
 ## More Info
 [Back to top](#compact-connect-ui---backend-developer-documentation)
