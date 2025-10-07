@@ -305,6 +305,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
             encumbrance_handler(event, self.mock_context)
         self.assertEqual('Event publishing failed', str(context.exception))
 
+    # TODO - remove this test once the deprecated 'clinicalPrivilegeActionCategory' field is removed  # noqa: FIX002
     def test_privilege_encumbrance_handler_migrates_clinical_privilege_action_category_to_list(self):
         """Test that the deprecated clinicalPrivilegeActionCategory field is migrated
         to clinicalPrivilegeActionCategories list."""
@@ -339,6 +340,31 @@ class TestPostPrivilegeEncumbrance(TstFunction):
         self.assertIsNotNone(loaded_adverse_action.clinicalPrivilegeActionCategories)
         self.assertEqual(
             ['Unsafe Practice or Substandard Care'], loaded_adverse_action.clinicalPrivilegeActionCategories
+        )
+
+    # TODO - remove this test once the deprecated 'clinicalPrivilegeActionCategory' field is removed  # noqa: FIX002
+    def test_privilege_encumbrance_handler_returns_400_if_both_category_fields_provided(self):
+        """Test that a 400 error is returned when both clinicalPrivilegeActionCategory and
+        clinicalPrivilegeActionCategories are provided."""
+        from handlers.encumbrance import encumbrance_handler
+
+        event, test_privilege_record = self._when_testing_privilege_encumbrance(
+            body_overrides={
+                'clinicalPrivilegeActionCategory': 'Unsafe Practice or Substandard Care',
+                'clinicalPrivilegeActionCategories': [
+                    'Unsafe Practice or Substandard Care',
+                    'Non-compliance With Requirements',
+                ],
+            }
+        )
+
+        response = encumbrance_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'], msg=json.loads(response['body']))
+        response_body = json.loads(response['body'])
+
+        self.assertIn(
+            'Cannot provide both clinicalPrivilegeActionCategory and clinicalPrivilegeActionCategories',
+            response_body['message'],
         )
 
 
@@ -560,6 +586,7 @@ class TestPostLicenseEncumbrance(TstFunction):
             response_body,
         )
 
+    # TODO - remove this test once the deprecated 'clinicalPrivilegeActionCategory' field is removed  # noqa: FIX002
     def test_license_encumbrance_handler_migrates_clinical_privilege_action_category_to_list(self):
         """Test that the deprecated clinicalPrivilegeActionCategory field is migrated to
         clinicalPrivilegeActionCategories list."""
@@ -594,6 +621,31 @@ class TestPostLicenseEncumbrance(TstFunction):
         self.assertIsNotNone(loaded_adverse_action.clinicalPrivilegeActionCategories)
         self.assertEqual(
             ['Unsafe Practice or Substandard Care'], loaded_adverse_action.clinicalPrivilegeActionCategories
+        )
+
+    # TODO - remove this test once the deprecated 'clinicalPrivilegeActionCategory' field is removed  # noqa: FIX002
+    def test_license_encumbrance_handler_returns_400_if_both_category_fields_provided(self):
+        """Test that a 400 error is returned when both clinicalPrivilegeActionCategory
+        and clinicalPrivilegeActionCategories are provided."""
+        from handlers.encumbrance import encumbrance_handler
+
+        event, test_license_record = self._when_testing_valid_license_encumbrance(
+            body_overrides={
+                'clinicalPrivilegeActionCategory': 'Unsafe Practice or Substandard Care',
+                'clinicalPrivilegeActionCategories': [
+                    'Unsafe Practice or Substandard Care',
+                    'Non-compliance With Requirements',
+                ],
+            }
+        )
+
+        response = encumbrance_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'], msg=json.loads(response['body']))
+        response_body = json.loads(response['body'])
+
+        self.assertIn(
+            'Cannot provide both clinicalPrivilegeActionCategory and clinicalPrivilegeActionCategories',
+            response_body['message'],
         )
 
 

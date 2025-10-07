@@ -79,6 +79,7 @@ class AdverseActionData(CCDataClass):
     def encumbranceType(self, encumbrance_type_enum: EncumbranceType) -> None:
         self._data['encumbranceType'] = encumbrance_type_enum.value
 
+    # TODO - remove deprecated getter/setter after migrating to 'clinicalPrivilegeActionCategories' field # noqa: FIX002
     @property
     def clinicalPrivilegeActionCategory(self) -> str | None:
         return self._data.get('clinicalPrivilegeActionCategory')
