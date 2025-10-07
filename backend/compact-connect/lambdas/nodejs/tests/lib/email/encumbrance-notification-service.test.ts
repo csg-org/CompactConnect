@@ -1,7 +1,7 @@
 import { mockClient } from 'aws-sdk-client-mock';
 import 'aws-sdk-client-mock-jest';
 import { Logger } from '@aws-lambda-powertools/logger';
-import { SendEmailCommand, SESClient } from '@aws-sdk/client-ses';
+import { SendEmailCommand, SESv2Client } from '@aws-sdk/client-sesv2';
 import { S3Client } from '@aws-sdk/client-s3';
 import { EncumbranceNotificationService } from '../../../lib/email';
 import { CompactConfigurationClient } from '../../../lib/compact-configuration-client';
@@ -40,7 +40,7 @@ const SAMPLE_JURISDICTION_CONFIG = {
 };
 
 const asSESClient = (mock: ReturnType<typeof mockClient>) =>
-    mock as unknown as SESClient;
+    mock as unknown as SESv2Client;
 
 const asS3Client = (mock: ReturnType<typeof mockClient>) =>
     mock as unknown as S3Client;
@@ -88,7 +88,7 @@ describe('EncumbranceNotificationService', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        mockSESClient = mockClient(SESClient);
+        mockSESClient = mockClient(SESv2Client);
         mockS3Client = mockClient(S3Client);
         mockCompactConfigurationClient = new MockCompactConfigurationClient();
         mockJurisdictionClient = {
@@ -132,19 +132,21 @@ describe('EncumbranceNotificationService', () => {
                 Destination: {
                     ToAddresses: ['provider@example.com']
                 },
-                Message: {
-                    Body: {
-                        Html: {
+                Content: {
+                    Simple: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.stringContaining('Your Audiologist license in Ohio is encumbered')
+                            }
+                        },
+                        Subject: {
                             Charset: 'UTF-8',
-                            Data: expect.stringContaining('Your Audiologist license in Ohio is encumbered')
+                            Data: 'Your Audiologist license in Ohio is encumbered'
                         }
-                    },
-                    Subject: {
-                        Charset: 'UTF-8',
-                        Data: 'Your Audiologist license in Ohio is encumbered'
                     }
                 },
-                Source: 'Compact Connect <noreply@example.org>'
+                FromEmailAddress: 'Compact Connect <noreply@example.org>'
             });
         });
 
@@ -180,19 +182,21 @@ describe('EncumbranceNotificationService', () => {
                 Destination: {
                     ToAddresses: ['oh-adverse@example.com']
                 },
-                Message: {
-                    Body: {
-                        Html: {
+                Content: {
+                    Simple: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.stringContaining('License Encumbrance Notification - John Doe')
+                            }
+                        },
+                        Subject: {
                             Charset: 'UTF-8',
-                            Data: expect.stringContaining('License Encumbrance Notification - John Doe')
+                            Data: 'License Encumbrance Notification - John Doe'
                         }
-                    },
-                    Subject: {
-                        Charset: 'UTF-8',
-                        Data: 'License Encumbrance Notification - John Doe'
                     }
                 },
-                Source: 'Compact Connect <noreply@example.org>'
+                FromEmailAddress: 'Compact Connect <noreply@example.org>'
             });
         });
 
@@ -256,19 +260,21 @@ describe('EncumbranceNotificationService', () => {
                     Destination: {
                         ToAddresses: ['provider@example.com']
                     },
-                    Message: {
-                        Body: {
-                            Html: {
+                    Content: {
+                        Simple: {
+                            Body: {
+                                Html: {
+                                    Charset: 'UTF-8',
+                                    Data: expect.stringContaining('Your Audiologist license in Ohio is no longer encumbered')
+                                }
+                            },
+                            Subject: {
                                 Charset: 'UTF-8',
-                                Data: expect.stringContaining('Your Audiologist license in Ohio is no longer encumbered')
+                                Data: 'Your Audiologist license in Ohio is no longer encumbered'
                             }
-                        },
-                        Subject: {
-                            Charset: 'UTF-8',
-                            Data: 'Your Audiologist license in Ohio is no longer encumbered'
                         }
                     },
-                    Source: 'Compact Connect <noreply@example.org>'
+                    FromEmailAddress: 'Compact Connect <noreply@example.org>'
                 }
             );
         });
@@ -310,19 +316,21 @@ describe('EncumbranceNotificationService', () => {
                     Destination: {
                         ToAddresses: ['state-adverse@example.com']
                     },
-                    Message: {
-                        Body: {
-                            Html: {
+                    Content: {
+                        Simple: {
+                            Body: {
+                                Html: {
+                                    Charset: 'UTF-8',
+                                    Data: expect.stringContaining('License Encumbrance Lifted Notification - John Doe')
+                                }
+                            },
+                            Subject: {
                                 Charset: 'UTF-8',
-                                Data: expect.stringContaining('License Encumbrance Lifted Notification - John Doe')
+                                Data: 'License Encumbrance Lifted Notification - John Doe'
                             }
-                        },
-                        Subject: {
-                            Charset: 'UTF-8',
-                            Data: 'License Encumbrance Lifted Notification - John Doe'
                         }
                     },
-                    Source: 'Compact Connect <noreply@example.org>'
+                    FromEmailAddress: 'Compact Connect <noreply@example.org>'
                 }
             );
         });
@@ -387,19 +395,21 @@ describe('EncumbranceNotificationService', () => {
                     Destination: {
                         ToAddresses: ['provider@example.com']
                     },
-                    Message: {
-                        Body: {
-                            Html: {
+                    Content: {
+                        Simple: {
+                            Body: {
+                                Html: {
+                                    Charset: 'UTF-8',
+                                    Data: expect.stringContaining('Your Audiologist privilege in Ohio is encumbered')
+                                }
+                            },
+                            Subject: {
                                 Charset: 'UTF-8',
-                                Data: expect.stringContaining('Your Audiologist privilege in Ohio is encumbered')
+                                Data: 'Your Audiologist privilege in Ohio is encumbered'
                             }
-                        },
-                        Subject: {
-                            Charset: 'UTF-8',
-                            Data: 'Your Audiologist privilege in Ohio is encumbered'
                         }
                     },
-                    Source: 'Compact Connect <noreply@example.org>'
+                    FromEmailAddress: 'Compact Connect <noreply@example.org>'
                 }
             );
         });
@@ -441,24 +451,26 @@ describe('EncumbranceNotificationService', () => {
                     Destination: {
                         ToAddresses: ['state-adverse@example.com']
                     },
-                    Message: {
-                        Body: {
-                            Html: {
+                    Content: {
+                        Simple: {
+                            Body: {
+                                Html: {
+                                    Charset: 'UTF-8',
+                                    Data: expect.stringContaining('Privilege Encumbrance Notification - John Doe')
+                                }
+                            },
+                            Subject: {
                                 Charset: 'UTF-8',
-                                Data: expect.stringContaining('Privilege Encumbrance Notification - John Doe')
+                                Data: 'Privilege Encumbrance Notification - John Doe'
                             }
-                        },
-                        Subject: {
-                            Charset: 'UTF-8',
-                            Data: 'Privilege Encumbrance Notification - John Doe'
                         }
                     },
-                    Source: 'Compact Connect <noreply@example.org>'
+                    FromEmailAddress: 'Compact Connect <noreply@example.org>'
                 }
             );
 
             const emailContent = mockSESClient.commandCalls(SendEmailCommand)[0]
-                .args[0].input.Message?.Body?.Html?.Data;
+                .args[0].input.Content?.Simple?.Body?.Html?.Data;
 
             expect(emailContent).toContain('This encumbrance restricts the provider&#39;s ability to practice in Ohio under the Audiology and Speech Language Pathology compact');
         });
@@ -476,7 +488,7 @@ describe('EncumbranceNotificationService', () => {
             );
 
             const emailContent = mockSESClient.commandCalls(SendEmailCommand)[0].args[0]
-                .input.Message?.Body?.Html?.Data;
+                .input.Content?.Simple?.Body?.Html?.Data;
 
             expect(emailContent).toContain('Provider Details: <a href="https://app.test.compactconnect.org/aslp/Licensing/provider-123" target="_blank">https://app.test.compactconnect.org/aslp/Licensing/provider-123</a>');
             expect(emailContent).toContain('This encumbrance restricts the provider&#39;s ability to practice in Ohio under the Audiology and Speech Language Pathology compact');
@@ -542,19 +554,21 @@ describe('EncumbranceNotificationService', () => {
                     Destination: {
                         ToAddresses: ['provider@example.com']
                     },
-                    Message: {
-                        Body: {
-                            Html: {
+                    Content: {
+                        Simple: {
+                            Body: {
+                                Html: {
+                                    Charset: 'UTF-8',
+                                    Data: expect.stringContaining('Your Audiologist privilege in Ohio is no longer encumbered')
+                                }
+                            },
+                            Subject: {
                                 Charset: 'UTF-8',
-                                Data: expect.stringContaining('Your Audiologist privilege in Ohio is no longer encumbered')
+                                Data: 'Your Audiologist privilege in Ohio is no longer encumbered'
                             }
-                        },
-                        Subject: {
-                            Charset: 'UTF-8',
-                            Data: 'Your Audiologist privilege in Ohio is no longer encumbered'
                         }
                     },
-                    Source: 'Compact Connect <noreply@example.org>'
+                    FromEmailAddress: 'Compact Connect <noreply@example.org>'
                 }
             );
         });
@@ -596,24 +610,26 @@ describe('EncumbranceNotificationService', () => {
                     Destination: {
                         ToAddresses: ['state-adverse@example.com']
                     },
-                    Message: {
-                        Body: {
-                            Html: {
+                    Content: {
+                        Simple: {
+                            Body: {
+                                Html: {
+                                    Charset: 'UTF-8',
+                                    Data: expect.stringContaining('Privilege Encumbrance Lifted Notification - John Doe')
+                                }
+                            },
+                            Subject: {
                                 Charset: 'UTF-8',
-                                Data: expect.stringContaining('Privilege Encumbrance Lifted Notification - John Doe')
+                                Data: 'Privilege Encumbrance Lifted Notification - John Doe'
                             }
-                        },
-                        Subject: {
-                            Charset: 'UTF-8',
-                            Data: 'Privilege Encumbrance Lifted Notification - John Doe'
                         }
                     },
-                    Source: 'Compact Connect <noreply@example.org>'
+                    FromEmailAddress: 'Compact Connect <noreply@example.org>'
                 }
             );
 
             const emailContent = mockSESClient.commandCalls(SendEmailCommand)[0]
-                .args[0].input.Message?.Body?.Html?.Data;
+                .args[0].input.Content?.Simple?.Body?.Html?.Data;
 
             expect(emailContent).toContain('Provider Details: <a href="https://app.test.compactconnect.org/aslp/Licensing/provider-123" target="_blank">https://app.test.compactconnect.org/aslp/Licensing/provider-123</a>');
             expect(emailContent).toContain('The encumbrance no longer restricts the provider&#39;s ability to practice in Ohio under the Audiology and Speech Language Pathology compact');
