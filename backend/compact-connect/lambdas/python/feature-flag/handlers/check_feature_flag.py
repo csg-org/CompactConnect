@@ -29,7 +29,7 @@ def check_feature_flag(event: dict, context: LambdaContext):  # noqa: ARG001 unu
 
         # Parse and validate request body using client's validation
         try:
-            body = json.loads(event['body'])
+            body = json.loads(event['body'] or '{}')
             validated_body = feature_flag_client.validate_request(body)
         except FeatureFlagValidationException as e:
             logger.warning('Feature flag validation failed', error=str(e))

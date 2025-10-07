@@ -342,11 +342,11 @@ class StatSigFeatureFlagClient(FeatureFlagClient):
 
         Each environment has its own rule (e.g., 'test-rule', 'beta-rule', 'prod-rule').
         - If auto_enable is False: passPercentage is set to 0 (disabled)
-        - If auto_enable is True: passPercentage is set to 100 (enabled) and custom attributes are applied
+        - If auto_enable is True: passPercentage is set to 100 (enabled)
 
         :param flag_name: Name of the feature gate
         :param auto_enable: If True, enable the flag (passPercentage=100); if False, disable it (passPercentage=0)
-        :param custom_attributes: Optional custom attributes for targeting (only applied if auto_enable=True)
+        :param custom_attributes: Optional custom attributes for targeting
         :return: Flag data (with 'id' field)
         :raises FeatureFlagException: If operation fails
         """

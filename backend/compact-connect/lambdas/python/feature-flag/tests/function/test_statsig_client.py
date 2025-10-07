@@ -475,7 +475,7 @@ class TestStatSigClient(TstFunction):
     def test_upsert_flag_beta_environment_auto_enable_false_no_existing_rule_create_rule(
         self, mock_requests, mock_statsig
     ):
-        """Test upsert in beta environment with autoEnable=True and no existing flag creates beta rule"""
+        """Test upsert in beta environment with autoEnable=false and no existing flag creates beta rule"""
         self._setup_mock_statsig(mock_statsig)
 
         existing_flag = {
