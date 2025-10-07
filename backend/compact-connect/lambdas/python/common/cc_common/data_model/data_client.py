@@ -2611,7 +2611,6 @@ class DataClient:
         compact: str,
         provider_id: str,
         jurisdiction: str,
-        adverse_action_category: str,
         adverse_action_id: str,
         license_type_abbreviation: str,
         effective_date: date,
@@ -2625,10 +2624,9 @@ class DataClient:
         :param str compact: The compact name.
         :param str provider_id: The provider ID.
         :param str jurisdiction: The jurisdiction of the license.
-        :param adverse_action_category: The type of adverse action perpetrated
-        :param adverse_action_id: The ID of the adverse action
-        :param str license_type_abbreviation: The license type abbreviation
-        :param str effective_date: effective date of the encumbrance on the license and therefore privilege
+        :param adverse_action_id: The ID of the adverse action.
+        :param str license_type_abbreviation: The license type abbreviation.
+        :param str effective_date: effective date of the encumbrance on the license and therefore privilege.
         :return: List of privileges that were encumbered
         """
         # Get all provider records
@@ -2638,6 +2636,18 @@ class DataClient:
 
         # Validate the license type abbreviation
         self._validate_license_type_abbreviation(compact, license_type_abbreviation)
+
+        # get the adverse_action record based on the id
+        adverse_action = provider_user_records.get_adverse_action_by_id(adverse_action_id)
+
+        if not adverse_action:
+            logger.error("Adverse Action not found by id",
+                         provider_id=provider_id,
+                         encumbered_license_jurisdiction=jurisdiction,
+                         encumbered_license_type=license_type_abbreviation,
+                         adverse_action_id=adverse_action_id)
+            raise CCInternalException("Adverse Action not found by id")
+
 
         # Find privileges associated with the license that which was encumbered, which themselves are not currently
         # encumbered
@@ -2661,11 +2671,19 @@ class DataClient:
             'Found privileges to encumber', privilege_count=len(unencumbered_privileges_associated_with_license)
         )
 
-        encumbrance_details = {
-            'clinicalPrivilegeActionCategory': adverse_action_category,
-            'licenseJurisdiction': jurisdiction,
-            'adverseActionId': adverse_action_id,
-        }
+        # TODO - replace with feature flag when available
+        if True:
+            encumbrance_details = {
+                'clinicalPrivilegeActionCategories': adverse_action.clinicalPrivilegeActionCategories,
+                'licenseJurisdiction': jurisdiction,
+                'adverseActionId': adverse_action_id,
+            }
+        else:
+            encumbrance_details = {
+                'clinicalPrivilegeActionCategory': adverse_action.clinicalPrivilegeActionCategory,
+                'licenseJurisdiction': jurisdiction,
+                'adverseActionId': adverse_action_id,
+            }
 
         # Build transaction items for all privileges
         transaction_items = []

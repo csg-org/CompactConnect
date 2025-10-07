@@ -373,7 +373,15 @@ class ProviderRecordUtility:
                 and event.get('encumbranceDetails')
                 and should_include_encumbrance_details
             ):
-                event['note'] = event['encumbranceDetails']['clinicalPrivilegeActionCategory']
+                # TODO - replace this with a feature flag when available
+                if True:
+                    if 'clinicalPrivilegeActionCategory' in event['encumbranceDetails']:
+                        event['note'] = event['encumbranceDetails'].get('clinicalPrivilegeActionCategory')
+                    else:
+                        # else we are using the new field, parse the list into a comma-separated string
+                        event['note'] = ', '.join(event['encumbranceDetails']['clinicalPrivilegeActionCategories'])
+                else:
+                    event['note'] = event['encumbranceDetails']['clinicalPrivilegeActionCategory']
             elif event['updateType'] == UpdateCategory.DEACTIVATION and event.get('deactivationDetails'):
                 event['note'] = event['deactivationDetails']['note']
 
@@ -510,6 +518,18 @@ class ProviderUserRecords:
             and record.licenseTypeAbbreviation == license_type_abbreviation
             and (filter_condition is None or filter_condition(record))
         ]
+
+    def get_adverse_action_by_id(self, adverse_action_id: str) -> AdverseActionData | None:
+        """
+        Get an adverse action record by its ID.
+
+        :param str adverse_action_id: The ID of the adverse action to find
+        :return: The found adverse action record if found, else None
+        """
+        return next(
+            (record for record in self._adverse_action_records if record.adverseActionId == adverse_action_id),
+            None,
+        )
 
     def _get_latest_effective_lift_date_for_adverse_actions(
         self, adverse_actions: list[AdverseActionData]
