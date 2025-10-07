@@ -163,7 +163,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
                 'effectiveDate': datetime.fromisoformat(TEST_ENCUMBRANCE_EFFECTIVE_DATETIME),
                 'createDate': datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP),
                 'encumbranceDetails': {
-                    'clinicalPrivilegeActionCategory': 'Unsafe Practice or Substandard Care',
+                    'clinicalPrivilegeActionCategories': ['Unsafe Practice or Substandard Care'],
                     'adverseActionId': loaded_privilege_update_data.encumbranceDetails['adverseActionId'],
                 },
             }
@@ -331,9 +331,10 @@ class TestPostPrivilegeEncumbrance(TstFunction):
         # Load the adverse action record from the database
         loaded_adverse_action = AdverseActionData.from_database_record(item)
 
+        # TODO - remove this assertion as part of https://github.com/csg-org/CompactConnect/issues/1136
         # Verify that the deprecated field is not present in the stored data
-        self.assertNotIn('clinicalPrivilegeActionCategory', item)
-        self.assertIsNone(loaded_adverse_action.clinicalPrivilegeActionCategory)
+        self.assertIn('clinicalPrivilegeActionCategory', item)
+        self.assertEqual('Unsafe Practice or Substandard Care', loaded_adverse_action.clinicalPrivilegeActionCategory)
 
         # Verify that the new list field contains the migrated value
         self.assertIn('clinicalPrivilegeActionCategories', item)
@@ -612,9 +613,10 @@ class TestPostLicenseEncumbrance(TstFunction):
         # Load the adverse action record from the database
         loaded_adverse_action = AdverseActionData.from_database_record(item)
 
+        # TODO - remove this assertion as part of https://github.com/csg-org/CompactConnect/issues/1136
         # Verify that the deprecated field is not present in the stored data
-        self.assertNotIn('clinicalPrivilegeActionCategory', item)
-        self.assertIsNone(loaded_adverse_action.clinicalPrivilegeActionCategory)
+        self.assertIn('clinicalPrivilegeActionCategory', item)
+        self.assertEqual('Unsafe Practice or Substandard Care', loaded_adverse_action.clinicalPrivilegeActionCategory)
 
         # Verify that the new list field contains the migrated value
         self.assertIn('clinicalPrivilegeActionCategories', item)

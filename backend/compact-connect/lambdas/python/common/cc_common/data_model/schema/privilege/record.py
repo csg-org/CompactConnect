@@ -56,11 +56,28 @@ class EncumbranceDetailsSchema(Schema):
     """
     Schema for tracking details about an encumbrance.
     """
-
-    clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategoryField(required=False, allow_none=False)
+    clinicalPrivilegeActionCategories = List(ClinicalPrivilegeActionCategoryField(), required=False, allow_none=False)
     adverseActionId = UUID(required=True, allow_none=False)
     # present if update is created by upstream license encumbrance
     licenseJurisdiction = Jurisdiction(required=False, allow_none=False)
+    # TODO - remove this field as part of https://github.com/csg-org/CompactConnect/issues/1136  # noqa: FIX002
+    clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategoryField(required=False, allow_none=False)
+
+
+    # TODO - remove these hooks as part of https://github.com/csg-org/CompactConnect/issues/1136  # noqa: FIX002
+    @pre_load
+    def migrate_clinical_privilege_action_category_on_load(self, in_data, **_kwargs):
+        """Migrate deprecated clinicalPrivilegeActionCategory to clinicalPrivilegeActionCategories list when loading from database."""
+        if 'clinicalPrivilegeActionCategory' in in_data and 'clinicalPrivilegeActionCategories' not in in_data:
+            in_data['clinicalPrivilegeActionCategories'] = [in_data['clinicalPrivilegeActionCategory']]
+        return in_data
+
+    @pre_dump
+    def migrate_clinical_privilege_action_category_on_dump(self, in_data, **_kwargs):
+        """Migrate deprecated clinicalPrivilegeActionCategory to clinicalPrivilegeActionCategories list when dumping to database."""
+        if 'clinicalPrivilegeActionCategory' in in_data and 'clinicalPrivilegeActionCategories' not in in_data:
+            in_data['clinicalPrivilegeActionCategories'] = [in_data['clinicalPrivilegeActionCategory']]
+        return in_data
 
 
 @BaseRecordSchema.register_schema('privilege')
