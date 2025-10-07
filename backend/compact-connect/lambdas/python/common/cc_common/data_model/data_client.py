@@ -1427,10 +1427,17 @@ class DataClient:
                 )
 
             now = config.current_standard_datetime
-            encumbrance_details = {
-                'clinicalPrivilegeActionCategory': adverse_action.clinicalPrivilegeActionCategory,
-                'adverseActionId': adverse_action.adverseActionId,
-            }
+            # TODO - replace with a feature flag when available
+            if True:
+                encumbrance_details = {
+                    'clinicalPrivilegeActionCategories': adverse_action.clinicalPrivilegeActionCategories,
+                    'adverseActionId': adverse_action.adverseActionId,
+                }
+            else:
+                encumbrance_details = {
+                    'clinicalPrivilegeActionCategory': adverse_action.clinicalPrivilegeActionCategory,
+                    'adverseActionId': adverse_action.adverseActionId,
+                }
 
             # The time selected here is somewhat arbitrary; however, we want this selection to not alter the date
             # displayed for a user when it is transformed back to their timezone. We selected noon UTC-4:00 so that

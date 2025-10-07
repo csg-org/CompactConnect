@@ -25,9 +25,9 @@ class AdverseActionPostRequestSchema(ForgivingSchema):
 
     encumbranceEffectiveDate = Date(required=True, allow_none=False)
     encumbranceType = EncumbranceTypeField(required=True, allow_none=False)
-    # TODO - remove this deprecated field after migrating to 'clinicalPrivilegeActionCategories' field  # noqa: FIX002
-    clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategoryField(required=False, allow_none=False)
     clinicalPrivilegeActionCategories = List(ClinicalPrivilegeActionCategoryField(), required=False, allow_none=False)
+    # TODO - remove this field as part of https://github.com/csg-org/CompactConnect/issues/1136  # noqa: FIX002
+    clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategoryField(required=False, allow_none=False)
 
     @validates_schema
     def validate_clinical_privilege_action_category_fields(self, data, **_kwargs):
@@ -96,8 +96,8 @@ class AdverseActionGeneralResponseSchema(AdverseActionPublicResponseSchema):
     """
 
     encumbranceType = EncumbranceTypeField(required=True, allow_none=False)
-    # TODO - remove this deprecated field after migrating to 'clinicalPrivilegeActionCategories' field  # noqa: FIX002
-    clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategoryField(required=False, allow_none=False)
     clinicalPrivilegeActionCategories = List(ClinicalPrivilegeActionCategoryField(), required=False, allow_none=False)
     liftingUser = Raw(required=False, allow_none=False)
     submittingUser = Raw(required=True, allow_none=False)
+    # TODO - remove this field as part of https://github.com/csg-org/CompactConnect/issues/1136  # noqa: FIX002
+    clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategoryField(required=False, allow_none=False)
