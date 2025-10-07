@@ -144,3 +144,23 @@ class TestCheckFeatureFlag(TstFunction):
         # Parse and verify the JSON body contains error message
         response_body = json.loads(result['body'])
         self.assertIn('flagId is required in the URL path', response_body['message'])
+
+    @patch('feature_flag_client.Statsig')
+    def test_invalid_json_request_body_returns_400(self, mock_statsig):
+        """Test that missing flagId in path parameters returns 400 error"""
+        self._setup_mock_statsig(mock_statsig, mock_flag_enabled_return=True)
+        from handlers.check_feature_flag import check_feature_flag
+
+        event = self._generate_test_api_gateway_event(body={}, flag_id='test-flag')
+        # Create test event with invalid json
+        event['body'] = 'invalid'
+
+        # Call the handler
+        result = check_feature_flag(event, self.mock_context)
+
+        # Verify the API Gateway response format
+        self.assertEqual(result['statusCode'], 400)
+
+        # Parse and verify the JSON body contains error message
+        response_body = json.loads(result['body'])
+        self.assertIn('Expecting value: line 1 column 1 (char 0)', response_body['message'])

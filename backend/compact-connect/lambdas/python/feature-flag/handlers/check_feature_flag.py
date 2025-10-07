@@ -31,8 +31,11 @@ def check_feature_flag(event: dict, context: LambdaContext):  # noqa: ARG001 unu
         try:
             body = json.loads(event['body'] or '{}')
             validated_body = feature_flag_client.validate_request(body)
+        except json.JSONDecodeError as e:
+            logger.info('Request body is invalid json', error=str(e))
+            raise CCInvalidRequestException(str(e)) from e
         except FeatureFlagValidationException as e:
-            logger.warning('Feature flag validation failed', error=str(e))
+            logger.info('Feature flag validation failed', error=str(e))
             raise CCInvalidRequestException(str(e)) from e
 
         # Create request object for flag evaluation with flagId from path
