@@ -13,10 +13,6 @@
   },
   "author": "Inspiring Apps",
   "license": "UNLICENSED",
-  "resolutions": {
-    "@smithy/types": "^4.6.0",
-    "@smithy/util-stream": "^4.0.0"
-  },
   "devDependencies": {
     "@types/aws-lambda": "8.10.145",
     "@types/jest": "^29.5.12",
