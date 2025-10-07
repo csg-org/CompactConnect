@@ -147,7 +147,7 @@ class TestCheckFeatureFlag(TstFunction):
 
     @patch('feature_flag_client.Statsig')
     def test_invalid_json_request_body_returns_400(self, mock_statsig):
-        """Test that missing flagId in path parameters returns 400 error"""
+        """Test that an invalid JSON request body returns a 400 error"""
         self._setup_mock_statsig(mock_statsig, mock_flag_enabled_return=True)
         from handlers.check_feature_flag import check_feature_flag
 
