@@ -25,6 +25,7 @@ class AdverseActionPostRequestSchema(ForgivingSchema):
 
     encumbranceEffectiveDate = Date(required=True, allow_none=False)
     encumbranceType = EncumbranceTypeField(required=True, allow_none=False)
+    # TODO - remove this deprecated field after migrating to 'clinicalPrivilegeActionCategories' field  # noqa: FIX002
     clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategoryField(required=False, allow_none=False)
     clinicalPrivilegeActionCategories = List(ClinicalPrivilegeActionCategoryField(), required=False, allow_none=False)
 
@@ -95,6 +96,7 @@ class AdverseActionGeneralResponseSchema(AdverseActionPublicResponseSchema):
     """
 
     encumbranceType = EncumbranceTypeField(required=True, allow_none=False)
+    # TODO - remove this deprecated field after migrating to 'clinicalPrivilegeActionCategories' field  # noqa: FIX002
     clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategoryField(required=False, allow_none=False)
     clinicalPrivilegeActionCategories = List(ClinicalPrivilegeActionCategoryField(), required=False, allow_none=False)
     liftingUser = Raw(required=False, allow_none=False)

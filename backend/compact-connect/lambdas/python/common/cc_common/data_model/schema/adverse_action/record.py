@@ -34,6 +34,7 @@ class AdverseActionRecordSchema(BaseRecordSchema):
 
     # Populated on creation
     encumbranceType = EncumbranceTypeField(required=True, allow_none=False)
+    # TODO - remove this deprecated field after migrating to 'clinicalPrivilegeActionCategories' field  # noqa: FIX002
     clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategoryField(required=False, allow_none=False)
     clinicalPrivilegeActionCategories = List(ClinicalPrivilegeActionCategoryField(), required=False, allow_none=False)
     effectiveStartDate = Date(required=True, allow_none=False)
@@ -60,6 +61,7 @@ class AdverseActionRecordSchema(BaseRecordSchema):
         )
         return in_data
 
+    # TODO - remove this hook once migration is complete  # noqa: FIX002
     def migrate_clinical_privilege_action_category(self, in_data, **_kwargs):
         """Migrate deprecated clinicalPrivilegeActionCategory to clinicalPrivilegeActionCategories list."""
         # If the deprecated field exists and the new field doesn't, migrate it
