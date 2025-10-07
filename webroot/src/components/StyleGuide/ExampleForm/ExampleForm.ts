@@ -6,7 +6,7 @@
 //
 
 import { Component, mixins, toNative } from 'vue-facing-decorator';
-import { reactive, computed } from 'vue';
+import { reactive, computed, ComputedRef } from 'vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import Section from '@components/Section/Section.vue';
 import InputText from '@components/Forms/InputText/InputText.vue';
@@ -76,6 +76,15 @@ class ExampleForm extends mixins(MixinForm) {
         return this.$tm('common.states');
     }
 
+    get npdbCategoryOptions(): Array<{ value: string, name: string | ComputedRef<string> }> {
+        const options = this.$tm('licensing.npdbTypes').map((npdbType) => ({
+            value: npdbType.key,
+            name: npdbType.name,
+        }));
+
+        return options;
+    }
+
     get statusOptions(): any {
         return this.$tm('styleGuide.statusOptions');
     }
@@ -130,6 +139,14 @@ class ExampleForm extends mixins(MixinForm) {
                 label: computed(() => this.$t('common.statesMultiple')),
                 validation: Joi.array().min(1).messages(this.joiMessages.array),
                 valueOptions: this.states.map((state) => ({ value: state.abbrev, name: state.full })),
+                value: [],
+            }),
+            npdbCategories: new FormInput({ // Multi select
+                id: 'npdb-categories',
+                name: 'npdb-categories',
+                label: computed(() => this.$t('licensing.npdbCategoryLabel')),
+                validation: Joi.array().min(1).messages(this.joiMessages.array),
+                valueOptions: this.npdbCategoryOptions,
                 value: [],
             }),
             isSubscribed: new FormInput({
