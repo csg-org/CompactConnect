@@ -26,12 +26,10 @@ class AdverseActionPostRequestSchema(ForgivingSchema):
     encumbranceEffectiveDate = Date(required=True, allow_none=False)
     encumbranceType = EncumbranceTypeField(required=True, allow_none=False)
     clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategoryField(required=False, allow_none=False)
-    clinicalPrivilegeActionCategories = List(
-        ClinicalPrivilegeActionCategoryField(), required=False, allow_none=False
-    )
+    clinicalPrivilegeActionCategories = List(ClinicalPrivilegeActionCategoryField(), required=False, allow_none=False)
 
     @validates_schema
-    def validate_clinical_privilege_action_category_fields(self, data, **kwargs):
+    def validate_clinical_privilege_action_category_fields(self, data, **_kwargs):
         """Ensure exactly one of the category fields is provided."""
         has_singular = 'clinicalPrivilegeActionCategory' in data
         has_plural = 'clinicalPrivilegeActionCategories' in data
@@ -98,8 +96,6 @@ class AdverseActionGeneralResponseSchema(AdverseActionPublicResponseSchema):
 
     encumbranceType = EncumbranceTypeField(required=True, allow_none=False)
     clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategoryField(required=False, allow_none=False)
-    clinicalPrivilegeActionCategories = List(
-        ClinicalPrivilegeActionCategoryField(), required=False, allow_none=False
-    )
+    clinicalPrivilegeActionCategories = List(ClinicalPrivilegeActionCategoryField(), required=False, allow_none=False)
     liftingUser = Raw(required=False, allow_none=False)
     submittingUser = Raw(required=True, allow_none=False)

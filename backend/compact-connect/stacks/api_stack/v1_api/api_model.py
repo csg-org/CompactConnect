@@ -425,7 +425,8 @@ class ApiModel:
                     'encumbranceType': self._encumbrance_type_schema,
                     'clinicalPrivilegeActionCategory': JsonSchema(
                         type=JsonSchemaType.STRING,
-                        description='(Deprecated) The category of clinical privilege action. Use clinicalPrivilegeActionCategories instead.',
+                        description='(Deprecated) The category of clinical privilege action. '
+                        'Use clinicalPrivilegeActionCategories instead.',
                     ),
                     'clinicalPrivilegeActionCategories': JsonSchema(
                         type=JsonSchemaType.ARRAY,
@@ -460,7 +461,8 @@ class ApiModel:
                     'encumbranceType': self._encumbrance_type_schema,
                     'clinicalPrivilegeActionCategory': JsonSchema(
                         type=JsonSchemaType.STRING,
-                        description='(Deprecated) The category of clinical privilege action. Use clinicalPrivilegeActionCategories instead.',
+                        description='(Deprecated) The category of clinical privilege action. '
+                        'Use clinicalPrivilegeActionCategories instead.',
                     ),
                     'clinicalPrivilegeActionCategories': JsonSchema(
                         type=JsonSchemaType.ARRAY,
