@@ -35,9 +35,7 @@ class AdverseActionRecordSchema(BaseRecordSchema):
     # Populated on creation
     encumbranceType = EncumbranceTypeField(required=True, allow_none=False)
     clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategoryField(required=False, allow_none=False)
-    clinicalPrivilegeActionCategories = List(
-        ClinicalPrivilegeActionCategoryField(), required=False, allow_none=False
-    )
+    clinicalPrivilegeActionCategories = List(ClinicalPrivilegeActionCategoryField(), required=False, allow_none=False)
     effectiveStartDate = Date(required=True, allow_none=False)
     submittingUser = UUID(required=True, allow_none=False)
     creationDate = DateTime(required=True, allow_none=False)
@@ -48,6 +46,11 @@ class AdverseActionRecordSchema(BaseRecordSchema):
     liftingUser = UUID(required=False, allow_none=False)
 
     @pre_dump
+    def pre_dump_serialization(self, in_data, **_kwargs):
+        """Pre-dump serialization to ensure the clinicalPrivilegeActionCategories list is serialized correctly."""
+        in_data = self.generate_pk_sk(in_data)
+        return self.migrate_clinical_privilege_action_category(in_data)
+
     def generate_pk_sk(self, in_data, **_kwargs):
         in_data['pk'] = f'{in_data["compact"]}#PROVIDER#{in_data["providerId"]}'
         # ensure this is passed in lowercase
@@ -55,6 +58,15 @@ class AdverseActionRecordSchema(BaseRecordSchema):
         in_data['sk'] = (
             f'{in_data["compact"]}#PROVIDER#{in_data["actionAgainst"]}/{in_data["jurisdiction"]}/{license_type_abbr}#ADVERSE_ACTION#{in_data["adverseActionId"]}'
         )
+        return in_data
+
+    def migrate_clinical_privilege_action_category(self, in_data, **_kwargs):
+        """Migrate deprecated clinicalPrivilegeActionCategory to clinicalPrivilegeActionCategories list."""
+        # If the deprecated field exists and the new field doesn't, migrate it
+        if 'clinicalPrivilegeActionCategory' in in_data and 'clinicalPrivilegeActionCategories' not in in_data:
+            in_data['clinicalPrivilegeActionCategories'] = [in_data['clinicalPrivilegeActionCategory']]
+            # Remove the deprecated field to avoid storing both
+            del in_data['clinicalPrivilegeActionCategory']
         return in_data
 
     @validates_schema
