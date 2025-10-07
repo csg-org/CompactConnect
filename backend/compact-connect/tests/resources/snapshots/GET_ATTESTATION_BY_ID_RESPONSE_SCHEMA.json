@@ -6,7 +6,7 @@
       ],
       "type": "string"
     },
-    "attestationType": {
+    "attestationId": {
       "type": "string"
     },
     "compact": {

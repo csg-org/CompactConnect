@@ -4,7 +4,9 @@ from marshmallow.fields import Boolean, Dict, Nested, Raw, String
 from marshmallow.validate import Length, OneOf
 
 from cc_common.config import config
+from cc_common.data_model.schema.base_record import ForgivingSchema
 from cc_common.data_model.schema.common import StaffUserStatus
+from cc_common.data_model.schema.fields import Compact
 
 
 class UserAttributesAPISchema(Schema):
@@ -94,3 +96,25 @@ class UserAPISchema(Schema):
             }
 
         return data
+
+
+class UserMergedResponseSchema(ForgivingSchema):
+    """
+    Schema for merged user response data from the /me endpoint.
+
+    This schema validates the merged user data that combines multiple user records
+    across different compacts into a single response object.
+
+    Serialization direction:
+    Python -> load() -> API
+    """
+
+    type = String(required=True, allow_none=False, validate=OneOf(['user']))
+    userId = Raw(required=True, allow_none=False)
+    status = String(required=True, allow_none=False, validate=OneOf([status.value for status in StaffUserStatus]))
+    dateOfUpdate = Raw(required=True, allow_none=False)
+    attributes = Nested(UserAttributesAPISchema(), required=True, allow_none=False)
+    permissions = Dict(
+        keys=Compact(),  # Key is one compact
+        values=Nested(CompactPermissionsAPISchema(), required=True, allow_none=False),
+    )
