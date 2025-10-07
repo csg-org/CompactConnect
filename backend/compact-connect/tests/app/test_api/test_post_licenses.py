@@ -24,10 +24,13 @@ class TestPostLicenseApi(TestApi):
         api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
 
-        # Ensure the lambda is created with expected code path
+        # Ensure the lambda is created with expected code path in the ApiLambdaStack
+        api_lambda_stack = self.app.sandbox_backend_stage.api_lambda_stack
+        api_lambda_stack_template = Template.from_stack(api_lambda_stack)
+
         post_licenses_handler = TestApi.get_resource_properties_by_logical_id(
-            api_stack.get_logical_id(api_stack.api.v1_api.post_licenses.post_license_handler.node.default_child),
-            api_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
+            api_lambda_stack.get_logical_id(api_lambda_stack.post_licenses_lambdas.post_licenses_handler.node.default_child),
+            api_lambda_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
         )
 
         self.assertEqual(post_licenses_handler['Handler'], 'handlers.licenses.post_licenses')
@@ -44,10 +47,10 @@ class TestPostLicenseApi(TestApi):
                 'AuthorizerId': {
                     'Ref': api_stack.get_logical_id(api_stack.api.staff_users_authorizer.node.default_child),
                 },
-                'Integration': TestApi.generate_expected_integration_object(
-                    api_stack.get_logical_id(
-                        api_stack.api.v1_api.post_licenses.post_license_handler.node.default_child,
-                    ),
+                'Integration': TestApi.generate_expected_integration_object_for_imported_lambda(
+                    api_lambda_stack,
+                    api_lambda_stack_template,
+                    api_lambda_stack.post_licenses_lambdas.post_licenses_handler,
                 ),
                 'MethodResponses': [
                     {

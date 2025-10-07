@@ -35,10 +35,13 @@ class TestPublicLookupApi(TestApi):
             },
         )
 
-        # Ensure the lambda is created with expected code path
+        # Ensure the lambda is created with expected code path in the ApiLambdaStack
+        api_lambda_stack = self.app.sandbox_backend_stage.api_lambda_stack
+        api_lambda_stack_template = Template.from_stack(api_lambda_stack)
+
         get_handler = TestApi.get_resource_properties_by_logical_id(
-            api_stack.get_logical_id(api_stack.api.v1_api.public_lookup_api.get_provider_handler.node.default_child),
-            api_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
+            api_lambda_stack.get_logical_id(api_lambda_stack.public_lookup_lambdas.get_provider_handler.node.default_child),
+            api_lambda_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
         )
 
         self.assertEqual(get_handler['Handler'], 'handlers.public_lookup.public_get_provider')
@@ -51,10 +54,10 @@ class TestPublicLookupApi(TestApi):
             type=CfnMethod.CFN_RESOURCE_TYPE_NAME,
             props={
                 'HttpMethod': 'GET',
-                'Integration': TestApi.generate_expected_integration_object(
-                    api_stack.get_logical_id(
-                        api_stack.api.v1_api.public_lookup_api.get_provider_handler.node.default_child,
-                    ),
+                'Integration': TestApi.generate_expected_integration_object_for_imported_lambda(
+                    api_lambda_stack,
+                    api_lambda_stack_template,
+                    api_lambda_stack.public_lookup_lambdas.get_provider_handler,
                 ),
                 'MethodResponses': [
                     {
@@ -80,6 +83,8 @@ class TestPublicLookupApi(TestApi):
         """Test that the POST /providers/query endpoint is configured correctly."""
         api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
+        api_lambda_stack = self.app.sandbox_backend_stage.api_lambda_stack
+        api_lambda_stack_template = Template.from_stack(api_lambda_stack)
 
         # Ensure the resource is created with expected path
         api_stack_template.has_resource_properties(
@@ -93,10 +98,10 @@ class TestPublicLookupApi(TestApi):
             },
         )
 
-        # Ensure the lambda is created with expected code path
+        # Ensure the lambda is created with expected code path in the ApiLambdaStack
         query_handler = TestApi.get_resource_properties_by_logical_id(
-            api_stack.get_logical_id(api_stack.api.v1_api.public_lookup_api.query_providers_handler.node.default_child),
-            api_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
+            api_lambda_stack.get_logical_id(api_lambda_stack.public_lookup_lambdas.query_providers_handler.node.default_child),
+            api_lambda_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
         )
 
         self.assertEqual(query_handler['Handler'], 'handlers.public_lookup.public_query_providers')
@@ -110,10 +115,10 @@ class TestPublicLookupApi(TestApi):
             type=CfnMethod.CFN_RESOURCE_TYPE_NAME,
             props={
                 'HttpMethod': 'POST',
-                'Integration': TestApi.generate_expected_integration_object(
-                    api_stack.get_logical_id(
-                        api_stack.api.v1_api.public_lookup_api.query_providers_handler.node.default_child,
-                    ),
+                'Integration': TestApi.generate_expected_integration_object_for_imported_lambda(
+                    api_lambda_stack,
+                    api_lambda_stack_template,
+                    api_lambda_stack.public_lookup_lambdas.query_providers_handler,
                 ),
                 'RequestModels': {
                     'application/json': {'Ref': request_model_logical_id_capture},

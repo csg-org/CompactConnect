@@ -1,17 +1,10 @@
 from __future__ import annotations
 
-import os
-
 from aws_cdk import Duration
 from aws_cdk.aws_apigateway import LambdaIntegration, MethodOptions, MethodResponse, Resource
-from aws_cdk.aws_dynamodb import ITable
-from aws_cdk.aws_iam import IRole
-from aws_cdk.aws_sqs import IQueue
-from common_constructs.stack import Stack
 
 from common_constructs.cc_api import CCApi
-from common_constructs.python_function import PythonFunction
-from stacks import persistent_stack as ps
+from stacks.api_lambda_stack import ApiLambdaStack
 
 from .api_model import ApiModel
 
@@ -22,7 +15,7 @@ class PostLicenses:
         *,
         resource: Resource,
         method_options: MethodOptions,
-        persistent_stack: ps.PersistentStack,
+        api_lambda_stack: ApiLambdaStack,
         api_model: ApiModel,
     ):
         super().__init__()
@@ -34,27 +27,17 @@ class PostLicenses:
 
         self._add_post_license(
             method_options=method_options,
-            license_preprocessing_queue=persistent_stack.ssn_table.preprocessor_queue.queue,
-            compact_configuration_table=persistent_stack.compact_configuration_table,
-            license_upload_role=persistent_stack.ssn_table.license_upload_role,
-            rate_limiting_table=persistent_stack.rate_limiting_table,
+            api_lambda_stack=api_lambda_stack,
         )
         self.api.log_groups.extend(self.log_groups)
 
     def _add_post_license(
         self,
         method_options: MethodOptions,
-        license_preprocessing_queue: IQueue,
-        license_upload_role: IRole,
-        compact_configuration_table: ITable,
-        rate_limiting_table: ITable,
+        api_lambda_stack: ApiLambdaStack,
     ):
-        self.post_license_handler = self._post_licenses_handler(
-            license_preprocessing_queue=license_preprocessing_queue,
-            compact_configuration_table=compact_configuration_table,
-            license_upload_role=license_upload_role,
-            rate_limiting_table=rate_limiting_table,
-        )
+        handler = api_lambda_stack.post_licenses_lambdas.post_licenses_handler
+        self.log_groups.append(handler.log_group)
 
         # Normally, we have two layers of request body schema validation: one at the API gateway level,
         # and one in the lambda handler logic.
@@ -81,7 +64,7 @@ class PostLicenses:
                 ),
             ],
             integration=LambdaIntegration(
-                handler=self.post_license_handler,
+                handler=handler,
                 timeout=Duration.seconds(29),
             ),
             request_parameters={'method.request.header.Authorization': True},
@@ -89,36 +72,3 @@ class PostLicenses:
             authorizer=method_options.authorizer,
             authorization_scopes=method_options.authorization_scopes,
         )
-
-    def _post_licenses_handler(
-        self,
-        license_preprocessing_queue: IQueue,
-        license_upload_role: IRole,
-        compact_configuration_table: ITable,
-        rate_limiting_table: ITable,
-    ) -> PythonFunction:
-        stack: Stack = Stack.of(self.resource)
-        handler = PythonFunction(
-            self.api,
-            'V1PostLicensesHandler',
-            description='Post licenses handler',
-            lambda_dir='provider-data-v1',
-            index=os.path.join('handlers', 'licenses.py'),
-            handler='post_licenses',
-            role=license_upload_role,
-            environment={
-                'LICENSE_PREPROCESSING_QUEUE_URL': license_preprocessing_queue.queue_url,
-                'COMPACT_CONFIGURATION_TABLE_NAME': compact_configuration_table.table_name,
-                'RATE_LIMITING_TABLE_NAME': rate_limiting_table.table_name,
-                **stack.common_env_vars,
-            },
-            alarm_topic=self.api.alarm_topic,
-        )
-
-        # Grant permissions to put messages on the preprocessing queue
-        license_preprocessing_queue.grant_send_messages(handler)
-        compact_configuration_table.grant_read_data(handler)
-        rate_limiting_table.grant_read_write_data(handler)
-
-        self.log_groups.append(handler.log_group)
-        return handler

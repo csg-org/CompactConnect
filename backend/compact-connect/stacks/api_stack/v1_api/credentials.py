@@ -1,16 +1,10 @@
 from __future__ import annotations
 
-import os
-
 from aws_cdk import Duration
 from aws_cdk.aws_apigateway import LambdaIntegration, MethodOptions, MethodResponse, Resource
-from aws_cdk.aws_iam import Effect, PolicyStatement
-from cdk_nag import NagSuppressions
-from common_constructs.stack import Stack
 
 from common_constructs.cc_api import CCApi
-from common_constructs.python_function import PythonFunction
-from stacks import persistent_stack as ps
+from stacks.api_lambda_stack import ApiLambdaStack
 
 from .api_model import ApiModel
 
@@ -21,7 +15,7 @@ class Credentials:
         *,
         resource: Resource,
         method_options: MethodOptions,
-        persistent_stack: ps.PersistentStack,
+        api_lambda_stack: ApiLambdaStack,
         api_model: ApiModel,
     ):
         super().__init__()
@@ -29,30 +23,25 @@ class Credentials:
         self.resource = resource
         self.api: CCApi = resource.api
         self.api_model = api_model
-
-        stack: Stack = Stack.of(resource)
-        lambda_environment = {
-            **stack.common_env_vars,
-            'COMPACT_CONFIGURATION_TABLE_NAME': persistent_stack.compact_configuration_table.table_name,
-        }
+        self.log_groups = []
 
         # /v1/compacts/{compact}/credentials/payment-processor
         self._add_post_credentials_payment_processor(
-            method_options=method_options, lambda_environment=lambda_environment, persistent_stack=persistent_stack
+            method_options=method_options,
+            api_lambda_stack=api_lambda_stack,
         )
 
+        self.api.log_groups.extend(self.log_groups)
+
     def _add_post_credentials_payment_processor(
-        self, method_options: MethodOptions, lambda_environment: dict, persistent_stack: ps.PersistentStack
+        self,
+        method_options: MethodOptions,
+        api_lambda_stack: ApiLambdaStack,
     ):
         self.payment_processor_resource = self.resource.add_resource('payment-processor')
 
-        self.post_credentials_payment_processor_handler = self._post_credentials_payment_processor_handler(
-            lambda_environment=lambda_environment,
-        )
-        self.api.log_groups.append(self.post_credentials_payment_processor_handler.log_group)
-        persistent_stack.compact_configuration_table.grant_read_write_data(
-            self.post_credentials_payment_processor_handler
-        )
+        handler = api_lambda_stack.credentials_lambdas.credentials_handler
+        self.log_groups.append(handler.log_group)
 
         self.payment_processor_resource.add_method(
             'POST',
@@ -69,7 +58,7 @@ class Credentials:
             integration=LambdaIntegration(
                 # setting the timeout to 29 seconds to allow for
                 # the lambda to complete before the API Gateway times out at 30 seconds
-                self.post_credentials_payment_processor_handler,
+                handler,
                 timeout=Duration.seconds(29),
             ),
             request_parameters={'method.request.header.Authorization': True},
@@ -77,50 +66,3 @@ class Credentials:
             authorizer=method_options.authorizer,
             authorization_scopes=method_options.authorization_scopes,
         )
-
-    def _post_credentials_payment_processor_handler(
-        self,
-        lambda_environment: dict,
-    ) -> PythonFunction:
-        stack = Stack.of(self.api)
-        handler = PythonFunction(
-            self.resource,
-            'PostCredentialsPaymentProcessorHandler',
-            description='Post credentials payment processor handler',
-            lambda_dir='purchases',
-            index=os.path.join('handlers', 'credentials.py'),
-            handler='post_payment_processor_credentials',
-            environment=lambda_environment,
-            alarm_topic=self.api.alarm_topic,
-            # required as this lambda is bundled with the authorize.net SDK which is large
-            memory_size=256,
-        )
-
-        # grant handler access to post secrets for supported compacts
-        # compact-connect/env/{environment_name}/compact/{compact_abbr}/credentials/payment-processor
-        handler.add_to_role_policy(
-            PolicyStatement(
-                effect=Effect.ALLOW,
-                actions=[
-                    # this lambda needs to be able to Describe the secret to check if it exists, create it if it doesn't
-                    # and update it if it does
-                    'secretsmanager:PutSecretValue',
-                    'secretsmanager:CreateSecret',
-                    'secretsmanager:DescribeSecret',
-                ],
-                resources=self.api.get_secrets_manager_compact_payment_processor_arns(),
-            )
-        )
-
-        NagSuppressions.add_resource_suppressions_by_path(
-            stack,
-            path=f'{handler.node.path}/ServiceRole/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': 'The actions in this policy are specifically what this lambda needs to read '
-                    'and is scoped to one table and encryption key.',
-                },
-            ],
-        )
-        return handler

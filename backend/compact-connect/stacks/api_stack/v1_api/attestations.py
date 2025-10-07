@@ -1,15 +1,9 @@
 from __future__ import annotations
 
-import os
-
-from aws_cdk import Duration
 from aws_cdk.aws_apigateway import LambdaIntegration, MethodResponse, Resource
-from cdk_nag import NagSuppressions
-from common_constructs.stack import Stack
 
 from common_constructs.cc_api import CCApi
-from common_constructs.python_function import PythonFunction
-from stacks import persistent_stack as ps
+from stacks.api_lambda_stack import ApiLambdaStack
 
 from .api_model import ApiModel
 
@@ -19,7 +13,7 @@ class Attestations:
         self,
         *,
         resource: Resource,
-        persistent_stack: ps.PersistentStack,
+        api_lambda_stack: ApiLambdaStack,
         api_model: ApiModel,
     ):
         super().__init__()
@@ -27,52 +21,26 @@ class Attestations:
         self.resource = resource
         self.api: CCApi = resource.api
         self.api_model = api_model
-
-        stack: Stack = Stack.of(resource)
-        lambda_environment = {
-            'COMPACT_CONFIGURATION_TABLE_NAME': persistent_stack.compact_configuration_table.table_name,
-            **stack.common_env_vars,
-        }
-
-        # Create the attestations lambda function that will be shared by all attestation related endpoints
-        self.attestations_function = PythonFunction(
-            self.api,
-            'AttestationsFunction',
-            index=os.path.join('handlers', 'attestations.py'),
-            lambda_dir='compact-configuration',
-            handler='attestations',
-            environment=lambda_environment,
-            timeout=Duration.seconds(30),
-        )
-        persistent_stack.shared_encryption_key.grant_decrypt(self.attestations_function)
-        persistent_stack.compact_configuration_table.grant_read_write_data(self.attestations_function)
-        self.api.log_groups.append(self.attestations_function.log_group)
-
-        NagSuppressions.add_resource_suppressions_by_path(
-            stack,
-            path=f'{self.attestations_function.node.path}/ServiceRole/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': 'The actions in this policy are specifically what this lambda needs '
-                    'and is scoped to one table and encryption key.',
-                },
-            ],
-        )
+        self.log_groups = []
 
         # GET /v1/compacts/{compact}/attestations/{attestationId}
         self.attestation_id_resource = self.resource.add_resource('{attestationId}')
         self._add_get_attestation(
-            attestations_function=self.attestations_function,
+            api_lambda_stack=api_lambda_stack,
         )
+
+        self.api.log_groups.extend(self.log_groups)
 
     def _add_get_attestation(
         self,
-        attestations_function: PythonFunction,
+        api_lambda_stack: ApiLambdaStack,
     ):
+        handler = api_lambda_stack.attestations_lambdas.attestations_handler
+        self.log_groups.append(handler.log_group)
+
         self.attestation_id_resource.add_method(
             'GET',
-            LambdaIntegration(attestations_function),
+            LambdaIntegration(handler),
             method_responses=[
                 MethodResponse(
                     status_code='200',

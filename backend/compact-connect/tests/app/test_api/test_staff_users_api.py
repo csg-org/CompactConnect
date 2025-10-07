@@ -66,15 +66,15 @@ class TestStaffUsersApi(TestApi):
             },
         )
 
-        patch_handler_properties = self.get_resource_properties_by_logical_id(
-            logical_id=api_stack.get_logical_id(api_stack.api.v1_api.staff_users.patch_user_handler.node.default_child),
-            resources=api_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
-        )
+        # Ensure the lambda is created with expected code path in the ApiLambdaStack
+        api_lambda_stack = self.app.sandbox_backend_stage.api_lambda_stack
+        api_lambda_stack_template = Template.from_stack(api_lambda_stack)
 
-        self.assertEqual(
-            'handlers.users.patch_user',
-            patch_handler_properties['Handler'],
+        patch_user_handler = TestApi.get_resource_properties_by_logical_id(
+            api_lambda_stack.get_logical_id(api_lambda_stack.staff_users_lambdas.patch_user_handler.node.default_child),
+            api_lambda_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
         )
+        self.assertEqual(patch_user_handler['Handler'], 'handlers.users.patch_user')
         patch_method_request_model_logical_id_capture = Capture()
         patch_method_response_model_logical_id_capture = Capture()
 
@@ -88,10 +88,10 @@ class TestStaffUsersApi(TestApi):
                     'Ref': api_stack.get_logical_id(api_stack.api.staff_users_authorizer.node.default_child),
                 },
                 # ensure the lambda integration is configured with the expected handler
-                'Integration': TestApi.generate_expected_integration_object(
-                    api_stack.get_logical_id(
-                        api_stack.api.v1_api.staff_users.patch_user_handler.node.default_child,
-                    ),
+                'Integration': TestApi.generate_expected_integration_object_for_imported_lambda(
+                    api_lambda_stack,
+                    api_lambda_stack_template,
+                    api_lambda_stack.staff_users_lambdas.patch_user_handler,
                 ),
                 'RequestModels': {
                     'application/json': {'Ref': patch_method_request_model_logical_id_capture},
@@ -136,15 +136,15 @@ class TestStaffUsersApi(TestApi):
         api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
 
-        post_user_handler_properties = self.get_resource_properties_by_logical_id(
-            logical_id=api_stack.get_logical_id(api_stack.api.v1_api.staff_users.post_user_handler.node.default_child),
-            resources=api_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
-        )
+        # Ensure the lambda is created with expected code path in the ApiLambdaStack
+        api_lambda_stack = self.app.sandbox_backend_stage.api_lambda_stack
+        api_lambda_stack_template = Template.from_stack(api_lambda_stack)
 
-        self.assertEqual(
-            'handlers.users.post_user',
-            post_user_handler_properties['Handler'],
+        post_user_handler = TestApi.get_resource_properties_by_logical_id(
+            api_lambda_stack.get_logical_id(api_lambda_stack.staff_users_lambdas.post_user_handler.node.default_child),
+            api_lambda_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
         )
+        self.assertEqual(post_user_handler['Handler'], 'handlers.users.post_user')
         post_method_request_model_logical_id_capture = Capture()
         post_method_response_model_logical_id_capture = Capture()
 
@@ -158,10 +158,10 @@ class TestStaffUsersApi(TestApi):
                     'Ref': api_stack.get_logical_id(api_stack.api.staff_users_authorizer.node.default_child),
                 },
                 # ensure the lambda integration is configured with the expected handler
-                'Integration': TestApi.generate_expected_integration_object(
-                    api_stack.get_logical_id(
-                        api_stack.api.v1_api.staff_users.post_user_handler.node.default_child,
-                    ),
+                'Integration': TestApi.generate_expected_integration_object_for_imported_lambda(
+                    api_lambda_stack,
+                    api_lambda_stack_template,
+                    api_lambda_stack.staff_users_lambdas.post_user_handler,
                 ),
                 'RequestModels': {
                     'application/json': {'Ref': post_method_request_model_logical_id_capture},
@@ -200,13 +200,13 @@ class TestStaffUsersApi(TestApi):
 
     def test_synth_generates_post_staff_user_alarms(self):
         """Test that the POST staff users endpoint alarms are configured correctly."""
-        api_stack = self.app.sandbox_backend_stage.api_stack
-        api_stack_template = Template.from_stack(api_stack)
+        api_lambda_stack = self.app.sandbox_backend_stage.api_lambda_stack
+        api_lambda_stack_template = Template.from_stack(api_lambda_stack)
 
         # Ensure the anomaly detection alarm is created
-        alarms = api_stack_template.find_resources(CfnAlarm.CFN_RESOURCE_TYPE_NAME)
+        alarms = api_lambda_stack_template.find_resources(CfnAlarm.CFN_RESOURCE_TYPE_NAME)
         anomaly_alarm = TestApi.get_resource_properties_by_logical_id(
-            api_stack.get_logical_id(api_stack.api.v1_api.staff_users.staff_user_creation_anomaly_detection_alarm),
+            api_lambda_stack.get_logical_id(api_lambda_stack.staff_users_lambdas.staff_user_creation_anomaly_detection_alarm),
             alarms,
         )
 
@@ -223,8 +223,8 @@ class TestStaffUsersApi(TestApi):
 
         # Ensure the max hourly alarm is created
         max_staff_user_creation_hourly_alarm = TestApi.get_resource_properties_by_logical_id(
-            api_stack.get_logical_id(
-                api_stack.api.v1_api.staff_users.max_hourly_staff_users_created_alarm.node.default_child
+            api_lambda_stack.get_logical_id(
+                api_lambda_stack.staff_users_lambdas.max_hourly_staff_users_created_alarm.node.default_child
             ),
             alarms,
         )
@@ -240,8 +240,8 @@ class TestStaffUsersApi(TestApi):
 
         # Ensure the max daily alarm is created
         max_staff_user_creation_daily_alarm = TestApi.get_resource_properties_by_logical_id(
-            api_stack.get_logical_id(
-                api_stack.api.v1_api.staff_users.max_daily_staff_users_created_alarm.node.default_child
+            api_lambda_stack.get_logical_id(
+                api_lambda_stack.staff_users_lambdas.max_daily_staff_users_created_alarm.node.default_child
             ),
             alarms,
         )
@@ -274,17 +274,15 @@ class TestStaffUsersApi(TestApi):
             },
         )
 
-        reinvite_handler_properties = self.get_resource_properties_by_logical_id(
-            logical_id=api_stack.get_logical_id(
-                api_stack.api.v1_api.staff_users.reinvite_user_handler.node.default_child
-            ),
-            resources=api_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
-        )
+        # Ensure the lambda is created with expected code path in the ApiLambdaStack
+        api_lambda_stack = self.app.sandbox_backend_stage.api_lambda_stack
+        api_lambda_stack_template = Template.from_stack(api_lambda_stack)
 
-        self.assertEqual(
-            'handlers.users.reinvite_user',
-            reinvite_handler_properties['Handler'],
+        reinvite_user_handler = TestApi.get_resource_properties_by_logical_id(
+            api_lambda_stack.get_logical_id(api_lambda_stack.staff_users_lambdas.reinvite_user_handler.node.default_child),
+            api_lambda_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
         )
+        self.assertEqual(reinvite_user_handler['Handler'], 'handlers.users.reinvite_user')
 
         # ensure the POST method is configured with the lambda integration and authorizer
         api_stack_template.has_resource_properties(
@@ -294,10 +292,10 @@ class TestStaffUsersApi(TestApi):
                 'AuthorizerId': {
                     'Ref': api_stack.get_logical_id(api_stack.api.staff_users_authorizer.node.default_child),
                 },
-                'Integration': TestApi.generate_expected_integration_object(
-                    api_stack.get_logical_id(
-                        api_stack.api.v1_api.staff_users.reinvite_user_handler.node.default_child,
-                    ),
+                'Integration': TestApi.generate_expected_integration_object_for_imported_lambda(
+                    api_lambda_stack,
+                    api_lambda_stack_template,
+                    api_lambda_stack.staff_users_lambdas.reinvite_user_handler,
                 ),
                 'MethodResponses': [
                     {
