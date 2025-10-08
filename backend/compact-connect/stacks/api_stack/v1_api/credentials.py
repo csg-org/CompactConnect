@@ -23,7 +23,6 @@ class Credentials:
         self.resource = resource
         self.api: CCApi = resource.api
         self.api_model = api_model
-        self.log_groups = []
 
         # /v1/compacts/{compact}/credentials/payment-processor
         self._add_post_credentials_payment_processor(
@@ -31,7 +30,6 @@ class Credentials:
             api_lambda_stack=api_lambda_stack,
         )
 
-        self.api.log_groups.extend(self.log_groups)
 
     def _add_post_credentials_payment_processor(
         self,
@@ -41,7 +39,6 @@ class Credentials:
         self.payment_processor_resource = self.resource.add_resource('payment-processor')
 
         handler = api_lambda_stack.credentials_lambdas.credentials_handler
-        self.log_groups.append(handler.log_group)
 
         self.payment_processor_resource.add_method(
             'POST',

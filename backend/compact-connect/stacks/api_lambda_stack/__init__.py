@@ -5,6 +5,7 @@ import os
 
 from aws_cdk.aws_dynamodb import ITable
 from aws_cdk.aws_kms import IKey
+from aws_cdk.aws_logs import QueryDefinition, QueryString
 from aws_cdk.aws_secretsmanager import ISecret, Secret
 from aws_cdk.aws_sns import ITopic
 from cdk_nag import NagSuppressions
@@ -50,28 +51,35 @@ class ApiLambdaStack(AppStack):
         data_event_bus = SSMParameterUtility.load_data_event_bus_from_ssm_parameter(self)
         compact_payment_processor_secrets = self._get_compact_payment_processor_secrets()
 
+        # Initialize log groups list for QueryDefinition
+        self.log_groups = []
+
         self.privilege_history_handler = self._privilege_history_handler(
             data_encryption_key=persistent_stack.shared_encryption_key,
             provider_table=persistent_stack.provider_table,
             alarm_topic=persistent_stack.alarm_topic,
         )
+        self.log_groups.append(self.privilege_history_handler.log_group)
 
         # Attestation lambdas
         self.attestations_lambdas = AttestationsLambdas(
             scope=self,
             persistent_stack=persistent_stack,
+            api_lambda_stack=self,
         )
 
         # Bulk upload url lambdas
         self.bulk_upload_url_lambdas = BulkUploadUrlLambdas(
             scope=self,
             persistent_stack=persistent_stack,
+            api_lambda_stack=self,
         )
 
         # Compact configuration lambdas
         self.compact_configuration_lambdas = CompactConfigurationApiLambdas(
             scope=self,
             persistent_stack=persistent_stack,
+            api_lambda_stack=self,
         )
 
         # Credentials lambdas
@@ -79,12 +87,14 @@ class ApiLambdaStack(AppStack):
             scope=self,
             persistent_stack=persistent_stack,
             compact_payment_processor_secrets=compact_payment_processor_secrets,
+            api_lambda_stack=self,
         )
 
         # Post licenses lambdas
         self.post_licenses_lambdas = PostLicensesLambdas(
             scope=self,
             persistent_stack=persistent_stack,
+            api_lambda_stack=self,
         )
 
         # Provider Users lambdas
@@ -92,6 +102,7 @@ class ApiLambdaStack(AppStack):
             scope=self,
             persistent_stack=persistent_stack,
             provider_users_stack=provider_users_stack,
+            api_lambda_stack=self,
         )
 
         # Provider Management lambdas
@@ -100,6 +111,7 @@ class ApiLambdaStack(AppStack):
         self.public_lookup_lambdas = PublicLookupApiLambdas(
             scope=self,
             persistent_stack=persistent_stack,
+            api_lambda_stack=self,
         )
 
         # Purchases lambdas
@@ -108,13 +120,18 @@ class ApiLambdaStack(AppStack):
             persistent_stack=persistent_stack,
             data_event_bus=data_event_bus,
             compact_payment_processor_secrets=compact_payment_processor_secrets,
+            api_lambda_stack=self,
         )
 
         # Staff user lambdas
         self.staff_users_lambdas = StaffUsersLambdas(
             scope=self,
             persistent_stack=persistent_stack,
+            api_lambda_stack=self,
         )
+
+        # Create the QueryDefinition after all lambda modules have been initialized and added their log groups
+        self._create_runtime_query_definition()
 
     def _get_compact_payment_processor_secrets(self) -> list[ISecret]:
         """
@@ -170,3 +187,17 @@ class ApiLambdaStack(AppStack):
             ],
         )
         return handler
+
+    def _create_runtime_query_definition(self):
+        """Create the QueryDefinition for runtime logs after all lambda modules have been initialized."""
+        QueryDefinition(
+            self,
+            'RuntimeQuery',
+            query_definition_name=f'{self.node.id}/Lambdas',
+            query_string=QueryString(
+                fields=['@timestamp', '@log', 'level', 'status', 'message', 'method', 'path', '@message'],
+                filter_statements=['level in ["INFO", "WARNING", "ERROR"]'],
+                sort='@timestamp desc',
+            ),
+            log_groups=self.log_groups,
+        )

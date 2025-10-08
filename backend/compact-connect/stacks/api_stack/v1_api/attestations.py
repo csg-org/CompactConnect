@@ -21,7 +21,6 @@ class Attestations:
         self.resource = resource
         self.api: CCApi = resource.api
         self.api_model = api_model
-        self.log_groups = []
 
         # GET /v1/compacts/{compact}/attestations/{attestationId}
         self.attestation_id_resource = self.resource.add_resource('{attestationId}')
@@ -29,14 +28,12 @@ class Attestations:
             api_lambda_stack=api_lambda_stack,
         )
 
-        self.api.log_groups.extend(self.log_groups)
 
     def _add_get_attestation(
         self,
         api_lambda_stack: ApiLambdaStack,
     ):
         handler = api_lambda_stack.attestations_lambdas.attestations_handler
-        self.log_groups.append(handler.log_group)
 
         self.attestation_id_resource.add_method(
             'GET',

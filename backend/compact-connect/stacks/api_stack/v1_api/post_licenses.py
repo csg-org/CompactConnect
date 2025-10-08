@@ -23,13 +23,11 @@ class PostLicenses:
         self.resource = resource
         self.api: CCApi = resource.api
         self.api_model = api_model
-        self.log_groups = []
 
         self._add_post_license(
             method_options=method_options,
             api_lambda_stack=api_lambda_stack,
         )
-        self.api.log_groups.extend(self.log_groups)
 
     def _add_post_license(
         self,
@@ -37,7 +35,6 @@ class PostLicenses:
         api_lambda_stack: ApiLambdaStack,
     ):
         handler = api_lambda_stack.post_licenses_lambdas.post_licenses_handler
-        self.log_groups.append(handler.log_group)
 
         # Normally, we have two layers of request body schema validation: one at the API gateway level,
         # and one in the lambda handler logic.

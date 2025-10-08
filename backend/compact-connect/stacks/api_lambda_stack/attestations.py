@@ -9,6 +9,7 @@ from cdk_nag import NagSuppressions
 from constructs import Construct
 
 from common_constructs.python_function import PythonFunction
+from stacks import api_lambda_stack as als
 from stacks import persistent_stack as ps
 
 
@@ -18,6 +19,7 @@ class AttestationsLambdas:
         *,
         scope: Construct,
         persistent_stack: ps.PersistentStack,
+        api_lambda_stack: als.ApiLambdaStack,
     ):
         super().__init__()
         stack = Stack.of(scope)
@@ -33,6 +35,7 @@ class AttestationsLambdas:
             data_encryption_key=persistent_stack.shared_encryption_key,
             compact_configuration_table=persistent_stack.compact_configuration_table,
         )
+        api_lambda_stack.log_groups.append(self.attestations_handler.log_group)
 
     def _attestations_handler(
         self, scope: Construct, env_vars: dict, data_encryption_key: IKey, compact_configuration_table: ITable

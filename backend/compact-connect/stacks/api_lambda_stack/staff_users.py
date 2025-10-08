@@ -20,6 +20,7 @@ from constructs import Construct
 
 from common_constructs.python_function import PythonFunction
 from common_constructs.user_pool import UserPool
+from stacks import api_lambda_stack as als
 from stacks import persistent_stack as ps
 
 
@@ -29,6 +30,7 @@ class StaffUsersLambdas:
         *,
         scope: Construct,
         persistent_stack: ps.PersistentStack,
+        api_lambda_stack: als.ApiLambdaStack,
     ):
         super().__init__()
         stack = Stack.of(scope)
@@ -47,6 +49,7 @@ class StaffUsersLambdas:
             data_encryption_key=persistent_stack.shared_encryption_key,
             user_table=persistent_stack.staff_users.user_table,
         )
+        api_lambda_stack.log_groups.append(self.get_me_handler.log_group)
 
         self.patch_me_handler = self._patch_me_handler(
             scope=scope,
@@ -55,6 +58,7 @@ class StaffUsersLambdas:
             user_table=persistent_stack.staff_users.user_table,
             user_pool=persistent_stack.staff_users,
         )
+        api_lambda_stack.log_groups.append(self.patch_me_handler.log_group)
 
         self.get_users_handler = self._get_users_handler(
             scope=scope,
@@ -62,6 +66,7 @@ class StaffUsersLambdas:
             data_encryption_key=persistent_stack.shared_encryption_key,
             user_table=persistent_stack.staff_users.user_table,
         )
+        api_lambda_stack.log_groups.append(self.get_users_handler.log_group)
 
         self.get_user_handler = self._get_user_handler(
             scope=scope,
@@ -69,6 +74,7 @@ class StaffUsersLambdas:
             data_encryption_key=persistent_stack.shared_encryption_key,
             user_table=persistent_stack.staff_users.user_table,
         )
+        api_lambda_stack.log_groups.append(self.get_user_handler.log_group)
 
         self.patch_user_handler = self._patch_user_handler(
             scope=scope,
@@ -77,6 +83,7 @@ class StaffUsersLambdas:
             user_table=persistent_stack.staff_users.user_table,
             compact_configuration_table=persistent_stack.compact_configuration_table,
         )
+        api_lambda_stack.log_groups.append(self.patch_user_handler.log_group)
 
         self.delete_user_handler = self._delete_user_handler(
             scope=scope,
@@ -85,6 +92,7 @@ class StaffUsersLambdas:
             user_table=persistent_stack.staff_users.user_table,
             staff_user_pool=persistent_stack.staff_users,
         )
+        api_lambda_stack.log_groups.append(self.delete_user_handler.log_group)
 
         self.post_user_handler = self._post_user_handler(
             scope=scope,
@@ -95,6 +103,7 @@ class StaffUsersLambdas:
             compact_configuration_table=persistent_stack.compact_configuration_table,
             alarm_topic=persistent_stack.alarm_topic,
         )
+        api_lambda_stack.log_groups.append(self.post_user_handler.log_group)
 
         self.reinvite_user_handler = self._reinvite_user_handler(
             scope=scope,
@@ -103,6 +112,7 @@ class StaffUsersLambdas:
             user_table=persistent_stack.staff_users.user_table,
             user_pool=persistent_stack.staff_users,
         )
+        api_lambda_stack.log_groups.append(self.reinvite_user_handler.log_group)
 
     def _get_me_handler(self, scope: Construct, env_vars: dict, data_encryption_key: IKey, user_table: ITable):
         stack = Stack.of(scope)

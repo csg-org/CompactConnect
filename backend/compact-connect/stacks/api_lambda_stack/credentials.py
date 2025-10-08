@@ -10,6 +10,7 @@ from cdk_nag import NagSuppressions
 from constructs import Construct
 
 from common_constructs.python_function import PythonFunction
+from stacks import api_lambda_stack as als
 from stacks import persistent_stack as ps
 
 
@@ -20,6 +21,7 @@ class CredentialsLambdas:
         scope: Construct,
         compact_payment_processor_secrets: list[ISecret],
         persistent_stack: ps.PersistentStack,
+        api_lambda_stack: als.ApiLambdaStack,
     ):
         super().__init__()
         stack = Stack.of(scope)
@@ -35,6 +37,7 @@ class CredentialsLambdas:
             compact_payment_processor_secrets=compact_payment_processor_secrets,
             alarm_topic=persistent_stack.alarm_topic,
         )
+        api_lambda_stack.log_groups.append(self.credentials_handler.log_group)
 
     def _credentials_handler(
         self, scope: Construct, env_vars: dict, compact_payment_processor_secrets: list[ISecret], alarm_topic: ITopic

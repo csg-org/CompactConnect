@@ -9,6 +9,7 @@ from aws_cdk.aws_sns import ITopic
 from constructs import Construct
 
 from common_constructs.python_function import PythonFunction
+from stacks import api_lambda_stack as als
 from stacks import persistent_stack as ps
 
 
@@ -18,6 +19,7 @@ class BulkUploadUrlLambdas:
         *,
         scope: Construct,
         persistent_stack: ps.PersistentStack,
+        api_lambda_stack: als.ApiLambdaStack,
     ):
         super().__init__()
         stack = Stack.of(scope)
@@ -34,6 +36,7 @@ class BulkUploadUrlLambdas:
             bulk_uploads_bucket=persistent_stack.bulk_uploads_bucket,
             alarm_topic=persistent_stack.alarm_topic,
         )
+        api_lambda_stack.log_groups.append(self.bulk_upload_url_handler.log_group)
 
     def _bulk_upload_url_handler(
         self,

@@ -31,7 +31,6 @@ class StaffUsers:
         self.api: CCApi = admin_resource.api
         self.api_model = api_model
 
-        self.log_groups = []
 
         # <base-url>/
         self._add_get_users(
@@ -57,7 +56,6 @@ class StaffUsers:
         self._add_get_me(self.me_resource, profile_scopes, api_lambda_stack=api_lambda_stack)
         self._add_patch_me(self.me_resource, profile_scopes, api_lambda_stack=api_lambda_stack)
 
-        self.api.log_groups.extend(self.log_groups)
 
     def _add_get_me(
         self,
@@ -66,7 +64,6 @@ class StaffUsers:
         api_lambda_stack: ApiLambdaStack,
     ):
         handler = api_lambda_stack.staff_users_lambdas.get_me_handler
-        self.log_groups.append(handler.log_group)
 
         # Add the GET method to the me_resource
         me_resource.add_method(
@@ -98,7 +95,6 @@ class StaffUsers:
         api_lambda_stack: ApiLambdaStack,
     ):
         handler = api_lambda_stack.staff_users_lambdas.patch_me_handler
-        self.log_groups.append(handler.log_group)
 
         # Add the PATCH method to the me_resource
         me_resource.add_method(
@@ -131,7 +127,6 @@ class StaffUsers:
         api_lambda_stack: ApiLambdaStack,
     ):
         handler = api_lambda_stack.staff_users_lambdas.get_users_handler
-        self.log_groups.append(handler.log_group)
 
         # Add the GET method to the users resource
         users_resource.add_method(
@@ -157,7 +152,6 @@ class StaffUsers:
         api_lambda_stack: ApiLambdaStack,
     ):
         handler = api_lambda_stack.staff_users_lambdas.get_user_handler
-        self.log_groups.append(handler.log_group)
 
         # Add the GET method to the user_id resource
         user_id_resource.add_method(
@@ -189,7 +183,6 @@ class StaffUsers:
         api_lambda_stack: ApiLambdaStack,
     ):
         handler = api_lambda_stack.staff_users_lambdas.patch_user_handler
-        self.log_groups.append(handler.log_group)
 
         # Add the PATCH method to the me_resource
         user_resource.add_method(
@@ -230,7 +223,6 @@ class StaffUsers:
         :param persistent_stack: Stack containing persistent resources
         """
         handler = api_lambda_stack.staff_users_lambdas.delete_user_handler
-        self.log_groups.append(handler.log_group)
 
         # Add the method to the resource
         user_id_resource.add_method(
@@ -262,7 +254,6 @@ class StaffUsers:
         api_lambda_stack: ApiLambdaStack,
     ):
         handler = api_lambda_stack.staff_users_lambdas.post_user_handler
-        self.log_groups.append(handler.log_group)
 
         # Add the POST method to the me_resource
         users_resource.add_method(
@@ -289,7 +280,6 @@ class StaffUsers:
         api_lambda_stack: ApiLambdaStack,
     ) -> None:
         handler = api_lambda_stack.staff_users_lambdas.reinvite_user_handler
-        self.log_groups.append(handler.log_group)
 
         # Add the method to the resource
         reinvite_resource.add_method(

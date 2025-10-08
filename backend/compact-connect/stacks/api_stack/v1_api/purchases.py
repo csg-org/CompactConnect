@@ -21,7 +21,6 @@ class Purchases:
         self.purchases_resource = resource
         self.api_model = api_model
         self.api: CCApi = resource.api
-        self.log_groups = []
 
         # /v1/purchases/privileges
         self.purchases_privileges_resource = self.purchases_resource.add_resource('privileges')
@@ -33,14 +32,12 @@ class Purchases:
             api_lambda_stack=api_lambda_stack,
         )
 
-        self.api.log_groups.extend(self.log_groups)
 
     def _add_post_purchase_privileges(
         self,
         api_lambda_stack: ApiLambdaStack,
     ):
         handler = api_lambda_stack.purchases_lambdas.post_purchase_privileges_handler
-        self.log_groups.append(handler.log_group)
 
         self.purchases_privileges_resource.add_method(
             'POST',
@@ -62,7 +59,6 @@ class Purchases:
         api_lambda_stack: ApiLambdaStack,
     ):
         handler = api_lambda_stack.purchases_lambdas.get_purchase_privilege_options_handler
-        self.log_groups.append(handler.log_group)
 
         self.purchases_privileges_options_resource.add_method(
             'GET',

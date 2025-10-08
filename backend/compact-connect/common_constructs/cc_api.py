@@ -22,7 +22,7 @@ from aws_cdk.aws_apigateway import (
 from aws_cdk.aws_certificatemanager import Certificate, CertificateValidation
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Stats, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
-from aws_cdk.aws_logs import LogGroup, QueryDefinition, QueryString, RetentionDays
+from aws_cdk.aws_logs import LogGroup, RetentionDays
 from aws_cdk.aws_route53 import ARecord, IHostedZone, RecordTarget
 from aws_cdk.aws_route53_targets import ApiGateway
 from cdk_nag import NagSuppressions
@@ -162,15 +162,12 @@ class CCApi(RestApi):
                 api_domain_name=domain_name,
             )
 
-        self.log_groups = [access_log_group]
-
         self.alarm_topic = persistent_stack.alarm_topic
 
         self._persistent_stack = persistent_stack
 
         self.web_acl = WebACL(self, 'WebACL', acl_scope=WebACLScope.REGIONAL, security_profile=security_profile)
         self.web_acl.associate_stage(self.deployment_stage)
-        self.log_groups.append(self.web_acl.log_group)
         self._configure_alarms()
 
         # These canned Gateway Response headers do not support dynamic values, so we have to set a static value for the
@@ -310,17 +307,3 @@ class CCApi(RestApi):
             evaluate_low_sample_count_percentile='evaluate',
         )
         latency_alarm.add_alarm_action(SnsAction(self.alarm_topic))
-
-    def create_runtime_query_definition(self):
-        """Create the QueryDefinition for runtime logs after all API modules have been initialized."""
-        QueryDefinition(
-            self,
-            'RuntimeQuery',
-            query_definition_name=f'{self.node.id}/Lambdas',
-            query_string=QueryString(
-                fields=['@timestamp', '@log', 'level', 'status', 'message', 'method', 'path', '@message'],
-                filter_statements=['level in ["INFO", "WARNING", "ERROR"]'],
-                sort='@timestamp desc',
-            ),
-            log_groups=self.log_groups,
-        )

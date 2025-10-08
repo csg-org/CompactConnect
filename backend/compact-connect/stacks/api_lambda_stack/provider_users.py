@@ -5,11 +5,15 @@ import os
 from aws_cdk import Duration
 from aws_cdk.aws_cloudwatch import Alarm, CfnAlarm, ComparisonOperator, MathExpression, Metric, Stats, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
+from aws_cdk.aws_lambda import Code, Function, Runtime
+from aws_cdk.aws_logs import RetentionDays
 from aws_cdk.aws_secretsmanager import Secret
 from cdk_nag import NagSuppressions
 from common_constructs.stack import Stack
+from constructs import Construct
 
 from common_constructs.python_function import PythonFunction
+from stacks import api_lambda_stack as als
 from stacks import persistent_stack as ps
 from stacks.provider_users import ProviderUsersStack
 
@@ -18,15 +22,15 @@ class ProviderUsersLambdas:
     def __init__(
         self,
         *,
-        scope: Stack,
+        scope: Construct,
         persistent_stack: ps.PersistentStack,
         provider_users_stack: ProviderUsersStack,
+        api_lambda_stack: als.ApiLambdaStack,
     ) -> None:
-        self.scope = scope
         self.persistent_stack = persistent_stack
         self.provider_users_stack = provider_users_stack
+        stack = Stack.of(scope)
 
-        self.stack: Stack = Stack.of(scope)
         lambda_environment = {
             'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
             'PROV_FAM_GIV_MID_INDEX_NAME': 'providerFamGivMid',
@@ -37,31 +41,34 @@ class ProviderUsersLambdas:
             'RATE_LIMITING_TABLE_NAME': persistent_stack.rate_limiting_table.table_name,
             'COMPACT_CONFIGURATION_TABLE_NAME': persistent_stack.compact_configuration_table.table_name,
             'EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME': persistent_stack.email_notification_service_lambda.function_name,
-            **self.stack.common_env_vars,
+            **stack.common_env_vars,
         }
 
         # Get the recaptcha secret
-        environment_name = self.stack.common_env_vars['ENVIRONMENT_NAME']
+        environment_name = stack.common_env_vars['ENVIRONMENT_NAME']
         self.recaptcha_secret = Secret.from_secret_name_v2(
-            self.scope,
+            scope,
             'RecaptchaSecret',
             f'compact-connect/env/{environment_name}/recaptcha/token',
         )
 
-        self.account_recovery_initiate_function = self._create_account_recovery_initiate_function(lambda_environment)
-        self.account_recovery_verify_function = self._create_account_recovery_verify_function(lambda_environment)
-        self.provider_users_me_handler = self._create_provider_users_me_handler(lambda_environment)
-        self.provider_registration_handler = self._create_provider_registration_handler(lambda_environment)
+        self.account_recovery_initiate_function = self._account_recovery_initiate_function(scope, lambda_environment)
+        self.account_recovery_verify_function = self._account_recovery_verify_function(scope, lambda_environment)
+        self.provider_users_me_handler = self._create_provider_users_me_handler(scope, lambda_environment)
+        self.provider_registration_handler = self._create_provider_registration_handler(scope, lambda_environment)
 
-    def _create_account_recovery_initiate_function(self, lambda_environment: dict) -> PythonFunction:
+        api_lambda_stack.log_groups.append(self.provider_registration_handler.log_group)
+
+    def _account_recovery_initiate_function(self, scope: Construct, lambda_environment: dict) -> PythonFunction:
+        stack = Stack.of(scope)
         # Add client id only for initiate function
         env = {
             **lambda_environment,
             'PROVIDER_USER_POOL_CLIENT_ID': self.provider_users_stack.provider_users.ui_client.user_pool_client_id,
         }
 
-        initiate_account_recovery_function = PythonFunction(
-            self.scope,
+        handler = PythonFunction(
+            scope,
             'ProviderUsersAccountRecoveryInitiate',
             description='Provider users account recovery initiate handler',
             lambda_dir='provider-data-v1',
@@ -72,18 +79,16 @@ class ProviderUsersLambdas:
         )
 
         # Grant necessary permissions
-        self.persistent_stack.provider_table.grant_read_write_data(initiate_account_recovery_function)
-        self.persistent_stack.rate_limiting_table.grant_read_write_data(initiate_account_recovery_function)
-        self.persistent_stack.compact_configuration_table.grant_read_data(initiate_account_recovery_function)
-        self.persistent_stack.email_notification_service_lambda.grant_invoke(initiate_account_recovery_function)
-        self.provider_users_stack.provider_users.grant(
-            initiate_account_recovery_function, 'cognito-idp:AdminInitiateAuth'
-        )
-        self.recaptcha_secret.grant_read(initiate_account_recovery_function)
+        self.persistent_stack.provider_table.grant_read_write_data(handler)
+        self.persistent_stack.rate_limiting_table.grant_read_write_data(handler)
+        self.persistent_stack.compact_configuration_table.grant_read_data(handler)
+        self.persistent_stack.email_notification_service_lambda.grant_invoke(handler)
+        self.provider_users_stack.provider_users.grant(handler, 'cognito-idp:AdminInitiateAuth')
+        self.recaptcha_secret.grant_read(handler)
 
         NagSuppressions.add_resource_suppressions_by_path(
-            self.stack,
-            path=f'{initiate_account_recovery_function.role.node.path}/DefaultPolicy/Resource',
+            stack,
+            path=f'{handler.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
@@ -127,7 +132,7 @@ class ProviderUsersLambdas:
 
         # Create an alarm for high registration failure rate
         account_recovery_failures_alarm = Alarm(
-            initiate_account_recovery_function,
+            handler,
             'AccountRecoveryFailuresAlarm',
             metric=account_recovery_failures,
             threshold=15,  # Alert if we have more than 15 failures in 5 minutes
@@ -178,7 +183,7 @@ class ProviderUsersLambdas:
         )
 
         sustained_account_recovery_alarm = Alarm(
-            initiate_account_recovery_function,
+            handler,
             'SustainedAccountRecoveryFailuresAlarm',
             metric=account_recovery_failures_one_day,
             threshold=24,  # More than 1 failure per hour over 24 hours
@@ -203,9 +208,9 @@ class ProviderUsersLambdas:
         # establish baselines of typical usage.
         # See https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/LogsAnomalyDetection.html
         self.ssn_anomaly_detection_alarm = CfnAlarm(
-            initiate_account_recovery_function,
+            handler,
             'InitiateAccountRecoveryAnomalyAlarm',
-            alarm_description=f'{initiate_account_recovery_function.node.path} initiate account recovery anomaly '
+            alarm_description=f'{handler.node.path} initiate account recovery anomaly '
             'detection. The initiate account recovery endpoint has been'
             'called an irregular number of times. Investigation required to ensure the endpoint is '
             'not being abused.',
@@ -232,11 +237,13 @@ class ProviderUsersLambdas:
             threshold_metric_id='ad1',
         )
 
-        return initiate_account_recovery_function
+        return handler
 
-    def _create_account_recovery_verify_function(self, lambda_environment: dict) -> PythonFunction:
-        verify_account_recovery_function = PythonFunction(
-            self.scope,
+    def _account_recovery_verify_function(self, scope: Construct, lambda_environment: dict) -> PythonFunction:
+        stack = Stack.of(scope)
+
+        handler = PythonFunction(
+            scope,
             'ProviderUsersAccountRecoveryVerify',
             description='Provider users account recovery verify handler',
             lambda_dir='provider-data-v1',
@@ -247,15 +254,15 @@ class ProviderUsersLambdas:
         )
 
         # Grant necessary permissions
-        self.persistent_stack.provider_table.grant_read_write_data(verify_account_recovery_function)
-        self.persistent_stack.rate_limiting_table.grant_read_write_data(verify_account_recovery_function)
-        self.provider_users_stack.provider_users.grant(verify_account_recovery_function, 'cognito-idp:AdminDeleteUser')
-        self.provider_users_stack.provider_users.grant(verify_account_recovery_function, 'cognito-idp:AdminCreateUser')
-        self.recaptcha_secret.grant_read(verify_account_recovery_function)
+        self.persistent_stack.provider_table.grant_read_write_data(handler)
+        self.persistent_stack.rate_limiting_table.grant_read_write_data(handler)
+        self.provider_users_stack.provider_users.grant(handler, 'cognito-idp:AdminDeleteUser')
+        self.provider_users_stack.provider_users.grant(handler, 'cognito-idp:AdminCreateUser')
+        self.recaptcha_secret.grant_read(handler)
 
         NagSuppressions.add_resource_suppressions_by_path(
-            self.stack,
-            path=f'{verify_account_recovery_function.role.node.path}/DefaultPolicy/Resource',
+            stack,
+            path=f'{handler.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
@@ -300,7 +307,7 @@ class ProviderUsersLambdas:
 
         # Create an alarm for high registration failure rate
         account_recovery_verification_failures_alarm = Alarm(
-            verify_account_recovery_function,
+            handler,
             'AccountRecoveryFailuresAlarm',
             metric=account_recovery_verification_failures,
             # Alert if we have more than 3 failures in 5 minutes (failures are not expected at this step, but may
@@ -332,7 +339,7 @@ class ProviderUsersLambdas:
 
         # Create an alarm for account recovery rate limiting
         account_recovery_rate_limited_alarm = Alarm(
-            verify_account_recovery_function,
+            handler,
             'AccountRecoveryRateLimitedAlarm',
             metric=account_recovery_rate_limited,
             # Alert if we have more than 1 failure in 5 minutes
@@ -350,11 +357,13 @@ class ProviderUsersLambdas:
         # Add the alarm to the SNS topic
         account_recovery_rate_limited_alarm.add_alarm_action(SnsAction(self.persistent_stack.alarm_topic))
 
-        return verify_account_recovery_function
+        return handler
 
-    def _create_provider_users_me_handler(self, lambda_environment: dict) -> PythonFunction:
+    def _create_provider_users_me_handler(self, scope: Construct, lambda_environment: dict) -> PythonFunction:
+        stack = Stack.of(scope)
+
         provider_users_me_handler = PythonFunction(
-            self.scope,
+            scope,
             'ProviderUsersHandler',
             description='Provider users API handler',
             lambda_dir='provider-data-v1',
@@ -377,7 +386,7 @@ class ProviderUsersLambdas:
         )
 
         NagSuppressions.add_resource_suppressions_by_path(
-            self.stack,
+            stack,
             path=f'{provider_users_me_handler.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
@@ -390,10 +399,15 @@ class ProviderUsersLambdas:
 
         return provider_users_me_handler
 
-    def _create_provider_registration_handler(self, lambda_environment: dict) -> PythonFunction:
-        provider_registration_handler = PythonFunction(
-            self.scope,
-            'ProviderRegistrationHandler',
+    def _create_provider_registration_handler(self, scope: Construct, lambda_environment: dict) -> PythonFunction:
+        # TODO: Remove this dummy function once this has been deployed through production  # noqa: FIX002
+        self._create_dummy_provider_registration_handler(scope)
+
+        stack = Stack.of(scope)
+
+        handler = PythonFunction(
+            scope,
+            'ProviderRegistrationHandler2',
             description='Provider registration handler',
             lambda_dir='provider-data-v1',
             index=os.path.join('handlers', 'registration.py'),
@@ -403,21 +417,21 @@ class ProviderUsersLambdas:
         )
 
         # Grant necessary permissions
-        self.persistent_stack.provider_table.grant_read_write_data(provider_registration_handler)
-        self.persistent_stack.compact_configuration_table.grant_read_data(provider_registration_handler)
-        self.recaptcha_secret.grant_read(provider_registration_handler)
-        self.provider_users_stack.provider_users.grant(provider_registration_handler, 'cognito-idp:AdminCreateUser')
-        self.provider_users_stack.provider_users.grant(provider_registration_handler, 'cognito-idp:AdminGetUser')
+        self.persistent_stack.provider_table.grant_read_write_data(handler)
+        self.persistent_stack.compact_configuration_table.grant_read_data(handler)
+        self.recaptcha_secret.grant_read(handler)
+        self.provider_users_stack.provider_users.grant(handler, 'cognito-idp:AdminCreateUser')
+        self.provider_users_stack.provider_users.grant(handler, 'cognito-idp:AdminGetUser')
         # This is granted to allow the registration handler to clean up user accounts that were never logged into and
         # need to be re-registered under a different email (ie mistyped their email address during the first
         # registration)
-        self.provider_users_stack.provider_users.grant(provider_registration_handler, 'cognito-idp:AdminDeleteUser')
-        self.persistent_stack.rate_limiting_table.grant_read_write_data(provider_registration_handler)
-        self.persistent_stack.email_notification_service_lambda.grant_invoke(provider_registration_handler)
+        self.provider_users_stack.provider_users.grant(handler, 'cognito-idp:AdminDeleteUser')
+        self.persistent_stack.rate_limiting_table.grant_read_write_data(handler)
+        self.persistent_stack.email_notification_service_lambda.grant_invoke(handler)
 
         NagSuppressions.add_resource_suppressions_by_path(
-            self.stack,
-            path=f'{provider_registration_handler.role.node.path}/DefaultPolicy/Resource',
+            stack,
+            path=f'{handler.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
@@ -461,7 +475,7 @@ class ProviderUsersLambdas:
 
         # Create an alarm for high registration failure rate
         registration_failures_alarm = Alarm(
-            provider_registration_handler,
+            handler,
             'RegistrationFailuresAlarm',
             metric=registration_failures,
             threshold=30,  # Alert if we have more than 30 failures in 5 minutes
@@ -510,7 +524,7 @@ class ProviderUsersLambdas:
         )
 
         sustained_registration_failures_alarm = Alarm(
-            provider_registration_handler,
+            handler,
             'SustainedRegistrationFailuresAlarm',
             metric=registration_failures_one_day,
             threshold=288,  # More than 1 failure per 5 minutes over 24 hours (288 = 24 hours * 12 periods per hour)
@@ -527,4 +541,75 @@ class ProviderUsersLambdas:
         # Add the alarm to the SNS topic
         sustained_registration_failures_alarm.add_alarm_action(SnsAction(self.persistent_stack.alarm_topic))
 
-        return provider_registration_handler
+        return handler
+
+    def _create_dummy_provider_registration_handler(self, scope: Construct):
+        """
+        We need to keep a 'dummy' function here to get past a deadly-embrace with cross-stack dependencies
+        We'll create this dummy function, using the old, deprecated LogRetention lambda style log groups
+        just long enough to deploy updates to the ApiStack that remove this dependency.
+        """
+        stack = Stack.of(scope)
+        dummy_function = Function(
+            scope,
+            'ProviderRegistrationHandler',  # Must match original
+            description='Provider registration handler dummy function',
+            handler='handler',
+            code=Code.from_inline('def handler(*args, **kwargs):\n    return'),
+            runtime=Runtime.PYTHON_3_13,
+            log_retention=RetentionDays.ONE_DAY,  # Triggers creation of the LogRetention custom resource
+        )
+        # Pin the exports here until the ApiStack clears it from its template
+        stack.export_value(dummy_function.log_group.log_group_name)
+        stack.export_value(dummy_function.function_arn)
+
+        NagSuppressions.add_resource_suppressions(
+            dummy_function,
+            suppressions=[
+                {
+                    'id': 'HIPAA.Security-LambdaDLQ',
+                    'reason': 'This function is a dummy function to get past a deadly embrace with cross-stack '
+                    'dependencies. It will be removed in a future update. It does not need a DLQ.',
+                },
+                {
+                    'id': 'HIPAA.Security-LambdaInsideVPC',
+                    'reason': 'This function is a dummy function to get past a deadly embrace with cross-stack '
+                    'dependencies. It will be removed in a future update. It does not need to be in a VPC.',
+                },
+            ],
+        )
+        NagSuppressions.add_resource_suppressions_by_path(
+            stack,
+            path=f'{dummy_function.node.path}/ServiceRole/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM4',
+                    'reason': 'The AWSBasicExecutionPolicy is suitable for this lambda',
+                },
+            ],
+        )
+
+        # We'll suppress the LogRetention findings here as well, since those resources should be torn down with this
+        # dummy lambda
+        NagSuppressions.add_resource_suppressions_by_path(
+            stack,
+            f'{stack.node.path}/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM4',
+                    'reason': 'The actions in this policy are specifically what this lambda needs '
+                    'and is scoped to one table, user pool, and one secret.',
+                },
+            ],
+        )
+        NagSuppressions.add_resource_suppressions_by_path(
+            stack,
+            f'{stack.node.path}/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'The actions in this policy are scoped specifically to what this lambda needs to manage'
+                    ' log groups.',
+                },
+            ],
+        )

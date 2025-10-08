@@ -23,12 +23,10 @@ class BulkUploadUrl:
         self.resource = resource.add_resource('bulk-upload')
         self.api: CCApi = resource.api
         self.api_model = api_model
-        self.log_groups = []
         self._add_bulk_upload_url(
             method_options=method_options,
             api_lambda_stack=api_lambda_stack,
         )
-        self.api.log_groups.extend(self.log_groups)
 
     def _add_bulk_upload_url(
         self,
@@ -37,7 +35,6 @@ class BulkUploadUrl:
         api_lambda_stack: ApiLambdaStack,
     ):
         handler = api_lambda_stack.bulk_upload_url_lambdas.bulk_upload_url_handler
-        self.log_groups.append(handler.log_group)
 
         self.resource.add_method(
             'GET',

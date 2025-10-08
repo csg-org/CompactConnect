@@ -12,6 +12,7 @@ from common_constructs.stack import Stack
 from constructs import Construct
 
 from common_constructs.python_function import PythonFunction
+from stacks import api_lambda_stack as als
 from stacks.persistent_stack import CompactConfigurationTable, PersistentStack, ProviderTable
 
 
@@ -22,6 +23,7 @@ class PurchasesLambdas:
         data_event_bus: EventBus,
         compact_payment_processor_secrets: list[ISecret],
         persistent_stack: PersistentStack,
+        api_lambda_stack: als.ApiLambdaStack,
     ):
         super().__init__()
         stack: Stack = Stack.of(scope)
@@ -48,6 +50,7 @@ class PurchasesLambdas:
             alarm_topic=alarm_topic,
             lambda_environment=lambda_environment,
         )
+        api_lambda_stack.log_groups.append(self.post_purchase_privileges_handler.log_group)
 
         self.get_purchase_privilege_options_handler = self._get_purchase_privilege_options_handler(
             scope=scope,
@@ -56,6 +59,7 @@ class PurchasesLambdas:
             lambda_environment=lambda_environment,
             alarm_topic=alarm_topic,
         )
+        api_lambda_stack.log_groups.append(self.get_purchase_privilege_options_handler.log_group)
 
     def _post_purchase_privileges_handler(
         self,

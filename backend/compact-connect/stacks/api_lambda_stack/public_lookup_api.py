@@ -10,6 +10,7 @@ from cdk_nag import NagSuppressions
 from constructs import Construct
 
 from common_constructs.python_function import PythonFunction
+from stacks import api_lambda_stack as als
 from stacks import persistent_stack as ps
 
 
@@ -19,6 +20,7 @@ class PublicLookupApiLambdas:
         *,
         scope: Construct,
         persistent_stack: ps.PersistentStack,
+        api_lambda_stack: als.ApiLambdaStack,
     ):
         super().__init__()
 
@@ -38,6 +40,7 @@ class PublicLookupApiLambdas:
             provider_table=persistent_stack.provider_table,
             alarm_topic=persistent_stack.alarm_topic,
         )
+        api_lambda_stack.log_groups.append(self.get_provider_handler.log_group)
 
         self.query_providers_handler = self._query_providers_handler(
             scope=scope,
@@ -47,6 +50,7 @@ class PublicLookupApiLambdas:
             compact_configuration_table=persistent_stack.compact_configuration_table,
             alarm_topic=persistent_stack.alarm_topic,
         )
+        api_lambda_stack.log_groups.append(self.query_providers_handler.log_group)
 
     def _get_provider_handler(
         self,

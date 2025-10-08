@@ -25,7 +25,6 @@ class PublicLookupApi:
         self.resource = resource
         self.api: CCApi = resource.api
         self.api_model = api_model
-        self.log_groups = []
 
         self.provider_resource = self.resource.add_resource('{providerId}')
         self.provider_jurisdiction_resource = self.provider_resource.add_resource('jurisdiction').add_resource(
@@ -45,14 +44,12 @@ class PublicLookupApi:
             privilege_history_function=privilege_history_function,
         )
 
-        self.api.log_groups.extend(self.log_groups)
 
     def _add_public_get_provider(
         self,
         api_lambda_stack: ApiLambdaStack,
     ):
         handler = api_lambda_stack.public_lookup_lambdas.get_provider_handler
-        self.log_groups.append(handler.log_group)
 
         public_get_provider_method = self.provider_resource.add_method(
             'GET',
@@ -89,7 +86,6 @@ class PublicLookupApi:
         query_resource = self.resource.add_resource('query')
 
         handler = api_lambda_stack.public_lookup_lambdas.query_providers_handler
-        self.log_groups.append(handler.log_group)
 
         public_query_provider_method = query_resource.add_method(
             'POST',

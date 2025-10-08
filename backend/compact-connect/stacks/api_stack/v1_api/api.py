@@ -90,7 +90,6 @@ class V1Api:
 
         # Store the privilege history handler for use by multiple modules
         privilege_history_handler = api_lambda_stack.privilege_history_handler
-        self.api.log_groups.append(privilege_history_handler.log_group)
 
         # /v1/public
         self.public_resource = self.resource.add_resource('public')

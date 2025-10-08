@@ -38,8 +38,6 @@ class LicenseApi(CCApi):
             api_lambda_stack=api_lambda_stack,
         )
 
-        # Create the QueryDefinition after all API modules have been initialized and added their log groups
-        self.create_runtime_query_definition()
 
     @cached_property
     def provider_users_authorizer(self):
