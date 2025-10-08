@@ -18,7 +18,7 @@ class CustomResourceResponse(TypedDict, total=False):
 class CustomResourceHandler(ABC):
     """Base class for custom resource migrations.
 
-    This class provides a framework for implementing temporary data migrations as custom resources.
+    This class provides a framework for implementing CloudFormation custom resources.
     It handles the routing of CloudFormation events to appropriate methods and provides a consistent
     logging pattern.
 

@@ -36,7 +36,8 @@ class TestManageFeatureFlagHandler(TstFunction):
 
         # Set up mock client instance
         mock_client = MagicMock()
-        mock_client.upsert_flag.return_value = {'id': 'test-flag', 'name': 'test-flag'}
+        # API spec https://docs.statsig.com/console-api/all-endpoints-generated#post-/console/v1/gates
+        mock_client.upsert_flag.return_value = {'data':{'id': 'test-flag', 'name': 'test-flag'}}
         mock_client_class.return_value = mock_client
 
         handler = ManageFeatureFlagHandler()
@@ -62,7 +63,8 @@ class TestManageFeatureFlagHandler(TstFunction):
 
         # Set up mock client instance
         mock_client = MagicMock()
-        mock_client.upsert_flag.return_value = {'id': 'minimal-flag', 'name': 'minimal-flag'}
+        # API spec https://docs.statsig.com/console-api/all-endpoints-generated#post-/console/v1/gates
+        mock_client.upsert_flag.return_value = {'data': {'id': 'minimal-flag', 'name': 'minimal-flag'}}
         mock_client_class.return_value = mock_client
 
         handler = ManageFeatureFlagHandler()

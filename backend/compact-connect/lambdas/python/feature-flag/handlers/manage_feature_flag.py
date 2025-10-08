@@ -53,7 +53,7 @@ class ManageFeatureFlagHandler(CustomResourceHandler):
             return None
 
         # Extract gate ID from response
-        gate_id = flag_data.get('data', {}).get('id') or flag_data.get('id')
+        gate_id = flag_data.get('data', {}).get('id')
 
         logger.info('Feature flag resource created/updated successfully', flag_name=flag_name, gate_id=gate_id)
 

@@ -28,7 +28,7 @@ class TestStatSigClient(TstFunction):
 
         # Set up mock secrets manager with StatSig credentials
         secrets_client = self.create_mock_secrets_manager()
-        for env in ['test', 'beta', 'prod']:
+        for env in ['sandbox', 'test', 'beta', 'prod']:
             secrets_client.create_secret(
                 Name=f'compact-connect/env/{env}/statsig/credentials',
                 SecretString=json.dumps({'serverKey': MOCK_SERVER_KEY, 'consoleKey': MOCK_CONSOLE_KEY}),
@@ -215,15 +215,6 @@ class TestStatSigClient(TstFunction):
         ]
 
         for cc_env, expected_tier in test_cases:
-            # Set up secret for this environment
-            secrets_client = self.create_mock_secrets_manager()
-            # note that the test environment secret is created as part of setup, so we don't add that here
-            if cc_env != 'test':
-                secrets_client.create_secret(
-                    Name=f'compact-connect/env/{cc_env}/statsig/credentials',
-                    SecretString=json.dumps({'serverKey': MOCK_SERVER_KEY, 'consoleKey': MOCK_CONSOLE_KEY}),
-                )
-
             # Create client
             StatSigFeatureFlagClient(environment=cc_env)
 

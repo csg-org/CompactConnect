@@ -404,7 +404,7 @@ class StatSigFeatureFlagClient(FeatureFlagClient):
                 }
             ],
         }
-
+        # API spec https://docs.statsig.com/console-api/all-endpoints-generated#post-/console/v1/gates
         response = self._make_console_api_request('POST', '/gates', gate_payload)
 
         if response.status_code in [200, 201]:
@@ -512,6 +512,7 @@ class StatSigFeatureFlagClient(FeatureFlagClient):
         if response.status_code == 200:
             gates_data = response.json()
 
+            # API spec https://docs.statsig.com/console-api/all-endpoints-generated#get-/console/v1/gates
             for gate in gates_data.get('data', []):
                 if gate.get('name') == flag_name:
                     return gate
