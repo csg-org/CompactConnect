@@ -49,7 +49,8 @@ class AdverseActionRecordSchema(BaseRecordSchema):
     # TODO - remove this hook once migration is complete to the new field  # noqa: FIX002
     @pre_load
     def migrate_clinical_privilege_action_category_on_load(self, in_data, **_kwargs):
-        """Migrate deprecated clinicalPrivilegeActionCategory to clinicalPrivilegeActionCategories list when loading from database."""
+        """Migrate deprecated clinicalPrivilegeActionCategory to clinicalPrivilegeActionCategories list
+        when loading from database."""
         # If the deprecated field exists and the new field doesn't, migrate it
         if 'clinicalPrivilegeActionCategory' in in_data and 'clinicalPrivilegeActionCategories' not in in_data:
             in_data['clinicalPrivilegeActionCategories'] = [in_data['clinicalPrivilegeActionCategory']]

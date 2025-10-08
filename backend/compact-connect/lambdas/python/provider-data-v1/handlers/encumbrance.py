@@ -105,8 +105,8 @@ def _generate_adverse_action_for_record_type(
     if 'clinicalPrivilegeActionCategory' in adverse_action_request:
         # replicate data to both the deprecated and new fields
         adverse_action.clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategory(
-                adverse_action_request['clinicalPrivilegeActionCategory']
-            )
+            adverse_action_request['clinicalPrivilegeActionCategory']
+        )
         adverse_action.clinicalPrivilegeActionCategories = [
             ClinicalPrivilegeActionCategory(adverse_action_request['clinicalPrivilegeActionCategory'])
         ]

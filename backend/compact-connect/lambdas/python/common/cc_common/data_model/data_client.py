@@ -2641,13 +2641,14 @@ class DataClient:
         adverse_action = provider_user_records.get_adverse_action_by_id(adverse_action_id)
 
         if not adverse_action:
-            logger.error("Adverse Action not found by id",
-                         provider_id=provider_id,
-                         encumbered_license_jurisdiction=jurisdiction,
-                         encumbered_license_type=license_type_abbreviation,
-                         adverse_action_id=adverse_action_id)
-            raise CCInternalException("Adverse Action not found by id")
-
+            logger.error(
+                'Adverse Action not found by id',
+                provider_id=provider_id,
+                encumbered_license_jurisdiction=jurisdiction,
+                encumbered_license_type=license_type_abbreviation,
+                adverse_action_id=adverse_action_id,
+            )
+            raise CCInternalException('Adverse Action not found by id')
 
         # Find privileges associated with the license that which was encumbered, which themselves are not currently
         # encumbered
