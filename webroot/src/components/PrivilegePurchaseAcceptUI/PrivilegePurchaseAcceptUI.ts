@@ -114,26 +114,20 @@ class PrivilegePurchaseAcceptUI extends Vue {
 
     unloadPaymentDetailsUi(): void {
         this.removeFocusTrapHandling();
-        this.removeAcceptUIElements();
+        this.removeAcceptUiElements();
         this.acceptUiScript?.remove();
         this.acceptUiScript = null;
         delete (window as any).handlePaymentDetailsResponse;
     }
 
-    removeAcceptUIElements(): void {
-        const acceptUIElements = [
-            'AcceptUIBackground',
-            'AcceptUIContainer',
-            'iframe-trapper'
-        ];
+    removeAcceptUiElements(): void {
+        this.acceptUiContainer?.remove();
+        this.acceptUiContainer = null;
 
-        acceptUIElements.forEach((elementId) => {
-            const element = document.getElementById(elementId);
+        this.focusTrapElement?.remove();
+        this.focusTrapElement = null;
 
-            if (element) {
-                element.remove();
-            }
-        });
+        document.getElementById('AcceptUIBackground')?.remove();
     }
 
     removeFocusTrapHandling(): void {
