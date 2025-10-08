@@ -402,8 +402,8 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
     closeAcceptUiPopup(): void {
         const acceptUiComponent = this.$refs.acceptUiComponent as any;
 
-        if (acceptUiComponent && typeof acceptUiComponent.cleanupAcceptUi === 'function') {
-            acceptUiComponent.cleanupAcceptUi();
+        if (acceptUiComponent && typeof acceptUiComponent.unloadPaymentDetailsUi === 'function') {
+            acceptUiComponent.unloadPaymentDetailsUi();
         }
     }
 }
