@@ -39,8 +39,6 @@ class FeatureFlagsApi:
             ],
         )
 
-        self.api.log_groups.append(api_lambda_stack.feature_flags_lambdas.check_feature_flag_function.log_group)
-
         # Add suppressions for the public GET endpoint
         NagSuppressions.add_resource_suppressions(
             self.check_flag_method,
