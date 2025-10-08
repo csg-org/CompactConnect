@@ -60,7 +60,7 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
     }
 
     beforeUnmount(): void {
-        this.closeAcceptUIPopup();
+        this.closeAcceptUiPopup();
     }
 
     //
@@ -399,15 +399,11 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
         }
     }
 
-    closeAcceptUIPopup(): void {
-        const acceptUIElements = [
-            'AcceptUIBackground',
-            'AcceptUIContainer',
-            'iframe-trapper'
-        ];
+    closeAcceptUiPopup(): void {
+        const acceptUiComponent = this.$refs.acceptUiComponent as any;
 
-        acceptUIElements.forEach((element) => {
-            document.getElementById(element)?.remove();
-        });
+        if (acceptUiComponent && typeof acceptUiComponent.cleanupAcceptUi === 'function') {
+            acceptUiComponent.cleanupAcceptUi();
+        }
     }
 }

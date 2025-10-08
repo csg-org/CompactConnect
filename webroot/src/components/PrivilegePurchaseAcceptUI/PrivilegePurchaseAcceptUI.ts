@@ -67,7 +67,7 @@ class PrivilegePurchaseAcceptUI extends Vue {
     }
 
     beforeUnmount(): void {
-        this.unloadPaymentDetailsUi();
+        this.cleanupAcceptUi();
     }
 
     //
@@ -114,7 +114,35 @@ class PrivilegePurchaseAcceptUI extends Vue {
 
     unloadPaymentDetailsUi(): void {
         this.removeFocusTrapHandling();
+        this.removeAcceptUIElements();
+        this.acceptUiScript?.remove();
+        this.acceptUiScript = null;
+        delete (window as any).handlePaymentDetailsResponse;
+    }
+
+    // This should be called when the component needs to be cleaned up externally
+    cleanupAcceptUi(): void {
+        this.removeFocusTrapHandling();
+        this.removeAcceptUIElements();
+        this.acceptUiScript?.remove();
+        this.acceptUiScript = null;
         (window as any).handlePaymentDetailsResponse = undefined;
+    }
+
+    removeAcceptUIElements(): void {
+        const acceptUIElements = [
+            'AcceptUIBackground',
+            'AcceptUIContainer',
+            'iframe-trapper'
+        ];
+
+        acceptUIElements.forEach((elementId) => {
+            const element = document.getElementById(elementId);
+
+            if (element) {
+                element.remove();
+            }
+        });
     }
 
     removeFocusTrapHandling(): void {
