@@ -249,7 +249,14 @@ class StatSigFeatureFlagClient(FeatureFlagClient):
             raise FeatureFlagException(f'Failed to initialize StatSig client: {e}') from e
 
     def _create_statsig_user(self, context: dict[str, Any]) -> StatsigUser:
-        """Convert context dictionary to StatsigUser"""
+        """Convert context dictionary to StatsigUser
+
+        The SDK requires a StatSig user object to be passed in whenever checking a feature gate.
+        See https://docs.statsig.com/concepts/user/#why-is-an-id-always-required-for-server-sdks
+        """
+        # note that we hardcode the user id if it is not provided by the caller, which means percentage based
+        # rules will have no effect, since StatSig always returns the same result for the same user. If callers
+        # want to have percentage based rules take effect, they need to pass in user ids with their requests.
         user_data = {
             'user_id': context.get('userId') or 'default_cc_user',
         }
