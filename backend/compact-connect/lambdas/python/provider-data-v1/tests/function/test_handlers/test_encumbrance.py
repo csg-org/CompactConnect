@@ -331,7 +331,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
         # Load the adverse action record from the database
         loaded_adverse_action = AdverseActionData.from_database_record(item)
 
-        # TODO - remove this assertion as part of https://github.com/csg-org/CompactConnect/issues/1136
+        # TODO - remove this assertion as part of https://github.com/csg-org/CompactConnect/issues/1136 # noqa: FIX002
         # Verify that the deprecated field is not present in the stored data
         self.assertIn('clinicalPrivilegeActionCategory', item)
         self.assertEqual('Unsafe Practice or Substandard Care', loaded_adverse_action.clinicalPrivilegeActionCategory)
@@ -613,7 +613,7 @@ class TestPostLicenseEncumbrance(TstFunction):
         # Load the adverse action record from the database
         loaded_adverse_action = AdverseActionData.from_database_record(item)
 
-        # TODO - remove this assertion as part of https://github.com/csg-org/CompactConnect/issues/1136
+        # TODO - remove this assertion as part of https://github.com/csg-org/CompactConnect/issues/1136 # noqa: FIX002
         # Verify that the deprecated field is not present in the stored data
         self.assertIn('clinicalPrivilegeActionCategory', item)
         self.assertEqual('Unsafe Practice or Substandard Care', loaded_adverse_action.clinicalPrivilegeActionCategory)
