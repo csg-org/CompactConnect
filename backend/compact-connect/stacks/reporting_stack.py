@@ -8,6 +8,7 @@ from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Stats, TreatMissin
 from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_events import Rule, RuleTargetInput, Schedule
 from aws_cdk.aws_events_targets import LambdaFunction
+from aws_cdk.aws_lambda import Runtime
 from aws_cdk.aws_logs import QueryDefinition, QueryString
 from cdk_nag import NagSuppressions
 from common_constructs.stack import AppStack
@@ -136,6 +137,7 @@ class ReportingStack(AppStack):
             'TransactionReporter',
             description='Transaction report generator',
             handler='generate_transaction_reports',
+            runtime=Runtime.PYTHON_3_12,
             lambda_dir='purchases',
             index=os.path.join('handlers', 'transaction_reporting.py'),
             timeout=Duration.minutes(15),
@@ -153,6 +155,15 @@ class ReportingStack(AppStack):
                 'EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME': persistent_stack.email_notification_service_lambda.function_name,  # noqa: E501 line-too-long
                 **self.common_env_vars,
             },
+        )
+        NagSuppressions.add_resource_suppressions(
+            self.transaction_reporter,
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-L1',
+                    'reason': 'Our Authorize.Net dependency is not yet compatible with Python 3.13',
+                },
+            ],
         )
 
         # Grant necessary permissions

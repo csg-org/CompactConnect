@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 
 from aws_cdk import Stack
+from aws_cdk.aws_lambda import Runtime
 from aws_cdk.aws_secretsmanager import ISecret
 from aws_cdk.aws_sns import ITopic
 from cdk_nag import NagSuppressions
@@ -43,6 +44,7 @@ class CredentialsLambdas:
             scope,
             'PostCredentialsPaymentProcessorHandler',
             description='Post credentials payment processor handler',
+            runtime=Runtime.PYTHON_3_12,
             lambda_dir='purchases',
             index=os.path.join('handlers', 'credentials.py'),
             handler='post_payment_processor_credentials',
@@ -50,6 +52,15 @@ class CredentialsLambdas:
             alarm_topic=alarm_topic,
             # required as this lambda is bundled with the authorize.net SDK which is large
             memory_size=256,
+        )
+        NagSuppressions.add_resource_suppressions(
+            handler,
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-L1',
+                    'reason': 'Our Authorize.Net dependency is not yet compatible with Python 3.13',
+                },
+            ],
         )
 
         # grant handler access to post secrets for supported compacts

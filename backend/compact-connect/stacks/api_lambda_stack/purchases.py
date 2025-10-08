@@ -4,6 +4,7 @@ import os
 
 from aws_cdk.aws_events import EventBus
 from aws_cdk.aws_kms import IKey
+from aws_cdk.aws_lambda import Runtime
 from aws_cdk.aws_secretsmanager import ISecret
 from cdk_nag import NagSuppressions
 from common_constructs.alarm_topic import AlarmTopic
@@ -72,6 +73,7 @@ class PurchasesLambdas:
             scope,
             'PostPurchasePrivilegesHandler',
             description='Post purchase privileges handler',
+            runtime=Runtime.PYTHON_3_12,
             lambda_dir='purchases',
             index=os.path.join('handlers', 'privileges.py'),
             handler='post_purchase_privileges',
@@ -79,6 +81,15 @@ class PurchasesLambdas:
             alarm_topic=alarm_topic,
             # required as this lambda is bundled with the authorize.net SDK which is large
             memory_size=256,
+        )
+        NagSuppressions.add_resource_suppressions(
+            handler,
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-L1',
+                    'reason': 'Our Authorize.Net dependency is not yet compatible with Python 3.13',
+                },
+            ],
         )
 
         data_encryption_key.grant_decrypt(handler)
@@ -119,6 +130,7 @@ class PurchasesLambdas:
             scope,
             'GetPurchasePrivilegeOptionsHandler',
             description='Get purchase privilege options handler',
+            runtime=Runtime.PYTHON_3_12,
             lambda_dir='purchases',
             index=os.path.join('handlers', 'privileges.py'),
             handler='get_purchase_privilege_options',
@@ -126,6 +138,15 @@ class PurchasesLambdas:
             alarm_topic=alarm_topic,
             # required as this lambda is bundled with the authorize.net SDK which is large
             memory_size=256,
+        )
+        NagSuppressions.add_resource_suppressions(
+            handler,
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-L1',
+                    'reason': 'Our Authorize.Net dependency is not yet compatible with Python 3.13',
+                },
+            ],
         )
         data_encryption_key.grant_decrypt(handler)
         compact_configuration_table.grant_read_data(handler)
