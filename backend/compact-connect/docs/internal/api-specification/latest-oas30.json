@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "LicenseApi",
-    "version": "2025-08-28T18:13:05Z"
+    "version": "2025-10-03T05:04:19Z"
   },
   "servers": [
     {
@@ -36,7 +36,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicengLAze42Xqnte"
+                  "$ref": "#/components/schemas/SandboLicenBxfAXNgCl0f1"
                 }
               }
             }
@@ -75,7 +75,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SandboLicenaazLVJPphsmd"
+                "$ref": "#/components/schemas/SandboLicenrzUhY3WW0Y7L"
               }
             }
           },
@@ -87,7 +87,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenmbpMIz6MrP1s"
+                  "$ref": "#/components/schemas/SandboLicengeanQqZ1NjKt"
                 }
               }
             }
@@ -167,7 +167,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenL9tIeqzU7WHQ"
+                  "$ref": "#/components/schemas/SandboLicenHcuQxywUvhOh"
                 }
               }
             }
@@ -204,7 +204,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SandboLicen5COX4QwpjCEQ"
+                "$ref": "#/components/schemas/SandboLicenLPepHoMLi1aj"
               }
             }
           },
@@ -216,7 +216,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicendpTH6E8kTODD"
+                  "$ref": "#/components/schemas/SandboLicenou5OKotlJ6Ez"
                 }
               }
             }
@@ -288,7 +288,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenVJj3BvxeyHXi"
+                  "$ref": "#/components/schemas/SandboLicenHX8YNrOpPZbZ"
                 }
               }
             }
@@ -339,7 +339,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicengXk4P8AtSxgQ"
+                  "$ref": "#/components/schemas/SandboLicenbGNGFVLD0EDE"
                 }
               }
             }
@@ -386,7 +386,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SandboLicencCc9YDW8JDMi"
+                "$ref": "#/components/schemas/SandboLicenTi9BrhAERjPp"
               }
             }
           },
@@ -398,7 +398,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenmbpMIz6MrP1s"
+                  "$ref": "#/components/schemas/SandboLicengeanQqZ1NjKt"
                 }
               }
             }
@@ -478,7 +478,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenYkt0OaXOkGrL"
+                  "$ref": "#/components/schemas/SandboLicenMiDI81d6EYvq"
                 }
               }
             }
@@ -488,7 +488,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenmbpMIz6MrP1s"
+                  "$ref": "#/components/schemas/SandboLicengeanQqZ1NjKt"
                 }
               }
             }
@@ -568,7 +568,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenkXtjzw3zA3yD"
+                  "$ref": "#/components/schemas/SandboLicenJIK60DVCsApb"
                 }
               }
             }
@@ -638,7 +638,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SandboLicend1qAtTA7DZAJ"
+                "$ref": "#/components/schemas/SandboLicenYwiFMNF2Vu7Z"
               }
             }
           },
@@ -650,7 +650,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenPZct75hvqcG0"
+                  "$ref": "#/components/schemas/SandboLiceno12FSfDWBzow"
                 }
               }
             }
@@ -701,7 +701,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenBvqJFG1cEZjY"
+                  "$ref": "#/components/schemas/SandboLicenr5TVmpxKfPGq"
                 }
               }
             }
@@ -766,7 +766,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SandboLicenAKvYsexFE18E"
+                "$ref": "#/components/schemas/SandboLicenEAecRKtirVZk"
               }
             }
           },
@@ -778,7 +778,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenmbpMIz6MrP1s"
+                  "$ref": "#/components/schemas/SandboLicengeanQqZ1NjKt"
                 }
               }
             }
@@ -880,7 +880,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SandboLicenFLJthaXEyIZJ"
+                "$ref": "#/components/schemas/SandboLicen3zolh21hPpCk"
               }
             }
           },
@@ -892,7 +892,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenmbpMIz6MrP1s"
+                  "$ref": "#/components/schemas/SandboLicengeanQqZ1NjKt"
                 }
               }
             }
@@ -986,7 +986,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SandboLicenY12lJ6VyuS7X"
+                "$ref": "#/components/schemas/SandboLicenPAsEF1Ia4s7g"
               }
             }
           },
@@ -998,7 +998,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenmbpMIz6MrP1s"
+                  "$ref": "#/components/schemas/SandboLicengeanQqZ1NjKt"
                 }
               }
             }
@@ -1092,7 +1092,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SandboLicenGmoqDPz89Bxa"
+                "$ref": "#/components/schemas/SandboLicen6bEbVSG2KkBx"
               }
             }
           },
@@ -1104,7 +1104,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenmbpMIz6MrP1s"
+                  "$ref": "#/components/schemas/SandboLicengeanQqZ1NjKt"
                 }
               }
             }
@@ -1206,7 +1206,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SandboLicenyfVkHAncEhXs"
+                "$ref": "#/components/schemas/SandboLicenVZHLGnXN7APB"
               }
             }
           },
@@ -1218,7 +1218,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenmbpMIz6MrP1s"
+                  "$ref": "#/components/schemas/SandboLicengeanQqZ1NjKt"
                 }
               }
             }
@@ -1314,7 +1314,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenh3CxZXBnJfqv"
+                  "$ref": "#/components/schemas/SandboLicenobivPmYh5SvH"
                 }
               }
             }
@@ -1365,7 +1365,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicen8QW1UOcOxdCL"
+                  "$ref": "#/components/schemas/SandboLicen2x5yTuN7Vce5"
                 }
               }
             }
@@ -1436,7 +1436,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenBVM0Ubke6A3d"
+                  "$ref": "#/components/schemas/SandboLicenLLx7v2Sq2Nku"
                 }
               }
             }
@@ -1496,7 +1496,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SandboLicensBnU6U4Ts09w"
+                "$ref": "#/components/schemas/SandboLicenDb8Dl04rAoPD"
               }
             }
           },
@@ -1515,7 +1515,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenDr5ukrOJkX0A"
+                  "$ref": "#/components/schemas/SandboLicen2VPoPHwDEcqq"
                 }
               }
             }
@@ -1587,7 +1587,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenmbpMIz6MrP1s"
+                  "$ref": "#/components/schemas/SandboLicengeanQqZ1NjKt"
                 }
               }
             }
@@ -1604,7 +1604,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenDr5ukrOJkX0A"
+                  "$ref": "#/components/schemas/SandboLicen2VPoPHwDEcqq"
                 }
               }
             }
@@ -1674,7 +1674,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenmbpMIz6MrP1s"
+                  "$ref": "#/components/schemas/SandboLicengeanQqZ1NjKt"
                 }
               }
             }
@@ -1684,7 +1684,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenmbpMIz6MrP1s"
+                  "$ref": "#/components/schemas/SandboLicengeanQqZ1NjKt"
                 }
               }
             }
@@ -1752,7 +1752,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SandboLicen2kD7SUbIH9qe"
+                "$ref": "#/components/schemas/SandboLicenC1PiOZAh5Usx"
               }
             }
           },
@@ -1764,7 +1764,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenmbpMIz6MrP1s"
+                  "$ref": "#/components/schemas/SandboLicengeanQqZ1NjKt"
                 }
               }
             }
@@ -1781,7 +1781,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenDr5ukrOJkX0A"
+                  "$ref": "#/components/schemas/SandboLicen2VPoPHwDEcqq"
                 }
               }
             }
@@ -1853,7 +1853,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenmbpMIz6MrP1s"
+                  "$ref": "#/components/schemas/SandboLicengeanQqZ1NjKt"
                 }
               }
             }
@@ -1863,7 +1863,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenmbpMIz6MrP1s"
+                  "$ref": "#/components/schemas/SandboLicengeanQqZ1NjKt"
                 }
               }
             }
@@ -1915,7 +1915,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SandboLicenDIGClZTMHMeN"
+                "$ref": "#/components/schemas/SandboLicenpPZOnBEPSaJL"
               }
             }
           },
@@ -1927,7 +1927,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenmbpMIz6MrP1s"
+                  "$ref": "#/components/schemas/SandboLicengeanQqZ1NjKt"
                 }
               }
             }
@@ -1953,7 +1953,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenBvqJFG1cEZjY"
+                  "$ref": "#/components/schemas/SandboLicenr5TVmpxKfPGq"
                 }
               }
             }
@@ -1982,7 +1982,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SandboLicen78Yjnaih0pH9"
+                "$ref": "#/components/schemas/SandboLicenaSmGZue6afyn"
               }
             }
           },
@@ -1994,7 +1994,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenmbpMIz6MrP1s"
+                  "$ref": "#/components/schemas/SandboLicengeanQqZ1NjKt"
                 }
               }
             }
@@ -2023,7 +2023,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SandboLicenxh07ORad3MU8"
+                "$ref": "#/components/schemas/SandboLicenbcsmAhiZJZ0Q"
               }
             }
           },
@@ -2035,7 +2035,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenmbpMIz6MrP1s"
+                  "$ref": "#/components/schemas/SandboLicengeanQqZ1NjKt"
                 }
               }
             }
@@ -2064,7 +2064,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SandboLicenL90lulGTBXkw"
+                "$ref": "#/components/schemas/SandboLicen8QcYRI7AzDyX"
               }
             }
           },
@@ -2076,7 +2076,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenmbpMIz6MrP1s"
+                  "$ref": "#/components/schemas/SandboLicengeanQqZ1NjKt"
                 }
               }
             }
@@ -2123,7 +2123,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenh3CxZXBnJfqv"
+                  "$ref": "#/components/schemas/SandboLicenobivPmYh5SvH"
                 }
               }
             }
@@ -2152,7 +2152,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SandboLicenpZ59tBYcLolt"
+                "$ref": "#/components/schemas/SandboLicenJZNKekBSUCl5"
               }
             }
           },
@@ -2164,7 +2164,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenjemoBM9bWr3o"
+                  "$ref": "#/components/schemas/SandboLicenUzZJQKKk5goL"
                 }
               }
             }
@@ -2191,7 +2191,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SandboLicenGOQO8xyCrJGH"
+                "$ref": "#/components/schemas/SandboLicendERazg9NeEsA"
               }
             }
           },
@@ -2203,7 +2203,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenmbpMIz6MrP1s"
+                  "$ref": "#/components/schemas/SandboLicengeanQqZ1NjKt"
                 }
               }
             }
@@ -2222,7 +2222,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SandboLicen7ukin0mgVL4A"
+                "$ref": "#/components/schemas/SandboLicenwoqrSnm0rsGM"
               }
             }
           },
@@ -2234,7 +2234,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenmbpMIz6MrP1s"
+                  "$ref": "#/components/schemas/SandboLicengeanQqZ1NjKt"
                 }
               }
             }
@@ -2248,7 +2248,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SandboLicenHat95m9exWQy"
+                "$ref": "#/components/schemas/SandboLicenirtyanNQfXka"
               }
             }
           },
@@ -2260,7 +2260,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenmbpMIz6MrP1s"
+                  "$ref": "#/components/schemas/SandboLicengeanQqZ1NjKt"
                 }
               }
             }
@@ -2286,7 +2286,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenVJj3BvxeyHXi"
+                  "$ref": "#/components/schemas/SandboLicenHX8YNrOpPZbZ"
                 }
               }
             }
@@ -2310,7 +2310,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SandboLicend1qAtTA7DZAJ"
+                "$ref": "#/components/schemas/SandboLicenYwiFMNF2Vu7Z"
               }
             }
           },
@@ -2322,7 +2322,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenVdtGkxBrH33j"
+                  "$ref": "#/components/schemas/SandboLicenBxXRobaYJSR9"
                 }
               }
             }
@@ -2356,7 +2356,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenm0narEJPA6TP"
+                  "$ref": "#/components/schemas/SandboLicendF8CsBCXAU1x"
                 }
               }
             }
@@ -2406,7 +2406,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenh3CxZXBnJfqv"
+                  "$ref": "#/components/schemas/SandboLicenobivPmYh5SvH"
                 }
               }
             }
@@ -2430,7 +2430,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SandboLicenJoBxP9CtmBOr"
+                "$ref": "#/components/schemas/SandboLicenBWZgN83iyevY"
               }
             }
           },
@@ -2442,7 +2442,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenyCpN8h6ZDQnW"
+                  "$ref": "#/components/schemas/SandboLiceng72nqBB23bmL"
                 }
               }
             }
@@ -2473,7 +2473,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicengtrzYomnhdRZ"
+                  "$ref": "#/components/schemas/SandboLicenI2vqm7fRdSBi"
                 }
               }
             }
@@ -2494,7 +2494,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenmbpMIz6MrP1s"
+                  "$ref": "#/components/schemas/SandboLicengeanQqZ1NjKt"
                 }
               }
             }
@@ -2511,7 +2511,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenDr5ukrOJkX0A"
+                  "$ref": "#/components/schemas/SandboLicen2VPoPHwDEcqq"
                 }
               }
             }
@@ -2530,7 +2530,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SandboLicenFjGbU8QHjkHs"
+                "$ref": "#/components/schemas/SandboLicenI4CqYMff5SWl"
               }
             }
           },
@@ -2542,7 +2542,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenmbpMIz6MrP1s"
+                  "$ref": "#/components/schemas/SandboLicengeanQqZ1NjKt"
                 }
               }
             }
@@ -2559,7 +2559,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboLicenDr5ukrOJkX0A"
+                  "$ref": "#/components/schemas/SandboLicen2VPoPHwDEcqq"
                 }
               }
             }
@@ -2577,7 +2577,340 @@
   },
   "components": {
     "schemas": {
-      "SandboLicend1qAtTA7DZAJ": {
+      "SandboLicen2x5yTuN7Vce5": {
+        "required": [
+          "ssn"
+        ],
+        "type": "object",
+        "properties": {
+          "ssn": {
+            "pattern": "^[0-9]{3}-[0-9]{2}-[0-9]{4}$",
+            "type": "string",
+            "description": "The provider's social security number"
+          }
+        }
+      },
+      "SandboLicenbcsmAhiZJZ0Q": {
+        "required": [
+          "verificationCode"
+        ],
+        "type": "object",
+        "properties": {
+          "verificationCode": {
+            "pattern": "^[0-9]{4}$",
+            "type": "string",
+            "description": "4-digit verification code"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SandboLicenJIK60DVCsApb": {
+        "required": [
+          "upload"
+        ],
+        "type": "object",
+        "properties": {
+          "upload": {
+            "required": [
+              "fields",
+              "url"
+            ],
+            "type": "object",
+            "properties": {
+              "fields": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "url": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "SandboLicen6bEbVSG2KkBx": {
+        "required": [
+          "clinicalPrivilegeActionCategory",
+          "encumbranceEffectiveDate",
+          "encumbranceType"
+        ],
+        "type": "object",
+        "properties": {
+          "encumbranceEffectiveDate": {
+            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+            "type": "string",
+            "description": "The effective date of the encumbrance",
+            "format": "date"
+          },
+          "encumbranceType": {
+            "type": "string",
+            "description": "The type of encumbrance",
+            "enum": [
+              "fine",
+              "reprimand",
+              "required supervision",
+              "completion of continuing education",
+              "public reprimand",
+              "probation",
+              "injunctive action",
+              "suspension",
+              "revocation",
+              "denial",
+              "surrender of license",
+              "modification of previous action-extension",
+              "modification of previous action-reduction",
+              "other monitoring",
+              "other adjudicated action not listed"
+            ]
+          },
+          "clinicalPrivilegeActionCategory": {
+            "type": "string",
+            "description": "The category of clinical privilege action"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SandboLicenVZHLGnXN7APB": {
+        "required": [
+          "effectiveLiftDate"
+        ],
+        "type": "object",
+        "properties": {
+          "effectiveLiftDate": {
+            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+            "type": "string",
+            "description": "The effective date when the encumbrance will be lifted",
+            "format": "date"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SandboLicenirtyanNQfXka": {
+        "required": [
+          "compact",
+          "providerId",
+          "recaptchaToken",
+          "recoveryToken"
+        ],
+        "type": "object",
+        "properties": {
+          "compact": {
+            "type": "string",
+            "description": "Compact abbreviation",
+            "enum": [
+              "aslp",
+              "octp",
+              "coun"
+            ]
+          },
+          "providerId": {
+            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+            "type": "string",
+            "description": "Provider UUID"
+          },
+          "recaptchaToken": {
+            "minLength": 1,
+            "type": "string",
+            "description": "ReCAPTCHA token for verification"
+          },
+          "recoveryToken": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string",
+            "description": "Recovery token from the email link"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SandboLicen2VPoPHwDEcqq": {
+        "required": [
+          "attributes",
+          "permissions",
+          "status",
+          "userId"
+        ],
+        "type": "object",
+        "properties": {
+          "permissions": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "actions": {
+                  "type": "object",
+                  "properties": {
+                    "readPrivate": {
+                      "type": "boolean"
+                    },
+                    "admin": {
+                      "type": "boolean"
+                    },
+                    "readSSN": {
+                      "type": "boolean"
+                    }
+                  }
+                },
+                "jurisdictions": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "object",
+                    "properties": {
+                      "actions": {
+                        "type": "object",
+                        "properties": {
+                          "readPrivate": {
+                            "type": "boolean"
+                          },
+                          "admin": {
+                            "type": "boolean"
+                          },
+                          "write": {
+                            "type": "boolean"
+                          },
+                          "readSSN": {
+                            "type": "boolean"
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    }
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "attributes": {
+            "required": [
+              "email",
+              "familyName",
+              "givenName"
+            ],
+            "type": "object",
+            "properties": {
+              "givenName": {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              "familyName": {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              "email": {
+                "maxLength": 100,
+                "minLength": 5,
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          },
+          "userId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "inactive"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "SandboLicenUzZJQKKk5goL": {
+        "required": [
+          "affiliationType",
+          "dateOfUpdate",
+          "dateOfUpload",
+          "documentUploadFields",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "dateOfUpload": {
+            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+            "type": "string",
+            "description": "The date the document was uploaded",
+            "format": "date"
+          },
+          "affiliationType": {
+            "type": "string",
+            "description": "The type of military affiliation",
+            "enum": [
+              "militaryMember",
+              "militaryMemberSpouse"
+            ]
+          },
+          "fileNames": {
+            "type": "array",
+            "description": "List of military affiliation file names",
+            "items": {
+              "type": "string",
+              "description": "The name of the file being uploaded"
+            }
+          },
+          "dateOfUpdate": {
+            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+            "type": "string",
+            "description": "The date the document was last updated",
+            "format": "date"
+          },
+          "status": {
+            "type": "string",
+            "description": "The status of the military affiliation"
+          },
+          "documentUploadFields": {
+            "type": "array",
+            "description": "The fields used to upload documents",
+            "items": {
+              "type": "object",
+              "properties": {
+                "fields": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "description": "The form fields used to upload the document"
+                },
+                "url": {
+                  "type": "string",
+                  "description": "The url to upload the document to"
+                }
+              },
+              "description": "The fields used to upload a specific document"
+            }
+          }
+        }
+      },
+      "SandboLicenMiDI81d6EYvq": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Message indicating success or failure"
+          },
+          "errors": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "array",
+                "description": "List of error messages for a field",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "description": "Errors for a specific record"
+            },
+            "description": "Validation errors by record index"
+          }
+        }
+      },
+      "SandboLicenYwiFMNF2Vu7Z": {
         "required": [
           "query"
         ],
@@ -2708,7 +3041,154 @@
         },
         "additionalProperties": false
       },
-      "SandboLicenFLJthaXEyIZJ": {
+      "SandboLicenHX8YNrOpPZbZ": {
+        "type": "array",
+        "items": {
+          "required": [
+            "compact",
+            "jurisdictionName",
+            "postalAbbreviation"
+          ],
+          "type": "object",
+          "properties": {
+            "postalAbbreviation": {
+              "type": "string",
+              "description": "The postal abbreviation of the jurisdiction"
+            },
+            "compact": {
+              "type": "string"
+            },
+            "jurisdictionName": {
+              "type": "string",
+              "description": "The name of the jurisdiction"
+            }
+          }
+        }
+      },
+      "SandboLicengeanQqZ1NjKt": {
+        "required": [
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "A message about the request"
+          }
+        }
+      },
+      "SandboLicenTi9BrhAERjPp": {
+        "required": [
+          "jurisdictionAdverseActionsNotificationEmails",
+          "jurisdictionOperationsTeamEmails",
+          "jurisdictionSummaryReportNotificationEmails",
+          "jurisprudenceRequirements",
+          "licenseeRegistrationEnabled",
+          "privilegeFees"
+        ],
+        "type": "object",
+        "properties": {
+          "privilegeFees": {
+            "type": "array",
+            "description": "The fees for the privileges by license type",
+            "items": {
+              "required": [
+                "amount",
+                "licenseTypeAbbreviation"
+              ],
+              "type": "object",
+              "properties": {
+                "amount": {
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "militaryRate": {
+                  "description": "Optional military rate for the privilege fee.",
+                  "oneOf": [
+                    {
+                      "minimum": 0,
+                      "type": "number"
+                    },
+                    null
+                  ]
+                },
+                "licenseTypeAbbreviation": {
+                  "type": "string",
+                  "enum": [
+                    "aud",
+                    "slp",
+                    "ot",
+                    "ota",
+                    "lpc"
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "jurisdictionAdverseActionsNotificationEmails": {
+            "maxItems": 10,
+            "minItems": 1,
+            "uniqueItems": true,
+            "type": "array",
+            "description": "List of email addresses for adverse actions notifications",
+            "items": {
+              "type": "string",
+              "format": "email"
+            }
+          },
+          "jurisdictionOperationsTeamEmails": {
+            "maxItems": 10,
+            "minItems": 1,
+            "uniqueItems": true,
+            "type": "array",
+            "description": "List of email addresses for operations team notifications",
+            "items": {
+              "type": "string",
+              "format": "email"
+            }
+          },
+          "jurisprudenceRequirements": {
+            "required": [
+              "required"
+            ],
+            "type": "object",
+            "properties": {
+              "linkToDocumentation": {
+                "description": "Optional link to jurisprudence documentation",
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  null
+                ]
+              },
+              "required": {
+                "type": "boolean",
+                "description": "Whether jurisprudence requirements exist"
+              }
+            },
+            "additionalProperties": false
+          },
+          "licenseeRegistrationEnabled": {
+            "type": "boolean",
+            "description": "Denotes whether licensee registration is enabled"
+          },
+          "jurisdictionSummaryReportNotificationEmails": {
+            "maxItems": 10,
+            "minItems": 1,
+            "uniqueItems": true,
+            "type": "array",
+            "description": "List of email addresses for summary report notifications",
+            "items": {
+              "type": "string",
+              "format": "email"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "SandboLicen3zolh21hPpCk": {
         "required": [
           "effectiveLiftDate"
         ],
@@ -2723,30 +3203,154 @@
         },
         "additionalProperties": false
       },
-      "SandboLicenaazLVJPphsmd": {
+      "SandboLicenBxXRobaYJSR9": {
         "required": [
-          "compactAdverseActionsNotificationEmails",
-          "compactCommissionFee",
-          "compactOperationsTeamEmails",
-          "compactSummaryReportNotificationEmails",
-          "configuredStates",
-          "licenseeRegistrationEnabled"
+          "pagination",
+          "providers"
         ],
         "type": "object",
         "properties": {
-          "configuredStates": {
+          "pagination": {
+            "type": "object",
+            "properties": {
+              "prevLastKey": {
+                "maxLength": 1024,
+                "minLength": 1,
+                "type": "object"
+              },
+              "lastKey": {
+                "maxLength": 1024,
+                "minLength": 1,
+                "type": "object"
+              },
+              "pageSize": {
+                "maximum": 100,
+                "minimum": 5,
+                "type": "integer"
+              }
+            }
+          },
+          "query": {
+            "type": "object",
+            "properties": {
+              "providerId": {
+                "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+                "type": "string",
+                "description": "Internal UUID for the provider"
+              },
+              "jurisdiction": {
+                "type": "string",
+                "description": "Filter for providers with privilege/license in a jurisdiction",
+                "enum": [
+                  "al",
+                  "ak",
+                  "az",
+                  "ar",
+                  "ca",
+                  "co",
+                  "ct",
+                  "de",
+                  "dc",
+                  "fl",
+                  "ga",
+                  "hi",
+                  "id",
+                  "il",
+                  "in",
+                  "ia",
+                  "ks",
+                  "ky",
+                  "la",
+                  "me",
+                  "md",
+                  "ma",
+                  "mi",
+                  "mn",
+                  "ms",
+                  "mo",
+                  "mt",
+                  "ne",
+                  "nv",
+                  "nh",
+                  "nj",
+                  "nm",
+                  "ny",
+                  "nc",
+                  "nd",
+                  "oh",
+                  "ok",
+                  "or",
+                  "pa",
+                  "pr",
+                  "ri",
+                  "sc",
+                  "sd",
+                  "tn",
+                  "tx",
+                  "ut",
+                  "vt",
+                  "va",
+                  "vi",
+                  "wa",
+                  "wv",
+                  "wi",
+                  "wy"
+                ]
+              },
+              "givenName": {
+                "maxLength": 100,
+                "type": "string",
+                "description": "Filter for providers with a given name"
+              },
+              "familyName": {
+                "maxLength": 100,
+                "type": "string",
+                "description": "Filter for providers with a family name"
+              }
+            }
+          },
+          "sorting": {
+            "required": [
+              "key"
+            ],
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "description": "The key to sort results by",
+                "enum": [
+                  "dateOfUpdate",
+                  "familyName"
+                ]
+              },
+              "direction": {
+                "type": "string",
+                "description": "Direction to sort results by",
+                "enum": [
+                  "ascending",
+                  "descending"
+                ]
+              }
+            },
+            "description": "How to sort results"
+          },
+          "providers": {
+            "maxLength": 100,
             "type": "array",
-            "description": "List of states that have submitted configurations and their live status",
             "items": {
               "required": [
-                "isLive",
-                "postalAbbreviation"
+                "compact",
+                "familyName",
+                "givenName",
+                "licenseJurisdiction",
+                "privilegeJurisdictions",
+                "providerId",
+                "type"
               ],
               "type": "object",
               "properties": {
-                "postalAbbreviation": {
+                "licenseJurisdiction": {
                   "type": "string",
-                  "description": "The postal abbreviation of the jurisdiction",
                   "enum": [
                     "al",
                     "ak",
@@ -2803,108 +3407,373 @@
                     "wy"
                   ]
                 },
-                "isLive": {
-                  "type": "boolean",
-                  "description": "Whether the state is live and available for registrations."
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "compactCommissionFee": {
-            "required": [
-              "feeAmount",
-              "feeType"
-            ],
-            "type": "object",
-            "properties": {
-              "feeAmount": {
-                "minimum": 0,
-                "type": "number"
-              },
-              "feeType": {
-                "type": "string",
-                "enum": [
-                  "FLAT_RATE"
-                ]
-              }
-            },
-            "additionalProperties": false
-          },
-          "compactSummaryReportNotificationEmails": {
-            "maxItems": 10,
-            "minItems": 1,
-            "uniqueItems": true,
-            "type": "array",
-            "description": "List of email addresses for summary report notifications",
-            "items": {
-              "type": "string",
-              "format": "email"
-            }
-          },
-          "compactAdverseActionsNotificationEmails": {
-            "maxItems": 10,
-            "minItems": 1,
-            "uniqueItems": true,
-            "type": "array",
-            "description": "List of email addresses for adverse actions notifications",
-            "items": {
-              "type": "string",
-              "format": "email"
-            }
-          },
-          "licenseeRegistrationEnabled": {
-            "type": "boolean",
-            "description": "Denotes whether licensee registration is enabled"
-          },
-          "transactionFeeConfiguration": {
-            "type": "object",
-            "properties": {
-              "licenseeCharges": {
-                "required": [
-                  "active",
-                  "chargeAmount",
-                  "chargeType"
-                ],
-                "type": "object",
-                "properties": {
-                  "chargeType": {
+                "compact": {
+                  "type": "string",
+                  "enum": [
+                    "aslp",
+                    "octp",
+                    "coun"
+                  ]
+                },
+                "providerId": {
+                  "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+                  "type": "string"
+                },
+                "npi": {
+                  "pattern": "^[0-9]{10}$",
+                  "type": "string"
+                },
+                "givenName": {
+                  "maxLength": 100,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "familyName": {
+                  "maxLength": 100,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "middleName": {
+                  "maxLength": 100,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "privilegeJurisdictions": {
+                  "type": "array",
+                  "items": {
                     "type": "string",
-                    "description": "The type of transaction fee charge",
                     "enum": [
-                      "FLAT_FEE_PER_PRIVILEGE"
+                      "al",
+                      "ak",
+                      "az",
+                      "ar",
+                      "ca",
+                      "co",
+                      "ct",
+                      "de",
+                      "dc",
+                      "fl",
+                      "ga",
+                      "hi",
+                      "id",
+                      "il",
+                      "in",
+                      "ia",
+                      "ks",
+                      "ky",
+                      "la",
+                      "me",
+                      "md",
+                      "ma",
+                      "mi",
+                      "mn",
+                      "ms",
+                      "mo",
+                      "mt",
+                      "ne",
+                      "nv",
+                      "nh",
+                      "nj",
+                      "nm",
+                      "ny",
+                      "nc",
+                      "nd",
+                      "oh",
+                      "ok",
+                      "or",
+                      "pa",
+                      "pr",
+                      "ri",
+                      "sc",
+                      "sd",
+                      "tn",
+                      "tx",
+                      "ut",
+                      "vt",
+                      "va",
+                      "vi",
+                      "wa",
+                      "wv",
+                      "wi",
+                      "wy"
                     ]
-                  },
-                  "active": {
-                    "type": "boolean",
-                    "description": "Whether the compact is charging licensees transaction fees"
-                  },
-                  "chargeAmount": {
-                    "minimum": 0,
-                    "type": "number",
-                    "description": "The amount to charge per privilege purchased"
                   }
                 },
-                "additionalProperties": false
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "provider"
+                  ]
+                },
+                "suffix": {
+                  "maxLength": 100,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "currentHomeJurisdiction": {
+                  "type": "string",
+                  "description": "The current jurisdiction postal abbreviation if known.",
+                  "enum": [
+                    "al",
+                    "ak",
+                    "az",
+                    "ar",
+                    "ca",
+                    "co",
+                    "ct",
+                    "de",
+                    "dc",
+                    "fl",
+                    "ga",
+                    "hi",
+                    "id",
+                    "il",
+                    "in",
+                    "ia",
+                    "ks",
+                    "ky",
+                    "la",
+                    "me",
+                    "md",
+                    "ma",
+                    "mi",
+                    "mn",
+                    "ms",
+                    "mo",
+                    "mt",
+                    "ne",
+                    "nv",
+                    "nh",
+                    "nj",
+                    "nm",
+                    "ny",
+                    "nc",
+                    "nd",
+                    "oh",
+                    "ok",
+                    "or",
+                    "pa",
+                    "pr",
+                    "ri",
+                    "sc",
+                    "sd",
+                    "tn",
+                    "tx",
+                    "ut",
+                    "vt",
+                    "va",
+                    "vi",
+                    "wa",
+                    "wv",
+                    "wi",
+                    "wy",
+                    "other",
+                    "unknown"
+                  ]
+                },
+                "dateOfUpdate": {
+                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                  "type": "string",
+                  "format": "date"
+                }
               }
-            },
-            "additionalProperties": false
-          },
-          "compactOperationsTeamEmails": {
-            "maxItems": 10,
-            "minItems": 1,
-            "uniqueItems": true,
-            "type": "array",
-            "description": "List of email addresses for operations team notifications",
-            "items": {
-              "type": "string",
-              "format": "email"
             }
+          }
+        }
+      },
+      "SandboLicenou5OKotlJ6Ez": {
+        "required": [
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "A message about the request"
+          }
+        }
+      },
+      "SandboLicenpPZOnBEPSaJL": {
+        "required": [
+          "compact",
+          "dob",
+          "familyName",
+          "givenName",
+          "jurisdiction",
+          "licenseType",
+          "partialSocial",
+          "password",
+          "recaptchaToken",
+          "username"
+        ],
+        "type": "object",
+        "properties": {
+          "licenseType": {
+            "type": "string",
+            "description": "Type of license",
+            "enum": [
+              "audiologist",
+              "speech-language pathologist",
+              "occupational therapist",
+              "occupational therapy assistant",
+              "licensed professional counselor"
+            ]
+          },
+          "password": {
+            "maxLength": 256,
+            "minLength": 12,
+            "type": "string",
+            "description": "Provider's current password"
+          },
+          "compact": {
+            "type": "string",
+            "description": "Compact abbreviation",
+            "enum": [
+              "aslp",
+              "octp",
+              "coun"
+            ]
+          },
+          "dob": {
+            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+            "type": "string",
+            "description": "Date of birth in YYYY-MM-DD format",
+            "format": "date"
+          },
+          "jurisdiction": {
+            "type": "string",
+            "description": "Two-letter jurisdiction code",
+            "enum": [
+              "al",
+              "ak",
+              "az",
+              "ar",
+              "ca",
+              "co",
+              "ct",
+              "de",
+              "dc",
+              "fl",
+              "ga",
+              "hi",
+              "id",
+              "il",
+              "in",
+              "ia",
+              "ks",
+              "ky",
+              "la",
+              "me",
+              "md",
+              "ma",
+              "mi",
+              "mn",
+              "ms",
+              "mo",
+              "mt",
+              "ne",
+              "nv",
+              "nh",
+              "nj",
+              "nm",
+              "ny",
+              "nc",
+              "nd",
+              "oh",
+              "ok",
+              "or",
+              "pa",
+              "pr",
+              "ri",
+              "sc",
+              "sd",
+              "tn",
+              "tx",
+              "ut",
+              "vt",
+              "va",
+              "vi",
+              "wa",
+              "wv",
+              "wi",
+              "wy"
+            ]
+          },
+          "givenName": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string",
+            "description": "Provider's given name"
+          },
+          "familyName": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string",
+            "description": "Provider's family name"
+          },
+          "recaptchaToken": {
+            "minLength": 1,
+            "type": "string",
+            "description": "ReCAPTCHA token for verification"
+          },
+          "partialSocial": {
+            "pattern": "^[0-9]{4}$",
+            "type": "string",
+            "description": "Last 4 digits of SSN"
+          },
+          "username": {
+            "maxLength": 100,
+            "minLength": 5,
+            "type": "string",
+            "description": "Provider's email address (username)",
+            "format": "email"
           }
         },
         "additionalProperties": false
       },
-      "SandboLicenm0narEJPA6TP": {
+      "SandboLicenEAecRKtirVZk": {
+        "required": [
+          "clinicalPrivilegeActionCategory",
+          "encumbranceEffectiveDate",
+          "encumbranceType"
+        ],
+        "type": "object",
+        "properties": {
+          "encumbranceEffectiveDate": {
+            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+            "type": "string",
+            "description": "The effective date of the encumbrance",
+            "format": "date"
+          },
+          "encumbranceType": {
+            "type": "string",
+            "description": "The type of encumbrance",
+            "enum": [
+              "fine",
+              "reprimand",
+              "required supervision",
+              "completion of continuing education",
+              "public reprimand",
+              "probation",
+              "injunctive action",
+              "suspension",
+              "revocation",
+              "denial",
+              "surrender of license",
+              "modification of previous action-extension",
+              "modification of previous action-reduction",
+              "other monitoring",
+              "other adjudicated action not listed"
+            ]
+          },
+          "clinicalPrivilegeActionCategory": {
+            "type": "string",
+            "description": "The category of clinical privilege action"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SandboLicendF8CsBCXAU1x": {
         "required": [
           "compact",
           "dateOfUpdate",
@@ -3800,962 +4669,7 @@
           }
         }
       },
-      "SandboLicenFjGbU8QHjkHs": {
-        "type": "object",
-        "properties": {
-          "attributes": {
-            "type": "object",
-            "properties": {
-              "givenName": {
-                "maxLength": 100,
-                "minLength": 1,
-                "type": "string"
-              },
-              "familyName": {
-                "maxLength": 100,
-                "minLength": 1,
-                "type": "string"
-              }
-            },
-            "additionalProperties": false
-          }
-        },
-        "additionalProperties": false
-      },
-      "SandboLicenHat95m9exWQy": {
-        "required": [
-          "compact",
-          "providerId",
-          "recaptchaToken",
-          "recoveryToken"
-        ],
-        "type": "object",
-        "properties": {
-          "compact": {
-            "type": "string",
-            "description": "Compact abbreviation",
-            "enum": [
-              "aslp",
-              "octp",
-              "coun"
-            ]
-          },
-          "providerId": {
-            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
-            "type": "string",
-            "description": "Provider UUID"
-          },
-          "recaptchaToken": {
-            "minLength": 1,
-            "type": "string",
-            "description": "ReCAPTCHA token for verification"
-          },
-          "recoveryToken": {
-            "maxLength": 256,
-            "minLength": 1,
-            "type": "string",
-            "description": "Recovery token from the email link"
-          }
-        },
-        "additionalProperties": false
-      },
-      "SandboLicengLAze42Xqnte": {
-        "required": [
-          "compactAbbr",
-          "compactAdverseActionsNotificationEmails",
-          "compactCommissionFee",
-          "compactName",
-          "compactOperationsTeamEmails",
-          "compactSummaryReportNotificationEmails",
-          "configuredStates",
-          "licenseeRegistrationEnabled"
-        ],
-        "type": "object",
-        "properties": {
-          "configuredStates": {
-            "type": "array",
-            "description": "List of states that have submitted configurations and their live status",
-            "items": {
-              "required": [
-                "isLive",
-                "postalAbbreviation"
-              ],
-              "type": "object",
-              "properties": {
-                "postalAbbreviation": {
-                  "type": "string",
-                  "description": "The postal abbreviation of the jurisdiction",
-                  "enum": [
-                    "al",
-                    "ak",
-                    "az",
-                    "ar",
-                    "ca",
-                    "co",
-                    "ct",
-                    "de",
-                    "dc",
-                    "fl",
-                    "ga",
-                    "hi",
-                    "id",
-                    "il",
-                    "in",
-                    "ia",
-                    "ks",
-                    "ky",
-                    "la",
-                    "me",
-                    "md",
-                    "ma",
-                    "mi",
-                    "mn",
-                    "ms",
-                    "mo",
-                    "mt",
-                    "ne",
-                    "nv",
-                    "nh",
-                    "nj",
-                    "nm",
-                    "ny",
-                    "nc",
-                    "nd",
-                    "oh",
-                    "ok",
-                    "or",
-                    "pa",
-                    "pr",
-                    "ri",
-                    "sc",
-                    "sd",
-                    "tn",
-                    "tx",
-                    "ut",
-                    "vt",
-                    "va",
-                    "vi",
-                    "wa",
-                    "wv",
-                    "wi",
-                    "wy"
-                  ]
-                },
-                "isLive": {
-                  "type": "boolean",
-                  "description": "Whether the state is live and available for registrations."
-                }
-              }
-            }
-          },
-          "compactCommissionFee": {
-            "required": [
-              "feeAmount",
-              "feeType"
-            ],
-            "type": "object",
-            "properties": {
-              "feeAmount": {
-                "type": "number"
-              },
-              "feeType": {
-                "type": "string",
-                "enum": [
-                  "FLAT_RATE"
-                ]
-              }
-            }
-          },
-          "compactSummaryReportNotificationEmails": {
-            "type": "array",
-            "description": "List of email addresses for summary report notifications",
-            "items": {
-              "type": "string",
-              "format": "email"
-            }
-          },
-          "compactAdverseActionsNotificationEmails": {
-            "type": "array",
-            "description": "List of email addresses for adverse actions notifications",
-            "items": {
-              "type": "string",
-              "format": "email"
-            }
-          },
-          "licenseeRegistrationEnabled": {
-            "type": "boolean",
-            "description": "Denotes whether licensee registration is enabled"
-          },
-          "compactAbbr": {
-            "type": "string",
-            "description": "The abbreviation of the compact"
-          },
-          "transactionFeeConfiguration": {
-            "type": "object",
-            "properties": {
-              "licenseeCharges": {
-                "required": [
-                  "active",
-                  "chargeAmount",
-                  "chargeType"
-                ],
-                "type": "object",
-                "properties": {
-                  "chargeType": {
-                    "type": "string",
-                    "description": "The type of transaction fee charge",
-                    "enum": [
-                      "FLAT_FEE_PER_PRIVILEGE"
-                    ]
-                  },
-                  "active": {
-                    "type": "boolean",
-                    "description": "Whether the compact is charging licensees transaction fees"
-                  },
-                  "chargeAmount": {
-                    "type": "number",
-                    "description": "The amount to charge per privilege purchased"
-                  }
-                }
-              }
-            }
-          },
-          "compactName": {
-            "type": "string",
-            "description": "The full name of the compact"
-          },
-          "compactOperationsTeamEmails": {
-            "type": "array",
-            "description": "List of email addresses for operations team notifications",
-            "items": {
-              "type": "string",
-              "format": "email"
-            }
-          }
-        }
-      },
-      "SandboLicen2kD7SUbIH9qe": {
-        "type": "object",
-        "properties": {
-          "permissions": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "object",
-              "properties": {
-                "actions": {
-                  "type": "object",
-                  "properties": {
-                    "readPrivate": {
-                      "type": "boolean"
-                    },
-                    "admin": {
-                      "type": "boolean"
-                    },
-                    "readSSN": {
-                      "type": "boolean"
-                    }
-                  }
-                },
-                "jurisdictions": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "type": "object",
-                    "properties": {
-                      "actions": {
-                        "type": "object",
-                        "properties": {
-                          "readPrivate": {
-                            "type": "boolean"
-                          },
-                          "admin": {
-                            "type": "boolean"
-                          },
-                          "write": {
-                            "type": "boolean"
-                          },
-                          "readSSN": {
-                            "type": "boolean"
-                          }
-                        },
-                        "additionalProperties": false
-                      }
-                    }
-                  }
-                }
-              },
-              "additionalProperties": false
-            }
-          }
-        },
-        "additionalProperties": false
-      },
-      "SandboLicen7ukin0mgVL4A": {
-        "required": [
-          "compact",
-          "dob",
-          "email",
-          "familyName",
-          "givenName",
-          "jurisdiction",
-          "licenseType",
-          "partialSocial",
-          "token"
-        ],
-        "type": "object",
-        "properties": {
-          "licenseType": {
-            "maxLength": 500,
-            "type": "string",
-            "description": "Type of license",
-            "enum": [
-              "audiologist",
-              "speech-language pathologist",
-              "occupational therapist",
-              "occupational therapy assistant",
-              "licensed professional counselor"
-            ]
-          },
-          "compact": {
-            "maxLength": 100,
-            "type": "string",
-            "description": "Compact name"
-          },
-          "dob": {
-            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-            "type": "string",
-            "description": "Date of birth in YYYY-MM-DD format"
-          },
-          "givenName": {
-            "maxLength": 200,
-            "type": "string",
-            "description": "Provider's given name"
-          },
-          "familyName": {
-            "maxLength": 200,
-            "type": "string",
-            "description": "Provider's family name"
-          },
-          "jurisdiction": {
-            "maxLength": 2,
-            "minLength": 2,
-            "type": "string",
-            "description": "Two-letter jurisdiction code",
-            "enum": [
-              "al",
-              "ak",
-              "az",
-              "ar",
-              "ca",
-              "co",
-              "ct",
-              "de",
-              "dc",
-              "fl",
-              "ga",
-              "hi",
-              "id",
-              "il",
-              "in",
-              "ia",
-              "ks",
-              "ky",
-              "la",
-              "me",
-              "md",
-              "ma",
-              "mi",
-              "mn",
-              "ms",
-              "mo",
-              "mt",
-              "ne",
-              "nv",
-              "nh",
-              "nj",
-              "nm",
-              "ny",
-              "nc",
-              "nd",
-              "oh",
-              "ok",
-              "or",
-              "pa",
-              "pr",
-              "ri",
-              "sc",
-              "sd",
-              "tn",
-              "tx",
-              "ut",
-              "vt",
-              "va",
-              "vi",
-              "wa",
-              "wv",
-              "wi",
-              "wy"
-            ]
-          },
-          "partialSocial": {
-            "maxLength": 4,
-            "minLength": 4,
-            "type": "string",
-            "description": "Last 4 digits of SSN"
-          },
-          "email": {
-            "maxLength": 100,
-            "minLength": 5,
-            "type": "string",
-            "description": "Provider's email address",
-            "format": "email"
-          },
-          "token": {
-            "type": "string",
-            "description": "ReCAPTCHA token"
-          }
-        }
-      },
-      "SandboLicenpZ59tBYcLolt": {
-        "required": [
-          "affiliationType",
-          "fileNames"
-        ],
-        "type": "object",
-        "properties": {
-          "affiliationType": {
-            "type": "string",
-            "description": "The type of military affiliation",
-            "enum": [
-              "militaryMember",
-              "militaryMemberSpouse"
-            ]
-          },
-          "fileNames": {
-            "type": "array",
-            "description": "List of military affiliation file names",
-            "items": {
-              "maxLength": 150,
-              "type": "string",
-              "description": "The name of the file being uploaded"
-            }
-          }
-        },
-        "additionalProperties": false
-      },
-      "SandboLicenVdtGkxBrH33j": {
-        "required": [
-          "pagination",
-          "providers"
-        ],
-        "type": "object",
-        "properties": {
-          "pagination": {
-            "type": "object",
-            "properties": {
-              "prevLastKey": {
-                "maxLength": 1024,
-                "minLength": 1,
-                "type": "object"
-              },
-              "lastKey": {
-                "maxLength": 1024,
-                "minLength": 1,
-                "type": "object"
-              },
-              "pageSize": {
-                "maximum": 100,
-                "minimum": 5,
-                "type": "integer"
-              }
-            }
-          },
-          "query": {
-            "type": "object",
-            "properties": {
-              "providerId": {
-                "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
-                "type": "string",
-                "description": "Internal UUID for the provider"
-              },
-              "jurisdiction": {
-                "type": "string",
-                "description": "Filter for providers with privilege/license in a jurisdiction",
-                "enum": [
-                  "al",
-                  "ak",
-                  "az",
-                  "ar",
-                  "ca",
-                  "co",
-                  "ct",
-                  "de",
-                  "dc",
-                  "fl",
-                  "ga",
-                  "hi",
-                  "id",
-                  "il",
-                  "in",
-                  "ia",
-                  "ks",
-                  "ky",
-                  "la",
-                  "me",
-                  "md",
-                  "ma",
-                  "mi",
-                  "mn",
-                  "ms",
-                  "mo",
-                  "mt",
-                  "ne",
-                  "nv",
-                  "nh",
-                  "nj",
-                  "nm",
-                  "ny",
-                  "nc",
-                  "nd",
-                  "oh",
-                  "ok",
-                  "or",
-                  "pa",
-                  "pr",
-                  "ri",
-                  "sc",
-                  "sd",
-                  "tn",
-                  "tx",
-                  "ut",
-                  "vt",
-                  "va",
-                  "vi",
-                  "wa",
-                  "wv",
-                  "wi",
-                  "wy"
-                ]
-              },
-              "givenName": {
-                "maxLength": 100,
-                "type": "string",
-                "description": "Filter for providers with a given name"
-              },
-              "familyName": {
-                "maxLength": 100,
-                "type": "string",
-                "description": "Filter for providers with a family name"
-              }
-            }
-          },
-          "sorting": {
-            "required": [
-              "key"
-            ],
-            "type": "object",
-            "properties": {
-              "key": {
-                "type": "string",
-                "description": "The key to sort results by",
-                "enum": [
-                  "dateOfUpdate",
-                  "familyName"
-                ]
-              },
-              "direction": {
-                "type": "string",
-                "description": "Direction to sort results by",
-                "enum": [
-                  "ascending",
-                  "descending"
-                ]
-              }
-            },
-            "description": "How to sort results"
-          },
-          "providers": {
-            "maxLength": 100,
-            "type": "array",
-            "items": {
-              "required": [
-                "compact",
-                "familyName",
-                "givenName",
-                "licenseJurisdiction",
-                "privilegeJurisdictions",
-                "providerId",
-                "type"
-              ],
-              "type": "object",
-              "properties": {
-                "licenseJurisdiction": {
-                  "type": "string",
-                  "enum": [
-                    "al",
-                    "ak",
-                    "az",
-                    "ar",
-                    "ca",
-                    "co",
-                    "ct",
-                    "de",
-                    "dc",
-                    "fl",
-                    "ga",
-                    "hi",
-                    "id",
-                    "il",
-                    "in",
-                    "ia",
-                    "ks",
-                    "ky",
-                    "la",
-                    "me",
-                    "md",
-                    "ma",
-                    "mi",
-                    "mn",
-                    "ms",
-                    "mo",
-                    "mt",
-                    "ne",
-                    "nv",
-                    "nh",
-                    "nj",
-                    "nm",
-                    "ny",
-                    "nc",
-                    "nd",
-                    "oh",
-                    "ok",
-                    "or",
-                    "pa",
-                    "pr",
-                    "ri",
-                    "sc",
-                    "sd",
-                    "tn",
-                    "tx",
-                    "ut",
-                    "vt",
-                    "va",
-                    "vi",
-                    "wa",
-                    "wv",
-                    "wi",
-                    "wy"
-                  ]
-                },
-                "compact": {
-                  "type": "string",
-                  "enum": [
-                    "aslp",
-                    "octp",
-                    "coun"
-                  ]
-                },
-                "providerId": {
-                  "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
-                  "type": "string"
-                },
-                "npi": {
-                  "pattern": "^[0-9]{10}$",
-                  "type": "string"
-                },
-                "givenName": {
-                  "maxLength": 100,
-                  "minLength": 1,
-                  "type": "string"
-                },
-                "familyName": {
-                  "maxLength": 100,
-                  "minLength": 1,
-                  "type": "string"
-                },
-                "middleName": {
-                  "maxLength": 100,
-                  "minLength": 1,
-                  "type": "string"
-                },
-                "privilegeJurisdictions": {
-                  "type": "array",
-                  "items": {
-                    "type": "string",
-                    "enum": [
-                      "al",
-                      "ak",
-                      "az",
-                      "ar",
-                      "ca",
-                      "co",
-                      "ct",
-                      "de",
-                      "dc",
-                      "fl",
-                      "ga",
-                      "hi",
-                      "id",
-                      "il",
-                      "in",
-                      "ia",
-                      "ks",
-                      "ky",
-                      "la",
-                      "me",
-                      "md",
-                      "ma",
-                      "mi",
-                      "mn",
-                      "ms",
-                      "mo",
-                      "mt",
-                      "ne",
-                      "nv",
-                      "nh",
-                      "nj",
-                      "nm",
-                      "ny",
-                      "nc",
-                      "nd",
-                      "oh",
-                      "ok",
-                      "or",
-                      "pa",
-                      "pr",
-                      "ri",
-                      "sc",
-                      "sd",
-                      "tn",
-                      "tx",
-                      "ut",
-                      "vt",
-                      "va",
-                      "vi",
-                      "wa",
-                      "wv",
-                      "wi",
-                      "wy"
-                    ]
-                  }
-                },
-                "type": {
-                  "type": "string",
-                  "enum": [
-                    "provider"
-                  ]
-                },
-                "suffix": {
-                  "maxLength": 100,
-                  "minLength": 1,
-                  "type": "string"
-                },
-                "currentHomeJurisdiction": {
-                  "type": "string",
-                  "description": "The current jurisdiction postal abbreviation if known.",
-                  "enum": [
-                    "al",
-                    "ak",
-                    "az",
-                    "ar",
-                    "ca",
-                    "co",
-                    "ct",
-                    "de",
-                    "dc",
-                    "fl",
-                    "ga",
-                    "hi",
-                    "id",
-                    "il",
-                    "in",
-                    "ia",
-                    "ks",
-                    "ky",
-                    "la",
-                    "me",
-                    "md",
-                    "ma",
-                    "mi",
-                    "mn",
-                    "ms",
-                    "mo",
-                    "mt",
-                    "ne",
-                    "nv",
-                    "nh",
-                    "nj",
-                    "nm",
-                    "ny",
-                    "nc",
-                    "nd",
-                    "oh",
-                    "ok",
-                    "or",
-                    "pa",
-                    "pr",
-                    "ri",
-                    "sc",
-                    "sd",
-                    "tn",
-                    "tx",
-                    "ut",
-                    "vt",
-                    "va",
-                    "vi",
-                    "wa",
-                    "wv",
-                    "wi",
-                    "wy",
-                    "other",
-                    "unknown"
-                  ]
-                },
-                "dateOfUpdate": {
-                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-                  "type": "string",
-                  "format": "date"
-                }
-              }
-            }
-          }
-        }
-      },
-      "SandboLicenYkt0OaXOkGrL": {
-        "type": "object",
-        "properties": {
-          "message": {
-            "type": "string",
-            "description": "Message indicating success or failure"
-          },
-          "errors": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "array",
-                "description": "List of error messages for a field",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "description": "Errors for a specific record"
-            },
-            "description": "Validation errors by record index"
-          }
-        }
-      },
-      "SandboLicencCc9YDW8JDMi": {
-        "required": [
-          "jurisdictionAdverseActionsNotificationEmails",
-          "jurisdictionOperationsTeamEmails",
-          "jurisdictionSummaryReportNotificationEmails",
-          "jurisprudenceRequirements",
-          "licenseeRegistrationEnabled",
-          "privilegeFees"
-        ],
-        "type": "object",
-        "properties": {
-          "privilegeFees": {
-            "type": "array",
-            "description": "The fees for the privileges by license type",
-            "items": {
-              "required": [
-                "amount",
-                "licenseTypeAbbreviation"
-              ],
-              "type": "object",
-              "properties": {
-                "amount": {
-                  "minimum": 0,
-                  "type": "number"
-                },
-                "militaryRate": {
-                  "description": "Optional military rate for the privilege fee.",
-                  "oneOf": [
-                    {
-                      "minimum": 0,
-                      "type": "number"
-                    },
-                    null
-                  ]
-                },
-                "licenseTypeAbbreviation": {
-                  "type": "string",
-                  "enum": [
-                    "aud",
-                    "slp",
-                    "ot",
-                    "ota",
-                    "lpc"
-                  ]
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "jurisdictionAdverseActionsNotificationEmails": {
-            "maxItems": 10,
-            "minItems": 1,
-            "uniqueItems": true,
-            "type": "array",
-            "description": "List of email addresses for adverse actions notifications",
-            "items": {
-              "type": "string",
-              "format": "email"
-            }
-          },
-          "jurisdictionOperationsTeamEmails": {
-            "maxItems": 10,
-            "minItems": 1,
-            "uniqueItems": true,
-            "type": "array",
-            "description": "List of email addresses for operations team notifications",
-            "items": {
-              "type": "string",
-              "format": "email"
-            }
-          },
-          "jurisprudenceRequirements": {
-            "required": [
-              "required"
-            ],
-            "type": "object",
-            "properties": {
-              "linkToDocumentation": {
-                "description": "Optional link to jurisprudence documentation",
-                "oneOf": [
-                  {
-                    "type": "string"
-                  },
-                  null
-                ]
-              },
-              "required": {
-                "type": "boolean",
-                "description": "Whether jurisprudence requirements exist"
-              }
-            },
-            "additionalProperties": false
-          },
-          "licenseeRegistrationEnabled": {
-            "type": "boolean",
-            "description": "Denotes whether licensee registration is enabled"
-          },
-          "jurisdictionSummaryReportNotificationEmails": {
-            "maxItems": 10,
-            "minItems": 1,
-            "uniqueItems": true,
-            "type": "array",
-            "description": "List of email addresses for summary report notifications",
-            "items": {
-              "type": "string",
-              "format": "email"
-            }
-          }
-        },
-        "additionalProperties": false
-      },
-      "SandboLicengtrzYomnhdRZ": {
+      "SandboLicenI2vqm7fRdSBi": {
         "required": [
           "items",
           "pagination"
@@ -4969,61 +4883,1250 @@
           }
         }
       },
-      "SandboLicenAKvYsexFE18E": {
+      "SandboLicenLPepHoMLi1aj": {
         "required": [
-          "clinicalPrivilegeActionCategory",
-          "encumbranceEffectiveDate",
-          "encumbranceType"
+          "apiLoginId",
+          "processor",
+          "transactionKey"
         ],
         "type": "object",
         "properties": {
-          "encumbranceEffectiveDate": {
-            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+          "apiLoginId": {
+            "maxLength": 100,
+            "minLength": 1,
             "type": "string",
-            "description": "The effective date of the encumbrance",
-            "format": "date"
+            "description": "The api login id for the payment processor"
           },
-          "encumbranceType": {
+          "transactionKey": {
+            "maxLength": 100,
+            "minLength": 1,
             "type": "string",
-            "description": "The type of encumbrance",
+            "description": "The transaction key for the payment processor"
+          },
+          "processor": {
+            "type": "string",
+            "description": "The type of payment processor",
             "enum": [
-              "fine",
-              "reprimand",
-              "required supervision",
-              "completion of continuing education",
-              "public reprimand",
-              "probation",
-              "injunctive action",
-              "suspension",
-              "revocation",
-              "denial",
-              "surrender of license",
-              "modification of previous action-extension",
-              "modification of previous action-reduction",
-              "other monitoring",
-              "other adjudicated action not listed"
+              "authorize.net"
             ]
-          },
-          "clinicalPrivilegeActionCategory": {
-            "type": "string",
-            "description": "The category of clinical privilege action"
           }
         },
         "additionalProperties": false
       },
-      "SandboLicenmbpMIz6MrP1s": {
+      "SandboLicenrzUhY3WW0Y7L": {
         "required": [
-          "message"
+          "compactAdverseActionsNotificationEmails",
+          "compactCommissionFee",
+          "compactOperationsTeamEmails",
+          "compactSummaryReportNotificationEmails",
+          "configuredStates",
+          "licenseeRegistrationEnabled"
+        ],
+        "type": "object",
+        "properties": {
+          "configuredStates": {
+            "type": "array",
+            "description": "List of states that have submitted configurations and their live status",
+            "items": {
+              "required": [
+                "isLive",
+                "postalAbbreviation"
+              ],
+              "type": "object",
+              "properties": {
+                "postalAbbreviation": {
+                  "type": "string",
+                  "description": "The postal abbreviation of the jurisdiction",
+                  "enum": [
+                    "al",
+                    "ak",
+                    "az",
+                    "ar",
+                    "ca",
+                    "co",
+                    "ct",
+                    "de",
+                    "dc",
+                    "fl",
+                    "ga",
+                    "hi",
+                    "id",
+                    "il",
+                    "in",
+                    "ia",
+                    "ks",
+                    "ky",
+                    "la",
+                    "me",
+                    "md",
+                    "ma",
+                    "mi",
+                    "mn",
+                    "ms",
+                    "mo",
+                    "mt",
+                    "ne",
+                    "nv",
+                    "nh",
+                    "nj",
+                    "nm",
+                    "ny",
+                    "nc",
+                    "nd",
+                    "oh",
+                    "ok",
+                    "or",
+                    "pa",
+                    "pr",
+                    "ri",
+                    "sc",
+                    "sd",
+                    "tn",
+                    "tx",
+                    "ut",
+                    "vt",
+                    "va",
+                    "vi",
+                    "wa",
+                    "wv",
+                    "wi",
+                    "wy"
+                  ]
+                },
+                "isLive": {
+                  "type": "boolean",
+                  "description": "Whether the state is live and available for registrations."
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "compactCommissionFee": {
+            "required": [
+              "feeAmount",
+              "feeType"
+            ],
+            "type": "object",
+            "properties": {
+              "feeAmount": {
+                "minimum": 0,
+                "type": "number"
+              },
+              "feeType": {
+                "type": "string",
+                "enum": [
+                  "FLAT_RATE"
+                ]
+              }
+            },
+            "additionalProperties": false
+          },
+          "compactSummaryReportNotificationEmails": {
+            "maxItems": 10,
+            "minItems": 1,
+            "uniqueItems": true,
+            "type": "array",
+            "description": "List of email addresses for summary report notifications",
+            "items": {
+              "type": "string",
+              "format": "email"
+            }
+          },
+          "compactAdverseActionsNotificationEmails": {
+            "maxItems": 10,
+            "minItems": 1,
+            "uniqueItems": true,
+            "type": "array",
+            "description": "List of email addresses for adverse actions notifications",
+            "items": {
+              "type": "string",
+              "format": "email"
+            }
+          },
+          "licenseeRegistrationEnabled": {
+            "type": "boolean",
+            "description": "Denotes whether licensee registration is enabled"
+          },
+          "transactionFeeConfiguration": {
+            "type": "object",
+            "properties": {
+              "licenseeCharges": {
+                "required": [
+                  "active",
+                  "chargeAmount",
+                  "chargeType"
+                ],
+                "type": "object",
+                "properties": {
+                  "chargeType": {
+                    "type": "string",
+                    "description": "The type of transaction fee charge",
+                    "enum": [
+                      "FLAT_FEE_PER_PRIVILEGE"
+                    ]
+                  },
+                  "active": {
+                    "type": "boolean",
+                    "description": "Whether the compact is charging licensees transaction fees"
+                  },
+                  "chargeAmount": {
+                    "minimum": 0,
+                    "type": "number",
+                    "description": "The amount to charge per privilege purchased"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          "compactOperationsTeamEmails": {
+            "maxItems": 10,
+            "minItems": 1,
+            "uniqueItems": true,
+            "type": "array",
+            "description": "List of email addresses for operations team notifications",
+            "items": {
+              "type": "string",
+              "format": "email"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "SandboLicenPAsEF1Ia4s7g": {
+        "required": [
+          "deactivationNote"
+        ],
+        "type": "object",
+        "properties": {
+          "deactivationNote": {
+            "maxLength": 256,
+            "type": "string",
+            "description": "Note describing why the privilege is being deactivated"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SandboLicenLLx7v2Sq2Nku": {
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "type": "object",
+            "properties": {
+              "prevLastKey": {
+                "maxLength": 1024,
+                "minLength": 1,
+                "type": "object"
+              },
+              "lastKey": {
+                "maxLength": 1024,
+                "minLength": 1,
+                "type": "object"
+              },
+              "pageSize": {
+                "maximum": 100,
+                "minimum": 5,
+                "type": "integer"
+              }
+            }
+          },
+          "users": {
+            "type": "array",
+            "items": {
+              "required": [
+                "attributes",
+                "permissions",
+                "status",
+                "userId"
+              ],
+              "type": "object",
+              "properties": {
+                "permissions": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "object",
+                    "properties": {
+                      "actions": {
+                        "type": "object",
+                        "properties": {
+                          "readPrivate": {
+                            "type": "boolean"
+                          },
+                          "admin": {
+                            "type": "boolean"
+                          },
+                          "readSSN": {
+                            "type": "boolean"
+                          }
+                        }
+                      },
+                      "jurisdictions": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "type": "object",
+                          "properties": {
+                            "actions": {
+                              "type": "object",
+                              "properties": {
+                                "readPrivate": {
+                                  "type": "boolean"
+                                },
+                                "admin": {
+                                  "type": "boolean"
+                                },
+                                "write": {
+                                  "type": "boolean"
+                                },
+                                "readSSN": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "attributes": {
+                  "required": [
+                    "email",
+                    "familyName",
+                    "givenName"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "givenName": {
+                      "maxLength": 100,
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "familyName": {
+                      "maxLength": 100,
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "email": {
+                      "maxLength": 100,
+                      "minLength": 5,
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "userId": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "active",
+                    "inactive"
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "SandboLicenobivPmYh5SvH": {
+        "required": [
+          "compact",
+          "events",
+          "jurisdiction",
+          "licenseType",
+          "privilegeId",
+          "providerId"
+        ],
+        "type": "object",
+        "properties": {
+          "licenseType": {
+            "type": "string",
+            "enum": [
+              "audiologist",
+              "speech-language pathologist",
+              "occupational therapist",
+              "occupational therapy assistant",
+              "licensed professional counselor"
+            ]
+          },
+          "compact": {
+            "type": "string",
+            "enum": [
+              "aslp",
+              "octp",
+              "coun"
+            ]
+          },
+          "privilegeId": {
+            "type": "string"
+          },
+          "providerId": {
+            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+            "type": "string"
+          },
+          "jurisdiction": {
+            "type": "string",
+            "enum": [
+              "al",
+              "ak",
+              "az",
+              "ar",
+              "ca",
+              "co",
+              "ct",
+              "de",
+              "dc",
+              "fl",
+              "ga",
+              "hi",
+              "id",
+              "il",
+              "in",
+              "ia",
+              "ks",
+              "ky",
+              "la",
+              "me",
+              "md",
+              "ma",
+              "mi",
+              "mn",
+              "ms",
+              "mo",
+              "mt",
+              "ne",
+              "nv",
+              "nh",
+              "nj",
+              "nm",
+              "ny",
+              "nc",
+              "nd",
+              "oh",
+              "ok",
+              "or",
+              "pa",
+              "pr",
+              "ri",
+              "sc",
+              "sd",
+              "tn",
+              "tx",
+              "ut",
+              "vt",
+              "va",
+              "vi",
+              "wa",
+              "wv",
+              "wi",
+              "wy"
+            ]
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "required": [
+                "createDate",
+                "dateOfUpdate",
+                "effectiveDate",
+                "type",
+                "updateType"
+              ],
+              "type": "object",
+              "properties": {
+                "note": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "privilegeUpdate"
+                  ]
+                },
+                "dateOfUpdate": {
+                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                  "type": "string",
+                  "format": "date"
+                },
+                "effectiveDate": {
+                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                  "type": "string",
+                  "format": "date"
+                },
+                "updateType": {
+                  "type": "string",
+                  "enum": [
+                    "deactivation",
+                    "expiration",
+                    "issuance",
+                    "other",
+                    "renewal",
+                    "encumbrance",
+                    "homeJurisdictionChange",
+                    "registration",
+                    "lifting_encumbrance",
+                    "licenseDeactivation",
+                    "emailChange"
+                  ]
+                },
+                "createDate": {
+                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                  "type": "string",
+                  "format": "date"
+                }
+              }
+            }
+          }
+        }
+      },
+      "SandboLicenI4CqYMff5SWl": {
+        "type": "object",
+        "properties": {
+          "attributes": {
+            "type": "object",
+            "properties": {
+              "givenName": {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              "familyName": {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "SandboLiceng72nqBB23bmL": {
+        "required": [
+          "transactionId"
         ],
         "type": "object",
         "properties": {
           "message": {
             "type": "string",
-            "description": "A message about the request"
+            "description": "A message about the transaction"
+          },
+          "transactionId": {
+            "type": "string",
+            "description": "The transaction id for the purchase"
           }
         }
       },
-      "SandboLicenPZct75hvqcG0": {
+      "SandboLicenJZNKekBSUCl5": {
+        "required": [
+          "affiliationType",
+          "fileNames"
+        ],
+        "type": "object",
+        "properties": {
+          "affiliationType": {
+            "type": "string",
+            "description": "The type of military affiliation",
+            "enum": [
+              "militaryMember",
+              "militaryMemberSpouse"
+            ]
+          },
+          "fileNames": {
+            "type": "array",
+            "description": "List of military affiliation file names",
+            "items": {
+              "maxLength": 150,
+              "type": "string",
+              "description": "The name of the file being uploaded"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "SandboLicenbGNGFVLD0EDE": {
+        "required": [
+          "compact",
+          "jurisdictionAdverseActionsNotificationEmails",
+          "jurisdictionName",
+          "jurisdictionOperationsTeamEmails",
+          "jurisdictionSummaryReportNotificationEmails",
+          "jurisprudenceRequirements",
+          "licenseeRegistrationEnabled",
+          "postalAbbreviation",
+          "privilegeFees"
+        ],
+        "type": "object",
+        "properties": {
+          "privilegeFees": {
+            "type": "array",
+            "description": "The fees for the privileges by license type",
+            "items": {
+              "required": [
+                "amount",
+                "licenseTypeAbbreviation"
+              ],
+              "type": "object",
+              "properties": {
+                "amount": {
+                  "type": "number"
+                },
+                "militaryRate": {
+                  "description": "Optional military rate for the privilege fee.",
+                  "oneOf": [
+                    {
+                      "minimum": 0,
+                      "type": "number"
+                    },
+                    null
+                  ]
+                },
+                "licenseTypeAbbreviation": {
+                  "type": "string",
+                  "enum": [
+                    "aud",
+                    "slp",
+                    "ot",
+                    "ota",
+                    "lpc"
+                  ]
+                }
+              }
+            }
+          },
+          "postalAbbreviation": {
+            "type": "string",
+            "description": "The postal abbreviation of the jurisdiction"
+          },
+          "jurisdictionAdverseActionsNotificationEmails": {
+            "type": "array",
+            "description": "List of email addresses for adverse actions notifications",
+            "items": {
+              "type": "string",
+              "format": "email"
+            }
+          },
+          "jurisdictionOperationsTeamEmails": {
+            "type": "array",
+            "description": "List of email addresses for operations team notifications",
+            "items": {
+              "type": "string",
+              "format": "email"
+            }
+          },
+          "compact": {
+            "type": "string",
+            "description": "The compact this jurisdiction configuration belongs to",
+            "enum": [
+              "aslp",
+              "octp",
+              "coun"
+            ]
+          },
+          "jurisprudenceRequirements": {
+            "required": [
+              "required"
+            ],
+            "type": "object",
+            "properties": {
+              "linkToDocumentation": {
+                "description": "Optional link to jurisprudence documentation",
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  null
+                ]
+              },
+              "required": {
+                "type": "boolean",
+                "description": "Whether jurisprudence requirements exist"
+              }
+            }
+          },
+          "licenseeRegistrationEnabled": {
+            "type": "boolean",
+            "description": "Denotes whether licensee registration is enabled"
+          },
+          "jurisdictionName": {
+            "type": "string",
+            "description": "The name of the jurisdiction"
+          },
+          "jurisdictionSummaryReportNotificationEmails": {
+            "type": "array",
+            "description": "List of email addresses for summary report notifications",
+            "items": {
+              "type": "string",
+              "format": "email"
+            }
+          }
+        }
+      },
+      "SandboLicenC1PiOZAh5Usx": {
+        "type": "object",
+        "properties": {
+          "permissions": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "actions": {
+                  "type": "object",
+                  "properties": {
+                    "readPrivate": {
+                      "type": "boolean"
+                    },
+                    "admin": {
+                      "type": "boolean"
+                    },
+                    "readSSN": {
+                      "type": "boolean"
+                    }
+                  }
+                },
+                "jurisdictions": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "object",
+                    "properties": {
+                      "actions": {
+                        "type": "object",
+                        "properties": {
+                          "readPrivate": {
+                            "type": "boolean"
+                          },
+                          "admin": {
+                            "type": "boolean"
+                          },
+                          "write": {
+                            "type": "boolean"
+                          },
+                          "readSSN": {
+                            "type": "boolean"
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    }
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "SandboLicenHcuQxywUvhOh": {
+        "type": "object",
+        "properties": {
+          "dateCreated": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "attestationId": {
+            "type": "string"
+          },
+          "compact": {
+            "type": "string",
+            "enum": [
+              "aslp",
+              "octp",
+              "coun"
+            ]
+          },
+          "text": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "attestation"
+            ]
+          },
+          "locale": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "required": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SandboLicenDb8Dl04rAoPD": {
+        "required": [
+          "attributes",
+          "permissions"
+        ],
+        "type": "object",
+        "properties": {
+          "permissions": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "actions": {
+                  "type": "object",
+                  "properties": {
+                    "readPrivate": {
+                      "type": "boolean"
+                    },
+                    "admin": {
+                      "type": "boolean"
+                    },
+                    "readSSN": {
+                      "type": "boolean"
+                    }
+                  }
+                },
+                "jurisdictions": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "object",
+                    "properties": {
+                      "actions": {
+                        "type": "object",
+                        "properties": {
+                          "readPrivate": {
+                            "type": "boolean"
+                          },
+                          "admin": {
+                            "type": "boolean"
+                          },
+                          "write": {
+                            "type": "boolean"
+                          },
+                          "readSSN": {
+                            "type": "boolean"
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    }
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "attributes": {
+            "required": [
+              "email",
+              "familyName",
+              "givenName"
+            ],
+            "type": "object",
+            "properties": {
+              "givenName": {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              "familyName": {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              "email": {
+                "maxLength": 100,
+                "minLength": 5,
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "SandboLicen8QcYRI7AzDyX": {
+        "required": [
+          "jurisdiction"
+        ],
+        "type": "object",
+        "properties": {
+          "jurisdiction": {
+            "type": "string",
+            "description": "The jurisdiction postal abbreviation to set as home jurisdiction",
+            "enum": [
+              "al",
+              "ak",
+              "az",
+              "ar",
+              "ca",
+              "co",
+              "ct",
+              "de",
+              "dc",
+              "fl",
+              "ga",
+              "hi",
+              "id",
+              "il",
+              "in",
+              "ia",
+              "ks",
+              "ky",
+              "la",
+              "me",
+              "md",
+              "ma",
+              "mi",
+              "mn",
+              "ms",
+              "mo",
+              "mt",
+              "ne",
+              "nv",
+              "nh",
+              "nj",
+              "nm",
+              "ny",
+              "nc",
+              "nd",
+              "oh",
+              "ok",
+              "or",
+              "pa",
+              "pr",
+              "ri",
+              "sc",
+              "sd",
+              "tn",
+              "tx",
+              "ut",
+              "vt",
+              "va",
+              "vi",
+              "wa",
+              "wv",
+              "wi",
+              "wy",
+              "other"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "SandboLicenBWZgN83iyevY": {
+        "required": [
+          "attestations",
+          "licenseType",
+          "orderInformation",
+          "selectedJurisdictions"
+        ],
+        "type": "object",
+        "properties": {
+          "licenseType": {
+            "type": "string",
+            "description": "The type of license the provider is purchasing a privilege for.",
+            "enum": [
+              "audiologist",
+              "speech-language pathologist",
+              "occupational therapist",
+              "occupational therapy assistant",
+              "licensed professional counselor"
+            ]
+          },
+          "attestations": {
+            "type": "array",
+            "description": "List of attestations that the user has agreed to",
+            "items": {
+              "required": [
+                "attestationId",
+                "version"
+              ],
+              "type": "object",
+              "properties": {
+                "attestationId": {
+                  "maxLength": 100,
+                  "type": "string",
+                  "description": "The ID of the attestation"
+                },
+                "version": {
+                  "maxLength": 10,
+                  "pattern": "^\\d+$",
+                  "type": "string",
+                  "description": "The version of the attestation"
+                }
+              }
+            }
+          },
+          "orderInformation": {
+            "required": [
+              "opaqueData"
+            ],
+            "type": "object",
+            "properties": {
+              "opaqueData": {
+                "required": [
+                  "dataDescriptor",
+                  "dataValue"
+                ],
+                "type": "object",
+                "properties": {
+                  "dataValue": {
+                    "maxLength": 1000,
+                    "type": "string",
+                    "description": "The opaque data value token returned by Authorize.Net Accept UI"
+                  },
+                  "dataDescriptor": {
+                    "maxLength": 100,
+                    "type": "string",
+                    "description": "The opaque data descriptor returned by Authorize.Net Accept UI"
+                  }
+                }
+              }
+            }
+          },
+          "selectedJurisdictions": {
+            "maxLength": 20,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Jurisdictions a provider has selected to purchase privileges in.",
+              "enum": [
+                "al",
+                "ak",
+                "az",
+                "ar",
+                "ca",
+                "co",
+                "ct",
+                "de",
+                "dc",
+                "fl",
+                "ga",
+                "hi",
+                "id",
+                "il",
+                "in",
+                "ia",
+                "ks",
+                "ky",
+                "la",
+                "me",
+                "md",
+                "ma",
+                "mi",
+                "mn",
+                "ms",
+                "mo",
+                "mt",
+                "ne",
+                "nv",
+                "nh",
+                "nj",
+                "nm",
+                "ny",
+                "nc",
+                "nd",
+                "oh",
+                "ok",
+                "or",
+                "pa",
+                "pr",
+                "ri",
+                "sc",
+                "sd",
+                "tn",
+                "tx",
+                "ut",
+                "vt",
+                "va",
+                "vi",
+                "wa",
+                "wv",
+                "wi",
+                "wy"
+              ]
+            }
+          }
+        }
+      },
+      "SandboLicenBxfAXNgCl0f1": {
+        "required": [
+          "compactAbbr",
+          "compactAdverseActionsNotificationEmails",
+          "compactCommissionFee",
+          "compactName",
+          "compactOperationsTeamEmails",
+          "compactSummaryReportNotificationEmails",
+          "configuredStates",
+          "licenseeRegistrationEnabled"
+        ],
+        "type": "object",
+        "properties": {
+          "configuredStates": {
+            "type": "array",
+            "description": "List of states that have submitted configurations and their live status",
+            "items": {
+              "required": [
+                "isLive",
+                "postalAbbreviation"
+              ],
+              "type": "object",
+              "properties": {
+                "postalAbbreviation": {
+                  "type": "string",
+                  "description": "The postal abbreviation of the jurisdiction",
+                  "enum": [
+                    "al",
+                    "ak",
+                    "az",
+                    "ar",
+                    "ca",
+                    "co",
+                    "ct",
+                    "de",
+                    "dc",
+                    "fl",
+                    "ga",
+                    "hi",
+                    "id",
+                    "il",
+                    "in",
+                    "ia",
+                    "ks",
+                    "ky",
+                    "la",
+                    "me",
+                    "md",
+                    "ma",
+                    "mi",
+                    "mn",
+                    "ms",
+                    "mo",
+                    "mt",
+                    "ne",
+                    "nv",
+                    "nh",
+                    "nj",
+                    "nm",
+                    "ny",
+                    "nc",
+                    "nd",
+                    "oh",
+                    "ok",
+                    "or",
+                    "pa",
+                    "pr",
+                    "ri",
+                    "sc",
+                    "sd",
+                    "tn",
+                    "tx",
+                    "ut",
+                    "vt",
+                    "va",
+                    "vi",
+                    "wa",
+                    "wv",
+                    "wi",
+                    "wy"
+                  ]
+                },
+                "isLive": {
+                  "type": "boolean",
+                  "description": "Whether the state is live and available for registrations."
+                }
+              }
+            }
+          },
+          "compactCommissionFee": {
+            "required": [
+              "feeAmount",
+              "feeType"
+            ],
+            "type": "object",
+            "properties": {
+              "feeAmount": {
+                "type": "number"
+              },
+              "feeType": {
+                "type": "string",
+                "enum": [
+                  "FLAT_RATE"
+                ]
+              }
+            }
+          },
+          "compactSummaryReportNotificationEmails": {
+            "type": "array",
+            "description": "List of email addresses for summary report notifications",
+            "items": {
+              "type": "string",
+              "format": "email"
+            }
+          },
+          "compactAdverseActionsNotificationEmails": {
+            "type": "array",
+            "description": "List of email addresses for adverse actions notifications",
+            "items": {
+              "type": "string",
+              "format": "email"
+            }
+          },
+          "licenseeRegistrationEnabled": {
+            "type": "boolean",
+            "description": "Denotes whether licensee registration is enabled"
+          },
+          "compactAbbr": {
+            "type": "string",
+            "description": "The abbreviation of the compact"
+          },
+          "transactionFeeConfiguration": {
+            "type": "object",
+            "properties": {
+              "licenseeCharges": {
+                "required": [
+                  "active",
+                  "chargeAmount",
+                  "chargeType"
+                ],
+                "type": "object",
+                "properties": {
+                  "chargeType": {
+                    "type": "string",
+                    "description": "The type of transaction fee charge",
+                    "enum": [
+                      "FLAT_FEE_PER_PRIVILEGE"
+                    ]
+                  },
+                  "active": {
+                    "type": "boolean",
+                    "description": "Whether the compact is charging licensees transaction fees"
+                  },
+                  "chargeAmount": {
+                    "type": "number",
+                    "description": "The amount to charge per privilege purchased"
+                  }
+                }
+              }
+            }
+          },
+          "compactName": {
+            "type": "string",
+            "description": "The full name of the compact"
+          },
+          "compactOperationsTeamEmails": {
+            "type": "array",
+            "description": "List of email addresses for operations team notifications",
+            "items": {
+              "type": "string",
+              "format": "email"
+            }
+          }
+        }
+      },
+      "SandboLiceno12FSfDWBzow": {
         "required": [
           "pagination",
           "providers"
@@ -5382,552 +6485,7 @@
           }
         }
       },
-      "SandboLicenxh07ORad3MU8": {
-        "required": [
-          "verificationCode"
-        ],
-        "type": "object",
-        "properties": {
-          "verificationCode": {
-            "pattern": "^[0-9]{4}$",
-            "type": "string",
-            "description": "4-digit verification code"
-          }
-        },
-        "additionalProperties": false
-      },
-      "SandboLicen8QW1UOcOxdCL": {
-        "required": [
-          "ssn"
-        ],
-        "type": "object",
-        "properties": {
-          "ssn": {
-            "pattern": "^[0-9]{3}-[0-9]{2}-[0-9]{4}$",
-            "type": "string",
-            "description": "The provider's social security number"
-          }
-        }
-      },
-      "SandboLicenY12lJ6VyuS7X": {
-        "required": [
-          "deactivationNote"
-        ],
-        "type": "object",
-        "properties": {
-          "deactivationNote": {
-            "maxLength": 256,
-            "type": "string",
-            "description": "Note describing why the privilege is being deactivated"
-          }
-        },
-        "additionalProperties": false
-      },
-      "SandboLicenDr5ukrOJkX0A": {
-        "required": [
-          "attributes",
-          "permissions",
-          "status",
-          "userId"
-        ],
-        "type": "object",
-        "properties": {
-          "permissions": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "object",
-              "properties": {
-                "actions": {
-                  "type": "object",
-                  "properties": {
-                    "readPrivate": {
-                      "type": "boolean"
-                    },
-                    "admin": {
-                      "type": "boolean"
-                    },
-                    "readSSN": {
-                      "type": "boolean"
-                    }
-                  }
-                },
-                "jurisdictions": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "type": "object",
-                    "properties": {
-                      "actions": {
-                        "type": "object",
-                        "properties": {
-                          "readPrivate": {
-                            "type": "boolean"
-                          },
-                          "admin": {
-                            "type": "boolean"
-                          },
-                          "write": {
-                            "type": "boolean"
-                          },
-                          "readSSN": {
-                            "type": "boolean"
-                          }
-                        },
-                        "additionalProperties": false
-                      }
-                    }
-                  }
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "attributes": {
-            "required": [
-              "email",
-              "familyName",
-              "givenName"
-            ],
-            "type": "object",
-            "properties": {
-              "givenName": {
-                "maxLength": 100,
-                "minLength": 1,
-                "type": "string"
-              },
-              "familyName": {
-                "maxLength": 100,
-                "minLength": 1,
-                "type": "string"
-              },
-              "email": {
-                "maxLength": 100,
-                "minLength": 5,
-                "type": "string"
-              }
-            },
-            "additionalProperties": false
-          },
-          "userId": {
-            "type": "string"
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "active",
-              "inactive"
-            ]
-          }
-        },
-        "additionalProperties": false
-      },
-      "SandboLicenkXtjzw3zA3yD": {
-        "required": [
-          "upload"
-        ],
-        "type": "object",
-        "properties": {
-          "upload": {
-            "required": [
-              "fields",
-              "url"
-            ],
-            "type": "object",
-            "properties": {
-              "fields": {
-                "type": "object",
-                "additionalProperties": {
-                  "type": "string"
-                }
-              },
-              "url": {
-                "type": "string"
-              }
-            }
-          }
-        }
-      },
-      "SandboLicenL9tIeqzU7WHQ": {
-        "type": "object",
-        "properties": {
-          "dateCreated": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "compact": {
-            "type": "string",
-            "enum": [
-              "aslp",
-              "octp",
-              "coun"
-            ]
-          },
-          "attestationType": {
-            "type": "string"
-          },
-          "text": {
-            "type": "string"
-          },
-          "type": {
-            "type": "string",
-            "enum": [
-              "attestation"
-            ]
-          },
-          "locale": {
-            "type": "string"
-          },
-          "version": {
-            "type": "string"
-          },
-          "required": {
-            "type": "boolean"
-          }
-        }
-      },
-      "SandboLicenyfVkHAncEhXs": {
-        "required": [
-          "effectiveLiftDate"
-        ],
-        "type": "object",
-        "properties": {
-          "effectiveLiftDate": {
-            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-            "type": "string",
-            "description": "The effective date when the encumbrance will be lifted",
-            "format": "date"
-          }
-        },
-        "additionalProperties": false
-      },
-      "SandboLicenjemoBM9bWr3o": {
-        "required": [
-          "affiliationType",
-          "dateOfUpdate",
-          "dateOfUpload",
-          "documentUploadFields",
-          "status"
-        ],
-        "type": "object",
-        "properties": {
-          "dateOfUpload": {
-            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-            "type": "string",
-            "description": "The date the document was uploaded",
-            "format": "date"
-          },
-          "affiliationType": {
-            "type": "string",
-            "description": "The type of military affiliation",
-            "enum": [
-              "militaryMember",
-              "militaryMemberSpouse"
-            ]
-          },
-          "fileNames": {
-            "type": "array",
-            "description": "List of military affiliation file names",
-            "items": {
-              "type": "string",
-              "description": "The name of the file being uploaded"
-            }
-          },
-          "dateOfUpdate": {
-            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-            "type": "string",
-            "description": "The date the document was last updated",
-            "format": "date"
-          },
-          "status": {
-            "type": "string",
-            "description": "The status of the military affiliation"
-          },
-          "documentUploadFields": {
-            "type": "array",
-            "description": "The fields used to upload documents",
-            "items": {
-              "type": "object",
-              "properties": {
-                "fields": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "type": "string"
-                  },
-                  "description": "The form fields used to upload the document"
-                },
-                "url": {
-                  "type": "string",
-                  "description": "The url to upload the document to"
-                }
-              },
-              "description": "The fields used to upload a specific document"
-            }
-          }
-        }
-      },
-      "SandboLicenGmoqDPz89Bxa": {
-        "required": [
-          "clinicalPrivilegeActionCategory",
-          "encumbranceEffectiveDate",
-          "encumbranceType"
-        ],
-        "type": "object",
-        "properties": {
-          "encumbranceEffectiveDate": {
-            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-            "type": "string",
-            "description": "The effective date of the encumbrance",
-            "format": "date"
-          },
-          "encumbranceType": {
-            "type": "string",
-            "description": "The type of encumbrance",
-            "enum": [
-              "fine",
-              "reprimand",
-              "required supervision",
-              "completion of continuing education",
-              "public reprimand",
-              "probation",
-              "injunctive action",
-              "suspension",
-              "revocation",
-              "denial",
-              "surrender of license",
-              "modification of previous action-extension",
-              "modification of previous action-reduction",
-              "other monitoring",
-              "other adjudicated action not listed"
-            ]
-          },
-          "clinicalPrivilegeActionCategory": {
-            "type": "string",
-            "description": "The category of clinical privilege action"
-          }
-        },
-        "additionalProperties": false
-      },
-      "SandboLicenJoBxP9CtmBOr": {
-        "required": [
-          "attestations",
-          "licenseType",
-          "orderInformation",
-          "selectedJurisdictions"
-        ],
-        "type": "object",
-        "properties": {
-          "licenseType": {
-            "type": "string",
-            "description": "The type of license the provider is purchasing a privilege for.",
-            "enum": [
-              "audiologist",
-              "speech-language pathologist",
-              "occupational therapist",
-              "occupational therapy assistant",
-              "licensed professional counselor"
-            ]
-          },
-          "attestations": {
-            "type": "array",
-            "description": "List of attestations that the user has agreed to",
-            "items": {
-              "required": [
-                "attestationId",
-                "version"
-              ],
-              "type": "object",
-              "properties": {
-                "attestationId": {
-                  "maxLength": 100,
-                  "type": "string",
-                  "description": "The ID of the attestation"
-                },
-                "version": {
-                  "maxLength": 10,
-                  "pattern": "^\\d+$",
-                  "type": "string",
-                  "description": "The version of the attestation"
-                }
-              }
-            }
-          },
-          "orderInformation": {
-            "required": [
-              "opaqueData"
-            ],
-            "type": "object",
-            "properties": {
-              "opaqueData": {
-                "required": [
-                  "dataDescriptor",
-                  "dataValue"
-                ],
-                "type": "object",
-                "properties": {
-                  "dataValue": {
-                    "maxLength": 1000,
-                    "type": "string",
-                    "description": "The opaque data value token returned by Authorize.Net Accept UI"
-                  },
-                  "dataDescriptor": {
-                    "maxLength": 100,
-                    "type": "string",
-                    "description": "The opaque data descriptor returned by Authorize.Net Accept UI"
-                  }
-                }
-              }
-            }
-          },
-          "selectedJurisdictions": {
-            "maxLength": 20,
-            "type": "array",
-            "items": {
-              "type": "string",
-              "description": "Jurisdictions a provider has selected to purchase privileges in.",
-              "enum": [
-                "al",
-                "ak",
-                "az",
-                "ar",
-                "ca",
-                "co",
-                "ct",
-                "de",
-                "dc",
-                "fl",
-                "ga",
-                "hi",
-                "id",
-                "il",
-                "in",
-                "ia",
-                "ks",
-                "ky",
-                "la",
-                "me",
-                "md",
-                "ma",
-                "mi",
-                "mn",
-                "ms",
-                "mo",
-                "mt",
-                "ne",
-                "nv",
-                "nh",
-                "nj",
-                "nm",
-                "ny",
-                "nc",
-                "nd",
-                "oh",
-                "ok",
-                "or",
-                "pa",
-                "pr",
-                "ri",
-                "sc",
-                "sd",
-                "tn",
-                "tx",
-                "ut",
-                "vt",
-                "va",
-                "vi",
-                "wa",
-                "wv",
-                "wi",
-                "wy"
-              ]
-            }
-          }
-        }
-      },
-      "SandboLicensBnU6U4Ts09w": {
-        "required": [
-          "attributes",
-          "permissions"
-        ],
-        "type": "object",
-        "properties": {
-          "permissions": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "object",
-              "properties": {
-                "actions": {
-                  "type": "object",
-                  "properties": {
-                    "readPrivate": {
-                      "type": "boolean"
-                    },
-                    "admin": {
-                      "type": "boolean"
-                    },
-                    "readSSN": {
-                      "type": "boolean"
-                    }
-                  }
-                },
-                "jurisdictions": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "type": "object",
-                    "properties": {
-                      "actions": {
-                        "type": "object",
-                        "properties": {
-                          "readPrivate": {
-                            "type": "boolean"
-                          },
-                          "admin": {
-                            "type": "boolean"
-                          },
-                          "write": {
-                            "type": "boolean"
-                          },
-                          "readSSN": {
-                            "type": "boolean"
-                          }
-                        },
-                        "additionalProperties": false
-                      }
-                    }
-                  }
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "attributes": {
-            "required": [
-              "email",
-              "familyName",
-              "givenName"
-            ],
-            "type": "object",
-            "properties": {
-              "givenName": {
-                "maxLength": 100,
-                "minLength": 1,
-                "type": "string"
-              },
-              "familyName": {
-                "maxLength": 100,
-                "minLength": 1,
-                "type": "string"
-              },
-              "email": {
-                "maxLength": 100,
-                "minLength": 5,
-                "type": "string"
-              }
-            },
-            "additionalProperties": false
-          }
-        },
-        "additionalProperties": false
-      },
-      "SandboLicenGOQO8xyCrJGH": {
+      "SandboLicendERazg9NeEsA": {
         "required": [
           "status"
         ],
@@ -5943,434 +6501,22 @@
         },
         "additionalProperties": false
       },
-      "SandboLicen78Yjnaih0pH9": {
-        "required": [
-          "newEmailAddress"
-        ],
-        "type": "object",
-        "properties": {
-          "newEmailAddress": {
-            "maxLength": 100,
-            "minLength": 5,
-            "type": "string",
-            "description": "The new email address to set for the provider",
-            "format": "email"
-          }
-        },
-        "additionalProperties": false
-      },
-      "SandboLicendpTH6E8kTODD": {
-        "required": [
-          "message"
-        ],
-        "type": "object",
-        "properties": {
-          "message": {
-            "type": "string",
-            "description": "A message about the request"
-          }
-        }
-      },
-      "SandboLicenh3CxZXBnJfqv": {
-        "required": [
-          "compact",
-          "events",
-          "jurisdiction",
-          "licenseType",
-          "privilegeId",
-          "providerId"
-        ],
-        "type": "object",
-        "properties": {
-          "licenseType": {
-            "type": "string",
-            "enum": [
-              "audiologist",
-              "speech-language pathologist",
-              "occupational therapist",
-              "occupational therapy assistant",
-              "licensed professional counselor"
-            ]
-          },
-          "compact": {
-            "type": "string",
-            "enum": [
-              "aslp",
-              "octp",
-              "coun"
-            ]
-          },
-          "privilegeId": {
-            "type": "string"
-          },
-          "providerId": {
-            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
-            "type": "string"
-          },
-          "jurisdiction": {
-            "type": "string",
-            "enum": [
-              "al",
-              "ak",
-              "az",
-              "ar",
-              "ca",
-              "co",
-              "ct",
-              "de",
-              "dc",
-              "fl",
-              "ga",
-              "hi",
-              "id",
-              "il",
-              "in",
-              "ia",
-              "ks",
-              "ky",
-              "la",
-              "me",
-              "md",
-              "ma",
-              "mi",
-              "mn",
-              "ms",
-              "mo",
-              "mt",
-              "ne",
-              "nv",
-              "nh",
-              "nj",
-              "nm",
-              "ny",
-              "nc",
-              "nd",
-              "oh",
-              "ok",
-              "or",
-              "pa",
-              "pr",
-              "ri",
-              "sc",
-              "sd",
-              "tn",
-              "tx",
-              "ut",
-              "vt",
-              "va",
-              "vi",
-              "wa",
-              "wv",
-              "wi",
-              "wy"
-            ]
-          },
-          "events": {
-            "type": "array",
-            "items": {
-              "required": [
-                "createDate",
-                "dateOfUpdate",
-                "effectiveDate",
-                "type",
-                "updateType"
-              ],
-              "type": "object",
-              "properties": {
-                "note": {
-                  "type": "string"
-                },
-                "type": {
-                  "type": "string",
-                  "enum": [
-                    "privilegeUpdate"
-                  ]
-                },
-                "dateOfUpdate": {
-                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-                  "type": "string",
-                  "format": "date"
-                },
-                "effectiveDate": {
-                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-                  "type": "string",
-                  "format": "date"
-                },
-                "updateType": {
-                  "type": "string",
-                  "enum": [
-                    "deactivation",
-                    "expiration",
-                    "issuance",
-                    "other",
-                    "renewal",
-                    "encumbrance",
-                    "homeJurisdictionChange",
-                    "registration",
-                    "lifting_encumbrance",
-                    "licenseDeactivation",
-                    "emailChange"
-                  ]
-                },
-                "createDate": {
-                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-                  "type": "string",
-                  "format": "date"
-                }
-              }
-            }
-          }
-        }
-      },
-      "SandboLicenyCpN8h6ZDQnW": {
-        "required": [
-          "transactionId"
-        ],
-        "type": "object",
-        "properties": {
-          "message": {
-            "type": "string",
-            "description": "A message about the transaction"
-          },
-          "transactionId": {
-            "type": "string",
-            "description": "The transaction id for the purchase"
-          }
-        }
-      },
-      "SandboLicengXk4P8AtSxgQ": {
-        "required": [
-          "compact",
-          "jurisdictionAdverseActionsNotificationEmails",
-          "jurisdictionName",
-          "jurisdictionOperationsTeamEmails",
-          "jurisdictionSummaryReportNotificationEmails",
-          "jurisprudenceRequirements",
-          "licenseeRegistrationEnabled",
-          "postalAbbreviation",
-          "privilegeFees"
-        ],
-        "type": "object",
-        "properties": {
-          "privilegeFees": {
-            "type": "array",
-            "description": "The fees for the privileges by license type",
-            "items": {
-              "required": [
-                "amount",
-                "licenseTypeAbbreviation"
-              ],
-              "type": "object",
-              "properties": {
-                "amount": {
-                  "type": "number"
-                },
-                "militaryRate": {
-                  "description": "Optional military rate for the privilege fee.",
-                  "oneOf": [
-                    {
-                      "minimum": 0,
-                      "type": "number"
-                    },
-                    null
-                  ]
-                },
-                "licenseTypeAbbreviation": {
-                  "type": "string",
-                  "enum": [
-                    "aud",
-                    "slp",
-                    "ot",
-                    "ota",
-                    "lpc"
-                  ]
-                }
-              }
-            }
-          },
-          "postalAbbreviation": {
-            "type": "string",
-            "description": "The postal abbreviation of the jurisdiction"
-          },
-          "jurisdictionAdverseActionsNotificationEmails": {
-            "type": "array",
-            "description": "List of email addresses for adverse actions notifications",
-            "items": {
-              "type": "string",
-              "format": "email"
-            }
-          },
-          "jurisdictionOperationsTeamEmails": {
-            "type": "array",
-            "description": "List of email addresses for operations team notifications",
-            "items": {
-              "type": "string",
-              "format": "email"
-            }
-          },
-          "compact": {
-            "type": "string",
-            "description": "The compact this jurisdiction configuration belongs to",
-            "enum": [
-              "aslp",
-              "octp",
-              "coun"
-            ]
-          },
-          "jurisprudenceRequirements": {
-            "required": [
-              "required"
-            ],
-            "type": "object",
-            "properties": {
-              "linkToDocumentation": {
-                "description": "Optional link to jurisprudence documentation",
-                "oneOf": [
-                  {
-                    "type": "string"
-                  },
-                  null
-                ]
-              },
-              "required": {
-                "type": "boolean",
-                "description": "Whether jurisprudence requirements exist"
-              }
-            }
-          },
-          "licenseeRegistrationEnabled": {
-            "type": "boolean",
-            "description": "Denotes whether licensee registration is enabled"
-          },
-          "jurisdictionName": {
-            "type": "string",
-            "description": "The name of the jurisdiction"
-          },
-          "jurisdictionSummaryReportNotificationEmails": {
-            "type": "array",
-            "description": "List of email addresses for summary report notifications",
-            "items": {
-              "type": "string",
-              "format": "email"
-            }
-          }
-        }
-      },
-      "SandboLicen5COX4QwpjCEQ": {
-        "required": [
-          "apiLoginId",
-          "processor",
-          "transactionKey"
-        ],
-        "type": "object",
-        "properties": {
-          "apiLoginId": {
-            "maxLength": 100,
-            "minLength": 1,
-            "type": "string",
-            "description": "The api login id for the payment processor"
-          },
-          "transactionKey": {
-            "maxLength": 100,
-            "minLength": 1,
-            "type": "string",
-            "description": "The transaction key for the payment processor"
-          },
-          "processor": {
-            "type": "string",
-            "description": "The type of payment processor",
-            "enum": [
-              "authorize.net"
-            ]
-          }
-        },
-        "additionalProperties": false
-      },
-      "SandboLicenL90lulGTBXkw": {
-        "required": [
-          "jurisdiction"
-        ],
-        "type": "object",
-        "properties": {
-          "jurisdiction": {
-            "type": "string",
-            "description": "The jurisdiction postal abbreviation to set as home jurisdiction",
-            "enum": [
-              "al",
-              "ak",
-              "az",
-              "ar",
-              "ca",
-              "co",
-              "ct",
-              "de",
-              "dc",
-              "fl",
-              "ga",
-              "hi",
-              "id",
-              "il",
-              "in",
-              "ia",
-              "ks",
-              "ky",
-              "la",
-              "me",
-              "md",
-              "ma",
-              "mi",
-              "mn",
-              "ms",
-              "mo",
-              "mt",
-              "ne",
-              "nv",
-              "nh",
-              "nj",
-              "nm",
-              "ny",
-              "nc",
-              "nd",
-              "oh",
-              "ok",
-              "or",
-              "pa",
-              "pr",
-              "ri",
-              "sc",
-              "sd",
-              "tn",
-              "tx",
-              "ut",
-              "vt",
-              "va",
-              "vi",
-              "wa",
-              "wv",
-              "wi",
-              "wy",
-              "other"
-            ]
-          }
-        },
-        "additionalProperties": false
-      },
-      "SandboLicenDIGClZTMHMeN": {
+      "SandboLicenwoqrSnm0rsGM": {
         "required": [
           "compact",
           "dob",
+          "email",
           "familyName",
           "givenName",
           "jurisdiction",
           "licenseType",
           "partialSocial",
-          "password",
-          "recaptchaToken",
-          "username"
+          "token"
         ],
         "type": "object",
         "properties": {
           "licenseType": {
+            "maxLength": 500,
             "type": "string",
             "description": "Type of license",
             "enum": [
@@ -6381,28 +6527,29 @@
               "licensed professional counselor"
             ]
           },
-          "password": {
-            "maxLength": 256,
-            "minLength": 12,
-            "type": "string",
-            "description": "Provider's current password"
-          },
           "compact": {
+            "maxLength": 100,
             "type": "string",
-            "description": "Compact abbreviation",
-            "enum": [
-              "aslp",
-              "octp",
-              "coun"
-            ]
+            "description": "Compact name"
           },
           "dob": {
             "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
             "type": "string",
-            "description": "Date of birth in YYYY-MM-DD format",
-            "format": "date"
+            "description": "Date of birth in YYYY-MM-DD format"
+          },
+          "givenName": {
+            "maxLength": 200,
+            "type": "string",
+            "description": "Provider's given name"
+          },
+          "familyName": {
+            "maxLength": 200,
+            "type": "string",
+            "description": "Provider's family name"
           },
           "jurisdiction": {
+            "maxLength": 2,
+            "minLength": 2,
             "type": "string",
             "description": "Two-letter jurisdiction code",
             "enum": [
@@ -6461,165 +6608,42 @@
               "wy"
             ]
           },
-          "givenName": {
-            "maxLength": 200,
-            "minLength": 1,
-            "type": "string",
-            "description": "Provider's given name"
-          },
-          "familyName": {
-            "maxLength": 200,
-            "minLength": 1,
-            "type": "string",
-            "description": "Provider's family name"
-          },
-          "recaptchaToken": {
-            "minLength": 1,
-            "type": "string",
-            "description": "ReCAPTCHA token for verification"
-          },
           "partialSocial": {
-            "pattern": "^[0-9]{4}$",
+            "maxLength": 4,
+            "minLength": 4,
             "type": "string",
             "description": "Last 4 digits of SSN"
           },
-          "username": {
+          "email": {
             "maxLength": 100,
             "minLength": 5,
             "type": "string",
-            "description": "Provider's email address (username)",
+            "description": "Provider's email address",
+            "format": "email"
+          },
+          "token": {
+            "type": "string",
+            "description": "ReCAPTCHA token"
+          }
+        }
+      },
+      "SandboLicenaSmGZue6afyn": {
+        "required": [
+          "newEmailAddress"
+        ],
+        "type": "object",
+        "properties": {
+          "newEmailAddress": {
+            "maxLength": 100,
+            "minLength": 5,
+            "type": "string",
+            "description": "The new email address to set for the provider",
             "format": "email"
           }
         },
         "additionalProperties": false
       },
-      "SandboLicenBVM0Ubke6A3d": {
-        "type": "object",
-        "properties": {
-          "pagination": {
-            "type": "object",
-            "properties": {
-              "prevLastKey": {
-                "maxLength": 1024,
-                "minLength": 1,
-                "type": "object"
-              },
-              "lastKey": {
-                "maxLength": 1024,
-                "minLength": 1,
-                "type": "object"
-              },
-              "pageSize": {
-                "maximum": 100,
-                "minimum": 5,
-                "type": "integer"
-              }
-            }
-          },
-          "users": {
-            "type": "array",
-            "items": {
-              "required": [
-                "attributes",
-                "permissions",
-                "status",
-                "userId"
-              ],
-              "type": "object",
-              "properties": {
-                "permissions": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "type": "object",
-                    "properties": {
-                      "actions": {
-                        "type": "object",
-                        "properties": {
-                          "readPrivate": {
-                            "type": "boolean"
-                          },
-                          "admin": {
-                            "type": "boolean"
-                          },
-                          "readSSN": {
-                            "type": "boolean"
-                          }
-                        }
-                      },
-                      "jurisdictions": {
-                        "type": "object",
-                        "additionalProperties": {
-                          "type": "object",
-                          "properties": {
-                            "actions": {
-                              "type": "object",
-                              "properties": {
-                                "readPrivate": {
-                                  "type": "boolean"
-                                },
-                                "admin": {
-                                  "type": "boolean"
-                                },
-                                "write": {
-                                  "type": "boolean"
-                                },
-                                "readSSN": {
-                                  "type": "boolean"
-                                }
-                              },
-                              "additionalProperties": false
-                            }
-                          }
-                        }
-                      }
-                    },
-                    "additionalProperties": false
-                  }
-                },
-                "attributes": {
-                  "required": [
-                    "email",
-                    "familyName",
-                    "givenName"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "givenName": {
-                      "maxLength": 100,
-                      "minLength": 1,
-                      "type": "string"
-                    },
-                    "familyName": {
-                      "maxLength": 100,
-                      "minLength": 1,
-                      "type": "string"
-                    },
-                    "email": {
-                      "maxLength": 100,
-                      "minLength": 5,
-                      "type": "string"
-                    }
-                  },
-                  "additionalProperties": false
-                },
-                "userId": {
-                  "type": "string"
-                },
-                "status": {
-                  "type": "string",
-                  "enum": [
-                    "active",
-                    "inactive"
-                  ]
-                }
-              },
-              "additionalProperties": false
-            }
-          }
-        },
-        "additionalProperties": false
-      },
-      "SandboLicenBvqJFG1cEZjY": {
+      "SandboLicenr5TVmpxKfPGq": {
         "required": [
           "birthMonthDay",
           "compact",
@@ -8674,30 +8698,6 @@
             "format": "date"
           }
         }
-      },
-      "SandboLicenVJj3BvxeyHXi": {
-        "type": "array",
-        "items": {
-          "required": [
-            "compact",
-            "jurisdictionName",
-            "postalAbbreviation"
-          ],
-          "type": "object",
-          "properties": {
-            "postalAbbreviation": {
-              "type": "string",
-              "description": "The postal abbreviation of the jurisdiction"
-            },
-            "compact": {
-              "type": "string"
-            },
-            "jurisdictionName": {
-              "type": "string",
-              "description": "The name of the jurisdiction"
-            }
-          }
-        }
       }
     },
     "securitySchemes": {
@@ -8716,4 +8716,3 @@
     }
   }
 }
-

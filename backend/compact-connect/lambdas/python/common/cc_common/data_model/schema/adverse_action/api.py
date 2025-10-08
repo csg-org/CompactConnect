@@ -78,3 +78,4 @@ class AdverseActionGeneralResponseSchema(AdverseActionPublicResponseSchema):
     encumbranceType = EncumbranceTypeField(required=True, allow_none=False)
     clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategoryField(required=True, allow_none=False)
     liftingUser = Raw(required=False, allow_none=False)
+    submittingUser = Raw(required=True, allow_none=False)
