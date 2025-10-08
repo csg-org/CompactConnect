@@ -37,7 +37,7 @@ class TestManageFeatureFlagHandler(TstFunction):
         # Set up mock client instance
         mock_client = MagicMock()
         # API spec https://docs.statsig.com/console-api/all-endpoints-generated#post-/console/v1/gates
-        mock_client.upsert_flag.return_value = {'data':{'id': 'test-flag', 'name': 'test-flag'}}
+        mock_client.upsert_flag.return_value = {'data': {'id': 'test-flag', 'name': 'test-flag'}}
         mock_client_class.return_value = mock_client
 
         handler = ManageFeatureFlagHandler()
