@@ -163,10 +163,9 @@ class V1Api:
             method_options=read_auth_method_options,
             admin_method_options=admin_auth_method_options,
             ssn_method_options=read_ssn_auth_method_options,
-            persistent_stack=persistent_stack,
             api_model=self.api_model,
-            data_event_bus=data_event_bus,
             privilege_history_function=privilege_history_handler,
+            api_lambda_stack=api_lambda_stack,
         )
         # GET  /v1/compacts/{compact}/jurisdictions
         self.jurisdictions_resource = self.compact_resource.add_resource('jurisdictions')

@@ -23,6 +23,7 @@ from .compact_configuration_api import CompactConfigurationApiLambdas
 from .credentials import CredentialsLambdas
 from .feature_flags import FeatureFlagsLambdas
 from .post_licenses import PostLicensesLambdas
+from .provider_management import ProviderManagementLambdas
 from .provider_users import ProviderUsersLambdas
 from .public_lookup_api import PublicLookupApiLambdas
 from .purchases import PurchasesLambdas
@@ -118,6 +119,11 @@ class ApiLambdaStack(AppStack):
         )
 
         # Provider Management lambdas
+        self.provider_management_lambdas = ProviderManagementLambdas(
+            scope=self,
+            persistent_stack=persistent_stack,
+            data_event_bus=data_event_bus,
+        )
 
         # Public lookup lambdas
         self.public_lookup_lambdas = PublicLookupApiLambdas(

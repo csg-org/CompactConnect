@@ -1,5 +1,5 @@
 {
-  "AlarmDescription": "Sandbox/APIStack/LicenseApi SECURITY ALERT: SSN ENDPOINT DISABLED. The GET provider SSN endpoint has been disabled due to excessive requests. Immediate investigation required. Endpoint will need to be manually reactivated before any further requests can be processed.",
+  "AlarmDescription": "Sandbox/ApiLambdaStack/GetProviderSSNHandler SECURITY ALERT: SSN ENDPOINT DISABLED. The GET provider SSN endpoint has been disabled due to excessive requests. Immediate investigation required. Endpoint will need to be manually reactivated before any further requests can be processed.",
   "ComparisonOperator": "GreaterThanOrEqualToThreshold",
   "Dimensions": [
     {
