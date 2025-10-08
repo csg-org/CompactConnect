@@ -461,7 +461,7 @@ def test_license_encumbrance_workflow():
 
         encumbrance_body = {
             'encumbranceEffectiveDate': '2024-11-11',
-            'clinicalPrivilegeActionCategory': 'Fraud, Deception, or Misrepresentation',
+            'clinicalPrivilegeActionCategories': ['Fraud, Deception, or Misrepresentation'],
         }
 
         # First encumbrance
@@ -518,7 +518,7 @@ def test_license_encumbrance_workflow():
         # Second encumbrance
         second_encumbrance_body = {
             'encumbranceEffectiveDate': '2025-01-01',
-            'clinicalPrivilegeActionCategory': 'Unsafe Practice or Substandard Care',
+            'clinicalPrivilegeActionCategories': ['Unsafe Practice or Substandard Care'],
         }
         helper.encumber_license(second_encumbrance_body)
         logger.info('Second license encumbrance created successfully')
@@ -537,7 +537,7 @@ def test_license_encumbrance_workflow():
         # Step 3: Encumber Privilege
         privilege_encumbrance_body = {
             'encumbranceEffectiveDate': '2025-05-09',
-            'clinicalPrivilegeActionCategory': 'Unsafe Practice or Substandard Care',
+            'clinicalPrivilegeActionCategories': ['Unsafe Practice or Substandard Care'],
         }
 
         helper.encumber_privilege(privilege_encumbrance_body)
@@ -653,7 +653,7 @@ def test_privilege_encumbrance_workflow():
 
         encumbrance_body = {
             'encumbranceEffectiveDate': '2024-12-12',
-            'clinicalPrivilegeActionCategory': 'Fraud, Deception, or Misrepresentation',
+            'clinicalPrivilegeActionCategories': ['Fraud, Deception, or Misrepresentation'],
         }
 
         # First encumbrance
@@ -684,7 +684,7 @@ def test_privilege_encumbrance_workflow():
         # Second encumbrance
         second_encumbrance_body = {
             'encumbranceEffectiveDate': '2025-02-02',
-            'clinicalPrivilegeActionCategory': 'Unsafe Practice or Substandard Care',
+            'clinicalPrivilegeActionCategories': ['Unsafe Practice or Substandard Care'],
         }
         helper.encumber_privilege(second_encumbrance_body)
         logger.info('Second privilege encumbrance created successfully')
@@ -768,7 +768,7 @@ def test_privilege_encumbrance_status_changes_with_license_encumbrance_workflow(
         logger.info('Step 1: Creating privilege encumbrance...')
         privilege_encumbrance_body = {
             'encumbranceEffectiveDate': '2024-01-15',
-            'clinicalPrivilegeActionCategory': 'Unsafe Practice or Substandard Care',
+            'clinicalPrivilegeActionCategories': ['Unsafe Practice or Substandard Care'],
         }
 
         helper.encumber_privilege(privilege_encumbrance_body)
@@ -787,7 +787,7 @@ def test_privilege_encumbrance_status_changes_with_license_encumbrance_workflow(
         logger.info('Step 2: Creating license encumbrance...')
         license_encumbrance_body = {
             'encumbranceEffectiveDate': '2024-01-20',
-            'clinicalPrivilegeActionCategory': 'Criminal Conviction or Adjudication',
+            'clinicalPrivilegeActionCategories': ['Criminal Conviction or Adjudication'],
         }
 
         helper.encumber_license(license_encumbrance_body)
