@@ -2,7 +2,7 @@ import { mockClient } from 'aws-sdk-client-mock';
 import 'aws-sdk-client-mock-jest';
 import { Context, EventBridgeEvent } from 'aws-lambda';
 import { DynamoDBClient, QueryCommand, GetItemCommand } from '@aws-sdk/client-dynamodb';
-import { SendEmailCommand, SESClient } from '@aws-sdk/client-ses';
+import { SendEmailCommand, SESv2Client } from '@aws-sdk/client-sesv2';
 import { S3Client } from '@aws-sdk/client-s3';
 
 import { Lambda } from '../ingest-event-reporter/lambda';
@@ -49,7 +49,7 @@ const SAMPLE_CONTEXT: Context = {
 const asDynamoDBClient = (mock: ReturnType<typeof mockClient>) =>
   mock as unknown as DynamoDBClient;
 const asSESClient = (mock: ReturnType<typeof mockClient>) =>
-    mock as unknown as SESClient;
+    mock as unknown as SESv2Client;
 const asS3Client = (mock: ReturnType<typeof mockClient>) =>
     mock as unknown as S3Client;
 
@@ -86,7 +86,7 @@ describe('Nightly runs', () => {
         process.env.AWS_REGION = 'us-east-1';
 
         // Get the mocked client instances
-        mockSESClient = mockClient(SESClient);
+        mockSESClient = mockClient(SESv2Client);
     });
 
     beforeEach(() => {
@@ -310,7 +310,7 @@ describe('Weekly runs', () => {
         jest.clearAllMocks();
 
         // Get the mocked client instances
-        mockSESClient = mockClient(SESClient);
+        mockSESClient = mockClient(SESv2Client);
         mockSESClient.on(SendEmailCommand).resolves({
             MessageId: 'foo-123'
         });

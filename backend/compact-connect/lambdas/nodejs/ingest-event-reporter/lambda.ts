@@ -2,7 +2,7 @@ import type { LambdaInterface } from '@aws-lambda-powertools/commons/lib/esm/typ
 import { Logger } from '@aws-lambda-powertools/logger';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { S3Client } from '@aws-sdk/client-s3';
-import { SESClient } from '@aws-sdk/client-ses';
+import { SESv2Client } from '@aws-sdk/client-sesv2';
 import { Context } from 'aws-lambda';
 
 import { EnvironmentVariablesService } from '../lib/environment-variables-service';
@@ -17,7 +17,7 @@ const logger = new Logger({ logLevel: environmentVariables.getLogLevel() });
 
 interface LambdaProperties {
     dynamoDBClient: DynamoDBClient;
-    sesClient: SESClient;
+    sesClient: SESv2Client;
     s3Client: S3Client;
 }
 

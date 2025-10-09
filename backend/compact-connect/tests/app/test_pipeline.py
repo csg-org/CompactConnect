@@ -363,7 +363,6 @@ class TestBackendPipeline(TstAppABC, TestCase):
                     f'Should have exactly one backend pipeline role with name {expected_role_name}',
                 )
 
-
     def test_pipeline_role_trust_policies(self):
         """Test that pipeline roles have correct trust policies for CodePipeline service."""
         # Test that all pipeline roles trust the CodePipeline service
@@ -388,10 +387,12 @@ class TestBackendPipeline(TstAppABC, TestCase):
                                 [
                                     {
                                         'Effect': 'Allow',
-                                        'Principal': {'Service': [
-                                            'codebuild.amazonaws.com',
-                                            'codepipeline.amazonaws.com',
-                                        ]},
+                                        'Principal': {
+                                            'Service': [
+                                                'codebuild.amazonaws.com',
+                                                'codepipeline.amazonaws.com',
+                                            ]
+                                        },
                                         'Action': 'sts:AssumeRole',
                                     }
                                 ]
