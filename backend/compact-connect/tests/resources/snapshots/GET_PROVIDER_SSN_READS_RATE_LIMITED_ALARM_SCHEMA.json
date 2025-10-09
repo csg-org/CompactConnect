@@ -1,5 +1,5 @@
 {
-  "AlarmDescription": "Sandbox/APIStack/LicenseApi ssn reads rate-limited alarm. The GET provider SSN endpoint has been invoked more than an expected threshold within a 24 hour period. Investigation is required to ensure access is not the result of abuse.",
+  "AlarmDescription": "Sandbox/ApiLambdaStack/GetProviderSSNHandler ssn reads rate-limited alarm. The GET provider SSN endpoint has been invoked more than an expected threshold within a 24 hour period. Investigation is required to ensure access is not the result of abuse.",
   "ComparisonOperator": "GreaterThanOrEqualToThreshold",
   "Dimensions": [
     {
