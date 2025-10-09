@@ -102,6 +102,7 @@ def _generate_adverse_action_for_record_type(
     adverse_action.licenseType = license_type.name
     adverse_action.actionAgainst = adverse_action_against_record_type
     adverse_action.encumbranceType = EncumbranceType(adverse_action_request['encumbranceType'])
+    # TODO - remove the if condition as part of https://github.com/csg-org/CompactConnect/issues/1136 # noqa: FIX002
     if 'clinicalPrivilegeActionCategory' in adverse_action_request:
         # replicate data to both the deprecated and new fields
         adverse_action.clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategory(

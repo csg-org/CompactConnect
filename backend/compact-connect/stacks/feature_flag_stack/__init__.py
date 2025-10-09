@@ -113,6 +113,17 @@ class FeatureFlagStack(AppStack):
             environment_name=environment_name,
         )
 
+        self.encumbrance_multiple_category_flag = FeatureFlagResource(
+            self,
+            'EncumbranceMultiCategoryFlag',
+            provider=self.provider,
+            flag_name='encumbrance-multi-category-flag',
+            auto_enable_envs=[
+                FeatureFlagEnvironmentName.TEST,
+            ],
+            environment_name=environment_name,
+        )
+
     def _create_common_provider(self, environment_name: str) -> Provider:
         # Create shared Lambda function for managing all feature flags
         # This function is reused across all FeatureFlagResource instances

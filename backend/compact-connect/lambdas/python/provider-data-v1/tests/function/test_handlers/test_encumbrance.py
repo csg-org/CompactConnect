@@ -133,7 +133,8 @@ class TestPostPrivilegeEncumbrance(TstFunction):
             loaded_adverse_action.to_dict(),
         )
 
-    def test_privilege_encumbrance_handler_adds_privilege_update_record_in_provider_data_table(self):
+    @patch('cc_common.feature_flag_client.is_feature_enabled', return_value=True)
+    def test_privilege_encumbrance_handler_adds_privilege_update_record_in_provider_data_table(self, mock_flag):  # noqa: ARG002
         from cc_common.data_model.schema.privilege import PrivilegeUpdateData
         from handlers.encumbrance import encumbrance_handler
 
@@ -164,6 +165,53 @@ class TestPostPrivilegeEncumbrance(TstFunction):
                 'createDate': datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP),
                 'encumbranceDetails': {
                     'clinicalPrivilegeActionCategories': ['Unsafe Practice or Substandard Care'],
+                    'adverseActionId': loaded_privilege_update_data.encumbranceDetails['adverseActionId'],
+                },
+            }
+        )
+
+        self.assertEqual(
+            expected_privilege_update_data.to_dict(),
+            loaded_privilege_update_data.to_dict(),
+        )
+        self.assertEqual({'encumberedStatus': 'encumbered'}, loaded_privilege_update_data.updatedValues)
+
+    # TODO - remove the test as part of https://github.com/csg-org/CompactConnect/issues/1136 # noqa: FIX002
+    @patch('cc_common.feature_flag_client.is_feature_enabled', return_value=False)
+    def test_privilege_encumbrance_handler_adds_privilege_update_record_in_provider_data_table_flag_off(
+        self,
+        mock_flag,  # noqa: ARG002
+    ):
+        from cc_common.data_model.schema.privilege import PrivilegeUpdateData
+        from handlers.encumbrance import encumbrance_handler
+
+        event, test_privilege_record = self._when_testing_privilege_encumbrance()
+
+        response = encumbrance_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+
+        # Verify that the encumbrance record was added to the provider data table
+        # Perform a query to list all encumbrances for the provider using the starts_with key condition
+        privilege_update_records = self._provider_table.query(
+            Select='ALL_ATTRIBUTES',
+            KeyConditionExpression=Key('pk').eq(test_privilege_record.serialize_to_database_record()['pk'])
+            & Key('sk').begins_with(
+                f'{test_privilege_record.compact}#PROVIDER#privilege/{test_privilege_record.jurisdiction}/slp#UPDATE'
+            ),
+        )
+        self.assertEqual(1, len(privilege_update_records['Items']))
+        item = privilege_update_records['Items'][0]
+
+        loaded_privilege_update_data = PrivilegeUpdateData.from_database_record(item)
+
+        expected_privilege_update_data = self.test_data_generator.generate_default_privilege_update(
+            value_overrides={
+                'updateType': 'encumbrance',
+                'updatedValues': {'encumberedStatus': 'encumbered'},
+                'effectiveDate': datetime.fromisoformat(TEST_ENCUMBRANCE_EFFECTIVE_DATETIME),
+                'createDate': datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP),
+                'encumbranceDetails': {
+                    'clinicalPrivilegeActionCategory': 'Unsafe Practice or Substandard Care',
                     'adverseActionId': loaded_privilege_update_data.encumbranceDetails['adverseActionId'],
                 },
             }
@@ -370,6 +418,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
 
 
 @mock_aws
+@patch('cc_common.feature_flag_client.is_feature_enabled', True)
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP))
 class TestPostLicenseEncumbrance(TstFunction):
     """Test suite for license encumbrance endpoints."""
