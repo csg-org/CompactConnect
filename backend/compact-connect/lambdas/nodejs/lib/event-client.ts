@@ -27,6 +27,33 @@ export class EventClient {
     }
 
     /*
+     * Returns timestamps for the last complete 15-minute block
+     * i.e. if now is 13:05, returns 12:45-13:00
+     * if now is 13:15, returns 13:00-13:15
+     */
+    public getLast15MinuteTimestamps(): [number, number] {
+        const now: Date = new Date();
+        const last15MinuteBlockStart: Date = new Date();
+        const last15MinuteBlockEnd: Date = new Date();
+
+        // Calculate the start of the current 15-minute block
+        const currentBlockStartMinutes = now.getUTCMinutes() - (now.getUTCMinutes() % 15);
+
+        last15MinuteBlockStart.setUTCMinutes(currentBlockStartMinutes, 0, 0);
+
+        // The end of the previous complete block is the start of the current block
+        last15MinuteBlockEnd.setTime(last15MinuteBlockStart.getTime());
+
+        // The start of the previous complete block is 15 minutes before the end
+        last15MinuteBlockStart.setUTCMinutes(currentBlockStartMinutes - 15, 0, 0);
+
+        return [
+            Math.floor((last15MinuteBlockStart.valueOf()/1000)),
+            Math.floor((last15MinuteBlockEnd.valueOf()/1000)),
+        ];
+    }
+
+    /*
      * Returns timestamps for the beginning and end of the previous UTC day
      */
     public getYesterdayTimestamps() {
@@ -40,12 +67,8 @@ export class EventClient {
         // Uncomment to manually force today's events into the time window (for development/testing)
         // today.setUTCDate(today.getUTCDate() + 1);
         return [
-            Number.parseInt(
-                (yesterday.valueOf()/1000).toString()
-            ),
-            Number.parseInt(
-                (today.valueOf()/1000).toString()
-            )
+            Math.floor((yesterday.valueOf()/1000)),
+            Math.floor((today.valueOf()/1000)),
         ];
     }
 
@@ -63,12 +86,8 @@ export class EventClient {
         // Uncomment to manually force today's events into the time window (for development/testing)
         // today.setUTCDate(today.getUTCDate() + 1);
         return [
-            Number.parseInt(
-                (lastWeek.valueOf()/1000).toString()
-            ),
-            Number.parseInt(
-                (today.valueOf()/1000).toString()
-            )
+            Math.floor((lastWeek.valueOf()/1000)),
+            Math.floor((today.valueOf()/1000)),
         ];
     }
 

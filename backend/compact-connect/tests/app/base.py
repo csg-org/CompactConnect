@@ -515,16 +515,17 @@ class TstAppABC(ABC):
         self._check_no_stack_annotations(stage.api_stack)
         self._check_no_stack_annotations(stage.disaster_recovery_stack)
         self._check_no_stack_annotations(stage.event_listener_stack)
+        self._check_no_stack_annotations(stage.feature_flag_stack)
         self._check_no_stack_annotations(stage.ingest_stack)
         self._check_no_stack_annotations(stage.managed_login_stack)
-        self._check_no_stack_annotations(stage.notification_stack)
         self._check_no_stack_annotations(stage.persistent_stack)
         self._check_no_stack_annotations(stage.provider_users_stack)
         self._check_no_stack_annotations(stage.state_api_stack)
         self._check_no_stack_annotations(stage.state_auth_stack)
         self._check_no_stack_annotations(stage.transaction_monitoring_stack)
-        # There is on reporting stack if no hosted zone is configured
+        # These are only present if a hosted zone is configured
         if stage.persistent_stack.hosted_zone:
+            self._check_no_stack_annotations(stage.notification_stack)
             self._check_no_stack_annotations(stage.reporting_stack)
 
         # If backup is enabled, check the backup infrastructure stack
@@ -559,16 +560,22 @@ class TstAppABC(ABC):
             ('backup_infrastructure_stack', stage.backup_infrastructure_stack),
             ('disaster_recovery_stack', stage.disaster_recovery_stack),
             ('event_listener_stack', stage.event_listener_stack),
+            ('feature_flag_stack', stage.feature_flag_stack),
             ('ingest_stack', stage.ingest_stack),
             ('managed_login_stack', stage.managed_login_stack),
-            ('notification_stack', stage.notification_stack),
             ('persistent_stack', stage.persistent_stack),
             ('provider_users_stack', stage.provider_users_stack),
-            ('reporting_stack', stage.reporting_stack),
             ('state_api_stack', stage.state_api_stack),
             ('state_auth_stack', stage.state_auth_stack),
             ('transaction_monitoring_stack', stage.transaction_monitoring_stack),
         ]
+        if stage.persistent_stack.hosted_zone:
+            stacks_to_check.extend(
+                [
+                    ('notification_stack', stage.notification_stack),
+                    ('reporting_stack', stage.reporting_stack),
+                ]
+            )
 
         for _stack_name, stack in stacks_to_check:
             if stack is None:

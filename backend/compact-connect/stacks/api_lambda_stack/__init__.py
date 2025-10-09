@@ -21,6 +21,7 @@ from .attestations import AttestationsLambdas
 from .bulk_upload_url import BulkUploadUrlLambdas
 from .compact_configuration_api import CompactConfigurationApiLambdas
 from .credentials import CredentialsLambdas
+from .feature_flags import FeatureFlagsLambdas
 from .post_licenses import PostLicensesLambdas
 from .provider_users import ProviderUsersLambdas
 from .public_lookup_api import PublicLookupApiLambdas
@@ -53,6 +54,17 @@ class ApiLambdaStack(AppStack):
 
         # Initialize log groups list for QueryDefinition
         self.log_groups = []
+
+        # we only pass the API_BASE_URL env var if the API_DOMAIN_NAME is set
+        # this is because the API_BASE_URL is used by the feature flag client to call the flag check endpoint
+        if persistent_stack.api_domain_name:
+            self.common_env_vars.update({'API_BASE_URL': f'https://{persistent_stack.api_domain_name}'})
+
+        # Feature Flags related API lambdas
+        self.feature_flags_lambdas = FeatureFlagsLambdas(
+            scope=self,
+            persistent_stack=persistent_stack,
+        )
 
         self.privilege_history_handler = self._privilege_history_handler(
             data_encryption_key=persistent_stack.shared_encryption_key,

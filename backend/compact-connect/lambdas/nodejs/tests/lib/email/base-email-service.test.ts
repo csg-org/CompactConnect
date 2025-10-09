@@ -1,13 +1,13 @@
 import { mockClient } from 'aws-sdk-client-mock';
 import 'aws-sdk-client-mock-jest';
 import { Logger } from '@aws-lambda-powertools/logger';
-import { SESClient } from '@aws-sdk/client-ses';
+import { SESv2Client } from '@aws-sdk/client-sesv2';
 import { S3Client } from '@aws-sdk/client-s3';
 import { BaseEmailService } from '../../../lib/email/base-email-service';
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 
 const asSESClient = (mock: ReturnType<typeof mockClient>) =>
-    mock as unknown as SESClient;
+    mock as unknown as SESv2Client;
 
 const asS3Client = (mock: ReturnType<typeof mockClient>) =>
     mock as unknown as S3Client;
@@ -32,7 +32,7 @@ describe('BaseEmailService Environment Banner', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        mockSESClient = mockClient(SESClient);
+        mockSESClient = mockClient(SESv2Client);
         mockS3Client = mockClient(S3Client);
 
         // Reset environment variables

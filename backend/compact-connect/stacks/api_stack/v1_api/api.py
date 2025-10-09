@@ -12,6 +12,7 @@ from .attestations import Attestations
 from .bulk_upload_url import BulkUploadUrl
 from .compact_configuration_api import CompactConfigurationApi
 from .credentials import Credentials
+from .feature_flags import FeatureFlagsApi
 from .post_licenses import PostLicenses
 from .provider_management import ProviderManagement
 from .provider_users import ProviderUsers
@@ -39,6 +40,11 @@ class V1Api:
         stack: Stack = Stack.of(self.resource)
         data_event_bus = SSMParameterUtility.load_data_event_bus_from_ssm_parameter(stack)
         _active_compacts = persistent_stack.get_list_of_compact_abbreviations()
+
+        # we only pass the API_BASE_URL env var if the API_DOMAIN_NAME is set
+        # this is because the API_BASE_URL is used by the feature flag client to call the flag check endpoint
+        if persistent_stack.api_domain_name:
+            stack.common_env_vars.update({'API_BASE_URL': f'https://{persistent_stack.api_domain_name}'})
 
         read_scopes = []
         write_scopes = []
@@ -90,6 +96,14 @@ class V1Api:
 
         # Store the privilege history handler for use by multiple modules
         privilege_history_handler = api_lambda_stack.privilege_history_handler
+
+        # /v1/flags
+        self.flags_resource = self.resource.add_resource('flags')
+        self.feature_flags = FeatureFlagsApi(
+            resource=self.flags_resource,
+            api_model=self.api_model,
+            api_lambda_stack=api_lambda_stack,
+        )
 
         # /v1/public
         self.public_resource = self.resource.add_resource('public')

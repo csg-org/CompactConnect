@@ -258,13 +258,6 @@ class TestProcessObjects(TstFunction):
                             'dateOfIssuance': '2020-01-01',
                             'dateOfRenewal': '2021-01-01',
                             'dateOfExpiration': '2023-01-01',
-                            'homeAddressStreet1': '123 Main St',
-                            'homeAddressStreet2': 'Apt 1',
-                            'homeAddressCity': 'Columbus',
-                            'homeAddressState': 'OH',
-                            'homeAddressPostalCode': '43215',
-                            'emailAddress': 'test@example.com',
-                            'phoneNumber': '+15551234567',
                         },
                         'errors': ['License contains unsupported fields'],
                     }
