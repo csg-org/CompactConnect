@@ -65,6 +65,7 @@
                             @click="handlePaymentButtonClick"
                         />
                         <PrivilegePurchaseAcceptUI
+                            ref="acceptUiComponent"
                             class="form-nav-button accept-ui"
                             :paymentSdkConfig="currentCompactPaymentSdkConfig"
                             :buttonLabel="$t('payment.payment')"

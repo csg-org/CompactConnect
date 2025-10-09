@@ -59,6 +59,10 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
         this.initFormInputs();
     }
 
+    beforeUnmount(): void {
+        this.closeAcceptUiPopup();
+    }
+
     //
     // Computed
     //
@@ -392,6 +396,14 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
 
         if (!this.isFormValid) {
             this.showInvalidFormError();
+        }
+    }
+
+    closeAcceptUiPopup(): void {
+        const acceptUiComponent = this.$refs.acceptUiComponent as any;
+
+        if (acceptUiComponent && typeof acceptUiComponent.unloadPaymentDetailsUi === 'function') {
+            acceptUiComponent.unloadPaymentDetailsUi();
         }
     }
 }
