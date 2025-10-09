@@ -32,7 +32,6 @@ class Purchases:
             api_lambda_stack=api_lambda_stack,
         )
 
-
     def _add_post_purchase_privileges(
         self,
         api_lambda_stack: ApiLambdaStack,

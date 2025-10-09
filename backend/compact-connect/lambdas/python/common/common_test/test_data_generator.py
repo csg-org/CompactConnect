@@ -357,7 +357,7 @@ class TestDataGenerator:
 
     @staticmethod
     def put_default_privilege_update_record_in_provider_table(
-        value_overrides: dict | None = None
+        value_overrides: dict | None = None,
     ) -> PrivilegeUpdateData:
         """
         Creates a default privilege update and stores it in the provider table.

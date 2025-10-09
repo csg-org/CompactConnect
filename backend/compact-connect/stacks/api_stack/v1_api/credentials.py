@@ -30,7 +30,6 @@ class Credentials:
             api_lambda_stack=api_lambda_stack,
         )
 
-
     def _add_post_credentials_payment_processor(
         self,
         method_options: MethodOptions,

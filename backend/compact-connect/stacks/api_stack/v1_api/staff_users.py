@@ -31,7 +31,6 @@ class StaffUsers:
         self.api: CCApi = admin_resource.api
         self.api_model = api_model
 
-
         # <base-url>/
         self._add_get_users(
             self.admin_resource,
@@ -55,7 +54,6 @@ class StaffUsers:
         profile_scopes = ['profile']
         self._add_get_me(self.me_resource, profile_scopes, api_lambda_stack=api_lambda_stack)
         self._add_patch_me(self.me_resource, profile_scopes, api_lambda_stack=api_lambda_stack)
-
 
     def _add_get_me(
         self,

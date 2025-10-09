@@ -28,7 +28,6 @@ class Attestations:
             api_lambda_stack=api_lambda_stack,
         )
 
-
     def _add_get_attestation(
         self,
         api_lambda_stack: ApiLambdaStack,

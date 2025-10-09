@@ -29,7 +29,9 @@ class TestPostLicenseApi(TestApi):
         api_lambda_stack_template = Template.from_stack(api_lambda_stack)
 
         post_licenses_handler = TestApi.get_resource_properties_by_logical_id(
-            api_lambda_stack.get_logical_id(api_lambda_stack.post_licenses_lambdas.post_licenses_handler.node.default_child),
+            api_lambda_stack.get_logical_id(
+                api_lambda_stack.post_licenses_lambdas.post_licenses_handler.node.default_child
+            ),
             api_lambda_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
         )
 

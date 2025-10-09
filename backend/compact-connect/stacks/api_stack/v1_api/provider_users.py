@@ -187,7 +187,6 @@ class ProviderUsers:
     ):
         stack = Stack.of(self.provider_users_resource)
 
-
         registration_method = self.provider_users_registration_resource.add_method(
             'POST',
             request_validator=self.api.parameter_body_validator,

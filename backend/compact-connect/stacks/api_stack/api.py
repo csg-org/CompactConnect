@@ -38,7 +38,6 @@ class LicenseApi(CCApi):
             api_lambda_stack=api_lambda_stack,
         )
 
-
     @cached_property
     def provider_users_authorizer(self):
         from aws_cdk.aws_apigateway import CognitoUserPoolsAuthorizer

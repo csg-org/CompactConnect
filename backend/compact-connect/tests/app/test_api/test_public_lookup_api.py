@@ -40,7 +40,9 @@ class TestPublicLookupApi(TestApi):
         api_lambda_stack_template = Template.from_stack(api_lambda_stack)
 
         get_handler = TestApi.get_resource_properties_by_logical_id(
-            api_lambda_stack.get_logical_id(api_lambda_stack.public_lookup_lambdas.get_provider_handler.node.default_child),
+            api_lambda_stack.get_logical_id(
+                api_lambda_stack.public_lookup_lambdas.get_provider_handler.node.default_child
+            ),
             api_lambda_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
         )
 
@@ -100,7 +102,9 @@ class TestPublicLookupApi(TestApi):
 
         # Ensure the lambda is created with expected code path in the ApiLambdaStack
         query_handler = TestApi.get_resource_properties_by_logical_id(
-            api_lambda_stack.get_logical_id(api_lambda_stack.public_lookup_lambdas.query_providers_handler.node.default_child),
+            api_lambda_stack.get_logical_id(
+                api_lambda_stack.public_lookup_lambdas.query_providers_handler.node.default_child
+            ),
             api_lambda_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
         )
 

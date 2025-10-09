@@ -194,8 +194,7 @@ class TestPurchasesApi(TestApi):
             api_lambda_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
         )
         self.assertEqual(
-            get_purchase_privilege_options_handler['Handler'],
-            'handlers.privileges.get_purchase_privilege_options'
+            get_purchase_privilege_options_handler['Handler'], 'handlers.privileges.get_purchase_privilege_options'
         )
 
         method_model_logical_id_capture = Capture()

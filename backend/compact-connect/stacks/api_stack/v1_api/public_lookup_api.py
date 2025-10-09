@@ -44,7 +44,6 @@ class PublicLookupApi:
             privilege_history_function=privilege_history_function,
         )
 
-
     def _add_public_get_provider(
         self,
         api_lambda_stack: ApiLambdaStack,
@@ -130,9 +129,7 @@ class PublicLookupApi:
                     response_models={'application/json': self.api_model.privilege_history_response_model},
                 ),
             ],
-            integration=LambdaIntegration(
-                privilege_history_function, timeout=Duration.seconds(29)
-            ),
+            integration=LambdaIntegration(privilege_history_function, timeout=Duration.seconds(29)),
         )
 
         # Add suppressions for the public GET endpoint

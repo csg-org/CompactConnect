@@ -206,7 +206,9 @@ class TestStaffUsersApi(TestApi):
         # Ensure the anomaly detection alarm is created
         alarms = api_lambda_stack_template.find_resources(CfnAlarm.CFN_RESOURCE_TYPE_NAME)
         anomaly_alarm = TestApi.get_resource_properties_by_logical_id(
-            api_lambda_stack.get_logical_id(api_lambda_stack.staff_users_lambdas.staff_user_creation_anomaly_detection_alarm),
+            api_lambda_stack.get_logical_id(
+                api_lambda_stack.staff_users_lambdas.staff_user_creation_anomaly_detection_alarm
+            ),
             alarms,
         )
 
@@ -279,7 +281,9 @@ class TestStaffUsersApi(TestApi):
         api_lambda_stack_template = Template.from_stack(api_lambda_stack)
 
         reinvite_user_handler = TestApi.get_resource_properties_by_logical_id(
-            api_lambda_stack.get_logical_id(api_lambda_stack.staff_users_lambdas.reinvite_user_handler.node.default_child),
+            api_lambda_stack.get_logical_id(
+                api_lambda_stack.staff_users_lambdas.reinvite_user_handler.node.default_child
+            ),
             api_lambda_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
         )
         self.assertEqual(reinvite_user_handler['Handler'], 'handlers.users.reinvite_user')
