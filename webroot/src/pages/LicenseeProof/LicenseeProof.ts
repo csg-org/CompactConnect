@@ -88,8 +88,6 @@ export default class LicenseeProof extends Vue {
             .sort((a: License, b: License) => {
                 const stateA = a.issueState?.name() ?? '';
                 const stateB = b.issueState?.name() ?? '';
-                const typeA = a.licenseType ?? '';
-                const typeB = b.licenseType ?? '';
                 let sort = 0;
 
                 // Primary sort — by state name
@@ -101,6 +99,8 @@ export default class LicenseeProof extends Vue {
 
                 // Secondary sort — by license type (custom order: OT, OTA, AUD, SLP)
                 if (sort === 0) {
+                    const typeA = a.licenseType ?? '';
+                    const typeB = b.licenseType ?? '';
                     const typeOrder: Record<string, number> = {
                         [LicenseType.OCCUPATIONAL_THERAPIST]: 1,
                         [LicenseType.OCCUPATIONAL_THERAPY_ASSISTANT]: 2,
