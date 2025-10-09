@@ -126,13 +126,13 @@ class UserPool(CdkUserPool):
                 suppressions=[
                     {
                         'id': 'AwsSolutions-COG2',
-                        'reason': 'MFA is disabled to facilitate automated security testing in some pre-production '
-                        'environments.',
+                        'reason': 'MFA is disabled to facilitate automated security testing in some pre-production'
+                        ' environments.',
                     },
                     {
                         'id': 'AwsSolutions-COG3',
                         'reason': 'Threat protection mode is not enforced in some pre-production environments to'
-                        'facilitate automated security testing.',
+                        ' facilitate automated security testing.',
                     },
                 ],
             )

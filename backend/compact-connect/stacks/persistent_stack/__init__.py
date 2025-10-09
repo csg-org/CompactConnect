@@ -13,7 +13,7 @@ from common_constructs.stack import AppStack
 from constructs import Construct
 
 from common_constructs.nodejs_function import NodejsFunction
-from common_constructs.python_layer_version import PythonCommonLayerVersions
+from common_constructs.python_common_layer_versions import PythonCommonLayerVersions
 from common_constructs.ssm_parameter_utility import SSMParameterUtility
 from stacks.backup_infrastructure_stack import BackupInfrastructureStack
 from stacks.persistent_stack.bulk_uploads_bucket import BulkUploadsBucket
@@ -59,7 +59,6 @@ class PersistentStack(AppStack):
         self.python_common_layer_versions = PythonCommonLayerVersions(
             self,
             'PythonCommonLayerVersions',
-            removal_policy=removal_policy,
             compatible_runtimes=[Runtime.PYTHON_3_12, Runtime.PYTHON_3_13],
         )
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 
 from aws_cdk import Stack
+from aws_cdk.aws_dynamodb import ITable
 from aws_cdk.aws_lambda import Runtime
 from aws_cdk.aws_secretsmanager import ISecret
 from aws_cdk.aws_sns import ITopic
@@ -35,12 +36,18 @@ class CredentialsLambdas:
             scope=scope,
             env_vars=env_vars,
             compact_payment_processor_secrets=compact_payment_processor_secrets,
+            compact_configuration_table=persistent_stack.compact_configuration_table,
             alarm_topic=persistent_stack.alarm_topic,
         )
         api_lambda_stack.log_groups.append(self.credentials_handler.log_group)
 
     def _credentials_handler(
-        self, scope: Construct, env_vars: dict, compact_payment_processor_secrets: list[ISecret], alarm_topic: ITopic
+        self,
+        scope: Construct,
+        env_vars: dict,
+        compact_configuration_table: ITable,
+        compact_payment_processor_secrets: list[ISecret],
+        alarm_topic: ITopic,
     ):
         stack = Stack.of(scope)
         handler = PythonFunction(
@@ -66,6 +73,7 @@ class CredentialsLambdas:
             ],
         )
 
+        compact_configuration_table.grant_read_write_data(handler)
         # grant handler access to post secrets for supported compacts
         # compact-connect/env/{environment_name}/compact/{compact_abbr}/credentials/payment-processor
         for secret in compact_payment_processor_secrets:

@@ -22,14 +22,14 @@ from aws_cdk.aws_apigateway import (
 from aws_cdk.aws_certificatemanager import Certificate, CertificateValidation
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Stats, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
-from aws_cdk.aws_logs import LogGroup, RetentionDays
+from aws_cdk.aws_logs import LogGroup, QueryDefinition, QueryString, RetentionDays
 from aws_cdk.aws_route53 import ARecord, IHostedZone, RecordTarget
 from aws_cdk.aws_route53_targets import ApiGateway
 from cdk_nag import NagSuppressions
 from common_constructs.security_profile import SecurityProfile
 from common_constructs.stack import AppStack
 from common_constructs.webacl import WebACL, WebACLScope
-from constructs import IConstruct
+from constructs import Construct
 
 from stacks import persistent_stack as ps
 
@@ -66,7 +66,7 @@ class NagSuppressOptionsNotAuthorized:
 class CCApi(RestApi):
     def __init__(
         self,
-        scope: IConstruct,
+        scope: Construct,
         construct_id: str,
         *,
         environment_name: str,
@@ -222,6 +222,18 @@ class CCApi(RestApi):
                     'HTTP requests to backend systems.',
                 },
             ],
+        )
+
+        QueryDefinition(
+            self,
+            'APILogs',
+            query_definition_name=f'{self.node.id}/API',
+            query_string=QueryString(
+                fields=['@timestamp', 'level', 'status', 'message', 'method', 'path', '@message'],
+                filter_statements=['level in ["INFO", "WARNING", "ERROR"]'],
+                sort='@timestamp desc',
+            ),
+            log_groups=[access_log_group, self.web_acl.log_group],
         )
 
     @cached_property

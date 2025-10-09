@@ -207,7 +207,7 @@ class ApiLambdaStack(AppStack):
             'RuntimeQuery',
             query_definition_name=f'{self.node.id}/Lambdas',
             query_string=QueryString(
-                fields=['@timestamp', '@log', 'level', 'status', 'message', 'method', 'path', '@message'],
+                fields=['@timestamp', 'level', 'status', 'message', 'method', 'path', '@message'],
                 filter_statements=['level in ["INFO", "WARNING", "ERROR"]'],
                 sort='@timestamp desc',
             ),

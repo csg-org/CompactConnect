@@ -5,6 +5,7 @@ import os
 from aws_cdk import Duration, Stack
 from aws_cdk.aws_dynamodb import ITable
 from aws_cdk.aws_kms import IKey
+from aws_cdk.aws_sns import ITopic
 from cdk_nag import NagSuppressions
 from constructs import Construct
 
@@ -32,13 +33,19 @@ class CompactConfigurationApiLambdas:
         self.compact_configuration_api_handler = self._compact_configuration_api_handler(
             scope=scope,
             env_vars=env_vars,
+            alarm_topic=persistent_stack.alarm_topic,
             data_encryption_key=persistent_stack.shared_encryption_key,
             compact_configuration_table=persistent_stack.compact_configuration_table,
         )
         api_lambda_stack.log_groups.append(self.compact_configuration_api_handler.log_group)
 
     def _compact_configuration_api_handler(
-        self, scope: Construct, env_vars: dict, data_encryption_key: IKey, compact_configuration_table: ITable
+        self,
+        scope: Construct,
+        env_vars: dict,
+        data_encryption_key: IKey,
+        compact_configuration_table: ITable,
+        alarm_topic: ITopic,
     ):
         stack = Stack.of(scope)
         handler = PythonFunction(
@@ -48,7 +55,8 @@ class CompactConfigurationApiLambdas:
             lambda_dir='compact-configuration',
             handler='compact_configuration_api_handler',
             environment=env_vars,
-            timeout=Duration.seconds(30),
+            timeout=Duration.seconds(28),
+            alarm_topic=alarm_topic,
         )
         data_encryption_key.grant_decrypt(handler)
         compact_configuration_table.grant_read_write_data(handler)

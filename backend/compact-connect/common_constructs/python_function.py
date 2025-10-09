@@ -13,7 +13,7 @@ from aws_cdk.aws_sns import ITopic
 from cdk_nag import NagSuppressions
 from constructs import Construct
 
-from common_constructs.python_layer_version import PythonCommonLayerVersions
+from common_constructs.python_common_layer_versions import PythonCommonLayerVersions
 
 
 class PythonFunction(CdkPythonFunction):

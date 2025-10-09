@@ -19,7 +19,6 @@ class PythonCommonLayerVersions(Construct):
         construct_id: str,
         *,
         compatible_runtimes: list[Runtime],
-        removal_policy: RemovalPolicy,
         **kwargs,
     ) -> None:
         super().__init__(scope, construct_id)
@@ -51,9 +50,9 @@ class PythonCommonLayerVersions(Construct):
                 # we will likely need to add a custom resource to track these versions, and clean up versions that are
                 # older than a certain date. That is out of scope for our current effort, but we're leaving this comment
                 # here to remind us that this will need to be addressed at a later date.
-                removal_policy=removal_policy.RETAIN
+                removal_policy=RemovalPolicy.RETAIN
                 if not self.node.try_get_context('sandbox')
-                else removal_policy.DESTROY,
+                else RemovalPolicy.DESTROY,
                 **kwargs,
             )
 
@@ -78,11 +77,19 @@ class PythonCommonLayerVersions(Construct):
         if runtime.name not in self._python_layers.keys():
             raise ValueError(f'No common python layer exists for runtime {runtime.name}')
 
+        # If we're in-stack, return a direct reference to the layer version
         if function_stack is this_stack:
             return self._python_layers[runtime.name]
 
-        # For cross-stack, we need to build an ILayerVersion from the SSM parameter value to avoid a cross-stack
-        # dependency that will break with every rebuild of the lambda layer version
+        return self._get_ilayer_reference(for_function)
+
+    def _get_ilayer_reference(self, for_function: IFunction):
+        """
+        For cross-stack, we need to build an ILayerVersion from the SSM parameter value to avoid a cross-stack
+        dependency that will break with every rebuild of the lambda layer version
+        """
+        function_stack = Stack.of(for_function)
+        runtime = for_function.runtime
 
         # We only want to do this look-up once per stack, so we'll first check if it's already been done for the
         # stack before creating a new one
