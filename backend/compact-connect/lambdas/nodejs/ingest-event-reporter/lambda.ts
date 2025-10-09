@@ -11,6 +11,7 @@ import { JurisdictionClient } from '../lib/jurisdiction-client';
 import { IEventBridgeEvent } from '../lib/models/event-bridge-event-detail';
 import { IngestEventEmailService } from '../lib/email';
 import { EventClient } from '../lib/event-client';
+import { Compact, IJurisdiction } from 'lib/models';
 
 const environmentVariables = new EnvironmentVariablesService();
 const logger = new Logger({ logLevel: environmentVariables.getLogLevel() });
@@ -59,8 +60,6 @@ export class Lambda implements LambdaInterface {
         logger.info('Processing event', { event: event });
         logger.debug('Context wait for event loop', { wait_for_empty_event_loop: context.callbackWaitsForEmptyEventLoop });
 
-        const [ startTimeStamp, endTimeStamp ] = this.eventClient.getYesterdayTimestamps();
-
         // Loop over each compact the system knows about
         for (const compact of environmentVariables.getCompacts()) {
             let compactConfig;
@@ -78,90 +77,107 @@ export class Lambda implements LambdaInterface {
 
             // Loop over each jurisdiction that we have contacts configured for
             for (const jurisdictionConfig of jurisdictionConfigs) {
-                const ingestEvents = await this.eventClient.getEvents(
-                    compact, jurisdictionConfig.postalAbbreviation, startTimeStamp, endTimeStamp
-                );
+                switch (event.eventType) {
+                case 'weekly':
+                    await this.runWeeklyReports(compactConfig, jurisdictionConfig);
+                    break;
+                default:
+                    // frequent case (every 15 minutes)
+                    await this.runFrequentReports(compactConfig, jurisdictionConfig);
+                    break;
+                };
 
-                // If there were any issues, send a report email summarizing them
-                if (ingestEvents.ingestFailures.length || ingestEvents.validationErrors.length) {
-                    const messageId = await this.emailService.sendReportEmail(
-                        ingestEvents,
-                        compactConfig.compactName,
-                        jurisdictionConfig.jurisdictionName,
-                        jurisdictionConfig.jurisdictionOperationsTeamEmails
-                    );
-
-                    logger.info(
-                        'Sent event summary email',
-                        {
-                            compact: compact,
-                            jurisdiction: jurisdictionConfig.postalAbbreviation,
-                            message_id: messageId
-                        }
-                    );
-                } else {
-                    logger.info(
-                        'No events in 24 hours',
-                        {
-                            compact: compact,
-                            jurisdiction: jurisdictionConfig.postalAbbreviation
-                        }
-                    );
-                    const eventType = event.eventType;
-
-                    // If this is a weekly run and there have been no issues all week, we send an "All's Well" report
-                    if (eventType === 'weekly') {
-                        const [ weekStartStamp, weekEndStamp ] = this.eventClient.getLastWeekTimestamps();
-                        const weeklyIngestEvents = await this.eventClient.getEvents(
-                            compact,
-                            jurisdictionConfig.postalAbbreviation,
-                            weekStartStamp,
-                            weekEndStamp
-                        );
-
-                        // verify that the jurisdiction uploaded licenses within the last week without any errors
-                        if (!weeklyIngestEvents.ingestFailures.length
-                            && !weeklyIngestEvents.validationErrors.length
-                            && weeklyIngestEvents.ingestSuccesses.length
-                        ) {
-                            const messageId = await this.emailService.sendAllsWellEmail(
-                                compactConfig.compactName,
-                                jurisdictionConfig.jurisdictionName,
-                                jurisdictionConfig.jurisdictionOperationsTeamEmails
-                            );
-
-                            logger.info(
-                                'Sent alls well email',
-                                {
-                                    compact: compactConfig.compactName,
-                                    jurisdiction: jurisdictionConfig.postalAbbreviation,
-                                    message_id: messageId
-                                }
-                            );
-                        }
-                        else if(!weeklyIngestEvents.ingestSuccesses.length) {
-                            const messageId = await this.emailService.sendNoLicenseUpdatesEmail(
-                                compactConfig.compactName,
-                                jurisdictionConfig.jurisdictionName,
-                                [
-                                    ...jurisdictionConfig.jurisdictionOperationsTeamEmails,
-                                    ...compactConfig.compactOperationsTeamEmails
-                                ]
-                            );
-
-                            logger.warn(
-                                'No licenses uploaded withinin the last week',
-                                {
-                                    compact: compactConfig.compactName,
-                                    jurisdiction: jurisdictionConfig.postalAbbreviation,
-                                    message_id: messageId
-                                }
-                            );
-                        }
-                    }
-                }
             }
         }
         logger.info('Completing handler');
+    }
+
+    public async runFrequentReports(compactConfig: Compact, jurisdictionConfig: IJurisdiction) {
+        const [ startTimeStamp, endTimeStamp ] = this.eventClient.getLast15MinuteTimestamps();
+
+        const ingestEvents = await this.eventClient.getEvents(
+            compactConfig.compactAbbr, jurisdictionConfig.postalAbbreviation, startTimeStamp, endTimeStamp
+        );
+
+        // If there were any issues, send a report email summarizing them
+        if (ingestEvents.ingestFailures.length || ingestEvents.validationErrors.length) {
+            const messageId = await this.emailService.sendReportEmail(
+                ingestEvents,
+                compactConfig.compactName,
+                jurisdictionConfig.jurisdictionName,
+                jurisdictionConfig.jurisdictionOperationsTeamEmails
+            );
+
+            logger.info(
+                'Sent event summary email',
+                {
+                    compact: compactConfig.compactAbbr,
+                    jurisdiction: jurisdictionConfig.postalAbbreviation,
+                    startTimeStamp,
+                    endTimeStamp,
+                    message_id: messageId
+                }
+            );
+        } else {
+            logger.info(
+                'No events in window',
+                {
+                    compact: compactConfig.compactAbbr,
+                    jurisdiction: jurisdictionConfig.postalAbbreviation,
+                    startTimeStamp,
+                    endTimeStamp
+                }
+            );
+        }
+    }
+
+    public async runWeeklyReports(compactConfig: Compact, jurisdictionConfig: IJurisdiction) {
+        const [ weekStartStamp, weekEndStamp ] = this.eventClient.getLastWeekTimestamps();
+        const weeklyIngestEvents = await this.eventClient.getEvents(
+            compactConfig.compactAbbr,
+            jurisdictionConfig.postalAbbreviation,
+            weekStartStamp,
+            weekEndStamp
+        );
+
+        // verify that the jurisdiction uploaded licenses within the last week without any errors
+        if (!weeklyIngestEvents.ingestFailures.length
+            && !weeklyIngestEvents.validationErrors.length
+            && weeklyIngestEvents.ingestSuccesses.length
+        ) {
+            const messageId = await this.emailService.sendAllsWellEmail(
+                compactConfig.compactName,
+                jurisdictionConfig.jurisdictionName,
+                jurisdictionConfig.jurisdictionOperationsTeamEmails
+            );
+
+            logger.info(
+                'Sent alls well email',
+                {
+                    compact: compactConfig.compactName,
+                    jurisdiction: jurisdictionConfig.postalAbbreviation,
+                    message_id: messageId
+                }
+            );
+        }
+        else if(!weeklyIngestEvents.ingestSuccesses.length) {
+            const messageId = await this.emailService.sendNoLicenseUpdatesEmail(
+                compactConfig.compactName,
+                jurisdictionConfig.jurisdictionName,
+                [
+                    ...jurisdictionConfig.jurisdictionOperationsTeamEmails,
+                    ...compactConfig.compactOperationsTeamEmails
+                ]
+            );
+
+            logger.warn(
+                'No licenses uploaded within the last week',
+                {
+                    compact: compactConfig.compactName,
+                    jurisdiction: jurisdictionConfig.postalAbbreviation,
+                    message_id: messageId
+                }
+            );
+        }
     }
 }
