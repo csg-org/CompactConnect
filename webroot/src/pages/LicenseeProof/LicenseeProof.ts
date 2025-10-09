@@ -10,7 +10,7 @@ import LicenseHomeIcon from '@components/Icons/LicenseHome/LicenseHome.vue';
 import PrivilegesIcon from '@components/Icons/LicenseeUser/LicenseeUser.vue';
 import UserIcon from '@components/Icons/User/User.vue';
 import { Compact } from '@models/Compact/Compact.model';
-import { License, LicenseStatus } from '@models/License/License.model';
+import { License, LicenseStatus, LicenseType } from '@models/License/License.model';
 import { Licensee } from '@models/Licensee/Licensee.model';
 import { State } from '@models/State/State.model';
 import { LicenseeUser } from '@/models/LicenseeUser/LicenseeUser.model';
@@ -99,13 +99,21 @@ export default class LicenseeProof extends Vue {
                     sort = 1;
                 }
 
-                // Secondary sort — by license type (only if states are equal)
+                // Secondary sort — by license type (custom order: OT, OTA, AUD, SLP)
                 if (sort === 0) {
-                    if (typeA < typeB) {
-                        sort = -1;
-                    } else if (typeA > typeB) {
-                        sort = 1;
-                    }
+                    const typeOrder: Record<string, number> = {
+                        [LicenseType.OCCUPATIONAL_THERAPIST]: 1,
+                        [LicenseType.OCCUPATIONAL_THERAPY_ASSISTANT]: 2,
+                        [LicenseType.AUDIOLOGIST]: 3,
+                        [LicenseType.SPEECH_LANGUAGE_PATHOLOGIST]: 4,
+                    };
+
+                    // Unordered types sort after all custom ordered types
+                    const customOrderCount = Object.keys(typeOrder).length;
+                    const orderA = typeOrder[typeA] ?? customOrderCount + 1;
+                    const orderB = typeOrder[typeB] ?? customOrderCount + 1;
+
+                    sort = orderA - orderB;
                 }
 
                 return sort;
