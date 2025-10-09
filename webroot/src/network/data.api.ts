@@ -165,10 +165,20 @@ export class DataApi {
      * @param  {string}           licenseType     The license type.
      * @param  {string}           encumbranceType The discipline action type.
      * @param  {string}           npdbCategory    The NPDB category name.
+     * @param  {Array<string>}    npdbCategories  The NPDB category list.
      * @param  {string}           startDate       The encumber start date.
      * @return {Promise<object>}                  The server response.
      */
-    public encumberLicense(compact, licenseeId, licenseState, licenseType, encumbranceType, npdbCategory, startDate) {
+    public encumberLicense(
+        compact,
+        licenseeId,
+        licenseState,
+        licenseType,
+        encumbranceType,
+        npdbCategory,
+        npdbCategories,
+        startDate
+    ) {
         return licenseDataApi.encumberLicense(
             compact,
             licenseeId,
@@ -176,6 +186,7 @@ export class DataApi {
             licenseType,
             encumbranceType,
             npdbCategory,
+            npdbCategories,
             startDate
         );
     }
@@ -222,6 +233,7 @@ export class DataApi {
      * @param  {string}           licenseType     The license type.
      * @param  {string}           encumbranceType The discipline action type.
      * @param  {string}           npdbCategory    The NPDB category name.
+     * @param  {Array<string>}    npdbCategories  The NPDB category list.
      * @param  {string}           startDate       The encumber start date.
      * @return {Promise<object>}                  The server response.
      */
@@ -232,6 +244,7 @@ export class DataApi {
         licenseType,
         encumbranceType,
         npdbCategory,
+        npdbCategories,
         startDate
     ) {
         return licenseDataApi.encumberPrivilege(
@@ -241,6 +254,7 @@ export class DataApi {
             licenseType,
             encumbranceType,
             npdbCategory,
+            npdbCategories,
             startDate
         );
     }

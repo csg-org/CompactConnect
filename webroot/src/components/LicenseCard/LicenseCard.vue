@@ -130,8 +130,11 @@
                             <div class="form-row">
                                 <InputSelect :formInput="formData.encumberModalDisciplineAction" />
                             </div>
-                            <div class="form-row">
+                            <div class="form-row feature-flag-@TODO">
                                 <InputSelect :formInput="formData.encumberModalNpdbCategory" />
+                            </div>
+                            <div class="form-row feature-flag-@TODO">
+                                <InputSelectMultiple :formInput="formData.encumberModalNpdbCategories" />
                             </div>
                             <div class="form-row">
                                 <InputDate

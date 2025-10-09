@@ -141,14 +141,6 @@ class ExampleForm extends mixins(MixinForm) {
                 valueOptions: this.states.map((state) => ({ value: state.abbrev, name: state.full })),
                 value: [],
             }),
-            npdbCategories: new FormInput({ // Multi select
-                id: 'npdb-categories',
-                name: 'npdb-categories',
-                label: computed(() => this.$t('licensing.npdbCategoryLabel')),
-                validation: Joi.array().min(1).messages(this.joiMessages.array),
-                valueOptions: this.npdbCategoryOptions,
-                value: [],
-            }),
             isSubscribed: new FormInput({
                 id: 'subscribe',
                 name: 'subscribe',

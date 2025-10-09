@@ -260,6 +260,7 @@ export class LicenseDataApi implements DataApiInterface {
      * @param  {string}           licenseType     The license type.
      * @param  {string}           encumbranceType The discipline action type.
      * @param  {string}           npdbCategory    The NPDB category name.
+     * @param  {Array<string>}    npdbCategories  The NPDB category list.
      * @param  {string}           startDate       The encumber start date.
      * @return {Promise<object>}                  The server response.
      */
@@ -270,11 +271,13 @@ export class LicenseDataApi implements DataApiInterface {
         licenseType: string,
         encumbranceType: string,
         npdbCategory: string,
+        npdbCategories: Array<string>,
         startDate: string
     ) {
         const serverResponse: any = await this.api.post(`/v1/compacts/${compact}/providers/${licenseeId}/licenses/jurisdiction/${licenseState}/licenseType/${licenseType}/encumbrance`, {
             encumbranceType,
-            clinicalPrivilegeActionCategory: npdbCategory,
+            clinicalPrivilegeActionCategory: npdbCategory, // @TODO: Feature flag (ternary w/ undefined?)
+            clinicalPrivilegeActionCategories: npdbCategories, // @TODO: Feature flag (ternary w/ undefined?)
             encumbranceEffectiveDate: startDate,
         });
 
@@ -337,6 +340,7 @@ export class LicenseDataApi implements DataApiInterface {
      * @param  {string}           licenseType     The license type.
      * @param  {string}           encumbranceType The discipline action type.
      * @param  {string}           npdbCategory    The NPDB category name.
+     * @param  {Array<string>}    npdbCategories  The NPDB category list.
      * @param  {string}           startDate       The encumber start date.
      * @return {Promise<object>}                  The server response.
      */
@@ -347,11 +351,13 @@ export class LicenseDataApi implements DataApiInterface {
         licenseType: string,
         encumbranceType: string,
         npdbCategory: string,
+        npdbCategories: Array<string>,
         startDate: string
     ) {
         const serverResponse: any = await this.api.post(`/v1/compacts/${compact}/providers/${licenseeId}/privileges/jurisdiction/${privilegeState}/licenseType/${licenseType}/encumbrance`, {
             encumbranceType,
-            clinicalPrivilegeActionCategory: npdbCategory,
+            clinicalPrivilegeActionCategory: npdbCategory, // @TODO: Feature flag (ternary w/ undefined?)
+            clinicalPrivilegeActionCategories: npdbCategories, // @TODO: Feature flag (ternary w/ undefined?)
             encumbranceEffectiveDate: startDate,
         });
 

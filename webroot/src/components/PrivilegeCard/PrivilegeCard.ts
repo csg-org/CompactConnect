@@ -21,6 +21,7 @@ import MixinForm from '@components/Forms/_mixins/form.mixin';
 import InputTextarea from '@components/Forms/InputTextarea/InputTextarea.vue';
 import InputDate from '@components/Forms/InputDate/InputDate.vue';
 import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
+import InputSelectMultiple from '@components/Forms/InputSelectMultiple/InputSelectMultiple.vue';
 import InputCheckbox from '@components/Forms/InputCheckbox/InputCheckbox.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
@@ -45,6 +46,7 @@ import moment from 'moment';
         InputTextarea,
         InputDate,
         InputSelect,
+        InputSelectMultiple,
         InputCheckbox,
         InputButton,
         InputSubmit,
@@ -208,6 +210,7 @@ class PrivilegeCard extends mixins(MixinForm) {
             name: npdbType.name,
         }));
 
+        // @TODO: Feature flag
         options.unshift({
             value: '',
             name: computed(() => this.$t('common.selectOption')),
@@ -271,6 +274,14 @@ class PrivilegeCard extends mixins(MixinForm) {
                 validation: Joi.string().required().messages(this.joiMessages.string),
                 valueOptions: this.npdbCategoryOptions,
             }),
+            encumberModalNpdbCategories: new FormInput({
+                id: 'npdb-categories',
+                name: 'npdb-categories',
+                label: computed(() => this.$t('licensing.npdbCategoryLabel')),
+                validation: Joi.array().min(1).messages(this.joiMessages.array),
+                valueOptions: this.npdbCategoryOptions,
+                value: [],
+            }),
             encumberModalStartDate: new FormInput({
                 id: 'encumber-start',
                 name: 'encumber-start',
@@ -302,7 +313,7 @@ class PrivilegeCard extends mixins(MixinForm) {
             const adverseActionInput = new FormInput({
                 id: `adverse-action-data-${adverseActionId}`,
                 name: `adverse-action-data-${adverseActionId}`,
-                label: adverseAction.npdbTypeName(),
+                label: adverseAction.encumbranceTypeName(),
                 isDisabled: Boolean(adverseAction.endDate),
             });
 
@@ -468,18 +479,22 @@ class PrivilegeCard extends mixins(MixinForm) {
                 privilegeTypeAbbrev
             } = this;
 
-            await this.$store.dispatch(`users/encumberPrivilegeRequest`, {
+            const response = await this.$store.dispatch(`users/encumberPrivilegeRequest`, {
                 compact: compactType,
                 licenseeId,
                 privilegeState: stateAbbrev,
                 licenseType: privilegeTypeAbbrev.toLowerCase(),
                 encumbranceType: this.formData.encumberModalDisciplineAction.value,
                 npdbCategory: this.formData.encumberModalNpdbCategory.value,
+                npdbCategories: this.formData.encumberModalNpdbCategories.value,
                 startDate: this.formData.encumberModalStartDate.value,
             }).catch((err) => {
                 this.modalErrorMessage = err?.message || this.$t('common.error');
                 this.isFormError = true;
             });
+
+            // @TODO
+            console.log(response);
 
             if (!this.isFormError) {
                 this.isFormSuccessful = true;
@@ -675,6 +690,7 @@ class PrivilegeCard extends mixins(MixinForm) {
         } else if (this.isEncumberPrivilegeModalDisplayed) {
             this.formData.encumberModalDisciplineAction.value = this.encumberDisciplineOptions[1]?.value;
             this.formData.encumberModalNpdbCategory.value = this.npdbCategoryOptions[1]?.value;
+            this.formData.encumberModalNpdbCategories.value = [this.npdbCategoryOptions[1]?.value];
             this.formData.encumberModalStartDate.value = moment().format('YYYY-MM-DD');
             await nextTick();
             this.validateAll({ asTouched: true });

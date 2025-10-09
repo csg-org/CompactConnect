@@ -47,6 +47,7 @@ describe('AdverseAction model', () => {
         expect(adverseAction.state).to.be.an.instanceof(State);
         expect(adverseAction.type).to.equal(null);
         expect(adverseAction.npdbType).to.equal(null);
+        expect(adverseAction.npdbTypes).to.matchPattern([]);
         expect(adverseAction.creationDate).to.equal(null);
         expect(adverseAction.startDate).to.equal(null);
         expect(adverseAction.endDate).to.equal(null);
@@ -58,6 +59,7 @@ describe('AdverseAction model', () => {
         expect(adverseAction.hasEndDate()).to.equal(false);
         expect(adverseAction.encumbranceTypeName()).to.equal('');
         expect(adverseAction.npdbTypeName()).to.equal('');
+        expect(adverseAction.getNpdbTypeName()).to.equal('');
         expect(adverseAction.isActive()).to.equal(false);
     });
     it('should create an AdverseAction model with specific values', () => {
@@ -69,6 +71,7 @@ describe('AdverseAction model', () => {
             type: 'test-type',
             encumbranceType: 'test-encumbranceType',
             npdbType: 'test-npdbType',
+            npdbTypes: ['test-npdbType'],
             creationDate: 'test-creationDate',
             startDate: 'test-startDate',
             endDate: 'test-endDate',
@@ -83,6 +86,7 @@ describe('AdverseAction model', () => {
         expect(adverseAction.state).to.be.an.instanceof(State);
         expect(adverseAction.type).to.equal(data.type);
         expect(adverseAction.npdbType).to.equal(data.npdbType);
+        expect(adverseAction.npdbTypes).to.matchPattern(data.npdbTypes);
         expect(adverseAction.creationDate).to.equal(data.creationDate);
         expect(adverseAction.startDate).to.equal(data.startDate);
         expect(adverseAction.endDate).to.equal(data.endDate);
@@ -94,6 +98,7 @@ describe('AdverseAction model', () => {
         expect(adverseAction.hasEndDate()).to.equal(true);
         expect(adverseAction.encumbranceTypeName()).to.equal('');
         expect(adverseAction.npdbTypeName()).to.equal('');
+        expect(adverseAction.getNpdbTypeName('Other')).to.equal('Other');
         expect(adverseAction.isActive()).to.equal(false);
     });
     it('should create an AdverseAction model with specific values (startDate but no endDate)', () => {
@@ -148,6 +153,7 @@ describe('AdverseAction model', () => {
             type: 'test-type',
             encumbranceType: 'fine',
             clinicalPrivilegeActionCategory: 'Non-compliance With Requirements',
+            clinicalPrivilegeActionCategories: ['Non-compliance With Requirements'],
             creationDate: moment.utc().format(serverDatetimeFormat),
             effectiveStartDate: moment().subtract(1, 'day').format(serverDateFormat),
             effectiveLiftDate: moment().add(1, 'day').format(serverDateFormat),
@@ -163,6 +169,7 @@ describe('AdverseAction model', () => {
         expect(adverseAction.state.name()).to.equal('Alabama');
         expect(adverseAction.type).to.equal(data.type);
         expect(adverseAction.npdbType).to.equal(data.clinicalPrivilegeActionCategory);
+        expect(adverseAction.npdbTypes).to.matchPattern(data.clinicalPrivilegeActionCategories);
         expect(adverseAction.creationDate).to.equal(data.creationDate);
         expect(adverseAction.startDate).to.equal(data.effectiveStartDate);
         expect(adverseAction.endDate).to.equal(data.effectiveLiftDate);
@@ -178,6 +185,7 @@ describe('AdverseAction model', () => {
         expect(adverseAction.hasEndDate()).to.equal(true);
         expect(adverseAction.encumbranceTypeName()).to.equal('Fine');
         expect(adverseAction.npdbTypeName()).to.equal('Non-compliance With Requirements');
+        expect(adverseAction.getNpdbTypeName(data.clinicalPrivilegeActionCategories[0])).to.equal('Non-compliance With Requirements');
         expect(adverseAction.isActive()).to.equal(true);
     });
 });

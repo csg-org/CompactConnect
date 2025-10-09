@@ -19,7 +19,6 @@
                 />
                 <InputSelect :formInput="formData.state" />
                 <InputSelectMultiple :formInput="formData.states" />
-                <InputSelectMultiple :formInput="formData.npdbCategories" />
                 <InputCheckbox :formInput="formData.isSubscribed" />
                 <InputRadioGroup :formInput="formData.status" />
                 <InputDate :formInput="formData.dob" />

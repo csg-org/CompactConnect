@@ -197,7 +197,16 @@ export class DataApi {
     }
 
     // Encumber License for a licensee.
-    public encumberLicense(compact, licenseeId, licenseState, licenseType, encumbranceType, npdbCategory, startDate) {
+    public encumberLicense(
+        compact,
+        licenseeId,
+        licenseState,
+        licenseType,
+        encumbranceType,
+        npdbCategory,
+        npdbCategories,
+        startDate
+    ) {
         if (!compact) {
             return Promise.reject(new Error('failed license encumber'));
         }
@@ -210,6 +219,7 @@ export class DataApi {
             licenseType,
             encumbranceType,
             npdbCategory,
+            npdbCategories,
             startDate,
         }));
     }
@@ -254,6 +264,7 @@ export class DataApi {
         licenseType,
         encumbranceType,
         npdbCategory,
+        npdbCategories,
         startDate
     ) {
         if (!compact) {
@@ -268,6 +279,7 @@ export class DataApi {
             licenseType,
             encumbranceType,
             npdbCategory,
+            npdbCategories,
             startDate,
         }));
     }

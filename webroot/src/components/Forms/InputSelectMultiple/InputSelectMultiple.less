@@ -7,8 +7,13 @@
 
 .input-container {
     .multi-select-description {
+        display: none;
         font-size: @fontSizeSmaller;
         font-style: italic;
+
+        @media (hover: hover) {
+            display: flex;
+        }
     }
 
     .select-dropdown {
@@ -41,11 +46,12 @@
 
             .remove {
                 position: absolute;
-                top: 0;
+                top: 50%;
                 right: 0;
                 width: @removeSize;
                 height: @removeSize;
                 margin-left: auto;
+                transform: translateY(-50%);
                 cursor: pointer;
                 stroke: @primaryColor;
             }
