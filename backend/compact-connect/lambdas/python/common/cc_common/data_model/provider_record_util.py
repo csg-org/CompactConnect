@@ -373,8 +373,11 @@ class ProviderRecordUtility:
                 and event.get('encumbranceDetails')
                 and should_include_encumbrance_details
             ):
-                # TODO - replace this with a feature flag when available
-                if True:
+                # TODO - remove the flag as part of https://github.com/csg-org/CompactConnect/issues/1136 # noqa: FIX002
+                # as well as check for deprecated field
+                from cc_common.feature_flag_client import is_feature_enabled
+
+                if is_feature_enabled('encumbrance-multi-category-flag'):
                     if 'clinicalPrivilegeActionCategory' in event['encumbranceDetails']:
                         event['note'] = event['encumbranceDetails'].get('clinicalPrivilegeActionCategory')
                     else:

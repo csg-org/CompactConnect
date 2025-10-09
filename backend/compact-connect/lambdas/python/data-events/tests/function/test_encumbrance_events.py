@@ -80,6 +80,11 @@ class TestEncumbranceEvents(TstFunction):
             }
         )
 
+        # add adverse action item for license
+        self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+            value_overrides={'actionAgainst': 'license'}
+        )
+
         message = self._generate_license_encumbrance_message()
         event = self._create_sqs_event(message)
 
@@ -190,8 +195,14 @@ class TestEncumbranceEvents(TstFunction):
         # Verify no privilege encumbrance events were published since no privileges were affected
         mock_publish_event.assert_not_called()
 
+    # TODO - remove the mock flag as part of https://github.com/csg-org/CompactConnect/issues/1136 # noqa: FIX002
+    @patch('cc_common.feature_flag_client.is_feature_enabled', return_value=True)
     @patch('cc_common.event_bus_client.EventBusClient._publish_event')
-    def test_license_encumbrance_listener_handles_all_privileges_already_encumbered(self, mock_publish_event):
+    def test_license_encumbrance_listener_handles_all_privileges_already_encumbered(
+        self,
+        mock_publish_event,
+        mock_flag,  # noqa: ARG002
+    ):
         """Test that license encumbrance event handles case where all matching privileges are already encumbered."""
         from cc_common.data_model.schema.common import PrivilegeEncumberedStatusEnum
         from handlers.encumbrance_events import license_encumbrance_listener
@@ -206,6 +217,79 @@ class TestEncumbranceEvents(TstFunction):
                 'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
                 'encumberedStatus': 'encumbered',
             }
+        )
+
+        # add adverse action item for license
+        self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+            value_overrides={'actionAgainst': 'license'}
+        )
+
+        message = self._generate_license_encumbrance_message()
+        event = self._create_sqs_event(message)
+
+        # Execute the handler
+        license_encumbrance_listener(event, self.mock_context)
+
+        # Verify privilege status remains unchanged
+        provider_records = self.config.data_client.get_provider_user_records(
+            compact=DEFAULT_COMPACT,
+            provider_id=DEFAULT_PROVIDER_ID,
+        )
+
+        privileges = provider_records.get_privilege_records()
+        self.assertEqual(1, len(privileges))
+
+        serialized_privilege = privilege.serialize_to_database_record()
+        self.assertEqual(PrivilegeEncumberedStatusEnum.ENCUMBERED, privileges[0].encumberedStatus)
+
+        privilege_update_records = self._provider_table.query(
+            Select='ALL_ATTRIBUTES',
+            KeyConditionExpression=Key('pk').eq(serialized_privilege['pk'])
+            & Key('sk').begins_with(f'{serialized_privilege["sk"]}UPDATE'),
+        )
+
+        self.assertEqual(1, len(privilege_update_records['Items']))
+        update_record = privilege_update_records['Items'][0]
+        update_encumbrance_details = update_record['encumbranceDetails']
+        self.assertEqual(
+            {
+                'adverseActionId': DEFAULT_ADVERSE_ACTION_ID,
+                'licenseJurisdiction': 'oh',
+                'clinicalPrivilegeActionCategories': ['Unsafe Practice or Substandard Care'],
+            },
+            update_encumbrance_details,
+        )
+
+        # Verify one event was published for the privilege update
+        mock_publish_event.assert_called_once()
+
+    # TODO - remove this test when flag is removed # noqa: FIX002
+    @patch('cc_common.event_bus_client.EventBusClient._publish_event')
+    @patch('cc_common.feature_flag_client.is_feature_enabled', return_value=False)
+    def test_license_encumbrance_listener_handles_all_privileges_already_encumbered_with_experiment_disabled(
+        self,
+        mock_flag,
+        mock_publish_event,  # noqa: ARG002
+    ):
+        """Test that license encumbrance event handles case where all matching privileges are already encumbered."""
+        from cc_common.data_model.schema.common import PrivilegeEncumberedStatusEnum
+        from handlers.encumbrance_events import license_encumbrance_listener
+
+        # Set up test data
+        self.test_data_generator.put_default_provider_record_in_provider_table()
+
+        # Create privileges that are already encumbered
+        privilege = self.test_data_generator.put_default_privilege_record_in_provider_table(
+            value_overrides={
+                'licenseJurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
+                'encumberedStatus': 'encumbered',
+            }
+        )
+
+        # add adverse action item for license
+        self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+            value_overrides={'actionAgainst': 'license'}
         )
 
         message = self._generate_license_encumbrance_message()
@@ -254,6 +338,10 @@ class TestEncumbranceEvents(TstFunction):
         # Set up test data
         self.test_data_generator.put_default_provider_record_in_provider_table()
         privilege = self.test_data_generator.put_default_privilege_record_in_provider_table()
+        # add adverse action item for license
+        self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+            value_overrides={'actionAgainst': 'license'}
+        )
 
         message = self._generate_license_encumbrance_message()
         event = self._create_sqs_event(message)
@@ -493,6 +581,11 @@ class TestEncumbranceEvents(TstFunction):
             }
         )
 
+        # add adverse action item for license
+        self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+            value_overrides={'actionAgainst': 'license'}
+        )
+
         message = self._generate_license_encumbrance_message()
         event = self._create_sqs_event(message)
 
@@ -634,6 +727,11 @@ class TestEncumbranceEvents(TstFunction):
             }
         )
 
+        # add adverse action item for license
+        self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+            value_overrides={'actionAgainst': 'license'}
+        )
+
         message = self._generate_license_encumbrance_message()
         event = self._create_sqs_event(message)
 
@@ -681,6 +779,11 @@ class TestEncumbranceEvents(TstFunction):
                 'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
                 'jurisdiction': 'tx',
             }
+        )
+
+        # add adverse action item for license
+        self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+            value_overrides={'actionAgainst': 'license'}
         )
 
         message = self._generate_license_encumbrance_message()
