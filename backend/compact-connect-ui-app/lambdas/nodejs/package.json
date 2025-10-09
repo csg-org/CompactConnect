@@ -28,9 +28,7 @@
     "@aws-lambda-powertools/logger": "^2.10.0",
     "@aws-sdk/client-dynamodb": "^3.682.0",
     "@aws-sdk/client-s3": "^3.682.0",
-    "@aws-sdk/client-ses": "^3.682.0",
     "@aws-sdk/util-dynamodb": "^3.682.0",
-    "@usewaypoint/email-builder": "^0.0.6",
     "aws-lambda": "1.0.7",
     "zod": "^3.23.8"
   }

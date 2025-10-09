@@ -198,54 +198,6 @@
     "@smithy/util-waiter" "^3.1.9"
     tslib "^2.6.2"
 
-"@aws-sdk/client-ses@^3.682.0":
-  version "3.699.0"
-  resolved "https://registry.yarnpkg.com/@aws-sdk/client-ses/-/client-ses-3.699.0.tgz#b48d9c8865877b7baa4b1a90cb3e4c2d59c0c5e0"
-  integrity sha512-prpkr2jnhD2KsinQMBdX2wvSpNxFm9d02EUR4L78yxjg2oppXmu/cBjWdlVrSkqqE2EYfcHo0JV2WmRZZC1VyQ==
-  dependencies:
-    "@aws-crypto/sha256-browser" "5.2.0"
-    "@aws-crypto/sha256-js" "5.2.0"
-    "@aws-sdk/client-sso-oidc" "3.699.0"
-    "@aws-sdk/client-sts" "3.699.0"
-    "@aws-sdk/core" "3.696.0"
-    "@aws-sdk/credential-provider-node" "3.699.0"
-    "@aws-sdk/middleware-host-header" "3.696.0"
-    "@aws-sdk/middleware-logger" "3.696.0"
-    "@aws-sdk/middleware-recursion-detection" "3.696.0"
-    "@aws-sdk/middleware-user-agent" "3.696.0"
-    "@aws-sdk/region-config-resolver" "3.696.0"
-    "@aws-sdk/types" "3.696.0"
-    "@aws-sdk/util-endpoints" "3.696.0"
-    "@aws-sdk/util-user-agent-browser" "3.696.0"
-    "@aws-sdk/util-user-agent-node" "3.696.0"
-    "@smithy/config-resolver" "^3.0.12"
-    "@smithy/core" "^2.5.3"
-    "@smithy/fetch-http-handler" "^4.1.1"
-    "@smithy/hash-node" "^3.0.10"
-    "@smithy/invalid-dependency" "^3.0.10"
-    "@smithy/middleware-content-length" "^3.0.12"
-    "@smithy/middleware-endpoint" "^3.2.3"
-    "@smithy/middleware-retry" "^3.0.27"
-    "@smithy/middleware-serde" "^3.0.10"
-    "@smithy/middleware-stack" "^3.0.10"
-    "@smithy/node-config-provider" "^3.1.11"
-    "@smithy/node-http-handler" "^3.3.1"
-    "@smithy/protocol-http" "^4.1.7"
-    "@smithy/smithy-client" "^3.4.4"
-    "@smithy/types" "^3.7.1"
-    "@smithy/url-parser" "^3.0.10"
-    "@smithy/util-base64" "^3.0.0"
-    "@smithy/util-body-length-browser" "^3.0.0"
-    "@smithy/util-body-length-node" "^3.0.0"
-    "@smithy/util-defaults-mode-browser" "^3.0.27"
-    "@smithy/util-defaults-mode-node" "^3.0.27"
-    "@smithy/util-endpoints" "^2.1.6"
-    "@smithy/util-middleware" "^3.0.10"
-    "@smithy/util-retry" "^3.0.10"
-    "@smithy/util-utf8" "^3.0.0"
-    "@smithy/util-waiter" "^3.1.9"
-    tslib "^2.6.2"
-
 "@aws-sdk/client-sso-oidc@3.699.0":
   version "3.699.0"
   resolved "https://registry.yarnpkg.com/@aws-sdk/client-sso-oidc/-/client-sso-oidc-3.699.0.tgz#a35665e681abd518b56330bc7dab63041fbdaf83"
@@ -1627,80 +1579,6 @@
   dependencies:
     "@types/yargs-parser" "*"
 
-"@usewaypoint/block-avatar@^0.0.3":
-  version "0.0.3"
-  resolved "https://registry.yarnpkg.com/@usewaypoint/block-avatar/-/block-avatar-0.0.3.tgz#f63510ed82690a2b4b68ead62a191d80b20c2957"
-  integrity sha512-3BM6P4ztMmqDbSijtVQqI1canRkcENOEHZ2X9BYNv8BZGJbmitTrzANvwmmYXfFEuWPCAyABvujdZds15Zg8Qg==
-
-"@usewaypoint/block-button@^0.0.3":
-  version "0.0.3"
-  resolved "https://registry.yarnpkg.com/@usewaypoint/block-button/-/block-button-0.0.3.tgz#1e9257601b452ab5687ce806cd24efd88a1185f3"
-  integrity sha512-LXSI3FmCTv13voYX4wdHY7iJdsfyRfpDJZCFKSun5EF1j9FXrqMDGScpk/yokopkQWvWkYXQNAne7W0yWhRQlg==
-
-"@usewaypoint/block-columns-container@^0.0.3":
-  version "0.0.3"
-  resolved "https://registry.yarnpkg.com/@usewaypoint/block-columns-container/-/block-columns-container-0.0.3.tgz#e6d9148f06523aa964a41f937e0b295c165d59d2"
-  integrity sha512-r5jaojU1Fr6Svtl0a9dDlBHgslJQ04M+XaXaEO+GZ12+35fdAirpLkrEhuyBIA1FFXzRTG740wkbkr++iv1kuA==
-
-"@usewaypoint/block-container@^0.0.2":
-  version "0.0.2"
-  resolved "https://registry.yarnpkg.com/@usewaypoint/block-container/-/block-container-0.0.2.tgz#de06a31242c799c7d1caaf80ab91107ca4b25fc5"
-  integrity sha512-li9GVdiahVpJ+MNRdkoCkP6/hBTdcpaLRGpaFBSQRkVt+cYAeB7qPNIo+242hUvVTm5Qky8ceGLDVblGYSZb7A==
-
-"@usewaypoint/block-divider@^0.0.4":
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/@usewaypoint/block-divider/-/block-divider-0.0.4.tgz#29a938293a76ad8a5e9738d4ac4370f9fa3efbd8"
-  integrity sha512-q54ydWvKdg7Zwc4hzIwE6i/mC8dFYxfPRACEEEyu2dvSNa9cbKFIsPD9ipVSntK+Ib3Ml84uT4aHQmOlzP6hZA==
-
-"@usewaypoint/block-heading@^0.0.3":
-  version "0.0.3"
-  resolved "https://registry.yarnpkg.com/@usewaypoint/block-heading/-/block-heading-0.0.3.tgz#a300894acfc39556d1577be17a2d7b3d58c7c95e"
-  integrity sha512-1dMrf1U34nq2FuwTUfsq+hBOdLQz1H+lVMEH9xvyCq5I7nSXCzpeo7QgumZ3zZEHtu3QgSEGafJaZyrj2paC0w==
-
-"@usewaypoint/block-html@^0.0.3":
-  version "0.0.3"
-  resolved "https://registry.yarnpkg.com/@usewaypoint/block-html/-/block-html-0.0.3.tgz#296550235b2974679afcad4772f7bc56cf8ba520"
-  integrity sha512-ZI9oYDibMzs5y/YzfvUwuUBzHDKHOIjiStiVCvlmIA+VtJTycqT8X/ECjn+KmwesLTg5DhG07CC4WY2SL3AnJw==
-
-"@usewaypoint/block-image@^0.0.5":
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/@usewaypoint/block-image/-/block-image-0.0.5.tgz#e9e866673d2bbdb628fd57c0798ba70e3cdc3b12"
-  integrity sha512-b66jAXF79idsrIRc2QoBlZctIXdqg/qOAL7/QvKvENZH2KmuXoZhEUx+Z7sACvEQD/VI0u7TK5msDsA5S0/oVQ==
-
-"@usewaypoint/block-spacer@^0.0.3":
-  version "0.0.3"
-  resolved "https://registry.yarnpkg.com/@usewaypoint/block-spacer/-/block-spacer-0.0.3.tgz#6655628dd74085ffcf3fbcd0f0aa286e40e69a10"
-  integrity sha512-CCcMtwcpeC2rHvawQdh5f0Hez7o4xA/edWl/6I3RuA6Yb6STyyrGjmPFs2ZxHQsLOGUK+0OvBenuHlSTCZwuuA==
-
-"@usewaypoint/block-text@^0.0.4":
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/@usewaypoint/block-text/-/block-text-0.0.4.tgz#22be615f81f91749eac78501b1de9dfb5bd95560"
-  integrity sha512-c+CiTkwFSrclPxRx9Gt+nE6KkAmY5tWDumBa3qQnVrxdCjCmGK0qOj9avm9vqf9hd5JxaX4tgWhG/oi2u/zMxA==
-  dependencies:
-    markdown-parser-react "^1.1.2"
-
-"@usewaypoint/document-core@^0.0.6":
-  version "0.0.6"
-  resolved "https://registry.yarnpkg.com/@usewaypoint/document-core/-/document-core-0.0.6.tgz#c97468c84c85ccac46a06f82ac332e20e415cfb7"
-  integrity sha512-Hg10gszVCZRJhA4nIWwAi2rTXuoxPL+ATMe0hU243PFBIUZOwDIQus4XZSeoHsenMCq1uBFCRiFW4hl2+tVwgA==
-
-"@usewaypoint/email-builder@^0.0.6":
-  version "0.0.6"
-  resolved "https://registry.yarnpkg.com/@usewaypoint/email-builder/-/email-builder-0.0.6.tgz#e6bb5ad39acb0710814df1d925ee366276bec49f"
-  integrity sha512-OullFjVUwlPXkq7b+HSGMPKJcSSEbH1gm6a2TQ5uIsPIHeFb/af6EmXd8IIctf0pz1cH41USg6rBR504vuuXZw==
-  dependencies:
-    "@usewaypoint/block-avatar" "^0.0.3"
-    "@usewaypoint/block-button" "^0.0.3"
-    "@usewaypoint/block-columns-container" "^0.0.3"
-    "@usewaypoint/block-container" "^0.0.2"
-    "@usewaypoint/block-divider" "^0.0.4"
-    "@usewaypoint/block-heading" "^0.0.3"
-    "@usewaypoint/block-html" "^0.0.3"
-    "@usewaypoint/block-image" "^0.0.5"
-    "@usewaypoint/block-spacer" "^0.0.3"
-    "@usewaypoint/block-text" "^0.0.4"
-    "@usewaypoint/document-core" "^0.0.6"
-
 "@vitest/expect@>1.6.0":
   version "2.1.8"
   resolved "https://registry.yarnpkg.com/@vitest/expect/-/expect-2.1.8.tgz#13fad0e8d5a0bf0feb675dcf1d1f1a36a1773bc1"
@@ -2753,7 +2631,7 @@ jmespath@0.16.0:
   resolved "https://registry.yarnpkg.com/jmespath/-/jmespath-0.16.0.tgz#b15b0a85dfd4d930d43e69ed605943c802785076"
   integrity sha512-9FzQjJ7MATs1tSpnco1K6ayiYE3figslrXA72G2HQ/n76RzvYlofyi5QM+iX4YRs/pu3yzxlVQSST23+dMDknw==
 
-"js-tokens@^3.0.0 || ^4.0.0", js-tokens@^4.0.0:
+js-tokens@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/js-tokens/-/js-tokens-4.0.0.tgz#19203fb59991df98e3a287050d4647cdeaf32499"
   integrity sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==
@@ -2881,13 +2759,6 @@ logform@^2.7.0:
     safe-stable-stringify "^2.3.1"
     triple-beam "^1.3.0"
 
-loose-envify@^1.1.0:
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/loose-envify/-/loose-envify-1.4.0.tgz#71ee51fa7be4caec1a63839f7e682d8132d30caf"
-  integrity sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==
-  dependencies:
-    js-tokens "^3.0.0 || ^4.0.0"
-
 loupe@^2.3.6:
   version "2.3.7"
   resolved "https://registry.yarnpkg.com/loupe/-/loupe-2.3.7.tgz#6e69b7d4db7d3ab436328013d37d1c8c3540c697"
@@ -2904,13 +2775,6 @@ lru-cache@^10.2.0:
   version "10.4.3"
   resolved "https://registry.yarnpkg.com/lru-cache/-/lru-cache-10.4.3.tgz#410fc8a17b70e598013df257c2446b7f3383f119"
   integrity sha512-JNAzZcXrCt42VGLuYz0zfAzDfAvJWW6AfYlDBQyDV5DClI2m5sAmK+OIO7s59XfsRsWHp02jAJrRadPRGTt6SQ==
-
-markdown-parser-react@^1.1.2:
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/markdown-parser-react/-/markdown-parser-react-1.1.2.tgz#5817a708ea1edc33579f436346cba866d58d4792"
-  integrity sha512-MNLHekU1xOwKZLJK4NMWJDL9pNnJdKx2jdsHfAF4+Y5rF4tD/S/OuNehd4X46/KcJzBfas19pePVcwQoibpeNg==
-  dependencies:
-    react "^18.2.0"
 
 micromatch@^4.0.4:
   version "4.0.8"
@@ -3143,13 +3007,6 @@ react-is@^18.0.0:
   version "18.3.1"
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-18.3.1.tgz#e83557dc12eae63a99e003a46388b1dcbb44db7e"
   integrity sha512-/LLMVyas0ljjAtoYiPqYiL8VWXzUUdThrmU5+n20DZv+a+ClRoevUzw5JxU+Ieh5/c87ytoTBV9G1FiKfNJdmg==
-
-react@^18.2.0:
-  version "18.3.1"
-  resolved "https://registry.yarnpkg.com/react/-/react-18.3.1.tgz#49ab892009c53933625bd16b2533fc754cab2891"
-  integrity sha512-wS+hAgJShR0KhEvPJArfuPVN1+Hz1t0Y6n5jLrGQbkb4urgPE/0Rve+1kMB1v/oWgHgm4WIcV+i7F2pTVj+2iQ==
-  dependencies:
-    loose-envify "^1.1.0"
 
 readable-stream@^3.4.0, readable-stream@^3.6.2:
   version "3.6.2"
