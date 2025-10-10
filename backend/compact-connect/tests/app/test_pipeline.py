@@ -282,22 +282,23 @@ class TestBackendPipeline(TstAppABC, TestCase):
         persistent_stack = self.app.test_backend_pipeline_stack.test_stage.persistent_stack
         persistent_stack_template = Template.from_stack(persistent_stack)
 
-        # Ensure our provider user pool is created with expected custom attributes
-        lambda_layer_parameter_properties = self.get_resource_properties_by_logical_id(
-            persistent_stack.get_logical_id(persistent_stack.lambda_layer_ssm_parameter.node.default_child),
-            persistent_stack_template.find_resources(CfnParameter.CFN_RESOURCE_TYPE_NAME),
-        )
-
-        # assert that the parameter name matches expected
-        self.assertEqual('/deployment/lambda/layers/common-python-layer-arn', lambda_layer_parameter_properties['Name'])
-
-        lambda_layer_parameter_properties = self.get_resource_properties_by_logical_id(
-            lambda_layer_parameter_properties['Value']['Ref'],
-            persistent_stack_template.find_resources(CfnLayerVersion.CFN_RESOURCE_TYPE_NAME),
-        )
-
-        # the other properties are dynamic, so here we just check to make sure it exists
-        self.assertEqual(['python3.13'], lambda_layer_parameter_properties['CompatibleRuntimes'])
+        # Ensure we have a layer and parameter referencing that layer for each expected runtime
+        for runtime in ['python3.12', 'python3.13']:
+            layers = persistent_stack_template.find_resources(
+                type=CfnLayerVersion.CFN_RESOURCE_TYPE_NAME,
+                props={
+                    'Properties': {
+                        'Description': 'A layer for common code shared between python lambdas',
+                        'CompatibleRuntimes': [runtime],
+                    }
+                },
+            )
+            # We expect exactly one for each runtime
+            self.assertEqual(1, len(layers))
+            persistent_stack_template.has_resource_properties(
+                type=CfnParameter.CFN_RESOURCE_TYPE_NAME,
+                props={'Value': {'Ref': list(layers.keys())[0]}},
+            )
 
     def test_synth_generates_provider_users_bucket_with_event_handler(self):
         persistent_stack = self.app.test_backend_pipeline_stack.test_stage.persistent_stack
