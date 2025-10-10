@@ -229,6 +229,12 @@ class TstAppABC(ABC):
         api_query_role_logical_id = persistent_stack.get_logical_id(
             persistent_stack.ssn_table.api_query_role.node.default_child
         )
+        disaster_recovery_lambda_role_logical_id = persistent_stack.get_logical_id(
+            persistent_stack.ssn_table.disaster_recovery_lambda_role.node.default_child
+        )
+        disaster_recovery_step_function_role_logical_id = persistent_stack.get_logical_id(
+            persistent_stack.ssn_table.disaster_recovery_step_function_role.node.default_child
+        )
         ssn_table_template = self.get_resource_properties_by_logical_id(
             persistent_stack.get_logical_id(persistent_stack.ssn_table.node.default_child),
             persistent_stack_template.find_resources(CfnTable.CFN_RESOURCE_TYPE_NAME),
@@ -256,6 +262,8 @@ class TstAppABC(ABC):
                                 {'Fn::GetAtt': [ingest_role_logical_id, 'Arn']},
                                 {'Fn::GetAtt': [license_upload_role_logical_id, 'Arn']},
                                 {'Fn::GetAtt': [api_query_role_logical_id, 'Arn']},
+                                {'Fn::GetAtt': [disaster_recovery_lambda_role_logical_id, 'Arn']},
+                                {'Fn::GetAtt': [disaster_recovery_step_function_role_logical_id, 'Arn']},
                                 Match.any_value(),  # SSN backup role reference (may be nested stack output)
                             ],
                             'aws:PrincipalServiceName': ['dynamodb.amazonaws.com', 'events.amazonaws.com'],
@@ -289,9 +297,9 @@ class TstAppABC(ABC):
         if persistent_stack.environment_context['backup_enabled']:
             # if backup is enabled, we add an additional principle arn for the backup role to the SSN policy to
             # perform backups on data
-            self.assertEqual(4, len(actual_second_stmt['Condition']['StringNotEquals']['aws:PrincipalArn']))
+            self.assertEqual(6, len(actual_second_stmt['Condition']['StringNotEquals']['aws:PrincipalArn']))
         else:
-            self.assertEqual(3, len(actual_second_stmt['Condition']['StringNotEquals']['aws:PrincipalArn']))
+            self.assertEqual(5, len(actual_second_stmt['Condition']['StringNotEquals']['aws:PrincipalArn']))
         self.assertEqual(
             expected_policy['Statement'][1]['Condition']['StringNotEquals']['aws:PrincipalServiceName'],
             actual_second_stmt['Condition']['StringNotEquals']['aws:PrincipalServiceName'],
