@@ -13,7 +13,6 @@ from .bulk_upload_url import BulkUploadUrl
 from .compact_configuration_api import CompactConfigurationApi
 from .credentials import Credentials
 from .feature_flags import FeatureFlagsApi
-from .post_licenses import PostLicenses
 from .provider_management import ProviderManagement
 from .provider_users import ProviderUsers
 from .public_lookup_api import PublicLookupApi
@@ -190,15 +189,8 @@ class V1Api:
             api_lambda_stack=api_lambda_stack,
         )
 
-        # POST /v1/compacts/{compact}/jurisdictions/{jurisdiction}/licenses
         # GET  /v1/compacts/{compact}/jurisdictions/{jurisdiction}/licenses/bulk-upload
         licenses_resource = self.jurisdiction_resource.add_resource('licenses')
-        self.post_licenses = PostLicenses(
-            resource=licenses_resource,
-            method_options=write_auth_method_options,
-            api_model=self.api_model,
-            api_lambda_stack=api_lambda_stack,
-        )
         BulkUploadUrl(
             resource=licenses_resource,
             method_options=write_auth_method_options,

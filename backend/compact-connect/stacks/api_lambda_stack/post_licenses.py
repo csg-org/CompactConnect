@@ -43,6 +43,9 @@ class PostLicensesLambdas:
         )
         api_lambda_stack.log_groups.append(self.post_licenses_handler.log_group)
 
+        # TODO: remove this after the ApiStack removal is deployed through production  # noqa: FIX002
+        stack.export_value(self.post_licenses_handler.function_arn)
+
     def _post_licenses_handler(
         self,
         scope: Construct,

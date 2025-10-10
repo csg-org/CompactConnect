@@ -38,7 +38,7 @@ class PythonCommonLayerVersions(Construct):
             # that reference the layer directly. See https://github.com/aws/aws-cdk/issues/1972
             self._python_layers[runtime.name] = PythonLayerVersion(
                 self,
-                f'{runtime.name}CompactConnectCommonPythonLayer',
+                runtime.name,
                 entry=os.path.join('lambdas', 'python', 'common'),
                 # Compatible runtime(s) is a bit misleading - only the first runtime is used for bundling, so any
                 # other 'compatible' types listed could be broken. We'll just make one layer per runtime we need.
@@ -62,7 +62,7 @@ class PythonCommonLayerVersions(Construct):
             # exported value that is being referenced by a resource in another stack
             StringParameter(
                 self,
-                f'{runtime.name}CommonPythonLayerArnParameter',
+                f'{runtime.name}LayerArnParameter',
                 # We link across stacks based on a predictable parameter name
                 parameter_name=self._get_parameter_name_for_runtime(runtime),
                 string_value=self._python_layers[runtime.name].layer_version_arn,
