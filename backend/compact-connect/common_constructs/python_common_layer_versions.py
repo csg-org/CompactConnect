@@ -69,7 +69,7 @@ class PythonCommonLayerVersions(Construct):
             )
 
     def get_common_layer(self, for_function: IFunction) -> ILayerVersion:
-        this_stack = Stack.of(self)
+        layer_stack = Stack.of(self)
         function_stack = Stack.of(for_function)
         runtime = for_function.runtime
 
@@ -78,13 +78,13 @@ class PythonCommonLayerVersions(Construct):
             raise ValueError(f'No common python layer exists for runtime {runtime.name}')
 
         # If we're in-stack, return a direct reference to the layer version
-        if function_stack is this_stack:
+        if function_stack is layer_stack:
             return self._python_layers[runtime.name]
 
         # This doesn't create a cross-stack reference, but it does help CDK/CloudFormation
         # to sequence the stack deploys properly. Without this, CDK may attempt to deploy
         # stacks that depend on the parameters in parallel with `this_stack`, which will fail.
-        for_function.node.add_dependency(this_stack)
+        for_function.node.add_dependency(layer_stack)
 
         return self._get_ilayer_reference(for_function)
 
