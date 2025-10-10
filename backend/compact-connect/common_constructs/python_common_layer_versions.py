@@ -81,6 +81,11 @@ class PythonCommonLayerVersions(Construct):
         if function_stack is this_stack:
             return self._python_layers[runtime.name]
 
+        # This doesn't create a cross-stack reference, but it does help CDK/CloudFormation
+        # to sequence the stack deploys properly. Without this, CDK may attempt to deploy
+        # stacks that depend on the parameters in parallel with `this_stack`, which will fail.
+        for_function.node.add_dependency(this_stack)
+
         return self._get_ilayer_reference(for_function)
 
     def _get_ilayer_reference(self, for_function: IFunction):
@@ -115,4 +120,4 @@ class PythonCommonLayerVersions(Construct):
 
     @staticmethod
     def _get_parameter_name_for_runtime(runtime: Runtime):
-        return f'{runtime.name}CommonPythonLayerArnParameter'
+        return f'/deployment/lambda/layers/{runtime.name}/common-python-layer-arn'
