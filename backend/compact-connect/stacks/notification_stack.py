@@ -72,7 +72,7 @@ class NotificationStack(AppStack):
 
         NagSuppressions.add_resource_suppressions_by_path(
             self,
-            f'{privilege_purchase_notification_handler.node.path}/ServiceRole/DefaultPolicy/Resource',
+            f'{privilege_purchase_notification_handler.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
@@ -183,7 +183,7 @@ class NotificationStack(AppStack):
 
         NagSuppressions.add_resource_suppressions_by_path(
             self,
-            f'{emailer_event_listener_handler.node.path}/ServiceRole/DefaultPolicy/Resource',
+            f'{emailer_event_listener_handler.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',

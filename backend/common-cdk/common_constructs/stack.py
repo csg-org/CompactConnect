@@ -94,6 +94,7 @@ class AppStack(Stack):
 
     def __init__(self, *args, environment_context: dict, environment_name: str, **kwargs):
         super().__init__(*args, environment_name=environment_name, **kwargs)
+
         self.environment_context = environment_context
         self.environment_name = environment_name
 

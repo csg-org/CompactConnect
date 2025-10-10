@@ -137,7 +137,7 @@ class ProviderUsersBucket(Bucket):
         stack = ps.PersistentStack.of(self)
         NagSuppressions.add_resource_suppressions_by_path(
             stack,
-            path=f'{self.process_events_handler.node.path}/ServiceRole/DefaultPolicy/Resource',
+            path=f'{self.process_events_handler.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',

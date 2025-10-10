@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from aws_cdk import Duration, RemovalPolicy
 from aws_cdk.aws_cognito import (
-    AdvancedSecurityMode,
     CognitoDomainOptions,
     FeaturePlan,
     Mfa,
     MfaSecondFactor,
     PasswordPolicy,
+    StandardThreatProtectionMode,
     UserPool,
 )
 from cdk_nag import NagSuppressions
@@ -38,7 +38,7 @@ class StateAuthUsers(UserPool, ResourceScopeMixin):
             removal_policy=removal_policy,
             # These features are useless without actual users
             feature_plan=FeaturePlan.LITE,
-            advanced_security_mode=AdvancedSecurityMode.OFF,
+            standard_threat_protection_mode=StandardThreatProtectionMode.NO_ENFORCEMENT,
             # We don't intend this pool for actual users, so we might as well just set some strict policies
             password_policy=PasswordPolicy(
                 min_length=32,
@@ -65,7 +65,7 @@ class StateAuthUsers(UserPool, ResourceScopeMixin):
             suppressions=[
                 {
                     'id': 'AwsSolutions-COG3',
-                    'reason': 'Advanced security enforcement offers no benefit when there are no users.',
+                    'reason': 'Threat protection mode enforcement offers no benefit when there are no users.',
                 }
             ],
         )

@@ -146,7 +146,6 @@ class ProviderManagement:
             lambda_environment=lambda_environment,
         )
         provider_users_bucket.grant_read(self.get_provider_handler)
-        self.api.log_groups.append(self.get_provider_handler.log_group)
 
         self.provider_resource.add_method(
             'GET',
@@ -178,7 +177,6 @@ class ProviderManagement:
             provider_data_table=provider_data_table,
             lambda_environment=lambda_environment,
         )
-        self.api.log_groups.append(handler.log_group)
 
         query_resource.add_method(
             'POST',
@@ -219,7 +217,7 @@ class ProviderManagement:
 
         NagSuppressions.add_resource_suppressions_by_path(
             stack,
-            path=f'{handler.node.path}/ServiceRole/DefaultPolicy/Resource',
+            path=f'{handler.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
@@ -287,7 +285,6 @@ class ProviderManagement:
         provider_table.grant_read_data(handler)
         # here we grant the lambda the ability to disable staff users if they exceed the rate limit
         staff_user_pool.grant(handler, 'cognito-idp:AdminDisableUser')
-        self.api.log_groups.append(handler.log_group)
 
         NagSuppressions.add_resource_suppressions_by_path(
             Stack.of(handler.role),
@@ -494,7 +491,6 @@ class ProviderManagement:
             staff_users_table=staff_users_table,
             lambda_environment=lambda_environment,
         )
-        self.api.log_groups.append(handler.log_group)
 
         deactivate_resource = self.privilege_jurisdiction_license_type_resource.add_resource('deactivate')
 

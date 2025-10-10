@@ -490,7 +490,7 @@ describe('EmailNotificationServiceLambda', () => {
                     }
                 },
                 FromEmailAddress: 'Compact Connect <noreply@example.org>'
-                
+
             });
         });
 

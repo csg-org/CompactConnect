@@ -58,19 +58,21 @@ class TestPurchasesApi(TestApi):
         )
 
     def test_synth_generates_post_purchases_privileges_handler_with_required_secret_permissions(self):
-        api_stack = self.app.sandbox_backend_stage.api_stack
-        api_stack_template = Template.from_stack(api_stack)
+        # Ensure the resource is created with expected path in the ApiLambdaStack
+        api_lambda_stack = self.app.sandbox_backend_stage.api_lambda_stack
+        api_lambda_stack_template = Template.from_stack(api_lambda_stack)
 
-        # Ensure the resource is created with expected path
         post_purchase_privileges_handler = TestApi.get_resource_properties_by_logical_id(
-            api_stack.get_logical_id(api_stack.api.v1_api.purchases.post_purchase_privilege_handler.node.default_child),
-            api_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
+            api_lambda_stack.get_logical_id(
+                api_lambda_stack.purchases_lambdas.post_purchase_privileges_handler.node.default_child
+            ),
+            api_lambda_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
         )
 
         self.assertEqual(post_purchase_privileges_handler['Handler'], 'handlers.privileges.post_purchase_privileges')
 
-        handler_role_logical_id = api_stack.get_logical_id(
-            api_stack.api.v1_api.purchases.post_purchase_privilege_handler.role.node.default_child
+        handler_role_logical_id = api_lambda_stack.get_logical_id(
+            api_lambda_stack.purchases_lambdas.post_purchase_privileges_handler.role.node.default_child
         )
 
         # get the policy attached to the role using this match
@@ -81,7 +83,7 @@ class TestPurchasesApi(TestApi):
         # ]
         policy = next(
             policy
-            for policy_logical_id, policy in api_stack_template.find_resources('AWS::IAM::Policy').items()
+            for policy_logical_id, policy in api_lambda_stack_template.find_resources('AWS::IAM::Policy').items()
             if handler_role_logical_id in policy['Properties']['Roles'][0]['Ref']
         )
 
@@ -90,7 +92,7 @@ class TestPurchasesApi(TestApi):
         self.context['compacts'].sort()
         self.assertIn(
             {
-                'Action': 'secretsmanager:GetSecretValue',
+                'Action': ['secretsmanager:DescribeSecret', 'secretsmanager:GetSecretValue'],
                 'Effect': 'Allow',
                 'Resource': [_generate_expected_secret_arn(compact) for compact in self.context['compacts']],
             },
@@ -100,6 +102,8 @@ class TestPurchasesApi(TestApi):
     def test_synth_generates_post_purchases_privileges_endpoint_resources(self):
         api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
+        api_lambda_stack = self.app.sandbox_backend_stage.api_lambda_stack
+        api_lambda_stack_template = Template.from_stack(api_lambda_stack)
 
         # Ensure the resource is created with expected path
         method_request_model_logical_id_capture = Capture()
@@ -115,10 +119,10 @@ class TestPurchasesApi(TestApi):
                     'Ref': api_stack.get_logical_id(api_stack.api.provider_users_authorizer.node.default_child),
                 },
                 # ensure the lambda integration is configured with the expected handler
-                'Integration': TestApi.generate_expected_integration_object(
-                    api_stack.get_logical_id(
-                        api_stack.api.v1_api.purchases.post_purchase_privilege_handler.node.default_child,
-                    ),
+                'Integration': TestApi.generate_expected_integration_object_for_imported_lambda(
+                    api_lambda_stack,
+                    api_lambda_stack_template,
+                    api_lambda_stack.purchases_lambdas.post_purchase_privileges_handler,
                 ),
                 'RequestModels': {'application/json': {'Ref': method_request_model_logical_id_capture}},
                 'MethodResponses': [
@@ -179,10 +183,18 @@ class TestPurchasesApi(TestApi):
             },
         )
 
-        # ensure the handler is created
-        api_stack_template.has_resource_properties(
-            type=CfnFunction.CFN_RESOURCE_TYPE_NAME,
-            props={'Handler': 'handlers.privileges.get_purchase_privilege_options'},
+        # Ensure the lambda is created with expected code path in the ApiLambdaStack
+        api_lambda_stack = self.app.sandbox_backend_stage.api_lambda_stack
+        api_lambda_stack_template = Template.from_stack(api_lambda_stack)
+
+        get_purchase_privilege_options_handler = TestApi.get_resource_properties_by_logical_id(
+            api_lambda_stack.get_logical_id(
+                api_lambda_stack.purchases_lambdas.get_purchase_privilege_options_handler.node.default_child
+            ),
+            api_lambda_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
+        )
+        self.assertEqual(
+            get_purchase_privilege_options_handler['Handler'], 'handlers.privileges.get_purchase_privilege_options'
         )
 
         method_model_logical_id_capture = Capture()
@@ -197,10 +209,10 @@ class TestPurchasesApi(TestApi):
                     'Ref': api_stack.get_logical_id(api_stack.api.provider_users_authorizer.node.default_child),
                 },
                 # ensure the lambda integration is configured with the expected handler
-                'Integration': TestApi.generate_expected_integration_object(
-                    api_stack.get_logical_id(
-                        api_stack.api.v1_api.purchases.get_purchase_privilege_options_handler.node.default_child,
-                    ),
+                'Integration': TestApi.generate_expected_integration_object_for_imported_lambda(
+                    api_lambda_stack,
+                    api_lambda_stack_template,
+                    api_lambda_stack.purchases_lambdas.get_purchase_privilege_options_handler,
                 ),
                 'MethodResponses': [
                     {

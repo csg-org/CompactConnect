@@ -131,7 +131,7 @@ class UIDistribution(Distribution):
 
         NagSuppressions.add_resource_suppressions_by_path(
             stack,
-            f'{self.csp_function.node.path}/ServiceRole/Resource',
+            f'{self.csp_function.role.node.path}/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM4',

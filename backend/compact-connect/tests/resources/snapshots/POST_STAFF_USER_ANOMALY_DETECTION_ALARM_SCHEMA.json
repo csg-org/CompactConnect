@@ -1,6 +1,6 @@
 {
   "ActionsEnabled": true,
-  "AlarmDescription": "Sandbox/APIStack/LicenseApi staff-user-created anomaly detection. Anomalies in the number of staff users created per day are detected. Investigation is required to ensure requests are authorized.",
+  "AlarmDescription": "Sandbox/ApiLambdaStack staff-user-created anomaly detection. Anomalies in the number of staff users created per day are detected. Investigation is required to ensure requests are authorized.",
   "ComparisonOperator": "GreaterThanUpperThreshold",
   "EvaluationPeriods": 1,
   "Metrics": [

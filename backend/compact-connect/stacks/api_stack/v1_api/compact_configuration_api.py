@@ -1,15 +1,11 @@
 from __future__ import annotations
 
-import os
-
-from aws_cdk import Duration
 from aws_cdk.aws_apigateway import LambdaIntegration, MethodOptions, MethodResponse, Resource
 from cdk_nag import NagSuppressions
-from common_constructs.stack import Stack
 
 from common_constructs.cc_api import CCApi
 from common_constructs.python_function import PythonFunction
-from stacks import persistent_stack as ps
+from stacks.api_lambda_stack import ApiLambdaStack
 
 from .api_model import ApiModel
 
@@ -30,8 +26,8 @@ class CompactConfigurationApi:
         jurisdiction_resource: Resource,
         general_read_method_options: MethodOptions,
         admin_method_options: MethodOptions,
-        persistent_stack: ps.PersistentStack,
         api_model: ApiModel,
+        api_lambda_stack: ApiLambdaStack,
     ):
         super().__init__()
 
@@ -46,65 +42,38 @@ class CompactConfigurationApi:
         self.public_jurisdictions_resource = public_jurisdictions_resource
         self.api_model = api_model
 
-        stack: Stack = Stack.of(jurisdictions_resource)
-        lambda_environment = {
-            'COMPACT_CONFIGURATION_TABLE_NAME': persistent_stack.compact_configuration_table.table_name,
-            **stack.common_env_vars,
-        }
-
         # Create the compact configration api lambda function that will be shared by all compact configuration
         # related endpoints
-        self.compact_configuration_api_function = PythonFunction(
-            self.api,
-            'CompactConfigurationApiFunction',
-            index=os.path.join('handlers', 'compact_configuration.py'),
-            lambda_dir='compact-configuration',
-            handler='compact_configuration_api_handler',
-            environment=lambda_environment,
-            timeout=Duration.seconds(30),
-        )
-        persistent_stack.shared_encryption_key.grant_decrypt(self.compact_configuration_api_function)
-        persistent_stack.compact_configuration_table.grant_read_write_data(self.compact_configuration_api_function)
-        self.api.log_groups.append(self.compact_configuration_api_function.log_group)
-
-        NagSuppressions.add_resource_suppressions_by_path(
-            stack,
-            path=f'{self.compact_configuration_api_function.node.path}/ServiceRole/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': 'The actions in this policy are specifically what this lambda needs '
-                    'and is scoped to one table and encryption key.',
-                },
-            ],
+        compact_configuration_api_function = (
+            api_lambda_stack.compact_configuration_lambdas.compact_configuration_api_handler
         )
 
         self._add_staff_users_get_compact_jurisdictions_endpoint(
-            compact_configuration_api_handler=self.compact_configuration_api_function,
+            compact_configuration_api_handler=compact_configuration_api_function,
             general_read_method_options=general_read_method_options,
         )
 
         self._add_public_get_compact_jurisdictions_endpoint(
-            compact_configuration_api_handler=self.compact_configuration_api_function,
+            compact_configuration_api_handler=compact_configuration_api_function,
         )
 
         self._add_staff_users_get_compact_configuration_endpoint(
-            compact_configuration_api_handler=self.compact_configuration_api_function,
+            compact_configuration_api_handler=compact_configuration_api_function,
             general_read_method_options=general_read_method_options,
         )
 
         self._add_staff_users_put_compact_configuration_endpoint(
-            compact_configuration_api_handler=self.compact_configuration_api_function,
+            compact_configuration_api_handler=compact_configuration_api_function,
             admin_method_options=admin_method_options,
         )
 
         self._add_staff_users_get_jurisdiction_configuration_endpoint(
-            compact_configuration_api_handler=self.compact_configuration_api_function,
+            compact_configuration_api_handler=compact_configuration_api_function,
             general_read_method_options=general_read_method_options,
         )
 
         self._add_staff_users_put_jurisdiction_configuration_endpoint(
-            compact_configuration_api_handler=self.compact_configuration_api_function,
+            compact_configuration_api_handler=compact_configuration_api_function,
             admin_method_options=admin_method_options,
         )
 

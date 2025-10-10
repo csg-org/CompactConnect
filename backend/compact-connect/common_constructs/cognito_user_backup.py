@@ -186,7 +186,7 @@ class CognitoUserBackup(Construct):
         # Add CDK NAG suppressions for the Lambda IAM permissions
         NagSuppressions.add_resource_suppressions_by_path(
             stack,
-            f'{lambda_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            f'{lambda_function.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
