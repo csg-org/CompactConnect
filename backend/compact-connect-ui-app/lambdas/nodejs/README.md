@@ -22,7 +22,7 @@ _[back to top](#ingest-event-reporter-lambda)_
 ---
 ## Local development
 - **Linting**
-    - `yarn run lint`
+    - `yarn lint`
         - Lints all code in all the Lambda function
 - **Running an individual Lambda**
     - The easiest way to execute the Lambda is to run the tests ([see below](#tests))
@@ -33,7 +33,6 @@ _[back to top](#ingest-event-reporter-lambda)_
 ---
 ## Testing
 This project uses `jest` and `aws-sdk-client-mock` for approachable unit testing. The code in this folder can be tested by running:
-- `yarn install`
-- `yarn test`
+- `yarn test:csg`
 
 or by using the utility scripts located at `backend/bin`.

@@ -144,6 +144,45 @@
     - **`LOCAL_DEV_PORT`** :arrow_heading_down:
         - `3018`
 
+### Adding environment variables
+In **`/backend/compact-connect-ui-app/`**:
+
+- **Update `cdk.context.*-example.json` files**
+    - Follow the existing file pattern to add any new environment variables
+    - For dynamic values, such as service keys, do not add the actual key but rather a representative fake value
+    - Follow these steps for _each_ environment file
+- **Update `/stacks/frontend_deployment_stack/deployment.py`**
+    - In the section `# Get environment-specific values from context` follow the pattern to create new Python variables from the environment context variables you added in the previous step
+        - e.g. `environment_context['context_variable_name']`
+    - In the BundlingOptions add new Vue environment variables referencing the Python variables
+- **Request that the new environment variable values get added to the AWS Parameter Store**
+    - Cloud devs on the project can help with this
+    - These must be in place before merging the PR
+
+### Updating the Content-Security-Policy (CSP) headers
+In **`/backend/compact-connect-ui-app/lambdas/nodejs`**:
+
+- _If you haven't already, make sure you have followed the README to ensure the correct Node version and installation of dependencies_
+- Make CSP updates to `/cloudfront-cspindex.js` as needed
+- Update the tests in `/cloudfront-csp/test/index.test.js` as needed
+- Run `yarn lint`
+- Run `yarn test:csp`
+- Everything should pass as expected
+
+In **`/backend/compact-connect-ui-app`**:
+
+- Make sure you have Python 3 installed
+- Make sure dependencies are installed:
+    - _Note that `pip3` may be needed in place of `pip` depending on your local Python setup_
+    - `pip install -r requirements.txt`
+    - `pip install -r requirements-dev.txt`
+- In `/tests/app/base.py`:
+    - Locate each instance of `overwrite_snapshot=False` and _**temporarily**_ replace with `overwrite_snapshot=True`
+- Run the tests: `bin/run_tests.sh -l all -no`
+- Everything should pass as expected
+- In `/tests/app/base.py`:
+    - Revert all temporary instances of `overwrite_snapshot=True` to `overwrite_snapshot=False`
+
 ### Server environment web server :arrow_heading_up:
 - **Create a 404 rule that serves the `index.html` page**
     - This is common to modern "single-page-app" (SPA) frontends. It allows the frontend to serve up sub-page routes without the web server throwing a 404 first.
