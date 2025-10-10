@@ -1,6 +1,6 @@
 import json
 from datetime import UTC, date, datetime, timedelta
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 from boto3.dynamodb.conditions import Key
 from cc_common.exceptions import CCInternalException
@@ -416,9 +416,11 @@ class TestPostPrivilegeEncumbrance(TstFunction):
             response_body['message'],
         )
 
+mock_flag_client = MagicMock()
+mock_flag_client.return_value = True
 
 @mock_aws
-@patch('cc_common.feature_flag_client.is_feature_enabled', True)
+@patch('cc_common.feature_flag_client.is_feature_enabled', mock_flag_client)
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP))
 class TestPostLicenseEncumbrance(TstFunction):
     """Test suite for license encumbrance endpoints."""
