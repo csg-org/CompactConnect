@@ -11,6 +11,7 @@ import ExampleLanguageSelector from '@components/StyleGuide/ExampleLanguageSelec
 import ExampleForm from '@components/StyleGuide/ExampleForm/ExampleForm.vue';
 import ExampleModal from '@components/StyleGuide/ExampleModal/ExampleModal.vue';
 import ExampleLoadingSpinner from '@components/StyleGuide/ExampleLoadingSpinner/ExampleLoadingSpinner.vue';
+import ExampleFeatureGates from '@components/StyleGuide/ExampleFeatureGates/ExampleFeatureGates.vue';
 
 @Component({
     name: 'StyleguidePage',
@@ -20,6 +21,7 @@ import ExampleLoadingSpinner from '@components/StyleGuide/ExampleLoadingSpinner/
         ExampleForm,
         ExampleModal,
         ExampleLoadingSpinner,
+        ExampleFeatureGates,
     }
 })
 export default class StyleGuide extends Vue {

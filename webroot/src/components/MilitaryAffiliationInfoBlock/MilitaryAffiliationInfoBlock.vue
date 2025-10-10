@@ -6,7 +6,7 @@
 -->
 
 <template>
-    <div class="core-info-block">
+    <div class="core-info-block rr-block">
         <div class="info-row">
             <div class="chunk">
                 <div class="chunk-title">{{ $t('common.status') }}</div>

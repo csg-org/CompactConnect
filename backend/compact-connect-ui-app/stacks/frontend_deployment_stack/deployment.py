@@ -31,6 +31,8 @@ class CompactConnectUIBucketDeployment(BucketDeployment):
         # Get environment-specific values from context
         recaptcha_public_key = environment_context['recaptcha_public_key']
         robots_meta = environment_context['robots_meta']
+        statsig_client_key = environment_context['statsig_key']
+        app_env = environment_context['app_env']
 
         super().__init__(
             scope,
@@ -56,6 +58,7 @@ class CompactConnectUIBucketDeployment(BucketDeployment):
                             image=DockerImage('public.ecr.aws/lts/ubuntu:22.04_stable'),
                             environment={
                                 'BASE_URL': '/',
+                                'VUE_APP_ENV': app_env,
                                 'VUE_APP_DOMAIN': f'{HTTPS_PREFIX}{persistent_stack_app_config_values.ui_domain_name}',
                                 'VUE_APP_ROBOTS_META': robots_meta,
                                 'VUE_APP_API_STATE_ROOT': f'{HTTPS_PREFIX}{persistent_stack_app_config_values.api_domain_name}',
@@ -67,6 +70,7 @@ class CompactConnectUIBucketDeployment(BucketDeployment):
                                 'VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE': f'{HTTPS_PREFIX}{provider_users_stack_app_config_values.provider_cognito_domain}{COGNITO_AUTH_DOMAIN_SUFFIX}',
                                 'VUE_APP_COGNITO_CLIENT_ID_LICENSEE': provider_users_stack_app_config_values.provider_cognito_client_id,
                                 'VUE_APP_RECAPTCHA_KEY': recaptcha_public_key,
+                                'VUE_APP_STATSIG_KEY': statsig_client_key,
                             },
                             entrypoint=['bash'],
                             command=['bin/build.sh'],

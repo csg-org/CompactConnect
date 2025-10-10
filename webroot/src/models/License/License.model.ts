@@ -14,6 +14,7 @@ import { LicenseHistoryItem } from '@models/LicenseHistoryItem/LicenseHistoryIte
 import { Address, AddressSerializer } from '@models/Address/Address.model';
 import { AdverseAction, AdverseActionSerializer } from '@models/AdverseAction/AdverseAction.model';
 import moment from 'moment';
+import { StatsigClient } from '@statsig/js-client';
 
 // ========================================================
 // =                       Interface                      =
@@ -70,6 +71,7 @@ export interface InterfaceLicense {
 export class License implements InterfaceLicense {
     // This model is used to represent both privileges and licenses as their shape almost entirely overlaps
     public $tm?: any = () => [];
+    public $features?: StatsigClient | null = null;
     public id? = null;
     public compact? = null;
     public isPrivilege? = false;
@@ -93,11 +95,10 @@ export class License implements InterfaceLicense {
     constructor(data?: InterfaceLicense) {
         const cleanDataObject = deleteUndefinedProperties(data);
         const global = window as any;
-        const $tm = global.Vue?.config?.globalProperties?.$tm;
+        const { $tm, $features } = global.Vue?.config?.globalProperties || {};
 
-        if ($tm) {
-            this.$tm = $tm;
-        }
+        this.$tm = $tm;
+        this.$features = $features;
 
         Object.assign(this, cleanDataObject);
     }
