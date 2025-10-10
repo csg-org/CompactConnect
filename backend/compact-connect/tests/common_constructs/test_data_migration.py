@@ -3,7 +3,7 @@ from unittest import TestCase
 from aws_cdk import App, Stack
 from aws_cdk.assertions import Template
 from aws_cdk.aws_iam import Role, ServicePrincipal
-from aws_cdk.aws_lambda import CfnFunction
+from aws_cdk.aws_lambda import CfnFunction, Runtime
 
 # Use the dummy migration directory for testing
 MIGRATION_DIR = 'dummy_migration'
@@ -11,9 +11,27 @@ MIGRATION_DIR = 'dummy_migration'
 
 class TestDataMigration(TestCase):
     def test_data_migration_synthesizes(self):
+        from common_constructs.stack import AppStack, StandardTags
+
         from common_constructs.data_migration import DataMigration
+        from common_constructs.python_common_layer_versions import PythonCommonLayerVersions
 
         app = App()
+        # The persistent stack and layer are required for DataMigration, as an internal lambda depends on it
+        common_stack = AppStack(
+            app,
+            'CommonStack',
+            environment_context={},
+            environment_name='test',
+            standard_tags=StandardTags(project='compact-connect', service='compact-connect', environment='test'),
+        )
+        # Create common lambda layers
+        PythonCommonLayerVersions(
+            common_stack,
+            'CommonLayers',
+            compatible_runtimes=[Runtime.PYTHON_3_13],
+        )
+
         stack = Stack(app, 'Stack')
 
         # Create a role for the migration function

@@ -15,12 +15,14 @@ from aws_cdk.aws_cloudwatch import CfnAlarm
 from aws_cdk.aws_events import CfnRule
 from aws_cdk.aws_iam import CfnPolicy
 from aws_cdk.aws_kms import Key
-from aws_cdk.aws_lambda import CfnFunction
+from aws_cdk.aws_lambda import CfnFunction, Runtime
 from aws_cdk.aws_s3 import CfnBucket
 from aws_cdk.aws_sns import Topic
 from common_constructs.access_logs_bucket import AccessLogsBucket
+from common_constructs.stack import AppStack, StandardTags
 
 from common_constructs.cognito_user_backup import CognitoUserBackup
+from common_constructs.python_common_layer_versions import PythonCommonLayerVersions
 from stacks.backup_infrastructure_stack import BackupInfrastructureStack
 
 
@@ -29,6 +31,21 @@ class TestCognitoUserBackup(TestCase):
     def setUpClass(cls):
         """Set up test infrastructure."""
         cls.app = App()
+        # The persistent stack and layer are required for CognitoUserBackup, as an internal lambda depends on it
+        common_stack = AppStack(
+            cls.app,
+            'CommonStack',
+            environment_context={},
+            environment_name='test',
+            standard_tags=StandardTags(project='compact-connect', service='compact-connect', environment='test'),
+        )
+        # Create common lambda layers
+        PythonCommonLayerVersions(
+            common_stack,
+            'CommonLayers',
+            compatible_runtimes=[Runtime.PYTHON_3_13],
+        )
+
         cls.stack = Stack(cls.app, 'TestStack')
 
         # Create required dependencies
