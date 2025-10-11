@@ -46,6 +46,7 @@
                             />
                         </div>
                         <div class="title-text">{{ $t('licensing.privileges') }}</div>
+                        <ExpirationExplanationIcon />
                     </div>
                     <CollapseCaretButton @toggleCollapse="togglePrivsCollapsed" />
                 </div>
