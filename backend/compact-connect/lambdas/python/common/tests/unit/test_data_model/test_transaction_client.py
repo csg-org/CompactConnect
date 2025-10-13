@@ -88,7 +88,7 @@ class TestTransactionClient(TstLambdas):
         # Verify the batch writer was called twice
         self.assertEqual(self.mock_batch_writer.put_item.call_count, 2)
 
-    def test_add_privilege_ids_to_transactions(self):
+    def test_add_privilege_information_to_transactions(self):
         # Mock the provider table query response
         self.mock_config.provider_table = MagicMock()
         self.mock_config.compact_transaction_id_gsi_name = 'compactTransactionIdGSI'
@@ -123,7 +123,7 @@ class TestTransactionClient(TstLambdas):
         ]
 
         # Call the method
-        result = self.client.add_privilege_ids_to_transactions('aslp', test_transactions)
+        result = self.client.add_privilege_information_to_transactions('aslp', test_transactions)
 
         # Verify the GSI query was called with correct parameters
         self.mock_config.provider_table.query.assert_called_once_with(
@@ -136,7 +136,9 @@ class TestTransactionClient(TstLambdas):
         self.assertEqual(result[0]['lineItems'][1]['privilegeId'], 'priv-456')  # NY line item
         self.assertNotIn('privilegeId', result[0]['lineItems'][2])  # other item
 
-    def test_add_privilege_ids_to_transactions_performs_check_on_provider_id_for_match(self):
+    def test_add_privilege_information_to_transactions_maps_provider_id_to_transaction(self):
+        expected_provider_id = 'abcd1234-5678-9012-3456-7890a0d12345'
+        expected_privilege_id = 'priv-123'
         # Mock the provider table query response
         self.mock_config.provider_table = MagicMock()
         self.mock_config.compact_transaction_id_gsi_name = 'compactTransactionIdGSI'
@@ -145,16 +147,8 @@ class TestTransactionClient(TstLambdas):
                 {
                     'type': 'privilege',
                     'jurisdiction': 'CA',
-                    'privilegeId': 'priv-123',
-                    'providerId': 'prov-123',
-                },
-                {
-                    'type': 'privilegeUpdate',
-                    'jurisdiction': 'NY',
-                    'previous': {'privilegeId': 'priv-456'},
-                    # this should never happen in practice, but we're testing for it here
-                    # as a sanity check
-                    'providerId': 'prov-456',
+                    'privilegeId': expected_privilege_id,
+                    'providerId': expected_provider_id,
                 },
             ]
         }
@@ -163,17 +157,17 @@ class TestTransactionClient(TstLambdas):
         test_transactions = [
             {
                 'transactionId': 'tx123',
-                'licenseeId': 'prov-123',
+                # reproducing real case where licensee id was masked in authorize.net
+                'licenseeId': 'abcdXXXXXXXXXXXXXXXXXXX-4927a0d12345',
                 'lineItems': [
                     {'itemId': 'priv:aslp-CA', 'unitPrice': 100},
-                    {'itemId': 'priv:aslp-NY', 'unitPrice': 200},
                     {'itemId': 'credit-card-transaction-fee', 'unitPrice': 50},
                 ],
             }
         ]
 
         # Call the method
-        result = self.client.add_privilege_ids_to_transactions('aslp', test_transactions)
+        result = self.client.add_privilege_information_to_transactions('aslp', test_transactions)
 
         # Verify the GSI query was called with correct parameters
         self.mock_config.provider_table.query.assert_called_once_with(
@@ -181,9 +175,8 @@ class TestTransactionClient(TstLambdas):
             KeyConditionExpression=Key('compactTransactionIdGSIPK').eq('COMPACT#aslp#TX#tx123#'),
         )
 
-        # Verify privilege IDs were added to correct line items
-        self.assertEqual(result[0]['lineItems'][0]['privilegeId'], 'priv-123')  # CA line item
-        # In this case, the privilege ID is unknown because the provider ID does not match
-        # again, this should never happen in practice
-        self.assertEqual(result[0]['lineItems'][1]['privilegeId'], 'UNKNOWN')
-        self.assertNotIn('privilegeId', result[0]['lineItems'][2])  # other item
+        # Verify the correct provider ID was added to the transaction
+        self.assertEqual(expected_provider_id, result[0]['licenseeId'])
+        # Verify the privilege id is mapped as expected
+        self.assertEqual(expected_privilege_id, result[0]['lineItems'][0]['privilegeId'])
+        self.assertNotIn('privilegeId', result[0]['lineItems'][1])  # credit card fee line item
