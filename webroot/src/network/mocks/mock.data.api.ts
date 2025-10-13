@@ -51,7 +51,7 @@ const getAuthenticatedProvider = () => {
     const { providers } = licensees;
     const maxIndex = providers.length - 1;
 
-    if (authenticatedProviderUserIndex > maxIndex) {
+    if (authenticatedProviderUserIndex < 0 || authenticatedProviderUserIndex > maxIndex) {
         const errorMessage = `Mock Data Error: authenticatedProviderUserIndex (${authenticatedProviderUserIndex}) does not exist in mock data. Available providers: 0-${maxIndex}. Falling back to provider at index 0.`;
 
         console.error(errorMessage);
