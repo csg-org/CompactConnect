@@ -46,6 +46,22 @@ const initMockStore = (store) => {
 // Authenticated provider index for the current session
 const authenticatedProviderUserIndex = 0;
 
+// Get the authenticated provider with bounds checking
+const getAuthenticatedProvider = () => {
+    const { providers } = licensees;
+    const maxIndex = providers.length - 1;
+
+    if (authenticatedProviderUserIndex > maxIndex) {
+        const errorMessage = `Mock Data Error: authenticatedProviderUserIndex (${authenticatedProviderUserIndex}) does not exist in mock data. Available providers: 0-${maxIndex}. Falling back to provider at index 0.`;
+
+        console.error(errorMessage);
+
+        return providers[0];
+    }
+
+    return providers[authenticatedProviderUserIndex];
+};
+
 // License type mapping for matching abbreviations and full names to LicenseType enum values
 const licenseTypeMap = {
     ot: LicenseType.OCCUPATIONAL_THERAPIST,
@@ -489,7 +505,7 @@ export class DataApi {
     // Get Authenticated Licensee User
     public getAuthenticatedLicenseeUser() {
         return wait(500).then(() => LicenseeUserSerializer
-            .fromServer(licensees.providers[authenticatedProviderUserIndex]));
+            .fromServer(getAuthenticatedProvider()));
     }
 
     // Update Authenticated Licensee User email address
@@ -568,7 +584,7 @@ export class DataApi {
         let responseData: any = null;
 
         // Get the currently authenticated user
-        const authenticatedUser = licensees.providers[authenticatedProviderUserIndex] ?? licensees.providers[0];
+        const authenticatedUser = getAuthenticatedProvider();
         const authenticatedProviderId = authenticatedUser?.providerId;
 
         // Find the matching history entry dynamically
