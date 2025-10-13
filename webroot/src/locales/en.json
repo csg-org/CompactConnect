@@ -684,7 +684,7 @@
         "confirmPrivilegeUnencumberSuccessEndDate": "End date",
         "expiringIn": "Expiring in",
         "events": "Events",
-        "expirationTimeExplanation": "Privilege dates use the <em>UTC-4 time zone</em>. This means that privileges will expire at 11:59 US Eastern Time during Daylight Savings (summer), and at 12:59 AM of the following day in the US Eastern time zone during Standard Time (winter).",
+        "expirationTimeExplanation": "Privilege dates use the <em>UTC-4 time zone</em>. This means that privileges will expire at 11:59PM US Eastern Time during Daylight Savings (summer), and at 10:59 PM in the US Eastern time zone during Standard Time (winter).",
         "uploadedOn": "Uploaded on",
         "licenseEvents": [
             {
