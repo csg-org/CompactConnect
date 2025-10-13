@@ -318,6 +318,7 @@ class EncumbranceTestHelper:
                         f'"{self.license_jurisdiction}" and license type "{self.license_type}"'
                     )
                 else:
+                    logger.info('matching privilege found', matching_privilege=matching_privilege)
                     actual_status = matching_privilege.get('encumberedStatus')
                     logger.info(
                         f'Attempt {attempts}/{max_attempts}: Privilege encumberedStatus is "{actual_status}", '
@@ -461,6 +462,7 @@ def test_license_encumbrance_workflow():
 
         encumbrance_body = {
             'encumbranceEffectiveDate': '2024-11-11',
+            'encumbranceType': 'surrender of license',
             'clinicalPrivilegeActionCategories': ['Fraud, Deception, or Misrepresentation'],
         }
 
@@ -518,6 +520,7 @@ def test_license_encumbrance_workflow():
         # Second encumbrance
         second_encumbrance_body = {
             'encumbranceEffectiveDate': '2025-01-01',
+            'encumbranceType': 'denial',
             'clinicalPrivilegeActionCategories': ['Unsafe Practice or Substandard Care'],
         }
         helper.encumber_license(second_encumbrance_body)
@@ -537,7 +540,8 @@ def test_license_encumbrance_workflow():
         # Step 3: Encumber Privilege
         privilege_encumbrance_body = {
             'encumbranceEffectiveDate': '2025-05-09',
-            'clinicalPrivilegeActionCategories': ['Unsafe Practice or Substandard Care'],
+            'encumbranceType': 'reprimand',
+            'clinicalPrivilegeActionCategories': ['Unsafe Practice or Substandard Care', 'Misconduct or Abuse'],
         }
 
         helper.encumber_privilege(privilege_encumbrance_body)
@@ -653,6 +657,7 @@ def test_privilege_encumbrance_workflow():
 
         encumbrance_body = {
             'encumbranceEffectiveDate': '2024-12-12',
+            'encumbranceType': 'fine',
             'clinicalPrivilegeActionCategories': ['Fraud, Deception, or Misrepresentation'],
         }
 
@@ -684,6 +689,7 @@ def test_privilege_encumbrance_workflow():
         # Second encumbrance
         second_encumbrance_body = {
             'encumbranceEffectiveDate': '2025-02-02',
+            'encumbranceType': 'completion of continuing education',
             'clinicalPrivilegeActionCategories': ['Unsafe Practice or Substandard Care'],
         }
         helper.encumber_privilege(second_encumbrance_body)
@@ -768,7 +774,11 @@ def test_privilege_encumbrance_status_changes_with_license_encumbrance_workflow(
         logger.info('Step 1: Creating privilege encumbrance...')
         privilege_encumbrance_body = {
             'encumbranceEffectiveDate': '2024-01-15',
-            'clinicalPrivilegeActionCategories': ['Unsafe Practice or Substandard Care'],
+            'encumbranceType': 'probation',
+            'clinicalPrivilegeActionCategories': ['Unsafe Practice or Substandard Care',
+                                                  'Non-compliance With Requirements',
+                                                  'Fraud, Deception, or Misrepresentation'
+                                                  ],
         }
 
         helper.encumber_privilege(privilege_encumbrance_body)
@@ -787,7 +797,12 @@ def test_privilege_encumbrance_status_changes_with_license_encumbrance_workflow(
         logger.info('Step 2: Creating license encumbrance...')
         license_encumbrance_body = {
             'encumbranceEffectiveDate': '2024-01-20',
-            'clinicalPrivilegeActionCategories': ['Criminal Conviction or Adjudication'],
+            'encumbranceType': 'suspension',
+            'clinicalPrivilegeActionCategories': [
+                'Criminal Conviction or Adjudication',
+                'Improper Supervision or Allowing Unlicensed Practice',
+                'Other'
+            ],
         }
 
         helper.encumber_license(license_encumbrance_body)
