@@ -10,9 +10,9 @@
         <h1 class="card-title">{{ $t('account.accountTitle') }}</h1>
         <Card class="account-area">
             <form @submit.prevent.stop="handleSubmit">
-                <InputText :formInput="formData.firstName" />
-                <InputText :formInput="formData.lastName" />
-                <InputText :formInput="formData.email" />
+                <InputText class="rr-block" :formInput="formData.firstName" />
+                <InputText class="rr-block" :formInput="formData.lastName" />
+                <InputText class="rr-block" :formInput="formData.email" />
                 <InputSubmit
                     :formInput="formData.submitUserUpdate"
                     class="account-submit"

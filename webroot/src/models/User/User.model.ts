@@ -8,6 +8,7 @@
 /* eslint-disable max-classes-per-file */
 import { AuthTypes } from '@/app.config';
 import { deleteUndefinedProperties } from '@models/_helpers';
+import { StatsigClient } from '@statsig/js-client';
 
 // ========================================================
 // =                       Interface                      =
@@ -28,6 +29,7 @@ export interface InterfaceUserCreate {
 export class User implements InterfaceUserCreate {
     public $tm?: any = () => [];
     public $t?: any = () => '';
+    public $features?: StatsigClient | null = null;
     public id? = null;
     public firstName? = null;
     public lastName? = null;
@@ -39,12 +41,11 @@ export class User implements InterfaceUserCreate {
     constructor(data?: InterfaceUserCreate) {
         const cleanDataObject = deleteUndefinedProperties(data);
         const global = window as any;
-        const { $tm, $t } = global.Vue?.config?.globalProperties || {};
+        const { $tm, $t, $features } = global.Vue?.config?.globalProperties || {};
 
-        if ($tm) {
-            this.$tm = $tm;
-            this.$t = $t;
-        }
+        this.$tm = $tm;
+        this.$t = $t;
+        this.$features = $features;
 
         Object.assign(this, cleanDataObject);
     }

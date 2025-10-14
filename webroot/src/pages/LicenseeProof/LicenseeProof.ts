@@ -8,6 +8,7 @@
 import { Component, Vue, Watch } from 'vue-facing-decorator';
 import LicenseHomeIcon from '@components/Icons/LicenseHome/LicenseHome.vue';
 import PrivilegesIcon from '@components/Icons/LicenseeUser/LicenseeUser.vue';
+import ExpirationExplanationIcon from '@components/Icons/ExpirationExplanationIcon/ExpirationExplanationIcon.vue';
 import UserIcon from '@components/Icons/User/User.vue';
 import { Compact } from '@models/Compact/Compact.model';
 import { License, LicenseStatus } from '@models/License/License.model';
@@ -23,6 +24,7 @@ import QRCode from 'qrcode';
         UserIcon,
         LicenseHomeIcon,
         PrivilegesIcon,
+        ExpirationExplanationIcon
     }
 })
 export default class LicenseeProof extends Vue {

@@ -285,6 +285,13 @@ export const compacts = {
     coun: {},
 };
 
+// =============================
+// =     Feature gate IDs      =
+// =============================
+export enum FeatureGates {
+    EXAMPLE_FEATURE_1 = 'test-feature-1', // Keep this ID in place for examples & tests
+}
+
 export default {
     authStorage,
     tokens,

@@ -243,6 +243,18 @@ const setCspHeader = (headers = {}) => {
                 domains.cognitoProvider,
                 cognitoIdpUrl,
                 'https://www.google.com/recaptcha/',
+                // Begin Statsig domains
+                'https://api.statsig.com/',
+                'https://featuregates.org/',
+                'https://statsigapi.net/',
+                'https://events.statsigapi.net/',
+                'https://api.statsigcdn.com/',
+                'https://featureassets.org/',
+                'https://assetsconfigcdn.org/',
+                'https://prodregistryv2.org/',
+                'https://cloudflare-dns.com/',
+                'https://beyondwickedmapping.org/',
+                // End Statsig domains
             ]),
         ].join(' ')}`,
     }];
