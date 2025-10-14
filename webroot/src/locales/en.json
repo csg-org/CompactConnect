@@ -588,6 +588,7 @@
         "birthMonthDay": "Birth month-day",
         "pastPrivilegesTitle": "Past privileges",
         "privilegeIcon": "Privilege icon",
+        "privilegeExpirationIcon": "Clock icon",
         "pInfoIcon": "Personal info icon",
         "licenseDetails": "License details",
         "licenseNumSymbol": "License #",
@@ -683,6 +684,7 @@
         "confirmPrivilegeUnencumberSuccessEndDate": "End date",
         "expiringIn": "Expiring in",
         "events": "Events",
+        "expirationTimeExplanation": "Privilege dates use the <em>UTC-4 time zone</em>. This means that privileges will expire at 11:59PM US Eastern Time during Daylight Savings (summer), and at 10:59 PM in the US Eastern time zone during Standard Time (winter).",
         "uploadedOn": "Uploaded on",
         "licenseEvents": [
             {

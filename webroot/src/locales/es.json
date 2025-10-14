@@ -568,6 +568,7 @@
         "privilegeNumSymbol": "Privilegio #",
         "licenseIcon": "Icono de licencia",
         "privilegeIcon": "Icono de Privilegio",
+        "privilegeExpirationIcon": "Icono de reloj",
         "pInfoIcon": "Icono de información personal",
         "licenseExpired": "Licencia caducada",
         "selectLicense": "Seleccione una licencia",
@@ -667,6 +668,7 @@
         "confirmPrivilegeUnencumberSuccessEndDate": "Fecha de finalización",
         "expiringIn": "Expirando en",
         "events": "Eventos",
+        "expirationTimeExplanation": "Las fechas privilegiadas utilizan la <em>zona horaria UTC-4</em>. Esto significa que los privilegios expirarán a las 11:59 p. m. hora del este de EE. UU. durante el horario de verano (verano) y a las 10:59 p. m. en la zona horaria del este de EE. UU. durante la hora estándar (invierno)",
         "uploadedOn": "Subido en",
         "licenseEvents": [
             {

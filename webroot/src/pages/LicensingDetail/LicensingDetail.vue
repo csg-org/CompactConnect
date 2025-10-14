@@ -172,6 +172,7 @@
                         <div class="title-text">
                             {{privilegesTitle}}
                         </div>
+                        <ExpirationExplanationIcon />
                     </div>
                     <CollapseCaretButton
                         @toggleCollapse="togglePrivsCollapsed"
