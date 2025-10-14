@@ -1,6 +1,6 @@
 import type { LambdaInterface } from '@aws-lambda-powertools/commons/lib/esm/types';
 import { Logger } from '@aws-lambda-powertools/logger';
-import { SESClient } from '@aws-sdk/client-ses';
+import { SESv2Client } from '@aws-sdk/client-sesv2';
 import { S3Client } from '@aws-sdk/client-s3';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { Context } from 'aws-lambda';
@@ -42,7 +42,7 @@ interface CognitoCustomMessageEvent {
 
 interface LambdaProperties {
     dynamoDBClient: DynamoDBClient;
-    sesClient: SESClient;
+    sesClient: SESv2Client;
     s3Client: S3Client;
 }
 

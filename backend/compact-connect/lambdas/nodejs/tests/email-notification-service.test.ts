@@ -1,7 +1,7 @@
 import { mockClient } from 'aws-sdk-client-mock';
 import 'aws-sdk-client-mock-jest';
 import { DynamoDBClient, GetItemCommand } from '@aws-sdk/client-dynamodb';
-import { SESClient, SendEmailCommand, SendRawEmailCommand } from '@aws-sdk/client-ses';
+import { SESv2Client, SendEmailCommand } from '@aws-sdk/client-sesv2';
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import { Readable } from 'stream';
 import { sdkStreamMixin } from '@smithy/util-stream';
@@ -49,7 +49,7 @@ const asDynamoDBClient = (mock: ReturnType<typeof mockClient>) =>
     mock as unknown as DynamoDBClient;
 
 const asSESClient = (mock: ReturnType<typeof mockClient>) =>
-    mock as unknown as SESClient;
+    mock as unknown as SESv2Client;
 
 const asS3Client = (mock: ReturnType<typeof mockClient>) =>
     mock as unknown as S3Client;
@@ -69,7 +69,7 @@ describe('EmailNotificationServiceLambda', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockDynamoDBClient = mockClient(DynamoDBClient);
-        mockSESClient = mockClient(SESClient);
+        mockSESClient = mockClient(SESv2Client);
         mockS3Client = mockClient(S3Client);
 
         // Reset environment variables
@@ -97,9 +97,7 @@ describe('EmailNotificationServiceLambda', () => {
             MessageId: 'message-id-123'
         });
 
-        mockSESClient.on(SendRawEmailCommand).resolves({
-            MessageId: 'message-id-raw'
-        });
+        // Note: SESv2 with nodemailer 7.0.7 uses SendEmailCommand for all email sending
 
         // Create a mock stream that implements the required AWS SDK interfaces
         const mockStream = sdkStreamMixin(
@@ -158,19 +156,21 @@ describe('EmailNotificationServiceLambda', () => {
             Destination: {
                 ToAddresses: ['operations@example.com']
             },
-            Message: {
-                Body: {
-                    Html: {
+            Content: {
+                Simple: {
+                    Body: {
+                        Html: {
+                            Charset: 'UTF-8',
+                            Data: expect.stringContaining('A transaction settlement error was detected')
+                        }
+                    },
+                    Subject: {
                         Charset: 'UTF-8',
-                        Data: expect.stringContaining('A transaction settlement error was detected')
+                        Data: 'Transactions Failed to Settle for Audiology and Speech Language Pathology Payment Processor'
                     }
-                },
-                Subject: {
-                    Charset: 'UTF-8',
-                    Data: 'Transactions Failed to Settle for Audiology and Speech Language Pathology Payment Processor'
                 }
             },
-            Source: 'Compact Connect <noreply@example.org>'
+            FromEmailAddress: 'Compact Connect <noreply@example.org>'
         });
     });
 
@@ -225,17 +225,19 @@ describe('EmailNotificationServiceLambda', () => {
             });
 
             // Verify email was sent with correct parameters
-            expect(mockSESClient).toHaveReceivedCommandWith(SendRawEmailCommand, {
-                RawMessage: {
-                    Data: expect.any(Buffer)
+            expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
+                Content: {
+                    Raw: {
+                        Data: expect.any(Uint8Array)
+                    }
                 }
             });
 
             // Get the raw email data and verify it contains the attachments
-            const rawEmailData = mockSESClient.commandCalls(SendRawEmailCommand)[0].args[0].input.RawMessage?.Data;
+            const rawEmailData = mockSESClient.commandCalls(SendEmailCommand)[0].args[0].input.Content?.Raw?.Data;
 
             expect(rawEmailData).toBeDefined();
-            const rawEmailString = rawEmailData?.toString();
+            const rawEmailString = Buffer.from(rawEmailData || new Uint8Array()).toString();
 
             expect(rawEmailString).toContain('Content-Type: application/zip;');
             expect(rawEmailString).toContain('name=settled-transaction-report-2024-03-01--2024-03-07.zip');
@@ -322,17 +324,19 @@ describe('EmailNotificationServiceLambda', () => {
             });
 
             // Verify email was sent with correct parameters
-            expect(mockSESClient).toHaveReceivedCommandWith(SendRawEmailCommand, {
-                RawMessage: {
-                    Data: expect.any(Buffer)
+            expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
+                Content: {
+                    Raw: {
+                        Data: expect.any(Uint8Array)
+                    }
                 }
             });
 
             // Get the raw email data and verify it contains the attachments
-            const rawEmailData = mockSESClient.commandCalls(SendRawEmailCommand)[0].args[0].input.RawMessage?.Data;
+            const rawEmailData = mockSESClient.commandCalls(SendEmailCommand)[0].args[0].input.Content?.Raw?.Data;
 
             expect(rawEmailData).toBeDefined();
-            const rawEmailString = rawEmailData?.toString();
+            const rawEmailString = Buffer.from(rawEmailData || new Uint8Array()).toString();
 
             expect(rawEmailString).toContain('Content-Type: application/zip;');
             expect(rawEmailString).toContain('name=oh-settled-transaction-report-2024-03-01--2024-03-07.zip');
@@ -428,20 +432,23 @@ describe('EmailNotificationServiceLambda', () => {
                 Destination: {
                     ToAddresses: ['ohio@example.com']
                 },
-                Message: {
-                    Body: {
-                        Html: {
+                Content: {
+                    Simple: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.stringContaining('<!DOCTYPE html>')
+                            }
+                        },
+                        Subject: {
                             Charset: 'UTF-8',
-                            Data: expect.stringContaining('<!DOCTYPE html>')
+                            Data: 'A Privilege was Deactivated in the Audiology and Speech Language Pathology Compact'
                         }
-                    },
-                    Subject: {
-                        Charset: 'UTF-8',
-                        Data: 'A Privilege was Deactivated in the Audiology and Speech Language Pathology Compact'
                     }
                 },
-                Source: 'Compact Connect <noreply@example.org>'
-            });
+                FromEmailAddress: 'Compact Connect <noreply@example.org>'
+            }
+            );
         });
     });
 
@@ -468,19 +475,22 @@ describe('EmailNotificationServiceLambda', () => {
                 Destination: {
                     ToAddresses: ['specific@example.com']
                 },
-                Message: {
-                    Body: {
-                        Html: {
+                Content: {
+                    Simple: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.stringContaining('<!DOCTYPE html>')
+                            }
+                        },
+                        Subject: {
                             Charset: 'UTF-8',
-                            Data: expect.stringContaining('<!DOCTYPE html>')
+                            Data: 'Your Privilege 123 is Deactivated'
                         }
-                    },
-                    Subject: {
-                        Charset: 'UTF-8',
-                        Data: 'Your Privilege 123 is Deactivated'
                     }
                 },
-                Source: 'Compact Connect <noreply@example.org>'
+                FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                
             });
         });
 
@@ -535,19 +545,21 @@ describe('EmailNotificationServiceLambda', () => {
                 Destination: {
                     ToAddresses: ['provider@example.com']
                 },
-                Message: {
-                    Body: {
-                        Html: {
+                Content: {
+                    Simple: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.stringContaining('<!DOCTYPE html>')
+                            }
+                        },
+                        Subject: {
                             Charset: 'UTF-8',
-                            Data: expect.stringContaining('<!DOCTYPE html>')
+                            Data: 'Compact Connect Privilege Purchase Confirmation'
                         }
-                    },
-                    Subject: {
-                        Charset: 'UTF-8',
-                        Data: 'Compact Connect Privilege Purchase Confirmation'
                     }
                 },
-                Source: 'Compact Connect <noreply@example.org>'
+                FromEmailAddress: 'Compact Connect <noreply@example.org>'
             });
         });
 
@@ -582,19 +594,21 @@ describe('EmailNotificationServiceLambda', () => {
                 Destination: {
                     ToAddresses: ['user@example.com']
                 },
-                Message: {
-                    Body: {
-                        Html: {
+                Content: {
+                    Simple: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.stringContaining('<!DOCTYPE html>')
+                            }
+                        },
+                        Subject: {
                             Charset: 'UTF-8',
-                            Data: expect.stringContaining('<!DOCTYPE html>')
+                            Data: 'Registration Attempt Notification - Compact Connect'
                         }
-                    },
-                    Subject: {
-                        Charset: 'UTF-8',
-                        Data: 'Registration Attempt Notification - Compact Connect'
                     }
                 },
-                Source: 'Compact Connect <noreply@example.org>'
+                FromEmailAddress: 'Compact Connect <noreply@example.org>'
             });
         });
 
@@ -636,19 +650,21 @@ describe('EmailNotificationServiceLambda', () => {
                 Destination: {
                     ToAddresses: ['provider@example.com']
                 },
-                Message: {
-                    Body: {
-                        Html: {
+                Content: {
+                    Simple: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.stringContaining('Your Audiologist license in Ohio is encumbered')
+                            }
+                        },
+                        Subject: {
                             Charset: 'UTF-8',
-                            Data: expect.stringContaining('Your Audiologist license in Ohio is encumbered')
+                            Data: 'Your Audiologist license in Ohio is encumbered'
                         }
-                    },
-                    Subject: {
-                        Charset: 'UTF-8',
-                        Data: 'Your Audiologist license in Ohio is encumbered'
                     }
                 },
-                Source: 'Compact Connect <noreply@example.org>'
+                FromEmailAddress: 'Compact Connect <noreply@example.org>'
             });
         });
 
@@ -706,19 +722,21 @@ describe('EmailNotificationServiceLambda', () => {
                 Destination: {
                     ToAddresses: ['ca-adverse@example.com']
                 },
-                Message: {
-                    Body: {
-                        Html: {
+                Content: {
+                    Simple: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.stringContaining('License Encumbrance Notification - John Doe')
+                            }
+                        },
+                        Subject: {
                             Charset: 'UTF-8',
-                            Data: expect.stringContaining('License Encumbrance Notification - John Doe')
+                            Data: 'License Encumbrance Notification - John Doe'
                         }
-                    },
-                    Subject: {
-                        Charset: 'UTF-8',
-                        Data: 'License Encumbrance Notification - John Doe'
                     }
                 },
-                Source: 'Compact Connect <noreply@example.org>'
+                FromEmailAddress: 'Compact Connect <noreply@example.org>'
             });
         });
 
@@ -739,7 +757,8 @@ describe('EmailNotificationServiceLambda', () => {
 
             await lambda.handler(SAMPLE_LICENSE_ENCUMBRANCE_STATE_NOTIFICATION_EVENT, {} as any);
 
-            const emailData = mockSESClient.commandCalls(SendEmailCommand)[0].args[0].input.Message?.Body?.Html?.Data;
+            const emailData = mockSESClient.commandCalls(
+                SendEmailCommand)[0].args[0].input.Content?.Simple?.Body?.Html?.Data;
 
             expect(emailData).toContain('Provider Details: <a href="https://app.test.compactconnect.org/aslp/Licensing/provider-123" target="_blank">https://app.test.compactconnect.org/aslp/Licensing/provider-123</a>');
         });
@@ -795,19 +814,21 @@ describe('EmailNotificationServiceLambda', () => {
                 Destination: {
                     ToAddresses: ['provider@example.com']
                 },
-                Message: {
-                    Body: {
-                        Html: {
+                Content: {
+                    Simple: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.stringContaining('Your Audiologist license in Ohio is no longer encumbered')
+                            }
+                        },
+                        Subject: {
                             Charset: 'UTF-8',
-                            Data: expect.stringContaining('Your Audiologist license in Ohio is no longer encumbered')
+                            Data: 'Your Audiologist license in Ohio is no longer encumbered'
                         }
-                    },
-                    Subject: {
-                        Charset: 'UTF-8',
-                        Data: 'Your Audiologist license in Ohio is no longer encumbered'
                     }
                 },
-                Source: 'Compact Connect <noreply@example.org>'
+                FromEmailAddress: 'Compact Connect <noreply@example.org>'
             });
         });
 
@@ -866,19 +887,21 @@ describe('EmailNotificationServiceLambda', () => {
                 Destination: {
                     ToAddresses: ['ca-adverse@example.com']
                 },
-                Message: {
-                    Body: {
-                        Html: {
+                Content: {
+                    Simple: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.stringContaining('License Encumbrance Lifted Notification - John Doe')
+                            }
+                        },
+                        Subject: {
                             Charset: 'UTF-8',
-                            Data: expect.stringContaining('License Encumbrance Lifted Notification - John Doe')
+                            Data: 'License Encumbrance Lifted Notification - John Doe'
                         }
-                    },
-                    Subject: {
-                        Charset: 'UTF-8',
-                        Data: 'License Encumbrance Lifted Notification - John Doe'
                     }
                 },
-                Source: 'Compact Connect <noreply@example.org>'
+                FromEmailAddress: 'Compact Connect <noreply@example.org>'
             });
         });
 
@@ -931,19 +954,21 @@ describe('EmailNotificationServiceLambda', () => {
                 Destination: {
                     ToAddresses: ['provider@example.com']
                 },
-                Message: {
-                    Body: {
-                        Html: {
+                Content: {
+                    Simple: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.stringContaining('Your Audiologist privilege in Ohio is encumbered')
+                            }
+                        },
+                        Subject: {
                             Charset: 'UTF-8',
-                            Data: expect.stringContaining('Your Audiologist privilege in Ohio is encumbered')
+                            Data: 'Your Audiologist privilege in Ohio is encumbered'
                         }
-                    },
-                    Subject: {
-                        Charset: 'UTF-8',
-                        Data: 'Your Audiologist privilege in Ohio is encumbered'
                     }
                 },
-                Source: 'Compact Connect <noreply@example.org>'
+                FromEmailAddress: 'Compact Connect <noreply@example.org>'
             });
         });
 
@@ -1000,19 +1025,21 @@ describe('EmailNotificationServiceLambda', () => {
                 Destination: {
                     ToAddresses: ['ca-adverse@example.com']
                 },
-                Message: {
-                    Body: {
-                        Html: {
+                Content: {
+                    Simple: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.stringContaining('Privilege Encumbrance Notification - John Doe')
+                            }
+                        },
+                        Subject: {
                             Charset: 'UTF-8',
-                            Data: expect.stringContaining('Privilege Encumbrance Notification - John Doe')
+                            Data: 'Privilege Encumbrance Notification - John Doe'
                         }
-                    },
-                    Subject: {
-                        Charset: 'UTF-8',
-                        Data: 'Privilege Encumbrance Notification - John Doe'
                     }
                 },
-                Source: 'Compact Connect <noreply@example.org>'
+                FromEmailAddress: 'Compact Connect <noreply@example.org>'
             });
         });
 
@@ -1067,19 +1094,21 @@ describe('EmailNotificationServiceLambda', () => {
                 Destination: {
                     ToAddresses: ['provider@example.com']
                 },
-                Message: {
-                    Body: {
-                        Html: {
+                Content: {
+                    Simple: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.stringContaining('Your Audiologist privilege in Ohio is no longer encumbered')
+                            }
+                        },
+                        Subject: {
                             Charset: 'UTF-8',
-                            Data: expect.stringContaining('Your Audiologist privilege in Ohio is no longer encumbered')
+                            Data: 'Your Audiologist privilege in Ohio is no longer encumbered'
                         }
-                    },
-                    Subject: {
-                        Charset: 'UTF-8',
-                        Data: 'Your Audiologist privilege in Ohio is no longer encumbered'
                     }
                 },
-                Source: 'Compact Connect <noreply@example.org>'
+                FromEmailAddress: 'Compact Connect <noreply@example.org>'
             });
         });
 
@@ -1138,19 +1167,20 @@ describe('EmailNotificationServiceLambda', () => {
                 Destination: {
                     ToAddresses: ['ca-adverse@example.com']
                 },
-                Message: {
-                    Body: {
-                        Html: {
+                Content: {
+                    Simple: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.stringContaining('Privilege Encumbrance Lifted Notification - John Doe')
+                            }
+                        },
+                        Subject: {
                             Charset: 'UTF-8',
-                            Data: expect.stringContaining('Privilege Encumbrance Lifted Notification - John Doe')
+                            Data: 'Privilege Encumbrance Lifted Notification - John Doe'
                         }
-                    },
-                    Subject: {
-                        Charset: 'UTF-8',
-                        Data: 'Privilege Encumbrance Lifted Notification - John Doe'
-                    }
-                },
-                Source: 'Compact Connect <noreply@example.org>'
+                    }},
+                FromEmailAddress: 'Compact Connect <noreply@example.org>'
             });
         });
 
@@ -1200,24 +1230,26 @@ describe('EmailNotificationServiceLambda', () => {
                 Destination: {
                     ToAddresses: ['newuser@example.com']
                 },
-                Message: {
-                    Body: {
-                        Html: {
+                Content: {
+                    Simple: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.any(String)
+                            }
+                        },
+                        Subject: {
                             Charset: 'UTF-8',
-                            Data: expect.any(String)
+                            Data: 'Verify Your New Email Address - Compact Connect'
                         }
-                    },
-                    Subject: {
-                        Charset: 'UTF-8',
-                        Data: 'Verify Your New Email Address - Compact Connect'
                     }
                 },
-                Source: 'Compact Connect <noreply@example.org>'
+                FromEmailAddress: 'Compact Connect <noreply@example.org>'
             });
 
             // Get the actual HTML content for detailed validation
             const emailCall = mockSESClient.commandCalls(SendEmailCommand)[0];
-            const htmlContent = emailCall.args[0].input.Message?.Body?.Html?.Data;
+            const htmlContent = emailCall.args[0].input.Content?.Simple?.Body?.Html?.Data;
 
             expect(htmlContent).toBeDefined();
             expect(htmlContent).toContain('Please use the following verification code to complete your email address change');
@@ -1273,24 +1305,25 @@ describe('EmailNotificationServiceLambda', () => {
                 Destination: {
                     ToAddresses: ['olduser@example.com']
                 },
-                Message: {
-                    Body: {
-                        Html: {
+                Content: {
+                    Simple: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.any(String)
+                            }
+                        },
+                        Subject: {
                             Charset: 'UTF-8',
-                            Data: expect.any(String)
+                            Data: 'Email Address Changed - Compact Connect'
                         }
-                    },
-                    Subject: {
-                        Charset: 'UTF-8',
-                        Data: 'Email Address Changed - Compact Connect'
-                    }
-                },
-                Source: 'Compact Connect <noreply@example.org>'
+                    }},
+                FromEmailAddress: 'Compact Connect <noreply@example.org>'
             });
 
             // Get the actual HTML content for detailed validation
             const emailCall = mockSESClient.commandCalls(SendEmailCommand)[0];
-            const htmlContent = emailCall.args[0].input.Message?.Body?.Html?.Data;
+            const htmlContent = emailCall.args[0].input.Content?.Simple?.Body?.Html?.Data;
 
             expect(htmlContent).toBeDefined();
             expect(htmlContent).toContain('This is to notify you that your Compact Connect account email address has been changed to the following:');
@@ -1344,24 +1377,25 @@ describe('EmailNotificationServiceLambda', () => {
                 Destination: {
                     ToAddresses: ['user@example.com']
                 },
-                Message: {
-                    Body: {
-                        Html: {
+                Content: {
+                    Simple: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.any(String)
+                            }
+                        },
+                        Subject: {
                             Charset: 'UTF-8',
-                            Data: expect.any(String)
+                            Data: 'Confirm Account Recovery - Compact Connect'
                         }
-                    },
-                    Subject: {
-                        Charset: 'UTF-8',
-                        Data: 'Confirm Account Recovery - Compact Connect'
-                    }
-                },
-                Source: 'Compact Connect <noreply@example.org>'
+                    }},
+                FromEmailAddress: 'Compact Connect <noreply@example.org>'
             });
 
             // Get the actual HTML content for detailed validation
             const emailCall = mockSESClient.commandCalls(SendEmailCommand)[0];
-            const htmlContent = emailCall.args[0].input.Message?.Body?.Html?.Data;
+            const htmlContent = emailCall.args[0].input.Content?.Simple?.Body?.Html?.Data;
 
             expect(htmlContent).toBeDefined();
             expect(htmlContent).toContain('A request was made to recover access to your Compact Connect user account.');

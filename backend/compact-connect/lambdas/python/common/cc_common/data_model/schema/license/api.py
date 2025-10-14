@@ -80,6 +80,35 @@ class LicensePostRequestSchema(CCRequestSchema, StrictSchema):
             )
 
 
+class LicenseReportResponseSchema(ForgivingSchema):
+    """
+    License object fields, as included in ingest error reports to state operational staff.
+
+    Serialization direction:
+    Python -> load() -> API
+    """
+
+    providerId = Raw(required=True, allow_none=False)
+    type = String(required=True, allow_none=False)
+    compact = Compact(required=True, allow_none=False)
+    jurisdiction = Jurisdiction(required=True, allow_none=False)
+    licenseType = String(required=True, allow_none=False)
+    licenseStatusName = String(required=False, allow_none=False, validate=Length(1, 100))
+    licenseStatus = ActiveInactive(required=True, allow_none=False)
+    jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
+    compactEligibility = CompactEligibility(required=True, allow_none=False)
+    jurisdictionUploadedCompactEligibility = CompactEligibility(required=True, allow_none=False)
+    npi = NationalProviderIdentifier(required=False, allow_none=False)
+    licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
+    givenName = String(required=True, allow_none=False, validate=Length(1, 100))
+    middleName = String(required=False, allow_none=False, validate=Length(1, 100))
+    familyName = String(required=True, allow_none=False, validate=Length(1, 100))
+    suffix = String(required=False, allow_none=False, validate=Length(1, 100))
+    dateOfIssuance = Raw(required=True, allow_none=False)
+    dateOfRenewal = Raw(required=False, allow_none=False)
+    dateOfExpiration = Raw(required=True, allow_none=False)
+
+
 class LicenseGeneralResponseSchema(ForgivingSchema):
     """
     License object fields, as seen by staff users with only the 'readGeneral' permission.

@@ -13,6 +13,7 @@
         <ExampleForm />
         <ExampleModal />
         <ExampleLoadingSpinner />
+        <ExampleFeatureGates />
     </div>
 </template>
 
