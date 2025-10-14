@@ -12,7 +12,7 @@
             <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
             <div class="payment-processor-form-container">
                 <form @submit.prevent="handleSubmit">
-                    <InputText :formInput="formData.accountId" />
+                    <InputText class="rr-block" :formInput="formData.accountId" />
                     <InputPassword
                         :formInput="formData.accountKey"
                         :joiMessages="joiMessages"

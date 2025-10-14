@@ -13,6 +13,9 @@
     "audit:dependencies": "/bin/bash -c 'yarn audit --groups dependencies --level moderate; [[ $? -ge 4 ]] && exit 1 || exit 0'"
   },
   "dependencies": {
+    "@statsig/js-client": "^3.25.3",
+    "@statsig/session-replay": "^3.25.3",
+    "@statsig/web-analytics": "^3.25.3",
     "@vue/compat": "3.4.21",
     "@vuepic/vue-datepicker": "^8.7.0",
     "axios": "^1.12.2",
