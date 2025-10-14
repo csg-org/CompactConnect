@@ -33,6 +33,7 @@ os.environ['JURISDICTIONS'] = json.dumps(JURISDICTIONS)
 
 # We have to import this after we've added the common lib to our path and environment
 from cc_common.data_model.schema.user.record import UserRecordSchema  # noqa: E402
+from cc_common.data_model.provider_record_util import ProviderUserRecords
 
 _TEST_STAFF_USER_PASSWORD = 'TestPass123!'  # noqa: S105 test credential for test staff user
 _TEMP_STAFF_PASSWORD = 'TempPass123!'  # noqa: S105 temporary password for creating test staff users
@@ -244,6 +245,22 @@ def get_all_provider_database_records():
     )
 
     return query_result['Items']
+
+
+def get_provider_user_records(compact: str, provider_id: str) -> ProviderUserRecords:
+    """
+    Get all provider records from DynamoDB and return as ProviderUserRecords utility class.
+
+    :param compact: The compact identifier
+    :param provider_id: The provider's ID
+    :return: ProviderUserRecords instance containing all records for this provider
+    """
+    # Query the provider database for all records
+    query_result = config.provider_user_dynamodb_table.query(
+        KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}')
+    )
+
+    return ProviderUserRecords(query_result['Items'])
 
 
 def upload_license_record(staff_headers: dict, compact: str, jurisdiction: str, data_overrides: dict = None):
