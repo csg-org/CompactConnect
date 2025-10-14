@@ -1,15 +1,9 @@
-from aws_cdk.assertions import Capture, Template
+from aws_cdk.assertions import Capture, Match, Template
 from aws_cdk.aws_apigateway import CfnMethod, CfnModel, CfnResource
+from aws_cdk.aws_iam import CfnPolicy
 from aws_cdk.aws_lambda import CfnFunction
 
 from tests.app.test_api import TestApi
-
-
-def _generate_expected_secret_arn(compact: str) -> str:
-    return (
-        f'arn:aws:secretsmanager:us-east-1:111122223333:secret:compact-connect/env'
-        f'/justin/compact/{compact}/credentials/payment-processor-??????'
-    )
 
 
 class TestCompactsApi(TestApi):
@@ -90,32 +84,51 @@ class TestCompactsApi(TestApi):
         )
 
         # get the policy attached to the role using this match
-        # "Roles": [
-        #     {
-        #         "Ref": "<role logical id>"
-        #     }
-        # ]
-        policy = next(
-            policy
-            for policy_logical_id, policy in api_lambda_stack_template.find_resources('AWS::IAM::Policy').items()
-            if handler_role_logical_id in policy['Properties']['Roles'][0]['Ref']
-        )
-
-        # We need to ensure the lambda can read these secrets, else all transactions will fail
-        self.assertIn(
+        api_lambda_stack_template.has_resource(
+            CfnPolicy.CFN_RESOURCE_TYPE_NAME,
             {
-                'Action': [
-                    'secretsmanager:DescribeSecret',
-                    'secretsmanager:GetSecretValue',
-                ],
-                'Effect': 'Allow',
-                'Resource': [
-                    _generate_expected_secret_arn('aslp'),
-                    _generate_expected_secret_arn('coun'),
-                    _generate_expected_secret_arn('octp'),
-                ],
+                'Properties': {
+                    'Roles': Match.array_with(
+                        [
+                            {
+                                'Ref': handler_role_logical_id,
+                            },
+                        ]
+                    ),
+                    'PolicyDocument': {
+                        'Statement': Match.array_with(
+                            [
+                                {
+                                    'Action': Match.array_with(
+                                        [
+                                            'secretsmanager:CreateSecret',
+                                            'secretsmanager:DescribeSecret',
+                                            'secretsmanager:PutSecretValue',
+                                        ]
+                                    ),
+                                    'Effect': 'Allow',
+                                    'Resource': Match.array_with(
+                                        [
+                                            Match.string_like_regexp(
+                                                'arn:aws:secretsmanager:[a-z0-9-]+:[0-9]{12}:secret:compact-connect/env'
+                                                + r'/.*/aslp/credentials/payment-processor-\?\?\?\?\?\?'
+                                            ),
+                                            Match.string_like_regexp(
+                                                'arn:aws:secretsmanager:[a-z0-9-]+:[0-9]{12}:secret:compact-connect/env'
+                                                + r'/.*/coun/credentials/payment-processor-\?\?\?\?\?\?'
+                                            ),
+                                            Match.string_like_regexp(
+                                                'arn:aws:secretsmanager:[a-z0-9-]+:[0-9]{12}:secret:compact-connect/env'
+                                                + r'/.*/octp/credentials/payment-processor-\?\?\?\?\?\?'
+                                            ),
+                                        ]
+                                    ),
+                                },
+                            ]
+                        ),
+                    },
+                }
             },
-            policy['Properties']['PolicyDocument']['Statement'],
         )
 
     def test_synth_generates_post_credentials_payment_processor_endpoint_resources(self):

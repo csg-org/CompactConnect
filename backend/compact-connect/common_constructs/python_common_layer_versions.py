@@ -83,7 +83,7 @@ class PythonCommonLayerVersions(Construct):
 
         # This doesn't create a cross-stack reference, but it does help CDK/CloudFormation
         # to sequence the stack deploys properly. Without this, CDK may attempt to deploy
-        # stacks that depend on the parameters in parallel with `this_stack`, which will fail.
+        # stacks that depend on the parameters in parallel with `layer_stack`, which will fail.
         for_function.node.add_dependency(layer_stack)
 
         return self._get_ilayer_reference(for_function)

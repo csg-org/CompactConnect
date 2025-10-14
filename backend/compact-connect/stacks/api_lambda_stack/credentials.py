@@ -4,6 +4,7 @@ import os
 
 from aws_cdk import Stack
 from aws_cdk.aws_dynamodb import ITable
+from aws_cdk.aws_iam import Effect, PolicyStatement
 from aws_cdk.aws_lambda import Runtime
 from aws_cdk.aws_secretsmanager import ISecret
 from aws_cdk.aws_sns import ITopic
@@ -76,8 +77,21 @@ class CredentialsLambdas:
         compact_configuration_table.grant_read_write_data(handler)
         # grant handler access to post secrets for supported compacts
         # compact-connect/env/{environment_name}/compact/{compact_abbr}/credentials/payment-processor
-        for secret in compact_payment_processor_secrets:
-            secret.grant_read(handler)
+        handler.grant_principal.add_to_principal_policy(
+            PolicyStatement(
+                effect=Effect.ALLOW,
+                actions=[
+                    'secretsmanager:CreateSecret',
+                    'secretsmanager:DescribeSecret',
+                    'secretsmanager:PutSecretValue',
+                ],
+                resources=[
+                    # We have to append the pattern for the six-digit suffix for the arn to match properly
+                    f'{secret.secret_arn}-??????'
+                    for secret in compact_payment_processor_secrets
+                ],
+            )
+        )
 
         NagSuppressions.add_resource_suppressions_by_path(
             stack,

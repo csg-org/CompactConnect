@@ -40,6 +40,9 @@ class NodejsFunction(CdkNodejsFunction):
             f'{construct_id}LogGroup',
             retention=log_retention,
         )
+        # We can't directly grant a provided role permission to log to our log group, since that could create a
+        # circular dependency with the stack the role came from. The role creator will have to be responsible for
+        # setting its permissions.
         if not role:
             role = Role(
                 scope,
@@ -47,9 +50,6 @@ class NodejsFunction(CdkNodejsFunction):
                 assumed_by=ServicePrincipal('lambda.amazonaws.com'),
             )
             log_group.grant_write(role)
-        # We can't directly grant a provided role permission to log to our log group, since that could create a
-        # circular dependency with the stack the role came from. The role creator will have to be responsible for
-        # setting its permissions.
         NagSuppressions.add_resource_suppressions(
             log_group,
             suppressions=[
