@@ -5,7 +5,7 @@
 //  Created by InspiringApps on 6/18/24.
 //
 
-import { authStorage, tokens } from '@/app.config';
+import { authStorage, tokens, FeatureGates } from '@/app.config';
 import axios, { AxiosInstance } from 'axios';
 import {
     requestError,
@@ -274,10 +274,17 @@ export class LicenseDataApi implements DataApiInterface {
         npdbCategories: Array<string>,
         startDate: string
     ) {
+        const { $features } = (window as any).Vue?.config?.globalProperties || {};
         const serverResponse: any = await this.api.post(`/v1/compacts/${compact}/providers/${licenseeId}/licenses/jurisdiction/${licenseState}/licenseType/${licenseType}/encumbrance`, {
             encumbranceType,
-            clinicalPrivilegeActionCategory: npdbCategory, // @TODO: Feature flag (ternary w/ undefined?)
-            clinicalPrivilegeActionCategories: npdbCategories, // @TODO: Feature flag (ternary w/ undefined?)
+            ...($features?.checkGate(FeatureGates.ENCUMBER_MULTI_CATEGORY)
+                ? {
+                    clinicalPrivilegeActionCategories: npdbCategories,
+                }
+                : {
+                    clinicalPrivilegeActionCategory: npdbCategory,
+                }
+            ),
             encumbranceEffectiveDate: startDate,
         });
 
@@ -354,10 +361,17 @@ export class LicenseDataApi implements DataApiInterface {
         npdbCategories: Array<string>,
         startDate: string
     ) {
+        const { $features } = (window as any).Vue?.config?.globalProperties || {};
         const serverResponse: any = await this.api.post(`/v1/compacts/${compact}/providers/${licenseeId}/privileges/jurisdiction/${privilegeState}/licenseType/${licenseType}/encumbrance`, {
             encumbranceType,
-            clinicalPrivilegeActionCategory: npdbCategory, // @TODO: Feature flag (ternary w/ undefined?)
-            clinicalPrivilegeActionCategories: npdbCategories, // @TODO: Feature flag (ternary w/ undefined?)
+            ...($features?.checkGate(FeatureGates.ENCUMBER_MULTI_CATEGORY)
+                ? {
+                    clinicalPrivilegeActionCategories: npdbCategories,
+                }
+                : {
+                    clinicalPrivilegeActionCategory: npdbCategory,
+                }
+            ),
             encumbranceEffectiveDate: startDate,
         });
 
