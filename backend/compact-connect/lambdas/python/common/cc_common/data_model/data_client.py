@@ -2628,7 +2628,7 @@ class DataClient:
         :param str jurisdiction: The jurisdiction of the license.
         :param adverse_action_id: The ID of the adverse action.
         :param str license_type_abbreviation: The license type abbreviation.
-        :param str effective_date: effective date of the encumbrance on the license and therefore privilege.
+        :param date effective_date: effective date of the encumbrance on the license and therefore privilege.
         :return: List of privileges that were encumbered
         """
         # Get all provider records
