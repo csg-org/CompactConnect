@@ -28,7 +28,7 @@ def compact_configuration_api_handler(event: dict, context: LambdaContext):  # n
         return _get_staff_users_compact_jurisdictions(event, context)
     if event['httpMethod'] == 'GET' and event['resource'] == '/v1/public/compacts/{compact}/jurisdictions':
         return _get_public_compact_jurisdictions(event, context)
-    if event['httpMethod'] == 'GET' and event['resource'] == '/v1/public/compacts/jurisdictions/live':
+    if event['httpMethod'] == 'GET' and event['resource'] == '/v1/public/jurisdictions/live':
         return _get_live_public_compact_jurisdictions(event, context)
     if event['httpMethod'] == 'GET' and event['resource'] == '/v1/compacts/{compact}':
         return _get_staff_users_compact_configuration(event, context)
@@ -139,8 +139,8 @@ def _get_live_public_compact_jurisdictions(event: dict, context: LambdaContext):
             compacts_to_query = [compact_filter.lower()]
             logger.info('Getting live jurisdictions for specific compact', compact=compact_filter)
         else:
-            logger.info('Invalid compact provided, returning data for all compacts', compact=compact_filter)
-            compacts_to_query = config.compacts
+            logger.error('Invalid compact provided', compact=compact_filter)
+            raise CCInvalidRequestException(f'Invalid request query param: {compact_filter}')
     else:
         logger.info('Getting live jurisdictions for all compacts')
         compacts_to_query = config.compacts

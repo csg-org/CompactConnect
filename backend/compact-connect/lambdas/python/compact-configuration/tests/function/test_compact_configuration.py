@@ -12,7 +12,7 @@ from . import TstFunction
 
 STAFF_USERS_COMPACT_JURISDICTION_ENDPOINT_RESOURCE = '/v1/compacts/{compact}/jurisdictions'
 PUBLIC_COMPACT_JURISDICTION_ENDPOINT_RESOURCE = '/v1/public/compacts/{compact}/jurisdictions'
-LIVE_COMPACT_JURISDICTIONS_ENDPOINT_RESOURCE = '/v1/public/compacts/jurisdictions/live'
+LIVE_JURISDICTIONS_ENDPOINT_RESOURCE = '/v1/public/jurisdictions/live'
 
 COMPACT_CONFIGURATION_ENDPOINT_RESOURCE = '/v1/compacts/{compact}'
 JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE = '/v1/compacts/{compact}/jurisdictions/{jurisdiction}'
@@ -231,7 +231,7 @@ class TestGetPublicCompactJurisdictions(TstFunction):
         )
 
         # Create event without query params
-        event = generate_test_event('GET', LIVE_COMPACT_JURISDICTIONS_ENDPOINT_RESOURCE)
+        event = generate_test_event('GET', LIVE_JURISDICTIONS_ENDPOINT_RESOURCE)
         event['queryStringParameters'] = None
 
         response = compact_configuration_api_handler(event, self.mock_context)
@@ -274,7 +274,7 @@ class TestGetPublicCompactJurisdictions(TstFunction):
         )
 
         # Create event with compact query param
-        event = generate_test_event('GET', LIVE_COMPACT_JURISDICTIONS_ENDPOINT_RESOURCE)
+        event = generate_test_event('GET', LIVE_JURISDICTIONS_ENDPOINT_RESOURCE)
         event['queryStringParameters'] = {'compact': 'aslp'}
 
         response = compact_configuration_api_handler(event, self.mock_context)
@@ -313,21 +313,15 @@ class TestGetPublicCompactJurisdictions(TstFunction):
         )
 
         # Create event with invalid compact query param
-        event = generate_test_event('GET', LIVE_COMPACT_JURISDICTIONS_ENDPOINT_RESOURCE)
+        event = generate_test_event('GET', LIVE_JURISDICTIONS_ENDPOINT_RESOURCE)
         event['queryStringParameters'] = {'compact': 'invalid_compact'}
 
         response = compact_configuration_api_handler(event, self.mock_context)
-        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+        self.assertEqual(400, response['statusCode'], msg=json.loads(response['body']))
         response_body = json.loads(response['body'])
 
-        # Should return all compacts when invalid compact is provided
-        self.assertIn('aslp', response_body)
-        self.assertIn('octp', response_body)
-        self.assertIn('coun', response_body)
-
         # Verify the live jurisdictions
-        self.assertCountEqual(['ky'], response_body['aslp'])
-        self.assertCountEqual(['oh'], response_body['octp'])
+        self.assertCountEqual({'message': 'Invalid request query param: invalid_compact'}, response_body)
 
 
 @mock_aws
