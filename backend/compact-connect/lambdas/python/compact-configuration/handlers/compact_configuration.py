@@ -139,7 +139,7 @@ def _get_live_public_compact_jurisdictions(event: dict, context: LambdaContext):
             compacts_to_query = [compact_filter.lower()]
             logger.info('Getting live jurisdictions for specific compact', compact=compact_filter)
         else:
-            logger.error('Invalid compact provided', compact=compact_filter)
+            logger.info('Invalid compact provided', compact=compact_filter)
             raise CCInvalidRequestException(f'Invalid request query param: {compact_filter}')
     else:
         logger.info('Getting live jurisdictions for all compacts')
