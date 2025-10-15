@@ -134,7 +134,9 @@ export class AdverseActionSerializer {
             type: json.type,
             encumbranceType: json.encumbranceType,
             npdbType: json.clinicalPrivilegeActionCategory,
-            npdbTypes: json.clinicalPrivilegeActionCategories,
+            npdbTypes: Array.isArray(json.clinicalPrivilegeActionCategories)
+                ? json.clinicalPrivilegeActionCategories
+                : [],
             creationDate: json.creationDate,
             startDate: json.effectiveStartDate,
             endDate: json.effectiveLiftDate,

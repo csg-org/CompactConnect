@@ -188,4 +188,14 @@ describe('AdverseAction model', () => {
         expect(adverseAction.getNpdbTypeName(data.clinicalPrivilegeActionCategories[0])).to.equal('Non-compliance With Requirements');
         expect(adverseAction.isActive()).to.equal(true);
     });
+    it('should create an AdverseAction model with specific values through serializer (invalid data type from server)', () => {
+        const data = {
+            clinicalPrivilegeActionCategories: 'Non-compliance With Requirements',
+        };
+        const adverseAction = AdverseActionSerializer.fromServer(data);
+
+        // Test field values
+        expect(adverseAction).to.be.an.instanceof(AdverseAction);
+        expect(adverseAction.npdbTypes).to.matchPattern([]);
+    });
 });
