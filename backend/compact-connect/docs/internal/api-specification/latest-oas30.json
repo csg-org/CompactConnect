@@ -10,16 +10,16 @@
     }
   ],
   "paths": {
-    "/v1/public/compacts/jurisdictions/live": {
+    "/v1/public/jurisdictions/live": {
       "get": {
-        "summary": "Get live compact jurisdictions",
+        "summary": "Get live jurisdictions",
         "description": "Returns all jurisdictions that are live (enabled for operations) across all compacts or for a specific compact if the optional compact query parameter is provided.",
         "parameters": [
           {
             "name": "compact",
             "in": "query",
             "required": false,
-            "description": "Optional compact abbreviation to filter results. If not provided or invalid, returns data for all compacts.",
+            "description": "Optional compact abbreviation to filter results. If not provided, returns data for all compacts.",
             "schema": {
               "type": "string"
             }
