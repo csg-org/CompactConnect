@@ -209,7 +209,7 @@ class V1Api:
         self.compact_configuration_api = CompactConfigurationApi(
             api=self.api,
             compact_resource=self.compact_resource,
-            live_compacts_jurisdictions_resource=self.live_compacts_jurisdictions_resource,
+            live_compacts_jurisdictions_resource=self.live_jurisdictions_resource,
             jurisdictions_resource=self.jurisdictions_resource,
             public_jurisdictions_resource=self.public_compacts_compact_jurisdictions_resource,
             jurisdiction_resource=self.jurisdiction_resource,
