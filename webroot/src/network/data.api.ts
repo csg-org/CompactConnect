@@ -552,7 +552,7 @@ export class DataApi {
     /**
      * Example of app-specific API call which is defined in a subfolder
      * in the /network directory and which has their own data.api.ts & interceptors.ts.
-     * @return {Promise.<object>}
+     * @return {Promise<object>}
      */
     public getStyleguidePetsCount(config?: any) {
         return exampleDataApi.getStyleguidePetsCount(config);
@@ -561,7 +561,7 @@ export class DataApi {
     /**
      * Example of app-specific API call which is defined in a subfolder
      * in the /network directory and which has their own data.api.ts & interceptors.ts.
-     * @return {Promise.<Array<object>}
+     * @return {Promise<Array<object>>}
      */
     public getStyleguidePets(config?: any) {
         return exampleDataApi.getStyleguidePets(config);
@@ -570,10 +570,18 @@ export class DataApi {
     /**
      * Example of app-specific API call which is defined in a subfolder
      * in the /network directory and which has their own data.api.ts & interceptors.ts.
-     * @return {Promise.<User>}
+     * @return {Promise<User>}
      */
     public getAccount() {
         return exampleDataApi.getAccount();
+    }
+
+    /**
+     * Example of a network call that can evaluate feature gates if needed.
+     * @return {Promise<Boolean>}
+     */
+    public getExampleFeatureGate() {
+        return exampleDataApi.getExampleFeatureGate();
     }
 }
 

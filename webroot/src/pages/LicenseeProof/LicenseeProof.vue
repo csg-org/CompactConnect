@@ -91,6 +91,7 @@
                     <span class="date-text">{{ privilege.expireDateDisplay() }}</span>
                 </div>
             </div>
+            <ExpirationExplanationIcon :isCollapsibleExplanation="false" />
             <div class="qr-code-section" v-if="qrCodeDataUrl">
                 <img
                     :src="qrCodeDataUrl"

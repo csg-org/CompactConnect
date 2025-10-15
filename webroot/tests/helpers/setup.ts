@@ -12,6 +12,7 @@ import routes from '@router/routes';
 import { DataApi } from '@network/mocks/mock.data.api';
 import mockStore from '@tests/mocks/mockStore';
 import mockEnvConfig from '@tests/mocks/mockEnvConfig';
+import { getStatsigClientMock } from '@plugins/Statsig/statsig.plugin';
 import { relativeTimeFormats } from '@/app.config';
 import { VueResponsiveness } from 'vue-responsiveness';
 import i18n from '@/i18n';
@@ -162,6 +163,7 @@ const mockApi = sinon.createStubInstance(DataApi);
 const mountShallow = async (component, mountConfig: any = {}) => {
     const router = createRouter({ routes, history: createWebHistory() });
     const store = mockStore;
+    const statsigClientMock = await getStatsigClientMock();
     const config: any = {
         global: {
             plugins: [
@@ -182,6 +184,8 @@ const mountShallow = async (component, mountConfig: any = {}) => {
                 $api: mockApi,
                 $t: sinon.spy(() => ''),
                 $i18n: { locale: 'en' },
+                $features: statsigClientMock,
+                $analytics: statsigClientMock,
             },
             stubs: {
                 transition: true,
@@ -212,6 +216,7 @@ const mountShallow = async (component, mountConfig: any = {}) => {
 const mountFull = async (component, mountConfig: any = {}) => {
     const router = createRouter({ routes, history: createWebHistory() });
     const store = mockStore;
+    const statsigClientMock = await getStatsigClientMock();
     const config: any = {
         global: {
             plugins: [
@@ -232,6 +237,8 @@ const mountFull = async (component, mountConfig: any = {}) => {
                 $api: mockApi,
                 $t: sinon.spy(() => ''),
                 $i18n: { locale: 'en' },
+                $features: statsigClientMock,
+                $analytics: statsigClientMock,
             },
             stubs: {
                 transition: true,

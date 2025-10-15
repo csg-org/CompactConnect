@@ -100,6 +100,7 @@ class ProviderReadPrivateResponseSchema(ForgivingSchema):
     dateOfBirth = Raw(required=True, allow_none=False)
     ssnLastFour = String(required=False, allow_none=False, validate=Length(equal=4))
 
+
 class ProviderGeneralResponseSchema(ForgivingSchema):
     """
     Provider object fields that are sanitized for users with the 'readGeneral' permission.

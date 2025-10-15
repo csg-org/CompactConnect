@@ -228,13 +228,8 @@ class BackendPipeline(CdkCodePipeline):
                             account=stack.account,
                             resource='log-group',
                             resource_name=Fn.join(
-                                '',
-                                [
-                                    '/aws/codebuild/',
-                                    Fn.ref(stack.get_logical_id(file_asset_node)),
-                                    ':*'
-                                ]
-                            ) ,
+                                '', ['/aws/codebuild/', Fn.ref(stack.get_logical_id(file_asset_node)), ':*']
+                            ),
                             arn_format=ArnFormat.COLON_RESOURCE_NAME,
                         ),
                     ],
@@ -257,17 +252,16 @@ class BackendPipeline(CdkCodePipeline):
                         ),
                     ],
                 )
-
             )
             pipeline_role.add_to_principal_policy(
                 PolicyStatement(
                     effect=Effect.ALLOW,
                     actions=[
-                        "codebuild:BatchPutCodeCoverages",
-                        "codebuild:BatchPutTestCases",
-                        "codebuild:CreateReport",
-                        "codebuild:CreateReportGroup",
-                        "codebuild:UpdateReport"
+                        'codebuild:BatchPutCodeCoverages',
+                        'codebuild:BatchPutTestCases',
+                        'codebuild:CreateReport',
+                        'codebuild:CreateReportGroup',
+                        'codebuild:UpdateReport',
                     ],
                     resources=[
                         Fn.join(
@@ -283,9 +277,9 @@ class BackendPipeline(CdkCodePipeline):
                                 ),
                                 Fn.ref(stack.get_logical_id(file_asset_node)),
                                 '-*',
-                            ]
+                            ],
                         ),
-                    ]
+                    ],
                 )
             )
 
