@@ -127,7 +127,7 @@ class V1Api:
         # POST /v1/public/compacts/{compact}/providers/query
         # GET  /v1/public/compacts/{compact}/providers/{providerId}
         self.public_compacts_resource = self.public_resource.add_resource('compacts')
-        # /v1/public/compacts/jurisdictions
+        # /v1/public/jurisdictions
         self.public_jurisdictions_resource = self.public_resource.add_resource('jurisdictions')
         # /v1/public/compacts/jurisdictions/live
         self.live_jurisdictions_resource = self.public_jurisdictions_resource.add_resource('live')
