@@ -178,7 +178,7 @@ class TestCompactConfigurationApi(TestApi):
         )
 
         # Get the live compacts jurisdictions resource
-        live_compacts_jurisdictions_resource_id = api_stack.get_logical_id(
+        live_jurisdictions_resource_id = api_stack.get_logical_id(
             api_stack.api.v1_api.live_jurisdictions_resource.node.default_child
         )
 
