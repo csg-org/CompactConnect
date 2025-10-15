@@ -151,7 +151,7 @@ class TestCompactConfigurationApi(TestApi):
         api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
 
-        # Ensure the /v1/public/compacts/jurisdictions resource is created
+        # Ensure the /v1/public/jurisdictions resource is created
         api_stack_template.has_resource_properties(
             type=CfnResource.CFN_RESOURCE_TYPE_NAME,
             props={
@@ -170,7 +170,7 @@ class TestCompactConfigurationApi(TestApi):
                 'ParentId': {
                     # Verify the parent id matches the expected 'public/compacts/jurisdictions' resource
                     'Ref': api_stack.get_logical_id(
-                        api_stack.api.v1_api.public_compacts_jurisdictions_resource.node.default_child
+                        api_stack.api.v1_api.public_jurisdictions_resource.node.default_child
                     ),
                 },
                 'PathPart': 'live',
@@ -179,7 +179,7 @@ class TestCompactConfigurationApi(TestApi):
 
         # Get the live compacts jurisdictions resource
         live_compacts_jurisdictions_resource_id = api_stack.get_logical_id(
-            api_stack.api.v1_api.live_compacts_jurisdictions_resource.node.default_child
+            api_stack.api.v1_api.live_jurisdictions_resource.node.default_child
         )
 
         # Ensure the GET method is configured with the lambda integration (no authorizer since it's public)
@@ -187,7 +187,7 @@ class TestCompactConfigurationApi(TestApi):
             type=CfnMethod.CFN_RESOURCE_TYPE_NAME,
             props={
                 'HttpMethod': 'GET',
-                'ResourceId': {'Ref': live_compacts_jurisdictions_resource_id},
+                'ResourceId': {'Ref': live_jurisdictions_resource_id},
                 # ensure the lambda integration is configured with the expected handler
                 'Integration': TestApi.generate_expected_integration_object(
                     api_stack.get_logical_id(
