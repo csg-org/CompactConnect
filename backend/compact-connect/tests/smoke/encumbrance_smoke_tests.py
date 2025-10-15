@@ -17,7 +17,6 @@ from smoke_common import (
     create_test_staff_user,
     delete_test_staff_user,
     get_all_provider_database_records,
-    get_license_type_abbreviation,
     get_provider_user_dynamodb_table,
     get_provider_user_records,
     get_staff_user_auth_headers,

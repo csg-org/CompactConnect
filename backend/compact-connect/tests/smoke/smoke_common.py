@@ -33,7 +33,7 @@ os.environ['JURISDICTIONS'] = json.dumps(JURISDICTIONS)
 os.environ['LICENSE_TYPES'] = json.dumps(LICENSE_TYPES)
 
 # We have to import this after we've added the common lib to our path and environment
-from cc_common.data_model.provider_record_util import ProviderUserRecords
+from cc_common.data_model.provider_record_util import ProviderUserRecords  # noqa: E402
 from cc_common.data_model.schema.user.record import UserRecordSchema  # noqa: E402
 
 _TEST_STAFF_USER_PASSWORD = 'TestPass123!'  # noqa: S105 test credential for test staff user

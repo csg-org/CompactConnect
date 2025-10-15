@@ -268,8 +268,8 @@ class TestEncumbranceEvents(TstFunction):
     @patch('cc_common.feature_flag_client.is_feature_enabled', return_value=False)
     def test_license_encumbrance_listener_handles_all_privileges_already_encumbered_with_experiment_disabled(
         self,
-        mock_flag,
-        mock_publish_event,  # noqa: ARG002
+        mock_flag,  # noqa: ARG002
+        mock_publish_event,
     ):
         """Test that license encumbrance event handles case where all matching privileges are already encumbered."""
         from cc_common.data_model.schema.common import PrivilegeEncumberedStatusEnum
