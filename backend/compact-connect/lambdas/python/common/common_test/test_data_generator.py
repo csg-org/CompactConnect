@@ -8,6 +8,7 @@ from cc_common.data_model.provider_record_util import ProviderUserRecords
 from cc_common.data_model.schema.adverse_action import AdverseActionData
 from cc_common.data_model.schema.common import CCDataClass
 from cc_common.data_model.schema.compact import CompactConfigurationData
+from cc_common.data_model.schema.investigation import InvestigationData
 from cc_common.data_model.schema.jurisdiction import JurisdictionConfigurationData
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
 from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationData
@@ -149,6 +150,42 @@ class TestDataGenerator:
             default_adverse_actions.update(value_overrides)
 
         return AdverseActionData.create_new(default_adverse_actions)
+
+    @staticmethod
+    def generate_default_investigation(value_overrides: dict | None = None) -> InvestigationData:
+        """Generate a default investigation"""
+        from common_test.test_constants import (
+            DEFAULT_INVESTIGATION_AGAINST_PRIVILEGE,
+            DEFAULT_INVESTIGATION_ID,
+            DEFAULT_INVESTIGATION_START_DATE,
+        )
+
+        default_investigation = {
+            'providerId': DEFAULT_PROVIDER_ID,
+            'compact': DEFAULT_COMPACT,
+            'type': 'investigation',
+            'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
+            'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
+            'licenseType': DEFAULT_LICENSE_TYPE,
+            'investigationAgainst': DEFAULT_INVESTIGATION_AGAINST_PRIVILEGE,
+            'investigationStartDate': date.fromisoformat(DEFAULT_INVESTIGATION_START_DATE),
+            'submittingUser': DEFAULT_AA_SUBMITTING_USER_ID,
+            'creationDate': datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP),
+            'investigationId': DEFAULT_INVESTIGATION_ID,
+        }
+        if value_overrides:
+            default_investigation.update(value_overrides)
+
+        return InvestigationData.create_new(default_investigation)
+
+    @staticmethod
+    def put_default_investigation_record_in_provider_table(value_overrides: dict | None = None) -> InvestigationData:
+        investigation = TestDataGenerator.generate_default_investigation(value_overrides)
+        investigation_record = investigation.serialize_to_database_record()
+
+        TestDataGenerator.store_record_in_provider_table(investigation_record)
+
+        return investigation
 
     @staticmethod
     def put_default_adverse_action_record_in_provider_table(value_overrides: dict | None = None) -> AdverseActionData:

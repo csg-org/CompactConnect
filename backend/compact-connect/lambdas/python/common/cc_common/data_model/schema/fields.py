@@ -8,6 +8,8 @@ from cc_common.data_model.schema.common import (
     CompactEligibilityStatus,
     EncumbranceType,
     HomeJurisdictionChangeStatusEnum,
+    InvestigationAgainstEnum,
+    InvestigationStatusEnum,
     LicenseDeactivatedStatusEnum,
     LicenseEncumberedStatusEnum,
     PrivilegeEncumberedStatusEnum,
@@ -80,6 +82,11 @@ class PrivilegeEncumberedStatusField(String):
         super().__init__(*args, validate=OneOf([entry.value for entry in PrivilegeEncumberedStatusEnum]), **kwargs)
 
 
+class InvestigationStatusField(String):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, validate=OneOf([entry.value for entry in InvestigationStatusEnum]), **kwargs)
+
+
 class HomeJurisdictionChangeStatusField(String):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, validate=OneOf([entry.value for entry in HomeJurisdictionChangeStatusEnum]), **kwargs)
@@ -114,6 +121,11 @@ class EncumbranceTypeField(String):
 class ClinicalPrivilegeActionCategoryField(String):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, validate=OneOf([entry.value for entry in ClinicalPrivilegeActionCategory]), **kwargs)
+
+
+class InvestigationAgainstField(String):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, validate=OneOf([entry.value for entry in InvestigationAgainstEnum]), **kwargs)
 
 
 class PositiveDecimal(Decimal):

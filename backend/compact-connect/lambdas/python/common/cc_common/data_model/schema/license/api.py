@@ -15,6 +15,7 @@ from cc_common.data_model.schema.fields import (
     ActiveInactive,
     Compact,
     CompactEligibility,
+    InvestigationStatusField,
     ITUTE164PhoneNumber,
     Jurisdiction,
     NationalProviderIdentifier,
@@ -145,6 +146,8 @@ class LicenseGeneralResponseSchema(ForgivingSchema):
     emailAddress = Email(required=False, allow_none=False)
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
     adverseActions = List(Nested(AdverseActionGeneralResponseSchema, required=False, allow_none=False))
+    # This field is only set if the license is under investigation
+    investigationStatus = InvestigationStatusField(required=False, allow_none=False)
 
 
 class LicenseReadPrivateResponseSchema(ForgivingSchema):
@@ -183,6 +186,8 @@ class LicenseReadPrivateResponseSchema(ForgivingSchema):
     emailAddress = Email(required=False, allow_none=False)
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
     adverseActions = List(Nested(AdverseActionGeneralResponseSchema, required=False, allow_none=False))
+    # This field is only set if the license is under investigation
+    investigationStatus = InvestigationStatusField(required=False, allow_none=False)
 
     # these fields are specific to the read private role
     dateOfBirth = Raw(required=False, allow_none=False)

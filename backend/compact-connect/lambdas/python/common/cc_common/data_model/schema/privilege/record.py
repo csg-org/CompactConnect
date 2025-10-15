@@ -20,6 +20,7 @@ from cc_common.data_model.schema.fields import (
     ClinicalPrivilegeActionCategoryField,
     Compact,
     HomeJurisdictionChangeStatusField,
+    InvestigationStatusField,
     Jurisdiction,
     LicenseDeactivatedStatusField,
     PrivilegeEncumberedStatusField,
@@ -63,6 +64,16 @@ class EncumbranceDetailsSchema(Schema):
     licenseJurisdiction = Jurisdiction(required=False, allow_none=False)
 
 
+class InvestigationDetailsSchema(Schema):
+    """
+    Schema for tracking details about an investigation.
+    """
+
+    investigationId = UUID(required=True, allow_none=False)
+    # present if update is created by upstream license investigation
+    licenseJurisdiction = Jurisdiction(required=False, allow_none=False)
+
+
 @BaseRecordSchema.register_schema('privilege')
 class PrivilegeRecordSchema(BaseRecordSchema, ValidatesLicenseTypeMixin):
     """
@@ -95,6 +106,8 @@ class PrivilegeRecordSchema(BaseRecordSchema, ValidatesLicenseTypeMixin):
 
     # this field is only set if the privilege or the associated license is encumbered
     encumberedStatus = PrivilegeEncumberedStatusField(required=False, allow_none=False)
+    # this field is only set if the privilege is under investigation
+    investigationStatus = InvestigationStatusField(required=False, allow_none=False)
 
     # This field is only set if a privilege is deactivated as a result of a provider changing their home jurisdiction
     # It is removed in the event that the provider is able to repurchase the privilege in the new jurisdiction after
@@ -188,6 +201,8 @@ class PrivilegeUpdatePreviousRecordSchema(ForgivingSchema):
     homeJurisdictionChangeStatus = HomeJurisdictionChangeStatusField(required=False, allow_none=False)
     # this field is only set if the privilege or the associated license is encumbered
     encumberedStatus = PrivilegeEncumberedStatusField(required=False, allow_none=False)
+    # this field is only set if the privilege is under investigation
+    investigationStatus = InvestigationStatusField(required=False, allow_none=False)
     # this field is only set if the privilege is deactivated due to a state license deactivation
     licenseDeactivatedStatus = LicenseDeactivatedStatusField(required=False, allow_none=False)
 
@@ -218,6 +233,8 @@ class PrivilegeUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin, ValidatesLi
     deactivationDetails = Nested(DeactivationDetailsSchema(), required=False, allow_none=False)
     # optional field that is only included if the update was an encumbrance
     encumbranceDetails = Nested(EncumbranceDetailsSchema(), required=False, allow_none=False)
+    # optional field that is only included if the update was an investigation
+    investigationDetails = Nested(InvestigationDetailsSchema(), required=False, allow_none=False)
     # List of field names that were present in the previous record but removed in the update
     removedValues = List(String(), required=False, allow_none=False)
 

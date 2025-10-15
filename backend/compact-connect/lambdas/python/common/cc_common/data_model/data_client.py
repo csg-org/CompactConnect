@@ -23,11 +23,14 @@ from cc_common.data_model.schema.common import (
     CCDataClass,
     CompactEligibilityStatus,
     HomeJurisdictionChangeStatusEnum,
+    InvestigationAgainstEnum,
+    InvestigationStatusEnum,
     LicenseDeactivatedStatusEnum,
     LicenseEncumberedStatusEnum,
     PrivilegeEncumberedStatusEnum,
     UpdateCategory,
 )
+from cc_common.data_model.schema.investigation import InvestigationData
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
 from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationData
 from cc_common.data_model.schema.military_affiliation.common import (
@@ -1600,6 +1603,261 @@ class DataClient:
             )
 
             logger.info('Set encumbrance for license record')
+
+    def create_investigation(self, investigation: InvestigationData) -> None:
+        """
+        Creates an investigation record for a provider in a jurisdiction.
+
+        This will also update the record to have an investigationStatus of 'underInvestigation',
+        add an update record to show the investigation event.
+
+        :param InvestigationData investigation: The details of the investigation to be added to the records
+        :raises CCNotFoundException: If the record is not found
+        """
+        with logger.append_context_keys(
+            compact=investigation.compact,
+            provider_id=investigation.providerId,
+            jurisdiction=investigation.jurisdiction,
+            license_type_abbreviation=investigation.licenseTypeAbbreviation,
+        ):
+            # Get the record (privilege or license)
+            record_type = investigation.investigationAgainst
+            try:
+                record = self.config.provider_table.get_item(
+                    Key={
+                        'pk': f'{investigation.compact}#PROVIDER#{investigation.providerId}',
+                        'sk': f'{investigation.compact}#PROVIDER#{record_type}/'
+                        f'{investigation.jurisdiction}/{investigation.licenseTypeAbbreviation}#',
+                    },
+                )['Item']
+            except KeyError as e:
+                message = f'{record_type.title()} not found for jurisdiction'
+                logger.info(message)
+                raise CCNotFoundException(
+                    f'{record_type.title()} not found for jurisdiction {investigation.jurisdiction}'
+                ) from e
+
+            if investigation.investigationAgainst == InvestigationAgainstEnum.PRIVILEGE:
+                record_data = PrivilegeData.from_database_record(record)
+                update_data_type = PrivilegeUpdateData
+                update_type = 'privilegeUpdate'
+            else:
+                record_data = LicenseData.from_database_record(record)
+                update_data_type = LicenseUpdateData
+                update_type = 'licenseUpdate'
+
+            now = config.current_standard_datetime
+            investigation_details = {
+                'investigationId': investigation.investigationId,
+            }
+
+            # Create the update record
+            update_record = update_data_type.create_new(
+                {
+                    'type': update_type,
+                    'updateType': UpdateCategory.INVESTIGATION,
+                    'providerId': investigation.providerId,
+                    'compact': investigation.compact,
+                    'jurisdiction': investigation.jurisdiction,
+                    'createDate': now,
+                    'effectiveDate': now,
+                    'licenseType': investigation.licenseType,
+                    'previous': record_data.to_dict(),
+                    'updatedValues': {
+                        'investigationStatus': InvestigationStatusEnum.UNDER_INVESTIGATION,
+                        'dateOfUpdate': now,
+                    },
+                    'investigationDetails': investigation_details,
+                }
+            )
+
+            # Create the investigation record
+            investigation_record = investigation.serialize_to_database_record()
+
+            # Prepare the transaction items
+            transaction_items = [
+                {
+                    'Put': {
+                        'TableName': self.config.provider_table.table_name,
+                        'Item': investigation_record,
+                    }
+                },
+                {
+                    'Put': {
+                        'TableName': self.config.provider_table.table_name,
+                        'Item': update_record.serialize_to_database_record(),
+                    }
+                },
+                {
+                    'Update': {
+                        'TableName': self.config.provider_table.table_name,
+                        'Key': {
+                            'pk': f'{investigation.compact}#PROVIDER#{investigation.providerId}',
+                            'sk': f'{investigation.compact}#PROVIDER#{record_type}/'
+                            f'{investigation.jurisdiction}/{investigation.licenseTypeAbbreviation}#',
+                        },
+                        'UpdateExpression': (
+                            'SET investigationStatus = :investigationStatus, dateOfUpdate = :dateOfUpdate'
+                        ),
+                        'ExpressionAttributeValues': {
+                            ':investigationStatus': InvestigationStatusEnum.UNDER_INVESTIGATION.value,
+                            ':dateOfUpdate': now.isoformat(),
+                        },
+                    }
+                },
+            ]
+
+            # Execute the transaction
+            self.config.provider_table.meta.client.transact_write_items(TransactItems=transaction_items)
+
+            logger.info(f'Set investigation for {record_type} record')
+
+    def close_investigation(
+        self,
+        compact: str,
+        provider_id: str,
+        jurisdiction: str,
+        license_type_abbreviation: str,
+        investigation_id: str,
+        closing_user: str,
+        investigation_against: InvestigationAgainstEnum,
+        resulting_encumbrance_id: str = None,
+    ) -> None:
+        """
+        Closes an investigation by updating the investigation record and removing the investigation status.
+
+        :param compact: The compact name
+        :param provider_id: The provider ID
+        :param jurisdiction: The jurisdiction
+        :param license_type_abbreviation: The license type abbreviation
+        :param investigation_id: The investigation ID
+        :param closing_user: The user who closed the investigation
+        :param investigation_against: Whether investigating a privilege or license
+        :param resulting_encumbrance_id: Optional encumbrance ID to reference in the investigation closure
+        """
+        with logger.append_context_keys(
+            compact=compact,
+            provider_id=provider_id,
+            jurisdiction=jurisdiction,
+            license_type_abbreviation=license_type_abbreviation,
+            investigation_id=investigation_id,
+        ):
+            record_type = investigation_against.value
+
+            # Get the record (privilege or license)
+            try:
+                record = self.config.provider_table.get_item(
+                    Key={
+                        'pk': f'{compact}#PROVIDER#{provider_id}',
+                        'sk': f'{compact}#PROVIDER#{record_type}/{jurisdiction}/{license_type_abbreviation}#',
+                    },
+                )['Item']
+            except KeyError as e:
+                message = f'{record_type.title()} not found for jurisdiction'
+                logger.info(message)
+                raise CCNotFoundException(f'{record_type.title()} not found for jurisdiction {jurisdiction}') from e
+
+            if investigation_against == InvestigationAgainstEnum.PRIVILEGE:
+                record_data = PrivilegeData.from_database_record(record)
+                update_data_type = PrivilegeUpdateData
+                update_type = 'privilegeUpdate'
+            else:
+                record_data = LicenseData.from_database_record(record)
+                update_data_type = LicenseUpdateData
+                update_type = 'licenseUpdate'
+
+            now = config.current_standard_datetime
+
+            # Get license type from the record for the update record
+            license_type = record_data.licenseType
+
+            # Create the update record for investigation closure
+            update_record = update_data_type.create_new(
+                {
+                    'type': update_type,
+                    'updateType': UpdateCategory.INVESTIGATION,
+                    'providerId': provider_id,
+                    'compact': compact,
+                    'jurisdiction': jurisdiction,
+                    'createDate': now,
+                    'effectiveDate': now,
+                    'licenseType': license_type,
+                    'previous': record_data.to_dict(),
+                    'updatedValues': {
+                        'dateOfUpdate': now,
+                    },
+                    'removedValues': ['investigationStatus'],
+                }
+            )
+
+            # Prepare the transaction items
+            # Build the investigation update expression and values
+            investigation_update_expression = (
+                'SET closeDate = :closeDate, closingUser = :closingUser, dateOfUpdate = :dateOfUpdate'
+            )
+            investigation_expression_values = {
+                ':closeDate': now.isoformat(),
+                ':closingUser': closing_user,
+                ':dateOfUpdate': now.isoformat(),
+            }
+
+            # Add resultingEncumbranceId if an encumbrance was created
+            if resulting_encumbrance_id:
+                investigation_update_expression += ', resultingEncumbranceId = :resultingEncumbranceId'
+                investigation_expression_values[':resultingEncumbranceId'] = str(resulting_encumbrance_id)
+
+            transaction_items = [
+                {
+                    'Update': {
+                        'TableName': self.config.provider_table.table_name,
+                        'Key': {
+                            'pk': f'{compact}#PROVIDER#{provider_id}',
+                            'sk': (
+                                f'{compact}#PROVIDER#{record_type}/{jurisdiction}/'
+                                f'{license_type_abbreviation}#INVESTIGATION#{investigation_id}'
+                            ),
+                        },
+                        'UpdateExpression': investigation_update_expression,
+                        'ConditionExpression': 'attribute_exists(pk) AND attribute_not_exists(closeDate)',
+                        'ExpressionAttributeValues': investigation_expression_values,
+                    }
+                },
+                {
+                    'Put': {
+                        'TableName': self.config.provider_table.table_name,
+                        'Item': update_record.serialize_to_database_record(),
+                    }
+                },
+                {
+                    'Update': {
+                        'TableName': self.config.provider_table.table_name,
+                        'Key': {
+                            'pk': f'{compact}#PROVIDER#{provider_id}',
+                            'sk': f'{compact}#PROVIDER#{record_type}/{jurisdiction}/{license_type_abbreviation}#',
+                        },
+                        'UpdateExpression': 'REMOVE investigationStatus SET dateOfUpdate = :dateOfUpdate',
+                        'ConditionExpression': 'attribute_exists(pk)',
+                        'ExpressionAttributeValues': {
+                            ':dateOfUpdate': now.isoformat(),
+                        },
+                    }
+                },
+            ]
+
+            # Execute the transaction
+            try:
+                self.config.provider_table.meta.client.transact_write_items(TransactItems=transaction_items)
+            except Exception as e:
+                # Check if this is a TransactionCanceledException with ConditionalCheckFailed
+                if hasattr(e, 'response') and e.response.get('CancellationReasons'):
+                    for reason in e.response['CancellationReasons']:
+                        if reason.get('Code') == 'ConditionalCheckFailed':
+                            logger.info('Investigation not found or already closed')
+                            raise CCNotFoundException(f'Investigation not found: {investigation_id}') from e
+                # Re-raise if it's not a conditional check failure
+                raise
+
+            logger.info(f'Closed investigation for {record_type} record')
 
     def lift_privilege_encumbrance(
         self,

@@ -8,7 +8,13 @@ from cc_common.data_model.schema.adverse_action.api import (
     AdverseActionPublicResponseSchema,
 )
 from cc_common.data_model.schema.base_record import ForgivingSchema
-from cc_common.data_model.schema.fields import ActiveInactive, Compact, Jurisdiction, UpdateType
+from cc_common.data_model.schema.fields import (
+    ActiveInactive,
+    Compact,
+    InvestigationStatusField,
+    Jurisdiction,
+    UpdateType,
+)
 
 
 class AttestationVersionResponseSchema(Schema):
@@ -79,6 +85,8 @@ class PrivilegeGeneralResponseSchema(ForgivingSchema):
     # This field shows how long the privilege have been continuously active according to
     # its history
     activeSince = Raw(required=False, allow_none=False)
+    # This field is only set if the privilege is under investigation
+    investigationStatus = InvestigationStatusField(required=False, allow_none=False)
 
 
 class PrivilegeReadPrivateResponseSchema(ForgivingSchema):
@@ -111,6 +119,8 @@ class PrivilegeReadPrivateResponseSchema(ForgivingSchema):
     # This field shows how long the privilege have been continuously active according to
     # its history
     activeSince = Raw(required=False, allow_none=False)
+    # This field is only set if the privilege is under investigation
+    investigationStatus = InvestigationStatusField(required=False, allow_none=False)
 
     # these fields are specific to the read private role
     dateOfBirth = Raw(required=False, allow_none=False)

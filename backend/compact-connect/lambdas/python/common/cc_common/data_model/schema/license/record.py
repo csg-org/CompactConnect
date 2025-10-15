@@ -2,7 +2,7 @@
 from datetime import date
 from urllib.parse import quote
 
-from marshmallow import ValidationError, post_dump, post_load, pre_dump, pre_load, validates_schema
+from marshmallow import Schema, ValidationError, post_dump, post_load, pre_dump, pre_load, validates_schema
 from marshmallow.fields import UUID, Date, DateTime, Email, List, Nested, String
 from marshmallow.validate import Length
 
@@ -21,6 +21,7 @@ from cc_common.data_model.schema.fields import (
     ActiveInactive,
     Compact,
     CompactEligibility,
+    InvestigationStatusField,
     ITUTE164PhoneNumber,
     Jurisdiction,
     LicenseEncumberedStatusField,
@@ -28,6 +29,16 @@ from cc_common.data_model.schema.fields import (
     UpdateType,
 )
 from cc_common.data_model.schema.license.common import LicenseCommonSchema
+
+
+class InvestigationDetailsSchema(Schema):
+    """
+    Schema for tracking details about an investigation.
+    """
+
+    investigationId = UUID(required=True, allow_none=False)
+    # present if update is created by upstream license investigation
+    licenseJurisdiction = Jurisdiction(required=False, allow_none=False)
 
 
 @BaseRecordSchema.register_schema('license')
@@ -52,6 +63,8 @@ class LicenseRecordSchema(BaseRecordSchema, LicenseCommonSchema):
 
     # optional field for setting encumbrance status
     encumberedStatus = LicenseEncumberedStatusField(required=False, allow_none=False)
+    # optional field for setting investigation status
+    investigationStatus = InvestigationStatusField(required=False, allow_none=False)
 
     # Persisted values
     jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
@@ -160,6 +173,8 @@ class LicenseUpdateRecordPreviousSchema(ForgivingSchema):
     licenseStatusName = String(required=False, allow_none=False, validate=Length(1, 100))
     jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
     jurisdictionUploadedCompactEligibility = CompactEligibility(required=True, allow_none=False)
+    encumberedStatus = LicenseEncumberedStatusField(required=False, allow_none=False)
+    investigationStatus = InvestigationStatusField(required=False, allow_none=False)
 
 
 @BaseRecordSchema.register_schema('licenseUpdate')
@@ -187,6 +202,8 @@ class LicenseUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
     effectiveDate = DateTime(required=True, allow_none=False)
     # We'll allow any fields that can show up in the previous field to be here as well, but none are required
     updatedValues = Nested(LicenseUpdateRecordPreviousSchema(partial=True), required=True, allow_none=False)
+    # optional field that is only included if the update was an investigation
+    investigationDetails = Nested(InvestigationDetailsSchema(), required=False, allow_none=False)
     # List of field names that were present in the previous record but removed in the update
     removedValues = List(String(), required=False, allow_none=False)
 
