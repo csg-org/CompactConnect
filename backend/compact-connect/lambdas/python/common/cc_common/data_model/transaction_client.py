@@ -272,7 +272,7 @@ class TransactionClient:
                 error=str(e),
             )
 
-    def reconcile_unsettled_transactions(self, compact: str, settled_transactions: list[dict]) -> dict:
+    def reconcile_unsettled_transactions(self, compact: str, settled_transactions: list[dict]) -> list[str]:
         """
         Reconcile unsettled transactions with settled transactions and detect old unsettled transactions.
 
@@ -284,7 +284,7 @@ class TransactionClient:
 
         :param compact: The compact abbreviation
         :param settled_transactions: List of settled transaction records
-        :return: Dictionary with hasOldUnsettledTransactions flag and list of old transaction IDs
+        :return: List of transaction IDs that have not been matched and are older than 48 hours (empty list if none found)
         """
         # Query all unsettled transactions for this compact
         pk = f'COMPACT#{compact}#UNSETTLED_TRANSACTIONS'
@@ -296,7 +296,7 @@ class TransactionClient:
 
         if not unsettled_transactions:
             logger.info('No unsettled transactions found for compact', compact=compact)
-            return {'hasOldUnsettledTransactions': False, 'oldTransactionIds': []}
+            return []
 
         # Create a set of settled transaction IDs for efficient lookup
         settled_transaction_ids = {tx['transactionId'] for tx in settled_transactions}
@@ -338,7 +338,4 @@ class TransactionClient:
                 old_transaction_ids=old_unsettled_transactions,
             )
 
-        return {
-            'hasOldUnsettledTransactions': len(old_unsettled_transactions) > 0,
-            'oldTransactionIds': old_unsettled_transactions,
-        }
+        return old_unsettled_transactions

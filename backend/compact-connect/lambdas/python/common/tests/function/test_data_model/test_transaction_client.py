@@ -208,9 +208,8 @@ class TestTransactionClient(TstFunction):
         result = client.reconcile_unsettled_transactions(compact=compact, settled_transactions=settled_transactions)
 
         # Verify old unsettled transaction was detected
-        self.assertTrue(result['hasOldUnsettledTransactions'])
-        self.assertIn('old-tx-1', result['oldTransactionIds'])
-        self.assertNotIn('recent-tx-1', result['oldTransactionIds'])
+        self.assertIn('old-tx-1', result)
+        self.assertNotIn('recent-tx-1', result)
 
     def test_reconcile_unsettled_transactions_partial_match(self):
         """Test reconciliation when some unsettled transactions match and some don't"""
@@ -237,8 +236,7 @@ class TestTransactionClient(TstFunction):
         result = client.reconcile_unsettled_transactions(compact=compact, settled_transactions=settled_transactions)
 
         # Verify only old unmatched transaction is flagged
-        self.assertTrue(result['hasOldUnsettledTransactions'])
-        self.assertEqual(['tx-old-unmatched'], result['oldTransactionIds'])
+        self.assertEqual(['tx-old-unmatched'], result)
 
         # Verify matched transaction was deleted but unmatched remain
         pk = f'COMPACT#{compact}#UNSETTLED_TRANSACTIONS'

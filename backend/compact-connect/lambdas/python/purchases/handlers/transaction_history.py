@@ -93,7 +93,7 @@ def process_settled_transactions(event: dict, context: LambdaContext) -> dict:  
     )
 
     # Reconcile unsettled transactions with settled transactions
-    reconciliation_result = config.transaction_client.reconcile_unsettled_transactions(
+    old_unsettled_transaction_ids = config.transaction_client.reconcile_unsettled_transactions(
         compact=compact, settled_transactions=transaction_response['transactions']
     )
 
@@ -153,11 +153,11 @@ def process_settled_transactions(event: dict, context: LambdaContext) -> dict:  
             response['status'] = 'BATCH_FAILURE'
 
     # Check for old unsettled transactions (older than 48 hours)
-    if reconciliation_result['hasOldUnsettledTransactions']:
+    if old_unsettled_transaction_ids:
         old_tx_error_message = json.dumps(
             {
                 'message': 'One or more transactions have not settled in over 48 hours.',
-                'unsettledTransactionIds': reconciliation_result['oldTransactionIds'],
+                'unsettledTransactionIds': old_unsettled_transaction_ids,
             }
         )
 
@@ -169,13 +169,13 @@ def process_settled_transactions(event: dict, context: LambdaContext) -> dict:  
                 {
                     'message': f"{existing_error.get('message', '')} {old_tx_error_message}",
                     'failedTransactionIds': existing_error.get('failedTransactionIds', []),
-                    'unsettledTransactionIds': reconciliation_result['oldTransactionIds'],
+                    'unsettledTransactionIds': old_unsettled_transaction_ids,
                 }
             )
         elif response.get('batchFailureErrorMessage'):
             # If we set it in the settlement error check above
             existing_error = json.loads(response['batchFailureErrorMessage'])
-            existing_error['unsettledTransactionIds'] = reconciliation_result['oldTransactionIds']
+            existing_error['unsettledTransactionIds'] = old_unsettled_transaction_ids
             existing_error['message'] = (
                 f"{existing_error['message']} One or more transactions have not settled in over 48 hours."
             )
@@ -186,7 +186,7 @@ def process_settled_transactions(event: dict, context: LambdaContext) -> dict:  
         if _all_transactions_processed(transaction_response):
             logger.error(
                 'Unsettled transactions older than 48 hours detected',
-                unsettledTransactionIds=reconciliation_result['oldTransactionIds'],
+                unsettledTransactionIds=old_unsettled_transaction_ids,
             )
             response['status'] = 'BATCH_FAILURE'
 
